@@ -36,15 +36,17 @@ struct ThreadArgs {
     std::string udsAddrChrony;
 };
 
-int ConnectChrony::remove_chrony_subscriber(int timeBaseIndex,
-    sessionId_t sessionId)
+int ConnectChrony::remove_chrony_subscriber(sessionId_t sessionId)
 {
-    auto &clients = subscribedClientsChrony[timeBaseIndex];
-    for(auto it = clients.begin(); it != clients.end(); ++it) {
-        if(*it == sessionId) {
-            // sessionId found, remove it
-            clients.erase(it);
-            return 0;
+    for(const auto &entry : subscribedClientsChrony) {
+        int timeBaseIndex = entry.first; // Get the timeBaseIndex
+        auto &clients = subscribedClientsChrony[timeBaseIndex];
+        for(auto it = clients.begin(); it != clients.end(); ++it) {
+            if(*it == sessionId) {
+                // sessionId found, remove it
+                clients.erase(it);
+                return 0;
+            }
         }
     }
     return 0;
@@ -68,8 +70,8 @@ void chrony_notify_client(int timeBaseIndex)
         auto TxContext = Client::GetClientSession(
                 sessionId).get()->get_transmitContext();
         if(!pmsg->transmitMessage(*TxContext)) {
-            ConnectPtp4l::remove_ptp4l_subscriber(timeBaseIndex, sessionId);
-            ConnectChrony::remove_chrony_subscriber(timeBaseIndex, sessionId);
+            ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
+            ConnectChrony::remove_chrony_subscriber(sessionId);
             Client::RemoveClientSession(sessionId);
         }
     }

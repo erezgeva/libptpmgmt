@@ -152,24 +152,19 @@ static map<int, unique_ptr<ptpSet>> ptpSets;
    We can not define the mutex inside the ptpSet class itself! */
 static map<int, rtpi::mutex> subscribedLock;
 
-int ConnectPtp4l::remove_ptp4l_subscriber(int timeBaseIndex,
-    sessionId_t sessionId)
+int ConnectPtp4l::remove_ptp4l_subscriber(sessionId_t sessionId)
 {
-    if(ptpSets.count(timeBaseIndex) > 0) {
+    for(const auto &entry : ptpSets) {
+        int timeBaseIndex = entry.first; // Get the timeBaseIndex
         if(ptpSets[timeBaseIndex]->unsubscribe(sessionId)) {
             PrintDebug("sessionId " + to_string(sessionId) +
                 " unsubscribed successfully");
-            return 0; // Successfully unsubscribed
         } else {
             PrintDebug("sessionId " + to_string(sessionId) +
                 " was not subscribed");
-            return -1; // sessionId was not subscribed
         }
-    } else {
-        PrintDebug("timeBaseIndex " + to_string(timeBaseIndex) +
-            " does not exist in the map");
-        return -1; // timeBaseIndex does not exist
     }
+    return 0;
 }
 
 void ptpSet::notify_client()
@@ -197,9 +192,9 @@ void ptpSet::notify_client()
     }
     local.unlock(); // Explicitly unlock the mutex
     for(const sessionId_t sessionId : sessionIdToRemove) {
-        ConnectPtp4l::remove_ptp4l_subscriber(timeBaseIndex, sessionId);
+        ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
         #ifdef HAVE_LIBCHRONY
-        ConnectChrony::remove_chrony_subscriber(timeBaseIndex, sessionId);
+        ConnectChrony::remove_chrony_subscriber(sessionId);
         #endif
         Client::RemoveClientSession(sessionId);
     }
@@ -282,6 +277,7 @@ void ptpSet::thread_loop()
     bool lost_connection = false;
     if(stopThread)
         return;
+    msg_set_action(PORT_PROPERTIES_NP);
     if(!event_subscription()) {
         PrintError("Failed to connect to ptp4l at " + udsAddr);
         lost_connection = true;
