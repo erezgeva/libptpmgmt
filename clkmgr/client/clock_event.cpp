@@ -10,6 +10,7 @@
  */
 
 #include "pub/clkmgr/event.h"
+#include "pub/clkmgr/types_c.h"
 #include "client/clock_event_handler.hpp"
 #include "client/opaque_struct_c.hpp"
 #include "client/timebase_state.hpp"
@@ -155,14 +156,14 @@ extern "C" {
     }
 
     int64_t clkmgr_getClockOffset(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().getClockOffset();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().getClockOffset();
             default:
                 return 0;
@@ -170,14 +171,14 @@ extern "C" {
     }
 
     bool clkmgr_isOffsetInRange(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return false;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().isOffsetInRange();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().isOffsetInRange();
             default:
                 return false;
@@ -185,14 +186,14 @@ extern "C" {
     }
 
     uint32_t clkmgr_getOffsetInRangeEventCount(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().getOffsetInRangeEventCount();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().getOffsetInRangeEventCount();
             default:
                 return 0;
@@ -200,14 +201,14 @@ extern "C" {
     }
 
     int64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().getSyncInterval();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().getSyncInterval();
             default:
                 return 0;
@@ -215,14 +216,14 @@ extern "C" {
     }
 
     uint64_t clkmgr_getGmIdentity(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().getGmIdentity();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().getGmIdentity();
             default:
                 return 0;
@@ -230,14 +231,14 @@ extern "C" {
     }
 
     bool clkmgr_isGmChanged(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return false;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().isGmChanged();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().isGmChanged();
             default:
                 return false;
@@ -245,14 +246,14 @@ extern "C" {
     }
 
     uint32_t clkmgr_getGmChangedEventCount(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().getGmChangedEventCount();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().getGmChangedEventCount();
             default:
                 return 0;
@@ -260,14 +261,14 @@ extern "C" {
     }
 
     uint64_t clkmgr_getNotificationTimestamp(const Clkmgr_ClockSyncData *data_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return data_c->data->getPtp().getNotificationTimestamp();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return data_c->data->getSysClock().getNotificationTimestamp();
             default:
                 return 0;

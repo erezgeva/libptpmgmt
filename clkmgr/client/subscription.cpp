@@ -10,6 +10,7 @@
  */
 
 #include "pub/clkmgr/subscription.h"
+#include "pub/clkmgr/types_c.h"
 #include "client/opaque_struct_c.hpp"
 #include "common/print.hpp"
 
@@ -130,19 +131,19 @@ extern "C" {
         delete sub_c;
     }
 
-    bool clkmgr_setEventMask(Clkmgr_Subscription *sub_c, uint32_t clock_type,
-        uint32_t mask)
+    bool clkmgr_setEventMask(Clkmgr_Subscription *sub_c,
+        enum Clkmgr_ClockType clock_type, uint32_t mask)
     {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 if(sub_c->ptp->setEventMask(mask)) {
                     sub_c->sub->setPtpSubscription(*sub_c->ptp);
                     return true;
                 }
                 return false;
-            case SysClock:
+            case Clkmgr_SysClock:
                 if(sub_c->sys->setEventMask(mask)) {
                     sub_c->sub->setSysSubscription(*sub_c->sys);
                     return true;
@@ -154,14 +155,14 @@ extern "C" {
     }
 
     uint32_t clkmgr_getEventMask(const Clkmgr_Subscription *sub_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!sub_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return sub_c->sub->getPtpSubscription().getEventMask();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return sub_c->sub->getSysSubscription().getEventMask();
             default:
                 return 0;
@@ -191,11 +192,11 @@ extern "C" {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 sub_c->ptp->setClockOffsetThreshold(threshold);
                 sub_c->sub->setPtpSubscription(*sub_c->ptp);
                 return true;
-            case SysClock:
+            case Clkmgr_SysClock:
                 sub_c->sys->setClockOffsetThreshold(threshold);
                 sub_c->sub->setSysSubscription(*sub_c->sys);
                 return true;
@@ -205,29 +206,30 @@ extern "C" {
     }
 
     uint32_t clkmgr_getClockOffsetThreshold(const Clkmgr_Subscription
-        *sub_c, uint32_t clock_type)
+        *sub_c, enum Clkmgr_ClockType clock_type)
     {
         if(!sub_c)
             return 0;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return sub_c->sub->getPtpSubscription().getClockOffsetThreshold();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return sub_c->sub->getSysSubscription().getClockOffsetThreshold();
             default:
                 return 0;
         }
     }
 
-    bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c, uint32_t clock_type)
+    bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c,
+        enum Clkmgr_ClockType clock_type)
     {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 sub_c->sub->enablePtpSubscription();
                 return true;
-            case SysClock:
+            case Clkmgr_SysClock:
                 sub_c->sub->enableSysSubscription();
                 return true;
             default:
@@ -235,15 +237,16 @@ extern "C" {
         }
     }
 
-    bool clkmgr_disableSubscription(Clkmgr_Subscription *sub_c, uint32_t clock_type)
+    bool clkmgr_disableSubscription(Clkmgr_Subscription *sub_c,
+        enum Clkmgr_ClockType clock_type)
     {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 sub_c->sub->disablePtpSubscription();
                 return true;
-            case SysClock:
+            case Clkmgr_SysClock:
                 sub_c->sub->disableSysSubscription();
                 return true;
             default:
@@ -252,14 +255,14 @@ extern "C" {
     }
 
     bool clkmgr_isSubscriptionEnabled(const Clkmgr_Subscription *sub_c,
-        uint32_t clock_type)
+        enum Clkmgr_ClockType clock_type)
     {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case PTPClock:
+            case Clkmgr_PTPClock:
                 return sub_c->sub->isPTPSubscriptionEnable();
-            case SysClock:
+            case Clkmgr_SysClock:
                 return sub_c->sub->isSysSubscriptionEnable();
             default:
                 return false;

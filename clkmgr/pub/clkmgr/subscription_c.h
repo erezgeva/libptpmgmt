@@ -43,8 +43,8 @@ void clkmgr_destroySubscriptionInstance(Clkmgr_Subscription *sub_c);
  * @note The event mask is a bitmask where each bit represents an event,
  * as defined by enum Clkmgr_EventIndex
  */
-bool clkmgr_setEventMask(Clkmgr_Subscription *sub_c, uint32_t clock_type,
-    uint32_t mask);
+bool clkmgr_setEventMask(Clkmgr_Subscription *sub_c,
+    enum Clkmgr_ClockType clock_type, uint32_t mask);
 
 /**
  * Get the value of the event mask
@@ -55,7 +55,7 @@ bool clkmgr_setEventMask(Clkmgr_Subscription *sub_c, uint32_t clock_type,
  * as defined by enum Clkmgr_ClockType
  */
 uint32_t clkmgr_getEventMask(const Clkmgr_Subscription *sub_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Set the PTP composite event mask.
@@ -87,7 +87,7 @@ uint32_t clkmgr_getPtpCompositeEventMask(const Clkmgr_Subscription *sub_c);
  * @note The threshold sets a symmetric range of clock offset
  */
 bool clkmgr_setClockOffsetThreshold(Clkmgr_Subscription *sub_c,
-    uint32_t clock_type, uint32_t threshold);
+    enum Clkmgr_ClockType clock_type, uint32_t threshold);
 
 /**
  * Get the threshold of specify clock offset
@@ -98,7 +98,7 @@ bool clkmgr_setClockOffsetThreshold(Clkmgr_Subscription *sub_c,
  * as defined by enum Clkmgr_ClockType
  */
 uint32_t clkmgr_getClockOffsetThreshold(const Clkmgr_Subscription *sub_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Enable the subscription of the specify clock.
@@ -109,7 +109,8 @@ uint32_t clkmgr_getClockOffsetThreshold(const Clkmgr_Subscription *sub_c,
  * @note The clock type is a bit that represents a type of clock,
  * as defined by enum Clkmgr_ClockType
  */
-bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c, uint32_t clock_type);
+bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c,
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Disable the subscription of the specify clock.
@@ -121,7 +122,7 @@ bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c, uint32_t clock_type);
  * as defined by enum Clkmgr_ClockType
  */
 bool clkmgr_disableSubscription(Clkmgr_Subscription *sub_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Check if the specify clock subscription is enabled
@@ -132,7 +133,7 @@ bool clkmgr_disableSubscription(Clkmgr_Subscription *sub_c,
  * as defined by enum Clkmgr_ClockType
  */
 bool clkmgr_isSubscriptionEnabled(const Clkmgr_Subscription *sub_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 #ifdef __cplusplus
 }

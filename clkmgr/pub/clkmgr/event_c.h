@@ -56,7 +56,7 @@ bool clkmgr_haveSysData(const Clkmgr_ClockSyncData *data_c);
  *  as defined by enum Clkmgr_ClockType
  */
 int64_t clkmgr_getClockOffset(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Check if the clock offset is in-range
@@ -68,7 +68,7 @@ int64_t clkmgr_getClockOffset(const Clkmgr_ClockSyncData *data_c,
  *  as defined by enum Clkmgr_ClockType
  */
 bool clkmgr_isOffsetInRange(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Get the count of clock offset in-range event
@@ -82,7 +82,7 @@ bool clkmgr_isOffsetInRange(const Clkmgr_ClockSyncData *data_c,
  *  as defined by enum Clkmgr_ClockType
  */
 uint32_t clkmgr_getOffsetInRangeEventCount(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Get the synchronization interval in microsecond
@@ -97,7 +97,7 @@ uint32_t clkmgr_getOffsetInRangeEventCount(const Clkmgr_ClockSyncData *data_c,
  *  as defined by enum Clkmgr_ClockType
  */
 int64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Get the grandmaster clock identity
@@ -110,7 +110,7 @@ int64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
  *  as defined by enum Clkmgr_ClockType
  */
 uint64_t clkmgr_getGmIdentity(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Check if the grandmaster has changed
@@ -123,7 +123,7 @@ uint64_t clkmgr_getGmIdentity(const Clkmgr_ClockSyncData *data_c,
  *  as defined by enum Clkmgr_ClockType
  */
 bool clkmgr_isGmChanged(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Get the count of grandmaster changed event
@@ -136,7 +136,7 @@ bool clkmgr_isGmChanged(const Clkmgr_ClockSyncData *data_c,
  *  as defined by enum Clkmgr_ClockType
  */
 uint32_t clkmgr_getGmChangedEventCount(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Get the notification timestamp in nanosecond
@@ -149,7 +149,7 @@ uint32_t clkmgr_getGmChangedEventCount(const Clkmgr_ClockSyncData *data_c,
  * as defined by enum Clkmgr_ClockType
  */
 uint64_t clkmgr_getNotificationTimestamp(const Clkmgr_ClockSyncData *data_c,
-    uint32_t clock_type);
+    enum Clkmgr_ClockType clock_type);
 
 /**
  * Check if the PTP clock is synchronized with a grandmaster
