@@ -19,7 +19,7 @@ CLKMGR_COMMON_SRC:=buffer
 CLKMGR_COMMON_OBJS:=$(foreach n,$(CLKMGR_COMMON_SRC),$(CLKMGR_UTEST_DIR)/$n.o)
 
 CLKMGR_MSG_UTEST:=$(CLKMGR_UTEST_DIR)/utest_message
-CLKMGR_MSG_SRC:=connect_msg
+CLKMGR_MSG_SRC:=connect_msg subscribe_msg notification_msg
 CLKMGR_MSG_UTEST_OBJS:=$(foreach n,$(CLKMGR_MSG_SRC),$(CLKMGR_UTEST_DIR)/$n.o)
 CLKMGR_MSG_SRCS:=$(wildcard $(CLKMGR_DIR)/*/*_msg.cpp)
 CLKMGR_MSG_OBJS:=$(CLKMGR_MSG_SRCS:.cpp=.o)

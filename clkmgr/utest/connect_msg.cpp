@@ -51,23 +51,6 @@ void TimeBaseConfigurations::addTimeBaseCfg(const struct TimeBaseCfg &cfg)
 }
 bool ClientState::connectReply(sessionId_t sessionId) { return sessionId == 14; }
 
-// For other messages
-bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId) { return true; }
-void Client::getPTPEvent(size_t timeBaseIndex, ptp_event &evnt) { }
-bool TimeBaseStates::subscribe(size_t timeBaseIndex,
-    const ClockSyncSubscription &newSub)
-{
-    return true;
-}
-bool TimeBaseStates::subscribeReply(size_t timeBaseIndex, const ptp_event &data)
-{
-    return true;
-}
-void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
-    const ptp_event &event)
-{
-}
-
 // For linking
 Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
 {
