@@ -27,7 +27,7 @@ extern "C" {
 struct clkmgr_c_subscription {
     uint32_t event_mask; /**< Events subscription mask */
     uint32_t composite_event_mask; /**< Composite events mask */
-    struct Clkmgr_Threshold threshold[CLKMGR_THRESHOLD_MAX]; /**< Limits */
+    /*struct Clkmgr_Threshold threshold[CLKMGR_THRESHOLD_MAX];*/ /**< Limits */
 };
 
 /**

@@ -66,9 +66,8 @@ class ClockManager
      * @return True on successful subscription, false on failure
      * @note Event counting will begin once this API is called
      */
-    static bool subscribeByName(const ClkMgrSubscription &newSub,
-        const std::string &timeBaseName,
-        ClockSyncData &clockSyncData);
+    static bool subscribeByName(const ClockSyncSubscription &newSub,
+        const std::string &timeBaseName, ClockSyncData &clockSyncData);
 
     /**
      * Subscribe to specific time-base by providing timeBaseIndex and interested
@@ -80,8 +79,8 @@ class ClockManager
      * @return True on successful subscription, false on failure
      * @note Event counting will begin once this API is called
      */
-    static bool subscribe(const ClkMgrSubscription &newSub, size_t timeBaseIndex,
-        ClockSyncData &clockSyncData);
+    static bool subscribe(const ClockSyncSubscription &newSub,
+        size_t timeBaseIndex, ClockSyncData &clockSyncData);
 
     /**
      * Wait for status changes in the specified time-base by providing the

@@ -47,27 +47,6 @@ enum Nm(EventIndex) sz(`: uint32_t '){
 cnst(uint8_t,THRESHOLD_MAX,8)
 
 /**
- * Index of events which require user to provide predefined threshold.
- *
- * @note The thresholdLast is reserved for future use. The maximum number of
- * events which can have threshold is NM(THRESHOLD_MAX).
- */
-enum Nm(ThresholdIndex) sz(`: uint8_t '){
-    Nm(thresholdGMOffset),  /**< threshold for primary-secondary clock offset */
-    Nm(thresholdChronyOffset),  /**< threshold for chrony clock offset */
-    Nm(thresholdLast)           /**< Last threshold */
-};
-
-/**
- * Structure to hold upper and lower limits
- */
-struct Nm(Threshold) {
-    int32_t upper_limit; /**< Upper limit */
-    int32_t lower_limit; /**< Lower limit */
-cpp_cod(`    Threshold() noexcept : upper_limit(0), lower_limit(0) {}')dnl
-};
-
-/**
  * Structure to represent the current state of events.
  */
 struct Nm(Event_state) {

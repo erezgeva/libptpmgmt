@@ -46,13 +46,28 @@ double getMonotonicTime() {
     return seconds + nanoseconds;
 }
 
+bool isPositiveValue(const std::string& optarg, uint32_t& target, const std::string& errorMessage) {
+    try {
+        int value = std::stoi(optarg);
+        if (value < 0) {
+            std::cerr << errorMessage << std::endl;
+            return false;
+        }
+        target = static_cast<uint32_t>(value);
+        return true;
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Invalid argument: " << e.what() << std::endl;
+        return false;
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Out of range: " << e.what() << std::endl;
+        return false;
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    ClkMgrSubscription subscription = {};
-    int32_t  gmOffsetLowerLimit = -100000;
-    int32_t  gmOffsetUpperLimit = 100000;
-    int32_t  chronyGmOffsetLowerLimit = -100000;
-    int32_t  chronyGmOffsetUpperLimit = 100000;
+    uint32_t  ptp4lClockOffsetThreshold = 100000;
+    uint32_t  chronyClockOffsetThreshold = 100000;
     bool subscribeAll = false;
     bool userInput = false;
     int ret = EXIT_SUCCESS;
@@ -77,6 +92,9 @@ int main(int argc, char *argv[])
     PTPClockEvent &ptpClock = clockSyncData.getPtp();
     SysClockEvent &sysClock = clockSyncData.getSysClock();
 
+    PTPClockSubscription ptp4lSub;
+    SysClockSubscription chronySub;
+
     uint64_t gmClockUUID;
 
     while ((option = getopt(argc, argv, "aps:c:u:l:i:t:n:m:h")) != -1) {
@@ -93,23 +111,25 @@ int main(int argc, char *argv[])
         case 'c':
             composite_event = std::stoul(optarg, nullptr, 0);
             break;
-        case 'u':
-            gmOffsetUpperLimit = std::stoi(optarg);
-            break;
         case 'l':
-            gmOffsetLowerLimit = std::stoi(optarg);
+            if (!isPositiveValue(optarg, ptp4lClockOffsetThreshold, "Invalid ptp4l GM Offset threshold!")) {
+                return EXIT_FAILURE;
+            }
             break;
         case 'i':
-            idleTime = std::stoi(optarg);
+            if (!isPositiveValue(optarg, idleTime, "Invalid idle time!")) {
+                return EXIT_FAILURE;
+            }
             break;
         case 't':
-            timeout = std::stoi(optarg);
+            if (!isPositiveValue(optarg, timeout, "Invalid timeout!")) {
+                return EXIT_FAILURE;
+            }
             break;
         case 'm':
-            chronyGmOffsetUpperLimit = std::stoi(optarg);
-            break;
-        case 'n':
-            chronyGmOffsetLowerLimit = std::stoi(optarg);
+            if (!isPositiveValue(optarg, chronyClockOffsetThreshold, "Invalid Chrony Offset threshold!")) {
+                return EXIT_FAILURE;
+            }
             break;
         case 'h':
             std::cout << "Usage of " << argv[0] << " :\n"
@@ -128,16 +148,12 @@ int main(int argc, char *argv[])
                 "     Bit 0: eventGMOffset\n"
                 "     Bit 1: eventSyncedToGM\n"
                 "     Bit 2: eventASCapable\n"
-                "  -u gm offset upper limit (ns)\n"
-                "     Default: " << std::dec << gmOffsetUpperLimit << " ns\n"
-                "  -l gm offset lower limitt (ns)\n"
-                "     Default: " << gmOffsetLowerLimit << " ns\n"
+                "  -l gm offset threshold (ns)\n"
+                "     Default: " << ptp4lClockOffsetThreshold << " ns\n"
                 "  -i idle time (s)\n"
                 "     Default: " << idleTime << " s\n"
-                "  -m chrony offset upper limit (ns)\n"
-                "     Default: " << std::dec << chronyGmOffsetUpperLimit << " ns\n"
-                "  -n chrony offset lower limit (ns)\n"
-                "     Default: " << chronyGmOffsetLowerLimit << " ns\n"
+                "  -m chrony offset threshold (ns)\n"
+                "     Default: " << std::dec << chronyClockOffsetThreshold << " ns\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_SUCCESS;
@@ -158,16 +174,12 @@ int main(int argc, char *argv[])
                 "     Bit 0: eventGMOffset\n"
                 "     Bit 1: eventSyncedToGM\n"
                 "     Bit 2: eventASCapable\n"
-                "  -u gm offset upper limit (ns)\n"
-                "     Default: " << std::dec << gmOffsetUpperLimit << " ns\n"
-                "  -l gm offset lower limit (ns)\n"
-                "     Default: " << gmOffsetLowerLimit << " ns\n"
+                "  -l gm offset threshold (ns)\n"
+                "     Default: " << ptp4lClockOffsetThreshold << " ns\n"
                 "  -i idle time (s)\n"
                 "     Default: " << idleTime << " s\n"
-                "  -m chrony offset upper limit (ns)\n"
-                "     Default: " << std::dec << chronyGmOffsetUpperLimit << " ns\n"
-                "  -n chrony offset lower limit (ns)\n"
-                "     Default: " << chronyGmOffsetLowerLimit << " ns\n"
+                "  -m chrony offset threshold (ns)\n"
+                "     Default: " << std::dec << chronyClockOffsetThreshold << " ns\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_FAILURE;
@@ -188,20 +200,16 @@ int main(int argc, char *argv[])
 
     sleep(1);
 
-    subscription.set_event_mask(event2Sub);
-    subscription.define_threshold(thresholdGMOffset, gmOffsetUpperLimit,
-        gmOffsetLowerLimit);
-    subscription.define_threshold(thresholdChronyOffset, chronyGmOffsetUpperLimit,
-        chronyGmOffsetLowerLimit);
-    subscription.set_composite_event_mask(composite_event);
+    ptp4lSub.setEventMask(event2Sub);
+    ptp4lSub.setClockOffsetThreshold(ptp4lClockOffsetThreshold);
+    ptp4lSub.setCompositeEventMask(composite_event);
+    chronySub.setClockOffsetThreshold(chronyClockOffsetThreshold);
     std::cout << "[clkmgr] set subscribe event : 0x"
-        << std::hex << subscription.get_event_mask() <<  "\n";
+        << std::hex << ptp4lSub.getEventMask() <<  "\n";
     std::cout << "[clkmgr] set composite event : 0x"
-        << std::hex << subscription.get_composite_event_mask() <<  "\n";
-    std::cout << "GM Offset upper limit: " << std::dec << gmOffsetUpperLimit << " ns\n";
-    std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n";
-    std::cout << "Chrony Offset upper limit: " << std::dec << chronyGmOffsetUpperLimit << " ns\n";
-    std::cout << "Chrony Offset lower limit: " << std::dec << chronyGmOffsetLowerLimit << " ns\n\n";
+        << std::hex << ptp4lSub.getCompositeEventMask() <<  "\n";
+    std::cout << "GM Offset threshold: \u00B1" << std::dec << ptp4lClockOffsetThreshold << " ns\n";
+    std::cout << "Chrony Offset threshold: \u00B1" << std::dec << chronyClockOffsetThreshold << " ns\n";
     std::cout << "[clkmgr] List of available clock: \n";
     /* Print out each member of the Time Base configuration */
     for (const auto &cfg : cm.getTimebaseCfgs()) {
@@ -241,8 +249,13 @@ int main(int argc, char *argv[])
     }
 
     for (const auto &idx : index) {
+        ClockSyncSubscription overallSub;
+        overallSub.enablePtpSubscription();
+        overallSub.enableSysSubscription();
+        overallSub.setPtpSubscription(ptp4lSub);
+        overallSub.setSysSubscription(chronySub);
         std::cout << "Subscribe to time base index: " << idx << "\n";
-        if (!cm.subscribe(subscription, idx, clockSyncData)) {
+        if (!cm.subscribe(overallSub, idx, clockSyncData)) {
             std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";
             cm.disconnect();
             return EXIT_FAILURE;

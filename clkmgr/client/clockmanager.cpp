@@ -59,7 +59,7 @@ const TimeBaseConfigurations &ClockManager::getTimebaseCfgs()
     return TimeBaseConfigurations::getInstance();
 }
 
-bool ClockManager::subscribeByName(const ClkMgrSubscription &newSub,
+bool ClockManager::subscribeByName(const ClockSyncSubscription &newSub,
     const string &timeBaseName, ClockSyncData &clockSyncData)
 {
     size_t timeBaseIndex = 0;
@@ -69,7 +69,8 @@ bool ClockManager::subscribeByName(const ClkMgrSubscription &newSub,
     }
     return subscribe(newSub, timeBaseIndex, clockSyncData);
 }
-bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
+
+bool ClockManager::subscribe(const ClockSyncSubscription &newSub,
     size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
     TimeBaseStates &states = TimeBaseStates::getInstance();

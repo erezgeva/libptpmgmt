@@ -47,35 +47,37 @@ bool clkmgr_subscribe(const clkmgr_c_subscription sub, size_t time_base_index,
 {
     if(cur_stat == nullptr || time_base_index == 0)
         return false;
-    ClkMgrSubscription newsub = {};
-    Event_state state = {};
-    bool ret;
-    newsub.set_event_mask(sub.event_mask);
-    newsub.define_threshold(thresholdGMOffset,
-        sub.threshold[Clkmgr_thresholdGMOffset].upper_limit,
-        sub.threshold[Clkmgr_thresholdGMOffset].lower_limit);
-    newsub.define_threshold(thresholdChronyOffset,
-        sub.threshold[Clkmgr_thresholdChronyOffset].upper_limit,
-        sub.threshold[Clkmgr_thresholdChronyOffset].lower_limit);
-    newsub.set_composite_event_mask(sub.composite_event_mask);
-    ret = 0;//ClockManager::subscribe(newsub, time_base_index, state);
-    if(ret) {
-        cur_stat->as_capable = state.as_capable;
-        cur_stat->offset_in_range = state.offset_in_range;
-        cur_stat->synced_to_primary_clock = state.synced_to_primary_clock;
-        cur_stat->gm_changed = state.gm_changed;
-        cur_stat->composite_event = state.composite_event;
-        cur_stat->clock_offset = state.clock_offset;
-        cur_stat->notification_timestamp = state.notification_timestamp;
-        std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
-            std::begin(cur_stat->gm_identity));
-        cur_stat->ptp4l_sync_interval = state.ptp4l_sync_interval;
-        cur_stat->chrony_clock_offset = state.chrony_clock_offset;
-        cur_stat->chrony_reference_id = state.chrony_reference_id;
-        cur_stat->chrony_offset_in_range = state.chrony_offset_in_range;
-        cur_stat->polling_interval = state.polling_interval;
-    }
-    return ret;
+    return true;
+    // ToDo: Refactor C-wrapper
+    //ClockSubscriptionBasenewsub = {};
+    //Event_state state = {};
+    //bool ret;
+    /*    newsub.setEventMask(sub.event_mask);
+        newsub.define_threshold(thresholdGMOffset,
+            sub.threshold[Clkmgr_thresholdGMOffset].upper_limit,
+            sub.threshold[Clkmgr_thresholdGMOffset].lower_limit);
+        newsub.define_threshold(thresholdChronyOffset,
+            sub.threshold[Clkmgr_thresholdChronyOffset].upper_limit,
+            sub.threshold[Clkmgr_thresholdChronyOffset].lower_limit);
+        newsub.set_composite_event_mask(sub.composite_event_mask);
+        ret = 0;//ClockManager::subscribe(newsub, time_base_index, state);
+        if(ret) {
+            cur_stat->as_capable = state.as_capable;
+            cur_stat->offset_in_range = state.offset_in_range;
+            cur_stat->synced_to_primary_clock = state.synced_to_primary_clock;
+            cur_stat->gm_changed = state.gm_changed;
+            cur_stat->composite_event = state.composite_event;
+            cur_stat->clock_offset = state.clock_offset;
+            cur_stat->notification_timestamp = state.notification_timestamp;
+            std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
+                std::begin(cur_stat->gm_identity));
+            cur_stat->ptp4l_sync_interval = state.ptp4l_sync_interval;
+            cur_stat->chrony_clock_offset = state.chrony_clock_offset;
+            cur_stat->chrony_reference_id = state.chrony_reference_id;
+            cur_stat->chrony_offset_in_range = state.chrony_offset_in_range;
+            cur_stat->polling_interval = state.polling_interval;
+        }
+     return ret;*/
 }
 
 int clkmgr_status_wait_by_name(int timeout, const char *timeBaseName,
