@@ -212,18 +212,19 @@ void Client::NotifyClients(size_t timeBaseIndex)
         return;
     }
     vector<sessionId_t> sessionIdToRemove;
-    // Use share lock, allow all readers to share
-    shared_lock<shared_mutex> clLock(timeBaseClients[timeBaseIndex].clLock);
-    for(auto &c : timeBaseClients[timeBaseIndex].clients) {
-        const sessionId_t sessionId = c.first;
-        PrintDebug("[Client::NotifyClients] Get client session ID: " +
-            to_string(sessionId));
-        Transmitter *ptx = getTransmitter(sessionId);
-        if(ptx == nullptr || !ptx->sendBuffer(notifyBuff))
-            // Add sessionId into the list to remove
-            sessionIdToRemove.push_back(sessionId);
+    {
+        // Use share lock, allow all readers to share
+        shared_lock<shared_mutex> clLock(timeBaseClients[timeBaseIndex].clLock);
+        for(auto &c : timeBaseClients[timeBaseIndex].clients) {
+            const sessionId_t sessionId = c.first;
+            PrintDebug("[Client::NotifyClients] Get client session ID: " +
+                to_string(sessionId));
+            Transmitter *ptx = getTransmitter(sessionId);
+            if(ptx == nullptr || !ptx->sendBuffer(notifyBuff))
+                // Add sessionId into the list to remove
+                sessionIdToRemove.push_back(sessionId);
+        }
     }
-    clLock.unlock(); // Explicitly unlock the mutex
     for(const sessionId_t sessionId : sessionIdToRemove)
         Client::RemoveClient(sessionId);
 }
