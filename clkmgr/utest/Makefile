@@ -23,8 +23,8 @@ CLKMGR_MSG_SRC:=connect_msg subscribe_msg notification_msg message
 CLKMGR_MSG_UTEST_OBJS:=$(foreach n,$(CLKMGR_MSG_SRC),$(CLKMGR_UTEST_DIR)/$n.o)
 CLKMGR_MSG_SRCS:=$(wildcard $(CLKMGR_DIR)/*/*_msg.cpp)
 CLKMGR_MSG_OBJS:=$(CLKMGR_MSG_SRCS:.cpp=.o)
-CLKMGR_MSG_OBJS+=$(foreach n,message msgq_tport print termin sighandler,\
-  $(CLKMGR_COMMON_DIR)/$n.o)
+CLKMGR_MSG_OBJS+=$(addsuffix .o, $(addprefix $(CLKMGR_COMMON_DIR)/, message\
+msgq_tport print termin sighandler) $(addprefix $(CLKMGR_CLIENT_DIR)/,subscription))
 
 CLKMGR_CONFIG_PARSER_UTEST:=$(CLKMGR_UTEST_DIR)/utest_config_parser
 CLKMGR_CONFIG_PARSER_SRC:=config_parser
@@ -32,18 +32,16 @@ CLKMGR_CONFIG_PARSER_UTEST_OBJS:=$(foreach n, $(CLKMGR_CONFIG_PARSER_SRC),\
   $(CLKMGR_UTEST_DIR)/$n.o)
 CLKMGR_CONFIG_PARSER_SRCS:=$(wildcard $(CLKMGR_DIR)/proxy/config_parser.cpp)
 CLKMGR_CONFIG_PARSER_OBJS:=$(CLKMGR_CONFIG_PARSER_SRCS:.cpp=.o)
-CLKMGR_CONFIG_PARSER_OBJS+=$(foreach n,print termin,\
-  $(CLKMGR_COMMON_DIR)/$n.o)
-CLKMGR_CONFIG_PARSER_OBJS+=$(foreach n,jsonParser,$(SRC)/$n.o)
+CLKMGR_CONFIG_PARSER_OBJS+=$(addsuffix .o, $(addprefix $(CLKMGR_COMMON_DIR)/,\
+print termin) $(addprefix $(SRC)/, jsonParser))
 
 CLKMGR_API_UTEST:=$(CLKMGR_UTEST_DIR)/utest_api
 CLKMGR_API_SRC:=clockmanager
 CLKMGR_API_UTEST_OBJS:=$(foreach n,$(CLKMGR_API_SRC),$(CLKMGR_UTEST_DIR)/$n.o)
 CLKMGR_API_SRCS:=$(CLKMGR_CLIENT_DIR)/clockmanager.cpp
 CLKMGR_API_OBJS:=$(CLKMGR_API_SRCS:.cpp=.o)
-CLKMGR_API_OBJS+=$(foreach n,print termin,$(CLKMGR_COMMON_DIR)/$n.o)
-CLKMGR_API_OBJS+=$(foreach n,timebase_configs subscription clock_event,\
-  $(CLKMGR_CLIENT_DIR)/$n.o)
+CLKMGR_API_OBJS+=$(addsuffix .o, $(addprefix $(CLKMGR_COMMON_DIR)/, print termin)\
+$(addprefix $(CLKMGR_CLIENT_DIR)/, timebase_configs subscription clock_event))
 
 $(CLKMGR_UTEST_DIR)/%.o: $(CLKMGR_UTEST_DIR)/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS_UTEST) $(CLKMGR_CXXFLAGS) $(GTEST_INC_FLAGS)\

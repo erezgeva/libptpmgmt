@@ -87,7 +87,8 @@ static inline bool _subscribe(const ClockSyncSubscription &newSub,
         return false;
     }
     ClockSyncBaseHandler handler(clockSyncData);
-    return handler.updateAll(state);
+    handler.updateAll(state);
+    return true;
 }
 
 bool ClockManager::subscribe(const ClockSyncSubscription &newSub,
@@ -155,7 +156,7 @@ static inline int _statusWait(int timeout, size_t timeBaseIndex,
     auto &states = TimeBaseStates::getInstance();
     if(!states.getSubscribed(timeBaseIndex)) {
         PrintDebug("[WAIT] Invalid timeBaseIndex.");
-        return 0;
+        return SWRInvalidArgument;
     }
     auto start = high_resolution_clock::now();
     auto end = (timeout == -1) ?  time_point<high_resolution_clock>::max() :
@@ -166,7 +167,7 @@ static inline int _statusWait(int timeout, size_t timeBaseIndex,
         // Get the current state of the timebase
         if(!states.getTimeBaseState(timeBaseIndex, state)) {
             PrintDebug("[WAIT] Failed to get specific timebase state.");
-            return -1;
+            return SWRInvalidArgument;
         }
         // Check whether there is any changes on the event state
         if(state.is_event_changed()) {
@@ -176,17 +177,16 @@ static inline int _statusWait(int timeout, size_t timeBaseIndex,
         // Check liveness of the Proxy Daemon
         if(!check_proxy_liveness(timeBaseIndex)) {
             PrintDebug("[WAIT] Proxy Daemon is not alive.");
-            return -1;
+            return SWRLostConnection;
         }
         // Sleep for a short duration before the next iteration
         this_thread::sleep_for(milliseconds(10));
     } while(high_resolution_clock::now() < end);
     ClockSyncBaseHandler handler(clockSyncData);
-    if(!handler.updateAll(state))
-        return -1;
+    handler.updateAll(state);
     if(!event_changes_detected)
-        return 0;
-    return 1;
+        return SWRNoEventDetected;
+    return SWREventDetected;
 }
 
 int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
@@ -195,7 +195,7 @@ int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
     // Check whether connection between Proxy and Client is established or not
     if(!ClientState::get_connected()) {
         PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
-        return -1;
+        return SWRLostConnection;
     }
     return _statusWait(timeout, timeBaseIndex, clockSyncData);
 }
@@ -206,12 +206,12 @@ int ClockManager::statusWaitByName(int timeout, const string &timeBaseName,
     // Check whether connection between Proxy and Client is established or not
     if(!ClientState::get_connected()) {
         PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
-        return -1;
+        return SWRLostConnection;
     }
     size_t timeBaseIndex = 0;
     if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
-        return -1;
+        return SWRInvalidArgument;
     }
     return _statusWait(timeout, timeBaseIndex, clockSyncData);
 }

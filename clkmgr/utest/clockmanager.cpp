@@ -342,5 +342,5 @@ TEST_F(ClockManagerTest, statusWait)
     EXPECT_EQ(clData.getSysClock().getClockOffset(), 50000);
     EXPECT_EQ(clData.getSysClock().getOffsetInRangeEventCount(), 0);
     utest_connected_with_proxy = false;
-    EXPECT_EQ(ClockManager::statusWait(1, 1, clData), -1);
+    EXPECT_EQ(ClockManager::statusWait(1, 1, clData), -2);
 }

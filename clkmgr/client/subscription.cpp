@@ -30,17 +30,30 @@ GET(PTPClockSubscription, uint32_t,
 
 bool ClockSubscriptionBase::setEventMask(uint32_t newEventMask)
 {
-    if(newEventMask >= EventLast) {
+    modifyEventMask(newEventMask);
+    return true;
+}
+
+void ClockSubscriptionBase::modifyEventMask(uint32_t newEventMask)
+{
+    eventMask = newEventMask;
+}
+
+ClockSubscriptionBase::~ClockSubscriptionBase() {}
+
+bool PTPClockSubscription::setEventMask(uint32_t newEventMask)
+{
+    if(newEventMask > PTP_EVENT_ALL) {
         PrintDebug("Event mask contains invalid bits.");
         return false;
     }
-    eventMask = newEventMask;
+    modifyEventMask(newEventMask);
     return true;
 }
 
 bool PTPClockSubscription::setCompositeEventMask(uint32_t composite_event_mask)
 {
-    if(composite_event_mask & ~COMPOSITE_EVENT_ALL) {
+    if(composite_event_mask & ~PTP_COMPOSITE_EVENT_ALL) {
         PrintDebug("Composite event mask contains invalid bits.");
         return false;
     }
@@ -53,9 +66,23 @@ PTPClockSubscription::PTPClockSubscription() noexcept
 {
 }
 
+PTPClockSubscription::~PTPClockSubscription() {}
+
 SysClockSubscription::SysClockSubscription() noexcept
     : ClockSubscriptionBase()
 {
+}
+
+SysClockSubscription::~SysClockSubscription() {}
+
+bool SysClockSubscription::setEventMask(uint32_t newEventMask)
+{
+    if(newEventMask > SYS_EVENT_ALL) {
+        PrintDebug("Event mask contains invalid bits.");
+        return false;
+    }
+    modifyEventMask(newEventMask);
+    return true;
 }
 
 ClockSyncSubscription::ClockSyncSubscription()

@@ -12,7 +12,7 @@ include(lang().m4)dnl
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief structures and enums types
+ * @brief Enumerator types
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -28,7 +28,6 @@ ns_s()
 
 /**
  * Bitmask of events available for subscription. Each bit represents one event.
- * @note The Nm(EventLast) is reserved for future use.
  */
 enum Nm(EventIndex) sz(`: uint32_t '){
     /** Offset between primary and secondary clock */
@@ -37,52 +36,25 @@ enum Nm(EventIndex) sz(`: uint32_t '){
     Nm(EventSyncedToGM) = 1 << 1,
     Nm(EventASCapable) = 1 << 2, /**< Link Partner is IEEE 802.1AS capable */
     Nm(EventGMChanged) = 1 << 3, /**< UUID of primary clock is changed */
-    Nm(EventLast) = 1 << 4 /**< Last event */
 };
 
 /**
- * All the events that can be used as conditions for satisfying the composite event.
+ * All the PTP clock events available for subscription.
  */
-cnst(uint32_t,COMPOSITE_EVENT_ALL,Nm(EventGMOffset) | \
+cnst(uint32_t,PTP_EVENT_ALL,Nm(EventGMOffset) | \
+    Nm(EventSyncedToGM) | Nm(EventASCapable) | Nm(EventGMChanged))
+
+/**
+ * All the System clock events available for subscription.
+ */
+cnst(uint32_t,SYS_EVENT_ALL,Nm(EventGMOffset))
+
+/**
+ * All the events that can be used as conditions for satisfying the composite
+ * event of PTP clock.
+ */
+cnst(uint32_t,PTP_COMPOSITE_EVENT_ALL,Nm(EventGMOffset) | \
     Nm(EventSyncedToGM) | Nm(EventASCapable))
-
-/**
- * Maximum number of events that can have user predefined threshold
- * (upper and lower limit) as indicator on whether the event is true or false.
- */
-cnst(uint8_t,THRESHOLD_MAX,8)
-
-/**
- * Structure to represent the current state of events.
- */
-struct Nm(Event_state) {
-    /** Timestamp for last notification in nanoseconds */
-    uint64_t notification_timestamp;
-    int64_t clock_offset; /**< Clock offset in nanoseconds */
-    uint8_t gm_identity[8]; /**< Primary clock UUID */
-    int64_t ptp4l_sync_interval; /**< Clock Sync Interval in microseconds */
-    bool offset_in_range; /**< Clock offset in range */
-    bool synced_to_primary_clock; /**< Synced to primary clock */
-    bool as_capable; /**< IEEE 802.1AS capable */
-    bool gm_changed; /**< Primary clock UUID changed */
-    bool composite_event; /**< Composite event */
-    int64_t chrony_clock_offset; /**< Chrony clock offset in nanoseconds */
-    bool chrony_offset_in_range; /**< Chrony_clock offset in range */
-    uint32_t chrony_reference_id; /**< Chrony reference ID */
-    uint32_t polling_interval; /**< Chrony polling interval in microseconds */
-};
-
-/**
- * Structure to represent the event counts.
- */
-struct Nm(Event_count) {
-    uint32_t offset_in_range_event_count; /**< Clock offset in range */
-    uint32_t synced_to_gm_event_count; /**< Synced to primary clock */
-    uint32_t as_capable_event_count; /**< IEEE 802.1AS capable */
-    uint32_t gm_changed_event_count; /**< Primary clock UUID changed */
-    uint32_t composite_event_count; /**< Composite event */
-    uint32_t chrony_offset_in_range_event_count; /**< Chrony clock offset */
-};
 
 /**
 * Types of clock available for subscription.
@@ -92,6 +64,16 @@ enum Nm(ClockType) sz(`: uint32_t '){
     Nm(PTPClock) = 1, /**< PTP Clock */
     Nm(SysClock) = 2, /**< System Clock */
     Nm(ClockLast) = 3 /**< Last Clock */
+};
+
+/**
+* Return value of statusWait API.
+*/
+enum Nm(StatusWaitResult) sz(`: int32_t '){
+    Nm(SWRLostConnection) = -2, /**< Lost connection to Proxy */
+    Nm(SWRInvalidArgument) = -1, /**< Invalid argument */
+    Nm(SWRNoEventDetected) = 0, /**< No event changes detected */
+    Nm(SWREventDetected) = 1 /**< At least an event change detected */
 };
 
 ns_e()

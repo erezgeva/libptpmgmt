@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Set clock event subsciption.
+ * @brief Set clock event subscription
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -27,6 +27,8 @@ class ClockSubscriptionBase
   public:
     ClockSubscriptionBase() = default;
 
+    virtual ~ClockSubscriptionBase();
+
     /**
      * Set the event mask
      * @param[in] newEventMask The new event mask to set
@@ -34,7 +36,7 @@ class ClockSubscriptionBase
      * @note The event mask is a bitmask where each bit represents an event,
      * as defined by enum EventIndex
      */
-    bool setEventMask(uint32_t newEventMask);
+    virtual bool setEventMask(uint32_t newEventMask);
 
     /**
      * Get the value of the event mask
@@ -55,6 +57,13 @@ class ClockSubscriptionBase
      */
     uint32_t getClockOffsetThreshold() const;
 
+  protected:
+    /**
+     * Modify the event mask.
+     * @param[in] newEventMask The new event mask to set.
+     */
+    void modifyEventMask(uint32_t newEventMask);
+
   private:
     uint32_t clockOffsetThreshold = 0;
     uint32_t eventMask = 0;
@@ -68,6 +77,8 @@ class PTPClockSubscription : public ClockSubscriptionBase
 {
   public:
     PTPClockSubscription() noexcept;
+
+    ~PTPClockSubscription() override;
 
     /**
      * Set the composite event mask.
@@ -85,6 +96,17 @@ class PTPClockSubscription : public ClockSubscriptionBase
      */
     uint32_t getCompositeEventMask() const;
 
+    /**
+     * Set the event mask
+     * @param[in] newEventMask The new event mask to set
+     * @return True if the event mask is set successfully, false otherwise
+     * @note The event mask is a bitmask where each bit represents an event,
+     * as defined by enum EventIndex. The function validates the new event
+     * mask against PTP_EVENT_ALL, ensuring it does not exceed the permissible
+     * range.
+     */
+    bool setEventMask(uint32_t newEventMask) override final;
+
   private:
     uint32_t m_composite_event_mask = 0;
 };
@@ -97,6 +119,19 @@ class SysClockSubscription : public ClockSubscriptionBase
 {
   public:
     SysClockSubscription() noexcept;
+
+    ~SysClockSubscription() override;
+
+    /**
+     * Set the event mask
+     * @param[in] newEventMask The new event mask to set
+     * @return True if the event mask is set successfully, false otherwise
+     * @note The event mask is a bitmask where each bit represents an event,
+     * as defined by enum EventIndex. The function validates the new event
+     * mask against SYS_EVENT_ALL, ensuring it does not exceed the permissible
+     * range.
+     */
+    bool setEventMask(uint32_t newEventMask) override final;
 };
 
 /**

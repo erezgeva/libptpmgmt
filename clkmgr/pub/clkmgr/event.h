@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation. */
 
 /** @file
- * @brief class and structures for clock events
+ * @brief Get clock synchronization events data
  *
  * This file defines the model for managing clock synchronization events.
  * The primary class, ClockSyncData represents a complete event model

@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation. */
 
 /** @file
- * @brief C interface for clock subscription
+ * @brief C wrapper to set clock event subscription
  *
  * @author Goh Wei Sheng <wei.sheng.goh@@intel.com>
  * @copyright © 2025 Intel Corporation.

@@ -194,7 +194,7 @@ class ClockSyncBaseHandler
 
   public:
     ClockSyncBaseHandler(ClockSyncData &clData) : clockSyncData(clData) {}
-    bool updateAll(const TimeBaseState &state);
+    void updateAll(const TimeBaseState &state);
 };
 
 __CLKMGR_NAMESPACE_END

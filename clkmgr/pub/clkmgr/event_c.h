@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation. */
 
 /** @file
- * @brief C interface for clock event
+ * @brief C wrapper to get clock synchronization events data
  *
  * @author Goh Wei Sheng <wei.sheng.goh@@intel.com>
  * @copyright © 2025 Intel Corporation.

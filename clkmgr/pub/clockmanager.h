@@ -2,7 +2,8 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief The Clock Manager APIs to set up and manage the Client.
+ * @brief The Clock Manager APIs to set up Client and monitor clock
+ * synchronization events
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -22,7 +23,7 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 /**
- * Provide APIs to set up and manage the Client.
+ * Provide APIs to set up Client and monitor clock synchronization events.
  * @note This is a singleton class
  */
 class ClockManager
@@ -92,9 +93,10 @@ class ClockManager
      * @param[out] clockSyncData Reference to the current telemetry data and
      * synchronization errors
      * @return Status of wait
-     * @li -1: Client lost connection to Proxy
-     * @li 0: no event changes occur within the timeout duration
-     * @li 1: at least an event change occurs within the timeout duration
+     * @li SWRLostConnection: Lost connection to Proxy
+     * @li SWRInvalidArgument: Invalid argument
+     * @li SWRNoEventDetected: No event changes detected
+     * @li SWREventDetected: At least an event change detected
      * @note Calling this API will reset all event counts
      */
     static int statusWaitByName(int timeout, const std::string &timeBaseName,
@@ -110,9 +112,10 @@ class ClockManager
      * @param[out] clockSyncData Reference to the current telemetry data and
      * synchronization errors
      * @return Status of wait
-     * @li -1: Client lost connection to Proxy
-     * @li 0: no event changes occur within the timeout duration
-     * @li 1: at least an event change occurs within the timeout duration
+     * @li SWRLostConnection: Lost connection to Proxy
+     * @li SWRInvalidArgument: Invalid argument
+     * @li SWRNoEventDetected: No event changes detected
+     * @li SWREventDetected: At least an event change detected
      * @note Calling this API will reset all event counts
      */
     static int statusWait(int timeout, size_t timeBaseIndex,

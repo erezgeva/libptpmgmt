@@ -2,7 +2,8 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief C wrapper for the Clock Manager APIs to set up client-runtime.
+ * @brief C wrapper to the Clock Manager APIs to set up Client and monitor clock
+ * synchronization events
  *
  * @author Song Yoong Siang <yoong.siang.song@@intel.com>
  * @copyright © 2024 Intel Corporation.
