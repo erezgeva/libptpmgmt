@@ -15,6 +15,7 @@
 #include "client/msgq_tport.hpp"
 #include "client/subscribe_msg.hpp"
 #include "client/timebase_state.hpp"
+#include "common/clock_event_handler.hpp"
 #include "common/print.hpp"
 
 #include <chrono>
@@ -37,15 +38,10 @@ rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
 static ClientState implClientState;
 
-ClockManager &ClockManager::FetchSingle()
+ClockManager &ClockManager::fetchSingleInstance()
 {
     static ClockManager m_single;
     return m_single;
-}
-
-bool ClockManager::init()
-{
-    return true;
 }
 
 bool ClockManager::connect()
@@ -88,23 +84,24 @@ bool ClockManager::connect()
     return true;
 }
 
-const TimeBaseConfigurations &ClockManager::get_timebase_cfgs()
+const TimeBaseConfigurations &ClockManager::getTimebaseCfgs()
 {
     return TimeBaseConfigurations::getInstance();
 }
 
-bool ClockManager::subscribe_by_name(const ClkMgrSubscription &newSub,
-    const string &timeBaseName, Event_state &currentState)
+bool ClockManager::subscribeByName(const ClkMgrSubscription &newSub,
+    const string &timeBaseName, ClockSyncData &clockSyncData)
 {
     size_t timeBaseIndex = 0;
     if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
         return false;
     }
-    return subscribe(newSub, timeBaseIndex, currentState);
+    return subscribe(newSub, timeBaseIndex, clockSyncData);
 }
 bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
-    size_t timeBaseIndex, Event_state &currentState)
+    size_t timeBaseIndex,
+    ClockSyncData &clockSyncData)
 {
     // Check whether connection between Proxy and Client is established or not
     if(!implClientState.get_connected()) {
@@ -154,7 +151,14 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
         PrintDebug("[SUBSCRIBE] Failed to get specific timebase state.");
         return false;
     }
-    currentState = state.get_eventState();
+    ClockSyncBaseHandler handler(clockSyncData);
+    // TODO: check ptp4l and chrony data is received
+    PTPClockEvent &ptpData = state.get_ptp4lEventState();
+    handler.setPTPAvailability(true);
+    handler.updatePTPClock(ptpData);
+    SysClockEvent &chronydata = state.get_chronyEventState();
+    handler.setSysAvailability(true);
+    handler.updateSysClock(chronydata);
     return true;
 }
 
@@ -231,19 +235,19 @@ send_connect:
     return true;
 }
 
-int ClockManager::status_wait_by_name(int timeout, const string &timeBaseName,
-    Event_state &currentState, Event_count &currentCount)
+int ClockManager::statusWaitByName(int timeout, const string &timeBaseName,
+    ClockSyncData &clockSyncData)
 {
     size_t timeBaseIndex = 0;
     if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
         return -1;
     }
-    return status_wait(timeout, timeBaseIndex, currentState, currentCount);
+    return statusWait(timeout, timeBaseIndex, clockSyncData);
 }
 
-int ClockManager::status_wait(int timeout, size_t timeBaseIndex,
-    Event_state &currentState, Event_count &currentCount)
+int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
+    ClockSyncData &clockSyncData)
 {
     // Check whether connection between Proxy and Client is established or not
     if(!implClientState.get_connected()) {
@@ -280,15 +284,20 @@ int ClockManager::status_wait(int timeout, size_t timeBaseIndex,
         // Sleep for a short duration before the next iteration
         this_thread::sleep_for(milliseconds(10));
     } while(high_resolution_clock::now() < end);
-    /* Copy out the current state */
-    currentCount = state.get_eventStateCount();
-    currentState = state.get_eventState();
+    ClockSyncBaseHandler handler(clockSyncData);
+    // TODO: check ptp4l and chrony data is received
+    PTPClockEvent &ptpData = state.get_ptp4lEventState();
+    handler.setPTPAvailability(true);
+    handler.updatePTPClock(ptpData);
+    SysClockEvent &chronydata = state.get_chronyEventState();
+    handler.setSysAvailability(true);
+    handler.updateSysClock(chronydata);
     if(!event_changes_detected)
         return 0;
     return 1;
 }
 
-bool ClockManager::gettime(timespec &ts)
+bool ClockManager::getTime(timespec &ts)
 {
     return clock_gettime(CLOCK_REALTIME, &ts) == 0;
 }

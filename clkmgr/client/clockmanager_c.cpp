@@ -58,7 +58,7 @@ bool clkmgr_subscribe(const clkmgr_c_subscription sub, size_t time_base_index,
         sub.threshold[Clkmgr_thresholdChronyOffset].upper_limit,
         sub.threshold[Clkmgr_thresholdChronyOffset].lower_limit);
     newsub.set_composite_event_mask(sub.composite_event_mask);
-    ret = ClockManager::subscribe(newsub, time_base_index, state);
+    ret = 0;//ClockManager::subscribe(newsub, time_base_index, state);
     if(ret) {
         cur_stat->as_capable = state.as_capable;
         cur_stat->offset_in_range = state.offset_in_range;
@@ -96,10 +96,11 @@ int clkmgr_status_wait(int timeout, size_t time_base_index,
         return -1;
     Event_count eventCount = {};
     Event_state state = {};
-    int ret = ClockManager::status_wait(timeout, time_base_index, state,
-            eventCount);
-    if(ret < 0)
-        return ret;
+    int ret = 0;
+    //int ret = ClockManager::status_wait(timeout, time_base_index, state,
+    //        eventCount);
+    //if(ret < 0)
+    //    return ret;
     cur_stat->as_capable = state.as_capable;
     cur_stat->offset_in_range = state.offset_in_range;
     cur_stat->synced_to_primary_clock = state.synced_to_primary_clock;

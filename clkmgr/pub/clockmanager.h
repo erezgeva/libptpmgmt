@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief The Clock Manager APIs to set up client-runtime.
+ * @brief The Clock Manager APIs to set up and manage the Client.
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -14,6 +14,7 @@
 
 #ifdef __cplusplus
 
+#include "pub/clkmgr/event.h"
 #include "pub/clkmgr/subscription.h"
 #include "pub/clkmgr/timebase_configs.h"
 #include <memory>
@@ -21,8 +22,8 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 /**
- * Class to provide APIs to set up and manage the client-runtime.
- * @note the class is singelton
+ * Provide APIs to set up and manage the Client.
+ * @note This is a singleton class
  */
 class ClockManager
 {
@@ -32,94 +33,98 @@ class ClockManager
   public:
 
     /**
-     * Fetch single class object
-     * @return reference to single class object
+     * Fetch the single instance of object
+     * @return Reference to the single instance
      */
-    static ClockManager &FetchSingle();
-
-    /**
-     * Initialize the Clock Manager library
-     * @return true on success
-     */
-    static bool init();
+    static ClockManager &fetchSingleInstance();
 
     /**
      * Establish connection between Client and Proxy
-     * @return true on success, false on failure
+     * @return True on success, false on failure
      */
     static bool connect();
 
     /**
      * Remove the connection between Client and Proxy
-     * @return true on success, false on failure
+     * @return True on success, false on failure
      */
     static bool disconnect();
 
     /**
-     * Get the time base configurations
-     * @return reference to the TimeBaseConfigurations object
+     * Get the configurations of available time-bases
+     * @return Reference to the TimeBaseConfigurations object
      */
-    static const TimeBaseConfigurations &get_timebase_cfgs();
+    static const TimeBaseConfigurations &getTimebaseCfgs();
 
     /**
-     * Subscribe to events by name of the time base
-     * @param[in] newSub Reference to the new subscription
-     * @param[in] timeBaseName Name of the time base to be subscribed
-     * @param[out] currentState Reference to the current state
-     * @return true on success, false on failure
+     * Subscribe to specific time-base by providing timeBaseName and interested
+     * events.
+     * @param[in] newSub Reference to the subscription details
+     * @param[in] timeBaseName Name of the time-base to be subscribed
+     * @param[out] clockSyncData Reference to the current telemetry data and
+     * synchronization errors
+     * @return True on successful subscription, false on failure
+     * @note Event counting will begin once this API is called
      */
-    static bool subscribe_by_name(const ClkMgrSubscription &newSub,
-        const std::string &timeBaseName, Event_state &currentState);
+    static bool subscribeByName(const ClkMgrSubscription &newSub,
+        const std::string &timeBaseName,
+        ClockSyncData &clockSyncData);
 
     /**
-     * Subscribe to events
-     * @param[in] newSub Reference to the new subscription
-     * @param[in] timeBaseIndex Index of the time base to be subscribed
-     * @param[out] currentState Reference to the current state
-     * @return true on success, false on failure
+     * Subscribe to specific time-base by providing timeBaseIndex and interested
+     * events.
+     * @param[in] newSub Reference to the subscription details
+     * @param[in] timeBaseIndex Index of the time-base to be subscribed
+     * @param[out] clockSyncData Reference to the current telemetry data and
+     * synchronization errors
+     * @return True on successful subscription, false on failure
+     * @note Event counting will begin once this API is called
      */
     static bool subscribe(const ClkMgrSubscription &newSub, size_t timeBaseIndex,
-        Event_state &currentState);
+        ClockSyncData &clockSyncData);
 
     /**
-     * Waits for a specified timeout period for any event changes by
-     * name of the time base.
-     * @param[in] timeout in seconds
-     * @li Use 0 to check without waiting
-     * @li Use -1 to wait until there is event changes occurs.
-     * @param[in] timeBaseName Name of the time base to be monitored
-     * @param[out] currentState Reference to the current event state
-     * @param[out] currentCount Reference to the current event count
-     * @return result
-     * @li 1 when an event changes within the timeout period
-     * @li 0 No event changes
-     * @li -1 lost connection to the Clock manager Proxy
+     * Wait for status changes in the specified time-base by providing the
+     * timeBaseName and a timeout duration
+     * @param[in] timeout Timeout duration in seconds
+     * @li -1: wait indefinitely until at least an event change occurs
+     * @li 0: retrieve the latest clock sync data immediately
+     * @param[in] timeBaseName Name of the time-base to be monitored
+     * @param[out] clockSyncData Reference to the current telemetry data and
+     * synchronization errors
+     * @return Status of wait
+     * @li -1: Client lost connection to Proxy
+     * @li 0: no event changes occur within the timeout duration
+     * @li 1: at least an event change occurs within the timeout duration
+     * @note Calling this API will reset all event counts
      */
-    static int status_wait_by_name(int timeout, const std::string &timeBaseName,
-        Event_state &currentState, Event_count &currentCount);
+    static int statusWaitByName(int timeout, const std::string &timeBaseName,
+        ClockSyncData &clockSyncData);
 
     /**
-     * Waits for a specified timeout period for any event changes.
-     * @param[in] timeout in seconds
-     * @li Use 0 to check without waiting
-     * @li Use -1 to wait until there is event changes occurs.
-     * @param[in] timeBaseIndex Index of the time base to be monitored
-     * @param[out] currentState Reference to the current event state
-     * @param[out] currentCount Reference to the current event count
-     * @return result
-     * @li 1 when an event changes within the timeout period
-     * @li 0 No event changes
-     * @li -1 lost connection to the Clock manager Proxy
+     * Wait for status changes in the specified time-base by providing the
+     * timeBaseIndex and a timeout duration
+     * @param[in] timeout Timeout duration in seconds
+     * @li -1: wait indefinitely until at least an event change occurs
+     * @li 0: retrieve the latest clock sync data immediately
+     * @param[in] timeBaseIndex Index of the time-base to be monitored
+     * @param[out] clockSyncData Reference to the current telemetry data and
+     * synchronization errors
+     * @return Status of wait
+     * @li -1: Client lost connection to Proxy
+     * @li 0: no event changes occur within the timeout duration
+     * @li 1: at least an event change occurs within the timeout duration
+     * @note Calling this API will reset all event counts
      */
-    static int status_wait(int timeout, size_t timeBaseIndex,
-        Event_state &currentState, Event_count &currentCount);
+    static int statusWait(int timeout, size_t timeBaseIndex,
+        ClockSyncData &clockSyncData);
 
     /**
      * Retrieve the time of the CLOCK_REALTIME
      * @param[out] ts timestamp of the CLOCK_REALTIME
-     * @return true on success
+     * @return True on success, false on failure
      */
-    static bool gettime(timespec &ts);
+    static bool getTime(timespec &ts);
 };
 
 __CLKMGR_NAMESPACE_END
