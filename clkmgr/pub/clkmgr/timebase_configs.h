@@ -94,9 +94,9 @@ class TimeBaseRecord
   private:
     size_t m_index = 0; /**< Index of the time base */
     std::string m_name; /**< Name of the time base */
-    bool m_have_ptp = true; /**< does this time base use PTP */
+    bool m_have_ptp = false; /**< does this time base use PTP */
     PTPCfg m_ptp; /**< PTP configuration */
-    bool m_have_sys = true; /**< does this time base sync the system clock? */
+    bool m_have_sys = false; /**< does this time base sync the system clock? */
 
   protected:
     /** @cond internal */

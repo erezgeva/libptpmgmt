@@ -125,6 +125,10 @@ void TimeBaseConfigurations::addTimeBaseCfg(const TimeBaseCfg &cfg)
     if(cfg.interfaceName[0] != 0)
         r.setPtp(PTPCfg(cfg.interfaceName, cfg.transportSpecific,
                 cfg.domainNumber));
+    if(cfg.haveSys)
+        r.m_have_sys = true;
+    if(cfg.havePtp)
+        r.m_have_ptp = true;
     getInstWr().m_cfgs[cfg.timeBaseIndex] = std::move(r);
 }
 const TimeBaseRecord &TimeBaseConfigurations::getRecord(size_t timeBaseIndex)

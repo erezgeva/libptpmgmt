@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
     SysClockSubscription chronySub;
 
     uint64_t gmClockUUID;
+    std::map<size_t, ClockSyncSubscription> overallSub;
 
     while ((option = getopt(argc, argv, "aps:c:u:l:i:t:n:m:h")) != -1) {
         switch (option) {
@@ -219,6 +220,12 @@ int main(int argc, char *argv[])
             std::cout << "interfaceName: " << cfg.ptp().ifName() << "\n";
             std::cout << "transportSpecific: " << static_cast<int>(cfg.ptp().transportSpecific()) << "\n";
             std::cout << "domainNumber: " << static_cast<int>(cfg.ptp().domainNumber()) << "\n\n";
+            overallSub[cfg.index()].enablePtpSubscription();
+            overallSub[cfg.index()].setPtpSubscription(ptp4lSub);
+        }
+        if(cfg.haveSysClock()) {
+            overallSub[cfg.index()].enableSysSubscription();
+            overallSub[cfg.index()].setSysSubscription(chronySub);
         }
     }
 
@@ -249,13 +256,8 @@ int main(int argc, char *argv[])
     }
 
     for (const auto &idx : index) {
-        ClockSyncSubscription overallSub;
-        overallSub.enablePtpSubscription();
-        overallSub.enableSysSubscription();
-        overallSub.setPtpSubscription(ptp4lSub);
-        overallSub.setSysSubscription(chronySub);
         std::cout << "Subscribe to time base index: " << idx << "\n";
-        if (!cm.subscribe(overallSub, idx, clockSyncData)) {
+        if (!cm.subscribe(overallSub[idx], idx, clockSyncData)) {
             std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";
             cm.disconnect();
             return EXIT_FAILURE;

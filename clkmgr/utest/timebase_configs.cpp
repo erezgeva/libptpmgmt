@@ -24,14 +24,18 @@ class clkmgr::ClientConnectMessage
             .timeBaseName = { 'm', 'e', 0 },
             .interfaceName = { 'e', 't', 'h', '0', 0 },
             .transportSpecific = 4,
-            .domainNumber = 1
+            .domainNumber = 1,
+            .haveSys = true,
+            .havePtp = true
         });
         cfg.addTimeBaseCfg({
             .timeBaseIndex = 2,
             .timeBaseName = { 't', 'o', 'o', 0 },
             .interfaceName = { 'e', 't', 'h', '1', 0 },
             .transportSpecific = 5,
-            .domainNumber = 5
+            .domainNumber = 5,
+            .haveSys = true,
+            .havePtp = false
         });
     }
 };

@@ -33,6 +33,8 @@ struct TimeBaseCfg {
     char interfaceName[STRING_SIZE_MAX]; /**< Network interface name */
     uint8_t transportSpecific; /**< Transport specific for ptp4l */
     uint8_t domainNumber; /**< Domain number for ptp4l */
+    bool haveSys = false; /**< Flag indicating if system clock is used */
+    bool havePtp = false; /**< Flag to indicate if PTP is configured */
 };
 
 __CLKMGR_NAMESPACE_END
