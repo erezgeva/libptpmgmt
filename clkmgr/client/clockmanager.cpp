@@ -149,8 +149,8 @@ send_connect:
     return ClientState::connect(DEFAULT_LIVENESS_TIMEOUT_IN_MS, &lastConnectTime);
 }
 
-static inline int _statusWait(int timeout, size_t timeBaseIndex,
-    ClockSyncData &clockSyncData)
+static inline enum StatusWaitResult _statusWait(int timeout,
+    size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
     // Check whether requested timeBaseIndex is subscribed or not
     auto &states = TimeBaseStates::getInstance();
@@ -189,8 +189,8 @@ static inline int _statusWait(int timeout, size_t timeBaseIndex,
     return SWREventDetected;
 }
 
-int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
-    ClockSyncData &clockSyncData)
+enum StatusWaitResult ClockManager::statusWait(int timeout,
+    size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
     // Check whether connection between Proxy and Client is established or not
     if(!ClientState::get_connected()) {
@@ -200,8 +200,8 @@ int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
     return _statusWait(timeout, timeBaseIndex, clockSyncData);
 }
 
-int ClockManager::statusWaitByName(int timeout, const string &timeBaseName,
-    ClockSyncData &clockSyncData)
+enum StatusWaitResult ClockManager::statusWaitByName(int timeout,
+    const string &timeBaseName, ClockSyncData &clockSyncData)
 {
     // Check whether connection between Proxy and Client is established or not
     if(!ClientState::get_connected()) {

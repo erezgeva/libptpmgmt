@@ -57,23 +57,24 @@ bool clkmgr_subscribe(const Clkmgr_Subscription *sub_c,
     return ClockManager::subscribe(newSub, timeBaseIndex, *data_c->data);
 }
 
-int clkmgr_statusWaitByName(int timeout, const char *timeBaseName,
-    Clkmgr_ClockSyncData *data_c)
+enum Clkmgr_StatusWaitResult clkmgr_statusWaitByName(int timeout,
+    const char *timeBaseName, Clkmgr_ClockSyncData *data_c)
 {
     if(!data_c)
-        return -1;
+        return Clkmgr_SWRInvalidArgument;
     size_t timeBaseIndex = 0;
     if(TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex))
         return clkmgr_statusWait(timeout, timeBaseIndex, data_c);
-    return -1;
+    return Clkmgr_SWRInvalidArgument;
 }
 
-int clkmgr_statusWait(int timeout, size_t timeBaseIndex,
-    Clkmgr_ClockSyncData *data_c)
+enum Clkmgr_StatusWaitResult clkmgr_statusWait(int timeout,
+    size_t timeBaseIndex, Clkmgr_ClockSyncData *data_c)
 {
     if(timeBaseIndex == 0 || !data_c)
-        return -1;
-    return ClockManager::statusWait(timeout, timeBaseIndex, *data_c->data);
+        return Clkmgr_SWRInvalidArgument;
+    return static_cast<Clkmgr_StatusWaitResult>(ClockManager::statusWait(timeout,
+                timeBaseIndex, *data_c->data));
 }
 
 bool clkmgr_getTime(timespec *ts)

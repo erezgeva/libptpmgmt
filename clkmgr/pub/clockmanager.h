@@ -99,8 +99,8 @@ class ClockManager
      * @li SWREventDetected: At least an event change detected
      * @note Calling this API will reset all event counts
      */
-    static int statusWaitByName(int timeout, const std::string &timeBaseName,
-        ClockSyncData &clockSyncData);
+    static enum StatusWaitResult statusWaitByName(int timeout,
+        const std::string &timeBaseName, ClockSyncData &clockSyncData);
 
     /**
      * Wait for status changes in the specified time-base by providing the
@@ -118,7 +118,7 @@ class ClockManager
      * @li SWREventDetected: At least an event change detected
      * @note Calling this API will reset all event counts
      */
-    static int statusWait(int timeout, size_t timeBaseIndex,
+    static enum StatusWaitResult statusWait(int timeout, size_t timeBaseIndex,
         ClockSyncData &clockSyncData);
 
     /**

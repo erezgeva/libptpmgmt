@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     std::vector<int> index;
     std::string input;
     timespec ts;
-    int retval;
+    enum StatusWaitResult retval;
     int option;
 
     const char *me = strrchr(argv[0], '/');
@@ -347,22 +347,32 @@ int main(int argc, char *argv[])
                 getMonotonicTime(), idx);
 
             retval = cm.statusWait(timeout, idx, clockSyncData);
-
-            if (!retval) {
-                printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
-                    getMonotonicTime(), timeout);
-                printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
-                    getMonotonicTime(), idleTime);
-                sleep(idleTime);
-                continue;
-            } else if (retval < 0) {
-                printf("[clkmgr][%.3f] Terminating: lost connection to clkmgr Proxy\n",
-                    getMonotonicTime());
-                return EXIT_SUCCESS;
+            switch(retval) {
+                case SWRLostConnection:
+                    printf("[clkmgr][%.3f] Terminating: lost connection to clkmgr Proxy\n",
+                        getMonotonicTime());
+                    return EXIT_SUCCESS;
+                case SWRInvalidArgument:
+                    printf("[clkmgr][%.3f] Terminating: Invalid argument\n",
+                        getMonotonicTime());
+                    return EXIT_SUCCESS;
+                case SWRNoEventDetected:
+                    printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
+                        getMonotonicTime(), timeout);
+                    printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
+                        getMonotonicTime(), idleTime);
+                    sleep(idleTime);
+                    continue;
+                case SWREventDetected:
+                    printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
+                        getMonotonicTime());
+                    break;
+                default:
+                    printf("[clkmgr][%.3f] Warning: Should not enter this switch case, unexpected status code %d\n",
+                        getMonotonicTime(), retval);
+                    return EXIT_SUCCESS;
             }
 
-            printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
-                getMonotonicTime());
             if (!cm.getTime(ts)) {
                 perror("clock_gettime failed");
             } else {

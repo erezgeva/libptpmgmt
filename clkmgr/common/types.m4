@@ -69,7 +69,7 @@ enum Nm(ClockType) sz(`: uint32_t '){
 /**
 * Return value of statusWait API.
 */
-enum Nm(StatusWaitResult) sz(`: int32_t '){
+enum Nm(StatusWaitResult) sz(`: int8_t '){
     Nm(SWRLostConnection) = -2, /**< Lost connection to Proxy */
     Nm(SWRInvalidArgument) = -1, /**< Invalid argument */
     Nm(SWRNoEventDetected) = 0, /**< No event changes detected */

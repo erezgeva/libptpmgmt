@@ -69,11 +69,14 @@ bool clkmgr_subscribe(const Clkmgr_Subscription *sub_c,
  * until there is event changes occurs
  * @param[in] timeBaseName Name of the time base to be monitored
  * @param[out] data_c Pointer to the Clkmgr_ClockSyncData
- * @return true if there is event changes within the timeout period,
- *         and false otherwise
+ * @return Status of wait
+ * @li Clkmgr_SWRLostConnection: Lost connection to Proxy
+ * @li Clkmgr_SWRInvalidArgument: Invalid argument
+ * @li Clkmgr_SWRNoEventDetected: No event changes detected
+ * @li Clkmgr_SWREventDetected: At least an event change detected
  */
-int clkmgr_statusWaitByName(int timeout, const char *timeBaseName,
-    Clkmgr_ClockSyncData *data_c);
+enum Clkmgr_StatusWaitResult clkmgr_statusWaitByName(int timeout,
+    const char *timeBaseName, Clkmgr_ClockSyncData *data_c);
 
 /**
  * Waits for a specified timeout period for any event changes
@@ -82,11 +85,14 @@ int clkmgr_statusWaitByName(int timeout, const char *timeBaseName,
  * until there is event changes occurs
  * @param[in] timeBaseIndex Index of the time base to be monitored
  * @param[out] data_c Pointer to the Clkmgr_ClockSyncData
- * @return true if there is event changes within the timeout period,
- *         and false otherwise
+ * @return Status of wait
+ * @li Clkmgr_SWRLostConnection: Lost connection to Proxy
+ * @li Clkmgr_SWRInvalidArgument: Invalid argument
+ * @li Clkmgr_SWRNoEventDetected: No event changes detected
+ * @li Clkmgr_SWREventDetected: At least an event change detected
  */
-int clkmgr_statusWait(int timeout, size_t timeBaseIndex,
-    Clkmgr_ClockSyncData *data_c);
+enum Clkmgr_StatusWaitResult clkmgr_statusWait(int timeout,
+    size_t timeBaseIndex, Clkmgr_ClockSyncData *data_c);
 
 /**
  * Retrieve the time of the CLOCK_REALTIME
