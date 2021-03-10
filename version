@@ -1,0 +1,3 @@
+# For Makefile and shell
+ver_maj=0
+ver_min=1

@@ -1,0 +1,10 @@
+*.o
+*.lo
+*.d
+.libs/
+libpmc.so
+libpmc.a
+pmc
+tags
+libpmc.depend
+libpmc.layout
