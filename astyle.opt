@@ -1,0 +1,63 @@
+# See http://astyle.sourceforge.net/astyle.html or
+#  your astyle.html on your system
+# On Debian look at /usr/share/doc/astyle/html/astyle.html
+
+# Kernighan & Ritchie style as base
+style=kr
+# default indent
+indent=spaces=4
+# Tabs are not replaced within quotes
+convert-tabs
+# break a line if the code exceeds the length
+max-code-length=80
+# Attach braces to class and struct inline function definitions
+attach-inlines
+# Attach the closing 'while' of a 'do-while' statement to the closing brace
+attach-closing-while
+# Indent 'class ' and 'struct' access modifiers, 'public:', 'protected:' and 'private:', one half indent
+indent-modifiers
+# Indent 'switch' blocks so that the 'case X:' statements are indented in the switch block
+indent-switches
+# Indent after aren '(' or an assignment '=' normaly with 1 indent
+indent-after-parens
+# Indent multi-line preprocessor definitions ending with a backslash
+indent-preproc-define
+# Indent preprocessor conditional statements to the same level as the source code
+indent-preproc-cond
+# Indent C++ comments beginning in column one with the code
+indent-col1-comments
+# Insert space padding around operators
+pad-oper
+# Insert space padding after commas
+pad-comma
+# Remove extra space padding around parens on the inside and outside
+unpad-paren
+# Delete empty lines within a function or method
+delete-empty-lines
+# Attach a pointer or reference operator (*, &, or ^) to name
+align-pointer=name
+# Break one line headers (e.g. 'if', 'while', 'else', ...) from a statement residing on the same line
+break-one-line-headers
+# Remove braces from single statement from conditional
+remove-braces
+# Attach the return type to the function name
+attach-return-type
+attach-return-type-decl
+# Don't break one-line blocks
+keep-one-line-blocks
+# Closes whitespace between the ending angle brackets of template definitions (c++ 11)
+close-templates
+# cause the logical conditionals to be placed last when breaking lines
+break-after-logical
+# C++ mode
+mode=c
+# Force use of linux line end (LF)
+lineend=linux
+# Display only the files that have been formatted
+formatted
+# Do not retain a backup of the original file
+suffix=none
+
+# To disable format use // *INDENT-OFF*
+# To reenable use       // *INDENT-ON*
+# To disable "pad-oper", "align-pointer", "align-reference on a single line use // *NOPAD*

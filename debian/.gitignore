@@ -1,0 +1,6 @@
+/files
+/*.substvars
+/.*debhelper*
+/*debhelper*
+/libpmc.pc
+/libpmc*/

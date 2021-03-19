@@ -18,10 +18,12 @@
 			<Add option="-g" />
 			<Add option="-std=c++11" />
 		</Compiler>
+		<Unit filename="buf.cpp" />
 		<Unit filename="cfg.cpp" />
-		<Unit filename="ids.cpp" />
 		<Unit filename="msg.cpp" />
 		<Unit filename="pmc.cpp" />
+		<Unit filename="pmc_dump.cpp" />
+		<Unit filename="proc.cpp" />
 		<Unit filename="ptp.cpp" />
 		<Unit filename="sock.cpp" />
 		<Extensions>

@@ -10,6 +10,12 @@
 // Use:
 //  #define A(n, v, sc, a, sz, f) <macro text>
 //  #include "ids.h"
+#ifndef IDS_START
+#define IDS_START
+#endif
+#ifndef IDS_END
+#define IDS_END
+#endif
 #ifndef caseNA
 #define caseNA(n)
 #endif
@@ -40,6 +46,7 @@
  *        -2  Variable length dataField, need calculation
  */
 //Name                                 value scope  allow       size   func
+IDS_START
 A(NULL_PTP_MANAGEMENT,                 0000, port,  use_GSC,    0,     NA)
 A(CLOCK_DESCRIPTION,                   0001, port,  A_GET,     -2,     UF)
 A(USER_DESCRIPTION,                    0002, clock, use_GS,    -2,     UF)
@@ -103,6 +110,7 @@ A(SUBSCRIBE_EVENTS_NP,                 c003, clock, use_GSL,   66,     UF)
 A(PORT_PROPERTIES_NP,                  c004, port,  use_GL,    -2,     UF)
 A(PORT_STATS_NP,                       c005, port,  use_GL,   266,     UF)
 A(SYNCHRONIZATION_UNCERTAIN_NP,        c006, clock, use_GSL,    2,     UF)
+IDS_END
 #ifndef LAST_MNG_ID
 #define LAST_MNG_ID SYNCHRONIZATION_UNCERTAIN_NP
 #endif
@@ -114,3 +122,5 @@ A(SYNCHRONIZATION_UNCERTAIN_NP,        c006, clock, use_GSL,    2,     UF)
 #undef caseNA
 #undef caseNS
 #undef caseUF
+#undef IDS_START
+#undef IDS_END

@@ -1,0 +1,38 @@
+Source: libpmc
+Maintainer: Erez Geva <ErezGeva2@gmail.com>
+Section: net
+Priority: optional
+Standards-Version: 4.1.4
+Build-Depends: debhelper (>= 9), dh-exec (>=0.3), libtool, coreutils, graphviz, doxygen, swig
+
+Package: pmc
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: libpmc (= ${binary:Version})
+Recommends: linuxptp
+Description: pmc tool.
+ new rewrite of linuxptp pmc tool using the libpmc library.
+ This tool is faster then the original linuxptp tool
+
+Package: libpmc
+Architecture: any
+Multi-Arch: same
+Section: libs
+Recommends: linuxptp
+Description: pmc library, to communicate with ptp4l
+
+Package: libpmc-dev
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Depends: g++, libpmc (= ${binary:Version})
+Description: pmc library development
+ This package provides header files and static library.
+
+Package: libpmc-perl
+Architecture: any
+Multi-Arch: same
+Section: perl
+Depends: ${perl:Depends}, libomc (= ${binary:Version})
+Description: pmc library perl wrapper

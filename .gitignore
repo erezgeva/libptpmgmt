@@ -1,10 +1,14 @@
+/ids2.h
 *.o
 *.lo
 *.d
-.libs/
-libpmc.so
-libpmc.a
-pmc
-tags
-libpmc.depend
-libpmc.layout
+.*.swp
+/.libs/
+/libpmc.so
+/libpmc.a
+/pmc
+/tags
+/doc
+# For codeblocks
+/libpmc.depend
+/libpmc.layout
