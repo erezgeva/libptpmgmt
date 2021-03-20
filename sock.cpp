@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
-#include <linux/if_packet.h>
+#include <linux/filter.h>
 #include "end.h"
 #include "sock.h"
 
@@ -21,6 +21,38 @@ const char *ipv6_udp_mc = "ff0e::181";
 const char *useDefstr = "/.pmc.";
 const char *rootBasestr = "/var/run/pmc.";
 const size_t unix_path_max = sizeof(((sockaddr_un *)nullptr)->sun_path) - 1;
+
+// Berkeley Packet Filter code
+// The code run on network order (big endian).
+// 0x30 Load bottom (2 last bytes of word)
+const uint16_t OP_LDB = BPF_LD  | BPF_B   | BPF_ABS;
+// 0x28 Load high (2 first bytes)
+const uint16_t OP_LDH = BPF_LD  | BPF_H   | BPF_ABS;
+// 0x20 Load word (4 bytes)
+const uint16_t OP_LDW = BPF_LD  | BPF_W   | BPF_ABS;
+// 0x15 Jump Equal
+const uint16_t OP_JEQ = BPF_JMP | BPF_JEQ | BPF_K;
+//  0x6 Return with pass or drop
+const uint16_t OP_RET = BPF_RET | BPF_K;
+
+/*
+ * Filter to receive PTP frames with ethernet protocol 1558
+ * From: sudo tcpdump -d  ether proto 0x88F7
+ *       sudo tcpdump -dd ether proto 0x88F7
+ * See: 'man 7 pcap-filter' for filter syntax
+ */
+const sock_filter bpf_code[] = {
+    // opcode  Jump true  Jump false  field (32 bits)
+    { OP_LDH,  0,         0,          12 },
+    { OP_JEQ,  0,         1,          ETH_P_1588 },
+    { OP_RET,  0,         0,          0x40000 }, // pass
+    { OP_RET,  0,         0,          0 },       // toss
+};
+const sock_fprog bpf = {
+    // Number of code lines
+    .len = sizeof(bpf_code) / sizeof(sock_filter),
+    .filter = (sock_filter *)bpf_code,
+};
 
 sockBase::sockBase() : m_fd(-1), m_isInit(false) {}
 sockBase::~sockBase()
@@ -362,6 +394,15 @@ bool sockBaseIf::setIf(ptpIf &ifObj)
         return set(ifObj);
     return false;
 }
+bool sockBaseIf::setAll(ptpIf &ifObj, configFile &cfg, const char *section)
+{
+    return setIf(ifObj) && setAllBase(cfg, section) && init();
+}
+bool sockBaseIf::setAll(ptpIf &ifObj, configFile &cfg,
+    const std::string &section)
+{
+    return setIf(ifObj) && setAllBase(cfg, section) && init();
+}
 sockIp::sockIp(int domain, const char *mcast, sockaddr *addr, size_t len) :
     m_domain(domain),
     m_udp_ttl(-1),
@@ -487,6 +528,14 @@ bool sockIp4::init2()
     m_addr4.sin_addr = *(in_addr *)m_mcast;
     return true;
 }
+bool sockIp4::setAllBase(configFile &cfg, const char *section)
+{
+    return setUdpTtl(cfg, section);
+}
+bool sockIp4::setAllBase(configFile &cfg, const std::string &section)
+{
+    return setUdpTtl(cfg, section);
+}
 sockIp6::sockIp6() : sockIp(AF_INET6, ipv6_udp_mc, (sockaddr *) & m_addr6,
         sizeof(m_addr6)),
     m_udp6_scope(-1)
@@ -553,7 +602,20 @@ bool sockIp6::setScope(configFile &cfg, const std::string &section)
     m_udp6_scope = cfg.udp6_scope(section);
     return true;
 }
-sockRaw::sockRaw() : m_socket_priority(-1), m_msg_tx{0}, m_msg_rx{0}, m_hdr{0}
+bool sockIp6::setAllBase(configFile &cfg, const char *section)
+{
+    return setUdpTtl(cfg, section) && setScope(cfg, section);
+}
+bool sockIp6::setAllBase(configFile &cfg, const std::string &section)
+{
+    return setUdpTtl(cfg, section) && setScope(cfg, section);
+}
+sockRaw::sockRaw() :
+    m_socket_priority(-1),
+    m_addr{0},
+    m_msg_tx{0},
+    m_msg_rx{0},
+    m_hdr{0}
 {
 }
 bool sockRaw::setPtpDstMacStr(const std::string &str)
@@ -630,17 +692,17 @@ bool sockRaw::init()
 {
     if(m_isInit || !m_have_if || m_ptp_dst_mac.empty() || m_socket_priority < 0)
         return false;
-    uint8_t port = hton16(ETH_P_1588);
-    m_fd = socket(AF_PACKET, SOCK_RAW, port);
+    uint16_t port_all = hton16(ETH_P_ALL);
+    uint16_t port_ptp = hton16(ETH_P_1588);
+    m_fd = socket(AF_PACKET, SOCK_RAW, port_all);
     if(m_fd < 0) {
         perror("socket");
         return false;
     }
-    sockaddr_ll addr = {0};
-    addr.sll_ifindex = m_ifIndex;
-    addr.sll_family = AF_PACKET;
-    addr.sll_protocol = port;
-    if(bind(m_fd, (sockaddr *) &addr, sizeof(addr))) {
+    m_addr.sll_ifindex = m_ifIndex;
+    m_addr.sll_family = AF_PACKET;
+    m_addr.sll_protocol = port_all;
+    if(bind(m_fd, (sockaddr *) &m_addr, sizeof(m_addr))) {
         perror("bind");
         return false;
     }
@@ -654,27 +716,36 @@ bool sockRaw::init()
         perror("SO_PRIORITY");
         return false;
     }
+    if(setsockopt(m_fd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) != 0) {
+        perror("SO_ATTACH_FILTER");
+        return false;
+    }
     packet_mreq mreq = {0};
     mreq.mr_ifindex = m_ifIndex;
     mreq.mr_type = PACKET_MR_MULTICAST;
     mreq.mr_alen = m_ptp_dst_mac.length();
     memcpy(mreq.mr_address, m_ptp_dst_mac.c_str(), m_ptp_dst_mac.length());
     if(setsockopt(m_fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq,
-            sizeof(mreq)) == -1) {
-        perror("PACKET_ADD_MEMBERSHIP");
+            sizeof(mreq)) != 0) {
+        perror("PACKET_ADD_MEMBERSHIP ptp_dst_mac");
         return false;
     }
-    m_hdr.h_proto = port;
-    memcpy(m_hdr.h_dest, m_ptp_dst_mac.c_str(), m_ptp_dst_mac.length());
-    memcpy(m_hdr.h_source, m_mac.c_str(), m_mac.length());
+    // TX
+    m_addr.sll_halen = m_ptp_dst_mac.length();
+    memcpy(m_addr.sll_addr, m_ptp_dst_mac.c_str(), m_ptp_dst_mac.length());
+    m_msg_tx.msg_name = &m_addr;
+    m_msg_tx.msg_namelen = sizeof(m_addr);
     m_msg_tx.msg_iov = m_iov_tx;
     m_msg_tx.msg_iovlen = sizeof(m_iov_tx) / sizeof(iovec);
+    m_hdr.h_proto = port_ptp;
+    memcpy(m_hdr.h_dest, m_ptp_dst_mac.c_str(), m_ptp_dst_mac.length());
+    memcpy(m_hdr.h_source, m_mac.c_str(), m_mac.length());
     m_iov_tx[0].iov_base = &m_hdr;
     m_iov_tx[0].iov_len = sizeof(m_hdr);
+    // RX
     m_msg_rx.msg_iov = m_iov_rx;
     m_msg_rx.msg_iovlen = sizeof(m_iov_rx) / sizeof(iovec);
-    m_iov_rx[0].iov_base = m_rx_buf;
-    m_iov_rx[0].iov_len = sizeof(m_rx_buf);
+    m_isInit = true;
     return true;
 }
 bool sockRaw::send(const void *msg, size_t len)
@@ -684,7 +755,7 @@ bool sockRaw::send(const void *msg, size_t len)
     m_iov_tx[1].iov_base = (void *)msg;
     m_iov_tx[1].iov_len = len;
     ssize_t cnt = sendmsg(m_fd, &m_msg_tx, 0);
-    return sendReply(cnt, len);
+    return sendReply(cnt, len + sizeof(m_hdr));
 }
 ssize_t sockRaw::rcv(void *buf, size_t bufSize, bool block)
 {
@@ -693,6 +764,8 @@ ssize_t sockRaw::rcv(void *buf, size_t bufSize, bool block)
     int flags = 0;
     if(!block)
         flags |= MSG_DONTWAIT;
+    m_iov_rx[0].iov_base = m_rx_buf;
+    m_iov_rx[0].iov_len = sizeof(m_rx_buf);
     m_iov_rx[1].iov_base = buf;
     m_iov_rx[1].iov_len = bufSize;
     ssize_t cnt = recvmsg(m_fd, &m_msg_rx, flags);
@@ -700,9 +773,18 @@ ssize_t sockRaw::rcv(void *buf, size_t bufSize, bool block)
         perror("recvmsg");
         return -1;
     }
-    if(cnt > (ssize_t)bufSize) {
-        fprintf(stderr, "rcv %zd more then buffer size %zu\n", cnt, bufSize);
+    if(cnt > (ssize_t)(bufSize + sizeof(m_rx_buf))) {
+        fprintf(stderr, "rcv %zd more then buffer size %zu\n", cnt,
+            bufSize + sizeof(m_rx_buf));
         return -1;
     }
     return cnt;
+}
+bool sockRaw::setAllBase(configFile &cfg, const char *section)
+{
+    return setPtpDstMac(cfg, section) && setSocketPriority(cfg, section);
+}
+bool sockRaw::setAllBase(configFile &cfg, const std::string &section)
+{
+    return setPtpDstMac(cfg, section) && setSocketPriority(cfg, section);
 }

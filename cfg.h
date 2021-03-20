@@ -29,15 +29,16 @@ class configSection
         udp6_scope_val,
         udp_ttl_val,
         socket_priority_val,
-        network_transport_val,
-        // last uint8_t val
-        // first string value
+        network_transport_val, // last uint8_t m_vals
         uds_address_val,
         ptp_dst_mac_val,
+        p2p_dst_mac_val,
+        last_val,
     };
+    static const int str_base_val; // first string m_str_vals
     uint8_t m_vals[network_transport_val + 1];
-    bool m_set[ptp_dst_mac_val + 1];
-    std::string m_str_vals[2];
+    bool m_set[last_val];
+    std::string m_str_vals[last_val - network_transport_val];
 
     friend class configFile;
     void setGlobal();
@@ -84,6 +85,10 @@ class configFile
     const std::string &ptp_dst_mac(const std::string &section);
     const char *ptp_dst_mac_c(const char *section = nullptr);
     const char *ptp_dst_mac_c(const std::string &section);
+    const std::string &p2p_dst_mac(const char *section = nullptr);
+    const std::string &p2p_dst_mac(const std::string &section);
+    const char *p2p_dst_mac_c(const char *section = nullptr);
+    const char *p2p_dst_mac_c(const std::string &section);
 };
 
 #endif /*__CFG_H*/

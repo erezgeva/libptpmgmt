@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <sys/un.h>
+#include <linux/if_packet.h>
 #include "msg.h"
 #include "cfg.h"
 #include "ptp.h"
@@ -90,12 +91,16 @@ class sockBaseIf : public sockBase
     bool m_have_if;
     bool set(ptpIf &ifObj);
     sockBaseIf() : m_have_if(false) {}
+    virtual bool setAllBase(configFile &cfg, const char *section = nullptr) = 0;
+    virtual bool setAllBase(configFile &cfg, const std::string &section) = 0;
 
   public:
     bool setIf(const std::string &ifName);
     bool setIf(const char *ifName);
     bool setIf(int ifIndex);
     bool setIf(ptpIf &ifObj);
+    bool setAll(ptpIf &ifObj, configFile &cfg, const char *section = nullptr);
+    bool setAll(ptpIf &ifObj, configFile &cfg, const std::string &section);
 };
 
 class sockIp : public sockBaseIf
@@ -127,6 +132,8 @@ class sockIp4 : public sockIp
 
   protected:
     bool init2();
+    bool setAllBase(configFile &cfg, const char *section = nullptr);
+    bool setAllBase(configFile &cfg, const std::string &section);
 
   public:
     sockIp4();
@@ -140,6 +147,8 @@ class sockIp6 : public sockIp
 
   protected:
     bool init2();
+    bool setAllBase(configFile &cfg, const char *section = nullptr);
+    bool setAllBase(configFile &cfg, const std::string &section);
 
   public:
     sockIp6();
@@ -153,10 +162,15 @@ class sockRaw : public sockBaseIf
   private:
     std::string m_ptp_dst_mac;
     int m_socket_priority;
+    sockaddr_ll m_addr;
     iovec m_iov_tx[2], m_iov_rx[2];
     msghdr m_msg_tx, m_msg_rx;
     ethhdr m_hdr;
     uint8_t m_rx_buf[sizeof(ethhdr)];
+
+  protected:
+    bool setAllBase(configFile &cfg, const char *section = nullptr);
+    bool setAllBase(configFile &cfg, const std::string &section);
 
   public:
     sockRaw();

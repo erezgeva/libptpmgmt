@@ -15,6 +15,7 @@
 
 /* from pmc_dump.cpp */
 extern void call_dump(message &m);
+extern baseData *call_data(mng_vals_e id);
 
 /* Receive constants */
 static const int wait = 500; // milli
@@ -64,6 +65,62 @@ static inline void dump_err()
         msg.errId2str_c(msg.getErrId()),
         msg.getErrId(),
         msg.getErrDisplay_c());
+}
+static inline bool updatePortIdentity(msgParams &prms, const char *str)
+{
+    char *buf = strdup(str);
+    if(buf == nullptr)
+        return false;
+    char *port = strchr(buf, '-');
+    if(port == nullptr) {
+        free(buf);
+        return false;
+    }
+    *port = 0;
+    port++;
+    ClockIdentity_t nc;
+    int i = 0;
+    long val;
+    char *end;
+    char *cur = strtok(buf, ".");
+    char nib[3];
+    nib[2] = 0;
+    while(cur != nullptr) {
+        if(cur[0] != 0) {
+            // Too big
+            if(i ==  sizeof(ClockIdentity_t)) {
+                free(buf);
+                return false;
+            }
+            nib[0] = cur[0];
+            nib[1] = cur[1];
+            val = strtol(nib, &end, 16);
+            if(*end != 0 || val < 0 || val > 0xff) {
+                free(buf);
+                return false;
+            }
+            nc.v[i++] = val;
+        }
+        // We go to end of token
+        if(cur[0] == 0 || cur[1] == 0 || cur[2] == 0)
+            cur = strtok(nullptr, ".");
+        else
+            cur += 2;
+    }
+    // Check proper length
+    if(i != sizeof(ClockIdentity_t)) {
+        free(buf);
+        return false;
+    }
+    val = strtol(port, &end, 0);
+    if(val < 0 || val > UINT16_MAX) {
+        free(buf);
+        return false;
+    }
+    prms.target.portNumber = val;
+    prms.target.clockIdentity = nc;
+    free(buf);
+    return true;
 }
 static inline bool sendAction()
 {
@@ -149,13 +206,11 @@ static void run_line(char *line)
         if(*cur == '*')
             msg.setAllPorts();
         else {
-            char *end;
-            uint16_t portNumber = strtol(cur, &end, 0);
-            if(*end != 0)
-                return; // invalid string
             msgParams prms = msg.getParams();
-            prms.target.portNumber = portNumber;
-            msg.updateParams(prms);
+            if(updatePortIdentity(prms, cur))
+                msg.updateParams(prms);
+            else
+                fprintf(stderr, "Wrong clock ID: %s\n", cur);
         }
         return;
     } else
@@ -171,8 +226,8 @@ static void run_line(char *line)
         if(!msg.setAction(action, id))
             return;
     } else {
-        baseData *data = nullptr;
-        // TODO Handle data
+        baseData *data = call_data(id);
+        // No point to send without data
         if(data == nullptr)
             return;
         if(!msg.setAction(action, id, *data))
@@ -290,7 +345,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate sockIp4\n");
                 return -1;
             }
-            if(!sk4->setIf(ifObj) || !sk4->setUdpTtl(cfg, interface) || !sk4->init()) {
+            if(!sk4->setAll(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
@@ -303,8 +358,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate sockIp6\n");
                 return -1;
             }
-            if(!sk6->setIf(ifObj) || !sk6->setUdpTtl(cfg, interface) ||
-                !sk6->setScope(cfg, interface) || !sk6->init()) {
+            if(!sk6->setAll(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
@@ -317,8 +371,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate sockRaw\n");
                 return -1;
             }
-            if(!skr->setIf(ifObj) || !skr->setPtpDstMac(cfg, interface) ||
-                !skr->setSocketPriority(cfg, interface) || !skr->init()) {
+            if(!skr->setAll(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }

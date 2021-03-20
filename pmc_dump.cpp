@@ -6,19 +6,21 @@
  *
  */
 
+#include <cstring>
 #include "msg.h"
 
+static const char toksep[] = " \t\n\a\r"; // while spaces
 #define IDENT "\n\t\t"
 #define dump(n) \
 static inline void dump_##n(message &m) {\
-    struct n##_t &d = *(n##_t*)m.getData();\
+    n##_t &d = *(n##_t*)m.getData();\
     printf(
-#define dump_end_print \
+#define func_end_print \
     );\
 }
 #define end_print \
     )
-#define dump_end \
+#define func_end \
 }
 
 dump(CLOCK_DESCRIPTION)
@@ -40,15 +42,15 @@ dump(CLOCK_DESCRIPTION)
     m.pppText2str_c(d.productDescription), m.pppText2str_c(d.revisionData),
     m.pppText2str_c(d.userDescription),
     m.b2str(d.profileIdentity, sizeof(d.profileIdentity)).c_str()
-    dump_end_print
+    func_end_print
 dump(USER_DESCRIPTION)
     IDENT "userDescription  %s",
     m.pppText2str_c(d.userDescription)
-    dump_end_print
+    func_end_print
 dump(INITIALIZE)
     IDENT "initializationKey %u",
     d.initializationKey
-    dump_end_print
+    func_end_print
 dump(FAULT_LOG)
     IDENT "numberOfFaultRecords %u",
     d.numberOfFaultRecords
@@ -67,7 +69,7 @@ dump(FAULT_LOG)
                i, m.pppText2str_c(rec.faultDescription));
         i++;
     }
-    dump_end
+    func_end
 dump(DEFAULT_DATA_SET)
     IDENT "twoStepFlag             %u"
     IDENT "slaveOnly               %u"
@@ -89,7 +91,7 @@ dump(DEFAULT_DATA_SET)
     d.priority2,
     m.c2str(d.clockIdentity).c_str(),
     d.domainNumber
-    dump_end_print
+    func_end_print
 dump(CURRENT_DATA_SET)
     IDENT "stepsRemoved     %u"
     IDENT "offsetFromMaster %.1f"
@@ -97,7 +99,7 @@ dump(CURRENT_DATA_SET)
     d.stepsRemoved,
     m.getInterval(d.offsetFromMaster),
     m.getInterval(d.meanPathDelay)
-    dump_end_print
+    func_end_print
 dump(PARENT_DATA_SET)
     IDENT "parentPortIdentity                    %s"
     IDENT "parentStats                           %u"
@@ -119,7 +121,7 @@ dump(PARENT_DATA_SET)
     d.grandmasterClockQuality.offsetScaledLogVariance,
     d.grandmasterPriority2,
     m.c2str(d.grandmasterIdentity).c_str()
-    dump_end_print
+    func_end_print
 dump(TIME_PROPERTIES_DATA_SET)
     IDENT "currentUtcOffset      %d"
     IDENT "leap61                %u"
@@ -137,7 +139,7 @@ dump(TIME_PROPERTIES_DATA_SET)
     m.is_TTRA(d.flags),
     m.is_FTRA(d.flags),
     m.timeSrc2str_c(d.timeSource)
-    dump_end_print
+    func_end_print
 dump(PORT_DATA_SET)
     IDENT "portIdentity            %s"
     IDENT "portState               %s"
@@ -159,47 +161,47 @@ dump(PORT_DATA_SET)
     d.delayMechanism,
     d.logMinPdelayReqInterval,
     d.versionNumber
-    dump_end_print
+    func_end_print
 dump(PRIORITY1)
     IDENT "priority1 %u",
     d.priority1
-    dump_end_print
+    func_end_print
 dump(PRIORITY2)
     IDENT "priority2 %u",
     d.priority2
-    dump_end_print
+    func_end_print
 dump(DOMAIN)
     IDENT "domainNumber %u",
     d.domainNumber
-    dump_end_print
+    func_end_print
 dump(SLAVE_ONLY)
     IDENT "slaveOnly %u",
     d.flags & 1
-    dump_end_print
+    func_end_print
 dump(LOG_ANNOUNCE_INTERVAL)
     IDENT "logAnnounceInterval %d",
     d.logAnnounceInterval
-    dump_end_print
+    func_end_print
 dump(ANNOUNCE_RECEIPT_TIMEOUT)
     IDENT "announceReceiptTimeout %u",
     d.announceReceiptTimeout
-    dump_end_print
+    func_end_print
 dump(LOG_SYNC_INTERVAL)
     IDENT "logSyncInterval %d",
     d.logSyncInterval
-    dump_end_print
+    func_end_print
 dump(VERSION_NUMBER)
     IDENT "versionNumber %u",
     d.versionNumber
-    dump_end_print
+    func_end_print
 dump(TIME)
     IDENT "currentTime %s",
     m.c2str(d.currentTime).c_str()
-    dump_end_print
+    func_end_print
 dump(CLOCK_ACCURACY)
     IDENT "clockAccuracy 0x%x",
     d.clockAccuracy
-    dump_end_print
+    func_end_print
 dump(UTC_PROPERTIES)
     IDENT "currentUtcOffset      %d"
     IDENT "leap61                %u"
@@ -209,21 +211,21 @@ dump(UTC_PROPERTIES)
     m.is_LI_61(d.flags),
     m.is_LI_59(d.flags),
     m.is_UTCV(d.flags)
-    dump_end_print
+    func_end_print
 dump(TRACEABILITY_PROPERTIES)
     IDENT "timeTraceable      %u"
     IDENT "frequencyTraceable %u",
     m.is_TTRA(d.flags),
     m.is_FTRA(d.flags)
-    dump_end_print
+    func_end_print
 dump(TIMESCALE_PROPERTIES)
     IDENT "ptpTimescale %u",
     m.is_PTP(d.flags)
-    dump_end_print
+    func_end_print
 dump(UNICAST_NEGOTIATION_ENABLE)
     IDENT "unicastNegotiationPortDS %sabled",
     d.flags & 1 ?"e":"dis"
-    dump_end_print
+    func_end_print
 dump(PATH_TRACE_LIST)
     "numberOfPathSequences %zu",
     d.pathSequence.size()
@@ -231,11 +233,11 @@ dump(PATH_TRACE_LIST)
     uint16_t i = 0;
     for(auto &rec: d.pathSequence)
         printf(IDENT "[%u] %s" , i++, m.c2str(rec).c_str());
-    dump_end
+    func_end
 dump(PATH_TRACE_ENABLE)
     IDENT "pathTraceDS %sabled",
     d.flags & 1 ?"e":"dis"
-    dump_end_print
+    func_end_print
 dump(GRANDMASTER_CLUSTER_TABLE)
     IDENT "logQueryInterval %d"
     IDENT "actualTableSize  %u",
@@ -245,7 +247,7 @@ dump(GRANDMASTER_CLUSTER_TABLE)
     uint16_t i = 0;
     for(auto &rec: d.PortAddress)
         printf(IDENT "[%u] %s" , i++, m.c2str(rec).c_str());
-    dump_end
+    func_end
 dump(UNICAST_MASTER_TABLE)
     IDENT "logQueryInterval %d"
     IDENT "actualTableSize  %u",
@@ -255,11 +257,11 @@ dump(UNICAST_MASTER_TABLE)
     uint16_t i = 0;
     for(auto &rec: d.PortAddress)
         printf(IDENT "[%u] %s" , i++, m.c2str(rec).c_str());
-    dump_end
+    func_end
 dump(UNICAST_MASTER_MAX_TABLE_SIZE)
     IDENT "maxTableSize %u",
     d.maxTableSize
-    dump_end_print
+    func_end_print
 dump(ACCEPTABLE_MASTER_TABLE)
     IDENT "actualTableSize %d",
     d.actualTableSize
@@ -272,15 +274,15 @@ dump(ACCEPTABLE_MASTER_TABLE)
                 i, rec.alternatePriority1);
         i++;
     }
-    dump_end
+    func_end
 dump(ACCEPTABLE_MASTER_TABLE_ENABLED)
     IDENT "acceptableMasterPortDS %sabled",
     d.flags & 1 ?"e":"dis"
-    dump_end_print
+    func_end_print
 dump(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
     IDENT "maxTableSize %u",
     d.maxTableSize
-    dump_end_print
+    func_end_print
 dump(ALTERNATE_MASTER)
     IDENT "transmitAlternateMulticastSync    %sabled"
     IDENT "logAlternateMulticastSyncInterval %d"
@@ -288,19 +290,19 @@ dump(ALTERNATE_MASTER)
     d.flags & 1 ?"e":"dis",
     d.logAlternateMulticastSyncInterval,
     d.numberOfAlternateMasters
-    dump_end_print
+    func_end_print
 dump(ALTERNATE_TIME_OFFSET_ENABLE)
     IDENT "alternateTimescaleOffsetsDS[%u] %sabled",
     d.keyField, d.flags & 1 ?"e":"dis"
-    dump_end_print
+    func_end_print
 dump(ALTERNATE_TIME_OFFSET_NAME)
     IDENT "[%u] %s",
     d.keyField, m.pppText2str_c(d.displayName)
-    dump_end_print
+    func_end_print
 dump(ALTERNATE_TIME_OFFSET_MAX_KEY)
     IDENT "maxKey %u",
     d.maxKey
-    dump_end_print
+    func_end_print
 dump(ALTERNATE_TIME_OFFSET_PROPERTIES)
     IDENT "keyField       %u"
     IDENT "currentOffset  %d"
@@ -310,7 +312,7 @@ dump(ALTERNATE_TIME_OFFSET_PROPERTIES)
     d.currentOffset,
     d.jumpSeconds,
     d.timeOfNextJump
-    dump_end_print
+    func_end_print
 dump(TRANSPARENT_CLOCK_PORT_DATA_SET)
     IDENT "portIdentity            %s"
     IDENT "transparentClockPortDS  %s"
@@ -320,11 +322,11 @@ dump(TRANSPARENT_CLOCK_PORT_DATA_SET)
     d.flags & 1 ? "true" : "false",
     d.logMinPdelayReqInterval,
     (uint64_t)m.getInterval(d.peerMeanPathDelay)
-    dump_end_print
+    func_end_print
 dump(LOG_MIN_PDELAY_REQ_INTERVAL)
     IDENT "logMinPdelayReqInterval %d",
     d.logMinPdelayReqInterval
-    dump_end_print
+    func_end_print
 dump(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     IDENT "clockIdentity  %s"
     IDENT "numberPorts    %u"
@@ -334,33 +336,33 @@ dump(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     d.numberPorts,
     d.delayMechanism,
     d.primaryDomain
-    dump_end_print
+    func_end_print
 dump(PRIMARY_DOMAIN)
     IDENT "primaryDomain %u",
     d.primaryDomain
-    dump_end_print
+    func_end_print
 dump(DELAY_MECHANISM)
     IDENT "delayMechanism %u",
     d.delayMechanism
-    dump_end_print
+    func_end_print
 dump(EXTERNAL_PORT_CONFIGURATION_ENABLED)
     IDENT "externalPortConfiguration %sabled",
     d.flags & 1 ?"e":"dis"
-    dump_end_print
+    func_end_print
 dump(MASTER_ONLY)
     IDENT "masterOnly %s",
     d.flags & 1 ?"true":"false"
-    dump_end_print
+    func_end_print
 dump(HOLDOVER_UPGRADE_ENABLE)
     IDENT "holdoverUpgradeDS %sabled",
     d.flags & 1 ?"e":"dis"
-    dump_end_print
+    func_end_print
 dump(EXT_PORT_CONFIG_PORT_DATA_SET)
     IDENT "acceptableMasterPortDS %sabled"
     IDENT "desiredState           %s",
     d.flags & 1 ?"e":"dis",
     m.portState2str_c(d.desiredState)
-    dump_end_print
+    func_end_print
 dump(TIME_STATUS_NP)
     IDENT "master_offset              %jd"
     IDENT "ingress_time               %jd"
@@ -381,7 +383,7 @@ dump(TIME_STATUS_NP)
     d.fractional_nanoseconds,
     d.gmPresent ? "true" : "false",
     m.c2str(d.gmIdentity).c_str()
-    dump_end_print
+    func_end_print
 dump(GRANDMASTER_SETTINGS_NP)
     IDENT "clockClass              %u"
     IDENT "clockAccuracy           0x%x"
@@ -405,13 +407,13 @@ dump(GRANDMASTER_SETTINGS_NP)
     m.is_TTRA(d.flags),
     m.is_FTRA(d.flags),
     m.timeSrc2str_c(d.timeSource)
-    dump_end_print
+    func_end_print
 dump(PORT_DATA_SET_NP)
     IDENT "neighborPropDelayThresh %u"
     IDENT "asCapable               %d",
     d.neighborPropDelayThresh,
     d.asCapable
-    dump_end_print
+    func_end_print
 dump(SUBSCRIBE_EVENTS_NP)
     IDENT "duration          %u"
     IDENT "NOTIFY_PORT_STATE %s"
@@ -419,7 +421,7 @@ dump(SUBSCRIBE_EVENTS_NP)
     d.duration,
     EVENT_BIT(d.bitmask, NOTIFY_PORT_STATE),
     EVENT_BIT(d.bitmask, NOTIFY_TIME_SYNC)
-    dump_end_print
+    func_end_print
 dump(PORT_PROPERTIES_NP)
     IDENT "portIdentity            %s"
     IDENT "portState               %s"
@@ -429,7 +431,7 @@ dump(PORT_PROPERTIES_NP)
     m.portState2str_c(d.portState),
     m.ts2str_c(d.timestamping) + 3 /* Remove the 'TS_' prefix*/,
     m.pppText2str_c(d.interface)
-    dump_end_print
+    func_end_print
 dump(PORT_STATS_NP)
     IDENT "portIdentity              %s"
     IDENT "rx_Sync                   %ju"
@@ -473,11 +475,11 @@ dump(PORT_STATS_NP)
     d.txMsgType[STAT_ANNOUNCE],
     d.txMsgType[STAT_SIGNALING],
     d.txMsgType[STAT_MANAGEMENT]
-    dump_end_print
+    func_end_print
 dump(SYNCHRONIZATION_UNCERTAIN_NP)
     IDENT "uncertain %u",
     d.val
-    dump_end_print
+    func_end_print
 
 void call_dump(message &m)
 {
@@ -488,4 +490,142 @@ void call_dump(message &m)
         default: break;
     }
     printf("\n");
+}
+
+#define build(n) \
+static inline baseData *build_##n() {\
+    n##_t *d = new n##_t;\
+    if(d == nullptr)\
+        return d;
+#define next_token \
+    cur = strtok(nullptr, toksep);\
+    if (cur == nullptr || *cur == 0)\
+        return true
+#define build_end \
+    return d;\
+}
+static inline bool getNum(const char *name, long &val, int base, long max,
+                          long min = 0)
+{
+    char *cur;
+    next_token;
+    if(strcasecmp(name, cur) != 0)
+        return true;
+    next_token;
+    char *end;
+    val = strtol(cur, &end, base);
+    if (*end != 0 || val < min || val > max)
+        return true;
+    return false;
+}
+inline bool getTimeSource(timeSource_e &val)
+{
+    char *cur;
+    next_token;
+    if(strcasecmp("timeSource", cur) != 0)
+        return true;
+    next_token;
+         if(strcasecmp("ATOMIC_CLOCK", cur) == 0) val = ATOMIC_CLOCK;
+    else if(strcasecmp("GNSS", cur) == 0) val = GNSS;
+    else if(strcasecmp("TERRESTRIAL_RADIO", cur) == 0) val = TERRESTRIAL_RADIO;
+    else if(strcasecmp("SERIAL_TIME_CODE", cur) == 0) val = SERIAL_TIME_CODE;
+    else if(strcasecmp("PTP", cur) == 0) val = PTP;
+    else if(strcasecmp("NTP", cur) == 0) val = NTP;
+    else if(strcasecmp("HAND_SET", cur) == 0) val = HAND_SET;
+    else if(strcasecmp("OTHER", cur) == 0) val = OTHER;
+    else if(strcasecmp("INTERNAL_OSCILLATOR", cur) == 0) val = INTERNAL_OSCILLATOR;
+    else {
+        char *end;
+        long v1 = strtol(cur, &end, 16);
+        if (*end != 0 || v1 < 0 || v1 > UINT8_MAX)
+            return true;
+        val = (timeSource_e)v1;
+    }
+    return false;
+}
+
+build(PRIORITY1)
+    long priority1;
+    if(getNum("priority1", priority1, 0, 255))
+        return nullptr;
+    d->priority1 = priority1;
+    build_end
+build(PRIORITY2)
+    long priority2;
+    if(getNum("priority2", priority2, 0, 255))
+        return nullptr;
+    d->priority2 = priority2;
+    build_end
+/* libnuxptp specific implementation */
+build(GRANDMASTER_SETTINGS_NP)
+    long clockClass, clockAccuracy, offsetScaledLogVariance, currentUtcOffset,
+         leap61, leap59, currentUtcOffsetValid, ptpTimescale, timeTraceable,
+         frequencyTraceable;
+    timeSource_e timeSource;
+    if(getNum("clockClass", clockClass, 0, UINT8_MAX) ||
+       getNum("clockAccuracy", clockAccuracy, 16, UINT8_MAX) ||
+       getNum("offsetScaledLogVariance", offsetScaledLogVariance, 16, UINT16_MAX) ||
+       getNum("currentUtcOffset", currentUtcOffset, 0, INT16_MAX) ||
+       getNum("leap61", leap61, 0, UINT8_MAX) ||
+       getNum("leap59", leap59, 0, UINT8_MAX) ||
+       getNum("currentUtcOffsetValid", currentUtcOffsetValid, 0, UINT8_MAX) ||
+       getNum("ptpTimescale", ptpTimescale, 0, UINT8_MAX) ||
+       getNum("timeTraceable", timeTraceable, 0, UINT8_MAX) ||
+       getNum("frequencyTraceable", frequencyTraceable, 0, UINT8_MAX) ||
+       getTimeSource(timeSource))
+        return nullptr;
+    uint8_t flags = 0;
+    if (leap61)
+        flags |= (1 << 0);
+    if (leap59)
+        flags |= (1 << 1);
+    if (currentUtcOffsetValid)
+        flags |= (1 << 2);
+    if (ptpTimescale)
+        flags |= (1 << 3);
+    if (timeTraceable)
+        flags |= (1 << 4);
+    if (frequencyTraceable)
+        flags |= (1 << 5);
+    d->clockQuality.clockClass = clockClass;
+    d->clockQuality.clockAccuracy = (clockAccuracy_e)clockAccuracy;
+    d->clockQuality.offsetScaledLogVariance = offsetScaledLogVariance;
+    d->currentUtcOffset = currentUtcOffset;
+    d->flags = flags;
+    d->timeSource = timeSource;
+    build_end
+build(SUBSCRIBE_EVENTS_NP)
+    return nullptr; // TODO
+    long val;
+    if(getNum("duration", val, 0, UINT16_MAX))
+        return nullptr;
+    d->duration = val;
+    build_end
+build(SYNCHRONIZATION_UNCERTAIN_NP)
+    long uncertain;
+    if(getNum("uncertain", uncertain, 0, UINT8_MAX))
+        return nullptr;
+    d->val = uncertain;
+    build_end
+build(PORT_DATA_SET_NP)
+    long neighborPropDelayThresh, asCapable;
+    if(getNum("neighborPropDelayThresh", neighborPropDelayThresh, 0, UINT32_MAX) ||
+       getNum("asCapable", asCapable, 0, INT32_MAX))
+        return nullptr;
+    d->neighborPropDelayThresh = neighborPropDelayThresh;
+    d->asCapable = asCapable;
+    build_end
+
+#define caseBuild(n) case n: return build_##n()
+baseData *call_data(mng_vals_e id)
+{
+    switch(id) {
+        caseBuild(PRIORITY1);
+        caseBuild(PRIORITY2);
+        caseBuild(GRANDMASTER_SETTINGS_NP);
+        caseBuild(SUBSCRIBE_EVENTS_NP);
+        caseBuild(SYNCHRONIZATION_UNCERTAIN_NP);
+        caseBuild(PORT_DATA_SET_NP);
+        default: return nullptr;
+    }
 }

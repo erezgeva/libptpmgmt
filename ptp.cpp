@@ -16,7 +16,7 @@
 #include "ptp.h"
 // man netdevice
 
-static const size_t max_ifName = sizeof(((struct ifreq *)nullptr)->ifr_name);
+static const size_t max_ifName = sizeof(((ifreq *)nullptr)->ifr_name);
 static const char *macsep = ":.-";
 
 // From linux/posix-timers.h
@@ -39,7 +39,7 @@ bool ptpIf::initBase(const char *ifName)
         perror("socket");
         return false;
     }
-    struct ifreq ifr = {0};
+    ifreq ifr = {0};
     strncpy(ifr.ifr_name, ifName, max_ifName);
     if(ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
         perror("SIOCGIFINDEX");
@@ -49,7 +49,7 @@ bool ptpIf::initBase(const char *ifName)
     m_ifIndex = ifr.ifr_ifindex;
     return initPtp(fd, ifr);
 }
-bool ptpIf::initPtp(int fd, struct ifreq &ifr)
+bool ptpIf::initPtp(int fd, ifreq &ifr)
 {
     /* retrieve corresponding MAC */
     if(ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
@@ -58,7 +58,7 @@ bool ptpIf::initPtp(int fd, struct ifreq &ifr)
         return false;
     }
     m_mac = std::string(ifr.ifr_hwaddr.sa_data, EUI48);
-    struct ethtool_ts_info info = {
+    ethtool_ts_info info = {
         .cmd = ETHTOOL_GET_TS_INFO,
         .phc_index = -1,
     };
@@ -103,7 +103,7 @@ bool ptpIf::init(int ifIndex)
         perror("socket");
         return false;
     }
-    struct ifreq ifr = {0};
+    ifreq ifr = {0};
     ifr.ifr_ifindex = ifIndex;
     if(ioctl(fd, SIOCGIFNAME, &ifr) == -1) {
         perror("SIOCGIFNAME");

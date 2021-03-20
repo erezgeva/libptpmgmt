@@ -52,12 +52,15 @@ const range_t ranges[] = { // same order as enum !
     { "network_transport", '4', '2', '6' },
     { "uds_address", 0, 0, 0 }, // string
     { "ptp_dst_mac", 0, 0, 0 }, // MAC address
+    { "p2p_dst_mac", 0, 0, 0 }, // MAC address
 };
 const int ranges_size = sizeof(ranges) / sizeof(range_t);
 const char *ptp_dst_mac_def = "1:1b:19:0:0:0";
+const char *p2p_dst_mac_def = "1:80:c2:0:0:e";
 const char *uds_address_def = "/var/run/ptp4l";
-
 const char globalSection[] = "global";
+// first string m_str_vals
+const int configSection::str_base_val = configSection::uds_address_val;
 
 static inline char *skip_spaces(char *cur)
 {
@@ -78,8 +81,9 @@ configSection::configSection() : m_set{0}
 void configSection::setGlobal()
 {
     // Use default values from linuxptp
-    m_str_vals[0] = uds_address_def;
-    m_str_vals[1] = ptpIf::str2mac(ptp_dst_mac_def);
+    m_str_vals[uds_address_val - str_base_val] = uds_address_def;
+    m_str_vals[ptp_dst_mac_val - str_base_val] = ptpIf::str2mac(ptp_dst_mac_def);
+    m_str_vals[p2p_dst_mac_val - str_base_val] = ptpIf::str2mac(p2p_dst_mac_def);
     for(int i = 0; i < ranges_size; i++)
         m_vals[i] = ranges[i].def;
 }
@@ -107,13 +111,14 @@ bool configSection::set_val(char *line)
         case uds_address_val:
             if(*val != '/' || strlen(val) < 2)
                 return false;
-            m_str_vals[0] = val;
+            m_str_vals[idx - str_base_val] = val;
             break;
-        case ptp_dst_mac_val: {
+        case ptp_dst_mac_val:
+        case p2p_dst_mac_val: {
             auto ret = ptpIf::str2mac(val);
             if(ret.empty())
                 return false;
-            m_str_vals[1] = ret;
+            m_str_vals[idx - str_base_val] = ret;
             break;
         }
         case network_transport_val:
@@ -204,16 +209,14 @@ uint8_t configFile::get(int idx, const std::string &section)
 const std::string &configFile::get_str(int idx, const char *section)
 {
     if(is_global(idx, section))
-        return configGlobal.m_str_vals[idx - configSection::uds_address_val];
-    return configPerSection[section].m_str_vals[idx -
-            configSection::uds_address_val];
+        return configGlobal.m_str_vals[idx - configSection::str_base_val];
+    return configPerSection[section].m_str_vals[idx - configSection::str_base_val];
 }
 const std::string &configFile::get_str(int idx, const std::string &section)
 {
     if(is_global(idx, section))
-        return configGlobal.m_str_vals[idx - configSection::uds_address_val];
-    return configPerSection[section].m_str_vals[idx -
-            configSection::uds_address_val];
+        return configGlobal.m_str_vals[idx - configSection::str_base_val];
+    return configPerSection[section].m_str_vals[idx - configSection::str_base_val];
 }
 get_func(transportSpecific)
 get_func(domainNumber)
@@ -223,3 +226,4 @@ get_func(socket_priority)
 get_func(network_transport)
 get_str_func(uds_address)
 get_str_func(ptp_dst_mac)
+get_str_func(p2p_dst_mac)
