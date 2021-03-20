@@ -1,4 +1,10 @@
 #!/usr/bin/perl
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# testing for Perl wrapper of libpmc
+#
+# @author Erez Geva <ErezGeva2@gmail.com>
+# @copyright 2021 Erez Geva
 
 BEGIN { push @INC, '.' }
 
@@ -74,4 +80,5 @@ my $sk = PmcLib::sockUnix->new;
 main $sk;
 $sk->close();
 
-# LD_LIBRARY_PATH=.. ./test.pl
+# If libpmc library is not installed in system,
+#  run with: LD_LIBRARY_PATH=.. ./test.pl

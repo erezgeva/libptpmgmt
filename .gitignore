@@ -1,4 +1,4 @@
-/ids2.h
+/mngIds.h
 *.o
 *.lo
 *.d

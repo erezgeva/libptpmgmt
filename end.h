@@ -1,10 +1,14 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* end.h endian functions
+/** @file
+ * @brief endian functions
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
- * Created following "IEEE Std 1588-2008", PTP version 2
+ * @details
+ *  provide functions to convert unsigned integers from
+ *  host byte order to network byte order
  */
 
 #ifndef __PMC_ENDIAN_H
@@ -13,11 +17,56 @@
 #include <stdint.h>
 #include <endian.h>
 
-inline uint16_t hton16(uint16_t val) {return htobe16(val);} // = htons
-inline uint16_t ntoh16(uint16_t val) {return be16toh(val);} // = ntohs
-inline uint32_t hton32(uint32_t val) {return htobe32(val);} // = htonl
-inline uint32_t ntoh32(uint32_t val) {return be32toh(val);} // = ntohl
-inline uint64_t hton64(uint64_t val) {return htobe64(val);}
-inline uint64_t ntoh64(uint64_t val) {return be64toh(val);}
+/**
+ * convert unsigned 16 bits integer from host order to network order
+ * @param[in] value host order unsigned 16 bits integer
+ * @return network order unsigned 16 bits integer
+ */
+inline uint16_t cpu_to_net16(uint16_t value) {return htobe16(value);}
+/**
+ * convert unsigned 16 bits integer from network order to host order
+ * @param[in] value network order unsigned 16 bits integer
+ * @return host order unsigned 16 bits integer
+ */
+inline uint16_t net_to_cpu16(uint16_t value) {return be16toh(value);}
+/**
+ * convert unsigned 32 bits integer from host order to network order
+ * @param[in] value host order unsigned 32 bits integer
+ * @return network order unsigned 32 bits integer
+ */
+inline uint32_t cpu_to_net32(uint32_t value) {return htobe32(value);}
+/**
+ * convert unsigned 32 bits integer from network order to host order
+ * @param[in] value network order unsigned 32 bits integer
+ * @return host order unsigned 32 bits integer
+ */
+inline uint32_t net_to_cpu32(uint32_t value) {return be32toh(value);}
+/**
+ * convert unsigned 64 bits integer from host order to network order
+ * @param[in] value host order unsigned 64 bits integer
+ * @return network order unsigned 64 bits integer
+ */
+inline uint64_t cpu_to_net64(uint64_t value) {return htobe64(value);}
+/**
+ * convert unsigned 64 bits integer from network order to host order
+ * @param[in] value network order unsigned 64 bits integer
+ * @return host order unsigned 64 bits integer
+ */
+inline uint64_t net_to_cpu64(uint64_t value) {return be64toh(value);}
+
+/**
+ * convert unsigned 64 bits integer from host order to little endian order
+ * @param[in] value host order unsigned 64 bits integer
+ * @return little endian order unsigned 64 bits integer
+ * @note used for linuxptp statistics
+ */
+inline uint64_t cpu_to_le64(uint64_t value) {return htole64(value);}
+/**
+ * convert unsigned 64 bits integer from little endian order to host order
+ * @param[in] value little endian order unsigned 64 bits integer
+ * @return host order unsigned 64 bits integer
+ * @note used for linuxptp statistics
+ */
+inline uint64_t le_to_cpu64(uint64_t value) {return le64toh(value);}
 
 #endif /*__PMC_ENDIAN_H*/

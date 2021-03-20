@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* cfg.cpp Read ptp4l Configuration file
+/** @file
+ * @brief Read ptp4l Configuration file
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  */
 
@@ -82,8 +84,8 @@ void configSection::setGlobal()
 {
     // Use default values from linuxptp
     m_str_vals[uds_address_val - str_base_val] = uds_address_def;
-    m_str_vals[ptp_dst_mac_val - str_base_val] = ptpIf::str2mac(ptp_dst_mac_def);
-    m_str_vals[p2p_dst_mac_val - str_base_val] = ptpIf::str2mac(p2p_dst_mac_def);
+    m_str_vals[ptp_dst_mac_val - str_base_val] = ifInfo::str2mac(ptp_dst_mac_def);
+    m_str_vals[p2p_dst_mac_val - str_base_val] = ifInfo::str2mac(p2p_dst_mac_def);
     for(int i = 0; i < ranges_size; i++)
         m_vals[i] = ranges[i].def;
 }
@@ -115,7 +117,7 @@ bool configSection::set_val(char *line)
             break;
         case ptp_dst_mac_val:
         case p2p_dst_mac_val: {
-            auto ret = ptpIf::str2mac(val);
+            auto ret = ifInfo::str2mac(val);
             if(ret.empty())
                 return false;
             m_str_vals[idx - str_base_val] = ret;
@@ -184,13 +186,15 @@ bool configFile::read_cfg(const char *file)
 }
 bool configFile::is_global(int idx, const char *section)
 {
-    if(section == nullptr || !configPerSection[section].m_set[idx])
+    if(section == nullptr || *section == 0 ||
+        configPerSection.count(section) == 0 || !configPerSection[section].m_set[idx])
         return true;
     return false;
 }
 bool configFile::is_global(int idx, const std::string &section)
 {
-    if(section.empty() || !configPerSection[section].m_set[idx])
+    if(section.empty() || configPerSection.count(section) == 0 ||
+        !configPerSection[section].m_set[idx])
         return true;
     return false;
 }

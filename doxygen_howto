@@ -1,0 +1,68 @@
+https://www.doxygen.nl/manual/docblocks.html
+https://www.doxygen.nl/manual/commands.html
+Always use commands with at-sign (@)
+
+
+int var; /**< Detailed description after the member */
+
+
+/**
+ * ... text ...
+ */
+
+
+/**
+ * Copies bytes from a source memory area to a destination memory area,
+ * where both areas may not overlap.
+ * @param[out] dest The memory area to copy to.
+ * @param[in]  src  The memory area to copy from.
+ * @param[in]  n    The number of bytes to copy
+ */
+
+
+In file start Use:
+@file without the file name!
+@author
+@copyright
+
+
+@deprecated
+@details
+@brief
+@param always with "[in]", "[in,out]", "[out]"
+@return
+@cond internal code @endcond
+@attention
+@note
+
+
+Type mark:
+@b <word> bold
+<b>multiple words</b>
+@c <word> typewriter
+@p <word> typewriter
+<tt>multiple words</tt>
+@em <word> italics
+<em>multiple words</em>
+@code{.cpp} ... @endcode
+@emoji https://gist.github.com/rxaviers/7360908
+@n force newline
+@li { item-description } for bullet list
+Escape chars: @@ @\ @& @$ @# @~ @< @= @> @# % @" @. @:: @| @-- @---
+
+
+
+Handle files:
+lines   words  bytes
+   87     299   2430 ptp.h
+  354    1008  10166 proc.h
+  395    1490  12839 msg.h
+
+make doxygen  | sed 's/:.*//' | sort | uniq -dc
+
+
+
+#define test(n) @!**%@ * checking this %@ * long %@ *@! %@n = 4
+test(b)
+===== End ======
+g++ -E t.cc | sed 's/^#.*//;s/%@/\n/g;s#@!*#/#g'

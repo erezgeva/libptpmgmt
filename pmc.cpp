@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 
-/* pmc.cpp Impleament linuxptp pmc tool using the libpmc library
+/** @file
+ * @brief Impleament linuxptp pmc tool using the libpmc library
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  * Created following "IEEE Std 1588-2008", PTP version 2
  */
@@ -204,7 +206,7 @@ static void run_line(char *line)
         if(cur == nullptr || *cur == 0)
             return;
         if(*cur == '*')
-            msg.setAllPorts();
+            msg.setAllClocks();
         else {
             msgParams prms = msg.getParams();
             if(updatePortIdentity(prms, cur))
@@ -221,12 +223,14 @@ static void run_line(char *line)
     mng_vals_e id;
     if(!findId(id, cur))
         return;
+    baseData *data;
     if(action == GET || msg.isEmpty(id)) {
         // No data is needed
         if(!msg.setAction(action, id))
             return;
+        data = nullptr;
     } else {
-        baseData *data = call_data(id);
+        data = call_data(id);
         // No point to send without data
         if(data == nullptr)
             return;
@@ -235,6 +239,9 @@ static void run_line(char *line)
     }
     if(!sendAction())
         return;
+    // Finish with data, free it
+    if(data != nullptr)
+        delete data;
     while(sk->tpoll(timeout) && rcv() == 1 && timeout > 0);
 }
 static void handle_sig(int)
@@ -289,7 +296,7 @@ int main(int argc, char *const argv[])
     const char *interface = nullptr;
     if(options.count('i') && !options['i'].empty())
         interface = options['i'].c_str();
-    ptpIf ifObj;
+    ifInfo ifObj;
     msgParams prms = msg.getParams();
     if(net_select != 'u') {
         if(interface == nullptr) {

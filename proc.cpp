@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* ids.cpp parse, buid or both function per PTP managmet id
+/** @file
+ * @brief parse, buid or both function per PTP managmet id
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  */
 #include <cstring>
@@ -64,7 +66,7 @@ S(PATH_TRACE_LIST)
 {
     return sizeof(ClockIdentity_t) * d.pathSequence.size();
 }
-// linuxptp TLVs Implementation-specific C000–DFFF
+// linuxptp TLVs Implementation-specific C000-DFFF
 S(PORT_PROPERTIES_NP)
 {
     return 2 + sizeof(PortIdentity_t) + message::PTPText_l(d.interface);
@@ -322,7 +324,7 @@ A(PATH_TRACE_LIST)
     }
     return false;
 }
-// linuxptp TLVs (in Implementation-specific C000–DFFF)
+// linuxptp TLVs (in Implementation-specific C000-DFFF)
 A(TIME_STATUS_NP)
 {
     return proc(d.master_offset) || proc(d.ingress_time) ||

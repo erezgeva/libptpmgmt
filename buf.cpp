@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* buf.cpp allocate buffer
+/** @file
+ * @brief allocate buffer
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  */
 
@@ -18,12 +20,11 @@ void buffer::del()
 }
 bool buffer::alloc(size_t size)
 {
-    if(size <= 0)
+    if(size == 0)
         return false;
     if(size <= m_size)
         return true;
-    del();
-    void *buf = malloc(size);
+    void *buf = realloc(m_buf, size);
     if(buf == nullptr)
         return false;
     m_buf = buf;

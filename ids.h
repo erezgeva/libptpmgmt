@@ -1,15 +1,19 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* ids.h List of managment IDs
+/** @file
+ * @brief List of managment IDs
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  * This header is design to be multiple included
  */
 
-// Use:
-//  #define A(n, v, sc, a, sz, f) <macro text>
-//  #include "ids.h"
+/*
+ * Use:
+ *  #define A(n, v, sc, a, sz, f) <macro text>
+ *  #include "ids.h"
+ */
 #ifndef IDS_START
 #define IDS_START
 #endif
@@ -24,18 +28,22 @@
 #endif
 #define use_GSC A_GET | A_SET | A_COMMAND
 #define use_GS  A_GET | A_SET
-// For functions use
-// #define caseNA(n)    <macro text>
-// #define caseNS(n)    <macro text>
-// #define caseUF(n)     <macro text>
-// NS - not support
-// NA = no functions needed
-// UF  - functions for parsing/build
+/*
+ * For functions use
+ * #define caseNA(n)    <macro text>
+ * #define caseNS(n)    <macro text>
+ * #define caseUF(n)    <macro text>
+ * NS - not support
+ * NA = no functions needed
+ * UF  - functions for parsing/build
+ */
 #ifndef FIRST_MNG_ID
 #define FIRST_MNG_ID NULL_PTP_MANAGEMENT
 #endif
-// NULL_MANAGEMENT is the name from "IEEE Std 1588-2008"
-// NULL_PTP_MANAGEMENT is the name from "IEEE Std 1588-2019"
+/*
+ * NULL_MANAGEMENT is the name from "IEEE Std 1588-2008"
+ * NULL_PTP_MANAGEMENT is the name from "IEEE Std 1588-2019"
+ */
 #ifndef NULL_MANAGEMENT
 #define NULL_MANAGEMENT NULL_PTP_MANAGEMENT
 #endif
@@ -45,7 +53,7 @@
  *        -1  not support (with NS)
  *        -2  Variable length dataField, need calculation
  */
-//Name                                 value scope  allow       size   func
+/*Name                                 value scope  allow       size   func*/
 IDS_START
 A(NULL_PTP_MANAGEMENT,                 0000, port,  use_GSC,    0,     NA)
 A(CLOCK_DESCRIPTION,                   0001, port,  A_GET,     -2,     UF)
@@ -91,16 +99,16 @@ A(ALTERNATE_TIME_OFFSET_MAX_KEY,       2020, clock, A_GET,      2,     UF)
 A(ALTERNATE_TIME_OFFSET_PROPERTIES,    2021, clock, use_GS,    16,     UF)
 A(TRANSPARENT_CLOCK_PORT_DATA_SET,     4001, port,  A_GET,     20,     UF)
 A(LOG_MIN_PDELAY_REQ_INTERVAL,         6001, port,  use_GS,     2,     UF)
-// Deprecated in "IEEE Std 1588-2019"
+/* Deprecated in "IEEE Std 1588-2019" */
 A(TRANSPARENT_CLOCK_DEFAULT_DATA_SET,  4000, clock, A_GET,     12,     UF)
 A(PRIMARY_DOMAIN,                      4002, clock, use_GS,     2,     UF)
 A(DELAY_MECHANISM,                     6000, port,  use_GS,     2,     UF)
-// From "IEEE Std 1588-2019"
+/* From "IEEE Std 1588-2019" */
 A(EXTERNAL_PORT_CONFIGURATION_ENABLED, 3000, clock, use_GS,     2,     UF)
 A(MASTER_ONLY,                         3001, port,  use_GS,     2,     UF)
 A(HOLDOVER_UPGRADE_ENABLE,             3002, clock, use_GS,     2,     UF)
 A(EXT_PORT_CONFIG_PORT_DATA_SET,       3003, port,  use_GS,     2,     UF)
-// linuxptp TLVs (in Implementation-specific C000–DFFF)
+/* linuxptp TLVs (in Implementation-specific C000-DFFF) */
 #define use_GL  A_GET | A_USE_LINUXPTP
 #define use_GSL A_GET | A_SET | A_USE_LINUXPTP
 A(TIME_STATUS_NP,                      c000, clock, use_GL,    50,     UF)

@@ -1,9 +1,10 @@
-
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* ptp.cpp Read network interface information and retrieve the PTP information
+/** @file
+ * @brief Read network interface information and retrieve the PTP information
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  */
 
@@ -30,7 +31,7 @@ static inline clockid_t get_clockid_fd(int fd)
     return FD_TO_CLOCKID(fd);
 }
 
-bool ptpIf::initBase(const char *ifName)
+bool ifInfo::initBase(const char *ifName)
 {
     if(m_isInit)
         return false;
@@ -49,7 +50,7 @@ bool ptpIf::initBase(const char *ifName)
     m_ifIndex = ifr.ifr_ifindex;
     return initPtp(fd, ifr);
 }
-bool ptpIf::initPtp(int fd, ifreq &ifr)
+bool ifInfo::initPtp(int fd, ifreq &ifr)
 {
     /* retrieve corresponding MAC */
     if(ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
@@ -73,7 +74,7 @@ bool ptpIf::initPtp(int fd, ifreq &ifr)
     m_isInit = true;
     return true;
 }
-bool ptpIf::init(const char *ifName)
+bool ifInfo::init(const char *ifName)
 {
     if(ifName == nullptr)
         return false;
@@ -85,7 +86,7 @@ bool ptpIf::init(const char *ifName)
     m_ifName = ifName;
     return true;
 }
-bool ptpIf::init(const std::string &ifName)
+bool ifInfo::init(const std::string &ifName)
 {
     if(ifName.empty() || ifName.length() > max_ifName)
         return false;
@@ -94,7 +95,7 @@ bool ptpIf::init(const std::string &ifName)
     m_ifName = ifName;
     return true;
 }
-bool ptpIf::init(int ifIndex)
+bool ifInfo::init(int ifIndex)
 {
     if(m_isInit)
         return false;
@@ -114,19 +115,19 @@ bool ptpIf::init(int ifIndex)
     m_ifIndex = ifIndex;
     return initPtp(fd, ifr);
 }
-std::string ptpIf::mac2str(const uint8_t *mac, size_t len)
+std::string ifInfo::mac2str(const uint8_t *mac, size_t len)
 {
     if(mac == nullptr || (len != EUI48 || len != EUI64))
         return "";
     return message::b2str((uint8_t *)mac, len);
 }
-std::string ptpIf::str2mac(const char *str)
+std::string ifInfo::str2mac(const char *str)
 {
     if(str == nullptr)
         return "";
     return str2mac(str, strlen(str));
 }
-std::string ptpIf::str2mac(const char *str, size_t len)
+std::string ifInfo::str2mac(const char *str, size_t len)
 {
     char *buf = strdup(str);
     if(buf == nullptr)
@@ -148,7 +149,7 @@ std::string ptpIf::str2mac(const char *str, size_t len)
         return ret;
     return "";
 }
-std::string ptpIf::eui48toeui64(const uint8_t *mac, size_t len)
+std::string ifInfo::eui48toeui64(const uint8_t *mac, size_t len)
 {
     char *cur = (char *)mac;
     if(len == EUI64)

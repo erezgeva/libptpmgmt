@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* msg.cpp Create and parse PTP managment messages
+/** @file
+ * @brief Create and parse PTP managment messages
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  * Created following "IEEE Std 1588-2008", PTP version 2
  */
@@ -51,7 +53,7 @@ enum allowAction_e { // bits of actionField_e
     A_COMMAND = 1 << COMMAND,
     A_USE_LINUXPTP = 1 << 5, // Out side of actionField_e
 };
-enum scope_e {
+enum scope_e : uint8_t {
     s_port,
     s_clock,
 };
@@ -132,13 +134,19 @@ MNG_PARSE_ERROR_e message::call_tlv_data()
 
 bool message::findTlvId(uint16_t val)
 {
-#define A(n, v, sc, a, sz, f) case 0x##v: m_tlv_id = n; return true;
-    uint16_t value = ntoh16(val);
+    mng_vals_e id;
+#define A(n, v, sc, a, sz, f) case 0x##v: id = n; break;
+    uint16_t value = net_to_cpu16(val);
     switch(value) {
 #include "ids.h"
         default:
             return false;
     }
+    /* block linuxptp is not used */
+    if(!m_prms.useLinuxPTPTlvs && mng_all_vals[id].allowed & A_USE_LINUXPTP)
+        return false;
+    m_tlv_id = id;
+    return true;
 }
 bool message::checkReplyAction(uint8_t actionField)
 {
@@ -170,7 +178,6 @@ static inline bool verifyAction(actionField_e action)
     return false;
 }
 
-
 message::message() :
     m_tlv_id(FIRST_MNG_ID),
     m_actionField(GET),
@@ -186,7 +193,7 @@ message::message() :
         .isUnicast = true,
         .useLinuxPTPTlvs = true,
     };
-    setAllPorts();
+    setAllClocks();
 }
 message::message(msgParams prms) :
     m_tlv_id(FIRST_MNG_ID),
@@ -279,21 +286,21 @@ MNG_PARSE_ERROR_e message::build(const void *buf, size_t bufSize,
     msg->domainNumber = m_prms.domainNumber;
     if(m_prms.isUnicast)
         msg->flagField[0] |= unicastFlag;
-    msg->sequenceId = hton16(sequence);
+    msg->sequenceId = cpu_to_net16(sequence);
     msg->controlField = controlField_Management;
     msg->logMessageInterval = logMessageInterval_Management;
     msg->startingBoundaryHops = m_prms.boundaryHops;
     msg->boundaryHops = m_prms.boundaryHops;
     msg->actionField = m_actionField;
     msg->targetPortIdentity.clockIdentity = m_prms.target.clockIdentity;
-    msg->targetPortIdentity.portNumber = hton16(m_prms.target.portNumber);
+    msg->targetPortIdentity.portNumber = cpu_to_net16(m_prms.target.portNumber);
     msg->sourcePortIdentity.clockIdentity = m_prms.self_id.clockIdentity;
-    msg->sourcePortIdentity.portNumber = hton16(m_prms.self_id.portNumber);
+    msg->sourcePortIdentity.portNumber = cpu_to_net16(m_prms.self_id.portNumber);
     if(!allowedAction(m_tlv_id, m_actionField))
         return MNG_PARSE_ERROR_INVALID_ID;
     managementTLV_t *tlv = (managementTLV_t *)(msg + 1);
-    tlv->tlvType = hton16(MANAGEMENT);
-    tlv->managementId = hton16(mng_all_vals[m_tlv_id].value);
+    tlv->tlvType = cpu_to_net16(MANAGEMENT);
+    tlv->managementId = cpu_to_net16(mng_all_vals[m_tlv_id].value);
     m_size = 0;
     m_cur = (uint8_t *)(tlv + 1); // point on dataField
     size_t size = mngMsgBaseSize;
@@ -311,11 +318,11 @@ MNG_PARSE_ERROR_e message::build(const void *buf, size_t bufSize,
             return MNG_PARSE_ERROR_TOO_SMALL;
         size += m_size;
     }
-    tlv->lengthField = hton16(lengthFieldMngBase + m_size);
+    tlv->lengthField = cpu_to_net16(lengthFieldMngBase + m_size);
     if(size & 1) // length need to be even
         return MNG_PARSE_ERROR_SIZE;
     m_msgLen = size;
-    msg->messageLength = hton16(size);
+    msg->messageLength = cpu_to_net16(size);
     return MNG_PARSE_ERROR_OK;
 }
 MNG_PARSE_ERROR_e message::build(uint16_t sequence)
@@ -347,14 +354,14 @@ MNG_PARSE_ERROR_e message::parse(const void *buf, ssize_t msgSize)
         msg->logMessageInterval != logMessageInterval_Management)
         return MNG_PARSE_ERROR_HEADER;
     m_isUnicast = msg->flagField[0] & unicastFlag;
-    m_sequence = ntoh16(msg->sequenceId);
+    m_sequence = net_to_cpu16(msg->sequenceId);
     uint8_t actionField = 0xf & msg->actionField;
     if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
         return MNG_PARSE_ERROR_ACTION;
-    m_peer.portNumber = ntoh16(msg->sourcePortIdentity.portNumber);
+    m_peer.portNumber = net_to_cpu16(msg->sourcePortIdentity.portNumber);
     m_peer.clockIdentity = msg->sourcePortIdentity.clockIdentity;
     uint16_t *cur = (uint16_t *)(msg + 1);
-    uint16_t tlvType = ntoh16(*cur);
+    uint16_t tlvType = net_to_cpu16(*cur);
     m_build = false;
     ssize_t size = msgSize - sizeof(managementMessage_t);
     if(MANAGEMENT_ERROR_STATUS == tlvType) {
@@ -366,8 +373,8 @@ MNG_PARSE_ERROR_e message::parse(const void *buf, ssize_t msgSize)
             return MNG_PARSE_ERROR_INVALID_ID;
         if(!checkReplyAction(actionField))
             return MNG_PARSE_ERROR_ACTION;
-        m_errorId = ntoh16(errTlv->managementErrorId);
-        m_left = ntoh16(errTlv->lengthField);
+        m_errorId = net_to_cpu16(errTlv->managementErrorId);
+        m_left = net_to_cpu16(errTlv->lengthField);
         // check minimum size and even
         if(m_left < lengthFieldMngErrBase || m_left & 1)
             return MNG_PARSE_ERROR_TOO_SMALL;
@@ -389,7 +396,7 @@ MNG_PARSE_ERROR_e message::parse(const void *buf, ssize_t msgSize)
         return MNG_PARSE_ERROR_INVALID_ID;
     if(!checkReplyAction(actionField))
         return MNG_PARSE_ERROR_ACTION;
-    m_left = ntoh16(tlv->lengthField);
+    m_left = net_to_cpu16(tlv->lengthField);
     // Check minimum size and even
     if(m_left < lengthFieldMngBase || m_left & 1)
         return MNG_PARSE_ERROR_TOO_SMALL;
@@ -401,12 +408,12 @@ MNG_PARSE_ERROR_e message::parse(const void *buf, ssize_t msgSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
     return call_tlv_data();
 }
-void message::setAllPorts()
+void message::setAllClocks()
 {
     m_prms.target.portNumber = allPorts;
     m_prms.target.clockIdentity = allClocks;
 }
-bool message::isAllPorts()
+bool message::isAllClocks()
 {
     return m_prms.target.portNumber == allPorts &&
         memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof(allClocks)) == 0;
@@ -554,7 +561,7 @@ const char *message::timeSrc2str_c(timeSource_e val)
 {
     switch(val) {
         case caseItem(ATOMIC_CLOCK);
-        case caseItem(GPS);
+        case caseItem(GNSS);
         case caseItem(TERRESTRIAL_RADIO);
         case caseItem(SERIAL_TIME_CODE);
         case caseItem(PTP);
@@ -577,7 +584,7 @@ const char *message::portState2str_c(portState_e val)
         case caseItem(MASTER);
         case caseItem(PASSIVE);
         case caseItem(UNCALIBRATED);
-        case caseItem(SLAVE);
+        case caseItem(CLIENT);
         default:
             return "unknown state";
     }
@@ -674,9 +681,9 @@ bool message::proc(uint16_t &val)
     if(m_left < 2)
         return true;
     if(m_build)
-        *(uint16_t *)m_cur = hton16(val);
+        *(uint16_t *)m_cur = cpu_to_net16(val);
     else
-        val = ntoh16(*(uint16_t *)m_cur);
+        val = net_to_cpu16(*(uint16_t *)m_cur);
     move(2);
     return false;
 }
@@ -685,9 +692,9 @@ bool message::proc(uint32_t &val)
     if(m_left < 4)
         return true;
     if(m_build)
-        *(uint32_t *)m_cur = hton32(val);
+        *(uint32_t *)m_cur = cpu_to_net32(val);
     else
-        val = ntoh32(*(uint32_t *)m_cur);
+        val = net_to_cpu32(*(uint32_t *)m_cur);
     move(4);
     return false;
 }
@@ -714,9 +721,9 @@ bool message::proc(uint64_t &val)
     if(m_left < 8)
         return true;
     if(m_build)
-        *(uint64_t *)m_cur = hton64(val);
+        *(uint64_t *)m_cur = cpu_to_net64(val);
     else
-        val = ntoh64(*(uint64_t *)m_cur);
+        val = net_to_cpu64(*(uint64_t *)m_cur);
     move(8);
     return false;
 }
@@ -736,9 +743,9 @@ bool message::proc(int16_t &val)
     if(m_left < 2)
         return true;
     if(m_build)
-        *(uint16_t *)m_cur = hton16((uint16_t)val);
+        *(uint16_t *)m_cur = cpu_to_net16((uint16_t)val);
     else
-        val = (int16_t)ntoh16(*(uint16_t *)m_cur);
+        val = (int16_t)net_to_cpu16(*(uint16_t *)m_cur);
     move(2);
     return false;
 }
@@ -747,9 +754,9 @@ bool message::proc(int32_t &val)
     if(m_left < 4)
         return true;
     if(m_build)
-        *(uint32_t *)m_cur = hton32((uint32_t)val);
+        *(uint32_t *)m_cur = cpu_to_net32((uint32_t)val);
     else
-        val = (int32_t)ntoh32(*(uint32_t *)m_cur);
+        val = (int32_t)net_to_cpu32(*(uint32_t *)m_cur);
     move(4);
     return false;
 }
@@ -782,9 +789,9 @@ bool message::proc(int64_t &val)
     if(m_left < 8)
         return true;
     if(m_build)
-        *(uint64_t *)m_cur = hton64((uint64_t)val);
+        *(uint64_t *)m_cur = cpu_to_net64((uint64_t)val);
     else
-        val = (int64_t)ntoh64(*(uint64_t *)m_cur);
+        val = (int64_t)net_to_cpu64(*(uint64_t *)m_cur);
     move(8);
     return false;
 }
@@ -907,9 +914,9 @@ bool message::procLe(uint64_t &val)
     if(m_left < 8)
         return true;
     if(m_build)
-        *(uint64_t *)m_cur = htole64(val);
+        *(uint64_t *)m_cur = cpu_to_le64(val);
     else
-        val = le64toh(*(uint64_t *)m_cur);
+        val = le_to_cpu64(*(uint64_t *)m_cur);
     move(8);
     return false;
 }

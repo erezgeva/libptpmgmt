@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# @author Erez Geva <ErezGeva2@gmail.com>
+# @copyright 2021 Erez Geva
+#
+# testing script
 ###############################################################################
 main()
 {
@@ -16,8 +23,8 @@ main()
  if [ -n "$(grep "$reg2" $config)" ];then
     sed -i "/$reg2/,+1d" $config
  fi
- make --no-print-directory -C $linuxptp_loc
- make
+ make --no-print-directory -j -C $linuxptp_loc
+ make -j
  printf "\n * Starting\n"
  echo " * Run ptp daemon: make;sudo ./ptp4l -f /etc/linuxptp/ptp4l.conf -i $if"
  [ -z "$(pgrep ptp4l)" ] && return

@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
-/* sock.cpp use unix socket to communicate with ptp4l
+/** @file
+ * @brief use unix socket to communicate with ptp4l
  *
- * Authors: Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@gmail.com>
+ * @copyright 2021 Erez Geva
  *
  */
 
@@ -80,7 +82,7 @@ bool sockBase::sendReply(ssize_t cnt, size_t len)
 }
 bool sockBase::send(message &msg)
 {
-    size_t size = msg.getSendBufSize();
+    size_t size = msg.getMsgLen();
     const void *buf = msg.getSendBuf();
     if(size > 0 && buf != nullptr)
         return send(buf, size);
@@ -280,7 +282,7 @@ bool sockUnix::setDefSelfAddress(const char *rootBase, const char *useDef)
         s2 = useDef;
     return setDefSelfAddress(s1, s2);
 }
-const std::string &sockUnix::getHomeDir()
+const std::string sockUnix::getHomeDir()
 {
     auto uid = getuid();
     auto *pwd = getpwuid(uid);
@@ -289,7 +291,8 @@ const std::string &sockUnix::getHomeDir()
 }
 const char *sockUnix::getHomeDir_c()
 {
-    return getHomeDir().c_str();
+    getHomeDir();
+    return m_homeDir.c_str();
 }
 bool sockUnix::sendAny(const void *msg, size_t len, sockaddr_un &addr)
 {
@@ -351,7 +354,7 @@ ssize_t sockUnix::rcvFrom(void *buf, size_t bufSize, std::string &from,
     from = addr.sun_path;
     return cnt;
 }
-bool sockBaseIf::set(ptpIf &ifObj)
+bool sockBaseIf::set(ifInfo &ifObj)
 {
     m_ifName = ifObj.ifName();
     m_ifIndex = ifObj.ifIndex();
@@ -363,7 +366,7 @@ bool sockBaseIf::setIf(const std::string &ifName)
 {
     if(m_isInit)
         return false;
-    ptpIf ifObj;
+    ifInfo ifObj;
     if(ifObj.init(ifName))
         return set(ifObj);
     return false;
@@ -372,7 +375,7 @@ bool sockBaseIf::setIf(const char *ifName)
 {
     if(m_isInit)
         return false;
-    ptpIf ifObj;
+    ifInfo ifObj;
     if(ifObj.init(ifName))
         return set(ifObj);
     return false;
@@ -381,12 +384,12 @@ bool sockBaseIf::setIf(int ifIndex)
 {
     if(m_isInit)
         return false;
-    ptpIf ifObj;
+    ifInfo ifObj;
     if(ifObj.init(ifIndex))
         return set(ifObj);
     return false;
 }
-bool sockBaseIf::setIf(ptpIf &ifObj)
+bool sockBaseIf::setIf(ifInfo &ifObj)
 {
     if(m_isInit)
         return false;
@@ -394,11 +397,11 @@ bool sockBaseIf::setIf(ptpIf &ifObj)
         return set(ifObj);
     return false;
 }
-bool sockBaseIf::setAll(ptpIf &ifObj, configFile &cfg, const char *section)
+bool sockBaseIf::setAll(ifInfo &ifObj, configFile &cfg, const char *section)
 {
     return setIf(ifObj) && setAllBase(cfg, section) && init();
 }
-bool sockBaseIf::setAll(ptpIf &ifObj, configFile &cfg,
+bool sockBaseIf::setAll(ifInfo &ifObj, configFile &cfg,
     const std::string &section)
 {
     return setIf(ifObj) && setAllBase(cfg, section) && init();
@@ -496,8 +499,8 @@ sockIp4::sockIp4() : sockIp(AF_INET, ipv4_udp_mc, (sockaddr *) & m_addr4,
 {
     m_addr4 = {0};
     m_addr4.sin_family = m_domain;
-    m_addr4.sin_addr.s_addr = hton32(INADDR_ANY);
-    m_addr4.sin_port = hton16(udp_port);
+    m_addr4.sin_addr.s_addr = cpu_to_net32(INADDR_ANY);
+    m_addr4.sin_port = cpu_to_net16(udp_port);
 }
 bool sockIp4::init2()
 {
@@ -543,7 +546,7 @@ sockIp6::sockIp6() : sockIp(AF_INET6, ipv6_udp_mc, (sockaddr *) & m_addr6,
     m_addr6 = {0};
     m_addr6.sin6_family = m_domain;
     m_addr6.sin6_addr = IN6ADDR_ANY_INIT;
-    m_addr6.sin6_port = hton16(udp_port);
+    m_addr6.sin6_port = cpu_to_net16(udp_port);
 }
 bool sockIp6::init2()
 {
@@ -622,7 +625,7 @@ bool sockRaw::setPtpDstMacStr(const std::string &str)
 {
     if(m_isInit || str.empty())
         return false;
-    auto mac = ptpIf::str2mac(str);
+    auto mac = ifInfo::str2mac(str);
     if(mac.empty())
         return false;
     m_ptp_dst_mac = mac;
@@ -632,7 +635,7 @@ bool sockRaw::setPtpDstMacStr(const char *str)
 {
     if(m_isInit || str == nullptr || *str == 0)
         return false;
-    auto mac = ptpIf::str2mac(str);
+    auto mac = ifInfo::str2mac(str);
     if(mac.empty())
         return false;
     m_ptp_dst_mac = mac;
@@ -692,8 +695,8 @@ bool sockRaw::init()
 {
     if(m_isInit || !m_have_if || m_ptp_dst_mac.empty() || m_socket_priority < 0)
         return false;
-    uint16_t port_all = hton16(ETH_P_ALL);
-    uint16_t port_ptp = hton16(ETH_P_1588);
+    uint16_t port_all = cpu_to_net16(ETH_P_ALL);
+    uint16_t port_ptp = cpu_to_net16(ETH_P_1588);
     m_fd = socket(AF_PACKET, SOCK_RAW, port_all);
     if(m_fd < 0) {
         perror("socket");
