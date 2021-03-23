@@ -3,7 +3,7 @@
 /** @file
  * @brief Create and parse PTP managment messages
  *
- * @author Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
  * Created following "IEEE Std 1588-2008", PTP version 2
@@ -185,7 +185,6 @@ message::message() :
     m_sequence(0),
     m_isUnicast(true),
     m_dataSend(nullptr),
-    m_sendBufSize(0),
     m_peer{0}
 {
     m_prms = {
@@ -202,7 +201,6 @@ message::message(msgParams prms) :
     m_sequence(0),
     m_isUnicast(true),
     m_dataSend(nullptr),
-    m_sendBufSize(0),
     m_prms(prms),
     m_peer{0}
 {
@@ -273,9 +271,10 @@ bool message::setAction(actionField_e actionField, mng_vals_e tlv_id,
         m_dataSend = nullptr;
     return true;
 }
-MNG_PARSE_ERROR_e message::build(const void *buf, size_t bufSize,
-    uint16_t sequence)
+MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
 {
+    if(buf == nullptr)
+        return MNG_PARSE_ERROR_TOO_SMALL;
     if(bufSize < mngMsgBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
     managementMessage_t *msg = (managementMessage_t *)buf;
@@ -325,21 +324,7 @@ MNG_PARSE_ERROR_e message::build(const void *buf, size_t bufSize,
     msg->messageLength = cpu_to_net16(size);
     return MNG_PARSE_ERROR_OK;
 }
-MNG_PARSE_ERROR_e message::build(uint16_t sequence)
-{
-    ssize_t size = getMsgPlanedLen();
-    if(size == -1)
-        return MNG_PARSE_ERROR_UNSUPPORT;
-    else if(size < 0)
-        return MNG_PARSE_ERROR_INVALID_ID;
-    // Only enlarge
-    if(size > (ssize_t)m_sendBufSize) {
-        m_sendBuf.resize(size);
-        m_sendBufSize = (size_t)size;
-    }
-    return build(m_sendBuf.data(), m_sendBufSize, sequence);
-}
-MNG_PARSE_ERROR_e message::parse(const void *buf, ssize_t msgSize)
+MNG_PARSE_ERROR_e message::parse(void *buf, ssize_t msgSize)
 {
     if(msgSize < (ssize_t)sizeof(managementMessage_t) + tlvSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
@@ -418,16 +403,7 @@ bool message::isAllClocks()
     return m_prms.target.portNumber == allPorts &&
         memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof(allClocks)) == 0;
 }
-bool message::useConfig(configFile &cfg, const char *section)
-{
-    uint8_t transportSpecific = cfg.transportSpecific(section);
-    if(transportSpecific > 0xf)
-        return false;
-    m_prms.transportSpecific = transportSpecific;
-    m_prms.domainNumber = cfg.domainNumber(section);
-    return true;
-}
-bool message::useConfig(configFile &cfg, std::string &section)
+bool message::useConfig(configFile &cfg, std::string section)
 {
     uint8_t transportSpecific = cfg.transportSpecific(section);
     if(transportSpecific > 0xf)
@@ -601,68 +577,38 @@ const char *message::ts2str_c(linuxptpTimeStamp_e val)
             return "unknown";
     }
 }
-std::string message::c2str(const Timestamp_t &v)
+std::string Timestamp_t::str() const
 {
     char buf[200];
-    snprintf(buf, sizeof(buf), "%ju.%.9u", v.secondsField, v.nanosecondsField);
+    snprintf(buf, sizeof(buf), "%ju.%.9u", secondsField, nanosecondsField);
     return buf;
 };
-std::string message::c2str(const ClockIdentity_t &v)
+std::string ClockIdentity_t::str() const
 {
     char buf[25];
-    const uint8_t *pt  = v.v;
     snprintf(buf, sizeof(buf), "%02x%02x%02x.%02x%02x.%02x%02x%02x",
-        pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]);
+        v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
     return buf;
 }
-std::string message::c2str(const PortIdentity_t &val)
+std::string PortIdentity_t::str() const
 {
-    std::string ret = c2str(val.clockIdentity);
+    std::string ret = clockIdentity.str();
     ret += "-";
-    ret += std::to_string(val.portNumber);
+    ret += std::to_string(portNumber);
     return ret;
 }
-std::string message::b2str(const uint8_t *id, size_t len)
+std::string PortAddress_t::str() const
 {
-    std::string ret;
-    char buf[10];
-    if(len < 1)
-        return "";
-    snprintf(buf, sizeof(buf), "%02x", *id);
-    ret = buf;
-    for(len--; len > 0; len--) {
-        snprintf(buf, sizeof(buf), ":%02x", *++id);
-        ret += buf;
-    }
-    return ret;
-}
-std::string message::b2str(const std::string &id)
-{
-    return b2str((const uint8_t *)id.c_str(), id.length());
-}
-std::string message::ipv42str(const std::string &id)
-{
-    char buf[INET_ADDRSTRLEN];
-    return inet_ntop(AF_INET, (in_addr *)id.c_str(), buf, sizeof(buf));
-}
-std::string message::ipv62str(const std::string &id)
-{
-    char buf[INET6_ADDRSTRLEN];
-    return inet_ntop(AF_INET6, (in6_addr *)id.c_str(), buf, sizeof(buf));
-}
-std::string message::c2str(const PortAddress_t &d)
-{
-    switch(d.networkProtocol) {
+    switch(networkProtocol) {
         case UDP_IPv4:
-            return ipv42str(d.addressField);
         case UDP_IPv6:
-            return ipv62str(d.addressField);
+            return addressField.toIp();
         case IEEE_802_3:
         case DeviceNet:
         case ControlNet:
         case PROFINET:
         default:
-            return b2str(d.addressField);
+            return addressField.toId();
     }
 }
 bool message::proc(uint8_t &val)
@@ -808,6 +754,19 @@ bool message::proc(std::string &str, uint16_t len)
     move(len);
     return false;
 }
+bool message::proc(binary &bin, uint16_t len)
+{
+    if(m_build) // On build ignore len variable
+        len = bin.length();
+    if(m_left < (ssize_t)len)
+        return true;
+    if(m_build)
+        bin.copy(m_cur);
+    else
+        bin.set(m_cur, len);
+    move(len);
+    return false;
+}
 bool message::proc(uint8_t *val, size_t len)
 {
     if(m_left < (ssize_t)len)
@@ -919,19 +878,6 @@ bool message::procLe(uint64_t &val)
         val = le_to_cpu64(*(uint64_t *)m_cur);
     move(8);
     return false;
-}
-size_t message::PortAddress_l(PortAddress_t &d)
-{
-    return 4 + d.addressField.length();
-}
-size_t message::PTPText_l(PTPText_t &d)
-{
-    return 1 + d.textField.length();
-}
-size_t message::FaultRecord_l(FaultRecord_t &d)
-{
-    return 3 + sizeof(Timestamp_t) + PTPText_l(d.faultName) +
-        PTPText_l(d.faultValue) + PTPText_l(d.faultDescription);
 }
 // Need 2 levels to stringify macros value instead of macro name
 #define stringify(s) #s

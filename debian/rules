@@ -13,11 +13,10 @@ ALL_PKGS:=$(shell dh_listpackages)
 
 # Take version from changelog file
 LIB_VER:=$(shell dpkg-parsechangelog --show-field Version)
-SONAME:=libpmc.so.$(firstword $(subst ., ,$(LIB_VER)))
+SONAME:=$(firstword $(subst ., ,$(LIB_VER)))
 LIBNAME:=libpmc.so.$(LIB_VER)
-
-export LDFLAGS_NM=-Wl,--version-script,debian/lib.ver\
-                  -Wl,-soname,$(SONAME)
+LIB_SONAME:=libpmc.so.$(SONAME)
+export SONAME
 
 # Make linker verbose
 #LDFLAGS+=-Wl,--verbose
@@ -53,28 +52,48 @@ deb_clean:
 override_dh_auto_clean:
 	$Q$(MAKE) distclean
 
+override_dh_auto_build:
+	$Q$(MAKE) all doxygen -j
+
 ifneq ($(USE_NATIVE_STRIP),)
 # prevent using cross tool for strip
 override_dh_strip:
 	$(Q)DEB_HOST_GNU_TYPE=$(DEB_BUILD_GNU_TYPE) dh_strip
 endif
 
-PERLDIR:=debian/libpmc-perl/usr/lib/$(DEB_HOST_MULTIARCH)/perl5/$(PERL_VER)
+PERLDIR:=debian/libpmc-perl/usr/lib/$(DEB_HOST_MULTIARCH)/perl/$(PERL_VER)
 PERLNAME:=PmcLib
+LUADIR:=debian/lua-pmc/usr/lib/$(DEB_HOST_MULTIARCH)
+DOCDIR:=debian/libpmc-doc/usr/share/doc/libpmc-doc
+url:=html/index.html
+redir:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(url)\"/>"
+PY2:=debian/python-pmc$(subst include,lib,$(dir $(firstword $(wildcard \
+    /usr/include/python2*/Python.h))))dist-packages
 DIRS:=$(foreach d,libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)\
       libpmc-dev/usr/include/pmc libpmc-dev/usr/share/libpmc-dev,debian/$d)\
-      $(PERLDIR)/auto/$(PERLNAME)
+      $(PERLDIR)/auto/$(PERLNAME) $(foreach n,1 2 3,$(LUADIR)/lua/5.$n) $(PY2)\
+      $(DOCDIR)
 HEADERS:=$(filter-out mngIds.h,$(wildcard *.h))
 
 override_dh_install:
 	$(Q)dh_install
 	$(Q)mkdir -p $(DIRS)
 	$(Q)install -D libpmc.so debian/libpmc/usr/lib/$(DEB_HOST_MULTIARCH)/$(LIBNAME)
-	$(Q)ln -fs $(LIBNAME) debian/libpmc/usr/lib/$(DEB_HOST_MULTIARCH)/$(SONAME)
+	$(Q)ln -fs $(LIBNAME) debian/libpmc/usr/lib/$(DEB_HOST_MULTIARCH)/$(LIB_SONAME)
 	$(Q)cp libpmc.a debian/libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)
 	$(Q)cp $(HEADERS) debian/libpmc-dev/usr/include/pmc
 	$(Q)cp debian/*.mk debian/libpmc-dev/usr/share/libpmc-dev
-	$(Q)ln -fs $(SONAME) debian/libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)/$(LIBNAME)
+	$(Q)ln -fs $(LIB_SONAME) debian/libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)/libpmc.so
 	$(Q)install -D pmc debian/pmc/usr/sbin/pmc.lib
 	$(Q)install -m 644 perl/$(PERLNAME).so $(PERLDIR)/auto/$(PERLNAME)
 	$(Q)install -m 644 perl/$(PERLNAME).pm $(PERLDIR)
+	$(Q)$(foreach n,1 2 3,cp lua/5.$n/pmc.so $(LUADIR)/liblua5.$n-pmc.so.$(LIB_VER);\
+	    chmod 644 $(LUADIR)/liblua5.$n-pmc.so.$(LIB_VER);\
+	    ln -fs liblua5.$n-pmc.so.$(LIB_VER) $(LUADIR)/liblua5.$n-pmc.so.$(SONAME);\
+	    ln -fs ../../liblua5.$n-pmc.so.$(LIB_VER) $(LUADIR)/lua/5.$n/pmc.so;)
+	$(Q)cp python/2/_pmc.so $(PY2)/_pmc.$(DEB_HOST_MULTIARCH).so
+	$(Q)chmod 644 $(PY2)/_pmc.$(DEB_HOST_MULTIARCH).so
+	$(Q)install -m 644 python/pmc.py $(PY2)
+	$(Q)$(RM) doc/html/*.md5
+	$(Q)cp -a doc/html $(DOCDIR)
+	$(Q)printf $(redir) > $(DOCDIR)/index.html

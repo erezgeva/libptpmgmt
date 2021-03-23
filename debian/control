@@ -3,22 +3,14 @@ Maintainer: Erez Geva <ErezGeva2@gmail.com>
 Section: net
 Priority: optional
 Standards-Version: 4.1.4
-Build-Depends: debhelper (>= 9), dh-exec (>=0.3), libtool, coreutils, graphviz, doxygen, swig
-
-Package: pmc
-Architecture: any
-Multi-Arch: same
-Section: libs
-Depends: libpmc (= ${binary:Version})
-Recommends: linuxptp
-Description: pmc tool.
- new rewrite of linuxptp pmc tool using the libpmc library.
- This tool is faster then the original linuxptp tool
+Build-Depends: debhelper (>= 9), dh-exec (>=0.3), dh-python, dh-lua, libtool, coreutils, graphviz, doxygen, swig, perl, lua5.2, liblua5.1-0-dev, liblua5.2-dev, liblua5.3-dev, python2-dev
+Homepage: https://github.com/erezgeva/libpmc
 
 Package: libpmc
 Architecture: any
 Multi-Arch: same
 Section: libs
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Recommends: linuxptp
 Description: pmc library, to communicate with ptp4l
 
@@ -30,9 +22,40 @@ Depends: g++, libpmc (= ${binary:Version})
 Description: pmc library development
  This package provides header files and static library.
 
+Package: libpmc-doc
+Architecture: all
+Section: libs
+Depends: libpmc (= ${binary:Version})
+Description: pmc library documentation, to communicate with ptp4l
+
 Package: libpmc-perl
 Architecture: any
 Multi-Arch: same
 Section: perl
-Depends: ${perl:Depends}, libomc (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends}, libpmc (= ${binary:Version})
 Description: pmc library perl wrapper
+
+Package: python-pmc
+Architecture: any
+Multi-Arch: same
+Section: python
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, libpmc (= ${binary:Version})
+Provides: ${python:Provides}
+Description: pmc library python 2 wrapper
+
+Package: lua-pmc
+Architecture: any
+Multi-Arch: same
+Section: interpreters
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpmc (= ${binary:Version})
+Description: pmc library lua wrapper
+
+Package: pmc
+Architecture: any
+Multi-Arch: same
+Section: libs
+Depends: libpmc (= ${binary:Version})
+Recommends: linuxptp
+Description: pmc tool.
+ new rewrite of linuxptp pmc tool using the libpmc library.
+ This tool is faster then the original linuxptp tool.

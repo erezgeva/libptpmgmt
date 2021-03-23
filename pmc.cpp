@@ -3,7 +3,7 @@
 /** @file
  * @brief Impleament linuxptp pmc tool using the libpmc library
  *
- * @author Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
  * Created following "IEEE Std 1588-2008", PTP version 2
@@ -14,21 +14,22 @@
 #include "msg.h"
 #include "ptp.h"
 #include "sock.h"
+#include "bin.h"
 
 /* from pmc_dump.cpp */
-extern void call_dump(message &m);
-extern baseData *call_data(mng_vals_e id);
+extern void call_dump(message &msg);
+extern baseData *call_data(message &msg, mng_vals_e id, char *save);
 
 /* Receive constants */
 static const int wait = 500; // milli
 
-static const char toksep[] = " \t\n\a\r"; // while spaces
+static const char toksep[] = " \t\n\r"; // while spaces
 // buffer for send and recv
 static const size_t bufSize = 2000;
 static char buf[bufSize];
 static message msg;
 static std::unique_ptr<sockBase> sk;
-static std::string clockIdentity;
+static binary clockIdentity;
 static bool use_uds;
 static uint64_t timeout;
 
@@ -45,83 +46,39 @@ static inline const char *act2str()
 }
 static inline void dump_head()
 {
-    printf("sending: %s %s\n"
-        "\t%s seq %u RESPONSE MANAGEMENT %s ",
-        act2str(),
-        msg.mng2str_c(msg.getTlvId()),
-        msg.c2str(msg.getPeer()).c_str(),
+    printf("\t%s seq %u RESPONSE MANAGEMENT %s ",
+        msg.getPeer().str().c_str(),
         msg.getSequence(),
         msg.mng2str_c(msg.getTlvId()));
 }
 static inline void dump_err()
 {
-    printf("sending: %s %s\n"
-        "\t%s seq %u RESPONSE MANAGEMENT_ERROR_STATUS %s\n"
+    printf("\t%s seq %u RESPONSE MANAGEMENT_ERROR_STATUS %s\n"
         "\tERROR: %s(%u)\n"
         "\tERROR DISPLAY: %s\n\n",
-        act2str(),
-        msg.mng2str_c(msg.getTlvId()),
-        msg.c2str(msg.getPeer()).c_str(),
+        msg.getPeer().str().c_str(),
         msg.getSequence(),
         msg.mng2str_c(msg.getTlvId()),
         msg.errId2str_c(msg.getErrId()),
         msg.getErrId(),
         msg.getErrDisplay_c());
 }
-static inline bool updatePortIdentity(msgParams &prms, const char *str)
+static inline bool updatePortIdentity(msgParams &prms, char *str)
 {
-    char *buf = strdup(str);
-    if(buf == nullptr)
+    char *port = strchr(str, '-');
+    if(port == nullptr)
         return false;
-    char *port = strchr(buf, '-');
-    if(port == nullptr) {
-        free(buf);
-        return false;
-    }
     *port = 0;
+    binary nc;
+    if(!nc.fromHex(str) || nc.length() != ClockIdentity_t::size())
+        return false;
     port++;
-    ClockIdentity_t nc;
-    int i = 0;
-    long val;
     char *end;
-    char *cur = strtok(buf, ".");
-    char nib[3];
-    nib[2] = 0;
-    while(cur != nullptr) {
-        if(cur[0] != 0) {
-            // Too big
-            if(i ==  sizeof(ClockIdentity_t)) {
-                free(buf);
-                return false;
-            }
-            nib[0] = cur[0];
-            nib[1] = cur[1];
-            val = strtol(nib, &end, 16);
-            if(*end != 0 || val < 0 || val > 0xff) {
-                free(buf);
-                return false;
-            }
-            nc.v[i++] = val;
-        }
-        // We go to end of token
-        if(cur[0] == 0 || cur[1] == 0 || cur[2] == 0)
-            cur = strtok(nullptr, ".");
-        else
-            cur += 2;
-    }
-    // Check proper length
-    if(i != sizeof(ClockIdentity_t)) {
-        free(buf);
+    long val = strtol(port, &end, 0);
+    if(*end != 0 || val < 0 || val > UINT16_MAX)
         return false;
-    }
-    val = strtol(port, &end, 0);
-    if(val < 0 || val > UINT16_MAX) {
-        free(buf);
-        return false;
-    }
     prms.target.portNumber = val;
-    prms.target.clockIdentity = nc;
-    free(buf);
+    nc.copy(prms.target.clockIdentity.v);
     return true;
 }
 static inline bool sendAction()
@@ -162,6 +119,11 @@ static inline int rcv()
     }
     return -1;
 }
+static inline void rcv_timeout()
+{
+    timeout = wait;
+    while(sk->tpoll(timeout) && rcv() == 1 && timeout > 0);
+}
 static inline bool findId(mng_vals_e &id, char *str)
 {
     size_t len = strlen(str);
@@ -172,7 +134,7 @@ static inline bool findId(mng_vals_e &id, char *str)
         *cur = toupper(*cur);
     if(strstr(str, "NULL") != nullptr) {
         id = NULL_PTP_MANAGEMENT;
-        return true; // Any NULL
+        return true;
     }
     int find = 0;
     for(int i = FIRST_MNG_ID; i <= LAST_MNG_ID; i++) {
@@ -189,11 +151,12 @@ static inline bool findId(mng_vals_e &id, char *str)
     // 1 matach
     return find == 1;
 }
-static void run_line(char *line)
+static bool run_line(char *line)
 {
-    char *cur = strtok(line, toksep);
+    char *save;
+    char *cur = strtok_r(line, toksep, &save);
     if(cur == nullptr)
-        return;
+        return false;
     actionField_e action;
     if(strcasecmp(cur, "get") == 0)
         action = GET;
@@ -202,9 +165,9 @@ static void run_line(char *line)
     else if(strcasecmp(cur, "cmd") == 0 || strcasecmp(cur, "command") == 0)
         action = COMMAND;
     else if(strcasecmp(cur, "target") == 0) {
-        cur = strtok(nullptr, toksep);
+        cur = strtok_r(nullptr, toksep, &save);
         if(cur == nullptr || *cur == 0)
-            return;
+            return false;
         if(*cur == '*')
             msg.setAllClocks();
         else {
@@ -214,35 +177,36 @@ static void run_line(char *line)
             else
                 fprintf(stderr, "Wrong clock ID: %s\n", cur);
         }
-        return;
+        return false;
     } else
-        return;
-    cur = strtok(nullptr, toksep);
+        return false;
+    cur = strtok_r(nullptr, toksep, &save);
     if(cur == nullptr)
-        return;
+        return false;
     mng_vals_e id;
     if(!findId(id, cur))
-        return;
+        return false;
     baseData *data;
     if(action == GET || msg.isEmpty(id)) {
         // No data is needed
         if(!msg.setAction(action, id))
-            return;
+            return false;
         data = nullptr;
     } else {
-        data = call_data(id);
+        data = call_data(msg, id, save);
         // No point to send without data
         if(data == nullptr)
-            return;
+            return false;
         if(!msg.setAction(action, id, *data))
-            return;
+            return false;
     }
     if(!sendAction())
-        return;
+        return false;
     // Finish with data, free it
     if(data != nullptr)
         delete data;
-    while(sk->tpoll(timeout) && rcv() == 1 && timeout > 0);
+    printf("sending: %s %s\n", act2str(), msg.mng2str_c(id));
+    return true;
 }
 static void handle_sig(int)
 {
@@ -289,25 +253,25 @@ int main(int argc, char *const argv[])
     }
     configFile cfg;
     /* handle configuration file */
-    if(options.count('f') && !cfg.read_cfg(options['f'].c_str()))
+    if(options.count('f') && !cfg.read_cfg(options['f']))
         return -1;
     if(net_select == 0)
         net_select = cfg.network_transport();
-    const char *interface = nullptr;
+    std::string interface;
     if(options.count('i') && !options['i'].empty())
-        interface = options['i'].c_str();
+        interface = options['i'];
     ifInfo ifObj;
     msgParams prms = msg.getParams();
     if(net_select != 'u') {
-        if(interface == nullptr) {
+        if(interface.empty()) {
             fprintf(stderr, "missing interface\n");
             return -1;
         }
-        if(!ifObj.init(interface))
+        if(!ifObj.initUsingName(interface))
             return -1;
-        clockIdentity = ifObj.eui48toeui64(ifObj.mac());
-        memcpy(prms.self_id.clockIdentity.v, clockIdentity.c_str(),
-            sizeof(ClockIdentity_t));
+        clockIdentity = ifObj.mac();
+        clockIdentity.eui48ToEui64();
+        clockIdentity.copy(prms.self_id.clockIdentity.v);
         prms.self_id.portNumber = 1;
         use_uds = false;
     }
@@ -352,7 +316,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate sockIp4\n");
                 return -1;
             }
-            if(!sk4->setAll(ifObj, cfg, interface)) {
+            if(!sk4->setAllInit(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
@@ -365,7 +329,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate sockIp6\n");
                 return -1;
             }
-            if(!sk6->setAll(ifObj, cfg, interface)) {
+            if(!sk6->setAllInit(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
@@ -378,7 +342,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate sockRaw\n");
                 return -1;
             }
-            if(!skr->setAll(ifObj, cfg, interface)) {
+            if(!skr->setAllInit(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
@@ -387,7 +351,6 @@ int main(int argc, char *const argv[])
         }
     }
     msg.updateParams(prms);
-    timeout = wait;
     if(optind == argc) {
         // No arguments left, use batch mode
         // Normal Termination (by kill)
@@ -398,10 +361,17 @@ int main(int argc, char *const argv[])
             fprintf(stderr, "sig init fails %m\n");
         char lineBuf[bufSize];
         while(fgets(lineBuf, bufSize, stdin) != nullptr)
-            run_line(lineBuf);
-    } else
-        for(int index = optind; index < argc; index++)
-            run_line(argv[index]);
+            if(run_line(lineBuf))
+                rcv_timeout();
+    } else {
+        int pkts = 0;
+        for(int index = optind; index < argc; index++) {
+            if(run_line(argv[index]))
+                pkts++;
+        }
+        for(; pkts > 0; pkts--)
+            rcv_timeout();
+    }
     sk->close();
     return 0;
 }

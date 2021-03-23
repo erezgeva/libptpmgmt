@@ -2,14 +2,14 @@
 
 # Makefile Create libpmc and pmc for testing
 #
-# @author Erez Geva <ErezGeva2@gmail.com>
+# @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 
 PMC_USE_LIB?=a # 'a' for static and 'so' for dynamic
 
 which=$(shell which $1 2>/dev/null)
 define depend
-$(1): $(2)
+$1: $2
 
 endef
 verCheckDo=$(shell test $1 -eq $3 && a=$2 b=$4 || a=$1 b=$3; \
@@ -72,10 +72,16 @@ include version
 # Ensure linker link using C++
 CC:=g++
 RL:=ranlib
-CPPFLAGS+=-Wall -std=c++11 -g
+CPPFLAGS+=-Wall -std=c++11 -g -Og
+# For speed
+#CPPFLAGS+=-Ofast
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
 LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
+ifneq ($(SONAME),)
+LDFLAGS_NM=-Wl,--version-script,debian/lib.ver\
+           -Wl,-soname,$@.$(SONAME)
+endif
 PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
 LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(wildcard *.cpp)))
 LIB_NAME:=libpmc
@@ -131,21 +137,26 @@ distclean: deb_clean clean
 	$Q$(RM) -Rf $(DISTCLEAN_DIRS)
 
 HEADERS:=$(filter-out mngIds.h,$(wildcard *.h))
-# MAP %@ => '/', ?@ => '#', %? => ' ', %^ => '\n', %_ => empty line, %! => '@'
+# MAP for  mngIds.cc:
+#  %@ => '/'        - Use next to star
+#  %! => '%'        - Self escape
+#  %# => '#'        - Use on line start to define a preproccesor in final
+#  %_ =>            - Place marker, retain empty lines
+#  %- => ' '        - When need 2 spaces or more, use with spaces between
+#  %^ => '\n'       - Add new line in preprocessor only
 mngIds.h: mngIds.cc
 	$(Q_GEN)
-	$Q$(CXX) -E $< | sed 's/^#.*//;/^\s*$$/d;s#%@#/#g;s/?@/#/g;s/%?/ /g' > $@
-	$Qsed -i 's/%^/\n/g;s/^%_$$//;s/%!/@/g' $@
+	$Q$(CXX) -E $< | sed 's/^#.*//;/^\s*$$/d;s#%@#/#g' > $@
+	$(Q)sed -i 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' $@
 
 DISTCLEAN+=mngIds.h
 
 ifneq ($(call which,astyle),)
 astyle_ver:=$(lastword $(shell astyle -V))
 ifeq ($(call verCheck,$(astyle_ver),3.1),)
-FORMAT_ASTYLE:=$(filter-out pmc_dump.cpp,$(wildcard *.h *.cpp))
 format:
-	$(Q)astyle --project=none --options=astyle.opt $(FORMAT_ASTYLE)
-	$(Q)./format.pl
+	$(Q)astyle --project=none --options=astyle.opt $(wildcard *.h *.cpp)
+	$Q./format.pl
 endif
 endif # which astyle
 
@@ -159,6 +170,7 @@ swig_ver=$(lastword $(shell swig -version | grep Version))
 ifeq ($(call verCheck,$(swig_ver),3.0),)
 SWIG_ALL:=
 SWIG_NAME:=PmcLib
+
 ifneq ($(call which,perl),)
 PERL_VER:=$(shell perl -e '$$_=$$^V;s/^v//;print')
 ifneq ($(DEB_HOST_MULTIARCH),)
@@ -185,6 +197,68 @@ CLEAN+=$(foreach e,d o,$(PERL_NAME).$e)
 DISTCLEAN+=$(foreach e,cpp pm so,$(PERL_NAME).$e)
 include $(wildcard perl/*.d)
 endif # which perl
+
+ifneq ($(call which,lua),)
+LUA_FLAGS:=$(foreach n,$(LUA_WARNS),-w$n)
+lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
+	$(Q_SWIG)
+	$Q$(SWIG) -c++ -I. $(LUA_FLAGS) -outdir lua -o $@ -lua $<
+define lua
+LIB_$1:=lua/5.$1/pmc.so
+lua/5.$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp
+	$$(Q_LCC)
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) -I/usr/include/lua5.$1 \
+	-c $$< -o $$@
+$$(LIB_$1): lua/5.$1/$(SWIG_NAME).o $(LIB_NAME).so
+	$$(Q_LD)
+	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
+	$$(LD_LUA_$1) -o $$@
+SWIG_ALL+=$$(LIB_$1)
+CLEAN+=$$(foreach n,o d,lua/5.$1/$(SWIG_NAME).$$n)
+DISTCLEAN+=$$(LIB_$1)
+
+endef
+define lua_soname
+LD_LUA_$1:=-Wl,-soname,liblua5.$1-pmc.so.$(SONAME)
+
+endef
+DISTCLEAN+=lua/$(SWIG_NAME).cpp lua/pmc.so
+ifneq ($(SONAME),)
+$(eval $(foreach n,1 2 3,$(call lua_soname,$n)))
+endif
+$(eval $(foreach n,1 2 3,$(call lua,$n)))
+endif # which lua
+
+ifneq ($(call which,python),)
+PY_BASE:=python/$(SWIG_NAME)
+$(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
+	$(Q_SWIG)
+	$Q$(SWIG) -c++ -I. -outdir python -o $@ -python $<
+define python
+PY_BASE_$1:=python/$1/$(SWIG_NAME)
+PY_SO_$1:=python/$1/_pmc.so
+PY_INC_$1:=$$(dir $$(firstword $$(wildcard /usr/include/python$1*/Python.h)))
+PY_LIBS_$1:=-l$$(lastword $$(subst /, ,$$(PY_INC_$1))) -lm -ldl
+$$(PY_BASE_$1).o: $(PY_BASE).cpp
+	$$(Q_LCC)
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) -I$$(PY_INC_$1) -c $$< -o $$@
+$$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME).so
+	$$(Q_LD)
+	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
+	$$(PY_LIBS_$1) -o $$@
+SWIG_ALL+=$$(PY_SO_$1)
+CLEAN+=$$(foreach n,o d,$$(PY_BASE_$1).$$n)
+DISTCLEAN+=$$(PY_SO_$1)
+
+endef
+DISTCLEAN+=$(PY_BASE).cpp python/_pmc.so python/pmc.py python/pmc.pyc
+DISTCLEAN_DIRS+=python/__pycache__
+$(eval $(call python,2))
+# Python 3 need swig 4
+ifeq ($(call verCheck,$(swig_ver),4.0),)
+$(eval $(call python,3))
+endif
+endif # which python
 
 ALL+=$(SWIG_ALL)
 endif # swig 3.0

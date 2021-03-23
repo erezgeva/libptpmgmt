@@ -3,11 +3,12 @@
 
 # extra formatter, run after astyle
 #
-# @author Erez Geva <ErezGeva2@gmail.com>
+# @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 sub main
 {
-    for(glob "*.cpp *.h Makefile debian/rules debian/*.mk *.sh perl/*.pl")
+    for(glob "*.cpp *.h Makefile debian/rules debian/*.mk *.sh perl/*.pl" .
+             " lua/*.lua python/t*.py")
     {
         next if -l or not -f;
         my $file = $_;
@@ -34,19 +35,28 @@ sub main
             if($file =~ /\.cpp$/ or $file =~ /\.h$/) {
                 if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]/) {
                     print STDERR "Check: $file:$.: for wrong char: $_\n";
-                } elsif(/\\[^ntar]/) {
+                } elsif(/\\[^ntr"'\\]/) {
                     print STDERR "Check: $file:$.: wrong escape char: $_\n";
                 }
                 if(/\*INDENT-ON\*/i || /\*INDENT-OFF\*/i || /\*NOPAD\*/i) {
                     print STDERR "Check: $file:$.: for using astyle skip: $_\n";
                 }
+                if(/[^"]NULL\b/) {
+                    print STDERR "Check: $file:$.: use C++ nullptr: $_\n";
+                }
+                if(/.{85}/) {
+                    print STDERR "Check: $file:$.: line is too long: $_\n";
+                }
             } else {
                 if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
                     print STDERR "Check: $file:$.: for wrong char: $_\n";
-                } elsif(/\\[^ntars"0\$]/) {
+                } elsif(/\\[^ntr"s0\$]/) {
                     print STDERR "Check: $file:$.: wrong escape char: $_\n";
                 } elsif(/.\t/) {
                     print STDERR "Check: $file:$.: Tabs are allowed only in begining: $_\n";
+                }
+                if(/.{85}/) {
+                    print STDERR "Check: $file:$.: line is too long: $_\n";
                 }
             }
             #######################################

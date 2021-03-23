@@ -18,7 +18,7 @@
 			<Add option="-g" />
 			<Add option="-std=c++11" />
 		</Compiler>
-		<Unit filename="buf.cpp" />
+		<Unit filename="bin.cpp" />
 		<Unit filename="cfg.cpp" />
 		<Unit filename="msg.cpp" />
 		<Unit filename="pmc.cpp" />
@@ -26,6 +26,14 @@
 		<Unit filename="proc.cpp" />
 		<Unit filename="ptp.cpp" />
 		<Unit filename="sock.cpp" />
+		<Unit filename="bin.h" />
+		<Unit filename="cfg.h" />
+		<Unit filename="end.h" />
+		<Unit filename="mngIds.h" />
+		<Unit filename="msg.h" />
+		<Unit filename="proc.h" />
+		<Unit filename="ptp.h" />
+		<Unit filename="sock.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

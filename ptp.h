@@ -3,7 +3,7 @@
 /** @file
  * @brief Read network interface information and retrieve the PTP information
  *
- * @author Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
  * @details
@@ -18,9 +18,7 @@
 #include <stdint.h>
 #include <net/if.h>
 #include <linux/ethtool.h>
-
-const size_t EUI48 = ETH_ALEN; /**< 48 bits MAC address length */
-const size_t EUI64 = 8;        /**< 64 bits MAC address length */
+#include "bin.h"
 
 /**
  * @brief Network interface information
@@ -32,11 +30,9 @@ class ifInfo
     int m_ifIndex;
     int m_ptpIndex;
     std::string m_ifName;
-    std::string m_mac;
+    binary m_mac;
 
-    bool initBase(const char *ifName);
     bool initPtp(int fd, struct ifreq &m_ifr);
-    static std::string str2mac(const char *str, size_t len);
 
   public:
     ifInfo() : m_isInit(false), m_ifIndex(-1), m_ptpIndex(-1) {}
@@ -45,19 +41,13 @@ class ifInfo
      * @param[in] ifName network interface name
      * @return true if network interface exist
      */
-    bool init(const char *ifName);
-    /**
-     * Find network interface information based on its name
-     * @param[in] ifName network interface name
-     * @return true if network interface exist
-     */
-    bool init(const std::string &ifName);
+    bool initUsingName(const std::string ifName);
     /**
      * Find network interface information based on its index
      * @param[in] ifIndex network interface index
      * @return true if network interface exist
      */
-    bool init(int ifIndex);
+    bool initUsingIndex(int ifIndex);
     /**
      * Is object initialized
      * @return true if network interface was successfully initialized
@@ -67,82 +57,38 @@ class ifInfo
      * Get interface index
      * @return interface index or -1 if object is not initialized
      */
-    int ifIndex() { return m_ifIndex; }
+    int ifIndex() const { return m_ifIndex; }
     /**
      * Get interface name
      * @return interface name or empty string if object is not initialized
      */
-    const std::string &ifName() { return m_ifName; }
+    const std::string &ifName() const { return m_ifName; }
     /**
      * Get interface name
      * @return interface name or empty string if object is not initialized
      */
-    const char *ifName_c() { return m_ifName.c_str(); }
+    const char *ifName_c() const { return m_ifName.c_str(); }
     /**
      * Get interface MAC address
      * @return binary from address or empty string if object is not initialized
      */
-    const std::string &mac() { return m_mac; }
+    const binary &mac() const { return m_mac; }
     /**
      * Get interface MAC address
      * @return binary from address or empty string if object is not initialized
      */
-    const uint8_t *mac_c() { return (uint8_t *)m_mac.c_str(); }
+    const uint8_t *mac_c() const { return m_mac.get(); }
     /**
      * Get interface MAC address length
      * @return binary from address length or 0 if object is not initialized
      */
-    size_t mac_size() { return m_mac.length(); }
+    size_t mac_size() const { return m_mac.length(); }
     /**
      * Get interface PTP index
      * @return ptp index or -1 if object is not initialized or
      *  interface does not support PTP
      */
-    int ptpIndex() { return m_ptpIndex; }
-    /**
-     * Convert binary from MAC address to string from
-     * @param[in] mac binary from address
-     * @param[in] len mac binary from length
-     * @return string form MAC address
-     */
-    static std::string mac2str(const uint8_t *mac, size_t len);
-    /**
-     * Convert binary from MAC address to string from
-     * @param[in] mac binary from address
-     * @return string form MAC address
-     */
-    static std::string mac2str(const std::string &mac) {
-        return mac2str((uint8_t *)mac.c_str(), mac.length());
-    }
-    /**
-     * Convert string from MAC address to binary from
-     * @param[in] string from address
-     * @return string object with binary form MAC address
-     */
-    static std::string str2mac(const char *string);
-    /**
-     * Convert string from MAC address to binary from
-     * @param[in] string from address
-     * @return string object with binary form MAC address
-     */
-    static std::string str2mac(const std::string &string) {
-        return str2mac(string.c_str(), string.length());
-    }
-    /**
-     * Convert binary from MAC address to 64 bits binary from MAC address
-     * @param[in] mac binary from address
-     * @param[in] len mac binary from length
-     * @return binary form 64 bits MAC address
-     */
-    static std::string eui48toeui64(const uint8_t *mac, size_t len);
-    /**
-     * Convert binary from MAC address to 64 bits binary from MAC address
-     * @param[in] mac binary from address
-     * @return binary form 64 bits MAC address
-     */
-    static std::string eui48toeui64(const std::string &mac) {
-        return eui48toeui64((uint8_t *)mac.c_str(), mac.length());
-    }
+    int ptpIndex() const { return m_ptpIndex; }
 };
 
 /**
@@ -177,17 +123,17 @@ class ptpClock
      * Is object initialized
      * @return true if PTP clock exist and object was successfully initialized
      */
-    bool isInit() { return m_isInit; }
+    bool isInit() const { return m_isInit; }
     /**
      * Get dynamic clock id
      * @return dynamic clock id or -1 if not initialized
      */
-    clockid_t clkId() { return m_clkId; }
+    clockid_t clkId() const { return m_clkId; }
     /**
      * Get PTP index
      * @return index or -1 if not initialized
      */
-    int ptpIndex() { return m_ptpIndex; }
+    int ptpIndex() const { return m_ptpIndex; }
     /**
      * Get PTP device name
      * @return device name or empty string if not initialized

@@ -5,3 +5,5 @@
 /libpmc.pc
 /libpmc*/
 /pmc*/
+/lua-pmc/
+/python-pmc/

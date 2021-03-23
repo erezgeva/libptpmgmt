@@ -3,11 +3,11 @@
 /** @file
  * @brief Create and parse PTP managment messages
  *
- * @author Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
- * Created following "IEEE Std 1588-2008", PTP version 2
- * with some updates from "IEEE Std 1588-2019"
+ * Created following @"IEEE Std 1588-2008@", PTP version 2
+ * with some updates from @"IEEE Std 1588-2019@"
  */
 
 #ifndef __MSG_H
@@ -18,6 +18,7 @@
 #include <vector>
 #include <stdint.h>
 #include "cfg.h"
+#include "bin.h"
 
 #ifndef INT48_MIN
 /** Minimum value for signed integer 48 bits */
@@ -90,7 +91,7 @@ enum mng_vals_e {
 #include "ids.h"
 };
 #endif
-/**> @endcond */
+/**< @endcond */
 /** PTP Managment Error IDs */
 enum managementErrorId_e : uint16_t {
     RESPONSE_TOO_BIG = 0x0001, /**< Response is too big */
@@ -115,7 +116,7 @@ enum clockType_e : uint16_t {
 enum networkProtocol_e : uint16_t {
     UDP_IPv4   = 1, /**< UDP over IP version 4 */
     UDP_IPv6   = 2, /**< UDP over IP version 6 */
-    IEEE_802_3 = 3, /**< Raw Ethernet using IEEE 802.3 */
+    IEEE_802_3 = 3, /**< Raw Ethernet using IEEE 802@.3 */
     DeviceNet  = 4, /**< DeviceNet */
     ControlNet = 5, /**< ControlNet */
     PROFINET   = 6, /**< PROFINET */
@@ -123,25 +124,25 @@ enum networkProtocol_e : uint16_t {
 /** PTP clock accuracy */
 enum clockAccuracy_e : uint8_t {
     Accurate_within_1ps   = 0x17, /**< higher then 1 picosecond */
-    Accurate_within_2_5ps = 0x18, /**< higher then 2.5 picoseconds */
+    Accurate_within_2_5ps = 0x18, /**< higher then 2@.5 picoseconds */
     Accurate_within_10ps  = 0x19, /**< higher then 10 picoseconds */
     Accurate_within_25ps  = 0x1a, /**< higher then 25 picoseconds */
     Accurate_within_100ps = 0x1b, /**< higher then 100 picoseconds */
     Accurate_within_250ps = 0x1c, /**< higher then 250 picoseconds */
     Accurate_within_1ns   = 0x1d, /**< higher then 1 nanosecond */
-    Accurate_within_2_5ns = 0x1e, /**< higher then 2.5 nanoseconds */
+    Accurate_within_2_5ns = 0x1e, /**< higher then 2@.5 nanoseconds */
     Accurate_within_10ns  = 0x1f, /**< higher then 10 nanoseconds */
     Accurate_within_25ns  = 0x20, /**< higher then 25 nanoseconds */
     Accurate_within_100ns = 0x21, /**< higher then 100 nanoseconds */
     Accurate_within_250ns = 0x22, /**< higher then 250 nanoseconds */
     Accurate_within_1us   = 0x23, /**< higher then 1 microsecond */
-    Accurate_within_2_5us = 0x24, /**< higher then 2.5 microseconds */
+    Accurate_within_2_5us = 0x24, /**< higher then 2@.5 microseconds */
     Accurate_within_10us  = 0x25, /**< higher then 10 microseconds */
     Accurate_within_25us  = 0x26, /**< higher then 25 microseconds */
     Accurate_within_100us = 0x27, /**< higher then 100 microseconds */
     Accurate_within_250us = 0x28, /**< higher then 250 microseconds */
     Accurate_within_1ms   = 0x29, /**< higher then 1 millisecond */
-    Accurate_within_2_5ms = 0x2a, /**< higher then 2.5 milliseconds */
+    Accurate_within_2_5ms = 0x2a, /**< higher then 2@.5 milliseconds */
     Accurate_within_10ms  = 0x2b, /**< higher then 10 milliseconds */
     Accurate_within_25ms  = 0x2c, /**< higher then 25 milliseconds */
     Accurate_within_100ms = 0x2d, /**< higher then 100 milliseconds */
@@ -183,6 +184,7 @@ enum portState_e : uint8_t {
     LISTENING    = 4, /**< Listening */
     PRE_MASTER   = 5, /**< Pre source */
     MASTER       = 6, /**< Source */
+    SOURCE       = 6, /**< Source */
     PASSIVE      = 7, /**< Passive */
     UNCALIBRATED = 8, /**< Uncalibrated */
     SLAVE        = 9, /**< Client */
@@ -221,26 +223,76 @@ enum : uint8_t {
 /** PTP Time interval value */
 struct TimeInterval_t {
     Integer64_t scaledNanoseconds; /**< nanoseconds */
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() { return 8; }
+    /**
+     * Get interval from time interval
+     * @return scaled time interval
+     */
+    double getInterval() const { return (double)scaledNanoseconds / 0x10000; }
 };
 /** PTP Time stamp */
 struct Timestamp_t {
     UInteger48_t secondsField; /**< seconds */
     UInteger32_t nanosecondsField; /**< nanoseconds */
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() { return 10; }
+    /**
+     * Convert to string
+     * @return string
+     */
+    std::string str() const;
 };
 /** PTP clock ID */
 struct ClockIdentity_t {
     Octet_t v[8]; /**< value */
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() { return 8; }
+    /**
+     * Convert to string
+     * @return string
+     */
+    std::string str() const;
 };
 /** PTP port ID */
 struct PortIdentity_t {
     ClockIdentity_t clockIdentity; /**< clock ID */
     UInteger16_t portNumber; /**< port number */
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() { return 10; }
+    /**
+     * Convert to string
+     * @return string
+     */
+    std::string str() const;
 };
 /** PTP port address */
 struct PortAddress_t {
     networkProtocol_e networkProtocol; /**< network protocol */
     UInteger16_t addressLength; /**< address length */
-    std::string addressField; /**< binary from address */
+    binary addressField; /**< binary from address */
+    /**
+     * Get object size
+     * @return object size
+     */
+    size_t size() const { return 4 + addressField.length(); }
+    /**
+     * Convert to string
+     * @return string
+     */
+    std::string str() const;
 };
 /** PTP clock quality */
 struct ClockQuality_t {
@@ -252,6 +304,16 @@ struct ClockQuality_t {
 struct PTPText_t {
     uint8_t lengthField; /**< string length */
     std::string textField; /**< string value */
+    /**
+     * Get object size
+     * @return object size
+     */
+    size_t size() const { return 1 + textField.length(); }
+    /**
+     * Get string
+     * @return pointer to string
+     */
+    const char *str() const { return textField.c_str(); }
 };
 /** PTP fault record */
 struct FaultRecord_t {
@@ -261,11 +323,24 @@ struct FaultRecord_t {
     PTPText_t faultName; /**< name */
     PTPText_t faultValue; /**< value */
     PTPText_t faultDescription; /**< description */
+    /**
+     * Get object size
+     * @return object size
+     */
+    size_t size() {
+        return 3 + sizeof(faultTime) + faultName.size() + faultValue.size() +
+            faultDescription.size();
+    }
 };
 /** PTP Acceptable source */
 struct AcceptableMaster_t {
     PortIdentity_t acceptablePortIdentity; /**< acceptable port ID */
     uint8_t alternatePriority1; /**< alternate priority 1 */
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() { return 11; }
 };
 /** Properties of a PTP managment TLV */
 struct managementId_t {
@@ -310,14 +385,14 @@ class message
 {
     /** @cond internal
      * Doxygen does not know how to proccess.
-     * This is private section any way.
+     * This is a private section any way.
      */
 #define A(n, v, sc, a, sz, f) case##f(n)
 #define caseUF(n) bool n##_f(n##_t &data);
   private:
     /* Per tlv ID callback for parse or build or both */
 #include "ids.h"
-    /**> @endcond */
+    /**< @endcond */
 
     mng_vals_e      m_tlv_id;
     /* Send only */
@@ -333,9 +408,6 @@ class message
     size_t          m_size;  /* TLV data size on build */
     bool            m_build; /* true on build */
     MNG_PARSE_ERROR_e m_err; /* Last TLV err */
-
-    size_t          m_sendBufSize;
-    std::vector<uint8_t> m_sendBuf;
 
     msgParams       m_prms;
     PortIdentity_t  m_peer;
@@ -369,6 +441,7 @@ class message
     bool proc48(int64_t &val);
     bool proc(int64_t &val);
     bool proc(std::string &str, uint16_t len);
+    bool proc(binary &bin, uint16_t len);
     bool proc(uint8_t *val, size_t len);
     bool proc(networkProtocol_e &val);
     bool proc(clockAccuracy_e &val);
@@ -435,18 +508,10 @@ class message
      * Fetch msgParams parameters from configuration file
      * @param[in] cfg referance to configuration file object
      * @param[in] section in configuration file
-     * @return true if parameters are valid and updated
-     * @note calling without section will fetch value from "global" section
-     */
-    bool useConfig(configFile &cfg, const char *section = nullptr);
-    /**
-     * Fetch msgParams parameters from configuration file
-     * @param[in] cfg referance to configuration file object
-     * @param[in] section in configuration file
      * @return true on success
-     * @note calling without section will fetch value from "global" section
+     * @note calling without section will fetch value from @"global@" section
      */
-    bool useConfig(configFile &cfg, std::string &section);
+    bool useConfig(configFile &cfg, std::string section = "");
     /**
      * Convert parse error code to string
      * @param[in] err parse code
@@ -502,74 +567,11 @@ class message
      */
     static const char *portState2str_c(portState_e state);
     /**
-     * Fetch PTP text
-     * @param[in] value of PTP text
-     * @return string with the text
-     */
-    static const char *pppText2str_c(PTPText_t &value) { return value.textField.c_str(); }
-    /**
      * Convert linuxptp time stamp type to string
      * @param[in] type time stamp type
      * @return string with the Linux time stamp type
      */
     static const char *ts2str_c(linuxptpTimeStamp_e type);
-    /**
-     * Convert time stamp value to string object
-     * @param[in] value time stamp
-     * @return string object with the time stamp
-     */
-    static std::string c2str(const Timestamp_t &value);
-    /**
-     * Convert clock ID value to string object
-     * @param[in] value clock ID
-     * @return string object with the clock ID
-     */
-    static std::string c2str(const ClockIdentity_t &value);
-    /**
-     * Convert port ID value to string object
-     * @param[in] value port ID
-     * @return string object with the port ID
-     */
-    static std::string c2str(const PortIdentity_t &value);
-    /**
-     * Convert port address value to string object
-     * @param[in] address port address
-     * @return string object with the port address
-     */
-    static std::string c2str(const PortAddress_t &address);
-    /**
-     * Convert binary form ID to string object
-     * @param[in] id
-     * @param[in] length
-     * @return string object with the ID
-     */
-    static std::string b2str(const uint8_t *id, size_t length);
-    /**
-     * Convert binary form ID to string object
-     * @param[in] id string object with binary form ID
-     * @return string object with string form ID
-     */
-    static std::string b2str(const std::string &id);
-    /**
-     * Convert IP version 4 in binary form to string object
-     * @param[in] address IP address
-     * @return string object with the IP adderss in string form
-     */
-    static std::string ipv42str(const std::string &address);
-    /**
-     * Convert IP version 6 in binary form to string object
-     * @param[in] address IP address
-     * @return string object with the IP adderss in string form
-     */
-    static std::string ipv62str(const std::string &address);
-    /**
-     * Get interval from time interval
-     * @param[in] value time interval
-     * @return scaled time interval
-     */
-    static double getInterval(const TimeInterval_t &value) {
-        return (double)value.scaledNanoseconds / 0x10000;
-    }
     /**
      * Check if leap 61 seconds flag is enabled
      * @param[in] flags
@@ -640,28 +642,13 @@ class message
      * @param[in] bufSize buffer size
      * @param[in] sequence message sequence
      * @return parse error state
-     * @note the message is initialize with NULL managment ID
+     * @note the message is initialize with NULL_PTP_MANAGEMENT managment ID
      * @note usually the user increase the sequence so it can be compared
      *  with replied message
      * @note if raw message is larger then buffer size the function
      *   return MNG_PARSE_ERROR_TOO_SMALL
      */
-    MNG_PARSE_ERROR_e build(const void *buf, size_t bufSize, uint16_t sequence);
-    /**
-     * Build a raw message for send based on last setAction call
-     * Allocate a send buffer for user
-     * @param[in] sequence message sequence
-     * @return parse error state
-     * @note the message is initialize with NULL managment ID
-     * @note usually the user increase the sequence so it can be compared
-     *  with replied message
-     * @note if raw message is larger then buffer size the function
-     *   return MNG_PARSE_ERROR_TOO_SMALL
-     * @attention this function is convinient for scripting.
-     *  If you use this function, you should use the socket send(message &msg)
-     *  function. The caller should not try to free this buffer.
-     */
-    MNG_PARSE_ERROR_e build(uint16_t sequence);
+    MNG_PARSE_ERROR_e build(void *buf, size_t bufSize, uint16_t sequence);
     /**
      * Get last sent management TLV id
      * @return management TLV id
@@ -680,12 +667,6 @@ class message
      * User can use the size to allocate proper buffer for sending
      */
     ssize_t getMsgPlanedLen();
-    /**
-     * Get pointer to buffer allocated with last call to build(sequence)
-     * @return pointer to send internal buffer
-     * @note Do @b NOT release this memory
-     */
-    void *getSendBuf() { return m_sendBuf.data(); }
     /* Parsed message functions */
     /**
      * Parse a recieved raw socket
@@ -693,7 +674,7 @@ class message
      * @param[in] msgSize recieved size of PTP message
      * @return parse error state
      */
-    MNG_PARSE_ERROR_e parse(const void *buf, ssize_t msgSize);
+    MNG_PARSE_ERROR_e parse(void *buf, ssize_t msgSize);
     /**
      * Is last parsed message a unicast or not
      * @return true if parsed message is unicast
@@ -734,26 +715,7 @@ class message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error message
      */
-    const char *getErrDisplay_c() { return pppText2str_c(m_errorDisplay); }
-    /**
-     * Get port address object size
-     * @param[in] address object
-     * @return object size
-     */
-    static size_t PortAddress_l(PortAddress_t &address);
-    /**
-     * Get ptp text object size
-     * @param[in] text object
-     * @return object size
-     * @note the text object size is bigger then the text string length
-     */
-    static size_t PTPText_l(PTPText_t &text);
-    /**
-     * Get fault record object size
-     * @param[in] record object
-     * @return record size
-     */
-    static size_t FaultRecord_l(FaultRecord_t &record);
+    const char *getErrDisplay_c() { return m_errorDisplay.str(); }
     /**
      * Get this library version
      * @return this library version

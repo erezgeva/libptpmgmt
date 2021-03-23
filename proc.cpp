@@ -3,23 +3,26 @@
 /** @file
  * @brief parse, buid or both function per PTP managmet id
  *
- * @author Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
  */
 #include <cstring>
 #include "msg.h"
 
-#define sproc(a) proc((uint8_t*)(a), sizeof(a))
+/* For Octets arrays */
+#define oproc(a) proc(a, sizeof(a))
+/* list build part */
 #define vector_b(type, vec)\
     if(m_build) {\
         for(type##_t &rec: d.vec) {\
             if(proc(rec)) return true;\
         }\
     } else
+/* list proccess */
 #define vector_f(type, cnt, vec) {\
         vector_b(type, vec) {\
-            for(uint16_t i = 0; i < d.cnt; i++) {\
+            for(uint32_t i = 0; i < (uint32_t)d.cnt; i++) {\
                 type##_t rec;\
                 if(proc(rec)) return true;\
                 d.vec.push_back(rec);\
@@ -27,10 +30,11 @@
         }\
         return false;\
     }
+/* size of variable length list */
 #define vector_l(pre_size, type, vec) {\
         size_t ret = pre_size;\
         for(type##_t &rec: d.vec)\
-            ret += message::type##_l(rec);\
+            ret += rec.size();\
         return ret;\
     }
 
@@ -40,36 +44,36 @@
 
 S(USER_DESCRIPTION)
 {
-    return message::PTPText_l(d.userDescription);
+    return d.userDescription.size();
 }
 S(FAULT_LOG)
 {
     vector_l(2, FaultRecord, faultRecords);
 }
-S(UNICAST_MASTER_TABLE)
+S(PATH_TRACE_LIST)
 {
-    vector_l(3, PortAddress, PortAddress);
+    return ClockIdentity_t::size() * d.pathSequence.size();
 }
 S(GRANDMASTER_CLUSTER_TABLE)
 {
     vector_l(2, PortAddress, PortAddress);
 }
+S(UNICAST_MASTER_TABLE)
+{
+    vector_l(3, PortAddress, PortAddress);
+}
 S(ACCEPTABLE_MASTER_TABLE)
 {
-    return 2 + sizeof(AcceptableMaster_t) * d.list.size();
+    return 2 + AcceptableMaster_t::size() * d.list.size();
 }
 S(ALTERNATE_TIME_OFFSET_NAME)
 {
-    return 1 + message::PTPText_l(d.displayName);
-}
-S(PATH_TRACE_LIST)
-{
-    return sizeof(ClockIdentity_t) * d.pathSequence.size();
+    return 1 + d.displayName.size();
 }
 // linuxptp TLVs Implementation-specific C000-DFFF
 S(PORT_PROPERTIES_NP)
 {
-    return 2 + sizeof(PortIdentity_t) + message::PTPText_l(d.interface);
+    return 2 + PortIdentity_t::size() + d.interface.size();
 }
 
 ssize_t message::dataFieldSize()
@@ -78,11 +82,11 @@ ssize_t message::dataFieldSize()
         // CLOCK_DESCRIPTION is GET only, we can skip it
         case CS(USER_DESCRIPTION);
         case CS(FAULT_LOG);
-        case CS(UNICAST_MASTER_TABLE);
+        case CS(PATH_TRACE_LIST);
         case CS(GRANDMASTER_CLUSTER_TABLE);
+        case CS(UNICAST_MASTER_TABLE);
         case CS(ACCEPTABLE_MASTER_TABLE);
         case CS(ALTERNATE_TIME_OFFSET_NAME);
-        case CS(PATH_TRACE_LIST);
         case CS(PORT_PROPERTIES_NP);
         default:
             return -2;
@@ -109,10 +113,10 @@ A(CLOCK_DESCRIPTION)
     return proc(d.clockType) || proc(d.physicalLayerProtocol) ||
         proc(d.physicalAddressLength) ||
         proc(d.physicalAddress, d.physicalAddressLength) ||
-        proc(d.protocolAddress) || sproc(d.manufacturerIdentity) ||
+        proc(d.protocolAddress) || oproc(d.manufacturerIdentity) ||
         proc(reserved) || proc(d.productDescription) ||
         proc(d.revisionData) || proc(d.userDescription) ||
-        sproc(d.profileIdentity);
+        oproc(d.profileIdentity);
 }
 A(USER_DESCRIPTION)
 {
@@ -128,35 +132,11 @@ A(FAULT_LOG)
         return true;
     vector_f(FaultRecord, numberOfFaultRecords, faultRecords);
 }
-A(TIME)
-{
-    return proc(d.currentTime);
-}
-A(CLOCK_ACCURACY)
-{
-    return proc(d.clockAccuracy);
-}
 A(DEFAULT_DATA_SET)
 {
     return proc(d.flags) || proc(reserved) || proc(d.numberPorts) ||
         proc(d.priority1) || proc(d.clockQuality) || proc(d.priority2) ||
         proc(d.clockIdentity) || proc(d.domainNumber);
-}
-A(PRIORITY1)
-{
-    return proc(d.priority1);
-}
-A(PRIORITY2)
-{
-    return proc(d.priority2);
-}
-A(DOMAIN)
-{
-    return proc(d.domainNumber);
-}
-A(SLAVE_ONLY)
-{
-    return proc(d.flags);
 }
 A(CURRENT_DATA_SET)
 {
@@ -175,18 +155,6 @@ A(TIME_PROPERTIES_DATA_SET)
 {
     return proc(d.currentUtcOffset) || proc(d.flags) || proc(d.timeSource);
 }
-A(UTC_PROPERTIES)
-{
-    return proc(d.currentUtcOffset) || proc(d.flags);
-}
-A(TIMESCALE_PROPERTIES)
-{
-    return proc(d.flags) || proc(d.timeSource);
-}
-A(TRACEABILITY_PROPERTIES)
-{
-    return proc(d.flags);
-}
 A(PORT_DATA_SET)
 {
     return proc(d.portIdentity) || proc(d.portState) ||
@@ -194,6 +162,22 @@ A(PORT_DATA_SET)
         proc(d.logAnnounceInterval) || proc(d.announceReceiptTimeout) ||
         proc(d.logSyncInterval) || proc(d.delayMechanism) ||
         proc(d.logMinPdelayReqInterval) || proc(d.versionNumber);
+}
+A(PRIORITY1)
+{
+    return proc(d.priority1);
+}
+A(PRIORITY2)
+{
+    return proc(d.priority2);
+}
+A(DOMAIN)
+{
+    return proc(d.domainNumber);
+}
+A(SLAVE_ONLY)
+{
+    return proc(d.flags);
 }
 A(LOG_ANNOUNCE_INTERVAL)
 {
@@ -207,44 +191,56 @@ A(LOG_SYNC_INTERVAL)
 {
     return proc(d.logSyncInterval);
 }
-A(DELAY_MECHANISM)
-{
-    return proc(d.delayMechanism);
-}
-A(LOG_MIN_PDELAY_REQ_INTERVAL)
-{
-    return proc(d.logMinPdelayReqInterval);
-}
 A(VERSION_NUMBER)
 {
     return proc(d.versionNumber);
 }
-A(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
+A(TIME)
 {
-    return proc(d.clockIdentity) || proc(d.numberPorts) ||
-        proc(d.delayMechanism) || proc(d.primaryDomain);
+    return proc(d.currentTime);
 }
-A(PRIMARY_DOMAIN)
+A(CLOCK_ACCURACY)
 {
-    return proc(d.primaryDomain);
+    return proc(d.clockAccuracy);
 }
-A(TRANSPARENT_CLOCK_PORT_DATA_SET)
+A(UTC_PROPERTIES)
 {
-    return proc(d.portIdentity) || proc(d.flags) ||
-        proc(d.logMinPdelayReqInterval) || proc(d.peerMeanPathDelay);
+    return proc(d.currentUtcOffset) || proc(d.flags);
 }
-A(MASTER_ONLY)
+A(TRACEABILITY_PROPERTIES)
 {
     return proc(d.flags);
+}
+A(TIMESCALE_PROPERTIES)
+{
+    return proc(d.flags) || proc(d.timeSource);
 }
 A(UNICAST_NEGOTIATION_ENABLE)
 {
     return proc(d.flags);
 }
-A(ALTERNATE_MASTER)
+A(PATH_TRACE_LIST)
 {
-    return proc(d.flags) || proc(d.logAlternateMulticastSyncInterval) ||
-        proc(d.numberOfAlternateMasters);
+    vector_b(ClockIdentity, pathSequence) {
+        for(int i = 0; m_left >= (ssize_t)ClockIdentity_t::size(); i++) {
+            ClockIdentity_t rec;
+            if(proc(rec))
+                return true;
+            d.pathSequence[i++] = rec;
+        }
+    }
+    return false;
+}
+A(PATH_TRACE_ENABLE)
+{
+    return proc(d.flags);
+}
+A(GRANDMASTER_CLUSTER_TABLE)
+{
+    d.actualTableSize = d.PortAddress.size();
+    if(proc(d.logQueryInterval) || proc(d.actualTableSize))
+        return true;
+    vector_f(PortAddress, actualTableSize, PortAddress);
 }
 A(UNICAST_MASTER_TABLE)
 {
@@ -257,29 +253,6 @@ A(UNICAST_MASTER_MAX_TABLE_SIZE)
 {
     return proc(d.maxTableSize);
 }
-A(ACCEPTABLE_MASTER_TABLE_ENABLED)
-{
-    return proc(d.flags);
-}
-A(EXT_PORT_CONFIG_PORT_DATA_SET)
-{
-    return proc(d.flags) || proc(d.desiredState);
-}
-A(PATH_TRACE_ENABLE)
-{
-    return proc(d.flags);
-}
-A(ALTERNATE_TIME_OFFSET_ENABLE)
-{
-    return proc(d.keyField) || proc(d.flags);
-}
-A(GRANDMASTER_CLUSTER_TABLE)
-{
-    d.actualTableSize = d.PortAddress.size();
-    if(proc(d.logQueryInterval) || proc(d.actualTableSize))
-        return true;
-    vector_f(PortAddress, actualTableSize, PortAddress);
-}
 A(ACCEPTABLE_MASTER_TABLE)
 {
     d.actualTableSize = d.list.size();
@@ -287,9 +260,22 @@ A(ACCEPTABLE_MASTER_TABLE)
         return true;
     vector_f(AcceptableMaster, actualTableSize, list);
 }
+A(ACCEPTABLE_MASTER_TABLE_ENABLED)
+{
+    return proc(d.flags);
+}
 A(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
     return proc(d.maxTableSize);
+}
+A(ALTERNATE_MASTER)
+{
+    return proc(d.flags) || proc(d.logAlternateMulticastSyncInterval) ||
+        proc(d.numberOfAlternateMasters);
+}
+A(ALTERNATE_TIME_OFFSET_ENABLE)
+{
+    return proc(d.keyField) || proc(d.flags);
 }
 A(ALTERNATE_TIME_OFFSET_NAME)
 {
@@ -304,7 +290,33 @@ A(ALTERNATE_TIME_OFFSET_PROPERTIES)
     return proc(d.keyField) || proc(d.currentOffset) || proc(d.jumpSeconds) ||
         proc48(d.timeOfNextJump);
 }
+A(TRANSPARENT_CLOCK_PORT_DATA_SET)
+{
+    return proc(d.portIdentity) || proc(d.flags) ||
+        proc(d.logMinPdelayReqInterval) || proc(d.peerMeanPathDelay);
+}
+A(LOG_MIN_PDELAY_REQ_INTERVAL)
+{
+    return proc(d.logMinPdelayReqInterval);
+}
+A(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
+{
+    return proc(d.clockIdentity) || proc(d.numberPorts) ||
+        proc(d.delayMechanism) || proc(d.primaryDomain);
+}
+A(PRIMARY_DOMAIN)
+{
+    return proc(d.primaryDomain);
+}
+A(DELAY_MECHANISM)
+{
+    return proc(d.delayMechanism);
+}
 A(EXTERNAL_PORT_CONFIGURATION_ENABLED)
+{
+    return proc(d.flags);
+}
+A(MASTER_ONLY)
 {
     return proc(d.flags);
 }
@@ -312,17 +324,9 @@ A(HOLDOVER_UPGRADE_ENABLE)
 {
     return proc(d.flags);
 }
-A(PATH_TRACE_LIST)
+A(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
-    vector_b(ClockIdentity, pathSequence) {
-        for(int i = 0; m_left >= (ssize_t)sizeof(ClockIdentity_t); i++) {
-            ClockIdentity_t rec;
-            if(proc(rec))
-                return true;
-            d.pathSequence[i++] = rec;
-        }
-    }
-    return false;
+    return proc(d.flags) || proc(d.desiredState);
 }
 // linuxptp TLVs (in Implementation-specific C000-DFFF)
 A(TIME_STATUS_NP)

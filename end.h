@@ -3,7 +3,7 @@
 /** @file
  * @brief endian functions
  *
- * @author Erez Geva <ErezGeva2@gmail.com>
+ * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
  * @details
