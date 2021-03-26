@@ -7,29 +7,31 @@
 #
 # testing script
 ###############################################################################
-cmd()
-{
-    echo $*
-    $*
-}
 main()
 {
  local -r ifName=enp0s25
  local -r cfgFile=/etc/linuxptp/ptp4l.conf
  local -r linuxptpLoc=~/TSN/build/linuxptp
- # Add all users for testing (so we can test without using root :-)
+ #local -r useLdPath=t # testing scripts from sys or local
+ #local -r useLocal=t # lib pmc from sys or local
+ #local -r useLinuxptp=t
+ ##############################################################################
  local -r uds=$linuxptpLoc/uds.c
- local -r reg='^#define UDS_FILEMODE'
- if [ -n "$(grep "$reg.*GRP)" $uds)" ];then
-    sed -i "/$reg/ s#GRP)#GRP|S_IROTH|S_IWOTH)#" $uds
- fi
- # Remove the deprecated message
  local -r config=$linuxptpLoc/config.c
- local -r reg2='^\s\sfprintf(stderr, "option %s is deprecated,'
- if [ -n "$(grep "$reg2" $config)" ];then
-    sed -i "/$reg2/,+1d" $config
+ if [ -d "$linuxptpLoc" -a -f "$uds" -a -f "$config" ]; then
+    # Add all users for testing (so we can test without using root :-)
+    local -r reg='^#define UDS_FILEMODE'
+    if [ -n "$(grep "$reg.*GRP)" $uds)" ];then
+       sed -i "/$reg/ s#GRP)#GRP|S_IROTH|S_IWOTH)#" $uds
+    fi
+    # Remove the deprecated message
+    local -r reg2='^\s\sfprintf(stderr, "option %s is deprecated,'
+    if [ -n "$(grep "$reg2" $config)" ];then
+       sed -i "/$reg2/,+1d" $config
+    fi
+    make --no-print-directory -j -C $linuxptpLoc
  fi
- make --no-print-directory -j -C $linuxptpLoc
+ ##############################################################################
  echo " * build libpmc"
  time make -j
  cat << EOF
@@ -39,12 +41,44 @@ main()
 
 EOF
  [ -z "$(pgrep ptp4l)" ] && return
+
+ ##############################################################################
+ case "$useLocal" in
+    [aA]) # always
+        local -r pmclibtool="./pmc"
+         ;;
+    [nN]) # None
+        local -r pmclibtool="/usr/sbin/pmc.lib"
+         ;;
+    *) # tentive
+        if [ -x /usr/sbin/pmc.lib ]; then
+            local -r pmclibtool="/usr/sbin/pmc.lib"
+        else
+            local -r pmclibtool="./pmc"
+        fi
+        ;;
+ esac
+ case "$useLinuxptp" in
+    [aA]) # always
+        local -r pmctool="$linuxptpLoc"
+         ;;
+    [nN]) # None
+        local -r pmctool=/usr/sbin
+         ;;
+    *) # tentive
+        if [ -x "$linuxptpLoc/pmc" ]; then
+            local -r pmctool="$linuxptpLoc"
+        else
+            local -r pmctool=/usr/sbin
+        fi
+        ;;
+ esac
  ##############################################################################
  # compare linuxptp-pmc with libpmc-pmc dump
  local -r t1=$(mktemp org.XXXXXXXXXX) t2=$(mktemp new.XXXXXXXXXX)
- local -r t3=$(mktemp script.XXXXXXXXXX)
  local n
  local -a cmds
+ # all TLVs that are supported by linuxptp ptp4l
  local -r tlvs='ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY CLOCK_DESCRIPTION
     CURRENT_DATA_SET DEFAULT_DATA_SET DELAY_MECHANISM DOMAIN
     LOG_ANNOUNCE_INTERVAL LOG_MIN_PDELAY_REQ_INTERVAL LOG_SYNC_INTERVAL
@@ -53,53 +87,144 @@ EOF
     VERSION_NUMBER PORT_DATA_SET
     TIME_STATUS_NP GRANDMASTER_SETTINGS_NP PORT_DATA_SET_NP PORT_PROPERTIES_NP
     PORT_STATS_NP SUBSCRIBE_EVENTS_NP SYNCHRONIZATION_UNCERTAIN_NP'
+ local -r setmsg="set PRIORITY2 137"
+ local -r verify="get PRIORITY2"
  for n in $tlvs; do cmds+=("get $n"); done
 
  echo " * Make $t1 using linuxptp pmc"
- time sudo $linuxptpLoc/pmc -u -f $cfgFile "${cmds[@]}" |\
-    grep -v ^sending: > $t1
+ time sudo $pmctool/pmc -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: > $t1
+ sudo $pmctool/pmc -u -f $cfgFile "$setmsg" >> $t1
+ sudo $pmctool/pmc -u -f $cfgFile "$verify" >> $t1
 
 # real  0m0.113s
 # user  0m0.009s
 # sys   0m0.002s
 
  printf "\n * Make $t2 using libpmc\n"
- time sudo ./pmc -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: > $t2
+ time sudo $pmclibtool -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: > $t2
+ sudo $pmclibtool -u -f $cfgFile "$setmsg" >> $t2
+ sudo $pmclibtool -u -f $cfgFile "$verify" >> $t2
 
 # real  0m0.019s
 # user  0m0.004s
 # sys   0m0.011s
 
- echo ""
- cmd diff $t1 $t2
+ printf "\n * We excpect 'protocolAddress' and 'timeSource' in diff"
+ printf "\n * Statistics may aprear  '[tx/rx]_[PTP massage type]'\n\n"
+ cmd diff $t1 $t2 | grep '^[0-9-]' -v
+ rm $t1 $t2
 
  ##############################################################################
  # Test script languages wrappers
- printf "\n =====  Run Perl  ===== \n"
+ # Expected output of testing scripts
+ local -r ldPathBase='LD_LIBRARY_PATH=..'
+ local -r t3=$(mktemp script.XXXXXXXXXX)
+ local ldPathPerl ldPathLua1 ldPathLua2 ldPathLua3 ldPathPython2 ldPathPython3
+ case "$useLdPath" in
+    [aA]) # always
+        ldPathPerl=$ldPathBase
+        ldPathLua1=$ldPathBase
+        ldPathLua2=$ldPathBase
+        ldPathLua3=$ldPathBase
+        ldPathPython2=$ldPathBase
+        ldPathPython3=$ldPathBase
+         ;;
+    [nN]) # None
+         ;;
+    *) # tentive
+        probeLibs
+        ;;
+ esac
+ local -r scriptOut=\
+'Use configuration file /etc/linuxptp/ptp4l.conf
+Get reply for USER_DESCRIPTION
+get user desc:
+physicalAddress: f1:f2:f3:f4
+physicalAddress: f1f2f3f4
+clk.physicalAddress: f1:f2:f3:f4
+clk.physicalAddress: f1f2f3f4
+manufacturerIdentity: 00:00:00
+revisionData: This is a test
+set new priority 147 success
+Get reply for PRIORITY1
+priority1: 147
+set new priority 153 success
+Get reply for PRIORITY1
+priority1: 153
+'
+ printf "\n =====  Run Perl  ===== \n * We except real 'user desc' on '>'\n"
  cd perl
- LD_LIBRARY_PATH=.. ./test.pl | tee ../$t3
+ eval "$ldPathPerl ./test.pl" > ../$t3
  cd ..
+ diff <(printf "$scriptOut") $t3 | grep '^[0-9-]' -v
  cd lua
  printf "\n =====  Run lua  ===== \n"
  local i
  for i in 1 2 3; do
     echo " lua 5.$i ---- "
-    ln -sf 5.$i/pmc.so
-    LD_LIBRARY_PATH=.. lua5.$i test.lua | diff - ../$t3
+    local -n ldPathLua=ldPathLua$i
+    if [ -n "$ldPathLua" ]; then
+        ln -sf 5.$i/pmc.so
+    else
+        rm -f pmc.so
+    fi
+    eval "$ldPathLua lua5.$i test.lua" | diff - ../$t3
  done
  cd ..
  cd python
  printf "\n =====  Run python  ===== \n"
  for i in 2 3; do
-    if [ -f $i/_pmc.so ]; then
+    getFirstFile "$i/*.so"
+    if [ -f "$file" ]; then
         echo " $(readlink $(which python$i)) ---- "
-        ln -sf $i/_pmc.so
+        local -n ldPathPython=ldPathPython$i
+        rm -f *.so
+        [ -n "$ldPathPython" ] && ln -sf $file
         rm -rf pmc.pyc __pycache__
-        LD_LIBRARY_PATH=.. python$i test.py | diff - ../$t3
+        eval "$ldPathPython python$i test.py" | diff - ../$t3
     fi
  done
  cd ..
- rm $t1 $t2 $t3
+ rm $t3
+}
+###############################################################################
+cmd()
+{
+    echo $*
+    $*
+}
+getFirstFile()
+{
+    local f
+    for f in $@; do
+        if [ -f "$f" ]; then
+            file="$f"
+            return
+        fi
+    done
+    file=''
+}
+probeLibs()
+{
+    local file
+    local -r mach=$(uname -m)
+    local -r fmach="/$mach*"
+    getFirstFile "/usr/lib$fmach/perl*/*/auto/PmcLib/PmcLib.so"
+    if [ ! -f "$file" ]; then
+        ldPathPerl=$ldPathBase
+    fi
+    for i in 1 2 3; do
+        getFirstFile "/usr/lib$fmach/lua/5.$i/pmc.so"
+        if [ ! -f "$file" ]; then
+            local -n ld=ldPathLua$i
+            ld=$ldPathBase
+        fi
+        getFirstFile "/usr/lib/python$i*/dist-packages/_pmc.*$mach*.so"
+        if [ ! -f "$file" ]; then
+            local -n ld=ldPathPython$i
+            ld=$ldPathBase
+        fi
+    done
 }
 ###############################################################################
 main

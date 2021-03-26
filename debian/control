@@ -43,6 +43,14 @@ Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, libpmc (= ${bina
 Provides: ${python:Provides}
 Description: pmc library python 2 wrapper
 
+Package: python3-pmc
+Architecture: any
+Multi-Arch: same
+Section: python
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, libpmc (= ${binary:Version})
+Provides: ${python:Provides}
+Description: pmc library python 3 wrapper
+
 Package: lua-pmc
 Architecture: any
 Multi-Arch: same

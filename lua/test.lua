@@ -16,6 +16,73 @@ SIZE = 2000
 
 sk = pmc.sockUnix()
 
+function setPriority1(sk, msg, pbuf, sequance, newPriority1)
+    local txt
+    local pr1 = pmc.PRIORITY1_t()
+    pr1.priority1 = newPriority1
+    local id = pmc.PRIORITY1
+    msg:setAction(pmc.SET, id, pr1)
+    local err = msg:build(pbuf, SIZE, sequance)
+    if(err ~= pmc.MNG_PARSE_ERROR_OK) then
+        txt = pmc.message.err2str_c(err)
+        print("build error ", txt)
+    end
+    if(not sk:send(pbuf, msg:getMsgLen())) then
+        print "send fail"
+        return
+    end
+    if(not sk:poll(500)) then
+        print "timeout"
+        return
+    end
+    local cnt = sk:rcv(pbuf, SIZE)
+    if(cnt <= 0) then
+        print "rcv cnt"
+        return -1
+    end
+    err = msg:parse(pbuf, cnt)
+    if(err ~= pmc.MNG_PARSE_ERROR_OK or msg:getTlvId() ~= id or
+       sequance ~= msg:getSequence()) then
+        print "set fails"
+        return -1
+    end
+    print("set new priority " .. newPriority1 .. " success")
+    msg:setAction(pmc.GET, id)
+    err = msg:build(pbuf, SIZE, sequance)
+    if(err ~= pmc.MNG_PARSE_ERROR_OK) then
+        txt = pmc.message.err2str_c(err)
+        print("build error ", txt)
+    end
+    if(not sk:send(pbuf, msg:getMsgLen())) then
+        print "send fail"
+        return
+    end
+    if(not sk:poll(500)) then
+        print "timeout"
+        return
+    end
+    local cnt = sk:rcv(pbuf, SIZE)
+    if(cnt <= 0) then
+        print "rcv cnt"
+        return -1
+    end
+    err = msg:parse(pbuf, cnt)
+    if(err == pmc.MNG_PARSE_ERROR_MSG) then
+        print "error message"
+    elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then
+        txt = pmc.message.err2str_c(err)
+        print("parse error ", txt)
+    else
+        local rid = msg:getTlvId()
+        local idstr = pmc.message.mng2str_c(rid)
+        print("Get reply for " .. idstr)
+        if (rid == id) then
+            local newPr = pmc.conv_PRIORITY1(msg:getData())
+            print(string.format("priority1: %d", newPr.priority1))
+        end
+    end
+end
+
 function main()
     local txt
     local cfg_file = arg[1]
@@ -39,34 +106,33 @@ function main()
     msg:updateParams(prms)
     local id = pmc.USER_DESCRIPTION
     msg:setAction(pmc.GET, id)
-    local buf = pmc.conv_buf(string.rep("X", SIZE))
+    -- Create buffer for sending
+    -- And convert buffer to buffer pointer
+    local pbuf = pmc.conv_buf(string.rep("X", SIZE))
     local sequance = 1
-    local err = msg:build(buf, SIZE, sequance)
+    local err = msg:build(pbuf, SIZE, sequance)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.message.err2str_c(err)
         print("build error ", txt)
         return
     end
-    if(not sk:send(buf, msg:getMsgLen())) then
+    if(not sk:send(pbuf, msg:getMsgLen())) then
         print "send fail"
         return
     end
-
     -- You can get file descriptor with sk:getFd() and use Lua socket.select()
     if(not sk:poll(500)) then
         print "timeout"
         return
     end
-
-    local cnt = sk:rcv(buf, SIZE)
+    local cnt = sk:rcv(pbuf, SIZE)
     if(cnt <= 0) then
         print("rcv error", cnt)
         return
     end
-
-    err = msg:parse(buf, cnt)
+    err = msg:parse(pbuf, cnt)
     if(err == pmc.MNG_PARSE_ERROR_MSG) then
-        print "error message\n"
+        print "error message"
     elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.message.err2str_c(err)
         print("parse error ", txt)
@@ -78,7 +144,6 @@ function main()
             local user = pmc.conv_USER_DESCRIPTION(msg:getData())
             print("get user desc: " .. user.userDescription.textField)
         end
-
     end
 
     -- test setting values
@@ -99,8 +164,11 @@ function main()
     print("clk.physicalAddress: " .. clk_dec.physicalAddress:toHex())
     print("manufacturerIdentity: " ..
         pmc.binary.bufToId(clk_dec.manufacturerIdentity, 3))
-    clk_dec.revisionData.textField = "This is a test";
-    print("revisionData: " .. clk_dec.revisionData.textField);
+    clk_dec.revisionData.textField = "This is a test"
+    print("revisionData: " .. clk_dec.revisionData.textField)
+
+    setPriority1(sk, msg, pbuf, sequance, 147)
+    setPriority1(sk, msg, pbuf, sequance, 153)
 end
 
 main()

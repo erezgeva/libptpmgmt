@@ -581,9 +581,9 @@ dump(SYNCHRONIZATION_UNCERTAIN_NP)
     dump_end;
 }
 
-void call_dump(message &msg)
+void call_dump(message &msg, baseData *data)
 {
-#define caseUF(n) case n: dump_##n(msg, nullptr); break;
+#define caseUF(n) case n: dump_##n(msg, (n##_t *)data); break;
 #define A(n, v, sc, a, sz, f) case##f(n)
     switch(msg.getTlvId()) {
 #include "ids.h"
@@ -598,7 +598,8 @@ void call_dump(message &msg)
         n##_t *dp = new n##_t;\
         if(dp == nullptr)\
             return nullptr;\
-        n##_t &d = *dp;\
+        n##_t &d = *dp;
+#define defKeys \
         std::map<std::string, val_key_t> keys;
 #define parseKeys \
     if(parseKeysFunc(m, keys, save))\
@@ -619,6 +620,93 @@ struct val_key_t {
     // Callback function for special value parser
     std::function<bool (val_key_t &key)> handle;
 };
+/*
+ * @return
+ * 0 No more tokens
+ * 1 No quate string call strtok_r
+ * 2 found quated token
+ * -1 error
+ */
+static int parse_quate(char *save, char *&lastStr, char *&tkn)
+{
+    char *cur;
+    // Was parse_quate last?
+    if(lastStr != nullptr)
+        cur = lastStr; // last call of parse_quate
+    else
+        cur = save; // last call of strtok_r
+    // skip separator characters
+    for(; strchr(toksep, *cur) != nullptr; cur++);
+    if(*cur == 0) // No more tokens, error after a key
+        return 0; // No more tokens
+    // Do we have quoted string token?
+    if(*cur != '"' && *cur != '\'')
+        return 1;
+    int close = *cur; // we search for the same char
+    cur++; // Skip quote char
+    char *start = cur;
+    // Find the close and skip escaped close
+    for(; (cur = strchr(cur, close)) != nullptr && *(cur - 1) == '\\';
+        cur++);
+    if(cur == nullptr)
+        // quoted string is not close properly, we have error
+        return -1; // error
+    // We find the closing quote char
+    *cur = 0; // close the string
+    // Next token will be after the end quote char :-)
+    lastStr = cur + 1;
+    // We can save token
+    tkn = start;
+    // Now we need to handle the escapes in the string
+    char *rcur, *wcur;
+    rcur = wcur = start;
+    while(*rcur != 0) {
+        if(*rcur == '\\') {
+            switch(*++rcur) {
+                case 't': // Horizontal tab
+                    *wcur = '\t';
+                    break;
+                case 'n': // Newline, Line feed
+                    *wcur = '\n';
+                    break;
+                case 'r': // Carriage return
+                    *wcur = '\r';
+                    break;
+                case 'a': // Alert, Beep
+                    *wcur = 0x07;
+                    break;
+                case 'b': // Backspace
+                    *wcur = 0x08;
+                    break;
+                case 'e': // Escape char
+                    *wcur = 0x1b;
+                    break;
+                case 'f':// Formfeed, Page break
+                    *wcur = 0x0c;
+                    break;
+                case 'v': // Vertical tab
+                    *wcur = 0x0b;
+                    break;
+                // Other esacapes are ignored
+                default:
+                    *wcur++ = '\\';
+                // self char escape
+                case ' ':
+                case '"':
+                case '?':
+                case '\'':
+                case '\\':
+                    *wcur = *rcur;
+                    break;
+            }
+        } else
+            *wcur = *rcur;
+        wcur++;
+        rcur++;
+    }
+    *wcur = 0; // close string
+    return 2; // Found token
+}
 static bool parseKeysFunc(message &msg, std::map<std::string, val_key_t> &keys,
     char *orgSave)
 {
@@ -630,104 +718,74 @@ static bool parseKeysFunc(message &msg, std::map<std::string, val_key_t> &keys,
             it->second.num = it->second.def;
         }
     }
-    char *end, *cur;
+    bool singleKey;
+    bool singleKeyCanStr;
+    if(keys.size() == 1) {
+        singleKey = true;
+        singleKeyCanStr = keys.begin()->second.can_str;
+    } else {
+        singleKey = false;
+        singleKeyCanStr = false;
+    }
     // In case we found quated string we point after it.
     // so, we look for the next token on the proper place.
     char *lastStr = nullptr;
-    // Each key should be once
-    //  for the safe side we read twice the number of keys
-    for(size_t cnt = 0; cnt < keys.size() * 2; cnt++) {
-        char *tkn = strtok_r(lastStr, toksep, &save);
-        lastStr = nullptr; // Clear last quoted string (if was)
-        // No more keys, we can continue
-        if(tkn == nullptr || *tkn == 0)
-            break;
-        auto it = keys.begin();
-        for(; it != keys.end(); it++) {
-            if(strcasecmp(it->first.c_str(), tkn) == 0)
+    char *tkn; // Token found
+    int ret = 1;
+    while(ret > 0) {
+        ret = 1; // take token using strtok_r
+        if(singleKeyCanStr) {
+            ret = parse_quate(save, lastStr, tkn);
+            if(ret == -1)
+                return true; // parse error
+            if(ret == 0) // No more tokens we can continue to last part
                 break;
+            // ret == 1  take token using strtok_r
+            // ret == 2  we have quated token
+        }
+        if(ret == 1) { // take normal token
+            tkn = strtok_r(lastStr, toksep, &save);
+            // No more tokens, we can continue to last part
+            if(tkn == nullptr || *tkn == 0)
+                break; // No more tokens we can continue to last part
+            lastStr = nullptr; // Clear last quoted string (if was)
+        }
+        auto it = keys.begin();
+        if(!singleKey) { // No need to search single key!
+            for(; it != keys.end(); it++) {
+                if(strcasecmp(it->first.c_str(), tkn) == 0)
+                    break;
+            }
         }
         // Unknown key
         if(it == keys.end())
             return true;
         val_key_t &key = it->second;
+        ret = 1; // take token using strtok_r
         if(key.can_str) {
-            // skip separator characters
-            for(cur = save; strchr(toksep, *cur) != nullptr; cur++);
-            if(*cur == 0) // No more tokens, error after a key
-                return true;
-            // Do we have quoted string token?
-            if(*cur == '"' || *cur == '\'') {
-                int close = *cur; // we search for the same char
-                cur++; // Skip quote char
-                tkn = cur;
-                // Find the close and skip escaped close
-                for(; (cur = strchr(cur, close)) != nullptr && *(cur - 1) == '\\';
-                    cur++);
-                if(cur == nullptr)
-                    // quoted string is not close properly, we have error
-                    return true;
-                // We find the closing quote char
-                *cur = 0; // close the string
-                // Next token will be after the end quote char :-)
-                lastStr = cur + 1;
-                // Now we need to handle the escapes in the string
-                char *rcur, *wcur;
-                rcur = wcur = tkn;
-                while(*rcur != 0) {
-                    if(*rcur == '\\') {
-                        switch(*++rcur) {
-                            case 't': // Horizontal tab
-                                *wcur = '\t';
-                                break;
-                            case 'n': // Newline, Line feed
-                                *wcur = '\n';
-                                break;
-                            case 'r': // Carriage return
-                                *wcur = '\r';
-                                break;
-                            case 'a': // Alert, Beep
-                                *wcur = 0x07;
-                                break;
-                            case 'b': // Backspace
-                                *wcur = 0x08;
-                                break;
-                            case 'e': // Escape char
-                                *wcur = 0x1b;
-                                break;
-                            case 'f':// Formfeed, Page break
-                                *wcur = 0x0c;
-                                break;
-                            case 'v': // Vertical tab
-                                *wcur = 0x0b;
-                                break;
-                            // Other esacapes are ignored
-                            default:
-                                *wcur++ = '\\';
-                            // self char escape
-                            case ' ':
-                            case '"':
-                            case '?':
-                            case '\'':
-                            case '\\':
-                                *wcur = *rcur;
-                                break;
-                        }
-                    } else
-                        *wcur = *rcur;
-                    wcur++;
-                    rcur++;
-                }
-                *wcur = 0; // close string
-            }
+            ret = parse_quate(save, lastStr, tkn);
+            if(ret == -1)
+                return true; // pass error
+            if(ret == 0 && !singleKey)
+                break; // No more tokens we can continue to last part
+            // ret == 0  use last token as value
+            // ret == 1  take token using strtok_r
+            // ret == 2  we have quated token
         }
-        if(lastStr == nullptr) { // skip if we found a quoted string
-            tkn = strtok_r(nullptr, toksep, &save);
-            if(tkn == nullptr || *tkn == 0)
-                return true; // no value error
+        if(ret == 1) { // No quate string, take normal token
+            char *ntkn = strtok_r(lastStr, toksep, &save);
+            if(ntkn == nullptr || *ntkn == 0) {
+                // No more tokens
+                if(!singleKey)
+                    break; // No more tokens we can continue to last part
+                ret = 0; // use last token as value
+            } else
+                tkn = ntkn; // use new token
+            lastStr = nullptr; // Clear last quoted string (if was)
         }
         key.str_val = tkn;
         if(key.handle == nullptr) {
+            char *end;
             int64_t num = strtoll(tkn, &end, key.base);
             // Make sure value is integer and in range
             if(*end == 0 && num >= key.min && num <= key.max) {
@@ -828,6 +886,7 @@ static bool getEnable(val_key_t &key)
 
 build(USER_DESCRIPTION)
 {
+    defKeys;
     keys["userDescription"] = { .can_str = true };
     parseKeys;
     d.userDescription.textField = keys["userDescription"].str_val;
@@ -835,6 +894,7 @@ build(USER_DESCRIPTION)
 }
 build(INITIALIZE)
 {
+    defKeys;
     keys["initializationKey"] = { .def = INITIALIZE_EVENT, .max = UINT16_MAX };
     parseKeys;
     d.initializationKey = keys["initializationKey"].num;
@@ -842,6 +902,7 @@ build(INITIALIZE)
 }
 build(PRIORITY1)
 {
+    defKeys;
     keys["priority1"] = { .def = 128, .max = 255 };
     parseKeys;
     d.priority1 = keys["priority1"].num;
@@ -849,6 +910,7 @@ build(PRIORITY1)
 }
 build(PRIORITY2)
 {
+    defKeys;
     keys["priority2"] = { .def = 128, .max = 255 };
     parseKeys;
     d.priority2 = keys["priority2"].num;
@@ -856,6 +918,7 @@ build(PRIORITY2)
 }
 build(DOMAIN)
 {
+    defKeys;
     keys["domainNumber"] = { .max = UINT8_MAX };
     parseKeys;
     d.domainNumber = keys["domainNumber"].num;
@@ -863,6 +926,7 @@ build(DOMAIN)
 }
 build(SLAVE_ONLY)
 {
+    defKeys;
     keys["slaveOnly"] = { .max = UINT8_MAX };
     parseKeys;
     d.flags = keys["slaveOnly"].num > 0 ? 1 : 0;
@@ -870,6 +934,7 @@ build(SLAVE_ONLY)
 }
 build(LOG_ANNOUNCE_INTERVAL)
 {
+    defKeys;
     keys["logAnnounceInterval"] = { .def = 1, .max = INT8_MAX };
     parseKeys;
     d.logAnnounceInterval = keys["logAnnounceInterval"].num;
@@ -877,6 +942,7 @@ build(LOG_ANNOUNCE_INTERVAL)
 }
 build(ANNOUNCE_RECEIPT_TIMEOUT)
 {
+    defKeys;
     keys["announceReceiptTimeout"] = { .def = 3, .max = UINT8_MAX };
     parseKeys;
     d.announceReceiptTimeout = keys["announceReceiptTimeout"].num;
@@ -884,6 +950,7 @@ build(ANNOUNCE_RECEIPT_TIMEOUT)
 }
 build(LOG_SYNC_INTERVAL)
 {
+    defKeys;
     keys["logSyncInterval"] = { .max = INT8_MAX };
     parseKeys;
     d.logSyncInterval = keys["logSyncInterval"].num > 0 ? 1 : 0;
@@ -891,6 +958,7 @@ build(LOG_SYNC_INTERVAL)
 }
 build(VERSION_NUMBER)
 {
+    defKeys;
     keys["versionNumber"] = { .def = 2, .max = 0xf, .min = 1 };
     keys["minor"] = { .def = 0, .max = 0xf };
     parseKeys;
@@ -899,6 +967,7 @@ build(VERSION_NUMBER)
 }
 build(TIME)
 {
+    defKeys;
     keys["secondsField"] = { .max = UINT48_MAX, .req = 1 };
     keys["nanosecondsField"] = { .max = UINT32_MAX };
     parseKeys;
@@ -908,6 +977,7 @@ build(TIME)
 }
 build(CLOCK_ACCURACY)
 {
+    defKeys;
     keys["clockAccuracy"] = { .def = Accurate_Unknown, .max = Accurate_Unknown };
     parseKeys;
     d.clockAccuracy = (clockAccuracy_e)keys["clockAccuracy"].num;
@@ -915,6 +985,7 @@ build(CLOCK_ACCURACY)
 }
 build(UTC_PROPERTIES)
 {
+    defKeys;
     keys["currentUtcOffset"] = { .max = INT16_MAX, .req = true };
     keys["leap61"] = { .max = UINT8_MAX };
     keys["leap59"] = { .max = UINT8_MAX };
@@ -933,6 +1004,7 @@ build(UTC_PROPERTIES)
 }
 build(TRACEABILITY_PROPERTIES)
 {
+    defKeys;
     keys["timeTraceable"] = { .max = UINT8_MAX };
     keys["frequencyTraceable"] = { .max = UINT8_MAX };
     parseKeys;
@@ -946,6 +1018,7 @@ build(TRACEABILITY_PROPERTIES)
 }
 build(TIMESCALE_PROPERTIES)
 {
+    defKeys;
     keys["ptpTimescale"] = { .max = UINT8_MAX };
     parseKeys;
     uint8_t flags = 0;
@@ -956,6 +1029,7 @@ build(TIMESCALE_PROPERTIES)
 }
 build(UNICAST_NEGOTIATION_ENABLE)
 {
+    defKeys;
     keys["unicastNegotiationPortDS"].handle = getEnable;
     parseKeys;
     d.flags = keys["unicastNegotiationPortDS"].num;
@@ -963,6 +1037,7 @@ build(UNICAST_NEGOTIATION_ENABLE)
 }
 build(PATH_TRACE_ENABLE)
 {
+    defKeys;
     keys["pathTraceDS"].handle = getEnable;
     parseKeys;
     d.flags = keys["pathTraceDS"].num;
@@ -974,6 +1049,7 @@ build(PATH_TRACE_ENABLE)
 // build(ACCEPTABLE_MASTER_TABLE)
 build(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
+    defKeys;
     keys["acceptableMasterPortDS"].handle = getEnable;
     parseKeys;
     d.flags = keys["acceptableMasterPortDS"].num;
@@ -981,6 +1057,7 @@ build(ACCEPTABLE_MASTER_TABLE_ENABLED)
 }
 build(ALTERNATE_MASTER)
 {
+    defKeys;
     keys["transmitAlternateMulticastSync"].handle = getEnable;
     keys["logAlternateMulticastSyncInterval"] = { .max = INT8_MAX };
     keys["numberOfAlternateMasters"] = { .max = UINT8_MAX };
@@ -993,6 +1070,7 @@ build(ALTERNATE_MASTER)
 }
 build(ALTERNATE_TIME_OFFSET_ENABLE)
 {
+    defKeys;
     keys["alternateTimescaleOffsetsDS"].handle = getEnable;
     parseKeys;
     d.flags = keys["alternateTimescaleOffsetsDS"].num;
@@ -1000,6 +1078,7 @@ build(ALTERNATE_TIME_OFFSET_ENABLE)
 }
 build(ALTERNATE_TIME_OFFSET_NAME)
 {
+    defKeys;
     keys["keyField"] = { .max = UINT8_MAX, .req = true };
     keys["displayName"] = { .can_str = true, .req = true  };
     parseKeys;
@@ -1009,6 +1088,7 @@ build(ALTERNATE_TIME_OFFSET_NAME)
 }
 build(ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
+    defKeys;
     keys["keyField"] = { .max = UINT8_MAX };
     keys["currentOffset"] = { .max = INT32_MAX };
     keys["jumpSeconds"] = { .max = INT32_MAX  };
@@ -1022,6 +1102,7 @@ build(ALTERNATE_TIME_OFFSET_PROPERTIES)
 }
 build(LOG_MIN_PDELAY_REQ_INTERVAL)
 {
+    defKeys;
     keys["logMinPdelayReqInterval"] = { .max = INT8_MAX };
     parseKeys;
     d.logMinPdelayReqInterval = keys["logMinPdelayReqInterval"].num;
@@ -1029,6 +1110,7 @@ build(LOG_MIN_PDELAY_REQ_INTERVAL)
 }
 build(PRIMARY_DOMAIN)
 {
+    defKeys;
     keys["primaryDomain"] = { .max = UINT8_MAX };
     parseKeys;
     d.primaryDomain = keys["primaryDomain"].num;
@@ -1036,6 +1118,7 @@ build(PRIMARY_DOMAIN)
 }
 build(DELAY_MECHANISM)
 {
+    defKeys;
     keys["delayMechanism"] = { .max = 0xfe };
     parseKeys;
     d.delayMechanism = keys["delayMechanism"].num;
@@ -1043,6 +1126,7 @@ build(DELAY_MECHANISM)
 }
 build(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
+    defKeys;
     keys["externalPortConfiguration"].handle = getEnable;
     parseKeys;
     d.flags = keys["externalPortConfiguration"].num;
@@ -1050,6 +1134,7 @@ build(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 }
 build(MASTER_ONLY)
 {
+    defKeys;
     keys["masterOnly"].handle = getEnable;
     parseKeys;
     d.flags = keys["masterOnly"].num;
@@ -1057,6 +1142,7 @@ build(MASTER_ONLY)
 }
 build(HOLDOVER_UPGRADE_ENABLE)
 {
+    defKeys;
     keys["holdoverUpgradeDS"].handle = getEnable;
     parseKeys;
     d.flags = keys["holdoverUpgradeDS"].num;
@@ -1064,6 +1150,7 @@ build(HOLDOVER_UPGRADE_ENABLE)
 }
 build(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
+    defKeys;
     keys["acceptableMasterPortDS"].handle = getEnable;
     keys["desiredState"].handle = getportState;
     parseKeys;
@@ -1074,6 +1161,7 @@ build(EXT_PORT_CONFIG_PORT_DATA_SET)
 // libnuxptp specific implementation
 build(GRANDMASTER_SETTINGS_NP)
 {
+    defKeys;
     keys["clockClass"] = { .max = UINT8_MAX, .req = true };
     keys["clockAccuracy"] = { .base = 16, .max = UINT8_MAX, .req = true };
     keys["offsetScaledLogVariance"] = {
@@ -1114,6 +1202,7 @@ build(GRANDMASTER_SETTINGS_NP)
 }
 build(PORT_DATA_SET_NP)
 {
+    defKeys;
     keys["neighborPropDelayThresh"] = { .max = UINT32_MAX, .req = true };
     keys["asCapable"] = { .max = INT32_MAX, .req = true };
     parseKeys;
@@ -1123,6 +1212,7 @@ build(PORT_DATA_SET_NP)
 }
 build(SUBSCRIBE_EVENTS_NP)
 {
+    defKeys;
     keys["duration"] = { .max = UINT16_MAX, .req = true };
     keys["NOTIFY_PORT_STATE"].handle = getOn;
     keys["NOTIFY_TIME_SYNC"].handle = getOn;
@@ -1137,6 +1227,7 @@ build(SUBSCRIBE_EVENTS_NP)
 }
 build(SYNCHRONIZATION_UNCERTAIN_NP)
 {
+    defKeys;
     keys["duration"] = { .max = UINT8_MAX, .req = true };
     parseKeys;
     d.val = keys["duration"].num;

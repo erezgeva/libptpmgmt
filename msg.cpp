@@ -180,7 +180,8 @@ static inline bool verifyAction(actionField_e action)
 
 message::message() :
     m_tlv_id(FIRST_MNG_ID),
-    m_actionField(GET),
+    m_sendAction(GET),
+    m_replyAction(RESPONSE),
     m_msgLen(0),
     m_sequence(0),
     m_isUnicast(true),
@@ -196,7 +197,8 @@ message::message() :
 }
 message::message(msgParams prms) :
     m_tlv_id(FIRST_MNG_ID),
-    m_actionField(GET),
+    m_sendAction(GET),
+    m_replyAction(RESPONSE),
     m_msgLen(0),
     m_sequence(0),
     m_isUnicast(true),
@@ -213,7 +215,7 @@ ssize_t message::getMsgPlanedLen()
     if(m_tlv_id < FIRST_MNG_ID || m_tlv_id > LAST_MNG_ID)
         return -1; // Not supported
     // GET do not send dataField payload!
-    if(m_actionField == GET)
+    if(m_sendAction == GET)
         return mngMsgBaseSize;
     ssize_t ret = mng_all_vals[m_tlv_id].size;
     if(ret == -2) { // variable length TLV
@@ -252,7 +254,7 @@ bool message::setAction(actionField_e actionField, mng_vals_e tlv_id)
         return false;
     if(actionField != GET && mng_all_vals[tlv_id].size != 0)
         return false; // SET and COMMAND need dataSend
-    m_actionField = actionField;
+    m_sendAction = actionField;
     m_tlv_id = tlv_id;
     m_dataSend = nullptr;
     return true;
@@ -262,7 +264,7 @@ bool message::setAction(actionField_e actionField, mng_vals_e tlv_id,
 {
     if(!verifyAction(actionField) || !allowedAction(tlv_id, actionField))
         return false;
-    m_actionField = actionField;
+    m_sendAction = actionField;
     m_tlv_id = tlv_id;
     if(tlv_id > FIRST_MNG_ID && actionField != GET &&
         mng_all_vals[tlv_id].size != 0)
@@ -290,12 +292,12 @@ MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
     msg->logMessageInterval = logMessageInterval_Management;
     msg->startingBoundaryHops = m_prms.boundaryHops;
     msg->boundaryHops = m_prms.boundaryHops;
-    msg->actionField = m_actionField;
+    msg->actionField = m_sendAction;
     msg->targetPortIdentity.clockIdentity = m_prms.target.clockIdentity;
     msg->targetPortIdentity.portNumber = cpu_to_net16(m_prms.target.portNumber);
     msg->sourcePortIdentity.clockIdentity = m_prms.self_id.clockIdentity;
     msg->sourcePortIdentity.portNumber = cpu_to_net16(m_prms.self_id.portNumber);
-    if(!allowedAction(m_tlv_id, m_actionField))
+    if(!allowedAction(m_tlv_id, m_sendAction))
         return MNG_PARSE_ERROR_INVALID_ID;
     managementTLV_t *tlv = (managementTLV_t *)(msg + 1);
     tlv->tlvType = cpu_to_net16(MANAGEMENT);
@@ -304,7 +306,7 @@ MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
     m_cur = (uint8_t *)(tlv + 1); // point on dataField
     size_t size = mngMsgBaseSize;
     m_left = bufSize - size;
-    if(m_actionField != GET && m_dataSend != nullptr) {
+    if(m_sendAction != GET && m_dataSend != nullptr) {
         m_build = true;
         // Ensure reserve fileds are zero
         reserved = 0;
@@ -343,6 +345,7 @@ MNG_PARSE_ERROR_e message::parse(void *buf, ssize_t msgSize)
     uint8_t actionField = 0xf & msg->actionField;
     if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
         return MNG_PARSE_ERROR_ACTION;
+    m_replyAction = (actionField_e)actionField;
     m_peer.portNumber = net_to_cpu16(msg->sourcePortIdentity.portNumber);
     m_peer.clockIdentity = msg->sourcePortIdentity.clockIdentity;
     uint16_t *cur = (uint16_t *)(msg + 1);
@@ -427,6 +430,18 @@ const char *message::err2str_c(MNG_PARSE_ERROR_e err)
         case caseItem(MNG_PARSE_ERROR_ACTION);
         case caseItem(MNG_PARSE_ERROR_UNSUPPORT);
         case caseItem(MNG_PARSE_ERROR_MEM);
+        default:
+            return "unknown";
+    }
+}
+const char *message::act2str_c(actionField_e action)
+{
+    switch(action) {
+        case caseItem(GET);
+        case caseItem(SET);
+        case caseItem(RESPONSE);
+        case caseItem(COMMAND);
+        case caseItem(ACKNOWLEDGE);
         default:
             return "unknown";
     }

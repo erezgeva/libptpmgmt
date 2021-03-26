@@ -2,9 +2,9 @@
 *.o
 *.lo
 *.d
+*.so
 .*.swp
 /.libs/
-/libpmc.so
 /libpmc.a
 /pmc
 /tags

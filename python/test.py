@@ -14,6 +14,60 @@ import pmc
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 SIZE = 2000
 
+def setPriority1(sk, msg, pbuf, sequance, newPriority1):
+  pr1 = pmc.PRIORITY1_t()
+  pr1.priority1 = newPriority1
+  id = pmc.PRIORITY1
+  msg.setAction(pmc.SET, id, pr1)
+  err = msg.build(pbuf, SIZE, sequance)
+  if err != pmc.MNG_PARSE_ERROR_OK:
+    txt = pmc.message.err2str_c(err)
+    print("build error %s" % txt)
+  if not sk.send(pbuf, msg.getMsgLen()):
+    print("send fail")
+    return
+  if not sk.poll(500):
+    print("timeout")
+    return
+  cnt = sk.rcv(pbuf, SIZE)
+  if cnt <= 0:
+    print("rcv cnt")
+    return -1
+  err = msg.parse(pbuf, cnt)
+  if(err != pmc.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
+     sequance != msg.getSequence()):
+    print("set fails")
+    return -1
+  print("set new priority %d success" % newPriority1)
+  msg.setAction(pmc.GET, id)
+  err = msg.build(pbuf, SIZE, sequance)
+  if err != pmc.MNG_PARSE_ERROR_OK:
+    txt = pmc.message.err2str_c(err)
+    print("build error %s" % txt)
+  if not sk.send(pbuf, msg.getMsgLen()):
+    print("send fail")
+    return
+  if not sk.poll(500):
+    print("timeout")
+    return
+  cnt = sk.rcv(pbuf, SIZE)
+  if cnt <= 0:
+    print("rcv cnt")
+    return -1
+  err = msg.parse(pbuf, cnt)
+  if err == pmc.MNG_PARSE_ERROR_MSG:
+    print("error message")
+  elif err != pmc.MNG_PARSE_ERROR_OK:
+    txt = pmc.message.err2str_c(err)
+    print("parse error %s" % txt)
+  else:
+    rid = msg.getTlvId()
+    idstr = pmc.message.mng2str_c(rid)
+    print("Get reply for %s" % idstr)
+    if rid == id:
+      newPr = pmc.conv_PRIORITY1(msg.getData())
+      print("priority1: %d" % newPr.priority1)
+
 def main():
   if len(sys.argv) > 1:
     cfg_file = sys.argv[1]
@@ -35,15 +89,17 @@ def main():
   msg.updateParams(prms)
   id = pmc.USER_DESCRIPTION
   msg.setAction(pmc.GET, id)
-  buf = pmc.conv_buf("X" * SIZE)
+  # Create buffer for sending
+  # And convert buffer to buffer pointer
+  pbuf = pmc.conv_buf("X" * SIZE)
   sequance = 1
-  err = msg.build(buf, SIZE, sequance)
+  err = msg.build(pbuf, SIZE, sequance)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.message.err2str_c(err)
     print("build error %s" % txt)
     return
 
-  if not sk.send(buf, msg.getMsgLen()):
+  if not sk.send(pbuf, msg.getMsgLen()):
     print("send fail")
     return
 
@@ -52,12 +108,12 @@ def main():
     print("timeout")
     return
 
-  cnt = sk.rcv(buf, SIZE)
+  cnt = sk.rcv(pbuf, SIZE)
   if cnt <= 0:
     print("rcv error %d" % cnt)
     return
 
-  err = msg.parse(buf, cnt)
+  err = msg.parse(pbuf, cnt)
   if err == pmc.MNG_PARSE_ERROR_MSG:
     print("error message\n")
   elif err != pmc.MNG_PARSE_ERROR_OK:
@@ -91,6 +147,10 @@ def main():
     pmc.binary.bufToId(clk_dec.manufacturerIdentity, 3))
   clk_dec.revisionData.textField = "This is a test";
   print("revisionData: %s" % clk_dec.revisionData.textField);
+
+  # test send
+  setPriority1(sk, msg, pbuf, sequance, 147)
+  setPriority1(sk, msg, pbuf, sequance, 153)
 
 sk = pmc.sockUnix()
 main()

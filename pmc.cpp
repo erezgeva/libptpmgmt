@@ -17,7 +17,7 @@
 #include "bin.h"
 
 /* from pmc_dump.cpp */
-extern void call_dump(message &msg);
+extern void call_dump(message &msg, baseData *data);
 extern baseData *call_data(message &msg, mng_vals_e id, char *save);
 
 /* Receive constants */
@@ -33,31 +33,22 @@ static binary clockIdentity;
 static bool use_uds;
 static uint64_t timeout;
 
-static inline const char *act2str()
+static inline void dump_head(actionField_e action)
 {
-    switch(msg.getAction()) {
-        case GET:
-            return "GET";
-        case SET:
-            return "SET";
-        default:
-            return "COMMAND";
-    }
-}
-static inline void dump_head()
-{
-    printf("\t%s seq %u RESPONSE MANAGEMENT %s ",
+    printf("\t%s seq %u %s MANAGEMENT %s ",
         msg.getPeer().str().c_str(),
         msg.getSequence(),
+        msg.act2str_c(action),
         msg.mng2str_c(msg.getTlvId()));
 }
 static inline void dump_err()
 {
-    printf("\t%s seq %u RESPONSE MANAGEMENT_ERROR_STATUS %s\n"
+    printf("\t%s seq %u %s MANAGEMENT_ERROR_STATUS %s\n"
         "\tERROR: %s(%u)\n"
         "\tERROR DISPLAY: %s\n\n",
         msg.getPeer().str().c_str(),
         msg.getSequence(),
+        msg.act2str_c(msg.getReplyAction()),
         msg.mng2str_c(msg.getTlvId()),
         msg.errId2str_c(msg.getErrId()),
         msg.getErrId(),
@@ -105,8 +96,8 @@ static inline int rcv()
             dump_err();
             break;
         case MNG_PARSE_ERROR_OK:
-            dump_head();
-            call_dump(msg);
+            dump_head(msg.getReplyAction());
+            call_dump(msg, nullptr);
             return 0;
         case MNG_PARSE_ERROR_ACTION: // Not managment, or other clock id
         case MNG_PARSE_ERROR_HEADER: // Not reply
@@ -203,9 +194,9 @@ static bool run_line(char *line)
     if(!sendAction())
         return false;
     // Finish with data, free it
+    printf("sending: %s %s\n", msg.act2str_c(msg.getSendAction()), msg.mng2str_c(id));
     if(data != nullptr)
         delete data;
-    printf("sending: %s %s\n", act2str(), msg.mng2str_c(id));
     return true;
 }
 static void handle_sig(int)

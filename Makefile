@@ -8,6 +8,7 @@
 PMC_USE_LIB?=a # 'a' for static and 'so' for dynamic
 
 which=$(shell which $1 2>/dev/null)
+libname=$(subst lib,,$(basename $(notdir $(lastword $(wildcard /usr/lib/$1)))))
 define depend
 $1: $2
 
@@ -130,11 +131,11 @@ DISTCLEAN_DIRS:=.libs
 
 clean:
 	$Q$(Q_CLEAN)
-	$Q$(RM) -f $(CLEAN)
+	$Q$(RM) $(CLEAN)
 distclean: deb_clean clean
 	$(Q_DISTCLEAN)
-	$Q$(RM) -f $(DISTCLEAN)
-	$Q$(RM) -Rf $(DISTCLEAN_DIRS)
+	$Q$(RM) $(DISTCLEAN)
+	$Q$(RM) -R $(DISTCLEAN_DIRS)
 
 HEADERS:=$(filter-out mngIds.h,$(wildcard *.h))
 # MAP for  mngIds.cc:
@@ -160,9 +161,11 @@ format:
 endif
 endif # which astyle
 
+ifeq ($(DEB_HOST_MULTIARCH),)
 ifneq ($(call which,dpkg-architecture),)
 DEB_HOST_MULTIARCH:=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 endif # dpkg-architecture
+endif
 
 SWIG:=swig
 ifneq ($(call which,$(SWIG)),)
@@ -234,30 +237,36 @@ PY_BASE:=python/$(SWIG_NAME)
 $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
 	$(Q_SWIG)
 	$Q$(SWIG) -c++ -I. -outdir python -o $@ -python $<
+PYV2=$(call libname,*/libpython2*.a)
+ifeq ($(PYV2),)
+PYV2=$(call libname,libpython2*.a)
+endif
+PYV3=$(call libname,*/libpython3*.a)
+ifeq ($(PYV3),)
+PYV3=$(call libname,libpython3*.a)
+endif
+PY3_VER:=$(subst .,,$(subst python,,$(PYV3)))
+PY_SO_2:=python/2/_pmc.so
+PY_SO_3:=python/3/_pmc.cpython-$(PY3_VER)-$(DEB_HOST_MULTIARCH).so
 define python
 PY_BASE_$1:=python/$1/$(SWIG_NAME)
-PY_SO_$1:=python/$1/_pmc.so
-PY_INC_$1:=$$(dir $$(firstword $$(wildcard /usr/include/python$1*/Python.h)))
-PY_LIBS_$1:=-l$$(lastword $$(subst /, ,$$(PY_INC_$1))) -lm -ldl
+PY_INC_$1:=/usr/include/$$(PYV$1)
 $$(PY_BASE_$1).o: $(PY_BASE).cpp
 	$$(Q_LCC)
 	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) -I$$(PY_INC_$1) -c $$< -o $$@
 $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME).so
 	$$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
-	$$(PY_LIBS_$1) -o $$@
+	-l$$(PYV$1) -lm -ldl -o $$@
 SWIG_ALL+=$$(PY_SO_$1)
 CLEAN+=$$(foreach n,o d,$$(PY_BASE_$1).$$n)
 DISTCLEAN+=$$(PY_SO_$1)
 
 endef
-DISTCLEAN+=$(PY_BASE).cpp python/_pmc.so python/pmc.py python/pmc.pyc
+DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 $(eval $(call python,2))
-# Python 3 need swig 4
-ifeq ($(call verCheck,$(swig_ver),4.0),)
 $(eval $(call python,3))
-endif
 endif # which python
 
 ALL+=$(SWIG_ALL)
@@ -269,6 +278,7 @@ deb_src: distclean
 	$(Q)dpkg-source -b .
 deb:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc
+	$Q$(RM) $(PMC_NAME) $(LIB_NAME).so $(PERL_NAME).so $(wildcard */*/*.so)
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # Debian

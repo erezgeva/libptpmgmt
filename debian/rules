@@ -67,12 +67,15 @@ LUADIR:=debian/lua-pmc/usr/lib/$(DEB_HOST_MULTIARCH)
 DOCDIR:=debian/libpmc-doc/usr/share/doc/libpmc-doc
 url:=html/index.html
 redir:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(url)\"/>"
-PY2:=debian/python-pmc$(subst include,lib,$(dir $(firstword $(wildcard \
+PY2:=debian/python-pmc$(subst include,lib,$(dir $(lastword $(wildcard \
     /usr/include/python2*/Python.h))))dist-packages
+PY3:=debian/python3-pmc/usr/lib/python3/dist-packages
+PY3_VER:=$(subst .,,$(subst libpython,,$(basename $(notdir $(wildcard \
+    /usr/lib/$(DEB_HOST_MULTIARCH)/libpython3*.a)))))
 DIRS:=$(foreach d,libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)\
       libpmc-dev/usr/include/pmc libpmc-dev/usr/share/libpmc-dev,debian/$d)\
       $(PERLDIR)/auto/$(PERLNAME) $(foreach n,1 2 3,$(LUADIR)/lua/5.$n) $(PY2)\
-      $(DOCDIR)
+      $(PY3) $(DOCDIR)
 HEADERS:=$(filter-out mngIds.h,$(wildcard *.h))
 
 override_dh_install:
@@ -92,8 +95,11 @@ override_dh_install:
 	    ln -fs liblua5.$n-pmc.so.$(LIB_VER) $(LUADIR)/liblua5.$n-pmc.so.$(SONAME);\
 	    ln -fs ../../liblua5.$n-pmc.so.$(LIB_VER) $(LUADIR)/lua/5.$n/pmc.so;)
 	$(Q)cp python/2/_pmc.so $(PY2)/_pmc.$(DEB_HOST_MULTIARCH).so
-	$(Q)chmod 644 $(PY2)/_pmc.$(DEB_HOST_MULTIARCH).so
 	$(Q)install -m 644 python/pmc.py $(PY2)
+	$(Q)install -m 644 python/3/_pmc.*.so $(PY3)
+	$(Q)install -m 644 python/pmc.py $(PY3)
+	$(Q)chmod 644 $(PY2)/_pmc.$(DEB_HOST_MULTIARCH).so \
+	    $(PY3)/_pmc.cpython-$(PY3_VER)-$(DEB_HOST_MULTIARCH).so
 	$(Q)$(RM) doc/html/*.md5
 	$(Q)cp -a doc/html $(DOCDIR)
 	$(Q)printf $(redir) > $(DOCDIR)/index.html
