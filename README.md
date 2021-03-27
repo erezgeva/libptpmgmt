@@ -23,9 +23,8 @@ The caller needs to fill the structure and use it with a message object.
 When receiving a reply message, the user can parse the message and
 get a pointer to a structure from the message object.
 
-The configuration file uses the [ptp4l](https://linux.die.net/man/8/ptp4l) parameters
-that are relevant to pmc tool.
-
+The configuration file uses the [ptp4l](https://manpages.debian.org/unstable/linuxptp/ptp4l.8.en.html)
+parameters that are relevant to pmc tool.
 
 # <u>Using C</u>
 This project does **NOT** support C directly.
@@ -45,7 +44,7 @@ The project provides a clone to [linuxptp](http://linuxptp.sf.net/)
 pmc tool that uses the libpmc library.
 The project does not provide a manual page to the tool.
 As the tool mimic the original tool in command line, input and in output.
-Please refer to the [pmc man page](https://linux.die.net/man/8/pmc)
+Please refer to the [pmc man page](https://manpages.debian.org/unstable/linuxptp/pmc.8.en.html)
 
 # <u>Inspiration</u>
 The library provide functionality that is provided by the pmc tool of the linuxptp project.
