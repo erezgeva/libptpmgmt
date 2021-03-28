@@ -16,13 +16,13 @@ SIZE = 2000
 
 sk = pmc.sockUnix()
 
-function setPriority1(sk, msg, pbuf, sequance, newPriority1)
+function setPriority1(sk, msg, pbuf, sequence, newPriority1)
     local txt
     local pr1 = pmc.PRIORITY1_t()
     pr1.priority1 = newPriority1
     local id = pmc.PRIORITY1
     msg:setAction(pmc.SET, id, pr1)
-    local err = msg:build(pbuf, SIZE, sequance)
+    local err = msg:build(pbuf, SIZE, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.message.err2str_c(err)
         print("build error ", txt)
@@ -42,13 +42,13 @@ function setPriority1(sk, msg, pbuf, sequance, newPriority1)
     end
     err = msg:parse(pbuf, cnt)
     if(err ~= pmc.MNG_PARSE_ERROR_OK or msg:getTlvId() ~= id or
-       sequance ~= msg:getSequence()) then
+       sequence ~= msg:getSequence()) then
         print "set fails"
         return -1
     end
     print("set new priority " .. newPriority1 .. " success")
     msg:setAction(pmc.GET, id)
-    err = msg:build(pbuf, SIZE, sequance)
+    err = msg:build(pbuf, SIZE, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.message.err2str_c(err)
         print("build error ", txt)
@@ -109,8 +109,8 @@ function main()
     -- Create buffer for sending
     -- And convert buffer to buffer pointer
     local pbuf = pmc.conv_buf(string.rep("X", SIZE))
-    local sequance = 1
-    local err = msg:build(pbuf, SIZE, sequance)
+    local sequence = 1
+    local err = msg:build(pbuf, SIZE, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.message.err2str_c(err)
         print("build error ", txt)
@@ -167,8 +167,8 @@ function main()
     clk_dec.revisionData.textField = "This is a test"
     print("revisionData: " .. clk_dec.revisionData.textField)
 
-    setPriority1(sk, msg, pbuf, sequance, 147)
-    setPriority1(sk, msg, pbuf, sequance, 153)
+    setPriority1(sk, msg, pbuf, sequence, 147)
+    setPriority1(sk, msg, pbuf, sequence, 153)
 end
 
 main()

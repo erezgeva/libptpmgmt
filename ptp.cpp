@@ -15,10 +15,8 @@
 #include <linux/sockios.h>
 #include "msg.h"
 #include "ptp.h"
+
 // man netdevice
-
-static const size_t max_ifName = sizeof(((ifreq *)nullptr)->ifr_name);
-
 // From linux/posix-timers.h
 #define CPUCLOCK_MAX      3
 #define CLOCKFD           CPUCLOCK_MAX
@@ -56,7 +54,7 @@ bool ifInfo::initPtp(int fd, ifreq &ifr)
 }
 bool ifInfo::initUsingName(const std::string ifName)
 {
-    if(m_isInit || ifName.empty() || ifName.length() > max_ifName)
+    if(m_isInit || ifName.empty() || ifName.length() >= IFNAMSIZ)
         return false;
     int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(fd < 0) {
@@ -64,7 +62,8 @@ bool ifInfo::initUsingName(const std::string ifName)
         return false;
     }
     ifreq ifr = {0};
-    strncpy(ifr.ifr_name, ifName.c_str(), max_ifName);
+    // ifName is shorter than IFNAMSIZ
+    strcpy(ifr.ifr_name, ifName.c_str());
     if(ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
         perror("SIOCGIFINDEX");
         close(fd);

@@ -14,12 +14,12 @@ import pmc
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 SIZE = 2000
 
-def setPriority1(sk, msg, pbuf, sequance, newPriority1):
+def setPriority1(sk, msg, pbuf, sequence, newPriority1):
   pr1 = pmc.PRIORITY1_t()
   pr1.priority1 = newPriority1
   id = pmc.PRIORITY1
   msg.setAction(pmc.SET, id, pr1)
-  err = msg.build(pbuf, SIZE, sequance)
+  err = msg.build(pbuf, SIZE, sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.message.err2str_c(err)
     print("build error %s" % txt)
@@ -35,12 +35,12 @@ def setPriority1(sk, msg, pbuf, sequance, newPriority1):
     return -1
   err = msg.parse(pbuf, cnt)
   if(err != pmc.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
-     sequance != msg.getSequence()):
+     sequence != msg.getSequence()):
     print("set fails")
     return -1
   print("set new priority %d success" % newPriority1)
   msg.setAction(pmc.GET, id)
-  err = msg.build(pbuf, SIZE, sequance)
+  err = msg.build(pbuf, SIZE, sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.message.err2str_c(err)
     print("build error %s" % txt)
@@ -92,8 +92,8 @@ def main():
   # Create buffer for sending
   # And convert buffer to buffer pointer
   pbuf = pmc.conv_buf("X" * SIZE)
-  sequance = 1
-  err = msg.build(pbuf, SIZE, sequance)
+  sequence = 1
+  err = msg.build(pbuf, SIZE, sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.message.err2str_c(err)
     print("build error %s" % txt)
@@ -149,8 +149,8 @@ def main():
   print("revisionData: %s" % clk_dec.revisionData.textField);
 
   # test send
-  setPriority1(sk, msg, pbuf, sequance, 147)
-  setPriority1(sk, msg, pbuf, sequance, 153)
+  setPriority1(sk, msg, pbuf, sequence, 147)
+  setPriority1(sk, msg, pbuf, sequence, 153)
 
 sk = pmc.sockUnix()
 main()
@@ -158,5 +158,9 @@ sk.close()
 
 # If libpmc library is not installed in system,
 #  run with:
-# ln -sf 2/_pmc.so ; LD_LIBRARY_PATH=.. python2 test.py
-# ln -sf 3/_pmc.so ; LD_LIBRARY_PATH=.. python3 test.py
+"""
+rm -f *.so;ln -sf 2/_pmc.so;LD_LIBRARY_PATH=.. python2 test.py
+
+rm -f *.so;ln -sf 3/_pmc.cpython-37m-x86_64-linux-gnu.so;\
+    LD_LIBRARY_PATH=.. python3 test.py
+"""

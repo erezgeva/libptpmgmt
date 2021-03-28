@@ -89,7 +89,7 @@ dump(DEFAULT_DATA_SET)
         IDENT "clockIdentity           %s"
         IDENT "domainNumber            %u",
         d.flags & 1,
-        (d.flags >> 1) & 1,
+        d.flags >> 1,
         d.numberPorts,
         d.priority1,
         d.clockQuality.clockClass,
@@ -125,7 +125,7 @@ dump(PARENT_DATA_SET)
         IDENT "grandmasterPriority2                  %u"
         IDENT "grandmasterIdentity                   %s",
         d.parentPortIdentity.str().c_str(),
-        d.flags & 1,
+        d.flags,
         d.observedParentOffsetScaledLogVariance,
         d.observedParentClockPhaseChangeRate,
         d.grandmasterPriority1,
@@ -173,7 +173,7 @@ dump(PORT_DATA_SET)
         d.portIdentity.str().c_str(),
         m.portState2str_c(d.portState),
         d.logMinDelayReqInterval,
-        (uint64_t)d.peerMeanPathDelay.getInterval(),
+        d.peerMeanPathDelay.getIntervalInt(),
         d.logAnnounceInterval,
         d.announceReceiptTimeout,
         d.logSyncInterval,
@@ -199,16 +199,7 @@ dump(DOMAIN)
 }
 dump(SLAVE_ONLY)
 {
-    printf(IDENT "slaveOnly %u",
-        /*
-         * According to IEEE 1588, the flag is on bit 0
-         * As linuxptp put the flag on the wrong bit
-         * We test both bit 0 and bit 1.
-         * As bit 1 is not due to be used, it should be safe
-         */
-        (m.getParams().useLinuxPTPTlvs ?
-            ((d.flags & 0x3) > 0 ? 1 : 0) :
-            (d.flags & 1)));
+    printf(IDENT "slaveOnly %u", d.flags);
     dump_end;
 }
 dump(LOG_ANNOUNCE_INTERVAL)
@@ -270,7 +261,7 @@ dump(TIMESCALE_PROPERTIES)
 }
 dump(UNICAST_NEGOTIATION_ENABLE)
 {
-    printf(IDENT "unicastNegotiationPortDS %sabled", d.flags & 1 ? "e" : "dis");
+    printf(IDENT "unicastNegotiationPortDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(PATH_TRACE_LIST)
@@ -282,7 +273,7 @@ dump(PATH_TRACE_LIST)
 }
 dump(PATH_TRACE_ENABLE)
 {
-    printf(IDENT "pathTraceDS %sabled", d.flags & 1 ? "e" : "dis");
+    printf(IDENT "pathTraceDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(GRANDMASTER_CLUSTER_TABLE)
@@ -330,7 +321,7 @@ dump(ACCEPTABLE_MASTER_TABLE)
 }
 dump(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
-    printf(IDENT "acceptableMasterPortDS %sabled", d.flags & 1 ? "e" : "dis");
+    printf(IDENT "acceptableMasterPortDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
@@ -344,7 +335,7 @@ dump(ALTERNATE_MASTER)
         IDENT "transmitAlternateMulticastSync    %sabled"
         IDENT "logAlternateMulticastSyncInterval %d"
         IDENT "numberOfAlternateMasters          %u",
-        d.flags & 1 ? "e" : "dis",
+        d.flags ? "e" : "dis",
         d.logAlternateMulticastSyncInterval,
         d.numberOfAlternateMasters);
     dump_end;
@@ -353,7 +344,7 @@ dump(ALTERNATE_TIME_OFFSET_ENABLE)
 {
     printf(
         IDENT "alternateTimescaleOffsetsDS[%u] %sabled", d.keyField,
-        d.flags & 1 ? "e" : "dis");
+        d.flags ? "e" : "dis");
     dump_end;
 }
 dump(ALTERNATE_TIME_OFFSET_NAME)
@@ -387,9 +378,9 @@ dump(TRANSPARENT_CLOCK_PORT_DATA_SET)
         IDENT "logMinPdelayReqInterval %i"
         IDENT "peerMeanPathDelay       %ju",
         d.portIdentity.str().c_str(),
-        d.flags & 1 ? "true" : "false",
+        d.flags ? "true" : "false",
         d.logMinPdelayReqInterval,
-        (uint64_t)d.peerMeanPathDelay.getInterval());
+        d.peerMeanPathDelay.getIntervalInt());
     dump_end;
 }
 dump(LOG_MIN_PDELAY_REQ_INTERVAL)
@@ -422,17 +413,17 @@ dump(DELAY_MECHANISM)
 }
 dump(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
-    printf(IDENT "externalPortConfiguration %sabled", d.flags & 1 ? "e" : "dis");
+    printf(IDENT "externalPortConfiguration %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(MASTER_ONLY)
 {
-    printf(IDENT "masterOnly %s", d.flags & 1 ? "true" : "false");
+    printf(IDENT "masterOnly %s", d.flags ? "true" : "false");
     dump_end;
 }
 dump(HOLDOVER_UPGRADE_ENABLE)
 {
-    printf(IDENT "holdoverUpgradeDS %sabled", d.flags & 1 ? "e" : "dis");
+    printf(IDENT "holdoverUpgradeDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(EXT_PORT_CONFIG_PORT_DATA_SET)
@@ -440,7 +431,7 @@ dump(EXT_PORT_CONFIG_PORT_DATA_SET)
     printf(
         IDENT "acceptableMasterPortDS %sabled"
         IDENT "desiredState           %s",
-        d.flags & 1 ? "e" : "dis",
+        d.flags ? "e" : "dis",
         m.portState2str_c(d.desiredState));
     dump_end;
 }
@@ -581,7 +572,7 @@ dump(SYNCHRONIZATION_UNCERTAIN_NP)
     dump_end;
 }
 
-void call_dump(message &msg, baseData *data)
+void call_dump(message &msg, baseMngTlv *data)
 {
 #define caseUF(n) case n: dump_##n(msg, (n##_t *)data); break;
 #define A(n, v, sc, a, sz, f) case##f(n)
@@ -594,13 +585,13 @@ void call_dump(message &msg, baseData *data)
 }
 
 #define build(n)\
-    static inline baseData *build_##n(message &m, char *save) {\
+    static inline baseMngTlv *build_##n(message &m, char *save) {\
         n##_t *dp = new n##_t;\
         if(dp == nullptr)\
             return nullptr;\
         n##_t &d = *dp;
 #define defKeys \
-        std::map<std::string, val_key_t> keys;
+    std::map<std::string, val_key_t> keys;
 #define parseKeys \
     if(parseKeysFunc(m, keys, save))\
         return nullptr;
@@ -614,25 +605,26 @@ struct val_key_t {
     int64_t max;         // [in]  maximum number value
     int64_t min;         // [in]  minimum number value
     bool req;            // [in]  key is required
+    bool flag;           // [in]  key for a flag
     int64_t num;         // [out] number value
     bool got_num;        // [out] flag indicate parsed number successfully
     const char *str_val; // [out] string value
-    // Callback function for special value parser
+    // Call-back function for special value parser
     std::function<bool (val_key_t &key)> handle;
 };
 /*
  * @return
  * 0 No more tokens
- * 1 No quate string call strtok_r
- * 2 found quated token
+ * 1 No quote string call strtok_r
+ * 2 found quoted token
  * -1 error
  */
-static int parse_quate(char *save, char *&lastStr, char *&tkn)
+static int parse_quote(char *save, char *&lastStr, char *&tkn)
 {
     char *cur;
-    // Was parse_quate last?
+    // Was parse_quote last?
     if(lastStr != nullptr)
-        cur = lastStr; // last call of parse_quate
+        cur = lastStr; // last call of parse_quote
     else
         cur = save; // last call of strtok_r
     // skip separator characters
@@ -681,13 +673,13 @@ static int parse_quate(char *save, char *&lastStr, char *&tkn)
                 case 'e': // Escape char
                     *wcur = 0x1b;
                     break;
-                case 'f':// Formfeed, Page break
+                case 'f':// Form-feed, Page break
                     *wcur = 0x0c;
                     break;
                 case 'v': // Vertical tab
                     *wcur = 0x0b;
                     break;
-                // Other esacapes are ignored
+                // Other escapes are ignored
                 default:
                     *wcur++ = '\\';
                 // self char escape
@@ -727,7 +719,7 @@ static bool parseKeysFunc(message &msg, std::map<std::string, val_key_t> &keys,
         singleKey = false;
         singleKeyCanStr = false;
     }
-    // In case we found quated string we point after it.
+    // In case we found quoted string we point after it.
     // so, we look for the next token on the proper place.
     char *lastStr = nullptr;
     char *tkn; // Token found
@@ -735,13 +727,13 @@ static bool parseKeysFunc(message &msg, std::map<std::string, val_key_t> &keys,
     while(ret > 0) {
         ret = 1; // take token using strtok_r
         if(singleKeyCanStr) {
-            ret = parse_quate(save, lastStr, tkn);
+            ret = parse_quote(save, lastStr, tkn);
             if(ret == -1)
                 return true; // parse error
             if(ret == 0) // No more tokens we can continue to last part
                 break;
             // ret == 1  take token using strtok_r
-            // ret == 2  we have quated token
+            // ret == 2  we have quoted token
         }
         if(ret == 1) { // take normal token
             tkn = strtok_r(lastStr, toksep, &save);
@@ -763,16 +755,16 @@ static bool parseKeysFunc(message &msg, std::map<std::string, val_key_t> &keys,
         val_key_t &key = it->second;
         ret = 1; // take token using strtok_r
         if(key.can_str) {
-            ret = parse_quate(save, lastStr, tkn);
+            ret = parse_quote(save, lastStr, tkn);
             if(ret == -1)
                 return true; // pass error
             if(ret == 0 && !singleKey)
                 break; // No more tokens we can continue to last part
             // ret == 0  use last token as value
             // ret == 1  take token using strtok_r
-            // ret == 2  we have quated token
+            // ret == 2  we have quoted token
         }
-        if(ret == 1) { // No quate string, take normal token
+        if(ret == 1) { // No quote string, take normal token
             char *ntkn = strtok_r(lastStr, toksep, &save);
             if(ntkn == nullptr || *ntkn == 0) {
                 // No more tokens
@@ -786,14 +778,26 @@ static bool parseKeysFunc(message &msg, std::map<std::string, val_key_t> &keys,
         key.str_val = tkn;
         if(key.handle == nullptr) {
             char *end;
+            if(key.flag) {
+                key.min = 0;
+                key.max = UINT8_MAX;
+            }
             int64_t num = strtoll(tkn, &end, key.base);
             // Make sure value is integer and in range
             if(*end == 0 && num >= key.min && num <= key.max) {
                 // In case we want to use string if number is wrong
                 key.got_num = true;
                 key.num = num;
+            } else if(key.flag) {
+                // Is key a flag value
+                if(strcasecmp(tkn, "enable") == 0 ||
+                    strcasecmp(tkn, "on") == 0 ||
+                    strcasecmp(tkn, "true") == 0)
+                    key.num = 1;
+                else
+                    key.num = 0;
             } else if(!key.can_str)
-                // worng number, if we can't use the string then we have error.
+                // wrong number, if we can't use the string, we have an error.
                 return true;
         } else if(key.handle(key))
             return true;
@@ -811,26 +815,32 @@ static bool getTimeSource(val_key_t &key)
 {
     int64_t num;
     const char *tkn = key.str_val;
-    if(strcasecmp("ATOMIC_CLOCK", tkn) == 0)
-        num = ATOMIC_CLOCK;
-    else if(strcasecmp("GNSS", tkn) == 0)
+    for(char *c = (char *)tkn; *c != 0; c++)
+        *c = toupper(*c);
+    if(strcmp("GNSS", tkn) == 0)
         num = GNSS;
-    else if(strcasecmp("GPS", tkn) == 0)
+    else if(strcmp("GPS", tkn) == 0)
         num = GNSS;
-    else if(strcasecmp("TERRESTRIAL_RADIO", tkn) == 0)
-        num = TERRESTRIAL_RADIO;
-    else if(strcasecmp("SERIAL_TIME_CODE", tkn) == 0)
-        num = SERIAL_TIME_CODE;
-    else if(strcasecmp("PTP", tkn) == 0)
+    else if(strcmp("PTP", tkn) == 0)
         num = PTP;
-    else if(strcasecmp("NTP", tkn) == 0)
+    else if(strcmp("NTP", tkn) == 0)
         num = NTP;
-    else if(strcasecmp("HAND_SET", tkn) == 0)
-        num = HAND_SET;
-    else if(strcasecmp("OTHER", tkn) == 0)
-        num = OTHER;
-    else if(strcasecmp("INTERNAL_OSCILLATOR", tkn) == 0)
+    else if(strstr(tkn, "ATOMIC") != nullptr)
+        num = ATOMIC_CLOCK;
+    else if(strstr(tkn, "RADIO") != nullptr)
+        num = TERRESTRIAL_RADIO;
+    else if(strstr(tkn, "TERR") != nullptr)
+        num = TERRESTRIAL_RADIO;
+    else if(strstr(tkn, "SERIAL") != nullptr)
+        num = SERIAL_TIME_CODE;
+    else if(strstr(tkn, "OSCILL") != nullptr)
         num = INTERNAL_OSCILLATOR;
+    else if(strstr(tkn, "INTERN") != nullptr)
+        num = INTERNAL_OSCILLATOR;
+    else if(strstr(tkn, "OTHER") != nullptr)
+        num = OTHER;
+    else if(strstr(tkn, "HAND") != nullptr)
+        num = HAND_SET;
     else { // Fallback into hex integer
         char *end;
         num = strtol(tkn, &end, 16);
@@ -840,7 +850,7 @@ static bool getTimeSource(val_key_t &key)
     key.num = num;
     return false; // No errors!
 }
-static bool getportState(val_key_t &key)
+static bool getPortState(val_key_t &key)
 {
     int64_t num;
     const char *tkn = key.str_val;
@@ -865,22 +875,6 @@ static bool getportState(val_key_t &key)
     else
         return true;
     key.num = num;
-    return false; // No errors!
-}
-static bool getOn(val_key_t &key)
-{
-    if(strcasecmp("on", key.str_val) == 0)
-        key.num = 1;
-    else
-        key.num = 0;
-    return false; // No errors!
-}
-static bool getEnable(val_key_t &key)
-{
-    if(strcasecmp("enable", key.str_val) == 0)
-        key.num = 1;
-    else
-        key.num = 0;
     return false; // No errors!
 }
 
@@ -927,9 +921,9 @@ build(DOMAIN)
 build(SLAVE_ONLY)
 {
     defKeys;
-    keys["slaveOnly"] = { .max = UINT8_MAX };
+    keys["slaveOnly"] = { .flag = true };
     parseKeys;
-    d.flags = keys["slaveOnly"].num > 0 ? 1 : 0;
+    d.flags = keys["slaveOnly"].num;
     build_end;
 }
 build(LOG_ANNOUNCE_INTERVAL)
@@ -987,9 +981,9 @@ build(UTC_PROPERTIES)
 {
     defKeys;
     keys["currentUtcOffset"] = { .max = INT16_MAX, .req = true };
-    keys["leap61"] = { .max = UINT8_MAX };
-    keys["leap59"] = { .max = UINT8_MAX };
-    keys["currentUtcOffsetValid"] = { .max = UINT8_MAX };
+    keys["leap61"] = { .flag = true };
+    keys["leap59"] = { .flag = true };
+    keys["currentUtcOffsetValid"] = { .flag = true };
     parseKeys;
     uint8_t flags = 0;
     if(keys["leap61"].num)
@@ -1005,8 +999,8 @@ build(UTC_PROPERTIES)
 build(TRACEABILITY_PROPERTIES)
 {
     defKeys;
-    keys["timeTraceable"] = { .max = UINT8_MAX };
-    keys["frequencyTraceable"] = { .max = UINT8_MAX };
+    keys["timeTraceable"] = { .flag = true };
+    keys["frequencyTraceable"] = { .flag = true };
     parseKeys;
     uint8_t flags = 0;
     if(keys["timeTraceable"].num)
@@ -1019,7 +1013,7 @@ build(TRACEABILITY_PROPERTIES)
 build(TIMESCALE_PROPERTIES)
 {
     defKeys;
-    keys["ptpTimescale"] = { .max = UINT8_MAX };
+    keys["ptpTimescale"] = { .flag = true };
     parseKeys;
     uint8_t flags = 0;
     if(keys["ptpTimescale"].num)
@@ -1030,7 +1024,7 @@ build(TIMESCALE_PROPERTIES)
 build(UNICAST_NEGOTIATION_ENABLE)
 {
     defKeys;
-    keys["unicastNegotiationPortDS"].handle = getEnable;
+    keys["unicastNegotiationPortDS"] = { .flag = true };
     parseKeys;
     d.flags = keys["unicastNegotiationPortDS"].num;
     build_end;
@@ -1038,19 +1032,36 @@ build(UNICAST_NEGOTIATION_ENABLE)
 build(PATH_TRACE_ENABLE)
 {
     defKeys;
-    keys["pathTraceDS"].handle = getEnable;
+    keys["pathTraceDS"] = { .flag = true };
     parseKeys;
     d.flags = keys["pathTraceDS"].num;
     build_end;
 }
-// TODO Table sets
-// build(GRANDMASTER_CLUSTER_TABLE)
-// build(UNICAST_MASTER_TABLE)
-// build(ACCEPTABLE_MASTER_TABLE)
+build(GRANDMASTER_CLUSTER_TABLE)
+{
+    //TODO handle table input
+    d = d;
+    return nullptr;
+    build_end;
+}
+build(UNICAST_MASTER_TABLE)
+{
+    //TODO handle table input
+    d = d;
+    return nullptr;
+    build_end;
+}
+build(ACCEPTABLE_MASTER_TABLE)
+{
+    //TODO handle table input
+    d = d;
+    return nullptr;
+    build_end;
+}
 build(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
     defKeys;
-    keys["acceptableMasterPortDS"].handle = getEnable;
+    keys["acceptableMasterPortDS"] = { .flag = true };
     parseKeys;
     d.flags = keys["acceptableMasterPortDS"].num;
     build_end;
@@ -1058,7 +1069,7 @@ build(ACCEPTABLE_MASTER_TABLE_ENABLED)
 build(ALTERNATE_MASTER)
 {
     defKeys;
-    keys["transmitAlternateMulticastSync"].handle = getEnable;
+    keys["transmitAlternateMulticastSync"] = { .flag = true };
     keys["logAlternateMulticastSyncInterval"] = { .max = INT8_MAX };
     keys["numberOfAlternateMasters"] = { .max = UINT8_MAX };
     parseKeys;
@@ -1071,7 +1082,7 @@ build(ALTERNATE_MASTER)
 build(ALTERNATE_TIME_OFFSET_ENABLE)
 {
     defKeys;
-    keys["alternateTimescaleOffsetsDS"].handle = getEnable;
+    keys["alternateTimescaleOffsetsDS"] = { .flag = true };
     parseKeys;
     d.flags = keys["alternateTimescaleOffsetsDS"].num;
     build_end;
@@ -1127,7 +1138,7 @@ build(DELAY_MECHANISM)
 build(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
     defKeys;
-    keys["externalPortConfiguration"].handle = getEnable;
+    keys["externalPortConfiguration"] = { .flag = true };
     parseKeys;
     d.flags = keys["externalPortConfiguration"].num;
     build_end;
@@ -1135,7 +1146,7 @@ build(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 build(MASTER_ONLY)
 {
     defKeys;
-    keys["masterOnly"].handle = getEnable;
+    keys["masterOnly"] = { .flag = true };
     parseKeys;
     d.flags = keys["masterOnly"].num;
     build_end;
@@ -1143,7 +1154,7 @@ build(MASTER_ONLY)
 build(HOLDOVER_UPGRADE_ENABLE)
 {
     defKeys;
-    keys["holdoverUpgradeDS"].handle = getEnable;
+    keys["holdoverUpgradeDS"] = { .flag = true };
     parseKeys;
     d.flags = keys["holdoverUpgradeDS"].num;
     build_end;
@@ -1151,8 +1162,8 @@ build(HOLDOVER_UPGRADE_ENABLE)
 build(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
     defKeys;
-    keys["acceptableMasterPortDS"].handle = getEnable;
-    keys["desiredState"].handle = getportState;
+    keys["acceptableMasterPortDS"] = { .flag = true };
+    keys["desiredState"].handle = getPortState;
     parseKeys;
     d.flags = keys["acceptableMasterPortDS"].num;
     d.desiredState = (portState_e)keys["desiredState"].num;
@@ -1170,12 +1181,12 @@ build(GRANDMASTER_SETTINGS_NP)
         .req = true
     };
     keys["currentUtcOffset"] = { .max = INT16_MAX, .req = true };
-    keys["leap61"] = { .max = UINT8_MAX };
-    keys["leap59"] = { .max = UINT8_MAX };
-    keys["currentUtcOffsetValid"] = { .max = UINT8_MAX };
-    keys["ptpTimescale"] = { .max = UINT8_MAX };
-    keys["timeTraceable"] = { .max = UINT8_MAX };
-    keys["frequencyTraceable"] = { .max = UINT8_MAX };
+    keys["leap61"] = { .flag = true };
+    keys["leap59"] = { .flag = true };
+    keys["currentUtcOffsetValid"] = { .flag = true };
+    keys["ptpTimescale"] = { .flag = true };
+    keys["timeTraceable"] = { .flag = true };
+    keys["frequencyTraceable"] = { .flag = true };
     keys["timeSource"] = { .req = true };
     keys["timeSource"].handle = getTimeSource;
     parseKeys;
@@ -1214,8 +1225,8 @@ build(SUBSCRIBE_EVENTS_NP)
 {
     defKeys;
     keys["duration"] = { .max = UINT16_MAX, .req = true };
-    keys["NOTIFY_PORT_STATE"].handle = getOn;
-    keys["NOTIFY_TIME_SYNC"].handle = getOn;
+    keys["NOTIFY_PORT_STATE"] = { .flag = true };
+    keys["NOTIFY_TIME_SYNC"] = { .flag = true };
     parseKeys;
     memset(d.bitmask, 0, sizeof(d.bitmask));
     if(keys["NOTIFY_PORT_STATE"].num)
@@ -1233,14 +1244,13 @@ build(SYNCHRONIZATION_UNCERTAIN_NP)
     d.val = keys["duration"].num;
     build_end;
 }
-
 #if 1
-#define callBuild(n) n: return build_##n(msg, save)
+#define caseUFB(n) case n: return build_##n(msg, save);
 #else
-// Debug code, dump set instead of send it over network
-#define callBuild(n)\
-    n: {\
-        baseData *d = build_##n(msg, save);\
+// Debug code, dump set instead of sending it over network
+#define caseUFB(n)\
+    case n: {\
+        baseMngTlv *d = build_##n(msg, save);\
         if(d != nullptr) {\
             printf("Dump " #n ":");\
             dump_##n(msg, (n##_t*)d);\
@@ -1249,43 +1259,59 @@ build(SYNCHRONIZATION_UNCERTAIN_NP)
         return nullptr;\
     }
 #endif
-baseData *call_data(message &msg, mng_vals_e id, char *save)
+baseMngTlv *call_data(message &msg, mng_vals_e id, char *save)
 {
+#define A(n, v, sc, a, sz, f) case##f(n)
     switch(id) {
-        case callBuild(USER_DESCRIPTION);
-        case callBuild(INITIALIZE);
-        case callBuild(PRIORITY1);
-        case callBuild(PRIORITY2);
-        case callBuild(DOMAIN);
-        case callBuild(SLAVE_ONLY);
-        case callBuild(LOG_ANNOUNCE_INTERVAL);
-        case callBuild(ANNOUNCE_RECEIPT_TIMEOUT);
-        case callBuild(LOG_SYNC_INTERVAL);
-        case callBuild(VERSION_NUMBER);
-        case callBuild(TIME);
-        case callBuild(CLOCK_ACCURACY);
-        case callBuild(UTC_PROPERTIES);
-        case callBuild(TRACEABILITY_PROPERTIES);
-        case callBuild(TIMESCALE_PROPERTIES);
-        case callBuild(UNICAST_NEGOTIATION_ENABLE);
-        case callBuild(PATH_TRACE_ENABLE);
-        case callBuild(ACCEPTABLE_MASTER_TABLE_ENABLED);
-        case callBuild(ALTERNATE_MASTER);
-        case callBuild(ALTERNATE_TIME_OFFSET_ENABLE);
-        case callBuild(ALTERNATE_TIME_OFFSET_NAME);
-        case callBuild(ALTERNATE_TIME_OFFSET_PROPERTIES);
-        case callBuild(LOG_MIN_PDELAY_REQ_INTERVAL);
-        case callBuild(PRIMARY_DOMAIN);
-        case callBuild(DELAY_MECHANISM);
-        case callBuild(EXTERNAL_PORT_CONFIGURATION_ENABLED);
-        case callBuild(MASTER_ONLY);
-        case callBuild(HOLDOVER_UPGRADE_ENABLE);
-        case callBuild(EXT_PORT_CONFIG_PORT_DATA_SET);
-        case callBuild(GRANDMASTER_SETTINGS_NP);
-        case callBuild(PORT_DATA_SET_NP);
-        case callBuild(SUBSCRIBE_EVENTS_NP);
-        case callBuild(SYNCHRONIZATION_UNCERTAIN_NP);
+#include "ids.h"
         default:
             return nullptr;
     }
+}
+bool call_dumpSig(const message &msg, tlvType_e tlvType, baseSigTlv *tlv)
+{
+    switch(tlvType) {
+        case SLAVE_RX_SYNC_TIMING_DATA: {
+            SLAVE_RX_SYNC_TIMING_DATA_t &d = *(SLAVE_RX_SYNC_TIMING_DATA_t *)tlv;
+            printf(
+                "SLAVE_RX_SYNC_TIMING_DATA N %zu "
+                IDENT "syncSourcePortIdentity     %s",
+                d.list.size(), d.syncSourcePortIdentity.str().c_str());
+            for(auto &rec : d.list)
+                printf(
+                    IDENT "sequenceId                 %u"
+                    IDENT "syncOriginTimestamp        %s"
+                    IDENT "totalCorrectionField       %jd"
+                    IDENT "scaledCumulativeRateOffset %u"
+                    IDENT "syncEventIngressTimestamp  %s",
+                    rec.sequenceId,
+                    rec.syncOriginTimestamp.str().c_str(),
+                    rec.totalCorrectionField.getIntervalInt(),
+                    rec.scaledCumulativeRateOffset,
+                    rec.syncEventIngressTimestamp.str().c_str());
+            break;
+        }
+        case SLAVE_DELAY_TIMING_DATA_NP: {
+            SLAVE_DELAY_TIMING_DATA_NP_t &d = *(SLAVE_DELAY_TIMING_DATA_NP_t *)tlv;
+            printf(
+                "SLAVE_DELAY_TIMING_DATA_NP N %zu "
+                IDENT "sourcePortIdentity         %s",
+                d.list.size(), d.sourcePortIdentity.str().c_str());
+            for(auto &rec : d.list)
+                printf(
+                    IDENT "sequenceId                 %u"
+                    IDENT "delayOriginTimestamp       %s"
+                    IDENT "totalCorrectionField       %jd"
+                    IDENT "delayResponseTimestamp     %s",
+                    rec.sequenceId,
+                    rec.delayOriginTimestamp.str().c_str(),
+                    rec.totalCorrectionField.getIntervalInt(),
+                    rec.delayResponseTimestamp.str().c_str());
+            break;
+        }
+        default:
+            return false;
+    }
+    printf("\n");
+    return false;
 }

@@ -15,12 +15,12 @@ use constant SIZE => 2000;
 
 sub setPriority1
 {
-    my ($sk, $msg, $pbuf, $sequance, $newPriority1) = @_;
+    my ($sk, $msg, $pbuf, $sequence, $newPriority1) = @_;
     my $pr1 = PmcLib::PRIORITY1_t->new;
     $pr1->swig_priority1_set($newPriority1);
     my $id = $PmcLib::PRIORITY1;
     $msg->setAction($PmcLib::SET, $id, $pr1);
-    my $err = $msg->build($pbuf, SIZE, $sequance);
+    my $err = $msg->build($pbuf, SIZE, $sequence);
     my $txt = PmcLib::message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
@@ -39,14 +39,14 @@ sub setPriority1
 
     $err = $msg->parse($pbuf, $cnt);
     if($err != $PmcLib::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
-       $sequance != $msg->getSequence()) {
+       $sequence != $msg->getSequence()) {
         print "set fails\n";
         return -1;
     }
     print "set new priority $newPriority1 success\n";
 
     $msg->setAction($PmcLib::GET, $id);
-    $err = $msg->build($pbuf, SIZE, $sequance);
+    $err = $msg->build($pbuf, SIZE, $sequence);
     $txt = PmcLib::message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
@@ -111,8 +111,8 @@ sub main
     my $buf = 'X' x SIZE;
     # Convert buffer to buffer pointer
     my $pbuf = PmcLib::conv_buf($buf);
-    my $sequance = 1;
-    my $err = $msg->build($pbuf, SIZE, $sequance);
+    my $sequence = 1;
+    my $err = $msg->build($pbuf, SIZE, $sequence);
     my $txt = PmcLib::message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
@@ -169,8 +169,8 @@ sub main
     print("revisionData: " .
             $clk_dec->swig_revisionData_get()->swig_textField_get() . "\n");
 
-    setPriority1($sk, $msg, $pbuf, $sequance, 147);
-    setPriority1($sk, $msg, $pbuf, $sequance, 153);
+    setPriority1($sk, $msg, $pbuf, $sequence, 147);
+    setPriority1($sk, $msg, $pbuf, $sequence, 153);
 }
 my $sk = PmcLib::sockUnix->new;
 die "Fail socket" unless defined $sk;

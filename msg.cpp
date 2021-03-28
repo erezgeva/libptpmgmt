@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
 /** @file
- * @brief Create and parse PTP managment messages
+ * @brief Create and parse PTP management messages
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -10,42 +10,67 @@
  */
 
 #include <cstring>
+#include <cmath>
+#include <limits>
+#include <byteswap.h>
 #include <arpa/inet.h>
 #include "end.h"
 #include "msg.h"
 
+#if defined __GNUC__
+/* See:
+ * GNU GCC
+ * gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Type-Attributes.html
+ * Keil GNU mode
+ * www.keil.com/support/man/docs/armcc/armcc_chr1359125007083.htm
+ * www.keil.com/support/man/docs/armclang_ref/armclang_ref_chr1393328521340.htm
+ */
+#define PACK(__definition__) __definition__ __attribute__((packed))
+#elif defined _MSC_VER
+// See: http://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros
+// For MSVC: http://docs.microsoft.com/en-us/cpp/preprocessor/pack
+#define PACK(__definition__) __pragma( pack(push, 1) )\
+    __definition__ __pragma( pack(pop) )
+#else
+#error Unknown compiler
+#endif
+
 #define caseItem(a) a: return #a
 
-const uint8_t ptp_major_ver = 0x2; // low 4 bits, portDS.versionNumber
+const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
 const uint8_t ptp_minor_ver = 0x0; // IEEE 1588-2019 uses 0x1
 const uint8_t ptp_version = (ptp_minor_ver << 4) | ptp_major_ver;
-const uint8_t messageType_Management = 0xd; // low 4 bits
-const uint8_t controlField_Management = 0x04;
-const uint8_t logMessageInterval_Management = 0x7f;
+const uint8_t controlFieldMng = 0x04; // For Management
+// For Pdelay_Req, Pdelay_Resp, Pdelay_Resp_Follow_Up, Announce, Signaling
+const uint8_t controlFieldDef = 0x05;
+// For Delay_Req, Signaling, Management, Pdelay_Resp, Pdelay_Resp_Follow_Up
+const uint8_t logMessageIntervalDef = 0x7f;
 const uint16_t allPorts = UINT16_MAX;
 const ClockIdentity_t allClocks = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-const uint16_t u16_sig_bit = 1 << 15;           // 16 bits negative sign bit
-const uint64_t u64_sig_bit = (uint64_t)1 << 63; // 64 bits negative sign bit
+const uint16_t u16_sig_bit = 1 << 15;           // bit 16 negative sign bit
+const uint64_t u64_sig_bit = (uint64_t)1 << 63; // bit 64 negative sign bit
+// constants for IEEE 754 64-bit
+// sign bit: 1 bit, exponent: 11 bits, mantissa: 52 bits
+// https://en.wikipedia.org/wiki/Double-precision_floating-point_format
+const int ieee754_mnt_size = 52; // Exponent location, mantissa size
+const int ieee754_exp_size = 11; // Exponent size
+const int64_t ieee754_exp_nan = ((int64_t)1 << (ieee754_exp_size - 1)); // 1024
+const int64_t ieee754_exp_max = ieee754_exp_nan - 1; // 1023
+const int64_t ieee754_exp_sub = -ieee754_exp_max; // -1023 for subnormal
+const int64_t ieee754_exp_min = ieee754_exp_sub + 1; // -1022
+const int64_t ieee754_exp_bias = ieee754_exp_max; // 1023
+// 0x7ff0000000000000
+const uint64_t ieee754_exp_mask = (((uint64_t)1 << ieee754_exp_size) - 1) <<
+    ieee754_mnt_size;
+// 0x0010000000000000
+const int64_t ieee754_mnt_base = (int64_t)1 << ieee754_mnt_size;
+// 0x000fffffffffffff
+const int64_t ieee754_mnt_mask = ieee754_mnt_base - 1;
 
 enum flagField_e {
     unicastFlag = 1 << 2,
     PTPProfileSpecific1 = 1 << 5,
     PTPProfileSpecific2 = 1 << 6,
-};
-enum tlvType_e {
-    MANAGEMENT                              = 0x0001,
-    MANAGEMENT_ERROR_STATUS                 = 0x0002,
-    ORGANIZATION_EXTENSION                  = 0x0003,
-    REQUEST_UNICAST_TRANSMISSION            = 0x0004,
-    GRANT_UNICAST_TRANSMISSION              = 0x0005,
-    CANCEL_UNICAST_TRANSMISSION             = 0x0006,
-    ACKNOWLEDGE_CANCEL_UNICAST_TRANSMISSION = 0x0007,
-    PATH_TRACE                              = 0x0008,
-    ALTERNATE_TIME_OFFSET_INDICATOR         = 0x0009,
-    AUTHENTICATION                          = 0x2000,
-    AUTHENTICATION_CHALLENGE                = 0x2001,
-    SECURITY_ASSOCIATION_UPDATE             = 0x2002,
-    CUM_FREQ_SCALE_FACTOR_OFFSET            = 0x2003,
 };
 enum allowAction_e { // bits of actionField_e
     A_GET = 1 << GET,
@@ -58,50 +83,52 @@ enum scope_e : uint8_t {
     s_clock,
 };
 
-struct managementMessage_t {
+PACK(struct ClockIdentity_p {
+    Octet_t v[8];
+});
+PACK(struct PortIdentity_p {
+    ClockIdentity_p clockIdentity;
+    UInteger16_t portNumber;
+});
+PACK(struct managementMessage_p {
     // Header 34 Octets
-    uint8_t        messageType_transportSpecific;
-    uint8_t        versionPTP; // minorVersionPTP | versionPTP
-    uint16_t       messageLength;
-    uint8_t        domainNumber;
-    uint8_t        res2;
-    uint8_t        flagField[2]; // [1] is always 0 for managment
-    uint64_t       correctionField; // always 0 for managment
-    uint32_t       res3;
-    PortIdentity_t sourcePortIdentity;
-    uint16_t       sequenceId;
-    uint8_t        controlField;
-    uint8_t        logMessageInterval;
+    Nibble_t       messageType_majorSdoId; // minorSdoId == transportSpecific;
+    Nibble_t       versionPTP; // minorVersionPTP | versionPTP
+    UInteger16_t   messageLength;
+    UInteger8_t    domainNumber;
+    UInteger8_t    minorSdoId;
+    Octet_t        flagField[2]; // [1] is always 0 for management
+    Integer64_t    correctionField; // always 0 for management
+    Octet_t        messageTypeSpecific[4];
+    PortIdentity_p sourcePortIdentity;
+    UInteger16_t   sequenceId;
+    UInteger8_t    controlField;
+    Integer8_t     logMessageInterval;
     // Management message
-    PortIdentity_t targetPortIdentity;
+    PortIdentity_p targetPortIdentity;
     uint8_t        startingBoundaryHops;
     uint8_t        boundaryHops;
-    uint8_t        actionField; // low 4 bits
+    uint8_t        actionField; // low Nibble
     uint8_t        res5;
-};
-
+});
+const ssize_t sigBaseSize = 34 + sizeof(PortIdentity_p);
 const uint16_t tlvSize = 4;
-struct managementTLV_t {
+PACK(struct managementTLV_t {
     // TLV header 4 Octets
     uint16_t tlvType;      // tlvType_e.MANAGEMENT
     uint16_t lengthField;  // lengthFieldMngBase + dataField length
     // Management part
     uint16_t managementId; // mng_all_vals.value
     // dataField is even length
-};
+});
 const uint16_t lengthFieldMngBase = sizeof(managementTLV_t) - tlvSize;
-struct managementErrorTLV_t {
-    // TLV header 4 Octets
-    uint16_t tlvType;           // tlvType_e.MANAGEMENT_ERROR_STATUS
-    uint16_t lengthField;       // lengthFieldMngErrBase + displayData length
-    // Management Error part
+PACK(struct managementErrorTLV_p {
     uint16_t managementErrorId; // managementErrorId_e
     uint16_t managementId;      // mng_all_vals.value
     uint32_t reserved;
     // displayData              // PTPText
-};
-const uint16_t lengthFieldMngErrBase = sizeof(managementErrorTLV_t) - tlvSize;
-const size_t mngMsgBaseSize = sizeof(managementMessage_t) +
+});
+const size_t mngMsgBaseSize = sizeof(managementMessage_p) +
     sizeof(managementTLV_t);
 
 const managementId_t message::mng_all_vals[] = {
@@ -109,21 +136,27 @@ const managementId_t message::mng_all_vals[] = {
     [n] = {.value = 0x##v, .scope = s_##sc, .allowed = a, .size = sz},
 #include "ids.h"
 };
-MNG_PARSE_ERROR_e message::call_tlv_data()
+MNG_PARSE_ERROR_e message::call_tlv_data(mng_vals_e id, baseMngTlv *&tlv)
 {
-#define A(n, v, sc, a, sz, f) case##f(n)
-#define caseNA(n) case n: return MNG_PARSE_ERROR_OK;
+#define A(n, v, sc, a, sz, f) case##f(n);
+#define caseNA(n) case n: return MNG_PARSE_ERROR_OK
 #define caseUF(n) case n:\
-        if (m_build) { if (n##_f(*(n##_t *)m_dataSend)) return m_err;\
+        if(m_build) {\
+            if(n##_f(*(n##_t *)tlv))\
+                return m_err;\
         } else {\
             n##_t *t = new n##_t;\
-            if (t == nullptr) return MNG_PARSE_ERROR_MEM;\
-            m_dataGet = std::move(std::unique_ptr<baseData>(t));\
-            if (n##_f(*t)) return m_err;\
-        } break;
+            if(t == nullptr)\
+                return MNG_PARSE_ERROR_MEM;\
+            if(n##_f(*t)) {\
+                delete t;\
+                return m_err;\
+            }\
+            tlv = t;\
+        } break
     // The default error on build or parsing
     m_err = MNG_PARSE_ERROR_TOO_SMALL;
-    switch(m_tlv_id) {
+    switch(id) {
 #include "ids.h"
         default:
             return MNG_PARSE_ERROR_UNSUPPORT;
@@ -132,7 +165,7 @@ MNG_PARSE_ERROR_e message::call_tlv_data()
     return MNG_PARSE_ERROR_OK;
 }
 
-bool message::findTlvId(uint16_t val)
+bool message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
 {
     mng_vals_e id;
 #define A(n, v, sc, a, sz, f) case 0x##v: id = n; break;
@@ -143,9 +176,9 @@ bool message::findTlvId(uint16_t val)
             return false;
     }
     /* block linuxptp is not used */
-    if(!m_prms.useLinuxPTPTlvs && mng_all_vals[id].allowed & A_USE_LINUXPTP)
+    if(spec != linuxptp && mng_all_vals[id].allowed & A_USE_LINUXPTP)
         return false;
-    m_tlv_id = id;
+    rid = id;
     return true;
 }
 bool message::checkReplyAction(uint8_t actionField)
@@ -161,7 +194,8 @@ bool message::allowedAction(mng_vals_e id, actionField_e action)
 {
     if(id < FIRST_MNG_ID || id > LAST_MNG_ID || mng_all_vals[id].size == -1)
         return false;
-    if(!m_prms.useLinuxPTPTlvs && mng_all_vals[id].allowed & A_USE_LINUXPTP)
+    if(m_prms.implementSpecific != linuxptp &&
+        mng_all_vals[id].allowed & A_USE_LINUXPTP)
         return false;
     return mng_all_vals[id].allowed & (1 << action);
 }
@@ -179,39 +213,42 @@ static inline bool verifyAction(actionField_e action)
 }
 
 message::message() :
-    m_tlv_id(FIRST_MNG_ID),
     m_sendAction(GET),
-    m_replyAction(RESPONSE),
     m_msgLen(0),
+    m_dataSend(nullptr),
     m_sequence(0),
     m_isUnicast(true),
-    m_dataSend(nullptr),
-    m_peer{0}
+    m_replyAction(RESPONSE),
+    m_tlv_id(FIRST_MNG_ID),
+    m_peer{0},
+    m_target{0}
 {
     m_prms = {
         .boundaryHops = 1,
         .isUnicast = true,
-        .useLinuxPTPTlvs = true,
+        .implementSpecific = linuxptp,
+        .filterSignaling = true,
     };
     setAllClocks();
 }
 message::message(msgParams prms) :
-    m_tlv_id(FIRST_MNG_ID),
     m_sendAction(GET),
-    m_replyAction(RESPONSE),
     m_msgLen(0),
+    m_dataSend(nullptr),
     m_sequence(0),
     m_isUnicast(true),
-    m_dataSend(nullptr),
+    m_replyAction(RESPONSE),
+    m_tlv_id(FIRST_MNG_ID),
     m_prms(prms),
-    m_peer{0}
+    m_peer{0},
+    m_target{0}
 {
     if(m_prms.transportSpecific > 0xf)
         m_prms.transportSpecific = 0;
 }
-ssize_t message::getMsgPlanedLen()
+ssize_t message::getMsgPlanedLen() const
 {
-    // That should not happen, precaustion
+    // That should not happen, precaution
     if(m_tlv_id < FIRST_MNG_ID || m_tlv_id > LAST_MNG_ID)
         return -1; // Not supported
     // GET do not send dataField payload!
@@ -232,7 +269,7 @@ ssize_t message::getMsgPlanedLen()
     if(ret & 1) // Ensure even size for calculated size
         ret++;
     return ret + mngMsgBaseSize;
-    // return total length of to the message to be send send
+    // return total length of to the message to be send
 }
 bool message::updateParams(msgParams prms)
 {
@@ -260,7 +297,7 @@ bool message::setAction(actionField_e actionField, mng_vals_e tlv_id)
     return true;
 }
 bool message::setAction(actionField_e actionField, mng_vals_e tlv_id,
-    baseData &dataSend)
+    baseMngTlv &dataSend)
 {
     if(!verifyAction(actionField) || !allowedAction(tlv_id, actionField))
         return false;
@@ -279,23 +316,25 @@ MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
         return MNG_PARSE_ERROR_TOO_SMALL;
     if(bufSize < mngMsgBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
-    managementMessage_t *msg = (managementMessage_t *)buf;
+    managementMessage_p *msg = (managementMessage_p *)buf;
     *msg = {0};
-    msg->messageType_transportSpecific = (messageType_Management |
+    msg->messageType_majorSdoId = (Management |
             (m_prms.transportSpecific << 4)) & UINT8_MAX;
     msg->versionPTP = ptp_version;
     msg->domainNumber = m_prms.domainNumber;
     if(m_prms.isUnicast)
         msg->flagField[0] |= unicastFlag;
     msg->sequenceId = cpu_to_net16(sequence);
-    msg->controlField = controlField_Management;
-    msg->logMessageInterval = logMessageInterval_Management;
+    msg->controlField = controlFieldMng;
+    msg->logMessageInterval = logMessageIntervalDef;
     msg->startingBoundaryHops = m_prms.boundaryHops;
     msg->boundaryHops = m_prms.boundaryHops;
     msg->actionField = m_sendAction;
-    msg->targetPortIdentity.clockIdentity = m_prms.target.clockIdentity;
+    memcpy(msg->targetPortIdentity.clockIdentity.v, m_prms.target.clockIdentity.v,
+        m_prms.target.clockIdentity.size());
     msg->targetPortIdentity.portNumber = cpu_to_net16(m_prms.target.portNumber);
-    msg->sourcePortIdentity.clockIdentity = m_prms.self_id.clockIdentity;
+    memcpy(msg->sourcePortIdentity.clockIdentity.v, m_prms.self_id.clockIdentity.v,
+        m_prms.self_id.clockIdentity.size());
     msg->sourcePortIdentity.portNumber = cpu_to_net16(m_prms.self_id.portNumber);
     if(!allowedAction(m_tlv_id, m_sendAction))
         return MNG_PARSE_ERROR_INVALID_ID;
@@ -308,9 +347,9 @@ MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
     m_left = bufSize - size;
     if(m_sendAction != GET && m_dataSend != nullptr) {
         m_build = true;
-        // Ensure reserve fileds are zero
+        // Ensure reserve fields are zero
         reserved = 0;
-        MNG_PARSE_ERROR_e err = call_tlv_data();
+        MNG_PARSE_ERROR_e err = call_tlv_data(m_tlv_id, m_dataSend);
         if(err != MNG_PARSE_ERROR_OK)
             return err;
         // Add 'reserve' at end of message
@@ -328,45 +367,71 @@ MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
 }
 MNG_PARSE_ERROR_e message::parse(void *buf, ssize_t msgSize)
 {
-    if(msgSize < (ssize_t)sizeof(managementMessage_t) + tlvSize)
+    if(msgSize < sigBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
-    managementMessage_t *msg = (managementMessage_t *)buf;
-    uint8_t ptp_maj = msg->versionPTP & 0xf;
-    uint8_t ptp_min = msg->versionPTP >> 4;
-    if(msg->messageType_transportSpecific != ((messageType_Management |
-                (m_prms.transportSpecific << 4)) & UINT8_MAX) ||
-        ptp_maj != ptp_major_ver || ptp_min < ptp_minor_ver ||
-        msg->domainNumber != m_prms.domainNumber ||
-        msg->controlField != controlField_Management ||
-        msg->logMessageInterval != logMessageInterval_Management)
+    managementMessage_p *msg = (managementMessage_p *)buf;
+    m_type = (msgType_e)(msg->messageType_majorSdoId & 0xf);
+    switch(m_type) {
+        case Signaling:
+            if(!m_prms.rcvSignaling)
+                return MNG_PARSE_ERROR_HEADER;
+            if(msg->controlField != controlFieldDef)
+                return MNG_PARSE_ERROR_HEADER;
+            break;
+        case Management:
+            if(msgSize < (ssize_t)sizeof(managementMessage_p) + tlvSize)
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            if(msg->controlField != controlFieldMng)
+                return MNG_PARSE_ERROR_HEADER;
+            break;
+        default:
+            return MNG_PARSE_ERROR_HEADER;
+    }
+    Nibble_t ptp_maj = msg->versionPTP & 0xf;
+    //Nibble_t ptp_min = msg->versionPTP >> 4;
+    if(ptp_maj != ptp_major_ver ||
+        msg->logMessageInterval != logMessageIntervalDef)
         return MNG_PARSE_ERROR_HEADER;
+    m_sdoId = msg->minorSdoId | ((msg->messageType_majorSdoId & 0xf0) << 4);
+    m_domainNumber = msg->domainNumber;
     m_isUnicast = msg->flagField[0] & unicastFlag;
     m_sequence = net_to_cpu16(msg->sequenceId);
+    m_peer.portNumber = net_to_cpu16(msg->sourcePortIdentity.portNumber);
+    memcpy(m_peer.clockIdentity.v, msg->sourcePortIdentity.clockIdentity.v,
+        m_peer.clockIdentity.size());
+    // Exist in both Management and signaling
+    m_target.portNumber = net_to_cpu16(msg->targetPortIdentity.portNumber);
+    memcpy(m_target.clockIdentity.v, msg->targetPortIdentity.clockIdentity.v,
+        m_target.clockIdentity.size());
+    m_build = false;
+    if(m_type == Signaling) {
+        m_cur = (uint8_t *)buf + sigBaseSize;
+        m_size = msgSize - sigBaseSize; // pass left to parseSig()
+        return parseSig();
+    }
+    // Management message part
     uint8_t actionField = 0xf & msg->actionField;
     if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
         return MNG_PARSE_ERROR_ACTION;
     m_replyAction = (actionField_e)actionField;
-    m_peer.portNumber = net_to_cpu16(msg->sourcePortIdentity.portNumber);
-    m_peer.clockIdentity = msg->sourcePortIdentity.clockIdentity;
     uint16_t *cur = (uint16_t *)(msg + 1);
-    uint16_t tlvType = net_to_cpu16(*cur);
-    m_build = false;
-    ssize_t size = msgSize - sizeof(managementMessage_t);
+    uint16_t tlvType = net_to_cpu16(*cur++);
+    m_left = net_to_cpu16(*cur++); // lengthField
+    ssize_t size = msgSize - sizeof(managementMessage_p) - tlvSize;
     if(MANAGEMENT_ERROR_STATUS == tlvType) {
-        if(size < (ssize_t)sizeof(managementErrorTLV_t))
+        if(size < (ssize_t)sizeof(managementErrorTLV_p))
             return MNG_PARSE_ERROR_TOO_SMALL;
-        size -= sizeof(managementErrorTLV_t);
-        managementErrorTLV_t *errTlv = (managementErrorTLV_t *)cur;
-        if(!findTlvId(errTlv->managementId))
+        size -= sizeof(managementErrorTLV_p);
+        managementErrorTLV_p *errTlv = (managementErrorTLV_p *)cur;
+        if(!findTlvId(errTlv->managementId, m_tlv_id, m_prms.implementSpecific))
             return MNG_PARSE_ERROR_INVALID_ID;
         if(!checkReplyAction(actionField))
             return MNG_PARSE_ERROR_ACTION;
         m_errorId = net_to_cpu16(errTlv->managementErrorId);
-        m_left = net_to_cpu16(errTlv->lengthField);
         // check minimum size and even
-        if(m_left < lengthFieldMngErrBase || m_left & 1)
+        if(m_left < (ssize_t)sizeof(managementErrorTLV_p) || m_left & 1)
             return MNG_PARSE_ERROR_TOO_SMALL;
-        m_left -= lengthFieldMngErrBase;
+        m_left -= sizeof(managementErrorTLV_p);
         m_cur = (uint8_t *)(errTlv + 1);
         // Check displayData size
         if(size < m_left)
@@ -376,25 +441,163 @@ MNG_PARSE_ERROR_e message::parse(void *buf, ssize_t msgSize)
         return MNG_PARSE_ERROR_MSG;
     } else if(MANAGEMENT != tlvType)
         return MNG_PARSE_ERROR_INVALID_TLV;
-    if(size < (ssize_t)sizeof(managementTLV_t))
+    if(size < (ssize_t)sizeof(uint16_t))
         return MNG_PARSE_ERROR_TOO_SMALL;
-    managementTLV_t *tlv = (managementTLV_t *)cur;
-    size -= sizeof(managementTLV_t);
-    if(!findTlvId(tlv->managementId))
+    size -= sizeof(uint16_t);
+    if(!findTlvId(*cur++, m_tlv_id, m_prms.implementSpecific)) // managementId
         return MNG_PARSE_ERROR_INVALID_ID;
     if(!checkReplyAction(actionField))
         return MNG_PARSE_ERROR_ACTION;
-    m_left = net_to_cpu16(tlv->lengthField);
     // Check minimum size and even
     if(m_left < lengthFieldMngBase || m_left & 1)
         return MNG_PARSE_ERROR_TOO_SMALL;
     m_left -= lengthFieldMngBase;
     if(m_left == 0)
         return MNG_PARSE_ERROR_OK;
-    m_cur = (uint8_t *)(tlv + 1);
+    m_cur = (uint8_t *)cur;
     if(size < m_left) // Check dataField size
         return MNG_PARSE_ERROR_TOO_SMALL;
-    return call_tlv_data();
+    baseMngTlv *tlv;
+    MNG_PARSE_ERROR_e err = call_tlv_data(m_tlv_id, tlv);
+    if(err != MNG_PARSE_ERROR_OK)
+        return err;
+    m_dataGet = std::move(std::unique_ptr<baseMngTlv>(tlv));
+    return MNG_PARSE_ERROR_OK;
+}
+#define caseBuildAct(n) {\
+        n##_t *t = new n##_t;\
+        if(t == nullptr)\
+            return MNG_PARSE_ERROR_MEM;\
+        if(n##_f(*t)) {\
+            delete t;\
+            return m_err;\
+        }\
+        tlv = t;\
+        break;\
+    }
+#define caseBuild(n) n: caseBuildAct(n)
+MNG_PARSE_ERROR_e message::parseSig()
+{
+    ssize_t leftAll = m_size;
+    m_sigTlvs.clear(); // remove old TLVs
+    while(leftAll >= tlvSize) {
+        uint16_t *cur = (uint16_t *)m_cur;
+        tlvType_e tlvType = (tlvType_e)net_to_cpu16(*cur++);
+        uint16_t lengthField = net_to_cpu16(*cur);
+        m_cur += tlvSize;
+        leftAll -= tlvSize;
+        if(lengthField > leftAll)
+            return MNG_PARSE_ERROR_TOO_SMALL;
+        leftAll -= lengthField;
+        // Check signalling filter
+        if(m_prms.filterSignaling && m_prms.allowSigTlvs.count(tlvType) == 0) {
+            // And TLV not in filter is skiped
+            m_cur += lengthField;
+            continue;
+        }
+        m_left = lengthField; // for build functions
+        // The default error on build or parsing
+        m_err = MNG_PARSE_ERROR_TOO_SMALL;
+        baseSigTlv *tlv = nullptr;
+        switch(tlvType) {
+            case ORGANIZATION_EXTENSION_PROPAGATE:
+            case ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE:
+            case caseBuild(ORGANIZATION_EXTENSION);
+            case caseBuild(PATH_TRACE);
+            case caseBuild(ALTERNATE_TIME_OFFSET_INDICATOR);
+            case caseBuild(ENHANCED_ACCURACY_METRICS);
+            case caseBuild(L1_SYNC);
+            case caseBuild(PORT_COMMUNICATION_AVAILABILITY);
+            case caseBuild(PROTOCOL_ADDRESS);
+            case caseBuild(SLAVE_RX_SYNC_TIMING_DATA);
+            case caseBuild(SLAVE_RX_SYNC_COMPUTED_DATA);
+            case caseBuild(SLAVE_TX_EVENT_TIMESTAMPS);
+            case caseBuild(CUMULATIVE_RATE_RATIO);
+            case MANAGEMENT: {
+                if(m_left < 2)
+                    return MNG_PARSE_ERROR_TOO_SMALL;
+                mng_vals_e tlv_id;
+                // managementId
+                bool ret = findTlvId(*(uint16_t *)m_cur, tlv_id,
+                        m_prms.implementSpecific);
+                m_cur += 2;
+                m_left -= 2;
+                // Ignore empty and unknown management TLVs
+                if(ret && m_left > 0) {
+                    baseMngTlv *mtlv;
+                    MNG_PARSE_ERROR_e err = call_tlv_data(tlv_id, mtlv);
+                    if(err != MNG_PARSE_ERROR_OK)
+                        return err;
+                    MANAGEMENT_t *d = new MANAGEMENT_t;
+                    if(d == nullptr)
+                        return MNG_PARSE_ERROR_MEM;
+                    d->tlv_id = tlv_id;
+                    d->tlvData = std::move(std::unique_ptr<baseMngTlv>(mtlv));
+                    tlv = d;
+                }
+                break;
+            }
+            case SLAVE_DELAY_TIMING_DATA_NP:
+                if(m_prms.implementSpecific == linuxptp)
+                    caseBuildAct(SLAVE_DELAY_TIMING_DATA_NP);
+                break;
+            default: // Ignore TLV
+                break;
+        }
+        if(m_left > 0)
+            m_cur += m_left;
+        if(tlv != nullptr) {
+            sigTlv rec(tlvType);
+            auto it = m_sigTlvs.insert(m_sigTlvs.end(), rec);
+            it->tlv = std::move(std::unique_ptr<baseSigTlv>(tlv));
+        };
+    }
+    return MNG_PARSE_ERROR_SIG; // We have signaling message
+}
+bool message::traversSigTlvs(std::function<bool (const message &msg,
+        tlvType_e tlvType, baseSigTlv *tlv)> callback) const
+{
+    if(m_type == Signaling)
+        for(auto tlv : m_sigTlvs)
+            if(callback(*this, tlv.tlvType, tlv.tlv.get()))
+                return true;
+    return false;
+}
+size_t message::getSigTlvsCount() const
+{
+    if(m_type == Signaling)
+        return m_sigTlvs.size();
+    return 0;
+}
+baseSigTlv *message::getSigTlv(size_t pos) const
+{
+    if(m_type == Signaling && pos < m_sigTlvs.size())
+        return m_sigTlvs[pos].tlv.get();
+    return nullptr;
+}
+tlvType_e message::getSigTlvType(size_t pos) const
+{
+    if(m_type == Signaling && pos < m_sigTlvs.size())
+        return m_sigTlvs[pos].tlvType;
+    return (tlvType_e)0; // unknown
+}
+mng_vals_e message::getSigMngTlvType(size_t pos) const
+{
+    if(m_type == Signaling && pos < m_sigTlvs.size() &&
+        m_sigTlvs[pos].tlvType == MANAGEMENT) {
+        MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].tlv.get();
+        return mng->tlv_id;
+    }
+    return NULL_PTP_MANAGEMENT;
+}
+baseMngTlv *message::getSigMngTlv(size_t pos) const
+{
+    if(m_type == Signaling && pos < m_sigTlvs.size() &&
+        m_sigTlvs[pos].tlvType == MANAGEMENT) {
+        MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].tlv.get();
+        return mng->tlvData.get();
+    }
+    return nullptr;
 }
 void message::setAllClocks()
 {
@@ -432,6 +635,36 @@ const char *message::err2str_c(MNG_PARSE_ERROR_e err)
         case caseItem(MNG_PARSE_ERROR_MEM);
         default:
             return "unknown";
+    }
+}
+const char *message::tlv2str_c(tlvType_e type)
+{
+    switch(type) {
+        case caseItem(MANAGEMENT);
+        case caseItem(MANAGEMENT_ERROR_STATUS);
+        case caseItem(ORGANIZATION_EXTENSION);
+        case caseItem(REQUEST_UNICAST_TRANSMISSION);
+        case caseItem(GRANT_UNICAST_TRANSMISSION);
+        case caseItem(CANCEL_UNICAST_TRANSMISSION);
+        case caseItem(ACKNOWLEDGE_CANCEL_UNICAST_TRANSMISSION);
+        case caseItem(PATH_TRACE);
+        case caseItem(ALTERNATE_TIME_OFFSET_INDICATOR);
+        case caseItem(ORGANIZATION_EXTENSION_PROPAGATE);
+        case caseItem(ENHANCED_ACCURACY_METRICS);
+        case caseItem(ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE);
+        case caseItem(L1_SYNC);
+        case caseItem(PORT_COMMUNICATION_AVAILABILITY);
+        case caseItem(PROTOCOL_ADDRESS);
+        case caseItem(SLAVE_RX_SYNC_TIMING_DATA);
+        case caseItem(SLAVE_RX_SYNC_COMPUTED_DATA);
+        case caseItem(SLAVE_TX_EVENT_TIMESTAMPS);
+        case caseItem(CUMULATIVE_RATE_RATIO);
+        case caseItem(AUTHENTICATION);
+        case caseItem(SLAVE_DELAY_TIMING_DATA_NP);
+        case TLV_PAD:
+            return "PAD";
+        default:
+            return "unknown TLV";
     }
 }
 const char *message::act2str_c(actionField_e action)
@@ -756,9 +989,151 @@ bool message::proc(int64_t &val)
     move(8);
     return false;
 }
+
+bool message::proc(Float64_t &val)
+{
+    // Float64_t
+    // Using IEEE 754 64-bit floating-point
+    if(m_left < 8)
+        return true;
+    uint64_t num;
+    int64_t mnt, exp;
+    int sizeMod;
+    int ordMod;
+    // see ieee754.h
+    // Most processors support IEEE 754
+    if(sizeof(uint64_t) == sizeof(Float64_t)) {
+        #if __FLOAT_WORD_ORDER == __BIG_ENDIAN
+        sizeMod = 1; // Float64_t is 64 bits IEEE 754
+        ordMod = 1; // float is big endian (network order)
+        #elif __FLOAT_WORD_ORDER == __BYTE_ORDER
+        sizeMod = 1; // Float64_t is 64 bits IEEE 754
+        ordMod = 0; // use host order
+        #elif __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
+        sizeMod = 1; // Float64_t is 64 bits IEEE 754
+        ordMod = 2; // float is little endian
+        #else
+        sizeMod = 0; // calculate IEEE 754
+        ordMod = 0; // when calculate always use host order
+        #endif
+    } else {
+        sizeMod = 0; // calculate IEEE 754
+        ordMod = 0; // when calculate always use host order
+    }
+    if(m_build) {
+        if(sizeMod == 1) // Float64_t is 64 bits IEEE 754
+            memcpy(&num, &val, sizeof(uint64_t));
+        else {
+            /* For processors that do not support IEEE 754
+             *  or endian is not clear
+             * The computed float is in host order
+             */
+            // Move negative sign bit
+            if(std::signbit(val)) {
+                num = u64_sig_bit; // add sign bit
+                if(std::isfinite(val))
+                    val = fabsl(val);
+            } else
+                num = 0;
+            double norm;
+            switch(std::fpclassify(val)) {
+                case FP_NAN: // Not a number
+                    exp = ieee754_exp_nan;
+                    mnt = 1; // Any positive goes
+                    break;
+                case FP_INFINITE: // Infinity
+                    exp = ieee754_exp_nan;
+                    mnt = 0;
+                    break;
+                case FP_ZERO: // Zero
+                    exp = ieee754_exp_sub;
+                    mnt = 0;
+                    break;
+                default:
+                case FP_NORMAL:
+                    exp = (int64_t)floorl(log2l(val));
+                    if(exp > ieee754_exp_max)
+                        return true; // Number is too big
+                    else if(exp >= ieee754_exp_min) {
+                        norm = val / exp2l(exp);
+                        if(norm >= 1) {
+                            mnt = (int64_t)floorl(norm * ieee754_mnt_base -
+                                    ieee754_mnt_base);
+                            if(mnt < 0 || mnt >= ieee754_mnt_base) {
+                                fprintf(stderr, "wrong calculation of float, "
+                                    "mnt out of range\n");
+                                return true; // wrong calculation
+                            }
+                            break; // Break normal
+                        }
+                        fprintf(stderr, "wrong calculation of float, "
+                            "norm is too small\n");
+                    }
+                // Fall to subnormal
+                case FP_SUBNORMAL: // Subnormal number
+                    exp = ieee754_exp_sub;
+                    norm = val / exp2l(ieee754_exp_min);
+                    mnt = (int64_t)floorl(norm * ieee754_mnt_base);
+                    if(mnt < 0 || mnt >= ieee754_mnt_base) {
+                        fprintf(stderr, "wrong calculation of float, "
+                            "mnt out of range for subnormal\n");
+                        return true; // wrong calculation
+                    }
+                    // For very small number use the minimum subnormal
+                    // As zero is used by zero only!
+                    if(mnt == 0)
+                        mnt = 1;
+                    break;
+            }
+            // Add exponent value and mantissa
+            num |= ((exp + ieee754_exp_bias) << ieee754_mnt_size) |
+                (mnt & ieee754_mnt_mask);
+        }
+    }
+    if(ordMod == 1) { // float is big endian (network order)
+        if(m_build)
+            *(uint64_t *)m_cur = num;
+        else
+            num = *(uint64_t *)m_cur;
+        move(8);
+    } else if(ordMod == 2) { // float is little endian, swap to network order
+        if(m_build)
+            *(uint64_t *)m_cur = bswap_64(num);
+        else
+            num = bswap_64(*(uint64_t *)m_cur);
+        move(8);
+    } else if(proc(num)) // host order to network order
+        return true;
+    if(!m_build) {
+        if(sizeMod == 1) // Float64_t is 64 bits IEEE 754
+            memcpy(&val, &num, sizeof(uint64_t));
+        else {
+            /* For processors that do not support IEEE 754
+             *  or endian is not clear
+             * The computed float is in host order
+             */
+            exp = (int64_t)((num & ieee754_exp_mask) >> ieee754_mnt_size) -
+                ieee754_exp_bias;
+            mnt = num & ieee754_mnt_mask;
+            if(exp == ieee754_exp_nan) {
+                if(mnt == 0) // infinity
+                    val = HUGE_VALL;
+                else // NaN
+                    val = std::numeric_limits<Float64_t>::quiet_NaN();
+            } else if(exp == ieee754_exp_sub) // Subnormal or zero
+                val = exp2l(ieee754_exp_min) * mnt / ieee754_mnt_base;
+            else // Normal
+                val = exp2l(exp) * (mnt + ieee754_mnt_base) / ieee754_mnt_base;
+            if(num & u64_sig_bit) // Negative
+                val = std::copysign(val, -1);
+        }
+    }
+    move(8);
+    return false;
+}
 bool message::proc(std::string &str, uint16_t len)
 {
-    if(m_build) // On build ignore len variable
+    if(m_build) // On build ignore length variable
         len = str.length();
     if(m_left < (ssize_t)len)
         return true;
@@ -771,7 +1146,7 @@ bool message::proc(std::string &str, uint16_t len)
 }
 bool message::proc(binary &bin, uint16_t len)
 {
-    if(m_build) // On build ignore len variable
+    if(m_build) // On build ignore length variable
         len = bin.length();
     if(m_left < (ssize_t)len)
         return true;
@@ -828,6 +1203,13 @@ bool message::proc(portState_e &val)
     val = (portState_e)v;
     return ret;
 }
+bool message::proc(msgType_e &val)
+{
+    uint8_t v = val;
+    bool ret = proc(v);
+    val = (msgType_e)v;
+    return ret;
+}
 bool message::proc(linuxptpTimeStamp_e &val)
 {
     uint8_t v = val;
@@ -882,6 +1264,16 @@ bool message::proc(FaultRecord_t &d)
 bool message::proc(AcceptableMaster_t &d)
 {
     return proc(d.acceptablePortIdentity) || proc(d.alternatePriority1);
+}
+bool message::procFlags(uint8_t &flags, const uint8_t flagsMask)
+{
+    if(m_build) {
+        if(flagsMask > 1) // Ensure we use proper bits
+            flags &= flagsMask;
+        else if(flags > 0) // We have single flag, any positive goes
+            flags = 1;
+    }
+    return proc(flags);
 }
 bool message::procLe(uint64_t &val)
 {

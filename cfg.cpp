@@ -36,7 +36,9 @@ struct range_t {
 };
 const range_t ranges[] = { // same order as enum !
     { "transportSpecific", 0, 0, 0xf },
-    { "domainNumber", 0, 0, 127 },
+    // IEEE 1588-2019 permit upto 239 based on sdoId value
+    //  (transportSpecific == majorSdoId)
+    { "domainNumber", 0, 0, 239 },
     { "udp6_scope", 0xe, 0, 0xf },
     { "udp_ttl", 1, 1, 255 },
     { "socket_priority", 0, 0, 15 },
@@ -45,13 +47,13 @@ const range_t ranges[] = { // same order as enum !
     { "ptp_dst_mac", 0, 0, 0 }, // MAC address
     { "p2p_dst_mac", 0, 0, 0 }, // MAC address
 };
-const int ranges_size = sizeof(ranges) / sizeof(range_t);
 const char *ptp_dst_mac_def = "1:1b:19:0:0:0";
 const char *p2p_dst_mac_def = "1:80:c2:0:0:e";
 const char *uds_address_def = "/var/run/ptp4l";
 const char globalSection[] = "global";
+const int configSection::val_limit = configSection::uds_address_val;
 const int configSection::str_base_val = configSection::uds_address_val;
-const int configSection::bin_base_val = configSection::ptp_dst_mac_val;
+const int configSection::bin_base_val = configSection::uds_address_val + 1;
 
 static inline char *skip_spaces(char *cur)
 {
@@ -75,7 +77,7 @@ void configSection::setGlobal()
     m_str_vals[uds_address_val - str_base_val] = uds_address_def;
     m_bin_vals[ptp_dst_mac_val - bin_base_val].fromMac(ptp_dst_mac_def);
     m_bin_vals[p2p_dst_mac_val - bin_base_val].fromMac(p2p_dst_mac_def);
-    for(int i = 0; i < ranges_size; i++)
+    for(int i = 0; i < val_limit; i++)
         m_vals[i] = ranges[i].def;
 }
 bool configSection::set_val(char *line)
@@ -85,7 +87,7 @@ bool configSection::set_val(char *line)
         val++; // find value
     *val = 0;  // leave key in line
     int idx = -1;
-    for(int i = 0; i < ranges_size; i++) {
+    for(size_t i = 0; i < (sizeof(ranges) / sizeof(range_t)); i++) {
         if(strcmp(line, ranges[i].name) == 0) {
             idx = i;
             break;

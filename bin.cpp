@@ -121,14 +121,14 @@ bool binary::fromHex(const std::string hex)
         return false;
     std::string id;
     char *save, *end;
-    char nib[3];
-    nib[2] = 0;
+    char nibbles[3];
+    nibbles[2] = 0;
     char *cur = strtok_r(buf, idsep, &save);
     while(cur != nullptr) {
-        if(cur[0] != 0) { // parse nible
-            nib[0] = cur[0];
-            nib[1] = cur[1];
-            long val = strtol(nib, &end, 16);
+        if(cur[0] != 0) { // parse byte
+            nibbles[0] = cur[0];
+            nibbles[1] = cur[1];
+            long val = strtol(nibbles, &end, 16);
             if(*end != 0 || val < 0 || val > 0xff) {
                 free(buf);
                 return false;
@@ -139,7 +139,7 @@ bool binary::fromHex(const std::string hex)
             // Next token
             cur = strtok_r(nullptr, idsep, &save);
         else
-            cur += 2; // next nible in token
+            cur += 2; // next byte in token
     }
     free(buf);
     m_str = id;

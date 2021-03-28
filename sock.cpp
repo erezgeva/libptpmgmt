@@ -162,7 +162,7 @@ bool sockUnix::setPeerInternal(const std::string &str)
 }
 bool sockUnix::setSelfAddress(const std::string str)
 {
-    // self address can not be changed after init is done
+    // self address can not be changed after initializing is done
     if(m_isInit || !testUnix(str))
         return false;
     m_me = str;
@@ -170,7 +170,7 @@ bool sockUnix::setSelfAddress(const std::string str)
 }
 bool sockUnix::setDefSelfAddress(std::string rootBase, std::string useDef)
 {
-    // self address can not be changed after init is done
+    // self address can not be changed after initializing is done
     if(m_isInit)
         return false;
     std::string new_me;
@@ -246,7 +246,7 @@ ssize_t sockUnix::rcvFrom(void *buf, size_t bufSize, std::string &from,
         return -1;
     }
     if(cnt > (ssize_t)bufSize) {
-        fprintf(stderr, "rcv %zd more then buffer size %zu\n", cnt, bufSize);
+        fprintf(stderr, "rcv %zd more than buffer size %zu\n", cnt, bufSize);
         return -1;
     }
     addr.sun_path[unix_path_max] = 0; // Ensure string is null terminated
@@ -329,7 +329,7 @@ ssize_t sockIp::rcv(void *buf, size_t bufSize, bool block)
         return -1;
     }
     if(cnt > (ssize_t)bufSize) {
-        fprintf(stderr, "rcv %zd more then buffer size %zu\n", cnt, bufSize);
+        fprintf(stderr, "rcv %zd more than buffer size %zu\n", cnt, bufSize);
         return -1;
     }
     return cnt;
@@ -359,7 +359,7 @@ bool sockIp::init()
         return false;
     }
     if(!m_mcast.fromIp(m_mcast_str, m_domain)) {
-        fprintf(stderr, "multicase %s\n", m_mcast_str);
+        fprintf(stderr, "multicast %s\n", m_mcast_str);
         return false;
     }
     if(!init2())
@@ -611,7 +611,7 @@ ssize_t sockRaw::rcv(void *buf, size_t bufSize, bool block)
         return -1;
     }
     if(cnt > (ssize_t)(bufSize + sizeof(m_rx_buf))) {
-        fprintf(stderr, "rcv %zd more then buffer size %zu\n", cnt,
+        fprintf(stderr, "rcv %zd more than buffer size %zu\n", cnt,
             bufSize + sizeof(m_rx_buf));
         return -1;
     }

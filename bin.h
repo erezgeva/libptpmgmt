@@ -8,18 +8,18 @@
  *
  */
 
-#ifndef __BUF_H
-#define __BUF_H
+#ifndef __PMC_BUF_H
+#define __PMC_BUF_H
 
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 #include <cstring>
 
 const size_t EUI48 = 6; /**< 48 bits MAC address length */
 const size_t EUI64 = 8; /**< 64 bits MAC address length */
 
 /**
- * @brief hold a binary octets
+ * @brief hold octets
  * @note functions returning std::string for readable strings
  */
 class binary
@@ -57,7 +57,7 @@ class binary
     size_t size() const { return m_str.length(); }
     /**
      * Return if binary is empty
-     * @return treu if empty
+     * @return true if empty
      */
     bool empty() const { return m_str.empty(); }
     /**
@@ -117,7 +117,7 @@ class binary
         return *this;
     }
     /**
-     * append octetes using operator +=
+     * append octets using operator +=
      * @param[in] other binary to add
      * @return reference to itself
      */
@@ -126,7 +126,7 @@ class binary
         return *this;
     }
     /**
-     * append octetes
+     * append octets
      * @param[in] other binary to add
      * @return reference to itself
      */
@@ -139,7 +139,7 @@ class binary
      * @return Ip address
      * @note Support both IP version 4 and 6
      * @note the user should use with binary IP address
-     *  the calss does not verify
+     *  the class does not verify
      */
     std::string toIp() const;
     /**
@@ -216,4 +216,4 @@ class binary
     static std::string bufToHex(const uint8_t *bin, size_t length);
 };
 
-#endif /*__BUF_H*/
+#endif /*__PMC_BUF_H*/

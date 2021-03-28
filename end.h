@@ -14,7 +14,7 @@
 #ifndef __PMC_ENDIAN_H
 #define __PMC_ENDIAN_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <endian.h>
 
 /**

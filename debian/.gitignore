@@ -2,8 +2,8 @@
 /*.substvars
 /.*debhelper*
 /*debhelper*
-/libpmc.pc
 /libpmc*/
+/tmp/
 /pmc*/
 /lua-pmc/
-/python-pmc/
+/python*-pmc/

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
 /** @file
- * @brief Create and parse PTP managment messages
+ * @brief Create and parse PTP management messages
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -10,13 +10,14 @@
  * with some updates from @"IEEE Std 1588-2019@"
  */
 
-#ifndef __MSG_H
-#define __MSG_H
+#ifndef __PMC_MSG_H
+#define __PMC_MSG_H
 
-#include <memory>
 #include <string>
+#include <cstdint>
+#include <memory>
 #include <vector>
-#include <stdint.h>
+#include <functional>
 #include "cfg.h"
 #include "bin.h"
 
@@ -33,6 +34,8 @@
 #define UINT48_MAX (UINT64_C(0xffffffffffff))
 #endif
 
+/** IEEE 1588 Protocol 2 x 4 bits integer */
+typedef uint8_t Nibble_t;
 /** IEEE 1588 Protocol unsigned 8 bits integer */
 typedef uint8_t UInteger8_t;
 /** IEEE 1588 Protocol unsigned 16 bits integer */
@@ -53,8 +56,10 @@ typedef int32_t  Integer32_t;
 typedef int64_t Integer48_t;
 /** IEEE 1588 Protocol signed 64 bits integer */
 typedef int64_t  Integer64_t;
-/** IEEE 1588 Protocol Octet */
+/** IEEE 1588 protocol octet */
 typedef uint8_t  Octet_t;
+/** IEEE Std 754 binary64 (64-bit double-precision floating-point format) */
+typedef double Float64_t;
 
 class message;
 
@@ -62,9 +67,10 @@ class message;
 enum MNG_PARSE_ERROR_e {
     MNG_PARSE_ERROR_OK,          /**< no error */
     MNG_PARSE_ERROR_MSG,         /**< Error message */
+    MNG_PARSE_ERROR_SIG,         /**< Signaling message */
     MNG_PARSE_ERROR_INVALID_ID,  /**< Invalid TLV mng id or action for TLV */
     MNG_PARSE_ERROR_INVALID_TLV, /**< Wrong TLV header */
-    MNG_PARSE_ERROR_SIZE_MISS,   /**< size missmatch of field with length */
+    MNG_PARSE_ERROR_SIZE_MISS,   /**< size mismatch of field with length */
     MNG_PARSE_ERROR_TOO_SMALL,   /**< buffer is too small */
     MNG_PARSE_ERROR_SIZE,        /**< size is even */
     MNG_PARSE_ERROR_VAL,         /**< Value is out of range or invalid */
@@ -73,13 +79,62 @@ enum MNG_PARSE_ERROR_e {
     MNG_PARSE_ERROR_UNSUPPORT,   /**< Do not know how to parse the TLV data */
     MNG_PARSE_ERROR_MEM,         /**< fail to allocate TLV data */
 };
-/** PTP managment action */
+/** PTP messages type
+ * @note: 4 bits
+ */
+enum msgType_e : Nibble_t {
+    /* Event messages */
+    Sync                    = 0, /**< Synchronization event message */
+    Delay_Req               = 1, /**< Delay request event message */
+    Pdelay_Req              = 2, /**< Peer delay request event message */
+    Pdelay_Resp             = 3, /**< Peer delay response event message */
+    /* General messages */
+    Follow_Up               = 0x8, /**< Follow up message */
+    Delay_Resp              = 0x9, /**< Delay response */
+    Pdelay_Resp_Follow_Up   = 0xa, /**< Peer delay response follow up message */
+    Announce                = 0xb, /**< Announce message*/
+    Signaling               = 0xc, /**< Signaling message */
+    Management              = 0xd, /**< Management message */
+};
+/**
+ * PTP messages TLV types
+ * @note: With new signaling TLVs from "IEEE Std 1588-2019@"
+ */
+enum tlvType_e : uint16_t {
+    MANAGEMENT                              = 0x0001, /**< Management TLV */
+    MANAGEMENT_ERROR_STATUS                 = 0x0002, /**< Management Error TLV */
+    ORGANIZATION_EXTENSION                  = 0x0003, /**< Organization extension */
+    REQUEST_UNICAST_TRANSMISSION            = 0x0004, /**< Request unicast */
+    GRANT_UNICAST_TRANSMISSION              = 0x0005, /**< Grant unicast */
+    CANCEL_UNICAST_TRANSMISSION             = 0x0006, /**< Cancel unicast */
+    ACKNOWLEDGE_CANCEL_UNICAST_TRANSMISSION = 0x0007, /**< Ack cancel unicast */
+    PATH_TRACE                              = 0x0008, /**< Path trace */
+    ALTERNATE_TIME_OFFSET_INDICATOR         = 0x0009, /**< Alternate tine offset */
+    /* Obsolete valuse 2000, 2001, 2002, 2003 */
+    ORGANIZATION_EXTENSION_PROPAGATE        = 0x4000, /**< Organization extension */
+    ENHANCED_ACCURACY_METRICS               = 0x4001, /**< Enhanced accuracy */
+    ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE = 0x8000, /**< Organization extension */
+    /** Layer 1 synchronization */
+    L1_SYNC                                 = 0x8001,
+    PORT_COMMUNICATION_AVAILABILITY         = 0x8002, /**< Port communication */
+    PROTOCOL_ADDRESS                        = 0x8003, /**< Protocol address */
+    SLAVE_RX_SYNC_TIMING_DATA               = 0x8004, /**< Client RX sync time */
+    SLAVE_RX_SYNC_COMPUTED_DATA             = 0x8005, /**< Client RX sync */
+    SLAVE_TX_EVENT_TIMESTAMPS               = 0x8006, /**< Client TX event */
+    CUMULATIVE_RATE_RATIO                   = 0x8007, /**< Cumulative rate */
+    TLV_PAD                                 = 0x8008, /**< Padding TLV, ignored */
+    AUTHENTICATION                          = 0x8009, /**< Authentication */
+    /** Client delay time
+     * note: linuxptp Experimental value */
+    SLAVE_DELAY_TIMING_DATA_NP              = 0x7f00,
+};
+/** PTP management action */
 enum actionField_e : uint8_t {
     GET = 0,            /**< Send a get message */
     SET = 1,            /**< Send a set message */
-    RESPONSE = 2,       /**< Recieve responce for get or set */
+    RESPONSE = 2,       /**< Receive response for a get or a set message */
     COMMAND = 3,        /**< Send command message */
-    ACKNOWLEDGE = 4,    /**< Recieve acknowlage on command */
+    ACKNOWLEDGE = 4,    /**< Receive acknowledge on command */
 };
 /** @cond internal
  * Doxygen and SWIG do not know how to proccess.
@@ -92,7 +147,7 @@ enum mng_vals_e {
 };
 #endif
 /**< @endcond */
-/** PTP Managment Error IDs */
+/** PTP Management Error IDs */
 enum managementErrorId_e : uint16_t {
     RESPONSE_TOO_BIG = 0x0001, /**< Response is too big */
     NO_SUCH_ID       = 0x0002, /**< No such id */
@@ -103,7 +158,7 @@ enum managementErrorId_e : uint16_t {
     GENERAL_ERROR    = 0xfffe, /**< General error */
 };
 /** PTP clock type bit mask
- * @details A PTP clock could act as more then a single type
+ * @details A PTP clock could act as more than a single type
  */
 enum clockType_e : uint16_t {
     ordinaryClock       = 0x8000, /**< ordinary clock */
@@ -123,33 +178,33 @@ enum networkProtocol_e : uint16_t {
 };
 /** PTP clock accuracy */
 enum clockAccuracy_e : uint8_t {
-    Accurate_within_1ps   = 0x17, /**< higher then 1 picosecond */
-    Accurate_within_2_5ps = 0x18, /**< higher then 2@.5 picoseconds */
-    Accurate_within_10ps  = 0x19, /**< higher then 10 picoseconds */
-    Accurate_within_25ps  = 0x1a, /**< higher then 25 picoseconds */
-    Accurate_within_100ps = 0x1b, /**< higher then 100 picoseconds */
-    Accurate_within_250ps = 0x1c, /**< higher then 250 picoseconds */
-    Accurate_within_1ns   = 0x1d, /**< higher then 1 nanosecond */
-    Accurate_within_2_5ns = 0x1e, /**< higher then 2@.5 nanoseconds */
-    Accurate_within_10ns  = 0x1f, /**< higher then 10 nanoseconds */
-    Accurate_within_25ns  = 0x20, /**< higher then 25 nanoseconds */
-    Accurate_within_100ns = 0x21, /**< higher then 100 nanoseconds */
-    Accurate_within_250ns = 0x22, /**< higher then 250 nanoseconds */
-    Accurate_within_1us   = 0x23, /**< higher then 1 microsecond */
-    Accurate_within_2_5us = 0x24, /**< higher then 2@.5 microseconds */
-    Accurate_within_10us  = 0x25, /**< higher then 10 microseconds */
-    Accurate_within_25us  = 0x26, /**< higher then 25 microseconds */
-    Accurate_within_100us = 0x27, /**< higher then 100 microseconds */
-    Accurate_within_250us = 0x28, /**< higher then 250 microseconds */
-    Accurate_within_1ms   = 0x29, /**< higher then 1 millisecond */
-    Accurate_within_2_5ms = 0x2a, /**< higher then 2@.5 milliseconds */
-    Accurate_within_10ms  = 0x2b, /**< higher then 10 milliseconds */
-    Accurate_within_25ms  = 0x2c, /**< higher then 25 milliseconds */
-    Accurate_within_100ms = 0x2d, /**< higher then 100 milliseconds */
-    Accurate_within_250ms = 0x2e, /**< higher then 250 milliseconds */
-    Accurate_within_1s    = 0x2f, /**< higher then 1 seconds */
-    Accurate_within_10s   = 0x30, /**< higher then 10 seconds */
-    Accurate_more_10s     = 0x31, /**< lower then 10 seconds */
+    Accurate_within_1ps   = 0x17, /**< higher than 1 picosecond */
+    Accurate_within_2_5ps = 0x18, /**< higher than 2@.5 picoseconds */
+    Accurate_within_10ps  = 0x19, /**< higher than 10 picoseconds */
+    Accurate_within_25ps  = 0x1a, /**< higher than 25 picoseconds */
+    Accurate_within_100ps = 0x1b, /**< higher than 100 picoseconds */
+    Accurate_within_250ps = 0x1c, /**< higher than 250 picoseconds */
+    Accurate_within_1ns   = 0x1d, /**< higher than 1 nanosecond */
+    Accurate_within_2_5ns = 0x1e, /**< higher than 2@.5 nanoseconds */
+    Accurate_within_10ns  = 0x1f, /**< higher than 10 nanoseconds */
+    Accurate_within_25ns  = 0x20, /**< higher than 25 nanoseconds */
+    Accurate_within_100ns = 0x21, /**< higher than 100 nanoseconds */
+    Accurate_within_250ns = 0x22, /**< higher than 250 nanoseconds */
+    Accurate_within_1us   = 0x23, /**< higher than 1 microsecond */
+    Accurate_within_2_5us = 0x24, /**< higher than 2@.5 microseconds */
+    Accurate_within_10us  = 0x25, /**< higher than 10 microseconds */
+    Accurate_within_25us  = 0x26, /**< higher than 25 microseconds */
+    Accurate_within_100us = 0x27, /**< higher than 100 microseconds */
+    Accurate_within_250us = 0x28, /**< higher than 250 microseconds */
+    Accurate_within_1ms   = 0x29, /**< higher than 1 millisecond */
+    Accurate_within_2_5ms = 0x2a, /**< higher than 2@.5 milliseconds */
+    Accurate_within_10ms  = 0x2b, /**< higher than 10 milliseconds */
+    Accurate_within_25ms  = 0x2c, /**< higher than 25 milliseconds */
+    Accurate_within_100ms = 0x2d, /**< higher than 100 milliseconds */
+    Accurate_within_250ms = 0x2e, /**< higher than 250 milliseconds */
+    Accurate_within_1s    = 0x2f, /**< higher than 1 seconds */
+    Accurate_within_10s   = 0x30, /**< higher than 10 seconds */
+    Accurate_more_10s     = 0x31, /**< lower than 10 seconds */
     Accurate_Unknown      = 0xef, /**< Unknown */
 };
 /** Fault record severity code */
@@ -172,7 +227,7 @@ enum timeSource_e : uint8_t {
     SERIAL_TIME_CODE    = 0x39, /**< Serial time code */
     PTP                 = 0x40, /**< PTP of a different domain */
     NTP                 = 0x50, /**< IP Network time protocol */
-    HAND_SET            = 0x60, /**< Hand set */
+    HAND_SET            = 0x60, /**< Manually set */
     OTHER               = 0x90, /**< Other */
     INTERNAL_OSCILLATOR = 0xA0, /**< Internal oscillator */
 };
@@ -190,8 +245,13 @@ enum portState_e : uint8_t {
     SLAVE        = 9, /**< Client */
     CLIENT       = 9, /**< Client */
 };
+/** Specify Management TLV implementation-specific to use */
+enum implementSpecific_e {
+    noImplementSpecific, /**< Do not use any implementation-specific */
+    linuxptp,            /**< linuxptp project */
+};
 /** linuxptp timestamp
- *  Specify the underlaying Linux time stamps type that the daemon recieve
+ *  Specify the underlaying Linux time stamps type that the daemon receive
  */
 enum linuxptpTimeStamp_e : uint8_t {
     /** Using system clock based with an offset that is maintain by driver */
@@ -201,7 +261,7 @@ enum linuxptpTimeStamp_e : uint8_t {
     TS_HARDWARE,
     /** Old hardware */
     TS_LEGACY_HW,
-    /** One step PTP, the driver write the time stamp into the frame */
+    /** One step PTP, the driver writes the time stamp into the frame */
     TS_ONESTEP,
     /** One step PTP plus insert time to PDelay_Resp */
     TS_P2P1STEP,
@@ -233,6 +293,11 @@ struct TimeInterval_t {
      * @return scaled time interval
      */
     double getInterval() const { return (double)scaledNanoseconds / 0x10000; }
+    /**
+     * Get interval from time interval, trunc to integer
+     * @return scaled time interval
+     */
+    uint64_t getIntervalInt() const { return scaledNanoseconds >> 16; }
 };
 /** PTP Time stamp */
 struct Timestamp_t {
@@ -271,7 +336,7 @@ struct PortIdentity_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 10; }
+    static size_t size() { return 2 + ClockIdentity_t::size(); }
     /**
      * Convert to string
      * @return string
@@ -327,8 +392,8 @@ struct FaultRecord_t {
      * Get object size
      * @return object size
      */
-    size_t size() {
-        return 3 + sizeof(faultTime) + faultName.size() + faultValue.size() +
+    size_t size() const {
+        return 3 + Timestamp_t::size() + faultName.size() + faultValue.size() +
             faultDescription.size();
     }
 };
@@ -340,9 +405,9 @@ struct AcceptableMaster_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 11; }
+    static size_t size() { return 1 + PortIdentity_t::size(); }
 };
-/** Properties of a PTP managment TLV */
+/** Properties of a PTP management TLV */
 struct managementId_t {
     uint16_t value;   /**< managementId value */
     uint8_t scope;   /**< Applies port or clock using scope_e */
@@ -357,29 +422,52 @@ struct managementId_t {
      */
     ssize_t size;
 };
-/** Fixed values to use in Managment messages */
+/** Fixed values to use in Management messages */
 struct msgParams {
     uint8_t transportSpecific; /**< transport specific */
     uint8_t domainNumber; /**< domain number */
     uint8_t boundaryHops; /**< boundary hops */
     bool isUnicast; /**< Mark message as unicast */
-    /** Use linuxptp Implementation-specific */
-    bool useLinuxPTPTlvs;
+    implementSpecific_e implementSpecific; /**< Implementation-specific to use */
     PortIdentity_t target; /**< target port ID */
     PortIdentity_t self_id; /**< own port ID */
+    bool rcvSignaling; /**< parse signaling messages */
+    bool filterSignaling; /**< filter signaling messages TLVs */
+    /** when filter TLVs in signalling messages
+     * allow TLVs that are in the map */
+    std::map<tlvType_e, bool> allowSigTlvs;
 };
-/** Base for all TLV structures */
-struct baseData {
+/** Base for all Management TLV structures */
+struct baseMngTlv {
 };
+/** Base for all Signaling TLV structures */
+struct baseSigTlv {
+};
+#ifndef SWIG
+/** @cond internal
+ * hold single TLV from a signaling message
+ * Used internaly in the message class
+ */
+struct sigTlv {
+    tlvType_e tlvType;
+    std::unique_ptr<baseSigTlv> tlv;
+    sigTlv(tlvType_e t) : tlvType(t) {}
+    sigTlv(const sigTlv &t) : tlvType(t.tlvType) {}
+    sigTlv &operator=(const sigTlv &t) { tlvType = t.tlvType; return *this; }
+};
+/**< @endcond */
+#endif
 
 /* Structure per each mng_vals_e id */
 #include "proc.h"
+/* Structures for signaling TLVs */
+#include "sig.h"
 
 /**
  * @brief Handle PTP management message
  * @details
  *  Handle parse and build of a PTP management massage.
- *  Handle TLV specific dataField by calling a specific callback per TLV id
+ *  Handle TLV specific dataField by calling a specific call-back per TLV id
  */
 class message
 {
@@ -390,28 +478,52 @@ class message
 #define A(n, v, sc, a, sz, f) case##f(n)
 #define caseUF(n) bool n##_f(n##_t &data);
   private:
-    /* Per tlv ID callback for parse or build or both */
+    /* Per tlv ID call-back for parse or build or both */
 #include "ids.h"
+#define buildFunc(n) bool n##_f(n##_t &data)
+    buildFunc(ORGANIZATION_EXTENSION);
+    buildFunc(PATH_TRACE);
+    buildFunc(ALTERNATE_TIME_OFFSET_INDICATOR);
+    buildFunc(ENHANCED_ACCURACY_METRICS);
+    buildFunc(L1_SYNC);
+    buildFunc(PORT_COMMUNICATION_AVAILABILITY);
+    buildFunc(PROTOCOL_ADDRESS);
+    buildFunc(SLAVE_RX_SYNC_TIMING_DATA);
+    buildFunc(SLAVE_RX_SYNC_COMPUTED_DATA);
+    buildFunc(SLAVE_TX_EVENT_TIMESTAMPS);
+    buildFunc(CUMULATIVE_RATE_RATIO);
+    buildFunc(SLAVE_DELAY_TIMING_DATA_NP);
     /**< @endcond */
 
-    mng_vals_e      m_tlv_id;
+    /* build parameters */
     actionField_e   m_sendAction;
-    actionField_e   m_replyAction;
     size_t          m_msgLen;
-    /* Parsing parameters */
-    uint16_t        m_sequence;
-    bool            m_isUnicast;
-    baseData        *m_dataSend;
-    /* Used during parsing and build */
+    baseMngTlv     *m_dataSend;
+
+    /* Temporary parameters used during parsing and build */
+    bool            m_build; /* true on build */
     uint8_t        *m_cur;
     ssize_t         m_left;
     size_t          m_size;  /* TLV data size on build */
-    bool            m_build; /* true on build */
     MNG_PARSE_ERROR_e m_err; /* Last TLV err */
 
+    /* parsing parameters */
+    uint16_t        m_sequence;
+    bool            m_isUnicast;
+    actionField_e   m_replyAction;
+    uint32_t        m_sdoId; /* parsed message sdoId (transportSpecific) */
+    msgType_e       m_type; /* parsed message type */
+    uint8_t         m_domainNumber; /* parsed message domainNumber*/
+    std::vector<sigTlv> m_sigTlvs; /* hold signaling TLVs */
+    std::unique_ptr<baseMngTlv> m_dataGet;
+
+    /* Generic */
+    mng_vals_e      m_tlv_id;
     msgParams       m_prms;
-    PortIdentity_t  m_peer;
-    std::unique_ptr<baseData> m_dataGet;
+
+    /* parsing parameters */
+    PortIdentity_t  m_peer; /* parsed message peer port id */
+    PortIdentity_t  m_target; /* parsed message target port id */
 
     /* Used for reserved values */
     uint8_t reserved;
@@ -419,6 +531,8 @@ class message
     /* For error messages */
     uint16_t m_errorId;
     PTPText_t m_errorDisplay;
+
+    /* Map to all management IDs */
     static const managementId_t mng_all_vals[];
 
     bool allowedAction(mng_vals_e id, actionField_e action);
@@ -428,7 +542,8 @@ class message
         m_left -= val;
         m_size += val;
     }
-    bool findTlvId(uint16_t val); /* val in network order */
+    /* val in network order */
+    static bool findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec);
     bool checkReplyAction(uint8_t actionField);
     bool proc(uint8_t &val);
     bool proc(uint16_t &val);
@@ -440,6 +555,7 @@ class message
     bool proc(int32_t &val);
     bool proc48(int64_t &val);
     bool proc(int64_t &val);
+    bool proc(Float64_t &val);
     bool proc(std::string &str, uint16_t len);
     bool proc(binary &bin, uint16_t len);
     bool proc(uint8_t *val, size_t len);
@@ -448,6 +564,7 @@ class message
     bool proc(faultRecord_e &val);
     bool proc(timeSource_e &val);
     bool proc(portState_e &val);
+    bool proc(msgType_e &val);
     bool proc(linuxptpTimeStamp_e &val);
     bool proc(TimeInterval_t &v);
     bool proc(Timestamp_t &d);
@@ -458,16 +575,22 @@ class message
     bool proc(PTPText_t &d);
     bool proc(FaultRecord_t &d);
     bool proc(AcceptableMaster_t &d);
+    bool proc(SLAVE_RX_SYNC_TIMING_DATA_rec_t &rec);
+    bool proc(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t &rec);
+    bool proc(SLAVE_TX_EVENT_TIMESTAMPS_rec_t &rec);
+    bool proc(SLAVE_DELAY_TIMING_DATA_NP_rec_t &rec);
+    bool procFlags(uint8_t &flags, const uint8_t flagsMask);
     /* linuxptp PORT_STATS_NP statistics use little endian */
     bool procLe(uint64_t &val);
-    MNG_PARSE_ERROR_e call_tlv_data();
+    MNG_PARSE_ERROR_e call_tlv_data(mng_vals_e id, baseMngTlv *&tlv);
+    MNG_PARSE_ERROR_e parseSig(); /* parse signaling message */
     /*
      * dataFieldSize() for sending SET/COMMAND
      * Get dataField of current m_tlv_id
      * For id with non fixed size
      * The size is determined by the m_dataSend content
      */
-    ssize_t dataFieldSize();
+    ssize_t dataFieldSize() const;
 
   public:
     message();
@@ -491,7 +614,7 @@ class message
     /**
      * Get the current TLV id
      * @return current TLV id
-     * @note the message object hold a single value from the last setting or
+     * @note the message object holds a single value from the last setting or
      *  reply parsing.
      */
     mng_vals_e getTlvId() { return m_tlv_id; }
@@ -500,13 +623,13 @@ class message
      */
     void setAllClocks();
     /**
-     * Query if target clock ID is use all clocks.
+     * Query if target clock ID is using all clocks.
      * @return true if target use all clocks
      */
     bool isAllClocks();
     /**
      * Fetch msgParams parameters from configuration file
-     * @param[in] cfg referance to configuration file object
+     * @param[in] cfg reference to configuration file object
      * @param[in] section in configuration file
      * @return true on success
      * @note calling without section will fetch value from @"global@" section
@@ -518,6 +641,12 @@ class message
      * @return string with the error message
      */
     static const char *err2str_c(MNG_PARSE_ERROR_e err);
+    /**
+     * Convert TLV type to string
+     * @param[in] type
+     * @return string with the TLV type
+     */
+    static const char *tlv2str_c(tlvType_e type);
     /**
      * Convert action to string
      * @param[in] action
@@ -624,7 +753,7 @@ class message
      * Set message object management TLV id and action with empty dataField
      * @param[in] actionField for sending
      * @param[in] tlv_id management TLV id
-     * @return true if setting is leagal
+     * @return true if setting is correct
      * @note the setting is valid for send only
      */
     bool setAction(actionField_e actionField, mng_vals_e tlv_id);
@@ -633,7 +762,7 @@ class message
      * @param[in] actionField for sending
      * @param[in] tlv_id management TLV id
      * @param[in] dataSend referece t TLV id
-     * @return true if setting is leagal
+     * @return true if setting is correct
      * @note the setting is valid for send only
      * @attention
      *  The caller must use the proper structure with the TLV id!
@@ -641,17 +770,17 @@ class message
      *  The library does @b NOT perform any error catchig of any kind!
      */
     bool setAction(actionField_e actionField, mng_vals_e tlv_id,
-        baseData &dataSend);
+        baseMngTlv &dataSend);
     /**
      * Build a raw message for send based on last setAction call
      * @param[in, out] buf memory buffer to fill with raw PTP message
      * @param[in] bufSize buffer size
      * @param[in] sequence message sequence
      * @return parse error state
-     * @note the message is initialize with NULL_PTP_MANAGEMENT managment ID
-     * @note usually the user increase the sequence so it can be compared
+     * @note the message is initializing with NULL_PTP_MANAGEMENT management ID
+     * @note usually the user increases the sequence so it can be compared
      *  with replied message
-     * @note if raw message is larger then buffer size the function
+     * @note if raw message is larger than buffer size the function
      *   return MNG_PARSE_ERROR_TOO_SMALL
      */
     MNG_PARSE_ERROR_e build(void *buf, size_t bufSize, uint16_t sequence);
@@ -659,75 +788,144 @@ class message
      * Get last sent management action
      * @return send management action
      */
-    actionField_e getSendAction() { return m_sendAction; }
+    actionField_e getSendAction() const { return m_sendAction; }
+    /**
+     * Get last sent message sized
+     * @return message size
+     */
+    size_t getMsgLen() const { return m_msgLen; }
+    /**
+     * Get planned message to send sized
+     * @return planned message size
+     * @note the planned message size is based on the management TLV id,
+     *  action and the last dataSend the user set.
+     * User can use the size to allocate proper buffer for sending
+     */
+    ssize_t getMsgPlanedLen() const;
+    /* Parsed message functions */
+    /**
+     * Parse a received raw socket
+     * @param[in] buf memory buffer containing the raw PTP message
+     * @param[in] msgSize received size of PTP message
+     * @return parse error state
+     */
+    MNG_PARSE_ERROR_e parse(void *buf, ssize_t msgSize);
     /**
      * Get last reply management action
      * @return reply management action
      * @note set on parse
      */
-    actionField_e getReplyAction() { return m_replyAction; }
-    /**
-     * Get last sent message sized
-     * @return message size
-     */
-    size_t getMsgLen() { return m_msgLen; }
-    /**
-     * Get planned message to send sized
-     * @return planned message size
-     * @note the planned message size is based on the managemant TLV id,
-     *  action and the last dataSend the user set.
-     * User can use the size to allocate proper buffer for sending
-     */
-    ssize_t getMsgPlanedLen();
-    /* Parsed message functions */
-    /**
-     * Parse a recieved raw socket
-     * @param[in] buf memory buffer containing the raw PTP message
-     * @param[in] msgSize recieved size of PTP message
-     * @return parse error state
-     */
-    MNG_PARSE_ERROR_e parse(void *buf, ssize_t msgSize);
+    actionField_e getReplyAction() const { return m_replyAction; }
     /**
      * Is last parsed message a unicast or not
      * @return true if parsed message is unicast
      */
-    bool isUnicast() { return m_isUnicast; }
+    bool isUnicast() const { return m_isUnicast; }
     /**
-     * Get last parsed message sequance number
-     * @return parsed sequance number
+     * Get last parsed message sequence number
+     * @return parsed sequence number
      */
-    uint16_t getSequence() { return m_sequence; }
+    uint16_t getSequence() const { return m_sequence; }
     /**
      * Get last parsed message peer port ID
      * @return parsed message peer port ID
      */
-    const PortIdentity_t &getPeer() { return m_peer; }
+    const PortIdentity_t &getPeer() const { return m_peer; }
+    /**
+     * Get last parsed message target port ID
+     * @return parsed message target port ID
+     */
+    const PortIdentity_t &getTarget() const { return m_target; }
+    /**
+     * Get last parsed message sdoId
+     * @return parsed message sdoId
+     * @note upper byte is was transportSpecific
+     */
+    uint32_t getSdoId() const { return m_sdoId; }
+    /**
+     * Get last parsed message domainNumber
+     * @return parsed message domainNumber
+     */
+    uint8_t getDomainNumber() const { return m_domainNumber; }
     /**
      * Get last parsed message dataField
      * @return pointer to last parsed message dataField
-     * @note user need to cast to proper structure depends on
+     * @note User need to cast to proper structure depends on
      *  management TLV ID.
      * @note User @b should not try to free this memory block
      */
-    const baseData *getData() { return m_dataGet.get(); }
+    const baseMngTlv *getData() const { return m_dataGet.get(); }
     /**
      * Get management error code ID
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error code
      */
-    managementErrorId_e getErrId() { return (managementErrorId_e)m_errorId; }
+    managementErrorId_e getErrId() const { return (managementErrorId_e)m_errorId; }
     /**
      * Get management error message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error message
      */
-    const std::string &getErrDisplay() { return m_errorDisplay.textField; }
+    const std::string &getErrDisplay() const { return m_errorDisplay.textField; }
     /**
      * Get management error message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error message
      */
-    const char *getErrDisplay_c() { return m_errorDisplay.str(); }
+    const char *getErrDisplay_c() const { return m_errorDisplay.str(); }
+    /**
+     * query if last message is a signaling message
+     * @return true if last message is a signaling message
+     */
+    bool isLastMsgSig() const { return m_type == Signaling; }
+    /**
+     * Traverse all last signaling message TLVs
+     * @param[in] callback function to call with each TLV
+     * @return true if any of the calling to call-back return true
+     * @note stop if any of the calling to call-back return true
+     * @note if scripting can not provide C++ call-back
+     *  it may use the function bellow
+     */
+    bool traversSigTlvs(const std::function<bool (const message &msg,
+            tlvType_e tlvType, baseSigTlv *tlv)> callback) const;
+    /**
+     * Get number of the last signaling message TLVs
+     * @return number of TLVs or zero
+     * @note this function is for scripting, normal C++ can use traversSigTlvs
+     */
+    size_t getSigTlvsCount() const;
+    /**
+     * Get a TLV from the last signaling message TLVs by position
+     * @param[in] position of TLV
+     * @return TLV or null
+     * @note this function is for scripting, normal C++ can use traversSigTlvs
+     */
+    baseSigTlv *getSigTlv(size_t position) const;
+    /**
+     * Get a type of TLV from the last signaling message TLVs by position
+     * @param[in] position of TLV
+     * @return type of TLV or unknown
+     * @note this function is for scripting, normal C++ can use traversSigTlvs
+     */
+    tlvType_e getSigTlvType(size_t position) const;
+    /**
+     * Get the management TLV ID of a management TLV
+     * from the last signaling message TLVs by position
+     * @param[in] position of TLV
+     * @return management TLV ID or NULL_PTP_MANAGEMENT
+     * @note return NULL_PTP_MANAGEMENT if TLV is not management
+     * @note this function is for scripting, normal C++ can just cast
+     */
+    mng_vals_e getSigMngTlvType(size_t position) const;
+    /**
+     * Get a management TLV from the last signaling message TLVs by position
+     * @param[in] position of TLV
+     * @return management TLV ID or NULL_PTP_MANAGEMENT
+     * @note return null if TLV is not management
+     * @note this function is for scripting, normal C++ can just cast
+     */
+    baseMngTlv *getSigMngTlv(size_t position) const;
+    /* Library version functions */
     /**
      * Get this library version
      * @return this library version
@@ -745,8 +943,53 @@ class message
     static int getVersionMinor();
 };
 
+/** @cond internal
+ * For use in proc.cpp and sig.cpp
+ */
+/* For Octets arrays */
+#define oproc(a) proc(a, sizeof(a))
+#define fproc procFlags(d.flags, d.flagsMask)
+/* list build part */
+#define vector_b(type, vec)\
+    if(m_build) {\
+        for(type##_t &rec: d.vec) {\
+            if(proc(rec)) return true;\
+        }\
+    } else
+/* list proccess with count */
+#define vector_f(type, cnt, vec) {\
+        vector_b(type, vec) {\
+            for(uint32_t i = 0; i < (uint32_t)d.cnt; i++) {\
+                type##_t rec;\
+                if(proc(rec)) return true;\
+                d.vec.push_back(rec);\
+            }\
+        }\
+        return false;\
+    }
+/* countless list proccess */
+#define vector_o(type, vec) {\
+        vector_b(type, vec) {\
+            while(m_left >= (ssize_t)type##_t::size()) {\
+                type##_t rec;\
+                if(proc(rec))\
+                    return true;\
+                d.vec.push_back(rec);\
+            }\
+        }\
+        return false;\
+    }
+/* size of variable length list */
+#define vector_l(pre_size, type, vec) {\
+        size_t ret = pre_size;\
+        for(type##_t &rec: d.vec)\
+            ret += rec.size();\
+        return ret;\
+    }
+/**< @endcond */
+
 /* For SWIG */
 #undef A
 #undef caseUF
 
-#endif /*__MSG_H*/
+#endif /*__PMC_MSG_H*/

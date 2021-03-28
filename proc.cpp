@@ -10,38 +10,15 @@
 #include <cstring>
 #include "msg.h"
 
-/* For Octets arrays */
-#define oproc(a) proc(a, sizeof(a))
-/* list build part */
-#define vector_b(type, vec)\
-    if(m_build) {\
-        for(type##_t &rec: d.vec) {\
-            if(proc(rec)) return true;\
-        }\
-    } else
-/* list proccess */
-#define vector_f(type, cnt, vec) {\
-        vector_b(type, vec) {\
-            for(uint32_t i = 0; i < (uint32_t)d.cnt; i++) {\
-                type##_t rec;\
-                if(proc(rec)) return true;\
-                d.vec.push_back(rec);\
-            }\
-        }\
-        return false;\
-    }
-/* size of variable length list */
-#define vector_l(pre_size, type, vec) {\
-        size_t ret = pre_size;\
-        for(type##_t &rec: d.vec)\
-            ret += rec.size();\
-        return ret;\
-    }
-
 /* size functions per id */
-#define CS(n) n: return n##_s(*(n##_t*)m_dataSend)
 #define S(n) static inline size_t n##_s(n##_t &d)
 
+S(CLOCK_DESCRIPTION)
+{
+    return 13 + d.physicalAddress.size() + d.protocolAddress.size() +
+        d.physicalLayerProtocol.size() + d.productDescription.size() +
+        d.revisionData.size() + d.userDescription.size();
+}
 S(USER_DESCRIPTION)
 {
     return d.userDescription.size();
@@ -76,18 +53,13 @@ S(PORT_PROPERTIES_NP)
     return 2 + PortIdentity_t::size() + d.interface.size();
 }
 
-ssize_t message::dataFieldSize()
+ssize_t message::dataFieldSize() const
 {
+#define caseUFS(n) case n: return n##_s(*(n##_t*)m_dataSend);
+#define caseUFBS(n) caseUFS(n)
+#define A(n, v, sc, a, sz, f) case##f(n)
     switch(m_tlv_id) {
-        // CLOCK_DESCRIPTION is GET only, we can skip it
-        case CS(USER_DESCRIPTION);
-        case CS(FAULT_LOG);
-        case CS(PATH_TRACE_LIST);
-        case CS(GRANDMASTER_CLUSTER_TABLE);
-        case CS(UNICAST_MASTER_TABLE);
-        case CS(ACCEPTABLE_MASTER_TABLE);
-        case CS(ALTERNATE_TIME_OFFSET_NAME);
-        case CS(PORT_PROPERTIES_NP);
+#include "ids.h"
         default:
             return -2;
     }
@@ -96,7 +68,7 @@ ssize_t message::dataFieldSize()
 /*
  * Function used for both build and parse
  * Function can use:
- *  d        - the referance to the TLV own structure
+ *  d        - the reference to the TLV own structure
  *  m_build  - is it build (true) or parse (false)
  *  m_err    - error to use when function return true
  *  m_left   - number of octets left in dataField the function may read
@@ -134,7 +106,7 @@ A(FAULT_LOG)
 }
 A(DEFAULT_DATA_SET)
 {
-    return proc(d.flags) || proc(reserved) || proc(d.numberPorts) ||
+    return fproc || proc(reserved) || proc(d.numberPorts) ||
         proc(d.priority1) || proc(d.clockQuality) || proc(d.priority2) ||
         proc(d.clockIdentity) || proc(d.domainNumber);
 }
@@ -145,7 +117,7 @@ A(CURRENT_DATA_SET)
 }
 A(PARENT_DATA_SET)
 {
-    return proc(d.parentPortIdentity) || proc(d.flags) || proc(reserved) ||
+    return proc(d.parentPortIdentity) || fproc || proc(reserved) ||
         proc(d.observedParentOffsetScaledLogVariance) ||
         proc(d.observedParentClockPhaseChangeRate) ||
         proc(d.grandmasterPriority1) || proc(d.grandmasterClockQuality) ||
@@ -153,7 +125,7 @@ A(PARENT_DATA_SET)
 }
 A(TIME_PROPERTIES_DATA_SET)
 {
-    return proc(d.currentUtcOffset) || proc(d.flags) || proc(d.timeSource);
+    return proc(d.currentUtcOffset) || fproc || proc(d.timeSource);
 }
 A(PORT_DATA_SET)
 {
@@ -177,7 +149,7 @@ A(DOMAIN)
 }
 A(SLAVE_ONLY)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(LOG_ANNOUNCE_INTERVAL)
 {
@@ -205,35 +177,27 @@ A(CLOCK_ACCURACY)
 }
 A(UTC_PROPERTIES)
 {
-    return proc(d.currentUtcOffset) || proc(d.flags);
+    return proc(d.currentUtcOffset) || fproc;
 }
 A(TRACEABILITY_PROPERTIES)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(TIMESCALE_PROPERTIES)
 {
-    return proc(d.flags) || proc(d.timeSource);
+    return fproc || proc(d.timeSource);
 }
 A(UNICAST_NEGOTIATION_ENABLE)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(PATH_TRACE_LIST)
 {
-    vector_b(ClockIdentity, pathSequence) {
-        for(int i = 0; m_left >= (ssize_t)ClockIdentity_t::size(); i++) {
-            ClockIdentity_t rec;
-            if(proc(rec))
-                return true;
-            d.pathSequence[i++] = rec;
-        }
-    }
-    return false;
+    vector_o(ClockIdentity, pathSequence);
 }
 A(PATH_TRACE_ENABLE)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(GRANDMASTER_CLUSTER_TABLE)
 {
@@ -262,7 +226,7 @@ A(ACCEPTABLE_MASTER_TABLE)
 }
 A(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
@@ -270,12 +234,12 @@ A(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 }
 A(ALTERNATE_MASTER)
 {
-    return proc(d.flags) || proc(d.logAlternateMulticastSyncInterval) ||
+    return fproc || proc(d.logAlternateMulticastSyncInterval) ||
         proc(d.numberOfAlternateMasters);
 }
 A(ALTERNATE_TIME_OFFSET_ENABLE)
 {
-    return proc(d.keyField) || proc(d.flags);
+    return proc(d.keyField) || fproc;
 }
 A(ALTERNATE_TIME_OFFSET_NAME)
 {
@@ -292,7 +256,7 @@ A(ALTERNATE_TIME_OFFSET_PROPERTIES)
 }
 A(TRANSPARENT_CLOCK_PORT_DATA_SET)
 {
-    return proc(d.portIdentity) || proc(d.flags) ||
+    return proc(d.portIdentity) || fproc ||
         proc(d.logMinPdelayReqInterval) || proc(d.peerMeanPathDelay);
 }
 A(LOG_MIN_PDELAY_REQ_INTERVAL)
@@ -314,19 +278,19 @@ A(DELAY_MECHANISM)
 }
 A(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(MASTER_ONLY)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(HOLDOVER_UPGRADE_ENABLE)
 {
-    return proc(d.flags);
+    return fproc;
 }
 A(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
-    return proc(d.flags) || proc(d.desiredState);
+    return fproc || proc(d.desiredState);
 }
 // linuxptp TLVs (in Implementation-specific C000-DFFF)
 A(TIME_STATUS_NP)
@@ -340,7 +304,7 @@ A(TIME_STATUS_NP)
 }
 A(GRANDMASTER_SETTINGS_NP)
 {
-    return proc(d.clockQuality) || proc(d.currentUtcOffset) || proc(d.flags) ||
+    return proc(d.clockQuality) || proc(d.currentUtcOffset) || fproc ||
         proc(d.timeSource);
 }
 A(PORT_DATA_SET_NP)

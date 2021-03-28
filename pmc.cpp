@@ -17,14 +17,16 @@
 #include "bin.h"
 
 /* from pmc_dump.cpp */
-extern void call_dump(message &msg, baseData *data);
-extern baseData *call_data(message &msg, mng_vals_e id, char *save);
+extern void call_dump(message &msg, baseMngTlv *data);
+extern bool call_dumpSig(const message &msg, tlvType_e tlvType,
+    baseSigTlv *tlv);
+extern baseMngTlv *call_data(message &msg, mng_vals_e id, char *save);
 
 /* Receive constants */
 static const int wait = 500; // milli
 
 static const char toksep[] = " \t\n\r"; // while spaces
-// buffer for send and recv
+// buffer for send and receive
 static const size_t bufSize = 2000;
 static char buf[bufSize];
 static message msg;
@@ -40,6 +42,12 @@ static inline void dump_head(actionField_e action)
         msg.getSequence(),
         msg.act2str_c(action),
         msg.mng2str_c(msg.getTlvId()));
+}
+static inline void dump_sig()
+{
+    printf("\t%s seq %u SIGNALING\n",
+        msg.getPeer().str().c_str(),
+        msg.getSequence());
 }
 static inline void dump_err()
 {
@@ -99,7 +107,11 @@ static inline int rcv()
             dump_head(msg.getReplyAction());
             call_dump(msg, nullptr);
             return 0;
-        case MNG_PARSE_ERROR_ACTION: // Not managment, or other clock id
+        case MNG_PARSE_ERROR_SIG:
+            dump_sig();
+            msg.traversSigTlvs(call_dumpSig);
+            return 1; // Do not count signaling messages
+        case MNG_PARSE_ERROR_ACTION: // Not management, or another clock id
         case MNG_PARSE_ERROR_HEADER: // Not reply
             if(!use_uds)
                 // We got the wrong message, wait for the next one
@@ -132,14 +144,14 @@ static inline bool findId(mng_vals_e &id, char *str)
         const char *sid = message::mng2str_c((mng_vals_e)i);
         if(strcmp(sid, str) == 0) {
             id = (mng_vals_e)i;
-            return true; // Exect match!
+            return true; // Exact match!
         }
         if(find < 2 && strncmp(sid, str, len) == 0) {
             id = (mng_vals_e)i;
             find++;
         }
     }
-    // 1 matach
+    // 1 match
     return find == 1;
 }
 static bool run_line(char *line)
@@ -177,7 +189,7 @@ static bool run_line(char *line)
     mng_vals_e id;
     if(!findId(id, cur))
         return false;
-    baseData *data;
+    baseMngTlv *data;
     if(action == GET || msg.isEmpty(id)) {
         // No data is needed
         if(!msg.setAction(action, id))
@@ -194,7 +206,8 @@ static bool run_line(char *line)
     if(!sendAction())
         return false;
     // Finish with data, free it
-    printf("sending: %s %s\n", msg.act2str_c(msg.getSendAction()), msg.mng2str_c(id));
+    printf("sending: %s %s\n", msg.act2str_c(msg.getSendAction()),
+        msg.mng2str_c(id));
     if(data != nullptr)
         delete data;
     return true;
@@ -341,20 +354,33 @@ int main(int argc, char *const argv[])
             break;
         }
     }
+    // allowed signaling TLV
+    prms.allowSigTlvs[SLAVE_RX_SYNC_TIMING_DATA] = true;
+    prms.allowSigTlvs[SLAVE_DELAY_TIMING_DATA_NP] = true;
     msg.updateParams(prms);
-    if(optind == argc) {
-        // No arguments left, use batch mode
+    if(optind == argc) { // No arguments left, use batch mode
+        // Alow signaling in batch mode if we use real network layer
+        if(net_select != 'u')
+            prms.rcvSignaling = true;
+        msg.updateParams(prms);
         // Normal Termination (by kill)
         if(signal(SIGTERM, handle_sig) == SIG_ERR)
             fprintf(stderr, "sig term fails %m\n");
-        // Control + C
+        // Control + C, interrupt from keyboard
         if(signal(SIGINT, handle_sig_ctrl) == SIG_ERR)
             fprintf(stderr, "sig init fails %m\n");
+        // quit from keyboard
+        if(signal(SIGQUIT, handle_sig) == SIG_ERR)
+            fprintf(stderr, "sig quit fails %m\n");
+        // Hangup detected
+        if(signal(SIGHUP, handle_sig) == SIG_ERR)
+            fprintf(stderr, "sig hup fails %m\n");
         char lineBuf[bufSize];
         while(fgets(lineBuf, bufSize, stdin) != nullptr)
             if(run_line(lineBuf))
                 rcv_timeout();
     } else {
+        msg.updateParams(prms);
         int pkts = 0;
         for(int index = optind; index < argc; index++) {
             if(run_line(argv[index]))

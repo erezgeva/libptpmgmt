@@ -56,6 +56,7 @@ endif
 ifneq ($(V),1)
 Q:=@
 Q_DOXY=$(info $(COLOR_MAGENTA)Doxygen$(COLOR_NORM))
+Q_FRMT=$(info $(COLOR_MAGENTA)Format$(COLOR_NORM))
 Q_TAGS=$(info $(COLOR_MAGENTA)[TAGS]$(COLOR_NORM))
 Q_GEN=$(info $(COLOR_MAGENTA)[GEN] $@$(COLOR_NORM))
 Q_SWIG=$(info $(COLOR_MAGENTA)[SWIG] $@$(COLOR_NORM))
@@ -70,22 +71,25 @@ MAKE_NO_DIRS:=--no-print-directory
 endif
 
 include version
-# Ensure linker link using C++
+# Ensure linker use C++
 CC:=g++
 RL:=ranlib
-CPPFLAGS+=-Wall -std=c++11 -g -Og
-# For speed
-#CPPFLAGS+=-Ofast
+LN:=ln -fs
+CPPFLAGS_OPT?=-Og
+CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
+CPPFLAGS_SWIG:=-Wno-maybe-uninitialized -Wno-stringop-overflow
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
 LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
 ifneq ($(SONAME),)
-LDFLAGS_NM=-Wl,--version-script,debian/lib.ver\
+LDFLAGS_NM=-Wl,--version-script,pkg/lib.ver\
            -Wl,-soname,$@.$(SONAME)
 endif
+LDLIBS_LIB:=-lm
 PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
 LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(wildcard *.cpp)))
 LIB_NAME:=libpmc
+LIB_NAME_SO:=$(LIB_NAME).so
 PMC_NAME:=pmc
 msg.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
 
@@ -99,7 +103,7 @@ endif
 endif
 CPPFLAGS+=$(CPPFLAGS_COLOR)
 
-ALL:=$(PMC_NAME) $(LIB_NAME).so $(LIB_NAME).a
+ALL:=$(PMC_NAME) $(LIB_NAME_SO) $(LIB_NAME).a
 
 # Compile library source code
 $(LIB_OBJS):
@@ -111,9 +115,10 @@ $(LIB_NAME).a: $(LIB_OBJS)
 	$(Q_AR)
 	$Q$(AR) rcs $@ $^
 	$Q$(RL) $@
-$(LIB_NAME).so: $(foreach obj,$(LIB_OBJS),.libs/$(obj))
+$(LIB_NAME_SO): $(foreach obj,$(LIB_OBJS),.libs/$(obj))
 	$(Q_LD)
-	$Q$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$Q$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) \
+	$(LDLIBS_LIB) $(LDLIBS) -o $@
 
 # pmc tool
 pm%.o: pm%.cpp
@@ -156,6 +161,7 @@ ifneq ($(call which,astyle),)
 astyle_ver:=$(lastword $(shell astyle -V))
 ifeq ($(call verCheck,$(astyle_ver),3.1),)
 format:
+	$(Q_FRMT)
 	$(Q)astyle --project=none --options=astyle.opt $(wildcard *.h *.cpp)
 	$Q./format.pl
 endif
@@ -166,6 +172,8 @@ ifneq ($(call which,dpkg-architecture),)
 DEB_HOST_MULTIARCH:=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 endif # dpkg-architecture
 endif
+HOST_MULTIARCH:=$(DEB_HOST_MULTIARCH)
+LIB_ARCH:=/usr/lib/$(HOST_MULTIARCH)
 
 SWIG:=swig
 ifneq ($(call which,$(SWIG)),)
@@ -176,8 +184,9 @@ SWIG_NAME:=PmcLib
 
 ifneq ($(call which,perl),)
 PERL_VER:=$(shell perl -e '$$_=$$^V;s/^v//;print')
-ifneq ($(DEB_HOST_MULTIARCH),)
-PERL_INC:=/usr/lib/$(DEB_HOST_MULTIARCH)/perl/$(PERL_VER)/CORE
+PERLDIR:=$(DESTDIR)$(LIB_ARCH)/perl/$(PERL_VER)
+ifneq ($(HOST_MULTIARCH),)
+PERL_INC:=$(LIB_ARCH)/perl/$(PERL_VER)/CORE
 ifeq ($(realpath $(PERL_INC)),)
 PERL_INC=/usr/lib/perl/$(PERL_VER)/CORE
 endif
@@ -190,9 +199,9 @@ $(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
 	$Q$(SWIG) -c++ -I. -outdir perl -o $@ -perl5 $<
 $(PERL_NAME).o: $(PERL_NAME).cpp
 	$(Q_LCC)
-	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@
+	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_SWIG) -I$(PERL_INC) -c $< -o $@
 	$(Q)sed -i 's#$(PERL_INC)#\$$(PERL_INC)#' $(PERL_NAME).d
-$(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME).so
+$(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
 SWIG_ALL+=$(PERL_NAME).so
@@ -203,33 +212,41 @@ endif # which perl
 
 ifneq ($(call which,lua),)
 LUA_FLAGS:=$(foreach n,$(LUA_WARNS),-w$n)
+LUADIR:=$(DESTDIR)$(LIB_ARCH)
+LUA_LIB_NAME:=pmc.so
 lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
 	$(Q_SWIG)
 	$Q$(SWIG) -c++ -I. $(LUA_FLAGS) -outdir lua -o $@ -lua $<
 define lua
-LIB_$1:=lua/5.$1/pmc.so
+LUA_LIB_$1:=lua/5.$1/$(LUA_LIB_NAME)
 lua/5.$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp
 	$$(Q_LCC)
-	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) -I/usr/include/lua5.$1 \
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_SWIG) -I/usr/include/lua5.$1 \
 	-c $$< -o $$@
-$$(LIB_$1): lua/5.$1/$(SWIG_NAME).o $(LIB_NAME).so
+$$(LUA_LIB_$1): lua/5.$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
 	$$(LD_LUA_$1) -o $$@
-SWIG_ALL+=$$(LIB_$1)
+SWIG_ALL+=$$(LUA_LIB_$1)
 CLEAN+=$$(foreach n,o d,lua/5.$1/$(SWIG_NAME).$$n)
-DISTCLEAN+=$$(LIB_$1)
+DISTCLEAN+=$$(LUA_LIB_$1)
+
+endef
+define lua_fname
+LUA_FLIB_$1:=liblua5.$1-$(LUA_LIB_NAME)
 
 endef
 define lua_soname
-LD_LUA_$1:=-Wl,-soname,liblua5.$1-pmc.so.$(SONAME)
+LD_LUA_$1:=-Wl,-soname,$(LUA_FLIB_$1).$(SONAME)
 
 endef
-DISTCLEAN+=lua/$(SWIG_NAME).cpp lua/pmc.so
+DISTCLEAN+=lua/$(SWIG_NAME).cpp lua/$(LUA_LIB_NAME)
+LUA_VERSIONS:=1 2 3
+$(eval $(foreach n,$(LUA_VERSIONS),$(call lua_fname,$n)))
 ifneq ($(SONAME),)
-$(eval $(foreach n,1 2 3,$(call lua_soname,$n)))
+$(eval $(foreach n,$(LUA_VERSIONS),$(call lua_soname,$n)))
 endif
-$(eval $(foreach n,1 2 3,$(call lua,$n)))
+$(eval $(foreach n,$(LUA_VERSIONS),$(call lua,$n)))
 endif # which lua
 
 ifneq ($(call which,python),)
@@ -245,16 +262,19 @@ PYV3=$(call libname,*/libpython3*.a)
 ifeq ($(PYV3),)
 PYV3=$(call libname,libpython3*.a)
 endif
+PY_LIB_NAME:=_pmc
 PY3_VER:=$(subst .,,$(subst python,,$(PYV3)))
-PY_SO_2:=python/2/_pmc.so
-PY_SO_3:=python/3/_pmc.cpython-$(PY3_VER)-$(DEB_HOST_MULTIARCH).so
+PY_SO_2:=python/2/$(PY_LIB_NAME).so
+PY_SO_3:=python/3/$(PY_LIB_NAME).cpython-$(PY3_VER)-$(HOST_MULTIARCH).so
+PY2DIR:=$(DESTDIR)/usr/lib/$(PYV2)/dist-packages
+PY3DIR:=$(DESTDIR)/usr/lib/python3/dist-packages
 define python
 PY_BASE_$1:=python/$1/$(SWIG_NAME)
 PY_INC_$1:=/usr/include/$$(PYV$1)
 $$(PY_BASE_$1).o: $(PY_BASE).cpp
 	$$(Q_LCC)
-	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) -I$$(PY_INC_$1) -c $$< -o $$@
-$$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME).so
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_SWIG) -I$$(PY_INC_$1) -c $$< -o $$@
+$$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 	$$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
 	-l$$(PYV$1) -lm -ldl -o $$@
@@ -278,7 +298,7 @@ deb_src: distclean
 	$(Q)dpkg-source -b .
 deb:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc
-	$Q$(RM) $(PMC_NAME) $(LIB_NAME).so $(PERL_NAME).so $(wildcard */*/*.so)
+	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # Debian
@@ -304,4 +324,47 @@ all: $(ALL)
 	@:
 .DEFAULT_GOAL=all
 
-.PHONY: all clean distclean format deb_src deb deb_clean doxygen
+LIB_VER:=$(ver_maj).$(ver_min)
+LIB_FNAME_SO:=$(LIB_NAME_SO).$(LIB_VER)
+LIB_SNAME_SO:=$(LIB_NAME_SO).$(SONAME)
+DOCDIR:=$(DESTDIR)/usr/share/doc/libpmc-doc
+URL:=html/index.html
+REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
+NINST:=install -m 644
+DINST:=install -d
+BINST:=install
+
+install: $(ALL)
+	$Q$(NINST) -D $(LIB_NAME_SO) $(DESTDIR)$(LIB_ARCH)/$(LIB_FNAME_SO)
+	$Q$(LN) $(LIB_FNAME_SO) $(DESTDIR)$(LIB_ARCH)/$(LIB_SNAME_SO)
+	$Q$(LN) $(LIB_SNAME_SO) $(DESTDIR)$(LIB_ARCH)/$(LIB_NAME_SO)
+	$Q$(NINST) libpmc.a $(DESTDIR)$(LIB_ARCH)
+	$Q$(NINST) -D $(HEADERS) -t $(DESTDIR)/usr/include/pmc
+	$Q$(NINST) -D pkg/*.mk -t $(DESTDIR)/usr/share/libpmc-dev
+	$Q$(BINST) -D pmc $(DESTDIR)/usr/sbin/pmc.lib
+	$Q$(RM) doc/html/*.md5
+	$Q$(DINST) $(DOCDIR)
+	$(Q)cp -a doc/html $(DOCDIR)
+	$(Q)printf $(REDIR) > $(DOCDIR)/index.html
+ifneq ($(call which,perl),)
+	$Q$(NINST) -D perl/$(SWIG_NAME).so -t $(PERLDIR)/auto/$(SWIG_NAME)
+	$Q$(NINST) perl/$(SWIG_NAME).pm $(PERLDIR)
+endif # which perl
+ifneq ($(call which,lua),)
+	$Q$(foreach n,$(LUA_VERSIONS),\
+	  $(NINST) -D $(LUA_LIB_$n) $(LUADIR)/$(LUA_FLIB_$n).$(LIB_VER);\
+	  $(LN) $(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/$(LUA_FLIB_$n).$(SONAME);\
+	  $(DINST) $(LUADIR)/lua/5.$n;\
+	  $(LN) ../../$(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/lua/5.$n/$(LUA_LIB_NAME);)
+endif # which lua
+ifneq ($(call which,python),)
+	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
+	  $(PY2DIR)/$(PY_LIB_NAME).$(HOST_MULTIARCH).so
+	$Q$(NINST) -D python/3/$(PY_LIB_NAME).*.so -t $(PY3DIR)
+	$Q$(NINST) python/pmc.py $(PY2DIR)
+	$Q$(NINST) python/pmc.py $(PY3DIR)
+endif # which python
+
+check: format doxygen
+
+.PHONY: all clean distclean format deb_src deb deb_clean doxygen check

@@ -11,11 +11,11 @@
  *  a class to fetch a dynamic clock ID for a PTP clock
  */
 
-#ifndef __IF_H
-#define __IF_H
+#ifndef __PMC_IF_H
+#define __PMC_IF_H
 
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 #include <net/if.h>
 #include <linux/ethtool.h>
 #include "bin.h"
@@ -39,13 +39,13 @@ class ifInfo
     /**
      * Find network interface information based on its name
      * @param[in] ifName network interface name
-     * @return true if network interface exist
+     * @return true if network interface exists
      */
     bool initUsingName(const std::string ifName);
     /**
      * Find network interface information based on its index
      * @param[in] ifIndex network interface index
-     * @return true if network interface exist
+     * @return true if network interface exists
      */
     bool initUsingIndex(int ifIndex);
     /**
@@ -97,10 +97,10 @@ class ifInfo
  *  Create a dynamic clock id for a PTP clock, that the application
  *  can use to fetch the PTP clock time
  * @note
- *  The dynamic clock id exist as long as the object exist.
+ *  The dynamic clock id exists while the object exists.
  *  Do @b NOT delete the object while using the dynamic clock id.
  * @note
- *  As a network interface might have more then 1 PHC
+ *  As a network interface might have more than 1 PHC
  *  It is better to use a separate the class.
  */
 class ptpClock
@@ -146,4 +146,4 @@ class ptpClock
     const char *ptpDevice_c() { return m_ptpDevice.c_str(); }
 };
 
-#endif /*__IF_H*/
+#endif /*__PMC_IF_H*/

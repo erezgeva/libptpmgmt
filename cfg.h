@@ -8,16 +8,16 @@
  *
  * @details
  *  Classes to read ptp4l configuration file.
- *  We @b only read the values needed by Managment
+ *  We @b only read the values needed by Management
  *
  */
 
-#ifndef __CFG_H
-#define __CFG_H
+#ifndef __PMC_CFG_H
+#define __PMC_CFG_H
 
 #include <map>
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 #include "bin.h"
 
 class configFile;
@@ -38,10 +38,11 @@ class configSection
         p2p_dst_mac_val,
         last_val,
     };
-    std::string m_str_vals[uds_address_val - network_transport_val];
+    std::string m_str_vals[1];
     binary m_bin_vals[last_val - uds_address_val];
-    uint8_t m_vals[network_transport_val + 1];
+    uint8_t m_vals[uds_address_val];
     bool m_set[last_val];
+    static const int val_limit;    /* limit of m_vals */
     static const int str_base_val; /* first string m_str_vals */
     static const int bin_base_val; /* first binart m_bin_vals */
 
@@ -57,7 +58,7 @@ class configSection
 /**
  * @brief hold configuration parameters
  * @details
- *  Store provide and parse parameters
+ *  Stores provides and parses parameters
  *  from a configuration file for all sections
  */
 class configFile
@@ -75,13 +76,13 @@ class configFile
     configFile();
     /**
      * Read a configuration file and parse it
-     * @param[in] file file name with path
+     * @param[in] file name with path
      * @return true if parse success
      */
     bool read_cfg(const char *file);
     /**
      * Read a configuration file and parse it
-     * @param[in] file file name with path
+     * @param[in] file name with path
      * @return true if parse success
      */
     bool read_cfg(std::string &file) { return read_cfg(file.c_str()); }
@@ -150,4 +151,4 @@ class configFile
     const binary &p2p_dst_mac(const std::string section = "");
 };
 
-#endif /*__CFG_H*/
+#endif /*__PMC_CFG_H*/

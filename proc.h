@@ -1,18 +1,22 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
 /** @file
- * @brief PTP managment TLV structures
+ * @brief PTP management TLV structures
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
  */
 
-#ifndef __PROC_H
-#define __PROC_H
+#ifndef __PMC_PROC_H
+#define __PMC_PROC_H
+
+#include <cstdint>
+#include <vector>
+#include "msg.h"
 
 /** Clock description TLV */
-struct CLOCK_DESCRIPTION_t : public baseData {
+struct CLOCK_DESCRIPTION_t : public baseMngTlv {
     uint16_t clockType; /**< Clock type bit mask */
     PTPText_t physicalLayerProtocol; /**< Physical protocol */
     UInteger16_t physicalAddressLength; /**< Address length */
@@ -25,27 +29,28 @@ struct CLOCK_DESCRIPTION_t : public baseData {
     Octet_t profileIdentity[6]; /**< Profile ID */
 };
 /** User description TLV */
-struct USER_DESCRIPTION_t : public baseData {
+struct USER_DESCRIPTION_t : public baseMngTlv {
     PTPText_t userDescription; /**< User description */
 };
 const uint16_t INITIALIZE_EVENT = 0x0000; /**< Initialize event */
 /** Initialize TLV */
-struct INITIALIZE_t : public baseData {
+struct INITIALIZE_t : public baseMngTlv {
     uint16_t initializationKey; /**< Initialization key */
 };
 /** Fault logging table TLV */
-struct FAULT_LOG_t : public baseData {
+struct FAULT_LOG_t : public baseMngTlv {
     UInteger16_t numberOfFaultRecords; /**< Number of fault records */
     std::vector<FaultRecord_t> faultRecords; /**< Fault records table */
 };
 /** Default data settings */
-struct DEFAULT_DATA_SET_t : public baseData {
+struct DEFAULT_DATA_SET_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: TSC defaultDS.twoStepFlag
      * @li bit 1: SO  defaultDS.slaveOnly
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x3; /**< Mask for flags */
     UInteger16_t numberPorts; /**< Number of ports */
     UInteger8_t priority1; /**< Priority 1 */
     ClockQuality_t clockQuality; /**< Clock quality */
@@ -54,19 +59,20 @@ struct DEFAULT_DATA_SET_t : public baseData {
     UInteger8_t domainNumber; /**< Domain ID number */
 };
 /** Current data setting TLV */
-struct CURRENT_DATA_SET_t : public baseData {
+struct CURRENT_DATA_SET_t : public baseMngTlv {
     UInteger16_t stepsRemoved; /**< Steps removed */
     TimeInterval_t offsetFromMaster; /**< Offset from source clock */
     TimeInterval_t meanPathDelay; /**< Mean path delay to source */
 };
 /** Parent data set TLV */
-struct PARENT_DATA_SET_t : public baseData {
+struct PARENT_DATA_SET_t : public baseMngTlv {
     PortIdentity_t parentPortIdentity; /**< Port ID of parent */
     /**
      * Bit fields flag
      * @li bit 0: PS parentDS.parentStats
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
     /** The variance of the parent clock's phase as
         measured by the local clock */
     UInteger16_t observedParentOffsetScaledLogVariance;
@@ -79,7 +85,7 @@ struct PARENT_DATA_SET_t : public baseData {
     ClockIdentity_t grandmasterIdentity; /**< Grand source clock ID */
 };
 /** Time properties data set TLV */
-struct TIME_PROPERTIES_DATA_SET_t : public baseData {
+struct TIME_PROPERTIES_DATA_SET_t : public baseMngTlv {
     Integer16_t currentUtcOffset; /**< current TAI to UTC offset, leap seconds */
     /**
      * Bit fields flag
@@ -91,10 +97,11 @@ struct TIME_PROPERTIES_DATA_SET_t : public baseData {
      * @li bit 5: FTRA  timePropertiesDS.frequencyTraceable
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x3f; /**< Mask for flags */
     timeSource_e timeSource; /**< Source clock type */
 };
 /** Port data set TLV */
-struct PORT_DATA_SET_t : public baseData {
+struct PORT_DATA_SET_t : public baseMngTlv {
     PortIdentity_t portIdentity; /**< Port ID */
     portState_e portState; /**< Port state */
     /** the minimum permitted mean time interval between
@@ -120,66 +127,67 @@ struct PORT_DATA_SET_t : public baseData {
     Integer8_t logMinPdelayReqInterval;
     /**
      * PTP version in use on port
-     * @li 4 bits:  major version
-     * @li 4 bits:  reserved. Probably minor version in next versions
+     * @li Nibble:  major version
+     * @li Nibble:  reserved. Probably minor version in next versions
      */
-    uint8_t versionNumber;
+    Nibble_t versionNumber;
 };
 /** Priority 1 TLV */
-struct PRIORITY1_t : public baseData {
+struct PRIORITY1_t : public baseMngTlv {
     UInteger8_t priority1; /**< Priority 1 */
 };
 /** Priority 2 TLV */
-struct PRIORITY2_t : public baseData {
+struct PRIORITY2_t : public baseMngTlv {
     UInteger8_t priority2; /**< Priority 2 */
 };
 /** Domain TLV */
-struct DOMAIN_t : public baseData {
+struct DOMAIN_t : public baseMngTlv {
     UInteger8_t domainNumber; /**< Domain ID number */
 };
 /** Client only flag TLV */
-struct SLAVE_ONLY_t : public baseData {
+struct SLAVE_ONLY_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: SO  defaultDS.slaveOnly
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
 /** Log announce interval TLV */
-struct LOG_ANNOUNCE_INTERVAL_t : public baseData {
+struct LOG_ANNOUNCE_INTERVAL_t : public baseMngTlv {
     /** the mean time interval between successive Announce messages */
     Integer8_t logAnnounceInterval;
 };
 /** Announce receipt timeout TLV */
-struct ANNOUNCE_RECEIPT_TIMEOUT_t : public baseData {
-    /** specify the number of announceInterval that has to
-        pass without receipt of an Announce */
+struct ANNOUNCE_RECEIPT_TIMEOUT_t : public baseMngTlv {
+    /** Specify the number of announce interval that must
+        pass without receipt of an announce */
     UInteger8_t announceReceiptTimeout;
 };
 /** Log synchronization interval TLV */
-struct LOG_SYNC_INTERVAL_t : public baseData {
+struct LOG_SYNC_INTERVAL_t : public baseMngTlv {
     /** the mean time interval between successive Sync messages */
     Integer8_t logSyncInterval;
 };
 /** Version number TLV */
-struct VERSION_NUMBER_t : public baseData {
+struct VERSION_NUMBER_t : public baseMngTlv {
     /**
      * PTP version in use on port
-     * @li 4 bits:  major version
-     * @li 4 bits:  reserved. Probably minor version in next versions
+     * @li Nibble:  major version
+     * @li Nibble:  reserved. Probably minor version in next versions
      */
-    uint8_t versionNumber; /* minor? | major version number */
+    Nibble_t versionNumber;
 };
 /** Current time TLV */
-struct TIME_t : public baseData {
+struct TIME_t : public baseMngTlv {
     Timestamp_t currentTime; /**< Current time stamp */
 };
 /** Clock accuracy TLV */
-struct CLOCK_ACCURACY_t : public baseData {
+struct CLOCK_ACCURACY_t : public baseMngTlv {
     clockAccuracy_e clockAccuracy; /**< Clock accuracy */
 };
 /** Utc properties TLV */
-struct UTC_PROPERTIES_t : public baseData {
+struct UTC_PROPERTIES_t : public baseMngTlv {
     Integer16_t currentUtcOffset; /**< current TAI to UTC offset, leap seconds */
     /**
      * Bit fields flag
@@ -188,47 +196,52 @@ struct UTC_PROPERTIES_t : public baseData {
      * @li bit 2: UTCV  timePropertiesDS.currentUtcOffsetValid
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x7; /**< Mask for flags */
 };
 /** Traceability properties TLV */
-struct TRACEABILITY_PROPERTIES_t : public baseData {
+struct TRACEABILITY_PROPERTIES_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 4: TTRA  timePropertiesDS.timeTraceable
      * @li bit 5: FTRA  timePropertiesDS.frequencyTraceable
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x30; /**< Mask for flags */
 };
 /** Timescale properties TLV */
-struct TIMESCALE_PROPERTIES_t : public baseData {
+struct TIMESCALE_PROPERTIES_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 3: PTP   timePropertiesDS.ptpTimescale
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x8; /**< Mask for flags */
     timeSource_e timeSource; /**< Source clock type */
 };
-/** Unicast negotiation enable TLV */
-struct UNICAST_NEGOTIATION_ENABLE_t : public baseData {
+/** Unicast negotiation enables TLV */
+struct UNICAST_NEGOTIATION_ENABLE_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: EN - unicastNegotiationPortDS.enable
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
 /** Path trace list TLV */
-struct PATH_TRACE_LIST_t : public baseData {
+struct PATH_TRACE_LIST_t : public baseMngTlv {
     std::vector<ClockIdentity_t> pathSequence; /**< clock id per path */
 };
-/** Path trace enable TLV */
-struct PATH_TRACE_ENABLE_t : public baseData {
+/** Path-trace enable TLV */
+struct PATH_TRACE_ENABLE_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: EN pathTraceDS.enable
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
 /** Grand source cluster table TLV */
-struct GRANDMASTER_CLUSTER_TABLE_t : public baseData {
+struct GRANDMASTER_CLUSTER_TABLE_t : public baseMngTlv {
     /** logarithm to the base 2 of the mean interval in seconds between
         unicast Announce messages from grand source */
     Integer8_t logQueryInterval;
@@ -237,7 +250,7 @@ struct GRANDMASTER_CLUSTER_TABLE_t : public baseData {
     std::vector<PortAddress_t> PortAddress;
 };
 /** Unicast source table TLV */
-struct UNICAST_MASTER_TABLE_t : public baseData {
+struct UNICAST_MASTER_TABLE_t : public baseMngTlv {
     /** logarithm to the base 2 of the mean interval in seconds between
         unicast Announce messages from source */
     Integer8_t logQueryInterval;
@@ -246,89 +259,93 @@ struct UNICAST_MASTER_TABLE_t : public baseData {
     std::vector<PortAddress_t> PortAddress;
 };
 /** Unicast source maximum table size TLV */
-struct UNICAST_MASTER_MAX_TABLE_SIZE_t : public baseData {
+struct UNICAST_MASTER_MAX_TABLE_SIZE_t : public baseMngTlv {
     /** Maximum number of addresses in unicast sources table */
     UInteger16_t maxTableSize;
 };
 /** Acceptable source table TLV */
-struct ACCEPTABLE_MASTER_TABLE_t : public baseData {
+struct ACCEPTABLE_MASTER_TABLE_t : public baseMngTlv {
     Integer16_t actualTableSize; /**< Number of addresses table */
     /** Acceptable source table records */
     std::vector<AcceptableMaster_t> list;
 };
 /** Acceptable source table enabled TLV */
-struct ACCEPTABLE_MASTER_TABLE_ENABLED_t : public baseData {
+struct ACCEPTABLE_MASTER_TABLE_ENABLED_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: EN acceptableMasterPortDS.enable.
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
 /** Acceptable source maximum table size TLV */
-struct ACCEPTABLE_MASTER_MAX_TABLE_SIZE_t : public baseData {
+struct ACCEPTABLE_MASTER_MAX_TABLE_SIZE_t : public baseMngTlv {
     /** The maximum permitted number of addresses
          in the Acceptable source table */
     UInteger16_t maxTableSize;
 };
 /** Alternate source TLV */
-struct ALTERNATE_MASTER_t : public baseData {
+struct ALTERNATE_MASTER_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: S - alternateMasterPortDS.transmitAlternateMulticastSync
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
     /** Logarithm to the base 2 of the mean period in seconds
         between Sync messages used by alternate source */
     Integer8_t logAlternateMulticastSyncInterval;
     /** Number of alternate sources */
     UInteger8_t numberOfAlternateMasters;
 };
-/** Alternate time offset enable TLV */
-struct ALTERNATE_TIME_OFFSET_ENABLE_t : public baseData {
+/** Alternate time offset enables TLV */
+struct ALTERNATE_TIME_OFFSET_ENABLE_t : public baseMngTlv {
     UInteger8_t keyField; /**< the index to the alternate timescale offsets */
     /**
      * Bit fields flag
      * @li bit 0: EN alternateTimescaleOffsetsDS.list[keyField].enable
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
 /** Alternate time offset name TLV */
-struct ALTERNATE_TIME_OFFSET_NAME_t : public baseData {
+struct ALTERNATE_TIME_OFFSET_NAME_t : public baseMngTlv {
     UInteger8_t keyField; /**< the index to the alternate timescale offsets */
     PTPText_t displayName; /**< Name of the alternate timescale offset */
 };
 /** Alternate time offset maximum key TLV */
-struct ALTERNATE_TIME_OFFSET_MAX_KEY_t : public baseData {
+struct ALTERNATE_TIME_OFFSET_MAX_KEY_t : public baseMngTlv {
     UInteger8_t maxKey; /**< number of alternate timescales maintained */
 };
 /** Alternate time offset properties TLV */
-struct ALTERNATE_TIME_OFFSET_PROPERTIES_t : public baseData {
+struct ALTERNATE_TIME_OFFSET_PROPERTIES_t : public baseMngTlv {
     UInteger8_t keyField; /**< the index to the alternate timescale offsets */
     Integer32_t currentOffset; /**< Current offset */
     Integer32_t jumpSeconds; /**< Jump seconds */
     UInteger48_t timeOfNextJump; /**< Time of next jump */
 };
 /** Transparent clock port data set TLV */
-struct TRANSPARENT_CLOCK_PORT_DATA_SET_t : public baseData {
+struct TRANSPARENT_CLOCK_PORT_DATA_SET_t : public baseMngTlv {
     PortIdentity_t portIdentity; /**< Port ID */
     /**
      * Bit fields flag
      * @li bit 0: FLT transparentClockPortDS.faultyFlag
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
     /** the minimum permitted mean time interval between
         successive Pdelay_Req messages */
     Integer8_t logMinPdelayReqInterval;
     TimeInterval_t peerMeanPathDelay; /**< Mean path delay to peer */
 };
 /** Log min pdelay req interval TLV */
-struct LOG_MIN_PDELAY_REQ_INTERVAL_t : public baseData {
+struct LOG_MIN_PDELAY_REQ_INTERVAL_t : public baseMngTlv {
     /** the minimum permitted mean time interval between
         successive Pdelay_Req messages */
     Integer8_t logMinPdelayReqInterval;
 };
 /** Transparent clock default data set TLV */
-struct TRANSPARENT_CLOCK_DEFAULT_DATA_SET_t : public baseData {
+struct TRANSPARENT_CLOCK_DEFAULT_DATA_SET_t : public baseMngTlv {
     ClockIdentity_t clockIdentity; /**< Clock ID */
     UInteger16_t numberPorts; /**< Number of ports */
     /**
@@ -341,11 +358,11 @@ struct TRANSPARENT_CLOCK_DEFAULT_DATA_SET_t : public baseData {
     UInteger8_t primaryDomain; /**< Primary Domain ID number */
 };
 /** Primary domain TLV */
-struct PRIMARY_DOMAIN_t : public baseData {
+struct PRIMARY_DOMAIN_t : public baseMngTlv {
     UInteger8_t primaryDomain; /**< Primary Domain ID number */
 };
 /** Delay mechanism TLV */
-struct DELAY_MECHANISM_t : public baseData {
+struct DELAY_MECHANISM_t : public baseMngTlv {
     /**
      * Delay mechanism values
      * @li 1: E2E - end to end, delay request-response
@@ -355,36 +372,40 @@ struct DELAY_MECHANISM_t : public baseData {
     uint8_t delayMechanism;
 };
 /** External port configuration enabled TLV */
-struct EXTERNAL_PORT_CONFIGURATION_ENABLED_t : public baseData {
+struct EXTERNAL_PORT_CONFIGURATION_ENABLED_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: EPC defaultDS.externalPortConfigurationEnabled
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
 /** Source only TLV */
-struct MASTER_ONLY_t : public baseData {
+struct MASTER_ONLY_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: MO - portDS.masterOnly
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
-/** Holdover upgrade enable TLV */
-struct HOLDOVER_UPGRADE_ENABLE_t : public baseData {
+/** Holdover-upgrade enable TLV */
+struct HOLDOVER_UPGRADE_ENABLE_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: EN holdoverUpgradeDS.enable
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
 /** External port config port data setting TLV */
-struct EXT_PORT_CONFIG_PORT_DATA_SET_t : public baseData {
+struct EXT_PORT_CONFIG_PORT_DATA_SET_t : public baseMngTlv {
     /**
      * Bit fields flag
      * @li bit 0: EN acceptableMasterPortDS.enable.
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x1; /**< Mask for flags */
     portState_e desiredState; /**< Desired port state */
 };
 /** TIME_STATUS_NP.cumulativeScaledRateOffset scale factor */
@@ -392,7 +413,7 @@ const double P41 = 1ULL << 41;
 /** Time status TLV
  * @note linuxptp implementation specific
  */
-struct TIME_STATUS_NP_t : public baseData {
+struct TIME_STATUS_NP_t : public baseMngTlv {
     int64_t master_offset; /**< Offset from source clock in nanoseconds */
     int64_t ingress_time;  /**< Ingress time in nanoseconds */
     /** Cumulative scaled rate offset */
@@ -413,7 +434,7 @@ struct TIME_STATUS_NP_t : public baseData {
 /** Grand source settings TLV
  * @note linuxptp implementation specific
  */
-struct GRANDMASTER_SETTINGS_NP_t : public baseData {
+struct GRANDMASTER_SETTINGS_NP_t : public baseMngTlv {
     ClockQuality_t clockQuality; /**< Clock quality */
     Integer16_t currentUtcOffset; /**< current TAI to UTC offset, leap seconds */
     /**
@@ -426,13 +447,14 @@ struct GRANDMASTER_SETTINGS_NP_t : public baseData {
      * @li bit 5: FTRA  timePropertiesDS.frequencyTraceable
      */
     uint8_t flags;
+    const uint8_t flagsMask = 0x3f; /**< Mask for flags */
     timeSource_e timeSource; /**< Source clock type */
 };
 /** Port data setting TLV
  * @note linuxptp implementation specific
  */
-struct PORT_DATA_SET_NP_t : public baseData {
-    /** Neighbor proper delay threshold in nanoseconds */
+struct PORT_DATA_SET_NP_t : public baseMngTlv {
+    /** Neighbour proper delay threshold in nanoseconds */
     UInteger32_t neighborPropDelayThresh;
     Integer32_t asCapable; /**< Flag for 802@.1AS Capable */
 };
@@ -454,14 +476,14 @@ const int NOTIFY_TIME_SYNC = 1;
 /** Subscribe events TLV
  * @note linuxptp implementation specific
  */
-struct SUBSCRIBE_EVENTS_NP_t : public baseData {
+struct SUBSCRIBE_EVENTS_NP_t : public baseMngTlv {
     uint16_t duration; /**< duration in seconds */
     uint8_t bitmask[EVENT_BITMASK_CNT]; /**< bitmask of events state */
 };
 /** Port properties TLV
  * @note linuxptp implementation specific
  */
-struct PORT_PROPERTIES_NP_t : public baseData {
+struct PORT_PROPERTIES_NP_t : public baseMngTlv {
     PortIdentity_t portIdentity; /**< Port ID */
     portState_e portState; /**< Port state */
     linuxptpTimeStamp_e timestamping; /**< time stamping in linuxptp format */
@@ -492,9 +514,9 @@ const int STAT_MANAGEMENT = 13;
 /** Port statistics TLV
  * @note linuxptp implementation specific
  */
-struct PORT_STATS_NP_t : public baseData {
+struct PORT_STATS_NP_t : public baseMngTlv {
     PortIdentity_t portIdentity; /**< Port ID */
-    /** Port recieved messages count per PTP message type */
+    /** Port received messages count per PTP message type */
     uint64_t rxMsgType[MAX_MESSAGE_TYPES];
     /** Port transmitted messages count per PTP message type */
     uint64_t txMsgType[MAX_MESSAGE_TYPES];
@@ -508,7 +530,7 @@ const uint8_t SYNC_UNCERTAIN_DONTCARE = 0xff;
 /** Synchronization uncertain TLV
  * @note linuxptp implementation specific
  */
-struct SYNCHRONIZATION_UNCERTAIN_NP_t : public baseData {
+struct SYNCHRONIZATION_UNCERTAIN_NP_t : public baseMngTlv {
     /**
      * synchronization uncertain state
      * @li 0:       False
@@ -518,6 +540,4 @@ struct SYNCHRONIZATION_UNCERTAIN_NP_t : public baseData {
     uint8_t val;
 };
 
-#undef A
-
-#endif /*__PROC_H*/
+#endif /*__PMC_PROC_H*/

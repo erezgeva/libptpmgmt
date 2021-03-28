@@ -30,10 +30,70 @@ main()
        sed -i "/$reg2/,+1d" $config
     fi
     make --no-print-directory -j -C $linuxptpLoc
+ else
+    local -r useSudo="sudo"
  fi
  ##############################################################################
- echo " * build libpmc"
- time make -j
+ case "$useLinuxptp" in
+    [aA]) # always
+        local -r pmcLoc="$linuxptpLoc"
+         ;;
+    [nN]) # None
+        local -r pmcLoc=/usr/sbin
+         ;;
+    *) # tentive
+        if [ -x "$linuxptpLoc/pmc" ]; then
+            local -r pmcLoc="$linuxptpLoc"
+        else
+            local -r pmcLoc=/usr/sbin
+        fi
+        ;;
+ esac
+ local -r pmctool="sudo $pmcLoc/pmc"
+ ##############################################################################
+ # script languages source
+ local -r ldPathBase='LD_LIBRARY_PATH=..'
+ local ldPathPerl ldPathLua1 ldPathLua2 ldPathLua3 ldPathPython2 ldPathPython3
+ local allScript
+ case "$useLdPath" in
+    [aA]) # always
+        ldPathPerl=$ldPathBase
+        ldPathLua1=$ldPathBase
+        ldPathLua2=$ldPathBase
+        ldPathLua3=$ldPathBase
+        ldPathPython2=$ldPathBase
+        ldPathPython3=$ldPathBase
+        allScript="x"
+         ;;
+    [nN]) # None
+         ;;
+    *) # tentive
+        probeLibs
+        allScript="$allScript$ldPathPython2$ldPathPython3"
+        ;;
+ esac
+ ##############################################################################
+ local -r instPmcLib=/usr/sbin/pmc.lib
+ case "$useLocal" in
+    [aA]) # always
+        local -r pmclibtool=./pmc
+         ;;
+    [nN]) # None
+        local -r pmclibtool=$instPmcLib
+         ;;
+    *) # tentive
+        if [ -x $instPmcLib ]; then
+            local -r pmclibtool=$instPmcLib
+        else
+            local -r pmclibtool=./pmc
+        fi
+        ;;
+ esac
+ ##############################################################################
+ if [ "$pmclibtool" != "$instPmcLib" -o -n "$allScript" ]; then
+    echo " * build libpmc"
+    time make -j
+ fi
  cat << EOF
 
  * Starting
@@ -43,40 +103,8 @@ EOF
  [ -z "$(pgrep ptp4l)" ] && return
 
  ##############################################################################
- case "$useLocal" in
-    [aA]) # always
-        local -r pmclibtool="./pmc"
-         ;;
-    [nN]) # None
-        local -r pmclibtool="/usr/sbin/pmc.lib"
-         ;;
-    *) # tentive
-        if [ -x /usr/sbin/pmc.lib ]; then
-            local -r pmclibtool="/usr/sbin/pmc.lib"
-        else
-            local -r pmclibtool="./pmc"
-        fi
-        ;;
- esac
- case "$useLinuxptp" in
-    [aA]) # always
-        local -r pmctool="$linuxptpLoc"
-         ;;
-    [nN]) # None
-        local -r pmctool=/usr/sbin
-         ;;
-    *) # tentive
-        if [ -x "$linuxptpLoc/pmc" ]; then
-            local -r pmctool="$linuxptpLoc"
-        else
-            local -r pmctool=/usr/sbin
-        fi
-        ;;
- esac
- ##############################################################################
  # compare linuxptp-pmc with libpmc-pmc dump
  local -r t1=$(mktemp org.XXXXXXXXXX) t2=$(mktemp new.XXXXXXXXXX)
- local n
  local -a cmds
  # all TLVs that are supported by linuxptp ptp4l
  local -r tlvs='ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY CLOCK_DESCRIPTION
@@ -89,54 +117,39 @@ EOF
     PORT_STATS_NP SUBSCRIBE_EVENTS_NP SYNCHRONIZATION_UNCERTAIN_NP'
  local -r setmsg="set PRIORITY2 137"
  local -r verify="get PRIORITY2"
+ local n
  for n in $tlvs; do cmds+=("get $n"); done
 
  echo " * Make $t1 using linuxptp pmc"
- time sudo $pmctool/pmc -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: > $t1
- sudo $pmctool/pmc -u -f $cfgFile "$setmsg" >> $t1
- sudo $pmctool/pmc -u -f $cfgFile "$verify" >> $t1
+ $pmctool -u -f $cfgFile "$setmsg" > $t1
+ $pmctool -u -f $cfgFile "$verify" >> $t1
+ time $pmctool -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: >> $t1
 
 # real  0m0.113s
 # user  0m0.009s
 # sys   0m0.002s
 
  printf "\n * Make $t2 using libpmc\n"
- time sudo $pmclibtool -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: > $t2
- sudo $pmclibtool -u -f $cfgFile "$setmsg" >> $t2
- sudo $pmclibtool -u -f $cfgFile "$verify" >> $t2
+ $useSudo $pmclibtool -u -f $cfgFile "$setmsg" > $t2
+ $useSudo $pmclibtool -u -f $cfgFile "$verify" >> $t2
+ time $useSudo $pmclibtool -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: >> $t2
 
 # real  0m0.019s
 # user  0m0.004s
 # sys   0m0.011s
 
  printf "\n * We excpect 'protocolAddress' and 'timeSource' in diff"
- printf "\n * Statistics may aprear  '[tx/rx]_[PTP massage type]'\n\n"
+ printf "\n * Statistics may aprear  '[tx/rx]_[PTP massage type]'"
+ printf "\n * Old ptp4l uses wrong value for slaveOnly\n\n"
  cmd diff $t1 $t2 | grep '^[0-9-]' -v
  rm $t1 $t2
 
  ##############################################################################
  # Test script languages wrappers
- # Expected output of testing scripts
- local -r ldPathBase='LD_LIBRARY_PATH=..'
  local -r t3=$(mktemp script.XXXXXXXXXX)
- local ldPathPerl ldPathLua1 ldPathLua2 ldPathLua3 ldPathPython2 ldPathPython3
- case "$useLdPath" in
-    [aA]) # always
-        ldPathPerl=$ldPathBase
-        ldPathLua1=$ldPathBase
-        ldPathLua2=$ldPathBase
-        ldPathLua3=$ldPathBase
-        ldPathPython2=$ldPathBase
-        ldPathPython3=$ldPathBase
-         ;;
-    [nN]) # None
-         ;;
-    *) # tentive
-        probeLibs
-        ;;
- esac
+ # Expected output of testing scripts
  local -r scriptOut=\
-'Use configuration file /etc/linuxptp/ptp4l.conf
+"Use configuration file $cfgFile
 Get reply for USER_DESCRIPTION
 get user desc:
 physicalAddress: f1:f2:f3:f4
@@ -151,10 +164,10 @@ priority1: 147
 set new priority 153 success
 Get reply for PRIORITY1
 priority1: 153
-'
+"
  printf "\n =====  Run Perl  ===== \n * We except real 'user desc' on '>'\n"
  cd perl
- eval "$ldPathPerl ./test.pl" > ../$t3
+ eval "$ldPathPerl $useSudo ./test.pl $cfgFile" > ../$t3
  cd ..
  diff <(printf "$scriptOut") $t3 | grep '^[0-9-]' -v
  cd lua
@@ -168,20 +181,25 @@ priority1: 153
     else
         rm -f pmc.so
     fi
-    eval "$ldPathLua lua5.$i test.lua" | diff - ../$t3
+    eval "$ldPathLua $useSudo lua5.$i ./test.lua $cfgFile" | diff - ../$t3
  done
  cd ..
  cd python
  printf "\n =====  Run python  ===== \n"
  for i in 2 3; do
-    getFirstFile "$i/*.so"
-    if [ -f "$file" ]; then
+    rm -f *.so -rf pmc.pyc __pycache__
+    local -n ldPathPython=ldPathPython$i
+    if [ -n "$ldPathPython" ]; then
+        getFirstFile "$i/*.so"
+        if [ -f "$file" ]; then
+            echo " $(readlink $(which python$i)) ---- "
+            ln -sf $file
+            eval "$ldPathPython $useSudo python$i ./test.py $cfgFile" |\
+                diff - ../$t3
+        fi
+    else
         echo " $(readlink $(which python$i)) ---- "
-        local -n ldPathPython=ldPathPython$i
-        rm -f *.so
-        [ -n "$ldPathPython" ] && ln -sf $file
-        rm -rf pmc.pyc __pycache__
-        eval "$ldPathPython python$i test.py" | diff - ../$t3
+        $useSudo python$i ./test.py $cfgFile | diff - ../$t3
     fi
  done
  cd ..
@@ -212,12 +230,15 @@ probeLibs()
     getFirstFile "/usr/lib$fmach/perl*/*/auto/PmcLib/PmcLib.so"
     if [ ! -f "$file" ]; then
         ldPathPerl=$ldPathBase
+        allScript="x"
     fi
+    local i
     for i in 1 2 3; do
         getFirstFile "/usr/lib$fmach/lua/5.$i/pmc.so"
         if [ ! -f "$file" ]; then
             local -n ld=ldPathLua$i
             ld=$ldPathBase
+            allScript="x"
         fi
         getFirstFile "/usr/lib/python$i*/dist-packages/_pmc.*$mach*.so"
         if [ ! -f "$file" ]; then

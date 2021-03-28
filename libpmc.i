@@ -22,6 +22,7 @@
 
 %include "stdint.i"
 %include "std_string.i"
+%include "std_vector.i"
 %apply long { ssize_t };
 %include "cfg.h"
 %include "msg.h"
@@ -29,11 +30,38 @@
 %include "sock.h"
 %include "bin.h"
 %include "proc.h"
+%include "sig.h"
 %include "mngIds.h"
 %include "cpointer.i"
+/* Handle management and signalig vectors inside structures */
+namespace std {
+  %template(FaultRecord_v) vector<FaultRecord_t>;
+  %template(ClockIdentity_v) vector<ClockIdentity_t>;
+  %template(PortAddress_v) vector<PortAddress_t>;
+  %template(AcceptableMaster_v) vector<AcceptableMaster_t>;
+  %template(sigTime) vector<SLAVE_RX_SYNC_TIMING_DATA_rec_t>;
+  %template(sigComp) vector<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t>;
+  %template(sigEvent) vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>;
+  %template(sigDelay) vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t>;
+};
 /* Allow script to convert a string to a buffer
  * The script need to ensure the string length is proper */
 %pointer_cast(char*, void*, conv_buf);
-#define caseUF(n) %pointer_cast(baseData*, n##_t*, conv_##n);
+/* convert management tlv from base pointer */
+#define caseUF(n) %pointer_cast(baseMngTlv*, n##_t*, conv_##n);
 #define A(n, v, sc, a, sz, f) case##f(n)
 %include "ids.h"
+/* convert TLV from signaling message from base pointer */
+#define sigCnv(n) %pointer_cast(baseSigTlv*, n##_t*, conv_##n);
+sigCnv(ORGANIZATION_EXTENSION)
+sigCnv(PATH_TRACE)
+sigCnv(ALTERNATE_TIME_OFFSET_INDICATOR)
+sigCnv(ENHANCED_ACCURACY_METRICS)
+sigCnv(L1_SYNC)
+sigCnv(PORT_COMMUNICATION_AVAILABILITY)
+sigCnv(PROTOCOL_ADDRESS)
+sigCnv(SLAVE_RX_SYNC_TIMING_DATA)
+sigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
+sigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
+sigCnv(CUMULATIVE_RATE_RATIO)
+sigCnv(SLAVE_DELAY_TIMING_DATA_NP)
