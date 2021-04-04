@@ -61,7 +61,7 @@ typedef uint8_t  Octet_t;
 /** IEEE Std 754 binary64 (64-bit double-precision floating-point format) */
 typedef double Float64_t;
 
-class message;
+class Message;
 
 /** Parsing and building errors */
 enum MNG_PARSE_ERROR_e {
@@ -165,7 +165,7 @@ enum clockType_e : uint16_t {
     boundaryClock       = 0x4000, /**< boundary clock */
     p2pTransparentClock = 0x2000, /**< peer-to-peer transparent clock */
     e2eTransparentClock = 0x1000, /**< end-to-end transparent clock */
-    management          = 0x0800, /**< management node (deprecated) */
+    managementClock     = 0x0800, /**< management node (deprecated) */
 };
 /** PTP using a network layer */
 enum networkProtocol_e : uint16_t {
@@ -269,16 +269,16 @@ enum linuxptpTimeStamp_e : uint8_t {
 /** Clock time properties bit mask */
 enum : uint8_t {
     /** The last minute of the current UTC day contains 61 seconds */
-    f_LI_61 = (1 << 0),
+    F_LI_61 = (1 << 0),
     /** the last minute of the current UTC day contains 59 seconds */
-    f_LI_59 = (1 << 1),
-    f_UTCV  = (1 << 2), /**< Current UTC offset is valid */
+    F_LI_59 = (1 << 1),
+    F_UTCV  = (1 << 2), /**< Current UTC offset is valid */
     /** The timescale of the grand source PTP Instance is PTP */
-    f_PTP   = (1 << 3),
-    f_TTRA  = (1 << 4), /**< timescale is traceable to a primary reference */
+    F_PTP   = (1 << 3),
+    F_TTRA  = (1 << 4), /**< timescale is traceable to a primary reference */
     /** The frequency determining the timescale is
         traceable to a primary reference */
-    f_FTRA  = (1 << 5),
+    F_FTRA  = (1 << 5),
 };
 /** PTP Time interval value */
 struct TimeInterval_t {
@@ -312,7 +312,7 @@ struct Timestamp_t {
      * Convert to string
      * @return string
      */
-    std::string str() const;
+    std::string string() const;
 };
 /** PTP clock ID */
 struct ClockIdentity_t {
@@ -326,7 +326,7 @@ struct ClockIdentity_t {
      * Convert to string
      * @return string
      */
-    std::string str() const;
+    std::string string() const;
 };
 /** PTP port ID */
 struct PortIdentity_t {
@@ -341,13 +341,13 @@ struct PortIdentity_t {
      * Convert to string
      * @return string
      */
-    std::string str() const;
+    std::string string() const;
 };
 /** PTP port address */
 struct PortAddress_t {
     networkProtocol_e networkProtocol; /**< network protocol */
     UInteger16_t addressLength; /**< address length */
-    binary addressField; /**< binary from address */
+    Binary addressField; /**< binary from address */
     /**
      * Get object size
      * @return object size
@@ -357,7 +357,7 @@ struct PortAddress_t {
      * Convert to string
      * @return string
      */
-    std::string str() const;
+    std::string string() const;
 };
 /** PTP clock quality */
 struct ClockQuality_t {
@@ -378,7 +378,7 @@ struct PTPText_t {
      * Get string
      * @return pointer to string
      */
-    const char *str() const { return textField.c_str(); }
+    const char *string() const { return textField.c_str(); }
 };
 /** PTP fault record */
 struct FaultRecord_t {
@@ -408,7 +408,7 @@ struct AcceptableMaster_t {
     static size_t size() { return 1 + PortIdentity_t::size(); }
 };
 /** Properties of a PTP management TLV */
-struct managementId_t {
+struct ManagementId_t {
     uint16_t value;   /**< managementId value */
     uint8_t scope;   /**< Applies port or clock using scope_e */
     uint8_t allowed; /**< Allowed actions, bits from allowAction_t */
@@ -423,7 +423,7 @@ struct managementId_t {
     ssize_t size;
 };
 /** Fixed values to use in Management messages */
-struct msgParams {
+struct MsgParams {
     uint8_t transportSpecific; /**< transport specific */
     uint8_t domainNumber; /**< domain number */
     uint8_t boundaryHops; /**< boundary hops */
@@ -438,10 +438,10 @@ struct msgParams {
     std::map<tlvType_e, bool> allowSigTlvs;
 };
 /** Base for all Management TLV structures */
-struct baseMngTlv {
+struct BaseMngTlv {
 };
 /** Base for all Signaling TLV structures */
-struct baseSigTlv {
+struct BaseSigTlv {
 };
 #ifndef SWIG
 /** @cond internal
@@ -450,7 +450,7 @@ struct baseSigTlv {
  */
 struct sigTlv {
     tlvType_e tlvType;
-    std::unique_ptr<baseSigTlv> tlv;
+    std::unique_ptr<BaseSigTlv> tlv;
     sigTlv(tlvType_e t) : tlvType(t) {}
     sigTlv(const sigTlv &t) : tlvType(t.tlvType) {}
     sigTlv &operator=(const sigTlv &t) { tlvType = t.tlvType; return *this; }
@@ -469,7 +469,7 @@ struct sigTlv {
  *  Handle parse and build of a PTP management massage.
  *  Handle TLV specific dataField by calling a specific call-back per TLV id
  */
-class message
+class Message
 {
     /** @cond internal
      * Doxygen does not know how to proccess.
@@ -498,7 +498,7 @@ class message
     /* build parameters */
     actionField_e   m_sendAction;
     size_t          m_msgLen;
-    baseMngTlv     *m_dataSend;
+    BaseMngTlv     *m_dataSend;
 
     /* Temporary parameters used during parsing and build */
     bool            m_build; /* true on build */
@@ -515,11 +515,11 @@ class message
     msgType_e       m_type; /* parsed message type */
     uint8_t         m_domainNumber; /* parsed message domainNumber*/
     std::vector<sigTlv> m_sigTlvs; /* hold signaling TLVs */
-    std::unique_ptr<baseMngTlv> m_dataGet;
+    std::unique_ptr<BaseMngTlv> m_dataGet;
 
     /* Generic */
     mng_vals_e      m_tlv_id;
-    msgParams       m_prms;
+    MsgParams       m_prms;
 
     /* parsing parameters */
     PortIdentity_t  m_peer; /* parsed message peer port id */
@@ -533,7 +533,7 @@ class message
     PTPText_t m_errorDisplay;
 
     /* Map to all management IDs */
-    static const managementId_t mng_all_vals[];
+    static const ManagementId_t mng_all_vals[];
 
     bool allowedAction(mng_vals_e id, actionField_e action);
     /* Parsing functions */
@@ -557,7 +557,7 @@ class message
     bool proc(int64_t &val);
     bool proc(Float64_t &val);
     bool proc(std::string &str, uint16_t len);
-    bool proc(binary &bin, uint16_t len);
+    bool proc(Binary &bin, uint16_t len);
     bool proc(uint8_t *val, size_t len);
     bool proc(networkProtocol_e &val);
     bool proc(clockAccuracy_e &val);
@@ -582,7 +582,7 @@ class message
     bool procFlags(uint8_t &flags, const uint8_t flagsMask);
     /* linuxptp PORT_STATS_NP statistics use little endian */
     bool procLe(uint64_t &val);
-    MNG_PARSE_ERROR_e call_tlv_data(mng_vals_e id, baseMngTlv *&tlv);
+    MNG_PARSE_ERROR_e call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv);
     MNG_PARSE_ERROR_e parseSig(); /* parse signaling message */
     /*
      * dataFieldSize() for sending SET/COMMAND
@@ -593,24 +593,24 @@ class message
     ssize_t dataFieldSize() const;
 
   public:
-    message();
+    Message();
     /**
-     * Construct a new object using the user msgParams parameters
-     * @param[in] prms msgParams parameters
+     * Construct a new object using the user MsgParams parameters
+     * @param[in] prms MsgParams parameters
      * @note you may use the parameters from a different message object
      */
-    message(msgParams prms);
+    Message(MsgParams prms);
     /**
      * Get the current msgparams parameters
      * @return msgparams parameters
      */
-    msgParams getParams() { return m_prms; }
+    MsgParams getParams() { return m_prms; }
     /**
-     * Set and use a user msgParams parameters
-     * @param[in] prms msgParams parameters
+     * Set and use a user MsgParams parameters
+     * @param[in] prms MsgParams parameters
      * @return true if parameters are valid and updated
      */
-    bool updateParams(msgParams prms);
+    bool updateParams(MsgParams prms);
     /**
      * Get the current TLV id
      * @return current TLV id
@@ -628,13 +628,13 @@ class message
      */
     bool isAllClocks();
     /**
-     * Fetch msgParams parameters from configuration file
+     * Fetch MsgParams parameters from configuration file
      * @param[in] cfg reference to configuration file object
      * @param[in] section in configuration file
      * @return true on success
      * @note calling without section will fetch value from @"global@" section
      */
-    bool useConfig(configFile &cfg, std::string section = "");
+    bool useConfig(ConfigFile &cfg, std::string section = "");
     /**
      * Convert parse error code to string
      * @param[in] err parse code
@@ -712,37 +712,37 @@ class message
      * @param[in] flags
      * @return 1 if flag on or 0 if not
      */
-    static uint8_t is_LI_61(uint8_t flags) { return flags & f_LI_61 ? 1 : 0; }
+    static uint8_t is_LI_61(uint8_t flags) { return flags & F_LI_61 ? 1 : 0; }
     /**
      * Check if leap 59 seconds flag is enabled
      * @param[in] flags
      * @return 1 if flag on or 0 if not
      */
-    static uint8_t is_LI_59(uint8_t flags) { return flags & f_LI_59 ? 1 : 0; }
+    static uint8_t is_LI_59(uint8_t flags) { return flags & F_LI_59 ? 1 : 0; }
     /**
      * Check if UTC offset is valid flag is enabled
      * @param[in] flags
      * @return 1 if flag on or 0 if not
      */
-    static uint8_t is_UTCV(uint8_t flags)  { return flags & f_UTCV  ? 1 : 0; }
+    static uint8_t is_UTCV(uint8_t flags)  { return flags & F_UTCV  ? 1 : 0; }
     /**
      * Check if is PTP instance flag is enabled
      * @param[in] flags
      * @return 1 if flag on or 0 if not
      */
-    static uint8_t is_PTP(uint8_t flags)   { return flags & f_PTP   ? 1 : 0; }
+    static uint8_t is_PTP(uint8_t flags)   { return flags & F_PTP   ? 1 : 0; }
     /**
      * Check if timescale is traceable flag is enabled
      * @param[in] flags
      * @return 1 if flag on or 0 if not
      */
-    static uint8_t is_TTRA(uint8_t flags)  { return flags & f_TTRA  ? 1 : 0; }
+    static uint8_t is_TTRA(uint8_t flags)  { return flags & F_TTRA  ? 1 : 0; }
     /**
      * Check if frequency is traceable flag is enabled
      * @param[in] flags
      * @return 1 if flag on or 0 if not
      */
-    static uint8_t is_FTRA(uint8_t flags)  { return flags & f_FTRA  ? 1 : 0; }
+    static uint8_t is_FTRA(uint8_t flags)  { return flags & F_FTRA  ? 1 : 0; }
     /**
      * Check management TLV id uses empty dataField
      * @param[in] id management TLV id
@@ -770,10 +770,10 @@ class message
      *  The library does @b NOT perform any error catchig of any kind!
      */
     bool setAction(actionField_e actionField, mng_vals_e tlv_id,
-        baseMngTlv &dataSend);
+        BaseMngTlv &dataSend);
     /**
      * Build a raw message for send based on last setAction call
-     * @param[in, out] buf memory buffer to fill with raw PTP message
+     * @param[in, out] buf memory buffer to fill with raw PTP Message
      * @param[in] bufSize buffer size
      * @param[in] sequence message sequence
      * @return parse error state
@@ -805,8 +805,8 @@ class message
     /* Parsed message functions */
     /**
      * Parse a received raw socket
-     * @param[in] buf memory buffer containing the raw PTP message
-     * @param[in] msgSize received size of PTP message
+     * @param[in] buf memory buffer containing the raw PTP Message
+     * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
     MNG_PARSE_ERROR_e parse(void *buf, ssize_t msgSize);
@@ -854,7 +854,7 @@ class message
      *  management TLV ID.
      * @note User @b should not try to free this memory block
      */
-    const baseMngTlv *getData() const { return m_dataGet.get(); }
+    const BaseMngTlv *getData() const { return m_dataGet.get(); }
     /**
      * Get management error code ID
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
@@ -872,7 +872,7 @@ class message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error message
      */
-    const char *getErrDisplay_c() const { return m_errorDisplay.str(); }
+    const char *getErrDisplay_c() const { return m_errorDisplay.string(); }
     /**
      * query if last message is a signaling message
      * @return true if last message is a signaling message
@@ -886,8 +886,8 @@ class message
      * @note if scripting can not provide C++ call-back
      *  it may use the function bellow
      */
-    bool traversSigTlvs(const std::function<bool (const message &msg,
-            tlvType_e tlvType, baseSigTlv *tlv)> callback) const;
+    bool traversSigTlvs(const std::function<bool (const Message &msg,
+            tlvType_e tlvType, BaseSigTlv *tlv)> callback) const;
     /**
      * Get number of the last signaling message TLVs
      * @return number of TLVs or zero
@@ -900,7 +900,7 @@ class message
      * @return TLV or null
      * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
-    baseSigTlv *getSigTlv(size_t position) const;
+    BaseSigTlv *getSigTlv(size_t position) const;
     /**
      * Get a type of TLV from the last signaling message TLVs by position
      * @param[in] position of TLV
@@ -924,23 +924,7 @@ class message
      * @note return null if TLV is not management
      * @note this function is for scripting, normal C++ can just cast
      */
-    baseMngTlv *getSigMngTlv(size_t position) const;
-    /* Library version functions */
-    /**
-     * Get this library version
-     * @return this library version
-     */
-    static const char *getVersion();
-    /**
-     * Get this library major version
-     * @return this library version major
-     */
-    static int getVersionMajor();
-    /**
-     * Get this library minor version
-     * @return this library version minor
-     */
-    static int getVersionMinor();
+    BaseMngTlv *getSigMngTlv(size_t position) const;
 };
 
 /** @cond internal

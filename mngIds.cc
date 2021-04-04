@@ -44,13 +44,13 @@ void *conv_buf(char *string);
 #define caseUF(n) \
 %@**%^\
  * Convert data to n##_t structure%^\
- * @param[in] data pointer to the message dataField%^\
+ * @param[in] data pointer to the Message dataField%^\
  * @return pointer to n##_t%^\
  * @note This function is available in scripts only!%^\
  *%- C++ code can simply cast.%^\
- * @note Use message:getData() to retrieve the data from the message%^\
+ * @note Use Message:getData() to retrieve the data from the Message%^\
  *%@%^\
-n##_t%^*conv_##n(baseMngTlv *data);
+n##_t%^*conv_##n(BaseMngTlv *data);
 #define A(n, v, sc, a, sz, f) case##f(n)
 #include "ids.h"
 %_
@@ -61,10 +61,10 @@ n##_t%^*conv_##n(baseMngTlv *data);
  * @return pointer to n##_t%^\
  * @note This function is available in scripts only!%^\
  *%- C++ code can simply cast.%^\
- * @note Use message:getSigMngTlv() to retrieve the tlv%^\
+ * @note Use Message:getSigMngTlv() to retrieve the tlv%^\
  *%@%^\
 n##_t%^\
-*conv_##n(baseSigTlv *tlv);
+*conv_##n(BaseSigTlv *tlv);
 S(ORGANIZATION_EXTENSION)
 S(PATH_TRACE)
 S(ALTERNATE_TIME_OFFSET_INDICATOR)
@@ -170,7 +170,7 @@ vecClassType(FaultRecord)
 vecClassType(ClockIdentity)
 vecClassType(PortAddress)
 vecClassType(AcceptableMaster)
-#define vecClassSig(n, t) vecClass(sig##n, t##_rec_t)
+#define vecClassSig(n, t) vecClass(Sig##n, t##_rec_t)
 vecClassSig(Time, SLAVE_RX_SYNC_TIMING_DATA)
 vecClassSig(Comp, SLAVE_RX_SYNC_COMPUTED_DATA)
 vecClassSig(Event, SLAVE_TX_EVENT_TIMESTAMPS)

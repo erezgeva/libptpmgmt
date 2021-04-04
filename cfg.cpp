@@ -13,19 +13,19 @@
 #include "ptp.h"
 
 #define get_func(n)\
-    uint8_t configFile::n(const std::string section)\
+    uint8_t ConfigFile::n(const std::string section)\
     {\
-        return get(configSection::n##_val, section);\
+        return get(ConfigSection::n##_val, section);\
     }
 #define get_str_func(n)\
-    const std::string &configFile:: n(const std::string section)\
+    const std::string &ConfigFile:: n(const std::string section)\
     {\
-        return get_str(configSection::n##_val, section);\
+        return get_str(ConfigSection::n##_val, section);\
     }
 #define get_bin_func(n)\
-    const binary &configFile:: n(const std::string section)\
+    const Binary &ConfigFile:: n(const std::string section)\
     {\
-        return get_bin(configSection::n##_val, section);\
+        return get_bin(ConfigSection::n##_val, section);\
     }
 
 struct range_t {
@@ -51,9 +51,9 @@ const char *ptp_dst_mac_def = "1:1b:19:0:0:0";
 const char *p2p_dst_mac_def = "1:80:c2:0:0:e";
 const char *uds_address_def = "/var/run/ptp4l";
 const char globalSection[] = "global";
-const int configSection::val_limit = configSection::uds_address_val;
-const int configSection::str_base_val = configSection::uds_address_val;
-const int configSection::bin_base_val = configSection::uds_address_val + 1;
+const int ConfigSection::val_limit = ConfigSection::uds_address_val;
+const int ConfigSection::str_base_val = ConfigSection::uds_address_val;
+const int ConfigSection::bin_base_val = ConfigSection::uds_address_val + 1;
 
 static inline char *skip_spaces(char *cur)
 {
@@ -68,10 +68,10 @@ static inline void strip_end_spaces(char *end)
     *(end + 1) = 0;
 }
 
-configSection::configSection() : m_set{0}
+ConfigSection::ConfigSection() : m_set{0}
 {
 }
-void configSection::setGlobal()
+void ConfigSection::setGlobal()
 {
     // Use default values from linuxptp
     m_str_vals[uds_address_val - str_base_val] = uds_address_def;
@@ -80,7 +80,7 @@ void configSection::setGlobal()
     for(int i = 0; i < val_limit; i++)
         m_vals[i] = ranges[i].def;
 }
-bool configSection::set_val(char *line)
+bool ConfigSection::set_val(char *line)
 {
     char *val = line;
     while(!isspace(*val))
@@ -101,7 +101,7 @@ bool configSection::set_val(char *line)
     if(*val == 0) // empty value after chomp
         return false;
     char *endptr;
-    binary id;
+    Binary id;
     long ret;
     switch(idx) {
         case uds_address_val:
@@ -136,12 +136,12 @@ bool configSection::set_val(char *line)
     m_set[idx] = true;
     return true;
 }
-configFile::configFile() : cfgGlobal(cfgSec[globalSection])
+ConfigFile::ConfigFile() : cfgGlobal(cfgSec[globalSection])
 {
     cfgGlobal.setGlobal();
 }
 // read PTP configuration from file
-bool configFile::read_cfg(const char *file)
+bool ConfigFile::read_cfg(const char *file)
 {
     FILE *f = fopen(file, "r");
     if(f == nullptr) {
@@ -174,29 +174,29 @@ bool configFile::read_cfg(const char *file)
     fclose(f);
     return true;
 }
-bool configFile::is_global(int idx, const std::string &section)
+bool ConfigFile::is_global(int idx, const std::string &section)
 {
     if(section.empty() || cfgSec.count(section) == 0 || !cfgSec[section].m_set[idx])
         return true;
     return false;
 }
-uint8_t configFile::get(int idx, const std::string &section)
+uint8_t ConfigFile::get(int idx, const std::string &section)
 {
     if(is_global(idx, section))
         return cfgGlobal.m_vals[idx];
     return cfgSec[section].m_vals[idx];
 }
-const std::string &configFile::get_str(int idx, const std::string &section)
+const std::string &ConfigFile::get_str(int idx, const std::string &section)
 {
     if(is_global(idx, section))
-        return cfgGlobal.m_str_vals[idx - configSection::str_base_val];
-    return cfgSec[section].m_str_vals[idx - configSection::str_base_val];
+        return cfgGlobal.m_str_vals[idx - ConfigSection::str_base_val];
+    return cfgSec[section].m_str_vals[idx - ConfigSection::str_base_val];
 }
-const binary &configFile::get_bin(int idx, const std::string &section)
+const Binary &ConfigFile::get_bin(int idx, const std::string &section)
 {
     if(is_global(idx, section))
-        return cfgGlobal.m_bin_vals[idx - configSection::bin_base_val];
-    return cfgSec[section].m_bin_vals[idx - configSection::bin_base_val];
+        return cfgGlobal.m_bin_vals[idx - ConfigSection::bin_base_val];
+    return cfgSec[section].m_bin_vals[idx - ConfigSection::bin_base_val];
 }
 get_func(transportSpecific)
 get_func(domainNumber)

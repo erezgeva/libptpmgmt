@@ -23,19 +23,19 @@
 /**
  * @brief Network interface information
  */
-class ifInfo
+class IfInfo
 {
   private:
     bool m_isInit;
     int m_ifIndex;
     int m_ptpIndex;
     std::string m_ifName;
-    binary m_mac;
+    Binary m_mac;
 
     bool initPtp(int fd, struct ifreq &m_ifr);
 
   public:
-    ifInfo() : m_isInit(false), m_ifIndex(-1), m_ptpIndex(-1) {}
+    IfInfo() : m_isInit(false), m_ifIndex(-1), m_ptpIndex(-1) {}
     /**
      * Find network interface information based on its name
      * @param[in] ifName network interface name
@@ -72,7 +72,7 @@ class ifInfo
      * Get interface MAC address
      * @return binary from address or empty string if object is not initialized
      */
-    const binary &mac() const { return m_mac; }
+    const Binary &mac() const { return m_mac; }
     /**
      * Get interface MAC address
      * @return binary from address or empty string if object is not initialized
@@ -103,7 +103,7 @@ class ifInfo
  *  As a network interface might have more than 1 PHC
  *  It is better to use a separate the class.
  */
-class ptpClock
+class PtpClock
 {
   private:
     int m_fd;
@@ -114,11 +114,11 @@ class ptpClock
 
   public:
     /**
-     * Allocate a ptpClock object and initialize it
+     * Allocate a PtpClock object and initialize it
      * @param[in] ptpIndex PTP index
      */
-    ptpClock(int ptpIndex);
-    ~ptpClock();
+    PtpClock(int ptpIndex);
+    ~PtpClock();
     /**
      * Is object initialized
      * @return true if PTP clock exist and object was successfully initialized

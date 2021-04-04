@@ -53,7 +53,7 @@ S(PORT_PROPERTIES_NP)
     return 2 + PortIdentity_t::size() + d.interface.size();
 }
 
-ssize_t message::dataFieldSize() const
+ssize_t Message::dataFieldSize() const
 {
 #define caseUFS(n) case n: return n##_s(*(n##_t*)m_dataSend);
 #define caseUFBS(n) caseUFS(n)
@@ -77,7 +77,7 @@ ssize_t message::dataFieldSize() const
  * The main build function will add a pad at the end to make size even
  */
 
-#define A(n) bool message::n##_##f(n##_t &d)
+#define A(n) bool Message::n##_##f(n##_t &d)
 
 A(CLOCK_DESCRIPTION)
 {

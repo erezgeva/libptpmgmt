@@ -28,7 +28,7 @@ static inline clockid_t get_clockid_fd(int fd)
     return FD_TO_CLOCKID(fd);
 }
 
-bool ifInfo::initPtp(int fd, ifreq &ifr)
+bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
     /* retrieve corresponding MAC */
     if(ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
@@ -36,7 +36,7 @@ bool ifInfo::initPtp(int fd, ifreq &ifr)
         close(fd);
         return false;
     }
-    m_mac.set(ifr.ifr_hwaddr.sa_data, EUI48);
+    m_mac.setBin(ifr.ifr_hwaddr.sa_data, EUI48);
     ethtool_ts_info info = {
         .cmd = ETHTOOL_GET_TS_INFO,
         .phc_index = -1,
@@ -52,7 +52,7 @@ bool ifInfo::initPtp(int fd, ifreq &ifr)
     m_isInit = true;
     return true;
 }
-bool ifInfo::initUsingName(const std::string ifName)
+bool IfInfo::initUsingName(const std::string ifName)
 {
     if(m_isInit || ifName.empty() || ifName.length() >= IFNAMSIZ)
         return false;
@@ -73,7 +73,7 @@ bool ifInfo::initUsingName(const std::string ifName)
     m_ifIndex = ifr.ifr_ifindex;
     return initPtp(fd, ifr);
 }
-bool ifInfo::initUsingIndex(int ifIndex)
+bool IfInfo::initUsingIndex(int ifIndex)
 {
     if(m_isInit)
         return false;
@@ -93,7 +93,7 @@ bool ifInfo::initUsingIndex(int ifIndex)
     m_ifIndex = ifIndex;
     return initPtp(fd, ifr);
 }
-ptpClock::ptpClock(int ptpIndex) : m_ptpIndex(ptpIndex), m_isInit(false)
+PtpClock::PtpClock(int ptpIndex) : m_ptpIndex(ptpIndex), m_isInit(false)
 {
     std::string dev = "/dev/ptp";
     dev += std::to_string(ptpIndex);
@@ -111,7 +111,7 @@ ptpClock::ptpClock(int ptpIndex) : m_ptpIndex(ptpIndex), m_isInit(false)
     m_ptpDevice = dev;
     m_isInit = true;
 }
-ptpClock::~ptpClock()
+PtpClock::~PtpClock()
 {
     if(m_fd >= 0)
         close(m_fd);

@@ -131,12 +131,12 @@ PACK(struct managementErrorTLV_p {
 const size_t mngMsgBaseSize = sizeof(managementMessage_p) +
     sizeof(managementTLV_t);
 
-const managementId_t message::mng_all_vals[] = {
+const ManagementId_t Message::mng_all_vals[] = {
 #define A(n, v, sc, a, sz, f)\
     [n] = {.value = 0x##v, .scope = s_##sc, .allowed = a, .size = sz},
 #include "ids.h"
 };
-MNG_PARSE_ERROR_e message::call_tlv_data(mng_vals_e id, baseMngTlv *&tlv)
+MNG_PARSE_ERROR_e Message::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
 {
 #define A(n, v, sc, a, sz, f) case##f(n);
 #define caseNA(n) case n: return MNG_PARSE_ERROR_OK
@@ -165,7 +165,7 @@ MNG_PARSE_ERROR_e message::call_tlv_data(mng_vals_e id, baseMngTlv *&tlv)
     return MNG_PARSE_ERROR_OK;
 }
 
-bool message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
+bool Message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
 {
     mng_vals_e id;
 #define A(n, v, sc, a, sz, f) case 0x##v: id = n; break;
@@ -181,7 +181,7 @@ bool message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
     rid = id;
     return true;
 }
-bool message::checkReplyAction(uint8_t actionField)
+bool Message::checkReplyAction(uint8_t actionField)
 {
     uint8_t allowed = mng_all_vals[m_tlv_id].allowed;
     if(actionField == ACKNOWLEDGE)
@@ -190,7 +190,7 @@ bool message::checkReplyAction(uint8_t actionField)
         return allowed & (A_SET | A_GET);
     return false;
 }
-bool message::allowedAction(mng_vals_e id, actionField_e action)
+bool Message::allowedAction(mng_vals_e id, actionField_e action)
 {
     if(id < FIRST_MNG_ID || id > LAST_MNG_ID || mng_all_vals[id].size == -1)
         return false;
@@ -212,7 +212,7 @@ static inline bool verifyAction(actionField_e action)
     return false;
 }
 
-message::message() :
+Message::Message() :
     m_sendAction(GET),
     m_msgLen(0),
     m_dataSend(nullptr),
@@ -231,7 +231,7 @@ message::message() :
     };
     setAllClocks();
 }
-message::message(msgParams prms) :
+Message::Message(MsgParams prms) :
     m_sendAction(GET),
     m_msgLen(0),
     m_dataSend(nullptr),
@@ -246,7 +246,7 @@ message::message(msgParams prms) :
     if(m_prms.transportSpecific > 0xf)
         m_prms.transportSpecific = 0;
 }
-ssize_t message::getMsgPlanedLen() const
+ssize_t Message::getMsgPlanedLen() const
 {
     // That should not happen, precaution
     if(m_tlv_id < FIRST_MNG_ID || m_tlv_id > LAST_MNG_ID)
@@ -271,21 +271,21 @@ ssize_t message::getMsgPlanedLen() const
     return ret + mngMsgBaseSize;
     // return total length of to the message to be send
 }
-bool message::updateParams(msgParams prms)
+bool Message::updateParams(MsgParams prms)
 {
     if(prms.transportSpecific > 0xf)
         return false;
     m_prms = prms;
     return true;
 }
-bool message::isEmpty(mng_vals_e id)
+bool Message::isEmpty(mng_vals_e id)
 {
     if(id >= FIRST_MNG_ID && id <= LAST_MNG_ID && mng_all_vals[id].size == 0)
         return true;
     return false;
 }
 
-bool message::setAction(actionField_e actionField, mng_vals_e tlv_id)
+bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id)
 {
     if(!verifyAction(actionField) || !allowedAction(tlv_id, actionField))
         return false;
@@ -296,8 +296,8 @@ bool message::setAction(actionField_e actionField, mng_vals_e tlv_id)
     m_dataSend = nullptr;
     return true;
 }
-bool message::setAction(actionField_e actionField, mng_vals_e tlv_id,
-    baseMngTlv &dataSend)
+bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id,
+    BaseMngTlv &dataSend)
 {
     if(!verifyAction(actionField) || !allowedAction(tlv_id, actionField))
         return false;
@@ -310,7 +310,7 @@ bool message::setAction(actionField_e actionField, mng_vals_e tlv_id,
         m_dataSend = nullptr;
     return true;
 }
-MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
+MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
 {
     if(buf == nullptr)
         return MNG_PARSE_ERROR_TOO_SMALL;
@@ -365,7 +365,7 @@ MNG_PARSE_ERROR_e message::build(void *buf, size_t bufSize, uint16_t sequence)
     msg->messageLength = cpu_to_net16(size);
     return MNG_PARSE_ERROR_OK;
 }
-MNG_PARSE_ERROR_e message::parse(void *buf, ssize_t msgSize)
+MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
 {
     if(msgSize < sigBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
@@ -457,11 +457,11 @@ MNG_PARSE_ERROR_e message::parse(void *buf, ssize_t msgSize)
     m_cur = (uint8_t *)cur;
     if(size < m_left) // Check dataField size
         return MNG_PARSE_ERROR_TOO_SMALL;
-    baseMngTlv *tlv;
+    BaseMngTlv *tlv;
     MNG_PARSE_ERROR_e err = call_tlv_data(m_tlv_id, tlv);
     if(err != MNG_PARSE_ERROR_OK)
         return err;
-    m_dataGet = std::move(std::unique_ptr<baseMngTlv>(tlv));
+    m_dataGet = std::move(std::unique_ptr<BaseMngTlv>(tlv));
     return MNG_PARSE_ERROR_OK;
 }
 #define caseBuildAct(n) {\
@@ -476,7 +476,7 @@ MNG_PARSE_ERROR_e message::parse(void *buf, ssize_t msgSize)
         break;\
     }
 #define caseBuild(n) n: caseBuildAct(n)
-MNG_PARSE_ERROR_e message::parseSig()
+MNG_PARSE_ERROR_e Message::parseSig()
 {
     ssize_t leftAll = m_size;
     m_sigTlvs.clear(); // remove old TLVs
@@ -498,7 +498,7 @@ MNG_PARSE_ERROR_e message::parseSig()
         m_left = lengthField; // for build functions
         // The default error on build or parsing
         m_err = MNG_PARSE_ERROR_TOO_SMALL;
-        baseSigTlv *tlv = nullptr;
+        BaseSigTlv *tlv = nullptr;
         switch(tlvType) {
             case ORGANIZATION_EXTENSION_PROPAGATE:
             case ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE:
@@ -524,7 +524,7 @@ MNG_PARSE_ERROR_e message::parseSig()
                 m_left -= 2;
                 // Ignore empty and unknown management TLVs
                 if(ret && m_left > 0) {
-                    baseMngTlv *mtlv;
+                    BaseMngTlv *mtlv;
                     MNG_PARSE_ERROR_e err = call_tlv_data(tlv_id, mtlv);
                     if(err != MNG_PARSE_ERROR_OK)
                         return err;
@@ -532,7 +532,7 @@ MNG_PARSE_ERROR_e message::parseSig()
                     if(d == nullptr)
                         return MNG_PARSE_ERROR_MEM;
                     d->tlv_id = tlv_id;
-                    d->tlvData = std::move(std::unique_ptr<baseMngTlv>(mtlv));
+                    d->tlvData = std::move(std::unique_ptr<BaseMngTlv>(mtlv));
                     tlv = d;
                 }
                 break;
@@ -549,13 +549,13 @@ MNG_PARSE_ERROR_e message::parseSig()
         if(tlv != nullptr) {
             sigTlv rec(tlvType);
             auto it = m_sigTlvs.insert(m_sigTlvs.end(), rec);
-            it->tlv = std::move(std::unique_ptr<baseSigTlv>(tlv));
+            it->tlv = std::move(std::unique_ptr<BaseSigTlv>(tlv));
         };
     }
     return MNG_PARSE_ERROR_SIG; // We have signaling message
 }
-bool message::traversSigTlvs(std::function<bool (const message &msg,
-        tlvType_e tlvType, baseSigTlv *tlv)> callback) const
+bool Message::traversSigTlvs(std::function<bool (const Message &msg,
+        tlvType_e tlvType, BaseSigTlv *tlv)> callback) const
 {
     if(m_type == Signaling)
         for(auto tlv : m_sigTlvs)
@@ -563,25 +563,25 @@ bool message::traversSigTlvs(std::function<bool (const message &msg,
                 return true;
     return false;
 }
-size_t message::getSigTlvsCount() const
+size_t Message::getSigTlvsCount() const
 {
     if(m_type == Signaling)
         return m_sigTlvs.size();
     return 0;
 }
-baseSigTlv *message::getSigTlv(size_t pos) const
+BaseSigTlv *Message::getSigTlv(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size())
         return m_sigTlvs[pos].tlv.get();
     return nullptr;
 }
-tlvType_e message::getSigTlvType(size_t pos) const
+tlvType_e Message::getSigTlvType(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size())
         return m_sigTlvs[pos].tlvType;
     return (tlvType_e)0; // unknown
 }
-mng_vals_e message::getSigMngTlvType(size_t pos) const
+mng_vals_e Message::getSigMngTlvType(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size() &&
         m_sigTlvs[pos].tlvType == MANAGEMENT) {
@@ -590,7 +590,7 @@ mng_vals_e message::getSigMngTlvType(size_t pos) const
     }
     return NULL_PTP_MANAGEMENT;
 }
-baseMngTlv *message::getSigMngTlv(size_t pos) const
+BaseMngTlv *Message::getSigMngTlv(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size() &&
         m_sigTlvs[pos].tlvType == MANAGEMENT) {
@@ -599,17 +599,17 @@ baseMngTlv *message::getSigMngTlv(size_t pos) const
     }
     return nullptr;
 }
-void message::setAllClocks()
+void Message::setAllClocks()
 {
     m_prms.target.portNumber = allPorts;
     m_prms.target.clockIdentity = allClocks;
 }
-bool message::isAllClocks()
+bool Message::isAllClocks()
 {
     return m_prms.target.portNumber == allPorts &&
         memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof(allClocks)) == 0;
 }
-bool message::useConfig(configFile &cfg, std::string section)
+bool Message::useConfig(ConfigFile &cfg, std::string section)
 {
     uint8_t transportSpecific = cfg.transportSpecific(section);
     if(transportSpecific > 0xf)
@@ -618,7 +618,7 @@ bool message::useConfig(configFile &cfg, std::string section)
     m_prms.domainNumber = cfg.domainNumber();
     return true;
 }
-const char *message::err2str_c(MNG_PARSE_ERROR_e err)
+const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
 {
     switch(err) {
         case caseItem(MNG_PARSE_ERROR_OK);
@@ -637,7 +637,7 @@ const char *message::err2str_c(MNG_PARSE_ERROR_e err)
             return "unknown";
     }
 }
-const char *message::tlv2str_c(tlvType_e type)
+const char *Message::tlv2str_c(tlvType_e type)
 {
     switch(type) {
         case caseItem(MANAGEMENT);
@@ -667,7 +667,7 @@ const char *message::tlv2str_c(tlvType_e type)
             return "unknown TLV";
     }
 }
-const char *message::act2str_c(actionField_e action)
+const char *Message::act2str_c(actionField_e action)
 {
     switch(action) {
         case caseItem(GET);
@@ -679,7 +679,7 @@ const char *message::act2str_c(actionField_e action)
             return "unknown";
     }
 }
-const char *message::mng2str_c(mng_vals_e id)
+const char *Message::mng2str_c(mng_vals_e id)
 {
 #define A(n, v, sc, a, sz, f) case n: return #n;
     switch(id) {
@@ -690,7 +690,7 @@ const char *message::mng2str_c(mng_vals_e id)
             return "unknown";
     }
 }
-const char *message::errId2str_c(managementErrorId_e err)
+const char *Message::errId2str_c(managementErrorId_e err)
 {
     switch(err) {
         case caseItem(RESPONSE_TOO_BIG);
@@ -704,19 +704,19 @@ const char *message::errId2str_c(managementErrorId_e err)
             return "unknown";
     }
 }
-const char *message::clkType2str_c(clockType_e val)
+const char *Message::clkType2str_c(clockType_e val)
 {
     switch(val) {
         case caseItem(ordinaryClock);
         case caseItem(boundaryClock);
         case caseItem(p2pTransparentClock);
         case caseItem(e2eTransparentClock);
-        case caseItem(management);
+        case caseItem(managementClock);
         default:
             return "unknown";
     }
 }
-const char *message::netProt2str_c(networkProtocol_e val)
+const char *Message::netProt2str_c(networkProtocol_e val)
 {
     switch(val) {
         case caseItem(UDP_IPv4);
@@ -729,7 +729,7 @@ const char *message::netProt2str_c(networkProtocol_e val)
             return "unknown";
     }
 }
-const char *message::clockAcc2str_c(clockAccuracy_e val)
+const char *Message::clockAcc2str_c(clockAccuracy_e val)
 {
     switch(val) {
         case caseItem(Accurate_within_1ps);
@@ -766,7 +766,7 @@ const char *message::clockAcc2str_c(clockAccuracy_e val)
             return "unknown val";
     }
 }
-const char *message::faultRec2str_c(faultRecord_e val)
+const char *Message::faultRec2str_c(faultRecord_e val)
 {
     switch(val) {
         case caseItem(Emergency);
@@ -781,7 +781,7 @@ const char *message::faultRec2str_c(faultRecord_e val)
             return "unknown fault record";
     }
 }
-const char *message::timeSrc2str_c(timeSource_e val)
+const char *Message::timeSrc2str_c(timeSource_e val)
 {
     switch(val) {
         case caseItem(ATOMIC_CLOCK);
@@ -797,7 +797,7 @@ const char *message::timeSrc2str_c(timeSource_e val)
             return "unknown clock";
     }
 }
-const char *message::portState2str_c(portState_e val)
+const char *Message::portState2str_c(portState_e val)
 {
     switch(val) {
         case caseItem(INITIALIZING);
@@ -813,7 +813,7 @@ const char *message::portState2str_c(portState_e val)
             return "unknown state";
     }
 }
-const char *message::ts2str_c(linuxptpTimeStamp_e val)
+const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 {
     switch(val) {
         case caseItem(TS_SOFTWARE);
@@ -825,27 +825,27 @@ const char *message::ts2str_c(linuxptpTimeStamp_e val)
             return "unknown";
     }
 }
-std::string Timestamp_t::str() const
+std::string Timestamp_t::string() const
 {
     char buf[200];
     snprintf(buf, sizeof(buf), "%ju.%.9u", secondsField, nanosecondsField);
     return buf;
 };
-std::string ClockIdentity_t::str() const
+std::string ClockIdentity_t::string() const
 {
     char buf[25];
     snprintf(buf, sizeof(buf), "%02x%02x%02x.%02x%02x.%02x%02x%02x",
         v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
     return buf;
 }
-std::string PortIdentity_t::str() const
+std::string PortIdentity_t::string() const
 {
-    std::string ret = clockIdentity.str();
+    std::string ret = clockIdentity.string();
     ret += "-";
     ret += std::to_string(portNumber);
     return ret;
 }
-std::string PortAddress_t::str() const
+std::string PortAddress_t::string() const
 {
     switch(networkProtocol) {
         case UDP_IPv4:
@@ -859,7 +859,7 @@ std::string PortAddress_t::str() const
             return addressField.toId();
     }
 }
-bool message::proc(uint8_t &val)
+bool Message::proc(uint8_t &val)
 {
     if(m_left < 1)
         return true;
@@ -870,7 +870,7 @@ bool message::proc(uint8_t &val)
     move(1);
     return false;
 }
-bool message::proc(uint16_t &val)
+bool Message::proc(uint16_t &val)
 {
     if(m_left < 2)
         return true;
@@ -881,7 +881,7 @@ bool message::proc(uint16_t &val)
     move(2);
     return false;
 }
-bool message::proc(uint32_t &val)
+bool Message::proc(uint32_t &val)
 {
     if(m_left < 4)
         return true;
@@ -892,7 +892,7 @@ bool message::proc(uint32_t &val)
     move(4);
     return false;
 }
-bool message::proc48(uint64_t &val)
+bool Message::proc48(uint64_t &val)
 {
     uint16_t high;
     uint32_t low;
@@ -910,7 +910,7 @@ bool message::proc48(uint64_t &val)
         val = low | ((uint64_t)high << 32);
     return false;
 }
-bool message::proc(uint64_t &val)
+bool Message::proc(uint64_t &val)
 {
     if(m_left < 8)
         return true;
@@ -921,7 +921,7 @@ bool message::proc(uint64_t &val)
     move(8);
     return false;
 }
-bool message::proc(int8_t &val)
+bool Message::proc(int8_t &val)
 {
     if(m_left < 1)
         return true;
@@ -932,7 +932,7 @@ bool message::proc(int8_t &val)
     move(1);
     return false;
 }
-bool message::proc(int16_t &val)
+bool Message::proc(int16_t &val)
 {
     if(m_left < 2)
         return true;
@@ -943,7 +943,7 @@ bool message::proc(int16_t &val)
     move(2);
     return false;
 }
-bool message::proc(int32_t &val)
+bool Message::proc(int32_t &val)
 {
     if(m_left < 4)
         return true;
@@ -954,7 +954,7 @@ bool message::proc(int32_t &val)
     move(4);
     return false;
 }
-bool message::proc48(int64_t &val)
+bool Message::proc48(int64_t &val)
 {
     uint16_t high;
     uint32_t low;
@@ -978,7 +978,7 @@ bool message::proc48(int64_t &val)
     }
     return false;
 }
-bool message::proc(int64_t &val)
+bool Message::proc(int64_t &val)
 {
     if(m_left < 8)
         return true;
@@ -990,7 +990,7 @@ bool message::proc(int64_t &val)
     return false;
 }
 
-bool message::proc(Float64_t &val)
+bool Message::proc(Float64_t &val)
 {
     // Float64_t
     // Using IEEE 754 64-bit floating-point
@@ -1131,7 +1131,7 @@ bool message::proc(Float64_t &val)
     move(8);
     return false;
 }
-bool message::proc(std::string &str, uint16_t len)
+bool Message::proc(std::string &str, uint16_t len)
 {
     if(m_build) // On build ignore length variable
         len = str.length();
@@ -1144,7 +1144,7 @@ bool message::proc(std::string &str, uint16_t len)
     move(len);
     return false;
 }
-bool message::proc(binary &bin, uint16_t len)
+bool Message::proc(Binary &bin, uint16_t len)
 {
     if(m_build) // On build ignore length variable
         len = bin.length();
@@ -1153,11 +1153,11 @@ bool message::proc(binary &bin, uint16_t len)
     if(m_build)
         bin.copy(m_cur);
     else
-        bin.set(m_cur, len);
+        bin.setBin(m_cur, len);
     move(len);
     return false;
 }
-bool message::proc(uint8_t *val, size_t len)
+bool Message::proc(uint8_t *val, size_t len)
 {
     if(m_left < (ssize_t)len)
         return true;
@@ -1168,88 +1168,88 @@ bool message::proc(uint8_t *val, size_t len)
     move(len);
     return false;
 }
-bool message::proc(networkProtocol_e &val)
+bool Message::proc(networkProtocol_e &val)
 {
     uint16_t v = val;
     bool ret = proc(v);
     val = (networkProtocol_e)v;
     return ret;
 }
-bool message::proc(clockAccuracy_e &val)
+bool Message::proc(clockAccuracy_e &val)
 {
     uint8_t v = val;
     bool ret = proc(v);
     val = (clockAccuracy_e)v;
     return ret;
 }
-bool message::proc(faultRecord_e &val)
+bool Message::proc(faultRecord_e &val)
 {
     uint8_t v = val;
     bool ret = proc(v);
     val = (faultRecord_e)v;
     return ret;
 }
-bool message::proc(timeSource_e &val)
+bool Message::proc(timeSource_e &val)
 {
     uint8_t v = val;
     bool ret = proc(v);
     val = (timeSource_e)v;
     return ret;
 }
-bool message::proc(portState_e &val)
+bool Message::proc(portState_e &val)
 {
     uint8_t v = val;
     bool ret = proc(v);
     val = (portState_e)v;
     return ret;
 }
-bool message::proc(msgType_e &val)
+bool Message::proc(msgType_e &val)
 {
     uint8_t v = val;
     bool ret = proc(v);
     val = (msgType_e)v;
     return ret;
 }
-bool message::proc(linuxptpTimeStamp_e &val)
+bool Message::proc(linuxptpTimeStamp_e &val)
 {
     uint8_t v = val;
     bool ret = proc(v);
     val = (linuxptpTimeStamp_e)v;
     return ret;
 }
-bool message::proc(TimeInterval_t &v)
+bool Message::proc(TimeInterval_t &v)
 {
     return proc(v.scaledNanoseconds);
 }
-bool message::proc(Timestamp_t &d)
+bool Message::proc(Timestamp_t &d)
 {
     return proc48(d.secondsField) || proc(d.nanosecondsField);
 }
-bool message::proc(ClockIdentity_t &v)
+bool Message::proc(ClockIdentity_t &v)
 {
     return proc(v.v, sizeof(ClockIdentity_t));
 }
-bool message::proc(PortIdentity_t &d)
+bool Message::proc(PortIdentity_t &d)
 {
     return proc(d.clockIdentity) || proc(d.portNumber);
 }
-bool message::proc(PortAddress_t &d)
+bool Message::proc(PortAddress_t &d)
 {
     d.addressLength = d.addressField.length();
     return proc(d.networkProtocol) || proc(d.addressLength) ||
         proc(d.addressField, d.addressLength);
 }
-bool message::proc(ClockQuality_t &d)
+bool Message::proc(ClockQuality_t &d)
 {
     return proc(d.clockClass) || proc(d.clockAccuracy) ||
         proc(d.offsetScaledLogVariance);
 }
-bool message::proc(PTPText_t &d)
+bool Message::proc(PTPText_t &d)
 {
     d.lengthField = d.textField.length();
     return proc(d.lengthField) || proc(d.textField, d.lengthField);
 }
-bool message::proc(FaultRecord_t &d)
+bool Message::proc(FaultRecord_t &d)
 {
     if(proc(d.faultRecordLength) || proc(d.faultTime) || proc(d.severityCode) ||
         proc(d.faultName) || proc(d.faultValue) || proc(d.faultDescription))
@@ -1261,11 +1261,11 @@ bool message::proc(FaultRecord_t &d)
     }
     return false;
 }
-bool message::proc(AcceptableMaster_t &d)
+bool Message::proc(AcceptableMaster_t &d)
 {
     return proc(d.acceptablePortIdentity) || proc(d.alternatePriority1);
 }
-bool message::procFlags(uint8_t &flags, const uint8_t flagsMask)
+bool Message::procFlags(uint8_t &flags, const uint8_t flagsMask)
 {
     if(m_build) {
         if(flagsMask > 1) // Ensure we use proper bits
@@ -1275,7 +1275,7 @@ bool message::procFlags(uint8_t &flags, const uint8_t flagsMask)
     }
     return proc(flags);
 }
-bool message::procLe(uint64_t &val)
+bool Message::procLe(uint64_t &val)
 {
     if(m_left < 8)
         return true;
@@ -1285,20 +1285,4 @@ bool message::procLe(uint64_t &val)
         val = le_to_cpu64(*(uint64_t *)m_cur);
     move(8);
     return false;
-}
-// Need 2 levels to stringify macros value instead of macro name
-#define stringify(s) #s
-#define VER_STR(a, b) stringify(a) "." stringify(b)
-/* Must be here, must be in library binary and not header source code! */
-const char *message::getVersion()
-{
-    return VER_STR(VER_MAJ, VER_MIN);
-}
-int message::getVersionMajor()
-{
-    return VER_MAJ;
-}
-int message::getVersionMinor()
-{
-    return VER_MIN;
 }

@@ -60,19 +60,23 @@ DSRC:=debian/tmp/usr/
 override_dh_install:
 	$(Q)install -d $(foreach d,python-pmc/usr/lib python3-pmc/usr/lib\
 	  libpmc-dev/usr libpmc-dev/usr/share libpmc-doc/usr pmc/usr\
-	  $(foreach n,lua-pmc libpmc-perl libpmc-dev\
+	  $(foreach n,lua-pmc libpmc-perl libpmc-dev ruby-pmc\
 	  libpmc,$n/usr/lib/$(DEB_HOST_MULTIARCH)),debian/$d)
 	$(Q)mv $(DSRC)include debian/libpmc-dev/usr
 	$(Q)mv $(DSRC)share/libpmc-dev debian/libpmc-dev/usr/share
 	$(Q)mv $(DSRC)share debian/libpmc-doc/usr
 	$(Q)mv $(DSRC)sbin debian/pmc/usr
 	$(Q)mv $(DSRC)lib/python2* debian/python-pmc/usr/lib
+ifneq ($(wildcard $(DSRC)lib/python3*),)
 	$(Q)mv $(DSRC)lib/python3 debian/python3-pmc/usr/lib
-	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/lua\
+endif
+	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/lua*\
 	  $(DSRC)lib/$(DEB_HOST_MULTIARCH)/liblua*\
 	  debian/lua-pmc/usr/lib/$(DEB_HOST_MULTIARCH)
 	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/perl*\
 	  debian/libpmc-perl/usr/lib/$(DEB_HOST_MULTIARCH)
+	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/ruby*\
+	  debian/ruby-pmc/usr/lib/$(DEB_HOST_MULTIARCH)
 	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/*.a\
 	  $(DSRC)lib/$(DEB_HOST_MULTIARCH)/*.so\
 	  debian/libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)

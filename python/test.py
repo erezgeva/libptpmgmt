@@ -14,14 +14,21 @@ import pmc
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 SIZE = 2000
 
-def setPriority1(sk, msg, pbuf, sequence, newPriority1):
+sk = pmc.SockUnix()
+msg = pmc.Message()
+# Create buffer for sending
+# And convert buffer to buffer pointer
+pbuf = pmc.conv_buf("X" * SIZE)
+sequence = 0
+
+def setPriority1(newPriority1):
   pr1 = pmc.PRIORITY1_t()
   pr1.priority1 = newPriority1
   id = pmc.PRIORITY1
   msg.setAction(pmc.SET, id, pr1)
-  err = msg.build(pbuf, SIZE, sequence)
+  err = msg.build(pbuf, SIZE, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.message.err2str_c(err)
+    txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(pbuf, msg.getMsgLen()):
     print("send fail")
@@ -40,9 +47,9 @@ def setPriority1(sk, msg, pbuf, sequence, newPriority1):
     return -1
   print("set new priority %d success" % newPriority1)
   msg.setAction(pmc.GET, id)
-  err = msg.build(pbuf, SIZE, sequence)
+  err = msg.build(pbuf, SIZE, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.message.err2str_c(err)
+    txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(pbuf, msg.getMsgLen()):
     print("send fail")
@@ -58,11 +65,11 @@ def setPriority1(sk, msg, pbuf, sequence, newPriority1):
   if err == pmc.MNG_PARSE_ERROR_MSG:
     print("error message")
   elif err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.message.err2str_c(err)
+    txt = pmc.Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
     rid = msg.getTlvId()
-    idstr = pmc.message.mng2str_c(rid)
+    idstr = pmc.Message.mng2str_c(rid)
     print("Get reply for %s" % idstr)
     if rid == id:
       newPr = pmc.conv_PRIORITY1(msg.getData())
@@ -74,7 +81,7 @@ def main():
   else:
     cfg_file = DEF_CFG_FILE
   print("Use configuration file %s" % cfg_file)
-  cfg = pmc.configFile()
+  cfg = pmc.ConfigFile()
   if not cfg.read_cfg(cfg_file):
     print("fail reading configuration file")
     return
@@ -83,19 +90,14 @@ def main():
     print("fail init socket")
     return
 
-  msg = pmc.message()
   prms = msg.getParams()
   prms.self_id.portNumber = os.getpid()
   msg.updateParams(prms)
   id = pmc.USER_DESCRIPTION
   msg.setAction(pmc.GET, id)
-  # Create buffer for sending
-  # And convert buffer to buffer pointer
-  pbuf = pmc.conv_buf("X" * SIZE)
-  sequence = 1
-  err = msg.build(pbuf, SIZE, sequence)
+  err = msg.build(pbuf, SIZE, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.message.err2str_c(err)
+    txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
     return
 
@@ -115,13 +117,13 @@ def main():
 
   err = msg.parse(pbuf, cnt)
   if err == pmc.MNG_PARSE_ERROR_MSG:
-    print("error message\n")
+    print("error message")
   elif err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.message.err2str_c(err)
+    txt = pmc.Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
     rid = msg.getTlvId()
-    idstr = pmc.message.mng2str_c(rid)
+    idstr = pmc.Message.mng2str_c(rid)
     print("Get reply for %s" % idstr)
     if rid == id:
       user = pmc.conv_USER_DESCRIPTION(msg.getData())
@@ -130,37 +132,35 @@ def main():
   # test setting values
   clk_dec = pmc.CLOCK_DESCRIPTION_t()
   clk_dec.clockType = 0x800
-  physicalAddress = pmc.binary()
-  physicalAddress.set(0, 0xf1)
-  physicalAddress.set(1, 0xf2)
-  physicalAddress.set(2, 0xf3)
-  physicalAddress.set(3, 0xf4)
+  physicalAddress = pmc.Binary()
+  physicalAddress.setBin(0, 0xf1)
+  physicalAddress.setBin(1, 0xf2)
+  physicalAddress.setBin(2, 0xf3)
+  physicalAddress.setBin(3, 0xf4)
   print("physicalAddress: %s" % physicalAddress.toId())
   print("physicalAddress: %s" % physicalAddress.toHex())
-  clk_dec.physicalAddress.set(0, 0xf1)
-  clk_dec.physicalAddress.set(1, 0xf2)
-  clk_dec.physicalAddress.set(2, 0xf3)
-  clk_dec.physicalAddress.set(3, 0xf4)
+  clk_dec.physicalAddress.setBin(0, 0xf1)
+  clk_dec.physicalAddress.setBin(1, 0xf2)
+  clk_dec.physicalAddress.setBin(2, 0xf3)
+  clk_dec.physicalAddress.setBin(3, 0xf4)
   print("clk.physicalAddress: %s" % clk_dec.physicalAddress.toId())
   print("clk.physicalAddress: %s" % clk_dec.physicalAddress.toHex())
   print("manufacturerIdentity: %s" %
-    pmc.binary.bufToId(clk_dec.manufacturerIdentity, 3))
+    pmc.Binary.bufToId(clk_dec.manufacturerIdentity, 3))
   clk_dec.revisionData.textField = "This is a test";
   print("revisionData: %s" % clk_dec.revisionData.textField);
 
   # test send
-  setPriority1(sk, msg, pbuf, sequence, 147)
-  setPriority1(sk, msg, pbuf, sequence, 153)
+  setPriority1(147)
+  setPriority1(153)
 
-sk = pmc.sockUnix()
 main()
 sk.close()
 
-# If libpmc library is not installed in system,
-#  run with:
+# If libpmc library is not installed in system, run with:
 """
-rm -f *.so;ln -sf 2/_pmc.so;LD_LIBRARY_PATH=.. python2 test.py
+rm -rf *.so pmc.pyc __pycache__;ln -sf 2/*.so;LD_LIBRARY_PATH=.. python2 test.py
+rm -rf *.so pmc.pyc __pycache__;ln -sf 3/*.so _pmc.so;\
+   LD_LIBRARY_PATH=.. python3 test.py
 
-rm -f *.so;ln -sf 3/_pmc.cpython-37m-x86_64-linux-gnu.so;\
-    LD_LIBRARY_PATH=.. python3 test.py
 """

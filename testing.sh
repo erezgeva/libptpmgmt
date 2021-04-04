@@ -53,8 +53,9 @@ main()
  ##############################################################################
  # script languages source
  local -r ldPathBase='LD_LIBRARY_PATH=..'
+ local -r ldPathBaseRuby="$ldPathBase RUBYLIB=."
  local ldPathPerl ldPathLua1 ldPathLua2 ldPathLua3 ldPathPython2 ldPathPython3
- local allScript
+ local ldPathRuby allScript
  case "$useLdPath" in
     [aA]) # always
         ldPathPerl=$ldPathBase
@@ -63,6 +64,7 @@ main()
         ldPathLua3=$ldPathBase
         ldPathPython2=$ldPathBase
         ldPathPython3=$ldPathBase
+        ldPathRuby="$ldPathBaseRuby"
         allScript="x"
          ;;
     [nN]) # None
@@ -165,13 +167,12 @@ set new priority 153 success
 Get reply for PRIORITY1
 priority1: 153
 "
- printf "\n =====  Run Perl  ===== \n * We except real 'user desc' on '>'\n"
- cd perl
+ enter perl
+ printf " * We except real 'user desc' on '>'\n"
  eval "$ldPathPerl $useSudo ./test.pl $cfgFile" > ../$t3
  cd ..
  diff <(printf "$scriptOut") $t3 | grep '^[0-9-]' -v
- cd lua
- printf "\n =====  Run lua  ===== \n"
+ enter lua
  local i
  for i in 1 2 3; do
     echo " lua 5.$i ---- "
@@ -184,8 +185,10 @@ priority1: 153
     eval "$ldPathLua $useSudo lua5.$i ./test.lua $cfgFile" | diff - ../$t3
  done
  cd ..
- cd python
- printf "\n =====  Run python  ===== \n"
+ enter ruby
+ eval "$ldPathRuby $useSudo ./test.rb $cfgFile" | diff - ../$t3
+ cd ..
+ enter python
  for i in 2 3; do
     rm -f *.so -rf pmc.pyc __pycache__
     local -n ldPathPython=ldPathPython$i
@@ -206,6 +209,11 @@ priority1: 153
  rm $t3
 }
 ###############################################################################
+enter()
+{
+ cd $1
+ printf "\n =====  Run $1  ===== \n"
+}
 cmd()
 {
     echo $*
@@ -246,6 +254,11 @@ probeLibs()
             ld=$ldPathBase
         fi
     done
+    getFirstFile "/usr/lib/$mach*/ruby/vendor_ruby/*/pmc.so"
+    if [ ! -f "$file" ]; then
+        ldPathRuby="$ldPathBaseRuby"
+        allScript="x"
+    fi
 }
 ###############################################################################
 main

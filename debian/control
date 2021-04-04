@@ -3,7 +3,7 @@ Maintainer: Erez Geva <ErezGeva2@gmail.com>
 Section: net
 Priority: optional
 Standards-Version: 4.1.4
-Build-Depends: debhelper (>= 9), dh-exec (>=0.3), dh-python, dh-lua, libtool, coreutils, graphviz, doxygen, swig (>=3.0), perl, lua5.2, liblua5.1-0-dev, liblua5.2-dev, liblua5.3-dev, python2-dev, python3-dev
+Build-Depends: debhelper (>= 9), dh-exec (>=0.3), dh-python, dh-lua, libtool, coreutils, graphviz, doxygen, swig (>=3.0), perl, lua5.2, liblua5.1-0-dev, liblua5.2-dev, liblua5.3-dev, python2-dev, python3-dev, ruby, ruby-dev
 Homepage: https://github.com/erezgeva/libpmc
 
 Package: libpmc
@@ -18,7 +18,7 @@ Package: libpmc-dev
 Architecture: any
 Multi-Arch: same
 Section: libdevel
-Depends: g++, libpmc (= ${binary:Version})
+Depends: g++, ${misc:Depends}, libpmc (= ${binary:Version})
 Description: pmc library development
  This package provides header files and static library.
 
@@ -40,15 +40,13 @@ Architecture: any
 Multi-Arch: same
 Section: python
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, libpmc (= ${binary:Version})
-Provides: ${python:Provides}
 Description: pmc library python version 2 wrapper
 
 Package: python3-pmc
 Architecture: any
 Multi-Arch: same
 Section: python
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, libpmc (= ${binary:Version})
-Provides: ${python:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends}, libpmc (= ${binary:Version})
 Description: pmc library python version 3 wrapper
 
 Package: lua-pmc
@@ -58,11 +56,18 @@ Section: interpreters
 Depends: ${misc:Depends}, ${shlibs:Depends}, libpmc (= ${binary:Version})
 Description: pmc library Lua wrapper
 
+Package: ruby-pmc
+Architecture: any
+Multi-Arch: same
+Section: ruby
+Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends}, ${ruby:Depends}, libpmc (= ${binary:Version})
+Description: pmc library ruby wrapper
+
 Package: pmc
 Architecture: any
 Multi-Arch: same
 Section: libs
-Depends: libpmc (= ${binary:Version})
+Depends: ${misc:Depends}, libpmc (= ${binary:Version})
 Recommends: linuxptp
 Description: pmc tool.
  new rewrite of linuxptp pmc tool using the libpmc library.

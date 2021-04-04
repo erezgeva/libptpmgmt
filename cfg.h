@@ -20,10 +20,10 @@
 #include <cstdint>
 #include "bin.h"
 
-class configFile;
+class ConfigFile;
 
 /**< @cond internal */
-class configSection
+class ConfigSection
 {
   protected:
     enum {
@@ -39,19 +39,19 @@ class configSection
         last_val,
     };
     std::string m_str_vals[1];
-    binary m_bin_vals[last_val - uds_address_val];
+    Binary m_bin_vals[last_val - uds_address_val];
     uint8_t m_vals[uds_address_val];
     bool m_set[last_val];
     static const int val_limit;    /* limit of m_vals */
     static const int str_base_val; /* first string m_str_vals */
     static const int bin_base_val; /* first binart m_bin_vals */
 
-    friend class configFile;
+    friend class ConfigFile;
     void setGlobal();
     bool set_val(char *line);
 
   public:
-    configSection();
+    ConfigSection();
 };
 /**< @endcond */
 
@@ -61,19 +61,19 @@ class configSection
  *  Stores provides and parses parameters
  *  from a configuration file for all sections
  */
-class configFile
+class ConfigFile
 {
   private:
-    std::map<std::string, configSection> cfgSec;
-    configSection &cfgGlobal;
+    std::map<std::string, ConfigSection> cfgSec;
+    ConfigSection &cfgGlobal;
 
     uint8_t get(int idx, const std::string &section);
     const std::string &get_str(int idx, const std::string &section);
-    const binary &get_bin(int idx, const std::string &section);
+    const Binary &get_bin(int idx, const std::string &section);
     bool is_global(int idx, const std::string &section);
 
   public:
-    configFile();
+    ConfigFile();
     /**
      * Read a configuration file and parse it
      * @param[in] file name with path
@@ -138,17 +138,17 @@ class configFile
     /**
      * Get the ptp_dst_mac value
      * @param[in] section (optional)
-     * @return binary object with value
+     * @return Binary object with value
      * @note calling without section will fetch value from @"global@" section
      */
-    const binary &ptp_dst_mac(const std::string section = "");
+    const Binary &ptp_dst_mac(const std::string section = "");
     /**
      * Get the p2p_dst_mac value
      * @param[in] section (optional)
-     * @return binary object with value
+     * @return Binary object with value
      * @note calling without section will fetch value from @"global@" section
      */
-    const binary &p2p_dst_mac(const std::string section = "");
+    const Binary &p2p_dst_mac(const std::string section = "");
 };
 
 #endif /*__PMC_CFG_H*/

@@ -77,7 +77,10 @@ RL:=ranlib
 LN:=ln -fs
 CPPFLAGS_OPT?=-Og
 CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
-CPPFLAGS_SWIG:=-Wno-maybe-uninitialized -Wno-stringop-overflow
+# SWIG warnings
+CPPFLAGS_LUA:=-Wno-maybe-uninitialized
+CPPFLAGS_PY:=-Wno-stringop-overflow
+CPPFLAGS_RUBY:=-Wno-sign-compare -Wno-catch-value -Wno-maybe-uninitialized
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
 LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
@@ -91,7 +94,7 @@ LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(wildcard *.cpp)))
 LIB_NAME:=libpmc
 LIB_NAME_SO:=$(LIB_NAME).so
 PMC_NAME:=pmc
-msg.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
+ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
@@ -143,13 +146,14 @@ distclean: deb_clean clean
 	$Q$(RM) -R $(DISTCLEAN_DIRS)
 
 HEADERS:=$(filter-out mngIds.h,$(wildcard *.h))
+HEADERS_ALL:=$(HEADERS) mngIds.h
 # MAP for  mngIds.cc:
-#  %@ => '/'        - Use next to star
-#  %! => '%'        - Self escape
-#  %# => '#'        - Use on line start to define a preproccesor in final
-#  %_ =>            - Place marker, retain empty lines
-#  %- => ' '        - When need 2 spaces or more, use with spaces between
-#  %^ => '\n'       - Add new line in preprocessor only
+#  %@ => '/'    - Use when a slash is next to a star character
+#  %! => '%'    - Self escape, escape precent sign character
+#  %# => '#'    - Use on line start when starting a preproccesor in result file
+#  %_ =>        - Place marker, retain empty lines
+#  %- => ' '    - When need 2 spaces or more. Use with a space between
+#  %^ => '\n'   - Add new line in a preprocessor definition only
 mngIds.h: mngIds.cc
 	$(Q_GEN)
 	$Q$(CXX) -E $< | sed 's/^#.*//;/^\s*$$/d;s#%@#/#g' > $@
@@ -175,10 +179,10 @@ endif
 HOST_MULTIARCH:=$(DEB_HOST_MULTIARCH)
 LIB_ARCH:=/usr/lib/$(HOST_MULTIARCH)
 
-SWIG:=swig
-ifneq ($(call which,$(SWIG)),)
+ifneq ($(call which,swig),)
 swig_ver=$(lastword $(shell swig -version | grep Version))
 ifeq ($(call verCheck,$(swig_ver),3.0),)
+SWIG:=swig
 SWIG_ALL:=
 SWIG_NAME:=PmcLib
 
@@ -194,12 +198,12 @@ else
 PERL_INC=/usr/lib/perl/$(PERL_VER)/CORE
 endif # realpath $(PERL_INC)
 PERL_NAME:=perl/$(SWIG_NAME)
-$(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
+$(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -outdir perl -o $@ -perl5 $<
-$(PERL_NAME).o: $(PERL_NAME).cpp
+	$Q$(SWIG) -Wall -c++ -I. -outdir perl -o $@ -perl5 $<
+$(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$(Q_LCC)
-	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_SWIG) -I$(PERL_INC) -c $< -o $@
+	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@
 	$(Q)sed -i 's#$(PERL_INC)#\$$(PERL_INC)#' $(PERL_NAME).d
 $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(Q_LD)
@@ -207,21 +211,19 @@ $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(PERL_NAME).so
 CLEAN+=$(foreach e,d o,$(PERL_NAME).$e)
 DISTCLEAN+=$(foreach e,cpp pm so,$(PERL_NAME).$e)
-include $(wildcard perl/*.d)
 endif # which perl
 
 ifneq ($(call which,lua),)
-LUA_FLAGS:=$(foreach n,$(LUA_WARNS),-w$n)
 LUADIR:=$(DESTDIR)$(LIB_ARCH)
 LUA_LIB_NAME:=pmc.so
-lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
+lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. $(LUA_FLAGS) -outdir lua -o $@ -lua $<
+	$Q$(SWIG) -Wall -c++ -I. -outdir lua -o $@ -lua $<
 define lua
 LUA_LIB_$1:=lua/5.$1/$(LUA_LIB_NAME)
-lua/5.$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp
+lua/5.$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 	$$(Q_LCC)
-	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_SWIG) -I/usr/include/lua5.$1 \
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_LUA) -I/usr/include/lua5.$1 \
 	-c $$< -o $$@
 $$(LUA_LIB_$1): lua/5.$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(Q_LD)
@@ -251,9 +253,9 @@ endif # which lua
 
 ifneq ($(call which,python),)
 PY_BASE:=python/$(SWIG_NAME)
-$(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS) mngIds.h
+$(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -outdir python -o $@ -python $<
+	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $<
 PYV2=$(call libname,*/libpython2*.a)
 ifeq ($(PYV2),)
 PYV2=$(call libname,libpython2*.a)
@@ -271,9 +273,9 @@ PY3DIR:=$(DESTDIR)/usr/lib/python3/dist-packages
 define python
 PY_BASE_$1:=python/$1/$(SWIG_NAME)
 PY_INC_$1:=/usr/include/$$(PYV$1)
-$$(PY_BASE_$1).o: $(PY_BASE).cpp
+$$(PY_BASE_$1).o: $(PY_BASE).cpp $(HEADERS)
 	$$(Q_LCC)
-	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_SWIG) -I$$(PY_INC_$1) -c $$< -o $$@
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PY) -I$$(PY_INC_$1) -c $$< -o $$@
 $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 	$$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
@@ -286,8 +288,33 @@ endef
 DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 $(eval $(call python,2))
-$(eval $(call python,3))
+# $(eval $(call python,3))
 endif # which python
+
+ifneq ($(call which,ruby),)
+# configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
+RUBY_SCRIPT_INCS:='puts "-I" + RbConfig::CONFIG["rubyhdrdir"] +\
+                       " -I" + RbConfig::CONFIG["rubyarchhdrdir"]'
+RUBY_SCRIPT_LIB:='puts "-l" + RbConfig::CONFIG["RUBY_SO_NAME"]'
+RUBY_SCRIPT_VDIR:='puts RbConfig::CONFIG["vendorarchdir"]'
+RUBY_INC:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_INCS))
+RUBY_LIB:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_LIB))
+RUBYDIR:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
+RUBY_NAME:=ruby/$(SWIG_NAME).cpp
+RUBY_LNAME:=ruby/pmc
+$(RUBY_NAME): $(LIB_NAME).i $(HEADERS_ALL)
+	$(Q_SWIG)
+	$Q$(SWIG) -c++ -I. -outdir ruby -o $@ -ruby $<
+$(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
+	$(Q_LCC)
+	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_RUBY) $(RUBY_INC) -c $< -o $@
+$(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
+	$(Q_LD)
+	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) $(RUBY_LIB) -o $@
+SWIG_ALL+=$(RUBY_LNAME).so
+CLEAN+=$(RUBY_NAME) $(foreach e,d o,$(RUBY_LNAME).$e)
+DISTCLEAN+=$(RUBY_LNAME).so
+endif # which ruby
 
 ALL+=$(SWIG_ALL)
 endif # swig 3.0
@@ -305,7 +332,7 @@ endif # Debian
 
 ifneq ($(call which,doxygen),)
 ifeq ($(call verCheck,$(shell doxygen -v),1.8),)
-doxygen: $(HEADERS) mngIds.h
+doxygen: $(HEADERS_ALL)
 	$(Q_DOXY)
 	$(Q)doxygen doxygen.cfg 2>&1 >/dev/null
 DISTCLEAN_DIRS+=doc
@@ -334,7 +361,7 @@ NINST:=install -m 644
 DINST:=install -d
 BINST:=install
 
-install: $(ALL)
+install: $(ALL) doxygen
 	$Q$(NINST) -D $(LIB_NAME_SO) $(DESTDIR)$(LIB_ARCH)/$(LIB_FNAME_SO)
 	$Q$(LN) $(LIB_FNAME_SO) $(DESTDIR)$(LIB_ARCH)/$(LIB_SNAME_SO)
 	$Q$(LN) $(LIB_SNAME_SO) $(DESTDIR)$(LIB_ARCH)/$(LIB_NAME_SO)
@@ -360,11 +387,16 @@ endif # which lua
 ifneq ($(call which,python),)
 	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2DIR)/$(PY_LIB_NAME).$(HOST_MULTIARCH).so
-	$Q$(NINST) -D python/3/$(PY_LIB_NAME).*.so -t $(PY3DIR)
 	$Q$(NINST) python/pmc.py $(PY2DIR)
+ifneq ($(wildcard python/3/*),)
+	$Q$(NINST) -D python/3/$(PY_LIB_NAME).*.so -t $(PY3DIR)
 	$Q$(NINST) python/pmc.py $(PY3DIR)
+endif
 endif # which python
+ifneq ($(call which,ruby),)
+	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
+endif # which ruby
 
-check: format doxygen
+checkall: format doxygen
 
-.PHONY: all clean distclean format deb_src deb deb_clean doxygen check
+.PHONY: all clean distclean format deb_src deb deb_clean doxygen checkall

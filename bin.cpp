@@ -14,7 +14,7 @@
 
 static const char *idsep = ":.-";
 
-std::string binary::toIp() const
+std::string Binary::toIp() const
 {
     char buf[INET6_ADDRSTRLEN];
     const char *ret = nullptr;
@@ -27,7 +27,7 @@ std::string binary::toIp() const
         return "";
     return ret;
 }
-bool binary::fromIp(const std::string string, int domain)
+bool Binary::fromIp(const std::string string, int domain)
 {
     if(string.length() < 2)
         return false;
@@ -48,7 +48,7 @@ bool binary::fromIp(const std::string string, int domain)
     m_str = std::string(buf, len);
     return true;
 }
-bool binary::fromIp(const std::string string)
+bool Binary::fromIp(const std::string string)
 {
     if(string.length() < 2)
         return false;
@@ -61,7 +61,7 @@ bool binary::fromIp(const std::string string)
         return false;
     return fromIp(string, domain);
 }
-std::string binary::bufToId(const uint8_t *id, size_t len)
+std::string Binary::bufToId(const uint8_t *id, size_t len)
 {
     if(len < 1)
         return "";
@@ -74,7 +74,7 @@ std::string binary::bufToId(const uint8_t *id, size_t len)
     }
     return ret;
 }
-bool binary::fromId(const std::string string)
+bool Binary::fromId(const std::string string)
 {
     if(string.length() < 2)
         return false;
@@ -98,7 +98,7 @@ bool binary::fromId(const std::string string)
     m_str = id;
     return true;
 }
-bool binary::eui48ToEui64()
+bool Binary::eui48ToEui64()
 {
     size_t len = length();
     if(len == EUI64)
@@ -112,7 +112,7 @@ bool binary::eui48ToEui64()
     m_str = str;
     return true;
 }
-bool binary::fromHex(const std::string hex)
+bool Binary::fromHex(const std::string hex)
 {
     if(hex.empty())
         return false;
@@ -145,7 +145,7 @@ bool binary::fromHex(const std::string hex)
     m_str = id;
     return true;
 }
-std::string binary::bufToHex(const uint8_t *bin, size_t len)
+std::string Binary::bufToHex(const uint8_t *bin, size_t len)
 {
     if(len < 1)
         return "";

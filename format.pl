@@ -5,6 +5,9 @@
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
+
+use File::Touch;
+
 sub main
 {
     for(glob "*.cpp *.h Makefile debian/rules debian/*.mk *.sh perl/*.pl" .
@@ -12,6 +15,9 @@ sub main
     {
         next if -l or not -f;
         my $file = $_;
+        # As script removes empty lines only
+        # Use touch to prevent compilation
+        my $touch_obj = File::Touch->new(reference => $file);
         local @ARGV = ($file);
         local $^I   = '';
         # skip empty lines at start of
@@ -68,6 +74,7 @@ sub main
             }
             print "$_\n";
         }
+        $touch_obj->touch($file);
     }
 }
 main;

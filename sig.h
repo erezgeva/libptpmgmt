@@ -21,9 +21,9 @@
  * @note: used for management TLV in a signaling message
  *  management message do not use this structure!
  */
-struct MANAGEMENT_t : public baseSigTlv {
+struct MANAGEMENT_t : public BaseSigTlv {
     mng_vals_e tlv_id; /**< Management TLV id */
-    std::unique_ptr<baseMngTlv> tlvData; /**< Management TLV data */
+    std::unique_ptr<BaseMngTlv> tlvData; /**< Management TLV data */
 };
 #endif/*SWIG*/
 /** Organization extension TLV
@@ -32,17 +32,17 @@ struct MANAGEMENT_t : public baseSigTlv {
  * @li ORGANIZATION_EXTENSION_PROPAGATE
  * @li ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE
  */
-struct ORGANIZATION_EXTENSION_t : public baseSigTlv {
+struct ORGANIZATION_EXTENSION_t : public BaseSigTlv {
     Octet_t organizationId[3]; /**< IEEE organization ID */
     Octet_t organizationSubType[3]; /**< sub-organization ID */
-    binary dataField; /**< organization own data */
+    Binary dataField; /**< organization own data */
 };
 /** PATH_TRACE TLV */
-struct PATH_TRACE_t : public baseSigTlv {
+struct PATH_TRACE_t : public BaseSigTlv {
     std::vector<ClockIdentity_t> pathSequence; /**< clock id per path */
 };
 /** ALTERNATE_TIME_OFFSET_INDICATOR TLV */
-struct ALTERNATE_TIME_OFFSET_INDICATOR_t : public baseSigTlv {
+struct ALTERNATE_TIME_OFFSET_INDICATOR_t : public BaseSigTlv {
     UInteger8_t keyField; /**< the index to the alternate timescale offsets */
     Integer32_t currentOffset; /**< Current offset */
     Integer32_t jumpSeconds; /**< Jump seconds */
@@ -50,7 +50,7 @@ struct ALTERNATE_TIME_OFFSET_INDICATOR_t : public baseSigTlv {
     PTPText_t displayName; /**< description of the alternate timescale */
 };
 /** ENHANCED_ACCURACY_METRICS TLV */
-struct ENHANCED_ACCURACY_METRICS_t : public baseSigTlv {
+struct ENHANCED_ACCURACY_METRICS_t : public BaseSigTlv {
 
     UInteger8_t bcHopCount; /**< number of Boundary Clocks in this TLV */
     UInteger8_t tcHopCount; /**< number of Transparent Clocks in this TLV */
@@ -76,7 +76,7 @@ struct ENHANCED_ACCURACY_METRICS_t : public baseSigTlv {
     Float64_t varStaticMediumInaccuracy;
 };
 /** L1_SYNC TLV */
-struct L1_SYNC_t : public baseSigTlv {
+struct L1_SYNC_t : public BaseSigTlv {
     /**
      * Bit fields flag
      * @li bit 0: TCR   L1SyncBasicPortDS.txCoherentIsRequired
@@ -96,7 +96,7 @@ struct L1_SYNC_t : public baseSigTlv {
     const uint8_t flagsMask2 = 0x7; /**< Mask for flags2 */
 };
 /** PORT_COMMUNICATION_AVAILABILITY */
-struct PORT_COMMUNICATION_AVAILABILITY_t : public baseSigTlv {
+struct PORT_COMMUNICATION_AVAILABILITY_t : public BaseSigTlv {
     /**
      * Bit fields syncMessageAvailability
      * @li bit 0 syncCapabilities.multicastCapable
@@ -121,7 +121,7 @@ struct PORT_COMMUNICATION_AVAILABILITY_t : public baseSigTlv {
     const uint8_t flagsMask2 = 0xf; /**< Mask for delayRespMessageAvailability */
 };
 /** PROTOCOL_ADDRESS TLV */
-struct PROTOCOL_ADDRESS_t : public baseSigTlv {
+struct PROTOCOL_ADDRESS_t : public BaseSigTlv {
     PortAddress_t portProtocolAddress; /**< protocol address */
 };
 /** SLAVE_RX_SYNC_TIMING_DATA TLV record */
@@ -143,7 +143,7 @@ struct SLAVE_RX_SYNC_TIMING_DATA_rec_t {
     }
 };
 /** SLAVE_RX_SYNC_TIMING_DATA TLV */
-struct SLAVE_RX_SYNC_TIMING_DATA_t : public baseSigTlv {
+struct SLAVE_RX_SYNC_TIMING_DATA_t : public BaseSigTlv {
 
     /** Port identity of the received sync message. */
     PortIdentity_t syncSourcePortIdentity;
@@ -166,7 +166,7 @@ struct SLAVE_RX_SYNC_COMPUTED_DATA_rec_t {
     static size_t size() { return 6 + 2 * TimeInterval_t::size(); }
 };
 /** SLAVE_RX_SYNC_COMPUTED_DATA TLV */
-struct SLAVE_RX_SYNC_COMPUTED_DATA_t : public baseSigTlv {
+struct SLAVE_RX_SYNC_COMPUTED_DATA_t : public BaseSigTlv {
     /** Port identity of the received sync message. */
     PortIdentity_t sourcePortIdentity;
     /**
@@ -193,7 +193,7 @@ struct SLAVE_TX_EVENT_TIMESTAMPS_rec_t {
     static size_t size() { return 2 + Timestamp_t::size(); }
 };
 /** SLAVE_TX_EVENT_TIMESTAMPS TLV */
-struct SLAVE_TX_EVENT_TIMESTAMPS_t : public baseSigTlv {
+struct SLAVE_TX_EVENT_TIMESTAMPS_t : public BaseSigTlv {
     /** Port identity of the transmitted event message. */
     PortIdentity_t sourcePortIdentity;
     /**
@@ -206,7 +206,7 @@ struct SLAVE_TX_EVENT_TIMESTAMPS_t : public baseSigTlv {
     std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t> list;
 };
 /** CUMULATIVE_RATE_RATIO TLV */
-struct CUMULATIVE_RATE_RATIO_t : public baseSigTlv {
+struct CUMULATIVE_RATE_RATIO_t : public BaseSigTlv {
     /** (@<cumulativeRateRatio@> - 1) * 2^41 */
     Integer32_t scaledCumulativeRateRatio;
 };
@@ -232,7 +232,7 @@ struct SLAVE_DELAY_TIMING_DATA_NP_rec_t {
 /** SLAVE_DELAY_TIMING_DATA_NP TLV
  * @note linuxptp implementation specific
  */
-struct SLAVE_DELAY_TIMING_DATA_NP_t : public baseSigTlv {
+struct SLAVE_DELAY_TIMING_DATA_NP_t : public BaseSigTlv {
     /** Port identity of the message. */
     PortIdentity_t sourcePortIdentity;
     /** records of messages */

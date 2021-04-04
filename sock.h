@@ -32,17 +32,17 @@
  * @details
  *  provide functions that are supported by all socket's classes
  */
-class sockBase
+class SockBase
 {
   protected:
     /**< @cond internal */
     int m_fd;
     bool m_isInit;
-    sockBase() : m_fd(-1), m_isInit(false) {}
+    SockBase() : m_fd(-1), m_isInit(false) {}
     bool sendReply(ssize_t cnt, size_t len) const;
 
   public:
-    virtual ~sockBase() { this->close(); }
+    virtual ~SockBase() { this->close(); }
     /**< @endcond */
 
     /**
@@ -112,7 +112,7 @@ class sockBase
  *  provide Unix socket that can be used to communicate with
  *  linuxptp daemon, ptp4l.
  */
-class sockUnix : public sockBase
+class SockUnix : public SockBase
 {
   private:
     std::string m_me;
@@ -124,7 +124,7 @@ class sockUnix : public sockBase
     static void setUnixAddr(sockaddr_un &addr, const std::string &str);
 
   public:
-    sockUnix() { setUnixAddr(m_peerAddr, m_peer); }
+    SockUnix() { setUnixAddr(m_peerAddr, m_peer); }
     /**
      * close socket and release its resources
      * @note: Remove socket file from file system
@@ -160,7 +160,7 @@ class sockUnix : public sockBase
      * @return true if peer address is updated
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setPeerAddress(configFile &cfg, const std::string section = "") {
+    bool setPeerAddress(ConfigFile &cfg, const std::string section = "") {
         return setPeerInternal(cfg.uds_address(section));
     }
     /**
@@ -254,17 +254,17 @@ class sockUnix : public sockBase
  * @details
  *  provide functions to set network interface for UDP and Raw sockets.
  */
-class sockBaseIf : public sockBase
+class SockBaseIf : public SockBase
 {
   protected:
     /**< @cond internal */
     std::string m_ifName; /* interface to use */
-    binary m_mac;
+    Binary m_mac;
     int m_ifIndex;
     bool m_have_if;
-    bool set(ifInfo &ifObj);
-    sockBaseIf() : m_have_if(false) {}
-    virtual bool setAllBase(configFile &cfg, const std::string &section) = 0;
+    bool setInt(IfInfo &ifObj);
+    SockBaseIf() : m_have_if(false) {}
+    virtual bool setAllBase(ConfigFile &cfg, const std::string &section) = 0;
     /**< @endcond */
 
   public:
@@ -294,7 +294,7 @@ class sockBaseIf : public sockBase
      *  User can close the socket, change this value, and
      *  initialize a new socket.
      */
-    bool setIf(ifInfo &ifObj);
+    bool setIf(IfInfo &ifObj);
     /**
      * Set all socket parameters using a network interface object and
      *  a configuration file
@@ -307,7 +307,7 @@ class sockBaseIf : public sockBase
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setAll(ifInfo &ifObj, configFile &cfg, const std::string section = "") {
+    bool setAll(IfInfo &ifObj, ConfigFile &cfg, const std::string section = "") {
         return setIf(ifObj) && setAllBase(cfg, section);
     }
     /**
@@ -322,7 +322,7 @@ class sockBaseIf : public sockBase
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setAllInit(ifInfo &ifObj, configFile &cfg,
+    bool setAllInit(IfInfo &ifObj, ConfigFile &cfg,
         const std::string section = "") {
         return setAll(ifObj, cfg, section) && init();
     }
@@ -334,7 +334,7 @@ class sockBaseIf : public sockBase
  *  provide functions to set IP TTL, send and receive functions
  *  for UDP sockets
  */
-class sockIp : public sockBaseIf
+class SockIp : public SockBaseIf
 {
   protected:
     /**< @cond internal */
@@ -344,8 +344,8 @@ class sockIp : public sockBaseIf
     sockaddr *m_addr;
     size_t m_addr_len;
     const char *m_mcast_str; /* string form */
-    binary m_mcast;
-    sockIp(int domain, const char *mcast, sockaddr *addr, size_t len);
+    Binary m_mcast;
+    SockIp(int domain, const char *mcast, sockaddr *addr, size_t len);
     virtual bool init2() = 0;
     /**< @endcond */
 
@@ -371,7 +371,7 @@ class sockIp : public sockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setUdpTtl(configFile &cfg, const std::string section = "");
+    bool setUdpTtl(ConfigFile &cfg, const std::string section = "");
     /**
      * Send the message using the socket
      * @param[in] msg pointer to message memory buffer
@@ -401,7 +401,7 @@ class sockIp : public sockBaseIf
 /**
  * @brief UDP over IP version 4 socket
  */
-class sockIp4 : public sockIp
+class SockIp4 : public SockIp
 {
   private:
     sockaddr_in m_addr4;
@@ -409,17 +409,17 @@ class sockIp4 : public sockIp
   protected:
     /**< @cond internal */
     bool init2();
-    bool setAllBase(configFile &cfg, const std::string &section);
+    bool setAllBase(ConfigFile &cfg, const std::string &section);
 
   public:
-    sockIp4();
+    SockIp4();
     /**< @endcond */
 };
 
 /**
  * @brief UDP over IP version 6 socket
  */
-class sockIp6 : public sockIp
+class SockIp6 : public SockIp
 {
   private:
     sockaddr_in6 m_addr6;
@@ -428,10 +428,10 @@ class sockIp6 : public sockIp
   protected:
     /**< @cond internal */
     bool init2();
-    bool setAllBase(configFile &cfg, const std::string &section);
+    bool setAllBase(ConfigFile &cfg, const std::string &section);
 
   public:
-    sockIp6();
+    SockIp6();
     /**< @endcond */
 
     /**
@@ -453,17 +453,17 @@ class sockIp6 : public sockIp
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setScope(configFile &cfg, const std::string section = "");
+    bool setScope(ConfigFile &cfg, const std::string section = "");
 };
 
 /**
  * @brief Raw socket that uses PTP over Ethernet
  * @note The class does @b NOT support VLAN tags!
  */
-class sockRaw : public sockBaseIf
+class SockRaw : public SockBaseIf
 {
   private:
-    binary m_ptp_dst_mac;
+    Binary m_ptp_dst_mac;
     int m_socket_priority;
     sockaddr_ll m_addr;
     iovec m_iov_tx[2], m_iov_rx[2];
@@ -473,10 +473,10 @@ class sockRaw : public sockBaseIf
 
   protected:
     /**< @cond internal */
-    bool setAllBase(configFile &cfg, const std::string &section);
+    bool setAllBase(ConfigFile &cfg, const std::string &section);
 
   public:
-    sockRaw();
+    SockRaw();
     /**< @endcond */
     /**
      * Set PTP multicast address using string from
@@ -497,7 +497,7 @@ class sockRaw : public sockBaseIf
      *  User can close the socket, change this value, and
      *  initialize a new socket.
      */
-    bool setPtpDstMac(const binary &ptp_dst_mac);
+    bool setPtpDstMac(const Binary &ptp_dst_mac);
     /**
      * Set PTP multicast address using binary from
      * @param[in] ptp_dst_mac address in binary form
@@ -518,7 +518,7 @@ class sockRaw : public sockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setPtpDstMac(configFile &cfg, const std::string section = "");
+    bool setPtpDstMac(ConfigFile &cfg, const std::string section = "");
     /**
      * Set socket priority
      * @param[in] socket_priority socket priority value
@@ -540,7 +540,7 @@ class sockRaw : public sockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setSocketPriority(configFile &cfg, const std::string section = "");
+    bool setSocketPriority(ConfigFile &cfg, const std::string section = "");
     /**
      * Allocate the socket and initialize it with current parameters
      * @return true if socket creation success

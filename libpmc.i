@@ -25,6 +25,13 @@
 %include "std_vector.i"
 %apply long { ssize_t };
 %include "cfg.h"
+#ifdef SWIGRUBY
+/* Ignore Wrong constant name */
+%warnfilter(801) clockType_e;
+%warnfilter(801) implementSpecific_e;
+/* operator overload ignored, scripts can use Binary::append() */
+%warnfilter(365) Binary::operator+=;
+#endif
 %include "msg.h"
 %include "ptp.h"
 %include "sock.h"
@@ -39,20 +46,20 @@ namespace std {
   %template(ClockIdentity_v) vector<ClockIdentity_t>;
   %template(PortAddress_v) vector<PortAddress_t>;
   %template(AcceptableMaster_v) vector<AcceptableMaster_t>;
-  %template(sigTime) vector<SLAVE_RX_SYNC_TIMING_DATA_rec_t>;
-  %template(sigComp) vector<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t>;
-  %template(sigEvent) vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>;
-  %template(sigDelay) vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t>;
+  %template(SigTime) vector<SLAVE_RX_SYNC_TIMING_DATA_rec_t>;
+  %template(SigComp) vector<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t>;
+  %template(SigEvent) vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>;
+  %template(SigDelay) vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t>;
 };
 /* Allow script to convert a string to a buffer
  * The script need to ensure the string length is proper */
 %pointer_cast(char*, void*, conv_buf);
 /* convert management tlv from base pointer */
-#define caseUF(n) %pointer_cast(baseMngTlv*, n##_t*, conv_##n);
+#define caseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
 #define A(n, v, sc, a, sz, f) case##f(n)
 %include "ids.h"
 /* convert TLV from signaling message from base pointer */
-#define sigCnv(n) %pointer_cast(baseSigTlv*, n##_t*, conv_##n);
+#define sigCnv(n) %pointer_cast(BaseSigTlv*, n##_t*, conv_##n);
 sigCnv(ORGANIZATION_EXTENSION)
 sigCnv(PATH_TRACE)
 sigCnv(ALTERNATE_TIME_OFFSET_INDICATOR)

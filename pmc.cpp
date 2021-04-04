@@ -15,12 +15,13 @@
 #include "ptp.h"
 #include "sock.h"
 #include "bin.h"
+#include "ver.h"
 
 /* from pmc_dump.cpp */
-extern void call_dump(message &msg, baseMngTlv *data);
-extern bool call_dumpSig(const message &msg, tlvType_e tlvType,
-    baseSigTlv *tlv);
-extern baseMngTlv *call_data(message &msg, mng_vals_e id, char *save);
+extern void call_dump(Message &msg, BaseMngTlv *data);
+extern bool call_dumpSig(const Message &msg, tlvType_e tlvType,
+    BaseSigTlv *tlv);
+extern BaseMngTlv *call_data(Message &msg, mng_vals_e id, char *save);
 
 /* Receive constants */
 static const int wait = 500; // milli
@@ -29,16 +30,16 @@ static const char toksep[] = " \t\n\r"; // while spaces
 // buffer for send and receive
 static const size_t bufSize = 2000;
 static char buf[bufSize];
-static message msg;
-static std::unique_ptr<sockBase> sk;
-static binary clockIdentity;
+static Message msg;
+static std::unique_ptr<SockBase> sk;
+static Binary clockIdentity;
 static bool use_uds;
 static uint64_t timeout;
 
 static inline void dump_head(actionField_e action)
 {
     printf("\t%s seq %u %s MANAGEMENT %s ",
-        msg.getPeer().str().c_str(),
+        msg.getPeer().string().c_str(),
         msg.getSequence(),
         msg.act2str_c(action),
         msg.mng2str_c(msg.getTlvId()));
@@ -46,7 +47,7 @@ static inline void dump_head(actionField_e action)
 static inline void dump_sig()
 {
     printf("\t%s seq %u SIGNALING\n",
-        msg.getPeer().str().c_str(),
+        msg.getPeer().string().c_str(),
         msg.getSequence());
 }
 static inline void dump_err()
@@ -54,7 +55,7 @@ static inline void dump_err()
     printf("\t%s seq %u %s MANAGEMENT_ERROR_STATUS %s\n"
         "\tERROR: %s(%u)\n"
         "\tERROR DISPLAY: %s\n\n",
-        msg.getPeer().str().c_str(),
+        msg.getPeer().string().c_str(),
         msg.getSequence(),
         msg.act2str_c(msg.getReplyAction()),
         msg.mng2str_c(msg.getTlvId()),
@@ -62,13 +63,13 @@ static inline void dump_err()
         msg.getErrId(),
         msg.getErrDisplay_c());
 }
-static inline bool updatePortIdentity(msgParams &prms, char *str)
+static inline bool updatePortIdentity(MsgParams &prms, char *str)
 {
     char *port = strchr(str, '-');
     if(port == nullptr)
         return false;
     *port = 0;
-    binary nc;
+    Binary nc;
     if(!nc.fromHex(str) || nc.length() != ClockIdentity_t::size())
         return false;
     port++;
@@ -141,7 +142,7 @@ static inline bool findId(mng_vals_e &id, char *str)
     }
     int find = 0;
     for(int i = FIRST_MNG_ID; i <= LAST_MNG_ID; i++) {
-        const char *sid = message::mng2str_c((mng_vals_e)i);
+        const char *sid = Message::mng2str_c((mng_vals_e)i);
         if(strcmp(sid, str) == 0) {
             id = (mng_vals_e)i;
             return true; // Exact match!
@@ -174,7 +175,7 @@ static bool run_line(char *line)
         if(*cur == '*')
             msg.setAllClocks();
         else {
-            msgParams prms = msg.getParams();
+            MsgParams prms = msg.getParams();
             if(updatePortIdentity(prms, cur))
                 msg.updateParams(prms);
             else
@@ -189,7 +190,7 @@ static bool run_line(char *line)
     mng_vals_e id;
     if(!findId(id, cur))
         return false;
-    baseMngTlv *data;
+    BaseMngTlv *data;
     if(action == GET || msg.isEmpty(id)) {
         // No data is needed
         if(!msg.setAction(action, id))
@@ -241,7 +242,7 @@ int main(int argc, char *const argv[])
                 printf("Wrong option ':'\n");
                 return -1;
             case 'v':
-                printf("%s\n", message::getVersion());
+                printf("%s\n", getVersion());
                 return 0;
             default:
                 break;
@@ -255,7 +256,7 @@ int main(int argc, char *const argv[])
             return -1;
         }
     }
-    configFile cfg;
+    ConfigFile cfg;
     /* handle configuration file */
     if(options.count('f') && !cfg.read_cfg(options['f']))
         return -1;
@@ -264,8 +265,8 @@ int main(int argc, char *const argv[])
     std::string interface;
     if(options.count('i') && !options['i'].empty())
         interface = options['i'];
-    ifInfo ifObj;
-    msgParams prms = msg.getParams();
+    IfInfo ifObj;
+    MsgParams prms = msg.getParams();
     if(net_select != 'u') {
         if(interface.empty()) {
             fprintf(stderr, "missing interface\n");
@@ -293,9 +294,9 @@ int main(int argc, char *const argv[])
         prms.transportSpecific = cfg.transportSpecific(interface);
     switch(net_select) {
         case 'u': {
-            sockUnix *sku = new sockUnix;
+            SockUnix *sku = new SockUnix;
             if(sku == nullptr) {
-                fprintf(stderr, "failed to allocate sockUnix\n");
+                fprintf(stderr, "failed to allocate SockUnix\n");
                 return -1;
             }
             std::string uds_address;
@@ -308,49 +309,49 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<sockBase>(sku));
+            sk = std::move(std::unique_ptr<SockBase>(sku));
             prms.self_id.portNumber = getpid();
             use_uds = true;
             break;
         }
         default:
         case '4': {
-            sockIp4 *sk4 = new sockIp4;
+            SockIp4 *sk4 = new SockIp4;
             if(sk4 == nullptr) {
-                fprintf(stderr, "failed to allocate sockIp4\n");
+                fprintf(stderr, "failed to allocate SockIp4\n");
                 return -1;
             }
             if(!sk4->setAllInit(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<sockBase>(sk4));
+            sk = std::move(std::unique_ptr<SockBase>(sk4));
             break;
         }
         case '6': {
-            sockIp6 *sk6 = new sockIp6;
+            SockIp6 *sk6 = new SockIp6;
             if(sk6 == nullptr) {
-                fprintf(stderr, "failed to allocate sockIp6\n");
+                fprintf(stderr, "failed to allocate SockIp6\n");
                 return -1;
             }
             if(!sk6->setAllInit(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<sockBase>(sk6));
+            sk = std::move(std::unique_ptr<SockBase>(sk6));
             break;
         }
         case '2': {
-            sockRaw *skr = new sockRaw;
+            SockRaw *skr = new SockRaw;
             if(skr == nullptr) {
-                fprintf(stderr, "failed to allocate sockRaw\n");
+                fprintf(stderr, "failed to allocate SockRaw\n");
                 return -1;
             }
             if(!skr->setAllInit(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<sockBase>(skr));
+            sk = std::move(std::unique_ptr<SockBase>(skr));
             break;
         }
     }
