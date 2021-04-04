@@ -103,6 +103,9 @@ def main
   end
   prms = $msg.getParams()
   prms.self_id.portNumber = $$
+  # Verify we can use implementSpecific_e
+  # Notice Ruby capitalize first letter
+  prms.implementSpecific = Pmc::Linuxptp
   $msg.updateParams(prms)
   id = Pmc::USER_DESCRIPTION
   $msg.setAction(Pmc::GET, id)
@@ -126,7 +129,6 @@ def main
     puts "rcv error #{cnt}"
     return
   end
-
 
   err = $msg.parse($pbuf, cnt)
   if err == Pmc::MNG_PARSE_ERROR_MSG then
@@ -160,7 +162,8 @@ def main
   clk_dec.physicalAddress.setBin(3, 0xf4)
   puts "clk.physicalAddress: " + clk_dec.physicalAddress.toId()
   puts "clk.physicalAddress: " + clk_dec.physicalAddress.toHex()
-  puts "manufacturerIdentity: " + Pmc::Binary::bufToId(clk_dec.manufacturerIdentity, 3)
+  puts "manufacturerIdentity: " +
+    Pmc::Binary::bufToId(clk_dec.manufacturerIdentity, 3)
   clk_dec.revisionData.textField = "This is a test";
   puts "revisionData: " + clk_dec.revisionData.textField;
 

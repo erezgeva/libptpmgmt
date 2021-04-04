@@ -11,12 +11,16 @@
 
 #include <signal.h>
 #include <unistd.h>
+#include <poll.h>
 #include "msg.h"
 #include "ptp.h"
 #include "sock.h"
 #include "bin.h"
 #include "ver.h"
 
+#ifndef INFTIM
+#define INFTIM -1
+#endif
 /* from pmc_dump.cpp */
 extern void call_dump(Message &msg, BaseMngTlv *data);
 extern bool call_dumpSig(const Message &msg, tlvType_e tlvType,
@@ -358,37 +362,61 @@ int main(int argc, char *const argv[])
     // allowed signaling TLV
     prms.allowSigTlvs[SLAVE_RX_SYNC_TIMING_DATA] = true;
     prms.allowSigTlvs[SLAVE_DELAY_TIMING_DATA_NP] = true;
+    bool batch = optind < argc;
+    // if we use real network layer and run mode, allow signaling
+    if(!batch && !use_uds)
+        prms.rcvSignaling = true;
     msg.updateParams(prms);
-    if(optind == argc) { // No arguments left, use batch mode
-        // Alow signaling in batch mode if we use real network layer
-        if(net_select != 'u')
-            prms.rcvSignaling = true;
-        msg.updateParams(prms);
-        // Normal Termination (by kill)
-        if(signal(SIGTERM, handle_sig) == SIG_ERR)
-            fprintf(stderr, "sig term fails %m\n");
-        // Control + C, interrupt from keyboard
-        if(signal(SIGINT, handle_sig_ctrl) == SIG_ERR)
-            fprintf(stderr, "sig init fails %m\n");
-        // quit from keyboard
-        if(signal(SIGQUIT, handle_sig) == SIG_ERR)
-            fprintf(stderr, "sig quit fails %m\n");
-        // Hangup detected
-        if(signal(SIGHUP, handle_sig) == SIG_ERR)
-            fprintf(stderr, "sig hup fails %m\n");
-        char lineBuf[bufSize];
-        while(fgets(lineBuf, bufSize, stdin) != nullptr)
-            if(run_line(lineBuf))
-                rcv_timeout();
-    } else {
-        msg.updateParams(prms);
+    // Normal Termination (by kill)
+    if(signal(SIGTERM, handle_sig) == SIG_ERR)
+        fprintf(stderr, "sig term fails %m\n");
+    // Control C, interrupt from keyboard
+    if(signal(SIGINT, handle_sig_ctrl) == SIG_ERR)
+        fprintf(stderr, "sig init fails %m\n");
+    // quit from keyboard
+    if(signal(SIGQUIT, handle_sig) == SIG_ERR)
+        fprintf(stderr, "sig quit fails %m\n");
+    // Hangup detected
+    if(signal(SIGHUP, handle_sig) == SIG_ERR)
+        fprintf(stderr, "sig hup fails %m\n");
+    if(batch) {
+        // batch mode
         int pkts = 0;
+        // First we send all the commands, then we receive them all
         for(int index = optind; index < argc; index++) {
             if(run_line(argv[index]))
                 pkts++;
         }
         for(; pkts > 0; pkts--)
             rcv_timeout();
+    } else {
+        char lineBuf[bufSize];
+        if(use_uds) {
+            // We only receive after sending a command
+            while(fgets(lineBuf, bufSize, stdin) != nullptr)
+                if(run_line(lineBuf))
+                    rcv_timeout();
+        } else {
+            pollfd fds[2];
+            // standard input
+            fds[0].fd = STDIN_FILENO;
+            fds[0].events = POLLIN;
+            // network socket
+            fds[1].fd = sk->getFd();
+            fds[1].events = POLLIN;
+            // We receive except when we type a command
+            for(;;) {
+                if(poll(fds, 2, INFTIM) > 0) {
+                    if(fds[1].revents & POLLIN)
+                        rcv();
+                    else if(fds[0].revents & POLLIN) {
+                        if(fgets(lineBuf, bufSize, stdin) == nullptr)
+                            break; // End Of File, Control D
+                        run_line(lineBuf);
+                    }
+                }
+            }
+        }
     }
     sk->close();
     return 0;

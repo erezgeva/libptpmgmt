@@ -10,8 +10,8 @@ use File::Touch;
 
 sub main
 {
-    for(glob "*.cpp *.h Makefile debian/rules debian/*.mk *.sh perl/*.pl" .
-             " lua/*.lua python/t*.py")
+    for(glob "*.cpp *.h *.sh Makefile debian/rules debian/changelog " .
+             "debian/copyright pkg/* */test.*")
     {
         next if -l or not -f;
         my $file = $_;
@@ -19,7 +19,7 @@ sub main
         # Use touch to prevent compilation
         my $touch_obj = File::Touch->new(reference => $file);
         local @ARGV = ($file);
-        local $^I   = '';
+        local $^I = '';
         # skip empty lines at start of
         my $not_first_empty_lines = 0;
         # combine empty lines into single empty line

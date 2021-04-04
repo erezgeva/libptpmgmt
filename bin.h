@@ -102,6 +102,7 @@ class Binary
      * Append single octet using operator +=
      * @param[in] add octet to add
      * @return reference to itself
+     * @note script can use the append() function.
      */
     Binary &operator += (const uint8_t add) {
         m_str.append(1, add);
@@ -120,6 +121,7 @@ class Binary
      * append octets using operator +=
      * @param[in] other Binary to add
      * @return reference to itself
+     * @note script can use the append() function.
      */
     Binary &operator += (const Binary &other) {
         m_str += other.m_str;

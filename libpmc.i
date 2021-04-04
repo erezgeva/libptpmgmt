@@ -26,10 +26,12 @@
 %apply long { ssize_t };
 %include "cfg.h"
 #ifdef SWIGRUBY
-/* Ignore Wrong constant name */
+/* Ignore Wrong constant name.
+   Ruby capitalize first letter! */
 %warnfilter(801) clockType_e;
 %warnfilter(801) implementSpecific_e;
-/* operator overload ignored, scripts can use Binary::append() */
+/* Operator overload ignored.
+ * Scripts can use Binary::append() */
 %warnfilter(365) Binary::operator+=;
 #endif
 %include "msg.h"

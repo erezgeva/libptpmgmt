@@ -159,6 +159,7 @@ enum managementErrorId_e : uint16_t {
 };
 /** PTP clock type bit mask
  * @details A PTP clock could act as more than a single type
+ * @note: Ruby's wrapping, capitalize first letter of enumerators values
  */
 enum clockType_e : uint16_t {
     ordinaryClock       = 0x8000, /**< ordinary clock */
@@ -245,7 +246,9 @@ enum portState_e : uint8_t {
     SLAVE        = 9, /**< Client */
     CLIENT       = 9, /**< Client */
 };
-/** Specify Management TLV implementation-specific to use */
+/** Specify Management TLV implementation-specific to use
+ * @note: Ruby's wrapping, capitalize first letter of enumerators values
+ */
 enum implementSpecific_e {
     noImplementSpecific, /**< Do not use any implementation-specific */
     linuxptp,            /**< linuxptp project */
