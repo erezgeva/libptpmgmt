@@ -26,12 +26,12 @@ function setPriority1(newPriority1)
     local id = pmc.PRIORITY1
     msg:setAction(pmc.SET, id, pr1)
     sequence = sequence + 1
-    local err = msg:build(buf:get(), SIZE, sequence)
+    local err = msg:build(buf(), SIZE, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
     end
-    if(not sk:send(buf:get(), msg:getMsgLen())) then
+    if(not sk:send(buf(), msg:getMsgLen())) then
         print "send fail"
         return
     end
@@ -39,12 +39,12 @@ function setPriority1(newPriority1)
         print "timeout"
         return
     end
-    local cnt = sk:rcv(buf:get(), SIZE)
+    local cnt = sk:rcv(buf(), SIZE)
     if(cnt <= 0) then
         print "rcv cnt"
         return -1
     end
-    err = msg:parse(buf:get(), cnt)
+    err = msg:parse(buf(), cnt)
     if(err ~= pmc.MNG_PARSE_ERROR_OK or msg:getTlvId() ~= id or
        sequence ~= msg:getSequence()) then
         print "set fails"
@@ -53,12 +53,12 @@ function setPriority1(newPriority1)
     print("set new priority " .. newPriority1 .. " success")
     msg:setAction(pmc.GET, id)
     sequence = sequence + 1
-    err = msg:build(buf:get(), SIZE, sequence)
+    err = msg:build(buf(), SIZE, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
     end
-    if(not sk:send(buf:get(), msg:getMsgLen())) then
+    if(not sk:send(buf(), msg:getMsgLen())) then
         print "send fail"
         return
     end
@@ -66,12 +66,12 @@ function setPriority1(newPriority1)
         print "timeout"
         return
     end
-    local cnt = sk:rcv(buf:get(), SIZE)
+    local cnt = sk:rcv(buf(), SIZE)
     if(cnt <= 0) then
         print "rcv cnt"
         return -1
     end
-    err = msg:parse(buf:get(), cnt)
+    err = msg:parse(buf(), cnt)
     if(err == pmc.MNG_PARSE_ERROR_MSG) then
         print "error Message"
     elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then
@@ -89,6 +89,10 @@ function setPriority1(newPriority1)
 end
 
 function main()
+    if(not buf:isAlloc()) then
+        print "buffer allocation failed"
+        return
+    end
     local txt
     local cfg_file = arg[1]
     if(cfg_file == nil or cfg_file == '') then
@@ -111,13 +115,13 @@ function main()
     local id = pmc.USER_DESCRIPTION
     msg:setAction(pmc.GET, id)
     sequence = sequence + 1
-    local err = msg:build(buf:get(), SIZE, sequence)
+    local err = msg:build(buf(), SIZE, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
         return
     end
-    if(not sk:send(buf:get(), msg:getMsgLen())) then
+    if(not sk:send(buf(), msg:getMsgLen())) then
         print "send fail"
         return
     end
@@ -126,12 +130,12 @@ function main()
         print "timeout"
         return
     end
-    local cnt = sk:rcv(buf:get(), SIZE)
+    local cnt = sk:rcv(buf(), SIZE)
     if(cnt <= 0) then
         print("rcv error", cnt)
         return
     end
-    err = msg:parse(buf:get(), cnt)
+    err = msg:parse(buf(), cnt)
     if(err == pmc.MNG_PARSE_ERROR_MSG) then
         print "error Message"
     elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then

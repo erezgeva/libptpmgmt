@@ -19,21 +19,28 @@
 			<Add option="-std=c++11" />
 		</Compiler>
 		<Unit filename="bin.cpp" />
+		<Unit filename="buf.cpp" />
 		<Unit filename="cfg.cpp" />
 		<Unit filename="msg.cpp" />
 		<Unit filename="pmc.cpp" />
 		<Unit filename="pmc_dump.cpp" />
 		<Unit filename="proc.cpp" />
 		<Unit filename="ptp.cpp" />
+		<Unit filename="sig.cpp" />
 		<Unit filename="sock.cpp" />
+		<Unit filename="ver.cpp" />
 		<Unit filename="bin.h" />
+		<Unit filename="buf.h" />
 		<Unit filename="cfg.h" />
 		<Unit filename="end.h" />
+		<Unit filename="ids.h" />
 		<Unit filename="mngIds.h" />
 		<Unit filename="msg.h" />
 		<Unit filename="proc.h" />
 		<Unit filename="ptp.h" />
+		<Unit filename="sig.h" />
 		<Unit filename="sock.h" />
+		<Unit filename="ver.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

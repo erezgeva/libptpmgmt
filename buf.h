@@ -44,10 +44,20 @@ class Buf
      */
     void *get() {return m_buf;}
     /**
+     * Get memory buffer pointer
+     * @return memory buffer pointer or null if buffer does not exist
+     */
+    void *operator()() {return m_buf;}
+    /**
      * Get memory buffer size
      * @return memory buffer size or 0 if buffer does not exist
      */
-    size_t size() {return m_size;}
+    size_t size() const {return m_size;}
+    /**
+     * Is memory buffer allocated?
+     * @return true if memory buffer is allocated
+     */
+    bool isAlloc() const {return m_size > 0 && m_buf != nullptr;}
 };
 
 #endif /*__PMC_BUF_H*/

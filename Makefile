@@ -7,6 +7,62 @@
 
 PMC_USE_LIB?=a # 'a' for static and 'so' for dynamic
 
+define help
+################################################################################
+#  Make file targets                                                           #
+################################################################################
+#                                                                              #
+#   all              Build all targets.                                        #
+#                                                                              #
+#   clean            Clean intermediate files.                                 #
+#                                                                              #
+#   distclean        Perform full clean includes build application and         #
+#                    generated documents.                                      #
+#                                                                              #
+#   format           Format source code and warn of format issues.             #
+#                                                                              #
+#   doxygen          Create library documentation.                             #
+#                                                                              #
+#   checkall         Call doxygen and format targets.                          #
+#                                                                              #
+#   help             See this help.                                            #
+#                                                                              #
+#   install          Install application, libraries, and headers in system.    #
+#                                                                              #
+#   deb              Build Debian packages.                                    #
+#                                                                              #
+#   deb_src          Build Debian source package.                              #
+#                                                                              #
+#   deb_clean        Clean Debian intermediate files.                          #
+#                                                                              #
+################################################################################
+#  Make file parameters                                                        #
+################################################################################
+#                                                                              #
+#   PMC_USE_LIB      Select the pmc tool library link,                         #
+#                    use 'a' for static library or 'so' for shared library.    #
+#                                                                              #
+#   DESTDIR          Destination folder for install target.                    #
+#                    Installation prefix.                                      #
+#                                                                              #
+#   NO_COL           Prevent colour output.                                    #
+#                                                                              #
+#   USE_COL          Force colour when using pipe for tools like 'aha'.        #
+#                    For example: make -j USE_COL=1 | aha > out.html           #
+#                                                                              #
+#   NO_SWIG          Prevent compiling Swig plugins.                           #
+#                                                                              #
+#   NO_PERL          Prevent compiling Perl Swig plugin.                       #
+#                                                                              #
+#   NO_LUA           Prevent compiling Lua swig plugin.                        #
+#                                                                              #
+#   NO_RUBY          Prevent compiling Ruby Swig plugin.                       #
+#                                                                              #
+#   NO_PYTHON        Prevent compiling Python Swig plugin.                     #
+#                                                                              #
+################################################################################
+
+endef
 which=$(shell which $1 2>/dev/null)
 libname=$(subst lib,,$(basename $(notdir $(lastword $(wildcard /usr/lib/$1)))))
 define depend
@@ -179,6 +235,7 @@ endif
 HOST_MULTIARCH:=$(DEB_HOST_MULTIARCH)
 LIB_ARCH:=/usr/lib/$(HOST_MULTIARCH)
 
+ifndef NO_SWIG
 ifneq ($(call which,swig),)
 swig_ver=$(lastword $(shell swig -version | grep Version))
 ifeq ($(call verCheck,$(swig_ver),3.0),)
@@ -186,6 +243,7 @@ SWIG:=swig
 SWIG_ALL:=
 SWIG_NAME:=PmcLib
 
+ifndef NO_PERL
 ifneq ($(call which,perl),)
 PERL_VER:=$(shell perl -e '$$_=$$^V;s/^v//;print')
 PERLDIR:=$(DESTDIR)$(LIB_ARCH)/perl/$(PERL_VER)
@@ -212,7 +270,9 @@ SWIG_ALL+=$(PERL_NAME).so
 CLEAN+=$(foreach e,d o,$(PERL_NAME).$e)
 DISTCLEAN+=$(foreach e,cpp pm so,$(PERL_NAME).$e)
 endif # which perl
+endif # NO_PERL
 
+ifndef NO_LUA
 ifneq ($(call which,lua),)
 LUADIR:=$(DESTDIR)$(LIB_ARCH)
 LUA_LIB_NAME:=pmc.so
@@ -250,7 +310,9 @@ $(eval $(foreach n,$(LUA_VERSIONS),$(call lua_soname,$n)))
 endif
 $(eval $(foreach n,$(LUA_VERSIONS),$(call lua,$n)))
 endif # which lua
+endif # NO_LUA
 
+ifndef NO_PYTHON
 ifneq ($(call which,python),)
 PY_BASE:=python/$(SWIG_NAME)
 $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
@@ -290,7 +352,9 @@ DISTCLEAN_DIRS+=python/__pycache__
 $(eval $(call python,2))
 $(eval $(call python,3))
 endif # which python
+endif # NO_PYTHON
 
+ifndef NO_RUBY
 ifneq ($(call which,ruby),)
 # configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
 RUBY_SCRIPT_INCS:='puts "-I" + RbConfig::CONFIG["rubyhdrdir"] +\
@@ -315,10 +379,12 @@ SWIG_ALL+=$(RUBY_LNAME).so
 CLEAN+=$(RUBY_NAME) $(foreach e,d o,$(RUBY_LNAME).$e)
 DISTCLEAN+=$(RUBY_LNAME).so
 endif # which ruby
+endif # NO_RUBY
 
 ALL+=$(SWIG_ALL)
 endif # swig 3.0
 endif # which swig
+endif # NO_SWIG
 
 ifneq ($(call which,dpkg-buildpackage),)
 deb_src: distclean
@@ -373,10 +439,14 @@ install: $(ALL) doxygen
 	$Q$(DINST) $(DOCDIR)
 	$(Q)cp -a doc/html $(DOCDIR)
 	$(Q)printf $(REDIR) > $(DOCDIR)/index.html
+ifndef NO_SWIG
+ifndef NO_PERL
 ifneq ($(call which,perl),)
 	$Q$(NINST) -D perl/$(SWIG_NAME).so -t $(PERLDIR)/auto/$(SWIG_NAME)
 	$Q$(NINST) perl/$(SWIG_NAME).pm $(PERLDIR)
 endif # which perl
+endif # NO_PERL
+ifndef NO_LUA
 ifneq ($(call which,lua),)
 	$Q$(foreach n,$(LUA_VERSIONS),\
 	  $(NINST) -D $(LUA_LIB_$n) $(LUADIR)/$(LUA_FLIB_$n).$(LIB_VER);\
@@ -384,6 +454,8 @@ ifneq ($(call which,lua),)
 	  $(DINST) $(LUADIR)/lua/5.$n;\
 	  $(LN) ../../$(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/lua/5.$n/$(LUA_LIB_NAME);)
 endif # which lua
+endif # NO_LUA
+ifndef NO_PYTHON
 ifneq ($(call which,python),)
 	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2DIR)/$(PY_LIB_NAME).$(HOST_MULTIARCH).so
@@ -391,10 +463,19 @@ ifneq ($(call which,python),)
 	$Q$(NINST) -D python/3/$(PY_LIB_NAME).*.so -t $(PY3DIR)
 	$Q$(NINST) python/pmc.py $(PY3DIR)
 endif # which python
+endif # NO_PYTHON
+ifndef NO_RUBY
 ifneq ($(call which,ruby),)
 	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
 endif # which ruby
+endif # NO_RUBY
+endif # NO_SWIG
 
 checkall: format doxygen
 
-.PHONY: all clean distclean format deb_src deb deb_clean doxygen checkall
+help:
+	$(info $(help))
+	@:
+
+.PHONY: all clean distclean format install deb_src deb deb_clean doxygen\
+        checkall help

@@ -90,6 +90,7 @@ sub setPriority1
 
 sub main
 {
+    die "buffer allocation failed" unless $buf->isAlloc();
     my $cfg_file = $ARGV[0];
     $cfg_file = DEF_CFG_FILE unless -f $cfg_file;
     die "Config file $uds_address does not exist" unless -f $cfg_file;

@@ -84,6 +84,10 @@ def setPriority1(newPriority1)
 end
 
 def main
+  if !$buf.isAlloc() then
+    puts "buffer allocation failed"
+    return
+  end
   if ARGV.length > 0 then
     cfg_file = ARGV[0]
   else

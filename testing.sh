@@ -32,29 +32,25 @@ main()
    [ -n "$var" ] || eval "local -r $n=\"\$def_$n\""
  done
  ##############################################################################
- local -r uds=$linuxptpLoc/uds.c
- local -r config=$linuxptpLoc/config.c
+ local -r uds="$linuxptpLoc/uds.c"
+ local -r config="$linuxptpLoc/config.c"
  if [ -d "$linuxptpLoc" -a -f "$uds" -a -f "$config" ]; then
    # Add all users for testing (so we can test without using root :-)
    local -r reg='^#define UDS_FILEMODE'
-   if [ -n "$(grep "$reg.*GRP)" $uds)" ];then
-     sed -i "/$reg/ s#GRP)#GRP|S_IROTH|S_IWOTH)#" $uds
+   if [ -n "$(grep "$reg.*GRP)" "$uds")" ];then
+     sed -i "/$reg/ s#GRP)#GRP|S_IROTH|S_IWOTH)#" "$uds"
    fi
    # Remove the deprecated message
    local -r reg2='^\s\sfprintf(stderr, "option %s is deprecated,'
-   if [ -n "$(grep "$reg2" $config)" ];then
-     sed -i "/$reg2/,+1d" $config
+   if [ -n "$(grep "$reg2" "$config")" ];then
+     sed -i "/$reg2/,+1d" "$config"
    fi
-   make --no-print-directory -j -C $linuxptpLoc
+   make --no-print-directory -j -C "$linuxptpLoc"
+   local -r pmctool="sudo \"$linuxptpLoc/pmc\""
  else
    local -r useSudo="sudo"
+   local -r pmctool="sudo /usr/sbin/pmc"
  fi
- if [ -x "$linuxptpLoc/pmc" ]; then
-   local -r pmcLoc="$linuxptpLoc"
- else
-   local -r pmcLoc=/usr/sbin
- fi
- local -r pmctool="sudo $pmcLoc/pmc"
  ##############################################################################
  # script languages source
  local -r mach=$(uname -m)
@@ -79,14 +75,14 @@ main()
    time make -j
  fi
  if [ -z "$(pgrep ptp4l)" ]; then
-   printf "\n * Run ptp daemon: make;sudo $linuxptpLoc/ptp4l %s\n\n"\
-          "-f $cfgFile -i $ifName"
+   printf "\n * Run ptp daemon:\n   cd \"$linuxptpLoc\" %s\n\n"\
+          "&& make && sudo ./ptp4l -f $cfgFile -i $ifName"
    return
  fi
  ##############################################################################
  # compare linuxptp-pmc with libpmc-pmc dump
- local -r t1=$(mktemp linuxptp.XXXXXXXXXX) t2=$(mktemp libpmc.XXXXXXXXXX)
- local -a cmds
+ local -r t1=$(mktemp linuxptp.XXXXXXXXXX) t2=$(mktemp libpmc.tool.XXXXXXXXXX)
+ local n cmds
  # all TLVs that are supported by linuxptp ptp4l
  local -r tlvs='ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY CLOCK_DESCRIPTION
    CURRENT_DATA_SET DEFAULT_DATA_SET DELAY_MECHANISM DOMAIN
@@ -98,22 +94,21 @@ main()
    PORT_STATS_NP SUBSCRIBE_EVENTS_NP SYNCHRONIZATION_UNCERTAIN_NP'
  local -r setmsg="set PRIORITY2 137"
  local -r verify="get PRIORITY2"
- local n
- for n in $tlvs; do cmds+=("get $n"); done
+ for n in $tlvs; do cmds+=" \"get $n\"";done
 
  printf "\n * Make $t1 using linuxptp pmc\n"
- $pmctool -u -f $cfgFile "$setmsg" > $t1
- $pmctool -u -f $cfgFile "$verify" >> $t1
- time $pmctool -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: >> $t1
+ eval "$pmctool -u -f $cfgFile \"$setmsg\"" > $t1
+ eval "$pmctool -u -f $cfgFile \"$verify\"" >> $t1
+ time eval "$pmctool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t1
 
  # real  0m0.113s
  # user  0m0.009s
  # sys   0m0.002s
 
  printf "\n * Make $t2 using libpmc\n"
- $useSudo $pmclibtool -u -f $cfgFile "$setmsg" > $t2
- $useSudo $pmclibtool -u -f $cfgFile "$verify" >> $t2
- time $useSudo $pmclibtool -u -f $cfgFile "${cmds[@]}" | grep -v ^sending: >> $t2
+ eval "$useSudo $pmclibtool -u -f $cfgFile \"$setmsg\"" > $t2
+ eval "$useSudo $pmclibtool -u -f $cfgFile \"$verify\"" >> $t2
+ time eval "$useSudo $pmclibtool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t2
 
  # real  0m0.019s
  # user  0m0.004s
