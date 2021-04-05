@@ -192,26 +192,21 @@ bool Message::checkReplyAction(uint8_t actionField)
 }
 bool Message::allowedAction(mng_vals_e id, actionField_e action)
 {
-    if(id < FIRST_MNG_ID || id > LAST_MNG_ID || mng_all_vals[id].size == -1)
+    switch(action) {
+        case GET:
+        case SET:
+        case COMMAND:
+            break;
+        default:
+            return false;
+    }
+    if(id < FIRST_MNG_ID || id > LAST_MNG_ID)
         return false;
     if(m_prms.implementSpecific != linuxptp &&
         mng_all_vals[id].allowed & A_USE_LINUXPTP)
         return false;
     return mng_all_vals[id].allowed & (1 << action);
 }
-static inline bool verifyAction(actionField_e action)
-{
-    switch(action) {
-        case GET:
-        case SET:
-        case COMMAND:
-            return true;
-        default:
-            break;
-    }
-    return false;
-}
-
 Message::Message() :
     m_sendAction(GET),
     m_msgLen(0),
@@ -251,14 +246,16 @@ ssize_t Message::getMsgPlanedLen() const
     // That should not happen, precaution
     if(m_tlv_id < FIRST_MNG_ID || m_tlv_id > LAST_MNG_ID)
         return -1; // Not supported
-    // GET do not send dataField payload!
-    if(m_sendAction == GET)
-        return mngMsgBaseSize;
+    BaseMngTlv *data = nullptr;
+    if(m_sendAction != GET)
+        data = m_dataSend;
+    else if(m_prms.useZeroGet)
+        return mngMsgBaseSize; // GET with zero dataField!
     ssize_t ret = mng_all_vals[m_tlv_id].size;
     if(ret == -2) { // variable length TLV
-        if(m_dataSend == nullptr)
-            return -2;         // can not calculate without data
-        ret = dataFieldSize(); // Calculate variable length
+        if(data == nullptr && m_sendAction != GET)
+            return -2; // SET and COMMAND must have data
+        ret = dataFieldSize(data); // Calculate variable length
     }
     if(ret < 0)
         return ret;
@@ -287,7 +284,7 @@ bool Message::isEmpty(mng_vals_e id)
 
 bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id)
 {
-    if(!verifyAction(actionField) || !allowedAction(tlv_id, actionField))
+    if(!allowedAction(tlv_id, actionField))
         return false;
     if(actionField != GET && mng_all_vals[tlv_id].size != 0)
         return false; // SET and COMMAND need dataSend
@@ -299,7 +296,7 @@ bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id)
 bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id,
     BaseMngTlv &dataSend)
 {
-    if(!verifyAction(actionField) || !allowedAction(tlv_id, actionField))
+    if(!allowedAction(tlv_id, actionField))
         return false;
     m_sendAction = actionField;
     m_tlv_id = tlv_id;
@@ -336,8 +333,6 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     memcpy(msg->sourcePortIdentity.clockIdentity.v, m_prms.self_id.clockIdentity.v,
         m_prms.self_id.clockIdentity.size());
     msg->sourcePortIdentity.portNumber = cpu_to_net16(m_prms.self_id.portNumber);
-    if(!allowedAction(m_tlv_id, m_sendAction))
-        return MNG_PARSE_ERROR_INVALID_ID;
     managementTLV_t *tlv = (managementTLV_t *)(msg + 1);
     tlv->tlvType = cpu_to_net16(MANAGEMENT);
     tlv->managementId = cpu_to_net16(mng_all_vals[m_tlv_id].value);
@@ -345,6 +340,7 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     m_cur = (uint8_t *)(tlv + 1); // point on dataField
     size_t size = mngMsgBaseSize;
     m_left = bufSize - size;
+    ssize_t tlvSize = mng_all_vals[m_tlv_id].size;
     if(m_sendAction != GET && m_dataSend != nullptr) {
         m_build = true;
         // Ensure reserve fields are zero
@@ -356,11 +352,23 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
         reserved = 0;
         if((m_size & 1) && proc(reserved)) // length need to be even
             return MNG_PARSE_ERROR_TOO_SMALL;
-        size += m_size;
+    } else if(m_sendAction == GET && !m_prms.useZeroGet && tlvSize != 0) {
+        if(tlvSize == -2)
+            tlvSize = dataFieldSize(nullptr); // Calculate empty variable length
+        if(tlvSize < 0)
+            return MNG_PARSE_ERROR_INVALID_ID;
+        if(tlvSize & 1)
+            tlvSize++;
+        if(tlvSize > m_left)
+            return MNG_PARSE_ERROR_TOO_SMALL;
+        m_size = tlvSize;
+        memset(m_cur, 0, m_size);
+        // m_cur += m_size; // As m_cur is not used anymore
     }
-    tlv->lengthField = cpu_to_net16(lengthFieldMngBase + m_size);
+    size += m_size;
     if(size & 1) // length need to be even
         return MNG_PARSE_ERROR_SIZE;
+    tlv->lengthField = cpu_to_net16(lengthFieldMngBase + m_size);
     m_msgLen = size;
     msg->messageLength = cpu_to_net16(size);
     return MNG_PARSE_ERROR_OK;

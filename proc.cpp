@@ -53,9 +53,14 @@ S(PORT_PROPERTIES_NP)
     return 2 + PortIdentity_t::size() + d.interface.size();
 }
 
-ssize_t Message::dataFieldSize() const
+ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
 {
-#define caseUFS(n) case n: return n##_s(*(n##_t*)m_dataSend);
+#define caseUFS(n) case n:\
+        if(data == nullptr) {\
+            n##_t empty;\
+            return n##_s(empty);\
+        } else\
+            return n##_s(*(n##_t*)data);
 #define caseUFBS(n) caseUFS(n)
 #define A(n, v, sc, a, sz, f) case##f(n)
     switch(m_tlv_id) {

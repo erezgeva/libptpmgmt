@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <poll.h>
 #include <getopt.h>
+#include <libgen.h>
 #include "msg.h"
 #include "ptp.h"
 #include "sock.h"
@@ -218,6 +219,28 @@ static bool run_line(char *line)
         delete data;
     return true;
 }
+void help(char *app)
+{
+    fprintf(stderr, "\n"
+        "usage: %s [options] [commands]\n\n"
+        " Network Transport\n\n"
+        " -2        IEEE 802.3\n"
+        " -4        UDP IPV4 (default)\n"
+        " -6        UDP IPV6\n"
+        " -u        UDS local\n\n"
+        " Other Options\n\n"
+        " -b [num]  boundary hops, default 1\n"
+        " -d [num]  domain number, default 0\n"
+        " -f [file] read configuration from 'file'\n"
+        " -h        prints this message and exits\n"
+        " -i [dev]  interface device to use, default 'eth0'\n"
+        "           for network and '/var/run/pmc.$pid' for UDS.\n"
+        " -s [path] server address for UDS, default '/var/run/ptp4l'.\n"
+        " -t [hex]  transport specific field, default 0x0\n"
+        " -v        prints the software version and exits\n"
+        " -z        send zero length TLV values with the GET actions\n\n",
+        basename(app));
+}
 static void handle_sig(int)
 {
     sk->close();
@@ -233,7 +256,8 @@ int main(int argc, char *const argv[])
 {
     int c;
     std::map<int, std::string> options;
-    const char *with_options = "f:b:d:s:t:i:v";
+    const char *with_options = "fbdsti";
+    const char *no_options = "zvh";
     const char *net_options = "u246";
     const char *l_options = "MSTP";
     const option long_options[] = {
@@ -248,12 +272,14 @@ int main(int argc, char *const argv[])
         { .name = "udp_ttl",           .has_arg = required_argument, .val = 'T' },
         { .name = "socket_priority",   .has_arg = required_argument, .val = 'P' },
     };
-    // Always send GET with zero length data.
-    const char *ignore_options = "z";
-    std::string opts = with_options;
-    opts += net_options;
-    opts += ignore_options;
+    std::string opts = net_options;
+    opts += no_options;
+    for(size_t i = 0; i < strlen(with_options); i++) {
+        opts += with_options[i];
+        opts += ':';
+    }
     char net_select = 0;
+    bool zero_get = false;
     while((c = getopt_long(argc, argv, opts.c_str(), long_options,
                     nullptr)) != -1) {
         switch(c) {
@@ -263,6 +289,16 @@ int main(int argc, char *const argv[])
             case 'v':
                 printf("%s\n", getVersion());
                 return 0;
+            case 'h':
+                help(argv[0]);
+                return 0;
+            case 'z':
+                /* See Interpretation Response #29 in
+                 * IEEE Standards Interpretations for IEEE Std 1588-2008
+                 * https://standards.ieee.org/content/dam/ieee-standards/
+                 * standards/web/documents/interpretations/1588-2008_interp.pdf */
+                zero_get = true;
+                continue;
             case 'n':
                 if(strcasecmp(optarg, "UDPv4") == 0)
                     net_select = '4';
@@ -282,8 +318,8 @@ int main(int argc, char *const argv[])
             options[c] = optarg;
         else if(strrchr(net_options, c) != nullptr)
             net_select = c;
-        else if(strrchr(ignore_options, c) == nullptr) {
-            printf("Wrong option '%c:'\n", c);
+        else {
+            help(argv[0]);
             return -1;
         }
     }
@@ -428,6 +464,7 @@ int main(int argc, char *const argv[])
     // if we use real network layer and run mode, allow signaling
     if(!batch && !use_uds)
         prms.rcvSignaling = true;
+    prms.useZeroGet = zero_get;
     msg.updateParams(prms);
     // Normal Termination (by kill)
     if(signal(SIGTERM, handle_sig) == SIG_ERR)

@@ -142,23 +142,23 @@ Get reply for PRIORITY1
 priority1: 153
 "
  enter perl
- printf " * We except real 'user desc' on '>'\n"
- eval "$ldPath $useSudo ./test.pl $cfgFile" > ../$t3
+ time eval "$ldPath $useSudo ./test.pl $cfgFile" > ../$t3
  cd ..
+ printf "\n * We except real 'user desc' on '>'\n"
  diff <(printf "$scriptOut") $t3 | grep '^[0-9-]' -v
  enter ruby
- eval "$ldPathRuby $useSudo ./test.rb $cfgFile" | diff - ../$t3
+ time eval "$ldPathRuby $useSudo ./test.rb $cfgFile" | diff - ../$t3
  cd ..
  enter lua
  local i
  for i in 1 2 3; do
-   printf " lua 5.$i ---- \n"
+   printf "\n lua 5.$i ---- \n"
    if [ -n "$needLua" ]; then
      ln -sf 5.$i/pmc.so
    else
      rm -f pmc.so
    fi
-   eval "$ldPath $useSudo lua5.$i ./test.lua $cfgFile" | diff - ../$t3
+   time eval "$ldPath $useSudo lua5.$i ./test.lua $cfgFile" | diff - ../$t3
  done
  cd ..
  enter python
@@ -171,8 +171,8 @@ priority1: 153
      [ -f "$file" ] || continue
      ln -sf $file _pmc.so
    fi
-   printf " $(readlink $(which python$i)) ---- \n"
-   eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3
+   printf "\n $(readlink $(which python$i)) ---- \n"
+   time eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3
  done
  cd ..
  rm $t3

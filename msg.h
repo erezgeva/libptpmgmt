@@ -434,6 +434,7 @@ struct MsgParams {
     implementSpecific_e implementSpecific; /**< Implementation-specific to use */
     PortIdentity_t target; /**< target port ID */
     PortIdentity_t self_id; /**< own port ID */
+    bool useZeroGet; /**< send get with zero dataField */
     bool rcvSignaling; /**< parse signaling messages */
     bool filterSignaling; /**< filter signaling messages TLVs */
     /** when filter TLVs in signalling messages
@@ -593,7 +594,7 @@ class Message
      * For id with non fixed size
      * The size is determined by the m_dataSend content
      */
-    ssize_t dataFieldSize() const;
+    ssize_t dataFieldSize(const BaseMngTlv *data) const;
 
   public:
     Message();
@@ -799,7 +800,7 @@ class Message
     size_t getMsgLen() const { return m_msgLen; }
     /**
      * Get planned message to send sized
-     * @return planned message size
+     * @return planned message size or negative for error
      * @note the planned message size is based on the management TLV id,
      *  action and the last dataSend the user set.
      * User can use the size to allocate proper buffer for sending
