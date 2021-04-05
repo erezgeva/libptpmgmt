@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <poll.h>
+#include <getopt.h>
 #include "msg.h"
 #include "ptp.h"
 #include "sock.h"
@@ -234,24 +235,50 @@ int main(int argc, char *const argv[])
     std::map<int, std::string> options;
     const char *with_options = "f:b:d:s:t:i:v";
     const char *net_options = "u246";
+    const char *l_options = "MSTP";
+    const option long_options[] = {
+        // Long option for short option
+        { .name = "domainNumber",      .has_arg = required_argument, .val = 'd' },
+        { .name = "uds_address",       .has_arg = required_argument, .val = 's' },
+        { .name = "transportSpecific", .has_arg = required_argument, .val = 't' },
+        // Long only options
+        { .name = "network_transport", .has_arg = required_argument, .val = 'n' },
+        { .name = "ptp_dst_mac",       .has_arg = required_argument, .val = 'M' },
+        { .name = "udp6_scope",        .has_arg = required_argument, .val = 'S' },
+        { .name = "udp_ttl",           .has_arg = required_argument, .val = 'T' },
+        { .name = "socket_priority",   .has_arg = required_argument, .val = 'P' },
+    };
     // Always send GET with zero length data.
     const char *ignore_options = "z";
     std::string opts = with_options;
     opts += net_options;
     opts += ignore_options;
     char net_select = 0;
-    while((c = getopt(argc, argv, opts.c_str())) != -1) {
+    while((c = getopt_long(argc, argv, opts.c_str(), long_options,
+                    nullptr)) != -1) {
         switch(c) {
             case ':':
-                printf("Wrong option ':'\n");
+                fprintf(stderr, "Wrong option ':'\n");
                 return -1;
             case 'v':
                 printf("%s\n", getVersion());
                 return 0;
+            case 'n':
+                if(strcasecmp(optarg, "UDPv4") == 0)
+                    net_select = '4';
+                else if(strcasecmp(optarg, "UDPv6") == 0)
+                    net_select = '6';
+                else if(strcasecmp(optarg, "L2") == 0)
+                    net_select = '2';
+                else {
+                    fprintf(stderr, "Wrong network_transport\n");
+                    return -1;
+                }
+                continue;
             default:
                 break;
         }
-        if(strrchr(with_options, c) != nullptr)
+        if(strrchr(with_options, c) != nullptr || strrchr(l_options, c) != nullptr)
             options[c] = optarg;
         else if(strrchr(net_options, c) != nullptr)
             net_select = c;
@@ -325,8 +352,16 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate SockIp4\n");
                 return -1;
             }
-            if(!sk4->setAllInit(ifObj, cfg, interface)) {
-                fprintf(stderr, "failed to create transport\n");
+            if(!sk4->setAll(ifObj, cfg, interface)) {
+                fprintf(stderr, "failed to set transport\n");
+                return -1;
+            }
+            if(options.count('T') && !sk4->setUdpTtl(atoi(options['T'].c_str()))) {
+                fprintf(stderr, "failed to set udp_ttl\n");
+                return -1;
+            }
+            if(!sk4->init()) {
+                fprintf(stderr, "failed to init transport\n");
                 return -1;
             }
             sk = std::move(std::unique_ptr<SockBase>(sk4));
@@ -338,8 +373,20 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate SockIp6\n");
                 return -1;
             }
-            if(!sk6->setAllInit(ifObj, cfg, interface)) {
-                fprintf(stderr, "failed to create transport\n");
+            if(!sk6->setAll(ifObj, cfg, interface)) {
+                fprintf(stderr, "failed to set transport\n");
+                return -1;
+            }
+            if(options.count('T') && !sk6->setUdpTtl(atoi(options['T'].c_str()))) {
+                fprintf(stderr, "failed to set udp_ttl\n");
+                return -1;
+            }
+            if(options.count('S') && !sk6->setScope(atoi(options['S'].c_str()))) {
+                fprintf(stderr, "failed to set udp6_scope\n");
+                return -1;
+            }
+            if(!sk6->init()) {
+                fprintf(stderr, "failed to init transport\n");
                 return -1;
             }
             sk = std::move(std::unique_ptr<SockBase>(sk6));
@@ -351,8 +398,23 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate SockRaw\n");
                 return -1;
             }
-            if(!skr->setAllInit(ifObj, cfg, interface)) {
-                fprintf(stderr, "failed to create transport\n");
+            if(!skr->setAll(ifObj, cfg, interface)) {
+                fprintf(stderr, "failed to set transport\n");
+                return -1;
+            }
+            if(options.count('P') &&
+                !skr->setSocketPriority(atoi(options['P'].c_str()))) {
+                fprintf(stderr, "failed to set socket_priority\n");
+                return -1;
+            }
+            Binary mac;
+            if(options.count('M') && (!mac.fromMac(options['M']) ||
+                    !skr->setPtpDstMac(mac))) {
+                fprintf(stderr, "failed to set ptp_dst_mac\n");
+                return -1;
+            }
+            if(!skr->init()) {
+                fprintf(stderr, "failed to init transport\n");
                 return -1;
             }
             sk = std::move(std::unique_ptr<SockBase>(skr));
