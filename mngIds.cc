@@ -31,16 +31,6 @@ enum mng_vals_e {
 %_
 %#ifndef SWIG
 %@* For Doxygen only *%@
-%@**
- * Convert string to a buffer for build, parse, send and receive
- * @param[in] string
- * @return pointer to buffer
- * @note This function is available in scripts only!
- *%- C++ code can simply cast.%^\
- * @note The script needs to ensure the string is in the proper length.
- *%@
-void *conv_buf(char *string);
-%_
 #define caseUF(n) \
 %@**%^\
  * Convert data to n##_t structure%^\

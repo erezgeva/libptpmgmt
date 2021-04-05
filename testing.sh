@@ -59,15 +59,13 @@ main()
  # script languages source
  local -r mach=$(uname -m)
  local -r fmach="/$mach*"
- getFirstFile "/usr/lib$fmach/libpmc.so.*"
+ getFirstFile "/usr/lib$fmach/libpmc.so"
  if [ ! -f "$file" ]; then
    local -r ldPath='LD_LIBRARY_PATH=..'
  fi
  local ldPathRuby needCmp needLua needPython1 needPython2 needPython3
  probeLibs
- # TODO: As long as python3 does not run, exclude needPython3
- needPython3=y
- needCmp="$needCmp$needPython2"
+ needCmp="$needCmp$needPython2$needPython3"
  ##############################################################################
  local -r instPmcLib=/usr/sbin/pmc.lib
  if [ -x $instPmcLib ]; then

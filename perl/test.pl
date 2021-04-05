@@ -16,10 +16,7 @@ use constant SIZE => 2000;
 my $sk = PmcLib::SockUnix->new;
 die "Fail socket" unless defined $sk;
 my $msg = PmcLib::Message->new;
-# Create buffer for sending
-my $buf = 'X' x SIZE;
-# Convert buffer to buffer pointer
-my $pbuf = PmcLib::conv_buf($buf);
+my $buf = PmcLib::Buf->new(SIZE);
 my $sequence = 0;
 
 sub setPriority1
@@ -29,24 +26,24 @@ sub setPriority1
     $pr1->swig_priority1_set($newPriority1);
     my $id = $PmcLib::PRIORITY1;
     $msg->setAction($PmcLib::SET, $id, $pr1);
-    my $err = $msg->build($pbuf, SIZE, ++$sequence);
+    my $err = $msg->build($buf->get(), SIZE, ++$sequence);
     my $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
-    die "send" unless $sk->send($pbuf, $msg->getMsgLen());
+    die "send" unless $sk->send($buf->get(), $msg->getMsgLen());
 
     unless($sk->poll(500)) {
         print "timeout";
         return -1;
     }
 
-    my $cnt = $sk->rcv($pbuf, SIZE);
+    my $cnt = $sk->rcv($buf->get(), SIZE);
     if($cnt <= 0) {
         print "rcv $cnt\n";
         return -1;
     }
 
-    $err = $msg->parse($pbuf, $cnt);
+    $err = $msg->parse($buf->get(), $cnt);
     if($err != $PmcLib::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
        $sequence != $msg->getSequence()) {
         print "set fails\n";
@@ -55,23 +52,23 @@ sub setPriority1
     print "set new priority $newPriority1 success\n";
 
     $msg->setAction($PmcLib::GET, $id);
-    $err = $msg->build($pbuf, SIZE, ++$sequence);
+    $err = $msg->build($buf->get(), SIZE, ++$sequence);
     $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
-    die "send" unless $sk->send($pbuf, $msg->getMsgLen());
+    die "send" unless $sk->send($buf->get(), $msg->getMsgLen());
 
     unless($sk->poll(500)) {
         print "timeout";
         return -1;
     }
 
-    my $cnt = $sk->rcv($pbuf, SIZE);
+    my $cnt = $sk->rcv($buf->get(), SIZE);
     if($cnt <= 0) {
         print "rcv $cnt\n";
         return -1;
     }
-    $err = $msg->parse($pbuf, $cnt);
+    $err = $msg->parse($buf->get(), $cnt);
 
     if($err == $PmcLib::MNG_PARSE_ERROR_MSG) {
         print "error message\n";
@@ -114,11 +111,11 @@ sub main
     $msg->updateParams($prms);
     my $id = $PmcLib::USER_DESCRIPTION;
     $msg->setAction($PmcLib::GET, $id);
-    my $err = $msg->build($pbuf, SIZE, ++$sequence);
+    my $err = $msg->build($buf->get(), SIZE, ++$sequence);
     my $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
-    die "send" unless $sk->send($pbuf, $msg->getMsgLen());
+    die "send" unless $sk->send($buf->get(), $msg->getMsgLen());
 
     # You can get file descriptor with sk->getFd() and use Perl select
     unless($sk->poll(500)) {
@@ -126,13 +123,13 @@ sub main
         return;
     }
 
-    my $cnt = $sk->rcv($pbuf, SIZE);
+    my $cnt = $sk->rcv($buf->get(), SIZE);
     if($cnt <= 0) {
         print "rcv $cnt\n";
         return;
     }
 
-    $err = $msg->parse($pbuf, $cnt);
+    $err = $msg->parse($buf->get(), $cnt);
 
     if($err == $PmcLib::MNG_PARSE_ERROR_MSG) {
         print "error message\n";

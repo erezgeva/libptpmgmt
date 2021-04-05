@@ -16,9 +16,7 @@ SIZE = 2000
 
 sk = pmc.SockUnix()
 msg = pmc.Message()
-# Create buffer for sending
-# And convert buffer to buffer pointer
-pbuf = pmc.conv_buf("X" * SIZE)
+buf = pmc.Buf(SIZE)
 sequence = 0
 
 def setPriority1(newPriority1):
@@ -26,42 +24,42 @@ def setPriority1(newPriority1):
   pr1.priority1 = newPriority1
   id = pmc.PRIORITY1
   msg.setAction(pmc.SET, id, pr1)
-  err = msg.build(pbuf, SIZE, ++sequence)
+  err = msg.build(buf.get(), SIZE, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
-  if not sk.send(pbuf, msg.getMsgLen()):
+  if not sk.send(buf.get(), msg.getMsgLen()):
     print("send fail")
     return
   if not sk.poll(500):
     print("timeout")
     return
-  cnt = sk.rcv(pbuf, SIZE)
+  cnt = sk.rcv(buf.get(), SIZE)
   if cnt <= 0:
     print("rcv cnt")
     return -1
-  err = msg.parse(pbuf, cnt)
+  err = msg.parse(buf.get(), cnt)
   if(err != pmc.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
      sequence != msg.getSequence()):
     print("set fails")
     return -1
   print("set new priority %d success" % newPriority1)
   msg.setAction(pmc.GET, id)
-  err = msg.build(pbuf, SIZE, ++sequence)
+  err = msg.build(buf.get(), SIZE, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
-  if not sk.send(pbuf, msg.getMsgLen()):
+  if not sk.send(buf.get(), msg.getMsgLen()):
     print("send fail")
     return
   if not sk.poll(500):
     print("timeout")
     return
-  cnt = sk.rcv(pbuf, SIZE)
+  cnt = sk.rcv(buf.get(), SIZE)
   if cnt <= 0:
     print("rcv cnt")
     return -1
-  err = msg.parse(pbuf, cnt)
+  err = msg.parse(buf.get(), cnt)
   if err == pmc.MNG_PARSE_ERROR_MSG:
     print("error message")
   elif err != pmc.MNG_PARSE_ERROR_OK:
@@ -95,13 +93,13 @@ def main():
   msg.updateParams(prms)
   id = pmc.USER_DESCRIPTION
   msg.setAction(pmc.GET, id)
-  err = msg.build(pbuf, SIZE, ++sequence)
+  err = msg.build(buf.get(), SIZE, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
     return
 
-  if not sk.send(pbuf, msg.getMsgLen()):
+  if not sk.send(buf.get(), msg.getMsgLen()):
     print("send fail")
     return
 
@@ -110,12 +108,12 @@ def main():
     print("timeout")
     return
 
-  cnt = sk.rcv(pbuf, SIZE)
+  cnt = sk.rcv(buf.get(), SIZE)
   if cnt <= 0:
     print("rcv error %d" % cnt)
     return
 
-  err = msg.parse(pbuf, cnt)
+  err = msg.parse(buf.get(), cnt)
   if err == pmc.MNG_PARSE_ERROR_MSG:
     print("error message")
   elif err != pmc.MNG_PARSE_ERROR_OK:

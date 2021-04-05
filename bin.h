@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef __PMC_BUF_H
-#define __PMC_BUF_H
+#ifndef __PMC_BIN_H
+#define __PMC_BIN_H
 
 #include <string>
 #include <cstdint>
@@ -218,4 +218,4 @@ class Binary
     static std::string bufToHex(const uint8_t *bin, size_t length);
 };
 
-#endif /*__PMC_BUF_H*/
+#endif /*__PMC_BIN_H*/

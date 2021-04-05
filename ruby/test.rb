@@ -14,9 +14,7 @@ SIZE = 2000
 
 $sk = Pmc::SockUnix.new
 $msg = Pmc::Message.new
-# Create buffer for sending
-# And convert buffer to buffer pointer
-$pbuf = Pmc.conv_buf("X" * SIZE)
+$buf = Pmc::Buf.new(SIZE)
 $sequence = 0
 
 def setPriority1(newPriority1)
@@ -24,12 +22,12 @@ def setPriority1(newPriority1)
   pr1.priority1 = newPriority1
   id = Pmc::PRIORITY1
   $msg.setAction(Pmc::SET, id, pr1)
-  err = $msg.build($pbuf, SIZE, ++$sequence)
+  err = $msg.build($buf.get(), SIZE, ++$sequence)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
   end
-  if !$sk.send($pbuf, $msg.getMsgLen()) then
+  if !$sk.send($buf.get(), $msg.getMsgLen()) then
     puts "send fail"
     return
   end
@@ -37,12 +35,12 @@ def setPriority1(newPriority1)
     puts "timeout"
     return
   end
-  cnt = $sk.rcv($pbuf, SIZE)
+  cnt = $sk.rcv($buf.get(), SIZE)
   if cnt <= 0 then
     puts "rcv cnt"
     return -1
   end
-  err = $msg.parse($pbuf, cnt)
+  err = $msg.parse($buf.get(), cnt)
   if(err != Pmc::MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
      $sequence != $msg.getSequence()) then
     puts "set fails"
@@ -50,12 +48,12 @@ def setPriority1(newPriority1)
   end
   puts "set new priority #{newPriority1} success"
   $msg.setAction(Pmc::GET, id)
-  err = $msg.build($pbuf, SIZE, ++$sequence)
+  err = $msg.build($buf.get(), SIZE, ++$sequence)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
   end
-  if !$sk.send($pbuf, $msg.getMsgLen()) then
+  if !$sk.send($buf.get(), $msg.getMsgLen()) then
     puts "send fail"
     return
   end
@@ -63,12 +61,12 @@ def setPriority1(newPriority1)
     puts "timeout"
     return
   end
-  cnt = $sk.rcv($pbuf, SIZE)
+  cnt = $sk.rcv($buf.get(), SIZE)
   if cnt <= 0 then
     puts "rcv cnt"
     return -1
   end
-  err = $msg.parse($pbuf, cnt)
+  err = $msg.parse($buf.get(), cnt)
   if err == Pmc::MNG_PARSE_ERROR_MSG then
     puts "error message"
   elsif err != Pmc::MNG_PARSE_ERROR_OK then
@@ -109,13 +107,13 @@ def main
   $msg.updateParams(prms)
   id = Pmc::USER_DESCRIPTION
   $msg.setAction(Pmc::GET, id)
-  err = $msg.build($pbuf, SIZE, ++$sequence)
+  err = $msg.build($buf.get(), SIZE, ++$sequence)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
     return
   end
-  if !$sk.send($pbuf, $msg.getMsgLen()) then
+  if !$sk.send($buf.get(), $msg.getMsgLen()) then
     puts "send fail"
     return
   end
@@ -124,13 +122,13 @@ def main
     puts "timeout"
     return
   end
-  cnt = $sk.rcv($pbuf, SIZE)
+  cnt = $sk.rcv($buf.get(), SIZE)
   if cnt <= 0 then
     puts "rcv error #{cnt}"
     return
   end
 
-  err = $msg.parse($pbuf, cnt)
+  err = $msg.parse($buf.get(), cnt)
   if err == Pmc::MNG_PARSE_ERROR_MSG then
     puts "error message"
   elsif err != Pmc::MNG_PARSE_ERROR_OK then

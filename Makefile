@@ -288,7 +288,7 @@ endef
 DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 $(eval $(call python,2))
-# $(eval $(call python,3))
+$(eval $(call python,3))
 endif # which python
 
 ifneq ($(call which,ruby),)
@@ -388,10 +388,8 @@ ifneq ($(call which,python),)
 	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2DIR)/$(PY_LIB_NAME).$(HOST_MULTIARCH).so
 	$Q$(NINST) python/pmc.py $(PY2DIR)
-ifneq ($(wildcard python/3/*),)
 	$Q$(NINST) -D python/3/$(PY_LIB_NAME).*.so -t $(PY3DIR)
 	$Q$(NINST) python/pmc.py $(PY3DIR)
-endif
 endif # which python
 ifneq ($(call which,ruby),)
 	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)

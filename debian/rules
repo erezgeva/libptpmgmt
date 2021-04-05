@@ -67,9 +67,7 @@ override_dh_install:
 	$(Q)mv $(DSRC)share debian/libpmc-doc/usr
 	$(Q)mv $(DSRC)sbin debian/pmc/usr
 	$(Q)mv $(DSRC)lib/python2* debian/python-pmc/usr/lib
-ifneq ($(wildcard $(DSRC)lib/python3*),)
 	$(Q)mv $(DSRC)lib/python3 debian/python3-pmc/usr/lib
-endif
 	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/lua*\
 	  $(DSRC)lib/$(DEB_HOST_MULTIARCH)/liblua*\
 	  debian/lua-pmc/usr/lib/$(DEB_HOST_MULTIARCH)

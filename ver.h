@@ -11,9 +11,6 @@
 #ifndef __PMC_VER_H
 #define __PMC_VER_H
 
-#include <cstdint>
-#include <endian.h>
-
 /**
  * Get this library version
  * @return this library version

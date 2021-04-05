@@ -18,6 +18,7 @@
     #include "ptp.h"
     #include "sock.h"
     #include "bin.h"
+    #include "buf.h"
 %}
 
 %include "stdint.i"
@@ -38,6 +39,7 @@
 %include "ptp.h"
 %include "sock.h"
 %include "bin.h"
+%include "buf.h"
 %include "proc.h"
 %include "sig.h"
 %include "mngIds.h"
@@ -53,9 +55,6 @@ namespace std {
   %template(SigEvent) vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>;
   %template(SigDelay) vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t>;
 };
-/* Allow script to convert a string to a buffer
- * The script need to ensure the string length is proper */
-%pointer_cast(char*, void*, conv_buf);
 /* convert management tlv from base pointer */
 #define caseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
 #define A(n, v, sc, a, sz, f) case##f(n)
