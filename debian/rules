@@ -22,23 +22,6 @@ export CPPFLAGS_OPT=-Ofast
 # build pmc tool with libpmc.so
 export PMC_USE_LIB=so
 
-ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
-# Handle cross compiling
-ifeq ($(DEB_HOST_GNU_TYPE),i686-linux-gnu) # package architecture
-ifeq ($(DEB_BUILD_GNU_TYPE),x86_64-linux-gnu) # build machine architecture
-# Compiling 32 bits on amd64 is by using a flag
-CPPFLAGS+=-m32
-LDFLAGS+=-m32
-export CPPFLAGS LDFLAGS
-USE_NATIVE_STRIP=1
-endif # x86_64
-else
-# Use cross compiler tool
-CXX:=$(DEB_HOST_MULTIARCH)-g++
-export CXX
-endif # i686
-endif # cross compiling
-
 %:
 	$(Q)dh $@ --parallel
 
@@ -48,12 +31,6 @@ deb_clean:
 
 override_dh_auto_clean:
 	$Q$(MAKE) distclean
-
-ifneq ($(USE_NATIVE_STRIP),)
-# prevent using cross tool for strip
-override_dh_strip:
-	$(Q)DEB_HOST_GNU_TYPE=$(DEB_BUILD_GNU_TYPE) dh_strip
-endif
 
 DSRC:=debian/tmp/usr/
 # Make create all targets, we just move them from temporary to proper package

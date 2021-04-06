@@ -128,7 +128,6 @@ endif
 
 include version
 # Ensure linker use C++
-CC:=g++
 RL:=ranlib
 LN:=ln -fs
 CPPFLAGS_OPT?=-Og
@@ -344,7 +343,7 @@ $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 	-l$$(PYV$1) -lm -ldl -o $$@
 SWIG_ALL+=$$(PY_SO_$1)
 CLEAN+=$$(foreach n,o d,$$(PY_BASE_$1).$$n)
-DISTCLEAN+=$$(PY_SO_$1)
+DISTCLEAN+=$$(wildcard python/$1/*.so)
 
 endef
 DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
@@ -361,9 +360,19 @@ RUBY_SCRIPT_INCS:='puts "-I" + RbConfig::CONFIG["rubyhdrdir"] +\
                        " -I" + RbConfig::CONFIG["rubyarchhdrdir"]'
 RUBY_SCRIPT_LIB:='puts "-l" + RbConfig::CONFIG["RUBY_SO_NAME"]'
 RUBY_SCRIPT_VDIR:='puts RbConfig::CONFIG["vendorarchdir"]'
-RUBY_INC:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_INCS))
-RUBY_LIB:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_LIB))
-RUBYDIR:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
+RUBY_INC_B:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_INCS))
+RUBY_LIB_B:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_LIB))
+RUBYDIR_B:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
+# Ruby does not "know" how to cross properly
+ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+RUBY_INC:=$(subst /$(DEB_BUILD_GNU_TYPE)/,/$(DEB_HOST_GNU_TYPE)/,$(RUBY_INC_B))
+RUBY_LIB:=$(subst /$(DEB_BUILD_GNU_TYPE)/,/$(DEB_HOST_GNU_TYPE)/,$(RUBY_LIB_B))
+RUBYDIR:=$(subst /$(DEB_BUILD_GNU_TYPE)/,/$(DEB_HOST_GNU_TYPE)/,$(RUBYDIR_B))
+else
+RUBY_INC:=$(RUBY_INC_B)
+RUBY_LIB:=$(RUBY_LIB_B)
+RUBYDIR:=$(RUBYDIR_B)
+endif
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
 RUBY_LNAME:=ruby/pmc
 $(RUBY_NAME): $(LIB_NAME).i $(HEADERS_ALL)

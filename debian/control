@@ -3,7 +3,9 @@ Maintainer: Erez Geva <ErezGeva2@gmail.com>
 Section: net
 Priority: optional
 Standards-Version: 4.1.4
-Build-Depends: debhelper (>= 9), dh-exec (>=0.3), dh-python, dh-lua, libtool, coreutils, graphviz, doxygen, swig (>=3.0), perl, lua5.2, liblua5.1-0-dev, liblua5.2-dev, liblua5.3-dev, python2-dev, python3-dev, ruby, ruby-dev
+Build-Depends: debhelper (>= 9), dh-exec (>=0.3)
+Build-Depends-Arch: dh-python, dh-lua, libtool, coreutils, swig (>=3.0), perl:native, lua5.2, liblua5.1-0-dev, liblua5.2-dev, liblua5.3-dev, libpython2-dev, python2-dev:native, python3-dev:native, libpython3-dev, ruby:native, ruby-dev
+Build-Depends-Indep: graphviz, doxygen
 Homepage: https://github.com/erezgeva/libpmc
 
 Package: libpmc
