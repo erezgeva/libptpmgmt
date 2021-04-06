@@ -882,7 +882,7 @@ static bool getPortState(val_key_t &key)
 build(USER_DESCRIPTION)
 {
     defKeys;
-    keys["userDescription"] = { .can_str = true };
+    keys["userDescription"].can_str = true;
     parseKeys;
     d.userDescription.textField = keys["userDescription"].str_val;
     build_end;
@@ -890,7 +890,8 @@ build(USER_DESCRIPTION)
 build(INITIALIZE)
 {
     defKeys;
-    keys["initializationKey"] = { .def = INITIALIZE_EVENT, .max = UINT16_MAX };
+    keys["initializationKey"].def = INITIALIZE_EVENT;
+    keys["initializationKey"].max = UINT16_MAX;
     parseKeys;
     d.initializationKey = keys["initializationKey"].num;
     build_end;
@@ -898,7 +899,8 @@ build(INITIALIZE)
 build(PRIORITY1)
 {
     defKeys;
-    keys["priority1"] = { .def = 128, .max = 255 };
+    keys["priority1"].def = 128;
+    keys["priority1"].max = 255;
     parseKeys;
     d.priority1 = keys["priority1"].num;
     build_end;
@@ -906,7 +908,8 @@ build(PRIORITY1)
 build(PRIORITY2)
 {
     defKeys;
-    keys["priority2"] = { .def = 128, .max = 255 };
+    keys["priority2"].def = 128;
+    keys["priority2"].max = 255;
     parseKeys;
     d.priority2 = keys["priority2"].num;
     build_end;
@@ -914,7 +917,7 @@ build(PRIORITY2)
 build(DOMAIN)
 {
     defKeys;
-    keys["domainNumber"] = { .max = UINT8_MAX };
+    keys["domainNumber"].max = UINT8_MAX;
     parseKeys;
     d.domainNumber = keys["domainNumber"].num;
     build_end;
@@ -922,7 +925,7 @@ build(DOMAIN)
 build(SLAVE_ONLY)
 {
     defKeys;
-    keys["slaveOnly"] = { .flag = true };
+    keys["slaveOnly"].flag = true ;
     parseKeys;
     d.flags = keys["slaveOnly"].num;
     build_end;
@@ -930,7 +933,8 @@ build(SLAVE_ONLY)
 build(LOG_ANNOUNCE_INTERVAL)
 {
     defKeys;
-    keys["logAnnounceInterval"] = { .def = 1, .max = INT8_MAX };
+    keys["logAnnounceInterval"].def = 1;
+    keys["logAnnounceInterval"].max = INT8_MAX;
     parseKeys;
     d.logAnnounceInterval = keys["logAnnounceInterval"].num;
     build_end;
@@ -938,7 +942,8 @@ build(LOG_ANNOUNCE_INTERVAL)
 build(ANNOUNCE_RECEIPT_TIMEOUT)
 {
     defKeys;
-    keys["announceReceiptTimeout"] = { .def = 3, .max = UINT8_MAX };
+    keys["announceReceiptTimeout"].def = 3;
+    keys["announceReceiptTimeout"].max = UINT8_MAX;
     parseKeys;
     d.announceReceiptTimeout = keys["announceReceiptTimeout"].num;
     build_end;
@@ -946,7 +951,7 @@ build(ANNOUNCE_RECEIPT_TIMEOUT)
 build(LOG_SYNC_INTERVAL)
 {
     defKeys;
-    keys["logSyncInterval"] = { .max = INT8_MAX };
+    keys["logSyncInterval"].max = INT8_MAX;
     parseKeys;
     d.logSyncInterval = keys["logSyncInterval"].num > 0 ? 1 : 0;
     build_end;
@@ -954,8 +959,11 @@ build(LOG_SYNC_INTERVAL)
 build(VERSION_NUMBER)
 {
     defKeys;
-    keys["versionNumber"] = { .def = 2, .max = 0xf, .min = 1 };
-    keys["minor"] = { .def = 0, .max = 0xf };
+    keys["versionNumber"].def = 2;
+    keys["versionNumber"].max = 0xf;
+    keys["versionNumber"].min = 1;
+    keys["minor"].def = 0;
+    keys["minor"].max = 0xf;
     parseKeys;
     d.versionNumber = (keys["minor"].num << 4) | keys["versionNumber"].num;
     build_end;
@@ -963,8 +971,9 @@ build(VERSION_NUMBER)
 build(TIME)
 {
     defKeys;
-    keys["secondsField"] = { .max = UINT48_MAX, .req = 1 };
-    keys["nanosecondsField"] = { .max = UINT32_MAX };
+    keys["secondsField"].max = UINT48_MAX;
+    keys["secondsField"].req = 1;
+    keys["nanosecondsField"].max = UINT32_MAX;
     parseKeys;
     d.currentTime.secondsField = keys["secondsField"].num;
     d.currentTime.nanosecondsField = keys["nanosecondsField"].num;
@@ -973,7 +982,8 @@ build(TIME)
 build(CLOCK_ACCURACY)
 {
     defKeys;
-    keys["clockAccuracy"] = { .def = Accurate_Unknown, .max = Accurate_Unknown };
+    keys["clockAccuracy"].def = Accurate_Unknown;
+    keys["clockAccuracy"].max = Accurate_Unknown;
     parseKeys;
     d.clockAccuracy = (clockAccuracy_e)keys["clockAccuracy"].num;
     build_end;
@@ -981,10 +991,11 @@ build(CLOCK_ACCURACY)
 build(UTC_PROPERTIES)
 {
     defKeys;
-    keys["currentUtcOffset"] = { .max = INT16_MAX, .req = true };
-    keys["leap61"] = { .flag = true };
-    keys["leap59"] = { .flag = true };
-    keys["currentUtcOffsetValid"] = { .flag = true };
+    keys["currentUtcOffset"].max = INT16_MAX;
+    keys["currentUtcOffset"].req = true;
+    keys["leap61"].flag = true ;
+    keys["leap59"].flag = true ;
+    keys["currentUtcOffsetValid"].flag = true ;
     parseKeys;
     uint8_t flags = 0;
     if(keys["leap61"].num)
@@ -1000,8 +1011,8 @@ build(UTC_PROPERTIES)
 build(TRACEABILITY_PROPERTIES)
 {
     defKeys;
-    keys["timeTraceable"] = { .flag = true };
-    keys["frequencyTraceable"] = { .flag = true };
+    keys["timeTraceable"].flag = true ;
+    keys["frequencyTraceable"].flag = true ;
     parseKeys;
     uint8_t flags = 0;
     if(keys["timeTraceable"].num)
@@ -1014,7 +1025,7 @@ build(TRACEABILITY_PROPERTIES)
 build(TIMESCALE_PROPERTIES)
 {
     defKeys;
-    keys["ptpTimescale"] = { .flag = true };
+    keys["ptpTimescale"].flag = true ;
     parseKeys;
     uint8_t flags = 0;
     if(keys["ptpTimescale"].num)
@@ -1025,7 +1036,7 @@ build(TIMESCALE_PROPERTIES)
 build(UNICAST_NEGOTIATION_ENABLE)
 {
     defKeys;
-    keys["unicastNegotiationPortDS"] = { .flag = true };
+    keys["unicastNegotiationPortDS"].flag = true ;
     parseKeys;
     d.flags = keys["unicastNegotiationPortDS"].num;
     build_end;
@@ -1033,7 +1044,7 @@ build(UNICAST_NEGOTIATION_ENABLE)
 build(PATH_TRACE_ENABLE)
 {
     defKeys;
-    keys["pathTraceDS"] = { .flag = true };
+    keys["pathTraceDS"].flag = true ;
     parseKeys;
     d.flags = keys["pathTraceDS"].num;
     build_end;
@@ -1062,7 +1073,7 @@ build(ACCEPTABLE_MASTER_TABLE)
 build(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
     defKeys;
-    keys["acceptableMasterPortDS"] = { .flag = true };
+    keys["acceptableMasterPortDS"].flag = true ;
     parseKeys;
     d.flags = keys["acceptableMasterPortDS"].num;
     build_end;
@@ -1070,9 +1081,9 @@ build(ACCEPTABLE_MASTER_TABLE_ENABLED)
 build(ALTERNATE_MASTER)
 {
     defKeys;
-    keys["transmitAlternateMulticastSync"] = { .flag = true };
-    keys["logAlternateMulticastSyncInterval"] = { .max = INT8_MAX };
-    keys["numberOfAlternateMasters"] = { .max = UINT8_MAX };
+    keys["transmitAlternateMulticastSync"].flag = true ;
+    keys["logAlternateMulticastSyncInterval"].max = INT8_MAX;
+    keys["numberOfAlternateMasters"].max = UINT8_MAX;
     parseKeys;
     d.flags = keys["transmitAlternateMulticastSync"].num;
     d.logAlternateMulticastSyncInterval =
@@ -1083,7 +1094,7 @@ build(ALTERNATE_MASTER)
 build(ALTERNATE_TIME_OFFSET_ENABLE)
 {
     defKeys;
-    keys["alternateTimescaleOffsetsDS"] = { .flag = true };
+    keys["alternateTimescaleOffsetsDS"].flag = true ;
     parseKeys;
     d.flags = keys["alternateTimescaleOffsetsDS"].num;
     build_end;
@@ -1091,8 +1102,10 @@ build(ALTERNATE_TIME_OFFSET_ENABLE)
 build(ALTERNATE_TIME_OFFSET_NAME)
 {
     defKeys;
-    keys["keyField"] = { .max = UINT8_MAX, .req = true };
-    keys["displayName"] = { .can_str = true, .req = true  };
+    keys["keyField"].max = UINT8_MAX;
+    keys["keyField"].req = true;
+    keys["displayName"].can_str = true;
+    keys["displayName"].req = true  ;
     parseKeys;
     d.keyField = keys["keyField"].num;
     d.displayName.textField = keys["displayName"].str_val;
@@ -1101,10 +1114,10 @@ build(ALTERNATE_TIME_OFFSET_NAME)
 build(ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
     defKeys;
-    keys["keyField"] = { .max = UINT8_MAX };
-    keys["currentOffset"] = { .max = INT32_MAX };
-    keys["jumpSeconds"] = { .max = INT32_MAX  };
-    keys["timeOfNextJump"] = { .max = UINT48_MAX  };
+    keys["keyField"].max = UINT8_MAX;
+    keys["currentOffset"].max = INT32_MAX;
+    keys["jumpSeconds"].max = INT32_MAX;
+    keys["timeOfNextJump"].max = UINT48_MAX;
     parseKeys;
     d.keyField = keys["keyField"].num;
     d.currentOffset = keys["currentOffset"].num;
@@ -1115,7 +1128,7 @@ build(ALTERNATE_TIME_OFFSET_PROPERTIES)
 build(LOG_MIN_PDELAY_REQ_INTERVAL)
 {
     defKeys;
-    keys["logMinPdelayReqInterval"] = { .max = INT8_MAX };
+    keys["logMinPdelayReqInterval"].max = INT8_MAX;
     parseKeys;
     d.logMinPdelayReqInterval = keys["logMinPdelayReqInterval"].num;
     build_end;
@@ -1123,7 +1136,7 @@ build(LOG_MIN_PDELAY_REQ_INTERVAL)
 build(PRIMARY_DOMAIN)
 {
     defKeys;
-    keys["primaryDomain"] = { .max = UINT8_MAX };
+    keys["primaryDomain"].max = UINT8_MAX;
     parseKeys;
     d.primaryDomain = keys["primaryDomain"].num;
     build_end;
@@ -1131,7 +1144,7 @@ build(PRIMARY_DOMAIN)
 build(DELAY_MECHANISM)
 {
     defKeys;
-    keys["delayMechanism"] = { .max = 0xfe };
+    keys["delayMechanism"].max = 0xfe;
     parseKeys;
     d.delayMechanism = keys["delayMechanism"].num;
     build_end;
@@ -1139,7 +1152,7 @@ build(DELAY_MECHANISM)
 build(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
     defKeys;
-    keys["externalPortConfiguration"] = { .flag = true };
+    keys["externalPortConfiguration"].flag = true ;
     parseKeys;
     d.flags = keys["externalPortConfiguration"].num;
     build_end;
@@ -1147,7 +1160,7 @@ build(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 build(MASTER_ONLY)
 {
     defKeys;
-    keys["masterOnly"] = { .flag = true };
+    keys["masterOnly"].flag = true ;
     parseKeys;
     d.flags = keys["masterOnly"].num;
     build_end;
@@ -1155,7 +1168,7 @@ build(MASTER_ONLY)
 build(HOLDOVER_UPGRADE_ENABLE)
 {
     defKeys;
-    keys["holdoverUpgradeDS"] = { .flag = true };
+    keys["holdoverUpgradeDS"].flag = true ;
     parseKeys;
     d.flags = keys["holdoverUpgradeDS"].num;
     build_end;
@@ -1163,7 +1176,7 @@ build(HOLDOVER_UPGRADE_ENABLE)
 build(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
     defKeys;
-    keys["acceptableMasterPortDS"] = { .flag = true };
+    keys["acceptableMasterPortDS"].flag = true ;
     keys["desiredState"].handle = getPortState;
     parseKeys;
     d.flags = keys["acceptableMasterPortDS"].num;
@@ -1174,21 +1187,23 @@ build(EXT_PORT_CONFIG_PORT_DATA_SET)
 build(GRANDMASTER_SETTINGS_NP)
 {
     defKeys;
-    keys["clockClass"] = { .max = UINT8_MAX, .req = true };
-    keys["clockAccuracy"] = { .base = 16, .max = UINT8_MAX, .req = true };
-    keys["offsetScaledLogVariance"] = {
-        .base = 16,
-        .max = UINT16_MAX,
-        .req = true
-    };
-    keys["currentUtcOffset"] = { .max = INT16_MAX, .req = true };
-    keys["leap61"] = { .flag = true };
-    keys["leap59"] = { .flag = true };
-    keys["currentUtcOffsetValid"] = { .flag = true };
-    keys["ptpTimescale"] = { .flag = true };
-    keys["timeTraceable"] = { .flag = true };
-    keys["frequencyTraceable"] = { .flag = true };
-    keys["timeSource"] = { .req = true };
+    keys["clockClass"].max = UINT8_MAX;
+    keys["clockClass"].req = true;
+    keys["clockAccuracy"].base = 16;
+    keys["clockAccuracy"].max = UINT8_MAX;
+    keys["clockAccuracy"].req = true ;
+    keys["offsetScaledLogVariance"].base = 16;
+    keys["offsetScaledLogVariance"].max = UINT16_MAX;
+    keys["offsetScaledLogVariance"].req = true;
+    keys["currentUtcOffset"].max = INT16_MAX;
+    keys["currentUtcOffset"].req = true;
+    keys["leap61"].flag = true ;
+    keys["leap59"].flag = true ;
+    keys["currentUtcOffsetValid"].flag = true ;
+    keys["ptpTimescale"].flag = true ;
+    keys["timeTraceable"].flag = true ;
+    keys["frequencyTraceable"].flag = true ;
+    keys["timeSource"].req = true;
     keys["timeSource"].handle = getTimeSource;
     parseKeys;
     uint8_t flags = 0;
@@ -1215,8 +1230,10 @@ build(GRANDMASTER_SETTINGS_NP)
 build(PORT_DATA_SET_NP)
 {
     defKeys;
-    keys["neighborPropDelayThresh"] = { .max = UINT32_MAX, .req = true };
-    keys["asCapable"] = { .max = INT32_MAX, .req = true };
+    keys["neighborPropDelayThresh"].max = UINT32_MAX;
+    keys["neighborPropDelayThresh"].req = true;
+    keys["asCapable"].max = INT32_MAX;
+    keys["asCapable"].req = true;
     parseKeys;
     d.neighborPropDelayThresh = keys["neighborPropDelayThresh"].num;
     d.asCapable = keys["asCapable"].num;
@@ -1225,9 +1242,10 @@ build(PORT_DATA_SET_NP)
 build(SUBSCRIBE_EVENTS_NP)
 {
     defKeys;
-    keys["duration"] = { .max = UINT16_MAX, .req = true };
-    keys["NOTIFY_PORT_STATE"] = { .flag = true };
-    keys["NOTIFY_TIME_SYNC"] = { .flag = true };
+    keys["duration"].max = UINT16_MAX;
+    keys["duration"].req = true;
+    keys["NOTIFY_PORT_STATE"].flag = true ;
+    keys["NOTIFY_TIME_SYNC"].flag = true ;
     parseKeys;
     memset(d.bitmask, 0, sizeof(d.bitmask));
     if(keys["NOTIFY_PORT_STATE"].num)
@@ -1240,7 +1258,8 @@ build(SUBSCRIBE_EVENTS_NP)
 build(SYNCHRONIZATION_UNCERTAIN_NP)
 {
     defKeys;
-    keys["duration"] = { .max = UINT8_MAX, .req = true };
+    keys["duration"].max = UINT8_MAX;
+    keys["duration"].req = true;
     parseKeys;
     d.val = keys["duration"].num;
     build_end;

@@ -38,6 +38,7 @@ For now, we support:
   * Perl version 5
   * Python 2.7 and Python 3
   * Lua 5.1, 5.2, 5.3
+  * Ruby version 2
 
 # <u>pmc tool</u>
 The project provides a clone to [linuxptp](http://linuxptp.sf.net/)

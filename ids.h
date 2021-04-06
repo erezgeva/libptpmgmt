@@ -14,6 +14,7 @@
  *  #define A(n, v, sc, a, sz, f) <macro text>
  *  #include "ids.h"
  */
+#undef DOMAIN /* Old math.h header uses this macro */
 #ifndef IDS_START
 #define IDS_START
 #endif

@@ -215,15 +215,14 @@ Message::Message() :
     m_isUnicast(true),
     m_replyAction(RESPONSE),
     m_tlv_id(FIRST_MNG_ID),
+    m_prms{0},
     m_peer{0},
     m_target{0}
 {
-    m_prms = {
-        .boundaryHops = 1,
-        .isUnicast = true,
-        .implementSpecific = linuxptp,
-        .filterSignaling = true,
-    };
+    m_prms.boundaryHops = 1;
+    m_prms.isUnicast = true;
+    m_prms.implementSpecific = linuxptp;
+    m_prms.filterSignaling = true;
     setAllClocks();
 }
 Message::Message(MsgParams prms) :

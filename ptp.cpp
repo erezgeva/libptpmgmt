@@ -37,10 +37,9 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
         return false;
     }
     m_mac.setBin(ifr.ifr_hwaddr.sa_data, EUI48);
-    ethtool_ts_info info = {
-        .cmd = ETHTOOL_GET_TS_INFO,
-        .phc_index = -1,
-    };
+    ethtool_ts_info info = {0};
+    info.cmd = ETHTOOL_GET_TS_INFO;
+    info.phc_index = -1;
     ifr.ifr_data = (char *)&info;
     if(ioctl(fd, SIOCETHTOOL, &ifr) == -1) {
         perror("SIOCETHTOOL");

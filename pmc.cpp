@@ -261,16 +261,19 @@ int main(int argc, char *const argv[])
     const char *net_options = "u246";
     const char *l_options = "MSTP";
     const option long_options[] = {
+        // .name               .has_arg           .flag    .val
         // Long option for short option
-        { .name = "domainNumber",      .has_arg = required_argument, .val = 'd' },
-        { .name = "uds_address",       .has_arg = required_argument, .val = 's' },
-        { .name = "transportSpecific", .has_arg = required_argument, .val = 't' },
+        { "domainNumber",      required_argument, nullptr, 'd' },
+        { "uds_address",       required_argument, nullptr, 's' },
+        { "transportSpecific", required_argument, nullptr, 't' },
         // Long only options
-        { .name = "network_transport", .has_arg = required_argument, .val = 'n' },
-        { .name = "ptp_dst_mac",       .has_arg = required_argument, .val = 'M' },
-        { .name = "udp6_scope",        .has_arg = required_argument, .val = 'S' },
-        { .name = "udp_ttl",           .has_arg = required_argument, .val = 'T' },
-        { .name = "socket_priority",   .has_arg = required_argument, .val = 'P' },
+        { "network_transport", required_argument, nullptr, 'n' },
+        { "ptp_dst_mac",       required_argument, nullptr, 'M' },
+        { "udp6_scope",        required_argument, nullptr, 'S' },
+        { "udp_ttl",           required_argument, nullptr, 'T' },
+        { "socket_priority",   required_argument, nullptr, 'P' },
+        // termination
+        { nullptr,             0,                 nullptr,  0  }
     };
     std::string opts = net_options;
     opts += no_options;

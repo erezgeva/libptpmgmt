@@ -1,3 +1,43 @@
+libpmc (0.2) buster; urgency=medium
+
+  * Add Ruby to read-me.
+  * Add long options to the pmc tool.
+  * Add pmc tool help after linuxptp.
+  * Add support for padding get action management TLVs.
+  * Fix Debian cross compilation.
+  * Support Debian Stretch rename python2 to python.
+  * Designated initializers are not supported in old compilers.
+  * Old math.h header uses DOMAIN macro, as we do not use math macro,
+  *  just remove it.
+  * Add help for make file.
+  * Add macros in make file to prevent Swig targets.
+  * testing script support linuxptp location with spaces.
+  * Fix python3 by adding a new class for allocating the buffer.
+  * Remove convert to buffer. All scripts use the buffer class.
+  * pmc tool: add mode for PTP network layer in run mode.
+  * Add check in Ruby for capitalizing first letter.
+  * testing script: fix check for installed libraries on system.
+  * Add support for ruby
+  * Start classes with capital.
+  * Prevent format of rebuild all.
+  * Improve testing scripts.
+  * Add masking for flags in proc module.
+  * Add flag for build only and for TLVs with variable length.
+  * Add vector handling classes for scripts.
+  * Prepare for using a different implementation specific management TLVs.
+  * Add key flag to pmc build.
+  * Use optimization for fast execution When packaging.
+  * Add signaling messages support.
+  * Add IEEE 754 64-bit floating point.
+  * Add install goal in make file.
+  * Debian rules uses make file install goal.
+  * Fix overflow in configuration class.
+  * Fix compilation warnings.
+  * Spelling.
+  * Use Debian site man pages as they are more updated.
+
+ -- Erez Geva <ErezGeva2@gmail.com>  Mon, 05 Apr 2021 14:27:07 +0200
+
 libpmc (0.1) buster; urgency=medium
 
   * Alpha version.
