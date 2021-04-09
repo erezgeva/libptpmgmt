@@ -164,7 +164,7 @@ dump(PORT_DATA_SET)
         IDENT "portIdentity            %s"
         IDENT "portState               %s"
         IDENT "logMinDelayReqInterval  %d"
-        IDENT "peerMeanPathDelay       %ju"
+        IDENT "peerMeanPathDelay       %jd"
         IDENT "logAnnounceInterval     %d"
         IDENT "announceReceiptTimeout  %u"
         IDENT "logSyncInterval         %d"
@@ -377,7 +377,7 @@ dump(TRANSPARENT_CLOCK_PORT_DATA_SET)
         IDENT "portIdentity            %s"
         IDENT "transparentClockPortDS  %s"
         IDENT "logMinPdelayReqInterval %i"
-        IDENT "peerMeanPathDelay       %ju",
+        IDENT "peerMeanPathDelay       %jd",
         d.portIdentity.string().c_str(),
         d.flags ? "true" : "false",
         d.logMinPdelayReqInterval,

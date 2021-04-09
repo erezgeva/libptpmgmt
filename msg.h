@@ -300,7 +300,7 @@ struct TimeInterval_t {
      * Get interval from time interval in nanoseconds, trunc to integer
      * @return scaled time interval in nanoseconds
      */
-    uint64_t getIntervalInt() const { return scaledNanoseconds >> 16; }
+    int64_t getIntervalInt() const { return scaledNanoseconds >> 16; }
 };
 /** PTP Time stamp */
 struct Timestamp_t {
