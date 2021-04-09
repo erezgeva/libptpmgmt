@@ -118,6 +118,7 @@ class SockUnix : public SockBase
     std::string m_me;
     std::string m_peer;
     std::string m_homeDir;
+    std::string m_lastFrom;
     sockaddr_un m_peerAddr;
     bool setPeerInternal(const std::string &str);
     bool sendAny(const void *msg, size_t len, const sockaddr_un &addr) const;
@@ -235,7 +236,7 @@ class SockUnix : public SockBase
      */
     ssize_t rcv(void *buf, size_t bufSize, bool block = true);
     /**
-     * Receive a message using the socket
+     * Receive a message using the socket from any address
      * @param[in, out] buf pointer to a memory buffer
      * @param[in] bufSize memory buffer size
      * @param[out] from Unix socket address (socket file)
@@ -243,10 +244,30 @@ class SockUnix : public SockBase
      *                  false, do not wait, return error
      *                  if no packet available
      * @return number of bytes received or negative on failure
-     * @note addrStr store the origin address which send the packet
+     * @note from store the origin address which send the packet
      */
     ssize_t rcvFrom(void *buf, size_t bufSize, std::string &from,
         bool block = true) const;
+    /**
+     * Receive a message using the socket from any address
+     * @param[in, out] buf pointer to a memory buffer
+     * @param[in] bufSize memory buffer size
+     * @param[in] block true, wait till a packet arrives.
+     *                  false, do not wait, return error
+     *                  if no packet available
+     * @return number of bytes received or negative on failure
+     * @note use getLastFrom() to fetch origin address which send the packet
+     */
+    ssize_t rcvFrom(void *buf, size_t bufSize, bool block = true)
+    { return rcvFrom(buf, bufSize, m_lastFrom, block); }
+    /**
+     * Fetch origin address from last rcvFrom() call
+     * @return Unix socket address
+     * @note store address only on the rcvFrom() call without the from parameter
+     * @attention no protection or thread safe, fetch last rcvFrom() call with
+     *  this object.
+     */
+    const std::string &getLastFrom() const { return m_lastFrom; }
 };
 
 /**

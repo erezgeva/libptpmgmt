@@ -89,6 +89,16 @@ class Binary
         return *this;
     }
     /**
+     * Get octet in position
+     * @param[in] position in Binary octets
+     * @return octet value or zero if out of range
+     */
+    const uint8_t getBin(const size_t position) const {
+        if(position >= length())
+            return 0;
+        return (uint8_t)m_str[position];
+    }
+    /**
      * Resize buffer
      * @param[in] length new length
      */
