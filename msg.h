@@ -285,20 +285,20 @@ enum : uint8_t {
 };
 /** PTP Time interval value */
 struct TimeInterval_t {
-    Integer64_t scaledNanoseconds; /**< nanoseconds */
+    Integer64_t scaledNanoseconds; /**< nanoseconds * 2^16 */
     /**
      * Get object size
      * @return object size
      */
     static size_t size() { return 8; }
     /**
-     * Get interval from time interval
-     * @return scaled time interval
+     * Get interval from time interval in nanoseconds
+     * @return scaled time interval in nanoseconds
      */
     double getInterval() const { return (double)scaledNanoseconds / 0x10000; }
     /**
-     * Get interval from time interval, trunc to integer
-     * @return scaled time interval
+     * Get interval from time interval in nanoseconds, trunc to integer
+     * @return scaled time interval in nanoseconds
      */
     uint64_t getIntervalInt() const { return scaledNanoseconds >> 16; }
 };

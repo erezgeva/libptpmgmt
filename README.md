@@ -2,7 +2,7 @@
 
 # <u>Preface</u>
 
-This library uses IEEE 1558 management messages to communicate with PTP entities over the network.
+The library for PTP management client uses IEEE 1558 management messages to communicate with PTP entities over the network.
 We support get, set and command of all management TLVs that are described in IEEE 1588-2019.
 In addition, we support linuxptp specific implementation management TLVs.
 The library supports the three PTP network layers
@@ -11,12 +11,14 @@ The library supports the three PTP network layers
  1. UDP over IP version 6
  1. PTP over Ethernet &mdash; *we do not support VLAN tags*
 
-In addition, we support using the Unix network and communicate with linuxptp ptp4l
+In addition, we support using the Unix network and communicate with linuxptp ptp4l.
+
+We support also parsing incoming signaling messages.
 
 # <u>libpmc Library</u>
 The library is written in C++ using a data-oriented model.
 Each class represent a data object with methods acting on the data.
-The socket classes are the exception.
+The socket classes are the exception, as they represent a system object.
 Management TLV that have data, have a structure and a process function that
 build and parse from structure to message and via versa.
 The caller needs to fill the structure and use it with a message object.
