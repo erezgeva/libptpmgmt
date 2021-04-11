@@ -22,7 +22,7 @@ def setPriority1(newPriority1)
   pr1.priority1 = newPriority1
   id = Pmc::PRIORITY1
   $msg.setAction(Pmc::SET, id, pr1)
-  err = $msg.build($buf.get(), SIZE, ++$sequence)
+  err = $msg.build($buf, ++$sequence)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
@@ -40,7 +40,7 @@ def setPriority1(newPriority1)
     puts "rcv cnt"
     return -1
   end
-  err = $msg.parse($buf.get(), cnt)
+  err = $msg.parse($buf, cnt)
   if(err != Pmc::MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
      $sequence != $msg.getSequence()) then
     puts "set fails"
@@ -48,7 +48,7 @@ def setPriority1(newPriority1)
   end
   puts "set new priority #{newPriority1} success"
   $msg.setAction(Pmc::GET, id)
-  err = $msg.build($buf.get(), SIZE, ++$sequence)
+  err = $msg.build($buf, ++$sequence)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
@@ -66,7 +66,7 @@ def setPriority1(newPriority1)
     puts "rcv cnt"
     return -1
   end
-  err = $msg.parse($buf.get(), cnt)
+  err = $msg.parse($buf, cnt)
   if err == Pmc::MNG_PARSE_ERROR_MSG then
     puts "error message"
   elsif err != Pmc::MNG_PARSE_ERROR_OK then
@@ -111,7 +111,7 @@ def main
   $msg.updateParams(prms)
   id = Pmc::USER_DESCRIPTION
   $msg.setAction(Pmc::GET, id)
-  err = $msg.build($buf.get(), SIZE, ++$sequence)
+  err = $msg.build($buf, ++$sequence)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
@@ -132,7 +132,7 @@ def main
     return
   end
 
-  err = $msg.parse($buf.get(), cnt)
+  err = $msg.parse($buf, cnt)
   if err == Pmc::MNG_PARSE_ERROR_MSG then
     puts "error message"
   elsif err != Pmc::MNG_PARSE_ERROR_OK then

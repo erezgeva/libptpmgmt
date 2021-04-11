@@ -20,6 +20,7 @@
 #include <functional>
 #include "cfg.h"
 #include "bin.h"
+#include "buf.h"
 
 #ifndef INT48_MIN
 /** Minimum value for signed integer 48 bits */
@@ -789,6 +790,19 @@ class Message
      */
     MNG_PARSE_ERROR_e build(void *buf, size_t bufSize, uint16_t sequence);
     /**
+     * Build a raw message for send based on last setAction call
+     * @param[in, out] buf memory buffer to fill with raw PTP Message
+     * @param[in] sequence message sequence
+     * @return parse error state
+     * @note the message is initializing with NULL_PTP_MANAGEMENT management ID
+     * @note usually the user increases the sequence so it can be compared
+     *  with replied message
+     * @note if raw message is larger than buffer size the function
+     *   return MNG_PARSE_ERROR_TOO_SMALL
+     */
+    MNG_PARSE_ERROR_e build(Buf &buf, uint16_t sequence)
+    { return build(buf.get(), buf.size(), sequence); }
+    /**
      * Get last sent management action
      * @return send management action
      */
@@ -814,6 +828,14 @@ class Message
      * @return parse error state
      */
     MNG_PARSE_ERROR_e parse(void *buf, ssize_t msgSize);
+    /**
+     * Parse a received raw socket
+     * @param[in] buf memory buffer containing the raw PTP Message
+     * @param[in] msgSize received size of PTP Message
+     * @return parse error state
+     */
+    MNG_PARSE_ERROR_e parse(Buf &buf, ssize_t msgSize)
+    { return parse(buf.get(), msgSize); }
     /**
      * Get last reply management action
      * @return reply management action

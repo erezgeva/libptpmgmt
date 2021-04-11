@@ -26,7 +26,7 @@ function setPriority1(newPriority1)
     local id = pmc.PRIORITY1
     msg:setAction(pmc.SET, id, pr1)
     sequence = sequence + 1
-    local err = msg:build(buf(), SIZE, sequence)
+    local err = msg:build(buf, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
@@ -44,7 +44,7 @@ function setPriority1(newPriority1)
         print "rcv cnt"
         return -1
     end
-    err = msg:parse(buf(), cnt)
+    err = msg:parse(buf, cnt)
     if(err ~= pmc.MNG_PARSE_ERROR_OK or msg:getTlvId() ~= id or
        sequence ~= msg:getSequence()) then
         print "set fails"
@@ -53,7 +53,7 @@ function setPriority1(newPriority1)
     print("set new priority " .. newPriority1 .. " success")
     msg:setAction(pmc.GET, id)
     sequence = sequence + 1
-    err = msg:build(buf(), SIZE, sequence)
+    err = msg:build(buf, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
@@ -71,7 +71,7 @@ function setPriority1(newPriority1)
         print "rcv cnt"
         return -1
     end
-    err = msg:parse(buf(), cnt)
+    err = msg:parse(buf, cnt)
     if(err == pmc.MNG_PARSE_ERROR_MSG) then
         print "error Message"
     elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then
@@ -115,7 +115,7 @@ function main()
     local id = pmc.USER_DESCRIPTION
     msg:setAction(pmc.GET, id)
     sequence = sequence + 1
-    local err = msg:build(buf(), SIZE, sequence)
+    local err = msg:build(buf, sequence)
     if(err ~= pmc.MNG_PARSE_ERROR_OK) then
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
@@ -135,7 +135,7 @@ function main()
         print("rcv error", cnt)
         return
     end
-    err = msg:parse(buf(), cnt)
+    err = msg:parse(buf, cnt)
     if(err == pmc.MNG_PARSE_ERROR_MSG) then
         print "error Message"
     elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then

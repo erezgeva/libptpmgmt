@@ -22,7 +22,6 @@
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <linux/if_packet.h>
-#include "msg.h"
 #include "cfg.h"
 #include "ptp.h"
 #include "bin.h"

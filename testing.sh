@@ -172,6 +172,7 @@ priority1: 153
      ln -sf $file _pmc.so
    fi
    printf "\n $(readlink $(which python$i)) ---- \n"
+   eval "$ldPath $useSudo python$i ./test.py $cfgFile" > /dev/null
    time eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3
  done
  cd ..

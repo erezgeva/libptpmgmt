@@ -24,7 +24,7 @@ def setPriority1(newPriority1):
   pr1.priority1 = newPriority1
   id = pmc.PRIORITY1
   msg.setAction(pmc.SET, id, pr1)
-  err = msg.build(buf(), SIZE, ++sequence)
+  err = msg.build(buf, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
@@ -38,14 +38,14 @@ def setPriority1(newPriority1):
   if cnt <= 0:
     print("rcv cnt")
     return -1
-  err = msg.parse(buf(), cnt)
+  err = msg.parse(buf, cnt)
   if(err != pmc.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
      sequence != msg.getSequence()):
     print("set fails")
     return -1
   print("set new priority %d success" % newPriority1)
   msg.setAction(pmc.GET, id)
-  err = msg.build(buf(), SIZE, ++sequence)
+  err = msg.build(buf, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
@@ -59,7 +59,7 @@ def setPriority1(newPriority1):
   if cnt <= 0:
     print("rcv cnt")
     return -1
-  err = msg.parse(buf(), cnt)
+  err = msg.parse(buf, cnt)
   if err == pmc.MNG_PARSE_ERROR_MSG:
     print("error message")
   elif err != pmc.MNG_PARSE_ERROR_OK:
@@ -96,7 +96,7 @@ def main():
   msg.updateParams(prms)
   id = pmc.USER_DESCRIPTION
   msg.setAction(pmc.GET, id)
-  err = msg.build(buf(), SIZE, ++sequence)
+  err = msg.build(buf, ++sequence)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
@@ -116,7 +116,7 @@ def main():
     print("rcv error %d" % cnt)
     return
 
-  err = msg.parse(buf(), cnt)
+  err = msg.parse(buf, cnt)
   if err == pmc.MNG_PARSE_ERROR_MSG:
     print("error message")
   elif err != pmc.MNG_PARSE_ERROR_OK:

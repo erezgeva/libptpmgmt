@@ -26,7 +26,7 @@ sub setPriority1
     $pr1->swig_priority1_set($newPriority1);
     my $id = $PmcLib::PRIORITY1;
     $msg->setAction($PmcLib::SET, $id, $pr1);
-    my $err = $msg->build($buf->get(), SIZE, ++$sequence);
+    my $err = $msg->build($buf, ++$sequence);
     my $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
@@ -43,7 +43,7 @@ sub setPriority1
         return -1;
     }
 
-    $err = $msg->parse($buf->get(), $cnt);
+    $err = $msg->parse($buf, $cnt);
     if($err != $PmcLib::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
        $sequence != $msg->getSequence()) {
         print "set fails\n";
@@ -52,7 +52,7 @@ sub setPriority1
     print "set new priority $newPriority1 success\n";
 
     $msg->setAction($PmcLib::GET, $id);
-    $err = $msg->build($buf->get(), SIZE, ++$sequence);
+    $err = $msg->build($buf, ++$sequence);
     $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
@@ -68,7 +68,7 @@ sub setPriority1
         print "rcv $cnt\n";
         return -1;
     }
-    $err = $msg->parse($buf->get(), $cnt);
+    $err = $msg->parse($buf, $cnt);
 
     if($err == $PmcLib::MNG_PARSE_ERROR_MSG) {
         print "error message\n";
@@ -112,7 +112,7 @@ sub main
     $msg->updateParams($prms);
     my $id = $PmcLib::USER_DESCRIPTION;
     $msg->setAction($PmcLib::GET, $id);
-    my $err = $msg->build($buf->get(), SIZE, ++$sequence);
+    my $err = $msg->build($buf, ++$sequence);
     my $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
@@ -130,7 +130,7 @@ sub main
         return;
     }
 
-    $err = $msg->parse($buf->get(), $cnt);
+    $err = $msg->parse($buf, $cnt);
 
     if($err == $PmcLib::MNG_PARSE_ERROR_MSG) {
         print "error message\n";
