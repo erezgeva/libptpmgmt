@@ -12,11 +12,10 @@ require 'posix'
 local unistd = require 'posix.unistd'
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
-SIZE = 2000
 
 sk = pmc.SockUnix()
 msg = pmc.Message()
-buf = pmc.Buf(SIZE)
+buf = pmc.Buf(1000)
 sequence = 0
 
 function setPriority1(newPriority1)
@@ -31,7 +30,7 @@ function setPriority1(newPriority1)
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
     end
-    if(not sk:send(buf(), msg:getMsgLen())) then
+    if(not sk:send(buf, msg:getMsgLen())) then
         print "send fail"
         return
     end
@@ -39,7 +38,7 @@ function setPriority1(newPriority1)
         print "timeout"
         return
     end
-    local cnt = sk:rcv(buf(), SIZE)
+    local cnt = sk:rcv(buf)
     if(cnt <= 0) then
         print "rcv cnt"
         return -1
@@ -58,7 +57,7 @@ function setPriority1(newPriority1)
         txt = pmc.Message.err2str_c(err)
         print("build error ", txt)
     end
-    if(not sk:send(buf(), msg:getMsgLen())) then
+    if(not sk:send(buf, msg:getMsgLen())) then
         print "send fail"
         return
     end
@@ -66,7 +65,7 @@ function setPriority1(newPriority1)
         print "timeout"
         return
     end
-    local cnt = sk:rcv(buf(), SIZE)
+    local cnt = sk:rcv(buf)
     if(cnt <= 0) then
         print "rcv cnt"
         return -1
@@ -130,7 +129,7 @@ function main()
         print "timeout"
         return
     end
-    local cnt = sk:rcv(buf(), SIZE)
+    local cnt = sk:rcv(buf)
     if(cnt <= 0) then
         print("rcv error", cnt)
         return

@@ -10,11 +10,10 @@
 require 'pmc'
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
-SIZE = 2000
 
 $sk = Pmc::SockUnix.new
 $msg = Pmc::Message.new
-$buf = Pmc::Buf.new(SIZE)
+$buf = Pmc::Buf.new(1000)
 $sequence = 0
 
 def setPriority1(newPriority1)
@@ -27,7 +26,7 @@ def setPriority1(newPriority1)
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
   end
-  if !$sk.send($buf.get(), $msg.getMsgLen()) then
+  if !$sk.send($buf, $msg.getMsgLen()) then
     puts "send fail"
     return
   end
@@ -35,7 +34,7 @@ def setPriority1(newPriority1)
     puts "timeout"
     return
   end
-  cnt = $sk.rcv($buf.get(), SIZE)
+  cnt = $sk.rcv($buf)
   if cnt <= 0 then
     puts "rcv cnt"
     return -1
@@ -53,7 +52,7 @@ def setPriority1(newPriority1)
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
   end
-  if !$sk.send($buf.get(), $msg.getMsgLen()) then
+  if !$sk.send($buf, $msg.getMsgLen()) then
     puts "send fail"
     return
   end
@@ -61,7 +60,7 @@ def setPriority1(newPriority1)
     puts "timeout"
     return
   end
-  cnt = $sk.rcv($buf.get(), SIZE)
+  cnt = $sk.rcv($buf)
   if cnt <= 0 then
     puts "rcv cnt"
     return -1
@@ -117,7 +116,7 @@ def main
     puts "build error " + txt
     return
   end
-  if !$sk.send($buf.get(), $msg.getMsgLen()) then
+  if !$sk.send($buf, $msg.getMsgLen()) then
     puts "send fail"
     return
   end
@@ -126,7 +125,7 @@ def main
     puts "timeout"
     return
   end
-  cnt = $sk.rcv($buf.get(), SIZE)
+  cnt = $sk.rcv($buf)
   if cnt <= 0 then
     puts "rcv error #{cnt}"
     return

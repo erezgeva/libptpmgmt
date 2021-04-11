@@ -25,6 +25,7 @@
 #include "cfg.h"
 #include "ptp.h"
 #include "bin.h"
+#include "buf.h"
 
 /**
  * @brief base class for all sockets
@@ -39,20 +40,24 @@ class SockBase
     bool m_isInit;
     SockBase() : m_fd(-1), m_isInit(false) {}
     bool sendReply(ssize_t cnt, size_t len) const;
+    virtual bool sendBase(const void *msg, size_t len) = 0;
+    virtual ssize_t rcvBase(void *buf, size_t bufSize, bool block) = 0;
+    virtual bool initBase() = 0;
+    virtual void closeBase();
 
   public:
-    virtual ~SockBase() { this->close(); }
+    virtual ~SockBase() { closeBase(); }
     /**< @endcond */
 
     /**
      * close socket and release its resources
      */
-    virtual void close();
+    void close() { closeBase(); }
     /**
      * Allocate the socket and initialize it with current parameters
      * @return true if socket creation success
      */
-    virtual bool init() = 0;
+    bool init() { return initBase(); }
     /**
      * Send the message using the socket
      * @param[in] msg pointer to message memory buffer
@@ -61,7 +66,18 @@ class SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    virtual bool send(const void *msg, size_t len) = 0;
+    bool send(const void *msg, size_t len)
+    { return sendBase(msg, len); }
+    /**
+     * Send the message using the socket
+     * @param[in] buf object with message memory buffer
+     * @param[in] len message length
+     * @return true if message is sent
+     * @note true does @b NOT guarantee the frame was successfully
+     *  arrives its target. Only the network layer sends it.
+     */
+    bool send(Buf &buf, size_t len)
+    { return sendBase(buf.get(), len); }
     /**
      * Receive a message using the socket
      * @param[in, out] buf pointer to a memory buffer
@@ -71,7 +87,18 @@ class SockBase
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    virtual ssize_t rcv(void *buf, size_t bufSize, bool block = true) = 0;
+    ssize_t rcv(void *buf, size_t bufSize, bool block = true)
+    { return rcvBase(buf, bufSize, block); }
+    /**
+     * Receive a message using the socket
+     * @param[in, out] buf object with message memory buffer
+     * @param[in] block true, wait till a packet arrives.
+     *                  false, do not wait, return error
+     *                  if no packet available
+     * @return number of bytes received or negative on failure
+     */
+    ssize_t rcv(Buf &buf, bool block = true)
+    { return rcvBase(buf.get(), buf.size(), block); }
     /**
      * Get socket file description
      * @return socket file description
@@ -122,19 +149,16 @@ class SockUnix : public SockBase
     bool setPeerInternal(const std::string &str);
     bool sendAny(const void *msg, size_t len, const sockaddr_un &addr) const;
     static void setUnixAddr(sockaddr_un &addr, const std::string &str);
+  protected:
+    /**< @cond internal */
+    bool sendBase(const void *msg, size_t len);
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block);
+    bool initBase();
+    void closeBase();
+    /**< @endcond */
 
   public:
     SockUnix() { setUnixAddr(m_peerAddr, m_peer); }
-    /**
-     * close socket and release its resources
-     * @note: Remove socket file from file system
-     */
-    void close();
-    /**
-     * Allocate the socket and initialize it with current parameters
-     * @return true if socket creation success
-     */
-    bool init();
     /**
      * Get peer address
      * @return string object with peer address
@@ -203,16 +227,6 @@ class SockUnix : public SockBase
      */
     const char *getHomeDir_c();
     /**
-     * Send the message using the socket
-     * @param[in] msg pointer to message memory buffer
-     * @param[in] len message length
-     * @return true if message is sent
-     * @note true does @b NOT guarantee the frame was successfully
-     *  arrives its target. Only the network layer sends it.
-     * @note Send message to the peer address.
-     */
-    bool send(const void *msg, size_t len);
-    /**
      * Send the message using the socket to a specific address
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
@@ -223,17 +237,15 @@ class SockUnix : public SockBase
      */
     bool sendTo(const void *msg, size_t len, std::string addrStr) const;
     /**
-     * Receive a message using the socket
-     * @param[in, out] buf pointer to a memory buffer
-     * @param[in] bufSize memory buffer size
-     * @param[in] block true, wait till a packet arrives.
-     *                  false, do not wait, return error
-     *                  if no packet available
-     * @return number of bytes received or negative on failure
-     * @note verify message came from peer address.
-     *  return negative if packet is @b NOT from peer.
+     * Send the message using the socket to a specific address
+     * @param[in] buf object with message memory buffer
+     * @param[in] len message length
+     * @param[in] addrStr Unix socket address (socket file)
+     * @return true if message is sent
+     * @note true does @b NOT guarantee the frame was successfully
+     *  arrives its target. Only the network layer sends it.
      */
-    ssize_t rcv(void *buf, size_t bufSize, bool block = true);
+    bool sendTo(Buf &buf, size_t len, std::string addrStr) const;
     /**
      * Receive a message using the socket from any address
      * @param[in, out] buf pointer to a memory buffer
@@ -249,6 +261,18 @@ class SockUnix : public SockBase
         bool block = true) const;
     /**
      * Receive a message using the socket from any address
+     * @param[in] buf object with message memory buffer
+     * @param[out] from Unix socket address (socket file)
+     * @param[in] block true, wait till a packet arrives.
+     *                  false, do not wait, return error
+     *                  if no packet available
+     * @return number of bytes received or negative on failure
+     * @note from store the origin address which send the packet
+     */
+    ssize_t rcvFrom(Buf &buf, std::string &from, bool block = true) const
+    { return rcvFrom(buf.get(), buf.size(), from, block); }
+    /**
+     * Receive a message using the socket from any address
      * @param[in, out] buf pointer to a memory buffer
      * @param[in] bufSize memory buffer size
      * @param[in] block true, wait till a packet arrives.
@@ -259,6 +283,17 @@ class SockUnix : public SockBase
      */
     ssize_t rcvFrom(void *buf, size_t bufSize, bool block = true)
     { return rcvFrom(buf, bufSize, m_lastFrom, block); }
+    /**
+     * Receive a message using the socket from any address
+     * @param[in] buf object with message memory buffer
+     * @param[in] block true, wait till a packet arrives.
+     *                  false, do not wait, return error
+     *                  if no packet available
+     * @return number of bytes received or negative on failure
+     * @note use getLastFrom() to fetch origin address which send the packet
+     */
+    ssize_t rcvFrom(Buf &buf, bool block = true)
+    { return rcvFrom(buf.get(), buf.size(), m_lastFrom, block); }
     /**
      * Fetch origin address from last rcvFrom() call
      * @return Unix socket address
@@ -344,7 +379,7 @@ class SockBaseIf : public SockBase
      */
     bool setAllInit(IfInfo &ifObj, ConfigFile &cfg,
         const std::string section = "") {
-        return setAll(ifObj, cfg, section) && init();
+        return setAll(ifObj, cfg, section) && initBase();
     }
 };
 
@@ -367,6 +402,9 @@ class SockIp : public SockBaseIf
     Binary m_mcast;
     SockIp(int domain, const char *mcast, sockaddr *addr, size_t len);
     virtual bool init2() = 0;
+    bool sendBase(const void *msg, size_t len);
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block);
+    bool initBase();
     /**< @endcond */
 
   public:
@@ -392,30 +430,6 @@ class SockIp : public SockBaseIf
      * @note calling without section will fetch value from @"global@" section
      */
     bool setUdpTtl(ConfigFile &cfg, const std::string section = "");
-    /**
-     * Send the message using the socket
-     * @param[in] msg pointer to message memory buffer
-     * @param[in] len message length
-     * @return true if message is sent
-     * @note true does @b NOT guarantee the frame was successfully
-     *  arrives its target. Only the network layer sends it.
-     */
-    bool send(const void *msg, size_t len);
-    /**
-     * Receive a message using the socket
-     * @param[in, out] buf pointer to a memory buffer
-     * @param[in] bufSize memory buffer size
-     * @param[in] block true, wait till a packet arrives.
-     *                  false, do not wait, return error
-     *                  if no packet available
-     * @return number of bytes received or negative on failure
-     */
-    ssize_t rcv(void *buf, size_t bufSize, bool block = true);
-    /**
-     * Allocate the socket and initialize it with current parameters
-     * @return true if socket creation success
-     */
-    bool init();
 };
 
 /**
@@ -494,6 +508,9 @@ class SockRaw : public SockBaseIf
   protected:
     /**< @cond internal */
     bool setAllBase(ConfigFile &cfg, const std::string &section);
+    bool sendBase(const void *msg, size_t len);
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block);
+    bool initBase();
 
   public:
     SockRaw();
@@ -561,36 +578,6 @@ class SockRaw : public SockBaseIf
      * @note calling without section will fetch value from @"global@" section
      */
     bool setSocketPriority(ConfigFile &cfg, const std::string section = "");
-    /**
-     * Allocate the socket and initialize it with current parameters
-     * @return true if socket creation success
-     */
-    bool init();
-    /**
-     * Send the message using the socket
-     * @param[in] msg pointer to message memory buffer
-     * @param[in] len message length
-     * @return true if message is sent
-     * @note true does @b NOT guarantee the frame was successfully
-     *  arrives its target. Only the network layer sends it.
-     * @note The message is prefix with Ethernet header.
-     *  The len specify the PTP message length only, without
-     *  the Ethernet header
-     */
-    bool send(const void *msg, size_t len);
-    /**
-     * Receive a message using the socket
-     * @param[in, out] buf pointer to a memory buffer
-     * @param[in] bufSize memory buffer size
-     * @param[in] block true, wait till a packet arrives.
-     *                  false, do not wait, return error
-     *                  if no packet available
-     * @return number of bytes received or negative on failure
-     * @note The message is strip from Ethernet header.
-     *  returned length exclude Ethernet header.
-     *  The length is the PTP message length only!
-     */
-    ssize_t rcv(void *buf, size_t bufSize, bool block = true);
 };
 
 #endif /*__PMC_SOCK_H*/

@@ -791,7 +791,7 @@ class Message
     MNG_PARSE_ERROR_e build(void *buf, size_t bufSize, uint16_t sequence);
     /**
      * Build a raw message for send based on last setAction call
-     * @param[in, out] buf memory buffer to fill with raw PTP Message
+     * @param[in, out] buf object with memory buffer to fill with raw PTP Message
      * @param[in] sequence message sequence
      * @return parse error state
      * @note the message is initializing with NULL_PTP_MANAGEMENT management ID
@@ -830,7 +830,7 @@ class Message
     MNG_PARSE_ERROR_e parse(void *buf, ssize_t msgSize);
     /**
      * Parse a received raw socket
-     * @param[in] buf memory buffer containing the raw PTP Message
+     * @param[in] buf object with memory buffer containing the raw PTP Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */

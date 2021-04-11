@@ -12,11 +12,10 @@ import sys
 import pmc
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
-SIZE = 2000
 
 sk = pmc.SockUnix()
 msg = pmc.Message()
-buf = pmc.Buf(SIZE)
+buf = pmc.Buf(1000)
 sequence = 0
 
 def setPriority1(newPriority1):
@@ -28,13 +27,13 @@ def setPriority1(newPriority1):
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
-  if not sk.send(buf(), msg.getMsgLen()):
+  if not sk.send(buf, msg.getMsgLen()):
     print("send fail")
     return
   if not sk.poll(500):
     print("timeout")
     return
-  cnt = sk.rcv(buf(), SIZE)
+  cnt = sk.rcv(buf)
   if cnt <= 0:
     print("rcv cnt")
     return -1
@@ -49,13 +48,13 @@ def setPriority1(newPriority1):
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
-  if not sk.send(buf(), msg.getMsgLen()):
+  if not sk.send(buf, msg.getMsgLen()):
     print("send fail")
     return
   if not sk.poll(500):
     print("timeout")
     return
-  cnt = sk.rcv(buf(), SIZE)
+  cnt = sk.rcv(buf)
   if cnt <= 0:
     print("rcv cnt")
     return -1
@@ -111,7 +110,7 @@ def main():
     print("timeout")
     return
 
-  cnt = sk.rcv(buf(), SIZE)
+  cnt = sk.rcv(buf)
   if cnt <= 0:
     print("rcv error %d" % cnt)
     return

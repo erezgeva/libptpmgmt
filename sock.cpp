@@ -56,7 +56,7 @@ const sock_fprog bpf = {
     .filter = (sock_filter *)bpf_code,
 };
 
-void SockBase::close()
+void SockBase::closeBase()
 {
     if(m_fd >= 0) {
         ::close(m_fd);
@@ -125,19 +125,19 @@ void SockUnix::setUnixAddr(sockaddr_un &addr, const std::string &str)
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, str.c_str(), unix_path_max);
 }
-void SockUnix::close()
+void SockUnix::closeBase()
 {
-    SockBase::close();
+    SockBase::closeBase();
     if(m_isInit) {
         unlink(m_me.c_str());
         m_isInit = false;
     }
 }
-bool SockUnix::init()
+bool SockUnix::initBase()
 {
     if(m_isInit || !testUnix(m_me))
         return false;
-    SockBase::close();
+    SockBase::closeBase();
     m_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(m_fd < 0) {
         perror("socket");
@@ -206,7 +206,7 @@ bool SockUnix::sendAny(const void *msg, size_t len,
     ssize_t cnt = sendto(m_fd, msg, len, 0, (sockaddr *)&addr, sizeof(addr));
     return sendReply(cnt, len);
 }
-bool SockUnix::send(const void *msg, size_t len)
+bool SockUnix::sendBase(const void *msg, size_t len)
 {
     if(!m_isInit || !testUnix(m_peer))
         return false;
@@ -220,7 +220,11 @@ bool SockUnix::sendTo(const void *msg, size_t len, std::string addrStr) const
     setUnixAddr(addr, addrStr);
     return sendAny(msg, len, addr);
 }
-ssize_t SockUnix::rcv(void *buf, size_t bufSize, bool block)
+bool SockUnix::sendTo(Buf &buf, size_t len, std::string addrStr) const
+{
+    return sendTo(buf.get(), len, addrStr);
+}
+ssize_t SockUnix::rcvBase(void *buf, size_t bufSize, bool block)
 {
     if(!testUnix(m_peer))
         return -1;
@@ -309,14 +313,14 @@ bool SockIp::setUdpTtl(ConfigFile &cfg, const std::string section)
     m_udp_ttl = cfg.udp_ttl(section);
     return true;
 }
-bool SockIp::send(const void *msg, size_t len)
+bool SockIp::sendBase(const void *msg, size_t len)
 {
     if(!m_isInit)
         return false;
     ssize_t cnt = sendto(m_fd, msg, len, 0, m_addr, m_addr_len);
     return sendReply(cnt, len);
 }
-ssize_t SockIp::rcv(void *buf, size_t bufSize, bool block)
+ssize_t SockIp::rcvBase(void *buf, size_t bufSize, bool block)
 {
     if(!m_isInit)
         return -1;
@@ -334,11 +338,11 @@ ssize_t SockIp::rcv(void *buf, size_t bufSize, bool block)
     }
     return cnt;
 }
-bool SockIp::init()
+bool SockIp::initBase()
 {
     if(m_isInit || !m_have_if || m_udp_ttl < 0)
         return false;
-    SockBase::close();
+    closeBase();
     m_fd = socket(m_domain, SOCK_DGRAM, 0/*IPPROTO_UDP*/);
     if(m_fd < 0) {
         perror("socket");
@@ -525,7 +529,7 @@ bool SockRaw::setSocketPriority(ConfigFile &cfg, const std::string section)
     m_socket_priority = cfg.socket_priority(section);
     return true;
 }
-bool SockRaw::init()
+bool SockRaw::initBase()
 {
     if(m_isInit || !m_have_if || m_ptp_dst_mac.empty() || m_socket_priority < 0)
         return false;
@@ -585,7 +589,7 @@ bool SockRaw::init()
     m_isInit = true;
     return true;
 }
-bool SockRaw::send(const void *msg, size_t len)
+bool SockRaw::sendBase(const void *msg, size_t len)
 {
     if(!m_isInit)
         return false;
@@ -594,7 +598,7 @@ bool SockRaw::send(const void *msg, size_t len)
     ssize_t cnt = sendmsg(m_fd, &m_msg_tx, 0);
     return sendReply(cnt, len + sizeof(m_hdr));
 }
-ssize_t SockRaw::rcv(void *buf, size_t bufSize, bool block)
+ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
 {
     if(!m_isInit)
         return -1;

@@ -11,12 +11,11 @@ BEGIN { push @INC, '.' }
 use PmcLib;
 
 use constant DEF_CFG_FILE => '/etc/linuxptp/ptp4l.conf';
-use constant SIZE => 2000;
 
 my $sk = PmcLib::SockUnix->new;
 die "Fail socket" unless defined $sk;
 my $msg = PmcLib::Message->new;
-my $buf = PmcLib::Buf->new(SIZE);
+my $buf = PmcLib::Buf->new(1000);
 my $sequence = 0;
 
 sub setPriority1
@@ -30,14 +29,14 @@ sub setPriority1
     my $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
-    die "send" unless $sk->send($buf->get(), $msg->getMsgLen());
+    die "send" unless $sk->send($buf, $msg->getMsgLen());
 
     unless($sk->poll(500)) {
         print "timeout";
         return -1;
     }
 
-    my $cnt = $sk->rcv($buf->get(), SIZE);
+    my $cnt = $sk->rcv($buf);
     if($cnt <= 0) {
         print "rcv $cnt\n";
         return -1;
@@ -56,14 +55,14 @@ sub setPriority1
     $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
-    die "send" unless $sk->send($buf->get(), $msg->getMsgLen());
+    die "send" unless $sk->send($buf, $msg->getMsgLen());
 
     unless($sk->poll(500)) {
         print "timeout";
         return -1;
     }
 
-    my $cnt = $sk->rcv($buf->get(), SIZE);
+    my $cnt = $sk->rcv($buf);
     if($cnt <= 0) {
         print "rcv $cnt\n";
         return -1;
@@ -116,7 +115,7 @@ sub main
     my $txt = PmcLib::Message::err2str_c($err);
     die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
 
-    die "send" unless $sk->send($buf->get(), $msg->getMsgLen());
+    die "send" unless $sk->send($buf, $msg->getMsgLen());
 
     # You can get file descriptor with sk->getFd() and use Perl select
     unless($sk->poll(500)) {
@@ -124,7 +123,7 @@ sub main
         return;
     }
 
-    my $cnt = $sk->rcv($buf->get(), SIZE);
+    my $cnt = $sk->rcv($buf);
     if($cnt <= 0) {
         print "rcv $cnt\n";
         return;

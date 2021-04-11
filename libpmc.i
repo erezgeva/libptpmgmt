@@ -37,6 +37,8 @@
 #endif
 %include "msg.h"
 %include "ptp.h"
+%feature("notabstract") SockBase;
+%feature("notabstract") SockBaseIf;
 %include "sock.h"
 %include "bin.h"
 %include "buf.h"
