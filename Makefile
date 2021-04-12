@@ -139,15 +139,18 @@ CPPFLAGS_RUBY:=-Wno-sign-compare -Wno-catch-value -Wno-maybe-uninitialized
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
 LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
-ifneq ($(SONAME),)
-LDFLAGS_NM=-Wl,--version-script,pkg/lib.ver\
-           -Wl,-soname,$@.$(SONAME)
+LIB_VER:=$(ver_maj).$(ver_min)
+SONAME:=$(ver_maj)
+LIB_NAME:=libpmc
+LIB_NAME_SO:=$(LIB_NAME).so
+LIB_FNAME_SO:=$(LIB_NAME_SO).$(LIB_VER)
+LIB_SNAME_SO:=$(LIB_NAME_SO).$(SONAME)
+ifneq ($(LD_SONAME),)
+LDFLAGS_NM=-Wl,--version-script,pkg/lib.ver -Wl,-soname,$@.$(SONAME)
 endif
 LDLIBS_LIB:=-lm
 PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
 LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(wildcard *.cpp)))
-LIB_NAME:=libpmc
-LIB_NAME_SO:=$(LIB_NAME).so
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
 
@@ -304,7 +307,7 @@ endef
 DISTCLEAN+=lua/$(SWIG_NAME).cpp lua/$(LUA_LIB_NAME)
 LUA_VERSIONS:=1 2 3
 $(eval $(foreach n,$(LUA_VERSIONS),$(call lua_fname,$n)))
-ifneq ($(SONAME),)
+ifneq ($(LD_SONAME),)
 $(eval $(foreach n,$(LUA_VERSIONS),$(call lua_soname,$n)))
 endif
 $(eval $(foreach n,$(LUA_VERSIONS),$(call lua,$n)))
@@ -426,9 +429,6 @@ all: $(ALL)
 	@:
 .DEFAULT_GOAL=all
 
-LIB_VER:=$(ver_maj).$(ver_min)
-LIB_FNAME_SO:=$(LIB_NAME_SO).$(LIB_VER)
-LIB_SNAME_SO:=$(LIB_NAME_SO).$(SONAME)
 DOCDIR:=$(DESTDIR)/usr/share/doc/libpmc-doc
 URL:=html/index.html
 REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"

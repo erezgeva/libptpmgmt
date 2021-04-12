@@ -8,10 +8,7 @@
 # dh_* command outputs which commands it is executing
 #export DH_OPTIONS=-v
 
-# Take version from changelog file
-SONAME:=$(firstword $(subst ., ,$(shell\
-          dpkg-parsechangelog --show-field Version)))
-export SONAME
+export LD_SONAME=do
 # For speed optimization
 export CPPFLAGS_OPT=-Ofast
 
