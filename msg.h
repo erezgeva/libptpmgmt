@@ -455,10 +455,16 @@ struct BaseSigTlv {
  */
 struct sigTlv {
     tlvType_e tlvType;
+    /**
+     * Do not pass tlv in copy and assignment.
+     * Assign directly into the structure only!
+     */
     std::unique_ptr<BaseSigTlv> tlv;
-    sigTlv(tlvType_e t) : tlvType(t) {}
-    sigTlv(const sigTlv &t) : tlvType(t.tlvType) {}
-    sigTlv &operator=(const sigTlv &t) { tlvType = t.tlvType; return *this; }
+    sigTlv(tlvType_e type) : tlvType(type) {}
+    sigTlv(const sigTlv &rhs) : tlvType(rhs.tlvType) {}
+    sigTlv(sigTlv &&rhs) : tlvType(rhs.tlvType) {}
+    sigTlv &operator=(const sigTlv &rhs) { tlvType = rhs.tlvType; return *this; }
+    sigTlv &operator=(sigTlv &&rhs) { tlvType = rhs.tlvType; return *this; }
 };
 /**< @endcond */
 #endif
@@ -518,7 +524,10 @@ class Message
     actionField_e   m_replyAction;
     uint32_t        m_sdoId; /* parsed message sdoId (transportSpecific) */
     msgType_e       m_type; /* parsed message type */
+    tlvType_e       m_mngType; /* parsed management message type */
     uint8_t         m_domainNumber; /* parsed message domainNumber*/
+    uint8_t         m_versionPTP; /* parsed message ptp version */
+    uint8_t         m_minorVersionPTP; /* parsed message ptp version */
     std::vector<sigTlv> m_sigTlvs; /* hold signaling TLVs */
     std::unique_ptr<BaseMngTlv> m_dataGet;
 
@@ -874,6 +883,16 @@ class Message
      */
     uint8_t getDomainNumber() const { return m_domainNumber; }
     /**
+     * Get last parsed message PTP version
+     * @return parsed message versionPTP
+     */
+    uint8_t getVersionPTP() const { return m_versionPTP; }
+    /**
+     * Get last parsed message minor PTP version
+     * @return parsed message versionPTP
+     */
+    uint8_t getMinorVersionPTP() const { return m_minorVersionPTP; }
+    /**
      * Get last parsed message dataField
      * @return pointer to last parsed message dataField
      * @note User need to cast to proper structure depends on
@@ -904,6 +923,17 @@ class Message
      * @return true if last message is a signaling message
      */
     bool isLastMsgSig() const { return m_type == Signaling; }
+    /**
+     * Get message type
+     * @return message type
+     */
+    msgType_e getType() const { return m_type; }
+    /**
+     * Get management message type
+     * @return management message type
+     * @note return MANAGEMENT or MANAGEMENT_ERROR_STATUS
+     */
+    tlvType_e getMngType() const { return m_mngType; }
     /**
      * Traverse all last signaling message TLVs
      * @param[in] callback function to call with each TLV

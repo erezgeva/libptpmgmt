@@ -130,6 +130,7 @@ include version
 # Ensure linker use C++
 RL:=ranlib
 LN:=ln -fs
+SED:=sed
 CPPFLAGS_OPT?=-Og
 CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 # SWIG warnings
@@ -214,8 +215,8 @@ HEADERS_ALL:=$(HEADERS) mngIds.h
 #  %^ => '\n'   - Add new line in a preprocessor definition only
 mngIds.h: mngIds.cc
 	$(Q_GEN)
-	$Q$(CXX) -E $< | sed 's/^#.*//;/^\s*$$/d;s#%@#/#g' > $@
-	$(Q)sed -i 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' $@
+	$Q$(CXX) -E $< | $(SED) 's/^#.*//;/^\s*$$/d;s#%@#/#g' > $@
+	$Q$(SED) -i 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' $@
 
 DISTCLEAN+=mngIds.h
 
@@ -264,7 +265,7 @@ $(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@
-	$(Q)sed -i 's#$(PERL_INC)#\$$(PERL_INC)#' $(PERL_NAME).d
+	$Q$(SED) -i 's#$(PERL_INC)#\$$(PERL_INC)#' $(PERL_NAME).d
 $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -442,6 +443,9 @@ install: $(ALL) doxygen
 	$Q$(LN) $(LIB_SNAME_SO) $(DESTDIR)$(LIB_ARCH)/$(LIB_NAME_SO)
 	$Q$(NINST) libpmc.a $(DESTDIR)$(LIB_ARCH)
 	$Q$(NINST) -D $(HEADERS) -t $(DESTDIR)/usr/include/pmc
+	$Q$(foreach f,$(HEADERS),$(SED) -i\
+	  's!#include\s*\"\([^"]\+\)\"!#include <pmc/\1>!'\
+	  $(DESTDIR)/usr/include/pmc/$f;)
 	$Q$(NINST) -D pkg/*.mk -t $(DESTDIR)/usr/share/libpmc-dev
 	$Q$(BINST) -D pmc $(DESTDIR)/usr/sbin/pmc.lib
 	$Q$(RM) doc/html/*.md5

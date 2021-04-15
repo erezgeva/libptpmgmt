@@ -394,9 +394,9 @@ MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
         default:
             return MNG_PARSE_ERROR_HEADER;
     }
-    Nibble_t ptp_maj = msg->versionPTP & 0xf;
-    //Nibble_t ptp_min = msg->versionPTP >> 4;
-    if(ptp_maj != ptp_major_ver ||
+    m_versionPTP = msg->versionPTP & 0xf;
+    m_minorVersionPTP = msg->versionPTP >> 4;
+    if(m_versionPTP != ptp_major_ver ||
         msg->logMessageInterval != logMessageIntervalDef)
         return MNG_PARSE_ERROR_HEADER;
     m_sdoId = msg->minorSdoId | ((msg->messageType_majorSdoId & 0xf0) << 4);
@@ -445,6 +445,7 @@ MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
             return MNG_PARSE_ERROR_TOO_SMALL;
         if(m_left > 1 && proc(m_errorDisplay))
             return MNG_PARSE_ERROR_TOO_SMALL;
+        m_mngType = MANAGEMENT_ERROR_STATUS;
         return MNG_PARSE_ERROR_MSG;
     } else if(MANAGEMENT != tlvType)
         return MNG_PARSE_ERROR_INVALID_TLV;
@@ -469,6 +470,7 @@ MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
     if(err != MNG_PARSE_ERROR_OK)
         return err;
     m_dataGet = std::move(std::unique_ptr<BaseMngTlv>(tlv));
+    m_mngType = MANAGEMENT;
     return MNG_PARSE_ERROR_OK;
 }
 #define caseBuildAct(n) {\
@@ -536,8 +538,10 @@ MNG_PARSE_ERROR_e Message::parseSig()
                     if(err != MNG_PARSE_ERROR_OK)
                         return err;
                     MANAGEMENT_t *d = new MANAGEMENT_t;
-                    if(d == nullptr)
+                    if(d == nullptr) {
+                        delete mtlv;
                         return MNG_PARSE_ERROR_MEM;
+                    }
                     d->tlv_id = tlv_id;
                     d->tlvData = std::move(std::unique_ptr<BaseMngTlv>(mtlv));
                     tlv = d;

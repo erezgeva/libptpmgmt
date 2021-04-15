@@ -19,13 +19,13 @@
     #include "sock.h"
     #include "bin.h"
     #include "buf.h"
+    #include "json.h"
 %}
 
 %include "stdint.i"
 %include "std_string.i"
 %include "std_vector.i"
 %apply long { ssize_t };
-%include "cfg.h"
 #ifdef SWIGRUBY
 /* Ignore Wrong constant name.
    Ruby capitalize first letter! */
@@ -35,6 +35,7 @@
  * Scripts can use Binary::append() */
 %warnfilter(365) Binary::operator+=;
 #endif
+%include "cfg.h"
 %include "msg.h"
 %include "ptp.h"
 %feature("notabstract") SockBase;
@@ -42,6 +43,7 @@
 %include "sock.h"
 %include "bin.h"
 %include "buf.h"
+%include "json.h"
 %include "proc.h"
 %include "sig.h"
 %include "mngIds.h"

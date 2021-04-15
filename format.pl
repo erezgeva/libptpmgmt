@@ -11,7 +11,7 @@ use File::Touch;
 sub main
 {
     for(glob "*.cpp *.h *.sh Makefile debian/rules debian/changelog " .
-             "debian/copyright pkg/* */test.*")
+             "debian/copyright pkg/* */test.* testJson.pl")
     {
         next if -l or not -f;
         my $file = $_;
@@ -56,7 +56,7 @@ sub main
             } else {
                 if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
                     print STDERR "Check: $file:$.: for wrong char: $_\n";
-                } elsif(/\\[^ntr"s0\$]/) {
+                } elsif(/\\[^ntr"s()+\d\$]/) {
                     print STDERR "Check: $file:$.: wrong escape char: $_\n";
                 } elsif(/.\t/) {
                     print STDERR "Check: $file:$.: Tabs are allowed only in begining: $_\n";

@@ -30,15 +30,26 @@ class Binary
     Binary() {}
     /**
      * Copy constructor
-     * @param[in] other object
+     * @param[in] rhs object
      */
-    Binary(const Binary &other) { m_str = other.m_str; }
+    Binary(const Binary &rhs) { m_str = rhs.m_str; }
     /**
      * Constructor from buffer
      * @param[in] buf pointer to Binary octets
      * @param[in] length
      */
     Binary(const void *buf, const size_t length) { setBin(buf, length); }
+    #ifndef SWIG
+    /**
+     * Assign octets using operator =
+     * @param[in] rhs Binary to assign
+     * @return reference to itself
+     */
+    Binary &operator = (const Binary &rhs) {
+        m_str = rhs.m_str;
+        return *this;
+    }
+    #endif
     /**
      * Constructor buffer with fixed length
      * @param[in] length of buffer
@@ -110,40 +121,40 @@ class Binary
     void copy(uint8_t *target) const { memcpy(target, get(), length()); }
     /**
      * Append single octet using operator +=
-     * @param[in] add octet to add
+     * @param[in] octet to add
      * @return reference to itself
      * @note script can use the append() function.
      */
-    Binary &operator += (const uint8_t add) {
-        m_str.append(1, add);
+    Binary &operator += (const uint8_t octet) {
+        m_str.append(1, octet);
         return *this;
     }
     /**
      * Append single octet
-     * @param[in] add octet to add
+     * @param[in] octet to add
      * @return reference to itself
      */
-    Binary &append(const uint8_t add) {
-        m_str.append(1, add);
+    Binary &append(const uint8_t octet) {
+        m_str.append(1, octet);
         return *this;
     }
     /**
      * append octets using operator +=
-     * @param[in] other Binary to add
+     * @param[in] rhs Binary to add
      * @return reference to itself
      * @note script can use the append() function.
      */
-    Binary &operator += (const Binary &other) {
-        m_str += other.m_str;
+    Binary &operator += (const Binary &rhs) {
+        m_str += rhs.m_str;
         return *this;
     }
     /**
      * append octets
-     * @param[in] other Binary to add
+     * @param[in] rhs Binary to add
      * @return reference to itself
      */
-    Binary &append(const Binary &other) {
-        m_str += other.m_str;
+    Binary &append(const Binary &rhs) {
+        m_str += rhs.m_str;
         return *this;
     }
     /**

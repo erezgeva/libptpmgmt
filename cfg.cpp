@@ -138,7 +138,7 @@ bool ConfigSection::set_val(char *line)
 }
 ConfigFile::ConfigFile() : cfgGlobal(cfgSec[globalSection])
 {
-    cfgGlobal.setGlobal();
+    cfgGlobal.setGlobal(); /* For default */
 }
 // read PTP configuration from file
 bool ConfigFile::read_cfg(const char *file)

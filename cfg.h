@@ -51,7 +51,7 @@ class ConfigSection
     bool set_val(char *line);
 
   public:
-    ConfigSection();
+    ConfigSection(); /* Must be public for map usage */
 };
 /**< @endcond */
 
