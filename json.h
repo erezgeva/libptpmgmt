@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later */
 
 /** @file
- * @brief convert management messages to json
+ * @brief convert a management or a signaling message to JSON
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -16,9 +16,9 @@
 #include "msg.h"
 
 /**
- * Convert Message to Json string
+ * Convert Message to JSON string
  * @param[in] message received from PTP entity
- * @return Json string
+ * @return JSON string
  */
 std::string msg2json(Message &message);
 

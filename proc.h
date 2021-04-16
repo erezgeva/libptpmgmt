@@ -473,6 +473,10 @@ const int NOTIFY_TIME_SYNC = 1;
 /** Read bit value in SUBSCRIBE_EVENTS_NP.bitmask */
 #define EVENT_BIT(bitmask, event)\
     (bitmask[event / 8] & (1 << (event % 8))?"on":"off")
+/** Get event byte in SUBSCRIBE_EVENTS_NP.bitmask */
+#define EVENT_BIT_BYTE(bitmask, event) bitmask[event / 8]
+/** Get event bit location in byte in SUBSCRIBE_EVENTS_NP.bitmask */
+#define EVENT_BIT_MASK(bitmask, event) (1 << (event % 8))
 /** Subscribe events TLV
  * @note linuxptp implementation specific
  */

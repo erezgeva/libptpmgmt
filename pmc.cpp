@@ -369,6 +369,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate SockUnix\n");
                 return -1;
             }
+            sk.reset(sku);
             std::string uds_address;
             if(options.count('s'))
                 uds_address = options['s'];
@@ -379,7 +380,6 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to create transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<SockBase>(sku));
             prms.self_id.portNumber = getpid();
             use_uds = true;
             break;
@@ -391,6 +391,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate SockIp4\n");
                 return -1;
             }
+            sk.reset(sk4);
             if(!sk4->setAll(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to set transport\n");
                 return -1;
@@ -403,7 +404,6 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to init transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<SockBase>(sk4));
             break;
         }
         case '6': {
@@ -412,6 +412,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate SockIp6\n");
                 return -1;
             }
+            sk.reset(sk6);
             if(!sk6->setAll(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to set transport\n");
                 return -1;
@@ -428,7 +429,6 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to init transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<SockBase>(sk6));
             break;
         }
         case '2': {
@@ -437,6 +437,7 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to allocate SockRaw\n");
                 return -1;
             }
+            sk.reset(skr);
             if(!skr->setAll(ifObj, cfg, interface)) {
                 fprintf(stderr, "failed to set transport\n");
                 return -1;
@@ -456,7 +457,6 @@ int main(int argc, char *const argv[])
                 fprintf(stderr, "failed to init transport\n");
                 return -1;
             }
-            sk = std::move(std::unique_ptr<SockBase>(skr));
             break;
         }
     }

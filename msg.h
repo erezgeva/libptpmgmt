@@ -491,19 +491,21 @@ class Message
   private:
     /* Per tlv ID call-back for parse or build or both */
 #include "ids.h"
-#define buildFunc(n) bool n##_f(n##_t &data)
-    buildFunc(ORGANIZATION_EXTENSION);
-    buildFunc(PATH_TRACE);
-    buildFunc(ALTERNATE_TIME_OFFSET_INDICATOR);
-    buildFunc(ENHANCED_ACCURACY_METRICS);
-    buildFunc(L1_SYNC);
-    buildFunc(PORT_COMMUNICATION_AVAILABILITY);
-    buildFunc(PROTOCOL_ADDRESS);
-    buildFunc(SLAVE_RX_SYNC_TIMING_DATA);
-    buildFunc(SLAVE_RX_SYNC_COMPUTED_DATA);
-    buildFunc(SLAVE_TX_EVENT_TIMESTAMPS);
-    buildFunc(CUMULATIVE_RATE_RATIO);
-    buildFunc(SLAVE_DELAY_TIMING_DATA_NP);
+    /* Parse functions for signalling messages */
+#define parseFunc(n) bool n##_f(n##_t &data)
+    parseFunc(MANAGEMENT_ERROR_STATUS);
+    parseFunc(ORGANIZATION_EXTENSION);
+    parseFunc(PATH_TRACE);
+    parseFunc(ALTERNATE_TIME_OFFSET_INDICATOR);
+    parseFunc(ENHANCED_ACCURACY_METRICS);
+    parseFunc(L1_SYNC);
+    parseFunc(PORT_COMMUNICATION_AVAILABILITY);
+    parseFunc(PROTOCOL_ADDRESS);
+    parseFunc(SLAVE_RX_SYNC_TIMING_DATA);
+    parseFunc(SLAVE_RX_SYNC_COMPUTED_DATA);
+    parseFunc(SLAVE_TX_EVENT_TIMESTAMPS);
+    parseFunc(CUMULATIVE_RATE_RATIO);
+    parseFunc(SLAVE_DELAY_TIMING_DATA_NP);
     /**< @endcond */
 
     /* build parameters */
@@ -521,6 +523,7 @@ class Message
     /* parsing parameters */
     uint16_t        m_sequence;
     bool            m_isUnicast;
+    uint8_t         m_PTPProfileSpecific;
     actionField_e   m_replyAction;
     uint32_t        m_sdoId; /* parsed message sdoId (transportSpecific) */
     msgType_e       m_type; /* parsed message type */
@@ -532,7 +535,7 @@ class Message
     std::unique_ptr<BaseMngTlv> m_dataGet;
 
     /* Generic */
-    mng_vals_e      m_tlv_id;
+    mng_vals_e      m_tlv_id; /* managementId */
     MsgParams       m_prms;
 
     /* parsing parameters */
@@ -543,7 +546,7 @@ class Message
     uint8_t reserved;
 
     /* For error messages */
-    uint16_t m_errorId;
+    managementErrorId_e m_errorId;
     PTPText_t m_errorDisplay;
 
     /* Map to all management IDs */
@@ -655,6 +658,13 @@ class Message
      * @return string with the error message
      */
     static const char *err2str_c(MNG_PARSE_ERROR_e err);
+
+    /**
+     * Convert message type to string
+     * @param[in] type
+     * @return string with the TLV type
+     */
+    static const char *type2str_c(msgType_e type);
     /**
      * Convert TLV type to string
      * @param[in] type
@@ -857,6 +867,12 @@ class Message
      */
     bool isUnicast() const { return m_isUnicast; }
     /**
+     * Get last reply PTP Profile Specific
+     * @return reply management action
+     * @note set on parse
+     */
+    uint8_t getPTPProfileSpecific() const { return m_PTPProfileSpecific; }
+    /**
      * Get last parsed message sequence number
      * @return parsed sequence number
      */
@@ -905,7 +921,7 @@ class Message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error code
      */
-    managementErrorId_e getErrId() const { return (managementErrorId_e)m_errorId; }
+    managementErrorId_e getErrId() const { return m_errorId; }
     /**
      * Get management error message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG

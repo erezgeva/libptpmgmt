@@ -402,6 +402,8 @@ MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
     m_sdoId = msg->minorSdoId | ((msg->messageType_majorSdoId & 0xf0) << 4);
     m_domainNumber = msg->domainNumber;
     m_isUnicast = msg->flagField[0] & unicastFlag;
+    m_PTPProfileSpecific = msg->flagField[0] &
+        (PTPProfileSpecific1 | PTPProfileSpecific2);
     m_sequence = net_to_cpu16(msg->sequenceId);
     m_peer.portNumber = net_to_cpu16(msg->sourcePortIdentity.portNumber);
     memcpy(m_peer.clockIdentity.v, msg->sourcePortIdentity.clockIdentity.v,
@@ -434,7 +436,7 @@ MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
             return MNG_PARSE_ERROR_INVALID_ID;
         if(!checkReplyAction(actionField))
             return MNG_PARSE_ERROR_ACTION;
-        m_errorId = net_to_cpu16(errTlv->managementErrorId);
+        m_errorId = (managementErrorId_e)net_to_cpu16(errTlv->managementErrorId);
         // check minimum size and even
         if(m_left < (ssize_t)sizeof(managementErrorTLV_p) || m_left & 1)
             return MNG_PARSE_ERROR_TOO_SMALL;
@@ -469,7 +471,7 @@ MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
     MNG_PARSE_ERROR_e err = call_tlv_data(m_tlv_id, tlv);
     if(err != MNG_PARSE_ERROR_OK)
         return err;
-    m_dataGet = std::move(std::unique_ptr<BaseMngTlv>(tlv));
+    m_dataGet.reset(tlv);
     m_mngType = MANAGEMENT;
     return MNG_PARSE_ERROR_OK;
 }
@@ -508,6 +510,8 @@ MNG_PARSE_ERROR_e Message::parseSig()
         // The default error on build or parsing
         m_err = MNG_PARSE_ERROR_TOO_SMALL;
         BaseSigTlv *tlv = nullptr;
+        mng_vals_e managementId;
+        managementErrorTLV_p *errTlv;
         switch(tlvType) {
             case ORGANIZATION_EXTENSION_PROPAGATE:
             case ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE:
@@ -522,19 +526,37 @@ MNG_PARSE_ERROR_e Message::parseSig()
             case caseBuild(SLAVE_RX_SYNC_COMPUTED_DATA);
             case caseBuild(SLAVE_TX_EVENT_TIMESTAMPS);
             case caseBuild(CUMULATIVE_RATE_RATIO);
-            case MANAGEMENT: {
+            case MANAGEMENT_ERROR_STATUS:
+                if(m_left < (ssize_t)sizeof(managementErrorTLV_p))
+                    return MNG_PARSE_ERROR_TOO_SMALL;
+                errTlv = (managementErrorTLV_p *)m_cur;
+                if(findTlvId(errTlv->managementId, managementId,
+                        m_prms.implementSpecific)) {
+                    MANAGEMENT_ERROR_STATUS_t *d = new MANAGEMENT_ERROR_STATUS_t;
+                    if(d == nullptr)
+                        return MNG_PARSE_ERROR_MEM;
+                    m_cur += sizeof(managementErrorTLV_p);
+                    m_left -= sizeof(managementErrorTLV_p);
+                    if(m_left > 1 && proc(d->displayData)) {
+                        delete d;
+                        return MNG_PARSE_ERROR_TOO_SMALL;
+                    }
+                    d->managementId = managementId;
+                    d->managementErrorId = (managementErrorId_e)
+                        net_to_cpu16(errTlv->managementErrorId);
+                    tlv = d;
+                }
+                break;
+            case MANAGEMENT:
                 if(m_left < 2)
                     return MNG_PARSE_ERROR_TOO_SMALL;
-                mng_vals_e tlv_id;
-                // managementId
-                bool ret = findTlvId(*(uint16_t *)m_cur, tlv_id,
-                        m_prms.implementSpecific);
-                m_cur += 2;
-                m_left -= 2;
                 // Ignore empty and unknown management TLVs
-                if(ret && m_left > 0) {
+                if(findTlvId(*(uint16_t *)m_cur, managementId,
+                        m_prms.implementSpecific) && m_left > 2) {
+                    m_cur += 2; // 2 bytes of managementId
+                    m_left -= 2;
                     BaseMngTlv *mtlv;
-                    MNG_PARSE_ERROR_e err = call_tlv_data(tlv_id, mtlv);
+                    MNG_PARSE_ERROR_e err = call_tlv_data(managementId, mtlv);
                     if(err != MNG_PARSE_ERROR_OK)
                         return err;
                     MANAGEMENT_t *d = new MANAGEMENT_t;
@@ -542,12 +564,11 @@ MNG_PARSE_ERROR_e Message::parseSig()
                         delete mtlv;
                         return MNG_PARSE_ERROR_MEM;
                     }
-                    d->tlv_id = tlv_id;
-                    d->tlvData = std::move(std::unique_ptr<BaseMngTlv>(mtlv));
+                    d->managementId = managementId;
+                    d->tlvData.reset(mtlv);
                     tlv = d;
                 }
                 break;
-            }
             case SLAVE_DELAY_TIMING_DATA_NP:
                 if(m_prms.implementSpecific == linuxptp)
                     caseBuildAct(SLAVE_DELAY_TIMING_DATA_NP);
@@ -560,7 +581,7 @@ MNG_PARSE_ERROR_e Message::parseSig()
         if(tlv != nullptr) {
             sigTlv rec(tlvType);
             auto it = m_sigTlvs.insert(m_sigTlvs.end(), rec);
-            it->tlv = std::move(std::unique_ptr<BaseSigTlv>(tlv));
+            it->tlv.reset(tlv);
         };
     }
     return MNG_PARSE_ERROR_SIG; // We have signaling message
@@ -597,7 +618,7 @@ mng_vals_e Message::getSigMngTlvType(size_t pos) const
     if(m_type == Signaling && pos < m_sigTlvs.size() &&
         m_sigTlvs[pos].tlvType == MANAGEMENT) {
         MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].tlv.get();
-        return mng->tlv_id;
+        return mng->managementId;
     }
     return NULL_PTP_MANAGEMENT;
 }
@@ -646,6 +667,23 @@ const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
         case caseItem(MNG_PARSE_ERROR_MEM);
         default:
             return "unknown";
+    }
+}
+const char *Message::type2str_c(msgType_e type)
+{
+    switch(type) {
+        case caseItem(Sync);
+        case caseItem(Delay_Req);
+        case caseItem(Pdelay_Req);
+        case caseItem(Pdelay_Resp);
+        case caseItem(Follow_Up);
+        case caseItem(Delay_Resp);
+        case caseItem(Pdelay_Resp_Follow_Up);
+        case caseItem(Announce);
+        case caseItem(Signaling);
+        case caseItem(Management);
+        default:
+            return "unknown message type";
     }
 }
 const char *Message::tlv2str_c(tlvType_e type)

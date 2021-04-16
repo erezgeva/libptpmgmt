@@ -22,10 +22,19 @@
  *  management message do not use this structure!
  */
 struct MANAGEMENT_t : public BaseSigTlv {
-    mng_vals_e tlv_id; /**< Management TLV id */
+    mng_vals_e managementId; /**< Management TLV id */
     std::unique_ptr<BaseMngTlv> tlvData; /**< Management TLV data */
 };
 #endif/*SWIG*/
+/** MANAGEMENT_ERROR_STATUS TLV
+ * @note: used for error management TLV in a signaling message
+ *  management message do not use this structure!
+ */
+struct MANAGEMENT_ERROR_STATUS_t : public BaseSigTlv {
+    mng_vals_e managementId; /**< Management TLV id */
+    managementErrorId_e managementErrorId; /**< Error code */
+    PTPText_t displayData; /**< Error message */
+};
 /** Organization extension TLV
  * For
  * @li ORGANIZATION_EXTENSION
@@ -51,7 +60,6 @@ struct ALTERNATE_TIME_OFFSET_INDICATOR_t : public BaseSigTlv {
 };
 /** ENHANCED_ACCURACY_METRICS TLV */
 struct ENHANCED_ACCURACY_METRICS_t : public BaseSigTlv {
-
     UInteger8_t bcHopCount; /**< number of Boundary Clocks in this TLV */
     UInteger8_t tcHopCount; /**< number of Transparent Clocks in this TLV */
     /** Max metric of Grandmaster inaccuracy in 2^16 nanoseconds units */
@@ -130,10 +138,10 @@ struct SLAVE_RX_SYNC_TIMING_DATA_rec_t {
     Timestamp_t syncOriginTimestamp; /**< sync Event Egress Timestamp value */
     /** aggregate value of the correctionField */
     TimeInterval_t totalCorrectionField;
-    Integer32_t
-    scaledCumulativeRateOffset; /**< scaled Cumulative Rate Offset value */
-    Timestamp_t
-    syncEventIngressTimestamp; /**< sync Event Ingress Timestamp value */
+    /** scaled Cumulative Rate Offset value */
+    Integer32_t scaledCumulativeRateOffset;
+    /** sync Event Ingress Timestamp value */
+    Timestamp_t syncEventIngressTimestamp;
     /**
      * Get object size
      * @return object size
