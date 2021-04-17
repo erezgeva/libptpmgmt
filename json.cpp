@@ -9,9 +9,12 @@
  */
 #include <stack>
 #include "json.h"
+#ifdef PMC_USE_CJSON
+#include <json.h>
+#endif /*PMC_USE_CJSON*/
 
 struct JsonProc {
-    void data2json(mng_vals_e managementId, const BaseMngTlv *data);
+    bool data2json(mng_vals_e managementId, const BaseMngTlv *data);
 #define procType(type) \
     virtual bool procValue(const char *name, type &val) = 0;
     procType(uint8_t)
@@ -22,24 +25,21 @@ struct JsonProc {
     procType(int16_t)
     procType(int32_t)
     procType(int64_t)
-    procType(float)
-    procType(double)
-    procType(long double)
-    procType(networkProtocol_e);
-    procType(clockAccuracy_e);
-    procType(faultRecord_e);
-    procType(timeSource_e);
-    procType(portState_e);
-    procType(linuxptpTimeStamp_e);
-    procType(TimeInterval_t);
-    procType(Timestamp_t);
-    procType(ClockIdentity_t);
-    procType(PortIdentity_t);
-    procType(PortAddress_t);
-    procType(ClockQuality_t);
+    procType(networkProtocol_e)
+    procType(clockAccuracy_e)
+    procType(faultRecord_e)
+    procType(timeSource_e)
+    procType(portState_e)
+    procType(linuxptpTimeStamp_e)
+    procType(TimeInterval_t)
+    procType(Timestamp_t)
+    procType(ClockIdentity_t)
+    procType(PortIdentity_t)
+    procType(PortAddress_t)
+    procType(ClockQuality_t)
     procType(PTPText_t)
-    procType(FaultRecord_t);
-    procType(AcceptableMaster_t);
+    procType(FaultRecord_t)
+    procType(AcceptableMaster_t)
     virtual bool procBinary(const char *name, Binary &val, uint16_t &len) = 0;
     virtual bool procBinary(const char *name, uint8_t *val, size_t len) = 0;
     virtual bool procFlag(const char *name, uint8_t &flags, int mask) = 0;
@@ -59,7 +59,7 @@ struct JsonProcToJson : public JsonProc {
     std::stack<bool> m_first_vals;
     bool m_first;
     JsonProcToJson(Message &msg);
-    void data2json(mng_vals_e managementId, const BaseMngTlv *data);
+    bool data2json(mng_vals_e managementId, const BaseMngTlv *data);
     void sig2json(tlvType_e tlvType, BaseSigTlv *tlv);
     void close() {
         if(!m_first)
@@ -128,6 +128,10 @@ struct JsonProcToJson : public JsonProc {
     void procBool(const char *name, const bool &val) {
         startName(name, " ");
         m_result += val ? "true" : "false";
+    }
+    void procNull(const char *name) {
+        startName(name, " ");
+        m_result += "null";
     }
 #define procProperty(name)\
     procValue(#name, val.name)
@@ -703,24 +707,27 @@ JS(SYNCHRONIZATION_UNCERTAIN_NP)
         PROC_VAL(val);
 }
 
-void JsonProc::data2json(mng_vals_e managementId, const BaseMngTlv *data)
+bool JsonProc::data2json(mng_vals_e managementId, const BaseMngTlv *data)
 {
-#define caseUF(n) case n: proc_##n(*this, *(n##_t *)data); break;
+#define caseUF(n) case n: return proc_##n(*this, *(n##_t *)data);
 #define A(n, v, sc, a, sz, f) case##f(n)
     switch(managementId) {
 #include "ids.h"
         default:
-            break;
+            return false;
     }
 }
 
-void JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *data)
+bool JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *data)
 {
     if(data == nullptr)
-        return;
-    procObject("dataField");
-    JsonProc::data2json(managementId, data);
-    closeObject();
+        procNull("dataField");
+    else {
+        procObject("dataField");
+        JsonProc::data2json(managementId, data);
+        closeObject();
+    }
+    return true;
 }
 
 /**
@@ -922,3 +929,336 @@ std::string msg2json(Message &msg)
     JsonProcToJson proc(msg);
     return proc.m_result;
 }
+
+/**
+ * From JSON part
+ */
+#ifdef PMC_USE_CJSON
+
+struct JsonProcFromJson : public JsonProc {
+    std::map<std::string, std::string> strVals;
+    std::map<std::string, bool> boolVals;
+    std::map<std::string, int64_t> intVals;
+    /* Always use objVals last
+     * so we can call use jloop() safely
+     */
+    std::map<std::string, json_object *> objVals;
+    std::map<std::string, json_type> allow;
+    void mainAllow() {
+        // Map main part
+        allow["sequenceId"] = json_type_int;
+        allow["sdoId"] = json_type_int;
+        allow["domainNumber"] = json_type_int;
+        allow["versionPTP"] = json_type_int;
+        allow["minorVersionPTP"] = json_type_int;
+        allow["PTPProfileSpecific"] = json_type_int;
+        allow["unicastFlag"] = json_type_boolean;
+        allow["messageType"] = json_type_string;
+        allow["actionField"] = json_type_string;
+        allow["tlvType"] = json_type_string;
+        allow["managementId"] = json_type_string;
+        allow["sourcePortIdentity"] = json_type_object;
+        allow["targetPortIdentity"] = json_type_object;
+        allow["dataField"] = json_type_object;
+    }
+    bool jloop(json_object *jobj, bool withObj) {
+        strVals.clear();
+        boolVals.clear();
+        intVals.clear();
+        if(withObj)
+            objVals.clear();
+        auto it = json_object_iter_begin(jobj);
+        auto end = json_object_iter_end(jobj);
+        for(; !json_object_iter_equal(&it, &end); json_object_iter_next(&it)) {
+            const char *key = json_object_iter_peek_name(&it);
+            json_object *val = json_object_iter_peek_value(&it);
+            json_type type = json_object_get_type(val);
+            if(allow.count(key) < 1) {
+                fprintf(stderr, "Key '%s' in not allowed\n", key);
+                return false;
+            }
+            if(val == nullptr) {
+                fprintf(stderr, "Key '%s' do not have value\n", key);
+                return false;
+            }
+            if(type != allow[key]) {
+                fprintf(stderr, "Key '%s' use wrong type '%s' instead of '%s'\n",
+                    key, json_type_to_name(type), json_type_to_name(allow[key]));
+                return false;
+            }
+            ssize_t count;
+            switch(type) {
+                case json_type_boolean:
+                    count = boolVals.count(key);
+                    break;
+                case json_type_int:
+                    count = intVals.count(key);
+                    break;
+                case json_type_string:
+                    count = strVals.count(key);
+                    break;
+                case json_type_object:
+                    if(withObj) {
+                        count = objVals.count(key);
+                        break;
+                    }
+                default:
+                    count = -1;
+                    break;
+            }
+            if(count != 0) {
+                fprintf(stderr, "Key '%s' apear twice\n", key);
+                return false;
+            }
+            switch(type) {
+                case json_type_boolean:
+                    boolVals[key] = json_object_get_boolean(val);
+                    break;
+                case json_type_int:
+                    intVals[key] = json_object_get_int64(val);
+                    break;
+                case json_type_string:
+                    strVals[key] = json_object_get_string(val);
+                    break;
+                case json_type_object:
+                    if(withObj)
+                        objVals[key] = val;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return true;
+    }
+    bool mainCheck() {
+        // Optional, if value present check value
+        if(strVals.count("messageType") > 0 &&
+            strVals["messageType"].compare("Management")) {
+            fprintf(stderr, "Message must be management, not '%s'\n",
+                strVals["messageType"].c_str());
+            return false;
+        }
+        // Optional, if value present check value
+        if(strVals.count("tlvType") > 0 &&
+            strVals["tlvType"].compare("MANAGEMENT")) {
+            fprintf(stderr, "message must use management tlv, not '%s'\n",
+                strVals["tlvType"].c_str());
+            return false;
+        }
+        // Mandatory
+        if(strVals.count("actionField") != 1) {
+            fprintf(stderr, "message must have action field\n");
+            return false;
+        }
+        if(strVals.count("managementId") != 1) {
+            fprintf(stderr, "message must have managementId\n");
+            return false;
+        }
+        return true;
+    }
+#define procType(type) \
+    bool procValue(const char *name, type &val) {\
+        if(intVals.count(name) != 1)\
+            return false;\
+        val = intVals[name];\
+        return true;\
+    }
+    procType(uint8_t)
+    procType(uint16_t)
+    procType(uint32_t)
+    procType(uint64_t)
+    procType(int8_t)
+    procType(int16_t)
+    procType(int32_t)
+    procType(int64_t)
+#undef procType
+#define procType(type) \
+    bool procValue(const char *name, type &val) {\
+        return false;\
+    }
+    bool procValue(const char *name, networkProtocol_e &val) {
+        return false;
+    }
+    procType(clockAccuracy_e)
+    procType(faultRecord_e)
+    procType(timeSource_e)
+    procType(portState_e)
+    procType(linuxptpTimeStamp_e)
+    procType(TimeInterval_t)
+    procType(Timestamp_t)
+    bool procValue(const char *name, ClockIdentity_t &val) {
+        if(strVals.count(name) != 1)
+            return false;
+        Binary b;
+        b.fromHex(strVals[name]);
+        if(b.size() != val.size())
+            return false;
+        b.copy(val.v);
+        return true;
+    }
+    bool procValue(const char *name, PortIdentity_t &d) {
+        if(objVals.count(name) != 1)
+            return false;
+        allow.clear();
+        allow["clockIdentity"] = json_type_string;
+        allow["portNumber"] = json_type_int;
+        bool ret = jloop(objVals[name], false) &&
+            procValue("clockIdentity", d.clockIdentity) &&
+            procValue("portNumber", d.portNumber);
+        return ret;
+    }
+    bool procValue(const char *name, PortAddress_t &d) {
+        if(objVals.count(name) != 1)
+            return false;
+        allow.clear();
+        allow["networkProtocol"] = json_type_string;
+        allow["addressField"] = json_type_string;
+        bool ret = jloop(objVals[name], false) &&
+            procValue("networkProtocol", d.networkProtocol) &&
+            procBinary("addressField", d.addressField, d.addressLength);
+        return ret;
+    }
+    procType(ClockQuality_t);
+    procType(PTPText_t)
+    procType(FaultRecord_t);
+    procType(AcceptableMaster_t);
+    bool procBinary(const char *name, Binary &d, uint16_t &len) {
+        if(strVals.count(name) != 1)
+            return false;
+        d.fromId(strVals[name]);
+        len = d.size();
+        return true;
+    }
+    bool procBinary(const char *name, uint8_t *d, size_t len) {
+        if(strVals.count(name) != 1)
+            return false;
+        Binary b;
+        b.fromId(strVals[name]);
+        if(b.size() != len)
+            return false;
+        b.copy(d);
+        return true;
+    }
+    bool procFlag(const char *name, uint8_t &flags, int mask) {
+        if(boolVals.count(name) != 1)
+            return false;
+        if(boolVals[name])
+            flags |= mask;
+        return true;
+    }
+#define procVector(type) \
+    bool procArray(const char *name, std::vector<type> &val) {\
+        return false;\
+    }
+    procVector(ClockIdentity_t)
+    procVector(PortAddress_t)
+    procVector(FaultRecord_t)
+    procVector(AcceptableMaster_t)
+#undef procType
+#undef procVector
+};
+
+class json_object_delete
+{
+  private:
+    json_object *jobj;
+  public:
+    json_object_delete(json_object *o) : jobj(o) {}
+    ~json_object_delete() { json_object_put(jobj); }
+};
+
+bool Json2msg::fromJson(const std::string json)
+{
+    json_object *jobj = json_tokener_parse(json.c_str());
+    if(jobj == nullptr) {
+        fprintf(stderr, "JSON parse fail\n");
+        return false;
+    }
+    // Remove object when function end
+    json_object_delete keep(jobj);
+    JsonProcFromJson proc;
+    proc.mainAllow();
+    if(!proc.jloop(jobj, true) || !proc.mainCheck())
+        return false;
+    const char *actionField = proc.strVals["actionField"].c_str();
+    if(strcmp(actionField, "GET") == 0)
+        m_action = GET;
+    else if(strcmp(actionField, "SET") == 0)
+        m_action = SET;
+    else if(strcmp(actionField, "COMMAND") == 0)
+        m_action = COMMAND;
+    else {
+        fprintf(stderr, "message must have wrong action field '%s'\n", actionField);
+        return false;
+    }
+    bool find = false;
+    const char *managementId = proc.strVals["managementId"].c_str();
+    for(int i = FIRST_MNG_ID; i <= LAST_MNG_ID; i++) {
+        mng_vals_e id = (mng_vals_e)i;
+        if(strcmp(managementId, Message::mng2str_c(id)) == 0) {
+            m_managementId = id;
+            find = true;
+            break;
+        }
+    }
+    if(!find) {
+        fprintf(stderr, "No such managementId '%s'\n", managementId);
+        return false;
+    }
+    // Optional
+    if(proc.intVals.count("sequenceId") == 1) {
+        m_have[have_sequenceId] = true;
+        m_sequenceId = proc.intVals["sequenceId"];
+    }
+    if(proc.intVals.count("sdoId") == 1) {
+        m_have[have_sdoId] = true;
+        m_sdoId = proc.intVals["sdoId"];
+    }
+    if(proc.intVals.count("domainNumber") == 1) {
+        m_have[have_domainNumber] = true;
+        m_domainNumber = proc.intVals["domainNumber"];
+    }
+    if(proc.intVals.count("versionPTP") == 1) {
+        m_have[have_versionPTP] = true;
+        m_versionPTP = proc.intVals["versionPTP"];
+    }
+    if(proc.intVals.count("minorVersionPTP") == 1) {
+        m_have[have_minorVersionPTP] = true;
+        m_minorVersionPTP = proc.intVals["minorVersionPTP"];
+    }
+    if(proc.intVals.count("PTPProfileSpecific") == 1) {
+        m_have[have_PTPProfileSpecific] = true;
+        m_PTPProfileSpecific = proc.intVals["PTPProfileSpecific"];
+    }
+    if(proc.boolVals.count("unicastFlag") == 1) {
+        m_have[have_isUnicast] = true;
+        m_isUnicast = proc.boolVals["unicastFlag"];
+    }
+    if(proc.boolVals.count("unicastFlag") == 1) {
+        m_have[have_isUnicast] = true;
+        m_isUnicast = proc.boolVals["unicastFlag"];
+    }
+    if(proc.objVals.count("sourcePortIdentity") == 1) {
+        if(!proc.procValue("sourcePortIdentity", m_srcPort)) {
+            fprintf(stderr, "Fail parsing sourcePortIdentity\n");
+            return false;
+        }
+        m_have[have_srcPort] = true;
+    }
+    if(proc.objVals.count("targetPortIdentity") == 1) {
+        if(!proc.procValue("targetPortIdentity", m_dstPort)) {
+            fprintf(stderr, "Fail parsing targetPortIdentity\n");
+            return false;
+        }
+        m_have[have_dstPort] = true;
+    }
+    // TODO    dataField m_tlvData
+    return true;
+}
+#else /* No PMC_USE_CJSON*/
+bool Json2msg::fromJson(const std::string json)
+{
+    fprintf(stderr, "fromJson need JSON-C library support\n");
+    return false;
+}
+#endif /*PMC_USE_CJSON*/

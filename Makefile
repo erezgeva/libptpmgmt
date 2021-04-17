@@ -62,6 +62,11 @@ define help
 #                                                                              #
 #   NO_PHP           Prevent compiling PHP Swig plugin.                        #
 #                                                                              #
+#   PMC_USE_CJSON    Use C Json for parsing JSON into PTP management message.  #
+#                                                                              #
+#   PMC_USE_FCJSON   Use C Json for parsing JSON into PTP management message.  #
+#                    Use fast json library.                                    #
+#                                                                              #
 ################################################################################
 
 endef
@@ -158,6 +163,20 @@ PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
 LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(wildcard *.cpp)))
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
+ifdef PMC_USE_CJSON
+# libfastjson can be replaced with json-c
+ifneq ($(wildcard /usr/include/json-c/json.h),)
+json.o: CPPFLAGS+=-DPMC_USE_CJSON -isystem /usr/include/json-c
+LDLIBS_LIB+=-ljson-c
+endif # wildcard json.h
+else # PMC_USE_CJSON
+ifdef PMC_USE_FCJSON
+ifneq ($(wildcard /usr/include/libfastjson/json.h),)
+json.o: CPPFLAGS+=-DPMC_USE_CJSON -isystem /usr/include/libfastjson
+LDLIBS_LIB+=-lfastjson
+endif # wildcard json.h
+endif # PMC_USE_FCJSON
+endif # PMC_USE_CJSON
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
@@ -411,7 +430,8 @@ ifneq ($(call which,php-config),)
 php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell php-config --version))))
 ifeq ($(call verCheck,$(php_ver),7.0),)
 PHPEDIR:=$(DESTDIR)$(shell php-config --extension-dir)
-PHPIDIR=$(DESTDIR)$(lastword $(subst :, ,$(shell php -r 'echo get_include_path();')))
+PHPIDIR=$(DESTDIR)$(lastword $(subst :, ,$(shell\
+        php -r 'echo get_include_path();')))
 PHP_INC:=-Iphp $(shell php-config --includes)
 PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/pmc

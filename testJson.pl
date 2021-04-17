@@ -14,8 +14,8 @@ use constant DEF_CFG_FILE => '/etc/linuxptp/ptp4l.conf';
 
 my $sk = PmcLib::SockUnix->new;
 die "Fail socket" unless defined $sk;
-my $msg = PmcLib::Message->new;
-my $buf = PmcLib::Buf->new(1000);
+my $msg;
+my $buf;
 my $sequence = 0;
 
 sub runId
@@ -45,8 +45,10 @@ sub runId
     print "$j,\n";
 }
 
-sub main
+sub creatJsonTest
 {
+    $msg = PmcLib::Message->new;
+    $buf = PmcLib::Buf->new(1000);
     die "buffer allocation failed" unless $buf->isAlloc();
     my $cfg_file = $ARGV[0];
     $cfg_file = DEF_CFG_FILE unless -f $cfg_file;
@@ -79,7 +81,42 @@ sub main
         qw(PATH_TRACE_LIST); # last one is unsupported by linuxptp
     print "{}]\n";
 }
-main;
+sub toJsonTest
+{
+    my $json = <<EOF;
+{
+  "sequenceId" : 12,
+  "sdoId" : 0,
+  "domainNumber" : 0,
+  "versionPTP" : 2,
+  "minorVersionPTP" : 1,
+  "unicastFlag" : false,
+  "PTPProfileSpecific" : 0,
+  "messageType" : "Management",
+  "sourcePortIdentity" :
+  {
+    "clockIdentity" : "c47d46.fffe.20acae",
+    "portNumber" : 0
+  },
+  "targetPortIdentity" :
+  {
+    "clockIdentity" : "000000.0000.000000",
+    "portNumber" : 20299
+  },
+  "actionField" : "SET",
+  "tlvType" : "MANAGEMENT",
+  "managementId" : "PRIORITY1",
+  "dataField" :
+  {
+    "priority1" : 153
+  }
+}
+EOF
+    my $json2msg = PmcLib::Json2msg->new;
+    $json2msg->fromJson($json);
+}
+creatJsonTest;
+toJsonTest;
 $sk->close();
 # dpkg --remove --force-all pmc libpmc libpmc-dev libpmc-perl
 # p='pmc libpmc libpmc-dev libpmc-perl' && apt install $p && apt-mark auto $p

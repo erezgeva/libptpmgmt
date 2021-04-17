@@ -15,10 +15,6 @@
 static const char toksep[] = " \t\n\r"; // while spaces
 #define IDENT "\n\t\t"
 #define dump(n) static inline void dump_##n(Message &m, n##_t *dp) {\
-        if(dp == nullptr)\
-            dp = (n##_t*)m.getData();\
-        if(dp == nullptr)\
-            return;\
         n##_t &d = *dp;
 #define dump_end }
 
@@ -573,8 +569,13 @@ dump(SYNCHRONIZATION_UNCERTAIN_NP)
     dump_end;
 }
 
-void call_dump(Message &msg, BaseMngTlv *data)
+void call_dump(Message &msg, BaseMngTlv *_data)
 {
+    const BaseMngTlv *data = _data;
+    if(data == nullptr)
+        data = msg.getData();
+    if(data == nullptr)
+        return;
 #define caseUF(n) case n: dump_##n(msg, (n##_t *)data); break;
 #define A(n, v, sc, a, sz, f) case##f(n)
     switch(msg.getTlvId()) {
