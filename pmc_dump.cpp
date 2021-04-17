@@ -516,7 +516,7 @@ dump(PORT_PROPERTIES_NP)
         IDENT "interface               %s",
         d.portIdentity.string().c_str(),
         m.portState2str_c(d.portState),
-        m.ts2str_c(d.timestamping) + 3 /* Remove the 'TS_' prefix*/,
+        m.ts2str_c(d.timestamping),
         d.interface.string());
     dump_end;
 }

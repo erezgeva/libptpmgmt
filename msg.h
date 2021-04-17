@@ -211,14 +211,14 @@ enum clockAccuracy_e : uint8_t {
 };
 /** Fault record severity code */
 enum faultRecord_e : uint8_t {
-    Emergency     = 0x00, /**< system is unusable */
-    Alert         = 0x01, /**< immediate action needed */
-    Critical      = 0x02, /**< critical conditions */
-    Error         = 0x03, /**< error conditions */
-    Warning       = 0x04, /**< warning conditions */
-    Notice        = 0x05, /**< normal but significant condition */
-    Informational = 0x06, /**< informational messages */
-    Debug         = 0x07, /**< debug-level messages */
+    F_Emergency     = 0x00, /**< system is unusable */
+    F_Alert         = 0x01, /**< immediate action needed */
+    F_Critical      = 0x02, /**< critical conditions */
+    F_Error         = 0x03, /**< error conditions */
+    F_Warning       = 0x04, /**< warning conditions */
+    F_Notice        = 0x05, /**< normal but significant condition */
+    F_Informational = 0x06, /**< informational messages */
+    F_Debug         = 0x07, /**< debug-level messages */
 };
 /** Time source type */
 enum timeSource_e : uint8_t {

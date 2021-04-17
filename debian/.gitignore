@@ -4,7 +4,5 @@
 /*debhelper*
 /libpmc*/
 /tmp/
-/pmc*/
-/lua-pmc/
-/python*-pmc/
-/ruby-pmc/
+/pmc/
+/*-pmc/

@@ -79,13 +79,7 @@ class ConfigFile
      * @param[in] file name with path
      * @return true if parse success
      */
-    bool read_cfg(const char *file);
-    /**
-     * Read a configuration file and parse it
-     * @param[in] file name with path
-     * @return true if parse success
-     */
-    bool read_cfg(std::string &file) { return read_cfg(file.c_str()); }
+    bool read_cfg(const std::string file);
     /**
      * Get the transportSpecific value
      * @param[in] section (optional)

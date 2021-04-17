@@ -4,9 +4,13 @@ Section: net
 Priority: optional
 Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 9), dh-exec (>=0.3)
-Build-Depends-Arch: dh-python, dh-lua, libtool, coreutils, swig (>=3.0), perl:native, lua5.2, liblua5.1-0-dev, liblua5.2-dev, liblua5.3-dev, libpython-dev, python-dev:native, python3-dev:native, libpython3-dev, ruby:native, ruby-dev
+Build-Depends-Arch: dh-python, dh-lua, dh-php, libtool, coreutils,
+	            swig (>=3.0), perl:native, lua5.2, liblua5.1-0-dev,
+		    liblua5.2-dev, liblua5.3-dev, libpython-dev,
+		    python-dev:native, python3-dev:native, libpython3-dev,
+		    ruby:native, ruby-dev, php-dev
 Build-Depends-Indep: graphviz, doxygen
-Homepage: https://github.com/erezgeva/libpmc
+Homepage: https://sf.net/p/libpmc
 
 Package: libpmc
 Architecture: any
@@ -34,27 +38,34 @@ Package: libpmc-perl
 Architecture: any
 Multi-Arch: same
 Section: perl
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends}, libpmc (= ${binary:Version})
+Provides: ${perl:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends},
+	 libpmc (= ${binary:Version})
 Description: pmc library Perl wrapper
 
 Package: python-pmc
 Architecture: any
 Multi-Arch: same
 Section: python
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, libpmc (= ${binary:Version})
+Provides: ${python:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends},
+	 libpmc (= ${binary:Version})
 Description: pmc library python version 2 wrapper
 
 Package: python3-pmc
 Architecture: any
 Multi-Arch: same
 Section: python
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends}, libpmc (= ${binary:Version})
+Provides: ${python3:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends},
+	 libpmc (= ${binary:Version})
 Description: pmc library python version 3 wrapper
 
 Package: lua-pmc
 Architecture: any
 Multi-Arch: same
 Section: interpreters
+Provides: ${lua:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, libpmc (= ${binary:Version})
 Description: pmc library Lua wrapper
 
@@ -62,8 +73,19 @@ Package: ruby-pmc
 Architecture: any
 Multi-Arch: same
 Section: ruby
-Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends}, ${ruby:Depends}, libpmc (= ${binary:Version})
+Provides: ${ruby:Provides}
+Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends},
+	 ${ruby:Depends}, libpmc (= ${binary:Version})
 Description: pmc library ruby wrapper
+
+Package: php-pmc
+Section: php
+Architecture: any
+Pre-Depends: php-common (>= 2:69)
+Provides: ${php:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
+	 libpmc (= ${binary:Version})
+Description: pmc library php wrapper
 
 Package: pmc
 Architecture: any

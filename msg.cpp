@@ -36,6 +36,7 @@
 #endif
 
 #define caseItem(a) a: return #a
+#define caseItemOff(a) a: return #a + off
 
 const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
 const uint8_t ptp_minor_ver = 0x0; // IEEE 1588-2019 uses 0x1
@@ -811,21 +812,22 @@ const char *Message::clockAcc2str_c(clockAccuracy_e val)
         case caseItem(Accurate_Unknown);
         default:
             if(val < Accurate_within_1ps)
-                return "small 1ps";
-            return "unknown val";
+                return "Accurate_small_1ps";
+            return "Accurate_unknown_val";
     }
 }
 const char *Message::faultRec2str_c(faultRecord_e val)
 {
+    const int off = 2;
     switch(val) {
-        case caseItem(Emergency);
-        case caseItem(Alert);
-        case caseItem(Critical);
-        case caseItem(Error);
-        case caseItem(Warning);
-        case caseItem(Notice);
-        case caseItem(Informational);
-        case caseItem(Debug);
+        case caseItemOff(F_Emergency);
+        case caseItemOff(F_Alert);
+        case caseItemOff(F_Critical);
+        case caseItemOff(F_Error);
+        case caseItemOff(F_Warning);
+        case caseItemOff(F_Notice);
+        case caseItemOff(F_Informational);
+        case caseItemOff(F_Debug);
         default:
             return "unknown fault record";
     }
@@ -864,12 +866,13 @@ const char *Message::portState2str_c(portState_e val)
 }
 const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 {
+    const int off = 3;
     switch(val) {
-        case caseItem(TS_SOFTWARE);
-        case caseItem(TS_HARDWARE);
-        case caseItem(TS_LEGACY_HW);
-        case caseItem(TS_ONESTEP);
-        case caseItem(TS_P2P1STEP);
+        case caseItemOff(TS_SOFTWARE);
+        case caseItemOff(TS_HARDWARE);
+        case caseItemOff(TS_LEGACY_HW);
+        case caseItemOff(TS_ONESTEP);
+        case caseItemOff(TS_P2P1STEP);
         default:
             return "unknown";
     }

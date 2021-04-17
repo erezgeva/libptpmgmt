@@ -141,8 +141,9 @@ ConfigFile::ConfigFile() : cfgGlobal(cfgSec[globalSection])
     cfgGlobal.setGlobal(); /* For default */
 }
 // read PTP configuration from file
-bool ConfigFile::read_cfg(const char *file)
+bool ConfigFile::read_cfg(const std::string _file)
 {
+    const char *file = _file.c_str();
     FILE *f = fopen(file, "r");
     if(f == nullptr) {
         fprintf(stderr, "fail to open %s: %m\n", file);

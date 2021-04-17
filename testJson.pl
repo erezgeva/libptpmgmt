@@ -82,6 +82,6 @@ sub main
 main;
 $sk->close();
 # dpkg --remove --force-all pmc libpmc libpmc-dev libpmc-perl
-# p='pmc libpmc libpmc-dev libpmc-perl' apt install $p && apt-mark auto $p
+# p='pmc libpmc libpmc-dev libpmc-perl' && apt install $p && apt-mark auto $p
 # jsonlint-py3 1.txt
 # LD_LIBRARY_PATH=. ./testJson.pl | jsonlint-py3

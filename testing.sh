@@ -9,6 +9,7 @@
 ###############################################################################
 main()
 {
+ local file
  # Default values
  local -r def_ifName=enp0s25
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
@@ -59,7 +60,8 @@ main()
  if [ ! -f "$file" ]; then
    local -r ldPath='LD_LIBRARY_PATH=..'
  fi
- local ldPathRuby needCmp needLua needPython1 needPython2 needPython3
+ local ldPathRuby ldPathPhp needCmp needLua needPython1 needPython2 needPython3
+ local phpIni
  probeLibs
  needCmp="$needCmp$needPython2$needPython3"
  ##############################################################################
@@ -176,6 +178,10 @@ priority1: 153
    time eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3
  done
  cd ..
+ enter php
+ [ -z "$phpIni" ] || ./php_ini.sh
+ time eval "$ldPathPhp $useSudo ./test.php $cfgFile" | diff - ../$t3
+ cd ..
  rm $t3
 }
 ###############################################################################
@@ -202,7 +208,6 @@ getFirstFile()
 }
 probeLibs()
 {
- local file
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PmcLib/PmcLib.so"
  if [ ! -f "$file" ]; then
    needCmp=y
@@ -219,10 +224,17 @@ probeLibs()
      need=y
    fi
  done
- getFirstFile "/usr/lib/$mach*/ruby/vendor_ruby/*/pmc.so"
+ ldPathRuby=$ldPath
+ file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/pmc.so"
  if [ ! -f "$file" ]; then
    needCmp=y
-   ldPathRuby="$ldPath RUBYLIB=."
+   ldPathRuby+=" RUBYLIB=."
+ fi
+ ldPathPhp=$ldPath
+ if [ ! -f "$(php-config --extension-dir)/pmc.so" ]; then
+   needCmp=y
+   phpIni=y
+   ldPathPhp+=" PHPRC=."
  fi
 }
 ###############################################################################

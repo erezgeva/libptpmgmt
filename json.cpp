@@ -217,29 +217,28 @@ struct JsonProcToJson : public JsonProc {
     procType(float)
     procType(double)
     procType(long double)
+
 #define procTypeEnum(type, func)\
-    bool procValue(const char *name, type &val) {\
+    bool procValue(const char *name, type val) {\
         procString(name, m_msg.func(val));\
         return true;\
-    }
-#define procTypeEnumVal(type, vtype)\
-    bool procValue(const char *name, type &val) {\
-        vtype v = val;\
-        return procValue(name, v);\
     }
     procTypeEnum(msgType_e, type2str_c)
     procTypeEnum(tlvType_e, tlv2str_c)
     procTypeEnum(mng_vals_e, mng2str_c)
     procTypeEnum(managementErrorId_e, errId2str_c)
+#undef procTypeEnum
+#define procTypeEnum(type, func)\
+    bool procValue(const char *name, type &val) {\
+        procString(name, m_msg.func(val));\
+        return true;\
+    }
     procTypeEnum(networkProtocol_e, netProt2str_c)
-    procTypeEnumVal(clockAccuracy_e, uint8_t)
+    procTypeEnum(clockAccuracy_e, clockAcc2str_c)
     procTypeEnum(faultRecord_e, faultRec2str_c)
     procTypeEnum(timeSource_e, timeSrc2str_c)
     procTypeEnum(portState_e, portState2str_c)
-    bool procValue(const char *name, linuxptpTimeStamp_e &val) {
-        procString(name, m_msg.ts2str_c(val) + 3);
-        return true;
-    }
+    procTypeEnum(linuxptpTimeStamp_e, ts2str_c)
     bool procValue(const char *name, TimeInterval_t &val) {
         procValue(name, val.getInterval());
         return true;

@@ -34,7 +34,7 @@ DSRC:=debian/tmp/usr/
 override_dh_install:
 	$(Q)install -d $(foreach d,python-pmc/usr/lib python3-pmc/usr/lib\
 	  libpmc-dev/usr libpmc-dev/usr/share libpmc-doc/usr\
-	  pmc/usr/share/man/man8\
+	  pmc/usr/share/man/man8 php-pmc/usr/lib\
 	  $(foreach n,lua-pmc libpmc-perl libpmc-dev ruby-pmc\
 	  libpmc,$n/usr/lib/$(DEB_HOST_MULTIARCH)),debian/$d)
 	$(Q)mv $(DSRC)include debian/libpmc-dev/usr
@@ -52,6 +52,7 @@ override_dh_install:
 	  debian/libpmc-perl/usr/lib/$(DEB_HOST_MULTIARCH)
 	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/ruby*\
 	  debian/ruby-pmc/usr/lib/$(DEB_HOST_MULTIARCH)
+	$(Q)mv $(DSRC)lib/php debian/php-pmc/usr/lib
 	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/*.a\
 	  $(DSRC)lib/$(DEB_HOST_MULTIARCH)/*.so\
 	  debian/libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)

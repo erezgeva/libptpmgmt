@@ -9,9 +9,9 @@
 
 #ifdef SWIGPERL
 %module PmcLib
-#else
+#else /* Not Perl */
 %module pmc
-#endif
+#endif /* SWIGPERL */
 %{
     #include "cfg.h"
     #include "msg.h"
@@ -34,7 +34,27 @@
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(365) Binary::operator+=;
-#endif
+#endif /* SWIGRUBY */
+#ifdef SWIGPHP
+/* PHP rename to c_empty */
+%warnfilter(314) Binary::empty;
+/* PHP rename to c_list */
+#define list(n) %warnfilter(314) n::list;
+list(ACCEPTABLE_MASTER_TABLE_t)
+list(SLAVE_RX_SYNC_TIMING_DATA_t)
+list(SLAVE_RX_SYNC_COMPUTED_DATA_t)
+list(SLAVE_TX_EVENT_TIMESTAMPS_t)
+list(SLAVE_DELAY_TIMING_DATA_NP_t)
+list(SLAVE_RX_SYNC_TIMING_DATA_t)
+/* PHP rename c_interface */
+%warnfilter(314) PORT_PROPERTIES_NP_t::interface;
+/* Operator overload ignored.
+ * Scripts can use Binary::append() */
+%warnfilter(503) Binary::operator+=;
+/* Operator overload ignored.
+ * Scripts can use Buf::get() */
+%warnfilter(503) Buf::operator();
+#endif /* SWIGPHP */
 %include "cfg.h"
 %include "msg.h"
 %include "ptp.h"

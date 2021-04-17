@@ -60,6 +60,8 @@ define help
 #                                                                              #
 #   NO_PYTHON        Prevent compiling Python Swig plugin.                     #
 #                                                                              #
+#   NO_PHP           Prevent compiling PHP Swig plugin.                        #
+#                                                                              #
 ################################################################################
 
 endef
@@ -69,6 +71,7 @@ define depend
 $1: $2
 
 endef
+SP:=$(subst X, ,X)
 verCheckDo=$(shell test $1 -eq $3 && a=$2 b=$4 || a=$1 b=$3; \
              test $$a -lt $$b && echo l)
 verCheck=$(call verCheckDo,$(firstword $(subst ., ,$1 0 0)),$(word 2,\
@@ -137,6 +140,7 @@ CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 CPPFLAGS_LUA:=-Wno-maybe-uninitialized
 CPPFLAGS_PY:=-Wno-stringop-overflow
 CPPFLAGS_RUBY:=-Wno-sign-compare -Wno-catch-value -Wno-maybe-uninitialized
+CPPFLAGS_PHP:=-Wno-unused-label
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
 LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
@@ -272,7 +276,9 @@ $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(PERL_NAME).so
 CLEAN+=$(foreach e,d o,$(PERL_NAME).$e)
 DISTCLEAN+=$(foreach e,cpp pm so,$(PERL_NAME).$e)
-endif # which perl
+else # which perl
+NO_PERL=1
+endif
 endif # NO_PERL
 
 ifndef NO_LUA
@@ -312,7 +318,9 @@ ifneq ($(LD_SONAME),)
 $(eval $(foreach n,$(LUA_VERSIONS),$(call lua_soname,$n)))
 endif
 $(eval $(foreach n,$(LUA_VERSIONS),$(call lua,$n)))
-endif # which lua
+else # which lua
+NO_LUA=1
+endif
 endif # NO_LUA
 
 ifndef NO_PYTHON
@@ -354,7 +362,9 @@ DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 $(eval $(call python,2))
 $(eval $(call python,3))
-endif # which python
+else # which python
+NO_PYTHON=1
+endif
 endif # NO_PYTHON
 
 ifndef NO_RUBY
@@ -391,12 +401,46 @@ $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(RUBY_LNAME).so
 CLEAN+=$(RUBY_NAME) $(foreach e,d o,$(RUBY_LNAME).$e)
 DISTCLEAN+=$(RUBY_LNAME).so
-endif # which ruby
+else # which ruby
+NO_RUBY=1
+endif
 endif # NO_RUBY
 
+ifndef NO_PHP
+ifneq ($(call which,php-config),)
+php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell php-config --version))))
+ifeq ($(call verCheck,$(php_ver),7.0),)
+PHPDIR:=$(DESTDIR)$(shell php-config --extension-dir)
+PHP_INC:=-Iphp $(shell php-config --includes)
+PHP_NAME:=php/$(SWIG_NAME).cpp
+PHP_LNAME:=php/pmc
+$(PHP_NAME): $(LIB_NAME).i $(HEADERS_ALL)
+	$(Q_SWIG)
+	$Q$(SWIG) -c++ -I. -outdir php -o $@ -php7 $<
+$(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
+	$(Q_LCC)
+	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PHP) $(PHP_INC) -c $< -o $@
+$(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
+	$(Q_LD)
+	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
+SWIG_ALL+=$(PHP_LNAME).so
+CLEAN+=$(PHP_NAME) $(foreach e,d o,$(PHP_LNAME).$e) php/php_pmc.h
+DISTCLEAN+=$(PHP_LNAME).so $(PHP_LNAME).php php/php.ini
+else # PHP 7
+NO_PHP=1
+endif
+else # which php-config
+NO_PHP=1
+endif
+endif # NO_PHP
+
 ALL+=$(SWIG_ALL)
-endif # swig 3.0
-endif # which swig
+else # swig 3.0
+NO_SWIG=1
+endif
+else  # which swig
+NO_SWIG=1
+endif
 endif # NO_SWIG
 
 ifneq ($(call which,dpkg-buildpackage),)
@@ -454,34 +498,29 @@ install: $(ALL) doxygen
 	$(Q)printf $(REDIR) > $(DOCDIR)/index.html
 ifndef NO_SWIG
 ifndef NO_PERL
-ifneq ($(call which,perl),)
 	$Q$(NINST) -D perl/$(SWIG_NAME).so -t $(PERLDIR)/auto/$(SWIG_NAME)
 	$Q$(NINST) perl/$(SWIG_NAME).pm $(PERLDIR)
-endif # which perl
 endif # NO_PERL
 ifndef NO_LUA
-ifneq ($(call which,lua),)
 	$Q$(foreach n,$(LUA_VERSIONS),\
 	  $(NINST) -D $(LUA_LIB_$n) $(LUADIR)/$(LUA_FLIB_$n).$(LIB_VER);\
 	  $(LN) $(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/$(LUA_FLIB_$n).$(SONAME);\
 	  $(DINST) $(LUADIR)/lua/5.$n;\
 	  $(LN) ../../$(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/lua/5.$n/$(LUA_LIB_NAME);)
-endif # which lua
 endif # NO_LUA
 ifndef NO_PYTHON
-ifneq ($(call which,python),)
 	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2DIR)/$(PY_LIB_NAME).$(HOST_MULTIARCH).so
 	$Q$(NINST) python/pmc.py $(PY2DIR)
 	$Q$(NINST) -D python/3/$(PY_LIB_NAME).*.so -t $(PY3DIR)
 	$Q$(NINST) python/pmc.py $(PY3DIR)
-endif # which python
 endif # NO_PYTHON
 ifndef NO_RUBY
-ifneq ($(call which,ruby),)
 	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
-endif # which ruby
 endif # NO_RUBY
+ifndef NO_PHP
+	$Q$(NINST) -D $(PHP_LNAME).so -t $(PHPDIR)
+endif # NO_PHP
 endif # NO_SWIG
 
 checkall: format doxygen

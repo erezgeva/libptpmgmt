@@ -100,6 +100,17 @@ class SockBase
     ssize_t rcv(Buf &buf, bool block = true)
     { return rcvBase(buf.get(), buf.size(), block); }
     /**
+     * Receive a message using the socket
+     * @param[in, out] buf object with message memory buffer
+     * @param[in] block true, wait till a packet arrives.
+     *                  false, do not wait, return error
+     *                  if no packet available
+     * @return number of bytes received or negative on failure
+     * @note identical to rcv. Some scripts fail to match proper function
+     */
+    ssize_t rcvBuf(Buf &buf, bool block = true)
+    { return rcvBase(buf.get(), buf.size(), block); }
+    /**
      * Get socket file description
      * @return socket file description
      * @note Can be used to poll, send or receive from socket.
@@ -293,6 +304,18 @@ class SockUnix : public SockBase
      * @note use getLastFrom() to fetch origin address which send the packet
      */
     ssize_t rcvFrom(Buf &buf, bool block = true)
+    { return rcvFrom(buf.get(), buf.size(), m_lastFrom, block); }
+    /**
+     * Receive a message using the socket from any address
+     * @param[in] buf object with message memory buffer
+     * @param[in] block true, wait till a packet arrives.
+     *                  false, do not wait, return error
+     *                  if no packet available
+     * @return number of bytes received or negative on failure
+     * @note use getLastFrom() to fetch origin address which send the packet
+     * @note identical to rcvFrom(). Some scripts fail to match proper function.
+     */
+    ssize_t rcvBufFrom(Buf &buf, bool block = true)
     { return rcvFrom(buf.get(), buf.size(), m_lastFrom, block); }
     /**
      * Fetch origin address from last rcvFrom() call
