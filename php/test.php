@@ -8,7 +8,7 @@
  * @copyright 2021 Erez Geva
  */
 
-include("pmc.php");
+require("pmc.php");
 
 const DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf";
 $sk = new SockUnix();

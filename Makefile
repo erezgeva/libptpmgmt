@@ -410,7 +410,8 @@ ifndef NO_PHP
 ifneq ($(call which,php-config),)
 php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell php-config --version))))
 ifeq ($(call verCheck,$(php_ver),7.0),)
-PHPDIR:=$(DESTDIR)$(shell php-config --extension-dir)
+PHPEDIR:=$(DESTDIR)$(shell php-config --extension-dir)
+PHPIDIR=$(DESTDIR)$(lastword $(subst :, ,$(shell php -r 'echo get_include_path();')))
 PHP_INC:=-Iphp $(shell php-config --includes)
 PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/pmc
@@ -519,7 +520,8 @@ ifndef NO_RUBY
 	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
 endif # NO_RUBY
 ifndef NO_PHP
-	$Q$(NINST) -D $(PHP_LNAME).so -t $(PHPDIR)
+	$Q$(NINST) -D $(PHP_LNAME).so -t $(PHPEDIR)
+	$Q$(NINST) -D $(PHP_LNAME).php -t $(PHPIDIR)
 endif # NO_PHP
 endif # NO_SWIG
 
