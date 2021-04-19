@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <linux/filter.h>
 #include "end.h"
+#include "err.h"
 #include "sock.h"
 
 const uint16_t udp_port = 320;
@@ -70,7 +71,7 @@ bool SockBase::sendReply(ssize_t cnt, size_t len) const
         return false;
     }
     if(cnt != (ssize_t)len) {
-        fprintf(stderr, "send %zd instead of %zu\n", cnt, len);
+        PMC_ERRORA("send %zd instead of %zu", cnt, len);
         return false;
     }
     return true;
@@ -250,7 +251,7 @@ ssize_t SockUnix::rcvFrom(void *buf, size_t bufSize, std::string &from,
         return -1;
     }
     if(cnt > (ssize_t)bufSize) {
-        fprintf(stderr, "rcv %zd more than buffer size %zu\n", cnt, bufSize);
+        PMC_ERRORA("rcv %zd more than buffer size %zu", cnt, bufSize);
         return -1;
     }
     addr.sun_path[unix_path_max] = 0; // Ensure string is null terminated
@@ -333,7 +334,7 @@ ssize_t SockIp::rcvBase(void *buf, size_t bufSize, bool block)
         return -1;
     }
     if(cnt > (ssize_t)bufSize) {
-        fprintf(stderr, "rcv %zd more than buffer size %zu\n", cnt, bufSize);
+        PMC_ERRORA("rcv %zd more than buffer size %zu", cnt, bufSize);
         return -1;
     }
     return cnt;
@@ -363,7 +364,7 @@ bool SockIp::initBase()
         return false;
     }
     if(!m_mcast.fromIp(m_mcast_str, m_domain)) {
-        fprintf(stderr, "multicast %s\n", m_mcast_str);
+        PMC_ERRORA("multicast %s", m_mcast_str);
         return false;
     }
     if(!init2())
@@ -615,7 +616,7 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
         return -1;
     }
     if(cnt > (ssize_t)(bufSize + sizeof(m_rx_buf))) {
-        fprintf(stderr, "rcv %zd more than buffer size %zu\n", cnt,
+        PMC_ERRORA("rcv %zd more than buffer size %zu", cnt,
             bufSize + sizeof(m_rx_buf));
         return -1;
     }

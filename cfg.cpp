@@ -9,6 +9,7 @@
  */
 
 #include <cstring>
+#include "err.h"
 #include "cfg.h"
 #include "ptp.h"
 
@@ -146,7 +147,7 @@ bool ConfigFile::read_cfg(const std::string _file)
     const char *file = _file.c_str();
     FILE *f = fopen(file, "r");
     if(f == nullptr) {
-        fprintf(stderr, "fail to open %s: %m\n", file);
+        PMC_ERRORA("fail to open %s: %m", file);
         return false;
     }
     char buf[512];
@@ -161,14 +162,14 @@ bool ConfigFile::read_cfg(const std::string _file)
             cur = skip_spaces(cur + 1);
             char *end = strchr(cur, ']');
             if(end == nullptr) {
-                fprintf(stderr, "wrong line in %s: '%s'\n", file, buf);
+                PMC_ERRORA("wrong line in %s: '%s'", file, buf);
                 return false;
             }
             strip_end_spaces(end);
             curSection = cur;
         } else if(*cur != 0 && *cur != '#' &&
             !cfgSec[curSection].set_val(cur)) {
-            fprintf(stderr, "wrong line in %s: '%s'\n", file, buf);
+            PMC_ERRORA("wrong line in %s: '%s'", file, buf);
             return false;
         }
     }

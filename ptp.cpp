@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
+#include "err.h"
 #include "msg.h"
 #include "ptp.h"
 
@@ -98,13 +99,13 @@ PtpClock::PtpClock(int ptpIndex) : m_ptpIndex(ptpIndex), m_isInit(false)
     dev += std::to_string(ptpIndex);
     m_fd = open(dev.c_str(), O_RDWR);
     if(m_fd < 0) {
-        fprintf(stderr, "opening %s: %m\n", dev.c_str());
+        PMC_ERRORA("opening %s: %m", dev.c_str());
         m_clkId = -1;
         return;
     }
     m_clkId = get_clockid_fd(m_fd);
     if(m_clkId == -1) {
-        fprintf(stderr, "failed to read clock id\n");
+        PMC_ERROR("failed to read clock id");
         return;
     }
     m_ptpDevice = dev;

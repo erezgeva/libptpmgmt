@@ -14,13 +14,15 @@
 
 static const char toksep[] = " \t\n\r"; // while spaces
 #define IDENT "\n\t\t"
+#define DUMPS(format, ...) printf(format, __VA_ARGS__)
+#define DUMPNL printf("\n");
 #define dump(n) static inline void dump_##n(Message &m, n##_t *dp) {\
         n##_t &d = *dp;
 #define dump_end }
 
 dump(CLOCK_DESCRIPTION)
 {
-    printf(
+    DUMPS(
         IDENT "clockType             0x%4x"
         IDENT "physicalLayerProtocol %s"
         IDENT "physicalAddress       %s"
@@ -44,20 +46,20 @@ dump(CLOCK_DESCRIPTION)
 }
 dump(USER_DESCRIPTION)
 {
-    printf(IDENT "userDescription  %s", d.userDescription.string());
+    DUMPS(IDENT "userDescription  %s", d.userDescription.string());
     dump_end;
 }
 dump(INITIALIZE)
 {
-    printf(IDENT "initializationKey %u", d.initializationKey);
+    DUMPS(IDENT "initializationKey %u", d.initializationKey);
     dump_end;
 }
 dump(FAULT_LOG)
 {
-    printf(IDENT "numberOfFaultRecords %u", d.numberOfFaultRecords);
+    DUMPS(IDENT "numberOfFaultRecords %u", d.numberOfFaultRecords);
     uint16_t i = 0;
     for(auto &rec : d.faultRecords) {
-        printf(
+        DUMPS(
             IDENT "[%u] faultTime        %s"
             IDENT "[%u] severityCode     %s"
             IDENT "[%u] faultName        %s"
@@ -74,7 +76,7 @@ dump(FAULT_LOG)
 }
 dump(DEFAULT_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "twoStepFlag             %u"
         IDENT "slaveOnly               %u"
         IDENT "numberPorts             %u"
@@ -99,7 +101,7 @@ dump(DEFAULT_DATA_SET)
 }
 dump(CURRENT_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "stepsRemoved     %u"
         IDENT "offsetFromMaster %.1f"
         IDENT "meanPathDelay    %.1f",
@@ -110,7 +112,7 @@ dump(CURRENT_DATA_SET)
 }
 dump(PARENT_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "parentPortIdentity                    %s"
         IDENT "parentStats                           %u"
         IDENT "observedParentOffsetScaledLogVariance 0x%x"
@@ -135,7 +137,7 @@ dump(PARENT_DATA_SET)
 }
 dump(TIME_PROPERTIES_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "currentUtcOffset      %d"
         IDENT "leap61                %u"
         IDENT "leap59                %u"
@@ -156,7 +158,7 @@ dump(TIME_PROPERTIES_DATA_SET)
 }
 dump(PORT_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "portIdentity            %s"
         IDENT "portState               %s"
         IDENT "logMinDelayReqInterval  %d"
@@ -181,57 +183,57 @@ dump(PORT_DATA_SET)
 }
 dump(PRIORITY1)
 {
-    printf(IDENT "priority1 %u", d.priority1);
+    DUMPS(IDENT "priority1 %u", d.priority1);
     dump_end;
 }
 dump(PRIORITY2)
 {
-    printf(IDENT "priority2 %u", d.priority2);
+    DUMPS(IDENT "priority2 %u", d.priority2);
     dump_end;
 }
 dump(DOMAIN)
 {
-    printf(IDENT "domainNumber %u", d.domainNumber);
+    DUMPS(IDENT "domainNumber %u", d.domainNumber);
     dump_end;
 }
 dump(SLAVE_ONLY)
 {
-    printf(IDENT "slaveOnly %u", d.flags);
+    DUMPS(IDENT "slaveOnly %u", d.flags);
     dump_end;
 }
 dump(LOG_ANNOUNCE_INTERVAL)
 {
-    printf(IDENT "logAnnounceInterval %d", d.logAnnounceInterval);
+    DUMPS(IDENT "logAnnounceInterval %d", d.logAnnounceInterval);
     dump_end;
 }
 dump(ANNOUNCE_RECEIPT_TIMEOUT)
 {
-    printf(IDENT "announceReceiptTimeout %u", d.announceReceiptTimeout);
+    DUMPS(IDENT "announceReceiptTimeout %u", d.announceReceiptTimeout);
     dump_end;
 }
 dump(LOG_SYNC_INTERVAL)
 {
-    printf(IDENT "logSyncInterval %d", d.logSyncInterval);
+    DUMPS(IDENT "logSyncInterval %d", d.logSyncInterval);
     dump_end;
 }
 dump(VERSION_NUMBER)
 {
-    printf(IDENT "versionNumber %u", d.versionNumber);
+    DUMPS(IDENT "versionNumber %u", d.versionNumber);
     dump_end;
 }
 dump(TIME)
 {
-    printf(IDENT "currentTime %s", d.currentTime.string().c_str());
+    DUMPS(IDENT "currentTime %s", d.currentTime.string().c_str());
     dump_end;
 }
 dump(CLOCK_ACCURACY)
 {
-    printf(IDENT "clockAccuracy 0x%x", d.clockAccuracy);
+    DUMPS(IDENT "clockAccuracy 0x%x", d.clockAccuracy);
     dump_end;
 }
 dump(UTC_PROPERTIES)
 {
-    printf(
+    DUMPS(
         IDENT "currentUtcOffset      %d"
         IDENT "leap61                %u"
         IDENT "leap59                %u"
@@ -244,7 +246,7 @@ dump(UTC_PROPERTIES)
 }
 dump(TRACEABILITY_PROPERTIES)
 {
-    printf(
+    DUMPS(
         IDENT "timeTraceable      %u"
         IDENT "frequencyTraceable %u",
         m.is_TTRA(d.flags),
@@ -253,61 +255,61 @@ dump(TRACEABILITY_PROPERTIES)
 }
 dump(TIMESCALE_PROPERTIES)
 {
-    printf(IDENT "ptpTimescale %u", m.is_PTP(d.flags));
+    DUMPS(IDENT "ptpTimescale %u", m.is_PTP(d.flags));
     dump_end;
 }
 dump(UNICAST_NEGOTIATION_ENABLE)
 {
-    printf(IDENT "unicastNegotiationPortDS %sabled", d.flags ? "e" : "dis");
+    DUMPS(IDENT "unicastNegotiationPortDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(PATH_TRACE_LIST)
 {
     uint16_t i = 0;
     for(auto &rec : d.pathSequence)
-        printf(IDENT "[%u] %s", i++, rec.string().c_str());
+        DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     dump_end;
 }
 dump(PATH_TRACE_ENABLE)
 {
-    printf(IDENT "pathTraceDS %sabled", d.flags ? "e" : "dis");
+    DUMPS(IDENT "pathTraceDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(GRANDMASTER_CLUSTER_TABLE)
 {
-    printf(
+    DUMPS(
         IDENT "logQueryInterval %d"
         IDENT "actualTableSize  %u",
         d.logQueryInterval,
         d.actualTableSize);
     uint16_t i = 0;
     for(auto &rec : d.PortAddress)
-        printf(IDENT "[%u] %s", i++, rec.string().c_str());
+        DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     dump_end;
 }
 dump(UNICAST_MASTER_TABLE)
 {
-    printf(
+    DUMPS(
         IDENT "logQueryInterval %d"
         IDENT "actualTableSize  %u",
         d.logQueryInterval,
         d.actualTableSize);
     uint16_t i = 0;
     for(auto &rec : d.PortAddress)
-        printf(IDENT "[%u] %s", i++, rec.string().c_str());
+        DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     dump_end;
 }
 dump(UNICAST_MASTER_MAX_TABLE_SIZE)
 {
-    printf(IDENT "maxTableSize %u", d.maxTableSize);
+    DUMPS(IDENT "maxTableSize %u", d.maxTableSize);
     dump_end;
 }
 dump(ACCEPTABLE_MASTER_TABLE)
 {
-    printf(IDENT "actualTableSize %d", d.actualTableSize);
+    DUMPS(IDENT "actualTableSize %d", d.actualTableSize);
     uint16_t i = 0;
     for(auto &rec : d.list) {
-        printf(
+        DUMPS(
             IDENT "[%u] acceptablePortIdentity %s"
             IDENT "[%u] alternatePriority1     %u",
             i, rec.acceptablePortIdentity.string().c_str(),
@@ -318,17 +320,17 @@ dump(ACCEPTABLE_MASTER_TABLE)
 }
 dump(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
-    printf(IDENT "acceptableMasterPortDS %sabled", d.flags ? "e" : "dis");
+    DUMPS(IDENT "acceptableMasterPortDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
-    printf(IDENT "maxTableSize %u", d.maxTableSize);
+    DUMPS(IDENT "maxTableSize %u", d.maxTableSize);
     dump_end;
 }
 dump(ALTERNATE_MASTER)
 {
-    printf(
+    DUMPS(
         IDENT "transmitAlternateMulticastSync    %sabled"
         IDENT "logAlternateMulticastSyncInterval %d"
         IDENT "numberOfAlternateMasters          %u",
@@ -339,24 +341,24 @@ dump(ALTERNATE_MASTER)
 }
 dump(ALTERNATE_TIME_OFFSET_ENABLE)
 {
-    printf(
+    DUMPS(
         IDENT "alternateTimescaleOffsetsDS[%u] %sabled", d.keyField,
         d.flags ? "e" : "dis");
     dump_end;
 }
 dump(ALTERNATE_TIME_OFFSET_NAME)
 {
-    printf(IDENT "[%u] %s", d.keyField, d.displayName.string());
+    DUMPS(IDENT "[%u] %s", d.keyField, d.displayName.string());
     dump_end;
 }
 dump(ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
-    printf(IDENT "maxKey %u", d.maxKey);
+    DUMPS(IDENT "maxKey %u", d.maxKey);
     dump_end;
 }
 dump(ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
-    printf(
+    DUMPS(
         IDENT "keyField       %u"
         IDENT "currentOffset  %d"
         IDENT "jumpSeconds    %d"
@@ -369,7 +371,7 @@ dump(ALTERNATE_TIME_OFFSET_PROPERTIES)
 }
 dump(TRANSPARENT_CLOCK_PORT_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "portIdentity            %s"
         IDENT "transparentClockPortDS  %s"
         IDENT "logMinPdelayReqInterval %i"
@@ -382,12 +384,12 @@ dump(TRANSPARENT_CLOCK_PORT_DATA_SET)
 }
 dump(LOG_MIN_PDELAY_REQ_INTERVAL)
 {
-    printf(IDENT "logMinPdelayReqInterval %d", d.logMinPdelayReqInterval);
+    DUMPS(IDENT "logMinPdelayReqInterval %d", d.logMinPdelayReqInterval);
     dump_end;
 }
 dump(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "clockIdentity  %s"
         IDENT "numberPorts    %u"
         IDENT "delayMechanism %u"
@@ -400,32 +402,32 @@ dump(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
 }
 dump(PRIMARY_DOMAIN)
 {
-    printf(IDENT "primaryDomain %u", d.primaryDomain);
+    DUMPS(IDENT "primaryDomain %u", d.primaryDomain);
     dump_end;
 }
 dump(DELAY_MECHANISM)
 {
-    printf(IDENT "delayMechanism %u", d.delayMechanism);
+    DUMPS(IDENT "delayMechanism %u", d.delayMechanism);
     dump_end;
 }
 dump(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
-    printf(IDENT "externalPortConfiguration %sabled", d.flags ? "e" : "dis");
+    DUMPS(IDENT "externalPortConfiguration %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(MASTER_ONLY)
 {
-    printf(IDENT "masterOnly %s", d.flags ? "true" : "false");
+    DUMPS(IDENT "masterOnly %s", d.flags ? "true" : "false");
     dump_end;
 }
 dump(HOLDOVER_UPGRADE_ENABLE)
 {
-    printf(IDENT "holdoverUpgradeDS %sabled", d.flags ? "e" : "dis");
+    DUMPS(IDENT "holdoverUpgradeDS %sabled", d.flags ? "e" : "dis");
     dump_end;
 }
 dump(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
-    printf(
+    DUMPS(
         IDENT "acceptableMasterPortDS %sabled"
         IDENT "desiredState           %s",
         d.flags ? "e" : "dis",
@@ -434,7 +436,7 @@ dump(EXT_PORT_CONFIG_PORT_DATA_SET)
 }
 dump(TIME_STATUS_NP)
 {
-    printf(
+    DUMPS(
         IDENT "master_offset              %jd"
         IDENT "ingress_time               %jd"
         IDENT "cumulativeScaledRateOffset %+.9f"
@@ -458,7 +460,7 @@ dump(TIME_STATUS_NP)
 }
 dump(GRANDMASTER_SETTINGS_NP)
 {
-    printf(
+    DUMPS(
         IDENT "clockClass              %u"
         IDENT "clockAccuracy           0x%x"
         IDENT "offsetScaledLogVariance 0x%x"
@@ -485,7 +487,7 @@ dump(GRANDMASTER_SETTINGS_NP)
 }
 dump(PORT_DATA_SET_NP)
 {
-    printf(
+    DUMPS(
         IDENT "neighborPropDelayThresh %u"
         IDENT "asCapable               %d",
         d.neighborPropDelayThresh,
@@ -494,7 +496,7 @@ dump(PORT_DATA_SET_NP)
 }
 dump(SUBSCRIBE_EVENTS_NP)
 {
-    printf(
+    DUMPS(
         IDENT "duration          %u"
         IDENT "NOTIFY_PORT_STATE %s"
         IDENT "NOTIFY_TIME_SYNC  %s",
@@ -505,7 +507,7 @@ dump(SUBSCRIBE_EVENTS_NP)
 }
 dump(PORT_PROPERTIES_NP)
 {
-    printf(
+    DUMPS(
         IDENT "portIdentity            %s"
         IDENT "portState               %s"
         IDENT "timestamping            %s"
@@ -518,7 +520,7 @@ dump(PORT_PROPERTIES_NP)
 }
 dump(PORT_STATS_NP)
 {
-    printf(
+    DUMPS(
         IDENT "portIdentity              %s"
         IDENT "rx_Sync                   %ju"
         IDENT "rx_Delay_Req              %ju"
@@ -565,7 +567,7 @@ dump(PORT_STATS_NP)
 }
 dump(SYNCHRONIZATION_UNCERTAIN_NP)
 {
-    printf(IDENT "uncertain %u", d.val);
+    DUMPS(IDENT "uncertain %u", d.val);
     dump_end;
 }
 
@@ -583,7 +585,7 @@ void call_dump(Message &msg, BaseMngTlv *_data)
         default:
             break;
     }
-    printf("\n");
+    DUMPNL;
 }
 
 #define build(n)\
@@ -1273,9 +1275,9 @@ build(SYNCHRONIZATION_UNCERTAIN_NP)
     case n: {\
         BaseMngTlv *d = build_##n(msg, save);\
         if(d != nullptr) {\
-            printf("Dump " #n ":");\
+            DUMPS("Dump " #n ":");\
             dump_##n(msg, (n##_t*)d);\
-            printf("\n");\
+            DUMPS("\n");\
         }\
         return nullptr;\
     }
@@ -1294,12 +1296,12 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, BaseSigTlv *tlv)
     switch(tlvType) {
         case SLAVE_RX_SYNC_TIMING_DATA: {
             SLAVE_RX_SYNC_TIMING_DATA_t &d = *(SLAVE_RX_SYNC_TIMING_DATA_t *)tlv;
-            printf(
+            DUMPS(
                 "SLAVE_RX_SYNC_TIMING_DATA N %zu "
                 IDENT "syncSourcePortIdentity     %s",
                 d.list.size(), d.syncSourcePortIdentity.string().c_str());
             for(auto &rec : d.list)
-                printf(
+                DUMPS(
                     IDENT "sequenceId                 %u"
                     IDENT "syncOriginTimestamp        %s"
                     IDENT "totalCorrectionField       %jd"
@@ -1314,12 +1316,12 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, BaseSigTlv *tlv)
         }
         case SLAVE_DELAY_TIMING_DATA_NP: {
             SLAVE_DELAY_TIMING_DATA_NP_t &d = *(SLAVE_DELAY_TIMING_DATA_NP_t *)tlv;
-            printf(
+            DUMPS(
                 "SLAVE_DELAY_TIMING_DATA_NP N %zu "
                 IDENT "sourcePortIdentity         %s",
                 d.list.size(), d.sourcePortIdentity.string().c_str());
             for(auto &rec : d.list)
-                printf(
+                DUMPS(
                     IDENT "sequenceId                 %u"
                     IDENT "delayOriginTimestamp       %s"
                     IDENT "totalCorrectionField       %jd"
@@ -1333,6 +1335,6 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, BaseSigTlv *tlv)
         default:
             return false;
     }
-    printf("\n");
+    DUMPNL;
     return false;
 }

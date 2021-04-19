@@ -62,10 +62,10 @@ define help
 #                                                                              #
 #   NO_PHP           Prevent compiling PHP Swig plugin.                        #
 #                                                                              #
-#   PMC_USE_CJSON    Use C Json for parsing JSON into PTP management message.  #
+#   PMC_USE_CJSON    Use C JSON for parsing JSON into PTP management message.  #
 #                                                                              #
-#   PMC_USE_FCJSON   Use C Json for parsing JSON into PTP management message.  #
-#                    Use fast json library.                                    #
+#   PMC_USE_FCJSON   Use C JSON for parsing JSON into PTP management message.  #
+#                    Use fast JSON library.                                    #
 #                                                                              #
 ################################################################################
 
@@ -164,7 +164,6 @@ LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(wildcard *.cpp)))
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
 ifdef PMC_USE_CJSON
-# libfastjson can be replaced with json-c
 ifneq ($(wildcard /usr/include/json-c/json.h),)
 json.o: CPPFLAGS+=-DPMC_USE_CJSON -isystem /usr/include/json-c
 LDLIBS_LIB+=-ljson-c

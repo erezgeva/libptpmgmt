@@ -18,9 +18,10 @@
 /**
  * Convert Message to JSON string
  * @param[in] message received from PTP entity
+ * @param[in] indent base indent for the JSON string
  * @return JSON string
  */
-std::string msg2json(Message &message);
+std::string msg2json(Message &message, int indent = 0);
 
 /**
  * Parse JSON to PTP management message
@@ -36,7 +37,7 @@ class Json2msg
     actionField_e m_action;
     /* optional */
     enum {
-        have_isUnicast,
+        have_unicastFlag,
         have_PTPProfileSpecific,
         have_domainNumber,
         have_versionPTP,
@@ -48,7 +49,7 @@ class Json2msg
         have_limit,
     };
     bool m_have[have_limit];
-    bool m_isUnicast;
+    bool m_unicastFlag;
     uint8_t m_PTPProfileSpecific;
     uint8_t m_domainNumber;
     uint8_t m_versionPTP;
@@ -84,12 +85,12 @@ class Json2msg
      * Get Unicast flag
      * @return Unicast flag
      */
-    bool isUnicast() {return m_isUnicast; }
+    bool isUnicast() {return m_unicastFlag; }
     /**
      * Is Unicast flag in JSON?
      * @return true if Unicast flag in JSON
      */
-    bool haveIsUnicast() {return m_have[have_isUnicast];}
+    bool haveIsUnicast() {return m_have[have_unicastFlag];}
     /**
      * Get PTP profile specific
      * @return PTP profile specific

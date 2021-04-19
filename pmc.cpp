@@ -23,6 +23,9 @@
 #ifndef INFTIM
 #define INFTIM -1
 #endif
+#define PMCERR(msg) fprintf(stderr, msg "\n")
+#define DUMPS(format, ...) printf(format, __VA_ARGS__)
+#define DUMPNL printf("\n");
 /* from pmc_dump.cpp */
 extern void call_dump(Message &msg, BaseMngTlv *data);
 extern bool call_dumpSig(const Message &msg, tlvType_e tlvType,
@@ -44,7 +47,7 @@ static uint64_t timeout;
 
 static inline void dump_head(actionField_e action)
 {
-    printf("\t%s seq %u %s MANAGEMENT %s ",
+    DUMPS("\t%s seq %u %s MANAGEMENT %s ",
         msg.getPeer().string().c_str(),
         msg.getSequence(),
         msg.act2str_c(action),
@@ -52,13 +55,13 @@ static inline void dump_head(actionField_e action)
 }
 static inline void dump_sig()
 {
-    printf("\t%s seq %u SIGNALING\n",
+    DUMPS("\t%s seq %u SIGNALING\n",
         msg.getPeer().string().c_str(),
         msg.getSequence());
 }
 static inline void dump_err()
 {
-    printf("\t%s seq %u %s MANAGEMENT_ERROR_STATUS %s\n"
+    DUMPS("\t%s seq %u %s MANAGEMENT_ERROR_STATUS %s\n"
         "\tERROR: %s(%u)\n"
         "\tERROR DISPLAY: %s\n\n",
         msg.getPeer().string().c_str(),
@@ -92,7 +95,7 @@ static inline bool sendAction()
     static int seq = 0;
     MNG_PARSE_ERROR_e err = msg.build(buf, bufSize, seq);
     if(err != MNG_PARSE_ERROR_OK) {
-        printf("build error %s\n", msg.err2str_c(err));
+        DUMPS("build error %s\n", msg.err2str_c(err));
         return false;
     }
     if(!sk->send(buf, msg.getMsgLen()))
@@ -124,7 +127,7 @@ static inline int rcv()
                 // We got the wrong message, wait for the next one
                 return 1;
         default:
-            printf("Parse error %s\n", msg.err2str_c(err));
+            DUMPS("Parse error %s\n", msg.err2str_c(err));
             break;
     }
     return -1;
@@ -185,7 +188,7 @@ static bool run_line(char *line)
             if(updatePortIdentity(prms, cur))
                 msg.updateParams(prms);
             else
-                fprintf(stderr, "Wrong clock ID: %s\n", cur);
+                PMCERR("Wrong clock ID");
         }
         return false;
     } else
@@ -213,7 +216,7 @@ static bool run_line(char *line)
     if(!sendAction())
         return false;
     // Finish with data, free it
-    printf("sending: %s %s\n", msg.act2str_c(msg.getSendAction()),
+    DUMPS("sending: %s %s\n", msg.act2str_c(msg.getSendAction()),
         msg.mng2str_c(id));
     if(data != nullptr)
         delete data;
@@ -249,7 +252,7 @@ static void handle_sig(int)
 static void handle_sig_ctrl(int)
 {
     sk->close();
-    printf("\n");
+    DUMPNL;
     exit(0);
 }
 int main(int argc, char *const argv[])
@@ -287,10 +290,10 @@ int main(int argc, char *const argv[])
                     nullptr)) != -1) {
         switch(c) {
             case ':':
-                fprintf(stderr, "Wrong option ':'\n");
+                PMCERR("Wrong option ':'");
                 return -1;
             case 'v':
-                printf("%s\n", getVersion());
+                DUMPS("%s\n", getVersion());
                 return 0;
             case 'h':
                 help(argv[0]);
@@ -310,7 +313,7 @@ int main(int argc, char *const argv[])
                 else if(strcasecmp(optarg, "L2") == 0)
                     net_select = '2';
                 else {
-                    fprintf(stderr, "Wrong network_transport\n");
+                    PMCERR("Wrong network_transport");
                     return -1;
                 }
                 continue;
@@ -339,7 +342,7 @@ int main(int argc, char *const argv[])
     MsgParams prms = msg.getParams();
     if(net_select != 'u') {
         if(interface.empty()) {
-            fprintf(stderr, "missing interface\n");
+            PMCERR("missing interface");
             return -1;
         }
         if(!ifObj.initUsingName(interface))
@@ -366,7 +369,7 @@ int main(int argc, char *const argv[])
         case 'u': {
             SockUnix *sku = new SockUnix;
             if(sku == nullptr) {
-                fprintf(stderr, "failed to allocate SockUnix\n");
+                PMCERR("failed to allocate SockUnix");
                 return -1;
             }
             sk.reset(sku);
@@ -377,7 +380,7 @@ int main(int argc, char *const argv[])
                 uds_address = cfg.uds_address(interface);
             if(!sku->setDefSelfAddress() || !sku->init() ||
                 !sku->setPeerAddress(uds_address)) {
-                fprintf(stderr, "failed to create transport\n");
+                PMCERR("failed to create transport");
                 return -1;
             }
             prms.self_id.portNumber = getpid();
@@ -388,20 +391,20 @@ int main(int argc, char *const argv[])
         case '4': {
             SockIp4 *sk4 = new SockIp4;
             if(sk4 == nullptr) {
-                fprintf(stderr, "failed to allocate SockIp4\n");
+                PMCERR("failed to allocate SockIp4");
                 return -1;
             }
             sk.reset(sk4);
             if(!sk4->setAll(ifObj, cfg, interface)) {
-                fprintf(stderr, "failed to set transport\n");
+                PMCERR("failed to set transport");
                 return -1;
             }
             if(options.count('T') && !sk4->setUdpTtl(atoi(options['T'].c_str()))) {
-                fprintf(stderr, "failed to set udp_ttl\n");
+                PMCERR("failed to set udp_ttl");
                 return -1;
             }
             if(!sk4->init()) {
-                fprintf(stderr, "failed to init transport\n");
+                PMCERR("failed to init transport");
                 return -1;
             }
             break;
@@ -409,24 +412,24 @@ int main(int argc, char *const argv[])
         case '6': {
             SockIp6 *sk6 = new SockIp6;
             if(sk6 == nullptr) {
-                fprintf(stderr, "failed to allocate SockIp6\n");
+                PMCERR("failed to allocate SockIp6");
                 return -1;
             }
             sk.reset(sk6);
             if(!sk6->setAll(ifObj, cfg, interface)) {
-                fprintf(stderr, "failed to set transport\n");
+                PMCERR("failed to set transport");
                 return -1;
             }
             if(options.count('T') && !sk6->setUdpTtl(atoi(options['T'].c_str()))) {
-                fprintf(stderr, "failed to set udp_ttl\n");
+                PMCERR("failed to set udp_ttl");
                 return -1;
             }
             if(options.count('S') && !sk6->setScope(atoi(options['S'].c_str()))) {
-                fprintf(stderr, "failed to set udp6_scope\n");
+                PMCERR("failed to set udp6_scope");
                 return -1;
             }
             if(!sk6->init()) {
-                fprintf(stderr, "failed to init transport\n");
+                PMCERR("failed to init transport");
                 return -1;
             }
             break;
@@ -434,27 +437,27 @@ int main(int argc, char *const argv[])
         case '2': {
             SockRaw *skr = new SockRaw;
             if(skr == nullptr) {
-                fprintf(stderr, "failed to allocate SockRaw\n");
+                PMCERR("failed to allocate SockRaw");
                 return -1;
             }
             sk.reset(skr);
             if(!skr->setAll(ifObj, cfg, interface)) {
-                fprintf(stderr, "failed to set transport\n");
+                PMCERR("failed to set transport");
                 return -1;
             }
             if(options.count('P') &&
                 !skr->setSocketPriority(atoi(options['P'].c_str()))) {
-                fprintf(stderr, "failed to set socket_priority\n");
+                PMCERR("failed to set socket_priority");
                 return -1;
             }
             Binary mac;
             if(options.count('M') && (!mac.fromMac(options['M']) ||
                     !skr->setPtpDstMac(mac))) {
-                fprintf(stderr, "failed to set ptp_dst_mac\n");
+                PMCERR("failed to set ptp_dst_mac");
                 return -1;
             }
             if(!skr->init()) {
-                fprintf(stderr, "failed to init transport\n");
+                PMCERR("failed to init transport");
                 return -1;
             }
             break;
@@ -471,16 +474,16 @@ int main(int argc, char *const argv[])
     msg.updateParams(prms);
     // Normal Termination (by kill)
     if(signal(SIGTERM, handle_sig) == SIG_ERR)
-        fprintf(stderr, "sig term fails %m\n");
+        PMCERR("sig term fails %m");
     // Control C, interrupt from keyboard
     if(signal(SIGINT, handle_sig_ctrl) == SIG_ERR)
-        fprintf(stderr, "sig init fails %m\n");
+        PMCERR("sig init fails %m");
     // quit from keyboard
     if(signal(SIGQUIT, handle_sig) == SIG_ERR)
-        fprintf(stderr, "sig quit fails %m\n");
+        PMCERR("sig quit fails %m");
     // Hangup detected
     if(signal(SIGHUP, handle_sig) == SIG_ERR)
-        fprintf(stderr, "sig hup fails %m\n");
+        PMCERR("sig hup fails %m");
     if(batch) {
         // batch mode
         int pkts = 0;

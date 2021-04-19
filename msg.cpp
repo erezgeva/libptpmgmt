@@ -14,6 +14,7 @@
 #include <limits>
 #include <byteswap.h>
 #include <arpa/inet.h>
+#include "err.h"
 #include "end.h"
 #include "msg.h"
 
@@ -856,7 +857,7 @@ const char *Message::portState2str_c(portState_e val)
         case caseItem(DISABLED);
         case caseItem(LISTENING);
         case caseItem(PRE_MASTER);
-        case caseItem(MASTER);
+        case caseItem(SOURCE);
         case caseItem(PASSIVE);
         case caseItem(UNCALIBRATED);
         case caseItem(CLIENT);
@@ -1112,14 +1113,14 @@ bool Message::proc(Float64_t &val)
                             mnt = (int64_t)floorl(norm * ieee754_mnt_base -
                                     ieee754_mnt_base);
                             if(mnt < 0 || mnt >= ieee754_mnt_base) {
-                                fprintf(stderr, "wrong calculation of float, "
-                                    "mnt out of range\n");
+                                PMC_ERROR("wrong calculation of float, "
+                                    "mnt out of range");
                                 return true; // wrong calculation
                             }
                             break; // Break normal
                         }
-                        fprintf(stderr, "wrong calculation of float, "
-                            "norm is too small\n");
+                        PMC_ERROR("wrong calculation of float, "
+                            "norm is too small");
                     }
                 // Fall to subnormal
                 case FP_SUBNORMAL: // Subnormal number
@@ -1127,8 +1128,8 @@ bool Message::proc(Float64_t &val)
                     norm = val / exp2l(ieee754_exp_min);
                     mnt = (int64_t)floorl(norm * ieee754_mnt_base);
                     if(mnt < 0 || mnt >= ieee754_mnt_base) {
-                        fprintf(stderr, "wrong calculation of float, "
-                            "mnt out of range for subnormal\n");
+                        PMC_ERROR("wrong calculation of float, "
+                            "mnt out of range for subnormal");
                         return true; // wrong calculation
                     }
                     // For very small number use the minimum subnormal
