@@ -83,6 +83,7 @@ sub creatJsonTest
 }
 sub toJsonTest
 {
+    my $json2msg = PmcLib::Json2msg->new;
     my $json = <<EOF;
 {
   "sequenceId" : 12,
@@ -105,15 +106,40 @@ sub toJsonTest
   },
   "actionField" : "SET",
   "tlvType" : "MANAGEMENT",
+EOF
+    my $close = "}";
+    my $jsonPr1 = <<EOF;
   "managementId" : "PRIORITY1",
   "dataField" :
   {
     "priority1" : 153
   }
-}
 EOF
-    my $json2msg = PmcLib::Json2msg->new;
-    $json2msg->fromJson($json);
+    $json2msg->fromJson($json . $jsonPr1 . $close);
+    my $jsonTbl = <<EOF;
+  "managementId" : "UNICAST_MASTER_TABLE",
+  "dataField" :
+  {
+    "logQueryInterval" : 1,
+    "actualTableSize" : 3,
+    "PortAddress" :
+    [
+      {
+        "networkProtocol" : "IEEE_802_3",
+        "addressField" : "c4:7d:46:20:ac:ae"
+      },
+      {
+        "networkProtocol" : "IEEE_802_3",
+        "addressField" : "c4:7d:46:20:ac:ae"
+      },
+      {
+        "networkProtocol" : "IEEE_802_3",
+        "addressField" : "c4:7d:46:20:ac:ae"
+      }
+    ]
+  }
+EOF
+    $json2msg->fromJson($json . $jsonTbl . $close);
 }
 creatJsonTest;
 toJsonTest;

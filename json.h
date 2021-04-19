@@ -67,6 +67,16 @@ class Json2msg
      */
     bool fromJson(const std::string json);
     /**
+     * Convert JSON object to message
+     * @param[in] jobj pointer of JSON object
+     * @return true if parsing success
+     * @note jobj must be json_object pointer
+     * @attention You must use the same JSON library used by this library!
+     *  with PMC_USE_CJSON use the json-c library
+     *  with PMC_USE_FCJSON use the fast json library
+     */
+    bool fromJsonObj(const void *jobj);
+    /**
      * Get management ID
      * @return management ID
      */

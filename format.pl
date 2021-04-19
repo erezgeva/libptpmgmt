@@ -47,7 +47,7 @@ sub main
                 if(/\*INDENT-ON\*/i || /\*INDENT-OFF\*/i || /\*NOPAD\*/i) {
                     print STDERR "Check: $file:$.: for using astyle skip: $_\n";
                 }
-                if(/[^"]NULL\b/) {
+                if(/[^"_]NULL\b/) {
                     print STDERR "Check: $file:$.: use C++ nullptr: $_\n";
                 }
                 if(/.{85}/) {
