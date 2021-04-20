@@ -26,7 +26,7 @@ When receiving a reply message, the user can parse the message and
 get a pointer to a structure from the message object.
 
 The configuration file uses the [ptp4l](https://manpages.debian.org/unstable/linuxptp/ptp4l.8.en.html)
-parameters that are relevant to pmc tool.
+parameters that are relevant to the pmc tool.
 
 # <u>Using C</u>
 This project does **NOT** support C directly.
@@ -41,6 +41,7 @@ For now, we support:
   * Python 2.7 and Python 3
   * Lua 5.1, 5.2, 5.3
   * Ruby version 2
+  * PHP version 7
 
 # <u>pmc tool</u>
 The project provides a clone to [linuxptp](http://linuxptp.sf.net/)
@@ -60,4 +61,4 @@ The project comes with packaging of Debian packages for Debian and Debian based 
 The Licence of this project is
 
   * The library is under LGPL 3 or later
-  * The pmc tool is under GPL 3 or later
+  * The pmc tool and the testing scripts are under GPL 3 or later

@@ -1,4 +1,12 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright 2021 Erez Geva
+# @copyright GNU General Public License 3.0 or later
+#
+# Update to a new version
+###############################################################################
 main()
 {
  local -r email=$(git config --get user.email)
