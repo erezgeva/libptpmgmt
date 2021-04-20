@@ -78,11 +78,11 @@ $1: $2
 
 endef
 SP:=$(subst X, ,X)
-verCheckDo=$(shell test $1 -eq $3 && a=$2 b=$4 || a=$1 b=$3; \
-             test $$a -lt $$b && echo l)
-verCheck=$(call verCheckDo,$(firstword $(subst ., ,$1 0 0)),$(word 2,\
-         $(subst ., ,$1 0 0)),$(firstword $(subst ., ,$2 0)),$(word 2,\
-         $(subst ., ,$2 0)))
+verCheckDo=$(shell if [ $1 -eq $4 ];then test $2 -eq $5 && a=$3 b=$6 || \
+  a=$2 b=$5; else a=$1 b=$4;fi;test $$a -lt $$b && echo l)
+verCheck=$(call verCheckDo,$(firstword $(subst ., ,$1 0 0 0)),$(word 2,\
+  $(subst ., ,$1 0 0 0)),$(word 3,$(subst ., ,$1 0 0 0)),$(firstword\
+  $(subst ., ,$2 0)),$(word 2,$(subst ., ,$2 0)),$(word 3,$(subst ., ,$2 0)))
 
 # Use tput to check if we have ANSI Color code
 # tput works only if TERM is set
@@ -429,6 +429,8 @@ ifndef NO_PHP
 ifneq ($(call which,php-config),)
 php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell php-config --version))))
 ifeq ($(call verCheck,$(php_ver),7.0),)
+# Old SWIG does not support PHP 7
+ifeq ($(call verCheck,$(swig_ver),3.0.12),)
 PHPEDIR:=$(DESTDIR)$(shell php-config --extension-dir)
 PHPIDIR=$(DESTDIR)$(lastword $(subst :, ,$(shell\
         php -r 'echo get_include_path();')))
@@ -447,6 +449,9 @@ $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(PHP_LNAME).so
 CLEAN+=$(PHP_NAME) $(foreach e,d o,$(PHP_LNAME).$e) php/php_pmc.h
 DISTCLEAN+=$(PHP_LNAME).so $(PHP_LNAME).php php/php.ini
+else # SWIG 3.0.12
+NO_PHP=1
+endif
 else # PHP 7
 NO_PHP=1
 endif
