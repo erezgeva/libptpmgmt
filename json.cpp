@@ -1005,7 +1005,8 @@ struct JsonVal {
     int64_t intV; // Also boolean
     double fltV;
     JSON_POBJ objV;
-    bool blV() { return intV; }
+    // If it is not false, it is true :-)
+    bool blV() { return intV != false; }
     bool convType(JSON_TYPE to) {
         if(type == to)
             return true;
@@ -1018,6 +1019,7 @@ struct JsonVal {
                         fltV = intV;
                         break;
                     case JT_BOOL:
+                        intV = intV != 0;
                         break;
                     case JT_STR:
                         strV = std::to_string(intV);
@@ -1059,12 +1061,21 @@ struct JsonVal {
                             return false;
                         break;
                     case JT_BOOL:
-                        if(strcasecmp(str, "true"))
+                        if(strcasecmp(str, "true") == 0 ||
+                            strcasecmp(str, "enable") == 0 ||
+                            strcasecmp(str, "on") == 0)
                             intV = true;
-                        else if(strcasecmp(str, "false"))
+                        else if(strcasecmp(str, "false") == 0 ||
+                            strcasecmp(str, "disable") == 0 ||
+                            strcasecmp(str, "off") == 0)
                             intV = false;
-                        else
-                            return false;
+                        else {
+                            auto i = strtoll(str, &end, 0);
+                            if(end == str || *end != 0)
+                                return false;
+                            intV = i != 0;
+                        }
+                        break;
                     default:
                         return false;
                 }
@@ -1089,7 +1100,8 @@ struct JsonVal {
                 strV = JG_STR(obj);
                 break;
             case JT_BOOL:
-                intV = JG_BOOL(obj);
+                // Use JSON false!
+                intV = JG_BOOL(obj) != FALSE;
                 break;
             case JT_ARRAY:
             case JT_OBJ:
