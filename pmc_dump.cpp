@@ -418,7 +418,7 @@ dump(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 }
 dump(MASTER_ONLY)
 {
-    DUMPS(IDENT "masterOnly %s", d.flags ? "true" : "false");
+    DUMPS(IDENT "masterOnly %u", d.flags);
     dump_end;
 }
 dump(HOLDOVER_UPGRADE_ENABLE)

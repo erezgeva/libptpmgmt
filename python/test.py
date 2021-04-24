@@ -160,8 +160,7 @@ sk.close()
 
 # If libpmc library is not installed in system, run with:
 """
-rm -rf *.so pmc.pyc __pycache__;ln -sf 2/*.so;LD_LIBRARY_PATH=.. python2 test.py
-rm -rf *.so pmc.pyc __pycache__;ln -sf 3/*.so _pmc.so;\
-   LD_LIBRARY_PATH=.. python3 test.py
+rm -rf pmc.pyc __pycache__;ln -sf 2/*.so;LD_LIBRARY_PATH=.. python2 test.py
+rm -rf pmc.pyc __pycache__;ln -sf 3/*.so;LD_LIBRARY_PATH=.. python3 test.py
 
 """

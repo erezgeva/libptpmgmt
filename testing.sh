@@ -13,7 +13,7 @@ main()
  # Default values
  local -r def_ifName=enp0s25
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
- local -r def_linuxptpLoc=~/TSN/build/linuxptp
+ local -r def_linuxptpLoc=../linuxptp
  ##############################################################################
  while getopts 'i:c:l:' opt; do
    case $opt in
@@ -34,17 +34,11 @@ main()
  done
  ##############################################################################
  local -r uds="$linuxptpLoc/uds.c"
- local -r config="$linuxptpLoc/config.c"
- if [ -d "$linuxptpLoc" -a -f "$uds" -a -f "$config" ]; then
+ if [ -d "$linuxptpLoc" -a -f "$uds" ]; then
    # Add all users for testing (so we can test without using root :-)
    local -r reg='^#define UDS_FILEMODE'
    if [ -n "$(grep "$reg.*GRP)" "$uds")" ];then
-     sed -i "/$reg/ s#GRP)#GRP|S_IROTH|S_IWOTH)#" "$uds"
-   fi
-   # Remove the deprecated message
-   local -r reg2='^\s\sfprintf(stderr, "option %s is deprecated,'
-   if [ -n "$(grep "$reg2" "$config")" ];then
-     sed -i "/$reg2/,+1d" "$config"
+     sed -i "/$reg/ s#GRP).*#GRP|S_IROTH|S_IWOTH)#" "$uds"
    fi
    make --no-print-directory -j -C "$linuxptpLoc"
    local -r pmctool="sudo \"$linuxptpLoc/pmc\""
@@ -77,7 +71,7 @@ main()
    time make -j
  fi
  if [ -z "$(pgrep ptp4l)" ]; then
-   printf "\n * Run ptp daemon:\n   cd \"$linuxptpLoc\" %s\n\n"\
+   printf "\n * Run ptp daemon:\n   cd \"$(realpath $linuxptpLoc)\" %s\n\n"\
           "&& make && sudo ./ptp4l -f $cfgFile -i $ifName"
    return
  fi
@@ -94,6 +88,7 @@ main()
    VERSION_NUMBER PORT_DATA_SET
    TIME_STATUS_NP GRANDMASTER_SETTINGS_NP PORT_DATA_SET_NP PORT_PROPERTIES_NP
    PORT_STATS_NP SUBSCRIBE_EVENTS_NP SYNCHRONIZATION_UNCERTAIN_NP'
+ # Planned: MASTER_ONLY
  local -r setmsg="set PRIORITY2 137"
  local -r verify="get PRIORITY2"
  for n in $tlvs; do cmds+=" \"get $n\"";done
@@ -116,9 +111,8 @@ main()
  # user  0m0.004s
  # sys   0m0.011s
 
- printf "\n * We expect 'protocolAddress' and 'timeSource' difference\n%s\n%s\n\n"\
-          " * Statistics may apprear  '[tx/rx]_[PTP massage type]'"\
-          " * Old ptp4l uses wrong value for slaveOnly"
+ printf "\n * We expect 'protocolAddress' and 'timeSource' difference\n%s\n\n"\
+          " * Statistics may apprear"
  cmd diff $t1 $t2 | grep '^[0-9-]' -v
  rm $t1 $t2
 
@@ -165,13 +159,12 @@ priority1: 153
  cd ..
  enter python
  for i in 2 3; do
-   rm -f *.so -rf pmc.pyc __pycache__
+   rm -rf pmc.pyc __pycache__
    local -n need=needPython$i
    if [ -n "$need" ]; then
-     getFirstFile "$i/*.so"
-     # skip if no library
-     [ -f "$file" ] || continue
-     ln -sf $file _pmc.so
+     ln -sf $i/_pmc.so
+   else
+     rm -f _pmc.so
    fi
    printf "\n $(readlink $(which python$i)) ---- \n"
    eval "$ldPath $useSudo python$i ./test.py $cfgFile" > /dev/null

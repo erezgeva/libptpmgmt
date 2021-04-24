@@ -1,0 +1,4 @@
+/SOURCES/libpmc-*.txz
+/BUILDROOT/libpmc-*/
+/BUILD/libpmc-*/
+/RPMS/*/*.rpm

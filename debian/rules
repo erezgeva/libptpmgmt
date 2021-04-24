@@ -14,7 +14,8 @@
 # dh_* command outputs which commands it is executing
 #export DH_OPTIONS=-v
 
-export LD_SONAME=do
+export LD_SONAME=1
+export SONAME_USE_MAJ=1
 # For speed optimization
 export CPPFLAGS_OPT=-Ofast
 
@@ -35,14 +36,17 @@ deb_clean:
 override_dh_auto_clean:
 	$Q$(MAKE) distclean
 
+LIBDIR:=/usr/lib/$(DEB_TARGET_MULTIARCH)
 DSRC:=debian/tmp/usr/
+SLIBDIR:=debian/tmp$(LIBDIR)
+
 # Make create all targets, we just move them from temporary to proper package
 override_dh_install:
 	$(Q)install -d $(foreach d,python-pmc/usr/lib python3-pmc/usr/lib\
 	  libpmc-dev/usr libpmc-dev/usr/share libpmc-doc/usr/share\
 	  pmc/usr/share/man/man8 php-pmc/usr/lib php-pmc/usr/share\
 	  $(foreach n,lua-pmc libpmc-perl libpmc-dev ruby-pmc\
-	  libpmc,$n/usr/lib/$(DEB_HOST_MULTIARCH)),debian/$d)
+	  libpmc,$n$(LIBDIR)),debian/$d)
 	$(Q)mv $(DSRC)include debian/libpmc-dev/usr
 	$(Q)mv $(DSRC)share/libpmc-dev debian/libpmc-dev/usr/share
 	$(Q)mv $(DSRC)share/doc debian/libpmc-doc/usr/share
@@ -50,20 +54,13 @@ override_dh_install:
 	  debian/pmc/usr/share/man/man8/$(notdir $(wildcard $(DSRC)sbin/*)).8.gz
 	$(Q)mv $(DSRC)sbin debian/pmc/usr
 	$(Q)mv $(DSRC)lib/python2* debian/python-pmc/usr/lib
-	$(Q)mv $(DSRC)lib/python3 debian/python3-pmc/usr/lib
-	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/lua*\
-	  $(DSRC)lib/$(DEB_HOST_MULTIARCH)/liblua*\
-	  debian/lua-pmc/usr/lib/$(DEB_HOST_MULTIARCH)
-	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/perl*\
-	  debian/libpmc-perl/usr/lib/$(DEB_HOST_MULTIARCH)
-	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/ruby*\
-	  debian/ruby-pmc/usr/lib/$(DEB_HOST_MULTIARCH)
+	$(Q)mv $(DSRC)lib/python3* debian/python3-pmc/usr/lib
+	$(Q)mv $(SLIBDIR)/lua* $(SLIBDIR)/liblua* debian/lua-pmc$(LIBDIR)
+	$(Q)mv $(SLIBDIR)/perl* debian/libpmc-perl$(LIBDIR)
+	$(Q)mv $(SLIBDIR)/ruby* debian/ruby-pmc$(LIBDIR)
 ifneq ($(wildcard $(DSRC)lib/php),)
 	$(Q)mv $(DSRC)lib/php debian/php-pmc/usr/lib
 	$(Q)mv $(DSRC)share/php debian/php-pmc/usr/share
 endif
-	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/*.a\
-	  $(DSRC)lib/$(DEB_HOST_MULTIARCH)/*.so\
-	  debian/libpmc-dev/usr/lib/$(DEB_HOST_MULTIARCH)
-	$(Q)mv $(DSRC)lib/$(DEB_HOST_MULTIARCH)/*\
-	  debian/libpmc/usr/lib/$(DEB_HOST_MULTIARCH)
+	$(Q)mv $(SLIBDIR)/*.a $(SLIBDIR)/*.so debian/libpmc-dev$(LIBDIR)
+	$(Q)mv $(SLIBDIR)/* debian/libpmc$(LIBDIR)

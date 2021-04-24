@@ -33,6 +33,7 @@ main()
   fi
  done
  DEBEMAIL="$email" debchange -r buster
+ sed -i "s/^\(Version:\s*\).*/\1$next_ver/" rpm/libpmc.spec
  gvim debian/changelog
  gitk &
 }

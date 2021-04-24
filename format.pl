@@ -57,7 +57,7 @@ sub main
             } else {
                 if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
                     print STDERR "Check: $file:$.: for wrong char: $_\n";
-                } elsif(/\\[^ntr"s()+\d\$]/) {
+                } elsif(/\\[^ntrds"().+\d\$]/) {
                     print STDERR "Check: $file:$.: wrong escape char: $_\n";
                 } elsif(/.\t/) {
                     print STDERR "Check: $file:$.: Tabs are allowed only in begining: $_\n";
