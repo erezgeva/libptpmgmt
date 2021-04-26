@@ -5,7 +5,7 @@
 # @copyright 2021 Erez Geva
 # @copyright GNU General Public License 3.0 or later
 #
-# script to create Docker contianer for building and create rpm packages
+# script to create Docker contianer for building and create archlinux packages
 ###############################################################################
 cmd()
 {
@@ -33,9 +33,9 @@ make_all_args()
 main()
 {
   local -r base_dir=$(dirname $(realpath $0))
-  local -r name=rpmbuild
+  local -r name=pacmanbuild
   local -r USER=builder
-  local -r  SRC=.
+  local -r SRC=.
   cd $base_dir/..
   while getopts 'n' opt; do
     case $opt in
@@ -50,4 +50,4 @@ main()
   clean_unused_images
 }
 main $*
-# docker run -it -v $(realpath .):/home/builder/rpm rpmbuild
+# docker run -it -v $(realpath .):/home/builder/archlinux pacmanbuild

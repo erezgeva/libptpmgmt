@@ -16,12 +16,6 @@
  *  #include "ids.h"
  */
 #undef DOMAIN /* Old math.h header uses this macro */
-#ifndef IDS_START
-#define IDS_START
-#endif
-#ifndef IDS_END
-#define IDS_END
-#endif
 #ifndef caseNA
 #define caseNA(n)
 #endif
@@ -66,7 +60,6 @@
  *        -2  Variable length dataField, need calculation
  */
 /*Name                                 value scope  allow       size   func*/
-IDS_START
 A(NULL_PTP_MANAGEMENT,                 0000, port,  use_GSC,    0,     NA)
 A(CLOCK_DESCRIPTION,                   0001, port,  A_GET,     -2,     UFS)
 A(USER_DESCRIPTION,                    0002, clock, use_GS,    -2,     UFBS)
@@ -130,7 +123,6 @@ A(SUBSCRIBE_EVENTS_NP,                 c003, clock, use_GSL,   66,     UFB)
 A(PORT_PROPERTIES_NP,                  c004, port,  use_GL,    -2,     UFS)
 A(PORT_STATS_NP,                       c005, port,  use_GL,   266,     UF)
 A(SYNCHRONIZATION_UNCERTAIN_NP,        c006, clock, use_GSL,    2,     UFB)
-IDS_END
 #ifndef LAST_MNG_ID
 #define LAST_MNG_ID SYNCHRONIZATION_UNCERTAIN_NP
 #endif
@@ -145,5 +137,3 @@ IDS_END
 #undef caseUFS
 #undef caseUFB
 #undef caseUFBS
-#undef IDS_START
-#undef IDS_END

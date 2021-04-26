@@ -11,7 +11,7 @@ Version:        0.3
 Release:        1%{?dist}
 Summary:        %{bname} library, to communicate with ptp4l
 License:        LGPL, GPL
-URL:            https://sf.net/p/%{name}
+URL:            https://%{name}.sf.net
 BuildRequires:  swig
 BuildRequires:  perl
 BuildRequires:  perl-devel
@@ -110,8 +110,6 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %make_install LIBDIR=%{_libdir} DEV_PKG=%{name}-devel\
   PY_LIBDIR=%{_libdir}/python --no-print-directory
 
-%{?ldconfig_scriptlets}
-
 %files
 %{_libdir}/%{name}.so
 
@@ -149,6 +147,7 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %files -n %{bname}
 %{_sbindir}/%{bname}.lib
+%{_mandir}/man8/%{bname}.lib.8*
 
 %changelog
 * Tue Apr 20 2021 ErezGeva2@gmail.com 0.3-1

@@ -12,7 +12,7 @@ use File::Touch;
 sub main
 {
     for(glob "*.cpp *.h *.sh Makefile debian/rules debian/changelog " .
-             "debian/copyright pkg/* */test.* testJson.pl")
+             "debian/copyright scripts/* */test.* testJson.pl")
     {
         next if -l or not -f;
         my $file = $_;

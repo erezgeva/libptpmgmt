@@ -54,7 +54,7 @@ define help
 #                                                                              #
 #   DEV_PKG          Development package name, default libpmc-dev.             #
 #                                                                              #
-#   PY_LIBDIR        Python libraries folder, defailt /usr/lib/python          #
+#   PY_LIBDIR        Python libraries folder, default /usr/lib/python          #
 #                                                                              #
 #   CPPFLAGS_OPT     Compilation optimization, default for debug               #
 #                                                                              #
@@ -113,18 +113,18 @@ ifneq ($(and $(TERM),$(call which,tput)),)
 ifeq ($(shell tput setaf 1),)
 NO_COL:=1
 endif
-endif
+endif # which tput
 # Detect output is not device (terminal), it must be a pipe or a file
 # In case of using 'aha' just call: $ make -j USE_COL=1 | aha > out.html
 ifndef USE_COL
 ifndef MAKE_TERMOUT
 NO_COL:=1
 endif
-endif
+endif # USE_COL
 
 # Terminal colors
 ifndef NO_COL
-ESC:=$(shell printf '\033[')
+ESC!= printf '\033['
 COLOR_BLACK:=      $(ESC)30m
 COLOR_RED:=        $(ESC)31m
 COLOR_GREEN:=      $(ESC)32m
@@ -163,6 +163,8 @@ include version
 RL:=ranlib
 LN:=ln -fs
 SED:=sed
+MD:=mkdir -p
+TAR:=tar cfJ
 CPPFLAGS_OPT?=-Og
 CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 # SWIG warnings
@@ -182,7 +184,7 @@ LIB_NAME_SO:=$(LIB_NAME).so
 LIB_FNAME_SO:=$(LIB_NAME_SO).$(LIB_VER)
 LIB_SNAME_SO:=$(LIB_NAME_SO)$(SONAME)
 ifdef LD_SONAME
-LDFLAGS_NM=-Wl,--version-script,pkg/lib.ver -Wl,-soname,$@$(SONAME)
+LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
 endif
 LDLIBS_LIB:=-lm
 PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
@@ -210,7 +212,7 @@ CPPFLAGS_COLOR:=-fdiagnostics-color=always
 else
 CPPFLAGS_COLOR:=-fdiagnostics-color=never
 endif
-endif
+endif # verCheck CXX 4.9
 CPPFLAGS+=$(CPPFLAGS_COLOR)
 
 ALL:=$(PMC_NAME) $(LIB_NAME_SO) $(LIB_NAME).a
@@ -279,19 +281,11 @@ endif
 endif # which astyle
 
 ifneq ($(call which,dpkg-architecture),)
-ifndef DEB_TARGET_MULTIARCH
-DEB_TARGET_MULTIARCH:=$(shell dpkg-architecture -qDEB_TARGET_MULTIARCH)
-endif
-ifndef DEB_BUILD_MULTIARCH
-DEB_BUILD_MULTIARCH:=$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
-endif
-endif # dpkg-architecture
-ifndef TARGET_ARCH
-TARGET_ARCH:=$(DEB_TARGET_MULTIARCH)
-endif
-ifndef BUILD_ARCH
-BUILD_ARCH:=$(DEB_BUILD_MULTIARCH)
-endif
+DEB_TARGET_MULTIARCH?=$(shell dpkg-architecture -qDEB_TARGET_MULTIARCH)
+DEB_BUILD_MULTIARCH?=$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
+endif # which dpkg-architecture
+TARGET_ARCH?=$(DEB_TARGET_MULTIARCH)
+BUILD_ARCH?=$(DEB_BUILD_MULTIARCH)
 
 ifndef NO_SWIG
 ifneq ($(call which,swig),)
@@ -303,7 +297,7 @@ SWIG_NAME:=PmcLib
 
 ifndef NO_PERL
 ifneq ($(call which,perl),)
-PERL_INC_B:=$(shell perl -e 'for(@INC){print "$$_/CORE" if-f "$$_/CORE/EXTERN.h"}')
+PERL_INC_B!= perl -e 'for(@INC){print "$$_/CORE" if-f "$$_/CORE/EXTERN.h"}'
 PERLDIR_B:=$(DESTDIR)$(lastword $(shell perl -e '$$_=$$^V;s/^v//;\
   s/^(\d+\.\d+).*/\1/;$$v=$$_;for(@INC){print "$$_\n" if /$$v/ and /lib/}'))
 # Perl does not "know" how to cross properly
@@ -347,6 +341,7 @@ LD_LUA_$1:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)
 endif
 LUA_LIB_$1:=lua/$1/$(LUA_LIB_NAME)
 lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
+	$Q$(MD) lua/$1
 	$$(Q_LCC)
 	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_LUA) -I/usr/include/lua$1 \
 	-c $$< -o $$@
@@ -355,8 +350,7 @@ $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
 	$$(LD_LUA_$1) -o $$@
 SWIG_ALL+=$$(LUA_LIB_$1)
-CLEAN+=$$(foreach n,o d,lua/$1/$(SWIG_NAME).$$n)
-DISTCLEAN+=$$(LUA_LIB_$1)
+DISTCLEAN_DIRS+=lua/$1
 
 endef
 # Build multiple Lua versions
@@ -367,9 +361,14 @@ $(eval $(foreach n,$(LUA_VERSIONS),$(call lua,$n)))
 ifneq ($(wildcard /usr/include/lua.h),)
 # Get Lua version and library base
 LUA_VER:=$(lastword $(shell lua -e 'print(_VERSION)'))
+# Do we have default lua lib, or is it versioned?
+ifeq ($(shell /sbin/ldconfig -p | grep liblua.so),)
 LUA_BASE:=$(firstword $(subst .so, ,$(notdir $(lastword $(shell\
    /sbin/ldconfig -p | grep "lua.*$(LUA_VER)\.so$$")))))
 LUA_FLIB:=$(LUA_BASE)-$(LUA_LIB_NAME)
+else
+LUA_FLIB:=liblua-$(LUA_LIB_NAME)
+endif
 ifdef LD_SONAME
 LD_LUA:=-Wl,-soname,$(LUA_FLIB)$(SONAME)
 endif
@@ -382,9 +381,9 @@ $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) \
 	$(LD_LUA) -o $@
 SWIG_ALL+=$(LUA_LIB)
-CLEAN+=$(foreach n,o d,lua/$(SWIG_NAME).$n)
 DISTCLEAN+=$(LUA_LIB)
 endif # /usr/include/lua.h
+CLEAN+=$(wildcard lua/*.[od]) $(wildcard lua/*/*.[od])
 else # which lua
 NO_LUA=1
 endif
@@ -394,28 +393,27 @@ ifndef NO_PYTHON
 ifneq ($(call which,python),)
 PY_BASE:=python/$(SWIG_NAME)
 PY_LIB_NAME:=_pmc
-ifndef PY_LIBDIR
-PY_LIBDIR:=/usr/lib/python
-endif # PY_LIBDIR
+PY_LIBDIR?=/usr/lib/python
 $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $<
 define python
 PY_BASE_$1:=python/$1/$(SWIG_NAME)
 PY_SO_$1:=python/$1/$(PY_LIB_NAME).so
-PY_INC_$1:=$$(shell python$1-config --includes)
-PY_LD_$1:=$$(shell python$1-config --libs)
+PY_INC_$1!=python$1-config --includes
+PY_LD_$1!=python$1-config --libs
 PY$1_DIR:=$(DESTDIR)$$(lastword $$(shell python$1 -c 'import site; \
   print("\n".join(site.getsitepackages()))' | grep $(PY_LIBDIR)))
 $$(PY_BASE_$1).o: $(PY_BASE).cpp $(HEADERS)
+	$Q$(MD) python/$1
 	$$(Q_LCC)
 	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PY) $$(PY_INC_$1) -c $$< -o $$@
 $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 	$$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) $$(PY_LD_$1) -o $$@
 SWIG_ALL+=$$(PY_SO_$1)
-CLEAN+=$$(foreach n,o d,$$(PY_BASE_$1).$$n)
-DISTCLEAN+=$$(wildcard python/$1/*.so)
+CLEAN+=$$(wildcard python/$1/*.[od])
+DISTCLEAN_DIRS+=python/$1
 
 endef
 DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
@@ -434,8 +432,8 @@ RUBY_SCRIPT_INCS:='puts "-I" + RbConfig::CONFIG["rubyhdrdir"] +\
                        " -I" + RbConfig::CONFIG["rubyarchhdrdir"]'
 RUBY_SCRIPT_LIB:='puts "-l" + RbConfig::CONFIG["RUBY_SO_NAME"]'
 RUBY_SCRIPT_VDIR:='puts RbConfig::CONFIG["vendorarchdir"]'
-RUBY_INC_B:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_INCS))
-RUBY_LIB_B:=$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_LIB))
+RUBY_INC_B!= ruby -rrbconfig -e $(RUBY_SCRIPT_INCS)
+RUBY_LIB_B!= ruby -rrbconfig -e $(RUBY_SCRIPT_LIB)
 RUBYDIR_B:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
 # Ruby does not "know" how to cross properly
 ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
@@ -468,14 +466,19 @@ endif # NO_RUBY
 
 ifndef NO_PHP
 ifneq ($(call which,php-config),)
-php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell php-config --version))))
+ifneq ($(call which,php-config7),)
+PHPCFG:=php-config7
+else
+PHPCFG:=php-config
+endif
+php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell $(PHPCFG) --version))))
 ifeq ($(call verCheck,$(php_ver),7.0),)
 # Old SWIG does not support PHP 7
 ifeq ($(call verCheck,$(swig_ver),3.0.12),)
-PHPEDIR:=$(DESTDIR)$(shell php-config --extension-dir)
-PHPIDIR=$(DESTDIR)$(lastword $(subst :, ,$(shell\
+PHPEDIR:=$(DESTDIR)$(shell $(PHPCFG) --extension-dir)
+PHPIDIR:=$(DESTDIR)$(lastword $(subst :, ,$(shell\
         php -r 'echo get_include_path();')))
-PHP_INC:=-Iphp $(shell php-config --includes)
+PHP_INC:=-Iphp $(shell $(PHPCFG) --includes)
 PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/pmc
 $(PHP_NAME): $(LIB_NAME).i $(HEADERS_ALL)
@@ -510,16 +513,6 @@ NO_SWIG=1
 endif
 endif # NO_SWIG
 
-ifneq ($(call which,dpkg-buildpackage),)
-deb_src: distclean
-	$(Q)dpkg-source -b .
-deb:
-	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc
-	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
-deb_clean:
-	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
-endif # Debian
-
 ifneq ($(call which,doxygen),)
 ifeq ($(call verCheck,$(shell doxygen -v),1.8),)
 doxygen: $(HEADERS_ALL)
@@ -541,44 +534,75 @@ all: $(ALL)
 	@:
 .DEFAULT_GOAL=all
 
+####### Debain build #######
+ifneq ($(call which,dpkg-buildpackage),)
+deb_src: distclean
+	$(Q)dpkg-source -b .
+deb:
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc
+	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
+deb_clean:
+	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
+endif # which dpkg-buildpackage
+
+SRC_FILES:=$(HEADERS) $(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md \
+  python/*/.placeholder) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) debian/rules
+SRC_NAME:=libpmc-$(LIB_VER)
 ####### rpm build #######
 ifneq ($(call which,rpmbuild),)
-RPM_SRC:=rpm/SOURCES/libpmc-$(LIB_VER).txz
-$(RPM_SRC): $(HEADERS) $(wildcard *.c* *.i */test.* pkg/* *.sh *.pl *.md \
-  python/*/.placeholder) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) debian/rules
-	$(Q)tar cfJ $@ $^ --transform "s#^#libpmc-$(LIB_VER)/#S"
+RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
+$(RPM_SRC): $(SRC_FILES)
+	$Q$(MD) rpm/SOURCES
+	$Q$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
 rpm: $(RPM_SRC)
 	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/libpmc.spec
-DISTCLEAN+=$(RPM_SRC)
-DISTCLEAN_DIRS+=$(foreach n,BUILD BUILDROOT RPMS SRPMS,rpm/$n)
-endif # which ctags
+rpmsrc: $(RPM_SRC)
+DISTCLEAN_DIRS+=$(wildcard rpm/[BRS]*)
+endif # which rpmbuild
+
+####### archlinux build #######
+ARCHMAKE:=archpkg
+ifneq ($(call which,makepkg),)
+ARCHL_SRC:=$(ARCHMAKE)/$(SRC_NAME).txz
+$(ARCHL_SRC): $(SRC_FILES)
+	$Q$(MD) $(ARCHMAKE)
+	$Q$(TAR) $@ $^
+pkg: $(ARCHL_SRC)
+	$(Q)cp archlinux/PKGBUILD $(ARCHMAKE)
+	$(Q)cp archlinux/changelog  $(ARCHMAKE)
+	$Qprintf "md5sums=('%s')" $(firstword $(shell md5sum $(ARCHL_SRC)))\
+	  >> $(ARCHMAKE)/PKGBUILD
+	$Qcd $(ARCHMAKE) && makepkg
+pkgsrc: $(ARCHL_SRC)
+endif # which makepkg
+DISTCLEAN_DIRS+=$(ARCHMAKE)
 
 ####### installation #######
 URL:=html/index.html
 REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
-ifndef INSTALL
-INSTALL:=install -p
-endif
+INSTALL?=install -p
 NINST:=$(INSTALL) -m 644
 DINST:=$(INSTALL) -d
 BINST:=$(INSTALL)
-ifndef LIBDIR
-LIBDIR:=/usr/lib/$(TARGET_ARCH)
+ifneq ($(TARGET_ARCH),)
+LIBDIR?=/usr/lib/$(TARGET_ARCH)
+else
+LIBDIR?=/usr/lib
 endif
-ifndef DEV_PKG
-DEV_PKG:=libpmc-dev
-endif
+DEV_PKG?=libpmc-dev
+SBINDIR?=/usr/sbin
 LUADIR:=$(DESTDIR)$(LIBDIR)
 DOCDIR:=$(DESTDIR)/usr/share/doc/libpmc-doc
+MANDIR:=$(DESTDIR)/usr/share/man/man8
 PY3_VER:=$(subst .,,$(subst libpython,,$(basename \
   $(notdir $(wildcard $(LIBDIR)/libpython3.*.so)))))
 ifndef PY2_ARCH
-ifdef TARGET_ARCH
+ifneq ($(TARGET_ARCH),)
 PY2_ARCH:=.$(TARGET_ARCH)
 endif
 endif # PY2_ARCH
 ifndef PY3_ARCH
-ifdef TARGET_ARCH
+ifneq ($(TARGET_ARCH),)
 PY3_ARCH:=$(TARGET_ARCH)
 else
 PY3_ARCH:=$(shell uname -m)-linux-gnu
@@ -598,8 +622,10 @@ endif
 	$Q$(foreach f,$(HEADERS),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <pmc/\1>!'\
 	  $(DESTDIR)/usr/include/pmc/$f;)
-	$Q$(NINST) -D pkg/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
-	$Q$(BINST) -D pmc $(DESTDIR)/usr/sbin/pmc.lib
+	$Q$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
+	$Q$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc.lib
+	$Q$(DINST) $(MANDIR)
+	$(Q)ln -fs pmc.8.gz $(MANDIR)/pmc.lib.8.gz
 	$Q$(RM) doc/html/*.md5
 	$Q$(DINST) $(DOCDIR)
 	$(Q)cp -a doc/html $(DOCDIR)
@@ -616,9 +642,9 @@ ifndef NO_LUA
 	  $(DINST) $(LUADIR)/lua/$n;\
 	  $(LN) ../../$(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/lua/$n/$(LUA_LIB_NAME);)
 ifdef LUA_VER
-	  $(NINST) -D $(LUA_LIB) $(LUADIR)/$(LUA_FLIB)
-	  $(DINST) $(LUADIR)/lua/$(LUA_VER)
-	  $(LN) ../../$(LUA_FLIB) $(LUADIR)/lua/$(LUA_VER)/$(LUA_LIB_NAME)
+	$Q$(NINST) -D $(LUA_LIB) $(LUADIR)/$(LUA_FLIB)
+	$Q$(DINST) $(LUADIR)/lua/$(LUA_VER)
+	$Q$(LN) ../../$(LUA_FLIB) $(LUADIR)/lua/$(LUA_VER)/$(LUA_LIB_NAME)
 endif # LUA_VER
 endif # NO_LUA
 ifndef NO_PYTHON
@@ -645,4 +671,4 @@ help:
 	@:
 
 .PHONY: all clean distclean format install deb_src deb deb_clean doxygen\
-        checkall help rpm
+        checkall help rpm rpmsrc pkg pkgsrc

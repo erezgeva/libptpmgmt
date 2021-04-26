@@ -10,7 +10,7 @@ Build-Depends-Arch: dh-python, dh-lua, dh-php, libtool, coreutils,
 		    python-dev:native, python3-dev:native, libpython3-dev,
 		    ruby:native, ruby-dev, php-dev
 Build-Depends-Indep: graphviz, doxygen
-Homepage: https://sf.net/p/libpmc
+Homepage: https://libpmc.sf.net
 
 Package: libpmc
 Architecture: any

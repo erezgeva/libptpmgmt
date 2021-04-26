@@ -1,0 +1,80 @@
+* Tue Apr 20 2021 ErezGeva2@gmail.com 0.3-1
+- Add licence to Javadoc comments for Doxygen process in addition to SPDX tag.
+- Set document licence to GNU Free Documentation License version 1.3
+- JSON module: for
+  - Message to JSON and JSON to message
+  - JSON to message require C JSON library or the fast C JSON library.
+  - Parse signaling messages.
+  - Handle TLVs with array.
+  - Handle linuxptp Events and statistics TLVs.
+  - Add testing for JSON module.
+  - Add macros for JSON library function and types,
+    In case we need to change then in future.
+  - Add function to parse from JSON object,
+    User can embedded the message in a JSON message.
+  - Add convector of JSON types.
+- Add error macros
+- Add PHP wrapper.
+- Replace use of std::move with unique_ptr reset() function.
+- Parse MANAGEMENT_ERROR_STATUS in signaling message.
+- PMC tool:
+  - Set unique_ptr after socket creation and before internalizing.
+    In case socket internalize fials, unique_ptr will release it.
+  - Use unique_ptr reset() function.
+  - Add macros in pmc tool for both errors and normal dumps.
+  - Fix TimeInterval sign, update peerMeanPathDelay,
+- Fix headers in development package.
+- Make file
+  - Move SONAME definition from Debian rules.
+  - Debian rules only set a flag to link with soname.
+- Improve socket for wrappers.
+  - Use Buffer object in send and receive functions.
+  - Move all virtual functions to protected,
+    and add functions in the base class to call them.
+  - Mark SockBase and SockBaseIf in SWIG file.
+  - Add rcvFrom with from address split to additional function for scripting.
+- Add parse and build in message that uses reference to Buffer object.
+- Fix TimeInterval sign.
+  - getIntervalInt() return sign integer.
+- Add getBin() to Binary to fetch octet from Binary.
+- Update the read-me and the Time-Interval documentation in message module.
+
+* Mon Apr 05 2021 ErezGeva2@gmail.com 0.2-1
+- Add Ruby to read-me.
+- Add long options to the pmc tool.
+- Add pmc tool help after linuxptp.
+- Add support for padding get action management TLVs.
+- Fix Debian cross compilation.
+- Support Debian Stretch rename python2 to python.
+- Designated initializers are not supported in old compilers.
+- Old math.h header uses DOMAIN macro, as we do not use math macro,
+-  just remove it.
+- Add help for make file.
+- Add macros in make file to prevent Swig targets.
+- testing script support linuxptp location with spaces.
+- Fix python3 by adding a new class for allocating the buffer.
+- Remove convert to buffer. All scripts use the buffer class.
+- pmc tool: add mode for PTP network layer in run mode.
+- Add check in Ruby for capitalizing first letter.
+- testing script: fix check for installed libraries on system.
+- Add support for ruby
+- Start classes with capital.
+- Prevent format of rebuild all.
+- Improve testing scripts.
+- Add masking for flags in proc module.
+- Add flag for build only and for TLVs with variable length.
+- Add vector handling classes for scripts.
+- Prepare for using a different implementation specific management TLVs.
+- Add key flag to pmc build.
+- Use optimization for fast execution When packaging.
+- Add signaling messages support.
+- Add IEEE 754 64-bit floating point.
+- Add install goal in make file.
+- Debian rules uses make file install goal.
+- Fix overflow in configuration class.
+- Fix compilation warnings.
+- Spelling.
+- Use Debian site man pages as they are more updated.
+
+* Sun Mar 21 2021 ErezGeva2@gmail.com 0.1-1
+- Alpha version.

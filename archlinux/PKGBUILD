@@ -1,0 +1,105 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Maintainer: Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright 2021 Erez Geva
+# @copyright GNU General Public License 3.0 or later
+
+pkgver=0.3
+pkgrel=1
+pkgname=(libpmc libpmc-dev libpmc-doc libpmc-perl lua-pmc ruby-pmc
+  python2-pmc python3-pmc pmc)
+# Source code can be build on most architectures
+# But as Arch Linux does not support the 'all' keyword
+arch=(x86_64)
+url=https://libpmc.sf.net
+license=(LGPL3)
+source=("$pkgname-$pkgver.txz")
+build() {
+  # Exclude PHP as it does not have a system include path
+  make -j LD_SONAME=1 CPPFLAGS_OPT=-Ofast PMC_USE_LIB=so SONAME_USE_MAJ=1\
+    NO_PHP=1 --no-print-directory
+  # Place here as make do not use packages!
+  make -j DESTDIR=install install DEV_PKG=libpmc-dev SBINDIR=/usr/bin\
+    NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
+}
+makedepends=(doxygen graphviz perl ruby swig lua lua51 lua52 lua53\
+  python2 python3)
+package_libpmc() {
+  pkgdesc='pmc library, to communicate with ptp4l'
+  mkdir -p $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/libpmc.so.* $pkgdir/usr/lib
+}
+package_libpmc-dev() {
+  # development package can use static library
+  # But as Arch linux does not use development packages, we add it here
+  options=(staticlibs)
+  pkgdesc=<<EOF
+pmc library development
+ This package provides header files and static library.
+EOF
+  mkdir -p $pkgdir/usr/lib $pkgdir/usr/share
+  mv $srcdir/install/usr/share/libpmc-dev $pkgdir/usr/share
+  mv $srcdir/install/usr/include $pkgdir/usr
+  mv $srcdir/install/usr/lib/libpmc.a $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/libpmc.so $pkgdir/usr/lib
+}
+package_libpmc-doc() {
+  arch=(any)
+  pkgdesc='pmc library documentation, to communicate with ptp4l'
+  license=(FDL1.3)
+  depends=("libpmc=$pkgver")
+  mkdir -p $pkgdir/usr/share
+  mv $srcdir/install/usr/share/doc/* $pkgdir/usr/share
+}
+package_libpmc-perl() {
+  pkgdesc='pmc library Perl wrapper'
+  depends=("libpmc=$pkgver" perl)
+  mkdir -p $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/perl* $pkgdir/usr/lib
+}
+package_python2-pmc() {
+  pkgdesc='pmc library python version 2 wrapper'
+  depends=("libpmc=$pkgver" python2)
+  mkdir -p $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/python2* $pkgdir/usr/lib
+}
+package_python3-pmc() {
+  pkgdesc='pmc library python version 3 wrapper'
+  depends=("libpmc=$pkgver" python3)
+  mkdir -p $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/python3* $pkgdir/usr/lib
+}
+package_lua-pmc() {
+  pkgdesc='pmc library Lua wrapper'
+  depends=("libpmc=$pkgver" lua lua51 lua52 lua53)
+  mkdir -p $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/lua* $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/liblua* $pkgdir/usr/lib
+}
+package_ruby-pmc() {
+  pkgdesc='pmc library ruby wrapper'
+  depends=("libpmc=$pkgver" ruby)
+  mkdir -p $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/ruby $pkgdir/usr/lib
+}
+#package_php-pmc() {
+# Arch linux php7 do not have system include_path!
+# pkgdesc='pmc library php wrapper'
+# depends=("libpmc=$pkgver" php7)
+# mkdir -p $pkgdir/usr/lib
+# mv $srcdir/install/usr/lib/php* $pkgdir/usr/lib
+#}
+package_pmc() {
+  license=(GPL3)
+  depends=("libpmc=$pkgver")
+  pkgdesc=<<EOF
+pmc tool.
+ new rewrite of linuxptp pmc tool using the libpmc library.
+ This tool is faster than the original linuxptp tool.'
+EOF
+  mkdir -p $pkgdir/usr/share/man
+  mv $srcdir/install/usr/bin $pkgdir/usr
+  mv $srcdir/install/usr/share/man/man8 $pkgdir/usr/share/man
+}
+changelog=changelog

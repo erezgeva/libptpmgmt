@@ -15,6 +15,7 @@ sub main()
   my $key = qr/[A-Z][a-z][a-z]/;
   my $debfile='debian/changelog';
   my $rpmfile='rpm/libpmc.spec';
+  my $arcfile='archlinux/changelog';
   my $first;
   exit unless -f $debfile and -f $rpmfile;
   open IN, $rpmfile or die "Fail open $debfile: $!";
@@ -25,6 +26,7 @@ sub main()
     print OUT;
     last if /^%changelog/;
   }
+  open OUT2, ">$arcfile" or die "Fail write file $arcfile: $!";
   open IN, $debfile or die "Fail open $debfile: $!";
   while(<IN>) {
     chomp;s/\s*$//;
@@ -34,9 +36,14 @@ sub main()
       next;
     }
     if(/^ -- [^<]+<([^>]+)>  ($key), (\d\d) ($key) (\d\d\d\d) /) {
-      print OUT "\n" if defined $first;
+      if(defined $first) {
+        print OUT "\n";
+        print OUT2 "\n";
+      }
       print OUT "* $2 $4 $3 $5 $1 $ver-1\n";
+      print OUT2 "* $2 $4 $3 $5 $1 $ver-1\n";
       print OUT "$_\n" for @keep;
+      print OUT2 "$_\n" for @keep;
       $first=1;
       @keep=();
       next;
@@ -46,5 +53,6 @@ sub main()
   }
   close IN;
   close OUT;
+  close OUT2;
 }
 main;

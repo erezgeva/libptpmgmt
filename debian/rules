@@ -44,14 +44,13 @@ SLIBDIR:=debian/tmp$(LIBDIR)
 override_dh_install:
 	$(Q)install -d $(foreach d,python-pmc/usr/lib python3-pmc/usr/lib\
 	  libpmc-dev/usr libpmc-dev/usr/share libpmc-doc/usr/share\
-	  pmc/usr/share/man/man8 php-pmc/usr/lib php-pmc/usr/share\
+	  pmc/usr/share php-pmc/usr/lib php-pmc/usr/share\
 	  $(foreach n,lua-pmc libpmc-perl libpmc-dev ruby-pmc\
 	  libpmc,$n$(LIBDIR)),debian/$d)
 	$(Q)mv $(DSRC)include debian/libpmc-dev/usr
 	$(Q)mv $(DSRC)share/libpmc-dev debian/libpmc-dev/usr/share
 	$(Q)mv $(DSRC)share/doc debian/libpmc-doc/usr/share
-	$(Q)ln -fs pmc.8.gz\
-	  debian/pmc/usr/share/man/man8/$(notdir $(wildcard $(DSRC)sbin/*)).8.gz
+	$(Q)mv $(DSRC)share/man debian/pmc/usr/share
 	$(Q)mv $(DSRC)sbin debian/pmc/usr
 	$(Q)mv $(DSRC)lib/python2* debian/python-pmc/usr/lib
 	$(Q)mv $(DSRC)lib/python3* debian/python3-pmc/usr/lib
