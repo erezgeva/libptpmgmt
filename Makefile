@@ -276,7 +276,7 @@ ifeq ($(call verCheck,$(astyle_ver),3.1),)
 format:
 	$(Q_FRMT)
 	$(Q)astyle --project=none --options=astyle.opt $(wildcard *.h *.cpp)
-	$Q./format.pl
+	$(Q)./format.pl
 endif
 endif # which astyle
 
@@ -561,21 +561,20 @@ DISTCLEAN_DIRS+=$(wildcard rpm/[BRS]*)
 endif # which rpmbuild
 
 ####### archlinux build #######
-ARCHMAKE:=archpkg
 ifneq ($(call which,makepkg),)
-ARCHL_SRC:=$(ARCHMAKE)/$(SRC_NAME).txz
+ARCHL_SRC:=archlinux/$(SRC_NAME).txz
+ARCHL_BLD:=archlinux/PKGBUILD
 $(ARCHL_SRC): $(SRC_FILES)
-	$Q$(MD) $(ARCHMAKE)
 	$Q$(TAR) $@ $^
-pkg: $(ARCHL_SRC)
-	$(Q)cp archlinux/PKGBUILD $(ARCHMAKE)
-	$(Q)cp archlinux/changelog  $(ARCHMAKE)
-	$Qprintf "md5sums=('%s')" $(firstword $(shell md5sum $(ARCHL_SRC)))\
-	  >> $(ARCHMAKE)/PKGBUILD
-	$Qcd $(ARCHMAKE) && makepkg
+$(ARCHL_BLD): $(ARCHL_BLD).org | $(ARCHL_SRC)
+	$(Q)cp $^ $@
+	$(Q)printf "md5sums=('%s')" $(firstword $(shell md5sum $(ARCHL_SRC))) >> $@
+pkg: $(ARCHL_BLD)
+	$(Q)cd archlinux && makepkg
 pkgsrc: $(ARCHL_SRC)
+DISTCLEAN+=$(ARCHL_SRC) $(ARCHL_BLD) $(wildcard archlinux/*.pkg.tar.zst)
+DISTCLEAN_DIRS+=archlinux/src archlinux/pkg
 endif # which makepkg
-DISTCLEAN_DIRS+=$(ARCHMAKE)
 
 ####### installation #######
 URL:=html/index.html
