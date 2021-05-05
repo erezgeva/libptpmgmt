@@ -535,7 +535,7 @@ all: $(ALL)
 .DEFAULT_GOAL=all
 
 ####### Debain build #######
-ifneq ($(call which,dpkg-buildpackage),)
+ifneq ($(and $(wildcard debian/rules),$(call which,dpkg-buildpackage)),)
 deb_src: distclean
 	$(Q)dpkg-source -b .
 deb:
@@ -543,25 +543,24 @@ deb:
 	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
-endif # which dpkg-buildpackage
+endif # and wildcard debian/rules, which dpkg-buildpackage
 
-SRC_FILES:=$(HEADERS) $(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md \
-  python/*/.placeholder) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) debian/rules
+SRC_FILES:=$(HEADERS) $(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md)\
+  LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
 SRC_NAME:=libpmc-$(LIB_VER)
 ####### rpm build #######
-ifneq ($(call which,rpmbuild),)
 RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
 $(RPM_SRC): $(SRC_FILES)
 	$Q$(MD) rpm/SOURCES
 	$Q$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
+ifneq ($(call which,rpmbuild),)
 rpm: $(RPM_SRC)
 	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/libpmc.spec
+endif # which rpmbuild
 rpmsrc: $(RPM_SRC)
 DISTCLEAN_DIRS+=$(wildcard rpm/[BRS]*)
-endif # which rpmbuild
 
 ####### archlinux build #######
-ifneq ($(call which,makepkg),)
 ARCHL_SRC:=archlinux/$(SRC_NAME).txz
 ARCHL_BLD:=archlinux/PKGBUILD
 $(ARCHL_SRC): $(SRC_FILES)
@@ -569,12 +568,13 @@ $(ARCHL_SRC): $(SRC_FILES)
 $(ARCHL_BLD): $(ARCHL_BLD).org | $(ARCHL_SRC)
 	$(Q)cp $^ $@
 	$(Q)printf "md5sums=('%s')" $(firstword $(shell md5sum $(ARCHL_SRC))) >> $@
+ifneq ($(call which,makepkg),)
 pkg: $(ARCHL_BLD)
 	$(Q)cd archlinux && makepkg
-pkgsrc: $(ARCHL_SRC)
+endif # which makepkg
+pkgsrc: $(ARCHL_BLD)
 DISTCLEAN+=$(ARCHL_SRC) $(ARCHL_BLD) $(wildcard archlinux/*.pkg.tar.zst)
 DISTCLEAN_DIRS+=archlinux/src archlinux/pkg
-endif # which makepkg
 
 ####### installation #######
 URL:=html/index.html
