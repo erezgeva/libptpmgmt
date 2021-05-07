@@ -17,23 +17,32 @@ $msg = Pmc::Message.new
 $buf = Pmc::Buf.new(1000)
 $sequence = 0
 
+def nextSequence()
+  # Ensure sequence in in range of unsigned 16 bits
+  if ++$sequence > 0xffff then
+    $sequence = 1;
+  end
+  return $sequence
+end
+
 def setPriority1(newPriority1)
   pr1 = Pmc::PRIORITY1_t.new
   pr1.priority1 = newPriority1
   id = Pmc::PRIORITY1
   $msg.setAction(Pmc::SET, id, pr1)
-  err = $msg.build($buf, ++$sequence)
+  seq = nextSequence()
+  err = $msg.build($buf, seq)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
     puts "send fail"
-    return
+    return -1
   end
   if !$sk.poll(500) then
     puts "timeout"
-    return
+    return -1
   end
   cnt = $sk.rcv($buf)
   if cnt <= 0 then
@@ -42,24 +51,25 @@ def setPriority1(newPriority1)
   end
   err = $msg.parse($buf, cnt)
   if(err != Pmc::MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
-     $sequence != $msg.getSequence()) then
+     seq != $msg.getSequence()) then
     puts "set fails"
     return -1
   end
   puts "set new priority #{newPriority1} success"
   $msg.setAction(Pmc::GET, id)
-  err = $msg.build($buf, ++$sequence)
+  seq = nextSequence()
+  err = $msg.build($buf, seq)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
     puts "send fail"
-    return
+    return -1
   end
   if !$sk.poll(500) then
     puts "timeout"
-    return
+    return -1
   end
   cnt = $sk.rcv($buf)
   if cnt <= 0 then
@@ -79,14 +89,16 @@ def setPriority1(newPriority1)
     if rid == id then
       newPr = Pmc.conv_PRIORITY1($msg.getData())
       puts "priority1: #{newPr.priority1}"
+      return 0
     end
   end
+  return -1
 end
 
 def main
   if !$buf.isAlloc() then
     puts "buffer allocation failed"
-    return
+    return -1
   end
   if ARGV.length > 0 then
     cfg_file = ARGV[0]
@@ -97,11 +109,11 @@ def main
   cfg = Pmc::ConfigFile.new
   if !cfg.read_cfg(cfg_file) then
     puts "fail reading configuration file"
-    return
+    return -1
   end
   if !$sk.setDefSelfAddress() || !$sk.init() || !$sk.setPeerAddress(cfg) then
     puts "fail init socket"
-    return
+    return -1
   end
   prms = $msg.getParams()
   prms.self_id.portNumber = $$
@@ -111,25 +123,26 @@ def main
   $msg.updateParams(prms)
   id = Pmc::USER_DESCRIPTION
   $msg.setAction(Pmc::GET, id)
-  err = $msg.build($buf, ++$sequence)
+  seq = nextSequence()
+  err = $msg.build($buf, seq)
   if err != Pmc::MNG_PARSE_ERROR_OK then
     txt = Pmc::Message.err2str_c(err)
     puts "build error " + txt
-    return
+    return -1
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
     puts "send fail"
-    return
+    return -1
   end
   # You can get file descriptor with $sk.getFd() and use select
   if !$sk.poll(500) then
     puts "timeout"
-    return
+    return -1
   end
   cnt = $sk.rcv($buf)
   if cnt <= 0 then
     puts "rcv error #{cnt}"
-    return
+    return -1
   end
 
   err = $msg.parse($buf, cnt)
@@ -172,6 +185,7 @@ def main
   # test send
   setPriority1(147)
   setPriority1(153)
+  return 0
 end
 
 main

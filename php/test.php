@@ -17,56 +17,67 @@ $msg = new Message();
 $buf = new Buf(1000);
 $sequence = 0;
 
+function nextSequence()
+{
+  # Ensure sequence in in range of unsigned 16 bits
+  global $sequence;
+  if(++$sequence > 0xffff)
+    $sequence = 1;
+  return $sequence;
+}
+
 function setPriority1($newPriority1)
 {
-  global $sk, $msg, $buf, $sequence;
+  global $sk, $msg, $buf;
   $pr1 = new PRIORITY1_t();
   $pr1->priority1 = $newPriority1;
   $id = pmc::PRIORITY1;
   $msg->setAction(pmc::SET, $id, $pr1);
-  $err = $msg->build($buf, ++$sequence);
+  $seq = nextSequence();
+  $err = $msg->build($buf, $seq);
   if($err != pmc::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "build error $txt\n";
   }
   if(!$sk->send($buf, $msg->getMsgLen())) {
     echo "send fail";
-    return;
+    return -1;
   }
   if(!$sk->poll(500)) {
     echo "timeout";
-    return;
+    return -1;
   }
   $cnt = $sk->rcvBuf($buf);
   if($cnt <= 0) {
     echo "rcv error $cnt";
-    return;
+    return -1;
   }
   $err = $msg->parse($buf, $cnt);
   if($err != pmc::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
-     $sequence != $msg->getSequence()) {
+     $seq != $msg->getSequence()) {
     echo "set fails";
-    return;
+    return -1;
   }
   echo "set new priority $newPriority1 success\n";
   $msg->setAction(pmc::GET, $id);
-  $err = $msg->build($buf, ++$sequence);
+  $seq = nextSequence();
+  $err = $msg->build($buf, $seq);
   if($err != pmc::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "build error $txt\n";
   }
   if(!$sk->send($buf, $msg->getMsgLen())) {
     echo "send fail";
-    return;
+    return -1;
   }
   if(!$sk->poll(500)) {
     echo "timeout";
-    return;
+    return -1;
   }
   $cnt = $sk->rcvBuf($buf);
   if($cnt <= 0) {
     echo "rcv error $cnt";
-    return;
+    return -1;
   }
   $err = $msg->parse($buf, $cnt);
   if($err == pmc::MNG_PARSE_ERROR_MSG) {
@@ -81,25 +92,27 @@ function setPriority1($newPriority1)
     if($rid == $id) {
       $newPr = pmc::conv_PRIORITY1($msg->getData());
       echo "priority1: " . $newPr->priority1 . "\n";
+      return 0;
     }
   }
+  return -1;
 }
 
 function main($cfg_file)
 {
-  global $sk, $msg, $buf, $sequence;
+  global $sk, $msg, $buf;
   if(!$buf->isAlloc()) {
     echo "buffer allocation failed\n";
-    return;
+    return -1;
   }
   $cfg = new ConfigFile();
   if(!$cfg->read_cfg($cfg_file)) {
     echo "fail reading configuration file";
-    return;
+    return -1;
   }
   if(!$sk->setDefSelfAddress() || !$sk->init() || !$sk->setPeerAddress($cfg)) {
     echo "fail init socket";
-    return;
+    return -1;
   }
   $prms = $msg->getParams();
   $prms->self_id->portNumber = posix_getpid();
@@ -109,25 +122,26 @@ function main($cfg_file)
   $msg->updateParams($prms);
   $id = pmc::USER_DESCRIPTION;
   $msg->setAction(pmc::GET, $id);
-  $err = $msg->build($buf, ++$sequence);
+  $seq = nextSequence();
+  $err = $msg->build($buf, $seq);
   if($err != pmc::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "build error $txt\n";
-    return;
+    return -1;
   }
   if(!$sk->send($buf, $msg->getMsgLen())) {
     echo "send fail";
-    return;
+    return -1;
   }
   # You can get file descriptor with $sk->getFd() and use select;
   if(!$sk->poll(500)) {
     echo "timeout";
-    return;
+    return -1;
   }
   $cnt = $sk->rcvBuf($buf);
   if($cnt <= 0) {
     echo "rcv error $cnt\n";
-    return;
+    return -1;
   }
   $err = $msg->parse($buf, $cnt);
   if($err == pmc::MNG_PARSE_ERROR_MSG) {
@@ -169,6 +183,7 @@ function main($cfg_file)
   # test send;
   setPriority1(147);
   setPriority1(153);
+  return 0;
 }
 
 if(count($argv) > 1)

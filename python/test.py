@@ -19,42 +19,52 @@ msg = pmc.Message()
 buf = pmc.Buf(1000)
 sequence = 0
 
+def nextSequence():
+  # Ensure sequence in in range of unsigned 16 bits
+  global sequence
+  if ++sequence > 0xffff:
+    sequence = 1;
+  return sequence
+
 def setPriority1(newPriority1):
+  global sk, msg, buf
   pr1 = pmc.PRIORITY1_t()
   pr1.priority1 = newPriority1
   id = pmc.PRIORITY1
   msg.setAction(pmc.SET, id, pr1)
-  err = msg.build(buf, ++sequence)
+  seq = nextSequence()
+  err = msg.build(buf, seq)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
     print("send fail")
-    return
+    return -1
   if not sk.poll(500):
     print("timeout")
-    return
+    return -1
   cnt = sk.rcv(buf)
   if cnt <= 0:
     print("rcv cnt")
     return -1
   err = msg.parse(buf, cnt)
   if(err != pmc.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
-     sequence != msg.getSequence()):
+     seq != msg.getSequence()):
     print("set fails")
     return -1
   print("set new priority %d success" % newPriority1)
   msg.setAction(pmc.GET, id)
-  err = msg.build(buf, ++sequence)
+  seq = nextSequence()
+  err = msg.build(buf, seq)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
     print("send fail")
-    return
+    return -1
   if not sk.poll(500):
     print("timeout")
-    return
+    return -1
   cnt = sk.rcv(buf)
   if cnt <= 0:
     print("rcv cnt")
@@ -72,11 +82,14 @@ def setPriority1(newPriority1):
     if rid == id:
       newPr = pmc.conv_PRIORITY1(msg.getData())
       print("priority1: %d" % newPr.priority1)
+      return 0
+  return -1
 
 def main():
+  global sk, msg, buf
   if not buf.isAlloc():
     print("buffer allocation failed")
-    return
+    return -1
   if len(sys.argv) > 1:
     cfg_file = sys.argv[1]
   else:
@@ -85,36 +98,37 @@ def main():
   cfg = pmc.ConfigFile()
   if not cfg.read_cfg(cfg_file):
     print("fail reading configuration file")
-    return
+    return -1
 
   if not sk.setDefSelfAddress() or not sk.init() or not sk.setPeerAddress(cfg):
     print("fail init socket")
-    return
+    return -1
 
   prms = msg.getParams()
   prms.self_id.portNumber = os.getpid()
   msg.updateParams(prms)
   id = pmc.USER_DESCRIPTION
   msg.setAction(pmc.GET, id)
-  err = msg.build(buf, ++sequence)
+  seq = nextSequence()
+  err = msg.build(buf, seq)
   if err != pmc.MNG_PARSE_ERROR_OK:
     txt = pmc.Message.err2str_c(err)
     print("build error %s" % txt)
-    return
+    return -1
 
   if not sk.send(buf(), msg.getMsgLen()):
     print("send fail")
-    return
+    return -1
 
   # You can get file descriptor with sk.getFd() and use select
   if not sk.poll(500):
     print("timeout")
-    return
+    return -1
 
   cnt = sk.rcv(buf)
   if cnt <= 0:
     print("rcv error %d" % cnt)
-    return
+    return -1
 
   err = msg.parse(buf, cnt)
   if err == pmc.MNG_PARSE_ERROR_MSG:
@@ -154,6 +168,7 @@ def main():
   # test send
   setPriority1(147)
   setPriority1(153)
+  return 0
 
 main()
 sk.close()
