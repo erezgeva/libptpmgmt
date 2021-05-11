@@ -398,6 +398,7 @@ $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $<
 define python
+ifneq ($$(call which,python$1-config),)
 PY_BASE_$1:=python/$1/$(SWIG_NAME)
 PY_SO_$1:=python/$1/$(PY_LIB_NAME).so
 PY_INC_$1!=python$1-config --includes
@@ -414,6 +415,7 @@ $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 SWIG_ALL+=$$(PY_SO_$1)
 CLEAN+=$$(wildcard python/$1/*.[od])
 DISTCLEAN_DIRS+=python/$1
+endif
 
 endef
 DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
@@ -647,12 +649,16 @@ ifdef LUA_VER
 endif # LUA_VER
 endif # NO_LUA
 ifndef NO_PYTHON
+ifdef PY2_DIR
 	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2_DIR)/$(PY_LIB_NAME)$(PY2_ARCH).so
 	$Q$(NINST) python/pmc.py $(PY2_DIR)
+endif
+ifdef PY3_DIR
 	$Q$(NINST) -D python/3/$(PY_LIB_NAME).so\
 	  $(PY3_DIR)/$(PY_LIB_NAME).cpython-$(PY3_VER)-$(PY3_ARCH).so
 	$Q$(NINST) python/pmc.py $(PY3_DIR)
+endif
 endif # NO_PYTHON
 ifndef NO_RUBY
 	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)

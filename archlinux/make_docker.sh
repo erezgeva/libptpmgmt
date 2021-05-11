@@ -25,10 +25,8 @@ clean_unused_images()
 make_all_args()
 {
   local arg
-  for arg in USER SRC
+  for arg in USER SRC UID
   do local -n n=$arg;args+=" --build-arg $arg=$n";done
-  for arg in UID=$(id -u)
-  do args+=" --build-arg $arg";done
 }
 main()
 {
@@ -36,6 +34,7 @@ main()
   local -r name=pacmanbuild
   local -r USER=builder
   local -r SRC=.
+  local -r UID=$(id -u)
   cd $base_dir/..
   while getopts 'n' opt; do
     case $opt in
