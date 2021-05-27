@@ -106,6 +106,7 @@ def main():
 
   prms = msg.getParams()
   prms.self_id.portNumber = os.getpid()
+  prms.domainNumber = cfg.domainNumber()
   msg.updateParams(prms)
   id = pmc.USER_DESCRIPTION
   msg.setAction(pmc.GET, id)
