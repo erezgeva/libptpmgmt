@@ -122,7 +122,9 @@ function main()
   end
   local prms = msg:getParams()
   prms.self_id.portNumber = unistd.getpid()
+  prms.domainNumber = cfg:domainNumber()
   msg:updateParams(prms)
+  msg:useConfig(cfg)
   local id = pmc.USER_DESCRIPTION
   msg:setAction(pmc.GET, id)
   local seq = nextSequence()

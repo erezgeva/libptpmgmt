@@ -120,7 +120,9 @@ def main
   # Verify we can use implementSpecific_e
   # Notice Ruby capitalize first letter
   prms.implementSpecific = Pmc::Linuxptp
+  prms.domainNumber = cfg.domainNumber()
   $msg.updateParams(prms)
+  $msg.useConfig(cfg);
   id = Pmc::USER_DESCRIPTION
   $msg.setAction(Pmc::GET, id)
   seq = nextSequence()

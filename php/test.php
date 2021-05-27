@@ -119,7 +119,9 @@ function main($cfg_file)
   # Verify we can use implementSpecific_e;
   # Notice Ruby capitalize first letter;
   $prms->implementSpecific = pmc::linuxptp;
+  $prms->domainNumber = $cfg->domainNumber();
   $msg->updateParams($prms);
+  $msg->useConfig($cfg);
   $id = pmc::USER_DESCRIPTION;
   $msg->setAction(pmc::GET, $id);
   $seq = nextSequence();

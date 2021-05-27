@@ -117,7 +117,9 @@ sub main
   $self_id->swig_portNumber_set($$); # getpid()
   $prms->swig_self_id_set($self_id);
   $prms->swig_boundaryHops_set(1);
+  $prms->swig_domainNumber_set($cfg->domainNumber());
   $msg->updateParams($prms);
+  $msg->useConfig($cfg);
   my $id = $PmcLib::USER_DESCRIPTION;
   $msg->setAction($PmcLib::GET, $id);
   my $seq = nextSequence;
