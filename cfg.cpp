@@ -129,7 +129,8 @@ bool ConfigSection::set_val(char *line)
             break;
         default:
             ret = strtol(val, &endptr, 0);
-            if(ret >= ranges[idx].min && ret <= ranges[idx].max)
+            if(val != endptr && *endptr == 0 && ret >= ranges[idx].min &&
+                ret <= ranges[idx].max)
                 m_vals[idx] = ret;
             else
                 return false;

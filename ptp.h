@@ -139,12 +139,12 @@ class PtpClock
      * Get PTP device name
      * @return device name or empty string if not initialized
      */
-    const std::string &ptpDevice() { return m_ptpDevice; }
+    const std::string &ptpDevice() const { return m_ptpDevice; }
     /**
      * Get PTP device name
      * @return device name or empty string if not initialized
      */
-    const char *ptpDevice_c() { return m_ptpDevice.c_str(); }
+    const char *ptpDevice_c() const { return m_ptpDevice.c_str(); }
 };
 
 #endif /*__PMC_IF_H*/

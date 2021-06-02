@@ -12,11 +12,9 @@
 #include <cstring>
 #include <functional>
 #include "msg.h"
+#include "pmc.h"
 
-static const char toksep[] = " \t\n\r"; // while spaces
 #define IDENT "\n\t\t"
-#define DUMPS(format, ...) printf(format, __VA_ARGS__)
-#define DUMPNL printf("\n");
 #define dump(n) static inline void dump_##n(Message &m, n##_t *dp) {\
         n##_t &d = *dp;
 #define dump_end }
@@ -59,7 +57,7 @@ dump(FAULT_LOG)
 {
     DUMPS(IDENT "numberOfFaultRecords %u", d.numberOfFaultRecords);
     uint16_t i = 0;
-    for(auto &rec : d.faultRecords) {
+    for(const auto &rec : d.faultRecords) {
         DUMPS(
             IDENT "[%u] faultTime        %s"
             IDENT "[%u] severityCode     %s"
@@ -267,7 +265,7 @@ dump(UNICAST_NEGOTIATION_ENABLE)
 dump(PATH_TRACE_LIST)
 {
     uint16_t i = 0;
-    for(auto &rec : d.pathSequence)
+    for(const auto &rec : d.pathSequence)
         DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     dump_end;
 }
@@ -284,7 +282,7 @@ dump(GRANDMASTER_CLUSTER_TABLE)
         d.logQueryInterval,
         d.actualTableSize);
     uint16_t i = 0;
-    for(auto &rec : d.PortAddress)
+    for(const auto &rec : d.PortAddress)
         DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     dump_end;
 }
@@ -296,7 +294,7 @@ dump(UNICAST_MASTER_TABLE)
         d.logQueryInterval,
         d.actualTableSize);
     uint16_t i = 0;
-    for(auto &rec : d.PortAddress)
+    for(const auto &rec : d.PortAddress)
         DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     dump_end;
 }
@@ -309,7 +307,7 @@ dump(ACCEPTABLE_MASTER_TABLE)
 {
     DUMPS(IDENT "actualTableSize %d", d.actualTableSize);
     uint16_t i = 0;
-    for(auto &rec : d.list) {
+    for(const auto &rec : d.list) {
         DUMPS(
             IDENT "[%u] acceptablePortIdentity %s"
             IDENT "[%u] alternatePriority1     %u",
@@ -707,31 +705,25 @@ static int parse_quote(char *save, char *&lastStr, char *&tkn)
 static bool parseKeysFunc(Message &msg, std::map<std::string, val_key_t> &keys,
     char *orgSave)
 {
+    if(keys.size() < 0) // Protect against not keys
+        return false;
     char *save = orgSave;
     // Update unrequired keys with default value.
-    for(auto it = keys.begin(); it != keys.end(); it++) {
-        if(!it->second.req) {
-            it->second.str_val = ""; // empty string
-            it->second.num = it->second.def;
+    for(auto &it : keys) {
+        if(!it.second.req) {
+            it.second.str_val = ""; // empty string
+            it.second.num = it.second.def;
         }
     }
-    bool singleKey;
-    bool singleKeyCanStr;
-    if(keys.size() == 1) {
-        singleKey = true;
-        singleKeyCanStr = keys.begin()->second.can_str;
-    } else {
-        singleKey = false;
-        singleKeyCanStr = false;
-    }
+    const auto &firstKey = keys.begin()->second;
+    const bool singleKey = keys.size() == 1;
     // In case we found quoted string we point after it.
     // so, we look for the next token on the proper place.
-    char *lastStr = nullptr;
-    char *tkn; // Token found
+    char *tkn, *lastStr = nullptr;
     int ret = 1;
     while(ret > 0) {
         ret = 1; // take token using strtok_r
-        if(singleKeyCanStr) {
+        if(singleKey && firstKey.can_str) {
             ret = parse_quote(save, lastStr, tkn);
             if(ret == -1)
                 return true; // parse error
@@ -753,10 +745,10 @@ static bool parseKeysFunc(Message &msg, std::map<std::string, val_key_t> &keys,
                 if(strcasecmp(it->first.c_str(), tkn) == 0)
                     break;
             }
+            // key not found
+            if(it == keys.end())
+                return true;
         }
-        // Unknown key
-        if(it == keys.end())
-            return true;
         val_key_t &key = it->second;
         ret = 1; // take token using strtok_r
         if(key.can_str) {
@@ -809,9 +801,9 @@ static bool parseKeysFunc(Message &msg, std::map<std::string, val_key_t> &keys,
         // We have the value mark it
         key.req = false;
     }
-    for(auto it = keys.begin(); it != keys.end(); it++) {
-        // did we forget required fields
-        if(it->second.req)
+    for(const auto &it : keys) {
+        // did we forget required fields?
+        if(it.second.req)
             return true;
     }
     return false; // No errors!
@@ -849,7 +841,7 @@ static bool getTimeSource(val_key_t &key)
     else { // Fallback into hex integer
         char *end;
         num = strtol(tkn, &end, 16);
-        if(*end != 0 || num < 0 || num > UINT8_MAX)
+        if(tkn == end || *end != 0 || num < 0 || num > UINT8_MAX)
             return true;
     }
     key.num = num;
@@ -1292,16 +1284,16 @@ BaseMngTlv *call_data(Message &msg, mng_vals_e id, char *save)
             return nullptr;
     }
 }
-bool call_dumpSig(const Message &msg, tlvType_e tlvType, BaseSigTlv *tlv)
+bool call_dumpSig(const Message &msg, tlvType_e tlvType, const BaseSigTlv *tlv)
 {
     switch(tlvType) {
         case SLAVE_RX_SYNC_TIMING_DATA: {
-            SLAVE_RX_SYNC_TIMING_DATA_t &d = *(SLAVE_RX_SYNC_TIMING_DATA_t *)tlv;
+            const auto &d = *(SLAVE_RX_SYNC_TIMING_DATA_t *)tlv;
             DUMPS(
                 "SLAVE_RX_SYNC_TIMING_DATA N %zu "
                 IDENT "syncSourcePortIdentity     %s",
                 d.list.size(), d.syncSourcePortIdentity.string().c_str());
-            for(auto &rec : d.list)
+            for(const auto &rec : d.list)
                 DUMPS(
                     IDENT "sequenceId                 %u"
                     IDENT "syncOriginTimestamp        %s"
@@ -1316,12 +1308,12 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, BaseSigTlv *tlv)
             break;
         }
         case SLAVE_DELAY_TIMING_DATA_NP: {
-            SLAVE_DELAY_TIMING_DATA_NP_t &d = *(SLAVE_DELAY_TIMING_DATA_NP_t *)tlv;
+            const auto &d = *(SLAVE_DELAY_TIMING_DATA_NP_t *)tlv;
             DUMPS(
                 "SLAVE_DELAY_TIMING_DATA_NP N %zu "
                 IDENT "sourcePortIdentity         %s",
                 d.list.size(), d.sourcePortIdentity.string().c_str());
-            for(auto &rec : d.list)
+            for(const auto &rec : d.list)
                 DUMPS(
                     IDENT "sequenceId                 %u"
                     IDENT "delayOriginTimestamp       %s"

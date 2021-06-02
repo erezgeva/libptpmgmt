@@ -775,18 +775,10 @@ class Message
      */
     static bool isEmpty(mng_vals_e id);
     /**
-     * Set message object management TLV id and action with empty dataField
-     * @param[in] actionField for sending
-     * @param[in] tlv_id management TLV id
-     * @return true if setting is correct
-     * @note the setting is valid for send only
-     */
-    bool setAction(actionField_e actionField, mng_vals_e tlv_id);
-    /**
      * Set message object management TLV id, action and data for dataField
      * @param[in] actionField for sending
      * @param[in] tlv_id management TLV id
-     * @param[in] dataSend referece t TLV id
+     * @param[in] dataSend pointer to TLV object
      * @return true if setting is correct
      * @note the setting is valid for send only
      * @attention
@@ -795,7 +787,11 @@ class Message
      *  The library does @b NOT perform any error catchig of any kind!
      */
     bool setAction(actionField_e actionField, mng_vals_e tlv_id,
-        BaseMngTlv &dataSend);
+        BaseMngTlv *dataSend = nullptr);
+    /**
+     * Clear data for send, prevent accidentally use, in case it is freed
+     */
+    void clearData();
     /**
      * Build a raw message for send based on last setAction call
      * @param[in, out] buf memory buffer to fill with raw PTP Message
@@ -847,14 +843,14 @@ class Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
-    MNG_PARSE_ERROR_e parse(void *buf, ssize_t msgSize);
+    MNG_PARSE_ERROR_e parse(void *buf, const ssize_t msgSize);
     /**
      * Parse a received raw socket
      * @param[in] buf object with memory buffer containing the raw PTP Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
-    MNG_PARSE_ERROR_e parse(Buf &buf, ssize_t msgSize)
+    MNG_PARSE_ERROR_e parse(Buf &buf, const ssize_t msgSize)
     { return parse(buf.get(), msgSize); }
     /**
      * Get last reply management action
@@ -960,7 +956,7 @@ class Message
      *  it may use the function bellow
      */
     bool traversSigTlvs(const std::function<bool (const Message &msg,
-            tlvType_e tlvType, BaseSigTlv *tlv)> callback) const;
+            tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const;
     /**
      * Get number of the last signaling message TLVs
      * @return number of TLVs or zero
@@ -1009,7 +1005,7 @@ class Message
 /* list build part */
 #define vector_b(type, vec)\
     if(m_build) {\
-        for(type##_t &rec: d.vec) {\
+        for(type##_t &rec : d.vec) {\
             if(proc(rec)) return true;\
         }\
     } else
@@ -1039,7 +1035,7 @@ class Message
 /* size of variable length list */
 #define vector_l(pre_size, type, vec) {\
         size_t ret = pre_size;\
-        for(type##_t &rec: d.vec)\
+        for(type##_t &rec : d.vec)\
             ret += rec.size();\
         return ret;\
     }

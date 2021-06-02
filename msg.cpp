@@ -264,7 +264,6 @@ ssize_t Message::getMsgPlanedLen() const
     // Function return:
     //  -1  tlv (m_tlv_id) is not supported
     //  -2  tlv (m_tlv_id) can not be calculate
-    //      * GET only TLV or no data to send (no m_dataSend)
     if(ret & 1) // Ensure even size for calculated size
         ret++;
     return ret + mngMsgBaseSize;
@@ -283,31 +282,31 @@ bool Message::isEmpty(mng_vals_e id)
         return true;
     return false;
 }
-
-bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id)
+bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id,
+    BaseMngTlv *dataSend)
 {
     if(!allowedAction(tlv_id, actionField))
         return false;
-    if(actionField != GET && mng_all_vals[tlv_id].size != 0)
-        return false; // SET and COMMAND need dataSend
+    if(tlv_id > FIRST_MNG_ID && actionField != GET &&
+        mng_all_vals[tlv_id].size != 0) {
+        if(dataSend == nullptr)
+            return false;
+        m_dataSend = dataSend;
+    } else
+        m_dataSend = nullptr;
     m_sendAction = actionField;
     m_tlv_id = tlv_id;
-    m_dataSend = nullptr;
     return true;
 }
-bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id,
-    BaseMngTlv &dataSend)
+void Message::clearData()
 {
-    if(!allowedAction(tlv_id, actionField))
-        return false;
-    m_sendAction = actionField;
-    m_tlv_id = tlv_id;
-    if(tlv_id > FIRST_MNG_ID && actionField != GET &&
-        mng_all_vals[tlv_id].size != 0)
-        m_dataSend = &dataSend;
-    else
+    if(m_dataSend != nullptr) {
+        // Prevent use of SET or COMMAND, which need m_dataSend
+        // If user want SET or COMMAND, he/she need to set the data to send!
+        m_sendAction = GET;
+        // Message do not allocate the object, so do not delete it!
         m_dataSend = nullptr;
-    return true;
+    }
 }
 MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
 {
@@ -375,7 +374,7 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     msg->messageLength = cpu_to_net16(size);
     return MNG_PARSE_ERROR_OK;
 }
-MNG_PARSE_ERROR_e Message::parse(void *buf, ssize_t msgSize)
+MNG_PARSE_ERROR_e Message::parse(void *buf, const ssize_t msgSize)
 {
     if(msgSize < sigBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
@@ -590,10 +589,10 @@ MNG_PARSE_ERROR_e Message::parseSig()
     return MNG_PARSE_ERROR_SIG; // We have signaling message
 }
 bool Message::traversSigTlvs(std::function<bool (const Message &msg,
-        tlvType_e tlvType, BaseSigTlv *tlv)> callback) const
+        tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const
 {
     if(m_type == Signaling)
-        for(auto tlv : m_sigTlvs)
+        for(const auto &tlv : m_sigTlvs)
             if(callback(*this, tlv.tlvType, tlv.tlv.get()))
                 return true;
     return false;

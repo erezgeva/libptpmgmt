@@ -20,23 +20,14 @@
 #include "sock.h"
 #include "bin.h"
 #include "ver.h"
+#include "pmc.h"
 
 #ifndef INFTIM
 #define INFTIM -1
 #endif
-#define PMCERR(msg) fprintf(stderr, msg "\n")
-#define DUMPS(format, ...) printf(format, __VA_ARGS__)
-#define DUMPNL printf("\n");
-/* from pmc_dump.cpp */
-extern void call_dump(Message &msg, BaseMngTlv *data);
-extern bool call_dumpSig(const Message &msg, tlvType_e tlvType,
-    BaseSigTlv *tlv);
-extern BaseMngTlv *call_data(Message &msg, mng_vals_e id, char *save);
 
 /* Receive constants */
 static const int wait = 500; // milli
-
-static const char toksep[] = " \t\n\r"; // while spaces
 // buffer for send and receive
 static const size_t bufSize = 2000;
 static char buf[bufSize];
@@ -85,7 +76,7 @@ static inline bool updatePortIdentity(MsgParams &prms, char *str)
     port++;
     char *end;
     long val = strtol(port, &end, 0);
-    if(*end != 0 || val < 0 || val > UINT16_MAX)
+    if(end == port || *end != 0 || val < 0 || val > UINT16_MAX)
         return false;
     prms.target.portNumber = val;
     nc.copy(prms.target.clockIdentity.v);
@@ -106,7 +97,7 @@ static inline bool sendAction()
 }
 static inline int rcv()
 {
-    auto cnt = sk->rcv(buf, bufSize);
+    const auto cnt = sk->rcv(buf, bufSize);
     if(cnt < 0)
         return -1;
     MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
@@ -211,7 +202,7 @@ static bool run_line(char *line)
         // No point to send without data
         if(data == nullptr)
             return false;
-        if(!msg.setAction(action, id, *data))
+        if(!msg.setAction(action, id, data))
             return false;
     }
     if(!sendAction())
@@ -219,8 +210,10 @@ static bool run_line(char *line)
     // Finish with data, free it
     DUMPS("sending: %s %s\n", msg.act2str_c(msg.getSendAction()),
         msg.mng2str_c(id));
-    if(data != nullptr)
+    if(data != nullptr) {
+        msg.clearData();
         delete data;
+    }
     return true;
 }
 void help(char *app)

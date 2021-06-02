@@ -254,8 +254,9 @@ distclean: deb_clean clean
 	$Q$(RM) $(DISTCLEAN)
 	$Q$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS:=$(filter-out mngIds.h,$(wildcard *.h))
+HEADERS:=$(filter-out mngIds.h pmc.h,$(wildcard *.h))
 HEADERS_ALL:=$(HEADERS) mngIds.h
+HEADERS_SRC:=$(HEADERS) pmc.h
 # MAP for  mngIds.cc:
 #  %@ => '/'    - Use when a slash is next to a star character
 #  %! => '%'    - Self escape, escape precent sign character
@@ -547,7 +548,7 @@ deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
-SRC_FILES:=$(HEADERS) $(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md)\
+SRC_FILES:=$(HEADERS_SRC) $(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md)\
   LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
 SRC_NAME:=libpmc-$(LIB_VER)
 ####### rpm build #######

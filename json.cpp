@@ -101,7 +101,7 @@ struct JsonProcToJson : public JsonProc {
     bool m_first;
     JsonProcToJson(Message &msg, int indent);
     bool data2json(mng_vals_e managementId, const BaseMngTlv *data);
-    void sig2json(tlvType_e tlvType, BaseSigTlv *tlv);
+    void sig2json(tlvType_e tlvType, const BaseSigTlv *tlv);
     void close() {
         if(!m_first)
             m_result += ',';
@@ -355,7 +355,7 @@ struct JsonProcToJson : public JsonProc {
 #define procVector(type) \
     bool procArray(const char *name, std::vector<type> &val) {\
         procArray(name);\
-        for(auto rec: val) {\
+        for(auto &rec : val) {\
             close();\
             procValue(rec);\
         }\
@@ -899,7 +899,7 @@ JS(SLAVE_DELAY_TIMING_DATA_NP)
     PROC_ARR(list);
 }
 
-void JsonProcToJson::sig2json(tlvType_e tlvType, BaseSigTlv *tlv)
+void JsonProcToJson::sig2json(tlvType_e tlvType, const BaseSigTlv *tlv)
 {
 #define parseTlvAct(n)\
     parse_##n(*this, *(n##_t *)tlv);\
@@ -970,8 +970,8 @@ JsonProcToJson::JsonProcToJson(Message &msg, int indent) : m_msg(msg),
             break;
         case Signaling:
             procArray("TLVs");
-            msg.traversSigTlvs
-            ([this](const Message & msg, tlvType_e tlvType, BaseSigTlv * tlv) {
+            msg.traversSigTlvs([this](const Message & msg, tlvType_e tlvType,
+            const BaseSigTlv * tlv) {
                 sig2json(tlvType, tlv);
                 return false;
             });
@@ -1255,7 +1255,7 @@ struct JsonProcFromJson : public JsonProc {
     bool procValue(const char *key, clockAccuracy_e &d) {
         if(found.count(key) != 1)
             return false;
-        auto val = found[key];
+        auto &val = found[key];
         auto type = val.type;
         if(type == JT_INT) {
             auto v = val.intV;

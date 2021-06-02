@@ -192,9 +192,9 @@ bool SockUnix::setDefSelfAddress(std::string rootBase, std::string useDef)
 }
 const std::string SockUnix::getHomeDir()
 {
-    auto uid = getuid();
-    auto *pwd = getpwuid(uid);
-    m_homeDir = pwd->pw_dir;
+    auto *pwd = getpwuid(getuid());
+    if(pwd != nullptr)
+        m_homeDir = pwd->pw_dir;
     return m_homeDir;
 }
 const char *SockUnix::getHomeDir_c()
