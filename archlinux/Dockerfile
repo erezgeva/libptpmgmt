@@ -17,7 +17,6 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst &&\
     lua lua51 lua52 lua53 vim &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-ARG SRC
-COPY $SRC /home/$USER/libpmc
-RUN chown -R $USER.$USER /home/$USER/libpmc
 USER $USER
+ARG SRC
+COPY --chown=builder $SRC /home/$USER/libpmc

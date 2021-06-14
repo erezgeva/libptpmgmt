@@ -5,7 +5,7 @@
 # @copyright 2021 Erez Geva
 # @copyright GNU General Public License 3.0 or later
 
-pkgver=0.3
+pkgver=0.4
 pkgrel=1
 pkgname=(libpmc libpmc-dev libpmc-doc libpmc-perl lua-pmc ruby-pmc
   python2-pmc python3-pmc pmc)

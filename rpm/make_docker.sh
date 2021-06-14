@@ -45,6 +45,7 @@ main()
   done
   clean_cont $name
   make_all_args
+  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$USER/" $base_dir/Dockerfile
   cmd docker build $no_cache -f $base_dir/Dockerfile $args -t $name .
   clean_unused_images
 }

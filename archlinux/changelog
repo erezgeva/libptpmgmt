@@ -1,3 +1,29 @@
+* Mon Jun 14 2021 ErezGeva2@gmail.com 0.4-1
+- Improve check after calling strtol.
+- Use C++ short loop form.
+- Add reference and constant for automatic when possible.
+- Add constant when possible.
+- Add message clear send data, to prevent use after caller delete the data.
+- Binary module:
+  - Encapsulate strtok_r in a class.
+  - Add function to call strtol.
+- Add header for the pmc tool.
+- Testing scripts for script wrappers:
+  - Set domainNumber from config file
+  - Set domain number and transport Specific form configuration file.
+  - Add new Master only TLV to testing.
+  - Add function for next sequence with range check.
+  - return -1 on error and 0 on success.
+  - Fix indentation to 2 spaces.
+  - Add global statement in python.
+- Move Debian rules to Debian make
+- Adding Arch Linux packages build.
+- Adding RPM build with Fedora container.
+- Make:
+  - Support single python version.
+  - improve verCheck to support 3 version numbers.
+  - PHP 7 need Swig 3.0.12
+
 * Tue Apr 20 2021 ErezGeva2@gmail.com 0.3-1
 - Add licence to Javadoc comments for Doxygen process in addition to SPDX tag.
 - Set document licence to GNU Free Documentation License version 1.3

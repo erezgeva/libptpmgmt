@@ -36,6 +36,14 @@ define help
 #                                                                              #
 #   deb_clean        Clean Debian intermediate files.                          #
 #                                                                              #
+#   rpm              Build Red Hat packages.                                   #
+#                                                                              #
+#   rpmsrc           Create source tar for Red Hat build.                      #
+#                                                                              #
+#   pkg              Create source tar for Arch Linux build.                   #
+#                                                                              #
+#   pkgsrc           Build Red Hat packages.                                   #
+#                                                                              #
 ################################################################################
 #  Make file parameters                                                        #
 ################################################################################
@@ -168,10 +176,10 @@ TAR:=tar cfJ
 CPPFLAGS_OPT?=-Og
 CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 # SWIG warnings
-CPPFLAGS_LUA:=-Wno-maybe-uninitialized
-CPPFLAGS_PY:=-Wno-stringop-overflow
-CPPFLAGS_RUBY:=-Wno-sign-compare -Wno-catch-value -Wno-maybe-uninitialized
-CPPFLAGS_PHP:=-Wno-unused-label
+CPPFLAGS_LUA+=-Wno-maybe-uninitialized
+CPPFLAGS_PY+=-Wno-stringop-overflow
+CPPFLAGS_RUBY+=-Wno-sign-compare -Wno-catch-value -Wno-maybe-uninitialized
+CPPFLAGS_PHP+=-Wno-unused-label
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
 LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
@@ -551,6 +559,7 @@ endif # and wildcard debian/rules, which dpkg-buildpackage
 SRC_FILES:=$(HEADERS_SRC) $(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md)\
   LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
 SRC_NAME:=libpmc-$(LIB_VER)
+
 ####### rpm build #######
 RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
 $(RPM_SRC): $(SRC_FILES)

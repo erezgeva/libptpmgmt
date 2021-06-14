@@ -17,7 +17,6 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-ARG SRC
-COPY $SRC /home/$USER/libpmc
-RUN chown -R $USER.$USER /home/$USER/libpmc
 USER $USER
+ARG SRC
+COPY --chown=builder $SRC /home/$USER/libpmc
