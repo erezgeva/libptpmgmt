@@ -27,8 +27,8 @@ BuildRequires:  ruby
 BuildRequires:  ruby-devel
 BuildRequires:  php
 BuildRequires:  php-devel
-buildrequires:  graphviz
-buildrequires:  doxygen
+BuildRequires:  graphviz
+BuildRequires:  doxygen
 Source0:        %{name}-%{version}.txz
 
 %define bname   pmc
