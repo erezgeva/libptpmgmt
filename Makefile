@@ -32,6 +32,9 @@ define help
 #                                                                              #
 #   deb              Build Debian packages.                                    #
 #                                                                              #
+#   deb_arc          Build Debian packages for other architecture.             #
+#                    Use DEB_ARC to specify architecture.                      #
+#                                                                              #
 #   deb_src          Build Debian source package.                              #
 #                                                                              #
 #   deb_clean        Clean Debian intermediate files.                          #
@@ -75,9 +78,6 @@ define help
 #   PY2_ARCH         Python version 2 architectue for shared library           #
 #                    Default is TARGET_ARCH                                    #
 #                                                                              #
-#   PY3_ARCH         Python version 2 architectue for shared library           #
-#                    Default is TARGET_ARCH                                    #
-#                                                                              #
 #   NO_COL           Prevent colour output.                                    #
 #                                                                              #
 #   USE_COL          Force colour when using pipe for tools like 'aha'.        #
@@ -99,6 +99,8 @@ define help
 #                                                                              #
 #   PMC_USE_FCJSON   Use C JSON for parsing JSON into PTP management message.  #
 #                    Use fast JSON library.                                    #
+#                                                                              #
+#   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #
 ################################################################################
 
@@ -179,6 +181,7 @@ CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 CPPFLAGS_LUA+=-Wno-maybe-uninitialized
 CPPFLAGS_PY+=-Wno-stringop-overflow
 CPPFLAGS_RUBY+=-Wno-sign-compare -Wno-catch-value -Wno-maybe-uninitialized
+CPPFLAGS_RUBY+=-Wno-deprecated-declarations
 CPPFLAGS_PHP+=-Wno-unused-label
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
@@ -399,15 +402,7 @@ endif
 endif # NO_LUA
 
 ifndef NO_PYTHON
-ifneq ($(call which,python),)
-PY_BASE:=python/$(SWIG_NAME)
-PY_LIB_NAME:=_pmc
-PY_LIBDIR?=/usr/lib/python
-$(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $<
 define python
-ifneq ($$(call which,python$1-config),)
 PY_BASE_$1:=python/$1/$(SWIG_NAME)
 PY_SO_$1:=python/$1/$(PY_LIB_NAME).so
 PY_INC_$1!=python$1-config --includes
@@ -424,16 +419,42 @@ $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 SWIG_ALL+=$$(PY_SO_$1)
 CLEAN+=$$(wildcard python/$1/*.[od])
 DISTCLEAN_DIRS+=python/$1
-endif
 
 endef
+
+ifneq ($(call which,python2-config),)
+USE_PY2:=1
+USE_PY:=1
+endif
+ifneq ($(call which,python3-config),)
+USE_PY3:=1
+USE_PY:=1
+endif
+
+ifdef USE_PY
+PY_BASE:=python/$(SWIG_NAME)
+PY_LIB_NAME:=_pmc
+PY_LIBDIR?=/usr/lib/python
+$(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
+	$(Q_SWIG)
+	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $<
+
 DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
 DISTCLEAN_DIRS+=python/__pycache__
+ifdef USE_PY2
 $(eval $(call python,2))
-$(eval $(call python,3))
-else # which python
-NO_PYTHON=1
 endif
+ifdef USE_PY3
+$(eval $(call python,3))
+PY3_EXT_B!=python3-config --extension-suffix
+ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
+PY3_EXT:=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$(PY3_EXT_B))
+else
+PY3_EXT:=$(PY3_EXT_B)
+endif
+endif # USE_PY3
+
+endif # USE_PY
 endif # NO_PYTHON
 
 ifndef NO_RUBY
@@ -552,6 +573,9 @@ deb_src: distclean
 deb:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc
 	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
+deb_arc:
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc -a$(DEB_ARC)
+	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # and wildcard debian/rules, which dpkg-buildpackage
@@ -605,20 +629,11 @@ SBINDIR?=/usr/sbin
 LUADIR:=$(DESTDIR)$(LIBDIR)
 DOCDIR:=$(DESTDIR)/usr/share/doc/libpmc-doc
 MANDIR:=$(DESTDIR)/usr/share/man/man8
-PY3_VER:=$(subst .,,$(subst libpython,,$(basename \
-  $(notdir $(wildcard $(LIBDIR)/libpython3.*.so)))))
 ifndef PY2_ARCH
 ifneq ($(TARGET_ARCH),)
 PY2_ARCH:=.$(TARGET_ARCH)
 endif
 endif # PY2_ARCH
-ifndef PY3_ARCH
-ifneq ($(TARGET_ARCH),)
-PY3_ARCH:=$(TARGET_ARCH)
-else
-PY3_ARCH:=$(shell uname -m)-linux-gnu
-endif
-endif # PY3_ARCH
 
 install: $(ALL) doxygen
 ifdef SONAME_USE_MAJ
@@ -658,18 +673,16 @@ ifdef LUA_VER
 	$Q$(LN) ../../$(LUA_FLIB) $(LUADIR)/lua/$(LUA_VER)/$(LUA_LIB_NAME)
 endif # LUA_VER
 endif # NO_LUA
-ifndef NO_PYTHON
-ifdef PY2_DIR
+ifdef USE_PY2
 	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2_DIR)/$(PY_LIB_NAME)$(PY2_ARCH).so
 	$Q$(NINST) python/pmc.py $(PY2_DIR)
 endif
-ifdef PY3_DIR
+ifdef USE_PY3
 	$Q$(NINST) -D python/3/$(PY_LIB_NAME).so\
-	  $(PY3_DIR)/$(PY_LIB_NAME).cpython-$(PY3_VER)-$(PY3_ARCH).so
+	  $(PY3_DIR)/$(PY_LIB_NAME)$(PY3_EXT)
 	$Q$(NINST) python/pmc.py $(PY3_DIR)
 endif
-endif # NO_PYTHON
 ifndef NO_RUBY
 	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
 endif # NO_RUBY
@@ -685,5 +698,5 @@ help:
 	$(info $(help))
 	@:
 
-.PHONY: all clean distclean format install deb_src deb deb_clean doxygen\
-        checkall help rpm rpmsrc pkg pkgsrc
+.PHONY: all clean distclean format install deb_src deb deb_arc deb_clean\
+        doxygen checkall help rpm rpmsrc pkg pkgsrc

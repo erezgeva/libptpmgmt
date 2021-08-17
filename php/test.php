@@ -115,7 +115,7 @@ function main($cfg_file)
     return -1;
   }
   $prms = $msg->getParams();
-  $prms->self_id->portNumber = posix_getpid();
+  $prms->self_id->portNumber = posix_getpid() & 0xffff;
   # Verify we can use implementSpecific_e;
   # Notice Ruby capitalize first letter;
   $prms->implementSpecific = pmc::linuxptp;

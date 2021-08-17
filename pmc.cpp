@@ -78,7 +78,7 @@ static inline bool updatePortIdentity(MsgParams &prms, char *str)
     long val = strtol(port, &end, 0);
     if(end == port || *end != 0 || val < 0 || val > UINT16_MAX)
         return false;
-    prms.target.portNumber = val;
+    prms.target.portNumber = val & 0xffff;
     nc.copy(prms.target.clockIdentity.v);
     return true;
 }
@@ -377,7 +377,7 @@ int main(int argc, char *const argv[])
                 PMCERR("failed to create transport");
                 return -1;
             }
-            prms.self_id.portNumber = getpid();
+            prms.self_id.portNumber = getpid() & 0xffff;
             use_uds = true;
             break;
         }

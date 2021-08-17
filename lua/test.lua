@@ -121,7 +121,13 @@ function main()
     return -1
   end
   local prms = msg:getParams()
-  prms.self_id.portNumber = unistd.getpid()
+  -- When using Lua 5.3, you can use "and" bitwise operator.
+  -- Lua 5.1 does not support bitwise operators.
+  local pid = unistd.getpid();
+  while pid > 0xffff do
+    pid = pid - 0xffff
+  end
+  prms.self_id.portNumber = pid
   prms.domainNumber = cfg:domainNumber()
   msg:updateParams(prms)
   msg:useConfig(cfg)

@@ -105,7 +105,7 @@ def main():
     return -1
 
   prms = msg.getParams()
-  prms.self_id.portNumber = os.getpid()
+  prms.self_id.portNumber = os.getpid() & 0xffff
   prms.domainNumber = cfg.domainNumber()
   msg.updateParams(prms)
   msg.useConfig(cfg);

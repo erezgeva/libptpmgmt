@@ -116,7 +116,7 @@ def main
     return -1
   end
   prms = $msg.getParams()
-  prms.self_id.portNumber = $$
+  prms.self_id.portNumber = $$ & 0xffff # getpid()
   # Verify we can use implementSpecific_e
   # Notice Ruby capitalize first letter
   prms.implementSpecific = Pmc::Linuxptp

@@ -92,7 +92,7 @@ main()
  local -r verify="get PRIORITY2"
  for n in $tlvs; do cmds+=" \"get $n\"";done
 
- printf "\n * Make $t1 using linuxptp pmc\n"
+ printf "\n * Create $t1 with running linuxptp pmc\n"
  eval "$pmctool -u -f $cfgFile \"$setmsg\"" > $t1
  eval "$pmctool -u -f $cfgFile \"$verify\"" >> $t1
  time eval "$pmctool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t1
@@ -101,7 +101,7 @@ main()
  # user  0m0.009s
  # sys   0m0.002s
 
- printf "\n * Make $t2 using libpmc\n"
+ printf "\n * Create $t2 with running libpmc\n"
  eval "$useSudo $pmclibtool -u -f $cfgFile \"$setmsg\"" > $t2
  eval "$useSudo $pmclibtool -u -f $cfgFile \"$verify\"" >> $t2
  time eval "$useSudo $pmclibtool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t2
@@ -161,7 +161,11 @@ priority1: 153
    rm -rf pmc.pyc __pycache__
    local -n need=needPython$i
    if [ -n "$need" ]; then
-     ln -sf $i/_pmc.so
+     if [ -f $i/_pmc.so ]; then
+       ln -sf $i/_pmc.so
+     else
+       continue
+     fi
    else
      rm -f _pmc.so
    fi
