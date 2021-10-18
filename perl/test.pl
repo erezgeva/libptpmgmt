@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # testing for Perl wrapper of libpmc

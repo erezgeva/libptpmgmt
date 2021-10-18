@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # testing for ruby wrapper of libpmc

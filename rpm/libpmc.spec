@@ -27,6 +27,8 @@ BuildRequires:  ruby
 BuildRequires:  ruby-devel
 BuildRequires:  php
 BuildRequires:  php-devel
+BuildRequires:  tcl
+BuildRequires:  tcl-devel
 BuildRequires:  graphviz
 BuildRequires:  doxygen
 Source0:        %{name}-%{version}.txz
@@ -84,14 +86,21 @@ Summary:        %{bname} library ruby wrapper
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       ruby
 %description -n ruby-%{bname}
-%{bname} library Lua wrapper
+%{bname} library ruby wrapper
 
 %package -n     php-%{bname}
 Summary:        %{bname} library php wrapper
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       php
 %description -n php-%{bname}
-%{bname} library Lua wrapper
+%{bname} library php wrapper
+
+%package -n     tcl-%{bname}
+Summary:        %{bname} library tcl wrapper
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       tcl
+%description -n tcl-%{bname}
+%{bname} library tcl wrapper
 
 %package -n     %{bname}
 Summary:        %{bname} tool
@@ -144,6 +153,10 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %files -n php-%{bname}
 %{_libdir}/php/*/%{bname}.so
 %{_datadir}/php/%{bname}.php
+
+%files -n tcl-%{bname}
+%{_libdir}/tcl*/%{bname}/%{bname}.so
+%{_libdir}/tcl*/%{bname}/pkgIndex.tcl
 
 %files -n %{bname}
 %{_sbindir}/%{bname}.lib

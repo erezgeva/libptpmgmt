@@ -100,6 +100,8 @@ define help
 #   PMC_USE_FCJSON   Use C JSON for parsing JSON into PTP management message.  #
 #                    Use fast JSON library.                                    #
 #                                                                              #
+#   NO_TCL           Prevent compiling TCL Swig plugin.                        #
+#                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #
 ################################################################################
@@ -116,6 +118,16 @@ verCheckDo=$(shell if [ $1 -eq $4 ];then test $2 -eq $5 && a=$3 b=$6 || \
 verCheck=$(call verCheckDo,$(firstword $(subst ., ,$1 0 0 0)),$(word 2,\
   $(subst ., ,$1 0 0 0)),$(word 3,$(subst ., ,$1 0 0 0)),$(firstword\
   $(subst ., ,$2 0)),$(word 2,$(subst ., ,$2 0)),$(word 3,$(subst ., ,$2 0)))
+
+# Make support new file function
+ifeq ($(call cmp,$(MAKE_VERSION),4.2),)
+USE_FILE_OP:=1
+endif
+define line
+
+
+endef
+space=$(subst A,,A A)
 
 # Use tput to check if we have ANSI Color code
 # tput works only if TERM is set
@@ -535,12 +547,59 @@ else # which php-config
 NO_PHP=1
 endif
 endif # NO_PHP
+ifneq ($(wildcard /usr/include/tcl/tcl.h),)
+TCL_INC:=/usr/include/tcl
+else
+ifneq ($(wildcard /usr/include/tcl.h),)
+TCL_INC:=/usr/include
+else
+NO_TCL:=1
+endif
+endif
+ifndef NO_TCL
+ifneq ($(call which,tclsh)),)
+tcl_ver!=echo 'puts $$tcl_version;exit 0' | tclsh
+ifeq ($(call verCheck,$(tcl_ver),8.0),)
+TCL_NAME:=tcl/$(SWIG_NAME).cpp
+TCL_LNAME:=tcl/pmc
+CPPFLAGS_TCL+=-I $(TCL_INC)
+$(TCL_NAME): $(LIB_NAME).i $(HEADERS_ALL)
+	$(Q_SWIG)
+	$Q$(SWIG) -c++ -I. -outdir tcl -o $@ -tcl8 $<
+$(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
+	$(Q_LCC)
+	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_TCL) -c $< -o $@
+$(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
+	$(Q_LD)
+	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
+SWIG_ALL+=$(TCL_LNAME).so
+CLEAN+=$(TCL_NAME) $(foreach e,d o,$(TCL_LNAME).$e)
+DISTCLEAN+=$(TCL_LNAME).so
+tcl_paths!=echo 'puts $$auto_path;exit 0' | tclsh
+ifneq ($(TARGET_ARCH),)
+TCL_LIB=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '$(TARGET_ARCH)'))
+else
+TCL_LIB=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '/usr/lib.*/tcl'))
+endif
+TCLDIR:=$(DESTDIR)$(TCL_LIB)/pmc
+# TODO how the hell tcl "know" the library version? Why does it think it's 0.0?
+define pkgIndex
+if {![package vsatisfies [package provide Tcl] $(tcl_ver)]} {return}
+package ifneeded pmc 0.0 [list load [file join $$dir pmc.so]]
+endef
+else # tcl_ver 8.0
+NO_TCL=1
+endif
+else # which tclsh
+NO_TCL=1
+endif
+endif # NO_TCL
 
 ALL+=$(SWIG_ALL)
 else # swig 3.0
 NO_SWIG=1
 endif
-else  # which swig
+else # which swig
 NO_SWIG=1
 endif
 endif # NO_SWIG
@@ -690,6 +749,10 @@ ifndef NO_PHP
 	$Q$(NINST) -D $(PHP_LNAME).so -t $(PHPEDIR)
 	$Q$(NINST) -D $(PHP_LNAME).php -t $(PHPIDIR)
 endif # NO_PHP
+ifndef NO_TCL
+	$Q$(NINST) -D $(TCL_LNAME).so -t $(TCLDIR)
+	$(Q)printf '$(subst $(line),\n,$(pkgIndex))\n' > $(TCLDIR)/pkgIndex.tcl
+endif # NO_TCL
 endif # NO_SWIG
 
 checkall: format doxygen

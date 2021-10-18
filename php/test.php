@@ -2,7 +2,7 @@
 <?php
 /* SPDX-License-Identifier: GPL-3.0-or-later
  *
- * testing for ruby wrapper of libpmc
+ * testing for php wrapper of libpmc
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -117,7 +117,6 @@ function main($cfg_file)
   $prms = $msg->getParams();
   $prms->self_id->portNumber = posix_getpid() & 0xffff;
   # Verify we can use implementSpecific_e;
-  # Notice Ruby capitalize first letter;
   $prms->implementSpecific = pmc::linuxptp;
   $prms->domainNumber = $cfg->domainNumber();
   $msg->updateParams($prms);
@@ -202,6 +201,6 @@ $sk->close();
 //
 // Run ./php_ini.sh to create php.ini
 //
-// If libpmc and library is not installed in system, run with:
+// If libpmc and php wrapper libraries are not installed in system, run with:
 // LD_LIBRARY_PATH=.. PHPRC=. ./test.php
 ?>

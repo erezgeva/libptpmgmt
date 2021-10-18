@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 9), dh-exec (>=0.3)
 Build-Depends-Arch: dh-python, dh-lua, dh-php, libtool, coreutils,
 		    swig (>=3.0), perl:native, lua5.2, liblua5.1-0-dev,
 		    liblua5.2-dev, liblua5.3-dev, ruby:native, ruby-dev,
-		    python3-dev:native, libpython3-dev, php-dev
+		    python3-dev:native, libpython3-dev, php-dev, tcl-dev
 Build-Depends-Indep: graphviz, doxygen
 Homepage: https://libpmc.sf.net
 
@@ -85,6 +85,14 @@ Provides: ${php:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
 	 libpmc (= ${binary:Version})
 Description: pmc library php wrapper
+
+Package: tcl-pmc
+Section: interpreters
+Architecture: any
+Provides: ${tcl:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
+	 libpmc (= ${binary:Version})
+Description: pmc library tcl wrapper
 
 Package: pmc
 Architecture: any

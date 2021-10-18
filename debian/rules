@@ -44,7 +44,7 @@ SLIBDIR:=debian/tmp$(LIBDIR)
 override_dh_install:
 	$(Q)install -d $(foreach d,python-pmc/usr/lib python3-pmc/usr/lib\
 	  libpmc-dev/usr libpmc-dev/usr/share libpmc-doc/usr/share\
-	  pmc/usr/share php-pmc/usr/lib php-pmc/usr/share\
+	  pmc/usr/share php-pmc/usr/lib php-pmc/usr/share tcl-pmc/usr/lib\
 	  $(foreach n,lua-pmc libpmc-perl libpmc-dev ruby-pmc\
 	  libpmc,$n$(LIBDIR)),debian/$d)
 	$(Q)mv $(DSRC)include debian/libpmc-dev/usr
@@ -63,5 +63,6 @@ ifneq ($(wildcard $(DSRC)lib/php),)
 	$(Q)mv $(DSRC)lib/php debian/php-pmc/usr/lib
 	$(Q)mv $(DSRC)share/php debian/php-pmc/usr/share
 endif
+	$(Q)mv $(DSRC)/lib/tcltk debian/tcl-pmc/usr/lib
 	$(Q)mv $(SLIBDIR)/*.a $(SLIBDIR)/*.so debian/libpmc-dev$(LIBDIR)
 	$(Q)mv $(SLIBDIR)/* debian/libpmc$(LIBDIR)

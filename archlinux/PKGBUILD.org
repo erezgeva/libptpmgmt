@@ -7,7 +7,7 @@
 
 pkgver=0.4
 pkgrel=1
-pkgname=(libpmc libpmc-dev libpmc-doc libpmc-perl lua-pmc ruby-pmc
+pkgname=(libpmc libpmc-dev libpmc-doc libpmc-perl lua-pmc ruby-pmc tcl-pmc
   python2-pmc python3-pmc pmc)
 # Source code can be build on most architectures
 # But as Arch Linux does not support the 'all' keyword
@@ -23,7 +23,7 @@ build() {
   make -j DESTDIR=install install DEV_PKG=libpmc-dev SBINDIR=/usr/bin\
     NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
 }
-makedepends=(doxygen graphviz perl ruby swig lua lua51 lua52 lua53\
+makedepends=(doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
   python2 python3)
 package_libpmc() {
   pkgdesc='pmc library, to communicate with ptp4l'
@@ -83,6 +83,14 @@ package_ruby-pmc() {
   mkdir -p $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/ruby $pkgdir/usr/lib
 }
+
+package_tcl-pmc() {
+  pkgdesc='pmc library tcl wrapper'
+  depends=("libpmc=$pkgver" tcl)
+  mkdir -p $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/tcl* $pkgdir/usr/lib
+}
+
 #package_php-pmc() {
 # Arch linux php7 do not have system include_path!
 # pkgdesc='pmc library php wrapper'

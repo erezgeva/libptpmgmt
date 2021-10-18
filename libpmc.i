@@ -56,6 +56,14 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
  * Scripts can use Buf::get() */
 %warnfilter(503) Buf::operator();
 #endif /* SWIGPHP */
+#ifdef SWIGTCL
+/* Operator overload ignored.
+ * Scripts can use Binary::append() */
+%warnfilter(365) Binary::operator+=;
+/* Operator overload ignored.
+ * Scripts can use Buf::get() */
+%warnfilter(503) Buf::operator();
+#endif /* SWIGTCL */
 %include "cfg.h"
 %include "msg.h"
 %include "ptp.h"

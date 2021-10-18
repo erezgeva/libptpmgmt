@@ -178,6 +178,13 @@ priority1: 153
  [ -z "$phpIni" ] || ./php_ini.sh
  time eval "$ldPathPhp $useSudo ./test.php $cfgFile" | diff - ../$t3
  cd ..
+ enter tcl
+ if [ -f pmc.so ]; then
+   sed -i 's#^package require.*#load ./pmc.so#' test.tcl
+ fi
+ time eval "$ldPath $useSudo ./test.tcl $cfgFile" | diff - ../$t3
+ sed -i 's/^load .*/package require pmc/' test.tcl
+ cd ..
  rm $t3
 }
 ###############################################################################
@@ -231,6 +238,10 @@ probeLibs()
    needCmp=y
    phpIni=y
    ldPathPhp+=" PHPRC=."
+ fi
+ getFirstFile "/usr/lib/tcltk/*/pmc/pmc.so"
+ if [ ! -f "$file" ]; then
+   needCmp=y
  fi
 }
 ###############################################################################
