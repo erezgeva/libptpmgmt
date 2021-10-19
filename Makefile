@@ -310,6 +310,12 @@ DEB_BUILD_MULTIARCH?=$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
 endif # which dpkg-architecture
 TARGET_ARCH?=$(DEB_TARGET_MULTIARCH)
 BUILD_ARCH?=$(DEB_BUILD_MULTIARCH)
+ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
+CROSS_COMP:=1
+rep_arch_f=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$1)
+rep_arch_p=$(subst /$(BUILD_ARCH),/$(TARGET_ARCH),$1)
+rep_arch_o=$(subst $(BUILD_ARCH),$(TARGET_ARCH),$1)
+endif
 
 ifndef NO_SWIG
 ifneq ($(call which,swig),)
@@ -321,16 +327,13 @@ SWIG_NAME:=PmcLib
 
 ifndef NO_PERL
 ifneq ($(call which,perl),)
-PERL_INC_B!= perl -e 'for(@INC){print "$$_/CORE" if-f "$$_/CORE/EXTERN.h"}'
-PERLDIR_B:=$(DESTDIR)$(lastword $(shell perl -e '$$_=$$^V;s/^v//;\
+PERL_INC!= perl -e 'for(@INC){print "$$_/CORE" if-f "$$_/CORE/EXTERN.h"}'
+PERLDIR:=$(DESTDIR)$(lastword $(shell perl -e '$$_=$$^V;s/^v//;\
   s/^(\d+\.\d+).*/\1/;$$v=$$_;for(@INC){print "$$_\n" if /$$v/ and /lib/}'))
 # Perl does not "know" how to cross properly
-ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
-PERL_INC:=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$(PERL_INC_B))
-PERLDIR:=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$(PERLDIR_B))
-else
-PERL_INC:=$(PERL_INC_B)
-PERLDIR:=$(PERLDIR_B)
+ifdef CROSS_COMP
+PERL_INC:=$(call rep_arch_f,$(PERL_INC))
+PERLDIR:=$(call rep_arch_f,$(PERLDIR))
 endif
 PERL_NAME:=perl/$(SWIG_NAME)
 $(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
@@ -458,11 +461,9 @@ $(eval $(call python,2))
 endif
 ifdef USE_PY3
 $(eval $(call python,3))
-PY3_EXT_B!=python3-config --extension-suffix
-ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
-PY3_EXT:=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$(PY3_EXT_B))
-else
-PY3_EXT:=$(PY3_EXT_B)
+PY3_EXT!=python3-config --extension-suffix
+ifdef CROSS_COMP
+PY3_EXT:=$(call rep_arch_o,$(PY3_EXT))
 endif
 endif # USE_PY3
 
@@ -476,18 +477,14 @@ RUBY_SCRIPT_INCS:='puts "-I" + RbConfig::CONFIG["rubyhdrdir"] +\
                        " -I" + RbConfig::CONFIG["rubyarchhdrdir"]'
 RUBY_SCRIPT_LIB:='puts "-l" + RbConfig::CONFIG["RUBY_SO_NAME"]'
 RUBY_SCRIPT_VDIR:='puts RbConfig::CONFIG["vendorarchdir"]'
-RUBY_INC_B!= ruby -rrbconfig -e $(RUBY_SCRIPT_INCS)
-RUBY_LIB_B!= ruby -rrbconfig -e $(RUBY_SCRIPT_LIB)
-RUBYDIR_B:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
+RUBY_INC!= ruby -rrbconfig -e $(RUBY_SCRIPT_INCS)
+RUBY_LIB!= ruby -rrbconfig -e $(RUBY_SCRIPT_LIB)
+RUBYDIR:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
 # Ruby does not "know" how to cross properly
-ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
-RUBY_INC:=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$(RUBY_INC_B))
-RUBY_LIB:=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$(RUBY_LIB_B))
-RUBYDIR:=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$(RUBYDIR_B))
-else
-RUBY_INC:=$(RUBY_INC_B)
-RUBY_LIB:=$(RUBY_LIB_B)
-RUBYDIR:=$(RUBYDIR_B)
+ifdef CROSS_COMP
+RUBY_INC:=$(call rep_arch_f,$(RUBY_INC))
+RUBY_LIB:=$(call rep_arch_f,$(RUBY_LIB))
+RUBYDIR:=$(call rep_arch_f,$(RUBYDIR))
 endif
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
 RUBY_LNAME:=ruby/pmc
@@ -577,9 +574,12 @@ CLEAN+=$(TCL_NAME) $(foreach e,d o,$(TCL_LNAME).$e)
 DISTCLEAN+=$(TCL_LNAME).so
 tcl_paths!=echo 'puts $$auto_path;exit 0' | tclsh
 ifneq ($(TARGET_ARCH),)
-TCL_LIB=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '$(TARGET_ARCH)'))
+TCL_LIB:=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '$(BUILD_ARCH)'))
+ifdef CROSS_COMP
+TCL_LIB:=$(call rep_arch_p,$(TCL_LIB))
+endif
 else
-TCL_LIB=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '/usr/lib.*/tcl'))
+TCL_LIB:=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '/usr/lib.*/tcl'))
 endif
 TCLDIR:=$(DESTDIR)$(TCL_LIB)/pmc
 # TODO how the hell tcl "know" the library version? Why does it think it's 0.0?
