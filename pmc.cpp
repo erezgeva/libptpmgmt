@@ -21,6 +21,7 @@
 #include "bin.h"
 #include "ver.h"
 #include "pmc.h"
+#include "opt.h"
 
 #ifndef INFTIM
 #define INFTIM -1
@@ -216,27 +217,10 @@ static bool run_line(char *line)
     }
     return true;
 }
-void help(char *app)
+void help(const std::string &app, const char *hmsg)
 {
-    fprintf(stderr, "\n"
-        "usage: %s [options] [commands]\n\n"
-        " Network Transport\n\n"
-        " -2        IEEE 802.3\n"
-        " -4        UDP IPV4 (default)\n"
-        " -6        UDP IPV6\n"
-        " -u        UDS local\n\n"
-        " Other Options\n\n"
-        " -b [num]  boundary hops, default 1\n"
-        " -d [num]  domain number, default 0\n"
-        " -f [file] read configuration from 'file'\n"
-        " -h        prints this message and exits\n"
-        " -i [dev]  interface device to use, default 'eth0'\n"
-        "           for network and '/var/run/pmc.$pid' for UDS.\n"
-        " -s [path] server address for UDS, default '/var/run/ptp4l'.\n"
-        " -t [hex]  transport specific field, default 0x0\n"
-        " -v        prints the software version and exits\n"
-        " -z        send zero length TLV values with the GET actions\n\n",
-        basename(app));
+    fprintf(stderr, "\nusage: %s [options] [commands]\n\n%s\n",
+        app.c_str(), hmsg);
 }
 static void handle_sig(int)
 {
@@ -251,87 +235,33 @@ static void handle_sig_ctrl(int)
 }
 int main(int argc, char *const argv[])
 {
-    int c;
-    std::map<int, std::string> options;
-    const char *with_options = "fbdsti";
-    const char *no_options = "zvh";
-    const char *net_options = "u246";
-    const char *l_options = "MSTP";
-    const option long_options[] = {
-        // .name               .has_arg           .flag    .val
-        // Long option for short option
-        { "domainNumber",      required_argument, nullptr, 'd' },
-        { "uds_address",       required_argument, nullptr, 's' },
-        { "transportSpecific", required_argument, nullptr, 't' },
-        // Long only options
-        { "network_transport", required_argument, nullptr, 'n' },
-        { "ptp_dst_mac",       required_argument, nullptr, 'M' },
-        { "udp6_scope",        required_argument, nullptr, 'S' },
-        { "udp_ttl",           required_argument, nullptr, 'T' },
-        { "socket_priority",   required_argument, nullptr, 'P' },
-        // termination
-        { nullptr,             0,                 nullptr,  0  }
-    };
-    std::string opts = net_options;
-    opts += no_options;
-    for(size_t i = 0; i < strlen(with_options); i++) {
-        opts += with_options[i];
-        opts += ':';
-    }
-    char net_select = 0;
-    bool zero_get = false;
-    while((c = getopt_long(argc, argv, opts.c_str(), long_options,
-                    nullptr)) != -1) {
-        switch(c) {
-            case ':':
-                PMCERR("Wrong option ':'");
-                return -1;
-            case 'v':
-                DUMPS("%s\n", getVersion());
-                return 0;
-            case 'h':
-                help(argv[0]);
-                return 0;
-            case 'z':
-                /* See Interpretation Response #29 in
-                 * IEEE Standards Interpretations for IEEE Std 1588-2008
-                 * https://standards.ieee.org/content/dam/ieee-standards/
-                 * standards/web/documents/interpretations/1588-2008_interp.pdf */
-                zero_get = true;
-                continue;
-            case 'n':
-                if(strcasecmp(optarg, "UDPv4") == 0)
-                    net_select = '4';
-                else if(strcasecmp(optarg, "UDPv6") == 0)
-                    net_select = '6';
-                else if(strcasecmp(optarg, "L2") == 0)
-                    net_select = '2';
-                else {
-                    PMCERR("Wrong network_transport");
-                    return -1;
-                }
-                continue;
-            default:
-                break;
-        }
-        if(strrchr(with_options, c) != nullptr || strrchr(l_options, c) != nullptr)
-            options[c] = optarg;
-        else if(strrchr(net_options, c) != nullptr)
-            net_select = c;
-        else {
-            help(argv[0]);
+    Options opt;
+    std::string app = basename(argv[0]);
+    switch(opt.parse_options(argc, argv)) {
+        case Options::OPT_EMSG:
+            fprintf(stderr, "%s: %s\n", app.c_str(), opt.get_msg());
+        case Options::OPT_ERR:
+            help(app, opt.get_help());
             return -1;
-        }
+        case Options::OPT_MSG:
+            DUMPS("%s\n", opt.get_msg());
+            return 0;
+        case Options::OPT_HELP:
+            help(app, opt.get_help());
+            return 0;
+        case Options::OPT_DONE:
+            break;
     }
+    char net_select = opt.get_net_transport();
     ConfigFile cfg;
     /* handle configuration file */
-    if(options.count('f') && !cfg.read_cfg(options['f']))
+    if(opt.have('f') && !cfg.read_cfg(opt.val('f')))
         return -1;
     if(net_select == 0)
         net_select = cfg.network_transport();
     std::string interface;
-    if(options.count('i') && !options['i'].empty())
-        interface = options['i'];
+    if(opt.have('i') && !opt.val('i').empty())
+        interface = opt.val('i');
     IfInfo ifObj;
     MsgParams prms = msg.getParams();
     if(net_select != 'u') {
@@ -347,18 +277,19 @@ int main(int argc, char *const argv[])
         prms.self_id.portNumber = 1;
         use_uds = false;
     }
-    if(options.count('b'))
-        prms.boundaryHops = atoi(options['b'].c_str());
+    if(opt.have('b'))
+        prms.boundaryHops = opt.val_i('b');
     else
         prms.boundaryHops = 1;
-    if(options.count('d'))
-        prms.domainNumber = atoi(options['b'].c_str());
+    if(opt.have('d'))
+        prms.domainNumber = opt.val_i('d');
     else
         prms.domainNumber = cfg.domainNumber(interface);
-    if(options.count('t'))
-        prms.transportSpecific = strtol(options['t'].c_str(), nullptr, 16);
+    if(opt.have('t'))
+        prms.transportSpecific = strtol(opt.val_c('t'), nullptr, 16);
     else
         prms.transportSpecific = cfg.transportSpecific(interface);
+    prms.useZeroGet = opt.val('z') == "1";
     switch(net_select) {
         case 'u': {
             SockUnix *sku = new SockUnix;
@@ -368,8 +299,8 @@ int main(int argc, char *const argv[])
             }
             sk.reset(sku);
             std::string uds_address;
-            if(options.count('s'))
-                uds_address = options['s'];
+            if(opt.have('s'))
+                uds_address = opt.val('s');
             else
                 uds_address = cfg.uds_address(interface);
             if(!sku->setDefSelfAddress() || !sku->init() ||
@@ -393,7 +324,7 @@ int main(int argc, char *const argv[])
                 PMCERR("failed to set transport");
                 return -1;
             }
-            if(options.count('T') && !sk4->setUdpTtl(atoi(options['T'].c_str()))) {
+            if(opt.have('T') && !sk4->setUdpTtl(opt.val_i('T'))) {
                 PMCERR("failed to set udp_ttl");
                 return -1;
             }
@@ -414,11 +345,11 @@ int main(int argc, char *const argv[])
                 PMCERR("failed to set transport");
                 return -1;
             }
-            if(options.count('T') && !sk6->setUdpTtl(atoi(options['T'].c_str()))) {
+            if(opt.have('T') && !sk6->setUdpTtl(opt.val_i('T'))) {
                 PMCERR("failed to set udp_ttl");
                 return -1;
             }
-            if(options.count('S') && !sk6->setScope(atoi(options['S'].c_str()))) {
+            if(opt.have('S') && !sk6->setScope(opt.val_i('S'))) {
                 PMCERR("failed to set udp6_scope");
                 return -1;
             }
@@ -439,13 +370,13 @@ int main(int argc, char *const argv[])
                 PMCERR("failed to set transport");
                 return -1;
             }
-            if(options.count('P') &&
-                !skr->setSocketPriority(atoi(options['P'].c_str()))) {
+            if(opt.have('P') &&
+                !skr->setSocketPriority(opt.val_i('P'))) {
                 PMCERR("failed to set socket_priority");
                 return -1;
             }
             Binary mac;
-            if(options.count('M') && (!mac.fromMac(options['M']) ||
+            if(opt.have('M') && (!mac.fromMac(opt.val('M')) ||
                     !skr->setPtpDstMac(mac))) {
                 PMCERR("failed to set ptp_dst_mac");
                 return -1;
@@ -460,11 +391,10 @@ int main(int argc, char *const argv[])
     // allowed signaling TLV
     prms.allowSigTlvs[SLAVE_RX_SYNC_TIMING_DATA] = true;
     prms.allowSigTlvs[SLAVE_DELAY_TIMING_DATA_NP] = true;
-    bool batch = optind < argc;
+    bool batch = opt.have_more();
     // if we use real network layer and run mode, allow signaling
     if(!batch && !use_uds)
         prms.rcvSignaling = true;
-    prms.useZeroGet = zero_get;
     msg.updateParams(prms);
     // Normal Termination (by kill)
     if(signal(SIGTERM, handle_sig) == SIG_ERR)
@@ -482,7 +412,7 @@ int main(int argc, char *const argv[])
         // batch mode
         int pkts = 0;
         // First we send all the commands, then we receive them all
-        for(int index = optind; index < argc; index++) {
+        for(int index = opt.procces_next(); index < argc; index++) {
             if(run_line(argv[index]))
                 pkts++;
         }

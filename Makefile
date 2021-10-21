@@ -123,10 +123,11 @@ verCheck=$(call verCheckDo,$(firstword $(subst ., ,$1 0 0 0)),$(word 2,\
 ifeq ($(call cmp,$(MAKE_VERSION),4.2),)
 USE_FILE_OP:=1
 endif
-define line
-
+define lbase
+A
 
 endef
+line=$(subst A,,$(lbase))
 space=$(subst A,,A A)
 
 # Use tput to check if we have ANSI Color code
@@ -574,12 +575,14 @@ CLEAN+=$(TCL_NAME) $(foreach e,d o,$(TCL_LNAME).$e)
 DISTCLEAN+=$(TCL_LNAME).so
 tcl_paths!=echo 'puts $$auto_path;exit 0' | tclsh
 ifneq ($(TARGET_ARCH),)
-TCL_LIB:=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '$(BUILD_ARCH)'))
+TCL_LIB:=$(firstword $(shell echo $(tcl_paths) |\
+  $(SED) 's/ /\n/g' | grep '$(BUILD_ARCH)'))
 ifdef CROSS_COMP
 TCL_LIB:=$(call rep_arch_p,$(TCL_LIB))
 endif
 else
-TCL_LIB:=$(firstword $(shell echo $(tcl_paths) | $(SED) 's/ /\n/g' | grep '/usr/lib.*/tcl'))
+TCL_LIB:=$(firstword $(shell echo $(tcl_paths) |\
+  $(SED) 's/ /\n/g' | grep '/usr/lib.*/tcl'))
 endif
 TCLDIR:=$(DESTDIR)$(TCL_LIB)/pmc
 # TODO how the hell tcl "know" the library version? Why does it think it's 0.0?

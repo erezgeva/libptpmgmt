@@ -54,7 +54,8 @@ proc setPriority1 {newPriority1} {
     return -1
   }
   set err [ msg parse buf $cnt ]
-  if {$err != $MNG_PARSE_ERROR_OK || [ msg getTlvId ] != $id || $seq != [ msg getSequence ] } {
+  if {$err != $MNG_PARSE_ERROR_OK || [ msg getTlvId ] != $id || \
+      $seq != [ msg getSequence ] } {
     puts "set fails"
     return -1
   }
@@ -110,7 +111,8 @@ proc main {cfg_file} {
     puts "fail reading configuration file"
     return -1
   }
-  if { ! [ sk setDefSelfAddress ] || ! [ sk init ]  || ! [ sk setPeerAddress $cfg ] } {
+  if { ! [ sk setDefSelfAddress ] || ! [ sk init ]  || \
+       ! [ sk setPeerAddress $cfg ] } {
     puts "fail init socket"
     return -1
   }
@@ -176,7 +178,8 @@ proc main {cfg_file} {
   [ $clk_dec cget -physicalAddress ] setBin 3 0xf4
   puts "clk.physicalAddress: [ [ $clk_dec cget -physicalAddress ] toId ]"
   puts "clk.physicalAddress: [ [ $clk_dec cget -physicalAddress ] toHex ]"
-  puts "manufacturerIdentity: [ Binary_bufToId [ $clk_dec cget -manufacturerIdentity ] 3 ]"
+  set val [ Binary_bufToId [ $clk_dec cget -manufacturerIdentity ] 3 ]
+  puts "manufacturerIdentity: $val"
   [ $clk_dec cget -revisionData ] configure -textField "This is a test"
   puts "revisionData: [ [ $clk_dec cget -revisionData ] cget -textField ]"
 

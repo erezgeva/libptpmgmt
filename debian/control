@@ -78,8 +78,8 @@ Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends},
 Description: pmc library ruby wrapper
 
 Package: php-pmc
-Section: php
 Architecture: any
+Section: php
 Pre-Depends: php-common (>= 2:69)
 Provides: ${php:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
@@ -87,8 +87,9 @@ Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
 Description: pmc library php wrapper
 
 Package: tcl-pmc
-Section: interpreters
 Architecture: any
+Multi-Arch: same
+Section: interpreters
 Provides: ${tcl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
 	 libpmc (= ${binary:Version})
@@ -96,7 +97,6 @@ Description: pmc library tcl wrapper
 
 Package: pmc
 Architecture: any
-Multi-Arch: same
 Section: libs
 Depends: ${misc:Depends}, libpmc (= ${binary:Version})
 Recommends: linuxptp
