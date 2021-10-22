@@ -146,6 +146,7 @@ priority1: 153
  cd ..
  enter lua
  local i
+ # Lua 5.4 need lua-posix version 35
  for i in 1 2 3; do
    printf "\n lua 5.$i ---- \n"
    if [ -n "$needLua" ]; then

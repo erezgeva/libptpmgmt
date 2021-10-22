@@ -58,7 +58,6 @@ class Options
     /** parsing return code */
     enum loop_val {
         OPT_ERR, /**< Parsing error */
-        OPT_EMSG, /**< Parsing error with message */
         OPT_MSG, /**< Message from parsing */
         OPT_HELP, /**< Need to print help */
         OPT_DONE, /**< parsing success */
@@ -84,7 +83,12 @@ class Options
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const char *get_msg() { return msg.c_str(); }
+    const std::string get_msg() { return msg; }
+    /**
+     * Get parse_options() message
+     * @return message from last parse_options()
+     */
+    const char *get_msg_c() { return msg.c_str(); }
     /**
      * Parse command line
      * @param[in] argc number of arguments

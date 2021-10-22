@@ -18,7 +18,7 @@
  * @param[in] format message to print
  */
 #define PMC_ERROR(format) do\
-    { fprintf(stderr, "[%s:%d] " format "\n",__FILE__, __LINE__); }\
+    { fprintf(stderr, "[%s:%d] " format "\n", __FILE__, __LINE__); }\
     while(0)
 #endif /*PMC_ERROR*/
 #ifndef PMC_ERRORA
@@ -28,8 +28,17 @@
  * @param[in] ... parameters match for format
  */
 #define PMC_ERRORA(format, ...) do\
-    { fprintf(stderr, "[%s:%d] " format "\n",__FILE__, __LINE__, __VA_ARGS__); }\
+    { fprintf(stderr, "[%s:%d] " format "\n", __FILE__, __LINE__, __VA_ARGS__); }\
     while(0)
 #endif /*PMC_ERRORA*/
+#ifndef PMC_PERROR
+/**
+ * Print system error
+ * @param[in] msg
+ */
+#define PMC_PERROR(msg) do\
+    { fprintf(stderr, "[%s:%d] " msg ": %s\n", __FILE__, __LINE__, strerror(errno)); }\
+    while(0)
+#endif /*PMC_PERROR*/
 
 #endif /*__PMC_ERR_H*/

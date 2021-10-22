@@ -11,7 +11,6 @@
 
 #include <cstring>
 #include <functional>
-#include "msg.h"
 #include "pmc.h"
 
 #define IDENT "\n\t\t"

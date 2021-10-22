@@ -34,7 +34,7 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
     /* retrieve corresponding MAC */
     if(ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
-        perror("SIOCGIFHWADDR");
+        PMC_PERROR("SIOCGIFHWADDR");
         close(fd);
         return false;
     }
@@ -44,7 +44,7 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
     info.phc_index = -1;
     ifr.ifr_data = (char *)&info;
     if(ioctl(fd, SIOCETHTOOL, &ifr) == -1) {
-        perror("SIOCETHTOOL");
+        PMC_PERROR("SIOCETHTOOL");
         close(fd);
         return false;
     }
@@ -59,14 +59,14 @@ bool IfInfo::initUsingName(const std::string ifName)
         return false;
     int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(fd < 0) {
-        perror("socket");
+        PMC_PERROR("socket");
         return false;
     }
     ifreq ifr = {0};
     // ifName is shorter than IFNAMSIZ
     strcpy(ifr.ifr_name, ifName.c_str());
     if(ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
-        perror("SIOCGIFINDEX");
+        PMC_PERROR("SIOCGIFINDEX");
         close(fd);
         return false;
     }
@@ -80,13 +80,13 @@ bool IfInfo::initUsingIndex(int ifIndex)
         return false;
     int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(fd < 0) {
-        perror("socket");
+        PMC_PERROR("socket");
         return false;
     }
     ifreq ifr = {0};
     ifr.ifr_ifindex = ifIndex;
     if(ioctl(fd, SIOCGIFNAME, &ifr) == -1) {
-        perror("SIOCGIFNAME");
+        PMC_PERROR("SIOCGIFNAME");
         close(fd);
         return false;
     }

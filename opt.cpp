@@ -113,9 +113,15 @@ bool Options::insert(const pmc_option &opt)
 Options::loop_val Options::parse_options(int l_argc, char *const argv[])
 {
     int c;
+    opterr = 0; // Prevent printing the error
     while((c = getopt_long(l_argc, argv, all_short_options.c_str(),
                     long_options_list.data(), nullptr)) != -1) {
         switch(c) {
+            case '?':
+                msg = "invalid option -- '";
+                msg += argv[optind - 1];
+                msg += "'";
+                return OPT_ERR;
             case 'v':
                 msg = getVersion();
                 return OPT_MSG;
@@ -132,7 +138,7 @@ Options::loop_val Options::parse_options(int l_argc, char *const argv[])
                     msg = "Wrong network transport -- '";
                     msg += optarg;
                     msg += "'";
-                    return OPT_EMSG;
+                    return OPT_ERR;
                 }
                 continue;
             default:
@@ -144,8 +150,10 @@ Options::loop_val Options::parse_options(int l_argc, char *const argv[])
             options[c] = optarg;
         else if(all_options.find(c) != std::string::npos)
             options[c] = "1";
-        else
+        else {
+            msg = "error";
             return OPT_ERR;
+        }
     }
     argc = l_argc;
     end_optind = optind;

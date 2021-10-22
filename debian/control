@@ -15,6 +15,7 @@ Package: libpmc
 Architecture: any
 Multi-Arch: same
 Section: libs
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Recommends: linuxptp
 Description: pmc library, to communicate with ptp4l
@@ -23,6 +24,7 @@ Package: libpmc-dev
 Architecture: any
 Multi-Arch: same
 Section: libdevel
+Pre-Depends: ${misc:Pre-Depends}
 Depends: g++, ${misc:Depends}, libpmc (= ${binary:Version})
 Description: pmc library development
  This package provides header files and static library.
@@ -30,6 +32,7 @@ Description: pmc library development
 Package: libpmc-doc
 Architecture: all
 Section: libs
+Pre-Depends: ${misc:Pre-Depends}
 Depends: libpmc (= ${binary:Version})
 Description: pmc library documentation, to communicate with ptp4l
 
@@ -37,6 +40,7 @@ Package: libpmc-perl
 Architecture: any
 Multi-Arch: same
 Section: perl
+Pre-Depends: ${misc:Pre-Depends}
 Provides: ${perl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends},
 	 libpmc (= ${binary:Version})
@@ -46,6 +50,7 @@ Package: python-pmc
 Architecture: any
 Multi-Arch: same
 Section: python
+Pre-Depends: ${misc:Pre-Depends}
 Provides: ${python:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends},
 	 libpmc (= ${binary:Version})
@@ -55,6 +60,7 @@ Package: python3-pmc
 Architecture: any
 Multi-Arch: same
 Section: python
+Pre-Depends: ${misc:Pre-Depends}
 Provides: ${python3:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends},
 	 libpmc (= ${binary:Version})
@@ -64,14 +70,17 @@ Package: lua-pmc
 Architecture: any
 Multi-Arch: same
 Section: interpreters
+Pre-Depends: ${misc:Pre-Depends}
 Provides: ${lua:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, libpmc (= ${binary:Version})
+XB-Lua-Versions: ${lua:Versions}
 Description: pmc library Lua wrapper
 
 Package: ruby-pmc
 Architecture: any
 Multi-Arch: same
 Section: ruby
+Pre-Depends: ${misc:Pre-Depends}
 Provides: ${ruby:Provides}
 Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends},
 	 ${ruby:Depends}, libpmc (= ${binary:Version})
@@ -80,7 +89,7 @@ Description: pmc library ruby wrapper
 Package: php-pmc
 Architecture: any
 Section: php
-Pre-Depends: php-common (>= 2:69)
+Pre-Depends: php-common (>= 2:69), ${misc:Pre-Depends}
 Provides: ${php:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
 	 libpmc (= ${binary:Version})
@@ -90,6 +99,7 @@ Package: tcl-pmc
 Architecture: any
 Multi-Arch: same
 Section: interpreters
+Pre-Depends: ${misc:Pre-Depends}
 Provides: ${tcl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
 	 libpmc (= ${binary:Version})
@@ -98,6 +108,7 @@ Description: pmc library tcl wrapper
 Package: pmc
 Architecture: any
 Section: libs
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, libpmc (= ${binary:Version})
 Recommends: linuxptp
 Description: pmc tool.

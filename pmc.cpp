@@ -15,13 +15,13 @@
 #include <poll.h>
 #include <getopt.h>
 #include <libgen.h>
-#include "msg.h"
 #include "ptp.h"
 #include "sock.h"
 #include "bin.h"
 #include "ver.h"
 #include "pmc.h"
 #include "opt.h"
+#include "init.h"
 
 #ifndef INFTIM
 #define INFTIM -1
@@ -32,9 +32,9 @@ static const int wait = 500; // milli
 // buffer for send and receive
 static const size_t bufSize = 2000;
 static char buf[bufSize];
-static Message msg;
-static std::unique_ptr<SockBase> sk;
-static Binary clockIdentity;
+static Init obj;
+static Message &msg = obj.msg();
+static SockBase *sk;
 static bool use_uds;
 static uint64_t timeout;
 
@@ -224,12 +224,12 @@ void help(const std::string &app, const char *hmsg)
 }
 static void handle_sig(int)
 {
-    sk->close();
+    obj.close();
     exit(0);
 }
 static void handle_sig_ctrl(int)
 {
-    sk->close();
+    obj.close();
     DUMPNL;
     exit(0);
 }
@@ -238,13 +238,12 @@ int main(int argc, char *const argv[])
     Options opt;
     std::string app = basename(argv[0]);
     switch(opt.parse_options(argc, argv)) {
-        case Options::OPT_EMSG:
-            fprintf(stderr, "%s: %s\n", app.c_str(), opt.get_msg());
         case Options::OPT_ERR:
+            fprintf(stderr, "%s: %s\n", app.c_str(), opt.get_msg_c());
             help(app, opt.get_help());
             return -1;
         case Options::OPT_MSG:
-            DUMPS("%s\n", opt.get_msg());
+            DUMPS("%s\n", opt.get_msg_c());
             return 0;
         case Options::OPT_HELP:
             help(app, opt.get_help());
@@ -252,143 +251,15 @@ int main(int argc, char *const argv[])
         case Options::OPT_DONE:
             break;
     }
-    char net_select = opt.get_net_transport();
-    ConfigFile cfg;
-    /* handle configuration file */
-    if(opt.have('f') && !cfg.read_cfg(opt.val('f')))
-        return -1;
-    if(net_select == 0)
-        net_select = cfg.network_transport();
-    std::string interface;
-    if(opt.have('i') && !opt.val('i').empty())
-        interface = opt.val('i');
-    IfInfo ifObj;
-    MsgParams prms = msg.getParams();
-    if(net_select != 'u') {
-        if(interface.empty()) {
-            PMCERR("missing interface");
-            return -1;
-        }
-        if(!ifObj.initUsingName(interface))
-            return -1;
-        clockIdentity = ifObj.mac();
-        clockIdentity.eui48ToEui64();
-        clockIdentity.copy(prms.self_id.clockIdentity.v);
-        prms.self_id.portNumber = 1;
-        use_uds = false;
-    }
-    if(opt.have('b'))
-        prms.boundaryHops = opt.val_i('b');
-    else
-        prms.boundaryHops = 1;
-    if(opt.have('d'))
-        prms.domainNumber = opt.val_i('d');
-    else
-        prms.domainNumber = cfg.domainNumber(interface);
-    if(opt.have('t'))
-        prms.transportSpecific = strtol(opt.val_c('t'), nullptr, 16);
-    else
-        prms.transportSpecific = cfg.transportSpecific(interface);
-    prms.useZeroGet = opt.val('z') == "1";
-    switch(net_select) {
-        case 'u': {
-            SockUnix *sku = new SockUnix;
-            if(sku == nullptr) {
-                PMCERR("failed to allocate SockUnix");
-                return -1;
-            }
-            sk.reset(sku);
-            std::string uds_address;
-            if(opt.have('s'))
-                uds_address = opt.val('s');
-            else
-                uds_address = cfg.uds_address(interface);
-            if(!sku->setDefSelfAddress() || !sku->init() ||
-                !sku->setPeerAddress(uds_address)) {
-                PMCERR("failed to create transport");
-                return -1;
-            }
-            prms.self_id.portNumber = getpid() & 0xffff;
-            use_uds = true;
-            break;
-        }
-        default:
-        case '4': {
-            SockIp4 *sk4 = new SockIp4;
-            if(sk4 == nullptr) {
-                PMCERR("failed to allocate SockIp4");
-                return -1;
-            }
-            sk.reset(sk4);
-            if(!sk4->setAll(ifObj, cfg, interface)) {
-                PMCERR("failed to set transport");
-                return -1;
-            }
-            if(opt.have('T') && !sk4->setUdpTtl(opt.val_i('T'))) {
-                PMCERR("failed to set udp_ttl");
-                return -1;
-            }
-            if(!sk4->init()) {
-                PMCERR("failed to init transport");
-                return -1;
-            }
-            break;
-        }
-        case '6': {
-            SockIp6 *sk6 = new SockIp6;
-            if(sk6 == nullptr) {
-                PMCERR("failed to allocate SockIp6");
-                return -1;
-            }
-            sk.reset(sk6);
-            if(!sk6->setAll(ifObj, cfg, interface)) {
-                PMCERR("failed to set transport");
-                return -1;
-            }
-            if(opt.have('T') && !sk6->setUdpTtl(opt.val_i('T'))) {
-                PMCERR("failed to set udp_ttl");
-                return -1;
-            }
-            if(opt.have('S') && !sk6->setScope(opt.val_i('S'))) {
-                PMCERR("failed to set udp6_scope");
-                return -1;
-            }
-            if(!sk6->init()) {
-                PMCERR("failed to init transport");
-                return -1;
-            }
-            break;
-        }
-        case '2': {
-            SockRaw *skr = new SockRaw;
-            if(skr == nullptr) {
-                PMCERR("failed to allocate SockRaw");
-                return -1;
-            }
-            sk.reset(skr);
-            if(!skr->setAll(ifObj, cfg, interface)) {
-                PMCERR("failed to set transport");
-                return -1;
-            }
-            if(opt.have('P') &&
-                !skr->setSocketPriority(opt.val_i('P'))) {
-                PMCERR("failed to set socket_priority");
-                return -1;
-            }
-            Binary mac;
-            if(opt.have('M') && (!mac.fromMac(opt.val('M')) ||
-                    !skr->setPtpDstMac(mac))) {
-                PMCERR("failed to set ptp_dst_mac");
-                return -1;
-            }
-            if(!skr->init()) {
-                PMCERR("failed to init transport");
-                return -1;
-            }
-            break;
-        }
-    }
+
+    int ret = obj.proccess(opt);
+    if(ret)
+        return ret;
+    sk = obj.sk();
+    use_uds = obj.use_uds();
+
     // allowed signaling TLV
+    MsgParams prms = msg.getParams();
     prms.allowSigTlvs[SLAVE_RX_SYNC_TIMING_DATA] = true;
     prms.allowSigTlvs[SLAVE_DELAY_TIMING_DATA_NP] = true;
     bool batch = opt.have_more();
@@ -447,6 +318,6 @@ int main(int argc, char *const argv[])
             }
         }
     }
-    sk->close();
+    obj.close();
     return 0;
 }

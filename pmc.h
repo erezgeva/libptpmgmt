@@ -12,6 +12,8 @@
 #ifndef __PMC_TOOL_H
 #define __PMC_TOOL_H
 
+#include "msg.h"
+
 /** print error message */
 #define PMCERR(msg) fprintf(stderr, msg "\n")
 /** dump */
