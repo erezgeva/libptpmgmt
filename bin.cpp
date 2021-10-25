@@ -9,7 +9,6 @@
  *
  */
 
-#include <cstring>
 #include <arpa/inet.h>
 #include "bin.h"
 

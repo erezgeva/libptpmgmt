@@ -9,7 +9,6 @@
  *
  */
 
-#include <cstring>
 #include <regex>
 #include "opt.h"
 #include "ver.h"

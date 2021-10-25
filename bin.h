@@ -15,6 +15,7 @@
 #include <string>
 #include <cstdint>
 #include <cstring>
+#include <cstdio>
 
 const size_t EUI48 = 6; /**< 48 bits MAC address length */
 const size_t EUI64 = 8; /**< 64 bits MAC address length */

@@ -10,11 +10,9 @@
  * Created following "IEEE Std 1588-2008", PTP version 2
  */
 
-#include <cstring>
 #include <cmath>
 #include <limits>
 #include <byteswap.h>
-#include <arpa/inet.h>
 #include "err.h"
 #include "end.h"
 #include "msg.h"

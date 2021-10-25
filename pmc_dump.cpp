@@ -9,8 +9,6 @@
  *
  */
 
-#include <cstring>
-#include <functional>
 #include "pmc.h"
 
 #define IDENT "\n\t\t"

@@ -13,6 +13,9 @@
 #define __PMC_OPT_H
 
 #include <string>
+#include <cstdint>
+#include <cstring>
+#include <cstdio>
 #include <getopt.h>
 #include <vector>
 #include <map>

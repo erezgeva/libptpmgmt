@@ -13,14 +13,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <poll.h>
-#include <getopt.h>
-#include <libgen.h>
-#include "ptp.h"
-#include "sock.h"
-#include "bin.h"
-#include "ver.h"
 #include "pmc.h"
-#include "opt.h"
 #include "init.h"
 
 #ifndef INFTIM

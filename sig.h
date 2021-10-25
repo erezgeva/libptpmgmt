@@ -12,8 +12,10 @@
 #ifndef __PMC_SIG_H
 #define __PMC_SIG_H
 
+#include <string>
 #include <cstdint>
-#include <memory>
+#include <cstring>
+#include <cstdio>
 #include <vector>
 #include "msg.h"
 

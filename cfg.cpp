@@ -9,10 +9,8 @@
  *
  */
 
-#include <cstring>
 #include "err.h"
 #include "cfg.h"
-#include "ptp.h"
 
 #define get_func(n)\
     uint8_t ConfigFile::n(const std::string section)\

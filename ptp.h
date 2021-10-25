@@ -17,6 +17,8 @@
 
 #include <string>
 #include <cstdint>
+#include <cstring>
+#include <cstdio>
 #include <net/if.h>
 #include <linux/ethtool.h>
 #include "bin.h"

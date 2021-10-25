@@ -43,9 +43,9 @@ define help
 #                                                                              #
 #   rpmsrc           Create source tar for Red Hat build.                      #
 #                                                                              #
-#   pkg              Create source tar for Arch Linux build.                   #
+#   pkg              Build Arch Linux packages.                                #
 #                                                                              #
-#   pkgsrc           Build Red Hat packages.                                   #
+#   pkgsrc           Create source tar for Arch Linux build.                   #
 #                                                                              #
 ################################################################################
 #  Make file parameters                                                        #
@@ -95,12 +95,12 @@ define help
 #                                                                              #
 #   NO_PHP           Prevent compiling PHP Swig plugin.                        #
 #                                                                              #
+#   NO_TCL           Prevent compiling TCL Swig plugin.                        #
+#                                                                              #
 #   PMC_USE_CJSON    Use C JSON for parsing JSON into PTP management message.  #
 #                                                                              #
 #   PMC_USE_FCJSON   Use C JSON for parsing JSON into PTP management message.  #
 #                    Use fast JSON library.                                    #
-#                                                                              #
-#   NO_TCL           Prevent compiling TCL Swig plugin.                        #
 #                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #

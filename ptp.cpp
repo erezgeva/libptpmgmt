@@ -9,13 +9,11 @@
  *
  */
 
-#include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
 #include "err.h"
-#include "msg.h"
 #include "ptp.h"
 
 // man netdevice

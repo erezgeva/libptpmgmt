@@ -9,7 +9,6 @@
  *
  */
 
-#include <cstring>
 #include "msg.h"
 
 /* size functions per id */

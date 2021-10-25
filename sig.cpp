@@ -9,7 +9,6 @@
  *
  */
 
-#include <cstring>
 #include "msg.h"
 
 #define A(n) bool Message::n##_f(n##_t &d)

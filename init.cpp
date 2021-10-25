@@ -8,7 +8,6 @@
  * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
-#include <libgen.h>
 #include <unistd.h>
 #include "init.h"
 #include "err.h"

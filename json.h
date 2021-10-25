@@ -14,6 +14,8 @@
 
 #include <string>
 #include <cstdint>
+#include <cstring>
+#include <cstdio>
 #include "msg.h"
 
 /**

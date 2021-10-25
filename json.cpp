@@ -10,7 +10,7 @@
  */
 
 #include <stack>
-#include <math.h>
+#include <cmath>
 #include "json.h"
 #include "err.h"
 #ifdef PMC_USE_CJSON
@@ -1033,7 +1033,7 @@ struct JsonVal {
             case JT_DOUBLE:
                 switch(to) {
                     case JT_INT:
-                        if(!isnormal(fltV) || fmod(fltV, 1) != 0)
+                        if(!std::isnormal(fltV) || fmod(fltV, 1) != 0)
                             return false;
                         intV = trunc(fltV);
                         break;
@@ -1103,7 +1103,7 @@ struct JsonVal {
                 break;
             case JT_BOOL:
                 // Use JSON false!
-                intV = JG_BOOL(obj) != FALSE;
+                intV = JG_BOOL(obj) != false;
                 break;
             case JT_ARRAY:
             case JT_OBJ:

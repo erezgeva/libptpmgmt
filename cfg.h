@@ -16,9 +16,11 @@
 #ifndef __PMC_CFG_H
 #define __PMC_CFG_H
 
-#include <map>
 #include <string>
 #include <cstdint>
+#include <cstring>
+#include <cstdio>
+#include <map>
 #include "bin.h"
 
 class ConfigFile;

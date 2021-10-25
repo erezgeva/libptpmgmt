@@ -12,6 +12,11 @@
 #ifndef __PMC_ERR_H
 #define __PMC_ERR_H
 
+#include <string>
+#include <cstdint>
+#include <cstring>
+#include <cstdio>
+
 #ifndef PMC_ERROR
 /**
  * Print error without parameters

@@ -20,6 +20,8 @@
 
 #include <string>
 #include <cstdint>
+#include <cstring>
+#include <cstdio>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <linux/if_packet.h>

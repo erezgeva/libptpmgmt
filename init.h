@@ -12,6 +12,10 @@
 #ifndef __PMC_INIT_H
 #define __PMC_INIT_H
 
+#include <string>
+#include <cstdint>
+#include <cstring>
+#include <cstdio>
 #include "msg.h"
 #include "ptp.h"
 #include "opt.h"

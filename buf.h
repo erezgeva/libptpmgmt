@@ -12,8 +12,10 @@
 #ifndef __PMC_BUF_H
 #define __PMC_BUF_H
 
+#include <string>
 #include <cstdint>
-#include <cstddef>
+#include <cstring>
+#include <cstdio>
 
 /**
  * Create memory buffer for use in send, receive, build and parse
