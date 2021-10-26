@@ -55,7 +55,7 @@ class IfInfo
      * Is object initialized
      * @return true if network interface was successfully initialized
      */
-    bool isInit() { return m_isInit; }
+    bool isInit() const { return m_isInit; }
     /**
      * Get interface index
      * @return interface index or -1 if object is not initialized

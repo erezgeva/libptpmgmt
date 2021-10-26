@@ -13,17 +13,17 @@
 #include "cfg.h"
 
 #define get_func(n)\
-    uint8_t ConfigFile::n(const std::string section)\
+    uint8_t ConfigFile::n(const std::string section) const\
     {\
         return get(ConfigSection::n##_val, section);\
     }
 #define get_str_func(n)\
-    const std::string &ConfigFile:: n(const std::string section)\
+    const std::string &ConfigFile:: n(const std::string section) const\
     {\
         return get_str(ConfigSection::n##_val, section);\
     }
 #define get_bin_func(n)\
-    const Binary &ConfigFile:: n(const std::string section)\
+    const Binary &ConfigFile:: n(const std::string section) const\
     {\
         return get_bin(ConfigSection::n##_val, section);\
     }
@@ -176,29 +176,31 @@ bool ConfigFile::read_cfg(const std::string _file)
     fclose(f);
     return true;
 }
-bool ConfigFile::is_global(int idx, const std::string &section)
+bool ConfigFile::is_global(int idx, const std::string &section) const
 {
-    if(section.empty() || cfgSec.count(section) == 0 || !cfgSec[section].m_set[idx])
+    if(section.empty() || cfgSec.count(section) == 0 ||
+        !cfgSec.at(section).m_set[idx])
         return true;
     return false;
 }
-uint8_t ConfigFile::get(int idx, const std::string &section)
+uint8_t ConfigFile::get(int idx, const std::string &section) const
 {
     if(is_global(idx, section))
         return cfgGlobal.m_vals[idx];
-    return cfgSec[section].m_vals[idx];
+    return cfgSec.at(section).m_vals[idx];
 }
-const std::string &ConfigFile::get_str(int idx, const std::string &section)
+const std::string &ConfigFile::get_str(int idx,
+    const std::string &section) const
 {
     if(is_global(idx, section))
         return cfgGlobal.m_str_vals[idx - ConfigSection::str_base_val];
-    return cfgSec[section].m_str_vals[idx - ConfigSection::str_base_val];
+    return cfgSec.at(section).m_str_vals[idx - ConfigSection::str_base_val];
 }
-const Binary &ConfigFile::get_bin(int idx, const std::string &section)
+const Binary &ConfigFile::get_bin(int idx, const std::string &section) const
 {
     if(is_global(idx, section))
         return cfgGlobal.m_bin_vals[idx - ConfigSection::bin_base_val];
-    return cfgSec[section].m_bin_vals[idx - ConfigSection::bin_base_val];
+    return cfgSec.at(section).m_bin_vals[idx - ConfigSection::bin_base_val];
 }
 get_func(transportSpecific)
 get_func(domainNumber)

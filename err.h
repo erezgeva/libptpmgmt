@@ -42,7 +42,8 @@
  * @param[in] msg
  */
 #define PMC_PERROR(msg) do\
-    { fprintf(stderr, "[%s:%d] " msg ": %s\n", __FILE__, __LINE__, strerror(errno)); }\
+    { fprintf(stderr, "[%s:%d] " msg ": %s\n", __FILE__, __LINE__,\
+            strerror(errno)); }\
     while(0)
 #endif /*PMC_PERROR*/
 

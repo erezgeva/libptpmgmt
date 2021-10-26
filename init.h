@@ -22,8 +22,7 @@
 #include "sock.h"
 
 /**
- * Initilize configuration file, socket, message and
- *  command lines parsing objects.
+ * Initilize configuration file, socket, message based on PMC options.
  * The user can write an application using the pmc command line.
  */
 class Init
@@ -45,9 +44,9 @@ class Init
     void close();
 
     /**
-     * Proccess initilizing
-     * @param[in] opt object
-     * @return xxxx
+     * Proccess PMC options
+     * @param[in] opt PMC options
+     * @return 0 on scuccess
      */
     int proccess(Options &opt);
 
@@ -55,7 +54,7 @@ class Init
      * Get configuration file object
      * @return object
      */
-    ConfigFile &cfg() { return m_cfg; }
+    const ConfigFile &cfg() const { return m_cfg; }
 
     /**
      * Get Message object
@@ -67,13 +66,13 @@ class Init
      * Get Socket object
      * @return object
      */
-    SockBase *sk() { return m_sk; }
+    SockBase *sk() const { return m_sk; }
 
     /**
      * Do we use UDS socket?
      * @return true if use UDS socket
      */
-    bool use_uds() { return m_use_uds; }
+    bool use_uds() const { return m_use_uds; }
 };
 
 #endif /*__PMC_INIT_H*/

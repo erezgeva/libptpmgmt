@@ -44,20 +44,39 @@ pmc_option Options::start[] = {
     { 0 },
 };
 
-Options::Options(size_t l_max_arg_name) : max_arg_name(l_max_arg_name),
-    net_options("u246"), all_options(net_options),
-    all_short_options(net_options), net_select(0)
+std::string Options::helpStore::get(size_t length) const
 {
-    help = std::regex_replace(
-            " Network Transport\n\n"
-            " -2 @!@ IEEE 802.3\n"
-            " -4 @!@ UDP IPV4 (default)\n"
-            " -6 @!@ UDP IPV6\n"
-            " -u @!@ UDS local\n\n"
-            " Other Options\n\n", std::regex("@!@"),
-            std::string(2 + max_arg_name, ' '));
+    std::string ret = start;
+    if(!end.empty()) {
+        ret += std::string(length - start.length(), ' ');
+        ret += end;
+    }
+    ret += "\n";
+    return ret;
+}
+
+Options::Options(bool useDef) : max_arg_name(0), net_select(0), m_useDef(false)
+{
+    if(useDef)
+        useDefOption();
+}
+
+void Options::useDefOption()
+{
+    if(m_useDef)
+        return;
+    net_options = "u246";
+    all_options += net_options;
+    all_short_options += net_options;
+    helpVec.push_back(helpStore(" Network Transport\n"));
+    helpVec.push_back(helpStore(" -2", "IEEE 802.3"));
+    helpVec.push_back(helpStore(" -4", "UDP IPV4 (default)"));
+    helpVec.push_back(helpStore(" -6", "UDP IPV6"));
+    helpVec.push_back(helpStore(" -u", "UDS local\n"));
+    helpVec.push_back(helpStore(" Other Options\n"));
     for(auto *cur = start; cur->short_name; cur++)
         insert(*cur);
+    m_useDef = true;
 }
 
 bool Options::insert(const pmc_option &opt)
@@ -76,24 +95,17 @@ bool Options::insert(const pmc_option &opt)
         if(opt.have_arg && opt.arg_help == nullptr)
             return false;
         all_short_options += opt.short_name;
-        help += " -";
-        help += opt.short_name;
+        helpStore h(" -");
+        h.addStart(opt.short_name);
         if(opt.have_arg) {
             all_short_options += ':';
-            size_t len = strlen(opt.arg_help);
-            help += " [";
-            help += opt.arg_help;
-            help += "] ";
-            if(len < max_arg_name)
-                help.append(max_arg_name - len, ' ');
-        } else
-            help.append(4 + max_arg_name, ' ');
-        help += opt.help_msg;
-        if(opt.have_arg && opt.def_val != nullptr) {
-            help += ", default ";
-            help += opt.def_val;
+            h.addStart(" [").addStart(opt.arg_help).addStart("]");
+            max_arg_name = std::max(max_arg_name, strlen(opt.arg_help));
         }
-        help += "\n";
+        h.addEnd(opt.help_msg);
+        if(opt.have_arg && opt.def_val != nullptr)
+            h.addEnd(", default ").addEnd(opt.def_val);
+        helpVec.push_back(h);
     }
     if(opt.have_arg)
         with_options += opt.short_name;
@@ -107,6 +119,14 @@ bool Options::insert(const pmc_option &opt)
         long_options_list.push_back(nopt);
     }
     return true;
+}
+
+const char *Options::get_help()
+{
+    help = "";
+    for(const auto &a : helpVec)
+        help += a.get(max_arg_name + 7);
+    return help.c_str();
 }
 
 Options::loop_val Options::parse_options(int l_argc, char *const argv[])

@@ -48,6 +48,8 @@ typedef uint16_t UInteger16_t;
 typedef uint32_t UInteger32_t;
 /** IEEE 1588 Protocol unsigned 48 bits integer */
 typedef uint64_t UInteger48_t;
+/** UInteger48_t octets size */
+const size_t sizeof_UInteger48_t = 6;
 /** IEEE 1588 Protocol unsigned 64 bits integer */
 typedef uint64_t UInteger64_t;
 /** IEEE 1588 Protocol signed 8 bits integer */
@@ -58,6 +60,8 @@ typedef int16_t  Integer16_t;
 typedef int32_t  Integer32_t;
 /** IEEE 1588 Protocol signed 48 bits integer */
 typedef int64_t Integer48_t;
+/** Integer48_t octets size */
+const size_t sizeof_Integer48_t = 6;
 /** IEEE 1588 Protocol signed 64 bits integer */
 typedef int64_t  Integer64_t;
 /** IEEE 1588 protocol octet */
@@ -294,7 +298,7 @@ struct TimeInterval_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 8; }
+    static size_t size() { return sizeof(Integer64_t); }
     /**
      * Get interval from time interval in nanoseconds
      * @return scaled time interval in nanoseconds
@@ -314,7 +318,7 @@ struct Timestamp_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 10; }
+    static size_t size() { return sizeof_UInteger48_t + sizeof(UInteger32_t); }
     /**
      * Convert to string
      * @return string
@@ -328,7 +332,7 @@ struct ClockIdentity_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 8; }
+    static size_t size() { return sizeof(Octet_t) * 8; }
     /**
      * Convert to string
      * @return string
@@ -343,7 +347,7 @@ struct PortIdentity_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 2 + ClockIdentity_t::size(); }
+    static size_t size() { return ClockIdentity_t::size() + sizeof(UInteger16_t); }
     /**
      * Convert to string
      * @return string
@@ -359,7 +363,10 @@ struct PortAddress_t {
      * Get object size
      * @return object size
      */
-    size_t size() const { return 4 + addressField.length(); }
+    size_t size() const {
+        return sizeof(networkProtocol_e) + sizeof(UInteger16_t) +
+            addressField.length();
+    }
     /**
      * Convert to string
      * @return string
@@ -380,7 +387,7 @@ struct PTPText_t {
      * Get object size
      * @return object size
      */
-    size_t size() const { return 1 + textField.length(); }
+    size_t size() const { return sizeof(uint8_t) + textField.length(); }
     /**
      * Get string
      * @return pointer to string
@@ -400,8 +407,8 @@ struct FaultRecord_t {
      * @return object size
      */
     size_t size() const {
-        return 3 + Timestamp_t::size() + faultName.size() + faultValue.size() +
-            faultDescription.size();
+        return sizeof(uint16_t) + Timestamp_t::size() + sizeof(faultRecord_e) +
+            faultName.size() + faultValue.size() + faultDescription.size();
     }
 };
 /** PTP Acceptable source */
@@ -412,7 +419,7 @@ struct AcceptableMaster_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 1 + PortIdentity_t::size(); }
+    static size_t size() { return PortIdentity_t::size() + sizeof(uint8_t); }
 };
 /** Properties of a PTP management TLV */
 struct ManagementId_t {
@@ -637,7 +644,7 @@ class Message
      * @note the message object holds a single value from the last setting or
      *  reply parsing.
      */
-    mng_vals_e getTlvId() { return m_tlv_id; }
+    mng_vals_e getTlvId() const { return m_tlv_id; }
     /**
      * Set target clock ID to use all clocks.
      */
@@ -646,7 +653,7 @@ class Message
      * Query if target clock ID is using all clocks.
      * @return true if target use all clocks
      */
-    bool isAllClocks();
+    bool isAllClocks() const;
     /**
      * Fetch MsgParams parameters from configuration file
      * @param[in] cfg reference to configuration file object

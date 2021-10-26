@@ -28,7 +28,7 @@ struct pmc_option {
      * Uniq single character
      * For long only options, used by application
      */
-    const char short_name;
+    char short_name;
     const char *long_name; /**< Optional long option */
     bool have_arg; /**< Use argument flag */
     bool long_only; /**< Use long option only flag */
@@ -47,7 +47,6 @@ class Options
     size_t max_arg_name;
     std::vector<option> long_options_list;
     std::map<int, std::string> options;
-    std::string help;
     std::string net_options;
     std::string all_options;
     std::string all_short_options;
@@ -56,6 +55,25 @@ class Options
     char net_select;
     int argc;
     int end_optind;
+    bool m_useDef;
+
+    class helpStore
+    {
+      private:
+        std::string start;
+        std::string end;
+      public:
+        helpStore(const char *s, const char *e = nullptr): start(s) {
+            if(e != nullptr)
+                end = e;
+        }
+        helpStore &addStart(const char *s) {start += s; return *this;}
+        helpStore &addStart(const char s) {start += s; return *this;}
+        helpStore &addEnd(const char *e) {end += e; return *this;}
+        std::string get(size_t length) const;
+    };
+    std::string help;
+    std::vector<helpStore> helpVec;
 
   public:
     /** parsing return code */
@@ -67,9 +85,13 @@ class Options
     };
     /**
      * constructor
-     * @param[in] max_arg_name maximum option argument name for help message
+     * @param[in] useDef use PMC default options
      */
-    Options(size_t max_arg_name = 4);
+    Options(bool useDef = true);
+    /**
+     * Use PMC defult options
+     */
+    void useDefOption();
     /**
      * Insert option
      * @param[in] opt new option parameters
@@ -81,17 +103,17 @@ class Options
      * Get help message
      * @return help message
      */
-    const char *get_help() { return help.c_str(); }
+    const char *get_help();
     /**
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const std::string get_msg() { return msg; }
+    const std::string get_msg() const { return msg; }
     /**
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const char *get_msg_c() { return msg.c_str(); }
+    const char *get_msg_c() const { return msg.c_str(); }
     /**
      * Parse command line
      * @param[in] argc number of arguments
@@ -104,44 +126,47 @@ class Options
      * @param[in] opt short option character
      * @return true if option on command line
      */
-    bool have(char opt) { return options.count(opt) > 0; }
+    bool have(char opt) const { return options.count(opt) > 0; }
     /**
      * get option value
      * @param[in] opt short option character
      * @return option value
      * @note relevant for option with argument
      */
-    const std::string val(char opt) { return have(opt) ? options[opt] : ""; }
+    const std::string val(char opt) const
+    { return have(opt) ? options.at(opt) : ""; }
     /**
      * get option value
      * @param[in] opt short option character
      * @return option value in char pointer (C style)
      * @note relevant for option with argument
      */
-    const char *val_c(char opt) { return have(opt) ? options[opt].c_str() : ""; }
+    const char *val_c(char opt) const
+    { return have(opt) ? options.at(opt).c_str() : ""; }
     /**
      * get option integer value
      * @param[in] opt short option character
      * @return option value in char pointer (C style)
      * @note relevant for option with argument
      */
-    const int val_i(char opt) { return have(opt) ? atoi(options[opt].c_str()) : 0; }
+    const int val_i(char opt) const
+    { return have(opt) ? atoi(options.at(opt).c_str()) : 0; }
     /**
      * get Network Transport value
      * @return Network Transport
      * @note return 0 if not select on command line
      */
-    const char get_net_transport() { return net_select; }
+    const char get_net_transport() const { return net_select; }
     /**
      * Do we have more argumends on the command line we did not proccess
      * @return true if we have more to proccess
      */
-    bool have_more() { return end_optind < argc; }
+    bool have_more() const { return end_optind < argc; }
     /**
      * First argumend on the command line that we did not proccess
      * @return index of argument
      */
-    int procces_next() { return end_optind; }
+    int procces_next() const { return end_optind; }
 };
 
 #endif /*__PMC_OPT_H*/

@@ -636,7 +636,7 @@ void Message::setAllClocks()
     m_prms.target.portNumber = allPorts;
     m_prms.target.clockIdentity = allClocks;
 }
-bool Message::isAllClocks()
+bool Message::isAllClocks() const
 {
     return m_prms.target.portNumber == allPorts &&
         memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof(allClocks)) == 0;

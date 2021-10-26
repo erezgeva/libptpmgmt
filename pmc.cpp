@@ -244,13 +244,11 @@ int main(int argc, char *const argv[])
         case Options::OPT_DONE:
             break;
     }
-
     int ret = obj.proccess(opt);
     if(ret)
         return ret;
     sk = obj.sk();
     use_uds = obj.use_uds();
-
     // allowed signaling TLV
     MsgParams prms = msg.getParams();
     prms.allowSigTlvs[SLAVE_RX_SYNC_TIMING_DATA] = true;

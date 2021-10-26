@@ -65,7 +65,7 @@ sub creatJsonTest
     die "useConfig" unless $msg->useConfig($cfg);
     my $prms = $msg->getParams();
     my $self_id = $prms->swig_self_id_get();
-    $self_id->swig_portNumber_set($$); # getpid()
+    $self_id->swig_portNumber_set($$ & 0xffff); # getpid()
     $prms->swig_self_id_set($self_id);
     $prms->swig_boundaryHops_set(1);
     $msg->updateParams($prms);
@@ -148,4 +148,4 @@ $sk->close();
 # dpkg --remove --force-all pmc libpmc libpmc-dev libpmc-perl
 # p='pmc libpmc libpmc-dev libpmc-perl' && apt install $p && apt-mark auto $p
 # jsonlint-py3 1.txt
-# LD_LIBRARY_PATH=. ./testJson.pl | jsonlint-py3
+# LD_LIBRARY_PATH=. ./testJson.pl | jsonlint

@@ -83,107 +83,107 @@ class Json2msg
      * Get management ID
      * @return management ID
      */
-    mng_vals_e managementId() { return m_managementId; }
+    mng_vals_e managementId() const { return m_managementId; }
     /**
      * Get dataField
      * @return dataField pointer or null
      */
-    const BaseMngTlv *dataField() {return m_tlvData.get(); }
+    const BaseMngTlv *dataField() const { return m_tlvData.get(); }
     /**
      * Get action field
      * @return action field
      */
-    actionField_e actionField() { return m_action; }
+    actionField_e actionField() const { return m_action; }
     /**
      * Get Unicast flag
      * @return Unicast flag
      */
-    bool isUnicast() {return m_unicastFlag; }
+    bool isUnicast() const { return m_unicastFlag; }
     /**
      * Is Unicast flag in JSON?
      * @return true if Unicast flag in JSON
      */
-    bool haveIsUnicast() {return m_have[have_unicastFlag];}
+    bool haveIsUnicast() const { return m_have[have_unicastFlag]; }
     /**
      * Get PTP profile specific
      * @return PTP profile specific
      */
-    uint8_t PTPProfileSpecific() {return m_PTPProfileSpecific; }
+    uint8_t PTPProfileSpecific() const { return m_PTPProfileSpecific; }
     /**
      * Is PTP profile specific in JSON?
      * @return true if PTP profile specific in JSON
      */
-    bool havePTPProfileSpecific() {return m_have[have_PTPProfileSpecific];}
+    bool havePTPProfileSpecific() const { return m_have[have_PTPProfileSpecific]; }
     /**
      * Get domain number
      * @return domain number
      */
-    uint8_t domainNumber() {return m_domainNumber; }
+    uint8_t domainNumber() const { return m_domainNumber; }
     /**
      * Is domain number in JSON?
      * @return true if domain number in JSON
      */
-    bool haveDomainNumber() {return m_have[have_domainNumber];}
+    bool haveDomainNumber() const { return m_have[have_domainNumber]; }
     /**
      * Get PTP major version
      * @return PTP major version
      */
-    uint8_t versionPTP() {return m_versionPTP; }
+    uint8_t versionPTP() const { return m_versionPTP; }
     /**
      * Is PTP major version in JSON?
      * @return true if PTP major version in JSON
      */
-    bool haveVersionPTP() {return m_have[have_versionPTP];}
+    bool haveVersionPTP() const { return m_have[have_versionPTP]; }
     /**
      * Get PTP minor version
      * @return PTP minor version
      */
-    uint8_t minorVersionPTP() {return m_minorVersionPTP; }
+    uint8_t minorVersionPTP() const { return m_minorVersionPTP; }
     /**
      * Is PTP minor version in JSON?
      * @return true if PTP minor version in JSON
      */
-    bool haveMinorVersionPTP() {return m_have[have_minorVersionPTP];}
+    bool haveMinorVersionPTP() const { return m_have[have_minorVersionPTP]; }
     /**
      * Get sequence ID
      * @return sequence ID
      */
-    uint16_t sequenceId() { return m_sequenceId; }
+    uint16_t sequenceId() const { return m_sequenceId; }
     /**
      * Is sequence ID in JSON?
      * @return true if sequence ID in JSON
      */
-    bool haveSequenceId() { return m_have[have_sequenceId]; }
+    bool haveSequenceId() const { return m_have[have_sequenceId]; }
     /**
      * Get sdoId
      * @return sdoId
      */
-    uint32_t sdoId() {return m_sdoId; }
+    uint32_t sdoId() const { return m_sdoId; }
     /**
      * Is sdoId in JSON?
      * @return true if sdoId in JSON
      */
-    bool haveSdoId() {return m_have[have_sdoId];}
+    bool haveSdoId() const { return m_have[have_sdoId]; }
     /**
      * Get source port ID
      * @return source port ID
      */
-    PortIdentity_t srcPort() {return m_srcPort; }
+    PortIdentity_t srcPort() const { return m_srcPort; }
     /**
      * Is source port ID in JSON?
      * @return true if source port ID in JSON
      */
-    bool haveSrcPort() {return m_have[have_srcPort];}
+    bool haveSrcPort() const { return m_have[have_srcPort]; }
     /**
      * Get target port ID
      * @return target port ID
      */
-    PortIdentity_t dstPort() {return m_dstPort; }
+    PortIdentity_t dstPort() const { return m_dstPort; }
     /**
      * Is target port ID in JSON?
      * @return true if target port ID in JSON
      */
-    bool haveDstPort() {return m_have[have_dstPort];}
+    bool haveDstPort() const { return m_have[have_dstPort]; }
 };
 
 #endif /*__PMC_JSON_H*/

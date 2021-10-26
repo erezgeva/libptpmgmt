@@ -9,7 +9,7 @@
 ###############################################################################
 main()
 {
- local file
+ local file i
  # Default values
  local -r def_ifName=enp0s25
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
@@ -56,8 +56,11 @@ main()
  fi
  local ldPathRuby ldPathPhp needCmp needLua needPython1 needPython2 needPython3
  local phpIni
+ # Lua 5.4 need lua-posix version 35
+ local -r luaVersions='1 2 3'
+ local -r pyVersions='2 3'
  probeLibs
- needCmp="$needCmp$needPython2$needPython3"
+ needCmp="$needCmp$needPython3"
  ##############################################################################
  local -r instPmcLib=/usr/sbin/pmc.lib
  if [ -x $instPmcLib ]; then
@@ -145,9 +148,7 @@ priority1: 153
  time eval "$ldPathRuby $useSudo ./test.rb $cfgFile" | diff - ../$t3
  cd ..
  enter lua
- local i
- # Lua 5.4 need lua-posix version 35
- for i in 1 2 3; do
+ for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
    if [ -n "$needLua" ]; then
      ln -sf 5.$i/pmc.so
@@ -158,7 +159,7 @@ priority1: 153
  done
  cd ..
  enter python
- for i in 2 3; do
+ for i in $pyVersions; do
    rm -rf pmc.pyc __pycache__
    local -n need=needPython$i
    if [ -n "$need" ]; then
@@ -216,12 +217,13 @@ probeLibs()
  if [ ! -f "$file" ]; then
    needCmp=y
  fi
- local i
- for i in 1 2 3; do
+ for i in $luaVersions; do
    getFirstFile "/usr/lib$fmach/lua/5.$i/pmc.so"
    if [ ! -f "$file" ]; then
      needLua=y
    fi
+ done
+ for i in $pyVersions; do
    getFirstFile "/usr/lib/python$i*/dist-packages/_pmc.*$mach*.so"
    if [ ! -f "$file" ]; then
      local -n need=needPython$i

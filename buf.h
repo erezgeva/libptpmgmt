@@ -60,7 +60,7 @@ class Buf
      * Is memory buffer allocated?
      * @return true if memory buffer is allocated
      */
-    bool isAlloc() const {return m_size > 0 && m_buf != nullptr;}
+    bool isAlloc() const {return m_size > 0;}
 };
 
 #endif /*__PMC_BUF_H*/

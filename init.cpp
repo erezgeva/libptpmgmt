@@ -44,9 +44,8 @@ int Init::proccess(Options &opt)
             PMC_ERROR("missing interface");
             return -1;
         }
-        if(!ifObj.initUsingName(interface)) {
+        if(!ifObj.initUsingName(interface))
             return -1;
-        }
         Binary clockIdentity(ifObj.mac());
         clockIdentity.eui48ToEui64();
         clockIdentity.copy(prms.self_id.clockIdentity.v);
