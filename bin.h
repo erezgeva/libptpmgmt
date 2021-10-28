@@ -47,7 +47,7 @@ class Binary
      * @param[in] rhs Binary to assign
      * @return reference to itself
      */
-    Binary &operator = (const Binary &rhs) {
+    Binary &operator=(const Binary &rhs) {
         m_str = rhs.m_str;
         return *this;
     }
@@ -77,7 +77,14 @@ class Binary
      * Get pointer to Binary
      * @return pointer to octets
      */
-    const uint8_t *get() const {return (const uint8_t *)m_str.c_str();}
+    const uint8_t *get() const { return (const uint8_t *)m_str.c_str(); }
+    /**
+     * Get binary content in a string
+     * @return string with binary content
+     * @note for scripts, to use unpacking assignment
+     *       and split octets into array or list
+     */
+    std::string getBinString() const { return m_str; }
     /**
      * Set new value
      * @param[in] buf pointer to Binary octets
@@ -88,6 +95,14 @@ class Binary
         m_str = std::string((const char *)buf, length);
         return *this;
     }
+    /**
+     * Set new value from binary based string
+     * @param[in] str string with octets content
+     * @return reference to itself
+     * @note for scripts, to use packing assignment
+     *       and create a string from array or list of octets
+     */
+    Binary &setBin(const std::string str) { m_str = str; return *this; }
     /**
      * Set value in position
      * @param[in] position in Binary octets
@@ -239,6 +254,78 @@ class Binary
      * @return hex string
      */
     static std::string bufToHex(const uint8_t *bin, size_t length);
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binaries are identical
+     */
+    bool operator==(const Binary &rhs) const {
+        return m_str == rhs.m_str;
+    }
+    #ifndef SWIG
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binaries are identical
+     */
+    bool operator==(Binary &&rhs) const {
+        return m_str == rhs.m_str;
+    }
+    #endif
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binaries are identical
+     */
+    bool eq(const Binary &rhs) const {
+        return m_str == rhs.m_str;
+    }
+    #ifndef SWIG
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binaries are identical
+     */
+    bool eq(Binary &&rhs) const {
+        return m_str == rhs.m_str;
+    }
+    #endif
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binary is smaller
+     */
+    bool operator<(const Binary &rhs) const {
+        return m_str < rhs.m_str;
+    }
+    #ifndef SWIG
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binary is smaller
+     */
+    bool operator<(Binary &&rhs) const {
+        return m_str < rhs.m_str;
+    }
+    #endif
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binary is smaller
+     */
+    bool less(const Binary &rhs) const {
+        return m_str < rhs.m_str;
+    }
+    #ifndef SWIG
+    /**
+     * Compare binaries
+     * @param[in] rhs Binary to compare
+     * @return true if binary is smaller
+     */
+    bool less(Binary &&rhs) const {
+        return m_str < rhs.m_str;
+    }
+    #endif
 };
 
 #endif /*__PMC_BIN_H*/

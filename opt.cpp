@@ -18,7 +18,7 @@ pmc_option Options::start[] = {
     { 'd', "domainNumber", true, false, "domain number", "num", "0" },
     { 'f', nullptr, true, false, "read configuration from 'file'", "file" },
     { 'h', nullptr, false, false, "prints this message and exits" },
-    { 'i', nullptr, true, false, "interface device to use", "dev", "'eth0'" },
+    { 'i', nullptr, true, false, "interface device to use", "dev" },
     {
         's', "uds_address", true, false, "server address for UDS",
         "path", "'/var/run/ptp4l'"

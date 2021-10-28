@@ -247,6 +247,7 @@ enum portState_e : uint8_t {
     DISABLED     = 3, /**< Disabled */
     LISTENING    = 4, /**< Listening */
     PRE_MASTER   = 5, /**< Pre source */
+    PRE_SOURCE   = 5, /**< Pre source */
     MASTER       = 6, /**< Source */
     SOURCE       = 6, /**< Source */
     PASSIVE      = 7, /**< Passive */
@@ -338,6 +339,79 @@ struct ClockIdentity_t {
      * @return string
      */
     std::string string() const;
+    /**
+     * Clear clock ID and set all octets to val
+     * @param[in] val value to set all octets
+     */
+    void clear(int val = 0) {memset(v, val, 8);}
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if IDs are indentical
+     */
+    bool operator==(const ClockIdentity_t &rhs) const {
+        return memcmp(rhs.v, v, size()) == 0;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if IDs are indentical
+     */
+    bool operator==(ClockIdentity_t &&rhs) const {
+        return memcmp(rhs.v, v, size()) == 0;
+    }
+    #endif
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if IDs are indentical
+     */
+    bool eq(const ClockIdentity_t &rhs) const {
+        return memcmp(rhs.v, v, size()) == 0;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if IDs are indentical
+     */
+    bool eq(ClockIdentity_t &&rhs) const {return memcmp(rhs.v, v, size()) == 0;}
+    #endif
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if ID is smaller
+     */
+    bool operator<(const ClockIdentity_t &rhs) const {
+        return memcmp(rhs.v, v, size()) < 0;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if ID is smaller
+     */
+    bool operator<(ClockIdentity_t &&rhs) const {
+        return memcmp(rhs.v, v, size()) < 0;
+    }
+    #endif
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if ID is smaller
+     */
+    bool less(const ClockIdentity_t &rhs) const {
+        return memcmp(rhs.v, v, size()) < 0;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another clock ID
+     * @param[in] rhs another clock id
+     * @return true if ID is smaller
+     */
+    bool less(ClockIdentity_t &&rhs) const {return memcmp(rhs.v, v, size()) < 0;}
+    #endif
 };
 /** PTP port ID */
 struct PortIdentity_t {
@@ -353,11 +427,85 @@ struct PortIdentity_t {
      * @return string
      */
     std::string string() const;
+    /**
+     * Clear port ID and set all octets to val
+     */
+    void clear() {clockIdentity.clear(); portNumber = 0;}
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if IDs are indentical
+     */
+    bool operator==(const PortIdentity_t &rhs) const {
+        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if IDs are indentical
+     */
+    bool operator==(PortIdentity_t &&rhs) const {
+        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
+    }
+    #endif
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if IDs are indentical
+     */
+    bool eq(const PortIdentity_t &rhs) const {
+        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if IDs are indentical
+     */
+    bool eq(PortIdentity_t &&rhs) const {
+        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
+    }
+    #endif
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if ID is smaller
+     */
+    bool operator<(const PortIdentity_t &rhs) const;
+    #ifndef SWIG
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if ID is smaller
+     */
+    bool operator<(PortIdentity_t &&rhs) const;
+    #endif
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if ID is smaller
+     */
+    bool less(const PortIdentity_t &rhs) const { return *this < rhs; }
+    #ifndef SWIG
+    /**
+     * Compare to another port ID
+     * @param[in] rhs another port id
+     * @return true if ID is smaller
+     */
+    bool less(PortIdentity_t &&rhs) const { return *this < rhs; }
+    #endif
 };
 /** PTP port address */
 struct PortAddress_t {
     networkProtocol_e networkProtocol; /**< network protocol */
-    UInteger16_t addressLength; /**< address length */
+    /**
+     * address length
+     * @note User can ignore the parameter.
+     *  The user should use the length of addressField.
+     *  The parameter is used during proccess.
+     */
+    UInteger16_t addressLength;
     Binary addressField; /**< binary from address */
     /**
      * Get object size
@@ -372,6 +520,74 @@ struct PortAddress_t {
      * @return string
      */
     std::string string() const;
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if addresses are indentical
+     */
+    bool operator==(const PortAddress_t &rhs) const {
+        return networkProtocol == rhs.networkProtocol &&
+            addressField == rhs.addressField;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if addresses are indentical
+     */
+    bool operator==(PortAddress_t &&rhs) const {
+        return networkProtocol == rhs.networkProtocol &&
+            addressField == rhs.addressField;
+    }
+    #endif
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if addresses are indentical
+     */
+    bool eq(const PortAddress_t &rhs) const {
+        return networkProtocol == rhs.networkProtocol &&
+            addressField == rhs.addressField;
+    }
+    #ifndef SWIG
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if addresses are indentical
+     */
+    bool eq(PortAddress_t &&rhs) const {
+        return networkProtocol == rhs.networkProtocol &&
+            addressField == rhs.addressField;
+    }
+    #endif
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if address is smaller
+     */
+    bool operator<(const PortAddress_t &rhs) const;
+    #ifndef SWIG
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if address is smaller
+     */
+    bool operator<(PortAddress_t &&rhs) const;
+    #endif
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if address is smaller
+     */
+    bool less(const PortAddress_t &rhs) const { return *this < rhs; }
+    #ifndef SWIG
+    /**
+     * Compare to another port address
+     * @param[in] rhs another port address
+     * @return true if address is smaller
+     */
+    bool less(PortAddress_t &&rhs) const { return *this < rhs; }
+    #endif
 };
 /** PTP clock quality */
 struct ClockQuality_t {
@@ -381,7 +597,13 @@ struct ClockQuality_t {
 };
 /** PTP text value */
 struct PTPText_t {
-    uint8_t lengthField; /**< string length */
+    /**
+     * string length
+     * @note User can ignore the parameter.
+     *  The user should use the length of textField.
+     *  The parameter is used during proccess.
+     */
+    uint8_t lengthField;
     std::string textField; /**< string value */
     /**
      * Get object size
@@ -425,7 +647,7 @@ struct AcceptableMaster_t {
 struct ManagementId_t {
     uint16_t value;   /**< managementId value */
     uint8_t scope;   /**< Applies port or clock using scope_e */
-    uint8_t allowed; /**< Allowed actions, bits from allowAction_t */
+    uint8_t allowed; /**< Allowed actions, bits from allowAction_e */
     /**
      * TLV dataField size
      * @li positive size of TLV dataField when it is fixed length

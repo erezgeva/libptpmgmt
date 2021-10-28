@@ -854,7 +854,7 @@ const char *Message::portState2str_c(portState_e val)
         case caseItem(FAULTY);
         case caseItem(DISABLED);
         case caseItem(LISTENING);
-        case caseItem(PRE_MASTER);
+        case caseItem(PRE_SOURCE);
         case caseItem(SOURCE);
         case caseItem(PASSIVE);
         case caseItem(UNCALIBRATED);
@@ -896,6 +896,18 @@ std::string PortIdentity_t::string() const
     ret += std::to_string(portNumber);
     return ret;
 }
+bool PortIdentity_t::operator<(const PortIdentity_t &rhs) const
+{
+    if(clockIdentity == rhs.clockIdentity)
+        return portNumber < rhs.portNumber;
+    return clockIdentity < rhs.clockIdentity;
+}
+bool PortIdentity_t::operator<(PortIdentity_t &&rhs) const
+{
+    if(clockIdentity == rhs.clockIdentity)
+        return portNumber < rhs.portNumber;
+    return clockIdentity < rhs.clockIdentity;
+}
 std::string PortAddress_t::string() const
 {
     switch(networkProtocol) {
@@ -910,43 +922,63 @@ std::string PortAddress_t::string() const
             return addressField.toId();
     }
 }
+bool PortAddress_t::operator<(const PortAddress_t &rhs) const
+{
+    if(networkProtocol == rhs.networkProtocol) {
+        if(addressField.length() == rhs.addressField.length())
+            return addressField < rhs.addressField;
+        return addressField.length() < rhs.addressField.length();
+    }
+    return networkProtocol < rhs.networkProtocol;
+}
+bool PortAddress_t::operator<(PortAddress_t &&rhs) const
+{
+    if(networkProtocol == rhs.networkProtocol) {
+        if(addressField.length() == rhs.addressField.length())
+            return addressField < rhs.addressField;
+        return addressField.length() < rhs.addressField.length();
+    }
+    return networkProtocol < rhs.networkProtocol;
+}
 bool Message::proc(uint8_t &val)
 {
-    if(m_left < 1)
+    if(m_left < (ssize_t)sizeof(uint8_t))
         return true;
     if(m_build)
         *m_cur = val;
     else
         val = *m_cur;
-    move(1);
+    move(sizeof(uint8_t));
     return false;
 }
 bool Message::proc(uint16_t &val)
 {
-    if(m_left < 2)
+    if(m_left < (ssize_t)sizeof(uint16_t))
         return true;
     if(m_build)
         *(uint16_t *)m_cur = cpu_to_net16(val);
     else
         val = net_to_cpu16(*(uint16_t *)m_cur);
-    move(2);
+    move(sizeof(uint16_t));
     return false;
 }
 bool Message::proc(uint32_t &val)
 {
-    if(m_left < 4)
+    if(m_left < (ssize_t)sizeof(uint32_t))
         return true;
     if(m_build)
         *(uint32_t *)m_cur = cpu_to_net32(val);
     else
         val = net_to_cpu32(*(uint32_t *)m_cur);
-    move(4);
+    move(sizeof(uint32_t));
     return false;
 }
 bool Message::proc48(uint64_t &val)
 {
     uint16_t high;
     uint32_t low;
+    if(m_left < (ssize_t)sizeof_UInteger48_t)
+        return true;
     if(m_build) {
         if(val > UINT48_MAX) {
             m_err = MNG_PARSE_ERROR_VAL;
@@ -963,52 +995,54 @@ bool Message::proc48(uint64_t &val)
 }
 bool Message::proc(uint64_t &val)
 {
-    if(m_left < 8)
+    if(m_left < (ssize_t)sizeof(uint64_t))
         return true;
     if(m_build)
         *(uint64_t *)m_cur = cpu_to_net64(val);
     else
         val = net_to_cpu64(*(uint64_t *)m_cur);
-    move(8);
+    move(sizeof(uint64_t));
     return false;
 }
 bool Message::proc(int8_t &val)
 {
-    if(m_left < 1)
+    if(m_left < (ssize_t)sizeof(int8_t))
         return true;
     if(m_build)
         *(int8_t *)m_cur = val;
     else
         val = *(int8_t *)m_cur;
-    move(1);
+    move(sizeof(int8_t));
     return false;
 }
 bool Message::proc(int16_t &val)
 {
-    if(m_left < 2)
+    if(m_left < (ssize_t)sizeof(int16_t))
         return true;
     if(m_build)
         *(uint16_t *)m_cur = cpu_to_net16((uint16_t)val);
     else
         val = (int16_t)net_to_cpu16(*(uint16_t *)m_cur);
-    move(2);
+    move(sizeof(int16_t));
     return false;
 }
 bool Message::proc(int32_t &val)
 {
-    if(m_left < 4)
+    if(m_left < (ssize_t)sizeof(int32_t))
         return true;
     if(m_build)
         *(uint32_t *)m_cur = cpu_to_net32((uint32_t)val);
     else
         val = (int32_t)net_to_cpu32(*(uint32_t *)m_cur);
-    move(4);
+    move(sizeof(int32_t));
     return false;
 }
 bool Message::proc48(int64_t &val)
 {
     uint16_t high;
     uint32_t low;
+    if(m_left < (ssize_t)sizeof_Integer48_t)
+        return true;
     if(m_build) {
         if(val < INT48_MIN || val > INT48_MAX) {
             m_err = MNG_PARSE_ERROR_VAL;
@@ -1031,13 +1065,13 @@ bool Message::proc48(int64_t &val)
 }
 bool Message::proc(int64_t &val)
 {
-    if(m_left < 8)
+    if(m_left < (ssize_t)sizeof(int64_t))
         return true;
     if(m_build)
         *(uint64_t *)m_cur = cpu_to_net64((uint64_t)val);
     else
         val = (int64_t)net_to_cpu64(*(uint64_t *)m_cur);
-    move(8);
+    move(sizeof(int64_t));
     return false;
 }
 
@@ -1305,7 +1339,8 @@ bool Message::proc(FaultRecord_t &d)
     if(proc(d.faultRecordLength) || proc(d.faultTime) || proc(d.severityCode) ||
         proc(d.faultName) || proc(d.faultValue) || proc(d.faultDescription))
         return true;
-    if(d.faultRecordLength != 16 + d.faultName.lengthField +
+    if(d.faultRecordLength != sizeof(uint16_t) + Timestamp_t::size() +
+        sizeof(faultRecord_e) + 3 * sizeof(uint8_t) + d.faultName.lengthField +
         d.faultValue.lengthField + d.faultDescription.lengthField) {
         m_err = MNG_PARSE_ERROR_SIZE_MISS;
         return true;
@@ -1328,12 +1363,12 @@ bool Message::procFlags(uint8_t &flags, const uint8_t flagsMask)
 }
 bool Message::procLe(uint64_t &val)
 {
-    if(m_left < 8)
+    if(m_left < (ssize_t)sizeof(uint64_t))
         return true;
     if(m_build)
         *(uint64_t *)m_cur = cpu_to_le64(val);
     else
         val = le_to_cpu64(*(uint64_t *)m_cur);
-    move(8);
+    move(sizeof(uint64_t));
     return false;
 }

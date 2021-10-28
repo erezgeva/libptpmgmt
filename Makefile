@@ -300,7 +300,8 @@ astyle_ver:=$(lastword $(shell astyle -V))
 ifeq ($(call verCheck,$(astyle_ver),3.1),)
 format:
 	$(Q_FRMT)
-	$(Q)astyle --project=none --options=astyle.opt $(wildcard *.h *.cpp)
+	$(Q)astyle --project=none --options=astyle.opt $(wildcard *.h *.cpp\
+	  sample/*.cpp)
 	$(Q)./format.pl
 endif
 endif # which astyle

@@ -52,18 +52,31 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(503) Binary::operator+=;
-/* Operator overload ignored.
- * Scripts can use Buf::get() */
-%warnfilter(503) Buf::operator();
+#define SWIG_OPERS_503
 #endif /* SWIGPHP */
 #ifdef SWIGTCL
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(365) Binary::operator+=;
+#define SWIG_OPERS_503
+#endif /* SWIGTCL */
+#ifdef SWIG_OPERS_503
 /* Operator overload ignored.
  * Scripts can use Buf::get() */
 %warnfilter(503) Buf::operator();
-#endif /* SWIGTCL */
+/* Operator overload ignored.
+ * Scripts can use class eq() method */
+%warnfilter(503) Binary::operator==;
+%warnfilter(503) ClockIdentity_t::operator==;
+%warnfilter(503) PortIdentity_t::operator==;
+%warnfilter(503) PortAddress_t::operator==;
+/* Operator overload ignored.
+ * Scripts can use class less() method */
+%warnfilter(503) Binary::operator<;
+%warnfilter(503) ClockIdentity_t::operator<;
+%warnfilter(503) PortIdentity_t::operator<;
+%warnfilter(503) PortAddress_t::operator<;
+#endif /* SWIG_OPERS_503 */
 %include "cfg.h"
 %include "msg.h"
 %include "ptp.h"
