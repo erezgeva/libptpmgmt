@@ -7,7 +7,7 @@
 # RPM specification file for libpmc rpm packages
 ###############################################################################
 Name:           libpmc
-Version:        0.4
+Version:        0.5
 Release:        1%{?dist}
 Summary:        %{bname} library, to communicate with ptp4l
 License:        LGPL, GPL
@@ -163,6 +163,29 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %{_mandir}/man8/%{bname}.lib.8*
 
 %changelog
+* Sun Oct 31 2021 ErezGeva2@gmail.com 0.5-1
+- Add equal and less than operators to Binary, ClockIdentity_t,
+  PortIdentity_t and PortAddress_t.
+- Update the read me.
+- Add sample code after Vladimir Oltean checksync application.
+- Add constant modifier to methods that do not modify the object.
+- Comply to format and improve Doxygen comments.
+- Remove python 2 from mandatory list of testing.
+- Improve includes in source code.
+- Fix make file help errors.
+- Add init class for the PMC application.
+- Add class to process command line parameters for the pmc tool.
+  So users can use it for other applications.
+- Fix cross compilation errors.
+- Add tcl wrapper.
+- Remove Debian depends on python2, as it will be removed in the future.
+- Ensure port number is 16 bits,
+  as Linux process ID can be larger than 16 bits.
+- Ignore deprecated ruby functions created by swig.
+- Use python 3 configuration application to set the library extension.
+- Add rule for Debian cross target build.
+- Fix proper capitalization in RPM specification.
+
 * Mon Jun 14 2021 ErezGeva2@gmail.com 0.4-1
 - Improve check after calling strtol.
 - Use C++ short loop form.

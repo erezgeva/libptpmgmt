@@ -1,3 +1,29 @@
+libpmc (0.5) buster; urgency=medium
+
+  * Add equal and less than operators to Binary, ClockIdentity_t,
+    PortIdentity_t and PortAddress_t.
+  * Update the read me.
+  * Add sample code after Vladimir Oltean checksync application.
+  * Add constant modifier to methods that do not modify the object.
+  * Comply to format and improve Doxygen comments.
+  * Remove python 2 from mandatory list of testing.
+  * Improve includes in source code.
+  * Fix make file help errors.
+  * Add init class for the PMC application.
+  * Add class to process command line parameters for the pmc tool.
+    So users can use it for other applications.
+  * Fix cross compilation errors.
+  * Add tcl wrapper.
+  * Remove Debian depends on python2, as it will be removed in the future.
+  * Ensure port number is 16 bits,
+    as Linux process ID can be larger than 16 bits.
+  * Ignore deprecated ruby functions created by swig.
+  * Use python 3 configuration application to set the library extension.
+  * Add rule for Debian cross target build.
+  * Fix proper capitalization in RPM specification.
+
+ -- Erez Geva <ErezGeva2@gmail.com>  Sun, 31 Oct 2021 13:06:17 +0100
+
 libpmc (0.4) buster; urgency=medium
 
   * Improve check after calling strtol.
