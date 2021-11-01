@@ -50,26 +50,26 @@ main()
  # script languages source
  local -r mach=$(uname -m)
  local -r fmach="/$mach*"
+ local ldPathRuby ldPathPhp needCmp needLua needPython2 needPython3 phpIni
  getFirstFile "/usr/lib$fmach/libpmc.so"
  if [ ! -f "$file" ]; then
    local -r ldPath='LD_LIBRARY_PATH=..'
+   needCmp=y
  fi
- local ldPathRuby ldPathPhp needCmp needLua needPython1 needPython2 needPython3
- local phpIni
  # Lua 5.4 need lua-posix version 35
  local -r luaVersions='1 2 3'
  local -r pyVersions='2 3'
  probeLibs
- needCmp="$needCmp$needPython3"
  ##############################################################################
  local -r instPmcLib=/usr/sbin/pmc.lib
  if [ -x $instPmcLib ]; then
    local -r pmclibtool=$instPmcLib
  else
    local -r pmclibtool=./pmc
+   needCmp=y
  fi
  ##############################################################################
- if [ "$pmclibtool" != "$instPmcLib" -o -n "$ldPath$needCmp$needLua" ]; then
+ if [ -n "$needCmp" ]; then
    printf " * build libpmc\n"
    time make -j
  fi
@@ -160,6 +160,7 @@ priority1: 153
  cd ..
  enter python
  for i in $pyVersions; do
+   # remove previous python compiling
    rm -rf pmc.pyc __pycache__
    local -n need=needPython$i
    if [ -n "$need" ]; then
@@ -172,6 +173,7 @@ priority1: 153
      rm -f _pmc.so
    fi
    printf "\n $(readlink $(which python$i)) ---- \n"
+   # First compile the python script, so we measure only runing
    eval "$ldPath $useSudo python$i ./test.py $cfgFile" > /dev/null
    time eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3
  done
@@ -220,6 +222,9 @@ probeLibs()
  for i in $luaVersions; do
    getFirstFile "/usr/lib$fmach/lua/5.$i/pmc.so"
    if [ ! -f "$file" ]; then
+     # Lua comes in a single package for all versions,
+     # so a single probing flag is sufficient.
+     needCmp=y
      needLua=y
    fi
  done
@@ -230,6 +235,8 @@ probeLibs()
      need=y
    fi
  done
+ # Python 2 is optional
+ [ -z "$needPython3" ] || needCmp=y
  ldPathRuby=$ldPath
  file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/pmc.so"
  if [ ! -f "$file" ]; then
