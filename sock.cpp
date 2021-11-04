@@ -308,7 +308,7 @@ bool SockIp::setUdpTtl(uint8_t udp_ttl)
     m_udp_ttl = udp_ttl;
     return true;
 }
-bool SockIp::setUdpTtl(ConfigFile &cfg, const std::string section)
+bool SockIp::setUdpTtl(const ConfigFile &cfg, const std::string section)
 {
     if(m_isInit)
         return false;
@@ -410,7 +410,7 @@ bool SockIp4::init2()
     m_addr4.sin_addr = *(in_addr *)m_mcast.get();
     return true;
 }
-bool SockIp4::setAllBase(ConfigFile &cfg, const std::string &section)
+bool SockIp4::setAllBase(const ConfigFile &cfg, const std::string &section)
 {
     return setUdpTtl(cfg, section);
 }
@@ -466,14 +466,14 @@ bool SockIp6::setScope(uint8_t udp6_scope)
     m_udp6_scope = udp6_scope;
     return true;
 }
-bool SockIp6::setScope(ConfigFile &cfg, const std::string section)
+bool SockIp6::setScope(const ConfigFile &cfg, const std::string section)
 {
     if(m_isInit)
         return false;
     m_udp6_scope = cfg.udp6_scope(section);
     return true;
 }
-bool SockIp6::setAllBase(ConfigFile &cfg, const std::string &section)
+bool SockIp6::setAllBase(const ConfigFile &cfg, const std::string &section)
 {
     return setUdpTtl(cfg, section) && setScope(cfg, section);
 }
@@ -510,7 +510,7 @@ bool SockRaw::setPtpDstMac(const uint8_t *ptp_dst_mac, size_t len)
     m_ptp_dst_mac.setBin(ptp_dst_mac, len);
     return true;
 }
-bool SockRaw::setPtpDstMac(ConfigFile &cfg, const std::string section)
+bool SockRaw::setPtpDstMac(const ConfigFile &cfg, const std::string section)
 {
     if(m_isInit)
         return false;
@@ -524,7 +524,8 @@ bool SockRaw::setSocketPriority(uint8_t socket_priority)
     m_socket_priority = socket_priority;
     return true;
 }
-bool SockRaw::setSocketPriority(ConfigFile &cfg, const std::string section)
+bool SockRaw::setSocketPriority(const ConfigFile &cfg,
+    const std::string section)
 {
     if(m_isInit)
         return false;
@@ -623,7 +624,7 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
     }
     return cnt;
 }
-bool SockRaw::setAllBase(ConfigFile &cfg, const std::string &section)
+bool SockRaw::setAllBase(const ConfigFile &cfg, const std::string &section)
 {
     return setPtpDstMac(cfg, section) && setSocketPriority(cfg, section);
 }

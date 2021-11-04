@@ -881,7 +881,7 @@ std::string Timestamp_t::string() const
     char buf[200];
     snprintf(buf, sizeof(buf), "%ju.%.9u", secondsField, nanosecondsField);
     return buf;
-};
+}
 std::string ClockIdentity_t::string() const
 {
     char buf[25];

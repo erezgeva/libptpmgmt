@@ -129,8 +129,8 @@ bool Binary::eui48ToEui64()
     if(len != EUI48)
         return false;
     std::string str = m_str.substr(0, 3);
-    str += 0xff;
-    str += 0xfe;
+    str += (char)0xff;
+    str += (char)0xfe;
     str += m_str.substr(3);
     m_str = str;
     return true;

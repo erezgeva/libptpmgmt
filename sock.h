@@ -198,7 +198,7 @@ class SockUnix : public SockBase
      * @return true if peer address is updated
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setPeerAddress(ConfigFile &cfg, const std::string section = "") {
+    bool setPeerAddress(const ConfigFile &cfg, const std::string section = "") {
         return setPeerInternal(cfg.uds_address(section));
     }
     /**
@@ -345,7 +345,7 @@ class SockBaseIf : public SockBase
     bool m_have_if;
     bool setInt(IfInfo &ifObj);
     SockBaseIf() : m_have_if(false) {}
-    virtual bool setAllBase(ConfigFile &cfg, const std::string &section) = 0;
+    virtual bool setAllBase(const ConfigFile &cfg, const std::string &section) = 0;
     /**< @endcond */
 
   public:
@@ -388,7 +388,8 @@ class SockBaseIf : public SockBase
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setAll(IfInfo &ifObj, ConfigFile &cfg, const std::string section = "") {
+    bool setAll(IfInfo &ifObj, const ConfigFile &cfg,
+        const std::string section = "") {
         return setIf(ifObj) && setAllBase(cfg, section);
     }
     /**
@@ -403,7 +404,7 @@ class SockBaseIf : public SockBase
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setAllInit(IfInfo &ifObj, ConfigFile &cfg,
+    bool setAllInit(IfInfo &ifObj, const ConfigFile &cfg,
         const std::string section = "") {
         return setAll(ifObj, cfg, section) && initBase();
     }
@@ -455,7 +456,7 @@ class SockIp : public SockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setUdpTtl(ConfigFile &cfg, const std::string section = "");
+    bool setUdpTtl(const ConfigFile &cfg, const std::string section = "");
 };
 
 /**
@@ -469,7 +470,7 @@ class SockIp4 : public SockIp
   protected:
     /**< @cond internal */
     bool init2();
-    bool setAllBase(ConfigFile &cfg, const std::string &section);
+    bool setAllBase(const ConfigFile &cfg, const std::string &section);
 
   public:
     SockIp4();
@@ -488,7 +489,7 @@ class SockIp6 : public SockIp
   protected:
     /**< @cond internal */
     bool init2();
-    bool setAllBase(ConfigFile &cfg, const std::string &section);
+    bool setAllBase(const ConfigFile &cfg, const std::string &section);
 
   public:
     SockIp6();
@@ -513,7 +514,7 @@ class SockIp6 : public SockIp
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setScope(ConfigFile &cfg, const std::string section = "");
+    bool setScope(const ConfigFile &cfg, const std::string section = "");
 };
 
 /**
@@ -533,7 +534,7 @@ class SockRaw : public SockBaseIf
 
   protected:
     /**< @cond internal */
-    bool setAllBase(ConfigFile &cfg, const std::string &section);
+    bool setAllBase(const ConfigFile &cfg, const std::string &section);
     bool sendBase(const void *msg, size_t len);
     ssize_t rcvBase(void *buf, size_t bufSize, bool block);
     bool initBase();
@@ -581,7 +582,7 @@ class SockRaw : public SockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setPtpDstMac(ConfigFile &cfg, const std::string section = "");
+    bool setPtpDstMac(const ConfigFile &cfg, const std::string section = "");
     /**
      * Set socket priority
      * @param[in] socket_priority socket priority value
@@ -603,7 +604,7 @@ class SockRaw : public SockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setSocketPriority(ConfigFile &cfg, const std::string section = "");
+    bool setSocketPriority(const ConfigFile &cfg, const std::string section = "");
 };
 
 #endif /*__PMC_SOCK_H*/
