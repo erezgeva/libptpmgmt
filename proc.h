@@ -547,5 +547,16 @@ struct SYNCHRONIZATION_UNCERTAIN_NP_t : public BaseMngTlv {
      */
     uint8_t val;
 };
+/** Power system profile TLV
+ * @note linuxptp implementation specific
+ */
+struct POWER_PROFILE_SETTINGS_NP_t : public BaseMngTlv {
+    /** Profile version */
+    linuxptpPowerProfileVersion_e version;
+    UInteger16_t grandmasterID; /**< grand master ID */
+    UInteger32_t grandmasterTimeInaccuracy; /**< grand master time inaccuracy */
+    UInteger32_t networkTimeInaccuracy; /**< network time inaccuracy */
+    UInteger32_t totalTimeInaccuracy; /**< total time inaccuracy */
+};
 
 #endif /*__PMC_PROC_H*/

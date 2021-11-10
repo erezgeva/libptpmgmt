@@ -346,3 +346,9 @@ A(SYNCHRONIZATION_UNCERTAIN_NP)
 {
     return proc(d.val);
 }
+A(POWER_PROFILE_SETTINGS_NP)
+{
+    return proc(d.version) || proc(d.grandmasterID) ||
+        proc(d.grandmasterTimeInaccuracy) || proc(d.networkTimeInaccuracy) ||
+        proc(d.totalTimeInaccuracy);
+}

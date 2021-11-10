@@ -780,35 +780,37 @@ const char *Message::netProt2str_c(networkProtocol_e val)
 }
 const char *Message::clockAcc2str_c(clockAccuracy_e val)
 {
+    const char base[] = "Accurate_";
+    const size_t off = sizeof(base);
     switch(val) {
-        case caseItem(Accurate_within_1ps);
-        case caseItem(Accurate_within_2_5ps);
-        case caseItem(Accurate_within_10ps);
-        case caseItem(Accurate_within_25ps);
-        case caseItem(Accurate_within_100ps);
-        case caseItem(Accurate_within_250ps);
-        case caseItem(Accurate_within_1ns);
-        case caseItem(Accurate_within_2_5ns);
-        case caseItem(Accurate_within_10ns);
-        case caseItem(Accurate_within_25ns);
-        case caseItem(Accurate_within_100ns);
-        case caseItem(Accurate_within_250ns);
-        case caseItem(Accurate_within_1us);
-        case caseItem(Accurate_within_2_5us);
-        case caseItem(Accurate_within_10us);
-        case caseItem(Accurate_within_25us);
-        case caseItem(Accurate_within_100us);
-        case caseItem(Accurate_within_250us);
-        case caseItem(Accurate_within_1ms);
-        case caseItem(Accurate_within_2_5ms);
-        case caseItem(Accurate_within_10ms);
-        case caseItem(Accurate_within_25ms);
-        case caseItem(Accurate_within_100ms);
-        case caseItem(Accurate_within_250ms);
-        case caseItem(Accurate_within_1s);
-        case caseItem(Accurate_within_10s);
-        case caseItem(Accurate_more_10s);
-        case caseItem(Accurate_Unknown);
+        case caseItemOff(Accurate_within_1ps);
+        case caseItemOff(Accurate_within_2_5ps);
+        case caseItemOff(Accurate_within_10ps);
+        case caseItemOff(Accurate_within_25ps);
+        case caseItemOff(Accurate_within_100ps);
+        case caseItemOff(Accurate_within_250ps);
+        case caseItemOff(Accurate_within_1ns);
+        case caseItemOff(Accurate_within_2_5ns);
+        case caseItemOff(Accurate_within_10ns);
+        case caseItemOff(Accurate_within_25ns);
+        case caseItemOff(Accurate_within_100ns);
+        case caseItemOff(Accurate_within_250ns);
+        case caseItemOff(Accurate_within_1us);
+        case caseItemOff(Accurate_within_2_5us);
+        case caseItemOff(Accurate_within_10us);
+        case caseItemOff(Accurate_within_25us);
+        case caseItemOff(Accurate_within_100us);
+        case caseItemOff(Accurate_within_250us);
+        case caseItemOff(Accurate_within_1ms);
+        case caseItemOff(Accurate_within_2_5ms);
+        case caseItemOff(Accurate_within_10ms);
+        case caseItemOff(Accurate_within_25ms);
+        case caseItemOff(Accurate_within_100ms);
+        case caseItemOff(Accurate_within_250ms);
+        case caseItemOff(Accurate_within_1s);
+        case caseItemOff(Accurate_within_10s);
+        case caseItemOff(Accurate_more_10s);
+        case caseItemOff(Accurate_Unknown);
         default:
             if(val < Accurate_within_1ps)
                 return "Accurate_small_1ps";
@@ -874,6 +876,18 @@ const char *Message::ts2str_c(linuxptpTimeStamp_e val)
         case caseItemOff(TS_P2P1STEP);
         default:
             return "unknown";
+    }
+}
+const char *Message::pwr2str_c(linuxptpPowerProfileVersion_e ver)
+{
+    const char base[] = "IEEE_C37_238_VERSION_";
+    const size_t off = sizeof(base);
+    switch(ver) {
+        case caseItemOff(IEEE_C37_238_VERSION_NONE);
+        case caseItemOff(IEEE_C37_238_VERSION_2011);
+        case caseItemOff(IEEE_C37_238_VERSION_2017);
+        default:
+            return "unknown state";
     }
 }
 std::string Timestamp_t::string() const
@@ -1300,6 +1314,13 @@ bool Message::proc(linuxptpTimeStamp_e &val)
     uint8_t v = val;
     bool ret = proc(v);
     val = (linuxptpTimeStamp_e)v;
+    return ret;
+}
+bool Message::proc(linuxptpPowerProfileVersion_e &val)
+{
+    uint16_t v = val;
+    bool ret = proc(v);
+    val = (linuxptpPowerProfileVersion_e)v;
     return ret;
 }
 bool Message::proc(TimeInterval_t &v)

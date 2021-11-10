@@ -71,6 +71,7 @@ struct JsonProc {
     procType(timeSource_e)
     procType(portState_e)
     procType(linuxptpTimeStamp_e)
+    procType(linuxptpPowerProfileVersion_e)
     procType(TimeInterval_t)
     procType(Timestamp_t)
     procType(ClockIdentity_t)
@@ -293,6 +294,7 @@ struct JsonProcToJson : public JsonProc {
     procTypeEnum(timeSource_e, timeSrc2str_c)
     procTypeEnum(portState_e, portState2str_c)
     procTypeEnum(linuxptpTimeStamp_e, ts2str_c)
+    procTypeEnum(linuxptpPowerProfileVersion_e, pwr2str_c)
     bool procValue(const char *name, TimeInterval_t &val) {
         procValue(name, val.scaledNanoseconds);
         return true;
@@ -756,6 +758,15 @@ JS(SYNCHRONIZATION_UNCERTAIN_NP)
 {
     return
         PROC_VAL(val);
+}
+JS(POWER_PROFILE_SETTINGS_NP)
+{
+    return
+        PROC_VAL(version) &&
+        PROC_VAL(grandmasterID) &&
+        PROC_VAL(grandmasterTimeInaccuracy) &&
+        PROC_VAL(networkTimeInaccuracy) &&
+        PROC_VAL(totalTimeInaccuracy);
 }
 
 bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
@@ -1275,36 +1286,32 @@ struct JsonProcFromJson : public JsonProc {
         const char *str = val.strV.c_str();
         if(*str == 0)
             return false;
-        const char base[] = "Accurate_";
-        const size_t size = sizeof(base);
         // Check enumerator values
-        if(strlen(str) > size && strncmp(str, base, size) == 0) {
-            if(PROC_STR(Accurate_Unknown))
-                d = Accurate_Unknown;
-            else {
-                for(int i = Accurate_within_1ps; i <= Accurate_more_10s; i++) {
-                    clockAccuracy_e v = (clockAccuracy_e)i;
-                    if(strcmp(str + size, Message::clockAcc2str_c(v) + size) == 0) {
-                        d = v;
-                        return true;
-                    }
-                }
-                return false;
-            }
-        } else { // Fall to number value
-            char *end;
-            long a = strtol(str, &end, 0);
-            if(end == str || *end != 0 || a < 0 || a > Accurate_more_10s)
-                return false;
-            d = (clockAccuracy_e)a;
+        if(PROC_STR(Unknown)) {
+            d = Accurate_Unknown;
+            return true;
         }
+        for(int i = Accurate_within_1ps; i <= Accurate_more_10s; i++) {
+            clockAccuracy_e v = (clockAccuracy_e)i;
+            if(strcmp(str, Message::clockAcc2str_c(v)) == 0) {
+                d = v;
+                return true;
+            }
+        }
+        // Fall to number value
+        char *end;
+        long a = strtol(str, &end, 0);
+        if(end == str || *end != 0 || a < 0 ||
+            (a > Accurate_more_10s && a != Accurate_Unknown))
+            return false;
+        d = (clockAccuracy_e)a;
         return true;
     }
     bool procValue(const char *key, faultRecord_e &d) {
         GET_STR
         for(int i = F_Emergency; i <= F_Debug; i++) {
             faultRecord_e v = (faultRecord_e)i;
-            if(strcmp(str, Message::faultRec2str_c(v) + 2) == 0) {
+            if(strcmp(str, Message::faultRec2str_c(v)) == 0) {
                 d = v;
                 return true;
             }
@@ -1348,7 +1355,19 @@ struct JsonProcFromJson : public JsonProc {
         GET_STR
         for(int i = TS_SOFTWARE; i <= TS_P2P1STEP; i++) {
             linuxptpTimeStamp_e v = (linuxptpTimeStamp_e)i;
-            if(strcmp(str, Message::ts2str_c(v) + 3) == 0) {
+            if(strcmp(str, Message::ts2str_c(v)) == 0) {
+                d = v;
+                return true;
+            }
+        }
+        return false;
+    }
+    bool procValue(const char *key, linuxptpPowerProfileVersion_e &d) {
+        GET_STR
+        for(int i = IEEE_C37_238_VERSION_NONE; i <= IEEE_C37_238_VERSION_2017;
+            i++) {
+            linuxptpPowerProfileVersion_e v = (linuxptpPowerProfileVersion_e)i;
+            if(strcmp(str, Message::pwr2str_c(v)) == 0) {
                 d = v;
                 return true;
             }

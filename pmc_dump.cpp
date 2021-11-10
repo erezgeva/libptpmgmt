@@ -566,6 +566,21 @@ dump(SYNCHRONIZATION_UNCERTAIN_NP)
     DUMPS(IDENT "uncertain %u", d.val);
     dump_end;
 }
+dump(POWER_PROFILE_SETTINGS_NP)
+{
+    DUMPS(
+        IDENT "version                   %s"
+        IDENT "grandmasterID             0x%04hx"
+        IDENT "grandmasterTimeInaccuracy %u"
+        IDENT "networkTimeInaccuracy     %u"
+        IDENT "totalTimeInaccuracy       %u",
+        m.pwr2str_c(d.version),
+        d.grandmasterID,
+        d.grandmasterTimeInaccuracy,
+        d.networkTimeInaccuracy,
+        d.totalTimeInaccuracy);
+    dump_end;
+}
 
 void call_dump(Message &msg, BaseMngTlv *_data)
 {
@@ -868,6 +883,30 @@ static bool getPortState(val_key_t &key)
         num = CLIENT;
     else
         return true;
+    key.num = num;
+    return false; // No errors!
+}
+static bool getPwrVer(val_key_t &key)
+{
+    const char base[] = "IEEE_C37_238_VERSION_";
+    int64_t num;
+    const char *t2, *tkn = key.str_val;
+    if(strcasecmp(base, tkn) == 0)
+        t2 = tkn + sizeof(base);
+    else
+        t2 = tkn;
+    if(strcasecmp("NONE", t2) == 0)
+        num = IEEE_C37_238_VERSION_NONE;
+    else if(strcasecmp("2011", t2) == 0)
+        num = IEEE_C37_238_VERSION_2011;
+    else if(strcasecmp("2017", t2) == 0)
+        num = IEEE_C37_238_VERSION_2017;
+    else { // Fallback into integer
+        char *end;
+        num = strtol(tkn, &end, 0);
+        if(tkn == end || *end != 0 || num < 0 || num > IEEE_C37_238_VERSION_2017)
+            return true;
+    }
     key.num = num;
     return false; // No errors!
 }
@@ -1255,6 +1294,28 @@ build(SYNCHRONIZATION_UNCERTAIN_NP)
     keys["duration"].req = true;
     parseKeys;
     d.val = keys["duration"].num;
+    build_end;
+}
+build(POWER_PROFILE_SETTINGS_NP)
+{
+    defKeys;
+    keys["version"].handle = getPwrVer;
+    keys["version"].req = true;
+    keys["grandmasterID"].max = UINT16_MAX;
+    keys["grandmasterID"].base = 16;
+    keys["grandmasterID"].req = true;
+    keys["grandmasterTimeInaccuracy"].max = UINT32_MAX;
+    keys["grandmasterTimeInaccuracy"].req = true;
+    keys["networkTimeInaccuracy"].max = UINT32_MAX;
+    keys["networkTimeInaccuracy"].req = true;
+    keys["totalTimeInaccuracy"].max = UINT32_MAX;
+    keys["totalTimeInaccuracy"].req = true;
+    parseKeys;
+    d.version = (linuxptpPowerProfileVersion_e)keys["version"].num;
+    d.grandmasterID = keys["grandmasterID"].num;
+    d.grandmasterTimeInaccuracy = keys["grandmasterTimeInaccuracy"].num;
+    d.networkTimeInaccuracy = keys["networkTimeInaccuracy"].num;
+    d.totalTimeInaccuracy = keys["totalTimeInaccuracy"].num;
     build_end;
 }
 #if 1

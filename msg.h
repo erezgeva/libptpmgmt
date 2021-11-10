@@ -278,6 +278,17 @@ enum linuxptpTimeStamp_e : uint8_t {
     /** One step PTP plus insert time to PDelay_Resp */
     TS_P2P1STEP,
 };
+/** linuxptp Power Profile version
+ *  Specify the which power system profile to use
+ */
+enum linuxptpPowerProfileVersion_e : uint16_t {
+    /** Do not use power system */
+    IEEE_C37_238_VERSION_NONE,
+    /** Use IEEE C37.238-2011 profile */
+    IEEE_C37_238_VERSION_2011,
+    /** Use IEEE C37.238-2017 profile */
+    IEEE_C37_238_VERSION_2017,
+};
 /** Clock time properties bit mask */
 enum : uint8_t {
     /** The last minute of the current UTC day contains 61 seconds */
@@ -815,6 +826,7 @@ class Message
     bool proc(portState_e &val);
     bool proc(msgType_e &val);
     bool proc(linuxptpTimeStamp_e &val);
+    bool proc(linuxptpPowerProfileVersion_e &val);
     bool proc(TimeInterval_t &v);
     bool proc(Timestamp_t &d);
     bool proc(ClockIdentity_t &v);
@@ -963,6 +975,12 @@ class Message
      * @return string with the Linux time stamp type
      */
     static const char *ts2str_c(linuxptpTimeStamp_e type);
+    /**
+     * Convert linuxptp power profile version to string
+     * @param[in] ver version
+     * @return string with the Linux power profile version
+     */
+    static const char *pwr2str_c(linuxptpPowerProfileVersion_e ver);
     /**
      * Check if leap 61 seconds flag is enabled
      * @param[in] flags
