@@ -48,14 +48,14 @@ const uint8_t controlFieldDef = 0x05;
 const uint8_t logMessageIntervalDef = 0x7f;
 const uint16_t allPorts = UINT16_MAX;
 const ClockIdentity_t allClocks = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-const uint16_t u16_sig_bit = 1 << 15;           // bit 16 negative sign bit
-const uint64_t u64_sig_bit = (uint64_t)1 << 63; // bit 64 negative sign bit
+const uint16_t sig_16bits = 1U << 15;           // bit 16 negative sign bit
+const uint64_t sig_64bits = (uint64_t)1UL << 63; // bit 64 negative sign bit
 // constants for IEEE 754 64-bit
 // sign bit: 1 bit, exponent: 11 bits, mantissa: 52 bits
 // https://en.wikipedia.org/wiki/Double-precision_floating-point_format
 const int ieee754_mnt_size = 52; // Exponent location, mantissa size
 const int ieee754_exp_size = 11; // Exponent size
-const int64_t ieee754_exp_nan = ((int64_t)1 << (ieee754_exp_size - 1)); // 1024
+const int64_t ieee754_exp_nan = ((int64_t)1L << (ieee754_exp_size - 1)); // 1024
 const int64_t ieee754_exp_max = ieee754_exp_nan - 1; // 1023
 const int64_t ieee754_exp_sub = -ieee754_exp_max; // -1023 for subnormal
 const int64_t ieee754_exp_min = ieee754_exp_sub + 1; // -1022
@@ -1064,16 +1064,16 @@ bool Message::proc48(int64_t &val)
         }
         high = (val >> 32) & INT16_MAX;
         if(val < 0) // Add sign bit for negative
-            high |= u16_sig_bit;
+            high |= sig_16bits;
         low = val & UINT32_MAX;
     }
     if(proc(high) || proc(low))
         return true;
     if(!m_build) {
         uint64_t ret = low | (((uint64_t)high & INT16_MAX) << 32);
-        if(high & u16_sig_bit) // Add sign bit for negative
-            ret |= u64_sig_bit;
-        val = (int64_t)ret;
+        if(high & sig_16bits) // Add sign bit for negative
+            ret |= sig_64bits;
+        memcpy(&val, &ret, sizeof(uint64_t));
     }
     return false;
 }
@@ -1097,30 +1097,41 @@ bool Message::proc(Float64_t &val)
         return true;
     uint64_t num;
     int64_t mnt, exp;
-    int sizeMod;
-    int ordMod;
+    // true: Float64_t is 64 bits IEEE 754
+    // false: calculate IEEE 754
+    bool use64;
+    enum {
+        // when calculate always use host order
+        USE_HOST, // use host order
+        USE_BIG, // float is big endian (network order)
+        USE_LT, // float is little endian
+    } ordMod;
     // see ieee754.h
     // Most processors support IEEE 754
+    // Hardware that do not use IEEE 754, should define NO_IEEE_754
+    #ifndef NO_IEEE_754
     if(sizeof(uint64_t) == sizeof(Float64_t)) {
         #if __FLOAT_WORD_ORDER == __BIG_ENDIAN
-        sizeMod = 1; // Float64_t is 64 bits IEEE 754
-        ordMod = 1; // float is big endian (network order)
+        use64 = true;
+        ordMod = USE_BIG;
         #elif __FLOAT_WORD_ORDER == __BYTE_ORDER
-        sizeMod = 1; // Float64_t is 64 bits IEEE 754
-        ordMod = 0; // use host order
+        use64 = true;
+        ordMod = USE_HOST;
         #elif __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
-        sizeMod = 1; // Float64_t is 64 bits IEEE 754
-        ordMod = 2; // float is little endian
+        use64 = true;
+        ordMod = USE_LT;
         #else
-        sizeMod = 0; // calculate IEEE 754
-        ordMod = 0; // when calculate always use host order
+        use64 = false;
+        ordMod = USE_HOST;
         #endif
-    } else {
-        sizeMod = 0; // calculate IEEE 754
-        ordMod = 0; // when calculate always use host order
+    } else
+    #endif /* NO_IEEE_754 */
+    {
+        use64 = false;
+        ordMod = USE_HOST;
     }
     if(m_build) {
-        if(sizeMod == 1) // Float64_t is 64 bits IEEE 754
+        if(use64) // Float64_t is 64 bits IEEE 754
             memcpy(&num, &val, sizeof(uint64_t));
         else {
             /* For processors that do not support IEEE 754
@@ -1129,7 +1140,7 @@ bool Message::proc(Float64_t &val)
              */
             // Move negative sign bit
             if(std::signbit(val)) {
-                num = u64_sig_bit; // add sign bit
+                num = sig_64bits; // add sign bit
                 if(std::isfinite(val))
                     val = fabsl(val);
             } else
@@ -1189,22 +1200,28 @@ bool Message::proc(Float64_t &val)
                 (mnt & ieee754_mnt_mask);
         }
     }
-    if(ordMod == 1) { // float is big endian (network order)
-        if(m_build)
-            *(uint64_t *)m_cur = num;
-        else
-            num = *(uint64_t *)m_cur;
-        move(8);
-    } else if(ordMod == 2) { // float is little endian, swap to network order
-        if(m_build)
-            *(uint64_t *)m_cur = bswap_64(num);
-        else
-            num = bswap_64(*(uint64_t *)m_cur);
-        move(8);
-    } else if(proc(num)) // host order to network order
-        return true;
+    switch(ordMod) {
+        case USE_BIG:
+            if(m_build)
+                *(uint64_t *)m_cur = num;
+            else
+                num = *(uint64_t *)m_cur;
+            move(8);
+            break;
+        case USE_LT:
+            if(m_build)
+                *(uint64_t *)m_cur = bswap_64(num);
+            else
+                num = bswap_64(*(uint64_t *)m_cur);
+            move(8);
+            break;
+        case USE_HOST:
+            if(proc(num)) // host order to network order
+                return true;
+            break;
+    }
     if(!m_build) {
-        if(sizeMod == 1) // Float64_t is 64 bits IEEE 754
+        if(use64) // Float64_t is 64 bits IEEE 754
             memcpy(&val, &num, sizeof(uint64_t));
         else {
             /* For processors that do not support IEEE 754
@@ -1223,11 +1240,10 @@ bool Message::proc(Float64_t &val)
                 val = exp2l(ieee754_exp_min) * mnt / ieee754_mnt_base;
             else // Normal
                 val = exp2l(exp) * (mnt + ieee754_mnt_base) / ieee754_mnt_base;
-            if(num & u64_sig_bit) // Negative
+            if(num & sig_64bits) // Negative
                 val = std::copysign(val, -1);
         }
     }
-    move(8);
     return false;
 }
 bool Message::proc(std::string &str, uint16_t len)
