@@ -188,7 +188,7 @@ class Binary
      * @return true if valid IP address version 4 or 6
      * @note this function will toss old value
      */
-    bool fromIp(const std::string string);
+    bool fromIp(const std::string &string);
     /**
      * Convert IP address string to Binary
      * @param[in] string address
@@ -196,7 +196,7 @@ class Binary
      * @return true if valid IP address version 4 or 6
      * @note this function will toss old value
      */
-    bool fromIp(const std::string string, int domain);
+    bool fromIp(const std::string &string, int domain);
     /**
      * Convert ID address to string
      * @return address
@@ -217,13 +217,13 @@ class Binary
      * @return true if valid ID address
      * @note Support MAC addresses
      */
-    bool fromId(const std::string string);
+    bool fromId(const std::string &string);
     /**
      * Convert MAC address string to Binary
      * @param[in] string address
      * @return true if MAC address
      */
-    bool fromMac(const std::string string) { return fromId(string) && isMacLen(); }
+    bool fromMac(const std::string &string) { return fromId(string) && isMacLen(); }
     /**
      * Check if ID length is a valid MAC address
      * @return true if ID length is valid MAC length
@@ -262,16 +262,6 @@ class Binary
     bool operator==(const Binary &rhs) const {
         return m_str == rhs.m_str;
     }
-    #ifndef SWIG
-    /**
-     * Compare binaries
-     * @param[in] rhs Binary to compare
-     * @return true if binaries are identical
-     */
-    bool operator==(Binary &&rhs) const {
-        return m_str == rhs.m_str;
-    }
-    #endif
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare
@@ -280,16 +270,6 @@ class Binary
     bool eq(const Binary &rhs) const {
         return m_str == rhs.m_str;
     }
-    #ifndef SWIG
-    /**
-     * Compare binaries
-     * @param[in] rhs Binary to compare
-     * @return true if binaries are identical
-     */
-    bool eq(Binary &&rhs) const {
-        return m_str == rhs.m_str;
-    }
-    #endif
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare
@@ -298,16 +278,6 @@ class Binary
     bool operator<(const Binary &rhs) const {
         return m_str < rhs.m_str;
     }
-    #ifndef SWIG
-    /**
-     * Compare binaries
-     * @param[in] rhs Binary to compare
-     * @return true if binary is smaller
-     */
-    bool operator<(Binary &&rhs) const {
-        return m_str < rhs.m_str;
-    }
-    #endif
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare
@@ -316,16 +286,6 @@ class Binary
     bool less(const Binary &rhs) const {
         return m_str < rhs.m_str;
     }
-    #ifndef SWIG
-    /**
-     * Compare binaries
-     * @param[in] rhs Binary to compare
-     * @return true if binary is smaller
-     */
-    bool less(Binary &&rhs) const {
-        return m_str < rhs.m_str;
-    }
-    #endif
 };
 
 #endif /*__PMC_BIN_H*/

@@ -58,7 +58,7 @@ std::string Binary::toIp() const
         return "";
     return ret;
 }
-bool Binary::fromIp(const std::string string, int domain)
+bool Binary::fromIp(const std::string &string, int domain)
 {
     if(string.length() < 2)
         return false;
@@ -79,7 +79,7 @@ bool Binary::fromIp(const std::string string, int domain)
     m_str = std::string(buf, len);
     return true;
 }
-bool Binary::fromIp(const std::string string)
+bool Binary::fromIp(const std::string &string)
 {
     if(string.length() < 2)
         return false;
@@ -105,7 +105,7 @@ std::string Binary::bufToId(const uint8_t *id, size_t len)
     }
     return ret;
 }
-bool Binary::fromId(const std::string string)
+bool Binary::fromId(const std::string &string)
 {
     if(string.length() < 2)
         return false;

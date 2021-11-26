@@ -33,14 +33,14 @@ class Buf
      * Create a new memory buffer
      * @param[in] size new buffer size
      */
-    Buf(const size_t size): m_buf(nullptr), m_size(0) {alloc(size);}
+    Buf(size_t size): m_buf(nullptr), m_size(0) {alloc(size);}
     ~Buf();
     /**
      * Create a new memory buffer or resize existing one
      * @param[in] size buffer new size
      * @return true if new buffer allocation success
      */
-    bool alloc(const size_t size);
+    bool alloc(size_t size);
     /**
      * Get memory buffer pointer
      * @return memory buffer pointer or null if buffer does not exist

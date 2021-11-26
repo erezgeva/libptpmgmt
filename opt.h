@@ -53,8 +53,8 @@ class Options
     std::string with_options;
     std::string msg;
     char net_select;
-    int argc;
-    int end_optind;
+    int m_argc;
+    int m_end_optind;
     bool m_useDef;
 
     class helpStore
@@ -108,7 +108,7 @@ class Options
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const std::string get_msg() const { return msg; }
+    const std::string &get_msg() const { return msg; }
     /**
      * Get parse_options() message
      * @return message from last parse_options()
@@ -149,24 +149,24 @@ class Options
      * @return option value in char pointer (C style)
      * @note relevant for option with argument
      */
-    const int val_i(char opt) const
+    int val_i(char opt) const
     { return have(opt) ? atoi(options.at(opt).c_str()) : 0; }
     /**
      * get Network Transport value
      * @return Network Transport
      * @note return 0 if not select on command line
      */
-    const char get_net_transport() const { return net_select; }
+    char get_net_transport() const { return net_select; }
     /**
      * Do we have more argumends on the command line we did not proccess
      * @return true if we have more to proccess
      */
-    bool have_more() const { return end_optind < argc; }
+    bool have_more() const { return m_end_optind < m_argc; }
     /**
      * First argumend on the command line that we did not proccess
      * @return index of argument
      */
-    int procces_next() const { return end_optind; }
+    int procces_next() const { return m_end_optind; }
 };
 
 #endif /*__PMC_OPT_H*/

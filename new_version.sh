@@ -6,6 +6,8 @@
 # @copyright GNU General Public License 3.0 or later
 #
 # Update to a new version
+# Increase the minor version.
+# Updating major version is done manually.
 ###############################################################################
 main()
 {

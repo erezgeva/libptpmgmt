@@ -24,7 +24,7 @@
  * @param[in] indent base indent for the JSON string
  * @return JSON string
  */
-std::string msg2json(Message &message, int indent = 0);
+std::string msg2json(const Message &message, int indent = 0);
 
 /**
  * Parse JSON to PTP management message
@@ -68,7 +68,7 @@ class Json2msg
      * @param[in] json string
      * @return true if parsing success
      */
-    bool fromJson(const std::string json);
+    bool fromJson(const std::string &json);
     /**
      * Convert JSON object to message
      * @param[in] jobj pointer of JSON object
@@ -168,7 +168,7 @@ class Json2msg
      * Get source port ID
      * @return source port ID
      */
-    PortIdentity_t srcPort() const { return m_srcPort; }
+    const PortIdentity_t &srcPort() const { return m_srcPort; }
     /**
      * Is source port ID in JSON?
      * @return true if source port ID in JSON
@@ -178,7 +178,7 @@ class Json2msg
      * Get target port ID
      * @return target port ID
      */
-    PortIdentity_t dstPort() const { return m_dstPort; }
+    const PortIdentity_t &dstPort() const { return m_dstPort; }
     /**
      * Is target port ID in JSON?
      * @return true if target port ID in JSON

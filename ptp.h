@@ -44,7 +44,7 @@ class IfInfo
      * @param[in] ifName network interface name
      * @return true if network interface exists
      */
-    bool initUsingName(const std::string ifName);
+    bool initUsingName(const std::string &ifName);
     /**
      * Find network interface information based on its index
      * @param[in] ifIndex network interface index

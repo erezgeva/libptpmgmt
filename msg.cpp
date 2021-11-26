@@ -226,7 +226,7 @@ Message::Message() :
     m_prms.filterSignaling = true;
     setAllClocks();
 }
-Message::Message(MsgParams prms) :
+Message::Message(const MsgParams &prms) :
     m_sendAction(GET),
     m_msgLen(0),
     m_dataSend(nullptr),
@@ -246,7 +246,7 @@ ssize_t Message::getMsgPlanedLen() const
     // That should not happen, precaution
     if(m_tlv_id < FIRST_MNG_ID || m_tlv_id > LAST_MNG_ID)
         return -1; // Not supported
-    BaseMngTlv *data = nullptr;
+    const BaseMngTlv *data = nullptr;
     if(m_sendAction != GET)
         data = m_dataSend;
     else if(m_prms.useZeroGet)
@@ -267,7 +267,7 @@ ssize_t Message::getMsgPlanedLen() const
     return ret + mngMsgBaseSize;
     // return total length of to the message to be send
 }
-bool Message::updateParams(MsgParams prms)
+bool Message::updateParams(const MsgParams &prms)
 {
     if(prms.transportSpecific > 0xf)
         return false;
@@ -281,7 +281,7 @@ bool Message::isEmpty(mng_vals_e id)
     return false;
 }
 bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id,
-    BaseMngTlv *dataSend)
+    const BaseMngTlv *dataSend)
 {
     if(!allowedAction(tlv_id, actionField))
         return false;
@@ -344,7 +344,10 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
         m_build = true;
         // Ensure reserve fields are zero
         reserved = 0;
-        MNG_PARSE_ERROR_e err = call_tlv_data(m_tlv_id, m_dataSend);
+        // call_tlv_data() do not change data on build,
+        // but does on parsing!
+        BaseMngTlv *data = const_cast<BaseMngTlv *>(m_dataSend);
+        MNG_PARSE_ERROR_e err = call_tlv_data(m_tlv_id, data);
         if(err != MNG_PARSE_ERROR_OK)
             return err;
         // Add 'reserve' at end of message
@@ -372,7 +375,7 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     msg->messageLength = cpu_to_net16(size);
     return MNG_PARSE_ERROR_OK;
 }
-MNG_PARSE_ERROR_e Message::parse(void *buf, const ssize_t msgSize)
+MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
 {
     if(msgSize < sigBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
@@ -581,7 +584,8 @@ MNG_PARSE_ERROR_e Message::parseSig()
         if(tlv != nullptr) {
             sigTlv rec(tlvType);
             auto it = m_sigTlvs.insert(m_sigTlvs.end(), rec);
-            it->tlv.reset(tlv);
+            // Put the tlv to the object inside the vector
+            it->set(tlv);
         };
     }
     return MNG_PARSE_ERROR_SIG; // We have signaling message
@@ -591,7 +595,7 @@ bool Message::traversSigTlvs(std::function<bool (const Message &msg,
 {
     if(m_type == Signaling)
         for(const auto &tlv : m_sigTlvs)
-            if(callback(*this, tlv.tlvType, tlv.tlv.get()))
+            if(callback(*this, tlv.tlvType, tlv.get()))
                 return true;
     return false;
 }
@@ -601,10 +605,10 @@ size_t Message::getSigTlvsCount() const
         return m_sigTlvs.size();
     return 0;
 }
-BaseSigTlv *Message::getSigTlv(size_t pos) const
+const BaseSigTlv *Message::getSigTlv(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size())
-        return m_sigTlvs[pos].tlv.get();
+        return m_sigTlvs[pos].get();
     return nullptr;
 }
 tlvType_e Message::getSigTlvType(size_t pos) const
@@ -617,16 +621,16 @@ mng_vals_e Message::getSigMngTlvType(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size() &&
         m_sigTlvs[pos].tlvType == MANAGEMENT) {
-        MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].tlv.get();
+        const MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].get();
         return mng->managementId;
     }
     return NULL_PTP_MANAGEMENT;
 }
-BaseMngTlv *Message::getSigMngTlv(size_t pos) const
+const BaseMngTlv *Message::getSigMngTlv(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size() &&
         m_sigTlvs[pos].tlvType == MANAGEMENT) {
-        MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].tlv.get();
+        const MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].get();
         return mng->tlvData.get();
     }
     return nullptr;
@@ -641,7 +645,7 @@ bool Message::isAllClocks() const
     return m_prms.target.portNumber == allPorts &&
         memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof(allClocks)) == 0;
 }
-bool Message::useConfig(ConfigFile &cfg, std::string section)
+bool Message::useConfig(const ConfigFile &cfg, const std::string &section)
 {
     uint8_t transportSpecific = cfg.transportSpecific(section);
     if(transportSpecific > 0xf)
@@ -916,12 +920,6 @@ bool PortIdentity_t::operator<(const PortIdentity_t &rhs) const
         return portNumber < rhs.portNumber;
     return clockIdentity < rhs.clockIdentity;
 }
-bool PortIdentity_t::operator<(PortIdentity_t &&rhs) const
-{
-    if(clockIdentity == rhs.clockIdentity)
-        return portNumber < rhs.portNumber;
-    return clockIdentity < rhs.clockIdentity;
-}
 std::string PortAddress_t::string() const
 {
     switch(networkProtocol) {
@@ -937,15 +935,6 @@ std::string PortAddress_t::string() const
     }
 }
 bool PortAddress_t::operator<(const PortAddress_t &rhs) const
-{
-    if(networkProtocol == rhs.networkProtocol) {
-        if(addressField.length() == rhs.addressField.length())
-            return addressField < rhs.addressField;
-        return addressField.length() < rhs.addressField.length();
-    }
-    return networkProtocol < rhs.networkProtocol;
-}
-bool PortAddress_t::operator<(PortAddress_t &&rhs) const
 {
     if(networkProtocol == rhs.networkProtocol) {
         if(addressField.length() == rhs.addressField.length())

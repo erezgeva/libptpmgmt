@@ -51,7 +51,7 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
     m_isInit = true;
     return true;
 }
-bool IfInfo::initUsingName(const std::string ifName)
+bool IfInfo::initUsingName(const std::string &ifName)
 {
     if(m_isInit || ifName.empty() || ifName.length() >= IFNAMSIZ)
         return false;

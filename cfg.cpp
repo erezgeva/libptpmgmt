@@ -13,17 +13,17 @@
 #include "cfg.h"
 
 #define get_func(n)\
-    uint8_t ConfigFile::n(const std::string section) const\
+    uint8_t ConfigFile::n(const std::string &section) const\
     {\
         return get(ConfigSection::n##_val, section);\
     }
 #define get_str_func(n)\
-    const std::string &ConfigFile:: n(const std::string section) const\
+    const std::string &ConfigFile:: n(const std::string &section) const\
     {\
         return get_str(ConfigSection::n##_val, section);\
     }
 #define get_bin_func(n)\
-    const Binary &ConfigFile:: n(const std::string section) const\
+    const Binary &ConfigFile:: n(const std::string &section) const\
     {\
         return get_bin(ConfigSection::n##_val, section);\
     }
@@ -142,8 +142,12 @@ ConfigFile::ConfigFile() : cfgGlobal(cfgSec[globalSection])
     cfgGlobal.setGlobal(); /* For default */
 }
 // read PTP configuration from file
-bool ConfigFile::read_cfg(const std::string _file)
+bool ConfigFile::read_cfg(const std::string &_file)
 {
+    if(_file.empty()) {
+        PMC_ERROR("Empty file name");
+        return false;
+    }
     const char *file = _file.c_str();
     FILE *f = fopen(file, "r");
     if(f == nullptr) {

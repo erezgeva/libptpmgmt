@@ -95,12 +95,12 @@ struct JsonProc {
 };
 
 struct JsonProcToJson : public JsonProc {
-    Message &m_msg;
+    const Message &m_msg;
     std::string m_result;
     std::stack<bool> m_first_vals;
     int m_base_indent;
     bool m_first;
-    JsonProcToJson(Message &msg, int indent);
+    JsonProcToJson(const Message &msg, int indent);
     bool data2json(mng_vals_e managementId, const BaseMngTlv *data);
     void sig2json(tlvType_e tlvType, const BaseSigTlv *tlv);
     void close() {
@@ -943,7 +943,7 @@ void JsonProcToJson::sig2json(tlvType_e tlvType, const BaseSigTlv *tlv)
     closeObject();
 }
 
-JsonProcToJson::JsonProcToJson(Message &msg, int indent) : m_msg(msg),
+JsonProcToJson::JsonProcToJson(const Message &msg, int indent) : m_msg(msg),
     m_base_indent(indent), m_first(false)
 {
     startObject();
@@ -994,7 +994,7 @@ JsonProcToJson::JsonProcToJson(Message &msg, int indent) : m_msg(msg),
     closeObject();
 }
 
-std::string msg2json(Message &msg, int indent)
+std::string msg2json(const Message &msg, int indent)
 {
     JsonProcToJson proc(msg, indent);
     return proc.m_result;
@@ -1557,7 +1557,7 @@ struct JsonProcFromJson : public JsonProc {
 #undef procVector
 };
 
-bool Json2msg::fromJson(const std::string json)
+bool Json2msg::fromJson(const std::string &json)
 {
     JSON_POBJ jobj = JSON_PARSE(json.c_str());
     if(jobj == nullptr) {
@@ -1647,7 +1647,7 @@ bool Json2msg::fromJsonObj(const void *jobj)
     return true;
 }
 #else /* No PMC_USE_CJSON*/
-bool Json2msg::fromJson(const std::string json)
+bool Json2msg::fromJson(const std::string &json)
 {
     PMC_ERROR("fromJson need JSON-C library support");
     return false;

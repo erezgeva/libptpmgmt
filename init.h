@@ -36,7 +36,7 @@ class Init
   public:
 
     Init() : m_sk(nullptr) {}
-    ~Init();
+    ~Init() { close(); }
 
     /**
      * Close socket and delete it
@@ -48,7 +48,7 @@ class Init
      * @param[in] opt PMC options
      * @return 0 on scuccess
      */
-    int proccess(Options &opt);
+    int proccess(const Options &opt);
 
     /**
      * Get configuration file object
@@ -66,7 +66,7 @@ class Init
      * Get Socket object
      * @return object
      */
-    SockBase *sk() const { return m_sk; }
+    SockBase *sk() { return m_sk; }
 
     /**
      * Do we use UDS socket?

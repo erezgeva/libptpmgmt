@@ -82,70 +82,70 @@ class ConfigFile
      * @param[in] file name with path
      * @return true if parse success
      */
-    bool read_cfg(const std::string file);
+    bool read_cfg(const std::string &file);
     /**
      * Get the transportSpecific value
      * @param[in] section (optional)
      * @return value
      * @note calling without section will fetch value from @"global@" section
      */
-    uint8_t transportSpecific(const std::string section = "") const;
+    uint8_t transportSpecific(const std::string &section = "") const;
     /**
      * Get the domainNumber value
      * @param[in] section (optional)
      * @return value
      * @note calling without section will fetch value from @"global@" section
      */
-    uint8_t domainNumber(const std::string section = "") const;
+    uint8_t domainNumber(const std::string &section = "") const;
     /**
      * Get the udp6_scope value
      * @param[in] section (optional)
      * @return value
      * @note calling without section will fetch value from @"global@" section
      */
-    uint8_t udp6_scope(const std::string section = "") const;
+    uint8_t udp6_scope(const std::string &section = "") const;
     /**
      * Get the udp_ttl value
      * @param[in] section (optional)
      * @return value
      * @note calling without section will fetch value from @"global@" section
      */
-    uint8_t udp_ttl(const std::string section = "") const;
+    uint8_t udp_ttl(const std::string &section = "") const;
     /**
      * Get the socket_priority value
      * @param[in] section (optional)
      * @return value
      * @note calling without section will fetch value from @"global@" section
      */
-    uint8_t socket_priority(const std::string section = "") const;
+    uint8_t socket_priority(const std::string &section = "") const;
     /**
      * Get the network_transport value
      * @param[in] section (optional)
      * @return value
      * @note calling without section will fetch value from @"global@" section
      */
-    uint8_t network_transport(const std::string section = "") const;
+    uint8_t network_transport(const std::string &section = "") const;
     /**
      * Get the uds_address value
      * @param[in] section (optional)
      * @return string object with value
      * @note calling without section will fetch value from @"global@" section
      */
-    const std::string &uds_address(const std::string section = "") const;
+    const std::string &uds_address(const std::string &section = "") const;
     /**
      * Get the ptp_dst_mac value
      * @param[in] section (optional)
      * @return Binary object with value
      * @note calling without section will fetch value from @"global@" section
      */
-    const Binary &ptp_dst_mac(const std::string section = "") const;
+    const Binary &ptp_dst_mac(const std::string &section = "") const;
     /**
      * Get the p2p_dst_mac value
      * @param[in] section (optional)
      * @return Binary object with value
      * @note calling without section will fetch value from @"global@" section
      */
-    const Binary &p2p_dst_mac(const std::string section = "") const;
+    const Binary &p2p_dst_mac(const std::string &section = "") const;
 };
 
 #endif /*__PMC_CFG_H*/

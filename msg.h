@@ -363,16 +363,6 @@ struct ClockIdentity_t {
     bool operator==(const ClockIdentity_t &rhs) const {
         return memcmp(rhs.v, v, size()) == 0;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another clock ID
-     * @param[in] rhs another clock id
-     * @return true if IDs are indentical
-     */
-    bool operator==(ClockIdentity_t &&rhs) const {
-        return memcmp(rhs.v, v, size()) == 0;
-    }
-    #endif
     /**
      * Compare to another clock ID
      * @param[in] rhs another clock id
@@ -381,14 +371,6 @@ struct ClockIdentity_t {
     bool eq(const ClockIdentity_t &rhs) const {
         return memcmp(rhs.v, v, size()) == 0;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another clock ID
-     * @param[in] rhs another clock id
-     * @return true if IDs are indentical
-     */
-    bool eq(ClockIdentity_t &&rhs) const {return memcmp(rhs.v, v, size()) == 0;}
-    #endif
     /**
      * Compare to another clock ID
      * @param[in] rhs another clock id
@@ -397,16 +379,6 @@ struct ClockIdentity_t {
     bool operator<(const ClockIdentity_t &rhs) const {
         return memcmp(rhs.v, v, size()) < 0;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another clock ID
-     * @param[in] rhs another clock id
-     * @return true if ID is smaller
-     */
-    bool operator<(ClockIdentity_t &&rhs) const {
-        return memcmp(rhs.v, v, size()) < 0;
-    }
-    #endif
     /**
      * Compare to another clock ID
      * @param[in] rhs another clock id
@@ -415,14 +387,6 @@ struct ClockIdentity_t {
     bool less(const ClockIdentity_t &rhs) const {
         return memcmp(rhs.v, v, size()) < 0;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another clock ID
-     * @param[in] rhs another clock id
-     * @return true if ID is smaller
-     */
-    bool less(ClockIdentity_t &&rhs) const {return memcmp(rhs.v, v, size()) < 0;}
-    #endif
 };
 /** PTP port ID */
 struct PortIdentity_t {
@@ -450,16 +414,6 @@ struct PortIdentity_t {
     bool operator==(const PortIdentity_t &rhs) const {
         return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another port ID
-     * @param[in] rhs another port id
-     * @return true if IDs are indentical
-     */
-    bool operator==(PortIdentity_t &&rhs) const {
-        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
-    }
-    #endif
     /**
      * Compare to another port ID
      * @param[in] rhs another port id
@@ -468,44 +422,18 @@ struct PortIdentity_t {
     bool eq(const PortIdentity_t &rhs) const {
         return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another port ID
-     * @param[in] rhs another port id
-     * @return true if IDs are indentical
-     */
-    bool eq(PortIdentity_t &&rhs) const {
-        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
-    }
-    #endif
     /**
      * Compare to another port ID
      * @param[in] rhs another port id
      * @return true if ID is smaller
      */
     bool operator<(const PortIdentity_t &rhs) const;
-    #ifndef SWIG
-    /**
-     * Compare to another port ID
-     * @param[in] rhs another port id
-     * @return true if ID is smaller
-     */
-    bool operator<(PortIdentity_t &&rhs) const;
-    #endif
     /**
      * Compare to another port ID
      * @param[in] rhs another port id
      * @return true if ID is smaller
      */
     bool less(const PortIdentity_t &rhs) const { return *this < rhs; }
-    #ifndef SWIG
-    /**
-     * Compare to another port ID
-     * @param[in] rhs another port id
-     * @return true if ID is smaller
-     */
-    bool less(PortIdentity_t &&rhs) const { return *this < rhs; }
-    #endif
 };
 /** PTP port address */
 struct PortAddress_t {
@@ -540,17 +468,6 @@ struct PortAddress_t {
         return networkProtocol == rhs.networkProtocol &&
             addressField == rhs.addressField;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another port address
-     * @param[in] rhs another port address
-     * @return true if addresses are indentical
-     */
-    bool operator==(PortAddress_t &&rhs) const {
-        return networkProtocol == rhs.networkProtocol &&
-            addressField == rhs.addressField;
-    }
-    #endif
     /**
      * Compare to another port address
      * @param[in] rhs another port address
@@ -560,45 +477,18 @@ struct PortAddress_t {
         return networkProtocol == rhs.networkProtocol &&
             addressField == rhs.addressField;
     }
-    #ifndef SWIG
-    /**
-     * Compare to another port address
-     * @param[in] rhs another port address
-     * @return true if addresses are indentical
-     */
-    bool eq(PortAddress_t &&rhs) const {
-        return networkProtocol == rhs.networkProtocol &&
-            addressField == rhs.addressField;
-    }
-    #endif
     /**
      * Compare to another port address
      * @param[in] rhs another port address
      * @return true if address is smaller
      */
     bool operator<(const PortAddress_t &rhs) const;
-    #ifndef SWIG
-    /**
-     * Compare to another port address
-     * @param[in] rhs another port address
-     * @return true if address is smaller
-     */
-    bool operator<(PortAddress_t &&rhs) const;
-    #endif
     /**
      * Compare to another port address
      * @param[in] rhs another port address
      * @return true if address is smaller
      */
     bool less(const PortAddress_t &rhs) const { return *this < rhs; }
-    #ifndef SWIG
-    /**
-     * Compare to another port address
-     * @param[in] rhs another port address
-     * @return true if address is smaller
-     */
-    bool less(PortAddress_t &&rhs) const { return *this < rhs; }
-    #endif
 };
 /** PTP clock quality */
 struct ClockQuality_t {
@@ -691,26 +581,6 @@ struct BaseMngTlv {
 /** Base for all Signaling TLV structures */
 struct BaseSigTlv {
 };
-#ifndef SWIG
-/** @cond internal
- * hold single TLV from a signaling message
- * Used internaly in the message class
- */
-struct sigTlv {
-    tlvType_e tlvType;
-    /**
-     * Do not pass tlv in copy and assignment.
-     * Assign directly into the structure only!
-     */
-    std::unique_ptr<BaseSigTlv> tlv;
-    sigTlv(tlvType_e type) : tlvType(type) {}
-    sigTlv(const sigTlv &rhs) : tlvType(rhs.tlvType) {}
-    sigTlv(sigTlv &&rhs) : tlvType(rhs.tlvType) {}
-    sigTlv &operator=(const sigTlv &rhs) { tlvType = rhs.tlvType; return *this; }
-    sigTlv &operator=(sigTlv &&rhs) { tlvType = rhs.tlvType; return *this; }
-};
-/**< @endcond */
-#endif
 
 /* Structure per each mng_vals_e id */
 #include "proc.h"
@@ -729,9 +599,39 @@ class Message
      * Doxygen does not know how to proccess.
      * This is a private section any way.
      */
+  private:
+
+    #ifndef SWIG
+    /**
+     * hold single TLV from a signaling message
+     * Used internaly
+     */
+    struct sigTlv {
+        tlvType_e tlvType;
+        /**
+         * As we use a vector of this structure,
+         * And we do not want the vector to pass the sig-tlv pointer or copy it.
+         * We do not pass the sig-tlv pointer in copy and assignment functions.
+         * We pass the sig-tlv pointer directly
+         *  afer we insert a new item to the vector!
+         * We only copy the type value here.
+         */
+        sigTlv(tlvType_e type) : tlvType(type) {}
+        sigTlv(const sigTlv &rhs) : tlvType(rhs.tlvType) {}
+        sigTlv &operator=(const sigTlv &rhs) {
+            tlvType = rhs.tlvType;
+            return *this;
+        }
+        const BaseSigTlv *get() const { return tlv.get(); }
+        void set(BaseSigTlv *t) { tlv.reset(t); }
+      private:
+        std::unique_ptr<BaseSigTlv> tlv;
+    };
+    #endif
+
 #define A(n, v, sc, a, sz, f) case##f(n)
 #define caseUF(n) bool n##_f(n##_t &data);
-  private:
+
     /* Per tlv ID call-back for parse or build or both */
 #include "ids.h"
     /* Parse functions for signalling messages */
@@ -752,38 +652,38 @@ class Message
     /**< @endcond */
 
     /* build parameters */
-    actionField_e   m_sendAction;
-    size_t          m_msgLen;
-    BaseMngTlv     *m_dataSend;
+    actionField_e     m_sendAction;
+    size_t            m_msgLen;
+    const BaseMngTlv *m_dataSend;
 
     /* Temporary parameters used during parsing and build */
-    bool            m_build; /* true on build */
-    uint8_t        *m_cur;
-    ssize_t         m_left;
-    size_t          m_size;  /* TLV data size on build */
+    bool              m_build; /* true on build */
+    uint8_t          *m_cur;
+    ssize_t           m_left;
+    size_t            m_size;  /* TLV data size on build */
     MNG_PARSE_ERROR_e m_err; /* Last TLV err */
 
     /* parsing parameters */
-    uint16_t        m_sequence;
-    bool            m_isUnicast;
-    uint8_t         m_PTPProfileSpecific;
-    actionField_e   m_replyAction;
-    uint32_t        m_sdoId; /* parsed message sdoId (transportSpecific) */
-    msgType_e       m_type; /* parsed message type */
-    tlvType_e       m_mngType; /* parsed management message type */
-    uint8_t         m_domainNumber; /* parsed message domainNumber*/
-    uint8_t         m_versionPTP; /* parsed message ptp version */
-    uint8_t         m_minorVersionPTP; /* parsed message ptp version */
+    uint16_t          m_sequence;
+    bool              m_isUnicast;
+    uint8_t           m_PTPProfileSpecific;
+    actionField_e     m_replyAction;
+    uint32_t          m_sdoId; /* parsed message sdoId (transportSpecific) */
+    msgType_e         m_type; /* parsed message type */
+    tlvType_e         m_mngType; /* parsed management message type */
+    uint8_t           m_domainNumber; /* parsed message domainNumber*/
+    uint8_t           m_versionPTP; /* parsed message ptp version */
+    uint8_t           m_minorVersionPTP; /* parsed message ptp version */
     std::vector<sigTlv> m_sigTlvs; /* hold signaling TLVs */
     std::unique_ptr<BaseMngTlv> m_dataGet;
 
     /* Generic */
-    mng_vals_e      m_tlv_id; /* managementId */
-    MsgParams       m_prms;
+    mng_vals_e        m_tlv_id; /* managementId */
+    MsgParams         m_prms;
 
     /* parsing parameters */
-    PortIdentity_t  m_peer; /* parsed message peer port id */
-    PortIdentity_t  m_target; /* parsed message target port id */
+    PortIdentity_t    m_peer; /* parsed message peer port id */
+    PortIdentity_t    m_target; /* parsed message target port id */
 
     /* Used for reserved values */
     uint8_t reserved;
@@ -860,18 +760,18 @@ class Message
      * @param[in] prms MsgParams parameters
      * @note you may use the parameters from a different message object
      */
-    Message(MsgParams prms);
+    Message(const MsgParams &prms);
     /**
      * Get the current msgparams parameters
      * @return msgparams parameters
      */
-    MsgParams getParams() { return m_prms; }
+    const MsgParams &getParams() const { return m_prms; }
     /**
      * Set and use a user MsgParams parameters
      * @param[in] prms MsgParams parameters
      * @return true if parameters are valid and updated
      */
-    bool updateParams(MsgParams prms);
+    bool updateParams(const MsgParams &prms);
     /**
      * Get the current TLV id
      * @return current TLV id
@@ -895,7 +795,7 @@ class Message
      * @return true on success
      * @note calling without section will fetch value from @"global@" section
      */
-    bool useConfig(ConfigFile &cfg, std::string section = "");
+    bool useConfig(const ConfigFile &cfg, const std::string &section = "");
     /**
      * Convert parse error code to string
      * @param[in] err parse code
@@ -1036,7 +936,7 @@ class Message
      *  The library does @b NOT perform any error catchig of any kind!
      */
     bool setAction(actionField_e actionField, mng_vals_e tlv_id,
-        BaseMngTlv *dataSend = nullptr);
+        const BaseMngTlv *dataSend = nullptr);
     /**
      * Clear data for send, prevent accidentally use, in case it is freed
      */
@@ -1092,14 +992,14 @@ class Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
-    MNG_PARSE_ERROR_e parse(void *buf, const ssize_t msgSize);
+    MNG_PARSE_ERROR_e parse(const void *buf, ssize_t msgSize);
     /**
      * Parse a received raw socket
      * @param[in] buf object with memory buffer containing the raw PTP Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
-    MNG_PARSE_ERROR_e parse(Buf &buf, const ssize_t msgSize)
+    MNG_PARSE_ERROR_e parse(Buf &buf, ssize_t msgSize)
     { return parse(buf.get(), msgSize); }
     /**
      * Get last reply management action
@@ -1156,7 +1056,7 @@ class Message
     uint8_t getMinorVersionPTP() const { return m_minorVersionPTP; }
     /**
      * Get last parsed message dataField
-     * @return pointer to last parsed message dataField
+     * @return pointer to last parsed message dataField or null
      * @note User need to cast to proper structure depends on
      *  management TLV ID.
      * @note User @b should not try to free this memory block
@@ -1218,7 +1118,7 @@ class Message
      * @return TLV or null
      * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
-    BaseSigTlv *getSigTlv(size_t position) const;
+    const BaseSigTlv *getSigTlv(size_t position) const;
     /**
      * Get a type of TLV from the last signaling message TLVs by position
      * @param[in] position of TLV
@@ -1238,11 +1138,11 @@ class Message
     /**
      * Get a management TLV from the last signaling message TLVs by position
      * @param[in] position of TLV
-     * @return management TLV ID or NULL_PTP_MANAGEMENT
+     * @return management TLV or null
      * @note return null if TLV is not management
      * @note this function is for scripting, normal C++ can just cast
      */
-    BaseMngTlv *getSigMngTlv(size_t position) const;
+    const BaseMngTlv *getSigMngTlv(size_t position) const;
 };
 
 /** @cond internal

@@ -17,7 +17,7 @@ Buf::~Buf()
     if(m_buf != nullptr)
         free(m_buf);
 }
-bool Buf::alloc(const size_t size)
+bool Buf::alloc(size_t size)
 {
     if(size == 0)
         return false;

@@ -11,6 +11,8 @@
 
 #include "ver.h"
 
+// Version comes from 'version' file during build.
+
 // Need 2 levels to stringify macros value instead of macro name
 #define stringify(s) #s
 #define VER_STR(a, b) stringify(a) "." stringify(b)

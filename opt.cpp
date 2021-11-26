@@ -129,11 +129,11 @@ const char *Options::get_help()
     return help.c_str();
 }
 
-Options::loop_val Options::parse_options(int l_argc, char *const argv[])
+Options::loop_val Options::parse_options(int argc, char *const argv[])
 {
     int c;
     opterr = 0; // Prevent printing the error
-    while((c = getopt_long(l_argc, argv, all_short_options.c_str(),
+    while((c = getopt_long(argc, argv, all_short_options.c_str(),
                     long_options_list.data(), nullptr)) != -1) {
         switch(c) {
             case '?':
@@ -174,7 +174,7 @@ Options::loop_val Options::parse_options(int l_argc, char *const argv[])
             return OPT_ERR;
         }
     }
-    argc = l_argc;
-    end_optind = optind;
+    m_argc = argc;
+    m_end_optind = optind;
     return OPT_DONE;
 }

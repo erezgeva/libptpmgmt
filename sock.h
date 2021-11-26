@@ -188,7 +188,7 @@ class SockUnix : public SockBase
      * @param[in] string object with peer address
      * @return true if peer address is updated
      */
-    bool setPeerAddress(const std::string string) {
+    bool setPeerAddress(const std::string &string) {
         return setPeerInternal(string);
     }
     /**
@@ -198,7 +198,7 @@ class SockUnix : public SockBase
      * @return true if peer address is updated
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setPeerAddress(const ConfigFile &cfg, const std::string section = "") {
+    bool setPeerAddress(const ConfigFile &cfg, const std::string &section = "") {
         return setPeerInternal(cfg.uds_address(section));
     }
     /**
@@ -219,7 +219,7 @@ class SockUnix : public SockBase
      *  User can close the socket, change this value, and
      *  initialize a new socket.
      */
-    bool setSelfAddress(const std::string string);
+    bool setSelfAddress(const std::string &string);
     /**
      * Set self address using predefined algorithm
      * @param[in] rootBase base used for root user
@@ -229,12 +229,13 @@ class SockUnix : public SockBase
      *  User can close the socket, change this value, and
      *  initialize a new socket.
      */
-    bool setDefSelfAddress(std::string rootBase = "", std::string useDef = "");
+    bool setDefSelfAddress(const std::string &rootBase = "",
+        const std::string &useDef = "");
     /**
      * Get user home directory
      * @return string object with home directory
      */
-    const std::string getHomeDir();
+    const std::string &getHomeDir();
     /**
      * Get user home directory
      * @return string with home directory
@@ -249,7 +250,7 @@ class SockUnix : public SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool sendTo(const void *msg, size_t len, std::string addrStr) const;
+    bool sendTo(const void *msg, size_t len, const std::string &addrStr) const;
     /**
      * Send the message using the socket to a specific address
      * @param[in] buf object with message memory buffer
@@ -259,7 +260,8 @@ class SockUnix : public SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool sendTo(Buf &buf, size_t len, std::string addrStr) const;
+    bool sendTo(Buf &buf, size_t len, const std::string &addrStr) const
+    { return sendTo(buf.get(), len, addrStr); }
     /**
      * Receive a message using the socket from any address
      * @param[in, out] buf pointer to a memory buffer
@@ -343,7 +345,7 @@ class SockBaseIf : public SockBase
     Binary m_mac;
     int m_ifIndex;
     bool m_have_if;
-    bool setInt(IfInfo &ifObj);
+    bool setInt(const IfInfo &ifObj);
     SockBaseIf() : m_have_if(false) {}
     virtual bool setAllBase(const ConfigFile &cfg, const std::string &section) = 0;
     /**< @endcond */
@@ -357,7 +359,7 @@ class SockBaseIf : public SockBase
      *  User can close the socket, change this value, and
      *  initialize a new socket.
      */
-    bool setIfUsingName(const std::string ifName);
+    bool setIfUsingName(const std::string &ifName);
     /**
      * Set network interface using its index
      * @param[in] ifIndex interface index
@@ -375,7 +377,7 @@ class SockBaseIf : public SockBase
      *  User can close the socket, change this value, and
      *  initialize a new socket.
      */
-    bool setIf(IfInfo &ifObj);
+    bool setIf(const IfInfo &ifObj);
     /**
      * Set all socket parameters using a network interface object and
      *  a configuration file
@@ -388,8 +390,8 @@ class SockBaseIf : public SockBase
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setAll(IfInfo &ifObj, const ConfigFile &cfg,
-        const std::string section = "") {
+    bool setAll(const IfInfo &ifObj, const ConfigFile &cfg,
+        const std::string &section = "") {
         return setIf(ifObj) && setAllBase(cfg, section);
     }
     /**
@@ -404,8 +406,8 @@ class SockBaseIf : public SockBase
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setAllInit(IfInfo &ifObj, const ConfigFile &cfg,
-        const std::string section = "") {
+    bool setAllInit(const IfInfo &ifObj, const ConfigFile &cfg,
+        const std::string &section = "") {
         return setAll(ifObj, cfg, section) && initBase();
     }
 };
@@ -456,7 +458,7 @@ class SockIp : public SockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setUdpTtl(const ConfigFile &cfg, const std::string section = "");
+    bool setUdpTtl(const ConfigFile &cfg, const std::string &section = "");
 };
 
 /**
@@ -514,7 +516,7 @@ class SockIp6 : public SockIp
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setScope(const ConfigFile &cfg, const std::string section = "");
+    bool setScope(const ConfigFile &cfg, const std::string &section = "");
 };
 
 /**
@@ -552,7 +554,7 @@ class SockRaw : public SockBaseIf
      * @note function convert address to binary form and return false
      *  if conversion fail (address is using wrong format).
      */
-    bool setPtpDstMacStr(const std::string string);
+    bool setPtpDstMacStr(const std::string &string);
     /**
      * Set PTP multicast address using binary from
      * @param[in] ptp_dst_mac address in binary string object
@@ -582,7 +584,7 @@ class SockRaw : public SockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setPtpDstMac(const ConfigFile &cfg, const std::string section = "");
+    bool setPtpDstMac(const ConfigFile &cfg, const std::string &section = "");
     /**
      * Set socket priority
      * @param[in] socket_priority socket priority value
@@ -604,7 +606,7 @@ class SockRaw : public SockBaseIf
      *  initialize a new socket.
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setSocketPriority(const ConfigFile &cfg, const std::string section = "");
+    bool setSocketPriority(const ConfigFile &cfg, const std::string &section = "");
 };
 
 #endif /*__PMC_SOCK_H*/

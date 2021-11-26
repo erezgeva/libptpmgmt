@@ -12,11 +12,6 @@
 #include "init.h"
 #include "err.h"
 
-Init::~Init()
-{
-    close();
-}
-
 void Init::close()
 {
     if(m_sk != nullptr) {
@@ -26,7 +21,7 @@ void Init::close()
     }
 }
 
-int Init::proccess(Options &opt)
+int Init::proccess(const Options &opt)
 {
     char net_select = opt.get_net_transport();
     /* handle configuration file */
