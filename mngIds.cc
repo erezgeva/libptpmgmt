@@ -105,17 +105,20 @@ class n%^\
  %-%- %@**%^\
  %- %- * Get number of records in vector%^\
  %- %- * @return number of records in vector%^\
+ %- %- * @note Call std::vector<t>::size()%^\
  %- %- * @note This class is available in scripts only!%^\
  %- %- *%@%^\
  %-%- size_t size() const;%^\
  %-%- %@**%^\
  %- %- * Query if vector does not hold any records%^\
  %- %- * @return true if size is zero%^\
+ %- %- * @note Call std::vector<t>::empty()%^\
  %- %- * @note This class is available in scripts only!%^\
  %- %- *%@%^\
  %-%- bool empty() const;%^\
  %-%- %@**%^\
  %- %- * Remove all records from vector%^\
+ %- %- * @note Call std::vector<t>::clear()%^\
  %- %- * @note This class is available in scripts only!%^\
  %- %- *%@%^\
  %-%- void clear();%^\
@@ -133,7 +136,7 @@ class n%^\
  %- %- * @return last record%^\
  %- %- * @attention initiate exception if vector is empty!%^\
  %- %- * @note Call std::vector<t>::back() and%^\
- %- %- *%- std::vector<t>::push_back()%^\
+ %- %- *%- std::vector<t>::pop_back()%^\
  %- %- * @note This class is available in scripts only!%^\
  %- %- *%@%^\
  %-%- t pop();%^\
@@ -142,7 +145,7 @@ class n%^\
  %- %- * @param[in] position of record to get%^\
  %- %- * @return the record%^\
  %- %- * @attention initiate exception if position is out of vector range!%^\
- %- %- * @note Call std::vector<t>::operator[]%^\
+ %- %- * @note Call std::vector<t>::at()%^\
  %- %- * @note This class is available in scripts only!%^\
  %- %- *%@%^\
  %-%- t &get(size_t position) const;%^\
@@ -151,7 +154,7 @@ class n%^\
  %- %- * @param[in] position of record to set%^\
  %- %- * @param[in] value record to copy%^\
  %- %- * @attention initiate exception if position is out of vector range!%^\
- %- %- * @note Call std::vector<t>::operator[]%^\
+ %- %- * @note Call std::vector<t>::at()%^\
  %- %- * @note This class is available in scripts only!%^\
  %- %- *%@%^\
  %-%- void set(size_t position, t &value);%^\
