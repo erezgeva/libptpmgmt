@@ -46,8 +46,4 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, const BaseSigTlv *tlv);
  */
 BaseMngTlv *call_data(Message &msg, mng_vals_e id, char *save);
 
-/**
- * Get this library version
- */
-
 #endif /*__PMC_TOOL_H*/
