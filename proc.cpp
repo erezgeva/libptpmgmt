@@ -346,9 +346,20 @@ A(SYNCHRONIZATION_UNCERTAIN_NP)
 {
     return proc(d.val);
 }
+A(PORT_SERVICE_STATS_NP)
+{
+    return proc(d.portIdentity) || procLe(d.announce_timeout) ||
+        procLe(d.sync_timeout) || procLe(d.delay_timeout) ||
+        procLe(d.unicast_service_timeout) || procLe(d.unicast_request_timeout) ||
+        procLe(d.master_announce_timeout) || procLe(d.master_sync_timeout) ||
+        procLe(d.qualification_timeout) || procLe(d.sync_mismatch) ||
+        procLe(d.followup_mismatch);
+};
+#if 0
 A(POWER_PROFILE_SETTINGS_NP)
 {
     return proc(d.version) || proc(d.grandmasterID) ||
         proc(d.grandmasterTimeInaccuracy) || proc(d.networkTimeInaccuracy) ||
         proc(d.totalTimeInaccuracy);
 }
+#endif

@@ -759,6 +759,22 @@ JS(SYNCHRONIZATION_UNCERTAIN_NP)
     return
         PROC_VAL(val);
 }
+JS(PORT_SERVICE_STATS_NP)
+{
+    return
+        PROC_VAL(portIdentity) &&
+        PROC_VAL(announce_timeout) &&
+        PROC_VAL(sync_timeout) &&
+        PROC_VAL(delay_timeout) &&
+        PROC_VAL(unicast_service_timeout) &&
+        PROC_VAL(unicast_request_timeout) &&
+        PROC_VAL(master_announce_timeout) &&
+        PROC_VAL(master_sync_timeout) &&
+        PROC_VAL(qualification_timeout) &&
+        PROC_VAL(sync_mismatch) &&
+        PROC_VAL(followup_mismatch);
+}
+#if 0
 JS(POWER_PROFILE_SETTINGS_NP)
 {
     return
@@ -768,6 +784,7 @@ JS(POWER_PROFILE_SETTINGS_NP)
         PROC_VAL(networkTimeInaccuracy) &&
         PROC_VAL(totalTimeInaccuracy);
 }
+#endif
 
 bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
 {

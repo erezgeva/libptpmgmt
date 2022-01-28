@@ -566,6 +566,34 @@ dump(SYNCHRONIZATION_UNCERTAIN_NP)
     DUMPS(IDENT "uncertain %u", d.val);
     dump_end;
 }
+dump(PORT_SERVICE_STATS_NP)
+{
+    DUMPS(
+        IDENT "portIdentity              %s"
+        IDENT "announce_timeout          %ju"
+        IDENT "sync_timeout              %ju"
+        IDENT "delay_timeout             %ju"
+        IDENT "unicast_service_timeout   %ju"
+        IDENT "unicast_request_timeout   %ju"
+        IDENT "master_announce_timeout   %ju"
+        IDENT "master_sync_timeout       %ju"
+        IDENT "qualification_timeout     %ju"
+        IDENT "sync_mismatch             %ju"
+        IDENT "followup_mismatch         %ju",
+        d.portIdentity.string().c_str(),
+        d.announce_timeout,
+        d.sync_timeout,
+        d.delay_timeout,
+        d.unicast_service_timeout,
+        d.unicast_request_timeout,
+        d.master_announce_timeout,
+        d.master_sync_timeout,
+        d.qualification_timeout,
+        d.sync_mismatch,
+        d.followup_mismatch);
+    dump_end;
+}
+#if 0
 dump(POWER_PROFILE_SETTINGS_NP)
 {
     DUMPS(
@@ -581,6 +609,7 @@ dump(POWER_PROFILE_SETTINGS_NP)
         d.totalTimeInaccuracy);
     dump_end;
 }
+#endif
 
 void call_dump(Message &msg, BaseMngTlv *_data)
 {
@@ -886,6 +915,7 @@ static bool getPortState(val_key_t &key)
     key.num = num;
     return false; // No errors!
 }
+#if 0
 static bool getPwrVer(val_key_t &key)
 {
     const char base[] = "IEEE_C37_238_VERSION_";
@@ -910,6 +940,7 @@ static bool getPwrVer(val_key_t &key)
     key.num = num;
     return false; // No errors!
 }
+#endif
 
 build(USER_DESCRIPTION)
 {
@@ -1296,6 +1327,7 @@ build(SYNCHRONIZATION_UNCERTAIN_NP)
     d.val = keys["duration"].num;
     build_end;
 }
+#if 0
 build(POWER_PROFILE_SETTINGS_NP)
 {
     defKeys;
@@ -1318,6 +1350,7 @@ build(POWER_PROFILE_SETTINGS_NP)
     d.totalTimeInaccuracy = keys["totalTimeInaccuracy"].num;
     build_end;
 }
+#endif
 #if 1
 #define caseUFB(n) case n: return build_##n(msg, save);
 #else

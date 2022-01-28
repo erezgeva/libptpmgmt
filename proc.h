@@ -547,6 +547,26 @@ struct SYNCHRONIZATION_UNCERTAIN_NP_t : public BaseMngTlv {
      */
     uint8_t val;
 };
+/** Service statistics TLV
+ * @note linuxptp implementation specific
+ */
+struct PORT_SERVICE_STATS_NP_t : public BaseMngTlv {
+    PortIdentity_t portIdentity; /**< port ID */
+    uint64_t announce_timeout; /**< Number of announce message  timeout */
+    uint64_t sync_timeout; /**< Number of sync message timeout */
+    uint64_t delay_timeout; /**< Number of delay message timeout */
+    /** Number of unicast service message timeout */
+    uint64_t unicast_service_timeout;
+    /** Number of unicast request message timeout */
+    uint64_t unicast_request_timeout;
+    /** Number of master announce message timeout */
+    uint64_t master_announce_timeout;
+    uint64_t master_sync_timeout; /**< Number of master sync message timeout */
+    uint64_t qualification_timeout; /**< Number of qualification message timeout */
+    uint64_t sync_mismatch; /**< Number of sync message mismatch */
+    uint64_t followup_mismatch; /**< Number of followup message mismatch */
+};
+#if 0
 /** Power system profile TLV
  * @note linuxptp implementation specific
  */
@@ -558,5 +578,6 @@ struct POWER_PROFILE_SETTINGS_NP_t : public BaseMngTlv {
     UInteger32_t networkTimeInaccuracy; /**< network time inaccuracy */
     UInteger32_t totalTimeInaccuracy; /**< total time inaccuracy */
 };
+#endif
 
 #endif /*__PMC_PROC_H*/
