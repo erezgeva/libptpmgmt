@@ -9,7 +9,7 @@
 ###############################################################################
 main()
 {
- local file i
+ local file i opt n cmds
  # Default values
  local -r def_ifName=enp0s25
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
@@ -18,6 +18,8 @@ main()
  while getopts 'i:c:l:' opt; do
    case $opt in
      i)
+       # Script does not use value!
+       # Only need to run ptp4l
        local -r ifName="$OPTARG"
        ;;
      c)
@@ -33,18 +35,53 @@ main()
    [ -n "$var" ] || eval "local -r $n=\"\$def_$n\""
  done
  ##############################################################################
+ if [ ! -f "$cfgFile" ]; then
+   echo "Linux PTP configuration file is missing"
+   exit -1
+ fi
+ ##############################################################################
+ # Root does not need sudo, we assume proper root :-)
+ if [ $(id -u) -ne 0 ]; then
+   set +e
+   sudo id &> /dev/null
+   local -ir ret=$?
+   set -e
+   if [ $ret -ne 0 ]; then
+     echo "Script need to run pmc tool with sudo"
+     echo "But sudo is not available!!"
+     exit -1
+   fi
+   local -r sudo='sudo '
+ fi
+ ##############################################################################
+ local -r uds_address_full="$(grep uds_address "$cfgFile")"
+ local -r udsreg='[[:space:]]*uds_address[[:space:]]+'
+ if [[ $uds_address_full =~ ^$udsreg(.*[^[:space:]]+) ]]; then
+   local -r udsFile="${BASH_REMATCH[1]}"
+ else
+   # Use default value
+   local -r udsFile='/var/run/ptp4l'
+ fi
+ if [ -S "$udsFile" ]; then
+   $sudo chmod ga+wr "$udsFile"
+   # We change UDS
+   local -r setUds=true
+ fi
+ ##############################################################################
  local -r uds="$linuxptpLoc/uds.c"
- if [ -d "$linuxptpLoc" -a -f "$uds" ]; then
-   # Add all users for testing (so we can test without using root :-)
-   local -r reg='^#define UDS_FILEMODE'
-   if [ -n "$(grep "$reg.*GRP)" "$uds")" ];then
-     sed -i "/$reg/ s#GRP).*#GRP|S_IROTH|S_IWOTH)#" "$uds"
+ if [ -f "$uds" ]; then
+   if [ -z "$setUds" ]; then
+     # Add all users for testing (so we can test without using root :-)
+     local -r reg='^#define UDS_FILEMODE'
+     [ -z "$(grep "$reg.*GRP)" "$uds")" ] ||\
+       sed -i "/$reg/ s#GRP).*#GRP|S_IROTH|S_IWOTH)#" "$uds"
    fi
    make --no-print-directory -j -C "$linuxptpLoc"
-   local -r pmctool="sudo \"$linuxptpLoc/pmc\""
+   local -r pmctool="$sudo\"$linuxptpLoc/pmc\""
+   local -r ptpLocCfrm=true
  else
-   local -r useSudo="sudo"
-   local -r pmctool="sudo /usr/sbin/pmc"
+   [ -n "$setUds" ] || local -r useSudo="$sudo"
+   local -r pmctool="$sudo/usr/sbin/pmc"
  fi
  ##############################################################################
  # script languages source
@@ -74,14 +111,17 @@ main()
    time make -j
  fi
  if [ -z "$(pgrep ptp4l)" ]; then
-   printf "\n * Run ptp daemon:\n   cd \"$(realpath $linuxptpLoc)\" %s\n\n"\
-          "&& make && sudo ./ptp4l -f $cfgFile -i $ifName"
+   printf "\n * Run ptp daemon"
+   if [ -n "$ptpLocCfrm" ]; then
+     printf ":\n   cd \"$(realpath $linuxptpLoc)\" %s\n\n"\
+            "&& make && sudo ./ptp4l -f $cfgFile -i $ifName"
+   fi
+   printf "\n\n"
    return
  fi
  ##############################################################################
  # compare linuxptp-pmc with libpmc-pmc dump
  local -r t1=$(mktemp linuxptp.XXXXXXXXXX) t2=$(mktemp libpmc.tool.XXXXXXXXXX)
- local n cmds
  # all TLVs that are supported by linuxptp ptp4l
  local -r tlvs='ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY CLOCK_DESCRIPTION
    CURRENT_DATA_SET DEFAULT_DATA_SET DELAY_MECHANISM DOMAIN
@@ -108,9 +148,9 @@ n='ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
  # sys   0m0.002s
 
  printf "\n * Create $t2 with running libpmc\n"
- eval "$useSudo $pmclibtool -u -f $cfgFile \"$setmsg\"" > $t2
- eval "$useSudo $pmclibtool -u -f $cfgFile \"$verify\"" >> $t2
- time eval "$useSudo $pmclibtool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t2
+ eval "$useSudo$pmclibtool -u -f $cfgFile \"$setmsg\"" > $t2
+ eval "$useSudo$pmclibtool -u -f $cfgFile \"$verify\"" >> $t2
+ time eval "$useSudo$pmclibtool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t2
 
  # real  0m0.019s
  # user  0m0.004s
@@ -143,12 +183,12 @@ Get reply for PRIORITY1
 priority1: 153
 "
  enter perl
- time eval "$ldPath $useSudo ./test.pl $cfgFile" > ../$t3
+ time eval "$ldPath $useSudo./test.pl $cfgFile" > ../$t3
  cd ..
  printf "\n * We except real 'user desc' on '>'\n"
  diff <(printf "$scriptOut") $t3 | grep '^[0-9-]' -v
  enter ruby
- time eval "$ldPathRuby $useSudo ./test.rb $cfgFile" | diff - ../$t3
+ time eval "$ldPathRuby $useSudo./test.rb $cfgFile" | diff - ../$t3
  cd ..
  enter lua
  for i in $luaVersions; do
@@ -183,13 +223,13 @@ priority1: 153
  cd ..
  enter php
  [ -z "$phpIni" ] || ./php_ini.sh
- time eval "$ldPathPhp $useSudo ./test.php $cfgFile" | diff - ../$t3
+ time eval "$ldPathPhp $useSudo./test.php $cfgFile" | diff - ../$t3
  cd ..
  enter tcl
  if [ -f pmc.so ]; then
    sed -i 's#^package require.*#load ./pmc.so#' test.tcl
  fi
- time eval "$ldPath $useSudo ./test.tcl $cfgFile" | diff - ../$t3
+ time eval "$ldPath $useSudo./test.tcl $cfgFile" | diff - ../$t3
  sed -i 's/^load .*/package require pmc/' test.tcl
  cd ..
  rm $t3
