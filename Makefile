@@ -278,9 +278,8 @@ distclean: deb_clean clean
 	$Q$(RM) $(DISTCLEAN)
 	$Q$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS:=$(filter-out mngIds.h pmc.h,$(wildcard *.h))
-HEADERS_ALL:=$(HEADERS) mngIds.h
-HEADERS_SRC:=$(HEADERS) pmc.h
+HEADERS:=$(filter-out mngIds.h pmc.h verDef.h,$(wildcard *.h))
+HEADERS_ALL:=$(HEADERS) mngIds.h verDef.h
 # MAP for  mngIds.cc:
 #  %@ => '/'    - Use when a slash is next to a star character
 #  %! => '%'    - Self escape, escape precent sign character
@@ -292,8 +291,29 @@ mngIds.h: mngIds.cc
 	$(Q_GEN)
 	$Q$(CXX) -E $< | $(SED) 's/^#.*//;/^\s*$$/d;s#%@#/#g' > $@
 	$Q$(SED) -i 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' $@
+define verDef
+/* SPDX-License-Identifier: LGPL-3.0-or-later */\n\n
+/** @file\n
+ * @brief Version definitions for compilation\n
+ *\n
+ * @author Erez Geva <ErezGeva2@@gmail.com>\n
+ * @copyright 2021 Erez Geva\n
+ * @copyright GNU Lesser General Public License 3.0 or later\n
+ *\n
+ * This header is generated automatically.\n
+ */\n\n
+#ifndef __PMC_VER_DEFS_H\n
+#define __PMC_VER_DEFS_H\n\n
+#define LIBPMC_VER_MAJ ($(ver_maj)) /**< Library version major */\n
+#define LIBPMC_VER_MIN ($(ver_min)) /**< Library version minor */\n
+#define LIBPMC_VER "$(ver_maj).$(ver_min)" /**< Library version string */\n\n
+#endif /*__PMC_VER_DEFS_H*/\n
 
-DISTCLEAN+=mngIds.h
+endef
+verDef.h: version
+	$(Q_GEN)
+	$(shell printf '$(verDef)' > $@)
+DISTCLEAN+=mngIds.h verDef.h
 
 ifneq ($(call which,astyle),)
 astyle_ver:=$(lastword $(shell astyle -V))
@@ -643,8 +663,8 @@ deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
-SRC_FILES:=$(HEADERS_SRC) $(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md)\
-  LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
+SRC_FILES:=$(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md)\
+  $(HEADERS) pmc.h LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
 SRC_NAME:=libpmc-$(LIB_VER)
 
 ####### rpm build #######
@@ -707,7 +727,7 @@ else
 	$Q$(NINST) -D $(LIB_NAME_SO) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
 endif
 	$Q$(NINST) libpmc.a $(DESTDIR)$(LIBDIR)
-	$Q$(NINST) -D $(HEADERS) -t $(DESTDIR)/usr/include/pmc
+	$Q$(NINST) -D $(HEADERS) verDef.h -t $(DESTDIR)/usr/include/pmc
 	$Q$(foreach f,$(HEADERS),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <pmc/\1>!'\
 	  $(DESTDIR)/usr/include/pmc/$f;)
