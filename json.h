@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
 
@@ -186,4 +185,4 @@ class Json2msg
     bool haveDstPort() const { return m_have[have_dstPort]; }
 };
 
-#endif /*__PMC_JSON_H*/
+#endif /* __PMC_JSON_H */

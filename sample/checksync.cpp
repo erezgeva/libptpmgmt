@@ -5,10 +5,11 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU General Public License 3.0 or later
+ *
  * @note Convert Vladimir Oltean <olteanv@gmail.com> application
  *  This is a sample code, not a product! You should use it as a reference.
  *  You can compile it with: g++ -Wall checksync.cpp -o checksync -lpmc
+ *
  */
 
 #include <stdio.h>

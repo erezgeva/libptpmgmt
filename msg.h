@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  * Created following @"IEEE Std 1588-2008@", PTP version 2
  * with some updates from @"IEEE Std 1588-2019@"
@@ -1194,4 +1193,4 @@ class Message
 #undef A
 #undef caseUF
 
-#endif /*__PMC_MSG_H*/
+#endif /* __PMC_MSG_H */

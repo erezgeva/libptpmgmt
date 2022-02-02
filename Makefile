@@ -4,7 +4,7 @@
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
-# @copyright GNU General Public License 3.0 or later
+#
 
 PMC_USE_LIB?=a # 'a' for static and 'so' for dynamic
 
@@ -297,17 +297,15 @@ define verDef
  * @brief Version definitions for compilation\n
  *\n
  * @author Erez Geva <ErezGeva2@@gmail.com>\n
- * @copyright 2021 Erez Geva\n
- * @copyright GNU Lesser General Public License 3.0 or later\n
- *\n
- * This header is generated automatically.\n
+ * @copyright 2021 Erez Geva\n *\n
+ * This header is generated automatically.\n *\n
  */\n\n
 #ifndef __PMC_VER_DEFS_H\n
 #define __PMC_VER_DEFS_H\n\n
 #define LIBPMC_VER_MAJ ($(ver_maj)) /**< Library version major */\n
 #define LIBPMC_VER_MIN ($(ver_min)) /**< Library version minor */\n
 #define LIBPMC_VER "$(ver_maj).$(ver_min)" /**< Library version string */\n\n
-#endif /*__PMC_VER_DEFS_H*/\n
+#endif /* __PMC_VER_DEFS_H */\n
 
 endef
 verDef.h: version

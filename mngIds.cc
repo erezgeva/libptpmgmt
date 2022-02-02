@@ -5,10 +5,10 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  * This header is generated automatically, do @b NOT change,
  *  or use it in your application!
+ *
  *%@
 %_
 %#ifndef __MNG_IDS_H
@@ -169,6 +169,6 @@ vecClassSig(Time, SLAVE_RX_SYNC_TIMING_DATA)
 vecClassSig(Comp, SLAVE_RX_SYNC_COMPUTED_DATA)
 vecClassSig(Event, SLAVE_TX_EVENT_TIMESTAMPS)
 vecClassSig(Delay, SLAVE_DELAY_TIMING_DATA_NP)
-%#endif %@*SWIG*%@
+%#endif %@* SWIG *%@
 %_
-%#endif %@*__MNG_IDS_H*%@
+%#endif %@* __MNG_IDS_H *%@

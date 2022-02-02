@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  * @details
  *  A class to fetch network interface information and
@@ -149,4 +148,4 @@ class PtpClock
     const char *ptpDevice_c() const { return m_ptpDevice.c_str(); }
 };
 
-#endif /*__PMC_IF_H*/
+#endif /* __PMC_IF_H */

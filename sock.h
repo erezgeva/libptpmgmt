@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  * @details
  *  provide 4 socket types:
@@ -13,6 +12,7 @@
  *  2. UDP using IP version 6
  *  3. Raw Ethernet
  *  4. linuxptp Unix domain socket.
+ *
  */
 
 #ifndef __PMC_SOCK_H
@@ -609,4 +609,4 @@ class SockRaw : public SockBaseIf
     bool setSocketPriority(const ConfigFile &cfg, const std::string &section = "");
 };
 
-#endif /*__PMC_SOCK_H*/
+#endif /* __PMC_SOCK_H */

@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
 
@@ -580,4 +579,4 @@ struct POWER_PROFILE_SETTINGS_NP_t : public BaseMngTlv {
 };
 #endif
 
-#endif /*__PMC_PROC_H*/
+#endif /* __PMC_PROC_H */

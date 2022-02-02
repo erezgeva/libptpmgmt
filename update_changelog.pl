@@ -5,7 +5,7 @@
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
-# @copyright GNU General Public License 3.0 or later
+#
 
 sub main()
 {

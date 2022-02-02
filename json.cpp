@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
 
@@ -45,7 +44,7 @@
 // JSON parser functions
 #define JSON_PARSE(str)    json_tokener_parse(str)
 #define JSON_OBJ_FREE(obj) json_object_put(obj)
-#endif /*PMC_USE_CJSON*/
+#endif /* PMC_USE_CJSON */
 #ifndef NSEC_PER_SEC
 #define NSEC_PER_SEC 1000000000L
 #endif
@@ -1663,7 +1662,7 @@ bool Json2msg::fromJsonObj(const void *jobj)
     }
     return true;
 }
-#else /* No PMC_USE_CJSON*/
+#else /* No PMC_USE_CJSON */
 bool Json2msg::fromJson(const std::string &json)
 {
     PMC_ERROR("fromJson need JSON-C library support");
@@ -1674,4 +1673,4 @@ bool Json2msg::fromJsonObj(const void *jobj)
     PMC_ERROR("fromJsonObj need JSON-C library support");
     return false;
 }
-#endif /*PMC_USE_CJSON*/
+#endif /* PMC_USE_CJSON */

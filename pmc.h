@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU General Public License 3.0 or later
  *
  */
 
@@ -46,4 +45,4 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, const BaseSigTlv *tlv);
  */
 BaseMngTlv *call_data(Message &msg, mng_vals_e id, char *save);
 
-#endif /*__PMC_TOOL_H*/
+#endif /* __PMC_TOOL_H */

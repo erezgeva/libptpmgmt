@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
 
@@ -75,4 +74,4 @@ class Init
     bool use_uds() const { return m_use_uds; }
 };
 
-#endif /*__PMC_INIT_H*/
+#endif /* __PMC_INIT_H */

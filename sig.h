@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
 
@@ -28,7 +27,7 @@ struct MANAGEMENT_t : public BaseSigTlv {
     mng_vals_e managementId; /**< Management TLV id */
     std::unique_ptr<BaseMngTlv> tlvData; /**< Management TLV data */
 };
-#endif/*SWIG*/
+#endif/* SWIG */
 /** MANAGEMENT_ERROR_STATUS TLV
  * @note: used for error management TLV in a signaling message
  *  management message do not use this structure!
@@ -250,4 +249,4 @@ struct SLAVE_DELAY_TIMING_DATA_NP_t : public BaseSigTlv {
     std::vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t> list;
 };
 
-#endif /*__PMC_SIG_H*/
+#endif /* __PMC_SIG_H */

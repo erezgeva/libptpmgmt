@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  * @details
  *  provide functions to convert unsigned integers from
@@ -70,4 +69,4 @@ inline uint64_t cpu_to_le64(uint64_t value) {return htole64(value);}
  */
 inline uint64_t le_to_cpu64(uint64_t value) {return le64toh(value);}
 
-#endif /*__PMC_ENDIAN_H*/
+#endif /* __PMC_ENDIAN_H */

@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
 
@@ -63,4 +62,4 @@ class Buf
     bool isAlloc() const {return m_size > 0;}
 };
 
-#endif /*__PMC_BUF_H*/
+#endif /* __PMC_BUF_H */

@@ -5,7 +5,6 @@
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
- * @copyright GNU Lesser General Public License 3.0 or later
  *
  */
 
@@ -25,7 +24,7 @@
 #define PMC_ERROR(format) do\
     { fprintf(stderr, "[%s:%d] " format "\n", __FILE__, __LINE__); }\
     while(0)
-#endif /*PMC_ERROR*/
+#endif /* PMC_ERROR */
 #ifndef PMC_ERRORA
 /**
  * Print error with parameters
@@ -35,7 +34,7 @@
 #define PMC_ERRORA(format, ...) do\
     { fprintf(stderr, "[%s:%d] " format "\n", __FILE__, __LINE__, __VA_ARGS__); }\
     while(0)
-#endif /*PMC_ERRORA*/
+#endif /* PMC_ERRORA */
 #ifndef PMC_PERROR
 /**
  * Print system error
@@ -45,6 +44,6 @@
     { fprintf(stderr, "[%s:%d] " msg ": %s\n", __FILE__, __LINE__,\
             strerror(errno)); }\
     while(0)
-#endif /*PMC_PERROR*/
+#endif /* PMC_PERROR */
 
-#endif /*__PMC_ERR_H*/
+#endif /* __PMC_ERR_H */
