@@ -21,7 +21,10 @@
 		<Unit filename="bin.cpp" />
 		<Unit filename="buf.cpp" />
 		<Unit filename="cfg.cpp" />
+		<Unit filename="init.cpp" />
+		<Unit filename="json.cpp" />
 		<Unit filename="msg.cpp" />
+		<Unit filename="opt.cpp" />
 		<Unit filename="pmc.cpp" />
 		<Unit filename="pmc_dump.cpp" />
 		<Unit filename="proc.cpp" />
@@ -33,9 +36,13 @@
 		<Unit filename="buf.h" />
 		<Unit filename="cfg.h" />
 		<Unit filename="end.h" />
+		<unit filename="err.h" />
 		<Unit filename="ids.h" />
-		<Unit filename="mngIds.h" />
+		<unit filename="init.h" />
+		<unit filename="json.h" />
 		<Unit filename="msg.h" />
+		<unit filename="opt.h" />
+		<unit filename="pmc.h" />
 		<Unit filename="proc.h" />
 		<Unit filename="ptp.h" />
 		<Unit filename="sig.h" />

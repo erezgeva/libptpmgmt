@@ -1,7 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: libpmc
 Source: https://github.com/erezgeva/libpmc.git
-Files-Excluded: doc/html/jquery.js
 
 Files: *
 Copyright: 2021 Erez Geva
@@ -14,6 +13,14 @@ License: GFDL-1.3+ without invariant sections
 Files: pmc*
 Copyright: 2021 Erez Geva
 License: GPL-3+
+
+Files: doc/html/*.js
+Copyright: 1997-2020 Dimitri van Heesch
+License: MIT
+
+Files: doc/html/jquery.js
+Copyright: OpenJS Foundation
+License: MIT
 
 License: LGPL-3+
     See: /usr/share/common-licenses/LGPL-3

@@ -214,7 +214,7 @@ priority1: 153
    else
      rm -f _pmc.so
    fi
-   printf "\n $(readlink $(which python$i)) ---- \n"
+   printf "\n $(readlink $(command -v python$i)) ---- \n"
    # First compile the python script, so we measure only runing
    eval "$ldPath $useSudo python$i ./test.py $cfgFile" > /dev/null
    time eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3

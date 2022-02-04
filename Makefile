@@ -107,7 +107,7 @@ define help
 ################################################################################
 
 endef
-which=$(shell which $1 2>/dev/null)
+which=$(shell command -v $1)
 define depend
 $1: $2
 
