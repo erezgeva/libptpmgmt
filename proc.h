@@ -565,6 +565,14 @@ struct PORT_SERVICE_STATS_NP_t : public BaseMngTlv {
     uint64_t sync_mismatch; /**< Number of sync message mismatch */
     uint64_t followup_mismatch; /**< Number of followup message mismatch */
 };
+/** Master clocks information TLV
+ * @note linuxptp implementation specific
+ */
+struct UNICAST_MASTER_TABLE_NP_t : public BaseMngTlv {
+    Integer16_t actualTableSize; /**< Number of addresses table */
+    /** unicast masters table */
+    std::vector<LinuxptpUnicastMaster_t> unicastMasters;
+};
 #if 0
 /** Power system profile TLV
  * @note linuxptp implementation specific

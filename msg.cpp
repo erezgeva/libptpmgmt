@@ -893,6 +893,19 @@ const char *Message::pwr2str_c(linuxptpPowerProfileVersion_e ver)
             return "unknown state";
     }
 }
+const char *Message::us2str_c(linuxptpUnicastState_e state)
+{
+    const char base[] = "UC_";
+    const size_t off = sizeof(base);
+    switch(state) {
+        case caseItemOff(UC_WAIT);
+        case caseItemOff(UC_HAVE_ANN);
+        case caseItemOff(UC_NEED_SYDY);
+        case caseItemOff(UC_HAVE_SYDY);
+        default:
+            return "???";
+    }
+}
 std::string Timestamp_t::string() const
 {
     char buf[200];
@@ -1375,6 +1388,19 @@ bool Message::proc(FaultRecord_t &d)
 bool Message::proc(AcceptableMaster_t &d)
 {
     return proc(d.acceptablePortIdentity) || proc(d.alternatePriority1);
+}
+bool Message::proc(linuxptpUnicastState_e &val)
+{
+    uint16_t v = val;
+    bool ret = proc(v);
+    val = (linuxptpUnicastState_e)v;
+    return ret;
+}
+bool Message::proc(LinuxptpUnicastMaster_t &d)
+{
+    return proc(d.portIdentity) || proc(d.clockQuality) || proc(d.selected) ||
+        proc(d.portState) || proc(d.priority1) || proc(d.priority2) ||
+        proc(d.portAddress);
 }
 bool Message::procFlags(uint8_t &flags, const uint8_t flagsMask)
 {

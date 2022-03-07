@@ -123,11 +123,12 @@ A(PORT_PROPERTIES_NP,                  c004, port,  use_GL,    -2,     UFS)
 A(PORT_STATS_NP,                       c005, port,  use_GL,   266,     UF)
 A(SYNCHRONIZATION_UNCERTAIN_NP,        c006, clock, use_GSL,    2,     UFB)
 A(PORT_SERVICE_STATS_NP,               c007, port,  use_GL,    90,     UF)
+A(UNICAST_MASTER_TABLE_NP,             c008, port,  use_GL,    -2,     UFS)
 #if 0
-A(POWER_PROFILE_SETTINGS_NP,           c008, port,  use_GSL,   16,     UFB)
+A(POWER_PROFILE_SETTINGS_NP,           c009, port,  use_GSL,   16,     UFB)
 #endif
 #ifndef LAST_MNG_ID
-#define LAST_MNG_ID PORT_SERVICE_STATS_NP
+#define LAST_MNG_ID UNICAST_MASTER_TABLE_NP
 #endif
 #undef A
 #undef use_GSC

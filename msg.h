@@ -288,6 +288,13 @@ enum linuxptpPowerProfileVersion_e : uint16_t {
     /** Use IEEE C37.238-2017 profile */
     IEEE_C37_238_VERSION_2017,
 };
+/** linuxptp client side unicast negotiation state */
+enum linuxptpUnicastState_e : uint8_t {
+    UC_WAIT, /**< Wait for answer */
+    UC_HAVE_ANN, /**< Have answer */
+    UC_NEED_SYDY, /**< Need to stand by */
+    UC_HAVE_SYDY, /**< In stand by */
+};
 /** Clock time properties bit mask */
 enum : uint8_t {
     /** The last minute of the current UTC day contains 61 seconds */
@@ -494,6 +501,13 @@ struct ClockQuality_t {
     UInteger8_t clockClass; /**< clock class */
     clockAccuracy_e clockAccuracy; /**< clock accuracy */
     uint16_t offsetScaledLogVariance; /**< variance of the clock's phase */
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() {
+        return sizeof(UInteger8_t) + sizeof(clockAccuracy_e) + sizeof(uint16_t);
+    }
 };
 /** PTP text value */
 struct PTPText_t {
@@ -579,6 +593,25 @@ struct BaseMngTlv {
 };
 /** Base for all Signaling TLV structures */
 struct BaseSigTlv {
+};
+/** Master record in unicast master table */
+struct LinuxptpUnicastMaster_t {
+    PortIdentity_t portIdentity; /**< Master port ID */
+    ClockQuality_t clockQuality; /**< Master clock quality */
+    uint8_t selected; /**< Master is in use */
+    linuxptpUnicastState_e portState; /**< State of master in unicast table */
+    UInteger8_t priority1; /**< Master first priority */
+    UInteger8_t priority2; /**< Master second priority */
+    PortAddress_t portAddress; /**< Master port address */
+    /**
+     * Get object size
+     * @return object size
+     */
+    size_t size() {
+        return PortIdentity_t::size() + ClockQuality_t::size() +
+            sizeof(uint8_t) + sizeof(linuxptpUnicastState_e) + sizeof(UInteger8_t) +
+            sizeof(UInteger8_t) + portAddress.size();
+    }
 };
 
 /* Structure per each mng_vals_e id */
@@ -735,6 +768,8 @@ class Message
     bool proc(PTPText_t &d);
     bool proc(FaultRecord_t &d);
     bool proc(AcceptableMaster_t &d);
+    bool proc(linuxptpUnicastState_e &d);
+    bool proc(LinuxptpUnicastMaster_t &d);
     bool proc(SLAVE_RX_SYNC_TIMING_DATA_rec_t &rec);
     bool proc(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t &rec);
     bool proc(SLAVE_TX_EVENT_TIMESTAMPS_rec_t &rec);
@@ -880,6 +915,12 @@ class Message
      * @return string with the Linux power profile version
      */
     static const char *pwr2str_c(linuxptpPowerProfileVersion_e ver);
+    /**
+     * Convert linuxptp master unicasy state to string
+     * @param[in] state
+     * @return string with the master state in the unicast master table
+     */
+    static const char *us2str_c(linuxptpUnicastState_e state);
     /**
      * Check if leap 61 seconds flag is enabled
      * @param[in] flags

@@ -592,6 +592,28 @@ dump(PORT_SERVICE_STATS_NP)
         d.followup_mismatch);
     dump_end;
 }
+dump(UNICAST_MASTER_TABLE_NP)
+{
+    DUMPS(
+        IDENT "actualTableSize %u"
+        IDENT "BM  identity                 address                            "
+        "state     clockClass clockQuality offsetScaledLogVariance p1  p2",
+        d.actualTableSize);
+    for(const auto &rec : d.unicastMasters)
+        DUMPS(
+            IDENT "%s %-24s %-34s %-9s %-10u 0x%02x         "
+            "0x%04x                  %-3u %-3u",
+            rec.selected ? "yes" : "no ",
+            rec.portIdentity.string().c_str(),
+            rec.portAddress.string().c_str(),
+            m.us2str_c(rec.portState),
+            rec.clockQuality.clockClass,
+            rec.clockQuality.clockAccuracy,
+            rec.clockQuality.offsetScaledLogVariance,
+            rec.priority1,
+            rec.priority2);
+    dump_end;
+}
 #if 0
 dump(POWER_PROFILE_SETTINGS_NP)
 {

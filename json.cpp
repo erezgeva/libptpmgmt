@@ -71,6 +71,7 @@ struct JsonProc {
     procType(portState_e)
     procType(linuxptpTimeStamp_e)
     procType(linuxptpPowerProfileVersion_e)
+    procType(linuxptpUnicastState_e)
     procType(TimeInterval_t)
     procType(Timestamp_t)
     procType(ClockIdentity_t)
@@ -80,6 +81,7 @@ struct JsonProc {
     procType(PTPText_t)
     procType(FaultRecord_t)
     procType(AcceptableMaster_t)
+    procType(LinuxptpUnicastMaster_t)
     virtual bool procBinary(const char *name, Binary &val, uint16_t &len) = 0;
     virtual bool procBinary(const char *name, uint8_t *val, size_t len) = 0;
     virtual bool procFlag(const char *name, uint8_t &flags, int mask) = 0;
@@ -89,6 +91,7 @@ struct JsonProc {
     procVector(PortAddress_t)
     procVector(FaultRecord_t)
     procVector(AcceptableMaster_t)
+    procVector(LinuxptpUnicastMaster_t)
 #undef procType
 #undef procVector
 };
@@ -210,6 +213,17 @@ struct JsonProcToJson : public JsonProc {
         procProperty(alternatePriority1);
         closeObject();
     }
+    void procValue(LinuxptpUnicastMaster_t &val) {
+        startObject();
+        procProperty(portIdentity);
+        procProperty(clockQuality);
+        procProperty(selected);
+        procProperty(portState);
+        procProperty(priority1);
+        procProperty(priority2);
+        procProperty(portAddress);
+        closeObject();
+    }
     void procValue(SLAVE_RX_SYNC_TIMING_DATA_rec_t &val) {
         startObject();
         procProperty(sequenceId);
@@ -294,6 +308,7 @@ struct JsonProcToJson : public JsonProc {
     procTypeEnum(portState_e, portState2str_c)
     procTypeEnum(linuxptpTimeStamp_e, ts2str_c)
     procTypeEnum(linuxptpPowerProfileVersion_e, pwr2str_c)
+    procTypeEnum(linuxptpUnicastState_e, us2str_c)
     bool procValue(const char *name, TimeInterval_t &val) {
         procValue(name, val.scaledNanoseconds);
         return true;
@@ -340,6 +355,11 @@ struct JsonProcToJson : public JsonProc {
         procValue(val);
         return true;
     }
+    bool procValue(const char *name, LinuxptpUnicastMaster_t &val) {
+        startName(name, "\n");
+        procValue(val);
+        return true;
+    }
     bool procBinary(const char *name, Binary &val, uint16_t &) {
         procString(name, val.toId());
         return true;
@@ -367,6 +387,7 @@ struct JsonProcToJson : public JsonProc {
     procVector(PortAddress_t)
     procVector(FaultRecord_t)
     procVector(AcceptableMaster_t)
+    procVector(LinuxptpUnicastMaster_t)
     procVector(SLAVE_RX_SYNC_TIMING_DATA_rec_t)
     procVector(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t)
     procVector(SLAVE_TX_EVENT_TIMESTAMPS_rec_t)
@@ -772,6 +793,12 @@ JS(PORT_SERVICE_STATS_NP)
         PROC_VAL(qualification_timeout) &&
         PROC_VAL(sync_mismatch) &&
         PROC_VAL(followup_mismatch);
+}
+JS(UNICAST_MASTER_TABLE_NP)
+{
+    return
+        PROC_VAL(actualTableSize) &&
+        PROC_ARR(unicastMasters);
 }
 #if 0
 JS(POWER_PROFILE_SETTINGS_NP)
@@ -1390,6 +1417,17 @@ struct JsonProcFromJson : public JsonProc {
         }
         return false;
     }
+    bool procValue(const char *key, linuxptpUnicastState_e &d) {
+        GET_STR
+        for(int i = UC_WAIT; i <= UC_HAVE_SYDY; i++) {
+            linuxptpUnicastState_e v = (linuxptpUnicastState_e)i;
+            if(strcmp(str, Message::us2str_c(v)) == 0) {
+                d = v;
+                return true;
+            }
+        }
+        return false;
+    }
 #define procObj(type)\
     bool procValue(const char *key, type &d) {\
         if(!isType(key, JT_OBJ))\
@@ -1496,6 +1534,25 @@ struct JsonProcFromJson : public JsonProc {
             PROC_VAL(acceptablePortIdentity);
     }
     procObj(AcceptableMaster_t)
+    bool procValue(JSON_POBJ obj, LinuxptpUnicastMaster_t &d) {
+        allow.clear();
+        allow["portIdentity"] = JT_OBJ;
+        allow["clockQuality"] = JT_OBJ;
+        allow["selected"] = JT_BOOL;
+        allow["portState"] = JT_STR;
+        allow["priority1"] = JT_INT;
+        allow["priority2"] = JT_INT;
+        allow["portAddress"] = JT_OBJ;
+        return jloop(obj) &&
+            PROC_VAL(portIdentity) &&
+            PROC_VAL(clockQuality) &&
+            PROC_VAL(selected) &&
+            PROC_VAL(portState) &&
+            PROC_VAL(priority1) &&
+            PROC_VAL(priority2) &&
+            PROC_VAL(portAddress);
+    }
+    procObj(LinuxptpUnicastMaster_t)
     bool procBinary(const char *key, Binary &d, uint16_t &len) {
         if(!isType(key, JT_STR) || !d.fromId(found[key].strV) ||
             d.size() == 0)
@@ -1569,6 +1626,7 @@ struct JsonProcFromJson : public JsonProc {
     procVector(PortAddress_t)
     procVector(FaultRecord_t)
     procVector(AcceptableMaster_t)
+    procVector(LinuxptpUnicastMaster_t)
 #undef procType
 #undef procVector
 };

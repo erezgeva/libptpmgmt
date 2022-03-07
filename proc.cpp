@@ -52,6 +52,10 @@ S(PORT_PROPERTIES_NP)
 {
     return 2 + PortIdentity_t::size() + d.interface.size();
 }
+S(UNICAST_MASTER_TABLE_NP)
+{
+    vector_l(2, LinuxptpUnicastMaster, unicastMasters);
+};
 
 ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
 {
@@ -353,6 +357,13 @@ A(PORT_SERVICE_STATS_NP)
         procLe(d.master_announce_timeout) || procLe(d.master_sync_timeout) ||
         procLe(d.qualification_timeout) || procLe(d.sync_mismatch) ||
         procLe(d.followup_mismatch);
+};
+A(UNICAST_MASTER_TABLE_NP)
+{
+    d.actualTableSize = d.unicastMasters.size();
+    if(proc(d.actualTableSize))
+        return true;
+    vector_f(LinuxptpUnicastMaster, actualTableSize, unicastMasters);
 };
 #if 0
 A(POWER_PROFILE_SETTINGS_NP)
