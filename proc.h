@@ -573,6 +573,14 @@ struct UNICAST_MASTER_TABLE_NP_t : public BaseMngTlv {
     /** unicast masters table */
     std::vector<LinuxptpUnicastMaster_t> unicastMasters;
 };
+/** Port Linux hardware clock properties
+ * @note linuxptp implementation specific
+ */
+struct PORT_HWCLOCK_NP_t : public BaseMngTlv {
+    PortIdentity_t portIdentity; /**< Port ID */
+    Integer32_t phc_index; /**< Linux PTP hardware clokc index */
+    UInteger8_t flags; /**< Flags */
+};
 #if 0
 /** Power system profile TLV
  * @note linuxptp implementation specific

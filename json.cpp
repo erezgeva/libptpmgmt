@@ -800,6 +800,13 @@ JS(UNICAST_MASTER_TABLE_NP)
         PROC_VAL(actualTableSize) &&
         PROC_ARR(unicastMasters);
 }
+JS(PORT_HWCLOCK_NP)
+{
+    return
+        PROC_VAL(portIdentity) &&
+        PROC_VAL(phc_index) &&
+        PROC_VAL(flags);
+};
 #if 0
 JS(POWER_PROFILE_SETTINGS_NP)
 {

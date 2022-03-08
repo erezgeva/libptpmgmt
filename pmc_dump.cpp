@@ -614,6 +614,17 @@ dump(UNICAST_MASTER_TABLE_NP)
             rec.priority2);
     dump_end;
 }
+dump(PORT_HWCLOCK_NP)
+{
+    DUMPS(
+        IDENT "portIdentity            %s"
+        IDENT "phcIndex                %d"
+        IDENT "flags                   %u",
+        d.portIdentity.string().c_str(),
+        d.phc_index,
+        d.flags);
+    dump_end;
+}
 #if 0
 dump(POWER_PROFILE_SETTINGS_NP)
 {

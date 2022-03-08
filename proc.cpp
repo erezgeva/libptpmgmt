@@ -365,6 +365,10 @@ A(UNICAST_MASTER_TABLE_NP)
         return true;
     vector_f(LinuxptpUnicastMaster, actualTableSize, unicastMasters);
 };
+A(PORT_HWCLOCK_NP)
+{
+    return proc(d.portIdentity) || proc(d.phc_index) || proc(d.flags);
+};
 #if 0
 A(POWER_PROFILE_SETTINGS_NP)
 {
