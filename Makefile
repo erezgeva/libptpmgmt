@@ -107,7 +107,7 @@ define help
 ################################################################################
 
 endef
-which=$(shell which $1)
+which=$(shell which $1 2>/dev/null)
 define depend
 $1: $2
 
@@ -732,7 +732,7 @@ endif
 	$Q$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
 	$Q$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc.lib
 	$Q$(DINST) $(MANDIR)
-	$(Q)ln -fs pmc.8.gz $(MANDIR)/pmc.lib.8.gz
+	$Q$(LN) pmc.8.gz $(MANDIR)/pmc.lib.8.gz
 	$Q$(RM) doc/html/*.md5
 	$Q$(DINST) $(DOCDIR)
 	$(Q)cp -a doc/html $(DOCDIR)

@@ -214,12 +214,12 @@ void help(const std::string &app, const char *hmsg)
     fprintf(stderr, "\nusage: %s [options] [commands]\n\n%s\n",
         app.c_str(), hmsg);
 }
-static void handle_sig(int)
+[[noreturn]] static void handle_sig(int)
 {
     obj.close();
     exit(0);
 }
-static void handle_sig_ctrl(int)
+[[noreturn]] static void handle_sig_ctrl(int)
 {
     obj.close();
     DUMPNL;

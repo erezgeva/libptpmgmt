@@ -9,27 +9,18 @@ Name:           libpmc
 Version:        0.5
 Release:        1%{?dist}
 Summary:        %{bname} library, to communicate with ptp4l
-License:        LGPL, GPL
+License:        LGPLv3+, GPLv3+, GFDLv1.3+
 URL:            https://%{name}.sf.net
 BuildRequires:  swig
-BuildRequires:  perl
-BuildRequires:  perl-devel
-BuildRequires:  perl-ExtUtils-Embed
+BuildRequires:  perl perl-devel perl-ExtUtils-Embed
 BuildRequires:  which
-BuildRequires:  python2
-BuildRequires:  python2-devel
-BuildRequires:  python3
-BuildRequires:  python3-devel
-BuildRequires:  lua
-BuildRequires:  lua-devel
-BuildRequires:  ruby
-BuildRequires:  ruby-devel
-BuildRequires:  php
-BuildRequires:  php-devel
-BuildRequires:  tcl
-BuildRequires:  tcl-devel
-BuildRequires:  graphviz
-BuildRequires:  doxygen
+BuildRequires:  python2 python2-devel
+BuildRequires:  python3 python3-devel
+BuildRequires:  lua lua-devel
+BuildRequires:  ruby ruby-devel
+BuildRequires:  php php-devel
+BuildRequires:  tcl tcl-devel
+BuildRequires:  doxygen graphviz
 Source0:        %{name}-%{version}.txz
 
 %define bname   pmc
@@ -39,6 +30,7 @@ Source0:        %{name}-%{version}.txz
 
 %package        devel
 Summary:        Development files for %{name}
+License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description    devel
@@ -47,6 +39,7 @@ developing applications that use %{name}.
 
 %package        doc
 Summary:        Documentation files for %{name}
+License:        GFDLv1.3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description    doc
@@ -54,6 +47,7 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %package        perl
 Summary:        %{bname} library Perl wrapper
+License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       perl
 %description    perl
@@ -68,6 +62,7 @@ Requires:       python2
 
 %package -n     python3-%{bname}
 Summary:        %{bname} library python version 3 wrapper
+License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       python3
 %description -n python3-%{bname}
@@ -75,6 +70,7 @@ Requires:       python3
 
 %package -n     lua-%{bname}
 Summary:        %{bname} library Lua wrapper
+License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       lua
 %description -n lua-%{bname}
@@ -82,6 +78,7 @@ Requires:       lua
 
 %package -n     ruby-%{bname}
 Summary:        %{bname} library ruby wrapper
+License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       ruby
 %description -n ruby-%{bname}
@@ -89,6 +86,7 @@ Requires:       ruby
 
 %package -n     php-%{bname}
 Summary:        %{bname} library php wrapper
+License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       php
 %description -n php-%{bname}
@@ -96,6 +94,7 @@ Requires:       php
 
 %package -n     tcl-%{bname}
 Summary:        %{bname} library tcl wrapper
+License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       tcl
 %description -n tcl-%{bname}
@@ -103,6 +102,7 @@ Requires:       tcl
 
 %package -n     %{bname}
 Summary:        %{bname} tool
+License:        GPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description -n %{bname}
  new rewrite of linuxptp %{bname} tool using the %{name} library.
