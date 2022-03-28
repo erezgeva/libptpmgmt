@@ -450,7 +450,7 @@ class PtpSyncWatchdog:
                 if self.socket.poll(2000):
                     num_bytes = self.socket.rcv(self.message_buffer)
                     self.receive(num_bytes)
-                else:
+                elif self.data.port_state != "SOURCE":  # There are no events on the master, so no responses.
                     self.print_error("Poll failed")
                 self.callback()
             except BaseException as e:
