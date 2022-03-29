@@ -22,7 +22,7 @@ def nextSequence():
   # Ensure sequence in in range of unsigned 16 bits
   global sequence
   if ++sequence > 0xffff:
-    sequence = 1;
+    sequence = 1
   return sequence
 
 def setPriority1(newPriority1):
@@ -107,7 +107,7 @@ def main():
   prms.self_id.portNumber = os.getpid() & 0xffff
   prms.domainNumber = cfg.domainNumber()
   msg.updateParams(prms)
-  msg.useConfig(cfg);
+  msg.useConfig(cfg)
   id = pmc.USER_DESCRIPTION
   msg.setAction(pmc.GET, id)
   seq = nextSequence()
@@ -163,12 +163,32 @@ def main():
   print("clk.physicalAddress: %s" % clk_dec.physicalAddress.toHex())
   print("manufacturerIdentity: %s" %
     pmc.Binary.bufToId(clk_dec.manufacturerIdentity, 3))
-  clk_dec.revisionData.textField = "This is a test";
-  print("revisionData: %s" % clk_dec.revisionData.textField);
+  clk_dec.revisionData.textField = "This is a test"
+  print("revisionData: %s" % clk_dec.revisionData.textField)
 
   # test send
   setPriority1(147)
   setPriority1(153)
+
+  event = pmc.SUBSCRIBE_EVENTS_NP_t()
+  event.setEvent(pmc.NOTIFY_TIME_SYNC)
+
+  if event.getEvent(pmc.NOTIFY_TIME_SYNC):
+    txt = 'have'
+  else:
+    txt = 'not'
+  print('maskEvent(NOTIFY_TIME_SYNC)={}, getEvent(NOTIFY_TIME_SYNC)={}'
+    .format(pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_TIME_SYNC),
+    txt))
+
+  if event.getEvent(pmc.NOTIFY_PORT_STATE):
+    txt = 'have'
+  else:
+    txt = 'not'
+  print('maskEvent(NOTIFY_PORT_STATE)={}, getEvent(NOTIFY_PORT_STATE)={}'
+    .format(pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_PORT_STATE),
+    txt))
+
   return 0
 
 main()

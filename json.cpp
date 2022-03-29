@@ -733,11 +733,11 @@ JS(SUBSCRIBE_EVENTS_NP)
     return
         PROC_VAL(duration) &&
         proc.procFlag("NOTIFY_PORT_STATE",
-            EVENT_BIT_BYTE(d.bitmask, NOTIFY_PORT_STATE),
-            EVENT_BIT_MASK(d.bitmask, NOTIFY_PORT_STATE)) &&
+            d.byteEvent(NOTIFY_PORT_STATE),
+            d.maskEvent(NOTIFY_PORT_STATE)) &&
         proc.procFlag("NOTIFY_TIME_SYNC",
-            EVENT_BIT_BYTE(d.bitmask, NOTIFY_TIME_SYNC),
-            EVENT_BIT_MASK(d.bitmask, NOTIFY_TIME_SYNC));
+            d.byteEvent(NOTIFY_TIME_SYNC),
+            d.maskEvent(NOTIFY_TIME_SYNC));
 }
 JS(PORT_PROPERTIES_NP)
 {

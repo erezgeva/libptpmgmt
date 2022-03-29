@@ -192,6 +192,27 @@ function main()
 
   setPriority1(147)
   setPriority1(153)
+
+  local event = pmc.SUBSCRIBE_EVENTS_NP_t()
+  event:setEvent(pmc.NOTIFY_TIME_SYNC)
+  local txt
+  if(event:getEvent(pmc.NOTIFY_TIME_SYNC)) then
+    txt = 'have'
+  else
+    txt = 'not'
+  end
+  print(string.format("maskEvent(NOTIFY_TIME_SYNC)=%d," ..
+        " getEvent(NOTIFY_TIME_SYNC)=%s",
+        pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_TIME_SYNC), txt))
+  if(event:getEvent(pmc.NOTIFY_PORT_STATE)) then
+    txt = 'have'
+  else
+    txt = 'not'
+  end
+  print(string.format("maskEvent(NOTIFY_PORT_STATE)=%d," ..
+        " getEvent(NOTIFY_PORT_STATE)=%s",
+        pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_PORT_STATE), txt))
+
   return 0
 end
 

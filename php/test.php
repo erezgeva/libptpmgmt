@@ -184,6 +184,18 @@ function main($cfg_file)
   # test send;
   setPriority1(147);
   setPriority1(153);
+
+  $event = new SUBSCRIBE_EVENTS_NP_t();
+  $event->setEvent(pmc::NOTIFY_TIME_SYNC_get());
+  echo "maskEvent(NOTIFY_TIME_SYNC)=" .
+       $event->maskEvent(pmc::NOTIFY_TIME_SYNC_get()) .
+       ", getEvent(NOTIFY_TIME_SYNC)=" .
+       ($event->getEvent(pmc::NOTIFY_TIME_SYNC_get()) ? 'have' : 'not') . "\n" .
+       "maskEvent(NOTIFY_PORT_STATE)=" .
+       $event->maskEvent(pmc::NOTIFY_PORT_STATE_get()) .
+       ", getEvent(NOTIFY_PORT_STATE)=" .
+       ($event->getEvent(pmc::NOTIFY_PORT_STATE_get()) ? 'have' : 'not') . "\n";
+
   return 0;
 }
 

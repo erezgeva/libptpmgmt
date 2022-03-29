@@ -467,25 +467,45 @@ const int EVENT_BITMASK_CNT = 64;
 const int NOTIFY_PORT_STATE = 0;
 /** Notify time synchronization offset in SUBSCRIBE_EVENTS_NP.bitmask */
 const int NOTIFY_TIME_SYNC = 1;
-/** Set bit in SUBSCRIBE_EVENTS_NP.bitmask */
-#define EVENT_BIT_SET(bitmask, event)\
-    do{ bitmask[event / 8] |= (1 << (event % 8)); }while(false)
-/** Clear bit in SUBSCRIBE_EVENTS_NP.bitmask */
-#define EVENT_BIT_CLEAR(bitmask, event)\
-    do{ bitmask[event / 8] &= ~((uint8_t)(1 << (event % 8))); }while(false)
-/** Read bit value in SUBSCRIBE_EVENTS_NP.bitmask */
-#define EVENT_BIT(bitmask, event)\
-    (bitmask[event / 8] & (1 << (event % 8))?"on":"off")
-/** Get event byte in SUBSCRIBE_EVENTS_NP.bitmask */
-#define EVENT_BIT_BYTE(bitmask, event) bitmask[event / 8]
-/** Get event bit location in byte in SUBSCRIBE_EVENTS_NP.bitmask */
-#define EVENT_BIT_MASK(bitmask, event) (1 << (event % 8))
 /** Subscribe events TLV
  * @note linuxptp implementation specific
  */
 struct SUBSCRIBE_EVENTS_NP_t : public BaseMngTlv {
     uint16_t duration; /**< duration in seconds */
     uint8_t bitmask[EVENT_BITMASK_CNT]; /**< bitmask of events state */
+    /** Set event bit in bitmask */
+    void setEvent(int event) {
+        if(event >= 0 && event < EVENT_BITMASK_CNT)
+            byteEvent(event) |= maskEvent(event);
+    }
+    /** Clear event bit in bitmask */
+    void clearEvent(int event) {
+        if(event >= 0 && event < EVENT_BITMASK_CNT)
+            byteEvent(event) &= ~maskEvent(event);
+    }
+    /** Clear all events in bitmask */
+    void clearAll() {
+        memset(bitmask, 0, EVENT_BITMASK_CNT);
+    }
+    /** Get bit value in bitmask */
+    bool getEvent(int event) {
+        if(event >= 0 && event < EVENT_BITMASK_CNT)
+            return (byteEvent(event) & maskEvent(event)) > 0;
+        return false;
+    }
+    /** Get event byte in bitmask */
+    uint8_t &byteEvent(int event) {
+        if(event >= 0 && event < EVENT_BITMASK_CNT)
+            return bitmask[event / 8];
+        static uint8_t dummy = 0;
+        return dummy;
+    }
+    /** Get event bit location in byte in bitmask */
+    static uint8_t maskEvent(int event) {
+        if(event >= 0 && event < EVENT_BITMASK_CNT)
+            return 1 << (event % 8);
+        return 0;
+    }
 };
 /** Port properties TLV
  * @note linuxptp implementation specific

@@ -185,6 +185,25 @@ proc main {cfg_file} {
   # test send
   setPriority1 147
   setPriority1 153
+
+  global NOTIFY_TIME_SYNC NOTIFY_PORT_STATE
+  set event [SUBSCRIBE_EVENTS_NP_t]
+  $event setEvent $NOTIFY_TIME_SYNC
+  set mask [ SUBSCRIBE_EVENTS_NP_t_maskEvent $NOTIFY_TIME_SYNC ]
+  if { [ $event getEvent $NOTIFY_TIME_SYNC ] } {
+    set txt "have"
+  } else {
+    set txt "not"
+  }
+  puts "maskEvent(NOTIFY_TIME_SYNC)=$mask, getEvent(NOTIFY_TIME_SYNC)=$txt"
+  set mask [ SUBSCRIBE_EVENTS_NP_t_maskEvent $NOTIFY_PORT_STATE ]
+  if { [ $event getEvent $NOTIFY_PORT_STATE ] } {
+    set txt "have"
+  } else {
+    set txt "not"
+  }
+  puts "maskEvent(NOTIFY_PORT_STATE)=$mask, getEvent(NOTIFY_PORT_STATE)=$txt"
+
   return 0
 }
 

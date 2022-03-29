@@ -20,7 +20,7 @@ $sequence = 0
 def nextSequence()
   # Ensure sequence in in range of unsigned 16 bits
   if ++$sequence > 0xffff then
-    $sequence = 1;
+    $sequence = 1
   end
   return $sequence
 end
@@ -122,7 +122,7 @@ def main
   prms.implementSpecific = Pmc::Linuxptp
   prms.domainNumber = cfg.domainNumber()
   $msg.updateParams(prms)
-  $msg.useConfig(cfg);
+  $msg.useConfig(cfg)
   id = Pmc::USER_DESCRIPTION
   $msg.setAction(Pmc::GET, id)
   seq = nextSequence()
@@ -181,12 +181,24 @@ def main
   puts "clk.physicalAddress: " + clk_dec.physicalAddress.toHex()
   puts "manufacturerIdentity: " +
     Pmc::Binary::bufToId(clk_dec.manufacturerIdentity, 3)
-  clk_dec.revisionData.textField = "This is a test";
-  puts "revisionData: " + clk_dec.revisionData.textField;
+  clk_dec.revisionData.textField = "This is a test"
+  puts "revisionData: " + clk_dec.revisionData.textField
 
   # test send
   setPriority1(147)
   setPriority1(153)
+
+  event = Pmc::SUBSCRIBE_EVENTS_NP_t.new
+  event.setEvent(Pmc::NOTIFY_TIME_SYNC())
+  puts "maskEvent(NOTIFY_TIME_SYNC)=" +
+       "#{Pmc::SUBSCRIBE_EVENTS_NP_t.maskEvent(Pmc::NOTIFY_TIME_SYNC())}" +
+       ", getEvent(NOTIFY_TIME_SYNC)=" +
+       (event.getEvent(Pmc::NOTIFY_TIME_SYNC()) ? 'have' : 'not')
+  puts "maskEvent(NOTIFY_PORT_STATE)=" +
+       "#{Pmc::SUBSCRIBE_EVENTS_NP_t.maskEvent(Pmc::NOTIFY_PORT_STATE())}" +
+       ", getEvent(NOTIFY_PORT_STATE)=" +
+       (event.getEvent(Pmc::NOTIFY_PORT_STATE()) ? 'have' : 'not')
+
   return 0
 end
 

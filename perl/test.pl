@@ -183,6 +183,18 @@ sub main
 
   setPriority1(147);
   setPriority1(153);
+
+  my $event = PmcLib::SUBSCRIBE_EVENTS_NP_t->new;
+  $event->setEvent($PmcLib::NOTIFY_TIME_SYNC);
+  print("maskEvent(NOTIFY_TIME_SYNC)=" .
+        PmcLib::SUBSCRIBE_EVENTS_NP_t::maskEvent($PmcLib::NOTIFY_TIME_SYNC) .
+        ", getEvent(NOTIFY_TIME_SYNC)=" .
+        ($event->getEvent($PmcLib::NOTIFY_TIME_SYNC) ? 'have' : 'not') . "\n" .
+        "maskEvent(NOTIFY_PORT_STATE)=" .
+        PmcLib::SUBSCRIBE_EVENTS_NP_t::maskEvent($PmcLib::NOTIFY_PORT_STATE) .
+        ", getEvent(NOTIFY_PORT_STATE)=" .
+        ($event->getEvent($PmcLib::NOTIFY_PORT_STATE) ? 'have' : 'not') . "\n");
+
   0;
 }
 main;

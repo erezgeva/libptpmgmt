@@ -496,8 +496,8 @@ dump(SUBSCRIBE_EVENTS_NP)
         IDENT "NOTIFY_PORT_STATE %s"
         IDENT "NOTIFY_TIME_SYNC  %s",
         d.duration,
-        EVENT_BIT(d.bitmask, NOTIFY_PORT_STATE),
-        EVENT_BIT(d.bitmask, NOTIFY_TIME_SYNC));
+        d.getEvent(NOTIFY_PORT_STATE) ? "on" : "off",
+        d.getEvent(NOTIFY_TIME_SYNC) ? "on" : "off");
     dump_end;
 }
 dump(PORT_PROPERTIES_NP)
@@ -1344,9 +1344,9 @@ build(SUBSCRIBE_EVENTS_NP)
     parseKeys;
     memset(d.bitmask, 0, sizeof(d.bitmask));
     if(keys["NOTIFY_PORT_STATE"].num)
-        EVENT_BIT_SET(d.bitmask, NOTIFY_PORT_STATE);
+        d.setEvent(NOTIFY_PORT_STATE);
     if(keys["NOTIFY_TIME_SYNC"].num)
-        EVENT_BIT_SET(d.bitmask, NOTIFY_TIME_SYNC);
+        d.setEvent(NOTIFY_TIME_SYNC);
     d.duration = keys["duration"].num;
     build_end;
 }

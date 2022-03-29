@@ -196,7 +196,7 @@ bool send_subscription()
     SUBSCRIBE_EVENTS_NP_t d;
     memset(d.bitmask, 0, sizeof(d.bitmask));
     d.duration = PMC_SUBSCRIBE_DURATION;
-    EVENT_BIT_SET(d.bitmask, NOTIFY_PORT_STATE);
+    d.setEvent(NOTIFY_PORT_STATE);
     if(!msg.setAction(SET, SUBSCRIBE_EVENTS_NP, &d)) {
         fprintf(stderr, "Fail set SUBSCRIBE_EVENTS_NP\n");
         return false;
