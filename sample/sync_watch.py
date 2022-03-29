@@ -7,8 +7,6 @@ SPDX-FileCopyrightText: Czech Technical University in Prague
 
 import argparse
 import contextlib
-import ctypes
-import sys
 
 import numpy as np
 import os
@@ -23,21 +21,6 @@ try:
     from exceptions import KeyboardInterrupt
 except ImportError:
     pass
-
-
-def get_bitmask_data(message):
-    """
-    Get the raw C-array representing SUBSCRIBE_EVENTS_NP.bitmask.
-
-    :param pmc.SUBSCRIBE_EVENTS_NP_t message: The message to get bitmask of.
-    :return: Reference to the bitmask.
-    :note: This is a workaround for https://github.com/erezgeva/libpmc/issues/3 . 
-    """
-    if sys.version_info[0] == 2:
-        raw_pointer = message.bitmask.__long__()
-    else:
-        raw_pointer = message.bitmask.__int__()
-    return ctypes.cast(raw_pointer, ctypes.POINTER(ctypes.c_uint8))
 
 
 class PeriodicTaskThread(Thread):
@@ -362,11 +345,9 @@ class PtpSyncWatchdog:
         """
         subscribe_message = pmc.SUBSCRIBE_EVENTS_NP_t()
         subscribe_message.duration = self.subscribe_duration
-        bitmask_data = get_bitmask_data(subscribe_message)
-        bitmask_data[0] = 0 | (1 << pmc.NOTIFY_PORT_STATE) | (1 << pmc.NOTIFY_TIME_SYNC)
-        for i in range(1, pmc.EVENT_BITMASK_CNT):
-            # noinspection PyTypeChecker
-            bitmask_data[i] = 0
+        subscribe_message.clearAll()
+        subscribe_message.setEvent(pmc.NOTIFY_TIME_SYNC)
+        subscribe_message.setEvent(pmc.NOTIFY_PORT_STATE)
 
         with self.message_lock:
             self.message.setAction(pmc.SET, pmc.SUBSCRIBE_EVENTS_NP, subscribe_message)
