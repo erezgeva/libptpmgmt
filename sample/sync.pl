@@ -9,6 +9,8 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 #
+# @note This is a sample code, not a product! You should use it as a reference.
+#
 
 use PmcLib;
 use feature 'switch'; # 'given'
