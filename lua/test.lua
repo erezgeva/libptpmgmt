@@ -143,7 +143,7 @@ function main()
     print "send fail"
     return -1
   end
-  -- You can get file descriptor with sk:getFd() and use Lua socket.select()
+  -- You can get file descriptor with sk:fileno() and use Lua socket.select()
   if(not sk:poll(500)) then
     print "timeout"
     return -1

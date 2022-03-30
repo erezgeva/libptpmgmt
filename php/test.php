@@ -134,7 +134,7 @@ function main($cfg_file)
     echo "send fail";
     return -1;
   }
-  # You can get file descriptor with $sk->getFd() and use select;
+  # You can get file descriptor with $sk->fileno() and use select;
   if(!$sk->poll(500)) {
     echo "timeout";
     return -1;

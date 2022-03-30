@@ -292,7 +292,7 @@ int main(int argc, char *const argv[])
             fds[0].fd = STDIN_FILENO;
             fds[0].events = POLLIN;
             // network socket
-            fds[1].fd = sk->getFd();
+            fds[1].fd = sk->fileno();
             fds[1].events = POLLIN;
             // We receive except when we type a command
             for(;;) {

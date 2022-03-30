@@ -122,13 +122,24 @@ class SockBase
      */
     int getFd() const { return m_fd; }
     /**
+     * Get socket file description
+     * @return socket file description
+     * @note Can be used to poll, send or receive from socket.
+     *  The user is advice to use properly. Do @b NOT free the socket.
+     *  If you want to close the socket use the close function @b ONLY.
+     */
+    int fileno() const { return m_fd; }
+    /**
      * Single socket polling
      * @param[in] timeout_ms timeout in milliseconds,
      *  until receive a packet. use 0 for blocking.
      * @return true if a packet is ready for receive
      * @note If user need multiple socket,
-     *  then fetch the file description with getFd()
+     *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
+     * @note Python: as the wrapper uses Python 'Global Interpreter Lock'.
+     *  When using multithreaded scripts, it is better to call fileno()
+     *  and use the Python select module
      */
     bool poll(uint64_t timeout_ms = 0) const;
     /**
@@ -140,8 +151,11 @@ class SockBase
      *  when packet arrives. The user is advice to ensure the timeout
      *  is positive, as @b zero cause to block until receive a packet.
      * @note If user need multiple socket,
-     *  then fetch the file description with getFd()
+     *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
+     * @note Python: as the wrapper uses Python 'Global Interpreter Lock'.
+     *  When using multithreaded scripts, it is better to call fileno()
+     *  and use the Python select module
      */
     bool tpoll(uint64_t &timeout_ms) const; /* poll with timeout update */
 };

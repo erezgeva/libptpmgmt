@@ -130,7 +130,7 @@ sub main
 
   die "send" unless $sk->send($buf, $msg->getMsgLen());
 
-  # You can get file descriptor with sk->getFd() and use Perl select
+  # You can get file descriptor with sk->fileno() and use Perl select
   unless($sk->poll(500)) {
     print "timeout";
     return -1;

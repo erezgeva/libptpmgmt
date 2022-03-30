@@ -136,7 +136,7 @@ def main
     puts "send fail"
     return -1
   end
-  # You can get file descriptor with $sk.getFd() and use select
+  # You can get file descriptor with $sk.fileno() and use select
   if !$sk.poll(500) then
     puts "timeout"
     return -1

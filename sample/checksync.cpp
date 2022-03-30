@@ -233,13 +233,13 @@ static void loop(void)
     send_subscription();
     pollfd pd[2];
     nfds_t nfds;
-    pd[0].fd = sk->getFd();
+    pd[0].fd = sk->fileno();
     pd[0].events = POLLIN;
     if(use_uds)
         nfds = 1;
     else {
         nfds = 2;
-        pd[1].fd = sku.getFd();
+        pd[1].fd = sku.fileno();
         pd[1].events = POLLIN;
     }
     printf("start loop\n");

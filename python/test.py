@@ -121,7 +121,11 @@ def main():
     print("send fail")
     return -1
 
-  # You can get file descriptor with sk.getFd() and use select
+  # You can get file descriptor with sk.fileno() and use select
+  # When using multithreaded Python script, it is better to use
+  # native Python select module,
+  # as the wrapper uses Python 'Global Interpreter Lock' which might block
+  # other threads.
   if not sk.poll(500):
     print("timeout")
     return -1
