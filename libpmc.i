@@ -10,7 +10,10 @@
 #ifdef SWIGPERL
 %module PmcLib
 #else /* Not Perl */
-%module pmc
+%module("threads"=1) pmc
+#ifdef SWIGPYTHON
+%nothread;
+#endif
 #endif /* SWIGPERL */
 %{
     #include "cfg.h"
@@ -81,7 +84,13 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "ptp.h"
 %feature("notabstract") SockBase;
 %feature("notabstract") SockBaseIf;
+#ifdef SWIGPYTHON
+%thread;
+#endif
 %include "sock.h"
+#ifdef SWIGPYTHON
+%nothread;
+#endif
 %include "bin.h"
 %include "buf.h"
 %include "json.h"
