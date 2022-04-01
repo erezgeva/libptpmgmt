@@ -1,16 +1,18 @@
 #!/usr/bin/perl
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+# SPDX-FileCopyrightText: Copyright 2022 Erez Geva
+#
 # Sample for probing synchronization state
 #
 # This example sample the PTP daemons once.
 # For proper probing, the synchronization state should be sample periodicly!
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
-# @copyright 2021 Erez Geva
+# @copyright 2022 Erez Geva
 #
 # @note This is a sample code, not a product! You should use it as a reference.
 #
+###############################################################################
 
 use PmcLib;
 use feature 'switch'; # 'given'

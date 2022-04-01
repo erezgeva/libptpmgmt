@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+# SPDX-FileCopyrightText: Copyright 2021 Erez Geva
+#
 # testing Json convertor
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 #
+###############################################################################
 
 BEGIN { push @INC, './perl' }
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright 2021 Erez Geva
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
@@ -19,7 +20,7 @@ main()
  local -a log
  mapfile -t log < <(git log $hash..HEAD | grep -v '^Author:.*' |\
   grep -v '^\s*$')
- sed -i "s/ver_min=.*/ver_min=$next_min_ver/" version
+ sed -i "s/^\s*ver_min=.*/ver_min=$next_min_ver/" version
  local l add_line=0
  for l in "${log[@]}"; do
   if [[ $l =~ ^Date|^commit ]]; then

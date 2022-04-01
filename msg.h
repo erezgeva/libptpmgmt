@@ -1,4 +1,5 @@
-/* SPDX-License-Identifier: LGPL-3.0-or-later */
+/* SPDX-License-Identifier: LGPL-3.0-or-later
+   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
  * @brief Create and parse PTP management messages

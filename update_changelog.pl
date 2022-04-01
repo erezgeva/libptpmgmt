@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+# SPDX-FileCopyrightText: Copyright 2021 Erez Geva
+#
 # copy changelog from debian to rpm specificaton file
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 #
+###############################################################################
 
 sub main()
 {

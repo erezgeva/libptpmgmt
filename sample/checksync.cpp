@@ -1,4 +1,5 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: GPL-3.0-or-later
+   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
  * @brief Utility program to wait until an PTP is synchronized

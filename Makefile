@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+# SPDX-FileCopyrightText: Copyright 2021 Erez Geva
+#
 # Makefile Create libpmc and pmc for testing
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 #
+###############################################################################
 
 PMC_USE_LIB?=a # 'a' for static and 'so' for dynamic
 

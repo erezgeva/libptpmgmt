@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
 /* SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-FileCopyrightText: Copyright 2021 Erez Geva
  *
  * testing for php wrapper of libpmc
  *

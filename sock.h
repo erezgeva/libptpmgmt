@@ -1,4 +1,5 @@
-/* SPDX-License-Identifier: LGPL-3.0-or-later */
+/* SPDX-License-Identifier: LGPL-3.0-or-later
+   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
  * @brief provide sockets to communicate with a PTP daemon
@@ -29,11 +30,6 @@
 #include "ptp.h"
 #include "bin.h"
 #include "buf.h"
-
-#ifndef SWIG_THREAD_START
-#define SWIG_THREAD_START
-#define SWIG_THREAD_END
-#endif
 
 /**
  * @brief base class for all sockets
@@ -134,7 +130,9 @@ class SockBase
      *  If you want to close the socket use the close function @b ONLY.
      */
     int fileno() const { return m_fd; }
+    #ifdef SWIG_THREAD_START
     SWIG_THREAD_START;
+    #endif
     /**
      * Single socket polling
      * @param[in] timeout_ms timeout in milliseconds,
@@ -166,7 +164,9 @@ class SockBase
      *  and use the Python select module
      */
     bool tpoll(uint64_t &timeout_ms) const; /* poll with timeout update */
+    #ifdef SWIG_THREAD_END
     SWIG_THREAD_END;
+    #endif
 };
 
 /**
