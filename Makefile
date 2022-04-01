@@ -104,6 +104,11 @@ define help
 #                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #
+#   PY_USE_S_THRD    Use python with 'Global Interpreter Lock',                #
+#                    May speed Python, but users who uses Python threads       #
+#                    Should use Python native select and not socket class      #
+#                    poll() and tpoll(), as they block other threads           #
+#                                                                              #
 ################################################################################
 
 endef
@@ -470,9 +475,13 @@ ifdef USE_PY
 PY_BASE:=python/$(SWIG_NAME)
 PY_LIB_NAME:=_pmc
 PY_LIBDIR?=/usr/lib/python
+ifeq ($(PY_USE_S_THRD),)
+SWIG_PY_FLAGS:=-threads -DSWIG_USE_MULTITHREADS
+CPPFLAGS_PY+=-Wno-deprecated-declarations
+endif
 $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $<
+	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $(SWIG_PY_FLAGS) $<
 
 DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
 DISTCLEAN_DIRS+=python/__pycache__

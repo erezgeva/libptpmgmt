@@ -30,6 +30,11 @@
 #include "bin.h"
 #include "buf.h"
 
+#ifndef SWIG_THREAD_START
+#define SWIG_THREAD_START
+#define SWIG_THREAD_END
+#endif
+
 /**
  * @brief base class for all sockets
  * @details
@@ -129,6 +134,7 @@ class SockBase
      *  If you want to close the socket use the close function @b ONLY.
      */
     int fileno() const { return m_fd; }
+    SWIG_THREAD_START;
     /**
      * Single socket polling
      * @param[in] timeout_ms timeout in milliseconds,
@@ -137,7 +143,8 @@ class SockBase
      * @note If user need multiple socket,
      *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
-     * @note Python: as the wrapper uses Python 'Global Interpreter Lock'.
+     * @note Python: when building with 'PY_USE_S_THRD'
+     *  as the wrapper uses Python 'Global Interpreter Lock'.
      *  When using multithreaded scripts, it is better to call fileno()
      *  and use the Python select module
      */
@@ -153,11 +160,13 @@ class SockBase
      * @note If user need multiple socket,
      *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
-     * @note Python: as the wrapper uses Python 'Global Interpreter Lock'.
+     * @note Python: when building with 'PY_USE_S_THRD'
+     *  as the wrapper uses Python 'Global Interpreter Lock'.
      *  When using multithreaded scripts, it is better to call fileno()
      *  and use the Python select module
      */
     bool tpoll(uint64_t &timeout_ms) const; /* poll with timeout update */
+    SWIG_THREAD_END;
 };
 
 /**
