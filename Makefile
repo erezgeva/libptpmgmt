@@ -214,12 +214,13 @@ LIB_NAME:=libpmc
 LIB_NAME_SO:=$(LIB_NAME).so
 LIB_FNAME_SO:=$(LIB_NAME_SO).$(LIB_VER)
 LIB_SNAME_SO:=$(LIB_NAME_SO)$(SONAME)
+SRCS:=$(wildcard *.cpp)
 ifdef LD_SONAME
 LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
 endif
 LDLIBS_LIB:=-lm
 PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
-LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(wildcard *.cpp)))
+LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS)))
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
 ifdef PMC_USE_CJSON
@@ -285,8 +286,10 @@ distclean: deb_clean clean
 	$Q$(RM) $(DISTCLEAN)
 	$Q$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS:=$(filter-out mngIds.h pmc.h verDef.h,$(wildcard *.h))
-HEADERS_ALL:=$(HEADERS) mngIds.h verDef.h
+HEADERS_GEN:=mngIds.h verDef.h
+HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
+HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS))
+HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 # MAP for  mngIds.cc:
 #  %@ => '/'    - Use when a slash is next to a star character
 #  %! => '%'    - Self escape, escape precent sign character
@@ -299,7 +302,8 @@ mngIds.h: mngIds.cc
 	$Q$(CXX) -E $< | $(SED) 's/^#.*//;/^\s*$$/d;s#%@#/#g' > $@
 	$Q$(SED) -i 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' $@
 define verDef
-/* SPDX-License-Identifier: LGPL-3.0-or-later */\n\n
+/* SPDX-License-Identifier: LGPL-3.0-or-later\n
+   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */\n\n
 /** @file\n
  * @brief Version definitions for compilation\n
  *\n
@@ -318,16 +322,18 @@ endef
 verDef.h: version
 	$(Q_GEN)
 	$(shell printf '$(verDef)' > $@)
-DISTCLEAN+=mngIds.h verDef.h
+DISTCLEAN+=$(HEADERS_GEN)
 
 ifneq ($(call which,astyle),)
 astyle_ver:=$(lastword $(shell astyle -V))
 ifeq ($(call verCheck,$(astyle_ver),3.1),)
-format:
+format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(wildcard sample/*.cpp)
 	$(Q_FRMT)
-	$(Q)astyle --project=none --options=astyle.opt $(wildcard *.h *.cpp\
-	  sample/*.cpp)
+	$(Q)astyle --project=none --options=astyle.opt $^
 	$(Q)./format.pl
+ifneq ($(call which,cppcheck),)
+	$(Q)cppcheck --quiet --language=c++ --error-exitcode=-1 $^
+endif
 endif
 endif # which astyle
 
@@ -639,7 +645,7 @@ endif # NO_SWIG
 
 ifneq ($(call which,doxygen),)
 ifeq ($(call verCheck,$(shell doxygen -v),1.8),)
-doxygen: $(HEADERS_ALL)
+doxygen: $(HEADERS_GEN) $(HEADERS)
 	$(Q_DOXY)
 	$(Q)doxygen doxygen.cfg 2>&1 >/dev/null
 DISTCLEAN_DIRS+=doc
@@ -647,7 +653,7 @@ endif
 endif # which doxygen
 
 ifneq ($(call which,ctags),)
-tags: $(filter-out $(wildcard ids*.h),$(wildcard *.h *.cpp))
+tags: $(HEADERS_GEN) $(filter-out ids.h,$(HEADERS_SRCS)) $(SRCS)
 	$(Q_TAGS)
 	$(Q)ctags -R $^
 ALL+=tags
@@ -660,20 +666,23 @@ all: $(ALL)
 
 ####### Debain build #######
 ifneq ($(and $(wildcard debian/rules),$(call which,dpkg-buildpackage)),)
+DEB_ALL_CLEAN:=$(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
 deb_src: distclean
 	$(Q)dpkg-source -b .
 deb:
-	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc
-	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -uc
+	$Q$(RM) $(DEB_ALL_CLEAN)
+ifneq ($(DEB_ARC),)
 deb_arc:
-	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -us -uc -a$(DEB_ARC)
-	$Q$(RM) $(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -uc -a$(DEB_ARC)
+	$Q$(RM) $(DEB_ALL_CLEAN)
+endif
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
-SRC_FILES:=$(wildcard *.c* *.i */test.* scripts/* *.sh *.pl *.md)\
-  $(HEADERS) pmc.h LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
+SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
+  php/*.sh) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) $(HEADERS_SRCS) $(SRCS)
 SRC_NAME:=libpmc-$(LIB_VER)
 
 ####### rpm build #######

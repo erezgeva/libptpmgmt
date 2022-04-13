@@ -11,7 +11,8 @@
 *.lo
 *.d
 *.so
-.*.swp
+.sw?
+.*.sw?
 /.libs/
 /libpmc.a
 /pmc
