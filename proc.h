@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_PROC_H
-#define __PMC_PROC_H
+#ifndef __PTPMGMT_PROC_H
+#define __PTPMGMT_PROC_H
 
 #include <string>
 #include <cstdint>
@@ -616,4 +616,4 @@ struct POWER_PROFILE_SETTINGS_NP_t : public BaseMngTlv {
 };
 #endif
 
-#endif /* __PMC_PROC_H */
+#endif /* __PTPMGMT_PROC_H */

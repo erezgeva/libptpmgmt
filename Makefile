@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright 2021 Erez Geva
 #
-# Makefile Create libpmc and pmc for testing
+# Makefile Create libptpmgmt and pmc for testing
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
@@ -65,7 +65,7 @@ define help
 #                                                                              #
 #   SONAME_USE_MAJ   Use soname with major version                             #
 #                                                                              #
-#   DEV_PKG          Development package name, default libpmc-dev.             #
+#   DEV_PKG          Development package name, default libptpmgmt-dev.         #
 #                                                                              #
 #   PY_LIBDIR        Python libraries folder, default /usr/lib/python          #
 #                                                                              #
@@ -99,9 +99,9 @@ define help
 #                                                                              #
 #   NO_TCL           Prevent compiling TCL Swig plugin.                        #
 #                                                                              #
-#   PMC_USE_CJSON    Use C JSON for parsing JSON into PTP management message.  #
+#   USE_CJSON        Use C JSON for parsing JSON into PTP management message.  #
 #                                                                              #
-#   PMC_USE_FCJSON   Use C JSON for parsing JSON into PTP management message.  #
+#   USE_FCJSON       Use C JSON for parsing JSON into PTP management message.  #
 #                    Use fast JSON library.                                    #
 #                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
@@ -210,7 +210,7 @@ LIB_VER:=$(ver_maj).$(ver_min)
 ifdef SONAME_USE_MAJ
 SONAME:=.$(ver_maj)
 endif
-LIB_NAME:=libpmc
+LIB_NAME:=libptpmgmt
 LIB_NAME_SO:=$(LIB_NAME).so
 LIB_FNAME_SO:=$(LIB_NAME_SO).$(LIB_VER)
 LIB_SNAME_SO:=$(LIB_NAME_SO)$(SONAME)
@@ -223,19 +223,19 @@ PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
 LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS)))
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
-ifdef PMC_USE_CJSON
+ifdef USE_CJSON
 ifneq ($(wildcard /usr/include/json-c/json.h),)
-json.o: CPPFLAGS+=-DPMC_USE_CJSON -isystem /usr/include/json-c
+json.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/json-c
 LDLIBS_LIB+=-ljson-c
 endif # wildcard json.h
-else # PMC_USE_CJSON
-ifdef PMC_USE_FCJSON
+else # USE_CJSON
+ifdef USE_FCJSON
 ifneq ($(wildcard /usr/include/libfastjson/json.h),)
-json.o: CPPFLAGS+=-DPMC_USE_CJSON -isystem /usr/include/libfastjson
+json.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/libfastjson
 LDLIBS_LIB+=-lfastjson
 endif # wildcard json.h
-endif # PMC_USE_FCJSON
-endif # PMC_USE_CJSON
+endif # USE_FCJSON
+endif # USE_CJSON
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
@@ -311,12 +311,12 @@ define verDef
  * @copyright 2021 Erez Geva\n *\n
  * This header is generated automatically.\n *\n
  */\n\n
-#ifndef __PMC_VER_DEFS_H\n
-#define __PMC_VER_DEFS_H\n\n
-#define LIBPMC_VER_MAJ ($(ver_maj)) /**< Library version major */\n
-#define LIBPMC_VER_MIN ($(ver_min)) /**< Library version minor */\n
-#define LIBPMC_VER "$(ver_maj).$(ver_min)" /**< Library version string */\n\n
-#endif /* __PMC_VER_DEFS_H */\n
+#ifndef __PTPMGMT_VER_DEFS_H\n
+#define __PTPMGMT_VER_DEFS_H\n\n
+#define LIBPTPMGMT_VER_MAJ ($(ver_maj)) /**< Library version major */\n
+#define LIBPTPMGMT_VER_MIN ($(ver_min)) /**< Library version minor */\n
+#define LIBPTPMGMT_VER "$(ver_maj).$(ver_min)" /**< Library version string */\n\n
+#endif /* __PTPMGMT_VER_DEFS_H */\n
 
 endef
 verDef.h: version
@@ -356,7 +356,7 @@ swig_ver=$(lastword $(shell swig -version | grep Version))
 ifeq ($(call verCheck,$(swig_ver),3.0),)
 SWIG:=swig
 SWIG_ALL:=
-SWIG_NAME:=PmcLib
+SWIG_NAME:=PtpMgmtLib
 
 ifndef NO_PERL
 ifneq ($(call which,perl),)
@@ -389,7 +389,7 @@ endif # NO_PERL
 
 ifndef NO_LUA
 ifneq ($(call which,lua),)
-LUA_LIB_NAME:=pmc.so
+LUA_LIB_NAME:=ptpmgmt.so
 lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -Wall -c++ -I. -outdir lua -o $@ -lua $<
@@ -481,7 +481,7 @@ endif
 
 ifdef USE_PY
 PY_BASE:=python/$(SWIG_NAME)
-PY_LIB_NAME:=_pmc
+PY_LIB_NAME:=_ptpmgmt
 PY_LIBDIR?=/usr/lib/python
 ifeq ($(PY_USE_S_THRD),)
 SWIG_PY_FLAGS:=-threads -DSWIG_USE_MULTITHREADS
@@ -491,7 +491,7 @@ $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $(SWIG_PY_FLAGS) $<
 
-DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/pmc.py python/pmc.pyc
+DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/ptpmgmt.py python/ptpmgmt.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 ifdef USE_PY2
 $(eval $(call python,2))
@@ -524,7 +524,7 @@ RUBY_LIB:=$(call rep_arch_f,$(RUBY_LIB))
 RUBYDIR:=$(call rep_arch_f,$(RUBYDIR))
 endif
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
-RUBY_LNAME:=ruby/pmc
+RUBY_LNAME:=ruby/ptpmgmt
 $(RUBY_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -c++ -I. -outdir ruby -o $@ -ruby $<
@@ -558,7 +558,7 @@ PHPIDIR:=$(DESTDIR)$(lastword $(subst :, ,$(shell\
         php -r 'echo get_include_path();')))
 PHP_INC:=-Iphp $(shell $(PHPCFG) --includes)
 PHP_NAME:=php/$(SWIG_NAME).cpp
-PHP_LNAME:=php/pmc
+PHP_LNAME:=php/ptpmgmt
 $(PHP_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -c++ -I. -outdir php -o $@ -php7 $<
@@ -569,7 +569,7 @@ $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
 SWIG_ALL+=$(PHP_LNAME).so
-CLEAN+=$(PHP_NAME) $(foreach e,d o,$(PHP_LNAME).$e) php/php_pmc.h
+CLEAN+=$(PHP_NAME) $(foreach e,d o,$(PHP_LNAME).$e) php/php_ptpmgmt.h
 DISTCLEAN+=$(PHP_LNAME).so $(PHP_LNAME).php php/php.ini
 else # SWIG 3.0.12
 NO_PHP=1
@@ -595,7 +595,7 @@ ifneq ($(call which,tclsh)),)
 tcl_ver!=echo 'puts $$tcl_version;exit 0' | tclsh
 ifeq ($(call verCheck,$(tcl_ver),8.0),)
 TCL_NAME:=tcl/$(SWIG_NAME).cpp
-TCL_LNAME:=tcl/pmc
+TCL_LNAME:=tcl/ptpmgmt
 CPPFLAGS_TCL+=-I $(TCL_INC)
 $(TCL_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
@@ -620,11 +620,11 @@ else
 TCL_LIB:=$(firstword $(shell echo $(tcl_paths) |\
   $(SED) 's/ /\n/g' | grep '/usr/lib.*/tcl'))
 endif
-TCLDIR:=$(DESTDIR)$(TCL_LIB)/pmc
+TCLDIR:=$(DESTDIR)$(TCL_LIB)/ptpmgmt
 # TODO how the hell tcl "know" the library version? Why does it think it's 0.0?
 define pkgIndex
 if {![package vsatisfies [package provide Tcl] $(tcl_ver)]} {return}
-package ifneeded pmc 0.0 [list load [file join $$dir pmc.so]]
+package ifneeded ptpmgmt 0.0 [list load [file join $$dir ptpmgmt.so]]
 endef
 else # tcl_ver 8.0
 NO_TCL=1
@@ -683,7 +683,7 @@ endif # and wildcard debian/rules, which dpkg-buildpackage
 
 SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
   php/*.sh) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) $(HEADERS_SRCS) $(SRCS)
-SRC_NAME:=libpmc-$(LIB_VER)
+SRC_NAME:=libptpmgmt-$(LIB_VER)
 
 ####### rpm build #######
 RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
@@ -692,7 +692,7 @@ $(RPM_SRC): $(SRC_FILES)
 	$Q$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
 ifneq ($(call which,rpmbuild),)
 rpm: $(RPM_SRC)
-	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/libpmc.spec
+	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/libptpmgmt.spec
 endif # which rpmbuild
 rpmsrc: $(RPM_SRC)
 DISTCLEAN_DIRS+=$(wildcard rpm/[BRS]*)
@@ -725,10 +725,10 @@ LIBDIR?=/usr/lib/$(TARGET_ARCH)
 else
 LIBDIR?=/usr/lib
 endif
-DEV_PKG?=libpmc-dev
+DEV_PKG?=libptpmgmt-dev
 SBINDIR?=/usr/sbin
 LUADIR:=$(DESTDIR)$(LIBDIR)
-DOCDIR:=$(DESTDIR)/usr/share/doc/libpmc-doc
+DOCDIR:=$(DESTDIR)/usr/share/doc/libptpmgmt-doc
 MANDIR:=$(DESTDIR)/usr/share/man/man8
 ifndef PY2_ARCH
 ifneq ($(TARGET_ARCH),)
@@ -744,15 +744,15 @@ ifdef SONAME_USE_MAJ
 else
 	$Q$(NINST) -D $(LIB_NAME_SO) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
 endif
-	$Q$(NINST) libpmc.a $(DESTDIR)$(LIBDIR)
-	$Q$(NINST) -D $(HEADERS) verDef.h -t $(DESTDIR)/usr/include/pmc
+	$Q$(NINST) libptpmgmt.a $(DESTDIR)$(LIBDIR)
+	$Q$(NINST) -D $(HEADERS) verDef.h -t $(DESTDIR)/usr/include/ptpmgmt
 	$Q$(foreach f,$(HEADERS),$(SED) -i\
-	  's!#include\s*\"\([^"]\+\)\"!#include <pmc/\1>!'\
-	  $(DESTDIR)/usr/include/pmc/$f;)
+	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
+	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$Q$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
-	$Q$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc.lib
+	$Q$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
 	$Q$(DINST) $(MANDIR)
-	$Q$(LN) pmc.8.gz $(MANDIR)/pmc.lib.8.gz
+	$Q$(LN) pmc.8.gz $(MANDIR)/pmc-ptpmgmt.8.gz
 	$Q$(RM) doc/html/*.md5
 	$Q$(DINST) $(DOCDIR)
 	$(Q)cp -a doc/html $(DOCDIR)
@@ -777,12 +777,12 @@ endif # NO_LUA
 ifdef USE_PY2
 	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2_DIR)/$(PY_LIB_NAME)$(PY2_ARCH).so
-	$Q$(NINST) python/pmc.py $(PY2_DIR)
+	$Q$(NINST) python/ptpmgmt.py $(PY2_DIR)
 endif
 ifdef USE_PY3
 	$Q$(NINST) -D python/3/$(PY_LIB_NAME).so\
 	  $(PY3_DIR)/$(PY_LIB_NAME)$(PY3_EXT)
-	$Q$(NINST) python/pmc.py $(PY3_DIR)
+	$Q$(NINST) python/ptpmgmt.py $(PY3_DIR)
 endif
 ifndef NO_RUBY
 	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)

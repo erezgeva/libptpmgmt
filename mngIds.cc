@@ -12,8 +12,8 @@
  *
  *%@
 %_
-%#ifndef __MNG_IDS_H
-%#define __MNG_IDS_H
+%#ifndef __PTPMGMT_MNG_IDS_H
+%#define __PTPMGMT_MNG_IDS_H
 %_
 %#include "msg.h"
 %_
@@ -172,4 +172,4 @@ vecClassSig(Event, SLAVE_TX_EVENT_TIMESTAMPS)
 vecClassSig(Delay, SLAVE_DELAY_TIMING_DATA_NP)
 %#endif %@* SWIG *%@
 %_
-%#endif %@* __MNG_IDS_H *%@
+%#endif %@* __PTPMGMT_MNG_IDS_H *%@

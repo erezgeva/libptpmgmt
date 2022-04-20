@@ -1,3 +1,46 @@
+* Mon Apr 18 2022 ErezGeva2@gmail.com 0.6-1
+- Improve make file
+- - Add missing files to source tar file for RPM and Arch Linux
+- - Add Cppcheck code analysis on format rule.
+- Compliant with the FSF REUSE Specification 3.0
+- Python SWIG
+- - Support multithread, make sure poll() and tpoll()
+-     do not block other threads
+- - Use flag for single thread mode
+- Add fileno() interface as it follow POSIX function and
+-   also supported by Python select module, and probably more.
+- Convert C macros for NP_SUBSCRIBE_EVENTS with method
+-   to support scripting.
+- Sample code
+- - Add sample/sync_watch.py by Martin Pecka form
+-     Czech Technical University in Prague
+- - Add sample code for probing PTP daemon for synchronization.
+- Improve RPM specification.
+- Add no return attribute to signal handlers.
+- LinuxPTP new management TLVs:
+- - PORT_HWCLOCK_NP TLV.
+- - UNICAST_MASTER_TABLE_NP TLV.
+- Improve copyright.
+- Add header with version for compilation.
+-   in addition to version in run time.
+- Improve testing script:
+- - Verify Linux PTP configuration file exit.
+- - Check that script can use sudo unless we use the root user.
+- - Probe Unix socket file location from configuration file.
+- - Try to change Linux PTP Unix socket file permissions.
+- - Patch Linux PTP daemon if Unix socket file does not exist.
+- - Show Linux PTP daemon command line only if we find the folder.
+- Message process of float 64
+- - Remove wrong calling to move
+- - Improve function syntax
+- - Add macro for rare hardware which does not use IEEE 754.
+- Add new linuxptp linuxptpPowerProfileVersion_e enumerator
+- Fix wrong process of linuxptpTimeStamp_e enumerator in json module.
+- Use short string form of clockAccuracy_e enumerator.
+- cast characters in Binary::eui48ToEui64().
+- Add constant modifier to configuration file reference
+-   in the socket classes.
+
 * Sun Oct 31 2021 ErezGeva2@gmail.com 0.5-1
 - Add equal and less than operators to Binary, ClockIdentity_t,
   PortIdentity_t and PortAddress_t.

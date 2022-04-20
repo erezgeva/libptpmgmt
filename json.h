@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_JSON_H
-#define __PMC_JSON_H
+#ifndef __PTPMGMT_JSON_H
+#define __PTPMGMT_JSON_H
 
 #include <string>
 #include <cstdint>
@@ -75,8 +75,8 @@ class Json2msg
      * @return true if parsing success
      * @note jobj must be json_object pointer
      * @attention You must use the same JSON library used by this library!
-     *  with PMC_USE_CJSON use the json-c library
-     *  with PMC_USE_FCJSON use the fast json library
+     *  build with USE_CJSON use the json-c library
+     *  build with USE_FCJSON use the fast json library
      */
     bool fromJsonObj(const void *jobj);
     /**
@@ -186,4 +186,4 @@ class Json2msg
     bool haveDstPort() const { return m_have[have_dstPort]; }
 };
 
-#endif /* __PMC_JSON_H */
+#endif /* __PTPMGMT_JSON_H */

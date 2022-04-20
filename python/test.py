@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright 2021 Erez Geva
 #
 #
-# testing for python wrapper of libpmc
+# testing for python wrapper of libptpmgmt
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
@@ -11,13 +11,13 @@
 
 import os
 import sys
-import pmc
+import ptpmgmt
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 
-sk = pmc.SockUnix()
-msg = pmc.Message()
-buf = pmc.Buf(1000)
+sk = ptpmgmt.SockUnix()
+msg = ptpmgmt.Message()
+buf = ptpmgmt.Buf(1000)
 sequence = 0
 
 def nextSequence():
@@ -29,14 +29,14 @@ def nextSequence():
 
 def setPriority1(newPriority1):
   global sk, msg, buf
-  pr1 = pmc.PRIORITY1_t()
+  pr1 = ptpmgmt.PRIORITY1_t()
   pr1.priority1 = newPriority1
-  id = pmc.PRIORITY1
-  msg.setAction(pmc.SET, id, pr1)
+  id = ptpmgmt.PRIORITY1
+  msg.setAction(ptpmgmt.SET, id, pr1)
   seq = nextSequence()
   err = msg.build(buf, seq)
-  if err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.Message.err2str_c(err)
+  if err != ptpmgmt.MNG_PARSE_ERROR_OK:
+    txt = ptpmgmt.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
     print("send fail")
@@ -49,16 +49,16 @@ def setPriority1(newPriority1):
     print("rcv cnt")
     return -1
   err = msg.parse(buf, cnt)
-  if(err != pmc.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
+  if(err != ptpmgmt.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
      seq != msg.getSequence()):
     print("set fails")
     return -1
   print("set new priority %d success" % newPriority1)
-  msg.setAction(pmc.GET, id)
+  msg.setAction(ptpmgmt.GET, id)
   seq = nextSequence()
   err = msg.build(buf, seq)
-  if err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.Message.err2str_c(err)
+  if err != ptpmgmt.MNG_PARSE_ERROR_OK:
+    txt = ptpmgmt.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
     print("send fail")
@@ -71,17 +71,17 @@ def setPriority1(newPriority1):
     print("rcv cnt")
     return -1
   err = msg.parse(buf, cnt)
-  if err == pmc.MNG_PARSE_ERROR_MSG:
+  if err == ptpmgmt.MNG_PARSE_ERROR_MSG:
     print("error message")
-  elif err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.Message.err2str_c(err)
+  elif err != ptpmgmt.MNG_PARSE_ERROR_OK:
+    txt = ptpmgmt.Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
     rid = msg.getTlvId()
-    idstr = pmc.Message.mng2str_c(rid)
+    idstr = ptpmgmt.Message.mng2str_c(rid)
     print("Get reply for %s" % idstr)
     if rid == id:
-      newPr = pmc.conv_PRIORITY1(msg.getData())
+      newPr = ptpmgmt.conv_PRIORITY1(msg.getData())
       print("priority1: %d" % newPr.priority1)
       return 0
   return -1
@@ -96,7 +96,7 @@ def main():
   else:
     cfg_file = DEF_CFG_FILE
   print("Use configuration file %s" % cfg_file)
-  cfg = pmc.ConfigFile()
+  cfg = ptpmgmt.ConfigFile()
   if not cfg.read_cfg(cfg_file):
     print("fail reading configuration file")
     return -1
@@ -110,12 +110,12 @@ def main():
   prms.domainNumber = cfg.domainNumber()
   msg.updateParams(prms)
   msg.useConfig(cfg)
-  id = pmc.USER_DESCRIPTION
-  msg.setAction(pmc.GET, id)
+  id = ptpmgmt.USER_DESCRIPTION
+  msg.setAction(ptpmgmt.GET, id)
   seq = nextSequence()
   err = msg.build(buf, seq)
-  if err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.Message.err2str_c(err)
+  if err != ptpmgmt.MNG_PARSE_ERROR_OK:
+    txt = ptpmgmt.Message.err2str_c(err)
     print("build error %s" % txt)
     return -1
 
@@ -138,23 +138,23 @@ def main():
     return -1
 
   err = msg.parse(buf, cnt)
-  if err == pmc.MNG_PARSE_ERROR_MSG:
+  if err == ptpmgmt.MNG_PARSE_ERROR_MSG:
     print("error message")
-  elif err != pmc.MNG_PARSE_ERROR_OK:
-    txt = pmc.Message.err2str_c(err)
+  elif err != ptpmgmt.MNG_PARSE_ERROR_OK:
+    txt = ptpmgmt.Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
     rid = msg.getTlvId()
-    idstr = pmc.Message.mng2str_c(rid)
+    idstr = ptpmgmt.Message.mng2str_c(rid)
     print("Get reply for %s" % idstr)
     if rid == id:
-      user = pmc.conv_USER_DESCRIPTION(msg.getData())
+      user = ptpmgmt.conv_USER_DESCRIPTION(msg.getData())
       print("get user desc: %s" % user.userDescription.textField)
 
   # test setting values
-  clk_dec = pmc.CLOCK_DESCRIPTION_t()
+  clk_dec = ptpmgmt.CLOCK_DESCRIPTION_t()
   clk_dec.clockType = 0x800
-  physicalAddress = pmc.Binary()
+  physicalAddress = ptpmgmt.Binary()
   physicalAddress.setBin(0, 0xf1)
   physicalAddress.setBin(1, 0xf2)
   physicalAddress.setBin(2, 0xf3)
@@ -168,7 +168,7 @@ def main():
   print("clk.physicalAddress: %s" % clk_dec.physicalAddress.toId())
   print("clk.physicalAddress: %s" % clk_dec.physicalAddress.toHex())
   print("manufacturerIdentity: %s" %
-    pmc.Binary.bufToId(clk_dec.manufacturerIdentity, 3))
+    ptpmgmt.Binary.bufToId(clk_dec.manufacturerIdentity, 3))
   clk_dec.revisionData.textField = "This is a test"
   print("revisionData: %s" % clk_dec.revisionData.textField)
 
@@ -176,23 +176,23 @@ def main():
   setPriority1(147)
   setPriority1(153)
 
-  event = pmc.SUBSCRIBE_EVENTS_NP_t()
-  event.setEvent(pmc.NOTIFY_TIME_SYNC)
+  event = ptpmgmt.SUBSCRIBE_EVENTS_NP_t()
+  event.setEvent(ptpmgmt.NOTIFY_TIME_SYNC)
 
-  if event.getEvent(pmc.NOTIFY_TIME_SYNC):
+  if event.getEvent(ptpmgmt.NOTIFY_TIME_SYNC):
     txt = 'have'
   else:
     txt = 'not'
   print('maskEvent(NOTIFY_TIME_SYNC)={}, getEvent(NOTIFY_TIME_SYNC)={}'
-    .format(pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_TIME_SYNC),
+    .format(ptpmgmt.SUBSCRIBE_EVENTS_NP_t.maskEvent(ptpmgmt.NOTIFY_TIME_SYNC),
     txt))
 
-  if event.getEvent(pmc.NOTIFY_PORT_STATE):
+  if event.getEvent(ptpmgmt.NOTIFY_PORT_STATE):
     txt = 'have'
   else:
     txt = 'not'
   print('maskEvent(NOTIFY_PORT_STATE)={}, getEvent(NOTIFY_PORT_STATE)={}'
-    .format(pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_PORT_STATE),
+    .format(ptpmgmt.SUBSCRIBE_EVENTS_NP_t.maskEvent(ptpmgmt.NOTIFY_PORT_STATE),
     txt))
 
   return 0
@@ -200,9 +200,9 @@ def main():
 main()
 sk.close()
 
-# If libpmc library is not installed in system, run with:
+# If libptpmgmt library is not installed in system, run with:
 """
-rm -rf pmc.pyc __pycache__;ln -sf 2/*.so;LD_LIBRARY_PATH=.. python2 test.py
-rm -rf pmc.pyc __pycache__;ln -sf 3/*.so;LD_LIBRARY_PATH=.. python3 test.py
+rm -rf ptpmgmt.pyc __pycache__;ln -sf 2/*.so;LD_LIBRARY_PATH=.. python2 test.py
+rm -rf ptpmgmt.pyc __pycache__;ln -sf 3/*.so;LD_LIBRARY_PATH=.. python3 test.py
 
 """

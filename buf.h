@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_BUF_H
-#define __PMC_BUF_H
+#ifndef __PTPMGMT_BUF_H
+#define __PTPMGMT_BUF_H
 
 #include <string>
 #include <cstdint>
@@ -63,4 +63,4 @@ class Buf
     bool isAlloc() const {return m_size > 0;}
 };
 
-#endif /* __PMC_BUF_H */
+#endif /* __PTPMGMT_BUF_H */

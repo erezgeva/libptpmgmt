@@ -11,11 +11,11 @@
 
 BEGIN { push @INC, './perl' }
 
-use PmcLib;
+use PtpMgmtLib;
 
 use constant DEF_CFG_FILE => '/etc/linuxptp/ptp4l.conf';
 
-my $sk = PmcLib::SockUnix->new;
+my $sk = PtpMgmtLib::SockUnix->new;
 die "Fail socket" unless defined $sk;
 my $msg;
 my $buf;
@@ -24,10 +24,10 @@ my $sequence = 0;
 sub runId
 {
     my $id = shift;
-    $msg->setAction($PmcLib::GET, $id);
+    $msg->setAction($PtpMgmtLib::GET, $id);
     my $err = $msg->build($buf, ++$sequence);
-    my $txt = PmcLib::Message::err2str_c($err);
-    die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
+    my $txt = PtpMgmtLib::Message::err2str_c($err);
+    die "build error $txt\n" if $err != $PtpMgmtLib::MNG_PARSE_ERROR_OK;
     die "send" unless $sk->send($buf, $msg->getMsgLen());
 
     # You can get file descriptor with sk->fileno() and use Perl select
@@ -44,20 +44,20 @@ sub runId
 
     $msg->parse($buf, $cnt);
 
-    my $j = PmcLib::msg2json($msg);
+    my $j = PtpMgmtLib::msg2json($msg);
     print "$j,\n";
 }
 
 sub creatJsonTest
 {
-    $msg = PmcLib::Message->new;
-    $buf = PmcLib::Buf->new(1000);
+    $msg = PtpMgmtLib::Message->new;
+    $buf = PtpMgmtLib::Buf->new(1000);
     die "buffer allocation failed" unless $buf->isAlloc();
     my $cfg_file = $ARGV[0];
     $cfg_file = DEF_CFG_FILE unless -f $cfg_file;
     die "Config file $uds_address does not exist" unless -f $cfg_file;
 
-    my $cfg = PmcLib::ConfigFile->new;
+    my $cfg = PtpMgmtLib::ConfigFile->new;
     die "ConfigFile" unless $cfg->read_cfg($cfg_file);
 
     die "SockUnix" unless $sk->setDefSelfAddress() &&
@@ -73,7 +73,7 @@ sub creatJsonTest
     $msg->updateParams($prms);
 
     print "[\n";
-    runId(eval('$PmcLib::'.$_)) for qw(ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY),
+    runId(eval('$PtpMgmtLib::'.$_)) for qw(ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY),
         qw(CLOCK_DESCRIPTION CURRENT_DATA_SET DEFAULT_DATA_SET DELAY_MECHANISM),
         qw(DOMAIN LOG_ANNOUNCE_INTERVAL LOG_MIN_PDELAY_REQ_INTERVAL),
         qw(LOG_SYNC_INTERVAL PARENT_DATA_SET PRIORITY1 PRIORITY2 SLAVE_ONLY),
@@ -86,7 +86,7 @@ sub creatJsonTest
 }
 sub toJsonTest
 {
-    my $json2msg = PmcLib::Json2msg->new;
+    my $json2msg = PtpMgmtLib::Json2msg->new;
     my $json = <<EOF;
 {
   "sequenceId" : 12,
@@ -147,6 +147,6 @@ EOF
 creatJsonTest;
 toJsonTest;
 $sk->close();
-# dpkg --remove --force-all pmc libpmc libpmc-dev libpmc-perl
-# p='pmc libpmc libpmc-dev libpmc-perl' && apt install $p && apt-mark auto $p
+# dpkg --remove --force-all pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl
+# p='pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl' && apt install $p && apt-mark auto $p
 # LD_LIBRARY_PATH=. ./testJson.pl | jsonlint

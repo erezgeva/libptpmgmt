@@ -16,11 +16,11 @@ sub main()
   my $ver;
   my $key = qr/[A-Z][a-z][a-z]/;
   my $debfile='debian/changelog';
-  my $rpmfile='rpm/libpmc.spec';
+  my $rpmfile='rpm/libptpmgmt.spec';
   my $arcfile='archlinux/changelog';
   my $first;
   exit unless -f $debfile and -f $rpmfile;
-  open IN, $rpmfile or die "Fail open $debfile: $!";
+  open IN, $rpmfile or die "Fail open $rpmfile: $!";
   my @org = <IN>;
   close IN;
   open OUT, ">$rpmfile" or die "Fail write file $rpmfile: $!";
@@ -33,7 +33,7 @@ sub main()
   while(<IN>) {
     chomp;s/\s*$//;
     next if /^$/;
-    if(/^libpmc \(([^)]+)/) {
+    if(/^libptpmgmt \(([^)]+)/) {
       $ver=$1;
       next;
     }

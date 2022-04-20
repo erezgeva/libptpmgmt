@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
-/* libpmc.i Library Swig header file
+/* Library Swig header file
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -9,9 +9,9 @@
  */
 
 #ifdef SWIGPERL
-%module PmcLib
+%module PtpMgmtLib
 #else /* Not Perl */
-%module pmc
+%module ptpmgmt
 #endif /* SWIGPERL */
 %{
     #include "cfg.h"

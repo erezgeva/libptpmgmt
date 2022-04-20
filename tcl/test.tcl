@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright 2021 Erez Geva
 #
-# testing for tcl wrapper of libpmc
+# testing for tcl wrapper of libptpmgmt
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 #
 ###############################################################################
 
-package require pmc
+package require ptpmgmt
 
 set DEF_CFG_FILE "/etc/linuxptp/ptp4l.conf"
 SockUnix sk
@@ -220,5 +220,5 @@ sk close
 
 ######################################
 
-# If libpmc library is not installed in system, run with:
+# If libptpmgmt library is not installed in system, run with:
 #  LD_LIBRARY_PATH=.. ./test.tcl

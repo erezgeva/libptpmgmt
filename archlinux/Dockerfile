@@ -19,4 +19,4 @@ RUN patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER $USER
 ARG SRC
-COPY --chown=builder $SRC /home/$USER/libpmc
+COPY --chown=builder $SRC /home/$USER/libptpmgmt

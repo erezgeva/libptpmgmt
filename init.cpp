@@ -36,7 +36,7 @@ int Init::proccess(const Options &opt)
     MsgParams prms = m_msg.getParams();
     if(net_select != 'u') {
         if(interface.empty()) {
-            PMC_ERROR("missing interface");
+            PTPMGMT_ERROR("missing interface");
             return -1;
         }
         if(!ifObj.initUsingName(interface))
@@ -64,7 +64,7 @@ int Init::proccess(const Options &opt)
         case 'u': {
             SockUnix *sku = new SockUnix;
             if(sku == nullptr) {
-                PMC_ERROR("failed to allocate SockUnix");
+                PTPMGMT_ERROR("failed to allocate SockUnix");
                 return -1;
             }
             m_sk = sku;
@@ -75,7 +75,7 @@ int Init::proccess(const Options &opt)
                 uds_address = m_cfg.uds_address(interface);
             if(!sku->setDefSelfAddress() || !sku->init() ||
                 !sku->setPeerAddress(uds_address)) {
-                PMC_ERROR("failed to create transport");
+                PTPMGMT_ERROR("failed to create transport");
                 return -1;
             }
             prms.self_id.portNumber = getpid() & 0xffff;
@@ -86,20 +86,20 @@ int Init::proccess(const Options &opt)
         case '4': {
             SockIp4 *sk4 = new SockIp4;
             if(sk4 == nullptr) {
-                PMC_ERROR("failed to allocate SockIp4");
+                PTPMGMT_ERROR("failed to allocate SockIp4");
                 return -1;
             }
             m_sk = sk4;
             if(!sk4->setAll(ifObj, m_cfg, interface)) {
-                PMC_ERROR("failed to set transport");
+                PTPMGMT_ERROR("failed to set transport");
                 return -1;
             }
             if(opt.have('T') && !sk4->setUdpTtl(opt.val_i('T'))) {
-                PMC_ERROR("failed to set udp_ttl");
+                PTPMGMT_ERROR("failed to set udp_ttl");
                 return -1;
             }
             if(!sk4->init()) {
-                PMC_ERROR("failed to init transport");
+                PTPMGMT_ERROR("failed to init transport");
                 return -1;
             }
             break;
@@ -107,24 +107,24 @@ int Init::proccess(const Options &opt)
         case '6': {
             SockIp6 *sk6 = new SockIp6;
             if(sk6 == nullptr) {
-                PMC_ERROR("failed to allocate SockIp6");
+                PTPMGMT_ERROR("failed to allocate SockIp6");
                 return -1;
             }
             m_sk = sk6;
             if(!sk6->setAll(ifObj, m_cfg, interface)) {
-                PMC_ERROR("failed to set transport");
+                PTPMGMT_ERROR("failed to set transport");
                 return -1;
             }
             if(opt.have('T') && !sk6->setUdpTtl(opt.val_i('T'))) {
-                PMC_ERROR("failed to set udp_ttl");
+                PTPMGMT_ERROR("failed to set udp_ttl");
                 return -1;
             }
             if(opt.have('S') && !sk6->setScope(opt.val_i('S'))) {
-                PMC_ERROR("failed to set udp6_scope");
+                PTPMGMT_ERROR("failed to set udp6_scope");
                 return -1;
             }
             if(!sk6->init()) {
-                PMC_ERROR("failed to init transport");
+                PTPMGMT_ERROR("failed to init transport");
                 return -1;
             }
             break;
@@ -132,27 +132,27 @@ int Init::proccess(const Options &opt)
         case '2': {
             SockRaw *skr = new SockRaw;
             if(skr == nullptr) {
-                PMC_ERROR("failed to allocate SockRaw");
+                PTPMGMT_ERROR("failed to allocate SockRaw");
                 return -1;
             }
             m_sk = skr;
             if(!skr->setAll(ifObj, m_cfg, interface)) {
-                PMC_ERROR("failed to set transport");
+                PTPMGMT_ERROR("failed to set transport");
                 return -1;
             }
             if(opt.have('P') &&
                 !skr->setSocketPriority(opt.val_i('P'))) {
-                PMC_ERROR("failed to set socket_priority");
+                PTPMGMT_ERROR("failed to set socket_priority");
                 return -1;
             }
             Binary mac;
             if(opt.have('M') && (!mac.fromMac(opt.val('M')) ||
                     !skr->setPtpDstMac(mac))) {
-                PMC_ERROR("failed to set ptp_dst_mac");
+                PTPMGMT_ERROR("failed to set ptp_dst_mac");
                 return -1;
             }
             if(!skr->init()) {
-                PMC_ERROR("failed to init transport");
+                PTPMGMT_ERROR("failed to init transport");
                 return -1;
             }
             break;

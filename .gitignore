@@ -14,10 +14,10 @@
 .sw?
 .*.sw?
 /.libs/
-/libpmc.a
+/libptpmgmt.a
 /pmc
 /tags
 /doc
 # For codeblocks
-/libpmc.depend
-/libpmc.layout
+/libptpmgmt.depend
+/libptpmgmt.layout

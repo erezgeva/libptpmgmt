@@ -12,8 +12,8 @@
  *  host byte order to network byte order
  */
 
-#ifndef __PMC_ENDIAN_H
-#define __PMC_ENDIAN_H
+#ifndef __PTPMGMT_ENDIAN_H
+#define __PTPMGMT_ENDIAN_H
 
 #include <cstdint>
 #include <endian.h>
@@ -70,4 +70,4 @@ inline uint64_t cpu_to_le64(uint64_t value) {return htole64(value);}
  */
 inline uint64_t le_to_cpu64(uint64_t value) {return le64toh(value);}
 
-#endif /* __PMC_ENDIAN_H */
+#endif /* __PTPMGMT_ENDIAN_H */

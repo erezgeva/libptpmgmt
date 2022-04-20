@@ -9,7 +9,7 @@
 /*.substvars
 /.*debhelper*
 /*debhelper*
-/libpmc*/
+/libptpmgmt*/
 /tmp/
-/pmc/
-/*-pmc/
+/pmc-ptpmgmt/
+/*-ptpmgmt/

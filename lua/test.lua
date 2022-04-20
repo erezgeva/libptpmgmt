@@ -2,21 +2,21 @@
 -- SPDX-FileCopyrightText: Copyright 2021 Erez Geva
 
 --[[
- - testing for lua wrapper of libpmc
+ - testing for lua wrapper of libptpmgmt
 
  - @author Erez Geva <ErezGeva2@@gmail.com>
  - @copyright 2021 Erez Geva
  - ]]
 
-require 'pmc'
+require 'ptpmgmt'
 require 'posix'
 local unistd = require 'posix.unistd'
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 
-sk = pmc.SockUnix()
-msg = pmc.Message()
-buf = pmc.Buf(1000)
+sk = ptpmgmt.SockUnix()
+msg = ptpmgmt.Message()
+buf = ptpmgmt.Buf(1000)
 sequence = 0
 
 function nextSequence()
@@ -30,14 +30,14 @@ end
 
 function setPriority1(newPriority1)
   local txt
-  local pr1 = pmc.PRIORITY1_t()
+  local pr1 = ptpmgmt.PRIORITY1_t()
   pr1.priority1 = newPriority1
-  local id = pmc.PRIORITY1
-  msg:setAction(pmc.SET, id, pr1)
+  local id = ptpmgmt.PRIORITY1
+  msg:setAction(ptpmgmt.SET, id, pr1)
   local seq = nextSequence()
   local err = msg:build(buf, seq)
-  if(err ~= pmc.MNG_PARSE_ERROR_OK) then
-    txt = pmc.Message.err2str_c(err)
+  if(err ~= ptpmgmt.MNG_PARSE_ERROR_OK) then
+    txt = ptpmgmt.Message.err2str_c(err)
     print("build error ", txt)
   end
   if(not sk:send(buf, msg:getMsgLen())) then
@@ -54,17 +54,17 @@ function setPriority1(newPriority1)
     return -1
   end
   err = msg:parse(buf, cnt)
-  if(err ~= pmc.MNG_PARSE_ERROR_OK or msg:getTlvId() ~= id or
+  if(err ~= ptpmgmt.MNG_PARSE_ERROR_OK or msg:getTlvId() ~= id or
      seq ~= msg:getSequence()) then
     print "set fails"
     return -1
   end
   print("set new priority " .. newPriority1 .. " success")
-  msg:setAction(pmc.GET, id)
+  msg:setAction(ptpmgmt.GET, id)
   seq = nextSequence()
   err = msg:build(buf, seq)
-  if(err ~= pmc.MNG_PARSE_ERROR_OK) then
-    txt = pmc.Message.err2str_c(err)
+  if(err ~= ptpmgmt.MNG_PARSE_ERROR_OK) then
+    txt = ptpmgmt.Message.err2str_c(err)
     print("build error ", txt)
   end
   if(not sk:send(buf, msg:getMsgLen())) then
@@ -81,17 +81,17 @@ function setPriority1(newPriority1)
     return -1
   end
   err = msg:parse(buf, cnt)
-  if(err == pmc.MNG_PARSE_ERROR_MSG) then
+  if(err == ptpmgmt.MNG_PARSE_ERROR_MSG) then
     print "error Message"
-  elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then
-    txt = pmc.Message.err2str_c(err)
+  elseif(err ~= ptpmgmt.MNG_PARSE_ERROR_OK) then
+    txt = ptpmgmt.Message.err2str_c(err)
     print("parse error ", txt)
   else
     local rid = msg:getTlvId()
-    local idstr = pmc.Message.mng2str_c(rid)
+    local idstr = ptpmgmt.Message.mng2str_c(rid)
     print("Get reply for " .. idstr)
     if(rid == id) then
-      local newPr = pmc.conv_PRIORITY1(msg:getData())
+      local newPr = ptpmgmt.conv_PRIORITY1(msg:getData())
       print(string.format("priority1: %d", newPr.priority1))
       return 0
     end
@@ -110,7 +110,7 @@ function main()
     cfg_file = DEF_CFG_FILE
   end
   print("Use configuration file " .. cfg_file)
-  local cfg = pmc.ConfigFile()
+  local cfg = ptpmgmt.ConfigFile()
   if(not cfg:read_cfg(cfg_file)) then
     print "fail reading configuration file"
     return -1
@@ -131,12 +131,12 @@ function main()
   prms.domainNumber = cfg:domainNumber()
   msg:updateParams(prms)
   msg:useConfig(cfg)
-  local id = pmc.USER_DESCRIPTION
-  msg:setAction(pmc.GET, id)
+  local id = ptpmgmt.USER_DESCRIPTION
+  msg:setAction(ptpmgmt.GET, id)
   local seq = nextSequence()
   local err = msg:build(buf, seq)
-  if(err ~= pmc.MNG_PARSE_ERROR_OK) then
-    txt = pmc.Message.err2str_c(err)
+  if(err ~= ptpmgmt.MNG_PARSE_ERROR_OK) then
+    txt = ptpmgmt.Message.err2str_c(err)
     print("build error ", txt)
     return -1
   end
@@ -155,25 +155,25 @@ function main()
     return -1
   end
   err = msg:parse(buf, cnt)
-  if(err == pmc.MNG_PARSE_ERROR_MSG) then
+  if(err == ptpmgmt.MNG_PARSE_ERROR_MSG) then
     print "error Message"
-  elseif(err ~= pmc.MNG_PARSE_ERROR_OK) then
-    txt = pmc.Message.err2str_c(err)
+  elseif(err ~= ptpmgmt.MNG_PARSE_ERROR_OK) then
+    txt = ptpmgmt.Message.err2str_c(err)
     print("parse error ", txt)
   else
     local rid = msg:getTlvId()
-    local idstr = pmc.Message.mng2str_c(rid)
+    local idstr = ptpmgmt.Message.mng2str_c(rid)
     print("Get reply for " .. idstr)
     if(rid == id) then
-      local user = pmc.conv_USER_DESCRIPTION(msg:getData())
+      local user = ptpmgmt.conv_USER_DESCRIPTION(msg:getData())
       print("get user desc: " .. user.userDescription.textField)
     end
   end
 
   -- test setting values
-  local clk_dec = pmc.CLOCK_DESCRIPTION_t()
+  local clk_dec = ptpmgmt.CLOCK_DESCRIPTION_t()
   clk_dec.clockType = 0x800
-  local physicalAddress = pmc.Binary()
+  local physicalAddress = ptpmgmt.Binary()
   physicalAddress:setBin(0, 0xf1)
   physicalAddress:setBin(1, 0xf2)
   physicalAddress:setBin(2, 0xf3)
@@ -187,32 +187,32 @@ function main()
   print("clk.physicalAddress: " .. clk_dec.physicalAddress:toId())
   print("clk.physicalAddress: " .. clk_dec.physicalAddress:toHex())
   print("manufacturerIdentity: " ..
-    pmc.Binary.bufToId(clk_dec.manufacturerIdentity, 3))
+    ptpmgmt.Binary.bufToId(clk_dec.manufacturerIdentity, 3))
   clk_dec.revisionData.textField = "This is a test"
   print("revisionData: " .. clk_dec.revisionData.textField)
 
   setPriority1(147)
   setPriority1(153)
 
-  local event = pmc.SUBSCRIBE_EVENTS_NP_t()
-  event:setEvent(pmc.NOTIFY_TIME_SYNC)
+  local event = ptpmgmt.SUBSCRIBE_EVENTS_NP_t()
+  event:setEvent(ptpmgmt.NOTIFY_TIME_SYNC)
   local txt
-  if(event:getEvent(pmc.NOTIFY_TIME_SYNC)) then
+  if(event:getEvent(ptpmgmt.NOTIFY_TIME_SYNC)) then
     txt = 'have'
   else
     txt = 'not'
   end
   print(string.format("maskEvent(NOTIFY_TIME_SYNC)=%d," ..
         " getEvent(NOTIFY_TIME_SYNC)=%s",
-        pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_TIME_SYNC), txt))
-  if(event:getEvent(pmc.NOTIFY_PORT_STATE)) then
+        ptpmgmt.SUBSCRIBE_EVENTS_NP_t.maskEvent(ptpmgmt.NOTIFY_TIME_SYNC), txt))
+  if(event:getEvent(ptpmgmt.NOTIFY_PORT_STATE)) then
     txt = 'have'
   else
     txt = 'not'
   end
   print(string.format("maskEvent(NOTIFY_PORT_STATE)=%d," ..
         " getEvent(NOTIFY_PORT_STATE)=%s",
-        pmc.SUBSCRIBE_EVENTS_NP_t.maskEvent(pmc.NOTIFY_PORT_STATE), txt))
+        ptpmgmt.SUBSCRIBE_EVENTS_NP_t.maskEvent(ptpmgmt.NOTIFY_PORT_STATE), txt))
 
   return 0
 end
@@ -221,9 +221,9 @@ main()
 sk:close()
 
 --[[
-# If libpmc library is not installed in system, run with:
-ln -sf 5.1/pmc.so && LD_LIBRARY_PATH=.. lua5.1 test.lua
-ln -sf 5.2/pmc.so && LD_LIBRARY_PATH=.. lua5.2 test.lua
-ln -sf 5.3/pmc.so && LD_LIBRARY_PATH=.. lua5.3 test.lua
+# If libptpmgmt library is not installed in system, run with:
+ln -sf 5.1/ptpmgmt.so && LD_LIBRARY_PATH=.. lua5.1 test.lua
+ln -sf 5.2/ptpmgmt.so && LD_LIBRARY_PATH=.. lua5.2 test.lua
+ln -sf 5.3/ptpmgmt.so && LD_LIBRARY_PATH=.. lua5.3 test.lua
 
 ]]

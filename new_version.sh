@@ -34,8 +34,8 @@ main()
    add_line=1
   fi
  done
- DEBEMAIL="$email" debchange -r buster
- sed -i "s/^\(Version:\s*\).*/\1$next_ver/" rpm/libpmc.spec
+ DEBEMAIL="$email" debchange -r bullseye
+ sed -i "s/^\(Version:\s*\).*/\1$next_ver/" rpm/libptpmgmt.spec
  sed -i "s/^pkgver=.*/pkgver=$next_ver/" archlinux/PKGBUILD.org
  gvim debian/changelog
  gitk &

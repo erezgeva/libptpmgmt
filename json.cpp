@@ -13,7 +13,7 @@
 #include <cmath>
 #include "json.h"
 #include "err.h"
-#ifdef PMC_USE_CJSON
+#ifdef PTPMGMT_USE_CJSON
 #include <json.h>
 // JSON library type
 #define JSON_POBJ json_object*
@@ -45,7 +45,7 @@
 // JSON parser functions
 #define JSON_PARSE(str)    json_tokener_parse(str)
 #define JSON_OBJ_FREE(obj) json_object_put(obj)
-#endif /* PMC_USE_CJSON */
+#endif /* PTPMGMT_USE_CJSON */
 #ifndef NSEC_PER_SEC
 #define NSEC_PER_SEC 1000000000L
 #endif
@@ -1054,7 +1054,7 @@ std::string msg2json(const Message &msg, int indent)
 /**
  * From JSON part
  */
-#ifdef PMC_USE_CJSON
+#ifdef PTPMGMT_USE_CJSON
 #undef PROC_VAL
 #define PROC_VAL(key) procValue(#key, d.key)
 #define PROC_STR(val) (strcmp(str, #val) == 0)
@@ -1221,15 +1221,15 @@ struct JsonProcFromJson : public JsonProc {
             const char *key = JI_NAME(it);
             JSON_POBJ val = JI_VAL(it);
             if(withAllow && allow.count(key) != 1) {
-                PMC_ERRORA("Key '%s' in not allowed", key);
+                PTPMGMT_ERRORA("Key '%s' in not allowed", key);
                 return false;
             }
             if(val == nullptr) {
-                PMC_ERRORA("Key '%s' do not have value", key);
+                PTPMGMT_ERRORA("Key '%s' do not have value", key);
                 return false;
             }
             if(found.count(key) != 0) {
-                PMC_ERRORA("Key '%s' apear twice", key);
+                PTPMGMT_ERRORA("Key '%s' apear twice", key);
                 return false;
             }
             JSON_TYPE type = JG_TYPE(val);
@@ -1237,7 +1237,7 @@ struct JsonProcFromJson : public JsonProc {
             if(withAllow && !found[key].convType(allow[key])) {
                 // Ignore dataField with null
                 if(strcmp("dataField", key) || type != JT_NULL) {
-                    PMC_ERRORA("Key '%s' use wrong type '%s' instead of '%s'",
+                    PTPMGMT_ERRORA("Key '%s' use wrong type '%s' instead of '%s'",
                         key, JG_TNAME(type), JG_TNAME(allow[key]));
                     return false;
                 }
@@ -1251,7 +1251,7 @@ struct JsonProcFromJson : public JsonProc {
         // Optional, if value present verify it
 #define testOpt(key, val, emsg)\
     if(isType(#key, JT_STR) && found[#key].strV.compare(#val)) {\
-        PMC_ERRORA("Message must " emsg", not '%s'", found[#key].strV.c_str());\
+        PTPMGMT_ERRORA("Message must " emsg", not '%s'", found[#key].strV.c_str());\
         return false;\
     }
         testOpt(messageType, Management, "be management")
@@ -1259,7 +1259,7 @@ struct JsonProcFromJson : public JsonProc {
         // Mandatory
 #define testMand(key, emsg)\
     if(!isType(#key, JT_STR)) {\
-        PMC_ERROR("message must have " emsg);\
+        PTPMGMT_ERROR("message must have " emsg);\
         return false;\
     }
         testMand(actionField, "action field")
@@ -1273,7 +1273,7 @@ struct JsonProcFromJson : public JsonProc {
             if(strcmp(str, Message::mng2str_c(id)) == 0)
                 return true;
         }
-        PMC_ERRORA("No such managementId '%s'", str);
+        PTPMGMT_ERRORA("No such managementId '%s'", str);
         return false;
     }
 #undef procType
@@ -1643,7 +1643,7 @@ bool Json2msg::fromJson(const std::string &json)
 {
     JSON_POBJ jobj = JSON_PARSE(json.c_str());
     if(jobj == nullptr) {
-        PMC_ERROR("JSON parse fail");
+        PTPMGMT_ERROR("JSON parse fail");
         return false;
     }
     bool ret = fromJsonObj(jobj);
@@ -1663,7 +1663,7 @@ bool Json2msg::fromJsonObj(const void *jobj)
     else if(PROC_STR(COMMAND))
         m_action = COMMAND;
     else {
-        PMC_ERRORA("message must have wrong action field '%s'", str);
+        PTPMGMT_ERRORA("message must have wrong action field '%s'", str);
         return false;
     }
     const char *mngStrID;
@@ -1688,7 +1688,7 @@ bool Json2msg::fromJsonObj(const void *jobj)
 #define portProc(key, var)\
     if(proc.isType(#key, JT_OBJ)) {\
         if(!proc.procValue(#key, m_##var)) {\
-            PMC_ERROR("Fail parsing " #key);\
+            PTPMGMT_ERROR("Fail parsing " #key);\
             return false;\
         }\
         m_have[have_##var] = true;\
@@ -1698,18 +1698,18 @@ bool Json2msg::fromJsonObj(const void *jobj)
     bool have_data = proc.isType("dataField", JT_OBJ);
     if(m_action == GET) {
         if(have_data) {
-            PMC_ERROR("GET use dataField with zero values only, "
+            PTPMGMT_ERROR("GET use dataField with zero values only, "
                 "do not send dataField over JSON");
             return false;
         }
     } else if(Message::isEmpty(m_managementId)) {
         if(have_data) {
-            PMC_ERRORA("%s do use dataField", mngStrID);
+            PTPMGMT_ERRORA("%s do use dataField", mngStrID);
             return false;
         }
     } else {
         if(!have_data) {
-            PMC_ERRORA("%s must use dataField", mngStrID);
+            PTPMGMT_ERRORA("%s must use dataField", mngStrID);
             return false;
         }
         JSON_POBJ dataField = proc.found["dataField"].objV;
@@ -1719,24 +1719,24 @@ bool Json2msg::fromJsonObj(const void *jobj)
         if(!proc.procData(m_managementId, data)) {
             if(data != nullptr) {
                 delete data;
-                PMC_ERROR("dataField parse error");
+                PTPMGMT_ERROR("dataField parse error");
             } else
-                PMC_ERRORA("Fail allocate %s_t", mngStrID);
+                PTPMGMT_ERRORA("Fail allocate %s_t", mngStrID);
             return false;
         }
         m_tlvData.reset(const_cast<BaseMngTlv *>(data));
     }
     return true;
 }
-#else /* No PMC_USE_CJSON */
+#else /* No PTPMGMT_USE_CJSON */
 bool Json2msg::fromJson(const std::string &json)
 {
-    PMC_ERROR("fromJson need JSON-C library support");
+    PTPMGMT_ERROR("fromJson need JSON-C library support");
     return false;
 }
 bool Json2msg::fromJsonObj(const void *jobj)
 {
-    PMC_ERROR("fromJsonObj need JSON-C library support");
+    PTPMGMT_ERROR("fromJsonObj need JSON-C library support");
     return false;
 }
-#endif /* PMC_USE_CJSON */
+#endif /* PTPMGMT_USE_CJSON */

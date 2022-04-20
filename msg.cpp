@@ -1172,13 +1172,13 @@ bool Message::proc(Float64_t &val)
                             mnt = (int64_t)floorl(norm * ieee754_mnt_base -
                                     ieee754_mnt_base);
                             if(mnt < 0 || mnt >= ieee754_mnt_base) {
-                                PMC_ERROR("wrong calculation of float, "
+                                PTPMGMT_ERROR("wrong calculation of float, "
                                     "mnt out of range");
                                 return true; // wrong calculation
                             }
                             break; // Break normal
                         }
-                        PMC_ERROR("wrong calculation of float, "
+                        PTPMGMT_ERROR("wrong calculation of float, "
                             "norm is too small");
                     }
                 // Fall to subnormal
@@ -1187,7 +1187,7 @@ bool Message::proc(Float64_t &val)
                     norm = val / exp2l(ieee754_exp_min);
                     mnt = (int64_t)floorl(norm * ieee754_mnt_base);
                     if(mnt < 0 || mnt >= ieee754_mnt_base) {
-                        PMC_ERROR("wrong calculation of float, "
+                        PTPMGMT_ERROR("wrong calculation of float, "
                             "mnt out of range for subnormal");
                         return true; // wrong calculation
                     }

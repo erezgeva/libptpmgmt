@@ -9,7 +9,7 @@
  *
  * @note Convert Vladimir Oltean <olteanv@gmail.com> application
  *  This is a sample code, not a product! You should use it as a reference.
- *  You can compile it with: g++ -Wall checksync.cpp -o checksync -lpmc
+ *  You can compile it with: g++ -Wall checksync.cpp -o checksync -lptpmgmt
  *
  */
 
@@ -20,7 +20,7 @@
 #include <libgen.h>
 #include <string>
 #include <map>
-#include <pmc/init.h>
+#include <ptpmgmt/init.h>
 
 const uint64_t NS_PER_SEC = 1000000000LL;
 const uint64_t PMC_UPDATE_INTERVAL = 60 * NS_PER_SEC;

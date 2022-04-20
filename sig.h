@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_SIG_H
-#define __PMC_SIG_H
+#ifndef __PTPMGMT_SIG_H
+#define __PTPMGMT_SIG_H
 
 #include <string>
 #include <cstdint>
@@ -250,4 +250,4 @@ struct SLAVE_DELAY_TIMING_DATA_NP_t : public BaseSigTlv {
     std::vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t> list;
 };
 
-#endif /* __PMC_SIG_H */
+#endif /* __PTPMGMT_SIG_H */

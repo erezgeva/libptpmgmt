@@ -25,7 +25,7 @@ export CPPFLAGS_OPT=-Ofast
 #LDFLAGS+=-Wl,--verbose
 #export LDFLAGS
 
-# build pmc tool with libpmc.so
+# build pmc tool with libptpmgmt.so
 export PMC_USE_LIB=so
 
 %:
@@ -44,27 +44,27 @@ SLIBDIR:=debian/tmp$(LIBDIR)
 
 # Make create all targets, we just move them from temporary to proper package
 override_dh_install:
-	$(Q)install -d $(foreach d,python-pmc/usr/lib python3-pmc/usr/lib\
-	  libpmc-dev/usr libpmc-dev/usr/share libpmc-doc/usr/share\
-	  pmc/usr/share php-pmc/usr/lib php-pmc/usr/share tcl-pmc/usr/lib\
-	  $(foreach n,lua-pmc libpmc-perl libpmc-dev ruby-pmc\
-	  libpmc,$n$(LIBDIR)),debian/$d)
-	$(Q)mv $(DSRC)include debian/libpmc-dev/usr
-	$(Q)mv $(DSRC)share/libpmc-dev debian/libpmc-dev/usr/share
-	$(Q)mv $(DSRC)share/doc debian/libpmc-doc/usr/share
-	$(Q)mv $(DSRC)share/man debian/pmc/usr/share
-	$(Q)mv $(DSRC)sbin debian/pmc/usr
+	$(Q)install -d $(foreach d,python-ptpmgmt/usr/lib python3-ptpmgmt/usr/lib\
+	  libptpmgmt-dev/usr libptpmgmt-dev/usr/share libptpmgmt-doc/usr/share\
+	  pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib php-ptpmgmt/usr/share tcl-ptpmgmt/usr/lib\
+	  $(foreach n,lua-ptpmgmt libptpmgmt-perl libptpmgmt-dev ruby-ptpmgmt\
+	  libptpmgmt,$n$(LIBDIR)),debian/$d)
+	$(Q)mv $(DSRC)include debian/libptpmgmt-dev/usr
+	$(Q)mv $(DSRC)share/libptpmgmt-dev debian/libptpmgmt-dev/usr/share
+	$(Q)mv $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
+	$(Q)mv $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
+	$(Q)mv $(DSRC)sbin debian/pmc-ptpmgmt/usr
 ifneq ($(wildcard $(DSRC)lib/python2*),)
-	$(Q)mv $(DSRC)lib/python2* debian/python-pmc/usr/lib
+	$(Q)mv $(DSRC)lib/python2* debian/python-ptpmgmt/usr/lib
 endif
-	$(Q)mv $(DSRC)lib/python3* debian/python3-pmc/usr/lib
-	$(Q)mv $(SLIBDIR)/lua* $(SLIBDIR)/liblua* debian/lua-pmc$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/perl* debian/libpmc-perl$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/ruby* debian/ruby-pmc$(LIBDIR)
+	$(Q)mv $(DSRC)lib/python3* debian/python3-ptpmgmt/usr/lib
+	$(Q)mv $(SLIBDIR)/lua* $(SLIBDIR)/liblua* debian/lua-ptpmgmt$(LIBDIR)
+	$(Q)mv $(SLIBDIR)/perl* debian/libptpmgmt-perl$(LIBDIR)
+	$(Q)mv $(SLIBDIR)/ruby* debian/ruby-ptpmgmt$(LIBDIR)
 ifneq ($(wildcard $(DSRC)lib/php),)
-	$(Q)mv $(DSRC)lib/php debian/php-pmc/usr/lib
-	$(Q)mv $(DSRC)share/php debian/php-pmc/usr/share
+	$(Q)mv $(DSRC)lib/php debian/php-ptpmgmt/usr/lib
+	$(Q)mv $(DSRC)share/php debian/php-ptpmgmt/usr/share
 endif
-	$(Q)mv $(DSRC)/lib/tcltk debian/tcl-pmc/usr/lib
-	$(Q)mv $(SLIBDIR)/*.a $(SLIBDIR)/*.so debian/libpmc-dev$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/* debian/libpmc$(LIBDIR)
+	$(Q)mv $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
+	$(Q)mv $(SLIBDIR)/*.a $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
+	$(Q)mv $(SLIBDIR)/* debian/libptpmgmt$(LIBDIR)

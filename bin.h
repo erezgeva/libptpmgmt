@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_BIN_H
-#define __PMC_BIN_H
+#ifndef __PTPMGMT_BIN_H
+#define __PTPMGMT_BIN_H
 
 #include <string>
 #include <cstdint>
@@ -288,4 +288,4 @@ class Binary
     }
 };
 
-#endif /* __PMC_BIN_H */
+#endif /* __PTPMGMT_BIN_H */

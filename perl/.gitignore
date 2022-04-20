@@ -5,5 +5,5 @@
 # @copyright 2021 Erez Geva
 #
 ###############################################################################
-/PmcLib.cpp
-/PmcLib.pm
+/PtpMgmtLib.cpp
+/PtpMgmtLib.pm

@@ -5,7 +5,7 @@
 # @copyright 2021 Erez Geva
 #
 ###############################################################################
-/php_pmc.h
-/PmcLib.cpp
-/pmc.php
+/php_ptpmgmt.h
+/PtpMgmtLib.cpp
+/ptpmgmt.php
 /php.ini

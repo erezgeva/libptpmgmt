@@ -10,7 +10,7 @@ import contextlib
 
 import numpy as np
 import os
-import pmc
+import ptpmgmt
 import time
 
 from collections import deque
@@ -90,7 +90,7 @@ class CheckPathDelayThread(PeriodicTaskThread):
 
     def execute(self):
         try:
-            self.watchdog.send_get_message(pmc.CURRENT_DATA_SET)
+            self.watchdog.send_get_message(ptpmgmt.CURRENT_DATA_SET)
         except BaseException as e:
             if not isinstance(e, KeyboardInterrupt):
                 self.watchdog.print_error("Error requesting path delay (" + str(type(e)) + "): " + str(e))
@@ -225,8 +225,8 @@ class PtpSyncWatchdog:
     def __init__(self, socket, ptp_config, offset_threshold=100, offset_std_threshold=None, num_offset_values=5,
                  callback=None, subscribe_duration=180, subscribe_renewal=60):
         """
-        :param pmc.SockUnix socket: The (already open) UDS socket used for communication.
-        :param pmc.Config ptp_config: The PTP config to apply to the socket and messages.
+        :param ptpmgmt.SockUnix socket: The (already open) UDS socket used for communication.
+        :param ptpmgmt.Config ptp_config: The PTP config to apply to the socket and messages.
         :param int offset_threshold: Values under this offset will be considered as good sync (in ns).
         :param int|None offset_std_threshold: If set, also standard deviation will be checked to be below this (in ns).
         :param int num_offset_values: Length of history.
@@ -236,7 +236,7 @@ class PtpSyncWatchdog:
         :param int subscribe_renewal: How often the event subscription should be renewed. This should be lower than
                                       subscribe_duration.
         """
-        assert isinstance(socket, pmc.SockUnix)
+        assert isinstance(socket, ptpmgmt.SockUnix)
 
         self.data = PtpSyncData(num_offset_values, offset_threshold, offset_std_threshold)
 
@@ -250,8 +250,8 @@ class PtpSyncWatchdog:
 
         self.ptp_config = ptp_config
         self.socket = socket
-        self.message = pmc.Message()
-        self.message_buffer = pmc.Buf(1000)
+        self.message = ptpmgmt.Message()
+        self.message_buffer = ptpmgmt.Buf(1000)
         self.message_lock = Lock()
 
         self.socket.setDefSelfAddress()
@@ -261,9 +261,9 @@ class PtpSyncWatchdog:
         self.message.useConfig(self.ptp_config)
 
         params = self.message.getParams()
-        assert isinstance(params, pmc.MsgParams)
+        assert isinstance(params, ptpmgmt.MsgParams)
         self_id = params.self_id
-        assert isinstance(self_id, pmc.PortIdentity_t)
+        assert isinstance(self_id, ptpmgmt.PortIdentity_t)
         self_id.portNumber = os.getpid() & 0xFFFF  # set PID of the current process as port number
         params.self_id = self_id
         params.boundaryHops = 0  # do not query neighbors
@@ -324,8 +324,8 @@ class PtpSyncWatchdog:
 
         self.sequence += 1
         err = self.message.build(self.message_buffer, self.sequence)
-        if err != pmc.MNG_PARSE_ERROR_OK:
-            raise RuntimeError("build error " + pmc.Message.err2str_c(err))
+        if err != ptpmgmt.MNG_PARSE_ERROR_OK:
+            raise RuntimeError("build error " + ptpmgmt.Message.err2str_c(err))
         if not self.socket.send(self.message_buffer, self.message.getMsgLen()):
             raise RuntimeError("Could not send buffer")
 
@@ -335,7 +335,7 @@ class PtpSyncWatchdog:
         :param int tlv_id: The TLV id.
         """
         with self.message_lock:
-            self.message.setAction(pmc.GET, tlv_id)
+            self.message.setAction(ptpmgmt.GET, tlv_id)
             self._send_message()
         self.print_debug("Sent TLV ID " + str(tlv_id))
 
@@ -343,14 +343,14 @@ class PtpSyncWatchdog:
         """
         Subscribe to SUBSCRIBE_EVENTS_NP.
         """
-        subscribe_message = pmc.SUBSCRIBE_EVENTS_NP_t()
+        subscribe_message = ptpmgmt.SUBSCRIBE_EVENTS_NP_t()
         subscribe_message.duration = self.subscribe_duration
         subscribe_message.clearAll()
-        subscribe_message.setEvent(pmc.NOTIFY_TIME_SYNC)
-        subscribe_message.setEvent(pmc.NOTIFY_PORT_STATE)
+        subscribe_message.setEvent(ptpmgmt.NOTIFY_TIME_SYNC)
+        subscribe_message.setEvent(ptpmgmt.NOTIFY_PORT_STATE)
 
         with self.message_lock:
-            self.message.setAction(pmc.SET, pmc.SUBSCRIBE_EVENTS_NP, subscribe_message)
+            self.message.setAction(ptpmgmt.SET, ptpmgmt.SUBSCRIBE_EVENTS_NP, subscribe_message)
             self._send_message()
             self.message.clearData()
 
@@ -363,7 +363,7 @@ class PtpSyncWatchdog:
         :note: The read values are stored in self.data.
         """
         with self.message_lock:
-            if pmc.MNG_PARSE_ERROR_OK != self.message.parse(self.message_buffer, num_bytes):
+            if ptpmgmt.MNG_PARSE_ERROR_OK != self.message.parse(self.message_buffer, num_bytes):
                 raise RuntimeError("Could not parse message")
 
             if not self.check_message_recipient():
@@ -371,22 +371,22 @@ class PtpSyncWatchdog:
 
             self.print_debug("Received TLV ID: " + str(self.message.getTlvId()))
 
-            if self.message.getTlvId() == pmc.PORT_DATA_SET:
-                data = pmc.conv_PORT_DATA_SET(self.message.getData())
-                assert isinstance(data, pmc.PORT_DATA_SET_t)
-                self.data.port_state = pmc.Message.portState2str_c(data.portState)
-            elif self.message.getTlvId() == pmc.PARENT_DATA_SET:
-                data = pmc.conv_PARENT_DATA_SET(self.message.getData())
-                assert isinstance(data, pmc.PARENT_DATA_SET_t)
+            if self.message.getTlvId() == ptpmgmt.PORT_DATA_SET:
+                data = ptpmgmt.conv_PORT_DATA_SET(self.message.getData())
+                assert isinstance(data, ptpmgmt.PORT_DATA_SET_t)
+                self.data.port_state = ptpmgmt.Message.portState2str_c(data.portState)
+            elif self.message.getTlvId() == ptpmgmt.PARENT_DATA_SET:
+                data = ptpmgmt.conv_PARENT_DATA_SET(self.message.getData())
+                assert isinstance(data, ptpmgmt.PARENT_DATA_SET_t)
                 self.data.gm_identity = data.grandmasterIdentity.string()
-            elif self.message.getTlvId() == pmc.CURRENT_DATA_SET:
-                data = pmc.conv_CURRENT_DATA_SET(self.message.getData())
-                assert isinstance(data, pmc.CURRENT_DATA_SET_t)
+            elif self.message.getTlvId() == ptpmgmt.CURRENT_DATA_SET:
+                data = ptpmgmt.conv_CURRENT_DATA_SET(self.message.getData())
+                assert isinstance(data, ptpmgmt.CURRENT_DATA_SET_t)
                 self.data.add_offset(data.offsetFromMaster.getIntervalInt())
                 self.data.peer_mean_path_delay = data.meanPathDelay.getIntervalInt()
-            elif self.message.getTlvId() == pmc.TIME_STATUS_NP:
-                data = pmc.conv_TIME_STATUS_NP(self.message.getData())
-                assert isinstance(data, pmc.TIME_STATUS_NP_t)
+            elif self.message.getTlvId() == ptpmgmt.TIME_STATUS_NP:
+                data = ptpmgmt.conv_TIME_STATUS_NP(self.message.getData())
+                assert isinstance(data, ptpmgmt.TIME_STATUS_NP_t)
                 self.data.add_offset(data.master_offset)
             else:
                 self.print_debug("Unknown TLV ID " + str(self.message.getTlvId()))
@@ -398,9 +398,9 @@ class PtpSyncWatchdog:
         :note: Calling code should already hold self.message_lock.
         """
         peer = self.message.getPeer()
-        assert isinstance(peer, pmc.PortIdentity_t)
+        assert isinstance(peer, ptpmgmt.PortIdentity_t)
         clock_id = peer.clockIdentity
-        assert isinstance(clock_id, pmc.ClockIdentity_t)
+        assert isinstance(clock_id, ptpmgmt.ClockIdentity_t)
         if self.data.clock_id is None:
             self.data.clock_id = clock_id
             self.print_info("Attached to clock " + clock_id.string())
@@ -413,9 +413,9 @@ class PtpSyncWatchdog:
         """
         The main watchdog loop.
         """
-        self.send_get_message(pmc.PORT_DATA_SET)  # port state
-        self.send_get_message(pmc.PARENT_DATA_SET)  # gm identity
-        self.send_get_message(pmc.CURRENT_DATA_SET)  # offset, path delay
+        self.send_get_message(ptpmgmt.PORT_DATA_SET)  # port state
+        self.send_get_message(ptpmgmt.PARENT_DATA_SET)  # gm identity
+        self.send_get_message(ptpmgmt.CURRENT_DATA_SET)  # offset, path delay
 
         self.subscribe_events()  # offset, port state
 
@@ -491,12 +491,12 @@ def main():
 
     args = parser.parse_args()
 
-    config = pmc.ConfigFile()
+    config = ptpmgmt.ConfigFile()
     if args.ptp_config is not None:
         print("Using config file " + args.ptp_config)
         config.read_cfg(args.ptp_config)
 
-    with contextlib.closing(pmc.SockUnix()) as sock:
+    with contextlib.closing(ptpmgmt.SockUnix()) as sock:
         watchdog = PtpSyncWatchdog(sock, config, args.offset_threshold, args.offset_std_threshold,
                                    args.num_offset_values)
         watchdog.watch()

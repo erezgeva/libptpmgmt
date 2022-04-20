@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef __PMC_SOCK_H
-#define __PMC_SOCK_H
+#ifndef __PTPMGMT_SOCK_H
+#define __PTPMGMT_SOCK_H
 
 #include <string>
 #include <cstdint>
@@ -632,4 +632,4 @@ class SockRaw : public SockBaseIf
     bool setSocketPriority(const ConfigFile &cfg, const std::string &section = "");
 };
 
-#endif /* __PMC_SOCK_H */
+#endif /* __PTPMGMT_SOCK_H */

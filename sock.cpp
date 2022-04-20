@@ -68,11 +68,11 @@ void SockBase::closeBase()
 bool SockBase::sendReply(ssize_t cnt, size_t len) const
 {
     if(cnt < 0) {
-        PMC_PERROR("send");
+        PTPMGMT_PERROR("send");
         return false;
     }
     if(cnt != (ssize_t)len) {
-        PMC_ERRORA("send %zd instead of %zu", cnt, len);
+        PTPMGMT_ERRORA("send %zd instead of %zu", cnt, len);
         return false;
     }
     return true;
@@ -142,13 +142,13 @@ bool SockUnix::initBase()
     SockBase::closeBase();
     m_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(m_fd < 0) {
-        PMC_PERROR("socket");
+        PTPMGMT_PERROR("socket");
         return false;
     }
     sockaddr_un addr;
     setUnixAddr(addr, m_me);
     if(bind(m_fd, (sockaddr *)&addr, sizeof(addr)) != 0) {
-        PMC_PERROR("bind");
+        PTPMGMT_PERROR("bind");
         return false;
     }
     m_isInit = true;
@@ -248,11 +248,11 @@ ssize_t SockUnix::rcvFrom(void *buf, size_t bufSize, std::string &from,
         flags |= MSG_DONTWAIT;
     ssize_t cnt = recvfrom(m_fd, buf, bufSize, flags, (sockaddr *)&addr, &len);
     if(cnt < 0) {
-        PMC_PERROR("recv");
+        PTPMGMT_PERROR("recv");
         return -1;
     }
     if(cnt > (ssize_t)bufSize) {
-        PMC_ERRORA("rcv %zd more than buffer size %zu", cnt, bufSize);
+        PTPMGMT_ERRORA("rcv %zd more than buffer size %zu", cnt, bufSize);
         return -1;
     }
     addr.sun_path[unix_path_max] = 0; // Ensure string is null terminated
@@ -331,11 +331,11 @@ ssize_t SockIp::rcvBase(void *buf, size_t bufSize, bool block)
         flags |= MSG_DONTWAIT;
     ssize_t cnt = recv(m_fd, buf, bufSize, flags);
     if(cnt < 0) {
-        PMC_PERROR("recv");
+        PTPMGMT_PERROR("recv");
         return -1;
     }
     if(cnt > (ssize_t)bufSize) {
-        PMC_ERRORA("rcv %zd more than buffer size %zu", cnt, bufSize);
+        PTPMGMT_ERRORA("rcv %zd more than buffer size %zu", cnt, bufSize);
         return -1;
     }
     return cnt;
@@ -347,25 +347,25 @@ bool SockIp::initBase()
     closeBase();
     m_fd = socket(m_domain, SOCK_DGRAM, 0/*IPPROTO_UDP*/);
     if(m_fd < 0) {
-        PMC_PERROR("socket");
+        PTPMGMT_PERROR("socket");
         return false;
     }
     int on = 1;
     if(setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
-        PMC_PERROR("setsockopt SO_REUSEADDR failed: %m");
+        PTPMGMT_PERROR("setsockopt SO_REUSEADDR failed: %m");
         return false;
     }
     if(bind(m_fd, m_addr, m_addr_len) != 0) {
-        PMC_PERROR("bind");
+        PTPMGMT_PERROR("bind");
         return false;
     }
     if(setsockopt(m_fd, SOL_SOCKET, SO_BINDTODEVICE, m_ifName.c_str(),
             m_ifName.length()) != 0) {
-        PMC_PERROR("BINDTODEVICE");
+        PTPMGMT_PERROR("BINDTODEVICE");
         return false;
     }
     if(!m_mcast.fromIp(m_mcast_str, m_domain)) {
-        PMC_ERRORA("multicast %s", m_mcast_str);
+        PTPMGMT_ERRORA("multicast %s", m_mcast_str);
         return false;
     }
     if(!init2())
@@ -385,25 +385,25 @@ bool SockIp4::init2()
 {
     if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_TTL, &m_udp_ttl,
             sizeof(m_udp_ttl)) != 0) {
-        PMC_PERROR("IP_MULTICAST_TTL");
+        PTPMGMT_PERROR("IP_MULTICAST_TTL");
         return false;
     }
     ip_mreqn req = {0};
     req.imr_multiaddr = *(in_addr *)m_mcast.get();
     req.imr_ifindex = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof(req)) != 0) {
-        PMC_PERROR("IP_ADD_MEMBERSHIP");
+        PTPMGMT_PERROR("IP_ADD_MEMBERSHIP");
         return false;
     }
     int off = 0;
     if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &off, sizeof(off)) != 0) {
-        PMC_PERROR("IP_MULTICAST_LOOP");
+        PTPMGMT_PERROR("IP_MULTICAST_LOOP");
         return false;
     }
     req = {0};
     req.imr_ifindex = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_IF, &req, sizeof(req)) != 0) {
-        PMC_PERROR("IP_MULTICAST_IF");
+        PTPMGMT_PERROR("IP_MULTICAST_IF");
         return false;
     }
     /* For sending */
@@ -429,7 +429,7 @@ bool SockIp6::init2()
         return false;
     if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &m_udp_ttl,
             sizeof(m_udp_ttl)) != 0) {
-        PMC_PERROR("IPV6_MULTICAST_HOPS");
+        PTPMGMT_PERROR("IPV6_MULTICAST_HOPS");
         return false;
     }
     m_mcast.setBin(1, m_udp6_scope);
@@ -438,19 +438,19 @@ bool SockIp6::init2()
     req.ipv6mr_interface = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &req,
             sizeof(req)) != 0) {
-        PMC_PERROR("IPV6_ADD_MEMBERSHIP");
+        PTPMGMT_PERROR("IPV6_ADD_MEMBERSHIP");
         return false;
     }
     int off = 0;
     if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, &off,
             sizeof(off)) != 0) {
-        PMC_PERROR("IPV6_MULTICAST_LOOP");
+        PTPMGMT_PERROR("IPV6_MULTICAST_LOOP");
         return false;
     }
     req = {0};
     req.ipv6mr_interface = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &req, sizeof(req)) != 0) {
-        PMC_PERROR("IPV6_MULTICAST_IF");
+        PTPMGMT_PERROR("IPV6_MULTICAST_IF");
         return false;
     }
     /* For sending */
@@ -540,28 +540,28 @@ bool SockRaw::initBase()
     uint16_t port_ptp = cpu_to_net16(ETH_P_1588);
     m_fd = socket(AF_PACKET, SOCK_RAW, port_all);
     if(m_fd < 0) {
-        PMC_PERROR("socket");
+        PTPMGMT_PERROR("socket");
         return false;
     }
     m_addr.sll_ifindex = m_ifIndex;
     m_addr.sll_family = AF_PACKET;
     m_addr.sll_protocol = port_all;
     if(bind(m_fd, (sockaddr *) &m_addr, sizeof(m_addr))) {
-        PMC_PERROR("bind");
+        PTPMGMT_PERROR("bind");
         return false;
     }
     if(setsockopt(m_fd, SOL_SOCKET, SO_BINDTODEVICE, m_ifName.c_str(),
             m_ifName.length()) != 0) {
-        PMC_PERROR("SO_BINDTODEVICE");
+        PTPMGMT_PERROR("SO_BINDTODEVICE");
         return false;
     }
     if(setsockopt(m_fd, SOL_SOCKET, SO_PRIORITY, &m_socket_priority,
             sizeof(m_socket_priority)) != 0) {
-        PMC_PERROR("SO_PRIORITY");
+        PTPMGMT_PERROR("SO_PRIORITY");
         return false;
     }
     if(setsockopt(m_fd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) != 0) {
-        PMC_PERROR("SO_ATTACH_FILTER");
+        PTPMGMT_PERROR("SO_ATTACH_FILTER");
         return false;
     }
     packet_mreq mreq = {0};
@@ -571,7 +571,7 @@ bool SockRaw::initBase()
     m_ptp_dst_mac.copy(mreq.mr_address);
     if(setsockopt(m_fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq,
             sizeof(mreq)) != 0) {
-        PMC_PERROR("PACKET_ADD_MEMBERSHIP ptp_dst_mac");
+        PTPMGMT_PERROR("PACKET_ADD_MEMBERSHIP ptp_dst_mac");
         return false;
     }
     // TX
@@ -614,11 +614,11 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
     m_iov_rx[1].iov_len = bufSize;
     ssize_t cnt = recvmsg(m_fd, &m_msg_rx, flags);
     if(cnt < 0) {
-        PMC_PERROR("recvmsg");
+        PTPMGMT_PERROR("recvmsg");
         return -1;
     }
     if(cnt > (ssize_t)(bufSize + sizeof(m_rx_buf))) {
-        PMC_ERRORA("rcv %zd more than buffer size %zu", cnt,
+        PTPMGMT_ERRORA("rcv %zd more than buffer size %zu", cnt,
             bufSize + sizeof(m_rx_buf));
         return -1;
     }

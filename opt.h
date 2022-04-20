@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_OPT_H
-#define __PMC_OPT_H
+#ifndef __PTPMGMT_OPT_H
+#define __PTPMGMT_OPT_H
 
 #include <string>
 #include <cstdint>
@@ -169,4 +169,4 @@ class Options
     int procces_next() const { return m_end_optind; }
 };
 
-#endif /* __PMC_OPT_H */
+#endif /* __PTPMGMT_OPT_H */

@@ -13,8 +13,8 @@
  *
  */
 
-#ifndef __PMC_CFG_H
-#define __PMC_CFG_H
+#ifndef __PTPMGMT_CFG_H
+#define __PTPMGMT_CFG_H
 
 #include <string>
 #include <cstdint>
@@ -148,4 +148,4 @@ class ConfigFile
     const Binary &p2p_dst_mac(const std::string &section = "") const;
 };
 
-#endif /* __PMC_CFG_H */
+#endif /* __PTPMGMT_CFG_H */

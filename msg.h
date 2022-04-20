@@ -11,8 +11,8 @@
  * with some updates from @"IEEE Std 1588-2019@"
  */
 
-#ifndef __PMC_MSG_H
-#define __PMC_MSG_H
+#ifndef __PTPMGMT_MSG_H
+#define __PTPMGMT_MSG_H
 
 #include <string>
 #include <cstdint>
@@ -1235,4 +1235,4 @@ class Message
 #undef A
 #undef caseUF
 
-#endif /* __PMC_MSG_H */
+#endif /* __PTPMGMT_MSG_H */

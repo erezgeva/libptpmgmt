@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_VER_H
-#define __PMC_VER_H
+#ifndef __PTPMGMT_VER_H
+#define __PTPMGMT_VER_H
 
 /**
  * Get this library version
@@ -28,4 +28,4 @@ int getVersionMajor();
  */
 int getVersionMinor();
 
-#endif /* __PMC_VER_H */
+#endif /* __PTPMGMT_VER_H */

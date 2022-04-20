@@ -1,4 +1,4 @@
-# libpmc library to communicate with IEEE 1558 PTP clocks
+# libptpmgmt library to communicate with IEEE 1558 PTP clocks
 
 # <u>Preface</u>
 
@@ -15,7 +15,7 @@ In addition, we support using the Unix network and communicate with linuxptp ptp
 
 We support also parsing incoming signaling messages.
 
-# <u>libpmc Library</u>
+# <u>libptpmgmt Library</u>
 The library is written in C++ using a data-oriented model.
 Each class represent a data object with methods acting on the data.  
 The socket classes are the exception, as they represent a system object.  
@@ -48,29 +48,30 @@ For now, we support:
 > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 > for example in PHP: Binary::empty is renamed to Binary::c_empty  
 > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-> See remarks in libpmc.i for all changes
+> See remarks in libptpmgmt.i for all changes
 
 
 # <u>Library content</u>
   * Binary in bin.h - class that hold a binary
   * Buf in buf.h - Allocate buffer for scripting
   * ConfigFile in cfg.h - Read, parse and provide configuration from configuration file
-  * Message in msg.h - Create and parse Managment and Signaling PTP messages
+  * Message in msg.h - Create and parse Management and Signaling PTP messages
   * IfInfo in ptp.h - Provide information on a network interface
   * PtpClock in ptp.h - Provide a PTP dynamic clock ID
   * sockets classes in sock.h - Provide access to UPD IPv4, IPv6 and L2 PTP networks
   * SockUnix in sock.h - socket to communicate with local linuxptp daemon
-  * Managment TLVs in proc.h - structures that hold a PTP Managment TLV data
+  * Management TLVs in proc.h - structures that hold a PTP Management TLV data
   * Signaling TLVs in sig.h - structures that hold a PTP Signaling TLV data
-  * Library version in ver.h
+  * Runtime library version in ver.h
+  * Library version used during build in verDef.h
   * Json2msg in json.h - Convert json text to a message, require linking with a JSON library
   * msg2json in json.h - Convert message to json text
   * Options in opt.h - parse a pmc tool command line parameters
   * Init in init.h - Initilize objects for a pmc tool
 
 # <u>pmc tool</u>
-The project provides a clone to [linuxptp](http://linuxptp.sf.net/)
-pmc tool that uses the libpmc library.  
+The project provides a clone of [LinuxPTP](http://linuxptp.sf.net)
+pmc tool using the libptpmgmt library.  
 The project does not provide a manual page to the tool.
 As the tool mimic the original tool in command line, input and in output.  
 Please refer to the [pmc man page](https://manpages.debian.org/unstable/linuxptp/pmc.8.en.html)

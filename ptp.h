@@ -12,8 +12,8 @@
  *  a class to fetch a dynamic clock ID for a PTP clock
  */
 
-#ifndef __PMC_IF_H
-#define __PMC_IF_H
+#ifndef __PTPMGMT_IF_H
+#define __PTPMGMT_IF_H
 
 #include <string>
 #include <cstdint>
@@ -149,4 +149,4 @@ class PtpClock
     const char *ptpDevice_c() const { return m_ptpDevice.c_str(); }
 };
 
-#endif /* __PMC_IF_H */
+#endif /* __PTPMGMT_IF_H */

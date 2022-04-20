@@ -7,14 +7,14 @@
 # @copyright 2021 Erez Geva
 #
 ###############################################################################
-pkgver=0.5
+pkgver=0.6
 pkgrel=1
-pkgname=(libpmc libpmc-dev libpmc-doc libpmc-perl lua-pmc ruby-pmc tcl-pmc
-  python2-pmc python3-pmc pmc)
+pkgname=(libptpmgmt libptpmgmt-dev libptpmgmt-doc libptpmgmt-perl lua-ptpmgmt
+  ruby-ptpmgmt tcl-ptpmgmt python2-ptpmgmt python3-ptpmgmt pmc-ptpmgmt)
 # Source code can be build on most architectures
 # But as Arch Linux does not support the 'all' keyword
 arch=(x86_64)
-url=https://libpmc.sf.net
+url=https://github.com/erezgeva/libptpmgmt
 license=(LGPL3)
 source=("$pkgname-$pkgver.txz")
 build() {
@@ -22,90 +22,90 @@ build() {
   make -j LD_SONAME=1 CPPFLAGS_OPT=-Ofast PMC_USE_LIB=so SONAME_USE_MAJ=1\
     NO_PHP=1 --no-print-directory
   # Place here as make do not use packages!
-  make -j DESTDIR=install install DEV_PKG=libpmc-dev SBINDIR=/usr/bin\
+  make -j DESTDIR=install install DEV_PKG=libptpmgmt-dev SBINDIR=/usr/bin\
     NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
 }
 makedepends=(doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
   python2 python3)
-package_libpmc() {
-  pkgdesc='pmc library, to communicate with ptp4l'
+package_libptpmgmt() {
+  pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/libpmc.so.* $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/libptpmgmt.so.* $pkgdir/usr/lib
 }
-package_libpmc-dev() {
+package_libptpmgmt-dev() {
   # development package can use static library
   # But as Arch linux does not use development packages, we add it here
   options=(staticlibs)
   pkgdesc=<<EOF
-pmc library development
+PTP management library development
  This package provides header files and static library.
 EOF
   mkdir -p $pkgdir/usr/lib $pkgdir/usr/share
-  mv $srcdir/install/usr/share/libpmc-dev $pkgdir/usr/share
+  mv $srcdir/install/usr/share/libptpmgmt-dev $pkgdir/usr/share
   mv $srcdir/install/usr/include $pkgdir/usr
-  mv $srcdir/install/usr/lib/libpmc.a $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/libpmc.so $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/libptpmgmt.a $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/libptpmgmt.so $pkgdir/usr/lib
 }
-package_libpmc-doc() {
+package_libptpmgmt-doc() {
   arch=(any)
-  pkgdesc='pmc library documentation, to communicate with ptp4l'
+  pkgdesc='PTP management library documentation, to communicate with ptp4l'
   license=(FDL1.3)
-  depends=("libpmc=$pkgver")
+  depends=("libptpmgmt=$pkgver")
   mkdir -p $pkgdir/usr/share
   mv $srcdir/install/usr/share/doc/* $pkgdir/usr/share
 }
-package_libpmc-perl() {
-  pkgdesc='pmc library Perl wrapper'
-  depends=("libpmc=$pkgver" perl)
+package_libptpmgmt-perl() {
+  pkgdesc='PTP management library Perl wrapper'
+  depends=("libptpmgmt=$pkgver" perl)
   mkdir -p $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/perl* $pkgdir/usr/lib
 }
-package_python2-pmc() {
-  pkgdesc='pmc library python version 2 wrapper'
-  depends=("libpmc=$pkgver" python2)
+package_python2-ptpmgmt() {
+  pkgdesc='PTP management library python version 2 wrapper'
+  depends=("libptpmgmt=$pkgver" python2)
   mkdir -p $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/python2* $pkgdir/usr/lib
 }
-package_python3-pmc() {
-  pkgdesc='pmc library python version 3 wrapper'
-  depends=("libpmc=$pkgver" python3)
+package_python3-ptpmgmt() {
+  pkgdesc='PTP management library python version 3 wrapper'
+  depends=("libptpmgmt=$pkgver" python3)
   mkdir -p $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/python3* $pkgdir/usr/lib
 }
-package_lua-pmc() {
-  pkgdesc='pmc library Lua wrapper'
-  depends=("libpmc=$pkgver" lua lua51 lua52 lua53)
+package_lua-ptpmgmt() {
+  pkgdesc='PTP management library Lua wrapper'
+  depends=("libptpmgmt=$pkgver" lua lua51 lua52 lua53)
   mkdir -p $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/lua* $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/liblua* $pkgdir/usr/lib
 }
-package_ruby-pmc() {
-  pkgdesc='pmc library ruby wrapper'
-  depends=("libpmc=$pkgver" ruby)
+package_ruby-ptpmgmt() {
+  pkgdesc='PTP management library ruby wrapper'
+  depends=("libptpmgmt=$pkgver" ruby)
   mkdir -p $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/ruby $pkgdir/usr/lib
 }
 
-package_tcl-pmc() {
-  pkgdesc='pmc library tcl wrapper'
-  depends=("libpmc=$pkgver" tcl)
+package_tcl-ptpmgmt() {
+  pkgdesc='PTP management library tcl wrapper'
+  depends=("libptpmgmt=$pkgver" tcl)
   mkdir -p $pkgdir/usr/lib
   mv $srcdir/install/usr/lib/tcl* $pkgdir/usr/lib
 }
 
-#package_php-pmc() {
+#package_php-ptpmgmt() {
 # Arch linux php7 do not have system include_path!
-# pkgdesc='pmc library php wrapper'
-# depends=("libpmc=$pkgver" php7)
+# pkgdesc='PTP management library php wrapper'
+# depends=("libptpmgmt=$pkgver" php7)
 # mkdir -p $pkgdir/usr/lib
 # mv $srcdir/install/usr/lib/php* $pkgdir/usr/lib
 #}
-package_pmc() {
+package_pmc-ptpmgmt() {
   license=(GPL3)
-  depends=("libpmc=$pkgver")
+  depends=("libptpmgmt=$pkgver")
   pkgdesc=<<EOF
 pmc tool.
- new rewrite of linuxptp pmc tool using the libpmc library.
+ new rewrite of linuxptp pmc tool using the libptpmgmt library.
  This tool is faster than the original linuxptp tool.'
 EOF
   mkdir -p $pkgdir/usr/share/man

@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef __PMC_INIT_H
-#define __PMC_INIT_H
+#ifndef __PTPMGMT_INIT_H
+#define __PTPMGMT_INIT_H
 
 #include <string>
 #include <cstdint>
@@ -75,4 +75,4 @@ class Init
     bool use_uds() const { return m_use_uds; }
 };
 
-#endif /* __PMC_INIT_H */
+#endif /* __PTPMGMT_INIT_H */

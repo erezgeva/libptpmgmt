@@ -19,4 +19,4 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER $USER
 ARG SRC
-COPY --chown=builder $SRC /home/$USER/libpmc
+COPY --chown=builder $SRC /home/$USER/libptpmgmt

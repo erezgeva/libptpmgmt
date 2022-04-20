@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: libpmc
-Source: https://github.com/erezgeva/libpmc.git
+Upstream-Name: libptpmgmt
+Source: https://github.com/erezgeva/libptpmgmt.git
 
 Files: *
 Copyright: 2021 Erez Geva

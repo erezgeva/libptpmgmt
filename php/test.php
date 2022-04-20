@@ -3,14 +3,14 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
  * SPDX-FileCopyrightText: Copyright 2021 Erez Geva
  *
- * testing for php wrapper of libpmc
+ * testing for php wrapper of libptpmgmt
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
  */
 
-require("pmc.php");
+require("ptpmgmt.php");
 
 const DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf";
 $sk = new SockUnix();
@@ -32,11 +32,11 @@ function setPriority1($newPriority1)
   global $sk, $msg, $buf;
   $pr1 = new PRIORITY1_t();
   $pr1->priority1 = $newPriority1;
-  $id = pmc::PRIORITY1;
-  $msg->setAction(pmc::SET, $id, $pr1);
+  $id = ptpmgmt::PRIORITY1;
+  $msg->setAction(ptpmgmt::SET, $id, $pr1);
   $seq = nextSequence();
   $err = $msg->build($buf, $seq);
-  if($err != pmc::MNG_PARSE_ERROR_OK) {
+  if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "build error $txt\n";
   }
@@ -54,16 +54,16 @@ function setPriority1($newPriority1)
     return -1;
   }
   $err = $msg->parse($buf, $cnt);
-  if($err != pmc::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
+  if($err != ptpmgmt::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
      $seq != $msg->getSequence()) {
     echo "set fails";
     return -1;
   }
   echo "set new priority $newPriority1 success\n";
-  $msg->setAction(pmc::GET, $id);
+  $msg->setAction(ptpmgmt::GET, $id);
   $seq = nextSequence();
   $err = $msg->build($buf, $seq);
-  if($err != pmc::MNG_PARSE_ERROR_OK) {
+  if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "build error $txt\n";
   }
@@ -81,9 +81,9 @@ function setPriority1($newPriority1)
     return -1;
   }
   $err = $msg->parse($buf, $cnt);
-  if($err == pmc::MNG_PARSE_ERROR_MSG) {
+  if($err == ptpmgmt::MNG_PARSE_ERROR_MSG) {
     echo "error message";
-  } else if($err != pmc::MNG_PARSE_ERROR_OK) {
+  } else if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "parse error $txt\n";
   } else {
@@ -91,7 +91,7 @@ function setPriority1($newPriority1)
     $idstr = Message::mng2str_c($rid);
     echo "Get reply for $idstr\n";
     if($rid == $id) {
-      $newPr = pmc::conv_PRIORITY1($msg->getData());
+      $newPr = ptpmgmt::conv_PRIORITY1($msg->getData());
       echo "priority1: " . $newPr->priority1 . "\n";
       return 0;
     }
@@ -118,15 +118,15 @@ function main($cfg_file)
   $prms = $msg->getParams();
   $prms->self_id->portNumber = posix_getpid() & 0xffff;
   # Verify we can use implementSpecific_e;
-  $prms->implementSpecific = pmc::linuxptp;
+  $prms->implementSpecific = ptpmgmt::linuxptp;
   $prms->domainNumber = $cfg->domainNumber();
   $msg->updateParams($prms);
   $msg->useConfig($cfg);
-  $id = pmc::USER_DESCRIPTION;
-  $msg->setAction(pmc::GET, $id);
+  $id = ptpmgmt::USER_DESCRIPTION;
+  $msg->setAction(ptpmgmt::GET, $id);
   $seq = nextSequence();
   $err = $msg->build($buf, $seq);
-  if($err != pmc::MNG_PARSE_ERROR_OK) {
+  if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "build error $txt\n";
     return -1;
@@ -146,9 +146,9 @@ function main($cfg_file)
     return -1;
   }
   $err = $msg->parse($buf, $cnt);
-  if($err == pmc::MNG_PARSE_ERROR_MSG) {
+  if($err == ptpmgmt::MNG_PARSE_ERROR_MSG) {
     echo "error message";
-  } else if($err != pmc::MNG_PARSE_ERROR_OK) {
+  } else if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "parse error $txt\n";
   } else {
@@ -156,7 +156,7 @@ function main($cfg_file)
     $idstr = Message::mng2str_c($rid);
     echo "Get reply for $idstr\n";
     if($rid == $id) {
-      $user = pmc::conv_USER_DESCRIPTION($msg->getData());
+      $user = ptpmgmt::conv_USER_DESCRIPTION($msg->getData());
       echo "get user desc: " . $user->userDescription->textField . "\n";
     }
   }
@@ -187,15 +187,15 @@ function main($cfg_file)
   setPriority1(153);
 
   $event = new SUBSCRIBE_EVENTS_NP_t();
-  $event->setEvent(pmc::NOTIFY_TIME_SYNC_get());
+  $event->setEvent(ptpmgmt::NOTIFY_TIME_SYNC_get());
   echo "maskEvent(NOTIFY_TIME_SYNC)=" .
-       $event->maskEvent(pmc::NOTIFY_TIME_SYNC_get()) .
+       $event->maskEvent(ptpmgmt::NOTIFY_TIME_SYNC_get()) .
        ", getEvent(NOTIFY_TIME_SYNC)=" .
-       ($event->getEvent(pmc::NOTIFY_TIME_SYNC_get()) ? 'have' : 'not') . "\n" .
+       ($event->getEvent(ptpmgmt::NOTIFY_TIME_SYNC_get()) ? 'have' : 'not') . "\n" .
        "maskEvent(NOTIFY_PORT_STATE)=" .
-       $event->maskEvent(pmc::NOTIFY_PORT_STATE_get()) .
+       $event->maskEvent(ptpmgmt::NOTIFY_PORT_STATE_get()) .
        ", getEvent(NOTIFY_PORT_STATE)=" .
-       ($event->getEvent(pmc::NOTIFY_PORT_STATE_get()) ? 'have' : 'not') . "\n";
+       ($event->getEvent(ptpmgmt::NOTIFY_PORT_STATE_get()) ? 'have' : 'not') . "\n";
 
   return 0;
 }
@@ -214,6 +214,6 @@ $sk->close();
 //
 // Run ./php_ini.sh to create php.ini
 //
-// If libpmc and php wrapper libraries are not installed in system, run with:
+// If libptpmgmt and php wrapper libraries are not installed in system, run with:
 // LD_LIBRARY_PATH=.. PHPRC=. ./test.php
 ?>

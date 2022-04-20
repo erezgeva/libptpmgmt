@@ -88,7 +88,7 @@ main()
  local -r mach=$(uname -m)
  local -r fmach="/$mach*"
  local ldPathRuby ldPathPhp needCmp needLua needPython2 needPython3 phpIni
- getFirstFile "/usr/lib$fmach/libpmc.so"
+ getFirstFile "/usr/lib$fmach/libptpmgmt.so"
  if [ ! -f "$file" ]; then
    local -r ldPath='LD_LIBRARY_PATH=..'
    needCmp=y
@@ -98,7 +98,7 @@ main()
  local -r pyVersions='2 3'
  probeLibs
  ##############################################################################
- local -r instPmcLib=/usr/sbin/pmc.lib
+ local -r instPmcLib=/usr/sbin/pmc-ptpmgmt
  if [ -x $instPmcLib ]; then
    local -r pmclibtool=$instPmcLib
  else
@@ -107,7 +107,7 @@ main()
  fi
  ##############################################################################
  if [ -n "$needCmp" ]; then
-   printf " * build libpmc\n"
+   printf " * build libptpmgmt\n"
    time make -j
  fi
  if [ -z "$(pgrep ptp4l)" ]; then
@@ -120,8 +120,8 @@ main()
    return
  fi
  ##############################################################################
- # compare linuxptp-pmc with libpmc-pmc dump
- local -r t1=$(mktemp linuxptp.XXXXXXXXXX) t2=$(mktemp libpmc.tool.XXXXXXXXXX)
+ # compare linuxptp-pmc with libptpmgmt-pmc dump
+ local -r t1=$(mktemp linuxptp.XXXXXXXXXX) t2=$(mktemp libptpmgmt.tool.XXXXXXXXXX)
  # all TLVs that are supported by linuxptp ptp4l
  local -r tlvs='ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY CLOCK_DESCRIPTION
    CURRENT_DATA_SET DEFAULT_DATA_SET DELAY_MECHANISM DOMAIN
@@ -147,7 +147,7 @@ n='ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
  # user  0m0.009s
  # sys   0m0.002s
 
- printf "\n * Create $t2 with running libpmc\n"
+ printf "\n * Create $t2 with running libptpmgmt\n"
  eval "$useSudo$pmclibtool -u -f $cfgFile \"$setmsg\"" > $t2
  eval "$useSudo$pmclibtool -u -f $cfgFile \"$verify\"" >> $t2
  time eval "$useSudo$pmclibtool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t2
@@ -196,9 +196,9 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
  for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
    if [ -n "$needLua" ]; then
-     ln -sf 5.$i/pmc.so
+     ln -sf 5.$i/ptpmgmt.so
    else
-     rm -f pmc.so
+     rm -f ptpmgmt.so
    fi
    time eval "$ldPath $useSudo lua5.$i ./test.lua $cfgFile" | diff - ../$t3
  done
@@ -206,16 +206,16 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
  enter python
  for i in $pyVersions; do
    # remove previous python compiling
-   rm -rf pmc.pyc __pycache__
+   rm -rf ptpmgmt.pyc __pycache__
    local -n need=needPython$i
    if [ -n "$need" ]; then
-     if [ -f $i/_pmc.so ]; then
-       ln -sf $i/_pmc.so
+     if [ -f $i/_ptpmgmt.so ]; then
+       ln -sf $i/_ptpmgmt.so
      else
        continue
      fi
    else
-     rm -f _pmc.so
+     rm -f _ptpmgmt.so
    fi
    printf "\n $(readlink $(command -v python$i)) ---- \n"
    # First compile the python script, so we measure only runing
@@ -228,11 +228,11 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
  time eval "$ldPathPhp $useSudo./test.php $cfgFile" | diff - ../$t3
  cd ..
  enter tcl
- if [ -f pmc.so ]; then
-   sed -i 's#^package require.*#load ./pmc.so#' test.tcl
+ if [ -f ptpmgmt.so ]; then
+   sed -i 's#^package require.*#load ./ptpmgmt.so#' test.tcl
  fi
  time eval "$ldPath $useSudo./test.tcl $cfgFile" | diff - ../$t3
- sed -i 's/^load .*/package require pmc/' test.tcl
+ sed -i 's/^load .*/package require ptpmgmt/' test.tcl
  cd ..
  rm $t3
 }
@@ -260,12 +260,12 @@ getFirstFile()
 }
 probeLibs()
 {
- getFirstFile "/usr/lib$fmach/perl*/*/auto/PmcLib/PmcLib.so"
+ getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
  if [ ! -f "$file" ]; then
    needCmp=y
  fi
  for i in $luaVersions; do
-   getFirstFile "/usr/lib$fmach/lua/5.$i/pmc.so"
+   getFirstFile "/usr/lib$fmach/lua/5.$i/ptpmgmt.so"
    if [ ! -f "$file" ]; then
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
@@ -274,7 +274,7 @@ probeLibs()
    fi
  done
  for i in $pyVersions; do
-   getFirstFile "/usr/lib/python$i*/dist-packages/_pmc.*$mach*.so"
+   getFirstFile "/usr/lib/python$i*/dist-packages/_ptpmgmt.*$mach*.so"
    if [ ! -f "$file" ]; then
      local -n need=needPython$i
      need=y
@@ -283,18 +283,18 @@ probeLibs()
  # Python 2 is optional
  [ -z "$needPython3" ] || needCmp=y
  ldPathRuby=$ldPath
- file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/pmc.so"
+ file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
  if [ ! -f "$file" ]; then
    needCmp=y
    ldPathRuby+=" RUBYLIB=."
  fi
  ldPathPhp=$ldPath
- if [ ! -f "$(php-config --extension-dir)/pmc.so" ]; then
+ if [ ! -f "$(php-config --extension-dir)/ptpmgmt.so" ]; then
    needCmp=y
    phpIni=y
    ldPathPhp+=" PHPRC=."
  fi
- getFirstFile "/usr/lib/tcltk/*/pmc/pmc.so"
+ getFirstFile "/usr/lib/tcltk/*/ptpmgmt/ptpmgmt.so"
  if [ ! -f "$file" ]; then
    needCmp=y
  fi

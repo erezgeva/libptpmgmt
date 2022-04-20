@@ -4,14 +4,12 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 #
-# RPM specification file for libpmc rpm packages
+# RPM specification file for libptpmgmt rpm packages
 ###############################################################################
-Name:           libpmc
-Version:        0.5
+Name:           libptpmgmt
+Version:        0.6
 Release:        1%{?dist}
-Summary:        %{bname} library, to communicate with ptp4l
-License:        LGPLv3+, GPLv3+, GFDLv1.3+
-URL:            https://%{name}.sf.net
+URL:            https://github.com/erezgeva/%{name}
 BuildRequires:  swig
 BuildRequires:  perl perl-devel perl-ExtUtils-Embed
 BuildRequires:  which
@@ -24,89 +22,89 @@ BuildRequires:  tcl tcl-devel
 BuildRequires:  doxygen graphviz
 Source0:        %{name}-%{version}.txz
 
-%define bname   pmc
+%define bname   ptpmgmt
 
+License:        LGPLv3+
+Summary:        PTP management library, to communicate with ptp4l
 %description
-%{bname} library, to communicate with ptp4l
+PTP management library, to communicate with ptp4l
 
 %package        devel
-Summary:        Development files for %{name}
+Summary:        Development files for the PTP management library
 License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-
 %description    devel
 The %{name}-devel package contains libraries and header files for
-developing applications that use %{name}.
+developing applications that use the PTP management library.
 
 %package        doc
-Summary:        Documentation files for %{name}
+Summary:        Documentation files for the PTP management library
 License:        GFDLv1.3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-
 %description    doc
-%{bname} library documentation, to communicate with ptp4l
+PTP management library documentation, to communicate with ptp4l
 
 %package        perl
-Summary:        %{bname} library Perl wrapper
+Summary:        PTP management library Perl wrapper
 License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       perl
 %description    perl
-%{bname} library Perl wrapper
+PTP management library Perl wrapper
 
 %package -n     python2-%{bname}
-summary:        %{bname} library python version 2 wrapper
+summary:        PTP management library python version 2 wrapper
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       python2
 %description -n python2-%{bname}
-%{bname} library python version 2 wrapper
+PTP management library python version 2 wrapper
 
 %package -n     python3-%{bname}
-Summary:        %{bname} library python version 3 wrapper
+Summary:        PTP management library python version 3 wrapper
 License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       python3
 %description -n python3-%{bname}
-%{bname} library python version 3 wrapper
+PTP management library python version 3 wrapper
 
 %package -n     lua-%{bname}
-Summary:        %{bname} library Lua wrapper
+Summary:        PTP management library Lua wrapper
 License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       lua
 %description -n lua-%{bname}
-%{bname} library Lua wrapper
+PTP management library Lua wrapper
 
 %package -n     ruby-%{bname}
-Summary:        %{bname} library ruby wrapper
+Summary:        PTP management library ruby wrapper
 License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       ruby
 %description -n ruby-%{bname}
-%{bname} library ruby wrapper
+PTP management library ruby wrapper
 
 %package -n     php-%{bname}
-Summary:        %{bname} library php wrapper
+Summary:        PTP management library php wrapper
 License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       php
 %description -n php-%{bname}
-%{bname} library php wrapper
+PTP management library php wrapper
 
 %package -n     tcl-%{bname}
-Summary:        %{bname} library tcl wrapper
+Summary:        PTP management library tcl wrapper
 License:        LGPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       tcl
 %description -n tcl-%{bname}
-%{bname} library tcl wrapper
+PTP management library tcl wrapper
 
-%package -n     %{bname}
-Summary:        %{bname} tool
+%package -n     pmc-%{bname}
+Summary:        pmc tool
 License:        GPLv3+
 Requires:       %{name}%{?_isa} = %{version}-%{release}
-%description -n %{bname}
- new rewrite of linuxptp %{bname} tool using the %{name} library.
+%description -n pmc-%{bname}
+ new rewrite of linuxptp pmc tool using the PTP managemen library.
  This tool is faster than the original linuxptp tool.
 
 %prep
@@ -131,8 +129,8 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %{_datadir}/doc/%{name}-doc/*
 
 %files perl
-%{_prefix}/local/lib*/perl*/*/PmcLib.pm
-%{_prefix}/local/lib*/perl*/*/auto/PmcLib/PmcLib.so
+%{_prefix}/local/lib*/perl*/*/PtpMgmtLib.pm
+%{_prefix}/local/lib*/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so
 
 %files -n python2-%{bname}
 %{_libdir}/python2*/*/_%{bname}*.so
@@ -158,11 +156,57 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %{_libdir}/tcl*/%{bname}/%{bname}.so
 %{_libdir}/tcl*/%{bname}/pkgIndex.tcl
 
-%files -n %{bname}
-%{_sbindir}/%{bname}.lib
-%{_mandir}/man8/%{bname}.lib.8*
+%files -n pmc-%{bname}
+%{_sbindir}/pmc-%{bname}
+%{_mandir}/man8/pmc-%{bname}.8*
 
+###############################################################################
+# The changelog is updated with the 'update_changelog.pl' script
+# Anything add after here will be toss, add only above.
 %changelog
+* Mon Apr 18 2022 ErezGeva2@gmail.com 0.6-1
+- Improve make file
+- - Add missing files to source tar file for RPM and Arch Linux
+- - Add Cppcheck code analysis on format rule.
+- Compliant with the FSF REUSE Specification 3.0
+- Python SWIG
+- - Support multithread, make sure poll() and tpoll()
+-     do not block other threads
+- - Use flag for single thread mode
+- Add fileno() interface as it follow POSIX function and
+-   also supported by Python select module, and probably more.
+- Convert C macros for NP_SUBSCRIBE_EVENTS with method
+-   to support scripting.
+- Sample code
+- - Add sample/sync_watch.py by Martin Pecka form
+-     Czech Technical University in Prague
+- - Add sample code for probing PTP daemon for synchronization.
+- Improve RPM specification.
+- Add no return attribute to signal handlers.
+- LinuxPTP new management TLVs:
+- - PORT_HWCLOCK_NP TLV.
+- - UNICAST_MASTER_TABLE_NP TLV.
+- Improve copyright.
+- Add header with version for compilation.
+-   in addition to version in run time.
+- Improve testing script:
+- - Verify Linux PTP configuration file exit.
+- - Check that script can use sudo unless we use the root user.
+- - Probe Unix socket file location from configuration file.
+- - Try to change Linux PTP Unix socket file permissions.
+- - Patch Linux PTP daemon if Unix socket file does not exist.
+- - Show Linux PTP daemon command line only if we find the folder.
+- Message process of float 64
+- - Remove wrong calling to move
+- - Improve function syntax
+- - Add macro for rare hardware which does not use IEEE 754.
+- Add new linuxptp linuxptpPowerProfileVersion_e enumerator
+- Fix wrong process of linuxptpTimeStamp_e enumerator in json module.
+- Use short string form of clockAccuracy_e enumerator.
+- cast characters in Binary::eui48ToEui64().
+- Add constant modifier to configuration file reference
+-   in the socket classes.
+
 * Sun Oct 31 2021 ErezGeva2@gmail.com 0.5-1
 - Add equal and less than operators to Binary, ClockIdentity_t,
   PortIdentity_t and PortAddress_t.

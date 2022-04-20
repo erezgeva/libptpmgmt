@@ -32,7 +32,7 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
     /* retrieve corresponding MAC */
     if(ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
-        PMC_PERROR("SIOCGIFHWADDR");
+        PTPMGMT_PERROR("SIOCGIFHWADDR");
         close(fd);
         return false;
     }
@@ -42,7 +42,7 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
     info.phc_index = -1;
     ifr.ifr_data = (char *)&info;
     if(ioctl(fd, SIOCETHTOOL, &ifr) == -1) {
-        PMC_PERROR("SIOCETHTOOL");
+        PTPMGMT_PERROR("SIOCETHTOOL");
         close(fd);
         return false;
     }
@@ -57,14 +57,14 @@ bool IfInfo::initUsingName(const std::string &ifName)
         return false;
     int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(fd < 0) {
-        PMC_PERROR("socket");
+        PTPMGMT_PERROR("socket");
         return false;
     }
     ifreq ifr = {0};
     // ifName is shorter than IFNAMSIZ
     strcpy(ifr.ifr_name, ifName.c_str());
     if(ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
-        PMC_PERROR("SIOCGIFINDEX");
+        PTPMGMT_PERROR("SIOCGIFINDEX");
         close(fd);
         return false;
     }
@@ -78,13 +78,13 @@ bool IfInfo::initUsingIndex(int ifIndex)
         return false;
     int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(fd < 0) {
-        PMC_PERROR("socket");
+        PTPMGMT_PERROR("socket");
         return false;
     }
     ifreq ifr = {0};
     ifr.ifr_ifindex = ifIndex;
     if(ioctl(fd, SIOCGIFNAME, &ifr) == -1) {
-        PMC_PERROR("SIOCGIFNAME");
+        PTPMGMT_PERROR("SIOCGIFNAME");
         close(fd);
         return false;
     }
@@ -98,13 +98,13 @@ PtpClock::PtpClock(int ptpIndex) : m_ptpIndex(ptpIndex), m_isInit(false)
     dev += std::to_string(ptpIndex);
     m_fd = open(dev.c_str(), O_RDWR);
     if(m_fd < 0) {
-        PMC_ERRORA("opening %s: %m", dev.c_str());
+        PTPMGMT_ERRORA("opening %s: %m", dev.c_str());
         m_clkId = -1;
         return;
     }
     m_clkId = get_clockid_fd(m_fd);
     if(m_clkId == -1) {
-        PMC_ERROR("failed to read clock id");
+        PTPMGMT_ERROR("failed to read clock id");
         return;
     }
     m_ptpDevice = dev;

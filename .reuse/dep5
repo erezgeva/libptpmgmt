@@ -1,12 +1,12 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: libpmc
+Upstream-Name: libptpmgmt
 Upstream-Contact: Erez Geva <ErezGeva2@gmail.com>
-Source: https://github.com/erezgeva/libpmc.git
+Source: https://github.com/erezgeva/libptpmgmt.git
 
 Files: *.md */changelog
 Copyright: 2021 Erez Geva
 License: GFDL-1.3-no-invariants-or-later
 
-Files: debian/co* debian/source/format libpmc.cbp
+Files: debian/co* debian/source/format libptpmgmt.cbp
 Copyright: 2021 Erez Geva
 License: GPL-3.0-or-later

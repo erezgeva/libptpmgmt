@@ -14,7 +14,7 @@
 #
 ###############################################################################
 
-use PmcLib;
+use PtpMgmtLib;
 use feature 'switch'; # 'given'
 no warnings 'experimental::smartmatch';
 
@@ -30,17 +30,17 @@ my ($peerMeanPathDelay, $portState, $gmIdentity, $sourceOffset);
 
 sub init
 {
-    $sk = PmcLib::SockUnix->new;
+    $sk = PtpMgmtLib::SockUnix->new;
     die "Fail socket" unless defined $sk;
 
-    $msg = PmcLib::Message->new;
-    $buf = PmcLib::Buf->new(BUF_SIZE);
+    $msg = PtpMgmtLib::Message->new;
+    $buf = PtpMgmtLib::Buf->new(BUF_SIZE);
     die "buffer allocation failed" unless $buf->isAlloc();
     my $cfg_file = $ARGV[0];
     $cfg_file = DEF_CFG_FILE unless -f $cfg_file;
     die "Config file $uds_address does not exist" unless -f $cfg_file;
 
-    my $cfg = PmcLib::ConfigFile->new;
+    my $cfg = PtpMgmtLib::ConfigFile->new;
     die "ConfigFile" unless $cfg->read_cfg($cfg_file);
 
     die "SockUnix" unless $sk->setDefSelfAddress() &&
@@ -59,29 +59,29 @@ sub init
 sub sendId
 {
     my $id = shift;
-    $msg->setAction($PmcLib::GET, $id);
+    $msg->setAction($PtpMgmtLib::GET, $id);
     my $err = $msg->build($buf, ++$sequence);
-    my $txt = PmcLib::Message::err2str_c($err);
-    die "build error $txt\n" if $err != $PmcLib::MNG_PARSE_ERROR_OK;
+    my $txt = PtpMgmtLib::Message::err2str_c($err);
+    die "build error $txt\n" if $err != $PtpMgmtLib::MNG_PARSE_ERROR_OK;
     die "send" unless $sk->send($buf, $msg->getMsgLen());
 }
 
 sub rcv
 {
     my $data;
-    return if $PmcLib::MNG_PARSE_ERROR_OK != $msg->parse($buf, shift);
+    return if $PtpMgmtLib::MNG_PARSE_ERROR_OK != $msg->parse($buf, shift);
     given($msg->getTlvId()) {
-        when($PmcLib::PORT_DATA_SET) {
-            $data = PmcLib::conv_PORT_DATA_SET($msg->getData());
+        when($PtpMgmtLib::PORT_DATA_SET) {
+            $data = PtpMgmtLib::conv_PORT_DATA_SET($msg->getData());
             $peerMeanPathDelay = $data->swig_peerMeanPathDelay_get()->getIntervalInt();
-            $portState = PmcLib::Message::portState2str_c($data->swig_portState_get());
+            $portState = PtpMgmtLib::Message::portState2str_c($data->swig_portState_get());
         }
-        when($PmcLib::PARENT_DATA_SET) {
-            $data = PmcLib::conv_PARENT_DATA_SET($msg->getData());
+        when($PtpMgmtLib::PARENT_DATA_SET) {
+            $data = PtpMgmtLib::conv_PARENT_DATA_SET($msg->getData());
             $gmIdentity = $data->swig_grandmasterIdentity_get()->string();
         }
-        when($PmcLib::CURRENT_DATA_SET) {
-            $data = PmcLib::conv_CURRENT_DATA_SET($msg->getData());
+        when($PtpMgmtLib::CURRENT_DATA_SET) {
+            $data = PtpMgmtLib::conv_CURRENT_DATA_SET($msg->getData());
             $sourceOffset = $data->swig_offsetFromMaster_get()->getIntervalInt();
         }
     }
@@ -89,7 +89,7 @@ sub rcv
 
 sub probe
 {
-    sendId(eval('$PmcLib::'.$_)) for qw(PORT_DATA_SET PARENT_DATA_SET CURRENT_DATA_SET);
+    sendId(eval('$PtpMgmtLib::'.$_)) for qw(PORT_DATA_SET PARENT_DATA_SET CURRENT_DATA_SET);
     # Proper receive should check the port ID, to ensure the information match the desired port.
     for (1..3) {
         unless($sk->poll(500)) {
