@@ -147,6 +147,10 @@ EOF
 creatJsonTest;
 toJsonTest;
 $sk->close();
-# dpkg --remove --force-all pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl
-# p='pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl' && apt install $p && apt-mark auto $p
-# LD_LIBRARY_PATH=. ./testJson.pl | jsonlint
+
+__END__
+
+dpkg --remove --force-all pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl
+p='pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl';\
+  apt install $p && apt-mark auto $p
+LD_LIBRARY_PATH=. ./testJson.pl | jsonlint

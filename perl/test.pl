@@ -188,11 +188,13 @@ sub main
   my $event = PtpMgmtLib::SUBSCRIBE_EVENTS_NP_t->new;
   $event->setEvent($PtpMgmtLib::NOTIFY_TIME_SYNC);
   print("maskEvent(NOTIFY_TIME_SYNC)=" .
-        PtpMgmtLib::SUBSCRIBE_EVENTS_NP_t::maskEvent($PtpMgmtLib::NOTIFY_TIME_SYNC) .
+        PtpMgmtLib::SUBSCRIBE_EVENTS_NP_t::maskEvent(
+            $PtpMgmtLib::NOTIFY_TIME_SYNC) .
         ", getEvent(NOTIFY_TIME_SYNC)=" .
         ($event->getEvent($PtpMgmtLib::NOTIFY_TIME_SYNC) ? 'have' : 'not') . "\n" .
         "maskEvent(NOTIFY_PORT_STATE)=" .
-        PtpMgmtLib::SUBSCRIBE_EVENTS_NP_t::maskEvent($PtpMgmtLib::NOTIFY_PORT_STATE) .
+        PtpMgmtLib::SUBSCRIBE_EVENTS_NP_t::maskEvent(
+            $PtpMgmtLib::NOTIFY_PORT_STATE) .
         ", getEvent(NOTIFY_PORT_STATE)=" .
         ($event->getEvent($PtpMgmtLib::NOTIFY_PORT_STATE) ? 'have' : 'not') . "\n");
 

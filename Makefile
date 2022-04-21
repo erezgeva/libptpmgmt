@@ -491,7 +491,8 @@ $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $(SWIG_PY_FLAGS) $<
 
-DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/ptpmgmt.py python/ptpmgmt.pyc
+DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/ptpmgmt.py\
+  python/ptpmgmt.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 ifdef USE_PY2
 $(eval $(call python,2))

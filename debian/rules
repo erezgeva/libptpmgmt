@@ -46,7 +46,8 @@ SLIBDIR:=debian/tmp$(LIBDIR)
 override_dh_install:
 	$(Q)install -d $(foreach d,python-ptpmgmt/usr/lib python3-ptpmgmt/usr/lib\
 	  libptpmgmt-dev/usr libptpmgmt-dev/usr/share libptpmgmt-doc/usr/share\
-	  pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib php-ptpmgmt/usr/share tcl-ptpmgmt/usr/lib\
+	  pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib php-ptpmgmt/usr/share\
+	  tcl-ptpmgmt/usr/lib\
 	  $(foreach n,lua-ptpmgmt libptpmgmt-perl libptpmgmt-dev ruby-ptpmgmt\
 	  libptpmgmt,$n$(LIBDIR)),debian/$d)
 	$(Q)mv $(DSRC)include debian/libptpmgmt-dev/usr
