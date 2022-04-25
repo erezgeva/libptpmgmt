@@ -21,17 +21,17 @@ main()
  mapfile -t log < <(git log $hash..HEAD | grep -v '^Author:.*' |\
   grep -v '^\s*$')
  sed -i "s/^\s*ver_min=.*/ver_min=$next_min_ver/" version
- local l add_line=0
+ local l add_line=false
  for l in "${log[@]}"; do
   if [[ $l =~ ^Date|^commit ]]; then
-   if [ $add_line -eq 1 ]; then
+   if $add_line; then
     DEBEMAIL="$email" debchange -v $next_ver "==============="
    fi
    DEBEMAIL="$email" debchange -v $next_ver "** $l"
-   add_line=0
+   add_line=false
   else
    DEBEMAIL="$email" debchange -v $next_ver "$l"
-   add_line=1
+   add_line=true
   fi
  done
  DEBEMAIL="$email" debchange -r bullseye

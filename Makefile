@@ -686,7 +686,7 @@ SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
   php/*.sh) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) $(HEADERS_SRCS) $(SRCS)
 SRC_NAME:=libptpmgmt-$(LIB_VER)
 
-####### rpm build #######
+####### RPM build #######
 RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
 $(RPM_SRC): $(SRC_FILES)
 	$Q$(MD) rpm/SOURCES
@@ -698,14 +698,14 @@ endif # which rpmbuild
 rpmsrc: $(RPM_SRC)
 DISTCLEAN_DIRS+=$(wildcard rpm/[BRS]*)
 
-####### archlinux build #######
+####### Arch Linux build #######
 ARCHL_SRC:=archlinux/$(SRC_NAME).txz
 ARCHL_BLD:=archlinux/PKGBUILD
 $(ARCHL_SRC): $(SRC_FILES)
 	$Q$(TAR) $@ $^
 $(ARCHL_BLD): $(ARCHL_BLD).org | $(ARCHL_SRC)
 	$(Q)cp $^ $@
-	$(Q)printf "md5sums=('%s')" $(firstword $(shell md5sum $(ARCHL_SRC))) >> $@
+	$(Q)printf "sha256sums=('%s')\n" $(firstword $(shell sha256sum $(ARCHL_SRC))) >> $@
 ifneq ($(call which,makepkg),)
 pkg: $(ARCHL_BLD)
 	$(Q)cd archlinux && makepkg

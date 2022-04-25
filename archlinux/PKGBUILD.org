@@ -36,10 +36,7 @@ package_libptpmgmt-dev() {
   # development package can use static library
   # But as Arch linux does not use development packages, we add it here
   options=(staticlibs)
-  pkgdesc=<<EOF
-PTP management library development
- This package provides header files and static library.
-EOF
+  pkgdesc='PTP management library development, provides header files and static library.'
   mkdir -p $pkgdir/usr/lib $pkgdir/usr/share
   mv $srcdir/install/usr/share/libptpmgmt-dev $pkgdir/usr/share
   mv $srcdir/install/usr/include $pkgdir/usr
@@ -103,11 +100,7 @@ package_tcl-ptpmgmt() {
 package_pmc-ptpmgmt() {
   license=(GPL3)
   depends=("libptpmgmt=$pkgver")
-  pkgdesc=<<EOF
-pmc tool.
- new rewrite of linuxptp pmc tool using the libptpmgmt library.
- This tool is faster than the original linuxptp tool.'
-EOF
+  pkgdesc='pmc tool. new rewrite of linuxptp pmc tool using the libptpmgmt library.'
   mkdir -p $pkgdir/usr/share/man
   mv $srcdir/install/usr/bin $pkgdir/usr
   mv $srcdir/install/usr/share/man/man8 $pkgdir/usr/share/man

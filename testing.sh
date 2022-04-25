@@ -32,21 +32,21 @@ main()
  done
  for n in ifName cfgFile linuxptpLoc; do
    local -n var=$n
-   [ -n "$var" ] || eval "local -r $n=\"\$def_$n\""
+   [[ -n "$var" ]] || eval "local -r $n=\"\$def_$n\""
  done
  ##############################################################################
- if [ ! -f "$cfgFile" ]; then
+ if ! [[ -f "$cfgFile" ]]; then
    echo "Linux PTP configuration file is missing"
    exit -1
  fi
  ##############################################################################
  # Root does not need sudo, we assume proper root :-)
- if [ $(id -u) -ne 0 ]; then
+ if [[ $(id -u) -ne 0 ]]; then
    set +e
    sudo id &> /dev/null
    local -ir ret=$?
    set -e
-   if [ $ret -ne 0 ]; then
+   if [[ $ret -ne 0 ]]; then
      echo "Script need to run pmc tool with sudo"
      echo "But sudo is not available!!"
      exit -1
@@ -62,25 +62,25 @@ main()
    # Use default value
    local -r udsFile='/var/run/ptp4l'
  fi
- if [ -S "$udsFile" ]; then
+ if [[ -S "$udsFile" ]]; then
    $sudo chmod ga+wr "$udsFile"
    # We change UDS
    local -r setUds=true
  fi
  ##############################################################################
  local -r uds="$linuxptpLoc/uds.c"
- if [ -f "$uds" ]; then
-   if [ -z "$setUds" ]; then
+ if [[ -f "$uds" ]]; then
+   if [[ -z "$setUds" ]]; then
      # Add all users for testing (so we can test without using root :-)
      local -r reg='^#define UDS_FILEMODE'
-     [ -z "$(grep "$reg.*GRP)" "$uds")" ] ||\
+     [[ -z "$(grep "$reg.*GRP)" "$uds")" ]] ||\
        sed -i "/$reg/ s#GRP).*#GRP|S_IROTH|S_IWOTH)#" "$uds"
    fi
    make --no-print-directory -j -C "$linuxptpLoc"
    local -r pmctool="$sudo\"$linuxptpLoc/pmc\""
    local -r ptpLocCfrm=true
  else
-   [ -n "$setUds" ] || local -r useSudo="$sudo"
+   [[ -n "$setUds" ]] || local -r useSudo="$sudo"
    local -r pmctool="$sudo/usr/sbin/pmc"
  fi
  ##############################################################################
@@ -89,7 +89,7 @@ main()
  local -r fmach="/$mach*"
  local ldPathRuby ldPathPhp needCmp needLua needPython2 needPython3 phpIni
  getFirstFile "/usr/lib$fmach/libptpmgmt.so"
- if [ ! -f "$file" ]; then
+ if ! [[ -f "$file" ]]; then
    local -r ldPath='LD_LIBRARY_PATH=..'
    needCmp=y
  fi
@@ -99,20 +99,20 @@ main()
  probeLibs
  ##############################################################################
  local -r instPmcLib=/usr/sbin/pmc-ptpmgmt
- if [ -x $instPmcLib ]; then
+ if [[ -x $instPmcLib ]]; then
    local -r pmclibtool=$instPmcLib
  else
    local -r pmclibtool=./pmc
    needCmp=y
  fi
  ##############################################################################
- if [ -n "$needCmp" ]; then
+ if [[ -n "$needCmp" ]]; then
    printf " * build libptpmgmt\n"
    time make -j
  fi
- if [ -z "$(pgrep ptp4l)" ]; then
+ if [[ -z "$(pgrep ptp4l)" ]]; then
    printf "\n * Run ptp daemon"
-   if [ -n "$ptpLocCfrm" ]; then
+   if [[ -n "$ptpLocCfrm" ]]; then
      printf ":\n   cd \"$(realpath $linuxptpLoc)\" %s\n\n"\
             "&& make && sudo ./ptp4l -f $cfgFile -i $ifName"
    fi
@@ -195,7 +195,7 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
  enter lua
  for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
-   if [ -n "$needLua" ]; then
+   if [[ -n "$needLua" ]]; then
      ln -sf 5.$i/ptpmgmt.so
    else
      rm -f ptpmgmt.so
@@ -208,8 +208,8 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
    # remove previous python compiling
    rm -rf ptpmgmt.pyc __pycache__
    local -n need=needPython$i
-   if [ -n "$need" ]; then
-     if [ -f $i/_ptpmgmt.so ]; then
+   if [[ -n "$need" ]]; then
+     if [[ -f $i/_ptpmgmt.so ]]; then
        ln -sf $i/_ptpmgmt.so
      else
        continue
@@ -224,11 +224,11 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
  done
  cd ..
  enter php
- [ -z "$phpIni" ] || ./php_ini.sh
+ [[ -z "$phpIni" ]] || ./php_ini.sh
  time eval "$ldPathPhp $useSudo./test.php $cfgFile" | diff - ../$t3
  cd ..
  enter tcl
- if [ -f ptpmgmt.so ]; then
+ if [[ -f ptpmgmt.so ]]; then
    sed -i 's#^package require.*#load ./ptpmgmt.so#' test.tcl
  fi
  time eval "$ldPath $useSudo./test.tcl $cfgFile" | diff - ../$t3
@@ -251,7 +251,7 @@ getFirstFile()
 {
  local f
  for f in $@; do
-   if [ -f "$f" ]; then
+   if [[ -f "$f" ]]; then
      file="$f"
      return
    fi
@@ -261,12 +261,12 @@ getFirstFile()
 probeLibs()
 {
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
- if [ ! -f "$file" ]; then
+ if ! [[ -f "$file" ]]; then
    needCmp=y
  fi
  for i in $luaVersions; do
    getFirstFile "/usr/lib$fmach/lua/5.$i/ptpmgmt.so"
-   if [ ! -f "$file" ]; then
+   if ! [[ -f "$file" ]]; then
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
      needCmp=y
@@ -275,27 +275,27 @@ probeLibs()
  done
  for i in $pyVersions; do
    getFirstFile "/usr/lib/python$i*/dist-packages/_ptpmgmt.*$mach*.so"
-   if [ ! -f "$file" ]; then
+   if ! [[ -f "$file" ]]; then
      local -n need=needPython$i
      need=y
    fi
  done
  # Python 2 is optional
- [ -z "$needPython3" ] || needCmp=y
+ [[ -z "$needPython3" ]] || needCmp=y
  ldPathRuby=$ldPath
  file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
- if [ ! -f "$file" ]; then
+ if ! [[ -f "$file" ]]; then
    needCmp=y
    ldPathRuby+=" RUBYLIB=."
  fi
  ldPathPhp=$ldPath
- if [ ! -f "$(php-config --extension-dir)/ptpmgmt.so" ]; then
+ if ! [[ -f "$(php-config --extension-dir)/ptpmgmt.so" ]]; then
    needCmp=y
    phpIni=y
    ldPathPhp+=" PHPRC=."
  fi
  getFirstFile "/usr/lib/tcltk/*/ptpmgmt/ptpmgmt.so"
- if [ ! -f "$file" ]; then
+ if ! [[ -f "$file" ]]; then
    needCmp=y
  fi
 }

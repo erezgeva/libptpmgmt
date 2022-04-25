@@ -5,7 +5,7 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright 2021 Erez Geva
 #
-# script to create Docker contianer for building and create archlinux packages
+# script to create Docker contianer for building and create Arch Linux packages
 ###############################################################################
 cmd()
 {

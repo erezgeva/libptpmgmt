@@ -10,7 +10,7 @@
 ###############################################################################
 down_lic()
 {
-  if [ -f "LICENSES/$1.txt" -o -z "$(which reuse)" ]; then
+  if [[ -f "LICENSES/$1.txt" ]] || [[ -z "$(which reuse)" ]]; then
     return
   fi
   reuse download $1
