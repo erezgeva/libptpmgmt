@@ -12,6 +12,9 @@
 #include <cstdlib>
 #include "buf.h"
 
+namespace ptpmgmt
+{
+
 Buf::~Buf()
 {
     if(m_buf != nullptr)
@@ -30,3 +33,5 @@ bool Buf::alloc(size_t size)
     m_size = size;
     return true;
 }
+
+}; /* namespace ptpmgmt */

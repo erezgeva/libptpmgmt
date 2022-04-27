@@ -50,6 +50,9 @@
 #define NSEC_PER_SEC 1000000000L
 #endif
 
+namespace ptpmgmt
+{
+
 struct JsonProc {
     bool procData(mng_vals_e managementId, const BaseMngTlv *&data);
 #define procType(type) \
@@ -1740,3 +1743,5 @@ bool Json2msg::fromJsonObj(const void *jobj)
     return false;
 }
 #endif /* PTPMGMT_USE_CJSON */
+
+}; /* namespace ptpmgmt */

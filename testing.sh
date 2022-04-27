@@ -185,14 +185,26 @@ maskEvent(NOTIFY_TIME_SYNC)=2, getEvent(NOTIFY_TIME_SYNC)=have
 maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
 "
  enter perl
- time eval "$ldPath $useSudo./test.pl $cfgFile" > ../$t3
- cd ..
  printf "\n * We except real 'user desc' on '>'\n"
  diff <(printf "$scriptOut") $t3 | grep '^[0-9-]' -v
  enter ruby
- time eval "$ldPathRuby $useSudo./test.rb $cfgFile" | diff - ../$t3
- cd ..
  enter lua
+ enter python
+ enter php
+ enter tcl
+ rm $t3
+}
+###############################################################################
+do_perl()
+{
+ time eval "$ldPath $useSudo./test.pl $cfgFile" > ../$t3
+}
+do_ruby()
+{
+ time eval "$ldPathRuby $useSudo./test.rb $cfgFile" | diff - ../$t3
+}
+do_lua()
+{
  for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
    if [[ -n "$needLua" ]]; then
@@ -202,8 +214,9 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
    fi
    time eval "$ldPath $useSudo lua5.$i ./test.lua $cfgFile" | diff - ../$t3
  done
- cd ..
- enter python
+}
+do_python()
+{
  for i in $pyVersions; do
    # remove previous python compiling
    rm -rf ptpmgmt.pyc __pycache__
@@ -222,25 +235,26 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
    eval "$ldPath $useSudo python$i ./test.py $cfgFile" > /dev/null
    time eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3
  done
- cd ..
- enter php
+}
+do_php()
+{
  [[ -z "$phpIni" ]] || ./php_ini.sh
  time eval "$ldPathPhp $useSudo./test.php $cfgFile" | diff - ../$t3
- cd ..
- enter tcl
+}
+do_tcl()
+{
  if [[ -f ptpmgmt.so ]]; then
    sed -i 's#^package require.*#load ./ptpmgmt.so#' test.tcl
  fi
  time eval "$ldPath $useSudo./test.tcl $cfgFile" | diff - ../$t3
  sed -i 's/^load .*/package require ptpmgmt/' test.tcl
- cd ..
- rm $t3
 }
-###############################################################################
 enter()
 {
  cd $1
  printf "\n =====  Run $1  ===== \n"
+ do_$1
+ cd ..
 }
 cmd()
 {

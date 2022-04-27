@@ -12,7 +12,13 @@
 #ifndef __PTPMGMT_PMC_TOOL_H
 #define __PTPMGMT_PMC_TOOL_H
 
+#include <signal.h>
+#include <unistd.h>
+#include <poll.h>
+#include "init.h"
 #include "msg.h"
+
+using namespace ptpmgmt;
 
 /** print error message */
 #define PMCERR(msg) fprintf(stderr, msg "\n")

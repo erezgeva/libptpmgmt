@@ -19,6 +19,11 @@
 #include <vector>
 #include "msg.h"
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /** Clock description TLV */
 struct CLOCK_DESCRIPTION_t : public BaseMngTlv {
     uint16_t clockType; /**< Clock type bit mask */
@@ -614,6 +619,10 @@ struct POWER_PROFILE_SETTINGS_NP_t : public BaseMngTlv {
     UInteger32_t networkTimeInaccuracy; /**< network time inaccuracy */
     UInteger32_t totalTimeInaccuracy; /**< total time inaccuracy */
 };
+#endif
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
 #endif
 
 #endif /* __PTPMGMT_PROC_H */

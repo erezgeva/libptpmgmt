@@ -12,6 +12,9 @@
 #include <arpa/inet.h>
 #include "bin.h"
 
+namespace ptpmgmt
+{
+
 static const char *idsep = ":.-";
 class Token
 {
@@ -174,3 +177,5 @@ std::string Binary::bufToHex(const uint8_t *bin, size_t len)
     }
     return ret;
 }
+
+}; /* namespace ptpmgmt */

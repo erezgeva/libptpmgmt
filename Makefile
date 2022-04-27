@@ -600,7 +600,7 @@ TCL_LNAME:=tcl/ptpmgmt
 CPPFLAGS_TCL+=-I $(TCL_INC)
 $(TCL_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -outdir tcl -o $@ -tcl8 $<
+	$Q$(SWIG) -c++ -I. -outdir tcl -o $@ -tcl8 -namespace $<
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_TCL) -c $< -o $@

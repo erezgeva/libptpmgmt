@@ -12,6 +12,9 @@
 #include "err.h"
 #include "cfg.h"
 
+namespace ptpmgmt
+{
+
 #define get_func(n)\
     uint8_t ConfigFile::n(const std::string &section) const\
     {\
@@ -215,3 +218,5 @@ get_func(network_transport)
 get_str_func(uds_address)
 get_bin_func(ptp_dst_mac)
 get_bin_func(p2p_dst_mac)
+
+}; /* namespace ptpmgmt */

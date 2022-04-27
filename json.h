@@ -18,6 +18,11 @@
 #include <cstdio>
 #include "msg.h"
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * Convert Message to JSON string
  * @param[in] message received from PTP entity
@@ -185,5 +190,9 @@ class Json2msg
      */
     bool haveDstPort() const { return m_have[have_dstPort]; }
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_JSON_H */

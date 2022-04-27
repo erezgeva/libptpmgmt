@@ -17,6 +17,9 @@
 #include "end.h"
 #include "msg.h"
 
+namespace ptpmgmt
+{
+
 #if defined __GNUC__
 /* See:
  * GNU GCC
@@ -1424,3 +1427,5 @@ bool Message::procLe(uint64_t &val)
     move(sizeof(uint64_t));
     return false;
 }
+
+}; /* namespace ptpmgmt */

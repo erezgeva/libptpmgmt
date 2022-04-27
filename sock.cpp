@@ -18,6 +18,9 @@
 #include "err.h"
 #include "sock.h"
 
+namespace ptpmgmt
+{
+
 const uint16_t udp_port = 320;
 const char *ipv4_udp_mc = "224.0.1.129";
 const char *ipv6_udp_mc = "ff0e::181";
@@ -628,3 +631,5 @@ bool SockRaw::setAllBase(const ConfigFile &cfg, const std::string &section)
 {
     return setPtpDstMac(cfg, section) && setSocketPriority(cfg, section);
 }
+
+}; /* namespace ptpmgmt */

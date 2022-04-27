@@ -17,6 +17,11 @@
 #include <cstring>
 #include <cstdio>
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 const size_t EUI48 = 6; /**< 48 bits MAC address length */
 const size_t EUI64 = 8; /**< 64 bits MAC address length */
 
@@ -287,5 +292,9 @@ class Binary
         return m_str < rhs.m_str;
     }
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_BIN_H */

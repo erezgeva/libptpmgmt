@@ -13,6 +13,9 @@
 #include "opt.h"
 #include "ver.h"
 
+namespace ptpmgmt
+{
+
 pmc_option Options::start[] = {
     { 'b', nullptr, true, false, "boundary hops", "num", "1" },
     { 'd', "domainNumber", true, false, "domain number", "num", "0" },
@@ -178,3 +181,5 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
     m_end_optind = optind;
     return OPT_DONE;
 }
+
+}; /* namespace ptpmgmt */

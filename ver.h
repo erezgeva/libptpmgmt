@@ -12,6 +12,11 @@
 #ifndef __PTPMGMT_VER_H
 #define __PTPMGMT_VER_H
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * Get this library version
  * @return this library version
@@ -27,5 +32,9 @@ int getVersionMajor();
  * @return this library version minor
  */
 int getVersionMinor();
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_VER_H */

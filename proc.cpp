@@ -11,6 +11,9 @@
 
 #include "msg.h"
 
+namespace ptpmgmt
+{
+
 /* size functions per id */
 #define S(n) static inline size_t n##_s(n##_t &d)
 
@@ -378,3 +381,5 @@ A(POWER_PROFILE_SETTINGS_NP)
         proc(d.totalTimeInaccuracy);
 }
 #endif
+
+}; /* namespace ptpmgmt */

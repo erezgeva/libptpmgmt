@@ -22,6 +22,8 @@
 #include <map>
 #include <ptpmgmt/init.h>
 
+using namespace ptpmgmt;
+
 const uint64_t NS_PER_SEC = 1000000000LL;
 const uint64_t PMC_UPDATE_INTERVAL = 60 * NS_PER_SEC;
 const int PMC_SUBSCRIBE_DURATION = 180; /* 3 minutes */

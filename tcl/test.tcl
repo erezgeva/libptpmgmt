@@ -12,9 +12,9 @@
 package require ptpmgmt
 
 set DEF_CFG_FILE "/etc/linuxptp/ptp4l.conf"
-SockUnix sk
-Message msg
-Buf buf
+ptpmgmt::SockUnix sk
+ptpmgmt::Message msg
+ptpmgmt::Buf buf
 set sequence 0
 
 proc nextSequence {} {
@@ -28,15 +28,14 @@ proc nextSequence {} {
 }
 
 proc setPriority1 {newPriority1} {
-  global GET SET PRIORITY1 MNG_PARSE_ERROR_OK MNG_PARSE_ERROR_MSG
-  set pr1 [PRIORITY1_t]
+  set pr1 [ ptpmgmt::PRIORITY1_t ]
   $pr1 configure -priority1 $newPriority1
-  set id $PRIORITY1
-  msg setAction $SET $id $pr1
+  set id $ptpmgmt::PRIORITY1
+  msg setAction $ptpmgmt::SET $id $pr1
   set seq [ nextSequence ]
   set err [ msg build buf $seq ]
-  if {$err != $MNG_PARSE_ERROR_OK} {
-    set txt [ Message_err2str_c $err ]
+  if {$err != $ptpmgmt::MNG_PARSE_ERROR_OK} {
+    set txt [ ptpmgmt::Message_err2str_c $err ]
     puts "build error $txt"
     return -1
   }
@@ -54,17 +53,17 @@ proc setPriority1 {newPriority1} {
     return -1
   }
   set err [ msg parse buf $cnt ]
-  if {$err != $MNG_PARSE_ERROR_OK || [ msg getTlvId ] != $id || \
+  if {$err != $ptpmgmt::MNG_PARSE_ERROR_OK || [ msg getTlvId ] != $id || \
       $seq != [ msg getSequence ] } {
     puts "set fails"
     return -1
   }
   puts "set new priority $newPriority1 success"
-  msg setAction $GET $id
+  msg setAction $ptpmgmt::GET $id
   set seq [ nextSequence ]
   set err [ msg build buf $seq ]
-  if {$err != $MNG_PARSE_ERROR_OK} {
-    set txt [ Message_err2str_c $err ]
+  if {$err != $ptpmgmt::MNG_PARSE_ERROR_OK} {
+    set txt [ ptpmgmt::Message_err2str_c $err ]
     puts "build error $txt"
     return -1
   }
@@ -82,17 +81,17 @@ proc setPriority1 {newPriority1} {
     return -1
   }
   set err [ msg parse buf $cnt ]
-  if {$err == $MNG_PARSE_ERROR_MSG} {
+  if {$err == $ptpmgmt::MNG_PARSE_ERROR_MSG} {
     puts "error message"
-  } elseif {$err != $MNG_PARSE_ERROR_OK} {
-    set txt [ Message_err2str_c $err ]
+  } elseif {$err != $ptpmgmt::MNG_PARSE_ERROR_OK} {
+    set txt [ ptpmgmt::Message_err2str_c $err ]
     puts "parse error $txt"
   } else {
     set rid [ msg getTlvId ]
-    set idstr [ Message_mng2str_c $rid ]
+    set idstr [ ptpmgmt::Message_mng2str_c $rid ]
     puts "Get reply for $idstr"
     if {$rid == $id} {
-      set newPr [ conv_PRIORITY1 [ msg getData ] ]
+      set newPr [ ptpmgmt::conv_PRIORITY1 [ msg getData ] ]
       puts "priority1: [ $newPr cget -priority1 ]"
       return 0
     }
@@ -101,12 +100,11 @@ proc setPriority1 {newPriority1} {
 }
 
 proc main {cfg_file} {
-  global GET MNG_PARSE_ERROR_OK MNG_PARSE_ERROR_MSG linuxptp USER_DESCRIPTION
   if { ! [ buf alloc 1000 ] } {
     puts "buffer allocation failed"
     return -1
   }
-  set cfg [ConfigFile]
+  set cfg [ptpmgmt::ConfigFile]
   if { ! [ $cfg read_cfg $cfg_file ] } {
     puts "fail reading configuration file"
     return -1
@@ -119,16 +117,16 @@ proc main {cfg_file} {
   set prms [ msg getParams ]
   [ $prms cget -self_id] configure -portNumber [ expr [ pid ] & 0xffff ]
   # Verify we can use implementSpecific_e
-  $prms configure -implementSpecific $linuxptp
+  $prms configure -implementSpecific $ptpmgmt::linuxptp
   $prms configure -domainNumber [ $cfg domainNumber ]
   msg updateParams $prms
   msg useConfig $cfg
-  set id $USER_DESCRIPTION
-  msg setAction $GET $id
+  set id $ptpmgmt::USER_DESCRIPTION
+  msg setAction $ptpmgmt::GET $id
   set seq [ nextSequence ]
   set err [ msg build buf $seq ]
-  if {$err != $MNG_PARSE_ERROR_OK} {
-    set txt [ Message_err2str_c $err ]
+  if {$err != $ptpmgmt::MNG_PARSE_ERROR_OK} {
+    set txt [ ptpmgmt::Message_err2str_c $err ]
     puts "build error $txt"
     return -1
   }
@@ -147,25 +145,25 @@ proc main {cfg_file} {
     return -1
   }
   set err [ msg parse buf $cnt ]
-  if {$err == $MNG_PARSE_ERROR_MSG} {
+  if {$err == $ptpmgmt::MNG_PARSE_ERROR_MSG} {
     puts "error message"
-  } elseif {$err != $MNG_PARSE_ERROR_OK} {
-    set txt [ Message_err2str_c $err ]
+  } elseif {$err != $ptpmgmt::MNG_PARSE_ERROR_OK} {
+    set txt [ ptpmgmt::Message_err2str_c $err ]
     puts "parse error $txt"
   } else {
     set rid [ msg getTlvId ]
-    set idstr [ Message_mng2str_c $rid ]
+    set idstr [ ptpmgmt::Message_mng2str_c $rid ]
     puts "Get reply for $idstr"
     if {$rid == $id} {
-      set user [ conv_USER_DESCRIPTION [ msg getData ] ]
+      set user [ ptpmgmt::conv_USER_DESCRIPTION [ msg getData ] ]
       puts "get user desc: [ [ $user cget -userDescription ] cget -textField ]"
     }
   }
 
   # test setting values
-  set clk_dec [CLOCK_DESCRIPTION_t]
+  set clk_dec [ ptpmgmt::CLOCK_DESCRIPTION_t ]
   $clk_dec configure -clockType 0x800
-  set physicalAddress [Binary]
+  set physicalAddress [ ptpmgmt::Binary ]
   $physicalAddress setBin 0 0xf1
   $physicalAddress setBin 1 0xf2
   $physicalAddress setBin 2 0xf3
@@ -178,7 +176,7 @@ proc main {cfg_file} {
   [ $clk_dec cget -physicalAddress ] setBin 3 0xf4
   puts "clk.physicalAddress: [ [ $clk_dec cget -physicalAddress ] toId ]"
   puts "clk.physicalAddress: [ [ $clk_dec cget -physicalAddress ] toHex ]"
-  set val [ Binary_bufToId [ $clk_dec cget -manufacturerIdentity ] 3 ]
+  set val [ ptpmgmt::Binary_bufToId [ $clk_dec cget -manufacturerIdentity ] 3 ]
   puts "manufacturerIdentity: $val"
   [ $clk_dec cget -revisionData ] configure -textField "This is a test"
   puts "revisionData: [ [ $clk_dec cget -revisionData ] cget -textField ]"
@@ -187,18 +185,17 @@ proc main {cfg_file} {
   setPriority1 147
   setPriority1 153
 
-  global NOTIFY_TIME_SYNC NOTIFY_PORT_STATE
-  set event [SUBSCRIBE_EVENTS_NP_t]
-  $event setEvent $NOTIFY_TIME_SYNC
-  set mask [ SUBSCRIBE_EVENTS_NP_t_maskEvent $NOTIFY_TIME_SYNC ]
-  if { [ $event getEvent $NOTIFY_TIME_SYNC ] } {
+  set event [ ptpmgmt::SUBSCRIBE_EVENTS_NP_t ]
+  $event setEvent $ptpmgmt::NOTIFY_TIME_SYNC
+  set mask [ ptpmgmt::SUBSCRIBE_EVENTS_NP_t_maskEvent $ptpmgmt::NOTIFY_TIME_SYNC ]
+  if { [ $event getEvent $ptpmgmt::NOTIFY_TIME_SYNC ] } {
     set txt "have"
   } else {
     set txt "not"
   }
   puts "maskEvent(NOTIFY_TIME_SYNC)=$mask, getEvent(NOTIFY_TIME_SYNC)=$txt"
-  set mask [ SUBSCRIBE_EVENTS_NP_t_maskEvent $NOTIFY_PORT_STATE ]
-  if { [ $event getEvent $NOTIFY_PORT_STATE ] } {
+  set mask [ ptpmgmt::SUBSCRIBE_EVENTS_NP_t_maskEvent $ptpmgmt::NOTIFY_PORT_STATE ]
+  if { [ $event getEvent $ptpmgmt::NOTIFY_PORT_STATE ] } {
     set txt "have"
   } else {
     set txt "not"

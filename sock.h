@@ -31,6 +31,11 @@
 #include "bin.h"
 #include "buf.h"
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * @brief base class for all sockets
  * @details
@@ -631,5 +636,9 @@ class SockRaw : public SockBaseIf
      */
     bool setSocketPriority(const ConfigFile &cfg, const std::string &section = "");
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_SOCK_H */

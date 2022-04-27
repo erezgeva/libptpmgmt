@@ -20,6 +20,11 @@
 #include <vector>
 #include <map>
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * @brief structre to add new option
  */
@@ -168,5 +173,9 @@ class Options
      */
     int procces_next() const { return m_end_optind; }
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_OPT_H */

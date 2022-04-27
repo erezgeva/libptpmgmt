@@ -17,6 +17,11 @@
 %_
 %#include "msg.h"
 %_
+%#ifndef SWIG
+namespace ptpmgmt
+{
+%#endif
+%_
 %@**
  * @brief Management TLVs ID
  * @details
@@ -32,7 +37,13 @@ enum mng_vals_e {
 };
 %_
 %#ifndef SWIG
+%_
+}; %@* namespace ptpmgmt *%@
+%_
 %@* For Doxygen only *%@
+%_
+using namespace ptpmgmt;
+%_
 #define caseUF(n) \
 %@**%^\
  * Convert data to n##_t structure%^\

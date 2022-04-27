@@ -18,6 +18,11 @@
 #include <cstdint>
 #include <endian.h>
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * convert unsigned 16 bits integer from host order to network order
  * @param[in] value host order unsigned 16 bits integer
@@ -69,5 +74,9 @@ inline uint64_t cpu_to_le64(uint64_t value) {return htole64(value);}
  * @note used for linuxptp statistics
  */
 inline uint64_t le_to_cpu64(uint64_t value) {return le64toh(value);}
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_ENDIAN_H */

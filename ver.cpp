@@ -11,6 +11,9 @@
 
 #include "ver.h"
 
+namespace ptpmgmt
+{
+
 // Version comes from 'version' file during build.
 
 // Need 2 levels to stringify macros value instead of macro name
@@ -29,3 +32,5 @@ int getVersionMinor()
 {
     return VER_MIN;
 }
+
+}; /* namespace ptpmgmt */

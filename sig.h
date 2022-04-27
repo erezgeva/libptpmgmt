@@ -20,6 +20,11 @@
 #include "msg.h"
 
 #ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
+#ifndef SWIG
 /** MANAGEMENT TLV
  * @note: used for management TLV in a signaling message
  *  management message do not use this structure!
@@ -249,5 +254,9 @@ struct SLAVE_DELAY_TIMING_DATA_NP_t : public BaseSigTlv {
     /** records of messages */
     std::vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t> list;
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_SIG_H */

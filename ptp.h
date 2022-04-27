@@ -23,6 +23,11 @@
 #include <linux/ethtool.h>
 #include "bin.h"
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * @brief Network interface information
  */
@@ -148,5 +153,9 @@ class PtpClock
      */
     const char *ptpDevice_c() const { return m_ptpDevice.c_str(); }
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_IF_H */

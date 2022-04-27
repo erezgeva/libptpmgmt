@@ -11,6 +11,9 @@
 
 #include "msg.h"
 
+namespace ptpmgmt
+{
+
 #define A(n) bool Message::n##_f(n##_t &d)
 A(ORGANIZATION_EXTENSION)
 {
@@ -99,3 +102,5 @@ bool Message::proc(SLAVE_DELAY_TIMING_DATA_NP_rec_t &d)
     return proc(d.sequenceId) || proc(d.delayOriginTimestamp) ||
         proc(d.totalCorrectionField) || proc(d.delayResponseTimestamp);
 }
+
+}; /* namespace ptpmgmt */

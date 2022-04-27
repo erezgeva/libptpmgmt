@@ -10,11 +10,7 @@
  * Created following "IEEE Std 1588-2008", PTP version 2
  */
 
-#include <signal.h>
-#include <unistd.h>
-#include <poll.h>
 #include "pmc.h"
-#include "init.h"
 
 #ifndef INFTIM
 #define INFTIM -1

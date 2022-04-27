@@ -18,6 +18,7 @@ DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 sk = ptpmgmt.SockUnix()
 msg = ptpmgmt.Message()
 buf = ptpmgmt.Buf(1000)
+cfg = ptpmgmt.ConfigFile()
 sequence = 0
 
 def nextSequence():
@@ -96,13 +97,16 @@ def main():
   else:
     cfg_file = DEF_CFG_FILE
   print("Use configuration file %s" % cfg_file)
-  cfg = ptpmgmt.ConfigFile()
   if not cfg.read_cfg(cfg_file):
     print("fail reading configuration file")
     return -1
 
-  if not sk.setDefSelfAddress() or not sk.init() or not sk.setPeerAddress(cfg):
+  if not sk.setDefSelfAddress() or not sk.init():
     print("fail init socket")
+    return -1
+
+  if not sk.setPeerAddress(cfg):
+    print("fail init peer address")
     return -1
 
   prms = msg.getParams()

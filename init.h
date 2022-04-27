@@ -21,6 +21,11 @@
 #include "opt.h"
 #include "sock.h"
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * Initilize configuration file, socket, message based on PMC options.
  * The user can write an application using the pmc command line.
@@ -74,5 +79,9 @@ class Init
      */
     bool use_uds() const { return m_use_uds; }
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_INIT_H */

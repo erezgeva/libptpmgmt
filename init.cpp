@@ -12,6 +12,9 @@
 #include "init.h"
 #include "err.h"
 
+namespace ptpmgmt
+{
+
 void Init::close()
 {
     if(m_sk != nullptr) {
@@ -161,3 +164,5 @@ int Init::proccess(const Options &opt)
     m_msg.updateParams(prms);
     return 0;
 }
+
+}; /* namespace ptpmgmt */

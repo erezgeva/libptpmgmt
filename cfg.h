@@ -23,6 +23,11 @@
 #include <map>
 #include "bin.h"
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 class ConfigFile;
 
 /**< @cond internal */
@@ -147,5 +152,9 @@ class ConfigFile
      */
     const Binary &p2p_dst_mac(const std::string &section = "") const;
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_CFG_H */

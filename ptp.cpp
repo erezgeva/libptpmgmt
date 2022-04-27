@@ -16,6 +16,9 @@
 #include "err.h"
 #include "ptp.h"
 
+namespace ptpmgmt
+{
+
 // man netdevice
 // From linux/posix-timers.h
 #define CPUCLOCK_MAX      3
@@ -115,3 +118,5 @@ PtpClock::~PtpClock()
     if(m_fd >= 0)
         close(m_fd);
 }
+
+}; /* namespace ptpmgmt */

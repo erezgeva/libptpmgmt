@@ -17,6 +17,11 @@
 #include <cstring>
 #include <cstdio>
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 /**
  * Create memory buffer for use in send, receive, build and parse
  * @note This class is for scripts language.
@@ -62,5 +67,9 @@ class Buf
      */
     bool isAlloc() const {return m_size > 0;}
 };
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_BUF_H */

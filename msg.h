@@ -25,6 +25,11 @@
 #include "bin.h"
 #include "buf.h"
 
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
+
 #ifndef INT48_MIN
 /** Minimum value for signed integer 48 bits */
 #define INT48_MIN (-INT64_C(0x7fffffffffff) - 1)
@@ -615,10 +620,19 @@ struct LinuxptpUnicastMaster_t {
     }
 };
 
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
+
 /* Structure per each mng_vals_e id */
 #include "proc.h"
 /* Structures for signaling TLVs */
 #include "sig.h"
+
+#ifndef SWIG
+namespace ptpmgmt
+{
+#endif
 
 /**
  * @brief Handle PTP management message
@@ -1234,5 +1248,9 @@ class Message
 /* For SWIG */
 #undef A
 #undef caseUF
+
+#ifndef SWIG
+}; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_MSG_H */

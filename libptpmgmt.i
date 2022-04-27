@@ -8,11 +8,14 @@
  *
  */
 
+/* Module name */
 #ifdef SWIGPERL
-%module PtpMgmtLib
-#else /* Not Perl */
+%module PtpMgmtLib  /* Perl only */
+#else
 %module ptpmgmt
 #endif /* SWIGPERL */
+
+/* Headers and namespace for moudle source code */
 %{
     #include "cfg.h"
     #include "msg.h"
@@ -21,26 +24,45 @@
     #include "bin.h"
     #include "buf.h"
     #include "json.h"
+    using namespace ptpmgmt;
 %}
 
+/* Handle multithreads support */
 #ifdef SWIG_USE_MULTITHREADS
 %nothread;
 #define SWIG_THREAD_START %thread
 #define SWIG_THREAD_END %nothread
 #endif
+
+/* Include standatd types and SWIG macroes */
 %include "stdint.i"
 %include "std_string.i"
 %include "std_vector.i"
+%include "cpointer.i"
+/* The type is POSIX only, not standard! */
 %apply long { ssize_t };
+
+/*************************************************************************
+ * Handle ignores and renames per script language.
+ * Users of a script language should look here
+ *  for the specific ignores and renames.
+ * Each ignored operator overlaod have an alternative function
+ ************************************************************************/
+/*****
+ * Ruby
+ *********/
 #ifdef SWIGRUBY
 /* Ignore Wrong constant name.
-   Ruby capitalize first letter! */
+ * Ruby capitalize first letter! */
 %warnfilter(801) clockType_e;
 %warnfilter(801) implementSpecific_e;
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(365) Binary::operator+=;
 #endif /* SWIGRUBY */
+/*****
+ * PHP
+ *********/
 #ifdef SWIGPHP
 /* PHP rename to c_empty */
 %warnfilter(314) Binary::empty;
@@ -59,12 +81,18 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
 %warnfilter(503) Binary::operator+=;
 #define SWIG_OPERS_503
 #endif /* SWIGPHP */
+/*****
+ * Tcl
+ *********/
 #ifdef SWIGTCL
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(365) Binary::operator+=;
 #define SWIG_OPERS_503
 #endif /* SWIGTCL */
+/*****
+ * PHP and Tcl ignore operators overload
+ *********/
 #ifdef SWIG_OPERS_503
 /* Operator overload ignored.
  * Scripts can use Buf::get() */
@@ -82,35 +110,51 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
 %warnfilter(503) PortIdentity_t::operator<;
 %warnfilter(503) PortAddress_t::operator<;
 #endif /* SWIG_OPERS_503 */
+
+/* Mark base sockets as non-abstract classes */
+%feature("notabstract") SockBase;
+%feature("notabstract") SockBaseIf;
+/* library code */
 %include "cfg.h"
 %include "msg.h"
 %include "ptp.h"
-%feature("notabstract") SockBase;
-%feature("notabstract") SockBaseIf;
 %include "sock.h"
 %include "bin.h"
 %include "buf.h"
 %include "json.h"
 %include "proc.h"
 %include "sig.h"
+/* Add Management TLVs enumerator */
 %include "mngIds.h"
-%include "cpointer.i"
-/* Handle management and signalig vectors inside structures */
-namespace std {
-  %template(FaultRecord_v) vector<FaultRecord_t>;
-  %template(ClockIdentity_v) vector<ClockIdentity_t>;
-  %template(PortAddress_v) vector<PortAddress_t>;
-  %template(AcceptableMaster_v) vector<AcceptableMaster_t>;
-  %template(SigTime) vector<SLAVE_RX_SYNC_TIMING_DATA_rec_t>;
-  %template(SigComp) vector<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t>;
-  %template(SigEvent) vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>;
-  %template(SigDelay) vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t>;
-};
-/* convert management tlv from base pointer */
+/* Handle management vectors inside structures
+ * See documenting of XXXX_v classes in mngIds.h and
+ *  Doxygen generated documents
+ */
+#define mkVec(n) %template(n##_v) std::vector<n##_t>
+mkVec(FaultRecord);
+mkVec(ClockIdentity);
+mkVec(PortAddress);
+mkVec(AcceptableMaster);
+/* Handle signalig vectors inside structures
+ * See documenting of SigXXXX classes in mngIds.h and
+ *  Doxygen generated documents
+ */
+#define mkRecVec(n, m) %template(n) std::vector<m##_rec_t>
+mkRecVec(SigTime, SLAVE_RX_SYNC_TIMING_DATA);
+mkRecVec(SigComp, SLAVE_RX_SYNC_COMPUTED_DATA);
+mkRecVec(SigEvent, SLAVE_TX_EVENT_TIMESTAMPS);
+mkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
+/* convert base management tlv to a specific management tlv structure
+ * See documenting of conv_XXX functions in mngIds.h and
+ *  Doxygen generated documents
+ */
 #define caseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
 #define A(n, v, sc, a, sz, f) case##f(n)
 %include "ids.h"
-/* convert TLV from signaling message from base pointer */
+/* convert base signaling tlv to a specific signaling tlv structure
+ * See documenting of conv_XXX functions in mngIds.h and
+ *  Doxygen generated documents
+ */
 #define sigCnv(n) %pointer_cast(BaseSigTlv*, n##_t*, conv_##n);
 sigCnv(ORGANIZATION_EXTENSION)
 sigCnv(PATH_TRACE)
