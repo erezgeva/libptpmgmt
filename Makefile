@@ -120,7 +120,7 @@ $1: $2
 
 endef
 SP:=$(subst X, ,X)
-verCheckDo=$(shell if [ $1 -eq $4 ];then test $2 -eq $5 && a=$3 b=$6 || \
+verCheckDo=$(shell if [ $1 -eq $4 ];then test $2 -eq $5 && a=$3 b=$6 ||\
   a=$2 b=$5; else a=$1 b=$4;fi;test $$a -lt $$b && echo l)
 verCheck=$(call verCheckDo,$(firstword $(subst ., ,$1 0 0 0)),$(word 2,\
   $(subst ., ,$1 0 0 0)),$(word 3,$(subst ., ,$1 0 0 0)),$(firstword\
@@ -261,7 +261,7 @@ $(LIB_NAME).a: $(LIB_OBJS)
 	$Q$(RL) $@
 $(LIB_NAME_SO): $(foreach obj,$(LIB_OBJS),.libs/$(obj))
 	$(Q_LD)
-	$Q$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) \
+	$Q$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES)\
 	$(LDLIBS_LIB) $(LDLIBS) -o $@
 
 # pmc tool
@@ -299,8 +299,8 @@ HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 #  %^ => '\n'   - Add new line in a preprocessor definition only
 mngIds.h: mngIds.cc
 	$(Q_GEN)
-	$Q$(CXX) -E $< | $(SED) 's/^#.*//;/^\s*$$/d;s#%@#/#g' > $@
-	$Q$(SED) -i 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' $@
+	$Q$(CXX) -E $< | $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g'\
+	  -e 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' > $@
 define verDef
 /* SPDX-License-Identifier: LGPL-3.0-or-later\n
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */\n\n
@@ -358,6 +358,13 @@ SWIG:=swig
 SWIG_ALL:=
 SWIG_NAME:=PtpMgmtLib
 
+# As SWIG does not create a dependencies file
+# We create it during compilation from the compilation dependencies file
+SWIG_DEP=$Q$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
+  -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $(patsubst %.o,%.d,$@) >\
+  $(patsubst %.o,%_i.d,$@)
+libptpmgmt.i:
+
 ifndef NO_PERL
 ifneq ($(call which,perl),)
 PERL_INC!= perl -e 'for(@INC){print "$$_/CORE" if-f "$$_/CORE/EXTERN.h"}'
@@ -375,7 +382,8 @@ $(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@
-	$Q$(SED) -i 's#$(PERL_INC)#\$$(PERL_INC)#' $(PERL_NAME).d
+	$Q$(SED) -i 's#$(PERL_INC)#\$$(PERL_INC)#g' $(patsubst %.o,%.d,$@)
+	$(call SWIG_DEP)
 $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -400,14 +408,17 @@ ifdef LD_SONAME
 LD_LUA_$1:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)
 endif
 LUA_LIB_$1:=lua/$1/$(LUA_LIB_NAME)
+LUA_INC_$1:=/usr/include/lua$1
 lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(MD) lua/$1
 	$$(Q_LCC)
-	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_LUA) -I/usr/include/lua$1 \
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_LUA) -I$$(LUA_INC_$1)\
 	-c $$< -o $$@
+	$Q$(SED) -i 's#$$(LUA_INC_$1)#\$$$$(LUA_INC_$1)#g' $$(patsubst %.o,%.d,$$@)
+	$$(call SWIG_DEP)
 $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(Q_LD)
-	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) \
+	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS)\
 	$$(LD_LUA_$1) -o $$@
 SWIG_ALL+=$$(LUA_LIB_$1)
 DISTCLEAN_DIRS+=lua/$1
@@ -419,6 +430,7 @@ LUA_VERSIONS:=$(subst /,,$(subst /usr/include/lua,,$(dir\
 $(eval $(foreach n,$(LUA_VERSIONS),$(call lua,$n)))
 # Build single Lua version
 ifneq ($(wildcard /usr/include/lua.h),)
+LUA_INC:=/usr/include
 # Get Lua version and library base
 LUA_VER:=$(lastword $(shell lua -e 'print(_VERSION)'))
 # Do we have default lua lib, or is it versioned?
@@ -436,9 +448,11 @@ LUA_LIB:=lua/$(LUA_LIB_NAME)
 lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_LUA) -c $< -o $@
+	$Q$(SED) -i 's#$(LUA_VER)#\$$(LUA_VER)#g' $(patsubst %.o,%.d,$@)
+	$(call SWIG_DEP)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(Q_LD)
-	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) \
+	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
 	$(LD_LUA) -o $@
 SWIG_ALL+=$(LUA_LIB)
 DISTCLEAN+=$(LUA_LIB)
@@ -455,12 +469,15 @@ PY_BASE_$1:=python/$1/$(SWIG_NAME)
 PY_SO_$1:=python/$1/$(PY_LIB_NAME).so
 PY_INC_$1!=python$1-config --includes
 PY_LD_$1!=python$1-config --libs
-PY$1_DIR:=$(DESTDIR)$$(lastword $$(shell python$1 -c 'import site; \
+PY_INC_BASE_$1:=$$(subst -I,,$$(firstword $$(PY_INC_$1)))
+PY$1_DIR:=$(DESTDIR)$$(lastword $$(shell python$1 -c 'import site;\
   print("\n".join(site.getsitepackages()))' | grep $(PY_LIBDIR)))
 $$(PY_BASE_$1).o: $(PY_BASE).cpp $(HEADERS)
 	$Q$(MD) python/$1
 	$$(Q_LCC)
 	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PY) $$(PY_INC_$1) -c $$< -o $$@
+	$Q$(SED) -i 's#$$(PY_INC_BASE_$1)#\$$$$(PY_INC_BASE_$1)#g' $$(patsubst %.o,%.d,$$@)
+	$$(call SWIG_DEP)
 $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 	$$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) $$(PY_LD_$1) -o $$@
@@ -511,11 +528,11 @@ endif # NO_PYTHON
 ifndef NO_RUBY
 ifneq ($(call which,ruby),)
 # configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
-RUBY_SCRIPT_INCS:='puts "-I" + RbConfig::CONFIG["rubyhdrdir"] +\
-                       " -I" + RbConfig::CONFIG["rubyarchhdrdir"]'
 RUBY_SCRIPT_LIB:='puts "-l" + RbConfig::CONFIG["RUBY_SO_NAME"]'
 RUBY_SCRIPT_VDIR:='puts RbConfig::CONFIG["vendorarchdir"]'
-RUBY_INC!= ruby -rrbconfig -e $(RUBY_SCRIPT_INCS)
+RUBY_INC_BASE!= ruby -rrbconfig -e 'puts RbConfig::CONFIG["rubyhdrdir"]'
+RUBY_INC_ARC!= ruby -rrbconfig -e 'puts RbConfig::CONFIG["rubyarchhdrdir"]'
+RUBY_INC:=-I$(RUBY_INC_BASE) -I$(RUBY_INC_ARC)
 RUBY_LIB!= ruby -rrbconfig -e $(RUBY_SCRIPT_LIB)
 RUBYDIR:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
 # Ruby does not "know" how to cross properly
@@ -532,6 +549,9 @@ $(RUBY_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_RUBY) $(RUBY_INC) -c $< -o $@
+	$Q$(SED) -i -e 's#$(RUBY_INC_BASE)#\$$(RUBY_INC_BASE)#g;'\
+	  -e 's#$(RUBY_INC_ARC)#\$$(RUBY_INC_ARC)#g' $(patsubst %.o,%.d,$@)
+	$(call SWIG_DEP)
 $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) $(RUBY_LIB) -o $@
@@ -558,6 +578,7 @@ PHPEDIR:=$(DESTDIR)$(shell $(PHPCFG) --extension-dir)
 PHPIDIR:=$(DESTDIR)$(lastword $(subst :, ,$(shell\
         php -r 'echo get_include_path();')))
 PHP_INC:=-Iphp $(shell $(PHPCFG) --includes)
+PHP_INC_BASE!=$(PHPCFG) --include-dir
 PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/ptpmgmt
 $(PHP_NAME): $(LIB_NAME).i $(HEADERS_ALL)
@@ -566,6 +587,8 @@ $(PHP_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PHP) $(PHP_INC) -c $< -o $@
+	$Q$(SED) -i 's#$(PHP_INC_BASE)#\$$(PHP_INC_BASE)#g' $(patsubst %.o,%.d,$@)
+	$(call SWIG_DEP)
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -604,6 +627,8 @@ $(TCL_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_TCL) -c $< -o $@
+	$Q$(SED) -i 's#$(TCL_INC)#\$$(TCL_INC)#g' $(patsubst %.o,%.d,$@)
+	$(call SWIG_DEP)
 $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
