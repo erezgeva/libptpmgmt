@@ -96,7 +96,7 @@ class SockBase
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    ssize_t rcv(void *buf, size_t bufSize, bool block = true)
+    ssize_t rcv(void *buf, size_t bufSize, bool block = false)
     { return rcvBase(buf, bufSize, block); }
     /**
      * Receive a message using the socket
@@ -106,7 +106,7 @@ class SockBase
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    ssize_t rcv(Buf &buf, bool block = true)
+    ssize_t rcv(Buf &buf, bool block = false)
     { return rcvBase(buf.get(), buf.size(), block); }
     /**
      * Receive a message using the socket
@@ -117,7 +117,7 @@ class SockBase
      * @return number of bytes received or negative on failure
      * @note identical to rcv. Some scripts fail to match proper function
      */
-    ssize_t rcvBuf(Buf &buf, bool block = true)
+    ssize_t rcvBuf(Buf &buf, bool block = false)
     { return rcvBase(buf.get(), buf.size(), block); }
     /**
      * Get socket file description
@@ -302,7 +302,7 @@ class SockUnix : public SockBase
      * @note from store the origin address which send the packet
      */
     ssize_t rcvFrom(void *buf, size_t bufSize, std::string &from,
-        bool block = true) const;
+        bool block = false) const;
     /**
      * Receive a message using the socket from any address
      * @param[in] buf object with message memory buffer
@@ -313,7 +313,7 @@ class SockUnix : public SockBase
      * @return number of bytes received or negative on failure
      * @note from store the origin address which send the packet
      */
-    ssize_t rcvFrom(Buf &buf, std::string &from, bool block = true) const
+    ssize_t rcvFrom(Buf &buf, std::string &from, bool block = false) const
     { return rcvFrom(buf.get(), buf.size(), from, block); }
     /**
      * Receive a message using the socket from any address
@@ -325,7 +325,7 @@ class SockUnix : public SockBase
      * @return number of bytes received or negative on failure
      * @note use getLastFrom() to fetch origin address which send the packet
      */
-    ssize_t rcvFrom(void *buf, size_t bufSize, bool block = true)
+    ssize_t rcvFrom(void *buf, size_t bufSize, bool block = false)
     { return rcvFrom(buf, bufSize, m_lastFrom, block); }
     /**
      * Receive a message using the socket from any address
@@ -336,7 +336,7 @@ class SockUnix : public SockBase
      * @return number of bytes received or negative on failure
      * @note use getLastFrom() to fetch origin address which send the packet
      */
-    ssize_t rcvFrom(Buf &buf, bool block = true)
+    ssize_t rcvFrom(Buf &buf, bool block = false)
     { return rcvFrom(buf.get(), buf.size(), m_lastFrom, block); }
     /**
      * Receive a message using the socket from any address
@@ -348,7 +348,7 @@ class SockUnix : public SockBase
      * @note use getLastFrom() to fetch origin address which send the packet
      * @note identical to rcvFrom(). Some scripts fail to match proper function.
      */
-    ssize_t rcvBufFrom(Buf &buf, bool block = true)
+    ssize_t rcvBufFrom(Buf &buf, bool block = false)
     { return rcvFrom(buf.get(), buf.size(), m_lastFrom, block); }
     /**
      * Fetch origin address from last rcvFrom() call

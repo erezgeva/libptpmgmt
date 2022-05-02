@@ -319,6 +319,7 @@ define verDef
 #endif /* __PTPMGMT_VER_DEFS_H */\n
 
 endef
+version:
 verDef.h: version
 	$(Q_GEN)
 	$(shell printf '$(verDef)' > $@)
