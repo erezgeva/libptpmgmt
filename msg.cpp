@@ -148,6 +148,11 @@ bool MsgParams::isSigTlv(tlvType_e type) const
     return allowSigTlvs.count(type) > 0;
 }
 
+// Shortcuts for the ids table
+#define use_GSC A_GET | A_SET | A_COMMAND
+#define use_GS  A_GET | A_SET
+#define use_GL  A_GET | A_USE_LINUXPTP
+#define use_GSL A_GET | A_SET | A_USE_LINUXPTP
 const ManagementId_t Message::mng_all_vals[] = {
 #define A(n, v, sc, a, sz, f)\
     [n] = {.value = 0x##v, .scope = s_##sc, .allowed = a, .size = sz},
@@ -155,9 +160,8 @@ const ManagementId_t Message::mng_all_vals[] = {
 };
 MNG_PARSE_ERROR_e Message::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
 {
-#define A(n, v, sc, a, sz, f) case##f(n);
-#define caseNA(n) case n: return MNG_PARSE_ERROR_OK
-#define caseUF(n) case n:\
+#define _ptpmCaseNA(n) case n: return MNG_PARSE_ERROR_OK
+#define _ptpmCaseUF(n) case n:\
         if(m_build) {\
             if(n##_f(*(n##_t *)tlv))\
                 return m_err;\
@@ -174,6 +178,7 @@ MNG_PARSE_ERROR_e Message::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
     // The default error on build or parsing
     m_err = MNG_PARSE_ERROR_TOO_SMALL;
     switch(id) {
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n);
 #include "ids.h"
         default:
             return MNG_PARSE_ERROR_UNSUPPORT;
@@ -185,9 +190,9 @@ MNG_PARSE_ERROR_e Message::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
 bool Message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
 {
     mng_vals_e id;
-#define A(n, v, sc, a, sz, f) case 0x##v: id = n; break;
     uint16_t value = net_to_cpu16(val);
     switch(value) {
+#define A(n, v, sc, a, sz, f) case 0x##v: id = n; break;
 #include "ids.h"
         default:
             return false;
@@ -217,7 +222,7 @@ bool Message::allowedAction(mng_vals_e id, actionField_e action)
         default:
             return false;
     }
-    if(id < FIRST_MNG_ID || id > LAST_MNG_ID)
+    if(id < FIRST_MNG_ID || id >= LAST_MNG_ID)
         return false;
     if(m_prms.implementSpecific != linuxptp &&
         mng_all_vals[id].allowed & A_USE_LINUXPTP)
@@ -231,7 +236,7 @@ Message::Message() :
     m_sequence(0),
     m_isUnicast(true),
     m_replyAction(RESPONSE),
-    m_tlv_id(FIRST_MNG_ID),
+    m_tlv_id(NULL_PTP_MANAGEMENT),
     m_prms{0},
     m_peer{0},
     m_target{0}
@@ -249,7 +254,7 @@ Message::Message(const MsgParams &prms) :
     m_sequence(0),
     m_isUnicast(true),
     m_replyAction(RESPONSE),
-    m_tlv_id(FIRST_MNG_ID),
+    m_tlv_id(NULL_PTP_MANAGEMENT),
     m_prms(prms),
     m_peer{0},
     m_target{0}
@@ -260,7 +265,7 @@ Message::Message(const MsgParams &prms) :
 ssize_t Message::getMsgPlanedLen() const
 {
     // That should not happen, precaution
-    if(m_tlv_id < FIRST_MNG_ID || m_tlv_id > LAST_MNG_ID)
+    if(m_tlv_id < FIRST_MNG_ID || m_tlv_id >= LAST_MNG_ID)
         return -1; // Not supported
     const BaseMngTlv *data = nullptr;
     if(m_sendAction != GET)
@@ -292,7 +297,7 @@ bool Message::updateParams(const MsgParams &prms)
 }
 bool Message::isEmpty(mng_vals_e id)
 {
-    if(id >= FIRST_MNG_ID && id <= LAST_MNG_ID && mng_all_vals[id].size == 0)
+    if(id >= FIRST_MNG_ID && id < LAST_MNG_ID && mng_all_vals[id].size == 0)
         return true;
     return false;
 }
@@ -760,14 +765,52 @@ const char *Message::act2str_c(actionField_e action)
 }
 const char *Message::mng2str_c(mng_vals_e id)
 {
-#define A(n, v, sc, a, sz, f) case n: return #n;
     switch(id) {
+#define A(n, v, sc, a, sz, f) case n: return #n;
 #include "ids.h"
         default:
-            if(id < FIRST_MNG_ID || id > LAST_MNG_ID)
+            if(id < FIRST_MNG_ID || id >= LAST_MNG_ID)
                 return "out of range";
             return "unknown";
     }
+}
+const bool Message::findMngID(const char *_str, mng_vals_e &id, bool exact)
+{
+    if(_str == nullptr || *_str == 0)
+        return false;
+    std::string str;
+    if(exact) {
+        str = _str;
+    } else {
+        while(*_str != 0)
+            str += toupper(*_str++);
+        // Any ID with NULL map here
+        if (str.find("NULL") != std::string::npos) {
+            id = NULL_PTP_MANAGEMENT;
+            return true;
+        }
+    }
+    int find = 0;
+    for(int i = FIRST_MNG_ID; i < LAST_MNG_ID; i++) {
+        mng_vals_e cid = (mng_vals_e)i;
+        std::string sid = Message::mng2str_c(cid);
+        // Exact match!
+        if(sid == str) {
+            id = cid;
+            return true;
+        }
+        // Partial match
+        if(!exact && sid.find(str) != std::string::npos) {
+            id = cid;
+            find++;
+            // Once we have 2 partial match
+            // We stick to exact match
+            if (find > 1)
+                exact = true;
+        }
+    }
+    // We found 1 partial match :-)
+    return find == 1;
 }
 const char *Message::errId2str_c(managementErrorId_e err)
 {
@@ -1308,62 +1351,29 @@ bool Message::proc(uint8_t *val, size_t len)
     move(len);
     return false;
 }
-bool Message::proc(networkProtocol_e &val)
+template <typename T> bool Message::procE8(T &val)
+{
+    uint8_t v = val;
+    bool ret = proc(v);
+    val = (T)v;
+    return ret;
+}
+template bool Message::procE8<clockAccuracy_e>(clockAccuracy_e &);
+template bool Message::procE8<faultRecord_e>(faultRecord_e &);
+template bool Message::procE8<timeSource_e>(timeSource_e &);
+template bool Message::procE8<portState_e>(portState_e &);
+template bool Message::procE8<msgType_e>(msgType_e &);
+template bool Message::procE8<linuxptpTimeStamp_e>(linuxptpTimeStamp_e &);
+template <typename T> bool Message::procE16(T &val)
 {
     uint16_t v = val;
     bool ret = proc(v);
-    val = (networkProtocol_e)v;
+    val = (T)v;
     return ret;
 }
-bool Message::proc(clockAccuracy_e &val)
-{
-    uint8_t v = val;
-    bool ret = proc(v);
-    val = (clockAccuracy_e)v;
-    return ret;
-}
-bool Message::proc(faultRecord_e &val)
-{
-    uint8_t v = val;
-    bool ret = proc(v);
-    val = (faultRecord_e)v;
-    return ret;
-}
-bool Message::proc(timeSource_e &val)
-{
-    uint8_t v = val;
-    bool ret = proc(v);
-    val = (timeSource_e)v;
-    return ret;
-}
-bool Message::proc(portState_e &val)
-{
-    uint8_t v = val;
-    bool ret = proc(v);
-    val = (portState_e)v;
-    return ret;
-}
-bool Message::proc(msgType_e &val)
-{
-    uint8_t v = val;
-    bool ret = proc(v);
-    val = (msgType_e)v;
-    return ret;
-}
-bool Message::proc(linuxptpTimeStamp_e &val)
-{
-    uint8_t v = val;
-    bool ret = proc(v);
-    val = (linuxptpTimeStamp_e)v;
-    return ret;
-}
-bool Message::proc(linuxptpPowerProfileVersion_e &val)
-{
-    uint16_t v = val;
-    bool ret = proc(v);
-    val = (linuxptpPowerProfileVersion_e)v;
-    return ret;
-}
+template bool Message::procE16<networkProtocol_e>(networkProtocol_e &);
+template bool Message::procE16<linuxptpPowerProfileVersion_e>(linuxptpPowerProfileVersion_e &);
+template bool Message::procE16<linuxptpUnicastState_e>(linuxptpUnicastState_e &);
 bool Message::proc(TimeInterval_t &v)
 {
     return proc(v.scaledNanoseconds);
@@ -1413,13 +1423,6 @@ bool Message::proc(AcceptableMaster_t &d)
 {
     return proc(d.acceptablePortIdentity) || proc(d.alternatePriority1);
 }
-bool Message::proc(linuxptpUnicastState_e &val)
-{
-    uint16_t v = val;
-    bool ret = proc(v);
-    val = (linuxptpUnicastState_e)v;
-    return ret;
-}
 bool Message::proc(LinuxptpUnicastMaster_t &d)
 {
     return proc(d.portIdentity) || proc(d.clockQuality) || proc(d.selected) ||
@@ -1447,5 +1450,48 @@ bool Message::procLe(uint64_t &val)
     move(sizeof(uint64_t));
     return false;
 }
+// list build part
+#define vector_b(vec)\
+    if(m_build) {\
+        for(auto &rec : vec) {\
+            if(proc(rec))\
+                return true;\
+        }\
+    } else
+template <typename T> bool Message::vector_f(uint32_t count, std::vector<T> &vec)
+{
+    vector_b(vec)
+    {
+        for(uint32_t i = 0; i < count; i++) {
+            T rec;
+            if(proc(rec))
+                return true;
+            vec.push_back(rec);
+        }
+    }
+    return false;
+}
+template bool Message::vector_f<FaultRecord_t>(uint32_t, std::vector<FaultRecord_t> &);
+template bool Message::vector_f<PortAddress_t>(uint32_t, std::vector<PortAddress_t> &);
+template bool Message::vector_f<AcceptableMaster_t>(uint32_t, std::vector<AcceptableMaster_t> &);
+template bool Message::vector_f<LinuxptpUnicastMaster_t>(uint32_t, std::vector<LinuxptpUnicastMaster_t> &);
+template <typename T> bool Message::vector_o(std::vector<T> &vec)
+{
+    vector_b(vec)
+    {
+        while(m_left >= (ssize_t)T::size()) {
+            T rec;
+            if(proc(rec))
+                return true;
+            vec.push_back(rec);
+        }
+    }
+    return false;
+}
+template bool Message::vector_o<ClockIdentity_t>(std::vector<ClockIdentity_t> &);
+template bool Message::vector_o<SLAVE_RX_SYNC_TIMING_DATA_rec_t>(std::vector<SLAVE_RX_SYNC_TIMING_DATA_rec_t> &);
+template bool Message::vector_o<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t>(std::vector<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t> &);
+template bool Message::vector_o<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>(std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t> &);
+template bool Message::vector_o<SLAVE_DELAY_TIMING_DATA_NP_rec_t>(std::vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t> &);
 
 }; /* namespace ptpmgmt */

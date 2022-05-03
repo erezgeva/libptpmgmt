@@ -52,7 +52,8 @@ class SockBase
     virtual bool sendBase(const void *msg, size_t len) = 0;
     virtual ssize_t rcvBase(void *buf, size_t bufSize, bool block) = 0;
     virtual bool initBase() = 0;
-    virtual void closeBase();
+    virtual void closeChild() {}
+    void closeBase();
 
   public:
     virtual ~SockBase() { closeBase(); }
@@ -196,7 +197,7 @@ class SockUnix : public SockBase
     bool sendBase(const void *msg, size_t len);
     ssize_t rcvBase(void *buf, size_t bufSize, bool block);
     bool initBase();
-    void closeBase();
+    void closeChild();
     /**< @endcond */
 
   public:

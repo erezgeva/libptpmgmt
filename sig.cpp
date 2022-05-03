@@ -23,7 +23,7 @@ A(ORGANIZATION_EXTENSION)
 }
 A(PATH_TRACE)
 {
-    vector_o(ClockIdentity, pathSequence);
+    return vector_o(d.pathSequence);
 }
 A(ALTERNATE_TIME_OFFSET_INDICATOR)
 {
@@ -57,20 +57,20 @@ A(SLAVE_RX_SYNC_TIMING_DATA)
 {
     if(proc(d.syncSourcePortIdentity))
         return true;
-    vector_o(SLAVE_RX_SYNC_TIMING_DATA_rec, list);
+    return vector_o(d.list);
 }
 A(SLAVE_RX_SYNC_COMPUTED_DATA)
 {
     if(proc(d.sourcePortIdentity) || procFlags(d.computedFlags, d.flagsMask) ||
         proc(reserved))
         return true;
-    vector_o(SLAVE_RX_SYNC_COMPUTED_DATA_rec, list);
+    return vector_o(d.list);
 }
 A(SLAVE_TX_EVENT_TIMESTAMPS)
 {
     if(proc(d.sourcePortIdentity) || proc(d.eventMessageType) || proc(reserved))
         return true;
-    vector_o(SLAVE_TX_EVENT_TIMESTAMPS_rec, list);
+    return vector_o(d.list);
 }
 A(CUMULATIVE_RATE_RATIO)
 {
@@ -95,7 +95,7 @@ A(SLAVE_DELAY_TIMING_DATA_NP)
 {
     if(proc(d.sourcePortIdentity))
         return true;
-    vector_o(SLAVE_DELAY_TIMING_DATA_NP_rec, list);
+    return vector_o(d.list);
 }
 bool Message::proc(SLAVE_DELAY_TIMING_DATA_NP_rec_t &d)
 {

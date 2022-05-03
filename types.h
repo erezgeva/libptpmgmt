@@ -149,6 +149,9 @@ enum actionField_e : uint8_t {
 enum mng_vals_e {
 #define A(n, v, sc, a, sz, f) n,
 #include "ids.h"
+    LAST_MNG_ID, /**< Last management ID excluded */
+    FIRST_MNG_ID = NULL_PTP_MANAGEMENT, /**< First management ID */
+    NULL_MANAGEMENT = NULL_PTP_MANAGEMENT /**< old name in IEEE 1588-2008 */
 };
 #endif
 /**< @endcond */

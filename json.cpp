@@ -825,7 +825,7 @@ JS(POWER_PROFILE_SETTINGS_NP)
 
 bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
 {
-#define caseUF(n) case n:\
+#define _ptpmCaseUF(n) case n:\
         if(data == nullptr) {\
             n##_t *d = new n##_t;\
             if(d == nullptr)\
@@ -833,8 +833,8 @@ bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
             data = d;\
         }\
         return proc_##n(*this, *(n##_t *)data);
-#define A(n, v, sc, a, sz, f) case##f(n)
     switch(managementId) {
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
             return false;
@@ -1271,13 +1271,10 @@ struct JsonProcFromJson : public JsonProc {
     }
     bool procMng(mng_vals_e &id, const char *&str) {
         str = found["managementId"].strV.c_str();
-        for(int i = FIRST_MNG_ID; i <= LAST_MNG_ID; i++) {
-            id = (mng_vals_e)i;
-            if(strcmp(str, Message::mng2str_c(id)) == 0)
-                return true;
-        }
-        PTPMGMT_ERRORA("No such managementId '%s'", str);
-        return false;
+        bool ret = Message::findMngID(str, id, true);
+        if (!ret)
+            PTPMGMT_ERRORA("No such managementId '%s'", str);
+        return ret;
     }
 #undef procType
 #define procType(type) \

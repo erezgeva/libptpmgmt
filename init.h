@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
+#include <memory>
 #include "msg.h"
 #include "ptp.h"
 #include "opt.h"
@@ -35,14 +36,10 @@ class Init
   private:
     ConfigFile m_cfg;
     Message m_msg;
-    SockBase *m_sk;
+    std::unique_ptr<SockBase> m_sk;
     bool m_use_uds;
 
   public:
-
-    Init() : m_sk(nullptr) {}
-    ~Init() { close(); }
-
     /**
      * Close socket and delete it
      */
@@ -72,7 +69,7 @@ class Init
      * @return object or null if not exist
      * @note User @b should not try to free this socket object
      */
-    SockBase *sk() { return m_sk; }
+    SockBase *sk() { return m_sk.get(); }
 
     /**
      * Is the socket provide by this object, a Unix socket?

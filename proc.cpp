@@ -14,7 +14,19 @@
 namespace ptpmgmt
 {
 
-/* size functions per id */
+// For Octets arrays
+#define oproc(a) proc(a, sizeof(a))
+#define fproc procFlags(d.flags, d.flagsMask)
+
+// size of variable length list
+template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec)
+{
+    for(const auto &rec : vec)
+        ret += rec.size();
+    return ret;
+}
+
+// size functions per id
 #define S(n) static inline size_t n##_s(n##_t &d)
 
 S(CLOCK_DESCRIPTION)
@@ -29,7 +41,7 @@ S(USER_DESCRIPTION)
 }
 S(FAULT_LOG)
 {
-    vector_l(2, FaultRecord, faultRecords);
+    return vector_l(2, d.faultRecords);
 }
 S(PATH_TRACE_LIST)
 {
@@ -37,11 +49,11 @@ S(PATH_TRACE_LIST)
 }
 S(GRANDMASTER_CLUSTER_TABLE)
 {
-    vector_l(2, PortAddress, PortAddress);
+    return vector_l(2, d.PortAddress);
 }
 S(UNICAST_MASTER_TABLE)
 {
-    vector_l(3, PortAddress, PortAddress);
+    return vector_l(3, d.PortAddress);
 }
 S(ACCEPTABLE_MASTER_TABLE)
 {
@@ -58,20 +70,20 @@ S(PORT_PROPERTIES_NP)
 }
 S(UNICAST_MASTER_TABLE_NP)
 {
-    vector_l(2, LinuxptpUnicastMaster, unicastMasters);
+    return vector_l(2, d.unicastMasters);
 };
 
 ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
 {
-#define caseUFS(n) case n:\
+#define _ptpmCaseUFS(n) case n:\
         if(data == nullptr) {\
             n##_t empty;\
             return n##_s(empty);\
         } else\
             return n##_s(*(n##_t*)data);
-#define caseUFBS(n) caseUFS(n)
-#define A(n, v, sc, a, sz, f) case##f(n)
+#define _ptpmCaseUFBS(n) _ptpmCaseUFS(n)
     switch(m_tlv_id) {
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
             return -2;
@@ -115,7 +127,7 @@ A(FAULT_LOG)
 {
     if(proc(d.numberOfFaultRecords))
         return true;
-    vector_f(FaultRecord, numberOfFaultRecords, faultRecords);
+    return vector_f(d.numberOfFaultRecords, d.faultRecords);
 }
 A(DEFAULT_DATA_SET)
 {
@@ -206,7 +218,7 @@ A(UNICAST_NEGOTIATION_ENABLE)
 }
 A(PATH_TRACE_LIST)
 {
-    vector_o(ClockIdentity, pathSequence);
+    return vector_o(d.pathSequence);
 }
 A(PATH_TRACE_ENABLE)
 {
@@ -217,14 +229,14 @@ A(GRANDMASTER_CLUSTER_TABLE)
     d.actualTableSize = d.PortAddress.size();
     if(proc(d.logQueryInterval) || proc(d.actualTableSize))
         return true;
-    vector_f(PortAddress, actualTableSize, PortAddress);
+    return vector_f(d.actualTableSize, d.PortAddress);
 }
 A(UNICAST_MASTER_TABLE)
 {
     d.actualTableSize = d.PortAddress.size();
     if(proc(d.logQueryInterval) || proc(d.actualTableSize))
         return true;
-    vector_f(PortAddress, actualTableSize, PortAddress);
+    return vector_f(d.actualTableSize, d.PortAddress);
 }
 A(UNICAST_MASTER_MAX_TABLE_SIZE)
 {
@@ -235,7 +247,7 @@ A(ACCEPTABLE_MASTER_TABLE)
     d.actualTableSize = d.list.size();
     if(proc(d.actualTableSize))
         return true;
-    vector_f(AcceptableMaster, actualTableSize, list);
+    return vector_f(d.actualTableSize, d.list);
 }
 A(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
@@ -367,7 +379,7 @@ A(UNICAST_MASTER_TABLE_NP)
     d.actualTableSize = d.unicastMasters.size();
     if(proc(d.actualTableSize))
         return true;
-    vector_f(LinuxptpUnicastMaster, actualTableSize, unicastMasters);
+    return vector_f(d.actualTableSize, d.unicastMasters);
 };
 A(PORT_HWCLOCK_NP)
 {

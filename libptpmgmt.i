@@ -148,8 +148,8 @@ mkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
  * See documenting of conv_XXX functions in mngIds.h and
  *  Doxygen generated documents
  */
-#define caseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
-#define A(n, v, sc, a, sz, f) case##f(n)
+#define _ptpmCaseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 %include "ids.h"
 /* convert base signaling tlv to a specific signaling tlv structure
  * See documenting of conv_XXX functions in mngIds.h and

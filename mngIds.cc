@@ -34,6 +34,7 @@ namespace ptpmgmt
 enum mng_vals_e {
 #define A(n, v, sc, a, sz, f) %- %-  n,
 #include "ids.h"
+    NULL_MANAGEMENT = NULL_PTP_MANAGEMENT %@**< old name in IEEE 1588-2008 *%@
 };
 %_
 %#ifndef SWIG
@@ -44,7 +45,7 @@ enum mng_vals_e {
 %_
 using namespace ptpmgmt;
 %_
-#define caseUF(n) \
+#define _ptpmCaseUF(n) \
 %@**%^\
  * Convert data to n##_t structure%^\
  * @param[in] data pointer to the Message dataField%^\
@@ -54,7 +55,7 @@ using namespace ptpmgmt;
  * @note Use Message:getData() to retrieve the data from the Message%^\
  *%@%^\
 n##_t%^*conv_##n(const BaseMngTlv *data);
-#define A(n, v, sc, a, sz, f) case##f(n)
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
 %_
 #define S(n) \

@@ -652,9 +652,9 @@ void call_dump(Message &msg, BaseMngTlv *_data)
         data = msg.getData();
     if(data == nullptr)
         return;
-#define caseUF(n) case n: dump_##n(msg, (n##_t *)data); break;
-#define A(n, v, sc, a, sz, f) case##f(n)
     switch(msg.getTlvId()) {
+#define _ptpmCaseUF(n) case n: dump_##n(msg, (n##_t *)data); break;
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
             break;
@@ -1386,10 +1386,10 @@ build(POWER_PROFILE_SETTINGS_NP)
 }
 #endif
 #if 1
-#define caseUFB(n) case n: return build_##n(msg, save);
+#define _ptpmCaseUFB(n) case n: return build_##n(msg, save);
 #else
 // Debug code, dump set instead of sending it over network
-#define caseUFB(n)\
+#define _ptpmCaseUFB(n)\
     case n: {\
         BaseMngTlv *d = build_##n(msg, save);\
         if(d != nullptr) {\
@@ -1402,8 +1402,8 @@ build(POWER_PROFILE_SETTINGS_NP)
 #endif
 BaseMngTlv *call_data(Message &msg, mng_vals_e id, char *save)
 {
-#define A(n, v, sc, a, sz, f) case##f(n)
     switch(id) {
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
             return nullptr;

@@ -119,33 +119,6 @@ static inline void rcv_timeout()
     timeout = wait;
     while(sk->tpoll(timeout) && rcv() == 1 && timeout > 0);
 }
-static inline bool findId(mng_vals_e &id, char *str)
-{
-    size_t len = strlen(str);
-    if(len == 0)
-        return false;
-    // Make string uppercase as all commands are uppercase
-    for(char *cur = str; *cur; cur++)
-        *cur = toupper(*cur);
-    if(strstr(str, "NULL") != nullptr) {
-        id = NULL_PTP_MANAGEMENT;
-        return true;
-    }
-    int find = 0;
-    for(int i = FIRST_MNG_ID; i <= LAST_MNG_ID; i++) {
-        const char *sid = Message::mng2str_c((mng_vals_e)i);
-        if(strcmp(sid, str) == 0) {
-            id = (mng_vals_e)i;
-            return true; // Exact match!
-        }
-        if(find < 2 && strncmp(sid, str, len) == 0) {
-            id = (mng_vals_e)i;
-            find++;
-        }
-    }
-    // 1 match
-    return find == 1;
-}
 static bool run_line(char *line)
 {
     char *save;
@@ -179,7 +152,7 @@ static bool run_line(char *line)
     if(cur == nullptr)
         return false;
     mng_vals_e id;
-    if(!findId(id, cur))
+    if(!msg.findMngID(cur, id, false))
         return false;
     BaseMngTlv *data;
     if(action == GET || msg.isEmpty(id)) {

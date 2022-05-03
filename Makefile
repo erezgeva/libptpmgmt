@@ -272,9 +272,9 @@ $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-include $(wildcard *.d)
+D_FILES:=$(wildcard *.d */*.d */*/*.d)
 
-CLEAN:=*.o *.lo *.d .libs/*
+CLEAN:=$(wildcard *.o */*.o */*/*.o) *.lo .libs/* $(D_FILES)
 DISTCLEAN:=$(ALL)
 DISTCLEAN_DIRS:=.libs
 
@@ -289,6 +289,7 @@ distclean: deb_clean clean
 HEADERS_GEN:=mngIds.h verDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS))
+HEADERS_INST:=$(filter-out err.h,$(HEADERS)) verDef.h
 HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 # MAP for  mngIds.cc:
 #  %@ => '/'    - Use when a slash is next to a star character
@@ -364,7 +365,6 @@ SWIG_NAME:=PtpMgmtLib
 SWIG_DEP=$Q$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $(patsubst %.o,%.d,$@) >\
   $(patsubst %.o,%_i.d,$@)
-libptpmgmt.i:
 
 ifndef NO_PERL
 ifneq ($(call which,perl),)
@@ -389,8 +389,8 @@ $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
 SWIG_ALL+=$(PERL_NAME).so
-CLEAN+=$(foreach e,d o,$(PERL_NAME).$e)
-DISTCLEAN+=$(foreach e,cpp pm so,$(PERL_NAME).$e)
+CLEAN+=$(PERL_NAME).cpp
+DISTCLEAN+=$(foreach e,pm so,$(PERL_NAME).$e)
 else # which perl
 NO_PERL=1
 endif
@@ -402,7 +402,8 @@ LUA_LIB_NAME:=ptpmgmt.so
 lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -Wall -c++ -I. -outdir lua -o $@ -lua $<
-DISTCLEAN+=lua/$(SWIG_NAME).cpp lua/$(LUA_LIB_NAME)
+CLEAN+=lua/$(SWIG_NAME).cpp
+DISTCLEAN+=lua/$(LUA_LIB_NAME)
 define lua
 LUA_FLIB_$1:=liblua$1-$(LUA_LIB_NAME)
 ifdef LD_SONAME
@@ -458,7 +459,6 @@ $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(LUA_LIB)
 DISTCLEAN+=$(LUA_LIB)
 endif # /usr/include/lua.h
-CLEAN+=$(wildcard lua/*.[od]) $(wildcard lua/*/*.[od])
 else # which lua
 NO_LUA=1
 endif
@@ -483,7 +483,6 @@ $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
 	$$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $$^ $(LOADLIBES) $(LDLIBS) $$(PY_LD_$1) -o $$@
 SWIG_ALL+=$$(PY_SO_$1)
-CLEAN+=$$(wildcard python/$1/*.[od])
 DISTCLEAN_DIRS+=python/$1
 
 endef
@@ -509,7 +508,8 @@ $(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $(SWIG_PY_FLAGS) $<
 
-DISTCLEAN+=$(PY_BASE).cpp $(wildcard python/*.so) python/ptpmgmt.py\
+CLEAN+=$(PY_BASE).cpp
+DISTCLEAN+=$(wildcard python/*.so) python/ptpmgmt.py\
   python/ptpmgmt.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 ifdef USE_PY2
@@ -557,7 +557,7 @@ $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) $(RUBY_LIB) -o $@
 SWIG_ALL+=$(RUBY_LNAME).so
-CLEAN+=$(RUBY_NAME) $(foreach e,d o,$(RUBY_LNAME).$e)
+CLEAN+=$(RUBY_NAME)
 DISTCLEAN+=$(RUBY_LNAME).so
 else # which ruby
 NO_RUBY=1
@@ -594,7 +594,7 @@ $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
 SWIG_ALL+=$(PHP_LNAME).so
-CLEAN+=$(PHP_NAME) $(foreach e,d o,$(PHP_LNAME).$e) php/php_ptpmgmt.h
+CLEAN+=$(PHP_NAME) php/php_ptpmgmt.h
 DISTCLEAN+=$(PHP_LNAME).so $(PHP_LNAME).php php/php.ini
 else # SWIG 3.0.12
 NO_PHP=1
@@ -634,7 +634,7 @@ $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(Q_LD)
 	$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS) -o $@
 SWIG_ALL+=$(TCL_LNAME).so
-CLEAN+=$(TCL_NAME) $(foreach e,d o,$(TCL_LNAME).$e)
+CLEAN+=$(TCL_NAME)
 DISTCLEAN+=$(TCL_LNAME).so
 tcl_paths!=echo 'puts $$auto_path;exit 0' | tclsh
 ifneq ($(TARGET_ARCH),)
@@ -772,8 +772,8 @@ else
 	$Q$(NINST) -D $(LIB_NAME_SO) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
 endif
 	$Q$(NINST) libptpmgmt.a $(DESTDIR)$(LIBDIR)
-	$Q$(NINST) -D $(HEADERS) verDef.h -t $(DESTDIR)/usr/include/ptpmgmt
-	$Q$(foreach f,$(HEADERS),$(SED) -i\
+	$Q$(NINST) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
+	$Q$(foreach f,$(HEADERS_INST),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$Q$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
@@ -823,6 +823,8 @@ ifndef NO_TCL
 	$(Q)printf '$(subst $(line),\n,$(pkgIndex))\n' > $(TCLDIR)/pkgIndex.tcl
 endif # NO_TCL
 endif # NO_SWIG
+
+include $(D_FILES)
 
 checkall: format doxygen
 

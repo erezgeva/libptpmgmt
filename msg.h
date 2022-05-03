@@ -75,27 +75,26 @@ class Message
     };
     #endif
 
-#define A(n, v, sc, a, sz, f) case##f(n)
-#define caseUF(n) bool n##_f(n##_t &data);
-
+#define _ptpmCaseUF(n) bool n##_f(n##_t &data);
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
     /* Per tlv ID call-back for parse or build or both */
 #include "ids.h"
     /* Parse functions for signalling messages */
-#define parseFunc(n) bool n##_f(n##_t &data)
-    parseFunc(MANAGEMENT_ERROR_STATUS);
-    parseFunc(ORGANIZATION_EXTENSION);
-    parseFunc(PATH_TRACE);
-    parseFunc(ALTERNATE_TIME_OFFSET_INDICATOR);
-    parseFunc(ENHANCED_ACCURACY_METRICS);
-    parseFunc(L1_SYNC);
-    parseFunc(PORT_COMMUNICATION_AVAILABILITY);
-    parseFunc(PROTOCOL_ADDRESS);
-    parseFunc(SLAVE_RX_SYNC_TIMING_DATA);
-    parseFunc(SLAVE_RX_SYNC_COMPUTED_DATA);
-    parseFunc(SLAVE_TX_EVENT_TIMESTAMPS);
-    parseFunc(CUMULATIVE_RATE_RATIO);
-    parseFunc(SLAVE_DELAY_TIMING_DATA_NP);
-#undef parseFunc
+#define _ptpmParseFunc(n) bool n##_f(n##_t &data)
+    _ptpmParseFunc(MANAGEMENT_ERROR_STATUS);
+    _ptpmParseFunc(ORGANIZATION_EXTENSION);
+    _ptpmParseFunc(PATH_TRACE);
+    _ptpmParseFunc(ALTERNATE_TIME_OFFSET_INDICATOR);
+    _ptpmParseFunc(ENHANCED_ACCURACY_METRICS);
+    _ptpmParseFunc(L1_SYNC);
+    _ptpmParseFunc(PORT_COMMUNICATION_AVAILABILITY);
+    _ptpmParseFunc(PROTOCOL_ADDRESS);
+    _ptpmParseFunc(SLAVE_RX_SYNC_TIMING_DATA);
+    _ptpmParseFunc(SLAVE_RX_SYNC_COMPUTED_DATA);
+    _ptpmParseFunc(SLAVE_TX_EVENT_TIMESTAMPS);
+    _ptpmParseFunc(CUMULATIVE_RATE_RATIO);
+    _ptpmParseFunc(SLAVE_DELAY_TIMING_DATA_NP);
+#undef _ptpmParseFunc
     /**< @endcond */
 
     /* build parameters */
@@ -166,14 +165,18 @@ class Message
     bool proc(std::string &str, uint16_t len);
     bool proc(Binary &bin, uint16_t len);
     bool proc(uint8_t *val, size_t len);
-    bool proc(networkProtocol_e &val);
-    bool proc(clockAccuracy_e &val);
-    bool proc(faultRecord_e &val);
-    bool proc(timeSource_e &val);
-    bool proc(portState_e &val);
-    bool proc(msgType_e &val);
-    bool proc(linuxptpTimeStamp_e &val);
-    bool proc(linuxptpPowerProfileVersion_e &val);
+    /* For Enumerators using 8 bits */
+    template <typename T> bool procE8(T &val);
+    bool proc(clockAccuracy_e &val) { return procE8(val); }
+    bool proc(faultRecord_e &val) { return procE8(val); }
+    bool proc(timeSource_e &val) { return procE8(val); }
+    bool proc(portState_e &val) { return procE8(val); }
+    bool proc(msgType_e &val) { return procE8(val); }
+    bool proc(linuxptpTimeStamp_e &val) { return procE8(val); }
+    /* For Enumerators using 16 bits */
+    template <typename T> bool procE16(T &val);
+    bool proc(networkProtocol_e &val) { return procE16(val); }
+    bool proc(linuxptpPowerProfileVersion_e &val) { return procE16(val); }
     bool proc(TimeInterval_t &v);
     bool proc(Timestamp_t &d);
     bool proc(ClockIdentity_t &v);
@@ -183,7 +186,7 @@ class Message
     bool proc(PTPText_t &d);
     bool proc(FaultRecord_t &d);
     bool proc(AcceptableMaster_t &d);
-    bool proc(linuxptpUnicastState_e &d);
+    bool proc(linuxptpUnicastState_e &val) { return procE16(val); }
     bool proc(LinuxptpUnicastMaster_t &d);
     bool proc(SLAVE_RX_SYNC_TIMING_DATA_rec_t &rec);
     bool proc(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t &rec);
@@ -194,6 +197,10 @@ class Message
     bool procLe(uint64_t &val);
     MNG_PARSE_ERROR_e call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv);
     MNG_PARSE_ERROR_e parseSig(); /* parse signaling message */
+    /* list proccess with count */
+    template <typename T> bool vector_f(uint32_t count, std::vector<T> &vec);
+    /* countless list proccess */
+    template <typename T> bool vector_o(std::vector<T> &vec);
     /*
      * dataFieldSize() for sending SET/COMMAND
      * Get dataField of current m_tlv_id
@@ -276,6 +283,14 @@ class Message
      * @return string with ID name
      */
     static const char *mng2str_c(mng_vals_e id);
+    /**
+     * Convert string to management id
+     * @param[in] str string to search
+     * @param[out] id parse code
+     * @param[in] exact perform an exact match
+     * @return true if found
+     */
+    static const bool findMngID(const char *str, mng_vals_e &id, bool exact);
     /**
      * Convert management error to string
      * @param[in] err ID
@@ -602,54 +617,9 @@ class Message
     const BaseMngTlv *getSigMngTlv(size_t position) const;
 };
 
-/** @cond internal
- * For use in proc.cpp and sig.cpp
- */
-/* For Octets arrays */
-#define oproc(a) proc(a, sizeof(a))
-#define fproc procFlags(d.flags, d.flagsMask)
-/* list build part */
-#define vector_b(type, vec)\
-    if(m_build) {\
-        for(type##_t &rec : d.vec) {\
-            if(proc(rec)) return true;\
-        }\
-    } else
-/* list proccess with count */
-#define vector_f(type, cnt, vec) {\
-        vector_b(type, vec) {\
-            for(uint32_t i = 0; i < (uint32_t)d.cnt; i++) {\
-                type##_t rec;\
-                if(proc(rec)) return true;\
-                d.vec.push_back(rec);\
-            }\
-        }\
-        return false;\
-    }
-/* countless list proccess */
-#define vector_o(type, vec) {\
-        vector_b(type, vec) {\
-            while(m_left >= (ssize_t)type##_t::size()) {\
-                type##_t rec;\
-                if(proc(rec))\
-                    return true;\
-                d.vec.push_back(rec);\
-            }\
-        }\
-        return false;\
-    }
-/* size of variable length list */
-#define vector_l(pre_size, type, vec) {\
-        size_t ret = pre_size;\
-        for(type##_t &rec : d.vec)\
-            ret += rec.size();\
-        return ret;\
-    }
-/**< @endcond */
-
 /* For SWIG */
 #undef A
-#undef caseUF
+#undef _ptpmCaseUF
 
 #ifndef SWIG
 }; /* namespace ptpmgmt */

@@ -16,44 +16,34 @@
  *  #include "ids.h"
  */
 #undef DOMAIN /* Old math.h header uses this macro */
-#ifndef caseNA
-#define caseNA(n)
+#ifndef _ptpmCaseNA
+#define _ptpmCaseNA(n)
 #endif
-#ifndef caseUF
-#define caseUF(n)
+#ifndef _ptpmCaseUF
+#define _ptpmCaseUF(n)
 #endif
-#ifndef caseUFS
-#define caseUFS(n) caseUF(n)
+#ifndef _ptpmCaseUFS
+#define _ptpmCaseUFS(n) _ptpmCaseUF(n)
 #endif
-#ifndef caseUFB
-#define caseUFB(n) caseUF(n)
+#ifndef _ptpmCaseUFB
+#define _ptpmCaseUFB(n) _ptpmCaseUF(n)
 #endif
-#ifndef caseUFBS
-#define caseUFBS(n) caseUFB(n)
+#ifndef _ptpmCaseUFBS
+#define _ptpmCaseUFBS(n) _ptpmCaseUFB(n)
 #endif
-#define use_GSC A_GET | A_SET | A_COMMAND
-#define use_GS  A_GET | A_SET
+/* Shortcuts defined in msg.cpp
+ *  use_GSC => A_GET | A_SET | A_COMMAND
+ *  use_GS  => A_GET | A_SET
+ */
 /*
  * For functions use
- * #define caseNA(n)    <macro text>
- * #define caseUF(n)    <macro text>
- * #define caseUFB(n)   <macro text>
- * NA = no functions needed
+ * #define _ptpmCaseXX(n)    <macro text>
+ * NA   - no functions needed
  * UF   - functions for parsing
  * UFS  - functions for parsing having variable size
  * UFB  - functions for parsing and build
  * UFBS - functions for parsing and build having variable size
  */
-#ifndef FIRST_MNG_ID
-#define FIRST_MNG_ID NULL_PTP_MANAGEMENT
-#endif
-/*
- * NULL_MANAGEMENT is the name from "IEEE Std 1588-2008"
- * NULL_PTP_MANAGEMENT is the name from "IEEE Std 1588-2019"
- */
-#ifndef NULL_MANAGEMENT
-#define NULL_MANAGEMENT NULL_PTP_MANAGEMENT
-#endif
 /*
  * size: > 0  fixed size dataField
  *         0  No dataField (with NA)
@@ -114,8 +104,10 @@ A(MASTER_ONLY,                         3001, port,  use_GS,     2,     UFB)
 A(HOLDOVER_UPGRADE_ENABLE,             3002, clock, use_GS,     2,     UFB)
 A(EXT_PORT_CONFIG_PORT_DATA_SET,       3003, port,  use_GS,     2,     UFB)
 /* linuxptp TLVs (in Implementation-specific C000-DFFF) */
-#define use_GL  A_GET | A_USE_LINUXPTP
-#define use_GSL A_GET | A_SET | A_USE_LINUXPTP
+/* Shortcuts defined in msg.cpp
+ *  use_GL  => A_GET | A_USE_LINUXPTP
+ *  use_GSL => A_GET | A_SET | A_USE_LINUXPTP
+ */
 A(TIME_STATUS_NP,                      c000, clock, use_GL,    50,     UF)
 A(GRANDMASTER_SETTINGS_NP,             c001, clock, use_GSL,    8,     UFB)
 A(PORT_DATA_SET_NP,                    c002, port,  use_GSL,    8,     UFB)
@@ -129,17 +121,9 @@ A(PORT_HWCLOCK_NP,                     c009, port,  use_GL,    16,     UF)
 #if 0
 A(POWER_PROFILE_SETTINGS_NP,           c009, port,  use_GSL,   16,     UFB)
 #endif
-#ifndef LAST_MNG_ID
-#define LAST_MNG_ID PORT_HWCLOCK_NP
-#endif
 #undef A
-#undef use_GSC
-#undef use_GS
-#undef use_GL
-#undef use_GSL
-#undef caseNA
-#undef caseNS
-#undef caseUF
-#undef caseUFS
-#undef caseUFB
-#undef caseUFBS
+#undef _ptpmCaseNA
+#undef _ptpmCaseUF
+#undef _ptpmCaseUFS
+#undef _ptpmCaseUFB
+#undef _ptpmCaseUFBS

@@ -348,9 +348,9 @@ int main(int argc, char *argv[])
         .long_name = nullptr,
         .have_arg = true,
         .long_only = false,
-        .help_msg = "set the sync offset threshold",
-        .arg_help = "num",
-        .def_val = "0",
+        .help_msg = (char*)"set the sync offset threshold",
+        .arg_help = (char*)"num",
+        .def_val = (char*)"0",
     };
     opt.insert(opt_x);
     std::string app = basename(argv[0]);

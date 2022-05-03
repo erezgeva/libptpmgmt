@@ -67,6 +67,7 @@ void SockBase::closeBase()
         ::close(m_fd);
         m_fd = -1;
     }
+    closeChild();
 }
 bool SockBase::sendReply(ssize_t cnt, size_t len) const
 {
@@ -130,9 +131,8 @@ void SockUnix::setUnixAddr(sockaddr_un &addr, const std::string &str)
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, str.c_str(), unix_path_max);
 }
-void SockUnix::closeBase()
+void SockUnix::closeChild()
 {
-    SockBase::closeBase();
     if(m_isInit) {
         unlink(m_me.c_str());
         m_isInit = false;
@@ -142,7 +142,7 @@ bool SockUnix::initBase()
 {
     if(m_isInit || !testUnix(m_me))
         return false;
-    SockBase::closeBase();
+    closeBase();
     m_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(m_fd < 0) {
         PTPMGMT_PERROR("socket");
@@ -539,6 +539,7 @@ bool SockRaw::initBase()
 {
     if(m_isInit || !m_have_if || m_ptp_dst_mac.empty() || m_socket_priority < 0)
         return false;
+    closeBase();
     uint16_t port_all = cpu_to_net16(ETH_P_ALL);
     uint16_t port_ptp = cpu_to_net16(ETH_P_1588);
     m_fd = socket(AF_PACKET, SOCK_RAW, port_all);

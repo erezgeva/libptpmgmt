@@ -17,11 +17,9 @@ namespace ptpmgmt
 
 void Init::close()
 {
-    if(m_sk != nullptr) {
-        m_sk->close();
-        delete m_sk;
-        m_sk = nullptr;
-    }
+    SockBase *s = sk();
+    if(s != nullptr)
+        s->close();
 }
 
 int Init::proccess(const Options &opt)
@@ -70,7 +68,7 @@ int Init::proccess(const Options &opt)
                 PTPMGMT_ERROR("failed to allocate SockUnix");
                 return -1;
             }
-            m_sk = sku;
+            m_sk.reset(sku);
             std::string uds_address;
             if(opt.have('s'))
                 uds_address = opt.val('s');
@@ -92,7 +90,7 @@ int Init::proccess(const Options &opt)
                 PTPMGMT_ERROR("failed to allocate SockIp4");
                 return -1;
             }
-            m_sk = sk4;
+            m_sk.reset(sk4);
             if(!sk4->setAll(ifObj, m_cfg, interface)) {
                 PTPMGMT_ERROR("failed to set transport");
                 return -1;
@@ -113,7 +111,7 @@ int Init::proccess(const Options &opt)
                 PTPMGMT_ERROR("failed to allocate SockIp6");
                 return -1;
             }
-            m_sk = sk6;
+            m_sk.reset(sk6);
             if(!sk6->setAll(ifObj, m_cfg, interface)) {
                 PTPMGMT_ERROR("failed to set transport");
                 return -1;
@@ -138,7 +136,7 @@ int Init::proccess(const Options &opt)
                 PTPMGMT_ERROR("failed to allocate SockRaw");
                 return -1;
             }
-            m_sk = skr;
+            m_sk.reset(skr);
             if(!skr->setAll(ifObj, m_cfg, interface)) {
                 PTPMGMT_ERROR("failed to set transport");
                 return -1;
