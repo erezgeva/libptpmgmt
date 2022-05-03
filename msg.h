@@ -591,8 +591,13 @@ struct MsgParams {
     bool rcvSignaling; /**< parse signaling messages */
     bool filterSignaling; /**< filter signaling messages TLVs */
     /** when filter TLVs in signalling messages
-     * allow TLVs that are in the map */
+     * allow TLVs that are in the map, the bool value is ignored */
     std::map<tlvType_e, bool> allowSigTlvs;
+    void allowSigTlv(tlvType_e type); /**< Add TLV type to allowed signalling */
+    void removeSigTlv(tlvType_e
+        type); /**< Remove TLV type from allowed signalling */
+    bool isSigTlv(tlvType_e type)
+    const; /**< Query if TLV type is allowed signalling */
 };
 /** Base for all Management TLV structures */
 struct BaseMngTlv {
@@ -997,12 +1002,13 @@ class Message
      */
     void clearData();
     /**
-     * Build a raw message for send based on last setAction call
+     * Build a raw message for send using setAction setting
      * @param[in, out] buf memory buffer to fill with raw PTP Message
      * @param[in] bufSize buffer size
      * @param[in] sequence message sequence
      * @return parse error state
-     * @note the message is initializing with NULL_PTP_MANAGEMENT management ID
+     * @note build before setting with setAction will create a GET raw message
+     *  with NULL_PTP_MANAGEMENT management TLV
      * @note usually the user increases the sequence so it can be compared
      *  with replied message
      * @note if raw message is larger than buffer size the function
@@ -1014,7 +1020,8 @@ class Message
      * @param[in, out] buf object with memory buffer to fill with raw PTP Message
      * @param[in] sequence message sequence
      * @return parse error state
-     * @note the message is initializing with NULL_PTP_MANAGEMENT management ID
+     * @note build before setting with setAction will create a GET raw message
+     *  with NULL_PTP_MANAGEMENT management TLV
      * @note usually the user increases the sequence so it can be compared
      *  with replied message
      * @note if raw message is larger than buffer size the function
@@ -1023,20 +1030,20 @@ class Message
     MNG_PARSE_ERROR_e build(Buf &buf, uint16_t sequence)
     { return build(buf.get(), buf.size(), sequence); }
     /**
-     * Get last sent management action
-     * @return send management action
+     * Get build management action
+     * @return build management action
      */
     actionField_e getSendAction() const { return m_sendAction; }
     /**
-     * Get last sent message sized
+     * Get last build message size
      * @return message size
      */
     size_t getMsgLen() const { return m_msgLen; }
     /**
-     * Get planned message to send sized
+     * Get planned message to build size
      * @return planned message size or negative for error
      * @note the planned message size is based on the management TLV id,
-     *  action and the last dataSend the user set.
+     *  action and the dataSend set by the user.
      * User can use the size to allocate proper buffer for sending
      */
     ssize_t getMsgPlanedLen() const;
@@ -1054,8 +1061,7 @@ class Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
-    MNG_PARSE_ERROR_e parse(Buf &buf, ssize_t msgSize)
-    { return parse(buf.get(), msgSize); }
+    MNG_PARSE_ERROR_e parse(Buf &buf, ssize_t msgSize);
     /**
      * Get last reply management action
      * @return reply management action

@@ -135,6 +135,19 @@ PACK(struct managementErrorTLV_p {
 const size_t mngMsgBaseSize = sizeof(managementMessage_p) +
     sizeof(managementTLV_t);
 
+void MsgParams::allowSigTlv(tlvType_e type)
+{
+    allowSigTlvs[type] = true;
+}
+void MsgParams::removeSigTlv(tlvType_e type)
+{
+    allowSigTlvs.erase(type);
+}
+bool MsgParams::isSigTlv(tlvType_e type) const
+{
+    return allowSigTlvs.count(type) > 0;
+}
+
 const ManagementId_t Message::mng_all_vals[] = {
 #define A(n, v, sc, a, sz, f)\
     [n] = {.value = 0x##v, .scope = s_##sc, .allowed = a, .size = sz},
@@ -481,6 +494,16 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     m_mngType = MANAGEMENT;
     return MNG_PARSE_ERROR_OK;
 }
+MNG_PARSE_ERROR_e Message::parse(Buf &buf, ssize_t msgSize)
+{
+    // That should not happens!
+    // As user used too big size in the recieve function
+    // But if it does, we need protection!
+    if((ssize_t)buf.size() < msgSize)
+        return MNG_PARSE_ERROR_TOO_SMALL;
+    return parse(buf.get(), msgSize);
+}
+
 #define caseBuildAct(n) {\
         n##_t *t = new n##_t;\
         if(t == nullptr)\
@@ -508,7 +531,7 @@ MNG_PARSE_ERROR_e Message::parseSig()
         leftAll -= lengthField;
         // Check signalling filter
         if(m_prms.filterSignaling && m_prms.allowSigTlvs.count(tlvType) == 0) {
-            // And TLV not in filter is skiped
+            // TLV not in filter is skiped
             m_cur += lengthField;
             continue;
         }
@@ -826,7 +849,8 @@ const char *Message::clockAcc2str_c(clockAccuracy_e val)
 }
 const char *Message::faultRec2str_c(faultRecord_e val)
 {
-    const int off = 2;
+    const char base[] = "F_";
+    const size_t off = sizeof(base);
     switch(val) {
         case caseItemOff(F_Emergency);
         case caseItemOff(F_Alert);
@@ -874,7 +898,8 @@ const char *Message::portState2str_c(portState_e val)
 }
 const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 {
-    const int off = 3;
+    const char base[] = "TS_";
+    const size_t off = sizeof(base);
     switch(val) {
         case caseItemOff(TS_SOFTWARE);
         case caseItemOff(TS_HARDWARE);
