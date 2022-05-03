@@ -343,7 +343,7 @@ static int init(Options &opt)
 int main(int argc, char *argv[])
 {
     Options opt;
-    pmc_option opt_x = {
+    Pmc_option opt_x = {
         .short_name = 'x',
         .long_name = nullptr,
         .have_arg = true,

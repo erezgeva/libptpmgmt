@@ -53,7 +53,7 @@ using namespace ptpmgmt;
  *%- C++ code can simply cast.%^\
  * @note Use Message:getData() to retrieve the data from the Message%^\
  *%@%^\
-n##_t%^*conv_##n(BaseMngTlv *data);
+n##_t%^*conv_##n(const BaseMngTlv *data);
 #define A(n, v, sc, a, sz, f) case##f(n)
 #include "ids.h"
 %_
@@ -67,7 +67,7 @@ n##_t%^*conv_##n(BaseMngTlv *data);
  * @note Use Message:getSigMngTlv() to retrieve the tlv%^\
  *%@%^\
 n##_t%^\
-*conv_##n(BaseSigTlv *tlv);
+*conv_##n(const BaseSigTlv *tlv);
 S(ORGANIZATION_EXTENSION)
 S(PATH_TRACE)
 S(ALTERNATE_TIME_OFFSET_INDICATOR)

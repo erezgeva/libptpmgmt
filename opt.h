@@ -28,18 +28,20 @@ namespace ptpmgmt
 /**
  * @brief structre to add new option
  */
-struct pmc_option {
+/* TODO Should we use a class for application/scripts and
+ *      leave the structure for internal use? */
+struct Pmc_option {
     /**
      * Uniq single character
      * For long only options, used by application
      */
     char short_name;
-    const char *long_name; /**< Optional long option */
+    char *long_name; /**< Optional long option */
     bool have_arg; /**< Use argument flag */
     bool long_only; /**< Use long option only flag */
-    const char *help_msg; /**< Help message */
-    const char *arg_help; /**< Argument name for help */
-    const char *def_val; /**< Defualt value for help */
+    char *help_msg; /**< Help message */
+    char *arg_help; /**< Argument name for help */
+    char *def_val; /**< Defualt value for help */
 };
 
 /**
@@ -48,7 +50,7 @@ struct pmc_option {
 class Options
 {
   private:
-    static pmc_option start[];
+    static Pmc_option start[];
     size_t max_arg_name;
     std::vector<option> long_options_list;
     std::map<int, std::string> options;
@@ -103,7 +105,8 @@ class Options
      * @return true on adding the option
      * @note should be called before calling parse_options()
      */
-    bool insert(const pmc_option &opt);
+    /* TODO will it work in scripts? */
+    bool insert(const Pmc_option &opt);
     /**
      * Get help message
      * @return help message
@@ -125,6 +128,7 @@ class Options
      * @param[in] argv array of command line arguments
      * @return Parse state
      */
+    /* TODO Can a scripts pass arguments like that? */
     loop_val parse_options(int argc, char *const argv[]);
     /**
      * Is option on command line
@@ -143,7 +147,7 @@ class Options
     /**
      * get option value
      * @param[in] opt short option character
-     * @return option value in char pointer (C style)
+     * @return option char pointer of value string (C style)
      * @note relevant for option with argument
      */
     const char *val_c(char opt) const
@@ -151,8 +155,8 @@ class Options
     /**
      * get option integer value
      * @param[in] opt short option character
-     * @return option value in char pointer (C style)
-     * @note relevant for option with argument
+     * @return option integer value
+     * @note relevant for option with argument of integer value
      */
     int val_i(char opt) const
     { return have(opt) ? atoi(options.at(opt).c_str()) : 0; }

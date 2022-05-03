@@ -17,13 +17,10 @@
 
 /* Headers and namespace for moudle source code */
 %{
-    #include "cfg.h"
-    #include "msg.h"
-    #include "ptp.h"
     #include "sock.h"
-    #include "bin.h"
-    #include "buf.h"
     #include "json.h"
+    #include "ver.h"
+    #include "init.h"
     using namespace ptpmgmt;
 %}
 
@@ -116,16 +113,19 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
 %feature("notabstract") SockBaseIf;
 /* library code */
 %include "cfg.h"
-%include "msg.h"
 %include "ptp.h"
 %include "sock.h"
 %include "bin.h"
 %include "buf.h"
-%include "json.h"
+%include "types.h"
+%include "mngIds.h" /* Add Management TLVs enumerator */
 %include "proc.h"
 %include "sig.h"
-/* Add Management TLVs enumerator */
-%include "mngIds.h"
+%include "msg.h"
+%include "json.h"
+%include "ver.h"
+%include "opt.h"
+%include "init.h"
 /* Handle management vectors inside structures
  * See documenting of XXXX_v classes in mngIds.h and
  *  Doxygen generated documents

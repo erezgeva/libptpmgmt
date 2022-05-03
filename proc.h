@@ -17,7 +17,7 @@
 #include <cstring>
 #include <cstdio>
 #include <vector>
-#include "msg.h"
+#include "types.h"
 
 #ifndef SWIG
 namespace ptpmgmt

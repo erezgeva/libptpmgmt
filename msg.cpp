@@ -810,8 +810,7 @@ const char *Message::netProt2str_c(networkProtocol_e val)
 }
 const char *Message::clockAcc2str_c(clockAccuracy_e val)
 {
-    const char base[] = "Accurate_";
-    const size_t off = sizeof(base);
+    const size_t off = 9; // Remove prefix 'Accurate_'
     switch(val) {
         case caseItemOff(Accurate_within_1ps);
         case caseItemOff(Accurate_within_2_5ps);
@@ -849,8 +848,7 @@ const char *Message::clockAcc2str_c(clockAccuracy_e val)
 }
 const char *Message::faultRec2str_c(faultRecord_e val)
 {
-    const char base[] = "F_";
-    const size_t off = sizeof(base);
+    const size_t off = 2; // Remove prefix 'F_'
     switch(val) {
         case caseItemOff(F_Emergency);
         case caseItemOff(F_Alert);
@@ -898,8 +896,7 @@ const char *Message::portState2str_c(portState_e val)
 }
 const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 {
-    const char base[] = "TS_";
-    const size_t off = sizeof(base);
+    const size_t off = 3; // Remove prefix 'TS_'
     switch(val) {
         case caseItemOff(TS_SOFTWARE);
         case caseItemOff(TS_HARDWARE);
@@ -912,8 +909,7 @@ const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 }
 const char *Message::pwr2str_c(linuxptpPowerProfileVersion_e ver)
 {
-    const char base[] = "IEEE_C37_238_VERSION_";
-    const size_t off = sizeof(base);
+    const size_t off = 21; // Remove prefix 'IEEE_C37_238_VERSION_'
     switch(ver) {
         case caseItemOff(IEEE_C37_238_VERSION_NONE);
         case caseItemOff(IEEE_C37_238_VERSION_2011);
@@ -924,8 +920,7 @@ const char *Message::pwr2str_c(linuxptpPowerProfileVersion_e ver)
 }
 const char *Message::us2str_c(linuxptpUnicastState_e state)
 {
-    const char base[] = "UC_";
-    const size_t off = sizeof(base);
+    const size_t off = 3; // Remove prefix 'UC_'
     switch(state) {
         case caseItemOff(UC_WAIT);
         case caseItemOff(UC_HAVE_ANN);

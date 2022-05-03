@@ -20,13 +20,13 @@
 
 namespace ptpmgmt
 {
-
+// Values from IEEE 1588 standard
 const uint16_t udp_port = 320;
 const char *ipv4_udp_mc = "224.0.1.129";
 const char *ipv6_udp_mc = "ff0e::181";
 
 const char *useDefstr = "/.pmc.";
-const char *rootBasestr = "/var/run/pmc.";
+const char *rootBasestr = "/var/run/pmc."; // Follow LinuxPTP
 const size_t unix_path_max = sizeof(((sockaddr_un *)nullptr)->sun_path) - 1;
 
 // Berkeley Packet Filter code
@@ -409,7 +409,7 @@ bool SockIp4::init2()
         PTPMGMT_PERROR("IP_MULTICAST_IF");
         return false;
     }
-    /* For sending */
+    // For sending
     m_addr4.sin_addr = *(in_addr *)m_mcast.get();
     return true;
 }
@@ -456,9 +456,9 @@ bool SockIp6::init2()
         PTPMGMT_PERROR("IPV6_MULTICAST_IF");
         return false;
     }
-    /* For sending */
+    // For sending
     m_addr6.sin6_addr = *(in6_addr *)m_mcast.get();
-    if(m_udp6_scope == 2)  // Local link
+    if(m_udp6_scope == 2) // Local link
         m_addr6.sin6_scope_id = m_ifIndex;
     return true;
 }

@@ -16,34 +16,36 @@
 namespace ptpmgmt
 {
 
-pmc_option Options::start[] = {
-    { 'b', nullptr, true, false, "boundary hops", "num", "1" },
-    { 'd', "domainNumber", true, false, "domain number", "num", "0" },
-    { 'f', nullptr, true, false, "read configuration from 'file'", "file" },
-    { 'h', nullptr, false, false, "prints this message and exits" },
-    { 'i', nullptr, true, false, "interface device to use", "dev" },
+#define _c(s) const_cast<char*>(#s)
+#define _n nullptr
+#define _tf true, false  // with argument
+#define _ff false, false // without argument
+#define _tt true, true   // long only option
+Pmc_option Options::start[] = {
+    { 'b', _n, _tf, _c(boundary hops), _c(num), _c(1) },
+    { 'd', _c(domainNumber), _tf, _c(domain number), _c(num), _c(0) },
+    { 'f', _n, _tf, _c(read configuration from 'file'), _c(file) },
+    { 'h', _n, _ff, _c(prints this message and exits) },
+    { 'i', _n, _tf, _c(interface device to use), _c(dev) },
     {
-        's', "uds_address", true, false, "server address for UDS",
-        "path", "'/var/run/ptp4l'"
-    },
+        's', _c(uds_address), _tf, _c(server address for UDS),
+            _c(path), _c('/var/run/ptp4l')
+        },
     {
-        't', "transportSpecific", true, false, "transport specific field",
-        "hex", "0x0"
+        't', _c(transportSpecific), _tf, _c(transport specific field),
+        _c(hex), _c(0x0)
     },
-    { 'v', nullptr, false, false, "prints the software version and exits" },
-    {
-        /* See Interpretation Response #29 in
-         * IEEE Standards Interpretations for IEEE Std 1588-2008
-         * https://standards.ieee.org/content/dam/ieee-standards/
-         * standards/web/documents/interpretations/1588-2008_interp.pdf */
-        'z', nullptr, false, false,
-        "send zero length TLV values with the GET actions"
-    },
-    { 'n', "network_transport", true, true },
-    { 'M', "ptp_dst_mac", true, true },
-    { 'S', "udp6_scope", true, true },
-    { 'T', "udp_ttl", true, true },
-    { 'P', "socket_priority", true, true },
+    { 'v', _n, _ff, _c(prints the software version and exits) },
+    /* See Interpretation Response #29 in
+     * IEEE Standards Interpretations for IEEE Std 1588-2008
+     * https://standards.ieee.org/content/dam/ieee-standards/
+     * standards/web/documents/interpretations/1588-2008_interp.pdf */
+    { 'z', _n, _ff, _c(send zero length TLV values with the GET actions) },
+    { 'n', _c(network_transport), _tt },
+    { 'M', _c(ptp_dst_mac), _tt },
+    { 'S', _c(udp6_scope), _tt },
+    { 'T', _c(udp_ttl), _tt },
+    { 'P', _c(socket_priority), _tt },
     { 0 },
 };
 
@@ -82,7 +84,7 @@ void Options::useDefOption()
     m_useDef = true;
 }
 
-bool Options::insert(const pmc_option &opt)
+bool Options::insert(const Pmc_option &opt)
 {
     // Verify we use legal character for short
     if(opt.short_name == 0 || strchr(":+-W", opt.short_name) != nullptr)
@@ -95,7 +97,7 @@ bool Options::insert(const pmc_option &opt)
         if(!have_long)
             return false;
     } else {
-        if(opt.have_arg && opt.arg_help == nullptr)
+        if((opt.have_arg && opt.arg_help == nullptr) || opt.help_msg == nullptr)
             return false;
         all_short_options += opt.short_name;
         helpStore h(" -");

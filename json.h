@@ -92,6 +92,7 @@ class Json2msg
     /**
      * Get dataField
      * @return dataField pointer or null
+     * @note User @b should not try to free this TLV object
      */
     const BaseMngTlv *dataField() const { return m_tlvData.get(); }
     /**

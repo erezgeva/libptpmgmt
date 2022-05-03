@@ -596,7 +596,8 @@ dump(PORT_SERVICE_STATS_NP)
 dump(UNICAST_MASTER_TABLE_NP)
 {
     DUMPS(
-        IDENT "actualTableSize %u"
+        // TODO should it be 'actualTableSize' in LinuxPTP?
+        IDENT "actual_table_size %u"
         IDENT "BM  identity                 address                            "
         "state     clockClass clockQuality offsetScaledLogVariance p1  p2",
         d.actualTableSize);

@@ -69,13 +69,14 @@ class Init
 
     /**
      * Get Socket object
-     * @return object
+     * @return object or null if not exist
+     * @note User @b should not try to free this socket object
      */
     SockBase *sk() { return m_sk; }
 
     /**
-     * Do we use UDS socket?
-     * @return true if use UDS socket
+     * Is the socket provide by this object, a Unix socket?
+     * @return true if the socket is a UDS socket
      */
     bool use_uds() const { return m_use_uds; }
 };
