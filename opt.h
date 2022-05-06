@@ -28,20 +28,18 @@ namespace ptpmgmt
 /**
  * @brief structre to add new option
  */
-/* TODO Should we use a class for application/scripts and
- *      leave the structure for internal use? */
 struct Pmc_option {
     /**
      * Uniq single character
      * For long only options, used by application
      */
     char short_name;
-    char *long_name; /**< Optional long option */
+    std::string long_name; /**< Optional long option */
     bool have_arg; /**< Use argument flag */
     bool long_only; /**< Use long option only flag */
-    char *help_msg; /**< Help message */
-    char *arg_help; /**< Argument name for help */
-    char *def_val; /**< Defualt value for help */
+    std::string help_msg; /**< Help message */
+    std::string arg_help; /**< Argument name for help */
+    std::string def_val; /**< Defualt value for help */
 };
 
 /**
@@ -50,9 +48,11 @@ struct Pmc_option {
 class Options
 {
   private:
-    static Pmc_option start[];
+    static Pmc_option startOptions[];
     size_t max_arg_name;
     std::vector<option> long_options_list;
+    /* We need to store the string used in option */
+    std::vector<std::string> long_options_list_string;
     std::map<int, std::string> options;
     std::string net_options;
     std::string all_options;
@@ -74,9 +74,9 @@ class Options
             if(e != nullptr)
                 end = e;
         }
-        helpStore &addStart(const char *s) {start += s; return *this;}
+        helpStore &addStart(const std::string &s) {start += s; return *this;}
         helpStore &addStart(const char s) {start += s; return *this;}
-        helpStore &addEnd(const char *e) {end += e; return *this;}
+        helpStore &addEnd(const std::string &e) {end += e; return *this;}
         std::string get(size_t length) const;
     };
     std::string help;
@@ -105,7 +105,6 @@ class Options
      * @return true on adding the option
      * @note should be called before calling parse_options()
      */
-    /* TODO will it work in scripts? */
     bool insert(const Pmc_option &opt);
     /**
      * Get help message

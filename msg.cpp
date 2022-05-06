@@ -186,7 +186,6 @@ MNG_PARSE_ERROR_e Message::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
     // The mng ID is not supported yet
     return MNG_PARSE_ERROR_OK;
 }
-
 bool Message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
 {
     mng_vals_e id;
@@ -499,7 +498,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     m_mngType = MANAGEMENT;
     return MNG_PARSE_ERROR_OK;
 }
-MNG_PARSE_ERROR_e Message::parse(Buf &buf, ssize_t msgSize)
+MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t msgSize)
 {
     // That should not happens!
     // As user used too big size in the recieve function
@@ -508,7 +507,6 @@ MNG_PARSE_ERROR_e Message::parse(Buf &buf, ssize_t msgSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
     return parse(buf.get(), msgSize);
 }
-
 #define caseBuildAct(n) {\
         n##_t *t = new n##_t;\
         if(t == nullptr)\
@@ -774,18 +772,17 @@ const char *Message::mng2str_c(mng_vals_e id)
             return "unknown";
     }
 }
-const bool Message::findMngID(const char *_str, mng_vals_e &id, bool exact)
+const bool Message::findMngID(const std::string &_str, mng_vals_e &id,
+    bool exact)
 {
-    if(_str == nullptr || *_str == 0)
+    if(_str.empty())
         return false;
-    std::string str;
-    if(exact) {
-        str = _str;
-    } else {
-        while(*_str != 0)
-            str += toupper(*_str++);
-        // Any ID with NULL map here
-        if (str.find("NULL") != std::string::npos) {
+    std::string str = _str;
+    if(!exact) {
+        for(auto &c : str)
+            c = toupper(c);
+        // Any ID with null map here
+        if(str.find("NULL") != std::string::npos) {
             id = NULL_PTP_MANAGEMENT;
             return true;
         }
@@ -805,7 +802,7 @@ const bool Message::findMngID(const char *_str, mng_vals_e &id, bool exact)
             find++;
             // Once we have 2 partial match
             // We stick to exact match
-            if (find > 1)
+            if(find > 1)
                 exact = true;
         }
     }
@@ -1156,7 +1153,6 @@ bool Message::proc(int64_t &val)
     move(sizeof(int64_t));
     return false;
 }
-
 bool Message::proc(Float64_t &val)
 {
     // Float64_t
@@ -1358,12 +1354,13 @@ template <typename T> bool Message::procE8(T &val)
     val = (T)v;
     return ret;
 }
-template bool Message::procE8<clockAccuracy_e>(clockAccuracy_e &);
-template bool Message::procE8<faultRecord_e>(faultRecord_e &);
-template bool Message::procE8<timeSource_e>(timeSource_e &);
-template bool Message::procE8<portState_e>(portState_e &);
-template bool Message::procE8<msgType_e>(msgType_e &);
-template bool Message::procE8<linuxptpTimeStamp_e>(linuxptpTimeStamp_e &);
+#define E8(t) template bool Message::procE8<t>(t &)
+E8(clockAccuracy_e);
+E8(faultRecord_e);
+E8(timeSource_e);
+E8(portState_e);
+E8(msgType_e);
+E8(linuxptpTimeStamp_e);
 template <typename T> bool Message::procE16(T &val)
 {
     uint16_t v = val;
@@ -1371,9 +1368,10 @@ template <typename T> bool Message::procE16(T &val)
     val = (T)v;
     return ret;
 }
-template bool Message::procE16<networkProtocol_e>(networkProtocol_e &);
-template bool Message::procE16<linuxptpPowerProfileVersion_e>(linuxptpPowerProfileVersion_e &);
-template bool Message::procE16<linuxptpUnicastState_e>(linuxptpUnicastState_e &);
+#define E16(t) template bool Message::procE16<t>(t &)
+E16(networkProtocol_e);
+E16(linuxptpPowerProfileVersion_e);
+E16(linuxptpUnicastState_e);
 bool Message::proc(TimeInterval_t &v)
 {
     return proc(v.scaledNanoseconds);
@@ -1458,10 +1456,10 @@ bool Message::procLe(uint64_t &val)
                 return true;\
         }\
     } else
-template <typename T> bool Message::vector_f(uint32_t count, std::vector<T> &vec)
+template <typename T> bool Message::vector_f(uint32_t count,
+    std::vector<T> &vec)
 {
-    vector_b(vec)
-    {
+    vector_b(vec) {
         for(uint32_t i = 0; i < count; i++) {
             T rec;
             if(proc(rec))
@@ -1471,14 +1469,14 @@ template <typename T> bool Message::vector_f(uint32_t count, std::vector<T> &vec
     }
     return false;
 }
-template bool Message::vector_f<FaultRecord_t>(uint32_t, std::vector<FaultRecord_t> &);
-template bool Message::vector_f<PortAddress_t>(uint32_t, std::vector<PortAddress_t> &);
-template bool Message::vector_f<AcceptableMaster_t>(uint32_t, std::vector<AcceptableMaster_t> &);
-template bool Message::vector_f<LinuxptpUnicastMaster_t>(uint32_t, std::vector<LinuxptpUnicastMaster_t> &);
+#define vf(t) template bool Message::vector_f<t>(uint32_t, std::vector<t> &)
+vf(FaultRecord_t);
+vf(PortAddress_t);
+vf(AcceptableMaster_t);
+vf(LinuxptpUnicastMaster_t);
 template <typename T> bool Message::vector_o(std::vector<T> &vec)
 {
-    vector_b(vec)
-    {
+    vector_b(vec) {
         while(m_left >= (ssize_t)T::size()) {
             T rec;
             if(proc(rec))
@@ -1488,10 +1486,11 @@ template <typename T> bool Message::vector_o(std::vector<T> &vec)
     }
     return false;
 }
-template bool Message::vector_o<ClockIdentity_t>(std::vector<ClockIdentity_t> &);
-template bool Message::vector_o<SLAVE_RX_SYNC_TIMING_DATA_rec_t>(std::vector<SLAVE_RX_SYNC_TIMING_DATA_rec_t> &);
-template bool Message::vector_o<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t>(std::vector<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t> &);
-template bool Message::vector_o<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>(std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t> &);
-template bool Message::vector_o<SLAVE_DELAY_TIMING_DATA_NP_rec_t>(std::vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t> &);
+#define vo(t) template bool Message::vector_o<t>(std::vector<t> &)
+vo(ClockIdentity_t);
+vo(SLAVE_RX_SYNC_TIMING_DATA_rec_t);
+vo(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t);
+vo(SLAVE_TX_EVENT_TIMESTAMPS_rec_t);
+vo(SLAVE_DELAY_TIMING_DATA_NP_rec_t);
 
 }; /* namespace ptpmgmt */

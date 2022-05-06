@@ -41,7 +41,7 @@ class Init
 
   public:
     /**
-     * Close socket and delete it
+     * Close socket
      */
     void close();
 

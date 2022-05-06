@@ -290,7 +290,7 @@ class Message
      * @param[in] exact perform an exact match
      * @return true if found
      */
-    static const bool findMngID(const char *str, mng_vals_e &id, bool exact);
+    static const bool findMngID(const std::string &str, mng_vals_e &id, bool exact);
     /**
      * Convert management error to string
      * @param[in] err ID
@@ -471,7 +471,7 @@ class Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
-    MNG_PARSE_ERROR_e parse(Buf &buf, ssize_t msgSize);
+    MNG_PARSE_ERROR_e parse(const Buf &buf, ssize_t msgSize);
     /**
      * Get last reply management action
      * @return reply management action

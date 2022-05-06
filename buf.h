@@ -50,12 +50,12 @@ class Buf
      * Get memory buffer pointer
      * @return memory buffer pointer or null if buffer does not exist
      */
-    void *get() {return m_buf;}
+    void *get() const {return m_buf;}
     /**
      * Get memory buffer pointer
      * @return memory buffer pointer or null if buffer does not exist
      */
-    void *operator()() {return m_buf;}
+    void *operator()() const {return m_buf;}
     /**
      * Get memory buffer size
      * @return memory buffer size or 0 if buffer does not exist

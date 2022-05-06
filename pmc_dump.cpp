@@ -1148,21 +1148,21 @@ build(PATH_TRACE_ENABLE)
 }
 build(GRANDMASTER_CLUSTER_TABLE)
 {
-    //TODO handle table input
+    // TODO handle table input
     d = d;
     return nullptr;
     build_end;
 }
 build(UNICAST_MASTER_TABLE)
 {
-    //TODO handle table input
+    // TODO handle table input
     d = d;
     return nullptr;
     build_end;
 }
 build(ACCEPTABLE_MASTER_TABLE)
 {
-    //TODO handle table input
+    // TODO handle table input
     d = d;
     return nullptr;
     build_end;

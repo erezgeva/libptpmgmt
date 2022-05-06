@@ -16,36 +16,34 @@
 namespace ptpmgmt
 {
 
-#define _c(s) const_cast<char*>(#s)
-#define _n nullptr
 #define _tf true, false  // with argument
 #define _ff false, false // without argument
-#define _tt true, true   // long only option
-Pmc_option Options::start[] = {
-    { 'b', _n, _tf, _c(boundary hops), _c(num), _c(1) },
-    { 'd', _c(domainNumber), _tf, _c(domain number), _c(num), _c(0) },
-    { 'f', _n, _tf, _c(read configuration from 'file'), _c(file) },
-    { 'h', _n, _ff, _c(prints this message and exits) },
-    { 'i', _n, _tf, _c(interface device to use), _c(dev) },
+Pmc_option Options::startOptions[] = {
+    { 'b', "", _tf, "boundary hops", "num", "1" },
+    { 'd', "domainNumber", _tf, "domain number", "num", "0" },
+    { 'f', "", _tf, "read configuration from 'file'", "file" },
+    { 'h', "", _ff, "prints this message and exits" },
+    { 'i', "", _tf, "interface device to use", "dev" },
     {
-        's', _c(uds_address), _tf, _c(server address for UDS),
-            _c(path), _c('/var/run/ptp4l')
-        },
-    {
-        't', _c(transportSpecific), _tf, _c(transport specific field),
-        _c(hex), _c(0x0)
+        's', "uds_address", _tf, "server address for UDS",
+        "path", "'/var/run/ptp4l'"
     },
-    { 'v', _n, _ff, _c(prints the software version and exits) },
+    {
+        't', "transportSpecific", _tf, "transport specific field",
+        "hex", "0x0"
+    },
+    { 'v', "", _ff, "prints the software version and exits" },
     /* See Interpretation Response #29 in
      * IEEE Standards Interpretations for IEEE Std 1588-2008
      * https://standards.ieee.org/content/dam/ieee-standards/
      * standards/web/documents/interpretations/1588-2008_interp.pdf */
-    { 'z', _n, _ff, _c(send zero length TLV values with the GET actions) },
-    { 'n', _c(network_transport), _tt },
-    { 'M', _c(ptp_dst_mac), _tt },
-    { 'S', _c(udp6_scope), _tt },
-    { 'T', _c(udp_ttl), _tt },
-    { 'P', _c(socket_priority), _tt },
+    { 'z', "", _ff, "send zero length TLV values with the GET actions" },
+    // long only options
+    { 'n', "network_transport", true, true },
+    { 'M', "ptp_dst_mac", true, true },
+    { 'S', "udp6_scope", true, true },
+    { 'T', "udp_ttl", true, true },
+    { 'P', "socket_priority", true, true },
     { 0 },
 };
 
@@ -79,7 +77,7 @@ void Options::useDefOption()
     helpVec.push_back(helpStore(" -6", "UDP IPV6"));
     helpVec.push_back(helpStore(" -u", "UDS local\n"));
     helpVec.push_back(helpStore(" Other Options\n"));
-    for(auto *cur = start; cur->short_name; cur++)
+    for(auto *cur = startOptions; cur->short_name; cur++)
         insert(*cur);
     m_useDef = true;
 }
@@ -92,12 +90,11 @@ bool Options::insert(const Pmc_option &opt)
     // short_name must be uniq
     if(all_options.find(opt.short_name) != std::string::npos)
         return false;
-    bool have_long = opt.long_name != nullptr && opt.long_name[0] != 0;
     if(opt.long_only) {
-        if(!have_long)
+        if(opt.long_name.empty())
             return false;
     } else {
-        if((opt.have_arg && opt.arg_help == nullptr) || opt.help_msg == nullptr)
+        if((opt.have_arg && opt.arg_help.empty()) || opt.help_msg.empty())
             return false;
         all_short_options += opt.short_name;
         helpStore h(" -");
@@ -105,19 +102,21 @@ bool Options::insert(const Pmc_option &opt)
         if(opt.have_arg) {
             all_short_options += ':';
             h.addStart(" [").addStart(opt.arg_help).addStart("]");
-            max_arg_name = std::max(max_arg_name, strlen(opt.arg_help));
+            max_arg_name = std::max(max_arg_name, opt.arg_help.length());
         }
         h.addEnd(opt.help_msg);
-        if(opt.have_arg && opt.def_val != nullptr)
+        if(opt.have_arg && !opt.def_val.empty())
             h.addEnd(", default ").addEnd(opt.def_val);
         helpVec.push_back(h);
     }
     if(opt.have_arg)
         with_options += opt.short_name;
     all_options += opt.short_name;
-    if(have_long) {
+    if(!opt.long_name.empty()) {
         option nopt;
-        nopt.name = opt.long_name;
+        auto iter = long_options_list_string.insert(long_options_list_string.end(),
+                opt.long_name);
+        nopt.name = iter->c_str();
         nopt.has_arg = opt.have_arg ? required_argument : no_argument;
         nopt.flag = nullptr;
         nopt.val = opt.short_name;
@@ -137,36 +136,41 @@ const char *Options::get_help()
 Options::loop_val Options::parse_options(int argc, char *const argv[])
 {
     int c;
-    opterr = 0; // Prevent printing the error
+    // Prevent getopt_long() printing errors
+    // Handle errors with '?'
+    opterr = 0;
     while((c = getopt_long(argc, argv, all_short_options.c_str(),
                     long_options_list.data(), nullptr)) != -1) {
-        switch(c) {
-            case '?':
-                msg = "invalid option -- '";
-                msg += argv[optind - 1];
-                msg += "'";
-                return OPT_ERR;
-            case 'v':
-                msg = getVersion();
-                return OPT_MSG;
-            case 'h':
-                return OPT_HELP;
-            case 'n':
-                if(strcasecmp(optarg, "UDPv4") == 0)
-                    net_select = '4';
-                else if(strcasecmp(optarg, "UDPv6") == 0)
-                    net_select = '6';
-                else if(strcasecmp(optarg, "L2") == 0)
-                    net_select = '2';
-                else {
-                    msg = "Wrong network transport -- '";
-                    msg += optarg;
-                    msg += "'";
-                    return OPT_ERR;
-                }
-                continue;
-            default:
-                break;
+        if(c == '?') { // Error handling
+            msg = "invalid option -- '";
+            msg += argv[optind - 1];
+            msg += "'";
+            return OPT_ERR;
+        }
+        if(m_useDef) {
+            switch(c) {
+                case 'v':
+                    msg = getVersion();
+                    return OPT_MSG;
+                case 'h':
+                    return OPT_HELP;
+                case 'n':
+                    if(strcasecmp(optarg, "UDPv4") == 0)
+                        net_select = '4';
+                    else if(strcasecmp(optarg, "UDPv6") == 0)
+                        net_select = '6';
+                    else if(strcasecmp(optarg, "L2") == 0)
+                        net_select = '2';
+                    else {
+                        msg = "Wrong network transport -- '";
+                        msg += optarg;
+                        msg += "'";
+                        return OPT_ERR;
+                    }
+                    continue; // To next option
+                default:
+                    break;
+            }
         }
         if(net_options.find(c) != std::string::npos)
             net_select = c; // Network Transport value

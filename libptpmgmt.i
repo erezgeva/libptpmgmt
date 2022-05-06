@@ -19,6 +19,7 @@
 %{
     #include "sock.h"
     #include "json.h"
+    #include "jsonFrom.h"
     #include "ver.h"
     #include "init.h"
     using namespace ptpmgmt;
@@ -32,10 +33,12 @@
 #endif
 
 /* Include standatd types and SWIG macroes */
+/* From /usr/share/swig./ */
 %include "stdint.i"
+%include "cpointer.i"
+/* From /usr/share/swig././  */
 %include "std_string.i"
 %include "std_vector.i"
-%include "cpointer.i"
 /* The type is POSIX only, not standard! */
 %apply long { ssize_t };
 
@@ -64,13 +67,13 @@
 /* PHP rename to c_empty */
 %warnfilter(314) Binary::empty;
 /* PHP rename to c_list */
-#define list(n) %warnfilter(314) n::list;
-list(ACCEPTABLE_MASTER_TABLE_t)
-list(SLAVE_RX_SYNC_TIMING_DATA_t)
-list(SLAVE_RX_SYNC_COMPUTED_DATA_t)
-list(SLAVE_TX_EVENT_TIMESTAMPS_t)
-list(SLAVE_DELAY_TIMING_DATA_NP_t)
-list(SLAVE_RX_SYNC_TIMING_DATA_t)
+#define _ptpmList(n) %warnfilter(314) n::list;
+_ptpmList(ACCEPTABLE_MASTER_TABLE_t)
+_ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
+_ptpmList(SLAVE_RX_SYNC_COMPUTED_DATA_t)
+_ptpmList(SLAVE_TX_EVENT_TIMESTAMPS_t)
+_ptpmList(SLAVE_DELAY_TIMING_DATA_NP_t)
+_ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 /* PHP rename c_interface */
 %warnfilter(314) PORT_PROPERTIES_NP_t::interface;
 /* Operator overload ignored.
@@ -123,6 +126,7 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "sig.h"
 %include "msg.h"
 %include "json.h"
+%include "jsonFrom.h"
 %include "ver.h"
 %include "opt.h"
 %include "init.h"
@@ -130,20 +134,20 @@ list(SLAVE_RX_SYNC_TIMING_DATA_t)
  * See documenting of XXXX_v classes in mngIds.h and
  *  Doxygen generated documents
  */
-#define mkVec(n) %template(n##_v) std::vector<n##_t>
-mkVec(FaultRecord);
-mkVec(ClockIdentity);
-mkVec(PortAddress);
-mkVec(AcceptableMaster);
+#define _ptpmMkVec(n) %template(n##_v) std::vector<n##_t>
+_ptpmMkVec(FaultRecord);
+_ptpmMkVec(ClockIdentity);
+_ptpmMkVec(PortAddress);
+_ptpmMkVec(AcceptableMaster);
 /* Handle signalig vectors inside structures
  * See documenting of SigXXXX classes in mngIds.h and
  *  Doxygen generated documents
  */
-#define mkRecVec(n, m) %template(n) std::vector<m##_rec_t>
-mkRecVec(SigTime, SLAVE_RX_SYNC_TIMING_DATA);
-mkRecVec(SigComp, SLAVE_RX_SYNC_COMPUTED_DATA);
-mkRecVec(SigEvent, SLAVE_TX_EVENT_TIMESTAMPS);
-mkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
+#define _ptpmMkRecVec(n, m) %template(n) std::vector<m##_rec_t>
+_ptpmMkRecVec(SigTime, SLAVE_RX_SYNC_TIMING_DATA);
+_ptpmMkRecVec(SigComp, SLAVE_RX_SYNC_COMPUTED_DATA);
+_ptpmMkRecVec(SigEvent, SLAVE_TX_EVENT_TIMESTAMPS);
+_ptpmMkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
 /* convert base management tlv to a specific management tlv structure
  * See documenting of conv_XXX functions in mngIds.h and
  *  Doxygen generated documents
@@ -155,16 +159,16 @@ mkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
  * See documenting of conv_XXX functions in mngIds.h and
  *  Doxygen generated documents
  */
-#define sigCnv(n) %pointer_cast(BaseSigTlv*, n##_t*, conv_##n);
-sigCnv(ORGANIZATION_EXTENSION)
-sigCnv(PATH_TRACE)
-sigCnv(ALTERNATE_TIME_OFFSET_INDICATOR)
-sigCnv(ENHANCED_ACCURACY_METRICS)
-sigCnv(L1_SYNC)
-sigCnv(PORT_COMMUNICATION_AVAILABILITY)
-sigCnv(PROTOCOL_ADDRESS)
-sigCnv(SLAVE_RX_SYNC_TIMING_DATA)
-sigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
-sigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
-sigCnv(CUMULATIVE_RATE_RATIO)
-sigCnv(SLAVE_DELAY_TIMING_DATA_NP)
+#define _ptpmSigCnv(n) %pointer_cast(BaseSigTlv*, n##_t*, conv_##n);
+_ptpmSigCnv(ORGANIZATION_EXTENSION)
+_ptpmSigCnv(PATH_TRACE)
+_ptpmSigCnv(ALTERNATE_TIME_OFFSET_INDICATOR)
+_ptpmSigCnv(ENHANCED_ACCURACY_METRICS)
+_ptpmSigCnv(L1_SYNC)
+_ptpmSigCnv(PORT_COMMUNICATION_AVAILABILITY)
+_ptpmSigCnv(PROTOCOL_ADDRESS)
+_ptpmSigCnv(SLAVE_RX_SYNC_TIMING_DATA)
+_ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
+_ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
+_ptpmSigCnv(CUMULATIVE_RATE_RATIO)
+_ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)

@@ -225,13 +225,13 @@ PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
 ifdef USE_CJSON
 ifneq ($(wildcard /usr/include/json-c/json.h),)
-json.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/json-c
+jsonFrom.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/json-c
 LDLIBS_LIB+=-ljson-c
 endif # wildcard json.h
 else # USE_CJSON
 ifdef USE_FCJSON
 ifneq ($(wildcard /usr/include/libfastjson/json.h),)
-json.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/libfastjson
+jsonFrom.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/libfastjson
 LDLIBS_LIB+=-lfastjson
 endif # wildcard json.h
 endif # USE_FCJSON
@@ -289,7 +289,7 @@ distclean: deb_clean clean
 HEADERS_GEN:=mngIds.h verDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS))
-HEADERS_INST:=$(filter-out err.h,$(HEADERS)) verDef.h
+HEADERS_INST:=$(filter-out err.h jsonDef.h,$(HEADERS)) verDef.h
 HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 # MAP for  mngIds.cc:
 #  %@ => '/'    - Use when a slash is next to a star character
