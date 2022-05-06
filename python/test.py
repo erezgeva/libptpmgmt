@@ -19,6 +19,7 @@ sk = ptpmgmt.SockUnix()
 msg = ptpmgmt.Message()
 buf = ptpmgmt.Buf(1000)
 cfg = ptpmgmt.ConfigFile()
+opt = ptpmgmt.Options()
 sequence = 0
 
 def nextSequence():
@@ -92,9 +93,11 @@ def main():
   if not buf.isAlloc():
     print("buffer allocation failed")
     return -1
-  if len(sys.argv) > 1:
-    cfg_file = sys.argv[1]
-  else:
+  if opt.parse_options(sys.argv) != ptpmgmt.Options.OPT_DONE:
+    print("fail parsing command line")
+    return -1
+  cfg_file = opt.val('f')
+  if cfg_file == "":
     cfg_file = DEF_CFG_FILE
   print("Use configuration file %s" % cfg_file)
   if not cfg.read_cfg(cfg_file):

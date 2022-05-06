@@ -126,8 +126,20 @@ class Options
      * @param[in] argc number of arguments
      * @param[in] argv array of command line arguments
      * @return Parse state
+     * @note This class do not store argument 0,
+     *       i.e application name from command line!
+     * @note regarding using scripts: @n
+     *  Python and PHP uses full argument list.
+     *  For Ruby, Perl and Tcl user need to add argument 0.
+     *  Lua miss argument 0 completly, so user should add name manually! @n
+     * To call from scripts: @n
+     *  Python  obj.parse_options(sys.argv) @n
+     *  PHP     $obj->parse_options($argv) @n
+     *  Tcl     obj parse_options [list {*}$argv0 {*}$@::argv] @n
+     *  Perl    obj->parse_options([$0, @@ARGV]); @n
+     *  Ruby    $obj.parse_options([$0] + ARGV) @n
+     *  Lua     table.insert(arg, 1, "myname"); obj:parse_options(arg)
      */
-    /* TODO Can a scripts pass arguments like that? */
     loop_val parse_options(int argc, char *const argv[]);
     /**
      * Is option on command line

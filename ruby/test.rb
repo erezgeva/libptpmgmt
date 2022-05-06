@@ -16,6 +16,7 @@ DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 $sk = Ptpmgmt::SockUnix.new
 $msg = Ptpmgmt::Message.new
 $buf = Ptpmgmt::Buf.new(1000)
+$opt = Ptpmgmt::Options.new
 $sequence = 0
 
 def nextSequence()
@@ -101,9 +102,12 @@ def main
     puts "buffer allocation failed"
     return -1
   end
-  if ARGV.length > 0 then
-    cfg_file = ARGV[0]
-  else
+  if $opt.parse_options([$0] + ARGV) != Ptpmgmt::Options::OPT_DONE then
+    puts "fail parsing command line"
+    return -1
+  end
+  cfg_file = $opt.val('f')
+  if cfg_file == "" then
     cfg_file = DEF_CFG_FILE
   end
   puts "Use configuration file " + cfg_file

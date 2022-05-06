@@ -97,6 +97,7 @@ main()
  local -r luaVersions='1 2 3'
  local -r pyVersions='2 3'
  probeLibs
+ local -r runOptions="-u -f $cfgFile"
  ##############################################################################
  local -r instPmcLib=/usr/sbin/pmc-ptpmgmt
  if [[ -x $instPmcLib ]]; then
@@ -139,18 +140,18 @@ n='ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
  for n in $tlvs; do cmds+=" \"get $n\"";done
 
  printf "\n * Create $t1 with running linuxptp pmc\n"
- eval "$pmctool -u -f $cfgFile \"$setmsg\"" > $t1
- eval "$pmctool -u -f $cfgFile \"$verify\"" >> $t1
- time eval "$pmctool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t1
+ eval "$pmctool $runOptions \"$setmsg\"" > $t1
+ eval "$pmctool $runOptions \"$verify\"" >> $t1
+ time eval "$pmctool $runOptions $cmds" | grep -v ^sending: >> $t1
 
  # real  0m0.113s
  # user  0m0.009s
  # sys   0m0.002s
 
  printf "\n * Create $t2 with running libptpmgmt\n"
- eval "$useSudo$pmclibtool -u -f $cfgFile \"$setmsg\"" > $t2
- eval "$useSudo$pmclibtool -u -f $cfgFile \"$verify\"" >> $t2
- time eval "$useSudo$pmclibtool -u -f $cfgFile $cmds" | grep -v ^sending: >> $t2
+ eval "$useSudo$pmclibtool $runOptions \"$setmsg\"" > $t2
+ eval "$useSudo$pmclibtool $runOptions \"$verify\"" >> $t2
+ time eval "$useSudo$pmclibtool $runOptions $cmds" | grep -v ^sending: >> $t2
 
  # real  0m0.019s
  # user  0m0.004s
@@ -197,11 +198,11 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
 ###############################################################################
 do_perl()
 {
- time eval "$ldPath $useSudo./test.pl $cfgFile" > ../$t3
+ time eval "$ldPath $useSudo./test.pl $runOptions" > ../$t3
 }
 do_ruby()
 {
- time eval "$ldPathRuby $useSudo./test.rb $cfgFile" | diff - ../$t3
+ time eval "$ldPathRuby $useSudo./test.rb $runOptions" | diff - ../$t3
 }
 do_lua()
 {
@@ -212,7 +213,7 @@ do_lua()
    else
      rm -f ptpmgmt.so
    fi
-   time eval "$ldPath $useSudo lua5.$i ./test.lua $cfgFile" | diff - ../$t3
+   time eval "$ldPath $useSudo lua5.$i ./test.lua $runOptions" | diff - ../$t3
  done
 }
 do_python()
@@ -232,21 +233,21 @@ do_python()
    fi
    printf "\n $(readlink $(command -v python$i)) ---- \n"
    # First compile the python script, so we measure only runing
-   eval "$ldPath $useSudo python$i ./test.py $cfgFile" > /dev/null
-   time eval "$ldPath $useSudo python$i ./test.py $cfgFile" | diff - ../$t3
+   eval "$ldPath $useSudo python$i ./test.py $runOptions" > /dev/null
+   time eval "$ldPath $useSudo python$i ./test.py $runOptions" | diff - ../$t3
  done
 }
 do_php()
 {
  [[ -z "$phpIni" ]] || ./php_ini.sh
- time eval "$ldPathPhp $useSudo./test.php $cfgFile" | diff - ../$t3
+ time eval "$ldPathPhp $useSudo./test.php $runOptions" | diff - ../$t3
 }
 do_tcl()
 {
  if [[ -f ptpmgmt.so ]]; then
    sed -i 's#^package require.*#load ./ptpmgmt.so#' test.tcl
  fi
- time eval "$ldPath $useSudo./test.tcl $cfgFile" | diff - ../$t3
+ time eval "$ldPath $useSudo./test.tcl $runOptions" | diff - ../$t3
  sed -i 's/^load .*/package require ptpmgmt/' test.tcl
 }
 enter()

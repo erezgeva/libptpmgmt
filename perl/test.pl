@@ -19,6 +19,7 @@ my $sk = PtpMgmtLib::SockUnix->new;
 die "Fail socket" unless defined $sk;
 my $msg = PtpMgmtLib::Message->new;
 my $buf = PtpMgmtLib::Buf->new(1000);
+my $opt = PtpMgmtLib::Options->new;
 my $sequence = 0;
 
 sub nextSequence
@@ -102,7 +103,9 @@ sub setPriority1
 sub main
 {
   die "buffer allocation failed" unless $buf->isAlloc();
-  my $cfg_file = $ARGV[0];
+  die  "fail parsing command line"
+    if $opt->parse_options([$0, @ARGV]) != $PtpMgmtLib::Options::OPT_DONE;
+  my $cfg_file = $opt->val('f');
   $cfg_file = DEF_CFG_FILE unless -f $cfg_file;
   die "Config file $uds_address does not exist" unless -f $cfg_file;
   print "Use configuration file $cfg_file\n";

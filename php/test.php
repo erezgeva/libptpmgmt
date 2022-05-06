@@ -16,6 +16,7 @@ const DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf";
 $sk = new SockUnix();
 $msg = new Message();
 $buf = new Buf(1000);
+$opt = new Options();
 $sequence = 0;
 
 function nextSequence()
@@ -200,12 +201,16 @@ function main($cfg_file)
   return 0;
 }
 
-if(count($argv) > 1)
-  $cfg_file = $argv[1];
-else
-  $cfg_file = DEF_CFG_FILE;
-echo "Use configuration file $cfg_file\n";
-main($cfg_file);
+if($opt->parse_options($argv) == Options_OPT_DONE) {
+  $cfg_file = $opt->val('f');
+  if($cfg_file == "") {
+    $cfg_file = DEF_CFG_FILE;
+  }
+  echo "Use configuration file $cfg_file\n";
+  main($cfg_file);
+} else {
+  echo "fail parsing command line";
+}
 $sk->close();
 
 /*********************************************/

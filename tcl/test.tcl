@@ -15,6 +15,7 @@ set DEF_CFG_FILE "/etc/linuxptp/ptp4l.conf"
 ptpmgmt::SockUnix sk
 ptpmgmt::Message msg
 ptpmgmt::Buf buf
+ptpmgmt::Options opt
 set sequence 0
 
 proc nextSequence {} {
@@ -205,14 +206,18 @@ proc main {cfg_file} {
   return 0
 }
 
-if {$::argc > 0} {
-  set cfg_file [lindex $::argv 0]
+set ret [ opt parse_options [list {*}$argv0 {*}$::argv] ]
+if { $ret == $ptpmgmt::Options_OPT_DONE } {
+  set cfg_file [ opt val f ]
+  if { $cfg_file == "" } {
+    set cfg_file $DEF_CFG_FILE
+  }
+  puts "Use configuration file $cfg_file"
+  main $cfg_file
 } else {
-  set cfg_file $DEF_CFG_FILE
+  puts "fail parsing command line";
 }
 
-puts "Use configuration file $cfg_file"
-main $cfg_file
 sk close
 
 ######################################

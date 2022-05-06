@@ -379,7 +379,7 @@ endif
 PERL_NAME:=perl/$(SWIG_NAME)
 $(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -outdir perl -o $@ -perl5 $<
+	$Q$(SWIG) -Wall -c++ -I. -Iswig/perl -outdir perl -o $@ -perl5 $<
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@
@@ -401,7 +401,7 @@ ifneq ($(call which,lua),)
 LUA_LIB_NAME:=ptpmgmt.so
 lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -outdir lua -o $@ -lua $<
+	$Q$(SWIG) -Wall -c++ -I. -Iswig/lua -outdir lua -o $@ -lua $<
 CLEAN+=lua/$(SWIG_NAME).cpp
 DISTCLEAN+=lua/$(LUA_LIB_NAME)
 define lua
@@ -584,7 +584,7 @@ PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/ptpmgmt
 $(PHP_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -outdir php -o $@ -php7 $<
+	$Q$(SWIG) -c++ -I. -Iswig/php -outdir php -o $@ -php7 $<
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PHP) $(PHP_INC) -c $< -o $@
@@ -624,7 +624,7 @@ TCL_LNAME:=tcl/ptpmgmt
 CPPFLAGS_TCL+=-I $(TCL_INC)
 $(TCL_NAME): $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -outdir tcl -o $@ -tcl8 -namespace $<
+	$Q$(SWIG) -c++ -I. -Iswig/tcl -outdir tcl -o $@ -tcl8 -namespace $<
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_TCL) -c $< -o $@

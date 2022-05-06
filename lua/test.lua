@@ -17,6 +17,7 @@ DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 sk = ptpmgmt.SockUnix()
 msg = ptpmgmt.Message()
 buf = ptpmgmt.Buf(1000)
+opt = ptpmgmt.Options()
 sequence = 0
 
 function nextSequence()
@@ -104,9 +105,14 @@ function main()
     print "buffer allocation failed"
     return -1
   end
-  local txt
-  local cfg_file = arg[1]
-  if(cfg_file == nil or cfg_file == '') then
+  table.insert(arg, 1, "myname")
+  local ret = opt:parse_options(arg)
+  if(ret ~= ptpmgmt.Options.OPT_DONE) then
+    print "fail parsing command line"
+    return -1
+  end
+  local cfg_file = opt:val('f')
+  if(cfg_file == '') then
     cfg_file = DEF_CFG_FILE
   end
   print("Use configuration file " .. cfg_file)
@@ -135,6 +141,7 @@ function main()
   msg:setAction(ptpmgmt.GET, id)
   local seq = nextSequence()
   local err = msg:build(buf, seq)
+  local txt
   if(err ~= ptpmgmt.MNG_PARSE_ERROR_OK) then
     txt = ptpmgmt.Message.err2str_c(err)
     print("build error ", txt)
