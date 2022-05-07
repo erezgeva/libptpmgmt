@@ -148,9 +148,10 @@ class SockBase
      *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
      * @note Python: when building with 'PY_USE_S_THRD'
-     *  as the wrapper uses Python 'Global Interpreter Lock'.
-     *  When using multithreaded scripts, it is better to call fileno()
-     *  and use the Python select module
+     *  using Python 'Global Interpreter Lock'.
+     *  Which use mutex on all library functions.
+     *  So this function can block other threads.
+     *  In this case, user may prefer native Python select module.
      */
     bool poll(uint64_t timeout_ms = 0) const;
     /**
@@ -165,9 +166,10 @@ class SockBase
      *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
      * @note Python: when building with 'PY_USE_S_THRD'
-     *  as the wrapper uses Python 'Global Interpreter Lock'.
-     *  When using multithreaded scripts, it is better to call fileno()
-     *  and use the Python select module
+     *  using Python 'Global Interpreter Lock'.
+     *  Which use mutex on all library functions.
+     *  So this function can block other threads.
+     *  In this case, user may prefer native Python select module.
      */
     bool tpoll(uint64_t &timeout_ms) const; /* poll with timeout update */
     #ifdef SWIG_THREAD_END

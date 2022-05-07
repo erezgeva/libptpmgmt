@@ -2,7 +2,10 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief convert management messages to json
+ * @brief library to parse JSON
+ *
+ * The library depends on c-json or fastjason libraries
+ * And uses the libptpm library!
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -11,11 +14,10 @@
 
 #include <stack>
 #include <cmath>
-#include "jsonFrom.h"
+#include <memory>
 #include "jsonDef.h"
 #include "err.h"
-#ifdef PTPMGMT_USE_CJSON
-#include <json.h>
+
 // JSON library type
 #define JSON_POBJ json_object*
 #define JSON_TYPE json_type
@@ -46,16 +48,9 @@
 // JSON parser functions
 #define JSON_PARSE(str)    json_tokener_parse(str)
 #define JSON_OBJ_FREE(obj) json_object_put(obj)
-#endif /* PTPMGMT_USE_CJSON */
 #ifndef NSEC_PER_SEC
 #define NSEC_PER_SEC 1000000000L
 #endif
-
-namespace ptpmgmt
-{
-
-/* From JSON part */
-#ifdef PTPMGMT_USE_CJSON
 #define PROC_VAL(key) procValue(#key, d.key)
 #define PROC_STR(val) (strcmp(str, #val) == 0)
 #define GET_STR\
@@ -175,7 +170,9 @@ struct JsonVal {
     }
 };
 
-struct JsonProcFromJson : public JsonProc {
+using namespace ptpmgmt;
+
+struct JsonProcFromJson : public JsonProcFrom {
     std::map<std::string, JSON_TYPE> allow; // Allowed type
     std::map<std::string, JsonVal> found;   // Actual values
     std::stack<std::map<std::string, JsonVal>> history;
@@ -245,7 +242,8 @@ struct JsonProcFromJson : public JsonProc {
         }
         return true;
     }
-    bool mainProc(JSON_POBJ jobj) {
+    bool mainProc(const void *_jobj) {
+        JSON_POBJ jobj = (JSON_POBJ)_jobj;
         if(!jloop(jobj))
             return false;
         // Optional, if value present verify it
@@ -629,108 +627,43 @@ struct JsonProcFromJson : public JsonProc {
     procVector(FaultRecord_t)
     procVector(AcceptableMaster_t)
     procVector(LinuxptpUnicastMaster_t)
+    const std::string &getActionField() {
+        return found["actionField"].strV;
+    }
+    bool getUnicastFlag(bool &unicastFlag) {
+        if(!isType("unicastFlag", JT_BOOL))
+            return false;
+        unicastFlag = found["unicastFlag"].blV();
+        return true;
+    }
+    bool getIntVal(const char *key, int64_t &val) {
+        if(!isType(key, JT_INT))
+            return false;
+        val = found[key].intV;
+        return true;
+    }
+    bool parsePort(const char *key, bool &have, PortIdentity_t &port) {
+        if(isType(key, JT_OBJ)) {
+            if(!procValue(key, port)) {
+                PTPMGMT_ERRORA("Fail parsing %s", key);
+                return false; // Error
+            }
+            have = true;
+        } else
+            have = false;
+        return true; // No error
+    }
+    bool haveData() { return isType("dataField", JT_OBJ); }
+    bool parseData() {
+        JSON_POBJ dataField = found["dataField"].objV;
+        return jloop(dataField, false);
+    }
 };
 
-bool Json2msg::fromJson(const std::string &json)
-{
-    JSON_POBJ jobj = JSON_PARSE(json.c_str());
-    if(jobj == nullptr) {
-        PTPMGMT_ERROR("JSON parse fail");
-        return false;
-    }
-    bool ret = fromJsonObj(jobj);
-    JSON_OBJ_FREE(jobj);
-    return ret;
+// Library binding functions use C, so we can find them easily with dlsym()
+extern "C" {
+#define _n(n) ptpm_json_##n
+    void *_n(parse)(const char *json) { return JSON_PARSE(json); }
+    void _n(free)(void *jobj) { JSON_OBJ_FREE((JSON_POBJ)jobj); }
+    JsonProcFrom *_n(alloc_proc)() { return new JsonProcFromJson; }
 }
-bool Json2msg::fromJsonObj(const void *jobj)
-{
-    JsonProcFromJson proc;
-    if(!proc.mainProc((JSON_POBJ)jobj))
-        return false;
-    const char *str = proc.found["actionField"].strV.c_str();
-    if(PROC_STR(GET))
-        m_action = GET;
-    else if(PROC_STR(SET))
-        m_action = SET;
-    else if(PROC_STR(COMMAND))
-        m_action = COMMAND;
-    else {
-        PTPMGMT_ERRORA("message must have wrong action field '%s'", str);
-        return false;
-    }
-    const char *mngStrID;
-    if(!proc.procMng(m_managementId, mngStrID))
-        return false;
-    // Optional
-#define optProc(key)\
-    if(proc.isType(#key, JT_INT)) {\
-        m_have[have_##key] = true;\
-        m_##key = proc.found[#key].intV;\
-    }
-    optProc(sequenceId)
-    optProc(sdoId)
-    optProc(domainNumber)
-    optProc(versionPTP)
-    optProc(minorVersionPTP)
-    optProc(PTPProfileSpecific)
-    if(proc.isType("unicastFlag", JT_BOOL)) {
-        m_have[have_unicastFlag] = true;
-        m_unicastFlag = proc.found["unicastFlag"].blV();
-    }
-#define portProc(key, var)\
-    if(proc.isType(#key, JT_OBJ)) {\
-        if(!proc.procValue(#key, m_##var)) {\
-            PTPMGMT_ERROR("Fail parsing " #key);\
-            return false;\
-        }\
-        m_have[have_##var] = true;\
-    }
-    portProc(sourcePortIdentity, srcPort)
-    portProc(targetPortIdentity, dstPort)
-    bool have_data = proc.isType("dataField", JT_OBJ);
-    if(m_action == GET) {
-        if(have_data) {
-            PTPMGMT_ERROR("GET use dataField with zero values only, "
-                "do not send dataField over JSON");
-            return false;
-        }
-    } else if(Message::isEmpty(m_managementId)) {
-        if(have_data) {
-            PTPMGMT_ERRORA("%s do use dataField", mngStrID);
-            return false;
-        }
-    } else {
-        if(!have_data) {
-            PTPMGMT_ERRORA("%s must use dataField", mngStrID);
-            return false;
-        }
-        JSON_POBJ dataField = proc.found["dataField"].objV;
-        if(!proc.jloop(dataField, false))
-            return false;
-        const BaseMngTlv *data = nullptr;
-        if(!proc.procData(m_managementId, data)) {
-            if(data != nullptr) {
-                delete data;
-                PTPMGMT_ERROR("dataField parse error");
-            } else
-                PTPMGMT_ERRORA("Fail allocate %s_t", mngStrID);
-            return false;
-        }
-        m_tlvData.reset(const_cast<BaseMngTlv *>(data));
-    }
-    return true;
-}
-#else /* No PTPMGMT_USE_CJSON */
-bool Json2msg::fromJson(const std::string &json)
-{
-    PTPMGMT_ERROR("fromJson need JSON-C library support");
-    return false;
-}
-bool Json2msg::fromJsonObj(const void *jobj)
-{
-    PTPMGMT_ERROR("fromJsonObj need JSON-C library support");
-    return false;
-}
-#endif /* PTPMGMT_USE_CJSON */
-
-}; /* namespace ptpmgmt */

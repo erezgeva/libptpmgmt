@@ -118,7 +118,8 @@ EOF
     "priority1" : 153
   }
 EOF
-    $json2msg->fromJson($json . $jsonPr1 . $close);
+    die "fail fromJson test 1"
+        unless $json2msg->fromJson($json . $jsonPr1 . $close);
     my $jsonTbl = <<EOF;
   "managementId" : "UNICAST_MASTER_TABLE",
   "dataField" :
@@ -142,7 +143,8 @@ EOF
     ]
   }
 EOF
-    $json2msg->fromJson($json . $jsonTbl . $close);
+    die "fail fromJson test 2"
+        unless $json2msg->fromJson($json . $jsonTbl . $close);
 }
 creatJsonTest;
 toJsonTest;
@@ -150,7 +152,12 @@ $sk->close();
 
 __END__
 
-dpkg --remove --force-all pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl
-p='pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl';\
-  apt install $p && apt-mark auto $p
+dpkg --get-selections |\
+sed -n '/-dbgsym/d ; /ptpmgmt.*\<install$/ { s/\s\+install// ; p }' |\
+xargs sudo dpkg --remove --force-all
+
+sudo apt install pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl
+
+apt-mark showmanual | grep ptpmgmt | xargs sudo apt-mark auto
+
 LD_LIBRARY_PATH=. ./testJson.pl | jsonlint

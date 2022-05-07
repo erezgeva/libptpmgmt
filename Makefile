@@ -99,17 +99,21 @@ define help
 #                                                                              #
 #   NO_TCL           Prevent compiling TCL Swig plugin.                        #
 #                                                                              #
-#   USE_CJSON        Use C JSON for parsing JSON into PTP management message.  #
+#   NO_JSON          Preven compiling JSON parsing plugsins                    #
+#                    and static link                                           #
 #                                                                              #
-#   USE_FCJSON       Use C JSON for parsing JSON into PTP management message.  #
-#                    Use fast JSON library.                                    #
+#   NO_CJSON         Preven usinsg C JSON library                              #
+#                                                                              #
+#   NO_FCJSON        Preven usinsg fast JSON library                           #
+#                                                                              #
+#   USE_FCJSON       Use the fast JSON library in static link!                 #
 #                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #
 #   PY_USE_S_THRD    Use python with 'Global Interpreter Lock',                #
-#                    May speed Python, but users who uses Python threads       #
-#                    Should use Python native select and not socket class      #
-#                    poll() and tpoll(), as they block other threads           #
+#                    Which use mutex on all library functions.                 #
+#                    So poll() and tpoll() can block other threads.            #
+#                    In this case, users may prefer Python native select.      #
 #                                                                              #
 ################################################################################
 
@@ -212,30 +216,18 @@ SONAME:=.$(ver_maj)
 endif
 LIB_NAME:=libptpmgmt
 LIB_NAME_SO:=$(LIB_NAME).so
-LIB_FNAME_SO:=$(LIB_NAME_SO).$(LIB_VER)
-LIB_SNAME_SO:=$(LIB_NAME_SO)$(SONAME)
 SRCS:=$(wildcard *.cpp)
 ifdef LD_SONAME
 LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
 endif
-LDLIBS_LIB:=-lm
+LDLIBS_LIB:=-lm -ldl
 PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
-LIB_OBJS:=$(filter-out $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS)))
+JSON_FROM_OBJS:=$(patsubst %.cpp,%.o,$(wildcard jsonF*.cpp))
+LIB_OBJS:=$(filter-out $(JSON_FROM_OBJS) $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS)))
+# Static only objects
+LIB_A_OBJS:=
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
-ifdef USE_CJSON
-ifneq ($(wildcard /usr/include/json-c/json.h),)
-jsonFrom.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/json-c
-LDLIBS_LIB+=-ljson-c
-endif # wildcard json.h
-else # USE_CJSON
-ifdef USE_FCJSON
-ifneq ($(wildcard /usr/include/libfastjson/json.h),)
-jsonFrom.o: CPPFLAGS+=-DPTPMGMT_USE_CJSON -isystem /usr/include/libfastjson
-LDLIBS_LIB+=-lfastjson
-endif # wildcard json.h
-endif # USE_FCJSON
-endif # USE_CJSON
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
@@ -249,13 +241,111 @@ CPPFLAGS+=$(CPPFLAGS_COLOR)
 
 ALL:=$(PMC_NAME) $(LIB_NAME_SO) $(LIB_NAME).a
 
+ifneq ($(call which,dpkg-architecture),)
+DEB_TARGET_MULTIARCH?=$(shell dpkg-architecture -qDEB_TARGET_MULTIARCH)
+DEB_BUILD_MULTIARCH?=$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
+endif # which dpkg-architecture
+TARGET_ARCH?=$(DEB_TARGET_MULTIARCH)
+BUILD_ARCH?=$(DEB_BUILD_MULTIARCH)
+ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
+CROSS_COMP:=1
+rep_arch_f=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$1)
+rep_arch_p=$(subst /$(BUILD_ARCH),/$(TARGET_ARCH),$1)
+rep_arch_o=$(subst $(BUILD_ARCH),$(TARGET_ARCH),$1)
+endif
+ifneq ($(TARGET_ARCH),)
+LIBDIR?=/usr/lib/$(TARGET_ARCH)
+else
+LIBDIR?=/usr/lib
+endif
+
+# JSON libraries
+JSON_C:=
+ifneq ($(NO_JSON),)
+# Disabe all JSON libraries
+NO_CJSON:=1
+NO_FCJSON:=1
+endif
+
+# Using json-c
+JSONC_INC:=/usr/include/json-c
+JSONC_LIB:=$(LIB_NAME)_jsonc.so
+JSON_C+=\"$(JSONC_LIB)$(SONAME)\",
+JSONC_LD:=-ljson-c
+ifeq ($(NO_CJSON),) # No point probing if user defer
+ifeq ($(wildcard $(JSONC_INC)/json.h),)
+NO_CJSON:=1 # No header
+else # wildcard json-c
+# As json-c do not support multiple architectures
+# we need to verify library available on current architecture
+JSONC_LIB_PROB!=$(CXX) -shared $(JSONC_LD) 2>&1 && rm a.out
+ifneq ($(JSONC_LIB_PROB),) # Error indicat library not found
+NO_CJSON:=1
+endif
+endif # wildcard json-c
+endif # NO_CJSON
+ifeq ($(NO_CJSON),)
+JSONC_CFLAGS:=-include $(JSONC_INC)/json.h
+jsonFromJc.o: jsonFrom.cpp
+	$(Q_LCC)
+	$Q$(CXX) -c $(CPPFLAGS) $< -o $@ $(JSONC_CFLAGS) $(CPPFLAGS_SO)
+	$Q$(SED) -i 's#$(JSONC_INC)#\$$(JSONC_INC)#g' $(patsubst %.o,%.d,$@)
+$(JSONC_LIB): jsonFromJc.o $(LIB_NAME).so
+	$(Q_LD)
+	$Q$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) $(JSONC_LD)\
+	  $(LDLIBS) -o $@
+ALL+=$(JSONC_LIB)
+ifeq ($(USE_FCJSON),) # User prefer static link with fastjson
+json.o: CPPFLAGS+=-DJSON_C_SLINK
+LIB_A_OBJS+=jsonFrom.o
+CPPFLAGS_jsonFrom.o+=$(JSONC_CFLAGS)
+JSON_C_ST_DONE:=1
+endif # USE_FCJSON
+endif # NO_CJSON
+
+# Using fastjson
+FJSON_INC:=/usr/include/libfastjson
+FJSON_LIB:=$(LIB_NAME)_fastjson.so
+JSON_C+=\"$(FJSON_LIB)$(SONAME)\",
+ifeq ($(wildcard $(FJSON_INC)/json.h),)
+NO_FCJSON:=1
+endif
+ifeq ($(NO_FCJSON),)
+FJSON_CFLAGS:=-include $(FJSON_INC)/json.h
+jsonFromFj.o: jsonFrom.cpp
+	$(Q_LCC)
+	$Q$(CXX) -c $(CPPFLAGS) $< -o $@ $(FJSON_CFLAGS) $(CPPFLAGS_SO)
+	$Q$(SED) -i 's#$(FJSON_INC)#\$$(FJSON_INC)#g' $(patsubst %.o,%.d,$@)
+$(FJSON_LIB): jsonFromFj.o $(LIB_NAME).so
+	$(Q_LD)
+	$Q$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) -lfastjson\
+	  $(LDLIBS) -o $@
+ALL+=$(FJSON_LIB)
+ifeq ($(JSON_C_ST_DONE),)
+json.o: CPPFLAGS+=-DJSON_C_SLINK
+LIB_A_OBJS+=jsonFrom.o
+CPPFLAGS_jsonFrom.o+=$(FJSON_CFLAGS)
+JSON_C_ST_DONE:=1
+endif # JSON_C_ST_DONE
+else # NO_FCJSON
+ifneq ($(USE_FCJSON),)
+$(error libfastjson is unavailable for static link)
+endif
+endif # NO_FCJSON
+
+# Add jsonFrom libraries to search
+json.o: CPPFLAGS+=-DJSON_C="$(JSON_C)"
+
 # Compile library source code
+$(LIB_A_OBJS):
+	$(Q_LCC)
+	$Q$(CXX) -c $(CPPFLAGS) $(CPPFLAGS_$@) $(basename $@).cpp -o $@
 $(LIB_OBJS):
 	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $(basename $@).cpp -o $@
 # Depened shared library objects on the static library to ensure build
 $(eval $(foreach obj,$(LIB_OBJS), $(call depend,.libs/$(obj),$(obj))))
 
-$(LIB_NAME).a: $(LIB_OBJS)
+$(LIB_NAME).a: $(LIB_OBJS) $(LIB_A_OBJS)
 	$(Q_AR)
 	$Q$(AR) rcs $@ $^
 	$Q$(RL) $@
@@ -338,19 +428,6 @@ ifneq ($(call which,cppcheck),)
 endif
 endif
 endif # which astyle
-
-ifneq ($(call which,dpkg-architecture),)
-DEB_TARGET_MULTIARCH?=$(shell dpkg-architecture -qDEB_TARGET_MULTIARCH)
-DEB_BUILD_MULTIARCH?=$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
-endif # which dpkg-architecture
-TARGET_ARCH?=$(DEB_TARGET_MULTIARCH)
-BUILD_ARCH?=$(DEB_BUILD_MULTIARCH)
-ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
-CROSS_COMP:=1
-rep_arch_f=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$1)
-rep_arch_p=$(subst /$(BUILD_ARCH),/$(TARGET_ARCH),$1)
-rep_arch_o=$(subst $(BUILD_ARCH),$(TARGET_ARCH),$1)
-endif
 
 ifndef NO_SWIG
 ifneq ($(call which,swig),)
@@ -693,7 +770,9 @@ all: $(ALL)
 
 ####### Debain build #######
 ifneq ($(and $(wildcard debian/rules),$(call which,dpkg-buildpackage)),)
-DEB_ALL_CLEAN:=$(PMC_NAME) $(LIB_NAME_SO) $(PERL_NAME).so $(wildcard */*/*.so)
+# Remove all link result as the library have soname
+#  and json.o, as it compile with list of libraries name with soname
+DEB_ALL_CLEAN=$(PMC_NAME) $(wildcard *.so */*.so */*/*.so) json.o
 deb_src: distclean
 	$(Q)dpkg-source -b .
 deb:
@@ -709,7 +788,8 @@ deb_clean:
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
 SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  php/*.sh) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) $(HEADERS_SRCS) $(SRCS)
+  php/*.sh) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) $(HEADERS_SRCS) $(SRCS)\
+  $(wildcard swig/*/*)
 SRC_NAME:=libptpmgmt-$(LIB_VER)
 
 ####### RPM build #######
@@ -747,11 +827,6 @@ INSTALL?=install -p
 NINST:=$(INSTALL) -m 644
 DINST:=$(INSTALL) -d
 BINST:=$(INSTALL)
-ifneq ($(TARGET_ARCH),)
-LIBDIR?=/usr/lib/$(TARGET_ARCH)
-else
-LIBDIR?=/usr/lib
-endif
 DEV_PKG?=libptpmgmt-dev
 SBINDIR?=/usr/sbin
 LUADIR:=$(DESTDIR)$(LIBDIR)
@@ -765,13 +840,14 @@ endif # PY2_ARCH
 
 install: $(ALL) doxygen
 ifdef SONAME_USE_MAJ
-	$Q$(NINST) -D $(LIB_NAME_SO) $(DESTDIR)$(LIBDIR)/$(LIB_FNAME_SO)
-	$Q$(LN) $(LIB_FNAME_SO) $(DESTDIR)$(LIBDIR)/$(LIB_SNAME_SO)
-	$Q$(LN) $(LIB_SNAME_SO) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
+	$(Q)for lib in $(LIB_NAME)*.so; do\
+	  $(NINST) -D $$lib $(DESTDIR)$(LIBDIR)/$$lib.$(LIB_VER);\
+	  $(LN) $$lib.$(LIB_VER) $(DESTDIR)$(LIBDIR)/$$lib$(SONAME);done
+	$Q$(LN) $(LIB_NAME_SO)$(SONAME) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
 else
-	$Q$(NINST) -D $(LIB_NAME_SO) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
+	$Q$(NINST) -D $(LIB_NAME)*.so -t $(DESTDIR)$(LIBDIR)
 endif
-	$Q$(NINST) libptpmgmt.a $(DESTDIR)$(LIBDIR)
+	$Q$(NINST) $(LIB_NAME).a $(DESTDIR)$(LIBDIR)
 	$Q$(NINST) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
 	$Q$(foreach f,$(HEADERS_INST),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\

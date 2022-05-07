@@ -11,6 +11,8 @@
 
 #include <stack>
 #include <cmath>
+#include <mutex>
+#include <dlfcn.h>
 #include "jsonDef.h"
 #include "err.h"
 
@@ -963,6 +965,213 @@ std::string msg2json(const Message &msg, int indent)
 {
     JsonProcToJson proc(msg, indent);
     return proc.m_result;
+}
+
+// From JSON part
+static int Json2msgCount = 0; // Count how many objects exist
+#ifdef PIC // Shared library  code
+static void *jsonLib = nullptr;
+static std::mutex jsonLoadLock; // Lock loading and unloading
+#else // PIC
+#ifdef JSON_C_SLINK // We static link one of our jsonFrom libraries
+#define use_static_link
+#endif // JSON_C_SLINK
+#endif // PIC
+
+#ifdef use_static_link
+#define funcName(fname) ptpm_json_##fname
+#define funcDec0(fret, fname, fargs) fret fname(fargs)
+#else // use_static_link
+#define funcName(fname) ptpm_json_##fname##_p
+#define funcDec0(fret, fname, fargs)\
+    typedef fret(*fname##_t)(fargs);\
+    fname##_t fname##_p = nullptr
+#endif // use_static_link
+#define funcDec(fret, fname, fargs) funcDec0(fret, ptpm_json_##fname, fargs)
+#define funcAssg0(fname)\
+    fname##_p = (fname##_t)dlsym(jsonLib, #fname);\
+    if(fname##_p == nullptr) {\
+        doLibRm();\
+        continue;\
+    }
+#define funcAssg(fname) funcAssg0(ptpm_json_##fname)
+extern "C" {
+    funcDec(void *, parse, const char *json);
+    funcDec(void, free, void *jobj);
+    funcDec(JsonProcFrom *, alloc_proc,);
+}
+
+#ifdef PIC
+static void doLibNull()
+{
+    jsonLib = nullptr;
+    funcName(parse) = nullptr;
+    funcName(free) = nullptr;
+    funcName(alloc_proc) = nullptr;
+}
+static void doLibRm()
+{
+    if(dlclose(jsonLib) != 0)
+        PTPMGMT_ERRORA("Fail to unload the libptpmngt from JSON library: %s",
+            dlerror());
+}
+#endif // PIC
+
+#ifndef use_static_link
+static bool loadLibrary()
+{
+    #ifdef PIC
+    std::unique_lock<std::mutex> lock(jsonLoadLock);
+    if(jsonLib != nullptr)
+        return true;
+    const char *list[] = { JSON_C nullptr };
+    for(const char **cur = list; *cur != nullptr; cur++) {
+        jsonLib = dlopen(*cur, RTLD_LAZY);
+        if(jsonLib != nullptr) {
+            funcAssg(parse)
+            funcAssg(free)
+            funcAssg(alloc_proc)
+            return true;
+        }
+    }
+    doLibNull(); // Ensure all pointers stay null
+    PTPMGMT_ERROR("fail loading a fromJson library");
+    #else // PIC
+    // As the fromJson library need to load ourself as a shared library.
+    // Yet we are static library.
+    PTPMGMT_ERROR("Static library do not load fromJson library");
+    #endif // PIC
+    return false;
+}
+#endif // use_static_link
+static inline void removeLibrary()
+{
+    #ifdef PIC
+    std::unique_lock<std::mutex> lock(jsonLoadLock);
+    if(Json2msgCount <= 0) {
+        if(jsonLib != nullptr) {
+            doLibRm();
+            doLibNull(); // mark all pointers null
+        }
+        Json2msgCount = 0;
+    }
+    #endif // PIC
+}
+
+Json2msg::Json2msg():
+    m_managementId(NULL_PTP_MANAGEMENT),
+    m_action(GET),
+    m_have{0}
+{
+    Json2msgCount++;
+}
+Json2msg::~Json2msg()
+{
+    Json2msgCount--;
+    removeLibrary();
+}
+bool Json2msg::fromJson(const std::string &json)
+{
+    #ifndef use_static_link
+    if(!loadLibrary())
+        return false;
+    #endif // use_static_link
+    void *jobj = funcName(parse)(json.c_str());
+    if(jobj == nullptr) {
+        PTPMGMT_ERROR("JSON parse fail");
+        return false;
+    }
+    bool ret = fromJsonObj(jobj);
+    funcName(free)(jobj);
+    return ret;
+}
+bool Json2msg::fromJsonObj(const void *jobj)
+{
+    #ifndef use_static_link
+    if(!loadLibrary())
+        return false;
+    #endif // use_static_link
+    std::unique_ptr<JsonProcFrom> hold;
+    JsonProcFrom *pproc = funcName(alloc_proc)();
+    if(pproc == nullptr) {
+        PTPMGMT_ERROR("fromJsonObj fail allocation of JsonProcFrom");
+        return false;
+    }
+    hold.reset(pproc); // delete the object once we return :-)
+    if(!pproc->mainProc(jobj))
+        return false;
+    const std::string &str = pproc->getActionField();
+    if(str.empty()) {
+        PTPMGMT_ERROR("Message do not have an action field");
+        return false;
+    } else if(str == "GET")
+        m_action = GET;
+    else if(str == "SET")
+        m_action = SET;
+    else if(str == "COMMAND")
+        m_action = COMMAND;
+    else {
+        PTPMGMT_ERRORA("Message have wrong action field '%s'", str.c_str());
+        return false;
+    }
+    const char *mngStrID;
+    if(!pproc->procMng(m_managementId, mngStrID))
+        return false;
+    // Optional
+    int64_t val;
+#define optProc(key)\
+    if(pproc->getIntVal(#key, val)) {\
+        m_have[have_##key] = true;\
+        m_##key = val;\
+    }
+    optProc(sequenceId)
+    optProc(sdoId)
+    optProc(domainNumber)
+    optProc(versionPTP)
+    optProc(minorVersionPTP)
+    optProc(PTPProfileSpecific)
+    if(pproc->getUnicastFlag(m_unicastFlag))
+        m_have[have_unicastFlag] = true;
+    bool have;
+#define portProc(key, var)\
+    if(pproc->parsePort(#key, have, m_##var)) {\
+        if(have)\
+            m_have[have_##var] = true;\
+    } else\
+        return false;
+    portProc(sourcePortIdentity, srcPort)
+    portProc(targetPortIdentity, dstPort)
+    bool have_data = pproc->haveData();
+    if(m_action == GET) {
+        if(have_data) {
+            PTPMGMT_ERROR("GET use dataField with zero values only, "
+                "do not send dataField over JSON");
+            return false;
+        }
+    } else if(Message::isEmpty(m_managementId)) {
+        if(have_data) {
+            PTPMGMT_ERRORA("%s do use dataField", mngStrID);
+            return false;
+        }
+    } else {
+        if(!have_data) {
+            PTPMGMT_ERRORA("%s must use dataField", mngStrID);
+            return false;
+        }
+        if(!pproc->parseData())
+            return false;
+        const BaseMngTlv *data = nullptr;
+        if(!pproc->procData(m_managementId, data)) {
+            if(data != nullptr) {
+                delete data;
+                PTPMGMT_ERROR("dataField parse error");
+            } else
+                PTPMGMT_ERRORA("Fail allocate %s_t", mngStrID);
+            return false;
+        }
+        m_tlvData.reset(const_cast<BaseMngTlv *>(data));
+    }
+    return true;
 }
 
 }; /* namespace ptpmgmt */

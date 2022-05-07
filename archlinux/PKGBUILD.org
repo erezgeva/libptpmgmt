@@ -9,14 +9,19 @@
 ###############################################################################
 pkgver=0.7
 pkgrel=1
-pkgname=(libptpmgmt libptpmgmt-dev libptpmgmt-doc libptpmgmt-perl lua-ptpmgmt
-  ruby-ptpmgmt tcl-ptpmgmt python2-ptpmgmt python3-ptpmgmt pmc-ptpmgmt)
+pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
+  libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt
+  python2-ptpmgmt python3-ptpmgmt pmc-ptpmgmt)
 # Source code can be build on most architectures
 # But as Arch Linux does not support the 'all' keyword
 arch=(x86_64)
 url=https://github.com/erezgeva/libptpmgmt
 license=(LGPL3)
 source=("$pkgname-$pkgver.txz")
+# Target library directory
+libdir='usr/lib'
+# version for depends
+verdep="$pkgver-$pkgrel"
 build() {
   # Exclude PHP as it does not have a system include path
   make -j LD_SONAME=1 CPPFLAGS_OPT=-Ofast PMC_USE_LIB=so SONAME_USE_MAJ=1\
@@ -26,80 +31,86 @@ build() {
     NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
 }
 makedepends=(doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
-  python2 python3)
+  python2 python3 json-c)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
-  mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/libptpmgmt.so.* $pkgdir/usr/lib
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/libptpmgmt.so.* $pkgdir/$libdir
+}
+package_libptpmgmt-jsonc() {
+  pkgdesc='PTP management library JSON plugin using the json-c library'
+  depends=("libptpmgmt=$verdep" json-c)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/libptpmgmt_jsonc.so.* $pkgdir/$libdir
 }
 package_libptpmgmt-dev() {
   # development package can use static library
   # But as Arch linux does not use development packages, we add it here
   options=(staticlibs)
   pkgdesc='PTP management library development, provides header files and static library.'
-  mkdir -p $pkgdir/usr/lib $pkgdir/usr/share
+  depends=("libptpmgmt=$verdep")
+  mkdir -p $pkgdir/$libdir $pkgdir/usr/share
   mv $srcdir/install/usr/share/libptpmgmt-dev $pkgdir/usr/share
   mv $srcdir/install/usr/include $pkgdir/usr
-  mv $srcdir/install/usr/lib/libptpmgmt.a $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/libptpmgmt.so $pkgdir/usr/lib
+  mv $srcdir/install/usr/lib/libptpmgmt.a $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/libptpmgmt.so $pkgdir/$libdir
 }
 package_libptpmgmt-doc() {
   arch=(any)
   pkgdesc='PTP management library documentation, to communicate with ptp4l'
   license=(FDL1.3)
-  depends=("libptpmgmt=$pkgver")
   mkdir -p $pkgdir/usr/share
   mv $srcdir/install/usr/share/doc/* $pkgdir/usr/share
 }
 package_libptpmgmt-perl() {
   pkgdesc='PTP management library Perl wrapper'
-  depends=("libptpmgmt=$pkgver" perl)
-  mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/perl* $pkgdir/usr/lib
+  depends=("libptpmgmt=$verdep" perl)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/perl* $pkgdir/$libdir
 }
 package_python2-ptpmgmt() {
   pkgdesc='PTP management library python version 2 wrapper'
-  depends=("libptpmgmt=$pkgver" python2)
-  mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/python2* $pkgdir/usr/lib
+  depends=("libptpmgmt=$verdep" python2)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/python2* $pkgdir/$libdir
 }
 package_python3-ptpmgmt() {
   pkgdesc='PTP management library python version 3 wrapper'
-  depends=("libptpmgmt=$pkgver" python3)
-  mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/python3* $pkgdir/usr/lib
+  depends=("libptpmgmt=$verdep" python3)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/python3* $pkgdir/$libdir
 }
 package_lua-ptpmgmt() {
   pkgdesc='PTP management library Lua wrapper'
-  depends=("libptpmgmt=$pkgver" lua lua51 lua52 lua53)
-  mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/lua* $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/liblua* $pkgdir/usr/lib
+  depends=("libptpmgmt=$verdep" lua lua51 lua52 lua53)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/lua* $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/liblua* $pkgdir/$libdir
 }
 package_ruby-ptpmgmt() {
   pkgdesc='PTP management library ruby wrapper'
-  depends=("libptpmgmt=$pkgver" ruby)
-  mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/ruby $pkgdir/usr/lib
+  depends=("libptpmgmt=$verdep" ruby)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/ruby $pkgdir/$libdir
 }
 
 package_tcl-ptpmgmt() {
   pkgdesc='PTP management library tcl wrapper'
-  depends=("libptpmgmt=$pkgver" tcl)
-  mkdir -p $pkgdir/usr/lib
-  mv $srcdir/install/usr/lib/tcl* $pkgdir/usr/lib
+  depends=("libptpmgmt=$verdep" tcl)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/tcl* $pkgdir/$libdir
 }
 
 #package_php-ptpmgmt() {
 # Arch linux php7 do not have system include_path!
 # pkgdesc='PTP management library php wrapper'
-# depends=("libptpmgmt=$pkgver" php7)
-# mkdir -p $pkgdir/usr/lib
-# mv $srcdir/install/usr/lib/php* $pkgdir/usr/lib
+# depends=("libptpmgmt=$verdep" php7)
+# mkdir -p $pkgdir/$libdir
+# mv $srcdir/install/usr/lib/php* $pkgdir/$libdir
 #}
 package_pmc-ptpmgmt() {
   license=(GPL3)
-  depends=("libptpmgmt=$pkgver")
+  depends=("libptpmgmt=$verdep")
   pkgdesc='pmc tool. new rewrite of linuxptp pmc tool using the libptpmgmt library.'
   mkdir -p $pkgdir/usr/share/man
   mv $srcdir/install/usr/bin $pkgdir/usr

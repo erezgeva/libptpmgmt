@@ -20,6 +20,7 @@ namespace ptpmgmt
 {
 
 struct JsonProc {
+    /* This structure implement single method for use by both from and to */
     bool procData(mng_vals_e managementId, const BaseMngTlv *&data);
 #define _ptpmProcType(type) \
     virtual bool procValue(const char *name, type &val) = 0;
@@ -62,6 +63,18 @@ struct JsonProc {
     _ptpmProcVector(FaultRecord_t)
     _ptpmProcVector(AcceptableMaster_t)
     _ptpmProcVector(LinuxptpUnicastMaster_t)
+};
+
+/* Used by From Json */
+struct JsonProcFrom : public JsonProc {
+    virtual bool mainProc(const void *jobj) = 0;
+    virtual bool procMng(mng_vals_e &id, const char *&str) = 0;
+    virtual const std::string &getActionField() = 0;
+    virtual bool getUnicastFlag(bool &unicastFlag) = 0;
+    virtual bool getIntVal(const char *key, int64_t &val) = 0;
+    virtual bool parsePort(const char *key, bool &have, PortIdentity_t &port) = 0;
+    virtual bool haveData() = 0;
+    virtual bool parseData() = 0;
 };
 
 }; /* namespace ptpmgmt */

@@ -87,16 +87,28 @@ main()
  # script languages source
  local -r mach=$(uname -m)
  local -r fmach="/$mach*"
- local ldPathRuby ldPathPhp needCmp needLua needPython2 needPython3 phpIni
- getFirstFile "/usr/lib$fmach/libptpmgmt.so"
- if ! [[ -f "$file" ]]; then
-   local -r ldPath='LD_LIBRARY_PATH=..'
-   needCmp=y
- fi
+ local -r ldPathBase='LD_LIBRARY_PATH=.'
+ local -r ldPath="${ldPathBase}."
+ local ldPathPerl ldPathRuby ldPathLua ldPathPython2 ldPathPython3\
+       ldPathPhp ldPathTcl ldPathJson needCmp
  # Lua 5.4 need lua-posix version 35
  local -r luaVersions='1 2 3'
  local -r pyVersions='2 3'
- probeLibs
+ getFirstFile "/usr/lib$fmach/libptpmgmt.so"
+ if [[ -f "$file" ]]; then
+   probeLibs
+ else
+   needCmp=y
+   # We need all!
+   ldPathPerl="$ldPath"
+   ldPathRuby="$ldPath RUBYLIB=."
+   ldPathLua="$ldPath"
+   ldPathPython2="$ldPath"
+   ldPathPython3="$ldPath"
+   ldPathPhp="$ldPath PHPRC=."
+   ldPathTcl="$ldPath"
+   ldPathJson="$ldPathBase"
+ fi
  local -r runOptions="-u -f $cfgFile"
  ##############################################################################
  local -r instPmcLib=/usr/sbin/pmc-ptpmgmt
@@ -194,11 +206,13 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
  enter php
  enter tcl
  rm $t3
+ printf "\n =====  Test JSON $1  ===== \n\n"
+ eval "$ldPathJson $useSudo./testJson.pl | jsonlint"
 }
 ###############################################################################
 do_perl()
 {
- time eval "$ldPath $useSudo./test.pl $runOptions" > ../$t3
+ time eval "$ldPathPerl $useSudo./test.pl $runOptions" > ../$t3
 }
 do_ruby()
 {
@@ -208,12 +222,12 @@ do_lua()
 {
  for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
-   if [[ -n "$needLua" ]]; then
+   if [[ -n "$ldPathLua" ]]; then
      ln -sf 5.$i/ptpmgmt.so
    else
      rm -f ptpmgmt.so
    fi
-   time eval "$ldPath $useSudo lua5.$i ./test.lua $runOptions" | diff - ../$t3
+   time eval "$ldPathLua $useSudo lua5.$i ./test.lua $runOptions" | diff - ../$t3
  done
 }
 do_python()
@@ -221,7 +235,7 @@ do_python()
  for i in $pyVersions; do
    # remove previous python compiling
    rm -rf ptpmgmt.pyc __pycache__
-   local -n need=needPython$i
+   local -n need=ldPathPython$i
    if [[ -n "$need" ]]; then
      if [[ -f $i/_ptpmgmt.so ]]; then
        ln -sf $i/_ptpmgmt.so
@@ -233,13 +247,13 @@ do_python()
    fi
    printf "\n $(readlink $(command -v python$i)) ---- \n"
    # First compile the python script, so we measure only runing
-   eval "$ldPath $useSudo python$i ./test.py $runOptions" > /dev/null
-   time eval "$ldPath $useSudo python$i ./test.py $runOptions" | diff - ../$t3
+   eval "$need $useSudo python$i ./test.py $runOptions" > /dev/null
+   time eval "$need $useSudo python$i ./test.py $runOptions" | diff - ../$t3
  done
 }
 do_php()
 {
- [[ -z "$phpIni" ]] || ./php_ini.sh
+ [[ -z "$ldPathPhp" ]] || ./php_ini.sh
  time eval "$ldPathPhp $useSudo./test.php $runOptions" | diff - ../$t3
 }
 do_tcl()
@@ -247,7 +261,7 @@ do_tcl()
  if [[ -f ptpmgmt.so ]]; then
    sed -i 's#^package require.*#load ./ptpmgmt.so#' test.tcl
  fi
- time eval "$ldPath $useSudo./test.tcl $runOptions" | diff - ../$t3
+ time eval "$ldPathTcl $useSudo./test.tcl $runOptions" | diff - ../$t3
  sed -i 's/^load .*/package require ptpmgmt/' test.tcl
 }
 enter()
@@ -276,8 +290,30 @@ getFirstFile()
 probeLibs()
 {
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
+ if [[ -f "$file" ]]; then
+   local -i jsonCount=0
+   getFirstFile "/usr/lib$fmach/libptpmgmt_fastjson.so.*"
+   if [[ -f "$file" ]]; then
+     jsonCount='jsonCount + 1'
+   fi
+   getFirstFile "/usr/lib$fmach/libptpmgmt_jsonc.so.0.*"
+   if [[ -f "$file" ]]; then
+     jsonCount='jsonCount + 1'
+   fi
+   # One from JSON plugin is sufficient
+   if [[ $jsonCount -eq 0 ]];  then
+     needCmp=y
+     ldPathJson="$ldPathBase"
+   fi
+ else
+   needCmp=y
+   ldPathPerl="$ldPath"
+   ldPathJson="$ldPathBase"
+ fi
+ file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    needCmp=y
+   ldPathRuby="$ldPath RUBYLIB=."
  fi
  for i in $luaVersions; do
    getFirstFile "/usr/lib$fmach/lua/5.$i/ptpmgmt.so"
@@ -285,33 +321,26 @@ probeLibs()
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
      needCmp=y
-     needLua=y
+     ldPathLua="$ldPath"
    fi
  done
  for i in $pyVersions; do
    getFirstFile "/usr/lib/python$i*/dist-packages/_ptpmgmt.*$mach*.so"
    if ! [[ -f "$file" ]]; then
-     local -n need=needPython$i
-     need=y
+     local -n need=ldPathPython$i
+     need="$ldPath"
    fi
  done
  # Python 2 is optional
  [[ -z "$needPython3" ]] || needCmp=y
- ldPathRuby=$ldPath
- file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
- if ! [[ -f "$file" ]]; then
-   needCmp=y
-   ldPathRuby+=" RUBYLIB=."
- fi
- ldPathPhp=$ldPath
  if ! [[ -f "$(php-config --extension-dir)/ptpmgmt.so" ]]; then
    needCmp=y
-   phpIni=y
-   ldPathPhp+=" PHPRC=."
+   ldPathPhp="$ldPath PHPRC=."
  fi
  getFirstFile "/usr/lib/tcltk/*/ptpmgmt/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    needCmp=y
+   ldPathTcl="$ldPath"
  fi
 }
 ###############################################################################

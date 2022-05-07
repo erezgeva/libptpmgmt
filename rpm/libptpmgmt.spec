@@ -19,6 +19,7 @@ BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
 BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
+BuildRequires:  libfastjson libfastjson-devel json-c-devel
 BuildRequires:  doxygen graphviz
 Source0:        %{name}-%{version}.txz
 
@@ -28,6 +29,22 @@ License:        LGPLv3+
 Summary:        PTP management library, to communicate with ptp4l
 %description
 PTP management library, to communicate with ptp4l
+
+%package        jsonc
+Summary:        PTP management library JSON plugin using the json-c library
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       json-c
+%description    jsonc
+PTP management library JSON plugin using the json-c library
+
+%package        fastjson
+Summary:        PTP management library JSON plugin using the fastjson library
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       libfastjson
+%description    fastjson
+PTP management library JSON plugin using the fastjson library
 
 %package        devel
 Summary:        Development files for the PTP management library
@@ -119,6 +136,12 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %files
 %{_libdir}/%{name}.so
+
+%files jsonc
+%{_libdir}/%{name}_jsonc.so
+
+%files fastjson
+%{_libdir}/%{name}_fastjson.so
 
 %files devel
 %{_includedir}/*

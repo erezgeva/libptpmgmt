@@ -19,7 +19,6 @@
 %{
     #include "sock.h"
     #include "json.h"
-    #include "jsonFrom.h"
     #include "ver.h"
     #include "init.h"
     using namespace ptpmgmt;
@@ -129,7 +128,6 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "sig.h"
 %include "msg.h"
 %include "json.h"
-%include "jsonFrom.h"
 %include "ver.h"
 %include "opt.h"
 %include "init.h"
