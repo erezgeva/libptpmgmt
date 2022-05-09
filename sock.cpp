@@ -11,7 +11,9 @@
 
 #include <pwd.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include <linux/filter.h>
 #include "end.h"
@@ -25,7 +27,9 @@ const uint16_t udp_port = 320;
 const char *ipv4_udp_mc = "224.0.1.129";
 const char *ipv6_udp_mc = "ff0e::181";
 
-const char *useDefstr = "/.pmc.";
+const char *useDefstrPre = "/var/run/user/"; // System provide per user
+const char *useDefstrPost = "/.pmc.";
+const char *useDefstr = "/.pmc."; // relative to home directory
 const char *rootBasestr = "/var/run/pmc."; // Follow LinuxPTP
 const size_t unix_path_max = sizeof(((sockaddr_un *)nullptr)->sun_path) - 1;
 
@@ -60,6 +64,17 @@ const sock_fprog bpf = {
     .len = sizeof(bpf_code) / sizeof(sock_filter),
     .filter = (sock_filter *)bpf_code,
 };
+
+static inline bool ensureDir(const char *name)
+{
+    // Verify name is a folder
+    DIR *dir = opendir(name);
+    if(dir == nullptr)
+        return false;
+    closedir(dir);
+    // Ensure we have full access rights
+    return access(name, R_OK | W_OK | X_OK) == 0;
+}
 
 void SockBase::closeBase()
 {
@@ -180,13 +195,28 @@ bool SockUnix::setDefSelfAddress(const std::string &rootBase,
     if(m_isInit)
         return false;
     std::string new_me;
-    auto uid = getuid();
+    uid_t uid = getuid();
     if(uid) {
-        new_me = getHomeDir();
-        if(useDef.empty())
-            new_me += useDefstr;
-        else
-            new_me += useDef;
+        if(useDef.empty()) {
+            new_me = useDefstrPre;
+            new_me += std::to_string(uid);
+            // Ensure system run folder per user exist
+            if(!ensureDir(new_me.c_str())) {
+                // If not use on home directory
+                new_me = getHomeDir();
+                new_me += useDefstr;
+            } else
+                new_me += useDefstrPost;
+        } else {
+            if(useDef[0] == '/') {
+                // Absolete path
+                new_me = useDef;
+            } else {
+                // relative to home directory
+                new_me = getHomeDir();
+                new_me += useDef;
+            }
+        }
     } else {
         if(rootBase.empty())
             new_me = rootBasestr;
