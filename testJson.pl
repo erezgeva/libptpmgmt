@@ -158,6 +158,8 @@ xargs sudo dpkg --remove --force-all
 
 sudo apt install pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl
 
+sudo apt --fix-broken install
+
 apt-mark showmanual | grep ptpmgmt | xargs sudo apt-mark auto
 
 LD_LIBRARY_PATH=. ./testJson.pl | jsonlint

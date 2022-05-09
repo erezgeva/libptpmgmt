@@ -88,6 +88,8 @@ S(SLAVE_DELAY_TIMING_DATA_NP)
  * @note This class is available in scripts only!%^\
  *%- C++ code can simply use%^\
  *%- the std::vector<t> directly.%^\
+ *%- Any C++ code that return std::vector<t>%^\
+ *%- will convert to this class in scripts and via versa.%^\
  *%@%^\
 class n%^\
 {%^\

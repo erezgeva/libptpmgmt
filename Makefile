@@ -379,7 +379,7 @@ distclean: deb_clean clean
 HEADERS_GEN:=mngIds.h verDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS))
-HEADERS_INST:=$(filter-out err.h jsonDef.h,$(HEADERS)) verDef.h
+HEADERS_INST:=$(filter-out end.h err.h jsonDef.h,$(HEADERS)) verDef.h
 HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 # MAP for  mngIds.cc:
 #  %@ => '/'    - Use when a slash is next to a star character
