@@ -25,7 +25,7 @@ verdep="$pkgver-$pkgrel"
 build() {
   # Exclude PHP as it does not have a system include path
   make -j LD_SONAME=1 CPPFLAGS_OPT=-Ofast PMC_USE_LIB=so SONAME_USE_MAJ=1\
-    NO_PHP=1 --no-print-directory
+    NO_PHP=1 --no-print-directory all doxygen
   # Place here as make do not use packages!
   make -j DESTDIR=install install DEV_PKG=libptpmgmt-dev SBINDIR=/usr/bin\
     NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory

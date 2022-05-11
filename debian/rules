@@ -42,6 +42,10 @@ LIBDIR:=/usr/lib/$(DEB_TARGET_MULTIARCH)
 DSRC:=debian/tmp/usr/
 SLIBDIR:=debian/tmp$(LIBDIR)
 
+# Call doxygen, for the document package
+override_dh_prep:
+	$Q$(MAKE) doxygen
+
 # Make create all targets, we just move them from temporary to proper package
 override_dh_install:
 	$(Q)install -d $(foreach d,python-ptpmgmt/usr/lib python3-ptpmgmt/usr/lib\

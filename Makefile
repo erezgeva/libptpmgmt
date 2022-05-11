@@ -838,7 +838,7 @@ PY2_ARCH:=.$(TARGET_ARCH)
 endif
 endif # PY2_ARCH
 
-install: $(ALL) doxygen
+install:
 ifdef SONAME_USE_MAJ
 	$(Q)for lib in $(LIB_NAME)*.so; do\
 	  $(NINST) -D $$lib $(DESTDIR)$(LIBDIR)/$$lib.$(LIB_VER);\

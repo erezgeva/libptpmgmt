@@ -128,11 +128,14 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %setup -q
 
 %build
-%make_build LD_SONAME=1 CPPFLAGS_OPT=-Ofast --no-print-directory
+%make_build LD_SONAME=1 CPPFLAGS_OPT=-Ofast --no-print-directory all doxygen
 
 %install
 %make_install LIBDIR=%{_libdir} DEV_PKG=%{name}-devel\
   PY_LIBDIR=%{_libdir}/python --no-print-directory
+
+%clean
+make distclean
 
 %files
 %{_libdir}/%{name}.so
