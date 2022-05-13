@@ -126,7 +126,7 @@ Description: PTP management library tcl wrapper
 
 Package: pmc-ptpmgmt
 Architecture: any
-Section: libs
+Section: utils
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, libptpmgmt (= ${binary:Version})
 Recommends: linuxptp

@@ -269,14 +269,14 @@ endif
 
 # Using json-c
 JSONC_INC:=/usr/include/json-c
+JSONC_LD:=-ljson-c
 JSONC_LIB:=$(LIB_NAME)_jsonc.so
 JSON_C+=\"$(JSONC_LIB)$(SONAME)\",
-JSONC_LD:=-ljson-c
 ifeq ($(NO_CJSON),) # No point probing if user defer
 ifeq ($(wildcard $(JSONC_INC)/json.h),)
 NO_CJSON:=1 # No header
 else # wildcard json-c
-# As json-c do not support multiple architectures
+# As json-c development do not support multiple architectures
 # we need to verify library available on current architecture
 JSONC_LIB_PROB!=$(CXX) -shared $(JSONC_LD) 2>&1 && rm a.out
 ifneq ($(JSONC_LIB_PROB),) # Error indicat library not found
@@ -641,17 +641,26 @@ NO_RUBY=1
 endif
 endif # NO_RUBY
 
-ifndef NO_PHP
 ifneq ($(call which,php-config),)
-ifneq ($(call which,php-config7),)
-PHPCFG:=php-config7
-else
 PHPCFG:=php-config
 endif
+ifneq ($(call which,php-config7),)
+PHPCFG:=php-config7
+endif
+ifeq ($(PHPCFG),)
+NO_PHP=1
+else # PHPCFG
 php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell $(PHPCFG) --version))))
-ifeq ($(call verCheck,$(php_ver),7.0),)
+ifneq ($(call verCheck,$(php_ver),7.0),)
+NO_PHP=1
+else # PHP 7
 # Old SWIG does not support PHP 7
-ifeq ($(call verCheck,$(swig_ver),3.0.12),)
+ifneq ($(call verCheck,$(swig_ver),3.0.12),)
+NO_PHP=1
+endif ## SWIG 3.0.12
+endif # PHP 7
+endif # PHPCFG
+ifndef NO_PHP
 PHPEDIR:=$(DESTDIR)$(shell $(PHPCFG) --extension-dir)
 PHPIDIR:=$(DESTDIR)$(lastword $(subst :, ,$(shell\
         php -r 'echo get_include_path();')))
@@ -673,25 +682,17 @@ $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(PHP_LNAME).so
 CLEAN+=$(PHP_NAME) php/php_ptpmgmt.h
 DISTCLEAN+=$(PHP_LNAME).so $(PHP_LNAME).php php/php.ini
-else # SWIG 3.0.12
-NO_PHP=1
-endif
-else # PHP 7
-NO_PHP=1
-endif
-else # which php-config
-NO_PHP=1
-endif
 endif # NO_PHP
+
 ifneq ($(wildcard /usr/include/tcl/tcl.h),)
 TCL_INC:=/usr/include/tcl
-else
+else # tcl/tcl.h
 ifneq ($(wildcard /usr/include/tcl.h),)
 TCL_INC:=/usr/include
-else
+else # tcl.h
 NO_TCL:=1
-endif
-endif
+endif # tcl.h
+endif # tcl/tcl.h
 ifndef NO_TCL
 ifneq ($(call which,tclsh)),)
 tcl_ver!=echo 'puts $$tcl_version;exit 0' | tclsh

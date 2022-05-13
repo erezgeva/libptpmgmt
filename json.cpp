@@ -969,94 +969,126 @@ std::string msg2json(const Message &msg, int indent)
 
 // From JSON part
 static int Json2msgCount = 0; // Count how many objects exist
-#ifdef PIC // Shared library  code
+#ifdef PIC // Shared library code
 static void *jsonLib = nullptr;
+static const char *useLib = nullptr;
 static std::mutex jsonLoadLock; // Lock loading and unloading
-#else // PIC
-#ifdef JSON_C_SLINK // We static link one of our jsonFrom libraries
-#define use_static_link
-#endif // JSON_C_SLINK
-#endif // PIC
-
-#ifdef use_static_link
-#define funcName(fname) ptpm_json_##fname
-#define funcDec0(fret, fname, fargs) fret fname(fargs)
-#else // use_static_link
+#undef JSON_C_SLINK // No static link!
 #define funcName(fname) ptpm_json_##fname##_p
-#define funcDec0(fret, fname, fargs)\
+#define funcDeclare0(fret, fname, fargs)\
     typedef fret(*fname##_t)(fargs);\
     fname##_t fname##_p = nullptr
-#endif // use_static_link
-#define funcDec(fret, fname, fargs) funcDec0(fret, ptpm_json_##fname, fargs)
-#define funcAssg0(fname)\
+#define funcAssign0(fname)\
     fname##_p = (fname##_t)dlsym(jsonLib, #fname);\
-    if(fname##_p == nullptr) {\
-        doLibRm();\
-        continue;\
-    }
-#define funcAssg(fname) funcAssg0(ptpm_json_##fname)
+    if(fname##_p == nullptr)\
+        return false
+#define funcAssign(fname) funcAssign0(ptpm_json_##fname)
+#else // PIC
+#define funcName(fname) ptpm_json_##fname
+#define funcDeclare0(fret, fname, fargs) fret fname(fargs)
+#endif // PIC
+
+#if defined JSON_C_SLINK || defined PIC
+#define funcDeclare(fret, fname, fargs) funcDeclare0(fret, ptpm_json_##fname, fargs)
 extern "C" {
-    funcDec(void *, parse, const char *json);
-    funcDec(void, free, void *jobj);
-    funcDec(JsonProcFrom *, alloc_proc,);
+    funcDeclare(void *, parse, const char *json);
+    funcDeclare(void, free, void *jobj);
+    funcDeclare(JsonProcFrom *, alloc_proc,);
 }
+#endif // funcDeclare
 
 #ifdef PIC
-static void doLibNull()
-{
-    jsonLib = nullptr;
-    funcName(parse) = nullptr;
-    funcName(free) = nullptr;
-    funcName(alloc_proc) = nullptr;
-}
 static void doLibRm()
 {
     if(dlclose(jsonLib) != 0)
         PTPMGMT_ERRORA("Fail to unload the libptpmngt from JSON library: %s",
             dlerror());
 }
+static void doLibNull()
+{
+    jsonLib = nullptr;
+    useLib = nullptr;
+    funcName(parse) = nullptr;
+    funcName(free) = nullptr;
+    funcName(alloc_proc) = nullptr;
+}
+static inline bool loadFuncs()
+{
+    funcAssign(parse);
+    funcAssign(free);
+    funcAssign(alloc_proc);
+    return true;
+}
+static bool tryLib(const char *name)
+{
+    jsonLib = dlopen(name, RTLD_LAZY);
+    if(jsonLib != nullptr) {
+        if(loadFuncs()) {
+            useLib = name;
+            return true;
+        }
+        doLibRm();
+    }
+    return false;
+}
+static inline bool loadMatchLibrary(const char *libMatch, const char *found)
+{
+    if(found == nullptr) {
+        PTPMGMT_ERRORA("Fail to find any library to matche pattern '%s'", libMatch);
+        return false;
+    } else if(jsonLib == nullptr) {
+        // Try loading
+        if(!tryLib(found)) {
+            doLibNull(); // Ensure all pointers stay null
+            PTPMGMT_ERRORA("Fail loading the matched fromJson library '%s' for "
+                "pattern '%s'", found, libMatch);
+            return false;
+        }
+    }
+    // Already load, just check if it is the library we want
+    else if(useLib != found) {  // We compare pointers, not strings!
+        PTPMGMT_ERRORA("Already load a different library '%s', not the "
+            "matched '%s' to pattern '%s'", useLib, found, libMatch);
+        return false;
+    }
+    return true;
+}
 #endif // PIC
 
-#ifndef use_static_link
-static bool loadLibrary()
+#ifndef JSON_C_SLINK
+static bool loadLibrary(const char *libMatch = nullptr)
 {
     #ifdef PIC
     std::unique_lock<std::mutex> lock(jsonLoadLock);
+    const char *list[] = { JSON_C nullptr };
+    if(libMatch != nullptr) {
+        const char *found = nullptr;
+        for(const char **cur = list; *cur != nullptr; cur++) {
+            if(strcasestr(*cur, libMatch) != nullptr) {
+                if(found != nullptr) {
+                    PTPMGMT_ERRORA("Found multiple libraries match to pattern '%s'",
+                        libMatch);
+                    return false;
+                }
+                found = *cur;
+            }
+        }
+        return loadMatchLibrary(libMatch, found);
+    }
     if(jsonLib != nullptr)
         return true;
-    const char *list[] = { JSON_C nullptr };
     for(const char **cur = list; *cur != nullptr; cur++) {
-        jsonLib = dlopen(*cur, RTLD_LAZY);
-        if(jsonLib != nullptr) {
-            funcAssg(parse)
-            funcAssg(free)
-            funcAssg(alloc_proc)
+        if(tryLib(*cur))
             return true;
-        }
     }
     doLibNull(); // Ensure all pointers stay null
     PTPMGMT_ERROR("fail loading a fromJson library");
     #else // PIC
-    // As the fromJson library need to load ourself as a shared library.
-    // Yet we are static library.
-    PTPMGMT_ERROR("Static library do not load fromJson library");
+    PTPMGMT_ERROR("Static library compiled without fromJson library");
     #endif // PIC
     return false;
 }
-#endif // use_static_link
-static inline void removeLibrary()
-{
-    #ifdef PIC
-    std::unique_lock<std::mutex> lock(jsonLoadLock);
-    if(Json2msgCount <= 0) {
-        if(jsonLib != nullptr) {
-            doLibRm();
-            doLibNull(); // mark all pointers null
-        }
-        Json2msgCount = 0;
-    }
-    #endif // PIC
-}
+#endif // JSON_C_SLINK
 
 Json2msg::Json2msg():
     m_managementId(NULL_PTP_MANAGEMENT),
@@ -1068,14 +1100,41 @@ Json2msg::Json2msg():
 Json2msg::~Json2msg()
 {
     Json2msgCount--;
-    removeLibrary();
+    #ifdef PIC
+    std::unique_lock<std::mutex> lock(jsonLoadLock);
+    if(Json2msgCount <= 0) {
+        if(jsonLib != nullptr) {
+            doLibRm();
+            doLibNull(); // mark all pointers null
+        }
+        Json2msgCount = 0;
+    }
+    #endif // PIC
 }
+bool Json2msg::selectLib(const std::string &libMatch)
+{
+    #ifndef JSON_C_SLINK
+    if(loadLibrary(libMatch.c_str()))
+        return true;
+    #endif // JSON_C_SLINK
+    return false;
+}
+bool Json2msg::isLibShared()
+{
+    #ifdef PIC
+    return true;
+    #else
+    return false;
+    #endif // PIC
+}
+
 bool Json2msg::fromJson(const std::string &json)
 {
-    #ifndef use_static_link
+    #ifndef JSON_C_SLINK
     if(!loadLibrary())
         return false;
-    #endif // use_static_link
+    #endif // JSON_C_SLINK
+    #ifdef funcDeclare
     void *jobj = funcName(parse)(json.c_str());
     if(jobj == nullptr) {
         PTPMGMT_ERROR("JSON parse fail");
@@ -1084,13 +1143,17 @@ bool Json2msg::fromJson(const std::string &json)
     bool ret = fromJsonObj(jobj);
     funcName(free)(jobj);
     return ret;
+    #else // funcDeclare
+    return false;
+    #endif // funcDeclare
 }
 bool Json2msg::fromJsonObj(const void *jobj)
 {
-    #ifndef use_static_link
+    #ifndef JSON_C_SLINK
     if(!loadLibrary())
         return false;
-    #endif // use_static_link
+    #endif // JSON_C_SLINK
+    #ifdef funcDeclare
     std::unique_ptr<JsonProcFrom> hold;
     JsonProcFrom *pproc = funcName(alloc_proc)();
     if(pproc == nullptr) {
@@ -1172,6 +1235,9 @@ bool Json2msg::fromJsonObj(const void *jobj)
         m_tlvData.reset(const_cast<BaseMngTlv *>(data));
     }
     return true;
+    #else // funcDeclare
+    return false;
+    #endif // funcDeclare
 }
 
 }; /* namespace ptpmgmt */

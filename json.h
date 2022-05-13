@@ -70,6 +70,23 @@ class Json2msg
     Json2msg();
     ~Json2msg();
     /**
+     * Try to load the a specific library
+     * @param[in] libName partial library name
+     * @return true if library found and load
+     * @note This function always return false when called from static library
+     * @note The libName can be partial and is case insensitive.
+     *       Library will load only if found exactly one match.
+     * @note If this function fails, fromJson() and fromJsonObj(),
+     *       will try to load any available library.
+     * @note if Library is already load, return true if it matchs
+     */
+    static bool selectLib(const std::string &libName);
+    /**
+     * Determine if library is shared or static
+     * @return true if library is shared library
+     */
+    static bool isLibShared();
+    /**
      * Convert JSON string to message
      * @param[in] json string
      * @return true if parsing success
