@@ -1,3 +1,59 @@
+libptpmgmt (0.8) bullseye; urgency=medium
+
+  * Fix cross compilation in make-file.
+    install target should install and not build.
+  * Remove end.h err.h headers from Doxygen and development package.
+  * Properly read all dependencies files in make-file.
+  * Socket class
+    - Default socket file for non-root users.
+      Prefer system run folder per user over home directory.
+    - Improve socket closing.
+  * From JSON to message support
+    - Create separate libraries to process JSON into message.
+      Each of them depends on a JSON library.
+      Load one of them on run time when user try to process a JSON.
+      This way we keep the main library loading
+       with standard libraries only.
+    - Add function to load a specific jsonFrom library.
+    - Static library uses only one JSON library.
+        User will need to link with this JSON library
+        once the user application needs the functionality.
+  * Add support for Options class in scripts
+    - Add SWIG support to call argc-argv using C main style from scripts.
+    - Add Lua, Perl, Tcl and PHP SWIG argcargv.i
+      that are missing from the SWIG projecy.
+      These argcargv.i are plan for the SWIG project.
+    - Use the Options class in testing scripts.
+    - Change the string types in Pmc_option structure to C++.
+    - Add the Option and Init class to SWIG build.
+  * Create a new header with types used by the message class.
+  * Reduce the number of C macros and use project style for the reset
+    - As macros could conflict with other projects or headers.
+      We use C++, so we can define them in enumerators as possible,
+      use project style, to reduce conflicts, and move macros to module,
+      and reduce the number of public macros.
+    - Use project macro name style in SWIG definition file.
+    - Remove macros from ids header.
+    - Rename 'caseXXX' macros. But leave 'A' unchanged for now.
+    - Move first and last IDs to the new 'types' header, in the enumerator.
+      So, they are not macros anymore.
+    - Move shortcut macro of allowed action for
+      a management ID to the message module. No reason to have them public.
+    - Replace vector macros with template functions.
+    - Move macros from message header to process module.
+      No reason to have them public.
+    - We left:
+      14 headers with protection macros follow the __PTPMGMT_XXX_H format.
+      3 macros with library version on compilation, LIBPTPMGMT_VER...
+      3 macros for 48 bits limit INT48_XXX, follow the standard.
+      5 _ptpmCaseXX macros and 'A' macro used internally with the ids.h header.
+      _ptpmParseFunc macro used internally in the message class.
+  * Improve documentation in headers.
+  * Add functions for using the allowSigTlvs map in MsgParams.
+    So, scripts can not access the map.
+
+ -- Erez Geva <ErezGeva2@gmail.com>  Sat, 14 May 2022 22:55:41 +0200
+
 libptpmgmt (0.7) bullseye; urgency=medium
 
   * Change socket receive functions to non-block be default.
@@ -71,7 +127,7 @@ libptpmgmt (0.5) buster; urgency=medium
   * Fix make file help errors.
   * Add init class for the PMC application.
   * Add class to process command line parameters for the pmc tool.
-    So users can use it for other applications.
+    So, users can use it for other applications.
   * Fix cross compilation errors.
   * Add tcl wrapper.
   * Remove Debian depends on python2, as it will be removed in the future.
