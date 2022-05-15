@@ -16,6 +16,9 @@
 #include "jsonDef.h"
 #include "err.h"
 
+#define stringify0(s) #s
+#define stringify1(a) stringify0(a)
+
 namespace ptpmgmt
 {
 
@@ -1056,7 +1059,7 @@ static inline bool loadMatchLibrary(const char *libMatch, const char *found)
 #endif // PIC
 
 #ifndef JSON_C_SLINK
-static bool loadLibrary(const char *libMatch = nullptr)
+static bool doLoadLibrary(const char *libMatch = nullptr)
 {
     #ifdef PIC
     std::unique_lock<std::mutex> lock(jsonLoadLock);
@@ -1111,10 +1114,22 @@ Json2msg::~Json2msg()
     }
     #endif // PIC
 }
+
+const char *Json2msg::loadLibrary()
+{
+    #ifdef PIC
+    return useLib;
+    #elif defined JSON_C_SLINK
+    return stringify1(JSON_C_SLINK);
+    #else
+    return nullptr;
+    #endif
+}
+
 bool Json2msg::selectLib(const std::string &libMatch)
 {
     #ifndef JSON_C_SLINK
-    if(loadLibrary(libMatch.c_str()))
+    if(doLoadLibrary(libMatch.c_str()))
         return true;
     #endif // JSON_C_SLINK
     return false;
@@ -1131,7 +1146,7 @@ bool Json2msg::isLibShared()
 bool Json2msg::fromJson(const std::string &json)
 {
     #ifndef JSON_C_SLINK
-    if(!loadLibrary())
+    if(!doLoadLibrary())
         return false;
     #endif // JSON_C_SLINK
     #ifdef funcDeclare
@@ -1150,7 +1165,7 @@ bool Json2msg::fromJson(const std::string &json)
 bool Json2msg::fromJsonObj(const void *jobj)
 {
     #ifndef JSON_C_SLINK
-    if(!loadLibrary())
+    if(!doLoadLibrary())
         return false;
     #endif // JSON_C_SLINK
     #ifdef funcDeclare

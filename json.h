@@ -82,6 +82,13 @@ class Json2msg
      */
     static bool selectLib(const std::string &libName);
     /**
+     * Return shared library name
+     * @return shared library name or nullptr in not
+     * @note When using static link, function return the shared library name
+     *       of the same code!
+     */
+    static const char *loadLibrary();
+    /**
      * Determine if library is shared or static
      * @return true if library is shared library
      */

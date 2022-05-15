@@ -271,7 +271,8 @@ endif
 JSONC_INC:=/usr/include/json-c
 JSONC_LD:=-ljson-c
 JSONC_LIB:=$(LIB_NAME)_jsonc.so
-JSON_C+=\"$(JSONC_LIB)$(SONAME)\",
+JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
+JSON_C+=\"$(JSONC_FLIB)\",
 ifeq ($(NO_CJSON),) # No point probing if user defer
 ifeq ($(wildcard $(JSONC_INC)/json.h),)
 NO_CJSON:=1 # No header
@@ -296,7 +297,7 @@ $(JSONC_LIB): jsonFromJc.o $(LIB_NAME).so
 	  $(LDLIBS) -o $@
 ALL+=$(JSONC_LIB)
 ifeq ($(USE_FCJSON),) # User prefer static link with fastjson
-json.o: CPPFLAGS+=-DJSON_C_SLINK
+json.o: CPPFLAGS+=-DJSON_C_SLINK=$(JSONC_FLIB)
 LIB_A_OBJS+=jsonFrom.o
 CPPFLAGS_jsonFrom.o+=$(JSONC_CFLAGS)
 JSON_C_ST_DONE:=1
@@ -306,7 +307,8 @@ endif # NO_CJSON
 # Using fastjson
 FJSON_INC:=/usr/include/libfastjson
 FJSON_LIB:=$(LIB_NAME)_fastjson.so
-JSON_C+=\"$(FJSON_LIB)$(SONAME)\",
+FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
+JSON_C+=\"$(FJSON_FLIB)\",
 ifeq ($(wildcard $(FJSON_INC)/json.h),)
 NO_FCJSON:=1
 endif
@@ -322,7 +324,7 @@ $(FJSON_LIB): jsonFromFj.o $(LIB_NAME).so
 	  $(LDLIBS) -o $@
 ALL+=$(FJSON_LIB)
 ifeq ($(JSON_C_ST_DONE),)
-json.o: CPPFLAGS+=-DJSON_C_SLINK
+json.o: CPPFLAGS+=-DJSON_C_SLINK=$(FJSON_FLIB)
 LIB_A_OBJS+=jsonFrom.o
 CPPFLAGS_jsonFrom.o+=$(FJSON_CFLAGS)
 JSON_C_ST_DONE:=1
