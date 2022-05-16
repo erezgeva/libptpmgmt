@@ -18,15 +18,15 @@ use PtpMgmtLib;
 use feature 'switch'; # 'given'
 no warnings 'experimental::smartmatch';
 
-# CLIENT_SYNC_THRESHOULD should be set acording to the used system
+# TIME_RECEIVER_SYNC_THRESHOULD should be set acording to the used system
 #  and the precision, the user require from the system
 use constant {
     DEF_CFG_FILE => '/etc/linuxptp/ptp4l.conf',
     BUF_SIZE => 1000,
-    CLIENT_SYNC_THRESHOULD => 100, # 100 nanoseconds
+    TIME_RECEIVER_SYNC_THRESHOULD => 100, # 100 nanoseconds
 };
 my ($sequence, $sk, $msg, $buf) = (0);
-my ($peerMeanPathDelay, $portState, $gmIdentity, $sourceOffset);
+my ($peerMeanPathDelay, $portState, $gmIdentity, $timeTransmitterOffset);
 
 sub init
 {
@@ -82,7 +82,7 @@ sub rcv
         }
         when($PtpMgmtLib::CURRENT_DATA_SET) {
             $data = PtpMgmtLib::conv_CURRENT_DATA_SET($msg->getData());
-            $sourceOffset = $data->swig_offsetFromMaster_get()->getIntervalInt();
+            $timeTransmitterOffset = $data->swig_offsetFromMaster_get()->getIntervalInt();
         }
     }
 }
@@ -105,15 +105,15 @@ sub probe
     }
     given($portState)
     {
-        when('SOURCE') {
-            print "Port is source clock\n";
+        when('TIME_TRANSMITTER') {
+            print "Port is time transmitter clock\n";
         }
-        when('CLIENT') {
+        when('TIME_RECEIVER') {
             # Proper sync should probe few times, before conclude
-            if (abs($sourceOffset) <= CLIENT_SYNC_THRESHOULD) {
-                print "Port is sync with $sourceOffset offset from $gmIdentity source\n";
+            if (abs($timeTransmitterOffset) <= TIME_RECEIVER_SYNC_THRESHOULD) {
+                print "Port is sync with $timeTransmitterOffset offset from $gmIdentity time transmitter\n";
             } else {
-                print "Port is NOT sync yet, current $sourceOffset offset from $gmIdentity source\n";
+                print "Port is NOT sync yet, current $timeTransmitterOffset offset from $gmIdentity time transmitter\n";
             }
         }
         default {

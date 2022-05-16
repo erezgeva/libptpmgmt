@@ -73,7 +73,7 @@ class Message
       private:
         std::unique_ptr<BaseSigTlv> tlv;
     };
-    #endif
+    #endif /* SWIG */
 
 #define _ptpmCaseUF(n) bool n##_f(n##_t &data);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
@@ -290,7 +290,8 @@ class Message
      * @param[in] exact perform an exact match
      * @return true if found
      */
-    static const bool findMngID(const std::string &str, mng_vals_e &id, bool exact);
+    static const bool findMngID(const std::string &str, mng_vals_e &id,
+        bool exact = true);
     /**
      * Convert management error to string
      * @param[in] err ID
@@ -328,11 +329,29 @@ class Message
      */
     static const char *timeSrc2str_c(timeSource_e type);
     /**
+     * Convert string to time source type
+     * @param[in] str string to search
+     * @param[out] type time source
+     * @param[in] exact perform an exact match
+     * @return true if found
+     */
+    static const bool findTimeSrc(const std::string &str, timeSource_e &type,
+        bool exact = true);
+    /**
      * Convert port state to string
      * @param[in] state port state
      * @return string with the port state
      */
     static const char *portState2str_c(portState_e state);
+    /**
+     * Convert string to port state
+     * @param[in] str string to search
+     * @param[out] state port state
+     * @param[in] caseSens perform case sensetive match
+     * @return true if found
+     */
+    static const bool findPortState(const std::string &str, portState_e &state,
+        bool caseSens = true);
     /**
      * Convert linuxptp time stamp type to string
      * @param[in] type time stamp type

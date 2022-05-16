@@ -70,8 +70,8 @@ struct DEFAULT_DATA_SET_t : public BaseMngTlv {
 /** Current data setting TLV */
 struct CURRENT_DATA_SET_t : public BaseMngTlv {
     UInteger16_t stepsRemoved; /**< Steps removed */
-    TimeInterval_t offsetFromMaster; /**< Offset from source clock */
-    TimeInterval_t meanPathDelay; /**< Mean path delay to source */
+    TimeInterval_t offsetFromMaster; /**< Offset from time transmitter clock */
+    TimeInterval_t meanPathDelay; /**< Mean path delay to time transmitter */
 };
 /** Parent data set TLV */
 struct PARENT_DATA_SET_t : public BaseMngTlv {
@@ -86,12 +86,12 @@ struct PARENT_DATA_SET_t : public BaseMngTlv {
         measured by the local clock */
     UInteger16_t observedParentOffsetScaledLogVariance;
     /** Estimate of the parent clock's phase change rate as
-        measured by the client clock */
+        measured by the timeReceiver clock */
     Integer32_t observedParentClockPhaseChangeRate;
-    UInteger8_t grandmasterPriority1; /**< Grand source Priority 1 */
-    ClockQuality_t grandmasterClockQuality; /**< Grand source clock quality */
-    UInteger8_t grandmasterPriority2; /**< Grand source Priority 1 */
-    ClockIdentity_t grandmasterIdentity; /**< Grand source clock ID */
+    UInteger8_t grandmasterPriority1; /**< Grandmaster Priority 1 */
+    ClockQuality_t grandmasterClockQuality; /**< Grandmaster clock quality */
+    UInteger8_t grandmasterPriority2; /**< Grandmaster Priority 1 */
+    ClockIdentity_t grandmasterIdentity; /**< Grandmaster clock ID */
 };
 /** Time properties data set TLV */
 struct TIME_PROPERTIES_DATA_SET_t : public BaseMngTlv {
@@ -107,7 +107,7 @@ struct TIME_PROPERTIES_DATA_SET_t : public BaseMngTlv {
      */
     uint8_t flags;
     const uint8_t flagsMask = 0x3f; /**< Mask for flags */
-    timeSource_e timeSource; /**< Source clock type */
+    timeSource_e timeSource; /**< Clock source type */
 };
 /** Port data set TLV */
 struct PORT_DATA_SET_t : public BaseMngTlv {
@@ -153,7 +153,7 @@ struct PRIORITY2_t : public BaseMngTlv {
 struct DOMAIN_t : public BaseMngTlv {
     UInteger8_t domainNumber; /**< Domain ID number */
 };
-/** Client only flag TLV */
+/** timeReceiver only flag TLV */
 struct SLAVE_ONLY_t : public BaseMngTlv {
     /**
      * Bit fields flag
@@ -225,7 +225,7 @@ struct TIMESCALE_PROPERTIES_t : public BaseMngTlv {
      */
     uint8_t flags;
     const uint8_t flagsMask = 0x8; /**< Mask for flags */
-    timeSource_e timeSource; /**< Source clock type */
+    timeSource_e timeSource; /**< Clock source type */
 };
 /** Unicast negotiation enables TLV */
 struct UNICAST_NEGOTIATION_ENABLE_t : public BaseMngTlv {
@@ -249,36 +249,36 @@ struct PATH_TRACE_ENABLE_t : public BaseMngTlv {
     uint8_t flags;
     const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
-/** Grand source cluster table TLV */
+/** Grandmaster cluster table TLV */
 struct GRANDMASTER_CLUSTER_TABLE_t : public BaseMngTlv {
     /** logarithm to the base 2 of the mean interval in seconds between
-        unicast Announce messages from grand source */
+        unicast Announce messages from grandmaster */
     Integer8_t logQueryInterval;
     UInteger8_t actualTableSize; /**< Number of addresses table */
-    /** Port addresses of grand sources cluster */
+    /** Port addresses of grandmasters cluster */
     std::vector<PortAddress_t> PortAddress;
 };
-/** Unicast source table TLV */
+/** Unicast time transmitter table TLV */
 struct UNICAST_MASTER_TABLE_t : public BaseMngTlv {
     /** logarithm to the base 2 of the mean interval in seconds between
-        unicast Announce messages from source */
+        unicast Announce messages from time transmitter */
     Integer8_t logQueryInterval;
     UInteger16_t actualTableSize; /**< Number of addresses table */
-    /** Port addresses of unicast sources */
+    /** Port addresses of unicast time transmitters */
     std::vector<PortAddress_t> PortAddress;
 };
-/** Unicast source maximum table size TLV */
+/** Unicast time transmitter maximum table size TLV */
 struct UNICAST_MASTER_MAX_TABLE_SIZE_t : public BaseMngTlv {
-    /** Maximum number of addresses in unicast sources table */
+    /** Maximum number of addresses in unicast time transmitters table */
     UInteger16_t maxTableSize;
 };
-/** Acceptable source table TLV */
+/** Acceptable time transmitter table TLV */
 struct ACCEPTABLE_MASTER_TABLE_t : public BaseMngTlv {
     Integer16_t actualTableSize; /**< Number of addresses table */
-    /** Acceptable source table records */
+    /** Acceptable time transmitter table records */
     std::vector<AcceptableMaster_t> list;
 };
-/** Acceptable source table enabled TLV */
+/** Acceptable time transmitter table enabled TLV */
 struct ACCEPTABLE_MASTER_TABLE_ENABLED_t : public BaseMngTlv {
     /**
      * Bit fields flag
@@ -287,13 +287,13 @@ struct ACCEPTABLE_MASTER_TABLE_ENABLED_t : public BaseMngTlv {
     uint8_t flags;
     const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
-/** Acceptable source maximum table size TLV */
+/** Acceptable time transmitter maximum table size TLV */
 struct ACCEPTABLE_MASTER_MAX_TABLE_SIZE_t : public BaseMngTlv {
     /** The maximum permitted number of addresses
-         in the Acceptable source table */
+         in the Acceptable time transmitter table */
     UInteger16_t maxTableSize;
 };
-/** Alternate source TLV */
+/** Alternate time transmitter TLV */
 struct ALTERNATE_MASTER_t : public BaseMngTlv {
     /**
      * Bit fields flag
@@ -302,9 +302,9 @@ struct ALTERNATE_MASTER_t : public BaseMngTlv {
     uint8_t flags;
     const uint8_t flagsMask = 0x1; /**< Mask for flags */
     /** Logarithm to the base 2 of the mean period in seconds
-        between Sync messages used by alternate source */
+        between Sync messages used by alternate time transmitter */
     Integer8_t logAlternateMulticastSyncInterval;
-    /** Number of alternate sources */
+    /** Number of alternate time transmitters */
     UInteger8_t numberOfAlternateMasters;
 };
 /** Alternate time offset enables TLV */
@@ -389,7 +389,7 @@ struct EXTERNAL_PORT_CONFIGURATION_ENABLED_t : public BaseMngTlv {
     uint8_t flags;
     const uint8_t flagsMask = 0x1; /**< Mask for flags */
 };
-/** Source only TLV */
+/** Time transmitter only TLV */
 struct MASTER_ONLY_t : public BaseMngTlv {
     /**
      * Bit fields flag
@@ -423,24 +423,24 @@ const double P41 = 1ULL << 41;
  * @note linuxptp implementation specific
  */
 struct TIME_STATUS_NP_t : public BaseMngTlv {
-    int64_t master_offset; /**< Offset from source clock in nanoseconds */
+    int64_t master_offset; /**< Offset from time transmitter clock in nanoseconds */
     int64_t ingress_time;  /**< Ingress time in nanoseconds */
     /** Cumulative scaled rate offset */
     Integer32_t cumulativeScaledRateOffset;
-    /** Scaled last grand source phase change */
+    /** Scaled last grandmaster phase change */
     Integer32_t scaledLastGmPhaseChange;
-    /** Grand source time base indicator */
+    /** Grandmaster time base indicator */
     UInteger16_t gmTimeBaseIndicator;
-    /** Scaled last grand source phase change, MSB part of nanoseconds */
+    /** Scaled last grandmaster phase change, MSB part of nanoseconds */
     uint16_t nanoseconds_msb;
-    /** Scaled last grand source phase change, LSB part of nanoseconds */
+    /** Scaled last grandmaster phase change, LSB part of nanoseconds */
     uint64_t nanoseconds_lsb;
-    /** Scaled last grand source phase change, nanosecond fraction */
+    /** Scaled last grandmaster phase change, nanosecond fraction */
     uint16_t fractional_nanoseconds;
-    Integer32_t gmPresent; /**< Flag for grand source presence */
-    ClockIdentity_t gmIdentity; /**< Grand source clock ID */
+    Integer32_t gmPresent; /**< Flag for grandmaster presence */
+    ClockIdentity_t gmIdentity; /**< Grandmaster clock ID */
 };
-/** Grand source settings TLV
+/** Grandmaster settings TLV
  * @note linuxptp implementation specific
  */
 struct GRANDMASTER_SETTINGS_NP_t : public BaseMngTlv {
@@ -457,7 +457,7 @@ struct GRANDMASTER_SETTINGS_NP_t : public BaseMngTlv {
      */
     uint8_t flags;
     const uint8_t flagsMask = 0x3f; /**< Mask for flags */
-    timeSource_e timeSource; /**< Source clock type */
+    timeSource_e timeSource; /**< Clock source type */
 };
 /** Port data setting TLV
  * @note linuxptp implementation specific

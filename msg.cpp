@@ -196,7 +196,7 @@ bool Message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
         default:
             return false;
     }
-    /* block linuxptp is not used */
+    /* block linuxptp if it is not used */
     if(spec != linuxptp && mng_all_vals[id].allowed & A_USE_LINUXPTP)
         return false;
     rid = id;
@@ -772,36 +772,35 @@ const char *Message::mng2str_c(mng_vals_e id)
             return "unknown";
     }
 }
-const bool Message::findMngID(const std::string &_str, mng_vals_e &id,
+const bool Message::findMngID(const std::string &str, mng_vals_e &id,
     bool exact)
 {
-    if(_str.empty())
+    if(str.empty())
         return false;
-    std::string str = _str;
+    int (*_strcmp)(const char *, const char *);
     if(!exact) {
-        for(auto &c : str)
-            c = toupper(c);
-        // Any ID with null map here
-        if(str.find("NULL") != std::string::npos) {
+        _strcmp = strcasecmp;
+        if(strcasestr(str.c_str(), "NULL") != nullptr) {
             id = NULL_PTP_MANAGEMENT;
             return true;
         }
-    }
+    } else
+        _strcmp = strcmp; // Excect match
     int find = 0;
     for(int i = FIRST_MNG_ID; i < LAST_MNG_ID; i++) {
         mng_vals_e cid = (mng_vals_e)i;
-        std::string sid = Message::mng2str_c(cid);
-        // Exact match!
-        if(sid == str) {
+        const char *sid = mng2str_c(cid);
+        // A whole word match!
+        if(_strcmp(str.c_str(), sid) == 0) {
             id = cid;
             return true;
         }
         // Partial match
-        if(!exact && sid.find(str) != std::string::npos) {
+        if(!exact && strcasestr(sid, str.c_str()) != nullptr) {
             id = cid;
             find++;
             // Once we have 2 partial match
-            // We stick to exact match
+            // We stick to a whole word match
             if(find > 1)
                 exact = true;
         }
@@ -918,6 +917,42 @@ const char *Message::timeSrc2str_c(timeSource_e val)
             return "unknown clock";
     }
 }
+const bool Message::findTimeSrc(const std::string &str, timeSource_e &type,
+    bool exact)
+{
+    if(str.empty())
+        return false;
+    int (*_strcmp)(const char *, const char *);
+    if(!exact)
+        _strcmp = strcasecmp;
+    else
+        _strcmp = strcmp; // Excect match
+    if(_strcmp(str.c_str(), "GPS") == 0) {
+        type = GNSS;
+        return true;
+    }
+    int find = 0;
+    for(int i = ATOMIC_CLOCK; i <= INTERNAL_OSCILLATOR; i++) {
+        timeSource_e ty = (timeSource_e)i;
+        const char *cmp = timeSrc2str_c(ty);
+        // A whole word match!
+        if(_strcmp(str.c_str(), cmp) == 0) {
+            type = ty;
+            return true;
+        }
+        // Partial match
+        if(!exact && strcasestr(cmp, str.c_str()) != nullptr) {
+            type = ty;
+            find++;
+            // Once we have 2 partial match
+            // We stick to a whole word
+            if(find > 1)
+                exact = true;
+        }
+    }
+    // We found 1 partial match :-)
+    return find == 1;
+}
 const char *Message::portState2str_c(portState_e val)
 {
     switch(val) {
@@ -925,14 +960,42 @@ const char *Message::portState2str_c(portState_e val)
         case caseItem(FAULTY);
         case caseItem(DISABLED);
         case caseItem(LISTENING);
-        case caseItem(PRE_SOURCE);
-        case caseItem(SOURCE);
+        case caseItem(PRE_TIME_TRANSMITTER);
+        case caseItem(TIME_TRANSMITTER);
         case caseItem(PASSIVE);
         case caseItem(UNCALIBRATED);
-        case caseItem(CLIENT);
+        case caseItem(TIME_RECEIVER);
         default:
             return "unknown state";
     }
+}
+const bool Message::findPortState(const std::string &str, portState_e &state,
+    bool caseSens)
+{
+    if(str.empty())
+        return false;
+    int (*_strcmp)(const char *, const char *);
+    if(caseSens)
+        _strcmp = strcmp; // Excect match
+    else
+        _strcmp = strcasecmp;
+    for(int i = INITIALIZING; i <= TIME_RECEIVER; i++) {
+        portState_e v = (portState_e)i;
+        if(_strcmp(str.c_str(), portState2str_c(v)) == 0) {
+            state = v;
+            return true;
+        }
+    }
+#define PROC_STR(val)\
+    if(_strcmp(str.c_str(), #val) == 0) {\
+        state = val;\
+        return true;\
+    }
+    PROC_STR(PRE_MASTER) // PRE_TIME_TRANSMITTER
+    PROC_STR(MASTER)     // TIME_TRANSMITTER
+    PROC_STR(SLAVE)      // TIME_RECEIVER
+#undef PROC_STR
+    return false;
 }
 const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 {

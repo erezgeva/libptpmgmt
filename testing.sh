@@ -176,8 +176,8 @@ n='ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
 
  if [[ -n "$(which valgrind)" ]]; then
    printf "\n * Valgrid test"
-   valgrind --read-inline-info=yes ./pmc -u -f /etc/linuxptp/ptp4l.conf\
-     "get CLOCK_DESCRIPTION" |& sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+   $useSudo valgrind --read-inline-info=yes $pmclibtool $runOptions $cmds |&\
+     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
 
  ##############################################################################

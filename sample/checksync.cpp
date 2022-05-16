@@ -53,10 +53,10 @@ std::map<PortIdentity_t, port_info> ports;
 static inline portState_e normalize_state(portState_e state)
 {
     switch(state) {
-        case PRE_SOURCE:
-        case SOURCE:
+        case PRE_TIME_TRANSMITTER:
+        case TIME_TRANSMITTER:
         case UNCALIBRATED:
-        case CLIENT:
+        case TIME_RECEIVER:
             return state;
         default:
             return DISABLED;
@@ -70,12 +70,12 @@ const port_info *designated_port_get()
     for(const auto &p : ports) {
         const auto &port = p.second;
         if(port.local && port.interface == designated_iface &&
-            port.portState == CLIENT)
+            port.portState == TIME_RECEIVER)
             return &p.second;
     }
     for(const auto &p : ports) {
         const auto &port = p.second;
-        if(port.local && port.portState == CLIENT)
+        if(port.local && port.portState == TIME_RECEIVER)
             return &p.second;
     }
     return nullptr;
@@ -115,7 +115,7 @@ void handle(bool local)
         case TIME_STATUS_NP:
             if(ports.count(msg.getPeer()) > 0) {
                 port_info &pi = ports[msg.getPeer()];
-                if(pi.portState != CLIENT)
+                if(pi.portState != TIME_RECEIVER)
                     return;
                 pi.master_offset = ((TIME_STATUS_NP_t *)data)->master_offset;
             } else {
@@ -138,20 +138,20 @@ void handle(bool local)
         need_sync = false;
         return;
     }
-    bool have_clients = false;
+    bool have_time_receivers = false;
     for(const auto &p : ports) {
         const auto &port = p.second;
-        if(port.portState == CLIENT) {
+        if(port.portState == TIME_RECEIVER) {
             if(llabs(port.master_offset) > threshold) {
                 printf("port %s (%s) offset %10jd under threshold %d",
                     port.portid.string().c_str(), port.interface.c_str(),
                     port.master_offset, threshold);
                 return;
             }
-            have_clients = true;
+            have_time_receivers = true;
         }
     }
-    if(have_clients)
+    if(have_time_receivers)
         need_sync = false;
 }
 

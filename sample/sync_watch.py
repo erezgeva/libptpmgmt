@@ -431,7 +431,7 @@ class PtpSyncWatchdog:
                 if self.socket.poll(2000):
                     num_bytes = self.socket.rcv(self.message_buffer)
                     self.receive(num_bytes)
-                elif self.data.port_state != "SOURCE":  # There are no events on the master, so no responses.
+                elif self.data.port_state != "TIME_TRANSMITTER":  # There are no events on the master, so no responses.
                     self.print_error("Poll failed")
                 self.callback()
             except BaseException as e:
@@ -449,19 +449,19 @@ class PtpSyncWatchdog:
         This is the default callback for events. It prints sync quality messages to stdout.
         """
         if self.data.port_state is not None:
-            if self.data.port_state == "SOURCE":
-                self.print_info("Port is source clock")
-            elif self.data.port_state == "CLIENT":
+            if self.data.port_state == "TIME_TRANSMITTER":
+                self.print_info("Port is time transmitter clock")
+            elif self.data.port_state == "TIME_RECEIVER":
                 quality = self.data.get_sync_quality()
                 if quality == PtpSyncQuality.STABLE:
-                    self.print_info("Port is synced stable with offset %s from source %r" % (
+                    self.print_info("Port is synced stable with offset %s from time transmitter %r" % (
                         self.data.get_offset_str(), self.data.gm_identity))
                 elif quality == PtpSyncQuality.UNSTABLE:
-                    self.print_info("Port is synced unstable with offset %s from source %r" % (
+                    self.print_info("Port is synced unstable with offset %s from time transmitter %r" % (
                         self.data.get_offset_str(), self.data.gm_identity))
                     self.print_info("Offsets are: " + self.data.get_offsets_str())
                 elif quality == PtpSyncQuality.NOT_SYNCED:
-                    self.print_warn("Port is NOT in sync yet, current offset %s from source %r" % (
+                    self.print_warn("Port is NOT in sync yet, current offset %s from time transmitter %r" % (
                         self.data.get_offset_str(), self.data.gm_identity))
                     self.print_info("Offsets are: " + self.data.get_offsets_str())
                 else:

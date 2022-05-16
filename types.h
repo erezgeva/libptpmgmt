@@ -123,13 +123,14 @@ enum tlvType_e : uint16_t {
     L1_SYNC                                 = 0x8001,
     PORT_COMMUNICATION_AVAILABILITY         = 0x8002, /**< Port communication */
     PROTOCOL_ADDRESS                        = 0x8003, /**< Protocol address */
-    SLAVE_RX_SYNC_TIMING_DATA               = 0x8004, /**< Client RX sync time */
-    SLAVE_RX_SYNC_COMPUTED_DATA             = 0x8005, /**< Client RX sync */
-    SLAVE_TX_EVENT_TIMESTAMPS               = 0x8006, /**< Client TX event */
+    /** TimeReceiver RX sync time */
+    SLAVE_RX_SYNC_TIMING_DATA               = 0x8004,
+    SLAVE_RX_SYNC_COMPUTED_DATA             = 0x8005, /**< TimeReceiver RX sync */
+    SLAVE_TX_EVENT_TIMESTAMPS               = 0x8006, /**< TimeReceiver TX event */
     CUMULATIVE_RATE_RATIO                   = 0x8007, /**< Cumulative rate */
     TLV_PAD                                 = 0x8008, /**< Padding TLV, ignored */
     AUTHENTICATION                          = 0x8009, /**< Authentication */
-    /** Client delay time
+    /** TimeReceiver delay time
      * note: linuxptp Experimental value */
     SLAVE_DELAY_TIMING_DATA_NP              = 0x7f00,
 };
@@ -242,18 +243,18 @@ enum timeSource_e : uint8_t {
 };
 /** Port state */
 enum portState_e : uint8_t {
-    INITIALIZING = 1, /**< Initializing */
-    FAULTY       = 2, /**< Faulty */
-    DISABLED     = 3, /**< Disabled */
-    LISTENING    = 4, /**< Listening */
-    PRE_MASTER   = 5, /**< Pre source */
-    PRE_SOURCE   = 5, /**< Pre source */
-    MASTER       = 6, /**< Source */
-    SOURCE       = 6, /**< Source */
-    PASSIVE      = 7, /**< Passive */
-    UNCALIBRATED = 8, /**< Uncalibrated */
-    SLAVE        = 9, /**< Client */
-    CLIENT       = 9, /**< Client */
+    INITIALIZING         = 1, /**< Initializing */
+    FAULTY               = 2, /**< Faulty */
+    DISABLED             = 3, /**< Disabled */
+    LISTENING            = 4, /**< Listening */
+    PRE_MASTER           = 5, /**< Pre timeTransmitter */
+    PRE_TIME_TRANSMITTER = 5, /**< Pre timeTransmitter */
+    MASTER               = 6, /**< TimeTransmitter */
+    TIME_TRANSMITTER     = 6, /**< TimeTransmitter */
+    PASSIVE              = 7, /**< Passive */
+    UNCALIBRATED         = 8, /**< Uncalibrated */
+    SLAVE                = 9, /**< TimeReceiver */
+    TIME_RECEIVER        = 9, /**< TimeReceiver */
 };
 /** Specify Management TLV implementation-specific to use
  * @note: Ruby's wrapping, capitalize first letter of enumerators values
@@ -289,7 +290,7 @@ enum linuxptpPowerProfileVersion_e : uint16_t {
     /** Use IEEE C37.238-2017 profile */
     IEEE_C37_238_VERSION_2017,
 };
-/** linuxptp client side unicast negotiation state */
+/** linuxptp timeReceiver side unicast negotiation state */
 enum linuxptpUnicastState_e : uint8_t {
     UC_WAIT, /**< Wait for answer */
     UC_HAVE_ANN, /**< Have answer */
@@ -303,7 +304,7 @@ enum : uint8_t {
     /** the last minute of the current UTC day contains 59 seconds */
     F_LI_59 = (1 << 1),
     F_UTCV  = (1 << 2), /**< Current UTC offset is valid */
-    /** The timescale of the grand source PTP Instance is PTP */
+    /** The timescale of the grandmaster PTP Instance is PTP */
     F_PTP   = (1 << 3),
     F_TTRA  = (1 << 4), /**< timescale is traceable to a primary reference */
     /** The frequency determining the timescale is
@@ -548,7 +549,7 @@ struct FaultRecord_t {
             faultName.size() + faultValue.size() + faultDescription.size();
     }
 };
-/** PTP Acceptable source */
+/** PTP Acceptable timeTransmitter */
 struct AcceptableMaster_t {
     PortIdentity_t acceptablePortIdentity; /**< acceptable port ID */
     uint8_t alternatePriority1; /**< alternate priority 1 */

@@ -885,69 +885,32 @@ static bool parseKeysFunc(Message &msg, std::map<std::string, val_key_t> &keys,
 }
 static bool getTimeSource(val_key_t &key)
 {
-    int64_t num;
+    timeSource_e type;
     const char *tkn = key.str_val;
-    for(char *c = (char *)tkn; *c != 0; c++)
-        *c = toupper(*c);
-    if(strcmp("GNSS", tkn) == 0)
-        num = GNSS;
-    else if(strcmp("GPS", tkn) == 0)
-        num = GNSS;
-    else if(strcmp("PTP", tkn) == 0)
-        num = PTP;
-    else if(strcmp("NTP", tkn) == 0)
-        num = NTP;
-    else if(strstr(tkn, "ATOMIC") != nullptr)
-        num = ATOMIC_CLOCK;
-    else if(strstr(tkn, "RADIO") != nullptr)
-        num = TERRESTRIAL_RADIO;
-    else if(strstr(tkn, "TERR") != nullptr)
-        num = TERRESTRIAL_RADIO;
-    else if(strstr(tkn, "SERIAL") != nullptr)
-        num = SERIAL_TIME_CODE;
-    else if(strstr(tkn, "OSCILL") != nullptr)
-        num = INTERNAL_OSCILLATOR;
-    else if(strstr(tkn, "INTERN") != nullptr)
-        num = INTERNAL_OSCILLATOR;
-    else if(strstr(tkn, "OTHER") != nullptr)
-        num = OTHER;
-    else if(strstr(tkn, "HAND") != nullptr)
-        num = HAND_SET;
-    else { // Fallback into hex integer
+    if(tkn == nullptr || *tkn == 0)
+        return true;
+    if(Message::findTimeSrc(tkn, type, false)) {
+        key.num = type;
+        return false; // No errors!
+    } else {
         char *end;
-        num = strtol(tkn, &end, 16);
-        if(tkn == end || *end != 0 || num < 0 || num > UINT8_MAX)
+        auto num = strtol(tkn, &end, 16);
+        if(*end != 0 || num < 0 || num > UINT8_MAX)
             return true;
+        key.num = num;
+        return false; // No errors!
     }
-    key.num = num;
-    return false; // No errors!
+    return true;
 }
 static bool getPortState(val_key_t &key)
 {
-    int64_t num;
+    portState_e state;
     const char *tkn = key.str_val;
-    if(strcasecmp("INITIALIZING", tkn) == 0)
-        num = INITIALIZING;
-    else if(strcasecmp("FAULTY", tkn) == 0)
-        num = FAULTY;
-    else if(strcasecmp("DISABLED", tkn) == 0)
-        num = DISABLED;
-    else if(strcasecmp("LISTENING", tkn) == 0)
-        num = LISTENING;
-    else if(strcasecmp("PRE_MASTER", tkn) == 0)
-        num = PRE_MASTER;
-    else if(strcasecmp("MASTER", tkn) == 0 || strcasecmp("SOURCE", tkn) == 0)
-        num = SOURCE;
-    else if(strcasecmp("PASSIVE", tkn) == 0)
-        num = PASSIVE;
-    else if(strcasecmp("UNCALIBRATED", tkn) == 0)
-        num = UNCALIBRATED;
-    else if(strcasecmp("SLAVE", tkn) == 0 || strcasecmp("CLIENT", tkn) == 0)
-        num = CLIENT;
-    else
-        return true;
-    key.num = num;
-    return false; // No errors!
+    if(tkn != nullptr && Message::findPortState(tkn, state, false)) {
+        key.num = state;
+        return false; // No errors!
+    }
+    return true;
 }
 #if 0
 static bool getPwrVer(val_key_t &key)

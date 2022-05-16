@@ -265,8 +265,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         return true;
     }
     bool procMng(mng_vals_e &id, const char *&str) {
-        str = found["managementId"].strV.c_str();
-        bool ret = Message::findMngID(str, id, true);
+        bool ret = Message::findMngID(found["managementId"].strV, id);
         if(!ret)
             PTPMGMT_ERRORA("No such managementId '%s'", str);
         return ret;
@@ -363,37 +362,14 @@ struct JsonProcFromJson : public JsonProcFrom {
         return false;
     }
     bool procValue(const char *key, timeSource_e &d) {
-        GET_STR
-        for(int i = ATOMIC_CLOCK; i <= INTERNAL_OSCILLATOR; i++) {
-            timeSource_e v = (timeSource_e)i;
-            if(strcmp(str, Message::timeSrc2str_c(v)) == 0) {
-                d = v;
-                return true;
-            }
-        }
-        // Check for additional values
-        if(strcmp(str, "GPS") != 0) // Renamed to GNSS
+        if(!isType(key, JT_STR))
             return false;
-        d = GPS;
-        return true;
+        return Message::findTimeSrc(found[key].strV, d);
     }
     bool procValue(const char *key, portState_e &d) {
-        GET_STR
-        for(int i = INITIALIZING; i <= CLIENT; i++) {
-            portState_e v = (portState_e)i;
-            if(strcmp(str, Message::portState2str_c(v)) == 0) {
-                d = v;
-                return true;
-            }
-        }
-        // Check for additional values
-        if(PROC_STR(MASTER)) // Renamed to SOURCE
-            d = MASTER;
-        else if(PROC_STR(SLAVE)) // Renamed to CLIENT
-            d = SLAVE;
-        else
+        if(!isType(key, JT_STR))
             return false;
-        return true;
+        return Message::findPortState(found[key].strV, d);
     }
     bool procValue(const char *key, linuxptpTimeStamp_e &d) {
         GET_STR
