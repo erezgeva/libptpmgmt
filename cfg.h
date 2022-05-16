@@ -35,31 +35,48 @@ class ConfigSection
 {
   protected:
     enum {
-        transportSpecific_val,
+        val_base_val,
+        transportSpecific_val = val_base_val,
         domainNumber_val,
         udp6_scope_val,
         udp_ttl_val,
         socket_priority_val,
-        network_transport_val, /* last uint8_t m_vals */
-        uds_address_val, /* last string m_str_vals */
-        ptp_dst_mac_val,
+        network_transport_val,
+        str_base_val,
+        uds_address_val = str_base_val,
+        bin_base_val,
+        ptp_dst_mac_val = bin_base_val,
         p2p_dst_mac_val,
         last_val,
     };
-    std::string m_str_vals[1];
-    Binary m_bin_vals[last_val - uds_address_val];
-    uint8_t m_vals[uds_address_val];
+    /* new values must be add to ranges[] */
+    #ifndef SWIG
+    struct range_t {
+        const char *name;
+        const char *defStr;
+        uint8_t defVal;
+        uint8_t min;
+        uint8_t max;
+    };
+    /* ranges and default value */
+    static const range_t ranges[];
+    #endif
+    /* String values */
+    std::string m_str_vals[bin_base_val - str_base_val];
+    /* Binaries values */
+    Binary m_bin_vals[last_val - bin_base_val];
+    /* integer values in the range 0-255 */
+    uint8_t m_vals[str_base_val - val_base_val];
+    /* Determine if a value is set in the configuration file.
+     * Relevant for non global sections. */
     bool m_set[last_val];
-    static const int val_limit;    /* limit of m_vals */
-    static const int str_base_val; /* first string m_str_vals */
-    static const int bin_base_val; /* first binart m_bin_vals */
 
     friend class ConfigFile;
     void setGlobal();
     bool set_val(char *line);
 
   public:
-    ConfigSection(); /* Must be public for map usage */
+    ConfigSection() : m_set{0} {} /* Must be public for map usage */
 };
 /**< @endcond */
 
@@ -73,15 +90,16 @@ class ConfigFile
 {
   private:
     std::map<std::string, ConfigSection> cfgSec;
-    ConfigSection &cfgGlobal;
+    ConfigSection *cfgGlobal; /* Not the owner, just a shortcut */
+    void clear_sections();
 
-    uint8_t get(int idx, const std::string &section) const;
+    uint8_t get_num(int idx, const std::string &section) const;
     const std::string &get_str(int idx, const std::string &section) const;
     const Binary &get_bin(int idx, const std::string &section) const;
     bool is_global(int idx, const std::string &section) const;
 
   public:
-    ConfigFile();
+    ConfigFile() { clear_sections(); }
     /**
      * Read a configuration file and parse it
      * @param[in] file name with path

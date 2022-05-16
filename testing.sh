@@ -174,6 +174,12 @@ n='ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
  cmd diff $t1 $t2 | grep '^[0-9-]' -v
  rm $t1 $t2
 
+ if [[ -n "$(which valgrind)" ]]; then
+   printf "\n * Valgrid test"
+   valgrind --read-inline-info=yes ./pmc -u -f /etc/linuxptp/ptp4l.conf\
+     "get CLOCK_DESCRIPTION" |& sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+ fi
+
  ##############################################################################
  # Test script languages wrappers
  local -r t3=$(mktemp script.XXXXXXXXXX)
