@@ -458,7 +458,7 @@ endif
 PERL_NAME:=perl/$(SWIG_NAME)
 $(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -Iswig/perl -outdir perl -o $@ -perl5 $<
+	$Q$(SWIG) -Wall -c++ -I. -Iswig/perl5 -outdir perl -o $@ -perl5 $<
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@

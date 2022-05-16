@@ -41,8 +41,10 @@
 %include "argcargv.i"
 /* The type is POSIX only, not standard! */
 %apply long { ssize_t };
+/* initialize variables for argcargv */
+%typemap(default) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}
 /* Support Options::parse_options in scripts */
-%apply (int ARGC, char **ARGV) { (int argc, char *const argv[]) }
+%apply (int ARGC, char **ARGV) {(int argc, char *const argv[])}
 
 /*************************************************************************
  * Handle ignores and renames per script language.
