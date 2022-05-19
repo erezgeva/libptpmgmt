@@ -177,17 +177,18 @@ endif
 
 ifneq ($(V),1)
 Q:=@
-Q_DOXY=$(info $(COLOR_MAGENTA)Doxygen$(COLOR_NORM))
-Q_FRMT=$(info $(COLOR_MAGENTA)Format$(COLOR_NORM))
-Q_TAGS=$(info $(COLOR_MAGENTA)[TAGS]$(COLOR_NORM))
-Q_GEN=$(info $(COLOR_MAGENTA)[GEN] $@$(COLOR_NORM))
-Q_SWIG=$(info $(COLOR_MAGENTA)[SWIG] $@$(COLOR_NORM))
-Q_CLEAN=$(info $(COLOR_MAGENTA)Cleaning$(COLOR_NORM))
-Q_DISTCLEAN=$(info $(COLOR_MAGENTA)Cleaning all$(COLOR_NORM))
-Q_LD=$(info $(COLOR_MAGENTA)[LD] $@$(COLOR_NORM))
-Q_AR=$(info $(COLOR_MAGENTA)[AR] $@$(COLOR_NORM))
-Q_LCC=$(info $(COLOR_MAGENTA)[LCC] $(basename $@).cpp$(COLOR_NORM))
-Q_CC=$(info $(COLOR_MAGENTA)[CC] $(basename $@).cpp$(COLOR_NORM))
+COLOR_BUILD:=$(COLOR_MAGENTA)
+Q_DOXY=$(info $(COLOR_BUILD)Doxygen$(COLOR_NORM))
+Q_FRMT=$(info $(COLOR_BUILD)Format$(COLOR_NORM))
+Q_TAGS=$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
+Q_GEN=$(info $(COLOR_BUILD)[GEN] $@$(COLOR_NORM))
+Q_SWIG=$(info $(COLOR_BUILD)[SWIG] $@$(COLOR_NORM))
+Q_CLEAN=$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
+Q_DISTCLEAN=$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
+Q_LD=$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
+Q_AR=$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
+Q_LCC=$(info $(COLOR_BUILD)[LCC] $(basename $@).cpp$(COLOR_NORM))
+Q_CC=$(info $(COLOR_BUILD)[CC] $(basename $@).cpp$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
 MAKE_NO_DIRS:=--no-print-directory
 endif
@@ -438,7 +439,13 @@ ifeq ($(call verCheck,$(swig_ver),3.0),)
 SWIG:=swig
 SWIG_ALL:=
 SWIG_NAME:=PtpMgmtLib
-
+ifneq ($(call verCheck,$(swig_ver),4.1),)
+# Only python and ruby available on old versions
+SWIG_MISS_ARGCARGV:=1
+endif
+%/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
+	$(Q_SWIG)
+	$Q$(SWIG) -c++ -I. -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
 SWIG_DEP=$Q$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
@@ -456,9 +463,10 @@ PERL_INC:=$(call rep_arch_f,$(PERL_INC))
 PERLDIR:=$(call rep_arch_f,$(PERLDIR))
 endif
 PERL_NAME:=perl/$(SWIG_NAME)
-$(PERL_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -Iswig/perl5 -outdir perl -o $@ -perl5 $<
+perl_SFLAGS:=-Wall -perl5
+ifdef SWIG_MISS_ARGCARGV
+perl_SFLAGS+=-Iswig/perl5
+endif # SWIG_MISS_ARGCARGV
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@
@@ -478,9 +486,10 @@ endif # NO_PERL
 ifndef NO_LUA
 ifneq ($(call which,lua),)
 LUA_LIB_NAME:=ptpmgmt.so
-lua/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -Iswig/lua -outdir lua -o $@ -lua $<
+lua_SFLAGS:=-Wall -lua
+ifdef SWIG_MISS_ARGCARGV
+lua_SFLAGS+=-Iswig/lua
+endif # SWIG_MISS_ARGCARGV
 CLEAN+=lua/$(SWIG_NAME).cpp
 DISTCLEAN+=lua/$(LUA_LIB_NAME)
 define lua
@@ -579,14 +588,11 @@ ifdef USE_PY
 PY_BASE:=python/$(SWIG_NAME)
 PY_LIB_NAME:=_ptpmgmt
 PY_LIBDIR?=/usr/lib/python
+python_SFLAGS:=-Wall -python
 ifeq ($(PY_USE_S_THRD),)
-SWIG_PY_FLAGS:=-threads -DSWIG_USE_MULTITHREADS
+python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
 CPPFLAGS_PY+=-Wno-deprecated-declarations
 endif
-$(PY_BASE).cpp: $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$Q$(SWIG) -Wall -c++ -I. -outdir python -o $@ -python $(SWIG_PY_FLAGS) $<
-
 CLEAN+=$(PY_BASE).cpp
 DISTCLEAN+=$(wildcard python/*.so) python/ptpmgmt.py\
   python/ptpmgmt.pyc
@@ -623,9 +629,7 @@ RUBYDIR:=$(call rep_arch_f,$(RUBYDIR))
 endif
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
 RUBY_LNAME:=ruby/ptpmgmt
-$(RUBY_NAME): $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -outdir ruby -o $@ -ruby $<
+ruby_SFLAGS:=-ruby
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_RUBY) $(RUBY_INC) -c $< -o $@
@@ -670,9 +674,10 @@ PHP_INC:=-Iphp $(shell $(PHPCFG) --includes)
 PHP_INC_BASE!=$(PHPCFG) --include-dir
 PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/ptpmgmt
-$(PHP_NAME): $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -Iswig/php -outdir php -o $@ -php7 $<
+php_SFLAGS:=-php7
+ifdef SWIG_MISS_ARGCARGV
+php_SFLAGS+=-Iswig/php
+endif # SWIG_MISS_ARGCARGV
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PHP) $(PHP_INC) -c $< -o $@
@@ -702,9 +707,10 @@ ifeq ($(call verCheck,$(tcl_ver),8.0),)
 TCL_NAME:=tcl/$(SWIG_NAME).cpp
 TCL_LNAME:=tcl/ptpmgmt
 CPPFLAGS_TCL+=-I $(TCL_INC)
-$(TCL_NAME): $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -Iswig/tcl -outdir tcl -o $@ -tcl8 -namespace $<
+tcl_SFLAGS+=-tcl8 -namespace
+ifdef SWIG_MISS_ARGCARGV
+tcl_SFLAGS+=-Iswig/tcl
+endif # SWIG_MISS_ARGCARGV
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_TCL) -c $< -o $@
