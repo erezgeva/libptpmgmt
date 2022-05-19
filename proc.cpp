@@ -14,12 +14,19 @@
 namespace ptpmgmt
 {
 
+#ifdef __GNUC__
+#define PURE __attribute__((pure))
+#else
+#define PURE
+#endif
+template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec) PURE;
+
 // For Octets arrays
 #define oproc(a) proc(a, sizeof(a))
 #define fproc procFlags(d.flags, d.flagsMask)
 
 // size of variable length list
-template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec)
+template <typename T> size_t vector_l(size_t ret, const std::vector<T> &vec)
 {
     for(const auto &rec : vec)
         ret += rec.size();
@@ -27,7 +34,9 @@ template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec)
 }
 
 // size functions per id
-#define S(n) static inline size_t n##_s(n##_t &d)
+#define S(n)\
+    static inline size_t n##_s(const n##_t &d) PURE;\
+    static inline size_t n##_s(const n##_t &d)
 
 S(CLOCK_DESCRIPTION)
 {

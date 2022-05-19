@@ -19,6 +19,13 @@
 namespace ptpmgmt
 {
 
+#ifdef __GNUC__
+#define PURE __attribute__((pure))
+#else
+#define PURE
+#endif
+static inline clockid_t get_clockid_fd(int fd) PURE;
+
 // man netdevice
 // From linux/posix-timers.h
 #define CPUCLOCK_MAX      3
