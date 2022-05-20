@@ -202,12 +202,6 @@ MD:=mkdir -p
 TAR:=tar cfJ
 CPPFLAGS_OPT?=-Og
 CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
-# SWIG warnings
-CPPFLAGS_LUA+=-Wno-maybe-uninitialized
-CPPFLAGS_PY+=-Wno-stringop-overflow
-CPPFLAGS_RUBY+=-Wno-sign-compare -Wno-catch-value -Wno-maybe-uninitialized
-CPPFLAGS_RUBY+=-Wno-deprecated-declarations
-CPPFLAGS_PHP+=-Wno-unused-label
 CPPFLAGS+= -MT $@ -MMD -MP -MF $(basename $@).d
 CPPFLAGS_SO:=-fPIC -DPIC -I.
 LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
@@ -435,14 +429,37 @@ endif # which astyle
 ifndef NO_SWIG
 ifneq ($(call which,swig),)
 swig_ver=$(lastword $(shell swig -version | grep Version))
+# We need swig 3.0, or above
 ifeq ($(call verCheck,$(swig_ver),3.0),)
 SWIG:=swig
 SWIG_ALL:=
 SWIG_NAME:=PtpMgmtLib
 ifneq ($(call verCheck,$(swig_ver),4.1),)
-# Only python and ruby available on old versions
-SWIG_MISS_ARGCARGV:=1
+# Only python and ruby have argcargv.i
+perl_SFLAGS+=-Iswig/perl5
+lua_SFLAGS+=-Iswig/lua
+php_SFLAGS+=-Iswig/php
+tcl_SFLAGS+=-Iswig/tcl
+# SWIG warnings
+# comparison integer of different signedness
+CPPFLAGS_RUBY+=-Wno-sign-compare
+# ANYARGS is deprecated (seems related to ruby headers)
+CPPFLAGS_RUBY+=-Wno-deprecated-declarations
+# label ‘thrown’ is not used
+CPPFLAGS_PHP+=-Wno-unused-label
+ifeq ($(PY_USE_S_THRD),)
+# PyEval_InitThreads is deprecated
+CPPFLAGS_PY+=-Wno-deprecated-declarations
 endif
+ifneq ($(call verCheck,$(swig_ver),4.0),)
+# catching polymorphic type 'class std::out_of_range' by value
+CPPFLAGS_RUBY+=-Wno-catch-value
+ifneq ($(call verCheck,$(swig_ver),3.0.12),)
+# Old SWIG does not support PHP 7
+NO_PHP=1
+endif ## ! swig 3.0.12
+endif # ! swig 4.0
+endif # ! swig 4.1
 %/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
 	$Q$(SWIG) -c++ -I. -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
@@ -463,10 +480,7 @@ PERL_INC:=$(call rep_arch_f,$(PERL_INC))
 PERLDIR:=$(call rep_arch_f,$(PERLDIR))
 endif
 PERL_NAME:=perl/$(SWIG_NAME)
-perl_SFLAGS:=-Wall -perl5
-ifdef SWIG_MISS_ARGCARGV
-perl_SFLAGS+=-Iswig/perl5
-endif # SWIG_MISS_ARGCARGV
+perl_SFLAGS+=-Wall -perl5
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -I$(PERL_INC) -c $< -o $@
@@ -486,10 +500,7 @@ endif # NO_PERL
 ifndef NO_LUA
 ifneq ($(call which,lua),)
 LUA_LIB_NAME:=ptpmgmt.so
-lua_SFLAGS:=-Wall -lua
-ifdef SWIG_MISS_ARGCARGV
-lua_SFLAGS+=-Iswig/lua
-endif # SWIG_MISS_ARGCARGV
+lua_SFLAGS+=-Wall -lua
 CLEAN+=lua/$(SWIG_NAME).cpp
 DISTCLEAN+=lua/$(LUA_LIB_NAME)
 define lua
@@ -502,7 +513,7 @@ LUA_INC_$1:=/usr/include/lua$1
 lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(MD) lua/$1
 	$$(Q_LCC)
-	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_LUA) -I$$(LUA_INC_$1)\
+	$Q$(CXX) $$(CPPFLAGS) $(CPPFLAGS_SO) -I$$(LUA_INC_$1)\
 	-c $$< -o $$@
 	$Q$(SED) -i 's#$$(LUA_INC_$1)#\$$$$(LUA_INC_$1)#g' $$(patsubst %.o,%.d,$$@)
 	$$(call SWIG_DEP)
@@ -537,7 +548,7 @@ endif
 LUA_LIB:=lua/$(LUA_LIB_NAME)
 lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 	$(Q_LCC)
-	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_LUA) -c $< -o $@
+	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) -c $< -o $@
 	$Q$(SED) -i 's#$(LUA_VER)#\$$(LUA_VER)#g' $(patsubst %.o,%.d,$@)
 	$(call SWIG_DEP)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
@@ -591,7 +602,6 @@ PY_LIBDIR?=/usr/lib/python
 python_SFLAGS:=-Wall -python
 ifeq ($(PY_USE_S_THRD),)
 python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
-CPPFLAGS_PY+=-Wno-deprecated-declarations
 endif
 CLEAN+=$(PY_BASE).cpp
 DISTCLEAN+=$(wildcard python/*.so) python/ptpmgmt.py\
@@ -659,11 +669,6 @@ else # PHPCFG
 php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell $(PHPCFG) --version))))
 ifneq ($(call verCheck,$(php_ver),7.0),)
 NO_PHP=1
-else # PHP 7
-# Old SWIG does not support PHP 7
-ifneq ($(call verCheck,$(swig_ver),3.0.12),)
-NO_PHP=1
-endif ## SWIG 3.0.12
 endif # PHP 7
 endif # PHPCFG
 ifndef NO_PHP
@@ -674,10 +679,7 @@ PHP_INC:=-Iphp $(shell $(PHPCFG) --includes)
 PHP_INC_BASE!=$(PHPCFG) --include-dir
 PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/ptpmgmt
-php_SFLAGS:=-php7
-ifdef SWIG_MISS_ARGCARGV
-php_SFLAGS+=-Iswig/php
-endif # SWIG_MISS_ARGCARGV
+php_SFLAGS+=-php7
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_PHP) $(PHP_INC) -c $< -o $@
@@ -706,11 +708,8 @@ tcl_ver!=echo 'puts $$tcl_version;exit 0' | tclsh
 ifeq ($(call verCheck,$(tcl_ver),8.0),)
 TCL_NAME:=tcl/$(SWIG_NAME).cpp
 TCL_LNAME:=tcl/ptpmgmt
-CPPFLAGS_TCL+=-I $(TCL_INC)
+CPPFLAGS_TCL+=-I$(TCL_INC)
 tcl_SFLAGS+=-tcl8 -namespace
-ifdef SWIG_MISS_ARGCARGV
-tcl_SFLAGS+=-Iswig/tcl
-endif # SWIG_MISS_ARGCARGV
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$(Q_LCC)
 	$Q$(CXX) $(CPPFLAGS) $(CPPFLAGS_SO) $(CPPFLAGS_TCL) -c $< -o $@
