@@ -41,8 +41,9 @@
 %include "argcargv.i"
 /* The type is POSIX only, not standard! */
 %apply long { ssize_t };
-/* initialize variables for argcargv */
-%typemap(default) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}
+/* initialize variables for argcargv
+ * Bug fix in SWIG 4.1 */
+%typemap(arginit) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}
 /* Support Options::parse_options in scripts */
 %apply (int ARGC, char **ARGV) {(int argc, char *const argv[])}
 
