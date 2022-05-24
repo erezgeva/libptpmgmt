@@ -140,6 +140,14 @@ A
 endef
 line=$(subst A,,$(lbase))
 space=$(subst A,,A A)
+TOP:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+# TOOLS
+RL:=ranlib
+LN:=ln -fs
+SED:=sed
+MD:=mkdir -p
+TAR:=tar cfJ
 
 # Use tput to check if we have ANSI Color code
 # tput works only if TERM is set
@@ -191,15 +199,11 @@ Q_LCC=$(info $(COLOR_BUILD)[LCC] $*.cpp$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
 MAKE_NO_DIRS:=--no-print-directory
+# Filter normal output, send error output to stdout
+QE:=2>&1 >/dev/null | $(SED) 's@^$(TOP)@@'
 endif
 
 include version
-# Ensure linker use C++
-RL:=ranlib
-LN:=ln -fs
-SED:=sed
-MD:=mkdir -p
-TAR:=tar cfJ
 CPPFLAGS_OPT?=-Og
 CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 CPPFLAGS+=-MT $@ -MMD -MP -MF $*.d
@@ -255,8 +259,7 @@ else
 LIBDIR?=/usr/lib
 endif
 %.so:
-	$(Q_LD)
-	$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) $($@_LDLIBS)\
+	$(Q_LD)$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) $($@_LDLIBS)\
 	  $(LDLIBS) -o $@
 
 # JSON libraries
@@ -336,8 +339,7 @@ json.o: CPPFLAGS+=-DJSON_C="$(JSON_C)"
 
 # Compile library source code
 $(LIB_A_OBJS): %.o: %.cpp
-	$Q$(Q_LCC)
-	$(CXX) -c $(CPPFLAGS) $(CPPFLAGS_$@) $< -o $@
+	$Q$(Q_LCC)$(CXX) -c $(CPPFLAGS) $(CPPFLAGS_$@) $< -o $@
 	$(call D_INC,$($@_INC))
 $(LIB_OBJS): %.o: %.cpp
 	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $< -o $@
@@ -346,18 +348,15 @@ $(LIB_OBJS): %.o: %.cpp
 $(eval $(foreach obj,$(LIB_OBJS), $(call depend,.libs/$(obj),$(obj))))
 
 $(LIB_NAME).a: $(LIB_OBJS) $(LIB_A_OBJS)
-	$(Q_AR)
-	$(AR) rcs $@ $^
+	$(Q_AR)$(AR) rcs $@ $^
 	$(RL) $@
 $(LIB_NAME_SO): $(foreach obj,$(LIB_OBJS),.libs/$(obj))
 
 # pmc tool
 $(PMC_OBJS): %.o: %.cpp
-	$(Q_CC)
-	$(CXX) $(CPPFLAGS) -c -o $@ $<
+	$(Q_CC)$(CXX) $(CPPFLAGS) -c -o $@ $<
 $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
-	$(Q_LD)
-	$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 D_FILES:=$(wildcard *.d */*.d */*/*.d)
 CLEAN:=$(wildcard *.o */*.o */*/*.o) *.lo .libs/* $(D_FILES)
@@ -365,11 +364,9 @@ DISTCLEAN:=$(ALL) $(wildcard *.so */*.so */*/*.so)
 DISTCLEAN_DIRS:=.libs
 
 clean:
-	$(Q_CLEAN)
-	$(RM) $(CLEAN)
+	$(Q_CLEAN)$(RM) $(CLEAN)
 distclean: deb_clean clean
-	$(Q_DISTCLEAN)
-	$(RM) $(DISTCLEAN)
+	$(Q_DISTCLEAN)$(RM) $(DISTCLEAN)
 	$(RM) -R $(DISTCLEAN_DIRS)
 
 HEADERS_GEN:=mngIds.h verDef.h
@@ -385,8 +382,7 @@ HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 #  %- => ' '    - When need 2 spaces or more. Use with a space between
 #  %^ => '\n'   - Add new line in a preprocessor definition only
 mngIds.h: mngIds.cc
-	$(Q_GEN)
-	$(CXX) -E $< | $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g'\
+	$(Q_GEN)$(CXX) -E $< | $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g'\
 	  -e 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' > $@
 define verDef
 /* SPDX-License-Identifier: LGPL-3.0-or-later\n
@@ -408,16 +404,14 @@ define verDef
 endef
 version:
 verDef.h: version
-	$(Q_GEN)
-	$(shell printf '$(verDef)' > $@)
+	$(Q_GEN)$(shell printf '$(verDef)' > $@)
 DISTCLEAN+=$(HEADERS_GEN)
 
 ifneq ($(call which,astyle),)
 astyle_ver:=$(lastword $(shell astyle -V))
 ifeq ($(call verCheck,$(astyle_ver),3.1),)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(wildcard sample/*.cpp)
-	$(Q_FRMT)
-	astyle --project=none --options=astyle.opt $^
+	$(Q_FRMT)astyle --project=none --options=astyle.opt $^
 	./format.pl
 ifneq ($(call which,cppcheck),)
 	cppcheck --quiet --language=c++ --error-exitcode=-1 $^
@@ -458,8 +452,7 @@ endif ## ! swig 3.0.12
 endif # ! swig 4.0
 endif # ! swig 4.1
 %/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)
-	$(SWIG) -c++ -I. -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
+	$(Q_SWIG)$(SWIG) -c++ -I. -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
 SWIG_DEP=$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
@@ -734,16 +727,14 @@ endif # NO_SWIG
 ifneq ($(call which,doxygen),)
 ifeq ($(call verCheck,$(shell doxygen -v),1.8),)
 doxygen: $(HEADERS_GEN) $(HEADERS)
-	$(Q_DOXY)
-	doxygen doxygen.cfg 2>&1 >/dev/null
+	$(Q_DOXY)doxygen doxygen.cfg $(QE)
 DISTCLEAN_DIRS+=doc
 endif
 endif # which doxygen
 
 ifneq ($(call which,ctags),)
 tags: $(HEADERS_GEN) $(filter-out ids.h,$(HEADERS_SRCS)) $(SRCS)
-	$(Q_TAGS)
-	ctags -R $^
+	$(Q_TAGS)ctags -R $^
 ALL+=tags
 DISTCLEAN+=tags
 endif # which ctags
