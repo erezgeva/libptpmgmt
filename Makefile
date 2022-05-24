@@ -178,17 +178,17 @@ endif
 ifneq ($(V),1)
 Q:=@
 COLOR_BUILD:=$(COLOR_MAGENTA)
-Q_DOXY=$(info $(COLOR_BUILD)Doxygen$(COLOR_NORM))
-Q_FRMT=$(info $(COLOR_BUILD)Format$(COLOR_NORM))
-Q_TAGS=$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
-Q_GEN=$(info $(COLOR_BUILD)[GEN] $@$(COLOR_NORM))
-Q_SWIG=$(info $(COLOR_BUILD)[SWIG] $@$(COLOR_NORM))
-Q_CLEAN=$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
-Q_DISTCLEAN=$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
-Q_LD=$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
-Q_AR=$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
+Q_DOXY=$Q$(info $(COLOR_BUILD)Doxygen$(COLOR_NORM))
+Q_FRMT=$Q$(info $(COLOR_BUILD)Format$(COLOR_NORM))
+Q_TAGS=$Q$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
+Q_GEN=$Q$(info $(COLOR_BUILD)[GEN] $@$(COLOR_NORM))
+Q_SWIG=$Q$(info $(COLOR_BUILD)[SWIG] $@$(COLOR_NORM))
+Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
+Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
+Q_LD=$Q$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
+Q_AR=$Q$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
 Q_LCC=$(info $(COLOR_BUILD)[LCC] $*.cpp$(COLOR_NORM))
-Q_CC=$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
+Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
 MAKE_NO_DIRS:=--no-print-directory
 endif
@@ -203,7 +203,7 @@ TAR:=tar cfJ
 CPPFLAGS_OPT?=-Og
 CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 CPPFLAGS+=-MT $@ -MMD -MP -MF $*.d
-LIBTOOL_CC=$(Q_LCC)$(Q)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
+LIBTOOL_CC=$Q$(Q_LCC)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
 LIB_VER:=$(ver_maj).$(ver_min)
 ifdef SONAME_USE_MAJ
 SONAME:=.$(ver_maj)
@@ -222,8 +222,8 @@ LIB_OBJS:=$(filter-out $(JSON_FROM_OBJS) $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS
 LIB_A_OBJS:=
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
-D_INC=$Q$(SED) -i 's@$($1)@\$$($1)@g' $*.d
-LLC=$(Q_LCC)$Q$(CXX) $(CPPFLAGS) -fPIC -DPIC -I. $1 -c $< -o $@
+D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $*.d
+LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) -fPIC -DPIC -I. $1 -c $< -o $@
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
@@ -256,7 +256,7 @@ LIBDIR?=/usr/lib
 endif
 %.so:
 	$(Q_LD)
-	$Q$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) $($@_LDLIBS)\
+	$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) $($@_LDLIBS)\
 	  $(LDLIBS) -o $@
 
 # JSON libraries
@@ -288,7 +288,7 @@ endif # NO_CJSON
 ifeq ($(NO_CJSON),)
 JSONC_CFLAGS:=-include $(JSONC_INC)/json.h
 jsonFromJc.o: jsonFrom.cpp
-	$(call LLC,$(JSONC_CFLAGS))
+	$Q$(call LLC,$(JSONC_CFLAGS))
 	$(call D_INC,JSONC_INC)
 $(JSONC_LIB)_LDLIBS:=$(JSONC_LD)
 $(JSONC_LIB): jsonFromJc.o $(LIB_NAME).so
@@ -313,7 +313,7 @@ endif
 ifeq ($(NO_FCJSON),)
 FJSON_CFLAGS:=-include $(FJSON_INC)/json.h
 jsonFromFj.o: jsonFrom.cpp
-	$(call LLC,$(FJSON_CFLAGS))
+	$Q$(call LLC,$(FJSON_CFLAGS))
 	$(call D_INC,FJSON_INC)
 $(FJSON_LIB)_LDLIBS:=-lfastjson
 $(FJSON_LIB): jsonFromFj.o $(LIB_NAME).so
@@ -336,8 +336,8 @@ json.o: CPPFLAGS+=-DJSON_C="$(JSON_C)"
 
 # Compile library source code
 $(LIB_A_OBJS): %.o: %.cpp
-	$(Q_LCC)
-	$Q$(CXX) -c $(CPPFLAGS) $(CPPFLAGS_$@) $< -o $@
+	$Q$(Q_LCC)
+	$(CXX) -c $(CPPFLAGS) $(CPPFLAGS_$@) $< -o $@
 	$(call D_INC,$($@_INC))
 $(LIB_OBJS): %.o: %.cpp
 	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $< -o $@
@@ -347,17 +347,17 @@ $(eval $(foreach obj,$(LIB_OBJS), $(call depend,.libs/$(obj),$(obj))))
 
 $(LIB_NAME).a: $(LIB_OBJS) $(LIB_A_OBJS)
 	$(Q_AR)
-	$Q$(AR) rcs $@ $^
-	$Q$(RL) $@
+	$(AR) rcs $@ $^
+	$(RL) $@
 $(LIB_NAME_SO): $(foreach obj,$(LIB_OBJS),.libs/$(obj))
 
 # pmc tool
 $(PMC_OBJS): %.o: %.cpp
 	$(Q_CC)
-	$Q$(CXX) $(CPPFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) -c -o $@ $<
 $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)
-	$Q$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+	$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 D_FILES:=$(wildcard *.d */*.d */*/*.d)
 CLEAN:=$(wildcard *.o */*.o */*/*.o) *.lo .libs/* $(D_FILES)
@@ -365,12 +365,12 @@ DISTCLEAN:=$(ALL) $(wildcard *.so */*.so */*/*.so)
 DISTCLEAN_DIRS:=.libs
 
 clean:
-	$Q$(Q_CLEAN)
-	$Q$(RM) $(CLEAN)
+	$(Q_CLEAN)
+	$(RM) $(CLEAN)
 distclean: deb_clean clean
 	$(Q_DISTCLEAN)
-	$Q$(RM) $(DISTCLEAN)
-	$Q$(RM) -R $(DISTCLEAN_DIRS)
+	$(RM) $(DISTCLEAN)
+	$(RM) -R $(DISTCLEAN_DIRS)
 
 HEADERS_GEN:=mngIds.h verDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
@@ -386,7 +386,7 @@ HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 #  %^ => '\n'   - Add new line in a preprocessor definition only
 mngIds.h: mngIds.cc
 	$(Q_GEN)
-	$Q$(CXX) -E $< | $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g'\
+	$(CXX) -E $< | $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g'\
 	  -e 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' > $@
 define verDef
 /* SPDX-License-Identifier: LGPL-3.0-or-later\n
@@ -417,10 +417,10 @@ astyle_ver:=$(lastword $(shell astyle -V))
 ifeq ($(call verCheck,$(astyle_ver),3.1),)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(wildcard sample/*.cpp)
 	$(Q_FRMT)
-	$(Q)astyle --project=none --options=astyle.opt $^
-	$(Q)./format.pl
+	astyle --project=none --options=astyle.opt $^
+	./format.pl
 ifneq ($(call which,cppcheck),)
-	$(Q)cppcheck --quiet --language=c++ --error-exitcode=-1 $^
+	cppcheck --quiet --language=c++ --error-exitcode=-1 $^
 endif
 endif
 endif # which astyle
@@ -459,12 +459,12 @@ endif # ! swig 4.0
 endif # ! swig 4.1
 %/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
 	$(Q_SWIG)
-	$Q$(SWIG) -c++ -I. -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
+	$(SWIG) -c++ -I. -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
-SWIG_DEP=$Q$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
+SWIG_DEP=$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
-SWIG_LD=$(Q_LD)$Q$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
+SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 ifndef NO_PERL
 ifneq ($(call which,perl),)
@@ -479,11 +479,11 @@ endif
 PERL_NAME:=perl/$(SWIG_NAME)
 perl_SFLAGS+=-Wall -perl5
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
-	$(call LLC,-I$(PERL_INC))
+	$Q$(call LLC,-I$(PERL_INC))
 	$(call D_INC,PERL_INC)
-	$(call SWIG_DEP)
+	$(SWIG_DEP)
 $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
-	$(call SWIG_LD)
+	$(SWIG_LD)
 SWIG_ALL+=$(PERL_NAME).so
 CLEAN+=$(PERL_NAME).cpp
 DISTCLEAN+=$(foreach e,pm,$(PERL_NAME).$e)
@@ -508,9 +508,9 @@ lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(MD) lua/$1
 	$$(call LLC,-I$$(LUA_INC_$1))
 	$$(call D_INC,LUA_INC_$1)
-	$$(call SWIG_DEP)
+	$$(SWIG_DEP)
 $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
-	$$(call SWIG_LD)
+	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_LIB_$1)
 DISTCLEAN_DIRS+=lua/$1
 
@@ -537,11 +537,11 @@ $(LUA_LIB)_LDLIBS:=-Wl,-soname,$(LUA_FLIB)$(SONAME)
 endif
 LUA_LIB:=lua/$(LUA_LIB_NAME)
 lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
-	$(call LLC,)
+	$Q$(LLC)
 	$(call D_INC,LUA_VER)
-	$(call SWIG_DEP)
+	$(SWIG_DEP)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
-	$(call SWIG_LD)
+	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
 endif # /usr/include/lua.h
 else # which lua
@@ -562,9 +562,9 @@ $$(PY_BASE_$1).o: $(PY_BASE).cpp $(HEADERS)
 	$Q$(MD) python/$1
 	$$(call LLC,$(CPPFLAGS_PY) $$(PY_INC_$1))
 	$$(call D_INC,PY_INC_BASE_$1)
-	$$(call SWIG_DEP)
+	$$(SWIG_DEP)
 $$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
-	$$(call SWIG_LD)
+	$$(SWIG_LD)
 SWIG_ALL+=$$(PY_SO_$1)
 DISTCLEAN_DIRS+=python/$1
 
@@ -625,12 +625,12 @@ RUBY_LNAME:=ruby/ptpmgmt
 ruby_SFLAGS:=-ruby
 $(RUBY_LNAME).so_LDLIBS:=$(RUBY_LIB)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
-	$(call LLC,$(CPPFLAGS_RUBY) $(RUBY_INC))
-	$Q$(SED) -i -e 's#$(RUBY_INC_BASE)#\$$(RUBY_INC_BASE)#g;'\
+	$Q$(call LLC,$(CPPFLAGS_RUBY) $(RUBY_INC))
+	$(SED) -i -e 's#$(RUBY_INC_BASE)#\$$(RUBY_INC_BASE)#g;'\
 	  -e 's#$(RUBY_INC_ARC)#\$$(RUBY_INC_ARC)#g' $*.d
-	$(call SWIG_DEP)
+	$(SWIG_DEP)
 $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
-	$(call SWIG_LD)
+	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
 CLEAN+=$(RUBY_NAME)
 else # which ruby
@@ -662,11 +662,11 @@ PHP_NAME:=php/$(SWIG_NAME).cpp
 PHP_LNAME:=php/ptpmgmt
 php_SFLAGS+=-php7
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
-	$(call LLC,$(CPPFLAGS_PHP) $(PHP_INC))
+	$Q$(call LLC,$(CPPFLAGS_PHP) $(PHP_INC))
 	$(call D_INC,PHP_INC_BASE)
-	$(call SWIG_DEP)
+	$(SWIG_DEP)
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
-	$(call SWIG_LD)
+	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so
 CLEAN+=$(PHP_NAME) php/php_ptpmgmt.h
 DISTCLEAN+=$(PHP_LNAME).php php/php.ini
@@ -690,11 +690,11 @@ TCL_LNAME:=tcl/ptpmgmt
 CPPFLAGS_TCL+=-I$(TCL_INC)
 tcl_SFLAGS+=-tcl8 -namespace
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
-	$(call LLC,$(CPPFLAGS_TCL))
+	$Q$(call LLC,$(CPPFLAGS_TCL))
 	$(call D_INC,TCL_INC)
-	$(call SWIG_DEP)
+	$(SWIG_DEP)
 $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
-	$(call SWIG_LD)
+	$(SWIG_LD)
 SWIG_ALL+=$(TCL_LNAME).so
 CLEAN+=$(TCL_NAME)
 tcl_paths!=echo 'puts $$auto_path;exit 0' | tclsh
@@ -735,7 +735,7 @@ ifneq ($(call which,doxygen),)
 ifeq ($(call verCheck,$(shell doxygen -v),1.8),)
 doxygen: $(HEADERS_GEN) $(HEADERS)
 	$(Q_DOXY)
-	$(Q)doxygen doxygen.cfg 2>&1 >/dev/null
+	doxygen doxygen.cfg 2>&1 >/dev/null
 DISTCLEAN_DIRS+=doc
 endif
 endif # which doxygen
@@ -743,7 +743,7 @@ endif # which doxygen
 ifneq ($(call which,ctags),)
 tags: $(HEADERS_GEN) $(filter-out ids.h,$(HEADERS_SRCS)) $(SRCS)
 	$(Q_TAGS)
-	$(Q)ctags -R $^
+	ctags -R $^
 ALL+=tags
 DISTCLEAN+=tags
 endif # which ctags
@@ -751,6 +751,7 @@ endif # which ctags
 all: $(ALL)
 	@:
 .DEFAULT_GOAL=all
+.ONESHELL: # Run rules in a single shell
 
 ####### Debain build #######
 ifneq ($(and $(wildcard debian/rules),$(call which,dpkg-buildpackage)),)
@@ -761,11 +762,11 @@ deb_src: distclean
 	$(Q)dpkg-source -b .
 deb:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -uc
-	$Q$(RM) $(DEB_ALL_CLEAN)
+	$(RM) $(DEB_ALL_CLEAN)
 ifneq ($(DEB_ARC),)
 deb_arc:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -uc -a$(DEB_ARC)
-	$Q$(RM) $(DEB_ALL_CLEAN)
+	$(RM) $(DEB_ALL_CLEAN)
 endif
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
@@ -780,7 +781,7 @@ SRC_NAME:=libptpmgmt-$(LIB_VER)
 RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
 $(RPM_SRC): $(SRC_FILES)
 	$Q$(MD) rpm/SOURCES
-	$Q$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
+	$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
 ifneq ($(call which,rpmbuild),)
 rpm: $(RPM_SRC)
 	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/libptpmgmt.spec
@@ -795,7 +796,7 @@ $(ARCHL_SRC): $(SRC_FILES)
 	$Q$(TAR) $@ $^
 $(ARCHL_BLD): $(ARCHL_BLD).org | $(ARCHL_SRC)
 	$(Q)cp $^ $@
-	$(Q)printf "sha256sums=('%s')\n" $(firstword $(shell sha256sum $(ARCHL_SRC))) >> $@
+	printf "sha256sums=('%s')\n" $(firstword $(shell sha256sum $(ARCHL_SRC))) >> $@
 ifneq ($(call which,makepkg),)
 pkg: $(ARCHL_BLD)
 	$(Q)cd archlinux && makepkg
@@ -827,60 +828,60 @@ ifdef SONAME_USE_MAJ
 	$(Q)for lib in $(LIB_NAME)*.so; do\
 	  $(NINST) -D $$lib $(DESTDIR)$(LIBDIR)/$$lib.$(LIB_VER);\
 	  $(LN) $$lib.$(LIB_VER) $(DESTDIR)$(LIBDIR)/$$lib$(SONAME);done
-	$Q$(LN) $(LIB_NAME_SO)$(SONAME) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
+	$(LN) $(LIB_NAME_SO)$(SONAME) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
 else
 	$Q$(NINST) -D $(LIB_NAME)*.so -t $(DESTDIR)$(LIBDIR)
 endif
-	$Q$(NINST) $(LIB_NAME).a $(DESTDIR)$(LIBDIR)
-	$Q$(NINST) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
-	$Q$(foreach f,$(HEADERS_INST),$(SED) -i\
+	$(NINST) $(LIB_NAME).a $(DESTDIR)$(LIBDIR)
+	$(NINST) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
+	$(foreach f,$(HEADERS_INST),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
-	$Q$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
-	$Q$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
-	$Q$(DINST) $(MANDIR)
-	$Q$(LN) pmc.8.gz $(MANDIR)/pmc-ptpmgmt.8.gz
-	$Q$(RM) doc/html/*.md5
-	$Q$(DINST) $(DOCDIR)
-	$(Q)cp -a doc/html $(DOCDIR)
-	$(Q)printf $(REDIR) > $(DOCDIR)/index.html
+	$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
+	$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
+	$(DINST) $(MANDIR)
+	$(LN) pmc.8.gz $(MANDIR)/pmc-ptpmgmt.8.gz
+	$(RM) doc/html/*.md5
+	$(DINST) $(DOCDIR)
+	cp -a doc/html $(DOCDIR)
+	printf $(REDIR) > $(DOCDIR)/index.html
 ifndef NO_SWIG
 ifndef NO_PERL
-	$Q$(NINST) -D perl/$(SWIG_NAME).so -t $(PERLDIR)/auto/$(SWIG_NAME)
-	$Q$(NINST) perl/$(SWIG_NAME).pm $(PERLDIR)
+	$(NINST) -D perl/$(SWIG_NAME).so -t $(PERLDIR)/auto/$(SWIG_NAME)
+	$(NINST) perl/$(SWIG_NAME).pm $(PERLDIR)
 endif # NO_PERL
 ifndef NO_LUA
-	$Q$(foreach n,$(LUA_VERSIONS),\
+	$(foreach n,$(LUA_VERSIONS),\
 	  $(NINST) -D $(LUA_LIB_$n) $(LUADIR)/$(LUA_FLIB_$n).$(LIB_VER);\
 	  $(LN) $(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/$(LUA_FLIB_$n)$(SONAME);\
 	  $(DINST) $(LUADIR)/lua/$n;\
 	  $(LN) ../../$(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/lua/$n/$(LUA_LIB_NAME);)
 ifdef LUA_VER
-	$Q$(NINST) -D $(LUA_LIB) $(LUADIR)/$(LUA_FLIB)
-	$Q$(DINST) $(LUADIR)/lua/$(LUA_VER)
-	$Q$(LN) ../../$(LUA_FLIB) $(LUADIR)/lua/$(LUA_VER)/$(LUA_LIB_NAME)
+	$(NINST) -D $(LUA_LIB) $(LUADIR)/$(LUA_FLIB)
+	$(DINST) $(LUADIR)/lua/$(LUA_VER)
+	$(LN) ../../$(LUA_FLIB) $(LUADIR)/lua/$(LUA_VER)/$(LUA_LIB_NAME)
 endif # LUA_VER
 endif # NO_LUA
 ifdef USE_PY2
-	$Q$(NINST) -D python/2/$(PY_LIB_NAME).so\
+	$(NINST) -D python/2/$(PY_LIB_NAME).so\
 	  $(PY2_DIR)/$(PY_LIB_NAME)$(PY2_ARCH).so
-	$Q$(NINST) python/ptpmgmt.py $(PY2_DIR)
+	$(NINST) python/ptpmgmt.py $(PY2_DIR)
 endif
 ifdef USE_PY3
-	$Q$(NINST) -D python/3/$(PY_LIB_NAME).so\
+	$(NINST) -D python/3/$(PY_LIB_NAME).so\
 	  $(PY3_DIR)/$(PY_LIB_NAME)$(PY3_EXT)
-	$Q$(NINST) python/ptpmgmt.py $(PY3_DIR)
+	$(NINST) python/ptpmgmt.py $(PY3_DIR)
 endif
 ifndef NO_RUBY
-	$Q$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
+	$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
 endif # NO_RUBY
 ifndef NO_PHP
-	$Q$(NINST) -D $(PHP_LNAME).so -t $(PHPEDIR)
-	$Q$(NINST) -D $(PHP_LNAME).php -t $(PHPIDIR)
+	$(NINST) -D $(PHP_LNAME).so -t $(PHPEDIR)
+	$(NINST) -D $(PHP_LNAME).php -t $(PHPIDIR)
 endif # NO_PHP
 ifndef NO_TCL
-	$Q$(NINST) -D $(TCL_LNAME).so -t $(TCLDIR)
-	$(Q)printf '$(subst $(line),\n,$(pkgIndex))\n' > $(TCLDIR)/pkgIndex.tcl
+	$(NINST) -D $(TCL_LNAME).so -t $(TCLDIR)
+	printf '$(subst $(line),\n,$(pkgIndex))\n' > $(TCLDIR)/pkgIndex.tcl
 endif # NO_TCL
 endif # NO_SWIG
 
