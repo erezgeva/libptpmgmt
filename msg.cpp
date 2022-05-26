@@ -163,7 +163,7 @@ MNG_PARSE_ERROR_e Message::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
 #define _ptpmCaseNA(n) case n: return MNG_PARSE_ERROR_OK
 #define _ptpmCaseUF(n) case n:\
         if(m_build) {\
-            if(n##_f(*(n##_t *)tlv))\
+            if(n##_f(*dynamic_cast<n##_t *>(tlv)))\
                 return m_err;\
         } else {\
             n##_t *t = new n##_t;\

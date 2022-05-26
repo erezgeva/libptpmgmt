@@ -89,7 +89,7 @@ ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
             n##_t empty;\
             return n##_s(empty);\
         } else\
-            return n##_s(*(n##_t*)data);
+            return n##_s(*dynamic_cast<const n##_t*>(data));
 #define _ptpmCaseUFBS(n) _ptpmCaseUFS(n)
     switch(m_tlv_id) {
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)

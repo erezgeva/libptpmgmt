@@ -597,9 +597,11 @@ struct MsgParams {
 };
 /** Base for all Management TLV structures */
 struct BaseMngTlv {
+    virtual ~BaseMngTlv() = default;
 };
 /** Base for all Signaling TLV structures */
 struct BaseSigTlv {
+    virtual ~BaseSigTlv() = default;
 };
 /** Master record in unicast master table */
 struct LinuxptpUnicastMaster_t {

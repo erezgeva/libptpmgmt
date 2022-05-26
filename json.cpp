@@ -491,7 +491,8 @@ bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
                 return false;\
             data = d;\
         }\
-        return proc_##n(*this, *(n##_t *)data);
+        return proc_##n(*this, *dynamic_cast<n##_t *>\
+                (const_cast<BaseMngTlv *>(data)));
     switch(managementId) {
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
