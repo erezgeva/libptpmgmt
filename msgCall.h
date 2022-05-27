@@ -2,11 +2,10 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief messages dispatcher class
+ * @brief messages dispatcher and builder classes
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2021 Erez Geva
- *
+ * @copyright 2022 Erez Geva
  */
 
 #ifndef __PTPMGMT_MSG_CALL_H
@@ -98,7 +97,7 @@ class MessageDispatcher : public BaseMngDispatchCallback
      * Handler called if there is no TLV data
      * It could be an empty TLV or not set
      */
-    virtual void noTlv() const {}
+    virtual void noTlv(const Message &msg) const {}
 };
 
 /**

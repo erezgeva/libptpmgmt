@@ -72,7 +72,7 @@ static inline bool updatePortIdentity(MsgParams &prms, char *str)
     nc.copy(prms.target.clockIdentity.v);
     return true;
 }
-static inline bool sendAction()
+bool sendAction()
 {
     static int seq = 0;
     MNG_PARSE_ERROR_e err = msg.build(buf, bufSize, seq);
@@ -97,7 +97,7 @@ static inline int rcv()
             break;
         case MNG_PARSE_ERROR_OK:
             dump_head(msg.getReplyAction());
-            call_dump(msg, nullptr);
+            call_dump(msg);
             return 0;
         case MNG_PARSE_ERROR_SIG:
             dump_sig();
@@ -154,30 +154,7 @@ static bool run_line(char *line)
     mng_vals_e id;
     if(!msg.findMngID(cur, id, false))
         return false;
-    BaseMngTlv *data;
-    if(action == GET || msg.isEmpty(id)) {
-        // No data is needed
-        if(!msg.setAction(action, id))
-            return false;
-        data = nullptr;
-    } else {
-        data = call_data(msg, id, save);
-        // No point to send without data
-        if(data == nullptr)
-            return false;
-        if(!msg.setAction(action, id, data))
-            return false;
-    }
-    if(!sendAction())
-        return false;
-    // Finish with data, free it
-    DUMPS("sending: %s %s\n", msg.act2str_c(msg.getSendAction()),
-        msg.mng2str_c(id));
-    if(data != nullptr) {
-        msg.clearData();
-        delete data;
-    }
-    return true;
+    return call_data(msg, action, id, save);
 }
 void help(const std::string &app, const char *hmsg)
 {

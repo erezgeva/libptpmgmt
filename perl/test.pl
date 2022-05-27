@@ -13,6 +13,38 @@ BEGIN { push @INC, '.' }
 
 use PtpMgmtLib;
 
+package myDisp;
+@ISA = qw ( PtpMgmtLib::MessageDispatcher );
+sub PRIORITY1_h
+{
+  my ($self, $msg, $tlv, $tlv_id) = @_;
+  print "Get reply for $tlv_id\n" .
+        "priority1: " . $tlv->swig_priority1_get() . "\n";
+}
+sub USER_DESCRIPTION_h
+{
+  my ($self, $msg, $tlv, $tlv_id) = @_;
+  print "Get reply for $tlv_id\n";
+  print "get user desc: " .
+        $tlv->swig_userDescription_get()->swig_textField_get() . "\n";
+}
+
+package myBuild;
+@ISA = qw ( PtpMgmtLib::MessageBulder );
+sub setPr
+{
+    my ($self, $pr) = @_;
+    $self->{pr} = $pr;
+}
+sub PRIORITY1_b
+{
+  my ($self, $msg, $tlv) = @_;
+  $tlv->swig_priority1_set($self->{pr});
+  1;
+}
+
+package main;
+
 use constant DEF_CFG_FILE => '/etc/linuxptp/ptp4l.conf';
 
 my $sk = PtpMgmtLib::SockUnix->new;
@@ -20,6 +52,8 @@ die "Fail socket" unless defined $sk;
 my $msg = PtpMgmtLib::Message->new;
 my $buf = PtpMgmtLib::Buf->new(1000);
 my $opt = PtpMgmtLib::Options->new;
+my $dispacher = myDisp->new($msg, 0);
+my $builder = myBuild->new($msg);
 my $sequence = 0;
 
 sub nextSequence
@@ -31,16 +65,14 @@ sub nextSequence
 
 sub setPriority1
 {
-  my ($newPriority1) = @_;
-  my $pr1 = PtpMgmtLib::PRIORITY1_t->new;
-  $pr1->swig_priority1_set($newPriority1);
+  my $newPriority1 = shift;
   my $id = $PtpMgmtLib::PRIORITY1;
-  $msg->setAction($PtpMgmtLib::SET, $id, $pr1);
+  $builder->setPr($newPriority1);
+  $builder->buildTlv($PtpMgmtLib::SET, $id);
   my $seq = nextSequence;
   my $err = $msg->build($buf, $seq);
   my $txt = PtpMgmtLib::Message::err2str_c($err);
   die "build error $txt\n" if $err != $PtpMgmtLib::MNG_PARSE_ERROR_OK;
-
   die "send" unless $sk->send($buf, $msg->getMsgLen());
 
   unless($sk->poll(500)) {
@@ -81,21 +113,13 @@ sub setPriority1
     return -1;
   }
   $err = $msg->parse($buf, $cnt);
-
   if($err == $PtpMgmtLib::MNG_PARSE_ERROR_MSG) {
     print "error message\n";
   } elsif($err != $PtpMgmtLib::MNG_PARSE_ERROR_OK) {
     $txt = PtpMgmtLib::Message::err2str_c($err);
     print "Parse error $txt\n";
   } else {
-    my $rid = $msg->getTlvId();
-    my $idstr = PtpMgmtLib::Message::mng2str_c($rid);
-    print "Get reply for $idstr\n";
-    if($rid == $id) {
-      my $newPr = PtpMgmtLib::conv_PRIORITY1($msg->getData());
-      print "priority1: " . $newPr->swig_priority1_get() . "\n";
-      return 0;
-    }
+    $dispacher->callHadler;
   }
   -1;
 }
@@ -154,14 +178,7 @@ sub main
     $txt = PtpMgmtLib::Message::err2str_c($err);
     print "Parse error $txt\n";
   } else {
-    my $rid = $msg->getTlvId();
-    my $idstr = PtpMgmtLib::Message::mng2str_c($rid);
-    print "Get reply for $idstr\n";
-    if($rid == $id) {
-      my $user = PtpMgmtLib::conv_USER_DESCRIPTION($msg->getData());
-      print "get user desc: " .
-        $user->swig_userDescription_get()->swig_textField_get() . "\n";
-    }
+    $dispacher->callHadler;
   }
 
   # test setting values

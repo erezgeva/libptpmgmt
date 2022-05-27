@@ -31,6 +31,7 @@ namespace ptpmgmt
 class ConfigFile;
 
 /**< @cond internal */
+#ifndef SWIG
 class ConfigSection
 {
   protected:
@@ -78,6 +79,7 @@ class ConfigSection
   public:
     ConfigSection() : m_set{0} {} /* Must be public for map usage */
 };
+#endif /* SWIG */
 /**< @endcond */
 
 /**

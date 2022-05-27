@@ -494,9 +494,9 @@ struct SUBSCRIBE_EVENTS_NP_t : public BaseMngTlv {
         memset(bitmask, 0, EVENT_BITMASK_CNT);
     }
     /** Get bit value in bitmask */
-    bool getEvent(int event) {
+    bool getEvent(int event) const {
         if(event >= 0 && event < EVENT_BITMASK_CNT)
-            return (byteEvent(event) & maskEvent(event)) > 0;
+            return (bitmask[event / 8] & maskEvent(event)) > 0;
         return false;
     }
     /** Get event byte in bitmask */

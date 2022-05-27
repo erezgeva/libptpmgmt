@@ -2,11 +2,10 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief messages dispatcher class
+ * @brief messages dispatcher and builder classes
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2021 Erez Geva
- *
+ * @copyright 2022 Erez Geva
  */
 
 #include "msgCall.h"
@@ -23,11 +22,7 @@ MessageDispatcher::MessageDispatcher(const Message &msg, bool _callHadler)
 }
 void MessageDispatcher::callHadler(const Message &msg, bool _callHadler)
 {
-    m_tlv_id = msg.getTlvId();
-    m_tlv = msg.getData();
-    m_msg = &msg;
-    if(_callHadler)
-        callHadler();
+    callHadler(msg, msg.getTlvId(), msg.getData(), _callHadler);
 }
 void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
     const BaseMngTlv *tlv, bool _callHadler)
@@ -40,8 +35,10 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
 }
 void MessageDispatcher::callHadler() const
 {
+    if(m_msg == nullptr)
+        return;
     if(m_tlv == nullptr) {
-        noTlv();
+        noTlv(*m_msg);
         return;
     }
 #define _ptpmCaseUF(n) case n:\
@@ -51,7 +48,7 @@ void MessageDispatcher::callHadler() const
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
-            noTlv();
+            noTlv(*m_msg);
             break;
     }
 }

@@ -17,6 +17,7 @@
 #include <poll.h>
 #include "init.h"
 #include "msg.h"
+#include "msgCall.h"
 
 using namespace ptpmgmt;
 
@@ -32,9 +33,11 @@ static const char toksep[] = " \t\n\r"; /* while spaces */
 /**
  * Dump message management TLV
  * @param[in] msg object
+ * @param[in] id optional TLV ID to dump
  * @param[in] data optional TLV to dump
  */
-void call_dump(Message &msg, BaseMngTlv *data);
+void call_dump(Message &msg, mng_vals_e id = NULL_PTP_MANAGEMENT,
+    BaseMngTlv *data = nullptr);
 /**
  * Dump a signaling message TLV
  * @param[in] msg object
@@ -46,10 +49,16 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, const BaseSigTlv *tlv);
 /**
  * Build a message management TLV
  * @param[in] msg object
+ * @param[in] action management TLV action
  * @param[in] id management TLV ID
  * @param[in] save pointer to last strtok_r call
- * @return always false, as true will stop the travers
+ * @return true on success
  */
-BaseMngTlv *call_data(Message &msg, mng_vals_e id, char *save);
+bool call_data(Message &msg, actionField_e action, mng_vals_e id, char *save);
+/**
+ * Send current management TLV
+ * @return true on success
+ */
+bool sendAction();
 
 #endif /* __PTPMGMT_PMC_TOOL_H */

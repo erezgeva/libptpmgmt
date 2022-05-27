@@ -452,10 +452,11 @@ endif ## ! swig 3.0.12
 endif # ! swig 4.0
 endif # ! swig 4.1
 %/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
-	$(Q_SWIG)$(SWIG) -c++ -I. -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
+	$(Q_SWIG)$(SWIG) -c++ -I. -I$(@D) -outdir $(@D) $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
 SWIG_DEP=$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
+  $(foreach n,$(wildcard $(@D)/*.i),-e '1 a\ $n \\')\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
