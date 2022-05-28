@@ -13,42 +13,29 @@
 namespace ptpmgmt
 {
 
-MessageDispatcher::MessageDispatcher() : m_msg(nullptr), m_tlv(nullptr)
+MessageDispatcher::MessageDispatcher(const Message &msg)
 {
+    callHadler(msg);
 }
-MessageDispatcher::MessageDispatcher(const Message &msg, bool _callHadler)
+void MessageDispatcher::callHadler(const Message &msg)
 {
-    callHadler(msg, _callHadler);
-}
-void MessageDispatcher::callHadler(const Message &msg, bool _callHadler)
-{
-    callHadler(msg, msg.getTlvId(), msg.getData(), _callHadler);
+    callHadler(msg, msg.getTlvId(), msg.getData());
 }
 void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
-    const BaseMngTlv *tlv, bool _callHadler)
+    const BaseMngTlv *tlv)
 {
-    m_tlv_id = tlv_id;
-    m_tlv = tlv;
-    m_msg = &msg;
-    if(_callHadler)
-        callHadler();
-}
-void MessageDispatcher::callHadler() const
-{
-    if(m_msg == nullptr)
-        return;
-    if(m_tlv == nullptr) {
-        noTlv(*m_msg);
+    if(tlv == nullptr) {
+        noTlv(msg);
         return;
     }
 #define _ptpmCaseUF(n) case n:\
-        n##_h(*m_msg, *dynamic_cast<const n##_t*>(m_tlv));\
+        n##_h(msg, *dynamic_cast<const n##_t*>(tlv));\
         break;
-    switch(m_tlv_id) {
+    switch(tlv_id) {
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
-            noTlv(*m_msg);
+            noTlv(msg);
             break;
     }
 }

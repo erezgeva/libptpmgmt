@@ -52,7 +52,7 @@ die "Fail socket" unless defined $sk;
 my $msg = PtpMgmtLib::Message->new;
 my $buf = PtpMgmtLib::Buf->new(1000);
 my $opt = PtpMgmtLib::Options->new;
-my $dispacher = myDisp->new($msg, 0);
+my $dispacher = myDisp->new();
 my $builder = myBuild->new($msg);
 my $sequence = 0;
 
@@ -119,7 +119,7 @@ sub setPriority1
     $txt = PtpMgmtLib::Message::err2str_c($err);
     print "Parse error $txt\n";
   } else {
-    $dispacher->callHadler;
+    $dispacher->callHadler($msg);
   }
   -1;
 }
@@ -178,7 +178,7 @@ sub main
     $txt = PtpMgmtLib::Message::err2str_c($err);
     print "Parse error $txt\n";
   } else {
-    $dispacher->callHadler;
+    $dispacher->callHadler($msg);
   }
 
   # test setting values

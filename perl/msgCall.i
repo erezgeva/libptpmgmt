@@ -18,53 +18,35 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 %OWNER = ();
 %ITERATORS = ();
 sub callHadler {
-    my ($self, $m_msg, $b, $c, $d) = @_;
-    if (defined $m_msg) {
-        my $callHadler;
-        die "you must use Message object with $self->callHadler"
-            if ref $m_msg ne 'PtpMgmtLib::Message';
-        $self->{m_msg} = $m_msg;
-        if(ref $c eq 'PtpMgmtLib::BaseMngTlv') {
-            die "You must provide TLV ID" unless defined $b;
-            $self->{m_tlv_id} = $b;
-            $self->{m_tlv} = $c;
-            $callHadler = $d;
-        } else {
-            $self->{m_tlv_id} = $m_msg->getTlvId();
-            $self->{m_tlv} = $m_msg->getData();
-            $callHadler = $b;
-        }
-        # Default is true
-        return if defined $callHadler and not $callHadler;
+    my ($self, $msg, $tlv_id, $btlv) = @_;
+    die "you must use Message object with $self->callHadler"
+        unless defined $msg and ref $msg eq 'PtpMgmtLib::Message';
+    if(ref $btlv eq 'PtpMgmtLib::BaseMngTlv') {
+        die "You must provide TLV ID" unless defined $tlv_id;
     } else {
-        $m_msg = $self->{m_msg};
-        # We need to read last value
-        $self->{m_tlv_id} = $m_msg->getTlvId();
-        $self->{m_tlv} = $m_msg->getData();
+        $tlv_id = $msg->getTlvId();
+        $btlv = $msg->getData();
     }
-    if(ref $m_msg ne 'PtpMgmtLib::Message') {
-        warn "call $self->callHadler without setting Message object";
-        return;
-    }
-    my $m_tlv = $self->{m_tlv};
-    if (ref $m_tlv eq 'PtpMgmtLib::BaseMngTlv') {
-        my $idstr = PtpMgmtLib::Message::mng2str_c($self->{m_tlv_id});
+    # Default is true
+
+    if (ref $btlv eq 'PtpMgmtLib::BaseMngTlv') {
+        my $idstr = PtpMgmtLib::Message::mng2str_c($tlv_id);
         my $tlv;
         my $callback_name="${idstr}_h";
         if ($self->can($callback_name) and
-            eval "\$tlv = PtpMgmtLib::conv_$idstr(\$m_tlv)" and defined $tlv) {
-            $self->$callback_name($m_msg, $tlv, $idstr);
+            eval "\$tlv = PtpMgmtLib::conv_$idstr(\$btlv)" and defined $tlv) {
+            $self->$callback_name($msg, $tlv, $idstr);
             return;
         }
     }
-    $self->noTlv($m_msg) if $self->can (noTlv);
+    $self->noTlv($msg) if $self->can (noTlv);
 }
 sub new {
-    my ($pkg, $m_msg, $callHadler) = @_;
+    my ($pkg, $msg) = @_;
     die "you must initialize $pkg with Message object"
-        if defined $m_msg and ref $m_msg ne 'PtpMgmtLib::Message';
+        if defined $msg and ref $msg ne 'PtpMgmtLib::Message';
     my $self = bless {}, $pkg;
-    $self->callHadler($m_msg, $callHadler);
+    $self->callHadler($msg) if defined $msg;
     $self;
 }
 
@@ -101,9 +83,8 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 sub buildTlv {
     my ($self, $actionField, $tlv_id) = @_;
     $m_msg = $self->{m_msg};
-    delete $self->{m_tlv};
     if($actionField == $PtpMgmtLib::GET or PtpMgmtLib::Message::isEmpty($tlv_id)) {
-        return $m_msg->setAction($actionField, $tlv_id)
+        return $m_msg->setAction($actionField, $tlv_id);
     }
     my $idstr = PtpMgmtLib::Message::mng2str_c($tlv_id);
     my $tlv_pkg="PtpMgmtLib::${idstr}_t";
@@ -112,24 +93,15 @@ sub buildTlv {
     my $callback_name="${idstr}_b";
     if ($cnt > 0 and $self->can($callback_name)) {
          my $tlv;
-         eval "\$tlv = ${tlv_pkg}\->new;";
-         if (ref $tlv eq $tlv_pkg) {
+         eval "\$tlv = ${tlv_pkg}\->new";
+         if (ref $tlv eq $tlv_pkg and
+             $self->$callback_name($m_msg, $tlv) and
+             $m_msg->setAction($actionField, $tlv_id, $tlv)) {
              $self->{m_tlv} = $tlv;
-             $self->{m_tlv_id} = $tlv_id;
-             $self->{m_tlv_pkg} = $tlv_pkg;
-             return $m_msg->setAction($actionField, $tlv_id, $tlv)
-                if $self->$callback_name($m_msg, $tlv);
+             return 1; # true
          }
     }
-    0; # Fail
-}
-# Return
-#   TLV object
-#   TLV ID
-#   TLV Perl package name
-sub getTlv {
-    my $self = shift;
-    ($self->{m_tlv}, $self->{m_tlv_id}, $self->{m_tlv_pkg});
+    0; # false
 }
 sub new {
     my ($pkg, $m_msg) = @_;
@@ -144,7 +116,6 @@ sub DESTROY {
     return unless $_[0]->isa('HASH');
     my $self = tied(%{$_[0]});
     return unless defined $self;
-    delete $self->{m_tlv}; # Delete created TLV, if exist
     delete $ITERATORS{$self};
     if (exists $OWNER{$self}) {
         delete $OWNER{$self};

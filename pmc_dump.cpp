@@ -14,7 +14,7 @@
 class MsgDump : public MessageDispatcher
 {
   public:
-    MsgDump(const Message &msg) : MessageDispatcher(msg, false) {}
+    MsgDump() {}
 
 #define IDENT "\n\t\t"
 #define dump(n) void n##_h(const Message &m, const n##_t &d) const
@@ -538,9 +538,9 @@ class MsgDump : public MessageDispatcher
 }; // class MsgDump
 void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *data)
 {
-    MsgDump d(msg);
+    MsgDump d;
     if(data == nullptr)
-        d.callHadler();
+        d.callHadler(msg);
     else
         d.callHadler(msg, id, data);
     DUMPNL;
@@ -970,21 +970,12 @@ class MsgBuild : public MessageBulder
         d.flags = keys["pathTraceDS"].num;
         build_end;
     }
-    build(GRANDMASTER_CLUSTER_TABLE) {
-        // TODO handle table input
-        d = d;
-        return false;
-    }
-    build(UNICAST_MASTER_TABLE) {
-        // TODO handle table input
-        d = d;
-        return false;
-    }
-    build(ACCEPTABLE_MASTER_TABLE) {
-        // TODO handle table input
-        d = d;
-        return false;
-    }
+    /*
+    TODO handle table input
+    build(GRANDMASTER_CLUSTER_TABLE)
+    build(UNICAST_MASTER_TABLE)
+    build(ACCEPTABLE_MASTER_TABLE)
+    */
     build(ACCEPTABLE_MASTER_TABLE_ENABLED) {
         defKeys;
         keys["acceptableMasterPortDS"].flag = true ;

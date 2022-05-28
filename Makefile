@@ -659,6 +659,7 @@ $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$Q$(call LLC,$(CPPFLAGS_PHP) $(PHP_INC))
 	$(call D_INC,PHP_INC_BASE)
 	$(SWIG_DEP)
+	for n in $(@D)/*.i; do $(SED) '0,/ CODE START HERE$$/d' $$n >> $*.php; done
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so

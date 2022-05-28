@@ -12,11 +12,31 @@
 
 require("ptpmgmt.php");
 
+class myDisp extends MessageDispatcher {
+    function PRIORITY1_h($msg, $tlv, $tlv_id) {
+        echo "Get reply for $tlv_id\n";
+        echo "priority1: " . $tlv->priority1 . "\n";
+    }
+    function USER_DESCRIPTION_h($msg, $tlv, $tlv_id) {
+        echo "Get reply for $tlv_id\n";
+        echo "get user desc: " . $tlv->userDescription->textField . "\n";
+    }
+}
+class myBuild extends MessageBulder {
+    public int $pr;
+    function PRIORITY1_b($msg, $tlv) {
+        $tlv->priority1 = $this->pr;
+        return true;
+    }
+}
+
 const DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf";
 $sk = new SockUnix();
 $msg = new Message();
 $buf = new Buf(1000);
 $opt = new Options();
+$dispacher = new myDisp();
+$builder = new myBuild($msg);
 $sequence = 0;
 
 function nextSequence()
@@ -30,11 +50,10 @@ function nextSequence()
 
 function setPriority1($newPriority1)
 {
-  global $sk, $msg, $buf;
-  $pr1 = new PRIORITY1_t();
-  $pr1->priority1 = $newPriority1;
+  global $sk, $msg, $buf, $dispacher, $builder;
   $id = ptpmgmt::PRIORITY1;
-  $msg->setAction(ptpmgmt::SET, $id, $pr1);
+  $builder->pr = $newPriority1;
+  $builder->buildTlv(ptpmgmt::SET, $id);
   $seq = nextSequence();
   $err = $msg->build($buf, $seq);
   if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
@@ -88,21 +107,14 @@ function setPriority1($newPriority1)
     $txt = Message::err2str_c($err);
     echo "parse error $txt\n";
   } else {
-    $rid = $msg->getTlvId();
-    $idstr = Message::mng2str_c($rid);
-    echo "Get reply for $idstr\n";
-    if($rid == $id) {
-      $newPr = ptpmgmt::conv_PRIORITY1($msg->getData());
-      echo "priority1: " . $newPr->priority1 . "\n";
-      return 0;
-    }
+    $dispacher->callHadler($msg);
   }
   return -1;
 }
 
 function main($cfg_file)
 {
-  global $sk, $msg, $buf;
+  global $sk, $msg, $buf, $dispacher;
   if(!$buf->isAlloc()) {
     echo "buffer allocation failed\n";
     return -1;
@@ -153,13 +165,7 @@ function main($cfg_file)
     $txt = Message::err2str_c($err);
     echo "parse error $txt\n";
   } else {
-    $rid = $msg->getTlvId();
-    $idstr = Message::mng2str_c($rid);
-    echo "Get reply for $idstr\n";
-    if($rid == $id) {
-      $user = ptpmgmt::conv_USER_DESCRIPTION($msg->getData());
-      echo "get user desc: " . $user->userDescription->textField . "\n";
-    }
+    $dispacher->callHadler($msg);
   }
 
   # test setting values;

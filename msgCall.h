@@ -58,41 +58,29 @@ class BaseMngBuildCallback
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
-  private:
-    mng_vals_e m_tlv_id;
-    const Message *m_msg;
-    const BaseMngTlv *m_tlv;
-
   protected:
-    MessageDispatcher();
+    MessageDispatcher() {}
     /**
      * Construct a dispatcher based on message last received message
      * @param[in] msg Message object
-     * @param[in] callHadler call handler
      */
-    MessageDispatcher(const Message &msg, bool callHadler = true);
+    MessageDispatcher(const Message &msg);
+
+  public:
     /**
      * Call handler based on Message last received message
      * @param[in] msg Message object
-     * @param[in] callHadler call handler
      */
-
-  public:
-    void callHadler(const Message &msg, bool callHadler = true);
+    void callHadler(const Message &msg);
     /**
      * Call handler based on supplied TLV
      * @param[in] msg Message object
      * @param[in] tlv_id TLV ID
      * @param[in] tlv pointer to a TLV of TLV ID
-     * @param[in] callHadler call handler
      * @note caller @b MUST @/b ensure the TLV is of TLV ID!
      */
     void callHadler(const Message &msg, mng_vals_e tlv_id,
-        const BaseMngTlv *tlv, bool callHadler = true);
-    /**
-     * Call handler based on current Message last received message
-     */
-    void callHadler() const;
+        const BaseMngTlv *tlv);
     /**
      * Handler called if there is no TLV data
      * It could be an empty TLV or not set
