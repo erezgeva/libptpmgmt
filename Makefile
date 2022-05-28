@@ -456,7 +456,7 @@ endif # ! swig 4.1
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
 SWIG_DEP=$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
-  $(foreach n,$(wildcard $(@D)/*.i),-e '1 a\ $n \\')\
+  $(foreach n,$(wildcard $(<D)/*.i),-e '1 a\ $n \\')\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
@@ -471,7 +471,7 @@ PERL_INC:=$(call rep_arch_f,$(PERL_INC))
 PERLDIR:=$(call rep_arch_f,$(PERLDIR))
 endif
 PERL_NAME:=perl/$(SWIG_NAME)
-perl_SFLAGS+=-Wall -perl5
+perl_SFLAGS+=-Wall -perl5 -DUSE_MSG_CALL
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$Q$(call LLC,-I$(PERL_INC))
 	$(call D_INC,PERL_INC)
@@ -577,7 +577,7 @@ ifdef USE_PY
 PY_BASE:=python/$(SWIG_NAME)
 PY_LIB_NAME:=_ptpmgmt
 PY_LIBDIR?=/usr/lib/python
-python_SFLAGS:=-Wall -python
+python_SFLAGS+=-Wall -python -DUSE_MSG_CALL
 ifeq ($(PY_USE_S_THRD),)
 python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
 endif

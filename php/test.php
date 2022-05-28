@@ -52,8 +52,14 @@ function setPriority1($newPriority1)
 {
   global $sk, $msg, $buf, $dispacher, $builder;
   $id = ptpmgmt::PRIORITY1;
-  $builder->pr = $newPriority1;
-  $builder->buildTlv(ptpmgmt::SET, $id);
+  if (false) {
+    $pr1 = new PRIORITY1_t();
+    $pr1->priority1 = $newPriority1;
+    $msg->setAction(ptpmgmt::SET, $id, $pr1);
+  } else {
+    $builder->pr = $newPriority1;
+    $builder->buildTlv(ptpmgmt::SET, $id);
+  }
   $seq = nextSequence();
   $err = $msg->build($buf, $seq);
   if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
@@ -108,6 +114,7 @@ function setPriority1($newPriority1)
     echo "parse error $txt\n";
   } else {
     $dispacher->callHadler($msg);
+    return 0;
   }
   return -1;
 }

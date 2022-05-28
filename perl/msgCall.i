@@ -27,8 +27,6 @@ sub callHadler {
         $tlv_id = $msg->getTlvId();
         $btlv = $msg->getData();
     }
-    # Default is true
-
     if (ref $btlv eq 'PtpMgmtLib::BaseMngTlv') {
         my $idstr = PtpMgmtLib::Message::mng2str_c($tlv_id);
         my $tlv;

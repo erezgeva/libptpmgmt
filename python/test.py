@@ -15,11 +15,26 @@ import ptpmgmt
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 
+class myDisp(ptpmgmt.MessageDispatcher):
+  def PRIORITY1_h(self, msg, tlv, tlv_id):
+    print("Get reply for %s" % tlv_id)
+    print("priority1: %d" % tlv.priority1)
+  def USER_DESCRIPTION_h(self, msg, tlv, tlv_id):
+    print("Get reply for %s" % tlv_id)
+    print("get user desc: %s" % tlv.userDescription.textField)
+class myBuild(ptpmgmt.MessageBulder):
+  pr : int
+  def PRIORITY1_b(self, msg, tlv):
+    tlv.priority1 = self.pr
+    return True
+
 sk = ptpmgmt.SockUnix()
 msg = ptpmgmt.Message()
 buf = ptpmgmt.Buf(1000)
 cfg = ptpmgmt.ConfigFile()
 opt = ptpmgmt.Options()
+dispacher = myDisp()
+builder = myBuild(msg)
 sequence = 0
 
 def nextSequence():
@@ -30,11 +45,15 @@ def nextSequence():
   return sequence
 
 def setPriority1(newPriority1):
-  global sk, msg, buf
-  pr1 = ptpmgmt.PRIORITY1_t()
-  pr1.priority1 = newPriority1
+  global sk, msg, buf, dispacher, builder
   id = ptpmgmt.PRIORITY1
-  msg.setAction(ptpmgmt.SET, id, pr1)
+  if False:
+    pr1 = ptpmgmt.PRIORITY1_t()
+    pr1.priority1 = newPriority1
+    msg.setAction(ptpmgmt.SET, id, pr1)
+  else:
+    builder.pr = newPriority1
+    builder.buildTlv(ptpmgmt.SET, id)
   seq = nextSequence()
   err = msg.build(buf, seq)
   if err != ptpmgmt.MNG_PARSE_ERROR_OK:
@@ -79,17 +98,12 @@ def setPriority1(newPriority1):
     txt = ptpmgmt.Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
-    rid = msg.getTlvId()
-    idstr = ptpmgmt.Message.mng2str_c(rid)
-    print("Get reply for %s" % idstr)
-    if rid == id:
-      newPr = ptpmgmt.conv_PRIORITY1(msg.getData())
-      print("priority1: %d" % newPr.priority1)
-      return 0
+    dispacher.callHadler(msg)
+    return 0
   return -1
 
 def main():
-  global sk, msg, buf
+  global sk, msg, buf, dispacher
   if not buf.isAlloc():
     print("buffer allocation failed")
     return -1
@@ -151,12 +165,7 @@ def main():
     txt = ptpmgmt.Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
-    rid = msg.getTlvId()
-    idstr = ptpmgmt.Message.mng2str_c(rid)
-    print("Get reply for %s" % idstr)
-    if rid == id:
-      user = ptpmgmt.conv_USER_DESCRIPTION(msg.getData())
-      print("get user desc: %s" % user.userDescription.textField)
+    dispacher.callHadler(msg)
 
   # test setting values
   clk_dec = ptpmgmt.CLOCK_DESCRIPTION_t()

@@ -8,13 +8,13 @@
  * @copyright 2022 Erez Geva
  */
 // CODE START HERE
-class MessageDispatcher {
-	function callHadler(Message $msg, ?BaseMngTlv $tlv_id = null, int $tlv = -1) {
-		if(is_null($tlv_id)) {
+abstract class MessageDispatcher {
+	function callHadler(Message $msg, int $tlv_id = -1, ?BaseMngTlv $tlv = null) {
+		if(is_null($tlv)) {
 			$tlv_id = $msg->getTlvId();
 			$tlv = $msg->getData();
 		}
-		if(!is_null($tlv_id)) {
+		if(!is_null($tlv)) {
 			$idstr = Message::mng2str_c($tlv_id);
 			$callback_name=$idstr . '_h';
 			if(method_exists($this, $callback_name) and
@@ -34,7 +34,7 @@ class MessageDispatcher {
 	}
 }
 
-class MessageBulder {
+abstract class MessageBulder {
 	private Message $m_msg;
 	private $m_tlv=null;
 	function buildTlv(int $actionField, int $tlv_id) {

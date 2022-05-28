@@ -31,11 +31,6 @@ sub USER_DESCRIPTION_h
 
 package myBuild;
 @ISA = qw ( PtpMgmtLib::MessageBulder );
-sub setPr
-{
-    my ($self, $pr) = @_;
-    $self->{pr} = $pr;
-}
 sub PRIORITY1_b
 {
   my ($self, $msg, $tlv) = @_;
@@ -67,8 +62,15 @@ sub setPriority1
 {
   my $newPriority1 = shift;
   my $id = $PtpMgmtLib::PRIORITY1;
-  $builder->setPr($newPriority1);
-  $builder->buildTlv($PtpMgmtLib::SET, $id);
+  my $pr1;
+  if (0) {
+    $pr1 = PtpMgmtLib::PRIORITY1_t->new;
+    $pr1->swig_priority1_set($newPriority1);
+    $msg->setAction($PtpMgmtLib::SET, $id, $pr1);
+  } else {
+    $builder->{pr} = $newPriority1;
+    $builder->buildTlv($PtpMgmtLib::SET, $id);
+  }
   my $seq = nextSequence;
   my $err = $msg->build($buf, $seq);
   my $txt = PtpMgmtLib::Message::err2str_c($err);
@@ -120,6 +122,7 @@ sub setPriority1
     print "Parse error $txt\n";
   } else {
     $dispacher->callHadler($msg);
+    return 0;
   }
   -1;
 }

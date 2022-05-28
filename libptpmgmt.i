@@ -134,9 +134,6 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "ver.h"
 %include "opt.h"
 %include "init.h"
-#if defined SWIGPERL
-%include "msgCall.i"
-#endif
 /* Handle management vectors inside structures
  * See documenting of XXXX_v classes in mngIds.h and
  *  Doxygen generated documents
@@ -179,3 +176,6 @@ _ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
 _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
+#ifdef USE_MSG_CALL
+%include "msgCall.i"
+#endif
