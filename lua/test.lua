@@ -12,12 +12,43 @@ require 'ptpmgmt'
 require 'posix'
 local unistd = require 'posix.unistd'
 
+myDisp = {} -- inherite from ptpmgmt.MessageDispatcher
+function myDisp:new(msg)
+  local obj = ptpmgmt.MessageDispatcher:new(msg)
+  setmetatable(self, {__index = ptpmgmt.MessageDispatcher})
+  setmetatable(obj, self)
+  self.__index = self
+  return obj
+end
+function myDisp:PRIORITY1_h(msg, tlv, tlv_id)
+  print("Get reply for " .. tlv_id)
+  print(string.format("priority1: %d", tlv.priority1))
+end
+function myDisp:USER_DESCRIPTION_h(msg, tlv, tlv_id)
+  print("Get reply for " .. tlv_id)
+  print("get user desc: " .. tlv.userDescription.textField)
+end
+myBuild = {} -- Inherite from ptpmgmt.MessageBulder
+function myBuild:new(msg)
+  local obj = ptpmgmt.MessageBulder:new(msg)
+  setmetatable(self, {__index = ptpmgmt.MessageBulder})
+  setmetatable(obj, self)
+  self.__index = self
+  return obj
+end
+function myBuild:PRIORITY1_b(msg, tlv)
+  tlv.priority1 = self.pr
+  return true
+end
+
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 
 sk = ptpmgmt.SockUnix()
 msg = ptpmgmt.Message()
 buf = ptpmgmt.Buf(1000)
 opt = ptpmgmt.Options()
+dispacher = myDisp:new()
+builder = myBuild:new(msg)
 sequence = 0
 
 function nextSequence()
@@ -31,10 +62,15 @@ end
 
 function setPriority1(newPriority1)
   local txt
-  local pr1 = ptpmgmt.PRIORITY1_t()
-  pr1.priority1 = newPriority1
   local id = ptpmgmt.PRIORITY1
-  msg:setAction(ptpmgmt.SET, id, pr1)
+  if(false) then
+    local pr1 = ptpmgmt.PRIORITY1_t()
+    pr1.priority1 = newPriority1
+    msg:setAction(ptpmgmt.SET, id, pr1)
+  else
+    builder.pr = newPriority1
+    builder:buildtlv(ptpmgmt.SET, id)
+  end
   local seq = nextSequence()
   local err = msg:build(buf, seq)
   if(err ~= ptpmgmt.MNG_PARSE_ERROR_OK) then
@@ -88,14 +124,8 @@ function setPriority1(newPriority1)
     txt = ptpmgmt.Message.err2str_c(err)
     print("parse error ", txt)
   else
-    local rid = msg:getTlvId()
-    local idstr = ptpmgmt.Message.mng2str_c(rid)
-    print("Get reply for " .. idstr)
-    if(rid == id) then
-      local newPr = ptpmgmt.conv_PRIORITY1(msg:getData())
-      print(string.format("priority1: %d", newPr.priority1))
-      return 0
-    end
+    dispacher:callHadler(msg)
+    return 0
   end
   return -1
 end
@@ -168,13 +198,7 @@ function main()
     txt = ptpmgmt.Message.err2str_c(err)
     print("parse error ", txt)
   else
-    local rid = msg:getTlvId()
-    local idstr = ptpmgmt.Message.mng2str_c(rid)
-    print("Get reply for " .. idstr)
-    if(rid == id) then
-      local user = ptpmgmt.conv_USER_DESCRIPTION(msg:getData())
-      print("get user desc: " .. user.userDescription.textField)
-    end
+    dispacher:callHadler(msg)
   end
 
   -- test setting values
