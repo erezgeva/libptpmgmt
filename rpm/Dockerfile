@@ -7,6 +7,7 @@
 # Docker file for Fedora contianer for building and create rpm packages
 ###############################################################################
 FROM fedora
+MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 ARG UID
 ARG USER
 RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\

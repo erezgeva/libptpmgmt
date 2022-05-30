@@ -52,6 +52,11 @@
  * Users of a script language should look here
  *  for the specific ignores and renames.
  * Each ignored operator overlaod have an alternative function
+ * Warn codes defined in: swig/Source/Include/swigwarn.h
+ *   SWIGWARN_PARSE_KEYWORD          314
+ *   SWIGWARN_IGNORE_OPERATOR_PLUSEQ 365
+ *   SWIGWARN_LANG_IDENTIFIER        503
+ *   SWIGWARN_RUBY_WRONG_NAME        801
  ************************************************************************/
 /*****
  * Ruby
@@ -59,8 +64,8 @@
 #ifdef SWIGRUBY
 /* Ignore Wrong constant name.
  * Ruby capitalize first letter! */
-%warnfilter(801) clockType_e;
-%warnfilter(801) implementSpecific_e;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) clockType_e;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) implementSpecific_e;
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSEQ) Binary::operator+=;
@@ -70,9 +75,9 @@
  *********/
 #ifdef SWIGPHP
 /* PHP rename to c_empty */
-%warnfilter(314) Binary::empty;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Binary::empty;
 /* PHP rename to c_list */
-#define _ptpmList(n) %warnfilter(314) n::list;
+#define _ptpmList(n) %warnfilter(SWIGWARN_PARSE_KEYWORD) n::list;
 _ptpmList(ACCEPTABLE_MASTER_TABLE_t)
 _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 _ptpmList(SLAVE_RX_SYNC_COMPUTED_DATA_t)
@@ -80,11 +85,11 @@ _ptpmList(SLAVE_TX_EVENT_TIMESTAMPS_t)
 _ptpmList(SLAVE_DELAY_TIMING_DATA_NP_t)
 _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 /* PHP rename c_interface */
-%warnfilter(314) PORT_PROPERTIES_NP_t::interface;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) PORT_PROPERTIES_NP_t::interface;
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator+=;
-#define SWIG_OPERS_503
+#define SWIG_OPERS_LANG_IDENTIFIER
 #endif /* SWIGPHP */
 /*****
  * Tcl
@@ -93,12 +98,12 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSEQ) Binary::operator+=;
-#define SWIG_OPERS_503
+#define SWIG_OPERS_LANG_IDENTIFIER
 #endif /* SWIGTCL */
 /*****
  * PHP and Tcl ignore operators overload
  *********/
-#ifdef SWIG_OPERS_503
+#ifdef SWIG_OPERS_LANG_IDENTIFIER
 /* Operator overload ignored.
  * Scripts can use Buf::get() */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Buf::operator();
@@ -114,7 +119,7 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) ClockIdentity_t::operator<;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) PortIdentity_t::operator<;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) PortAddress_t::operator<;
-#endif /* SWIG_OPERS_503 */
+#endif /* SWIG_OPERS_LANG_IDENTIFIER */
 
 /* Mark base sockets as non-abstract classes */
 %feature("notabstract") SockBase;

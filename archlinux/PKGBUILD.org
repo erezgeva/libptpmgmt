@@ -11,7 +11,7 @@ pkgver=0.8
 pkgrel=1
 pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
   libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt
-  python2-ptpmgmt python3-ptpmgmt pmc-ptpmgmt)
+  python3-ptpmgmt pmc-ptpmgmt)
 # Source code can be build on most architectures
 # But as Arch Linux does not support the 'all' keyword
 arch=(x86_64)
@@ -31,7 +31,7 @@ build() {
     NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
 }
 makedepends=(doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
-  python2 python3 json-c)
+  python3 json-c)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/$libdir
@@ -67,12 +67,6 @@ package_libptpmgmt-perl() {
   depends=("libptpmgmt=$verdep" perl)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/perl* $pkgdir/$libdir
-}
-package_python2-ptpmgmt() {
-  pkgdesc='PTP management library python version 2 wrapper'
-  depends=("libptpmgmt=$verdep" python2)
-  mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/python2* $pkgdir/$libdir
 }
 package_python3-ptpmgmt() {
   pkgdesc='PTP management library python version 3 wrapper'

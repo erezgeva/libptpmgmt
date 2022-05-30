@@ -7,6 +7,7 @@
 # Docker file for Arch Linux contianer for building and create packages
 ###############################################################################
 FROM archlinux
+MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 ARG UID
 ARG USER
 RUN patched_glibc=glibc-linux4-2.35-2-x86_64.pkg.tar.zst &&\

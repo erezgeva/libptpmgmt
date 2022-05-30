@@ -13,7 +13,6 @@ URL:            https://github.com/erezgeva/%{name}
 BuildRequires:  swig
 BuildRequires:  perl perl-devel perl-ExtUtils-Embed
 BuildRequires:  which
-BuildRequires:  python2 python2-devel
 BuildRequires:  python3 python3-devel
 BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
@@ -68,13 +67,6 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       perl
 %description    perl
 PTP management library Perl wrapper
-
-%package -n     python2-%{bname}
-summary:        PTP management library python version 2 wrapper
-Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       python2
-%description -n python2-%{bname}
-PTP management library python version 2 wrapper
 
 %package -n     python3-%{bname}
 Summary:        PTP management library python version 3 wrapper
@@ -157,10 +149,6 @@ make distclean
 %files perl
 %{_prefix}/local/lib*/perl*/*/PtpMgmtLib.pm
 %{_prefix}/local/lib*/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so
-
-%files -n python2-%{bname}
-%{_libdir}/python2*/*/_%{bname}*.so
-%{_libdir}/python2*/*/%{bname}.py*
 
 %files -n python3-%{bname}
 %{_libdir}/python3*/*/_%{bname}.cpython-*.so

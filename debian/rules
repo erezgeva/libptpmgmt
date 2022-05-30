@@ -59,9 +59,6 @@ override_dh_install:
 	$(Q)mv $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
 	$(Q)mv $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
 	$(Q)mv $(DSRC)sbin debian/pmc-ptpmgmt/usr
-ifneq ($(wildcard $(DSRC)lib/python2*),)
-	$(Q)mv $(DSRC)lib/python2* debian/python-ptpmgmt/usr/lib
-endif
 	$(Q)mv $(DSRC)lib/python3* debian/python3-ptpmgmt/usr/lib
 	$(Q)mv $(SLIBDIR)/lua* $(SLIBDIR)/liblua* debian/lua-ptpmgmt$(LIBDIR)
 	$(Q)mv $(SLIBDIR)/perl* debian/libptpmgmt-perl$(LIBDIR)

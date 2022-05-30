@@ -77,9 +77,6 @@ define help
 #   BUILD_ARCH       Build machine architectue, used for cross compilation.    #
 #                    On Amd and Intel 64 bits default is x86_64-linux-gnu      #
 #                                                                              #
-#   PY2_ARCH         Python version 2 architectue for shared library           #
-#                    Default is TARGET_ARCH                                    #
-#                                                                              #
 #   NO_COL           Prevent colour output.                                    #
 #                                                                              #
 #   USE_COL          Force colour when using pipe for tools like 'aha'.        #
@@ -438,6 +435,8 @@ CPPFLAGS_RUBY+=-Wno-sign-compare
 CPPFLAGS_RUBY+=-Wno-deprecated-declarations
 # label 'thrown' is not used
 CPPFLAGS_PHP+=-Wno-unused-label
+# 'result' may be used uninitialized
+CPPFLAGS_LUA+=-Wno-maybe-uninitialized
 ifeq ($(PY_USE_S_THRD),)
 # PyEval_InitThreads is deprecated
 CPPFLAGS_PY+=-Wno-deprecated-declarations
@@ -500,7 +499,7 @@ $$(LUA_LIB_$1)_LDLIBS:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)
 endif
 lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(MD) lua/$1
-	$$(call LLC,-I$$(LUA_INC_$1))
+	$$(call LLC,$$(CPPFLAGS_LUA) -I$$(LUA_INC_$1))
 	$$(call D_INC,LUA_INC_$1)
 	$$(SWIG_DEP)
 $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
@@ -531,7 +530,7 @@ $(LUA_LIB)_LDLIBS:=-Wl,-soname,$(LUA_FLIB)$(SONAME)
 endif
 LUA_LIB:=lua/$(LUA_LIB_NAME)
 lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(LLC)
+	$Q$(call LLC,$($(CPPFLAGS_LUA)))
 	$(call D_INC,LUA_VER)
 	$(SWIG_DEP)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
@@ -564,10 +563,6 @@ DISTCLEAN_DIRS+=python/$1
 
 endef
 
-ifneq ($(call which,python2-config),)
-USE_PY2:=1
-USE_PY:=1
-endif
 ifneq ($(call which,python3-config),)
 USE_PY3:=1
 USE_PY:=1
@@ -584,9 +579,6 @@ endif
 CLEAN+=$(PY_BASE).cpp
 DISTCLEAN+=python/ptpmgmt.py python/ptpmgmt.pyc
 DISTCLEAN_DIRS+=python/__pycache__
-ifdef USE_PY2
-$(eval $(call python,2))
-endif
 ifdef USE_PY3
 $(eval $(call python,3))
 PY3_EXT!=python3-config --extension-suffix
@@ -767,7 +759,7 @@ endif # and wildcard debian/rules, which dpkg-buildpackage
 
 SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
   php/*.sh) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) $(HEADERS_SRCS) $(SRCS)\
-  $(wildcard swig/*/*)
+  $(wildcard swig/*/*) $(wildcard */*.i)
 SRC_NAME:=libptpmgmt-$(LIB_VER)
 
 ####### RPM build #######
@@ -810,11 +802,6 @@ SBINDIR?=/usr/sbin
 LUADIR:=$(DESTDIR)$(LIBDIR)
 DOCDIR:=$(DESTDIR)/usr/share/doc/libptpmgmt-doc
 MANDIR:=$(DESTDIR)/usr/share/man/man8
-ifndef PY2_ARCH
-ifneq ($(TARGET_ARCH),)
-PY2_ARCH:=.$(TARGET_ARCH)
-endif
-endif # PY2_ARCH
 
 install:
 ifdef SONAME_USE_MAJ
@@ -855,11 +842,6 @@ ifdef LUA_VER
 	$(LN) ../../$(LUA_FLIB) $(LUADIR)/lua/$(LUA_VER)/$(LUA_LIB_NAME)
 endif # LUA_VER
 endif # NO_LUA
-ifdef USE_PY2
-	$(NINST) -D python/2/$(PY_LIB_NAME).so\
-	  $(PY2_DIR)/$(PY_LIB_NAME)$(PY2_ARCH).so
-	$(NINST) python/ptpmgmt.py $(PY2_DIR)
-endif
 ifdef USE_PY3
 	$(NINST) -D python/3/$(PY_LIB_NAME).so\
 	  $(PY3_DIR)/$(PY_LIB_NAME)$(PY3_EXT)
