@@ -1205,7 +1205,6 @@ bool call_data(Message &msg, actionField_e action, mng_vals_e id, char *save)
     if(ret)
         DUMPS("sending: %s %s\n", msg.act2str_c(msg.getSendAction()),
             msg.mng2str_c(id));
-    msg.clearData();
     return ret;
 }
 bool call_dumpSig(const Message &msg, tlvType_e tlvType, const BaseSigTlv *tlv)

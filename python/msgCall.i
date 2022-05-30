@@ -12,7 +12,7 @@
 class MessageDispatcher(object):
     def callHadler(self, msg : Message, tlv_id : int = -1 , tlv : BaseMngTlv = None):
         if msg is None:
-            raise AttributeError("%s::callHadler() You must use Message object" % self, self)
+            raise AttributeError("MessageDispatcher::callHadler() You must use Message object")
         if tlv is None:
             tlv_id=msg.getTlvId()
             tlv=msg.getData()
@@ -30,6 +30,8 @@ class MessageDispatcher(object):
            callable(getattr(self.__class__, 'noTlv')):
             self.noTlv(msg)
     def __init__(self, msg : Message = None ):
+        if type(self) is MessageDispatcher:
+            raise Exception('MessageDispatcher is an abstract class and cannot be instantiated directly')
         if msg is not None:
             self.callHadler(msg)
 
@@ -49,8 +51,12 @@ class MessageBulder(object):
                 return True
         return False
     def __init__(self, msg : Message):
+        if type(self) is MessageBulder:
+            raise Exception('MessageDispatcher is an abstract class and cannot be instantiated directly')
         if msg is None:
-            raise AttributeError("%s::%s() You must use Message object" % self, self)
+            raise AttributeError("MessageBulder::MessageBulder() You must use Message object")
         else:
             self.m_msg=msg
+    def __del__(self):
+        self.m_msg.clearData()
 %}

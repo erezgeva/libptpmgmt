@@ -55,6 +55,9 @@ class BaseMngBuildCallback
  * @brief dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
  * @note You must inherite this class to use it!
+ * @note Class implemented in Python, Perl, Lua and PHP.
+ *       See testing for examples
+ *       Currently Ruby and TCL are excluded
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
@@ -63,6 +66,7 @@ class MessageDispatcher : public BaseMngDispatchCallback
     /**
      * Construct a dispatcher based on message last received message
      * @param[in] msg Message object
+     * @note Call callHadler immidiatly!
      */
     MessageDispatcher(const Message &msg);
 
@@ -91,29 +95,37 @@ class MessageDispatcher : public BaseMngDispatchCallback
 /**
  * @brief build TLV to send a PTP management message
  * @note You must inherite this class to use it!
+ * @note Class implemented in Python, Perl, Lua and PHP.
+ *       See testing for examples
+ *       Currently Ruby and TCL are excluded
+ * @note Class allocate TLV object and store it,
+ * @note Lua do @b NOT @/b support destructors
+ *       You should call Message.clearData() before you drop this one!
  */
 class MessageBulder : public BaseMngBuildCallback
 {
   private:
-    std::unique_ptr<BaseMngTlv> m_tlv;
-    Message &m_msg;
+    std::unique_ptr<BaseMngTlv> m_tlv; /**< Store allocated TLV for send */
+    Message &m_msg; /**< Message Object to send message */
 
   protected:
     /**
-     * Construct a builder based on message last received message
+     * Construct a message TLV builder
      * @param[in] msg Message object
      */
     MessageBulder(Message &msg) : m_msg(msg) {}
 
   public:
+    virtual ~MessageBulder() { m_msg.clearData(); }
     /**
-     * Allocate a managment TLV use call-back to set its values and
-     *  set it with Message ready for sending
-     * This function will call setAction
+     * Allocate a managment TLV, use a call-back to set its values and
+     *  assign it with the Message object ready for sending
      * @param[in] actionField action type
      * @param[in] tlv_id TLV ID to send
      * @return true if setAction() succes
-     * @note For empty TLV the function will call setAction without TLV
+     * @note This function calls Message.setAction
+     * @note For empty TLV or GET action,
+     *       the function will call setAction without TLV
      */
     bool buildTlv(actionField_e actionField, mng_vals_e tlv_id);
 };

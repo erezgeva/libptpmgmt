@@ -56,4 +56,7 @@ abstract class MessageBulder {
 	function __construct(Message $msg) {
 		$this->m_msg=$msg;
 	}
+	function __destruct() {
+		$this->m_msg->clearData();
+	}
 }

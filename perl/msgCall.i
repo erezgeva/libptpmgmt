@@ -41,6 +41,8 @@ sub callHadler {
 }
 sub new {
     my ($pkg, $msg) = @_;
+    die __PACKAGE__ . " is an abstract class and cannot be instantiated directly"
+        if $pkg eq __PACKAGE__;
     die "you must initialize $pkg with Message object"
         if defined $msg and ref $msg ne 'PtpMgmtLib::Message';
     my $self = bless {}, $pkg;
@@ -102,10 +104,12 @@ sub buildTlv {
     0; # false
 }
 sub new {
-    my ($pkg, $m_msg) = @_;
+    my ($pkg, $msg) = @_;
+    die __PACKAGE__ . " is an abstract calss and cannot be instantiated directly"
+        if $pkg eq __PACKAGE__;
     die "you must initialize $pkg with Message object"
-        if ref $m_msg ne 'PtpMgmtLib::Message';
-    my $self = bless { m_msg => $m_msg }, $pkg;
+        if ref $msg ne 'PtpMgmtLib::Message';
+    my $self = bless { m_msg => $msg }, $pkg;
     $self;
 }
 
@@ -115,6 +119,7 @@ sub DESTROY {
     my $self = tied(%{$_[0]});
     return unless defined $self;
     delete $ITERATORS{$self};
+    $self->{m_msg}->clearData();
     if (exists $OWNER{$self}) {
         delete $OWNER{$self};
     }

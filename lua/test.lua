@@ -85,6 +85,9 @@ function setPriority1(newPriority1)
     print "timeout"
     return -1
   end
+  -- Make sure Message class do not hold send TLV
+  -- Send TLV is not used with GET!
+  msg:clearData()
   local cnt = sk:rcv(buf)
   if(cnt <= 0) then
     print "rcv cnt"
