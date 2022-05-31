@@ -23,13 +23,8 @@ abstract class MessageDispatcher {
 				return;
 			}
 		}
-		if(method_exists($this, 'noTlv')) {
+		elseif(method_exists($this, 'noTlv')) {
 			$this->noTlv($msg);
-		}
-	}
-	function __construct(?Message $msg = null) {
-		if(!is_null($msg)) {
-			$this->callHadler($msg);
 		}
 	}
 }

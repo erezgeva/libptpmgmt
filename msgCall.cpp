@@ -13,10 +13,6 @@
 namespace ptpmgmt
 {
 
-MessageDispatcher::MessageDispatcher(const Message &msg)
-{
-    callHadler(msg);
-}
 void MessageDispatcher::callHadler(const Message &msg)
 {
     callHadler(msg, msg.getTlvId(), msg.getData());
@@ -62,5 +58,3 @@ bool MessageBulder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 }
 
 }; /* namespace ptpmgmt */
-
-// g++ -E -Wdate-time -Wall -std=c++11 -g -Og  msgCall.cpp | gvim -

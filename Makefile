@@ -608,7 +608,7 @@ RUBYDIR:=$(call rep_arch_f,$(RUBYDIR))
 endif
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
 RUBY_LNAME:=ruby/ptpmgmt
-ruby_SFLAGS:=-ruby
+ruby_SFLAGS:=-ruby -DUSE_MSG_CALL
 $(RUBY_LNAME).so_LDLIBS:=$(RUBY_LIB)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
 	$Q$(call LLC,$(CPPFLAGS_RUBY) $(RUBY_INC))

@@ -36,17 +36,15 @@ sub callHadler {
             $self->$callback_name($msg, $tlv, $idstr);
             return;
         }
+    } elsif($self->can(noTlv)) {
+        $self->noTlv($msg);
     }
-    $self->noTlv($msg) if $self->can (noTlv);
 }
 sub new {
-    my ($pkg, $msg) = @_;
+    my $pkg = shift;
     die __PACKAGE__ . " is an abstract class and cannot be instantiated directly"
         if $pkg eq __PACKAGE__;
-    die "you must initialize $pkg with Message object"
-        if defined $msg and ref $msg ne 'PtpMgmtLib::Message';
     my $self = bless {}, $pkg;
-    $self->callHadler($msg) if defined $msg;
     $self;
 }
 

@@ -113,7 +113,7 @@ function setPriority1($newPriority1)
     $txt = Message::err2str_c($err);
     echo "parse error $txt\n";
   } else {
-    $dispacher->callHadler($msg);
+    $dispacher->callHadler($msg, $msg->getTlvId(), $msg->getData());
     return 0;
   }
   return -1;

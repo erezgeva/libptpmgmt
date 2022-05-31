@@ -55,22 +55,18 @@ class BaseMngBuildCallback
  * @brief dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
  * @note You must inherite this class to use it!
- * @note Class implemented in Python, Perl, Lua and PHP.
+ * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
  *       See testing for examples
- *       Currently Ruby and TCL are excluded
+ *       Currently TCL is excluded
+ * @note callHadler() has an implementation per script language.
+ *       So, it can call virtual function define in the script language itself.
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
-  protected:
-    MessageDispatcher() {}
-    /**
-     * Construct a dispatcher based on message last received message
-     * @param[in] msg Message object
-     * @note Call callHadler immidiatly!
-     */
-    MessageDispatcher(const Message &msg);
-
   public:
+#ifdef APPLY_SWIG_MessageDispatcher1
+APPLY_SWIG_MessageDispatcher1
+#endif
     /**
      * Call handler based on Message last received message
      * @param[in] msg Message object
@@ -83,24 +79,37 @@ class MessageDispatcher : public BaseMngDispatchCallback
      * @param[in] tlv pointer to a TLV of TLV ID
      * @note caller @b MUST @/b ensure the TLV is of TLV ID!
      */
+#ifdef APPLY_SWIG_MessageDispatcher2
+APPLY_SWIG_MessageDispatcher2
+#endif
     void callHadler(const Message &msg, mng_vals_e tlv_id,
         const BaseMngTlv *tlv);
+#ifndef SWIG
     /**
      * Handler called if there is no TLV data
      * It could be an empty TLV or not set
      */
     virtual void noTlv(const Message &msg) const {}
+#endif /* SWIG */
 };
+#ifdef CLEAR_SWIG_MessageDispatcher
+CLEAR_SWIG_MessageDispatcher
+#endif
 
+#ifdef APPLY_SWIG_MessageBulder
+APPLY_SWIG_MessageBulder
+#endif
 /**
  * @brief build TLV to send a PTP management message
  * @note You must inherite this class to use it!
- * @note Class implemented in Python, Perl, Lua and PHP.
+ * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
  *       See testing for examples
- *       Currently Ruby and TCL are excluded
+ *       Currently TCL is excluded
  * @note Class allocate TLV object and store it,
  * @note Lua do @b NOT @/b support destructors
- *       You should call Message.clearData() before you drop this one!
+ *       You should call Message.clearData() before you delete this object!
+ * @note buildTlv() has an implementation per script language.
+ *       So, it can call virtual function define in the script language itself.
  */
 class MessageBulder : public BaseMngBuildCallback
 {
@@ -108,14 +117,20 @@ class MessageBulder : public BaseMngBuildCallback
     std::unique_ptr<BaseMngTlv> m_tlv; /**< Store allocated TLV for send */
     Message &m_msg; /**< Message Object to send message */
 
-  protected:
+  public:
+    /**
+     * Get reference to the Message object
+     * @return reference to the msg Message object
+     */
+    Message &getMsg() { return m_msg; }
     /**
      * Construct a message TLV builder
      * @param[in] msg Message object
+     * @note This constructor is used internaly.
+     *       You must inherite this class to use it!
      */
     MessageBulder(Message &msg) : m_msg(msg) {}
 
-  public:
     virtual ~MessageBulder() { m_msg.clearData(); }
     /**
      * Allocate a managment TLV, use a call-back to set its values and
@@ -129,6 +144,9 @@ class MessageBulder : public BaseMngBuildCallback
      */
     bool buildTlv(actionField_e actionField, mng_vals_e tlv_id);
 };
+#ifdef CLEAR_SWIG_MessageBulder
+CLEAR_SWIG_MessageBulder
+#endif
 
 #ifndef SWIG
 }; /* namespace ptpmgmt */

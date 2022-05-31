@@ -98,7 +98,7 @@ def setPriority1(newPriority1):
     txt = ptpmgmt.Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
-    dispacher.callHadler(msg)
+    dispacher.callHadler(msg, msg.getTlvId(), msg.getData())
     return 0
   return -1
 

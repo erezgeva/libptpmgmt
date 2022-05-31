@@ -25,15 +25,12 @@ class MessageDispatcher(object):
                 data=globals()[conv_func](tlv)
                 if data is not None:
                     getattr(self, callback_name)(msg,data,idstr)
-                    return
-        if hasattr(self.__class__, 'noTlv') and\
+        elif hasattr(self.__class__, 'noTlv') and\
            callable(getattr(self.__class__, 'noTlv')):
             self.noTlv(msg)
-    def __init__(self, msg : Message = None ):
+    def __init__(self):
         if type(self) is MessageDispatcher:
             raise Exception('MessageDispatcher is an abstract class and cannot be instantiated directly')
-        if msg is not None:
-            self.callHadler(msg)
 
 class MessageBulder(object):
     def buildTlv(self, actionField : int, tlv_id : int):

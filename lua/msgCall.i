@@ -31,25 +31,18 @@ function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
             local data = ptpmgmt[conv_func](tlv)
             if(data ~= nil) then
                 getmetatable(self)[callback_name](self, msg, data, idstr)
-                return
             end
         end
-    end
-    if(type(getmetatable(self)['noTlv']) == "function") then
-        self:noTlv(msg)
+    else
+        if(type(getmetatable(self)['noTlv']) == "function") then
+            self:noTlv(msg)
+        end
     end
 end
-function ptpmgmt.MessageDispatcher:new(msg)
+function ptpmgmt.MessageDispatcher:new()
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
-    if(msg ~= nil) then
-        if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
-            error('MessageDispatcher::MessageDispatcher() msg must be a Message object', 2)
-        else
-            self:callHadler(msg)
-        end
-    end
     return obj
 end
 

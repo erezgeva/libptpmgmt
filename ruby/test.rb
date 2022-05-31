@@ -11,12 +11,34 @@
 
 require 'ptpmgmt'
 
+class MyDisp < Ptpmgmt::MessageDispatcher
+  def PRIORITY1_h(msg, tlv, tlv_id)
+    puts "Get reply for " + tlv_id
+    puts "priority1: #{tlv.priority1}"
+  end
+  def USER_DESCRIPTION_h(msg, tlv, tlv_id)
+    puts "Get reply for " + tlv_id
+    puts "get user desc: " + tlv.userDescription.textField
+  end
+end
+class MyBuild < Ptpmgmt::MessageBulder
+  def pr(pr)
+    @pr = pr
+  end
+  def PRIORITY1_b(msg, tlv)
+    tlv.priority1 = @pr
+    return true
+  end
+end
+
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 
 $sk = Ptpmgmt::SockUnix.new
 $msg = Ptpmgmt::Message.new
 $buf = Ptpmgmt::Buf.new(1000)
 $opt = Ptpmgmt::Options.new
+$dispacher = MyDisp.new
+$builder = MyBuild.new($msg)
 $sequence = 0
 
 def nextSequence()
@@ -28,10 +50,15 @@ def nextSequence()
 end
 
 def setPriority1(newPriority1)
-  pr1 = Ptpmgmt::PRIORITY1_t.new
-  pr1.priority1 = newPriority1
   id = Ptpmgmt::PRIORITY1
-  $msg.setAction(Ptpmgmt::SET, id, pr1)
+  if true then
+    pr1 = Ptpmgmt::PRIORITY1_t.new
+    pr1.priority1 = newPriority1
+    $msg.setAction(Ptpmgmt::SET, id, pr1)
+  else
+    $builder.pr(newPriority1)
+    $builder.buildTlv(Ptpmgmt::SET, id)
+  end
   seq = nextSequence()
   err = $msg.build($buf, seq)
   if err != Ptpmgmt::MNG_PARSE_ERROR_OK then
@@ -85,14 +112,8 @@ def setPriority1(newPriority1)
     txt = Ptpmgmt::Message.err2str_c(err)
     puts "parse error " + txt
   else
-    rid = $msg.getTlvId()
-    idstr = Ptpmgmt::Message.mng2str_c(rid)
-    puts "Get reply for " + idstr
-    if rid == id then
-      newPr = Ptpmgmt.conv_PRIORITY1($msg.getData())
-      puts "priority1: #{newPr.priority1}"
-      return 0
-    end
+    $dispacher.callHadler($msg, $msg.getTlvId(), $msg.getData())
+    return 0
   end
   return -1
 end
@@ -159,13 +180,7 @@ def main
     txt = Ptpmgmt::Message.err2str_c(err)
     puts "parse error " + txt
   else
-    rid = $msg.getTlvId()
-    idstr = Ptpmgmt::Message.mng2str_c(rid)
-    puts "Get reply for " + idstr
-    if rid == id then
-      user = Ptpmgmt.conv_USER_DESCRIPTION($msg.getData())
-      puts "get user desc: " + user.userDescription.textField
-    end
+    $dispacher.callHadler($msg)
   end
 
   # test setting values

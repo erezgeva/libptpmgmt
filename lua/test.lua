@@ -13,8 +13,8 @@ require 'posix'
 local unistd = require 'posix.unistd'
 
 myDisp = {} -- inherite from ptpmgmt.MessageDispatcher
-function myDisp:new(msg)
-  local obj = ptpmgmt.MessageDispatcher:new(msg)
+function myDisp:new()
+  local obj = ptpmgmt.MessageDispatcher:new()
   setmetatable(self, {__index = ptpmgmt.MessageDispatcher})
   setmetatable(obj, self)
   self.__index = self
@@ -85,8 +85,11 @@ function setPriority1(newPriority1)
     print "timeout"
     return -1
   end
-  -- Make sure Message class do not hold send TLV
-  -- Send TLV is not used with GET!
+  --[[ Make sure Message class do not hold the management send TLV.
+  --   As Lua do not use destructors,
+  --    MessageDispatcher can not call msg:clearData() once deleted.
+  --   User should call msg:clearData() after msg:build().
+  --   Note: Using GET massages do not require a send TLV! ]]
   msg:clearData()
   local cnt = sk:rcv(buf)
   if(cnt <= 0) then
@@ -127,7 +130,7 @@ function setPriority1(newPriority1)
     txt = ptpmgmt.Message.err2str_c(err)
     print("parse error ", txt)
   else
-    dispacher:callHadler(msg)
+    dispacher:callHadler(msg, msg:getTlvId(), msg:getData())
     return 0
   end
   return -1

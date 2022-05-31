@@ -121,7 +121,7 @@ sub setPriority1
     $txt = PtpMgmtLib::Message::err2str_c($err);
     print "Parse error $txt\n";
   } else {
-    $dispacher->callHadler($msg);
+    $dispacher->callHadler($msg, $msg->getTlvId(), $msg->getData());
     return 0;
   }
   -1;
