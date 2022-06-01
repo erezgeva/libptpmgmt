@@ -33,7 +33,8 @@ class BaseMngDispatchCallback
   protected:
     virtual ~BaseMngDispatchCallback() = default;
 #define _ptpmCaseUF(n)\
-    virtual void n##_h(const Message &msg, const n##_t &data) const {}
+    virtual void n##_h(const Message &msg, const n##_t &tlv,\
+        const char*idStr) const {}
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
     /* Per tlv ID a virtual call-back for user */
 #include "ids.h"
@@ -43,7 +44,7 @@ class BaseMngBuildCallback
   protected:
     virtual ~BaseMngBuildCallback() = default;
 #define _ptpmCaseUFB(n)\
-    virtual bool n##_b(const Message &msg, n##_t &data) {return false;}
+    virtual bool n##_b(const Message &msg, n##_t &tlv) {return false;}
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
     /* Per tlv ID a virtual call-back for user */
 #include "ids.h"
@@ -54,7 +55,7 @@ class BaseMngBuildCallback
 /**
  * @brief dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
- * @note You must inherite this class to use it!
+ * @note You must inherit this class to use it!
  * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
  *       See testing for examples
  *       Currently TCL is excluded
@@ -64,14 +65,17 @@ class BaseMngBuildCallback
 class MessageDispatcher : public BaseMngDispatchCallback
 {
   public:
-#ifdef APPLY_SWIG_MessageDispatcher1
-APPLY_SWIG_MessageDispatcher1
-#endif
+    #ifdef APPLY_SWIG_MessageDispatcher1
+    APPLY_SWIG_MessageDispatcher1
+    #endif
     /**
      * Call handler based on Message last received message
      * @param[in] msg Message object
      */
     void callHadler(const Message &msg);
+    #ifdef APPLY_SWIG_MessageDispatcher2
+    APPLY_SWIG_MessageDispatcher2
+    #endif
     /**
      * Call handler based on supplied TLV
      * @param[in] msg Message object
@@ -79,29 +83,34 @@ APPLY_SWIG_MessageDispatcher1
      * @param[in] tlv pointer to a TLV of TLV ID
      * @note caller @b MUST @/b ensure the TLV is of TLV ID!
      */
-#ifdef APPLY_SWIG_MessageDispatcher2
-APPLY_SWIG_MessageDispatcher2
-#endif
     void callHadler(const Message &msg, mng_vals_e tlv_id,
         const BaseMngTlv *tlv);
-#ifndef SWIG
+    #ifdef CLEAR_SWIG_MessageDispatcher
+    CLEAR_SWIG_MessageDispatcher
+    #endif
+    #ifndef SWIG
     /**
      * Handler called if there is no TLV data
      * It could be an empty TLV or not set
+     * @param[in] msg Message object
      */
     virtual void noTlv(const Message &msg) const {}
-#endif /* SWIG */
+    /**
+     * Handler called if TLV does not have a callback.
+     * i.e. inherit class did not implement a proper method for this TLV
+     * @param[in] msg Message object
+     * @param[in] idStr string of the tlv_id
+     */
+    virtual void noTlvCallBack(const Message &msg, const char *idStr) const {}
+    #endif /* SWIG */
 };
-#ifdef CLEAR_SWIG_MessageDispatcher
-CLEAR_SWIG_MessageDispatcher
-#endif
 
 #ifdef APPLY_SWIG_MessageBulder
 APPLY_SWIG_MessageBulder
 #endif
 /**
  * @brief build TLV to send a PTP management message
- * @note You must inherite this class to use it!
+ * @note You must inherit this class to use it!
  * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
  *       See testing for examples
  *       Currently TCL is excluded
@@ -127,13 +136,13 @@ class MessageBulder : public BaseMngBuildCallback
      * Construct a message TLV builder
      * @param[in] msg Message object
      * @note This constructor is used internaly.
-     *       You must inherite this class to use it!
+     *       You must inherit this class to use it!
      */
     MessageBulder(Message &msg) : m_msg(msg) {}
 
     virtual ~MessageBulder() { m_msg.clearData(); }
     /**
-     * Allocate a managment TLV, use a call-back to set its values and
+     * Allocate a management TLV, use a call-back to set its values and
      *  assign it with the Message object ready for sending
      * @param[in] actionField action type
      * @param[in] tlv_id TLV ID to send

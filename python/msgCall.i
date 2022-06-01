@@ -16,15 +16,17 @@ class MessageDispatcher(object):
         if tlv is None:
             tlv_id=msg.getTlvId()
             tlv=msg.getData()
-        if tlv is not None:
+        if tlv is not None and msg.isValidId(tlv_id):
             idstr=Message.mng2str_c(tlv_id)
             callback_name=idstr + '_h'
             conv_func="conv_" + idstr
-            if conv_func in globals() and hasattr(self.__class__, callback_name) and\
+            if hasattr(self.__class__, callback_name) and\
                callable(getattr(self.__class__, callback_name)):
                 data=globals()[conv_func](tlv)
-                if data is not None:
-                    getattr(self, callback_name)(msg,data,idstr)
+                getattr(self, callback_name)(msg,data,idstr)
+            elif hasattr(self.__class__, 'noTlvCallBack') and\
+               callable(getattr(self.__class__, 'noTlvCallBack')):
+                self.noTlvCallBack(msg, idstr)
         elif hasattr(self.__class__, 'noTlv') and\
            callable(getattr(self.__class__, 'noTlv')):
             self.noTlv(msg)

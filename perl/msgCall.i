@@ -27,7 +27,7 @@ sub callHadler {
         $tlv_id = $msg->getTlvId();
         $btlv = $msg->getData();
     }
-    if (ref $btlv eq 'PtpMgmtLib::BaseMngTlv') {
+    if (ref $btlv eq 'PtpMgmtLib::BaseMngTlv' and $msg->isValidId($tlv_id)) {
         my $idstr = PtpMgmtLib::Message::mng2str_c($tlv_id);
         my $tlv;
         my $callback_name="${idstr}_h";

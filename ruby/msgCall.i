@@ -34,15 +34,15 @@ SWIGINTERN VALUE MessageDispatcher_callHadler(VALUE self, VALUE msgVal,
                "Message const &", "MessageDispatcher_callHadler", 2, msgVal));
     return Qnil;
   }
+  ptpmgmt::Message *msg = (ptpmgmt::Message *)voidMsg;
+  if(msg == nullptr) {
+    SWIG_Error(SWIG_ValueError, Ruby_Format_TypeError("invalid null reference",
+               "Message const &", "MessageDispatcher_callHadler", 2, msgVal));
+    return Qnil;
+  }
   ptpmgmt::mng_vals_e tlv_id;
   bool newTlvVal = false;
   if (NIL_P(argv1)) {
-    ptpmgmt::Message *msg = (ptpmgmt::Message *)voidMsg;
-    if(msg == nullptr) {
-      SWIG_Error(SWIG_ValueError, Ruby_Format_TypeError("invalid null reference",
-                 "Message const &", "MessageDispatcher_callHadler", 2, msgVal));
-      return Qnil;
-    }
     tlv_id = msg->getTlvId();
     const ptpmgmt::BaseMngTlv *tlv = msg->getData();
     if(tlv != nullptr) {
@@ -68,7 +68,7 @@ SWIGINTERN VALUE MessageDispatcher_callHadler(VALUE self, VALUE msgVal,
       return Qnil;
     }
   }
-  if(!NIL_P(tlvVal)) {
+  if(!NIL_P(tlvVal) && msg->isValidId(tlv_id)) {
     std::string idstr = ptpmgmt::Message::mng2str_c(tlv_id);
     std::string callback_name = idstr;
     callback_name += "_h";
@@ -76,25 +76,32 @@ SWIGINTERN VALUE MessageDispatcher_callHadler(VALUE self, VALUE msgVal,
     convFunc += idstr;
     /* As we have a TLV, it must have a valid ID and a real conversion
      * function. In case something is wrong, we want Ruby to exit with error! */
+    /* Call conv_XXX(tlv) */
     VALUE data = rb_funcall(mPtpmgmt, rb_intern(convFunc.c_str()), 1, tlvVal);
-    if(TYPE(data) == T_DATA) {
-      VALUE idstrVal = SWIG_From_std_string(idstr);
-      VALUE argv[3];
-      argv[0] = msgVal;
-      argv[1] = data;
-      argv[2] = idstrVal;
-      /* User might not be interesting in a message for this ID.
-       * No reason for error, just ignore and continue.
-       * Check if function exist, call it or return Qundef. */
-      rb_check_funcall(self, rb_intern(callback_name.c_str()), 3, argv);
-      rb_gc_mark(idstrVal);
+    VALUE idstrVal = SWIG_From_std_string(idstr);
+    VALUE argv[3];
+    argv[0] = msgVal;
+    argv[1] = data;
+    argv[2] = idstrVal;
+    /* User might not be interesting in a message for this ID.
+     * No reason for error, we call noTlvCallBack if it is exist.
+     * Check if function exist, call it or return Qundef. */
+    /* Call callback_name(msg, tlv, idStr) */
+    VALUE r = rb_check_funcall(self, rb_intern(callback_name.c_str()), 3, argv);
+    if(r == Qundef) { /* No call back */
+      /* argv[0] = msgVal; aleady */
+      argv[1] = idstrVal;
+      /* Call noTlvCallBack(msg, idStr) */
+      rb_check_funcall(self, rb_intern("noTlvCallBack"), 2, argv);
     }
+    rb_gc_mark(idstrVal);
     rb_gc_mark(data);
   } else {
     VALUE argv[1];
     argv[0] = msgVal;
     /* noTlv method is optional.
      * So, Check if function exist, call it or return Qundef. */
+    /* Call noTlv(msg) */
     rb_check_funcall(self, rb_intern("noTlv"), 1, argv);
   }
   if(newTlvVal)
@@ -130,6 +137,7 @@ SWIGINTERN VALUE MessageBulder_buildTlv(VALUE self, MessageBulder *_this,
     klass += "_t";
     std::string callback_name = idstr;
     callback_name += "_b";
+    /* Call new XXX_t */
     VALUE tlvVal = rb_class_new_instance(0, nullptr, rb_path2class(klass.c_str()));
     if(TYPE(tlvVal) == T_DATA) {
       VALUE msgVal = SWIG_NewPointerObj(SWIG_as_voidptr(&msg), SWIGTYPE_p_Message, 0);
@@ -141,9 +149,10 @@ SWIGINTERN VALUE MessageBulder_buildTlv(VALUE self, MessageBulder *_this,
        * If user did not define the callback method,
        * this function will return false. User can check :-)
        * We do not consider it as error.  */
+      /* Call callback_name(msg, tlv) */
       VALUE r = rb_check_funcall(self, rb_intern(callback_name.c_str()), 2, argv);
       if(r == Qtrue) {
-        /* Cast TLV to C++ object, so we can can C++ setAction() */
+        /* Cast TLV to C++ object, so we can call C++ setAction() */
         void *voidptr;
         ret = SWIG_ConvertPtr(tlvVal, &voidptr, SWIGTYPE_p_BaseMngTlv, 0);
         if (!SWIG_IsOK(ret)) {

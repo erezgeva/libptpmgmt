@@ -55,12 +55,13 @@ class BaseMngDispatchCallback
     virtual ~BaseMngDispatchCallback() = default;
 #define _ptpmCaseUF(n)\
  %- %- %@**%^\
- %- %- * Handle n managment TLV%^\
+ %- %- * Handle n management TLV%^\
  %- %- * @param[in] msg referance to the Message object%^\
- %- %- * @param[in] data referance to the managment tlv%^\
+ %- %- * @param[in] tlv referance to the management tlv%^\
+ %- %- * @param[in] idStr ID string of the management tlv%^\
  %- %- *%@%^\
  %-%- virtual void n##_h(const Message &msg,%^\
- %- %- %- %-const n##_t &data) const;
+ %- %- %- %-const n##_t &tlv, const char *idStr) const;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
 };
@@ -81,12 +82,16 @@ class BaseMngBuildCallback
     virtual ~BaseMngBuildCallback() = default;
 #define _ptpmCaseUFB(n)\
  %- %- %@**%^\
- %- %- * Handle n managment TLV%^\
+ %- %- * Handle n management TLV%^\
+ %- %- * Set values in the new TLV%^\
  %- %- * @param[in] msg referance to the Message object%^\
- %- %- * @param[in] data referance to the managment tlv%^\
+ %- %- * @param[in, out] tlv referance to the new management tlv%^\
+ %- %- * @return true if set success%^\
+ %- %- * @note MessageBulder::buildTlv call setAction with new TLV%^\
+ %- %- *%- if this handler return true!%^\
  %- %- *%@%^\
  %-%- virtual bool n##_b(const Message &msg,%^\
- %- %- %- %-n##_t &data);
+ %- %- %- %-n##_t &tlv);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
 };
@@ -99,20 +104,21 @@ using namespace ptpmgmt;
 %_
 #define _ptpmCaseUF(n) \
 %@**%^\
- * Convert data to n##_t structure%^\
- * @param[in] data pointer to the Message dataField%^\
+ * Convert a TLV from BaseMngTlv to n##_t structure%^\
+ * @param[in] tlv pointer to the Message dataField%^\
  * @return pointer to n##_t%^\
  * @note This function is available in scripts only!%^\
  *%- C++ code can simply cast.%^\
- * @note Use Message:getData() to retrieve the data from the Message%^\
+ * @note Use Message:getData() to retrieve the tlv from the Message%^\
  *%@%^\
-n##_t%^*conv_##n(const BaseMngTlv *data);
+n##_t%^*conv_##n(const BaseMngTlv *tlv);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
 %_
 #define S(n) \
 %@**%^\
- * Convert data to n##_t structure%^\
+ * Convert a signaling TLV from BaseSigTlv%^\
+ *%- to n##_t structure%^\
  * @param[in] tlv pointer to a TLV from a signaling message%^\
  * @return pointer to n##_t%^\
  * @note This function is available in scripts only!%^\

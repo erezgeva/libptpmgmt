@@ -20,7 +20,7 @@
 namespace ptpmgmt
 {
 
-#if defined __GNUC__
+#ifdef __GNUC__
 /* See:
  * GNU GCC
  * gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Type-Attributes.html
@@ -299,6 +299,15 @@ bool Message::isEmpty(mng_vals_e id)
     if(id >= FIRST_MNG_ID && id < LAST_MNG_ID && mng_all_vals[id].size == 0)
         return true;
     return false;
+}
+bool Message::isValidId(mng_vals_e id)
+{
+    if(id < FIRST_MNG_ID || id >= LAST_MNG_ID)
+        return false;
+    if(m_prms.implementSpecific != linuxptp &&
+        mng_all_vals[id].allowed & A_USE_LINUXPTP)
+        return false;
+    return true;
 }
 bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id,
     const BaseMngTlv *dataSend)

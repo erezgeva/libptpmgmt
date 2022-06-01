@@ -12,7 +12,7 @@ require 'ptpmgmt'
 require 'posix'
 local unistd = require 'posix.unistd'
 
-myDisp = {} -- inherite from ptpmgmt.MessageDispatcher
+myDisp = {} -- inherit from ptpmgmt.MessageDispatcher
 function myDisp:new()
   local obj = ptpmgmt.MessageDispatcher:new()
   setmetatable(self, {__index = ptpmgmt.MessageDispatcher})
@@ -28,7 +28,7 @@ function myDisp:USER_DESCRIPTION_h(msg, tlv, tlv_id)
   print("Get reply for " .. tlv_id)
   print("get user desc: " .. tlv.userDescription.textField)
 end
-myBuild = {} -- Inherite from ptpmgmt.MessageBulder
+myBuild = {} -- Inherit from ptpmgmt.MessageBulder
 function myBuild:new(msg)
   local obj = ptpmgmt.MessageBulder:new(msg)
   setmetatable(self, {__index = ptpmgmt.MessageBulder})

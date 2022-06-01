@@ -413,6 +413,13 @@ class Message
      */
     static bool isEmpty(mng_vals_e id);
     /**
+     * Check if management TLV is valid for use
+     * @param[in] id management TLV id
+     * @return true if management TLV is valid
+     * @note function also check implement specific TLVs!
+     */
+    bool isValidId(mng_vals_e id);
+    /**
      * Set message object management TLV id, action and data for dataField
      * @param[in] actionField for sending
      * @param[in] tlv_id management TLV id

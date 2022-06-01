@@ -22,16 +22,16 @@ function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
     elseif(type(tlv) ~= 'userdata' or getmetatable(tlv)['.type'] ~= 'BaseMngTlv') then
         error('MessageDispatcher::callHadler() tlv must be a BaseMngTlv object', 2)
     end
-    if(tlv ~= nil) then
+    if(tlv ~= nil and msg:isValidId(tlv_id)) then
         local idstr = ptpmgmt.Message.mng2str_c(tlv_id)
         local callback_name = idstr .. '_h'
-        local conv_func = 'conv_' .. idstr
-        if(type(getmetatable(self)[callback_name]) == "function" and
-           type(ptpmgmt[conv_func]) == "function") then
-            local data = ptpmgmt[conv_func](tlv)
+        if(type(getmetatable(self)[callback_name]) == "function") then
+            local data = ptpmgmt['conv_' .. idstr](tlv)
             if(data ~= nil) then
                 getmetatable(self)[callback_name](self, msg, data, idstr)
             end
+        elseif(type(getmetatable(self)['noTlvCallBack']) == "function") then
+            self:noTlvCallBack(msg, idstr)
         end
     else
         if(type(getmetatable(self)['noTlv']) == "function") then

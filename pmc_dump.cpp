@@ -17,7 +17,7 @@ class MsgDump : public MessageDispatcher
     MsgDump() {}
 
 #define IDENT "\n\t\t"
-#define dump(n) void n##_h(const Message &m, const n##_t &d) const
+#define dump(n) void n##_h(const Message &m, const n##_t &d, const char*) const
 
     dump(CLOCK_DESCRIPTION) {
         DUMPS(

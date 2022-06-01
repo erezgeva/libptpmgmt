@@ -17,6 +17,21 @@ void MessageDispatcher::callHadler(const Message &msg)
 {
     callHadler(msg, msg.getTlvId(), msg.getData());
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+// We convert function pointer for comparing, ignore warning
+#pragma GCC diagnostic ignored "-Wpmf-conversions"
+#define check_inherit(n) \
+    if ((void*)(&MessageDispatcher::n##_h) == \
+        (void*)(this->*(&MessageDispatcher::n##_h))) {\
+        noTlvCallBack(msg, #n); return; }
+#else /*__GNUC__*/
+#define check_inherit(n)
+#endif /*__GNUC__*/
+#define _ptpmCaseUF(n) \
+    case n: check_inherit(n)\
+    n##_h(msg, *dynamic_cast<const n##_t*>(tlv), #n); break;
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
     const BaseMngTlv *tlv)
 {
@@ -24,17 +39,16 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
         noTlv(msg);
         return;
     }
-#define _ptpmCaseUF(n) case n:\
-        n##_h(msg, *dynamic_cast<const n##_t*>(tlv));\
-        break;
     switch(tlv_id) {
-#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
             noTlv(msg);
             break;
     }
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
 bool MessageBulder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 {
     if(actionField == GET || m_msg.isEmpty(tlv_id))

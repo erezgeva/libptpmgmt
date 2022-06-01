@@ -14,13 +14,16 @@ abstract class MessageDispatcher {
 			$tlv_id = $msg->getTlvId();
 			$tlv = $msg->getData();
 		}
-		if(!is_null($tlv)) {
+		if(!is_null($tlv) and $msg->isValidId($tlv_id)) {
 			$idstr = Message::mng2str_c($tlv_id);
 			$callback_name=$idstr . '_h';
-			if(method_exists($this, $callback_name) and
-			   eval("\$data = ptpmgmt::conv_$idstr(\$tlv);return true;") and !is_null($data)) {
+			if(method_exists($this, $callback_name)) {
+				eval("\$data = ptpmgmt::conv_$idstr(\$tlv);");
 				$this->$callback_name($msg,$data,$idstr);
 				return;
+			}
+			elseif(method_exists($this, 'noTlvCallBack')) {
+				$this->noTlvCallBack($msg, $idstr);
 			}
 		}
 		elseif(method_exists($this, 'noTlv')) {
