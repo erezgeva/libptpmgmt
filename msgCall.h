@@ -23,11 +23,11 @@ namespace ptpmgmt
 {
 #endif
 
+#ifndef SWIG
 /** @cond internal
  * Doxygen do not know how to proccess.
  * proccess these classes in mngIds.h
  */
-#ifndef SWIG
 class BaseMngDispatchCallback
 {
   protected:
@@ -52,29 +52,30 @@ class BaseMngBuildCallback
 #endif /* SWIG */
 /**< @endcond */
 
+#ifndef SWIG_MessageDispatcher
 /**
  * @brief dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
  * @note You must inherit this class to use it!
  * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
- *       See testing for examples
- *       Currently TCL is excluded
+ *       See testing for examples.
+ *       Currently TCL is excluded.
  * @note callHadler() has an implementation per script language.
  *       So, it can call virtual function define in the script language itself.
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
   public:
-    #ifdef APPLY_SWIG_MessageDispatcher1
-    APPLY_SWIG_MessageDispatcher1
+    #ifdef SWIG_MessageDispatcher1
+    SWIG_MessageDispatcher1
     #endif
     /**
      * Call handler based on Message last received message
      * @param[in] msg Message object
      */
     void callHadler(const Message &msg);
-    #ifdef APPLY_SWIG_MessageDispatcher2
-    APPLY_SWIG_MessageDispatcher2
+    #ifdef SWIG_MessageDispatcher2
+    SWIG_MessageDispatcher2
     #endif
     /**
      * Call handler based on supplied TLV
@@ -85,8 +86,8 @@ class MessageDispatcher : public BaseMngDispatchCallback
      */
     void callHadler(const Message &msg, mng_vals_e tlv_id,
         const BaseMngTlv *tlv);
-    #ifdef CLEAR_SWIG_MessageDispatcher
-    CLEAR_SWIG_MessageDispatcher
+    #ifdef SWIG_MessageDispatcher3
+    SWIG_MessageDispatcher3
     #endif
     #ifndef SWIG
     /**
@@ -104,19 +105,24 @@ class MessageDispatcher : public BaseMngDispatchCallback
     virtual void noTlvCallBack(const Message &msg, const char *idStr) const {}
     #endif /* SWIG */
 };
+#endif /* SWIG_MessageDispatcher */
 
-#ifdef APPLY_SWIG_MessageBulder
-APPLY_SWIG_MessageBulder
+#ifdef SWIG_MessageBulder_START
+SWIG_MessageBulder_START
 #endif
 /**
  * @brief build TLV to send a PTP management message
  * @note You must inherit this class to use it!
  * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
- *       See testing for examples
- *       Currently TCL is excluded
+ *       See testing for examples.
+ *       Currently TCL is excluded.
+ * @note As this class allocate a new TLV, and store it.
+ *       It call Message.clearData() on destructor,
+ *       to ensure Message does not use the TLV.
+ *       Do not call Message.build() after deleting this object.
  * @note Class allocate TLV object and store it,
- * @note Lua do @b NOT @/b support destructors
- *       You should call Message.clearData() before you delete this object!
+ * @note Lua do @b NOT @/b support destructors for native classes.
+ *       You should call Message.clearData() yourself.
  * @note buildTlv() has an implementation per script language.
  *       So, it can call virtual function define in the script language itself.
  */
@@ -139,7 +145,6 @@ class MessageBulder : public BaseMngBuildCallback
      *       You must inherit this class to use it!
      */
     MessageBulder(Message &msg) : m_msg(msg) {}
-
     virtual ~MessageBulder() { m_msg.clearData(); }
     /**
      * Allocate a management TLV, use a call-back to set its values and
@@ -153,8 +158,8 @@ class MessageBulder : public BaseMngBuildCallback
      */
     bool buildTlv(actionField_e actionField, mng_vals_e tlv_id);
 };
-#ifdef CLEAR_SWIG_MessageBulder
-CLEAR_SWIG_MessageBulder
+#ifdef SWIG_MessageBulder_END
+SWIG_MessageBulder_END
 #endif
 
 #ifndef SWIG

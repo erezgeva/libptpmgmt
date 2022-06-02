@@ -7,8 +7,8 @@
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva
  */
-// CODE START HERE
-abstract class MessageDispatcher {
+
+%pragma(php) code="abstract class MessageDispatcher {
 	function callHadler(Message $msg, int $tlv_id = -1, ?BaseMngTlv $tlv = null) {
 		if(is_null($tlv)) {
 			$tlv_id = $msg->getTlvId();
@@ -18,7 +18,7 @@ abstract class MessageDispatcher {
 			$idstr = Message::mng2str_c($tlv_id);
 			$callback_name=$idstr . '_h';
 			if(method_exists($this, $callback_name)) {
-				eval("\$data = ptpmgmt::conv_$idstr(\$tlv);");
+				eval(\"\$data = ptpmgmt::conv_$idstr(\$tlv);\");
 				$this->$callback_name($msg,$data,$idstr);
 				return;
 			}
@@ -43,7 +43,7 @@ abstract class MessageBulder {
 		$tlv_pkg=$idstr . '_t';
 		$callback_name=$idstr . '_b';
 		if(class_exists($tlv_pkg) and method_exists($this, $callback_name) and
-		   eval("\$tlv = new $tlv_pkg();return true;") and !is_null($tlv) and
+		   eval(\"\$tlv = new $tlv_pkg();return true;\") and !is_null($tlv) and
 		   $this->$callback_name($this->m_msg, $tlv) and
 		   $this->m_msg->setAction($actionField, $tlv_id, $tlv)) {
 			$this->m_tlv = $tlv;
@@ -57,4 +57,4 @@ abstract class MessageBulder {
 	function __destruct() {
 		$this->m_msg->clearData();
 	}
-}
+}"

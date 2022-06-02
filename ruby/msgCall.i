@@ -6,16 +6,16 @@
 /* we need all 2 argument, so we "steal" 1 more :-) */
 %typemap(in, noblock=1) buildMessage {
   return MessageBulder_buildTlv(self, arg1, $input, argv[1]);}
-#define APPLY_SWIG_MessageDispatcher1 \
+#define SWIG_MessageDispatcher1 \
 %apply callHadler1 { const Message &msg };
-#define APPLY_SWIG_MessageDispatcher2 \
+#define SWIG_MessageDispatcher2 \
 %clear const Message &msg;\
 %apply callHadler2 { const Message &msg };
-#define CLEAR_SWIG_MessageDispatcher \
+#define SWIG_MessageDispatcher3 \
 %clear const Message &msg;
-#define APPLY_SWIG_MessageBulder \
+#define SWIG_MessageBulder_START \
 %apply buildMessage { actionField_e actionField };
-#define CLEAR_SWIG_MessageBulder \
+#define SWIG_MessageBulder_END \
 %clear actionField_e actionField;
 %include "msgCall.h"
 
@@ -26,20 +26,16 @@ SWIGINTERN VALUE MessageDispatcher_callHadler(VALUE self, VALUE msgVal,
   int ret = SWIG_ConvertPtr(msgVal, &voidMsg, SWIGTYPE_p_Message, 0);
   if(!SWIG_IsOK(ret)) {
     SWIG_Error(SWIG_ArgError(ret), Ruby_Format_TypeError("",
-               "Message const &","MessageDispatcher_callHadler", 2, msgVal ));
+               "const Message&", "MessageDispatcher_callHadler", 2, msgVal ));
     return Qnil;
   }
   if(voidMsg == nullptr) {
     SWIG_Error(SWIG_ValueError, Ruby_Format_TypeError("invalid null reference",
-               "Message const &", "MessageDispatcher_callHadler", 2, msgVal));
+               "const Message&", "MessageDispatcher_callHadler", 2, msgVal));
     return Qnil;
   }
+  /* From here call SWIG_exception_fail only */
   ptpmgmt::Message *msg = (ptpmgmt::Message *)voidMsg;
-  if(msg == nullptr) {
-    SWIG_Error(SWIG_ValueError, Ruby_Format_TypeError("invalid null reference",
-               "Message const &", "MessageDispatcher_callHadler", 2, msgVal));
-    return Qnil;
-  }
   ptpmgmt::mng_vals_e tlv_id;
   bool newTlvVal = false;
   if (NIL_P(argv1)) {
@@ -54,19 +50,15 @@ SWIGINTERN VALUE MessageDispatcher_callHadler(VALUE self, VALUE msgVal,
   } else {
     int intVal;
     ret = SWIG_AsVal_int(argv1, &intVal);
-    if(!SWIG_IsOK(ret)) {
-      SWIG_Error(SWIG_ArgError(ret), Ruby_Format_TypeError("",
-                 "mng_vals_e","MessageDispatcher_callHadler", 3, argv1));
-      return Qnil;
-    }
+    if(!SWIG_IsOK(ret))
+      SWIG_exception_fail(SWIG_ArgError(ret), Ruby_Format_TypeError("",
+                 "mng_vals_e", "MessageDispatcher_callHadler", 3, argv1));
     tlv_id = static_cast<ptpmgmt::mng_vals_e>(intVal);
     void *voidptr;
     ret = SWIG_ConvertPtr(tlvVal, &voidptr, SWIGTYPE_p_BaseMngTlv, 0);
-    if(!SWIG_IsOK(ret)) {
-      SWIG_Error(SWIG_ArgError(ret), Ruby_Format_TypeError("",
-                 "BaseMngTlv const *","MessageDispatcher_callHadler", 4, tlvVal));
-      return Qnil;
-    }
+    if(!SWIG_IsOK(ret))
+      SWIG_exception_fail(SWIG_ArgError(ret), Ruby_Format_TypeError("",
+                 "const BaseMngTlv *", "MessageDispatcher_callHadler", 4, tlvVal));
   }
   if(!NIL_P(tlvVal) && msg->isValidId(tlv_id)) {
     std::string idstr = ptpmgmt::Message::mng2str_c(tlv_id);
@@ -104,6 +96,7 @@ SWIGINTERN VALUE MessageDispatcher_callHadler(VALUE self, VALUE msgVal,
     /* Call noTlv(msg) */
     rb_check_funcall(self, rb_intern("noTlv"), 1, argv);
   }
+fail:
   if(newTlvVal)
     rb_gc_mark(tlvVal);
   return Qnil;
@@ -111,23 +104,26 @@ SWIGINTERN VALUE MessageDispatcher_callHadler(VALUE self, VALUE msgVal,
 
 SWIGINTERN VALUE MessageBulder_buildTlv(VALUE self, MessageBulder *_this,
     VALUE actionVal, VALUE tlv_idVal) {
+  bool result = false;
   int intVal;
   int ret = SWIG_AsVal_int(actionVal, &intVal);
   if (!SWIG_IsOK(ret)) {
     SWIG_Error(SWIG_ArgError(ret), Ruby_Format_TypeError("",
-               "actionField_e","MessageBulder_buildTlv", 2, actionVal));
-    return Qfalse;
+               "actionField_e", "MessageBulder_buildTlv", 2, actionVal));
+    return SWIG_From_bool(result);
   }
   ptpmgmt::actionField_e actionField = static_cast<ptpmgmt::actionField_e>(intVal);
   ret = SWIG_AsVal_int(tlv_idVal, &intVal);
   if(!SWIG_IsOK(ret)) {
     SWIG_Error(SWIG_ArgError(ret), Ruby_Format_TypeError("",
-               "mng_vals_e","MessageBulder_buildTlv", 3, tlv_idVal));
-    return Qfalse;
+               "mng_vals_e", "MessageBulder_buildTlv", 3, tlv_idVal));
+    return SWIG_From_bool(result);
   }
+  /* From here call SWIG_exception_fail only */
   ptpmgmt::mng_vals_e tlv_id = static_cast<ptpmgmt::mng_vals_e>(intVal);
   ptpmgmt::Message &msg = _this->getMsg();
-  bool result = false;
+  VALUE tlvVal = Qnil, msgVal = Qnil;
+  bool gcTlvVal = false, gcMsgVal = false;
   if(actionField == ptpmgmt::GET || msg.isEmpty(tlv_id)) {
     result = msg.setAction(actionField, tlv_id);
   } else {
@@ -138,9 +134,11 @@ SWIGINTERN VALUE MessageBulder_buildTlv(VALUE self, MessageBulder *_this,
     std::string callback_name = idstr;
     callback_name += "_b";
     /* Call new XXX_t */
-    VALUE tlvVal = rb_class_new_instance(0, nullptr, rb_path2class(klass.c_str()));
+    tlvVal = rb_class_new_instance(0, nullptr, rb_path2class(klass.c_str()));
+    gcTlvVal = true;
     if(TYPE(tlvVal) == T_DATA) {
       VALUE msgVal = SWIG_NewPointerObj(SWIG_as_voidptr(&msg), SWIGTYPE_p_Message, 0);
+      gcMsgVal = true;
       VALUE argv[2];
       argv[0] = msgVal;
       argv[1] = tlvVal;
@@ -156,23 +154,26 @@ SWIGINTERN VALUE MessageBulder_buildTlv(VALUE self, MessageBulder *_this,
         void *voidptr;
         ret = SWIG_ConvertPtr(tlvVal, &voidptr, SWIGTYPE_p_BaseMngTlv, 0);
         if (!SWIG_IsOK(ret)) {
-          SWIG_Error(SWIG_ArgError(ret), Ruby_Format_TypeError("",
-                      "BaseMngTlv *","MessageBulder_buildTlv", 4, tlvVal));
-          return Qfalse;
+          result = false;
+          SWIG_exception_fail(SWIG_ArgError(ret), Ruby_Format_TypeError("",
+            "BaseMngTlv *", "MessageBulder_buildTlv", 4, tlvVal));
         }
         ptpmgmt::BaseMngTlv *tlv = reinterpret_cast<BaseMngTlv*>(voidptr);
         result = msg.setAction(actionField, tlv_id, tlv);
       }
-      rb_gc_mark(msgVal);
     }
     if(result) {
       /* We need to keep it as the Message use it in build().
        * Destructor of this class will remove it from the Message object. */
       rb_iv_set(self, "@usedTlv", tlvVal);
-    } else {
-      rb_gc_mark(tlvVal);
+      gcTlvVal = false;
     }
   }
+fail:
+  if(gcMsgVal)
+    rb_gc_mark(msgVal);
+  if(gcTlvVal)
+    rb_gc_mark(tlvVal);
   return SWIG_From_bool(result);
 }
 %}

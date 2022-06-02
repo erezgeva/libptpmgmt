@@ -184,7 +184,7 @@ _ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
 _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
-#ifdef USE_MSG_CALL
+#ifndef SKIP_MSG_CALL
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) MessageDispatcher;
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) MessageBulder;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) MessageDispatcher::callHadler;

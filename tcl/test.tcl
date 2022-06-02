@@ -135,7 +135,7 @@ proc main {cfg_file} {
     puts "send fail"
     return -1
   }
-  # You can get file descriptor with sk->fileno and use select
+  # You can get file descriptor with [ sk fileno ] and use select
   if { ! [ sk poll 500 ] } {
     puts "timeout"
     return -1

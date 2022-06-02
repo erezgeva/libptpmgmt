@@ -470,7 +470,7 @@ PERL_INC:=$(call rep_arch_f,$(PERL_INC))
 PERLDIR:=$(call rep_arch_f,$(PERLDIR))
 endif
 PERL_NAME:=perl/$(SWIG_NAME)
-perl_SFLAGS+=-perl5 -DUSE_MSG_CALL
+perl_SFLAGS+=-perl5
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 	$Q$(call LLC,-I$(PERL_INC))
 	$(call D_INC,PERL_INC)
@@ -488,7 +488,7 @@ endif # NO_PERL
 ifndef NO_LUA
 ifneq ($(call which,lua),)
 LUA_LIB_NAME:=ptpmgmt.so
-lua_SFLAGS+=-lua -DUSE_MSG_CALL
+lua_SFLAGS+=-lua
 CLEAN+=lua/$(SWIG_NAME).cpp
 define lua
 LUA_FLIB_$1:=liblua$1-$(LUA_LIB_NAME)
@@ -572,7 +572,7 @@ ifdef USE_PY
 PY_BASE:=python/$(SWIG_NAME)
 PY_LIB_NAME:=_ptpmgmt
 PY_LIBDIR?=/usr/lib/python
-python_SFLAGS+=-python -DUSE_MSG_CALL
+python_SFLAGS+=-python
 ifeq ($(PY_USE_S_THRD),)
 python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
 endif
@@ -608,7 +608,7 @@ RUBYDIR:=$(call rep_arch_f,$(RUBYDIR))
 endif
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
 RUBY_LNAME:=ruby/ptpmgmt
-ruby_SFLAGS:=-ruby -DUSE_MSG_CALL
+ruby_SFLAGS:=-ruby
 $(RUBY_LNAME).so_LDLIBS:=$(RUBY_LIB)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
 	$Q$(call LLC,$(CPPFLAGS_RUBY) $(RUBY_INC))
@@ -651,7 +651,6 @@ $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$Q$(call LLC,$(CPPFLAGS_PHP) $(PHP_INC))
 	$(call D_INC,PHP_INC_BASE)
 	$(SWIG_DEP)
-	for n in $(@D)/*.i; do $(SED) '0,/ CODE START HERE$$/d' $$n >> $*.php; done
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so
@@ -675,7 +674,7 @@ ifeq ($(call verCheck,$(tcl_ver),8.0),)
 TCL_NAME:=tcl/$(SWIG_NAME).cpp
 TCL_LNAME:=tcl/ptpmgmt
 CPPFLAGS_TCL+=-I$(TCL_INC)
-tcl_SFLAGS+=-tcl8 -namespace
+tcl_SFLAGS+=-tcl8 -namespace -DSKIP_MSG_CALL
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$Q$(call LLC,$(CPPFLAGS_TCL))
 	$(call D_INC,TCL_INC)
