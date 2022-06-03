@@ -116,12 +116,20 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) ClockIdentity_t::operator==;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) PortIdentity_t::operator==;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) PortAddress_t::operator==;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) ClockTime::operator==;
 /* Operator overload ignored.
  * Scripts can use class less() method */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator<;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) ClockIdentity_t::operator<;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) PortIdentity_t::operator<;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) PortAddress_t::operator<;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) ClockTime::operator<;
+/* Operator overload ignored.
+ * Scripts can use class add() method */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) ClockTime::operator+;
+/* Operator overload ignored.
+ * Scripts can use class subt() method */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) ClockTime::operator-;
 #endif /* SWIG_OPERS_LANG_IDENTIFIER */
 
 /* Mark base sockets as non-abstract classes */
