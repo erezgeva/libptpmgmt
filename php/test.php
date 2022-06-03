@@ -51,14 +51,15 @@ function nextSequence()
 function setPriority1($newPriority1)
 {
   global $sk, $msg, $buf, $dispacher, $builder;
+  $useBuild = true;
   $id = ptpmgmt::PRIORITY1;
-  if (false) {
+  if ($useBuild) {
+    $builder->pr = $newPriority1;
+    $builder->buildTlv(ptpmgmt::SET, $id);
+  } else {
     $pr1 = new PRIORITY1_t();
     $pr1->priority1 = $newPriority1;
     $msg->setAction(ptpmgmt::SET, $id, $pr1);
-  } else {
-    $builder->pr = $newPriority1;
-    $builder->buildTlv(ptpmgmt::SET, $id);
   }
   $seq = nextSequence();
   $err = $msg->build($buf, $seq);
@@ -69,6 +70,9 @@ function setPriority1($newPriority1)
   if(!$sk->send($buf, $msg->getMsgLen())) {
     echo "send fail";
     return -1;
+  }
+  if(!$useBuild) {
+    $msg->clearData();
   }
   if(!$sk->poll(500)) {
     echo "timeout";

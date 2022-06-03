@@ -50,14 +50,15 @@ def nextSequence()
 end
 
 def setPriority1(newPriority1)
+  useBuild = true
   id = Ptpmgmt::PRIORITY1
-  if true then
+  if useBuild then
+    $builder.pr(newPriority1)
+    $builder.buildTlv(Ptpmgmt::SET, id)
+  else
     pr1 = Ptpmgmt::PRIORITY1_t.new
     pr1.priority1 = newPriority1
     $msg.setAction(Ptpmgmt::SET, id, pr1)
-  else
-    $builder.pr(newPriority1)
-    $builder.buildTlv(Ptpmgmt::SET, id)
   end
   seq = nextSequence()
   err = $msg.build($buf, seq)
@@ -68,6 +69,9 @@ def setPriority1(newPriority1)
   if !$sk.send($buf, $msg.getMsgLen()) then
     puts "send fail"
     return -1
+  end
+  if !useBuild then
+    $msg.clearData()
   end
   if !$sk.poll(500) then
     puts "timeout"

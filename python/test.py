@@ -46,14 +46,15 @@ def nextSequence():
 
 def setPriority1(newPriority1):
   global sk, msg, buf, dispacher, builder
+  useBuild = True
   id = ptpmgmt.PRIORITY1
-  if False:
+  if useBuild:
+    builder.pr = newPriority1
+    builder.buildTlv(ptpmgmt.SET, id)
+  else:
     pr1 = ptpmgmt.PRIORITY1_t()
     pr1.priority1 = newPriority1
     msg.setAction(ptpmgmt.SET, id, pr1)
-  else:
-    builder.pr = newPriority1
-    builder.buildTlv(ptpmgmt.SET, id)
   seq = nextSequence()
   err = msg.build(buf, seq)
   if err != ptpmgmt.MNG_PARSE_ERROR_OK:
@@ -62,6 +63,8 @@ def setPriority1(newPriority1):
   if not sk.send(buf, msg.getMsgLen()):
     print("send fail")
     return -1
+  if not useBuild:
+    msg.clearData()
   if not sk.poll(500):
     print("timeout")
     return -1

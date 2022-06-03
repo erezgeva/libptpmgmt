@@ -61,15 +61,17 @@ function nextSequence()
 end
 
 function setPriority1(newPriority1)
+  local useBuild = true
   local txt
   local id = ptpmgmt.PRIORITY1
-  if(false) then
-    local pr1 = ptpmgmt.PRIORITY1_t()
-    pr1.priority1 = newPriority1
-    msg:setAction(ptpmgmt.SET, id, pr1)
-  else
+  local pr1
+  if(useBuild) then
     builder.pr = newPriority1
     builder:buildtlv(ptpmgmt.SET, id)
+  else
+    pr1 = ptpmgmt.PRIORITY1_t()
+    pr1.priority1 = newPriority1
+    msg:setAction(ptpmgmt.SET, id, pr1)
   end
   local seq = nextSequence()
   local err = msg:build(buf, seq)
@@ -81,16 +83,11 @@ function setPriority1(newPriority1)
     print "send fail"
     return -1
   end
+  msg:clearData()
   if(not sk:poll(500)) then
     print "timeout"
     return -1
   end
-  --[[ Make sure Message class do not hold the management send TLV.
-  --   As Lua do not use destructors,
-  --    MessageDispatcher can not call msg:clearData() once deleted.
-  --   User should call msg:clearData() after msg:build().
-  --   Note: Using GET massages do not require a send TLV! ]]
-  msg:clearData()
   local cnt = sk:rcv(buf)
   if(cnt <= 0) then
     print "rcv cnt"

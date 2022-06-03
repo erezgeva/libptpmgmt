@@ -57,9 +57,6 @@ class BaseMngBuildCallback
  * @brief dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
  * @note You must inherit this class to use it!
- * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
- *       See testing for examples.
- *       Currently TCL is excluded.
  * @note callHadler() has an implementation per script language.
  *       So, it can call virtual function define in the script language itself.
  */
@@ -113,9 +110,6 @@ SWIG_MessageBulder_START
 /**
  * @brief build TLV to send a PTP management message
  * @note You must inherit this class to use it!
- * @note Class implemented in Python, Perl, Lua, PHP and Ruby.
- *       See testing for examples.
- *       Currently TCL is excluded.
  * @note As this class allocate a new TLV, and store it.
  *       It call Message.clearData() on destructor,
  *       to ensure Message does not use the TLV.

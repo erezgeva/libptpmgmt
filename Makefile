@@ -674,7 +674,7 @@ ifeq ($(call verCheck,$(tcl_ver),8.0),)
 TCL_NAME:=tcl/$(SWIG_NAME).cpp
 TCL_LNAME:=tcl/ptpmgmt
 CPPFLAGS_TCL+=-I$(TCL_INC)
-tcl_SFLAGS+=-tcl8 -namespace -DSKIP_MSG_CALL
+tcl_SFLAGS+=-tcl8 -namespace
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$Q$(call LLC,$(CPPFLAGS_TCL))
 	$(call D_INC,TCL_INC)

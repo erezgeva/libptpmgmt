@@ -60,22 +60,24 @@ sub nextSequence
 
 sub setPriority1
 {
+  my $useBuild = 1;
   my $newPriority1 = shift;
   my $id = $PtpMgmtLib::PRIORITY1;
   my $pr1;
-  if (0) {
+  if ($useBuild) {
+    $builder->{pr} = $newPriority1;
+    $builder->buildTlv($PtpMgmtLib::SET, $id);
+  } else {
     $pr1 = PtpMgmtLib::PRIORITY1_t->new;
     $pr1->swig_priority1_set($newPriority1);
     $msg->setAction($PtpMgmtLib::SET, $id, $pr1);
-  } else {
-    $builder->{pr} = $newPriority1;
-    $builder->buildTlv($PtpMgmtLib::SET, $id);
   }
   my $seq = nextSequence;
   my $err = $msg->build($buf, $seq);
   my $txt = PtpMgmtLib::Message::err2str_c($err);
   die "build error $txt\n" if $err != $PtpMgmtLib::MNG_PARSE_ERROR_OK;
   die "send" unless $sk->send($buf, $msg->getMsgLen());
+  $msg->clearData() unless $useBuild;
 
   unless($sk->poll(500)) {
     print "timeout";

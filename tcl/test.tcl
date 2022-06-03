@@ -11,11 +11,38 @@
 
 package require ptpmgmt
 
+::oo::class create myDisp {
+  superclass ptpmgmt::MessageDispatcher
+  method PRIORITY1_h {msg tlv tlv_id} {
+    puts "Get reply for $tlv_id"
+    puts "priority1: [ $tlv cget -priority1 ]"
+  }
+  method USER_DESCRIPTION_h {msg tlv tlv_id} {
+    puts "Get reply for $tlv_id"
+    puts "get user desc: [ [ $tlv cget -userDescription ] cget -textField ]"
+  }
+}
+::oo::class create myBuild {
+  superclass ptpmgmt::MessageBulder
+  variable pr
+  method setPr { val } {
+    variable pr
+    set pr $val
+  }
+  method PRIORITY1_b { msg tlv } {
+    variable pr
+    $tlv configure -priority1 $pr
+    return true
+  }
+}
+
 set DEF_CFG_FILE "/etc/linuxptp/ptp4l.conf"
 ptpmgmt::SockUnix sk
 ptpmgmt::Message msg
 ptpmgmt::Buf buf
 ptpmgmt::Options opt
+myDisp create dispacher
+myBuild create builder msg
 set sequence 0
 
 proc nextSequence {} {
@@ -29,10 +56,17 @@ proc nextSequence {} {
 }
 
 proc setPriority1 {newPriority1} {
-  set pr1 [ ptpmgmt::PRIORITY1_t ]
-  $pr1 configure -priority1 $newPriority1
+  set useBuild true
   set id $ptpmgmt::PRIORITY1
-  msg setAction $ptpmgmt::SET $id $pr1
+  variable pr1
+  if {$useBuild} {
+    builder setPr $newPriority1
+    builder buildTlv $ptpmgmt::SET $id
+  } else {
+    set pr1 [ ptpmgmt::PRIORITY1_t ]
+    $pr1 configure -priority1 $newPriority1
+    msg setAction $ptpmgmt::SET $id $pr1
+  }
   set seq [ nextSequence ]
   set err [ msg build buf $seq ]
   if {$err != $ptpmgmt::MNG_PARSE_ERROR_OK} {
@@ -43,6 +77,9 @@ proc setPriority1 {newPriority1} {
   if { ! [ sk send buf [ msg getMsgLen ] ] } {
     puts "send fail"
     return -1
+  }
+  if { !$useBuild } then {
+    msg clearData
   }
   if { ! [ sk poll 500 ] } {
     puts "timeout"
@@ -88,14 +125,8 @@ proc setPriority1 {newPriority1} {
     set txt [ ptpmgmt::Message_err2str_c $err ]
     puts "parse error $txt"
   } else {
-    set rid [ msg getTlvId ]
-    set idstr [ ptpmgmt::Message_mng2str_c $rid ]
-    puts "Get reply for $idstr"
-    if {$rid == $id} {
-      set newPr [ ptpmgmt::conv_PRIORITY1 [ msg getData ] ]
-      puts "priority1: [ $newPr cget -priority1 ]"
-      return 0
-    }
+    dispacher callHadler msg [ msg getTlvId ] [ msg getData ]
+    return 0
   }
   return -1
 }
@@ -110,7 +141,7 @@ proc main {cfg_file} {
     puts "fail reading configuration file"
     return -1
   }
-  if { ! [ sk setDefSelfAddress ] || ! [ sk init ]  || \
+  if { ! [ sk setDefSelfAddress ] || ! [ sk init ] || \
        ! [ sk setPeerAddress $cfg ] } {
     puts "fail init socket"
     return -1
@@ -152,13 +183,7 @@ proc main {cfg_file} {
     set txt [ ptpmgmt::Message_err2str_c $err ]
     puts "parse error $txt"
   } else {
-    set rid [ msg getTlvId ]
-    set idstr [ ptpmgmt::Message_mng2str_c $rid ]
-    puts "Get reply for $idstr"
-    if {$rid == $id} {
-      set user [ ptpmgmt::conv_USER_DESCRIPTION [ msg getData ] ]
-      puts "get user desc: [ [ $user cget -userDescription ] cget -textField ]"
-    }
+    dispacher callHadler msg
   }
 
   # test setting values
@@ -215,9 +240,8 @@ if { $ret == $ptpmgmt::Options_OPT_DONE } {
   puts "Use configuration file $cfg_file"
   main $cfg_file
 } else {
-  puts "fail parsing command line";
+  puts "fail parsing command line"
 }
-
 sk close
 
 ######################################
