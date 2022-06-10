@@ -25,7 +25,7 @@ namespace ptpmgmt
 #define JS(n) static inline bool proc_##n(JsonProc &proc, n##_t &d)
 #define PROC_VAL(name) proc.procValue(#name, d.name)
 #define PROC_BIN(name, len) proc.procBinary(#name, d.name, d.len)
-#define PROC_OCT(name) proc.procBinary(#name, d.name, sizeof(d.name))
+#define PROC_OCT(name) proc.procBinary(#name, d.name, sizeof d.name)
 #define PROC_FLG(name, mask) proc.procFlag(#name, d.flags, mask)
 #define PROC_FLG1(name) proc.procFlag(#name, d.flags, 1)
 #define PROC_FLGB(name, flag, bit) proc.procFlag(#name, d.flag, (1 << bit))
@@ -677,7 +677,7 @@ struct JsonProcToJson : public JsonProc {
     bool procValue(const char *name, clockAccuracy_e &val) {
         if(val < Accurate_within_1ps) {
             char buf[10];
-            snprintf(buf, sizeof(buf), "0x%x", val);
+            snprintf(buf, sizeof buf, "0x%x", val);
             procString(name, buf);
         } else
             procString(name, m_msg.clockAcc2str_c(val));

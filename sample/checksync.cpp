@@ -197,7 +197,7 @@ static inline bool sendGet(bool local, mng_vals_e id)
 bool send_subscription()
 {
     SUBSCRIBE_EVENTS_NP_t d;
-    memset(d.bitmask, 0, sizeof(d.bitmask));
+    memset(d.bitmask, 0, sizeof d.bitmask);
     d.duration = PMC_SUBSCRIBE_DURATION;
     d.setEvent(NOTIFY_PORT_STATE);
     if(!msg.setAction(SET, SUBSCRIBE_EVENTS_NP, &d)) {

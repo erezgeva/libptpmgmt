@@ -22,6 +22,7 @@
 #include <net/if.h>
 #include <linux/ethtool.h>
 #include "bin.h"
+#include "types.h"
 
 #ifndef SWIG
 namespace ptpmgmt
@@ -116,34 +117,96 @@ class IfInfo
 struct ClockTime {
     int64_t seconds; /**< Seconds */
     uint32_t nanoseconds; /**< Nano seconds */
-    /**
-     * Used when fetch time.
-     * Ignored on set.
-     */
     ClockTime() : seconds(0), nanoseconds(0) {}
+    /**
+     * Copy constructor
+     * @param[in] ct another ClockTime
+     * @note Ensure compiler create a copy contructor
+     */
+    ClockTime(const ClockTime &ct) = default;
+    #ifndef SWIG
     /**
      * Convert from timespec
      * @param[in] ts timespec structure
-     * @note For C and C++
+     * @note scripts should not use the timespec structure
      */
-    void fromTimespec(const struct timespec &ts) {
+    ClockTime(const timespec &ts) {
         seconds = ts.tv_sec;
         nanoseconds = ts.tv_nsec;
     }
     /**
      * Convert to timespec
-     * @param[in] ts timespec structure
-     * @note For C and C++
+     * @note scripts should not use the timespec structure
      */
-    void toTimespec(struct timespec &ts) const {
+    operator timespec() const { timespec ts; toTimespec(ts); return ts; }
+    /**
+     * Convert to timespec
+     * @param[in, out] ts timespec structure
+     * @note scripts should not use the timespec structure
+     */
+    void toTimespec(timespec &ts) const {
         ts.tv_sec = seconds;
         ts.tv_nsec = nanoseconds;
+    }
+    /**
+     * Convert from timeval
+     * @param[in] tv timeval structure
+     * @note scripts should not use the timeval structure
+     */
+    ClockTime(const timeval &tv);
+    /**
+     * Convert to timespec
+     * @note scripts should not use the timeval structure
+     */
+    operator timeval() const { timeval tv; toTimeval(tv); return tv; }
+    /**
+     * Convert to timeval
+     * @param[in, out] tv timeval structure
+     * @note scripts should not use the timeval structure
+     */
+    void toTimeval(timeval &tv) const;
+    #endif /*SWIG*/
+    /**
+     * Convert from Timestamp
+     * @param[in] ts Timestamp structure
+     */
+    ClockTime(const Timestamp_t &ts) {
+        seconds = ts.secondsField;
+        nanoseconds = ts.nanosecondsField;
+    }
+    #ifndef SWIG
+    /**
+     * Convert to Timestamp
+     * @note scripts should not use the Timestamp structure
+     * @note scripts can use the toTimestamp() method
+     */
+    operator Timestamp_t() const { Timestamp_t ts; toTimestamp(ts); return ts; }
+    #endif
+    /**
+     * Convert to Timestamp
+     * @param[in, out] ts Timestamp structure
+     */
+    void toTimestamp(Timestamp_t &ts) const {
+        ts.secondsField = seconds;
+        ts.nanosecondsField = nanoseconds;
     }
     /**
      * Convert from seconds with fractions
      * @param[in] seconds with fractions
      */
+    ClockTime(long double seconds) {formFloat(seconds);}
+    /**
+     * Convert from seconds with fractions
+     * @param[in] seconds with fractions
+     */
     void formFloat(long double seconds);
+    #ifndef SWIG
+    /**
+     * Convert to seconds with fractions
+     * @note scripts can use the toFloat() method
+     */
+    operator long double() const { return toFloat(); }
+    #endif
     /**
      * Convert to seconds with fractions
      * @return seconds with fractions
@@ -159,14 +222,24 @@ struct ClockTime {
      * @return nanoseconds
      */
     int64_t toNanoseconds() const;
+    #ifndef SWIG
+    /**
+     * Convert to string of seconds with fractions
+     * @note scripts can use the string() method
+     */
+    operator std::string() const { return string(); }
+    #endif
+    /**
+     * Convert to string of seconds with fractions
+     * @return string
+     */
+    std::string string() const;
     /**
      * Compare to another clock time
      * @param[in] ts another clock time
      * @return true if the same time
      */
-    bool operator==(const ClockTime &ts) const {
-        return seconds == ts.seconds && nanoseconds == ts.nanoseconds;
-    }
+    bool operator==(const ClockTime &ts) const { return eq(ts); }
     /**
      * Compare to another clock time
      * @param[in] ts another clock time
@@ -176,14 +249,27 @@ struct ClockTime {
         return seconds == ts.seconds && nanoseconds == ts.nanoseconds;
     }
     /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if the same time
+     */
+    bool operator==(long double seconds) const { return eq(seconds); }
+    /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if the same time
+     */
+    bool eq(long double seconds) const {
+        return seconds == toFloat();
+    }
+    /**
      * Compare to another clock time
      * @param[in] ts another clock time
      * @return true if smaller then other time
+     * @note when compare to a number,
+     *       the number will be converted as seconds with fractions
      */
-    bool operator<(const ClockTime &ts) const {
-        return seconds < ts.seconds ||
-            (seconds == ts.seconds && nanoseconds < ts.nanoseconds);
-    }
+    bool operator<(const ClockTime &ts) const { return less(ts); }
     /**
      * Compare to another clock time
      * @param[in] ts another clock time
@@ -194,11 +280,33 @@ struct ClockTime {
             (seconds == ts.seconds && nanoseconds < ts.nanoseconds);
     }
     /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if smaller
+     */
+    bool operator<(long double seconds) const { return less(seconds); }
+    /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if smaller
+     */
+    bool less(long double seconds) const {
+        return seconds < toFloat();
+    }
+    /**
      * Add another clock time
      * @param[in] ts another clock time
      * @return reference to itself
      */
     ClockTime &operator+(const ClockTime &ts) { return add(ts); }
+    #ifndef SWIG
+    /**
+     * Add another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    ClockTime &operator+=(const ClockTime &ts) { return add(ts); }
+    #endif /*SWIG*/
     /**
      * Add another clock time
      * @param[in] ts another clock time
@@ -206,17 +314,67 @@ struct ClockTime {
      */
     ClockTime &add(const ClockTime &ts);
     /**
+     * Add a seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    ClockTime &operator+(long double seconds) { return add(seconds); }
+    #ifndef SWIG
+    /**
+     * Add a seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    ClockTime &operator+=(long double seconds) { return add(seconds); }
+    #endif /*SWIG*/
+    /**
+     * Add a seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    ClockTime &add(long double seconds);
+    /**
      * Subtract another clock time
      * @param[in] ts another clock time
      * @return reference to itself
      */
     ClockTime &operator-(const ClockTime &ts) { return subt(ts); }
+    #ifndef SWIG
+    /**
+     * Subtract another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    ClockTime &operator-=(const ClockTime &ts) { return subt(ts); }
+    #endif /*SWIG*/
     /**
      * Subtract another clock time
      * @param[in] ts another clock time
      * @return reference to itself
      */
     ClockTime &subt(const ClockTime &ts);
+    /**
+     * Subtract seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    ClockTime &operator-(long double seconds) { return add(-seconds); }
+    #ifndef SWIG
+    /**
+     * Subtract seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    ClockTime &operator-=(long double seconds) { return add(-seconds); }
+    #endif /*SWIG*/
+    /**
+     * Subtract seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    ClockTime &subt(long double seconds) { return add(-seconds); }
+  private:
+    ClockTime &normNano();
 };
 /**
  * Bridge to Linux kernel struct ptp_clock_caps
@@ -310,7 +468,7 @@ class PtpClock
      * @return true if file is char device
      * @note function will follow a symbolic link
      */
-    static bool isChar(const std::string &file);
+    static bool isCharFile(const std::string &file);
     /**
      * Get clock time in nanoseconds
      * @return clock time or zero on error

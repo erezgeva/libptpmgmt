@@ -36,10 +36,10 @@ class MsgDump : public MessageDispatcher
             m.netProt2str_c(d.protocolAddress.networkProtocol),
             d.protocolAddress.string().c_str(),
             Binary::bufToId(d.manufacturerIdentity,
-                sizeof(d.manufacturerIdentity)).c_str(),
+                sizeof d.manufacturerIdentity).c_str(),
             d.productDescription.string(), d.revisionData.string(),
             d.userDescription.string(),
-            Binary::bufToId(d.profileIdentity, sizeof(d.profileIdentity)).c_str());
+            Binary::bufToId(d.profileIdentity, sizeof d.profileIdentity).c_str());
     }
     dump(USER_DESCRIPTION) {
         DUMPS(IDENT "userDescription  %s", d.userDescription.string());
@@ -796,7 +796,7 @@ class MsgBuild : public MessageBulder
         int64_t num;
         const char *t2, *tkn = key.str_val;
         if(strcasecmp(base, tkn) == 0)
-            t2 = tkn + sizeof(base);
+            t2 = tkn + sizeof base;
         else
             t2 = tkn;
         if(strcasecmp("NONE", t2) == 0)
@@ -1139,7 +1139,7 @@ class MsgBuild : public MessageBulder
         keys["NOTIFY_PORT_STATE"].flag = true ;
         keys["NOTIFY_TIME_SYNC"].flag = true ;
         parseKeys;
-        memset(d.bitmask, 0, sizeof(d.bitmask));
+        memset(d.bitmask, 0, sizeof d.bitmask);
         if(keys["NOTIFY_PORT_STATE"].num)
             d.setEvent(NOTIFY_PORT_STATE);
         if(keys["NOTIFY_TIME_SYNC"].num)

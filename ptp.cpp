@@ -19,6 +19,7 @@
 #include <linux/ptp_clock.h>
 #include "err.h"
 #include "ptp.h"
+#include "timeCvrt.h"
 
 namespace ptpmgmt
 {
@@ -31,10 +32,6 @@ namespace ptpmgmt
 static inline clockid_t get_clockid_fd(int fd) PURE;
 
 const char ptp_dev[] = "/dev/ptp";
-
-#ifndef NSEC_PER_SEC
-#define NSEC_PER_SEC 1000000000L
-#endif
 
 // man netdevice
 // From linux/posix-timers.h
@@ -112,6 +109,16 @@ bool IfInfo::initUsingIndex(int ifIndex)
     m_ifIndex = ifIndex;
     return initPtp(fd, ifr);
 }
+ClockTime::ClockTime(const timeval &tv)
+{
+    seconds = tv.tv_sec;
+    nanoseconds = tv.tv_usec * NSEC_PER_USEC;
+}
+void ClockTime::toTimeval(timeval &tv) const
+{
+    tv.tv_sec = seconds;
+    tv.tv_usec = nanoseconds / NSEC_PER_USEC;
+}
 void ClockTime::formFloat(long double _seconds)
 {
     seconds = floorl(_seconds);
@@ -121,44 +128,54 @@ long double ClockTime::toFloat() const
 {
     return (long double)nanoseconds / NSEC_PER_SEC + seconds;
 }
-int64_t ClockTime::toNanoseconds() const
-{
-    return seconds + NSEC_PER_SEC * nanoseconds;
-}
 void ClockTime::fromNanoseconds(int64_t nanoseconds)
 {
     auto d = div((long long)nanoseconds, (long long)NSEC_PER_SEC);
     seconds = d.quot;
     nanoseconds = d.rem;
 }
-ClockTime &ClockTime::add(const ClockTime &ts)
+int64_t ClockTime::toNanoseconds() const
 {
-    seconds += ts.seconds;
-    nanoseconds += ts.nanoseconds;
-    // Should loop once at most
+    return seconds + NSEC_PER_SEC * nanoseconds;
+}
+std::string ClockTime::string() const
+{
+    char buf[200];
+    snprintf(buf, sizeof buf, "%ju.%.9u", seconds, nanoseconds);
+    return buf;
+}
+ClockTime &ClockTime::normNano()
+{
     while(nanoseconds >= NSEC_PER_SEC) {
         nanoseconds -= NSEC_PER_SEC;
         seconds++;
     }
     return *this;
 }
+ClockTime &ClockTime::add(const ClockTime &ts)
+{
+    seconds += ts.seconds;
+    nanoseconds += ts.nanoseconds;
+    return normNano();
+}
+ClockTime &ClockTime::add(long double _seconds)
+{
+    int64_t asec = floorl(_seconds);
+    seconds += asec;
+    nanoseconds += (_seconds - asec) * NSEC_PER_SEC;
+    return normNano();
+}
 ClockTime &ClockTime::subt(const ClockTime &ts)
 {
     seconds -= ts.seconds;
-    // Should loop once at most
     while(nanoseconds < ts.nanoseconds) {
         nanoseconds += NSEC_PER_SEC;
         seconds--;
     }
     nanoseconds -= ts.nanoseconds;
-    // Should not happen
-    while(nanoseconds >= NSEC_PER_SEC) {
-        nanoseconds -= NSEC_PER_SEC;
-        seconds++;
-    }
-    return *this;
+    return normNano();
 }
-bool PtpClock::isChar(const std::string &file)
+bool PtpClock::isCharFile(const std::string &file)
 {
     struct stat sb;
     return stat(file.c_str(), &sb) == 0 && (sb.st_mode & S_IFMT) == S_IFCHR;
@@ -177,7 +194,7 @@ bool PtpClock::init(const char *device, bool readonly)
         close(fd);
         return false;
     }
-    struct timespec ts;
+    timespec ts;
     if(clock_gettime(cid, &ts) != 0) {
         close(fd);
         return false;
@@ -200,7 +217,7 @@ bool PtpClock::initUsingDevice(const std::string &device, bool readonly)
     if(m_isInit)
         return false;
     char file[PATH_MAX];
-    if(!isChar(device)) {
+    if(!isCharFile(device)) {
         std::string dev;
         if(device.find('/') != std::string::npos)
             return false;
@@ -208,7 +225,7 @@ bool PtpClock::initUsingDevice(const std::string &device, bool readonly)
         dev = "/dev/";
         dev += device;
         // File can be symbolic link in the /dev folder
-        if(!isChar(dev) || realpath(dev.c_str(), file) == nullptr)
+        if(!isCharFile(dev) || realpath(dev.c_str(), file) == nullptr)
             return false;
     } else if(realpath(device.c_str(), file) == nullptr)
         return false;
@@ -216,8 +233,8 @@ bool PtpClock::initUsingDevice(const std::string &device, bool readonly)
         m_device = file; // Store the realpath
         // Does this device have a ptp index?
         char *num; // Store number location
-        if(strncmp(file, ptp_dev, sizeof(ptp_dev)) == 0 &&
-            *(num = file + sizeof(ptp_dev)) != 0) {
+        if(strncmp(file, ptp_dev, sizeof ptp_dev) == 0 &&
+            *(num = file + sizeof ptp_dev) != 0) {
             char *endptr;
             long ret = strtol(num, &endptr, 10);
             if(ret >= 0 && *endptr == 0 && ret < LONG_MAX)
@@ -233,7 +250,7 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
         return false;
     std::string dev = ptp_dev;
     dev += std::to_string(ptpIndex);
-    if(isChar(dev) && init(dev.c_str(), readonly)) {
+    if(isCharFile(dev) && init(dev.c_str(), readonly)) {
         m_ptpIndex = ptpIndex;
         m_device = dev;
         return true;
@@ -245,22 +262,19 @@ PtpClock::~PtpClock()
     if(m_fd >= 0)
         close(m_fd);
 }
-
 ClockTime PtpClock::getTime() const
 {
-    ClockTime ts;
     if(m_isInit) {
-        struct timespec ts1;
+        timespec ts1;
         if(clock_gettime(m_clkId, &ts1) == 0)
-            ts.fromTimespec(ts1);
+            return ts1;
     }
-    return ts;
+    return 0;
 }
 bool PtpClock::setTime(const ClockTime &ts) const
 {
     if(m_isInit) {
-        struct timespec ts1;
-        ts.toTimespec(ts1);
+        timespec ts1 = ts;
         return clock_gettime(m_clkId, &ts1) == 0;
     }
     return false;
@@ -269,7 +283,7 @@ bool PtpClock::fetchCaps(PtPCaps &caps) const
 {
     if(!m_isInit || m_fd < 0)
         return false;
-    struct ptp_clock_caps c;
+    ptp_clock_caps c;
     if(ioctl(m_fd, PTP_CLOCK_GETCAPS, &c) == -1)
         return false;
     caps.max_ppb = c.max_adj;

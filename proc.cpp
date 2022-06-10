@@ -22,7 +22,7 @@ namespace ptpmgmt
 template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec) PURE;
 
 // For Octets arrays
-#define oproc(a) proc(a, sizeof(a))
+#define oproc(a) proc(a, sizeof a)
 #define fproc procFlags(d.flags, d.flagsMask)
 
 // size of variable length list

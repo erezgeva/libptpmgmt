@@ -681,7 +681,7 @@ void Message::setAllClocks()
 bool Message::isAllClocks() const
 {
     return m_prms.target.portNumber == allPorts &&
-        memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof(allClocks)) == 0;
+        memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof allClocks) == 0;
 }
 bool Message::useConfig(const ConfigFile &cfg, const std::string &section)
 {
@@ -1045,13 +1045,13 @@ const char *Message::us2str_c(linuxptpUnicastState_e state)
 std::string Timestamp_t::string() const
 {
     char buf[200];
-    snprintf(buf, sizeof(buf), "%ju.%.9u", secondsField, nanosecondsField);
+    snprintf(buf, sizeof buf, "%ju.%.9u", secondsField, nanosecondsField);
     return buf;
 }
 std::string ClockIdentity_t::string() const
 {
     char buf[25];
-    snprintf(buf, sizeof(buf), "%02x%02x%02x.%02x%02x.%02x%02x%02x",
+    snprintf(buf, sizeof buf, "%02x%02x%02x.%02x%02x.%02x%02x%02x",
         v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
     return buf;
 }

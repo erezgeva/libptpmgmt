@@ -100,10 +100,10 @@ std::string Binary::bufToId(const uint8_t *id, size_t len)
     if(len < 1)
         return "";
     char buf[10];
-    snprintf(buf, sizeof(buf), "%02x", *id);
+    snprintf(buf, sizeof buf, "%02x", *id);
     std::string ret = buf;
     for(len--; len > 0; len--) {
-        snprintf(buf, sizeof(buf), ":%02x", *++id);
+        snprintf(buf, sizeof buf, ":%02x", *++id);
         ret += buf;
     }
     return ret;
@@ -172,7 +172,7 @@ std::string Binary::bufToHex(const uint8_t *bin, size_t len)
     char buf[10];
     std::string ret;
     for(; len > 0; len--) {
-        snprintf(buf, sizeof(buf), "%02x", *bin++);
+        snprintf(buf, sizeof buf, "%02x", *bin++);
         ret += buf;
     }
     return ret;

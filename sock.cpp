@@ -165,7 +165,7 @@ bool SockUnix::initBase()
     }
     sockaddr_un addr;
     setUnixAddr(addr, m_me);
-    if(bind(m_fd, (sockaddr *)&addr, sizeof(addr)) != 0) {
+    if(bind(m_fd, (sockaddr *)&addr, sizeof addr) != 0) {
         PTPMGMT_PERROR("bind");
         return false;
     }
@@ -241,7 +241,7 @@ const char *SockUnix::getHomeDir_c()
 bool SockUnix::sendAny(const void *msg, size_t len,
     const sockaddr_un &addr) const
 {
-    ssize_t cnt = sendto(m_fd, msg, len, 0, (sockaddr *)&addr, sizeof(addr));
+    ssize_t cnt = sendto(m_fd, msg, len, 0, (sockaddr *)&addr, sizeof addr);
     return sendReply(cnt, len);
 }
 bool SockUnix::sendBase(const void *msg, size_t len)
@@ -275,7 +275,7 @@ ssize_t SockUnix::rcvFrom(void *buf, size_t bufSize, std::string &from,
     if(!m_isInit)
         return -1;
     sockaddr_un addr;
-    socklen_t len = sizeof(addr);
+    socklen_t len = sizeof addr;
     int flags = 0;
     if(!block)
         flags |= MSG_DONTWAIT;
@@ -384,7 +384,7 @@ bool SockIp::initBase()
         return false;
     }
     int on = 1;
-    if(setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
+    if(setsockopt(m_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof on) != 0) {
         PTPMGMT_PERROR("setsockopt SO_REUSEADDR failed: %m");
         return false;
     }
@@ -407,7 +407,7 @@ bool SockIp::initBase()
     return true;
 }
 SockIp4::SockIp4() : SockIp(AF_INET, ipv4_udp_mc, (sockaddr *) & m_addr4,
-        sizeof(m_addr4))
+        sizeof m_addr4)
 {
     m_addr4 = {0};
     m_addr4.sin_family = m_domain;
@@ -417,25 +417,25 @@ SockIp4::SockIp4() : SockIp(AF_INET, ipv4_udp_mc, (sockaddr *) & m_addr4,
 bool SockIp4::init2()
 {
     if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_TTL, &m_udp_ttl,
-            sizeof(m_udp_ttl)) != 0) {
+            sizeof m_udp_ttl) != 0) {
         PTPMGMT_PERROR("IP_MULTICAST_TTL");
         return false;
     }
     ip_mreqn req = {0};
     req.imr_multiaddr = *(in_addr *)m_mcast.get();
     req.imr_ifindex = m_ifIndex;
-    if(setsockopt(m_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof(req)) != 0) {
+    if(setsockopt(m_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof req) != 0) {
         PTPMGMT_PERROR("IP_ADD_MEMBERSHIP");
         return false;
     }
     int off = 0;
-    if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &off, sizeof(off)) != 0) {
+    if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &off, sizeof off) != 0) {
         PTPMGMT_PERROR("IP_MULTICAST_LOOP");
         return false;
     }
     req = {0};
     req.imr_ifindex = m_ifIndex;
-    if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_IF, &req, sizeof(req)) != 0) {
+    if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_IF, &req, sizeof req) != 0) {
         PTPMGMT_PERROR("IP_MULTICAST_IF");
         return false;
     }
@@ -448,8 +448,7 @@ bool SockIp4::setAllBase(const ConfigFile &cfg, const std::string &section)
     return setUdpTtl(cfg, section);
 }
 SockIp6::SockIp6() : SockIp(AF_INET6, ipv6_udp_mc, (sockaddr *) & m_addr6,
-        sizeof(m_addr6)),
-    m_udp6_scope(-1)
+        sizeof m_addr6), m_udp6_scope(-1)
 {
     m_addr6 = {0};
     m_addr6.sin6_family = m_domain;
@@ -461,7 +460,7 @@ bool SockIp6::init2()
     if(m_udp6_scope < 0)
         return false;
     if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &m_udp_ttl,
-            sizeof(m_udp_ttl)) != 0) {
+            sizeof m_udp_ttl) != 0) {
         PTPMGMT_PERROR("IPV6_MULTICAST_HOPS");
         return false;
     }
@@ -469,20 +468,18 @@ bool SockIp6::init2()
     ipv6_mreq req = {0};
     req.ipv6mr_multiaddr = *(in6_addr *)m_mcast.get();
     req.ipv6mr_interface = m_ifIndex;
-    if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &req,
-            sizeof(req)) != 0) {
+    if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &req, sizeof req) != 0) {
         PTPMGMT_PERROR("IPV6_ADD_MEMBERSHIP");
         return false;
     }
     int off = 0;
-    if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, &off,
-            sizeof(off)) != 0) {
+    if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, &off, sizeof off) != 0) {
         PTPMGMT_PERROR("IPV6_MULTICAST_LOOP");
         return false;
     }
     req = {0};
     req.ipv6mr_interface = m_ifIndex;
-    if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &req, sizeof(req)) != 0) {
+    if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &req, sizeof req) != 0) {
         PTPMGMT_PERROR("IPV6_MULTICAST_IF");
         return false;
     }
@@ -580,7 +577,7 @@ bool SockRaw::initBase()
     m_addr.sll_ifindex = m_ifIndex;
     m_addr.sll_family = AF_PACKET;
     m_addr.sll_protocol = port_all;
-    if(bind(m_fd, (sockaddr *) &m_addr, sizeof(m_addr))) {
+    if(bind(m_fd, (sockaddr *) &m_addr, sizeof m_addr)) {
         PTPMGMT_PERROR("bind");
         return false;
     }
@@ -590,11 +587,11 @@ bool SockRaw::initBase()
         return false;
     }
     if(setsockopt(m_fd, SOL_SOCKET, SO_PRIORITY, &m_socket_priority,
-            sizeof(m_socket_priority)) != 0) {
+            sizeof m_socket_priority) != 0) {
         PTPMGMT_PERROR("SO_PRIORITY");
         return false;
     }
-    if(setsockopt(m_fd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)) != 0) {
+    if(setsockopt(m_fd, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof bpf) != 0) {
         PTPMGMT_PERROR("SO_ATTACH_FILTER");
         return false;
     }
@@ -604,7 +601,7 @@ bool SockRaw::initBase()
     mreq.mr_alen = m_ptp_dst_mac.length();
     m_ptp_dst_mac.copy(mreq.mr_address);
     if(setsockopt(m_fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq,
-            sizeof(mreq)) != 0) {
+            sizeof mreq) != 0) {
         PTPMGMT_PERROR("PACKET_ADD_MEMBERSHIP ptp_dst_mac");
         return false;
     }
@@ -612,14 +609,14 @@ bool SockRaw::initBase()
     m_addr.sll_halen = m_ptp_dst_mac.length();
     m_ptp_dst_mac.copy(m_addr.sll_addr);
     m_msg_tx.msg_name = &m_addr;
-    m_msg_tx.msg_namelen = sizeof(m_addr);
+    m_msg_tx.msg_namelen = sizeof m_addr;
     m_msg_tx.msg_iov = m_iov_tx;
     m_msg_tx.msg_iovlen = sizeof(m_iov_tx) / sizeof(iovec);
     m_hdr.h_proto = port_ptp;
     m_ptp_dst_mac.copy(m_hdr.h_dest);
     m_mac.copy(m_hdr.h_source);
     m_iov_tx[0].iov_base = &m_hdr;
-    m_iov_tx[0].iov_len = sizeof(m_hdr);
+    m_iov_tx[0].iov_len = sizeof m_hdr;
     // RX
     m_msg_rx.msg_iov = m_iov_rx;
     m_msg_rx.msg_iovlen = sizeof(m_iov_rx) / sizeof(iovec);
@@ -633,7 +630,7 @@ bool SockRaw::sendBase(const void *msg, size_t len)
     m_iov_tx[1].iov_base = (void *)msg;
     m_iov_tx[1].iov_len = len;
     ssize_t cnt = sendmsg(m_fd, &m_msg_tx, 0);
-    return sendReply(cnt, len + sizeof(m_hdr));
+    return sendReply(cnt, len + sizeof m_hdr);
 }
 ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
 {
@@ -643,7 +640,7 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
     if(!block)
         flags |= MSG_DONTWAIT;
     m_iov_rx[0].iov_base = m_rx_buf;
-    m_iov_rx[0].iov_len = sizeof(m_rx_buf);
+    m_iov_rx[0].iov_len = sizeof m_rx_buf;
     m_iov_rx[1].iov_base = buf;
     m_iov_rx[1].iov_len = bufSize;
     ssize_t cnt = recvmsg(m_fd, &m_msg_rx, flags);
@@ -651,9 +648,9 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
         PTPMGMT_PERROR("recvmsg");
         return -1;
     }
-    if(cnt > (ssize_t)(bufSize + sizeof(m_rx_buf))) {
+    if(cnt > (ssize_t)(bufSize + sizeof m_rx_buf)) {
         PTPMGMT_ERRORA("rcv %zd more than buffer size %zu", cnt,
-            bufSize + sizeof(m_rx_buf));
+            bufSize + sizeof m_rx_buf);
         return -1;
     }
     return cnt;

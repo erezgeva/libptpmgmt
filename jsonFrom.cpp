@@ -16,6 +16,7 @@
 #include <cmath>
 #include <memory>
 #include "jsonDef.h"
+#include "timeCvrt.h"
 #include "err.h"
 
 // JSON library type
@@ -48,9 +49,6 @@
 // JSON parser functions
 #define JSON_PARSE(str)    json_tokener_parse(str)
 #define JSON_OBJ_FREE(obj) json_object_put(obj)
-#ifndef NSEC_PER_SEC
-#define NSEC_PER_SEC 1000000000L
-#endif
 #define PROC_VAL(key) procValue(#key, d.key)
 #define PROC_STR(val) (strcmp(str, #val) == 0)
 #define GET_STR\

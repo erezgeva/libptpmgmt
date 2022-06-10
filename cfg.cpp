@@ -157,7 +157,7 @@ bool ConfigFile::read_cfg(const std::string &_file)
     char buf[512];
     clear_sections(); // remove old configuration
     std::string curSection = globalSection;
-    while(fgets(buf, sizeof(buf), f) != nullptr) {
+    while(fgets(buf, sizeof buf, f) != nullptr) {
         char *cur = skip_spaces(buf);
         if(*cur == '[') {
             cur = skip_spaces(cur + 1);
