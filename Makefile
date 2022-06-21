@@ -224,7 +224,7 @@ LIB_A_OBJS:=
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
 D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $*.d
-LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) -fPIC -DPIC -I. $1 -c $< -o $@
+LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) $(CPPFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
@@ -369,7 +369,7 @@ distclean: deb_clean clean
 HEADERS_GEN:=mngIds.h verDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS))
-HEADERS_INST:=$(filter-out end.h err.h jsonDef.h,$(HEADERS)) verDef.h
+HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h,$(HEADERS)) verDef.h
 HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
 # MAP for  mngIds.cc:
 #  %@ => '/'    - Use when a slash is next to a star character

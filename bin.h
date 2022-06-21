@@ -147,10 +147,7 @@ class Binary
      * @return reference to itself
      * @note script can use the append() function.
      */
-    Binary &operator += (const uint8_t octet) {
-        m_str.append(1, octet);
-        return *this;
-    }
+    Binary &operator += (const uint8_t octet) { return append(octet); }
     /**
      * Append single octet
      * @param[in] octet to add
@@ -166,10 +163,7 @@ class Binary
      * @return reference to itself
      * @note script can use the append() function.
      */
-    Binary &operator += (const Binary &rhs) {
-        m_str += rhs.m_str;
-        return *this;
-    }
+    Binary &operator += (const Binary &rhs) { return append(rhs); }
     /**
      * append octets
      * @param[in] rhs Binary to add
@@ -264,9 +258,7 @@ class Binary
      * @param[in] rhs Binary to compare
      * @return true if binaries are identical
      */
-    bool operator==(const Binary &rhs) const {
-        return m_str == rhs.m_str;
-    }
+    bool operator==(const Binary &rhs) const { return eq(rhs); }
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare
@@ -280,9 +272,7 @@ class Binary
      * @param[in] rhs Binary to compare
      * @return true if binary is smaller
      */
-    bool operator<(const Binary &rhs) const {
-        return m_str < rhs.m_str;
-    }
+    bool operator<(const Binary &rhs) const { return less(rhs); }
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare

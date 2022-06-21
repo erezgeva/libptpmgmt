@@ -77,6 +77,7 @@ void Options::useDefOption()
     helpVec.push_back(helpStore(" -6", "UDP IPV6"));
     helpVec.push_back(helpStore(" -u", "UDS local\n"));
     helpVec.push_back(helpStore(" Other Options\n"));
+    helpUpdate = true;
     for(auto *cur = startOptions; cur->short_name; cur++)
         insert(*cur);
     m_useDef = true;
@@ -90,8 +91,9 @@ bool Options::insert(const Pmc_option &opt)
     // short_name must be uniq
     if(all_options.find(opt.short_name) != std::string::npos)
         return false;
+    bool have_long_name = !opt.long_name.empty();
     if(opt.long_only) {
-        if(opt.long_name.empty())
+        if(!have_long_name)
             return false;
     } else {
         if((opt.have_arg && opt.arg_help.empty()) || opt.help_msg.empty())
@@ -108,11 +110,12 @@ bool Options::insert(const Pmc_option &opt)
         if(opt.have_arg && !opt.def_val.empty())
             h.addEnd(", default ").addEnd(opt.def_val);
         helpVec.push_back(h);
+        helpUpdate = true;
     }
     if(opt.have_arg)
         with_options += opt.short_name;
     all_options += opt.short_name;
-    if(!opt.long_name.empty()) {
+    if(have_long_name) {
         option nopt;
         auto iter = long_options_list_string.insert(long_options_list_string.end(),
                 opt.long_name);
@@ -127,9 +130,12 @@ bool Options::insert(const Pmc_option &opt)
 
 const char *Options::get_help()
 {
-    help = "";
-    for(const auto &a : helpVec)
-        help += a.get(max_arg_name + 7);
+    if(helpUpdate) {
+        help = "";
+        for(const auto &a : helpVec)
+            help += a.get(max_arg_name + 7);
+        helpUpdate = false;
+    }
     return help.c_str();
 }
 

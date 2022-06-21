@@ -15,9 +15,7 @@
 #include <dlfcn.h>
 #include "jsonDef.h"
 #include "err.h"
-
-#define stringify0(s) #s
-#define stringify1(a) stringify0(a)
+#include "comp.h"
 
 namespace ptpmgmt
 {
@@ -894,7 +892,9 @@ void JsonProcToJson::sig2json(tlvType_e tlvType, const BaseSigTlv *tlv)
         case parseTlv(MANAGEMENT);
         case parseTlv(MANAGEMENT_ERROR_STATUS);
         case ORGANIZATION_EXTENSION_PROPAGATE:
+            FALLTHROUGH;
         case ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE:
+            FALLTHROUGH;
         case parseTlv(ORGANIZATION_EXTENSION);
         case parseTlv(PATH_TRACE);
         case parseTlv(ALTERNATE_TIME_OFFSET_INDICATOR);
@@ -1121,7 +1121,7 @@ const char *Json2msg::loadLibrary()
     #ifdef PIC
     return useLib;
     #elif defined JSON_C_SLINK
-    return stringify1(JSON_C_SLINK);
+    return stringifyVal(JSON_C_SLINK);
     #else
     return nullptr;
     #endif

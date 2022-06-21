@@ -16,30 +16,10 @@
 #include "err.h"
 #include "end.h"
 #include "msg.h"
+#include "comp.h"
 
 namespace ptpmgmt
 {
-
-#ifdef __GNUC__
-/* See:
- * GNU GCC
- * gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Type-Attributes.html
- * Keil GNU mode
- * www.keil.com/support/man/docs/armcc/armcc_chr1359125007083.htm
- * www.keil.com/support/man/docs/armclang_ref/armclang_ref_chr1393328521340.htm
- */
-#define PACK(__definition__) __definition__ __attribute__((packed))
-#elif defined _MSC_VER
-// See: http://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros
-// For MSVC: http://docs.microsoft.com/en-us/cpp/preprocessor/pack
-#define PACK(__definition__) __pragma( pack(push, 1) )\
-    __definition__ __pragma( pack(pop) )
-#else
-#error Unknown compiler
-#endif
-
-#define caseItem(a) a: return #a
-#define caseItemOff(a) a: return #a + off
 
 const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
 const uint8_t ptp_minor_ver = 0x0; // IEEE 1588-2019 uses 0x1
@@ -215,7 +195,9 @@ bool Message::allowedAction(mng_vals_e id, actionField_e action)
 {
     switch(action) {
         case GET:
+            FALLTHROUGH;
         case SET:
+            FALLTHROUGH;
         case COMMAND:
             break;
         default:
@@ -555,7 +537,9 @@ MNG_PARSE_ERROR_e Message::parseSig()
         managementErrorTLV_p *errTlv;
         switch(tlvType) {
             case ORGANIZATION_EXTENSION_PROPAGATE:
+                FALLTHROUGH;
             case ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE:
+                FALLTHROUGH;
             case caseBuild(ORGANIZATION_EXTENSION);
             case caseBuild(PATH_TRACE);
             case caseBuild(ALTERNATE_TIME_OFFSET_INDICATOR);
@@ -1062,7 +1046,7 @@ std::string PortIdentity_t::string() const
     ret += std::to_string(portNumber);
     return ret;
 }
-bool PortIdentity_t::operator<(const PortIdentity_t &rhs) const
+bool PortIdentity_t::less(const PortIdentity_t &rhs) const
 {
     if(clockIdentity == rhs.clockIdentity)
         return portNumber < rhs.portNumber;
@@ -1072,23 +1056,25 @@ std::string PortAddress_t::string() const
 {
     switch(networkProtocol) {
         case UDP_IPv4:
+            FALLTHROUGH;
         case UDP_IPv6:
             return addressField.toIp();
         case IEEE_802_3:
+            FALLTHROUGH;
         case DeviceNet:
+            FALLTHROUGH;
         case ControlNet:
+            FALLTHROUGH;
         case PROFINET:
+            FALLTHROUGH;
         default:
             return addressField.toId();
     }
 }
-bool PortAddress_t::operator<(const PortAddress_t &rhs) const
+bool PortAddress_t::less(const PortAddress_t &rhs) const
 {
-    if(networkProtocol == rhs.networkProtocol) {
-        if(addressField.length() == rhs.addressField.length())
-            return addressField < rhs.addressField;
-        return addressField.length() < rhs.addressField.length();
-    }
+    if(networkProtocol == rhs.networkProtocol)
+        return addressField < rhs.addressField;
     return networkProtocol < rhs.networkProtocol;
 }
 bool Message::proc(uint8_t &val)
@@ -1235,13 +1221,13 @@ bool Message::proc(Float64_t &val)
     int64_t mnt, exp;
     // true: Float64_t is 64 bits IEEE 754
     // false: calculate IEEE 754
-    bool use64;
+    bool use64 = false;
     enum {
         // when calculate always use host order
         USE_HOST, // use host order
         USE_BIG, // float is big endian (network order)
         USE_LT, // float is little endian
-    } ordMod;
+    } ordMod = USE_HOST;
     // see ieee754.h
     // Most processors support IEEE 754
     // Hardware that do not use IEEE 754, should define NO_IEEE_754
@@ -1252,20 +1238,12 @@ bool Message::proc(Float64_t &val)
         ordMod = USE_BIG;
         #elif __FLOAT_WORD_ORDER == __BYTE_ORDER
         use64 = true;
-        ordMod = USE_HOST;
         #elif __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
         use64 = true;
         ordMod = USE_LT;
-        #else
-        use64 = false;
-        ordMod = USE_HOST;
         #endif
-    } else
-    #endif /* NO_IEEE_754 */
-    {
-        use64 = false;
-        ordMod = USE_HOST;
     }
+    #endif /* NO_IEEE_754 */
     if(m_build) {
         if(use64) // Float64_t is 64 bits IEEE 754
             memcpy(&num, &val, sizeof(uint64_t));
@@ -1296,6 +1274,7 @@ bool Message::proc(Float64_t &val)
                     mnt = 0;
                     break;
                 default:
+                    FALLTHROUGH;
                 case FP_NORMAL:
                     exp = (int64_t)floorl(log2l(val));
                     if(exp > ieee754_exp_max)
@@ -1315,7 +1294,7 @@ bool Message::proc(Float64_t &val)
                         PTPMGMT_ERROR("wrong calculation of float, "
                             "norm is too small");
                     }
-                // Fall to subnormal
+                    FALLTHROUGH;
                 case FP_SUBNORMAL: // Subnormal number
                     exp = ieee754_exp_sub;
                     norm = val / exp2l(ieee754_exp_min);

@@ -49,10 +49,9 @@ class BaseMngBuildCallback
     /* Per tlv ID a virtual call-back for user */
 #include "ids.h"
 };
-#endif /* SWIG */
 /**< @endcond */
+#endif /* SWIG */
 
-#ifndef SWIG_MessageDispatcher
 /**
  * @brief dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
@@ -102,7 +101,6 @@ class MessageDispatcher : public BaseMngDispatchCallback
     virtual void noTlvCallBack(const Message &msg, const char *idStr) const {}
     #endif /* SWIG */
 };
-#endif /* SWIG_MessageDispatcher */
 
 #ifdef SWIG_MessageBulder_START
 SWIG_MessageBulder_START

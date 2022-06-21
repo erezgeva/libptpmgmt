@@ -674,7 +674,7 @@ class MsgBuild : public MessageBulder
         const bool singleKey = keys.size() == 1;
         // In case we found quoted string we point after it.
         // so, we look for the next token on the proper place.
-        char *tkn, *lastStr = nullptr;
+        char *tkn = nullptr, *lastStr = nullptr;
         int ret = 1;
         while(ret > 0) {
             ret = 1; // take token using strtok_r
@@ -1180,28 +1180,12 @@ class MsgBuild : public MessageBulder
     #endif
 }; // class MsgBuild
 
-#if 1
-#define _ptpmCaseUFB(n) case n: return build_##n(msg, save);
-#else
-// Debug code, dump set instead of sending it over network
-#define _ptpmCaseUFB(n)\
-    case n: {\
-        BaseMngTlv *d = build_##n(msg, save);\
-        if(d != nullptr) {\
-            DUMPS("Dump " #n ":");\
-            dump_##n(msg, (n##_t*)d);\
-            DUMPS("\n");\
-        }\
-        return nullptr;\
-    }
-#endif
 bool call_data(Message &msg, actionField_e action, mng_vals_e id, char *save)
 {
     MsgBuild d(msg, save);
     if(!d.buildTlv(action, id))
         return false;
     bool ret = sendAction();
-    // Finish with data, free it
     if(ret)
         DUMPS("sending: %s %s\n", msg.act2str_c(msg.getSendAction()),
             msg.mng2str_c(id));

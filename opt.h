@@ -81,6 +81,7 @@ class Options
     };
     std::string help;
     std::vector<helpStore> helpVec;
+    bool helpUpdate;
 
   public:
     /** parsing return code */

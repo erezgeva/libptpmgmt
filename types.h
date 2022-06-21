@@ -352,7 +352,7 @@ struct ClockIdentity_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return sizeof(Octet_t) * 8; }
+    static size_t size() { return sizeof v; }
     /**
      * Convert to string
      * @return string
@@ -368,9 +368,7 @@ struct ClockIdentity_t {
      * @param[in] rhs another clock id
      * @return true if IDs are indentical
      */
-    bool operator==(const ClockIdentity_t &rhs) const {
-        return memcmp(rhs.v, v, size()) == 0;
-    }
+    bool operator==(const ClockIdentity_t &rhs) const { return eq(rhs); }
     /**
      * Compare to another clock ID
      * @param[in] rhs another clock id
@@ -384,9 +382,7 @@ struct ClockIdentity_t {
      * @param[in] rhs another clock id
      * @return true if ID is smaller
      */
-    bool operator<(const ClockIdentity_t &rhs) const {
-        return memcmp(rhs.v, v, size()) < 0;
-    }
+    bool operator<(const ClockIdentity_t &rhs) const { return less(rhs); }
     /**
      * Compare to another clock ID
      * @param[in] rhs another clock id
@@ -404,7 +400,7 @@ struct PortIdentity_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return ClockIdentity_t::size() + sizeof(UInteger16_t); }
+    static size_t size() { return ClockIdentity_t::size() + sizeof portNumber; }
     /**
      * Convert to string
      * @return string
@@ -419,9 +415,7 @@ struct PortIdentity_t {
      * @param[in] rhs another port id
      * @return true if IDs are indentical
      */
-    bool operator==(const PortIdentity_t &rhs) const {
-        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
-    }
+    bool operator==(const PortIdentity_t &rhs) const { return eq(rhs); }
     /**
      * Compare to another port ID
      * @param[in] rhs another port id
@@ -435,13 +429,13 @@ struct PortIdentity_t {
      * @param[in] rhs another port id
      * @return true if ID is smaller
      */
-    bool operator<(const PortIdentity_t &rhs) const;
+    bool operator<(const PortIdentity_t &rhs) const { return less(rhs); }
     /**
      * Compare to another port ID
      * @param[in] rhs another port id
      * @return true if ID is smaller
      */
-    bool less(const PortIdentity_t &rhs) const { return *this < rhs; }
+    bool less(const PortIdentity_t &rhs) const;
 };
 /** PTP port address */
 struct PortAddress_t {
@@ -472,10 +466,7 @@ struct PortAddress_t {
      * @param[in] rhs another port address
      * @return true if addresses are indentical
      */
-    bool operator==(const PortAddress_t &rhs) const {
-        return networkProtocol == rhs.networkProtocol &&
-            addressField == rhs.addressField;
-    }
+    bool operator==(const PortAddress_t &rhs) const { return eq(rhs); }
     /**
      * Compare to another port address
      * @param[in] rhs another port address
@@ -490,13 +481,13 @@ struct PortAddress_t {
      * @param[in] rhs another port address
      * @return true if address is smaller
      */
-    bool operator<(const PortAddress_t &rhs) const;
+    bool operator<(const PortAddress_t &rhs) const { return less(rhs); }
     /**
      * Compare to another port address
      * @param[in] rhs another port address
      * @return true if address is smaller
      */
-    bool less(const PortAddress_t &rhs) const { return *this < rhs; }
+    bool less(const PortAddress_t &rhs) const;
 };
 /** PTP clock quality */
 struct ClockQuality_t {

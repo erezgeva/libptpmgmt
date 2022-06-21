@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "init.h"
 #include "err.h"
+#include "comp.h"
 
 namespace ptpmgmt
 {
@@ -84,6 +85,7 @@ int Init::proccess(const Options &opt)
             break;
         }
         default:
+            FALLTHROUGH;
         case '4': {
             SockIp4 *sk4 = new SockIp4;
             if(sk4 == nullptr) {

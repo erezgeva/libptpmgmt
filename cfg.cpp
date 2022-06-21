@@ -11,6 +11,7 @@
 
 #include "err.h"
 #include "cfg.h"
+#include "comp.h"
 
 namespace ptpmgmt
 {
@@ -104,6 +105,7 @@ bool ConfigSection::set_val(char *line)
             break;
         // MAC address values
         case ptp_dst_mac_val:
+            FALLTHROUGH;
         case p2p_dst_mac_val: {
             Binary id;
             if(!id.fromMac(val))

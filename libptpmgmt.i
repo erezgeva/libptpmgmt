@@ -159,6 +159,8 @@ _ptpmMkVec(FaultRecord);
 _ptpmMkVec(ClockIdentity);
 _ptpmMkVec(PortAddress);
 _ptpmMkVec(AcceptableMaster);
+_ptpmMkVec(LinuxptpUnicastMaster);
+_ptpmMkVec(PtpEvent);
 /* Handle signalig vectors inside structures
  * See documenting of SigXXXX classes in mngIds.h and
  *  Doxygen generated documents
@@ -192,7 +194,7 @@ _ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
 _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
-#ifndef SKIP_MSG_CALL
+#ifndef SWIG_SKIP_MSG_CALL
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) MessageDispatcher;
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) MessageBulder;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) MessageDispatcher::callHadler;

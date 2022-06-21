@@ -18,6 +18,7 @@
 #include "jsonDef.h"
 #include "timeCvrt.h"
 #include "err.h"
+#include "comp.h"
 
 // JSON library type
 #define JSON_POBJ json_object*
@@ -161,7 +162,9 @@ struct JsonVal {
                 intV = JG_BOOL(obj) != false;
                 break;
             case JT_ARRAY:
+                FALLTHROUGH;
             case JT_OBJ:
+                FALLTHROUGH;
             case JT_NULL:
                 break;
         }

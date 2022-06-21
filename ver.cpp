@@ -10,16 +10,14 @@
  */
 
 #include "ver.h"
+#include "comp.h"
 
 namespace ptpmgmt
 {
 
 // Version comes from 'version' file during build.
-
-// Need 2 levels to stringify macros value instead of macro name
-#define stringify(s) #s
 #define VER_STR(a, b) stringify(a) "." stringify(b)
-/* Must be here, must be in library Binary and not header source code! */
+// Must be here, must be in library Binary and not header source code!
 const char *getVersion()
 {
     return VER_STR(VER_MAJ, VER_MIN);

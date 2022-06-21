@@ -10,15 +10,11 @@
  */
 
 #include "msg.h"
+#include "comp.h"
 
 namespace ptpmgmt
 {
 
-#ifdef __GNUC__
-#define PURE __attribute__((pure))
-#else
-#define PURE
-#endif
 template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec) PURE;
 
 // For Octets arrays

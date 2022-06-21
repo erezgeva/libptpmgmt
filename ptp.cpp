@@ -20,15 +20,11 @@
 #include "err.h"
 #include "ptp.h"
 #include "timeCvrt.h"
+#include "comp.h"
 
 namespace ptpmgmt
 {
 
-#ifdef __GNUC__
-#define PURE __attribute__((pure))
-#else
-#define PURE
-#endif
 static inline clockid_t get_clockid_fd(int fd) PURE;
 
 const char ptp_dev[] = "/dev/ptp";
@@ -44,7 +40,17 @@ static inline clockid_t get_clockid_fd(int fd)
 {
     return FD_TO_CLOCKID(fd);
 }
-
+struct floor_t {
+    int64_t intg;
+    long double rem;
+};
+static inline floor_t _floor(long double val)
+{
+    floor_t ret;
+    ret.intg = floorl(val);
+    ret.rem = val - ret.intg;
+    return ret;
+}
 bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
     /* retrieve corresponding MAC */
@@ -54,8 +60,7 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
         return false;
     }
     m_mac.setBin(ifr.ifr_hwaddr.sa_data, EUI48);
-    ethtool_ts_info info = {0};
-    info.cmd = ETHTOOL_GET_TS_INFO;
+    ethtool_ts_info info = { .cmd = ETHTOOL_GET_TS_INFO };
     info.phc_index = NO_SUCH_PTP;
     ifr.ifr_data = (char *)&info;
     if(ioctl(fd, SIOCETHTOOL, &ifr) == -1) {
@@ -121,8 +126,9 @@ void ClockTime::toTimeval(timeval &tv) const
 }
 void ClockTime::formFloat(long double _seconds)
 {
-    seconds = floorl(_seconds);
-    nanoseconds = (_seconds - seconds) * NSEC_PER_SEC;
+    auto ret = _floor(_seconds);
+    seconds = ret.intg;
+    nanoseconds = ret.rem * NSEC_PER_SEC;
 }
 long double ClockTime::toFloat() const
 {
@@ -136,13 +142,27 @@ void ClockTime::fromNanoseconds(int64_t nanoseconds)
 }
 int64_t ClockTime::toNanoseconds() const
 {
-    return seconds + NSEC_PER_SEC * nanoseconds;
+    return nanoseconds + seconds * NSEC_PER_SEC;
 }
 std::string ClockTime::string() const
 {
     char buf[200];
     snprintf(buf, sizeof buf, "%ju.%.9u", seconds, nanoseconds);
     return buf;
+}
+bool ClockTime::eq(long double _seconds) const
+{
+    int64_t asec = floorl(_seconds);
+    if(seconds == asec)
+        return nanoseconds == (_seconds - asec) * NSEC_PER_SEC;
+    return false;
+}
+bool ClockTime::less(long double _seconds) const
+{
+    int64_t asec = floorl(_seconds);
+    if(seconds == asec)
+        return nanoseconds < (_seconds - asec) * NSEC_PER_SEC;
+    return seconds < asec;
 }
 ClockTime &ClockTime::normNano()
 {
@@ -160,9 +180,9 @@ ClockTime &ClockTime::add(const ClockTime &ts)
 }
 ClockTime &ClockTime::add(long double _seconds)
 {
-    int64_t asec = floorl(_seconds);
-    seconds += asec;
-    nanoseconds += (_seconds - asec) * NSEC_PER_SEC;
+    auto ret = _floor(_seconds);
+    seconds += ret.intg;
+    nanoseconds += ret.rem * NSEC_PER_SEC;
     return normNano();
 }
 ClockTime &ClockTime::subt(const ClockTime &ts)
@@ -174,6 +194,24 @@ ClockTime &ClockTime::subt(const ClockTime &ts)
     }
     nanoseconds -= ts.nanoseconds;
     return normNano();
+}
+SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
+ClockTime BaseClock::getTime() const
+{
+    if(m_isInit) {
+        timespec ts1;
+        if(clock_gettime(m_clkId, &ts1) == 0)
+            return ts1;
+    }
+    return 0;
+}
+bool BaseClock::setTime(const ClockTime &ts) const
+{
+    if(m_isInit) {
+        timespec ts1 = ts;
+        return clock_gettime(m_clkId, &ts1) == 0;
+    }
+    return false;
 }
 bool PtpClock::isCharFile(const std::string &file)
 {
@@ -201,14 +239,6 @@ bool PtpClock::init(const char *device, bool readonly)
     }
     m_fd = fd;
     m_clkId = cid;
-    m_isInit = true;
-    return true;
-}
-bool PtpClock::initSysClock()
-{
-    if(m_isInit)
-        return false;
-    m_clkId = CLOCK_REALTIME;
     m_isInit = true;
     return true;
 }
@@ -262,39 +292,144 @@ PtpClock::~PtpClock()
     if(m_fd >= 0)
         close(m_fd);
 }
-ClockTime PtpClock::getTime() const
-{
-    if(m_isInit) {
-        timespec ts1;
-        if(clock_gettime(m_clkId, &ts1) == 0)
-            return ts1;
-    }
-    return 0;
-}
-bool PtpClock::setTime(const ClockTime &ts) const
-{
-    if(m_isInit) {
-        timespec ts1 = ts;
-        return clock_gettime(m_clkId, &ts1) == 0;
-    }
-    return false;
-}
-bool PtpClock::fetchCaps(PtPCaps &caps) const
+bool PtpClock::fetchCaps(PtpCaps_t &caps) const
 {
     if(!m_isInit || m_fd < 0)
         return false;
-    ptp_clock_caps c;
-    if(ioctl(m_fd, PTP_CLOCK_GETCAPS, &c) == -1)
+    ptp_clock_caps cps = {0};
+    if(ioctl(m_fd, PTP_CLOCK_GETCAPS, &cps) == -1) {
+        PTPMGMT_PERROR("PTP_CLOCK_GETCAPS");
         return false;
-    caps.max_ppb = c.max_adj;
-    caps.num_alarm = c.n_alarm;
-    caps.num_external_channels = c.n_ext_ts;
-    caps.num_periodic_sig = c.n_per_out;
-    caps.pps = c.pps > 0;
-    caps.num_pins = c.n_pins;
-    caps.cross_timestamping = c.cross_timestamping > 0;
-    caps.adjust_phase = c.adjust_phase > 0;
+    }
+    caps.max_ppb = cps.max_adj;
+    caps.num_alarm = cps.n_alarm;
+    caps.num_external_channels = cps.n_ext_ts;
+    caps.num_periodic_sig = cps.n_per_out;
+    caps.pps = cps.pps > 0;
+    caps.num_pins = cps.n_pins;
+    caps.cross_timestamping = cps.cross_timestamping > 0;
+    #ifdef PTP_CLOCK_GETCAPS2
+    caps.adjust_phase = cps.adjust_phase > 0;
+    #else
+    caps.adjust_phase = false;
+    #endif
     return true;
+}
+bool PtpClock::readPin(unsigned int index, PtpPin_t &pin) const
+{
+    if(!m_isInit || m_fd < 0)
+        return false;
+    ptp_pin_desc desc = {0};
+    desc.index = index;
+    if(ioctl(m_fd, PTP_PIN_GETFUNC, &desc) == -1) {
+        PTPMGMT_PERROR("PTP_PIN_GETFUNC");
+        return false;
+    }
+    pin.index = index;
+    pin.description = desc.name;
+    pin.channel = desc.chan;
+    switch(desc.func) {
+        case PTP_PF_NONE:
+            pin.functional = PTP_PIN_UNUSED;
+            break;
+        case PTP_PF_EXTTS:
+            pin.functional = PTP_PIN_EXTERNAL_TS;
+            break;
+        case PTP_PF_PEROUT:
+            pin.functional = PTP_PIN_PERIODIC_OUT;
+            break;
+        case PTP_PF_PHYSYNC:
+            pin.functional = PTP_PIN_PHY_SYNC;
+            break;
+        default:
+            PTPMGMT_ERRORA("readPin unknown functional %d", desc.func);
+            return false;
+    };
+    return true;
+}
+bool PtpClock::writePin(PtpPin_t &pin) const
+{
+    if(!m_isInit || m_fd < 0)
+        return false;
+    ptp_pin_desc desc;
+    switch(pin.functional) {
+        case PTP_PIN_UNUSED:
+            desc.func = PTP_PF_NONE;
+            break;
+        case PTP_PIN_EXTERNAL_TS:
+            desc.func = PTP_PF_EXTTS;
+            break;
+        case PTP_PIN_PERIODIC_OUT:
+            desc.func = PTP_PF_PEROUT;
+            break;
+        case PTP_PIN_PHY_SYNC:
+            desc.func = PTP_PF_PHYSYNC;
+            break;
+        default:
+            PTPMGMT_ERRORA("writePin wrong functional %d", pin.functional);
+            return false;
+    };
+    desc.index = pin.index;
+    desc.chan = pin.channel;
+    if(ioctl(m_fd, PTP_PIN_SETFUNC, &desc) == -1) {
+        PTPMGMT_PERROR("PTP_PIN_SETFUNC");
+        return false;
+    }
+    return true;
+}
+bool PtpClock::ExternTSEbable(unsigned int index, uint8_t flags) const
+{
+    if(!m_isInit || m_fd < 0)
+        return false;
+    ptp_extts_request req = { .index = index };
+    req.flags = flags | PTP_ENABLE_FEATURE;
+    if(ioctl(m_fd, PTP_EXTTS_REQUEST, &req) == -1) {
+        PTPMGMT_PERROR("PTP_EXTTS_REQUEST");
+        return false;
+    }
+    return true;
+}
+bool PtpClock::ExternTSDisable(unsigned int index) const
+{
+    if(!m_isInit || m_fd < 0)
+        return false;
+    ptp_extts_request req = { .index = index };
+    if(ioctl(m_fd, PTP_EXTTS_REQUEST, &req) == -1) {
+        PTPMGMT_PERROR("PTP_EXTTS_REQUEST");
+        return false;
+    }
+    return true;
+}
+bool PtpClock::readEvent(PtpEvent_t &event) const
+{
+    if(!m_isInit || m_fd < 0)
+        return false;
+    ptp_extts_event ent;
+    if(read(m_fd, &ent, sizeof ent) != sizeof ent)
+        return false;
+    event = { ent.index, { ent.t.sec, ent.t.nsec } };
+    return true;
+}
+int PtpClock::readEvents(std::vector<PtpEvent_t> &events, int max) const
+{
+    if(!m_isInit || m_fd < 0)
+        return -1;
+    if(max < 0 || max > 30)
+        max = 30;
+    else if(max == 0)
+        return 0;
+    ptp_extts_event ents[max];
+    int cnt = read(m_fd, ents, sizeof ents);
+    if(cnt < 0)
+        return -1;
+    else if(cnt == 0)
+        return 0;
+    auto d = div(cnt, sizeof(ptp_extts_event));
+    if(d.rem > 0)
+        return -1;
+    for(int i = 0; i < d.quot; i++)
+        events.push_back({ents[i].index, { ents[i].t.sec, ents[i].t.nsec }});
+    return d.quot;
 }
 
 }; /* namespace ptpmgmt */

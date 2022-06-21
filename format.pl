@@ -72,7 +72,7 @@ sub main
             #######################################
             # proper comments in headers
             if($file =~ /\.h$/) {
-                if(m#//#) {
+                if(m#^//# or m#[^:]//#) { # Ignore protocol '://' sign
                     print STDERR "Check: $file:$.: use C comments only: $_\n";
                 }
             }

@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
+#include <vector>
 #include <net/if.h>
 #include <linux/ethtool.h>
 #include "bin.h"
@@ -124,6 +125,12 @@ struct ClockTime {
      * @note Ensure compiler create a copy contructor
      */
     ClockTime(const ClockTime &ct) = default;
+    /**
+     * Constructor
+     * @param[in] secs Seconds
+     * @param[in] nsecs Nanoseconds
+     */
+    ClockTime(int64_t secs, uint32_t nsecs) : seconds(secs), nanoseconds(nsecs) {}
     #ifndef SWIG
     /**
      * Convert from timespec
@@ -259,9 +266,7 @@ struct ClockTime {
      * @param[in] seconds
      * @return true if the same time
      */
-    bool eq(long double seconds) const {
-        return seconds == toFloat();
-    }
+    bool eq(long double seconds) const;
     /**
      * Compare to another clock time
      * @param[in] ts another clock time
@@ -290,9 +295,7 @@ struct ClockTime {
      * @param[in] seconds
      * @return true if smaller
      */
-    bool less(long double seconds) const {
-        return seconds < toFloat();
-    }
+    bool less(long double seconds) const;
     /**
      * Add another clock time
      * @param[in] ts another clock time
@@ -379,7 +382,7 @@ struct ClockTime {
 /**
  * Bridge to Linux kernel struct ptp_clock_caps
  */
-struct PtPCaps {
+struct PtpCaps_t {
     int max_ppb; /**< Maximum frequency adjustment in parts per billon. */
     int num_alarm; /**< Number of programmable alarms. */
     int num_external_channels; /**< Number of external time stamp channels. */
@@ -391,37 +394,96 @@ struct PtPCaps {
     bool adjust_phase; /**< Clock supports adjust phase */
 };
 /**
- * @brief POSIX clock id generator
+ * PHC hardware pin functional state value enumerator
+ */
+enum PtpPinFunc_e {
+    PTP_PIN_UNUSED,       /**< pin is currently unused */
+    PTP_PIN_EXTERNAL_TS,  /**< pin uses external time stamp */
+    PTP_PIN_PERIODIC_OUT, /**< pin produce a periodic signal */
+    PTP_PIN_PHY_SYNC,     /**< pin calibrate by physical input */
+};
+/**
+ * PHC hardware pin functional state
+ */
+struct PtpPin_t {
+    unsigned int index; /**< pin index */
+    /**
+     * pin description
+     * @note read only, set by kernel driver
+     */
+    std::string description;
+    PtpPinFunc_e functional; /**< pin current functional state */
+    unsigned int channel; /**< pin channel */
+};
+/** Enable PHC pin events with rising edge flag */
+const uint8_t PTP_EXTERN_TS_RISING_EDGE = 1 << 1;
+/** Enable PHC pin events with falling edge flag */
+const uint8_t PTP_EXTERN_TS_FALLING_EDGE = 1 << 2;
+/** Enable PHC pin events with strict flag */
+const uint8_t PTP_EXTERN_TS_STRICT = 1 << 3;
+/**
+ * PHC pin event
+ */
+struct PtpEvent_t {
+    unsigned int index; /**< pin index for the event */
+    ClockTime time; /**< Event time */
+};
+/**
+ * Base class for clock classes
+ */
+class BaseClock
+{
+  protected:
+    /** @cond internal
+     * For internal use
+     */
+    clockid_t m_clkId;
+    bool m_isInit;
+    BaseClock(clockid_t clkId, bool init) : m_clkId(clkId), m_isInit(init) {}
+    BaseClock() : m_clkId(CLOCK_INVALID), m_isInit(false) {}
+    /**< @endcond */
+  public:
+    /**
+     * Get clock time in nanoseconds
+     * @return clock time or zero on error
+     */
+    ClockTime getTime() const;
+    /**
+     * Set clock time in nanoseconds
+     * @param[out] ts new clock time
+     * @return true for success
+     */
+    bool setTime(const ClockTime &ts) const;
+};
+/**
+ * System clock
+ */
+class SysClock : public BaseClock
+{
+  public:
+    SysClock();
+};
+/**
+ * @brief POSIX dynamic clock id generator
  * @details
  *  Create a dynamic clock id for a POSIX clock, that the application
- *  can use to fetch the PTP clock time
+ *  can use to fetch the PTP clock time and perform actions on PHC hardware.
  * @note
  *  The dynamic clock id exists while the object exists.
  *  Do @b NOT delete the object while using the dynamic clock id.
- * @note
- *  Network interface might have multiple PHCs
+ * @note A network interface may have multiple PHCs
  */
-class PtpClock
+class PtpClock : public BaseClock
 {
   private:
     int m_fd;
     int m_ptpIndex;
-    bool m_isInit;
-    clockid_t m_clkId;
     std::string m_device;
     bool init(const char *device, bool readonly);
 
   public:
-    PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP), m_isInit(false),
-        m_clkId(CLOCK_INVALID) {}
-    ~PtpClock();
-    /**
-     * Use System clock with CLOCK_REALTIME
-     * @return true unless already Initialized
-     * @note system clock is @b NOT @/b PTP clock,
-     *       We can use it for comparing and other clock operation
-     */
-    bool initSysClock();
+    PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP) {}
+    virtual ~PtpClock();
     /**
      * Initialize a POSIX clock based on its device name
      * @param[in] device name
@@ -470,19 +532,55 @@ class PtpClock
      */
     static bool isCharFile(const std::string &file);
     /**
-     * Get clock time in nanoseconds
-     * @return clock time or zero on error
-     */
-    ClockTime getTime() const;
-    /**
-     * Set clock time in nanoseconds
-     * @return clock time
-     */
-    bool setTime(const ClockTime &ts) const;
-    /**
      * Get PTP clock capabilities
+     * @param[out] caps capabilities
+     * @return true for success
      */
-    bool fetchCaps(PtPCaps &caps) const;
+    bool fetchCaps(PtpCaps_t &caps) const;
+    /**
+     * Read PHC clock pin current functional state
+     * @param[in] index pin index to read
+     * @param[out] pin hardware functional state
+     * @return true for success
+     * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
+     */
+    bool readPin(unsigned int index, PtpPin_t &pin) const;
+    /**
+     * Set PHC clock pin functional state
+     * @param[in] pin hardware functional state
+     * @return true for success
+     * @note Pin index comes from PtpPin_t!
+     * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
+     */
+    bool writePin(PtpPin_t &pin) const;
+    /**
+     * Enable PHC pin external events
+     * @param[in] index pin index to enable
+     * @param[in] flags using the PTP_EXTERN_TS_xxx
+     * @return true for success
+     * @note old kernel do not support PTP_EXTERN_TS_STRICT
+     */
+    bool ExternTSEbable(unsigned int index, uint8_t flags) const;
+    /**
+     * Disable PHC pin external events
+     * @param[in] index pin index to enable
+     * @return true for success
+     */
+    bool ExternTSDisable(unsigned int index) const;
+    /**
+     * Read single event
+     * @param[out] event retrieved event
+     * @return true for success
+     */
+    bool readEvent(PtpEvent_t &event) const;
+    /**
+     * Read events
+     * @param[out] events retrieved events
+     * @param[in] max maximum number of events to read
+     * @return the number of events read, or -1 on error
+     * @note the maximum is trunced to 30 events
+     */
+    int readEvents(std::vector<PtpEvent_t> &events, int max = -1) const;
 };
 
 #ifndef SWIG
