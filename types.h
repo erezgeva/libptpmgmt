@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <map>
 #include "bin.h"
+#include "mngIds.h"
 
 #ifndef SWIG
 namespace ptpmgmt
@@ -142,20 +143,6 @@ enum actionField_e : uint8_t {
     COMMAND = 3,        /**< Send command message */
     ACKNOWLEDGE = 4,    /**< Receive acknowledge on command */
 };
-/** @cond internal
- * Doxygen and SWIG do not know how to proccess.
- * Both proccess this enum from mngIds.h
- */
-#ifndef SWIG
-enum mng_vals_e {
-#define A(n, v, sc, a, sz, f) n,
-#include "ids.h"
-    LAST_MNG_ID, /**< Last management ID excluded */
-    FIRST_MNG_ID = NULL_PTP_MANAGEMENT, /**< First management ID */
-    NULL_MANAGEMENT = NULL_PTP_MANAGEMENT /**< old name in IEEE 1588-2008 */
-};
-#endif
-/**< @endcond */
 /** PTP Management Error IDs */
 enum managementErrorId_e : uint16_t {
     RESPONSE_TOO_BIG = 0x0001, /**< Response is too big */

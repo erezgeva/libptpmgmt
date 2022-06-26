@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later
-   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
+   SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
 
 /** @file
  * @brief messages dispatcher and builder classes

@@ -366,42 +366,27 @@ distclean: deb_clean clean
 	$(Q_DISTCLEAN)$(RM) $(DISTCLEAN)
 	$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS_GEN:=mngIds.h verDef.h
+HEADERS_GEN:=mngIds.h callDef.h vecDef.h verDef.h
+HEADERS_GEN_COMP:=mngIds.h callDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS))
-HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h,$(HEADERS)) verDef.h
+HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h,$(HEADERS))\
+  verDef.h $(HEADERS_GEN_COMP)
 HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
-# MAP for  mngIds.cc:
+verDef.h: GEN_FLAGS+=-Dver_maj=$(ver_maj) -Dver_min=$(ver_min) -DVER=$(LIB_VER)
+# MAP for  %.cc to %.h:
 #  %@ => '/'    - Use when a slash is next to a star character
 #  %! => '%'    - Self escape, escape precent sign character
 #  %# => '#'    - Use on line start when starting a preproccesor in result file
+#  %& => '"'    - Escape for double quote character
 #  %_ =>        - Place marker, retain empty lines
 #  %- => ' '    - When need 2 spaces or more. Use with a space between
 #  %^ => '\n'   - Add new line in a preprocessor definition only
-mngIds.h: mngIds.cc
-	$(Q_GEN)$(CXX) -E $< | $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g'\
+%.h: %.cc
+	$(Q_GEN)$(CXX) -E $< $(GEN_FLAGS) |\
+	  $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g;s#%&#"#g'\
 	  -e 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' > $@
-define verDef
-/* SPDX-License-Identifier: LGPL-3.0-or-later\n
-   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */\n\n
-/** @file\n
- * @brief Version definitions for compilation\n
- *\n
- * @author Erez Geva <ErezGeva2@@gmail.com>\n
- * @copyright 2021 Erez Geva\n *\n
- * This header is generated automatically.\n *\n
- */\n\n
-#ifndef __PTPMGMT_VER_DEFS_H\n
-#define __PTPMGMT_VER_DEFS_H\n\n
-#define LIBPTPMGMT_VER_MAJ ($(ver_maj)) /**< Library version major */\n
-#define LIBPTPMGMT_VER_MIN ($(ver_min)) /**< Library version minor */\n
-#define LIBPTPMGMT_VER "$(ver_maj).$(ver_min)" /**< Library version string */\n\n
-#endif /* __PTPMGMT_VER_DEFS_H */\n
-
-endef
 version:
-verDef.h: version
-	$(Q_GEN)$(shell printf '$(verDef)' > $@)
 DISTCLEAN+=$(HEADERS_GEN)
 
 ifneq ($(call which,astyle),)
@@ -732,7 +717,7 @@ ALL+=tags
 DISTCLEAN+=tags
 endif # which ctags
 
-all: $(ALL)
+all: $(HEADERS_GEN_COMP) $(ALL)
 	@:
 .DEFAULT_GOAL=all
 .ONESHELL: # Run rules in a single shell

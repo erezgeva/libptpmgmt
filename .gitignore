@@ -7,6 +7,8 @@
 ###############################################################################
 /mngIds.h
 /verDef.h
+/vecDef.h
+/callDef.h
 *.o
 *.lo
 *.d
@@ -18,3 +20,4 @@
 /pmc
 /tags
 /doc
+*/PtpMgmtLib.cpp
