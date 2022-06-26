@@ -18,12 +18,9 @@
 #include <memory>
 #include "msg.h"
 
-#ifndef SWIG
 namespace ptpmgmt
 {
-#endif
 
-#ifndef SWIG
 /** @cond internal
  * Doxygen do not know how to proccess.
  * proccess these classes in mngIds.h
@@ -50,7 +47,6 @@ class BaseMngBuildCallback
 #include "ids.h"
 };
 /**< @endcond */
-#endif /* SWIG */
 
 /**
  * @brief dispatch received PTP management message TLV
@@ -62,17 +58,11 @@ class BaseMngBuildCallback
 class MessageDispatcher : public BaseMngDispatchCallback
 {
   public:
-    #ifdef SWIG_MessageDispatcher1
-    SWIG_MessageDispatcher1
-    #endif
     /**
      * Call handler based on Message last received message
      * @param[in] msg Message object
      */
     void callHadler(const Message &msg);
-    #ifdef SWIG_MessageDispatcher2
-    SWIG_MessageDispatcher2
-    #endif
     /**
      * Call handler based on supplied TLV
      * @param[in] msg Message object
@@ -82,10 +72,6 @@ class MessageDispatcher : public BaseMngDispatchCallback
      */
     void callHadler(const Message &msg, mng_vals_e tlv_id,
         const BaseMngTlv *tlv);
-    #ifdef SWIG_MessageDispatcher3
-    SWIG_MessageDispatcher3
-    #endif
-    #ifndef SWIG
     /**
      * Handler called if there is no TLV data
      * It could be an empty TLV or not set
@@ -99,12 +85,8 @@ class MessageDispatcher : public BaseMngDispatchCallback
      * @param[in] idStr string of the tlv_id
      */
     virtual void noTlvCallBack(const Message &msg, const char *idStr) const {}
-    #endif /* SWIG */
 };
 
-#ifdef SWIG_MessageBulder_START
-SWIG_MessageBulder_START
-#endif
 /**
  * @brief build TLV to send a PTP management message
  * @note You must inherit this class to use it!
@@ -150,12 +132,7 @@ class MessageBulder : public BaseMngBuildCallback
      */
     bool buildTlv(actionField_e actionField, mng_vals_e tlv_id);
 };
-#ifdef SWIG_MessageBulder_END
-SWIG_MessageBulder_END
-#endif
 
-#ifndef SWIG
 }; /* namespace ptpmgmt */
-#endif
 
 #endif /* __PTPMGMT_MSG_CALL_H */

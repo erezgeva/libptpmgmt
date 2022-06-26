@@ -83,8 +83,8 @@ def setPriority1(newPriority1)
     return -1
   end
   err = $msg.parse($buf, cnt)
-  if(err != Ptpmgmt::MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
-     seq != $msg.getSequence()) then
+  if err != Ptpmgmt::MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
+     seq != $msg.getSequence() then
     puts "set fails"
     return -1
   end
