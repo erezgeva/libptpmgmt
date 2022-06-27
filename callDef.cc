@@ -41,7 +41,8 @@ class BaseMngDispatchCallback
  %- %- * @param[in] idStr ID string of the management tlv%^\
  %- %- *%@%^\
  %-%- virtual void n##_h(const Message &msg,%^\
- %- %- %- %-const n##_t &tlv, const char *idStr) const;
+ %- %- %- %-const n##_t &tlv, const char *idStr) const%^\
+ %- %-{}
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
 };
@@ -71,7 +72,8 @@ class BaseMngBuildCallback
  %- %- *%- if this handler return true!%^\
  %- %- *%@%^\
  %-%- virtual bool n##_b(const Message &msg,%^\
- %- %- %- %-n##_t &tlv);
+ %- %- %- %-n##_t &tlv)%^\
+ %- %-{return false;}
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
 };

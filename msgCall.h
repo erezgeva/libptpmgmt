@@ -16,37 +16,10 @@
 #include <cstring>
 #include <cstdio>
 #include <memory>
-#include "msg.h"
+#include "callDef.h"
 
 namespace ptpmgmt
 {
-
-/** @cond internal
- * Doxygen do not know how to proccess.
- * proccess these classes in mngIds.h
- */
-class BaseMngDispatchCallback
-{
-  protected:
-    virtual ~BaseMngDispatchCallback() = default;
-#define _ptpmCaseUF(n)\
-    virtual void n##_h(const Message &msg, const n##_t &tlv,\
-        const char*idStr) const {}
-#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    /* Per tlv ID a virtual call-back for user */
-#include "ids.h"
-};
-class BaseMngBuildCallback
-{
-  protected:
-    virtual ~BaseMngBuildCallback() = default;
-#define _ptpmCaseUFB(n)\
-    virtual bool n##_b(const Message &msg, n##_t &tlv) {return false;}
-#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    /* Per tlv ID a virtual call-back for user */
-#include "ids.h"
-};
-/**< @endcond */
 
 /**
  * @brief dispatch received PTP management message TLV
