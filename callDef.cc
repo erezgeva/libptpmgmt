@@ -22,12 +22,10 @@ namespace ptpmgmt
 %@**
  * @brief dispacher for management TLV
  * @details
- *%- Call-backs used by the MessageDispatcher class.
- * @note this class is defined in @"msgCall.h@" header.
- *%- Use this include in your application
+ *%- Call-backs used by the MessageDispatcher and the MessageBulder classes.
+ * @note these classes are defined in @"msgCall.h@" header.
+ *%- Use it in your application
  *%- @code{.cpp} #include "msgCall.h" @endcode
- * @note User need to inherie MessageDispatcher and implement the call-backs
- * @attention Do @b NOT @p use this header in your application.
  *%@
 class BaseMngDispatchCallback
 {

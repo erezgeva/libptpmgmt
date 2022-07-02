@@ -26,7 +26,7 @@ namespace ptpmgmt
  * @note Do not handle signaling messages!
  * @note You must inherit this class to use it!
  * @note callHadler() has an implementation per script language.
- *       So, it can call virtual function define in the script language itself.
+ *       So, it can call virtual functions defined in the script language itself.
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
@@ -71,7 +71,7 @@ class MessageDispatcher : public BaseMngDispatchCallback
  * @note Lua do @b NOT @/b support destructors for native classes.
  *       You should call Message.clearData() yourself.
  * @note buildTlv() has an implementation per script language.
- *       So, it can call virtual function define in the script language itself.
+ *       So, it can call virtual functions defined in the script language itself.
  */
 class MessageBulder : public BaseMngBuildCallback
 {

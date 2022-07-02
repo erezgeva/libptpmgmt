@@ -9,11 +9,535 @@
  *
  */
 
-#include "msg.h"
+#include <cmath>
+#include <limits>
+#include <byteswap.h>
+#include "err.h"
+#include "end.h"
 #include "comp.h"
+#include "msgProc.h"
+#include "msg.h"
 
 namespace ptpmgmt
 {
+
+/**
+ * Constants for proc(Float64_t)
+ */
+const uint16_t sig_16bits = 1U << 15;           // bit 16 negative sign bit
+const uint64_t sig_64bits = (uint64_t)1UL << 63; // bit 64 negative sign bit
+// constants for IEEE 754 64-bit
+// sign bit: 1 bit, exponent: 11 bits, mantissa: 52 bits
+// https://en.wikipedia.org/wiki/Double-precision_floating-point_format
+const int ieee754_mnt_size = 52; // Exponent location, mantissa size
+const int ieee754_exp_size = 11; // Exponent size
+const int64_t ieee754_exp_nan = ((int64_t)1L << (ieee754_exp_size - 1)); // 1024
+const int64_t ieee754_exp_max = ieee754_exp_nan - 1; // 1023
+const int64_t ieee754_exp_sub = -ieee754_exp_max; // -1023 for subnormal
+const int64_t ieee754_exp_min = ieee754_exp_sub + 1; // -1022
+const int64_t ieee754_exp_bias = ieee754_exp_max; // 1023
+// 0x7ff0000000000000
+const uint64_t ieee754_exp_mask = (((uint64_t)1 << ieee754_exp_size) - 1) <<
+    ieee754_mnt_size;
+// 0x0010000000000000
+const int64_t ieee754_mnt_base = (int64_t)1 << ieee754_mnt_size;
+// 0x000fffffffffffff
+const int64_t ieee754_mnt_mask = ieee754_mnt_base - 1;
+
+MNG_PARSE_ERROR_e MsgProc::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
+{
+#define _ptpmCaseNA(n) case n: return MNG_PARSE_ERROR_OK
+#define _ptpmCaseUF(n) case n:\
+        if(m_build) {\
+            if(n##_f(*dynamic_cast<n##_t *>(tlv)))\
+                return m_err;\
+        } else {\
+            n##_t *t = new n##_t;\
+            if(t == nullptr)\
+                return MNG_PARSE_ERROR_MEM;\
+            if(n##_f(*t)) {\
+                delete t;\
+                return m_err;\
+            }\
+            tlv = t;\
+        } break
+    // The default error on build or parsing
+    m_err = MNG_PARSE_ERROR_TOO_SMALL;
+    switch(id) {
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n);
+#include "ids.h"
+        default:
+            return MNG_PARSE_ERROR_UNSUPPORT;
+    }
+    // The mng ID is not supported yet
+    return MNG_PARSE_ERROR_OK;
+}
+bool MsgProc::proc(uint8_t &val)
+{
+    if(m_left < (ssize_t)sizeof(uint8_t))
+        return true;
+    if(m_build)
+        *m_cur = val;
+    else
+        val = *m_cur;
+    move(sizeof(uint8_t));
+    return false;
+}
+bool MsgProc::proc(uint16_t &val)
+{
+    if(m_left < (ssize_t)sizeof(uint16_t))
+        return true;
+    if(m_build)
+        *(uint16_t *)m_cur = cpu_to_net16(val);
+    else
+        val = net_to_cpu16(*(uint16_t *)m_cur);
+    move(sizeof(uint16_t));
+    return false;
+}
+bool MsgProc::proc(uint32_t &val)
+{
+    if(m_left < (ssize_t)sizeof(uint32_t))
+        return true;
+    if(m_build)
+        *(uint32_t *)m_cur = cpu_to_net32(val);
+    else
+        val = net_to_cpu32(*(uint32_t *)m_cur);
+    move(sizeof(uint32_t));
+    return false;
+}
+bool MsgProc::proc48(uint64_t &val)
+{
+    uint16_t high;
+    uint32_t low;
+    if(m_left < (ssize_t)sizeof_UInteger48_t)
+        return true;
+    if(m_build) {
+        if(val > UINT48_MAX) {
+            m_err = MNG_PARSE_ERROR_VAL;
+            return true;
+        }
+        high = (val >> 32) & UINT16_MAX;
+        low = val & UINT32_MAX;
+    }
+    if(proc(high) || proc(low))
+        return true;
+    if(!m_build)
+        val = low | ((uint64_t)high << 32);
+    return false;
+}
+bool MsgProc::proc(uint64_t &val)
+{
+    if(m_left < (ssize_t)sizeof(uint64_t))
+        return true;
+    if(m_build)
+        *(uint64_t *)m_cur = cpu_to_net64(val);
+    else
+        val = net_to_cpu64(*(uint64_t *)m_cur);
+    move(sizeof(uint64_t));
+    return false;
+}
+bool MsgProc::proc(int8_t &val)
+{
+    if(m_left < (ssize_t)sizeof(int8_t))
+        return true;
+    if(m_build)
+        *(int8_t *)m_cur = val;
+    else
+        val = *(int8_t *)m_cur;
+    move(sizeof(int8_t));
+    return false;
+}
+bool MsgProc::proc(int16_t &val)
+{
+    if(m_left < (ssize_t)sizeof(int16_t))
+        return true;
+    if(m_build)
+        *(uint16_t *)m_cur = cpu_to_net16((uint16_t)val);
+    else
+        val = (int16_t)net_to_cpu16(*(uint16_t *)m_cur);
+    move(sizeof(int16_t));
+    return false;
+}
+bool MsgProc::proc(int32_t &val)
+{
+    if(m_left < (ssize_t)sizeof(int32_t))
+        return true;
+    if(m_build)
+        *(uint32_t *)m_cur = cpu_to_net32((uint32_t)val);
+    else
+        val = (int32_t)net_to_cpu32(*(uint32_t *)m_cur);
+    move(sizeof(int32_t));
+    return false;
+}
+bool MsgProc::proc48(int64_t &val)
+{
+    uint16_t high;
+    uint32_t low;
+    if(m_left < (ssize_t)sizeof_Integer48_t)
+        return true;
+    if(m_build) {
+        if(val < INT48_MIN || val > INT48_MAX) {
+            m_err = MNG_PARSE_ERROR_VAL;
+            return true;
+        }
+        high = (val >> 32) & INT16_MAX;
+        if(val < 0) // Add sign bit for negative
+            high |= sig_16bits;
+        low = val & UINT32_MAX;
+    }
+    if(proc(high) || proc(low))
+        return true;
+    if(!m_build) {
+        uint64_t ret = low | (((uint64_t)high & INT16_MAX) << 32);
+        if(high & sig_16bits) // Add sign bit for negative
+            ret |= sig_64bits;
+        memcpy(&val, &ret, sizeof(uint64_t));
+    }
+    return false;
+}
+bool MsgProc::proc(int64_t &val)
+{
+    if(m_left < (ssize_t)sizeof(int64_t))
+        return true;
+    if(m_build)
+        *(uint64_t *)m_cur = cpu_to_net64((uint64_t)val);
+    else
+        val = (int64_t)net_to_cpu64(*(uint64_t *)m_cur);
+    move(sizeof(int64_t));
+    return false;
+}
+bool MsgProc::proc(Float64_t &val)
+{
+    // Float64_t
+    // Using IEEE 754 64-bit floating-point
+    if(m_left < 8)
+        return true;
+    uint64_t num;
+    int64_t mnt, exp;
+    // true: Float64_t is 64 bits IEEE 754
+    // false: calculate IEEE 754
+    bool use64 = false;
+    enum {
+        // when calculate always use host order
+        USE_HOST, // use host order
+        USE_BIG, // float is big endian (network order)
+        USE_LT, // float is little endian
+    } ordMod = USE_HOST;
+    // see ieee754.h
+    // Most processors support IEEE 754
+    // Hardware that do not use IEEE 754, should define NO_IEEE_754
+    #ifndef NO_IEEE_754
+    if(sizeof(uint64_t) == sizeof(Float64_t)) {
+        #if __FLOAT_WORD_ORDER == __BIG_ENDIAN
+        use64 = true;
+        ordMod = USE_BIG;
+        #elif __FLOAT_WORD_ORDER == __BYTE_ORDER
+        use64 = true;
+        #elif __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
+        use64 = true;
+        ordMod = USE_LT;
+        #endif
+    }
+    #endif /* NO_IEEE_754 */
+    if(m_build) {
+        if(use64) // Float64_t is 64 bits IEEE 754
+            memcpy(&num, &val, sizeof(uint64_t));
+        else {
+            /* For processors that do not support IEEE 754
+             *  or endian is not clear
+             * The computed float is in host order
+             */
+            // Move negative sign bit
+            if(std::signbit(val)) {
+                num = sig_64bits; // add sign bit
+                if(std::isfinite(val))
+                    val = fabsl(val);
+            } else
+                num = 0;
+            double norm;
+            switch(std::fpclassify(val)) {
+                case FP_NAN: // Not a number
+                    exp = ieee754_exp_nan;
+                    mnt = 1; // Any positive goes
+                    break;
+                case FP_INFINITE: // Infinity
+                    exp = ieee754_exp_nan;
+                    mnt = 0;
+                    break;
+                case FP_ZERO: // Zero
+                    exp = ieee754_exp_sub;
+                    mnt = 0;
+                    break;
+                default:
+                    FALLTHROUGH;
+                case FP_NORMAL:
+                    exp = (int64_t)floorl(log2l(val));
+                    if(exp > ieee754_exp_max)
+                        return true; // Number is too big
+                    else if(exp >= ieee754_exp_min) {
+                        norm = val / exp2l(exp);
+                        if(norm >= 1) {
+                            mnt = (int64_t)floorl(norm * ieee754_mnt_base -
+                                    ieee754_mnt_base);
+                            if(mnt < 0 || mnt >= ieee754_mnt_base) {
+                                PTPMGMT_ERROR("wrong calculation of float, "
+                                    "mnt out of range");
+                                return true; // wrong calculation
+                            }
+                            break; // Break normal
+                        }
+                        PTPMGMT_ERROR("wrong calculation of float, "
+                            "norm is too small");
+                    }
+                    FALLTHROUGH;
+                case FP_SUBNORMAL: // Subnormal number
+                    exp = ieee754_exp_sub;
+                    norm = val / exp2l(ieee754_exp_min);
+                    mnt = (int64_t)floorl(norm * ieee754_mnt_base);
+                    if(mnt < 0 || mnt >= ieee754_mnt_base) {
+                        PTPMGMT_ERROR("wrong calculation of float, "
+                            "mnt out of range for subnormal");
+                        return true; // wrong calculation
+                    }
+                    // For very small number use the minimum subnormal
+                    // As zero is used by zero only!
+                    if(mnt == 0)
+                        mnt = 1;
+                    break;
+            }
+            // Add exponent value and mantissa
+            num |= ((exp + ieee754_exp_bias) << ieee754_mnt_size) |
+                (mnt & ieee754_mnt_mask);
+        }
+    }
+    switch(ordMod) {
+        case USE_BIG:
+            if(m_build)
+                *(uint64_t *)m_cur = num;
+            else
+                num = *(uint64_t *)m_cur;
+            move(8);
+            break;
+        case USE_LT:
+            if(m_build)
+                *(uint64_t *)m_cur = bswap_64(num);
+            else
+                num = bswap_64(*(uint64_t *)m_cur);
+            move(8);
+            break;
+        case USE_HOST:
+            if(proc(num)) // host order to network order
+                return true;
+            break;
+    }
+    if(!m_build) {
+        if(use64) // Float64_t is 64 bits IEEE 754
+            memcpy(&val, &num, sizeof(uint64_t));
+        else {
+            /* For processors that do not support IEEE 754
+             *  or endian is not clear
+             * The computed float is in host order
+             */
+            exp = (int64_t)((num & ieee754_exp_mask) >> ieee754_mnt_size) -
+                ieee754_exp_bias;
+            mnt = num & ieee754_mnt_mask;
+            if(exp == ieee754_exp_nan) {
+                if(mnt == 0) // infinity
+                    val = HUGE_VALL;
+                else // NaN
+                    val = std::numeric_limits<Float64_t>::quiet_NaN();
+            } else if(exp == ieee754_exp_sub) // Subnormal or zero
+                val = exp2l(ieee754_exp_min) * mnt / ieee754_mnt_base;
+            else // Normal
+                val = exp2l(exp) * (mnt + ieee754_mnt_base) / ieee754_mnt_base;
+            if(num & sig_64bits) // Negative
+                val = std::copysign(val, -1);
+        }
+    }
+    return false;
+}
+bool MsgProc::proc(std::string &str, uint16_t len)
+{
+    if(m_build) // On build ignore length variable
+        len = str.length();
+    if(m_left < (ssize_t)len)
+        return true;
+    if(m_build)
+        memcpy(m_cur, str.c_str(), len);
+    else
+        str = std::string((char *)m_cur, len);
+    move(len);
+    return false;
+}
+bool MsgProc::proc(Binary &bin, uint16_t len)
+{
+    if(m_build) // On build ignore length variable
+        len = bin.length();
+    if(m_left < (ssize_t)len)
+        return true;
+    if(m_build)
+        bin.copy(m_cur);
+    else
+        bin.setBin(m_cur, len);
+    move(len);
+    return false;
+}
+bool MsgProc::proc(uint8_t *val, size_t len)
+{
+    if(m_left < (ssize_t)len)
+        return true;
+    if(m_build)
+        memcpy(m_cur, val, len);
+    else
+        memcpy(val, m_cur, len);
+    move(len);
+    return false;
+}
+template <typename T> bool MsgProc::procE8(T &val)
+{
+    uint8_t v = val;
+    bool ret = proc(v);
+    val = (T)v;
+    return ret;
+}
+#define E8(t) template bool MsgProc::procE8<t>(t &)
+E8(clockAccuracy_e);
+E8(faultRecord_e);
+E8(timeSource_e);
+E8(portState_e);
+E8(msgType_e);
+E8(linuxptpTimeStamp_e);
+template <typename T> bool MsgProc::procE16(T &val)
+{
+    uint16_t v = val;
+    bool ret = proc(v);
+    val = (T)v;
+    return ret;
+}
+#define E16(t) template bool MsgProc::procE16<t>(t &)
+E16(networkProtocol_e);
+E16(linuxptpPowerProfileVersion_e);
+E16(linuxptpUnicastState_e);
+bool MsgProc::proc(TimeInterval_t &v)
+{
+    return proc(v.scaledNanoseconds);
+}
+bool MsgProc::proc(Timestamp_t &d)
+{
+    return proc48(d.secondsField) || proc(d.nanosecondsField);
+}
+bool MsgProc::proc(ClockIdentity_t &v)
+{
+    return proc(v.v, sizeof(ClockIdentity_t));
+}
+bool MsgProc::proc(PortIdentity_t &d)
+{
+    return proc(d.clockIdentity) || proc(d.portNumber);
+}
+bool MsgProc::proc(PortAddress_t &d)
+{
+    d.addressLength = d.addressField.length();
+    return proc(d.networkProtocol) || proc(d.addressLength) ||
+        proc(d.addressField, d.addressLength);
+}
+bool MsgProc::proc(ClockQuality_t &d)
+{
+    return proc(d.clockClass) || proc(d.clockAccuracy) ||
+        proc(d.offsetScaledLogVariance);
+}
+bool MsgProc::proc(PTPText_t &d)
+{
+    d.lengthField = d.textField.length();
+    return proc(d.lengthField) || proc(d.textField, d.lengthField);
+}
+bool MsgProc::proc(FaultRecord_t &d)
+{
+    if(proc(d.faultRecordLength) || proc(d.faultTime) || proc(d.severityCode) ||
+        proc(d.faultName) || proc(d.faultValue) || proc(d.faultDescription))
+        return true;
+    if(d.faultRecordLength != sizeof(uint16_t) + Timestamp_t::size() +
+        sizeof(faultRecord_e) + 3 * sizeof(uint8_t) + d.faultName.lengthField +
+        d.faultValue.lengthField + d.faultDescription.lengthField) {
+        m_err = MNG_PARSE_ERROR_SIZE_MISS;
+        return true;
+    }
+    return false;
+}
+bool MsgProc::proc(AcceptableMaster_t &d)
+{
+    return proc(d.acceptablePortIdentity) || proc(d.alternatePriority1);
+}
+bool MsgProc::proc(LinuxptpUnicastMaster_t &d)
+{
+    return proc(d.portIdentity) || proc(d.clockQuality) || proc(d.selected) ||
+        proc(d.portState) || proc(d.priority1) || proc(d.priority2) ||
+        proc(d.portAddress);
+}
+bool MsgProc::procFlags(uint8_t &flags, const uint8_t flagsMask)
+{
+    if(m_build) {
+        if(flagsMask > 1) // Ensure we use proper bits
+            flags &= flagsMask;
+        else if(flags > 0) // We have single flag, any positive goes
+            flags = 1;
+    }
+    return proc(flags);
+}
+bool MsgProc::procLe(uint64_t &val)
+{
+    if(m_left < (ssize_t)sizeof(uint64_t))
+        return true;
+    if(m_build)
+        *(uint64_t *)m_cur = cpu_to_le64(val);
+    else
+        val = le_to_cpu64(*(uint64_t *)m_cur);
+    move(sizeof(uint64_t));
+    return false;
+}
+// list build part
+#define vector_b(vec)\
+    if(m_build) {\
+        for(auto &rec : vec) {\
+            if(proc(rec))\
+                return true;\
+        }\
+    } else
+template <typename T> bool MsgProc::vector_f(uint32_t count,
+    std::vector<T> &vec)
+{
+    vector_b(vec) {
+        for(uint32_t i = 0; i < count; i++) {
+            T rec;
+            if(proc(rec))
+                return true;
+            vec.push_back(rec);
+        }
+    }
+    return false;
+}
+#define vf(t) template bool MsgProc::vector_f<t>(uint32_t, std::vector<t> &)
+vf(FaultRecord_t);
+vf(PortAddress_t);
+vf(AcceptableMaster_t);
+vf(LinuxptpUnicastMaster_t);
+template <typename T> bool MsgProc::vector_o(std::vector<T> &vec)
+{
+    vector_b(vec) {
+        while(m_left >= (ssize_t)T::size()) {
+            T rec;
+            if(proc(rec))
+                return true;
+            vec.push_back(rec);
+        }
+    }
+    return false;
+}
+#define vo(t) template bool MsgProc::vector_o<t>(std::vector<t> &)
+vo(ClockIdentity_t);
+vo(SLAVE_RX_SYNC_TIMING_DATA_rec_t);
+vo(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t);
+vo(SLAVE_TX_EVENT_TIMESTAMPS_rec_t);
+vo(SLAVE_DELAY_TIMING_DATA_NP_rec_t);
 
 template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec) PURE;
 
@@ -107,7 +631,7 @@ ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
  * The main build function will add a pad at the end to make size even
  */
 
-#define A(n) bool Message::n##_##f(n##_t &d)
+#define A(n) bool MsgProc::n##_##f(n##_t &d)
 
 A(CLOCK_DESCRIPTION)
 {

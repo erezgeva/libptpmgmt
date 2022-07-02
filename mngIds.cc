@@ -22,11 +22,7 @@ namespace ptpmgmt
 %@**
  * @brief Management TLVs ID
  * @details
- *%- The Management TLVs the application may use on message.
- * @note this enumerator is defined in @"msg.h@" header.
- *%- Use this include in your application
- *%- @code{.cpp} #include "msg.h" @endcode
- * @attention Do @b NOT @p use this header in your application.
+ *%- Available Management TLVs for use with PTP managment messages.
  *%@
 enum mng_vals_e {
 #define A(n, v, sc, a, sz, f) %- %-  n,

@@ -206,6 +206,7 @@ CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
 CPPFLAGS+=-MT $@ -MMD -MP -MF $*.d
 LIBTOOL_CC=$Q$(Q_LCC)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
 LIB_VER:=$(ver_maj).$(ver_min)
+VER_VAL!=printf '0x%.2x%.2x' $(ver_maj) $(ver_min)
 ifdef SONAME_USE_MAJ
 SONAME:=.$(ver_maj)
 endif
@@ -222,7 +223,7 @@ LIB_OBJS:=$(filter-out $(JSON_FROM_OBJS) $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS
 # Static only objects
 LIB_A_OBJS:=
 PMC_NAME:=pmc
-ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)
+ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min) -DVER_VAL=$(VER_VAL)
 D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $*.d
 LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) $(CPPFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 
@@ -369,11 +370,11 @@ distclean: deb_clean clean
 HEADERS_GEN:=mngIds.h callDef.h vecDef.h verDef.h
 HEADERS_GEN_COMP:=mngIds.h callDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
-HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS))
-HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h,$(HEADERS))\
+HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS)) $(HEADERS_GEN_COMP)
+HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h msgProc.h ids.h,$(HEADERS))\
   verDef.h $(HEADERS_GEN_COMP)
-HEADERS_ALL:=$(HEADERS) $(HEADERS_GEN)
-verDef.h: GEN_FLAGS+=-Dver_maj=$(ver_maj) -Dver_min=$(ver_min) -DVER=$(LIB_VER)
+verDef.h: GEN_FLAGS+=-Dver_maj=$(ver_maj) -Dver_min=$(ver_min) -DVER=$(LIB_VER)\
+  -DVER_VAL=$(VER_VAL)
 # MAP for  %.cc to %.h:
 #  %@ => '/'    - Use when a slash is next to a star character
 #  %! => '%'    - Self escape, escape precent sign character
@@ -435,7 +436,7 @@ NO_PHP=1
 endif ## ! swig 3.0.12
 endif # ! swig 4.0
 endif # ! swig 4.1
-%/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS_ALL)
+%/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS) $(HEADERS_GEN_COMP)
 	$(Q_SWIG)$(SWIG) -c++ -I. -I$(@D) -outdir $(@D) -Wextra $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file

@@ -17,6 +17,7 @@
 #include <cstring>
 #include <cstdio>
 #include <vector>
+#include <memory>
 #include "types.h"
 
 #ifndef SWIG

@@ -22,6 +22,7 @@
     #include "ver.h"
     #include "init.h"
     #include "msgCall.h"
+    #include "timeCvrt.h"
     using namespace ptpmgmt;
 %}
 
@@ -150,6 +151,8 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "ver.h"
 %include "opt.h"
 %include "init.h"
+%include "timeCvrt.h"
+
 /* Handle management vectors inside structures
  * See documenting of XXXX_v classes in mngIds.h and
  *  Doxygen generated documents

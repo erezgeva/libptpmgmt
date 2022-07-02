@@ -32,6 +32,12 @@ int getVersionMajor();
  * @return this library version minor
  */
 int getVersionMinor();
+/**
+ * Get this library version in 16 bits value
+ * @return this library version value
+ * @note version value use high byte for major and low byte for minor
+ */
+unsigned getVersionValue();
 
 #ifndef SWIG
 }; /* namespace ptpmgmt */

@@ -8,6 +8,8 @@
  * @copyright 2021 Erez Geva
  *
  * This header is generated automatically.
+ * @note These macroes are provided for compilation only
+ * %- %- %- scripts should use version functions.
  *
  *%@
 %_
@@ -16,6 +18,7 @@
 %_
 %#define LIBPTPMGMT_VER_MAJ (ver_maj) %@**< Library version major *%@
 %#define LIBPTPMGMT_VER_MIN (ver_min) %@**< Library version minor *%@
+%#define LIBPTPMGMT_VER_VAL (VER_VAL) %@**< Library version value *%@
 %#define LIBPTPMGMT_VER %&VER%& %@**< Library version string *%@
 %_
 %#endif %@* __PTPMGMT_VER_DEFS_H *%@

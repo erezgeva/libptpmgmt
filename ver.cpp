@@ -30,5 +30,9 @@ int getVersionMinor()
 {
     return VER_MIN;
 }
+unsigned getVersionValue()
+{
+    return VER_VAL;
+}
 
 }; /* namespace ptpmgmt */

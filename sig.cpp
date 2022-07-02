@@ -9,12 +9,12 @@
  *
  */
 
-#include "msg.h"
+#include "msgProc.h"
 
 namespace ptpmgmt
 {
 
-#define A(n) bool Message::n##_f(n##_t &d)
+#define A(n) bool MsgProc::n##_f(n##_t &d)
 A(ORGANIZATION_EXTENSION)
 {
     return proc(d.organizationId, 3) ||
@@ -76,18 +76,18 @@ A(CUMULATIVE_RATE_RATIO)
 {
     return proc(d.scaledCumulativeRateRatio);
 }
-bool Message::proc(SLAVE_RX_SYNC_TIMING_DATA_rec_t &d)
+bool MsgProc::proc(SLAVE_RX_SYNC_TIMING_DATA_rec_t &d)
 {
     return proc(d.sequenceId) || proc(d.syncOriginTimestamp) ||
         proc(d.totalCorrectionField) || proc(d.scaledCumulativeRateOffset) ||
         proc(d.syncEventIngressTimestamp);
 }
-bool Message::proc(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t &d)
+bool MsgProc::proc(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t &d)
 {
     return proc(d.sequenceId) || proc(d.offsetFromMaster) ||
         proc(d.meanPathDelay) || proc(d.scaledNeighborRateRatio);
 }
-bool Message::proc(SLAVE_TX_EVENT_TIMESTAMPS_rec_t &d)
+bool MsgProc::proc(SLAVE_TX_EVENT_TIMESTAMPS_rec_t &d)
 {
     return proc(d.sequenceId) || proc(d.eventEgressTimestamp);
 }
@@ -97,7 +97,7 @@ A(SLAVE_DELAY_TIMING_DATA_NP)
         return true;
     return vector_o(d.list);
 }
-bool Message::proc(SLAVE_DELAY_TIMING_DATA_NP_rec_t &d)
+bool MsgProc::proc(SLAVE_DELAY_TIMING_DATA_NP_rec_t &d)
 {
     return proc(d.sequenceId) || proc(d.delayOriginTimestamp) ||
         proc(d.totalCorrectionField) || proc(d.delayResponseTimestamp);

@@ -27,15 +27,15 @@ namespace ptpmgmt
 
 #ifndef INT48_MIN
 /** Minimum value for signed integer 48 bits */
-#define INT48_MIN (-INT64_C(0x7fffffffffff) - 1)
+const int64_t INT48_MIN = -INT64_C(0x7fffffffffff) - 1;
 #endif
 #ifndef INT48_MAX
 /** Maximum value for signed integer 48 bits */
-#define INT48_MAX (INT64_C(0x7fffffffffff))
+const int64_t INT48_MAX = INT64_C(0x7fffffffffff);
 #endif
 #ifndef UINT48_MAX
 /** Maximum value for unsigned integer 48 bits */
-#define UINT48_MAX (UINT64_C(0xffffffffffff))
+const uint64_t UINT48_MAX = UINT64_C(0xffffffffffff);
 #endif
 
 /** IEEE 1588 Protocol 2 x 4 bits integer */
