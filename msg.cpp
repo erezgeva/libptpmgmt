@@ -10,14 +10,28 @@
  * Created following "IEEE Std 1588-2008", PTP version 2
  */
 
+#include <cmath>
 #include "err.h"
 #include "end.h"
 #include "msg.h"
 #include "msgProc.h"
+#include "timeCvrt.h"
 #include "comp.h"
 
 namespace ptpmgmt
 {
+
+struct floor_t {
+    int64_t intg;
+    long double rem;
+};
+static inline floor_t _floor(long double val)
+{
+    floor_t ret;
+    ret.intg = floorl(val);
+    ret.rem = val - ret.intg;
+    return ret;
+}
 
 const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
 const uint8_t ptp_minor_ver = 0x0; // IEEE 1588-2019 uses 0x1
@@ -979,6 +993,81 @@ std::string Timestamp_t::string() const
     char buf[200];
     snprintf(buf, sizeof buf, "%ju.%.9u", secondsField, nanosecondsField);
     return buf;
+}
+Timestamp_t::Timestamp_t(const timeval &tv)
+{
+    secondsField = tv.tv_sec;
+    nanosecondsField = tv.tv_usec * NSEC_PER_USEC;
+}
+void Timestamp_t::toTimeval(timeval &tv) const
+{
+    tv.tv_sec = secondsField;
+    tv.tv_usec = nanosecondsField / NSEC_PER_USEC;
+}
+void Timestamp_t::formFloat(long double seconds)
+{
+    auto ret = _floor(seconds);
+    secondsField = ret.intg;
+    nanosecondsField = ret.rem * NSEC_PER_SEC;
+}
+long double Timestamp_t::toFloat() const
+{
+    return (long double)nanosecondsField / NSEC_PER_SEC + secondsField;
+}
+void Timestamp_t::fromNanoseconds(uint64_t nanosecondsField)
+{
+    auto d = div((long long)nanosecondsField, (long long)NSEC_PER_SEC);
+    secondsField = d.quot;
+    nanosecondsField = d.rem;
+}
+uint64_t Timestamp_t::toNanoseconds() const
+{
+    return nanosecondsField + secondsField * NSEC_PER_SEC;
+}
+bool Timestamp_t::eq(long double seconds) const
+{
+    uint64_t secs = floorl(seconds);
+    if(secondsField == secs)
+        return nanosecondsField == (seconds - secs) * NSEC_PER_SEC;
+    return false;
+}
+bool Timestamp_t::less(long double seconds) const
+{
+    uint64_t secs = floorl(seconds);
+    if(secondsField == secs)
+        return nanosecondsField < (seconds - secs) * NSEC_PER_SEC;
+    return secondsField < secs;
+}
+Timestamp_t &normNano(Timestamp_t *ts)
+{
+    while(ts->nanosecondsField >= NSEC_PER_SEC) {
+        ts->nanosecondsField -= NSEC_PER_SEC;
+        ts->secondsField++;
+    }
+    return *ts;
+}
+Timestamp_t &Timestamp_t::add(const Timestamp_t &ts)
+{
+    secondsField += ts.secondsField;
+    nanosecondsField += ts.nanosecondsField;
+    return normNano(this);
+}
+Timestamp_t &Timestamp_t::add(long double seconds)
+{
+    auto ret = _floor(seconds);
+    secondsField += ret.intg;
+    nanosecondsField += ret.rem * NSEC_PER_SEC;
+    return normNano(this);
+}
+Timestamp_t &Timestamp_t::subt(const Timestamp_t &ts)
+{
+    secondsField -= ts.secondsField;
+    while(nanosecondsField < ts.nanosecondsField) {
+        nanosecondsField += NSEC_PER_SEC;
+        secondsField--;
+    }
+    nanosecondsField -= ts.nanosecondsField;
+    return normNano(this);
 }
 std::string ClockIdentity_t::string() const
 {

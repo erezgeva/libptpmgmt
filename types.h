@@ -331,6 +331,241 @@ struct Timestamp_t {
      * @return string
      */
     std::string string() const;
+    #ifndef SWIG
+    /**
+     * Convert to string of seconds with fractions
+     * @note scripts can use the string() method
+     */
+    operator std::string() const { return string(); }
+    #endif
+    /**
+     * Default constructor
+     */
+    Timestamp_t() : secondsField(0), nanosecondsField(0) {}
+    /**
+     * Copy constructor
+     * @param[in] ts another Timestamp_t
+     * @note Ensure compiler create a copy contructor
+     */
+    Timestamp_t(const Timestamp_t &ts) = default;
+    /**
+     * Constructor
+     * @param[in] secs Seconds
+     * @param[in] nsecs Nanoseconds
+     */
+    Timestamp_t(int64_t secs, uint32_t nsecs) : secondsField(secs),
+        nanosecondsField(nsecs) {}
+    #ifndef SWIG
+    /**
+     * Convert from timespec
+     * @param[in] ts timespec structure
+     * @note scripts should not use the timespec structure
+     */
+    Timestamp_t(const timespec &ts) {
+        secondsField = ts.tv_sec;
+        nanosecondsField = ts.tv_nsec;
+    }
+    /**
+     * Convert to timespec
+     * @note scripts should not use the timespec structure
+     */
+    operator timespec() const { timespec ts; toTimespec(ts); return ts; }
+    /**
+     * Convert to timespec
+     * @param[in, out] ts timespec structure
+     * @note scripts should not use the timespec structure
+     */
+    void toTimespec(timespec &ts) const {
+        ts.tv_sec = secondsField;
+        ts.tv_nsec = nanosecondsField;
+    }
+    /**
+     * Convert from timeval
+     * @param[in] tv timeval structure
+     * @note scripts should not use the timeval structure
+     */
+    Timestamp_t(const timeval &tv);
+    /**
+     * Convert to timespec
+     * @note scripts should not use the timeval structure
+     */
+    operator timeval() const { timeval tv; toTimeval(tv); return tv; }
+    /**
+     * Convert to timeval
+     * @param[in, out] tv timeval structure
+     * @note scripts should not use the timeval structure
+     */
+    void toTimeval(timeval &tv) const;
+    #endif /*SWIG*/
+    /**
+     * Convert from seconds with fractions
+     * @param[in] seconds with fractions
+     */
+    Timestamp_t(long double seconds) {formFloat(seconds);}
+    /**
+     * Convert from seconds with fractions
+     * @param[in] seconds with fractions
+     */
+    void formFloat(long double seconds);
+    #ifndef SWIG
+    /**
+     * Convert to seconds with fractions
+     * @note scripts can use the toFloat() method
+     */
+    operator long double() const { return toFloat(); }
+    #endif
+    /**
+     * Convert to seconds with fractions
+     * @return seconds with fractions
+     */
+    long double toFloat() const;
+    /**
+     * Convert from nanoseconds
+     * @param[in] nanoseconds
+     */
+    void fromNanoseconds(uint64_t nanoseconds);
+    /**
+     * Convert to nanoseconds
+     * @return nanoseconds
+     */
+    uint64_t toNanoseconds() const;
+    /**
+     * Compare to another clock time
+     * @param[in] ts another clock time
+     * @return true if the same time
+     */
+    bool operator==(const Timestamp_t &ts) const { return eq(ts); }
+    /**
+     * Compare to another clock time
+     * @param[in] ts another clock time
+     * @return true if the same time
+     */
+    bool eq(const Timestamp_t &ts) const {
+        return secondsField == ts.secondsField &&
+            nanosecondsField == ts.nanosecondsField;
+    }
+    /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if the same time
+     */
+    bool operator==(long double seconds) const { return eq(seconds); }
+    /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if the same time
+     */
+    bool eq(long double seconds) const;
+    /**
+     * Compare to another clock time
+     * @param[in] ts another clock time
+     * @return true if smaller then other time
+     * @note when compare to a number,
+     *       the number will be converted as seconds with fractions
+     */
+    bool operator<(const Timestamp_t &ts) const { return less(ts); }
+    /**
+     * Compare to another clock time
+     * @param[in] ts another clock time
+     * @return true if smaller then other time
+     */
+    bool less(const Timestamp_t &ts) const {
+        return secondsField < ts.secondsField ||
+            (secondsField == ts.secondsField &&
+                nanosecondsField < ts.nanosecondsField);
+    }
+    /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if smaller
+     */
+    bool operator<(long double seconds) const { return less(seconds); }
+    /**
+     * Compare to seconds with fractions
+     * @param[in] seconds
+     * @return true if smaller
+     */
+    bool less(long double seconds) const;
+    /**
+     * Add another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    Timestamp_t &operator+(const Timestamp_t &ts) { return add(ts); }
+    #ifndef SWIG
+    /**
+     * Add another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    Timestamp_t &operator+=(const Timestamp_t &ts) { return add(ts); }
+    #endif /*SWIG*/
+    /**
+     * Add another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    Timestamp_t &add(const Timestamp_t &ts);
+    /**
+     * Add a seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    Timestamp_t &operator+(long double seconds) { return add(seconds); }
+    #ifndef SWIG
+    /**
+     * Add a seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    Timestamp_t &operator+=(long double seconds) { return add(seconds); }
+    #endif /*SWIG*/
+    /**
+     * Add a seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    Timestamp_t &add(long double seconds);
+    /**
+     * Subtract another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    Timestamp_t &operator-(const Timestamp_t &ts) { return subt(ts); }
+    #ifndef SWIG
+    /**
+     * Subtract another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    Timestamp_t &operator-=(const Timestamp_t &ts) { return subt(ts); }
+    #endif /*SWIG*/
+    /**
+     * Subtract another clock time
+     * @param[in] ts another clock time
+     * @return reference to itself
+     */
+    Timestamp_t &subt(const Timestamp_t &ts);
+    /**
+     * Subtract seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    Timestamp_t &operator-(long double seconds) { return add(-seconds); }
+    #ifndef SWIG
+    /**
+     * Subtract seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    Timestamp_t &operator-=(long double seconds) { return add(-seconds); }
+    #endif /*SWIG*/
+    /**
+     * Subtract seconds with fractions
+     * @param[in] seconds
+     * @return reference to itself
+     */
+    Timestamp_t &subt(long double seconds) { return add(-seconds); }
 };
 /** PTP clock ID */
 struct ClockIdentity_t {

@@ -9,7 +9,6 @@
  *
  */
 
-#include <cmath>
 #include <cstdlib>
 #include <fcntl.h>
 #include <unistd.h>
@@ -19,7 +18,6 @@
 #include <linux/ptp_clock.h>
 #include "err.h"
 #include "ptp.h"
-#include "timeCvrt.h"
 #include "comp.h"
 
 namespace ptpmgmt
@@ -39,17 +37,6 @@ const char ptp_dev[] = "/dev/ptp";
 static inline clockid_t get_clockid_fd(int fd)
 {
     return FD_TO_CLOCKID(fd);
-}
-struct floor_t {
-    int64_t intg;
-    long double rem;
-};
-static inline floor_t _floor(long double val)
-{
-    floor_t ret;
-    ret.intg = floorl(val);
-    ret.rem = val - ret.intg;
-    return ret;
 }
 bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
@@ -114,89 +101,8 @@ bool IfInfo::initUsingIndex(int ifIndex)
     m_ifIndex = ifIndex;
     return initPtp(fd, ifr);
 }
-ClockTime::ClockTime(const timeval &tv)
-{
-    seconds = tv.tv_sec;
-    nanoseconds = tv.tv_usec * NSEC_PER_USEC;
-}
-void ClockTime::toTimeval(timeval &tv) const
-{
-    tv.tv_sec = seconds;
-    tv.tv_usec = nanoseconds / NSEC_PER_USEC;
-}
-void ClockTime::formFloat(long double _seconds)
-{
-    auto ret = _floor(_seconds);
-    seconds = ret.intg;
-    nanoseconds = ret.rem * NSEC_PER_SEC;
-}
-long double ClockTime::toFloat() const
-{
-    return (long double)nanoseconds / NSEC_PER_SEC + seconds;
-}
-void ClockTime::fromNanoseconds(int64_t nanoseconds)
-{
-    auto d = div((long long)nanoseconds, (long long)NSEC_PER_SEC);
-    seconds = d.quot;
-    nanoseconds = d.rem;
-}
-int64_t ClockTime::toNanoseconds() const
-{
-    return nanoseconds + seconds * NSEC_PER_SEC;
-}
-std::string ClockTime::string() const
-{
-    char buf[200];
-    snprintf(buf, sizeof buf, "%ju.%.9u", seconds, nanoseconds);
-    return buf;
-}
-bool ClockTime::eq(long double _seconds) const
-{
-    int64_t asec = floorl(_seconds);
-    if(seconds == asec)
-        return nanoseconds == (_seconds - asec) * NSEC_PER_SEC;
-    return false;
-}
-bool ClockTime::less(long double _seconds) const
-{
-    int64_t asec = floorl(_seconds);
-    if(seconds == asec)
-        return nanoseconds < (_seconds - asec) * NSEC_PER_SEC;
-    return seconds < asec;
-}
-ClockTime &ClockTime::normNano()
-{
-    while(nanoseconds >= NSEC_PER_SEC) {
-        nanoseconds -= NSEC_PER_SEC;
-        seconds++;
-    }
-    return *this;
-}
-ClockTime &ClockTime::add(const ClockTime &ts)
-{
-    seconds += ts.seconds;
-    nanoseconds += ts.nanoseconds;
-    return normNano();
-}
-ClockTime &ClockTime::add(long double _seconds)
-{
-    auto ret = _floor(_seconds);
-    seconds += ret.intg;
-    nanoseconds += ret.rem * NSEC_PER_SEC;
-    return normNano();
-}
-ClockTime &ClockTime::subt(const ClockTime &ts)
-{
-    seconds -= ts.seconds;
-    while(nanoseconds < ts.nanoseconds) {
-        nanoseconds += NSEC_PER_SEC;
-        seconds--;
-    }
-    nanoseconds -= ts.nanoseconds;
-    return normNano();
-}
 SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
-ClockTime BaseClock::getTime() const
+Timestamp_t BaseClock::getTime() const
 {
     if(m_isInit) {
         timespec ts1;
@@ -205,7 +111,7 @@ ClockTime BaseClock::getTime() const
     }
     return 0;
 }
-bool BaseClock::setTime(const ClockTime &ts) const
+bool BaseClock::setTime(const Timestamp_t &ts) const
 {
     if(m_isInit) {
         timespec ts1 = ts;
