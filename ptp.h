@@ -148,18 +148,66 @@ struct PtpPin_t {
     PtpPinFunc_e functional; /**< pin current functional state */
     unsigned int channel; /**< pin channel */
 };
-/** Enable PHC pin events with rising edge flag */
+/**
+ * Enable PHC pin events with rising edge flag
+ * Equal to Linux kernel flag PTP_RISING_EDGE
+ */
 const uint8_t PTP_EXTERN_TS_RISING_EDGE = 1 << 1;
-/** Enable PHC pin events with falling edge flag */
+/**
+ * Enable PHC pin events with falling edge flag
+ * Equal to Linux kernel flag PTP_FALLING_EDGE
+ */
 const uint8_t PTP_EXTERN_TS_FALLING_EDGE = 1 << 2;
-/** Enable PHC pin events with strict flag */
+/**
+ * Enable PHC pin events with strict flag
+ * Equal to Linux kernel flag PTP_STRICT_FLAGS
+ */
 const uint8_t PTP_EXTERN_TS_STRICT = 1 << 3;
+/**
+ * Use PHC pin period signal once flag
+ * Equal to Linux kernel flag PTP_PEROUT_ONE_SHOT
+ */
+const uint8_t PTP_PERIOD_ONE_SHOT = 1 << 0;
+/**
+ * Use PHC pin period pulse width flag
+ * Equal to Linux kernel flag PTP_PEROUT_DUTY_CYCLE
+ */
+const uint8_t PTP_PERIOD_WIDTH = 1 << 1;
+/**
+ * Use PHC pin period phase flag
+ * Equal to Linux kernel flag PTP_PEROUT_PHASE
+ */
+const uint8_t PTP_PERIOD_PHASE = 1 << 2;
+
 /**
  * PHC pin event
  */
 struct PtpEvent_t {
     unsigned int index; /**< pin index for the event */
     Timestamp_t time; /**< Event time */
+};
+/**
+ * Sample of system clock and PHC
+ */
+struct PtpSample_t {
+    Timestamp_t sysClk; /**< System clock sample */
+    Timestamp_t phcClk; /**< PHC clock sample */
+};
+/**
+ * Extended sample of system clock and PHC
+ */
+struct PtpSampleExt_t {
+    Timestamp_t before; /**< System clock sample before */
+    Timestamp_t phcClk; /**< PHC clock sample */
+    Timestamp_t after; /**< System clock sample after */
+};
+/**
+ * Precise sample of system clock and PHC
+ */
+struct PreciseSampleExt_t {
+    Timestamp_t phcClk; /**< PHC clock sample */
+    Timestamp_t sysClk; /**< System clock sample */
+    Timestamp_t monoClk; /**< System clock monotonic raw sample */
 };
 /**
  * Base class for clock classes
@@ -218,6 +266,13 @@ class PtpClock : public BaseClock
     PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP) {}
     virtual ~PtpClock();
     /**
+     * Check file is a char file
+     * @param[in] file name to check
+     * @return true if file is char device
+     * @note function will follow a symbolic link
+     */
+    static bool isCharFile(const std::string &file);
+    /**
      * Initialize a POSIX clock based on its device name
      * @param[in] device name
      * @param[in] readonly open clock to read only
@@ -258,13 +313,6 @@ class PtpClock : public BaseClock
      */
     const char *device_c() const { return m_device.c_str(); }
     /**
-     * Check file is a char file
-     * @param[in] file name to check
-     * @return true if file is char device
-     * @note function will follow a symbolic link
-     */
-    static bool isCharFile(const std::string &file);
-    /**
      * Get PTP clock capabilities
      * @param[out] caps capabilities
      * @return true for success
@@ -289,8 +337,9 @@ class PtpClock : public BaseClock
     /**
      * Enable PHC pin external events
      * @param[in] index pin index to enable
-     * @param[in] flags using the PTP_EXTERN_TS_xxx
+     * @param[in] flags using the PTP_EXTERN_TS_xxx flags
      * @return true for success
+     * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
      * @note old kernel do not support PTP_EXTERN_TS_STRICT
      */
     bool ExternTSEbable(unsigned int index, uint8_t flags) const;
@@ -298,22 +347,68 @@ class PtpClock : public BaseClock
      * Disable PHC pin external events
      * @param[in] index pin index to enable
      * @return true for success
+     * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
      */
     bool ExternTSDisable(unsigned int index) const;
     /**
-     * Read single event
+     * Read single external event
      * @param[out] event retrieved event
      * @return true for success
      */
     bool readEvent(PtpEvent_t &event) const;
     /**
-     * Read events
+     * Read external events
      * @param[out] events retrieved events
      * @param[in] max maximum number of events to read
      * @return the number of events read, or -1 on error
      * @note the maximum is trunced to 30 events
      */
-    int readEvents(std::vector<PtpEvent_t> &events, int max = -1) const;
+    int readEvents(std::vector<PtpEvent_t> &events, size_t max = 0) const;
+    /**
+     * Set PHC pin period signal
+     * @param[in] index pin index
+     * @param[in] period cycle time
+     * @param[in] flags using the PTP_PERIOD_xxx flags
+     * @param[in] width time, used when PTP_PERIOD_WIDTH flag is used.
+     * @param[in] phase time, used when PTP_PERIOD_PHASE flag is used.
+     * @return true for success
+     * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
+     * @note old kernel do not support flags
+     */
+    bool setPinPeriod(unsigned int index, const Timestamp_t &period,
+        uint8_t flags = 0, const Timestamp_t &width = 0,
+        const Timestamp_t &phase = 0) const;
+    /**
+     * Enable or disable Linux PTP_CLOCK_PPS event
+     * @param[in] enable flag
+     * @return true for success
+     */
+    bool setPtpPpsEvent(bool enable) const;
+    /**
+     * Sample the PHC and system clock
+     * So caller can compare offset and frequancy
+     * @param[in] count number of sample to measure
+     * @param[out] samples taken by kernel
+     * @return true for success
+     */
+    bool samplePtpSys(size_t count, std::vector<PtpSample_t> &samples) const;
+    /**
+     * Extended sample the PHC and system clock
+     * So caller can compare offset and frequancy
+     * @param[in] count number of sample to measure
+     * @param[out] samples taken by kernel
+     * @return true for success
+     * @note old kernel do not support
+     */
+    bool extSamplePtpSys(size_t count, std::vector<PtpSampleExt_t> &samples) const;
+
+    /**
+     * Precise sample the PHC using PCI cross time stamp
+     * @param[out] sample taken by kernel
+     * @return true for success
+     * @note old kernel do not support
+     */
+    bool preciseSamplePtpSys(PreciseSampleExt_t &sample) const;
 };
 
 #ifndef SWIG

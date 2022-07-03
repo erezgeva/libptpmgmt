@@ -34,6 +34,15 @@ const char ptp_dev[] = "/dev/ptp";
 #define FD_TO_CLOCKID(fd) ((~(clockid_t) (fd) << 3) | CLOCKFD)
 
 //==========================================================================//
+static inline const Timestamp_t toTs(const ptp_clock_time &pct)
+{
+    return { pct.sec, pct.nsec };
+}
+static inline void fromTs(ptp_clock_time &pct, const Timestamp_t &ts)
+{
+    pct.sec = ts.secondsField;
+    pct.nsec = ts.nanosecondsField;
+}
 static inline clockid_t get_clockid_fd(int fd)
 {
     return FD_TO_CLOCKID(fd);
@@ -101,7 +110,6 @@ bool IfInfo::initUsingIndex(int ifIndex)
     m_ifIndex = ifIndex;
     return initPtp(fd, ifr);
 }
-SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
 Timestamp_t BaseClock::getTime() const
 {
     if(m_isInit) {
@@ -118,6 +126,12 @@ bool BaseClock::setTime(const Timestamp_t &ts) const
         return clock_gettime(m_clkId, &ts1) == 0;
     }
     return false;
+}
+SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
+PtpClock::~PtpClock()
+{
+    if(m_fd >= 0)
+        close(m_fd);
 }
 bool PtpClock::isCharFile(const std::string &file)
 {
@@ -140,6 +154,7 @@ bool PtpClock::init(const char *device, bool readonly)
     }
     timespec ts;
     if(clock_gettime(cid, &ts) != 0) {
+        PTPMGMT_PERROR("clock_gettime");
         close(fd);
         return false;
     }
@@ -193,14 +208,9 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
     }
     return false;
 }
-PtpClock::~PtpClock()
-{
-    if(m_fd >= 0)
-        close(m_fd);
-}
 bool PtpClock::fetchCaps(PtpCaps_t &caps) const
 {
-    if(!m_isInit || m_fd < 0)
+    if(!m_isInit)
         return false;
     ptp_clock_caps cps = {0};
     if(ioctl(m_fd, PTP_CLOCK_GETCAPS, &cps) == -1) {
@@ -223,7 +233,7 @@ bool PtpClock::fetchCaps(PtpCaps_t &caps) const
 }
 bool PtpClock::readPin(unsigned int index, PtpPin_t &pin) const
 {
-    if(!m_isInit || m_fd < 0)
+    if(!m_isInit)
         return false;
     ptp_pin_desc desc = {0};
     desc.index = index;
@@ -255,7 +265,7 @@ bool PtpClock::readPin(unsigned int index, PtpPin_t &pin) const
 }
 bool PtpClock::writePin(PtpPin_t &pin) const
 {
-    if(!m_isInit || m_fd < 0)
+    if(!m_isInit)
         return false;
     ptp_pin_desc desc;
     switch(pin.functional) {
@@ -285,11 +295,21 @@ bool PtpClock::writePin(PtpPin_t &pin) const
 }
 bool PtpClock::ExternTSEbable(unsigned int index, uint8_t flags) const
 {
-    if(!m_isInit || m_fd < 0)
+    if(!m_isInit)
         return false;
+    unsigned long rid;
+    #ifdef PTP_EXTTS_REQUEST2
+    rid = PTP_EXTTS_REQUEST2;
+    #else
+    if((PTP_EXTERN_TS_STRICT & flags) > 0) {
+        PTPMGMT_ERROR("Old kernel, PTP_EXTERN_TS_STRICT flag is not supported");
+        return false;
+    }
+    rid = PTP_EXTTS_REQUEST;
+    #endif
     ptp_extts_request req = { .index = index };
     req.flags = flags | PTP_ENABLE_FEATURE;
-    if(ioctl(m_fd, PTP_EXTTS_REQUEST, &req) == -1) {
+    if(ioctl(m_fd, rid, &req) == -1) {
         PTPMGMT_PERROR("PTP_EXTTS_REQUEST");
         return false;
     }
@@ -297,7 +317,7 @@ bool PtpClock::ExternTSEbable(unsigned int index, uint8_t flags) const
 }
 bool PtpClock::ExternTSDisable(unsigned int index) const
 {
-    if(!m_isInit || m_fd < 0)
+    if(!m_isInit)
         return false;
     ptp_extts_request req = { .index = index };
     if(ioctl(m_fd, PTP_EXTTS_REQUEST, &req) == -1) {
@@ -308,22 +328,23 @@ bool PtpClock::ExternTSDisable(unsigned int index) const
 }
 bool PtpClock::readEvent(PtpEvent_t &event) const
 {
-    if(!m_isInit || m_fd < 0)
+    if(!m_isInit)
         return false;
     ptp_extts_event ent;
     if(read(m_fd, &ent, sizeof ent) != sizeof ent)
         return false;
-    event = { ent.index, { ent.t.sec, ent.t.nsec } };
+    event = { ent.index, toTs(ent.t) };
     return true;
 }
-int PtpClock::readEvents(std::vector<PtpEvent_t> &events, int max) const
+const size_t PTP_BUF_TIMESTAMPS = 30; // From Linux kernel ptp_private.h
+int PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
 {
-    if(!m_isInit || m_fd < 0)
+    if(!m_isInit)
         return -1;
-    if(max < 0 || max > 30)
-        max = 30;
-    else if(max == 0)
-        return 0;
+    if(max == 0)
+        max = PTP_BUF_TIMESTAMPS;
+    else
+        max = std::min(max, PTP_BUF_TIMESTAMPS);
     ptp_extts_event ents[max];
     int cnt = read(m_fd, ents, sizeof ents);
     if(cnt < 0)
@@ -333,9 +354,117 @@ int PtpClock::readEvents(std::vector<PtpEvent_t> &events, int max) const
     auto d = div(cnt, sizeof(ptp_extts_event));
     if(d.rem > 0)
         return -1;
-    for(int i = 0; i < d.quot; i++)
-        events.push_back({ents[i].index, { ents[i].t.sec, ents[i].t.nsec }});
+    ptp_extts_event *ent = ents;
+    for(int i = 0; i < d.quot; i++, ent++)
+        events.push_back({ent->index, toTs(ent->t)});
     return d.quot;
+}
+bool PtpClock::setPinPeriod(unsigned int index, const Timestamp_t &period,
+    uint8_t flags, const Timestamp_t &width, const Timestamp_t &phase) const
+{
+    if(!m_isInit)
+        return false;
+    unsigned long rid;
+    struct ptp_perout_request req = {0};
+    #ifndef PTP_PEROUT_REQUEST2
+    if(flags != 0) {
+        PTPMGMT_ERROR("Old kernel, flags are not supported");
+        return false;
+    }
+    rid = PTP_PEROUT_REQUEST;
+    req.flags = 0;
+    #else
+    rid = PTP_PEROUT_REQUEST2;
+    req.flags = flags;
+    if((PTP_PERIOD_WIDTH & flags) > 0)
+        fromTs(req.on, width);
+    if((PTP_PERIOD_PHASE & flags) > 0)
+        fromTs(req.phase, phase);
+    else
+    #endif
+    {
+        timespec ts;
+        if(clock_gettime(m_clkId, &ts)) {
+            PTPMGMT_PERROR("clock_gettime");
+            return false;
+        }
+        req.start.sec = ts.tv_sec + 2;
+        req.start.nsec = 0;
+    }
+    req.index = index;
+    fromTs(req.period, period);
+    if(ioctl(m_fd, rid, &req) == -1) {
+        PTPMGMT_PERROR("PTP_PEROUT_REQUEST");
+        return false;
+    }
+    return true;
+}
+bool PtpClock::setPtpPpsEvent(bool enable) const
+{
+    if(!m_isInit)
+        return false;
+    int req = enable ? 1 : 0;
+    if(ioctl(m_fd, PTP_ENABLE_PPS, &req) == -1) {
+        PTPMGMT_PERROR("PTP_ENABLE_PPS");
+        return false;
+    }
+    return true;
+}
+bool PtpClock::samplePtpSys(size_t count,
+    std::vector<PtpSample_t> &samples) const
+{
+    if(!m_isInit)
+        return false;
+    if(count == 0 || count > PTP_MAX_SAMPLES)
+        return false;
+    ptp_sys_offset req;
+    req.n_samples = count;
+    if(ioctl(m_fd, PTP_SYS_OFFSET, &req) == -1) {
+        PTPMGMT_PERROR("PTP_SYS_OFFSET");
+        return false;
+    }
+    ptp_clock_time *pct = req.ts;
+    for(unsigned i = 0; i < req.n_samples; i++)
+        samples.push_back({
+        toTs(*pct++), // System clock
+        toTs(*pct++)}); // PHP clock
+    return true;
+}
+bool PtpClock::extSamplePtpSys(size_t count,
+    std::vector<PtpSampleExt_t> &samples) const
+{
+    if(!m_isInit)
+        return false;
+    if(count == 0 || count > PTP_MAX_SAMPLES)
+        return false;
+    ptp_sys_offset_extended req;
+    req.n_samples = count;
+    if(ioctl(m_fd, PTP_SYS_OFFSET_EXTENDED, &req) == -1) {
+        PTPMGMT_PERROR("PTP_SYS_OFFSET_EXTENDED");
+        return false;
+    }
+    for(unsigned i = 0; i < req.n_samples; i++) {
+        ptp_clock_time *pct = req.ts[i];
+        samples.push_back({
+            toTs(*pct++), // System clock before
+            toTs(*pct++), // PHP clock
+            toTs(*pct++)}); // System clock after
+    }
+    return true;
+}
+bool PtpClock::preciseSamplePtpSys(PreciseSampleExt_t &sample) const
+{
+    if(!m_isInit)
+        return false;
+    ptp_sys_offset_precise req;
+    if(ioctl(m_fd, PTP_SYS_OFFSET_PRECISE, &req) == -1) {
+        PTPMGMT_PERROR("PTP_SYS_OFFSET_PRECISE");
+        return false;
+    }
+    sample.phcClk = toTs(req.device);
+    sample.sysClk = toTs(req.sys_realtime);
+    sample.monoClk = toTs(req.sys_monoraw);
+    return true;
 }
 
 }; /* namespace ptpmgmt */
