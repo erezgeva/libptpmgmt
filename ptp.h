@@ -120,7 +120,7 @@ struct PtpCaps_t {
     int num_alarm; /**< Number of programmable alarms. */
     int num_external_channels; /**< Number of external time stamp channels. */
     int num_periodic_sig; /**< Number of programmable periodic signals. */
-    bool pps; /**< Clock supports a PPS callback. */
+    bool pps; /**< Clock supports pulse per second event. */
     int num_pins; /**< Number of input/output pins. */
     /** Clock supports precise system-device cross timestamps. */
     bool cross_timestamping;
@@ -379,9 +379,11 @@ class PtpClock : public BaseClock
         uint8_t flags = 0, const Timestamp_t &width = 0,
         const Timestamp_t &phase = 0) const;
     /**
-     * Enable or disable Linux PTP_CLOCK_PPS event
+     * Enable or disable Linux pulse per second event
      * @param[in] enable flag
      * @return true for success
+     * @note Linux will create a pps device /dev/ppsN
+     *       User can use the 'pps-tools' to use the device.
      */
     bool setPtpPpsEvent(bool enable) const;
     /**

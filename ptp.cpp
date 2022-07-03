@@ -433,6 +433,7 @@ bool PtpClock::samplePtpSys(size_t count,
 bool PtpClock::extSamplePtpSys(size_t count,
     std::vector<PtpSampleExt_t> &samples) const
 {
+    #ifdef PTP_SYS_OFFSET_EXTENDED
     if(!m_isInit)
         return false;
     if(count == 0 || count > PTP_MAX_SAMPLES)
@@ -451,6 +452,10 @@ bool PtpClock::extSamplePtpSys(size_t count,
             toTs(*pct++)}); // System clock after
     }
     return true;
+    #else
+    PTPMGMT_ERROR("Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported");
+    return false;
+    #endif
 }
 bool PtpClock::preciseSamplePtpSys(PreciseSampleExt_t &sample) const
 {

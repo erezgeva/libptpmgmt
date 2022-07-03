@@ -19,6 +19,8 @@ namespace ptpmgmt
 {
 %#endif
 %_
+%#undef DOMAIN %@* Old math.h header uses this macro *%@
+%_
 %@**
  * @brief Management TLVs ID
  * @details
