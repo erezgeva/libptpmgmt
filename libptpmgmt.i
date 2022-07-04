@@ -164,6 +164,8 @@ _ptpmMkVec(PortAddress);
 _ptpmMkVec(AcceptableMaster);
 _ptpmMkVec(LinuxptpUnicastMaster);
 _ptpmMkVec(PtpEvent);
+_ptpmMkVec(PtpSample);
+_ptpmMkVec(PtpSampleExt);
 /* Handle signalig vectors inside structures
  * See documenting of SigXXXX classes in mngIds.h and
  *  Doxygen generated documents
