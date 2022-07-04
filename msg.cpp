@@ -1017,6 +1017,10 @@ long double Timestamp_t::toFloat() const
 void Timestamp_t::fromNanoseconds(uint64_t nanosecondsField)
 {
     auto d = div((long long)nanosecondsField, (long long)NSEC_PER_SEC);
+    while(d.rem < 0) {
+        d.quot--;
+        d.rem += NSEC_PER_SEC;
+    };
     secondsField = d.quot;
     nanosecondsField = d.rem;
 }

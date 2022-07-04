@@ -218,29 +218,86 @@ class BaseClock
     /** @cond internal
      * For internal use
      */
-    clockid_t m_clkId;
-    bool m_isInit;
-    BaseClock(clockid_t clkId, bool init) : m_clkId(clkId), m_isInit(init) {}
+    clockid_t m_clkId; /**< clock ID for clock functions */
+    bool m_isInit; /**< clcok ID is initailize and ready for use */
+    /**
+     * Constructor for known clock IDs
+     * No need for initailize
+     * @param[in] clkId clock ID
+     */
+    BaseClock(clockid_t clkId) : m_clkId(clkId), m_isInit(true) {}
+    /**
+     * Constructor for dynamicly created clock IDs
+     * Clocks access with ID need initailizing
+     */
     BaseClock() : m_clkId(CLOCK_INVALID), m_isInit(false) {}
+    /**
+     * Frequancy add, 0 for PHC clocks.
+     * @param[in] tick reported by Linux kernel
+     * @return 0 for PHC clocks
+     */
+    virtual long double freqAddTicks(long long tick) const { return 0; }
+    /**
+     * Frequancy set adjust for PHC clocks.
+     * @param[in, out] freq frequancy
+     * @param[out] tmx time extended structure to fill
+     */
+    virtual void freqModeTicks(long double &freq, timex &tmx) const {}
     /**< @endcond */
   public:
     /**
-     * Get clock time in nanoseconds
+     * Empty virtual destructor
+     * Enable using virtual functions
+     */
+    virtual ~BaseClock() {}
+    /**
+     * Get clock time
      * @return clock time or zero on error
      */
     Timestamp_t getTime() const;
     /**
-     * Set clock time in nanoseconds
+     * Set clock time
      * @param[out] ts new clock time
      * @return true for success
      */
     bool setTime(const Timestamp_t &ts) const;
+    /**
+     * Offset clock time
+     * @param[in] offset in nanoseconeds
+     * @return true for success
+     */
+    bool offsetClock(int64_t offset) const;
+    /**
+     * Get clock adjustment frequancy
+     * @param[out] freq
+     * @return true for success
+     */
+    bool getFreq(long double &freq) const;
+    /**
+     * Set clock adjustment frequancy
+     * @param[in] freq
+     * @return true for success
+     */
+    bool setFreq(long double freq) const;
 };
 /**
  * System clock
  */
 class SysClock : public BaseClock
 {
+  protected:
+    /**
+     * Frequancy add, for system clock based on system ticks.
+     * @param[in] tick reported by Linux kernel
+     * @return frequancy add
+     */
+    long double freqAddTicks(long long tick) const;
+    /**
+     * Frequancy set adjust for PHC clocks.
+     * @param[in, out] freq frequancy
+     * @param[out] tmx time extended structure to fill
+     */
+    void freqModeTicks(long double &freq, timex &tmx) const;
   public:
     SysClock();
 };
@@ -261,6 +318,7 @@ class PtpClock : public BaseClock
     int m_ptpIndex;
     std::string m_device;
     bool init(const char *device, bool readonly);
+    bool setTimeFromTime(clockid_t from, clockid_t to) const;
 
   public:
     PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP) {}
@@ -312,6 +370,16 @@ class PtpClock : public BaseClock
      * @return device name or empty string if not initialized
      */
     const char *device_c() const { return m_device.c_str(); }
+    /**
+     * Set PHC time using the system clock
+     * @return true for success
+     */
+    bool setTimeFromSys() const;
+    /**
+     * Set system clock using the PHC as source time
+     * @return true for success
+     */
+    bool setTimeToSys() const;
     /**
      * Get PTP clock capabilities
      * @param[out] caps capabilities

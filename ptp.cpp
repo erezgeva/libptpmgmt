@@ -9,6 +9,7 @@
  *
  */
 
+#include <cmath>
 #include <cstdlib>
 #include <fcntl.h>
 #include <unistd.h>
@@ -19,13 +20,22 @@
 #include "err.h"
 #include "ptp.h"
 #include "comp.h"
+#include "timeCvrt.h"
 
 namespace ptpmgmt
 {
 
+// These are system/hardware based parameters
+static bool fetchClockTicks = false;
+static long clockTicks;
+static long userTicks;
+
 static inline clockid_t get_clockid_fd(int fd) PURE;
 
 const char ptp_dev[] = "/dev/ptp";
+// parts per billion (ppb) = 10^9
+// to scale parts per billion (ppm) = 10^6 * 2^16
+const long double PPB_TO_SCALE_PPM = 65.536; // (2^16 / 1000)
 
 // man netdevice
 // From linux/posix-timers.h
@@ -46,6 +56,17 @@ static inline void fromTs(ptp_clock_time &pct, const Timestamp_t &ts)
 static inline clockid_t get_clockid_fd(int fd)
 {
     return FD_TO_CLOCKID(fd);
+}
+static void calcTicks()
+{
+    if(!fetchClockTicks) {
+        clockTicks = sysconf(_SC_CLK_TCK);
+        if(clockTicks > 0)
+            userTicks = (1000000 + clockTicks / 2) / clockTicks;
+        else
+            userTicks = 0;
+        fetchClockTicks = true;
+    }
 }
 bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
@@ -123,11 +144,72 @@ bool BaseClock::setTime(const Timestamp_t &ts) const
 {
     if(m_isInit) {
         timespec ts1 = ts;
-        return clock_gettime(m_clkId, &ts1) == 0;
+        return clock_settime(m_clkId, &ts1) == 0;
     }
     return false;
 }
-SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
+bool BaseClock::offsetClock(int64_t offset) const
+{
+    if(m_isInit) {
+        timex tmx = {0};
+        // ADJ_NANO: Use nanoseconds instead of microseconds!
+        tmx.modes = ADJ_SETOFFSET | ADJ_NANO;
+        auto d = div((long long)offset, (long long)NSEC_PER_SEC);
+        while(d.rem < 0) {
+            d.quot--;
+            d.rem += NSEC_PER_SEC;
+        };
+        tmx.time.tv_sec = d.quot;
+        tmx.time.tv_usec = d.rem;
+        if(clock_adjtime(m_clkId, &tmx) != -1)
+            return true;
+        PTPMGMT_PERROR("ADJ_SETOFFSET");
+    }
+    return false;
+}
+bool BaseClock::getFreq(long double &freq) const
+{
+    if(m_isInit) {
+        timex tmx = {0};
+        if(clock_adjtime(m_clkId, &tmx) != -1) {
+            freq = (long double)tmx.freq / PPB_TO_SCALE_PPM +
+                freqAddTicks(tmx.tick);
+            return true;
+        }
+        PTPMGMT_PERROR("clock_adjtime");
+    }
+    return false;
+}
+bool BaseClock::setFreq(long double freq) const
+{
+    if(m_isInit) {
+        timex tmx = {0};
+        tmx.modes = ADJ_FREQUENCY;
+        freqModeTicks(freq, tmx);
+        tmx.freq = (long)(freq * PPB_TO_SCALE_PPM);
+        if(clock_adjtime(m_clkId, &tmx) != -1)
+            return true;
+        PTPMGMT_PERROR("ADJ_FREQUENCY");
+    }
+    return false;
+}
+SysClock::SysClock() : BaseClock(CLOCK_REALTIME) {}
+long double SysClock::freqAddTicks(long long tick) const
+{
+    calcTicks();
+    if(tick == 0 || userTicks == 0)
+        return 0;
+    return 1e3 * clockTicks * (tick - userTicks);
+}
+void SysClock::freqModeTicks(long double &freq, timex &tmx) const
+{
+    calcTicks();
+    if(userTicks != 0) {
+        tmx.modes |= ADJ_TICK;
+        tmx.tick = round(freq / 1e3 / clockTicks) + userTicks;
+        freq -= 1e3 * clockTicks * (tmx.tick - userTicks);
+    }
+}
 PtpClock::~PtpClock()
 {
     if(m_fd >= 0)
@@ -207,6 +289,21 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
         return true;
     }
     return false;
+}
+bool PtpClock::setTimeFromTime(clockid_t from, clockid_t to) const
+{
+    timespec ts;
+    if(m_isInit && clock_gettime(from, &ts) == 0)
+        return clock_settime(to, &ts) == 0;
+    return false;
+}
+bool PtpClock::setTimeFromSys() const
+{
+    return setTimeFromTime(CLOCK_REALTIME, m_clkId);
+}
+bool PtpClock::setTimeToSys() const
+{
+    return setTimeFromTime(m_clkId, CLOCK_REALTIME);
 }
 bool PtpClock::fetchCaps(PtpCaps_t &caps) const
 {
@@ -346,13 +443,13 @@ int PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
     else
         max = std::min(max, PTP_BUF_TIMESTAMPS);
     ptp_extts_event ents[max];
-    int cnt = read(m_fd, ents, sizeof ents);
+    ssize_t cnt = read(m_fd, ents, sizeof ents);
     if(cnt < 0)
         return -1;
     else if(cnt == 0)
         return 0;
     auto d = div(cnt, sizeof(ptp_extts_event));
-    if(d.rem > 0)
+    if(d.rem != 0)
         return -1;
     ptp_extts_event *ent = ents;
     for(int i = 0; i < d.quot; i++, ent++)
