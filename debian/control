@@ -123,3 +123,12 @@ Recommends: linuxptp
 Description: pmc tool.
  new rewrite of LinuxPTP pmc tool using the PTP management library.
  This tool is faster than the original linuxptp tool.
+
+Package: phc-ctl-ptpmgmt
+Architecture: all
+Section: utils
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends}, python3-ptpmgmt (= ${binary:Version})
+Recommends: linuxptp
+Description: phc-ctl tool.
+ new rewrite of LinuxPTP phc_ctl tool using the PTP management library.

@@ -116,6 +116,13 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
  new rewrite of linuxptp pmc tool using the PTP managemen library.
  This tool is faster than the original linuxptp tool.
 
+%package -n     phc-ctl-%{bname}
+Summary:        phc_ctl tool
+License:        GPLv3+
+Requires:       python3-%{bname} = %{version}-%{release}
+%description -n phc-ctl-%{bname}
+ new rewrite of linuxptp phc_ctl tool using the PTP managemen library.
+
 %prep
 %setup -q
 
@@ -173,6 +180,10 @@ make distclean
 %files -n pmc-%{bname}
 %{_sbindir}/pmc-%{bname}
 %{_mandir}/man8/pmc-%{bname}.8*
+
+%files -n phc-ctl-%{bname}
+%{_sbindir}/phc_ctl-%{bname}
+%{_mandir}/man8/phc_ctl-%{bname}.8*
 
 ###############################################################################
 # The changelog is updated with the 'update_changelog.pl' script

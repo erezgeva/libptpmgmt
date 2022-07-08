@@ -156,8 +156,6 @@ dpkg --get-selections |\
 sed -n '/-dbgsym/d ; /ptpmgmt.*\<install$/ { s/\s\+install// ; p }' |\
 xargs sudo dpkg --remove --force-all
 
-sudo apt install pmc-ptpmgmt libptpmgmt libptpmgmt-dev libptpmgmt-perl
-
 sudo apt --fix-broken install
 
 apt-mark showmanual | grep ptpmgmt | xargs sudo apt-mark auto

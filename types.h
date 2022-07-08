@@ -401,12 +401,12 @@ struct Timestamp_t {
      * Convert from seconds with fractions
      * @param[in] seconds with fractions
      */
-    Timestamp_t(long double seconds) {formFloat(seconds);}
+    Timestamp_t(long double seconds) {fromFloat(seconds);}
     /**
      * Convert from seconds with fractions
      * @param[in] seconds with fractions
      */
-    void formFloat(long double seconds);
+    void fromFloat(long double seconds);
     #ifndef SWIG
     /**
      * Convert to seconds with fractions

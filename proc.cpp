@@ -507,7 +507,7 @@ template <typename T> bool MsgProc::vector_f(uint32_t count,
 {
     vector_b(vec) {
         for(uint32_t i = 0; i < count; i++) {
-            T rec;
+            T rec = {};
             if(proc(rec))
                 return true;
             vec.push_back(rec);
@@ -524,7 +524,7 @@ template <typename T> bool MsgProc::vector_o(std::vector<T> &vec)
 {
     vector_b(vec) {
         while(m_left >= (ssize_t)T::size()) {
-            T rec;
+            T rec = {};
             if(proc(rec))
                 return true;
             vec.push_back(rec);

@@ -22,9 +22,8 @@
 #define DO_PRAGMA(x) _Pragma (#x)
 
 #ifdef __GNUC__
-/* See:
- * GNU GCC
- * gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Type-Attributes.html
+/* GNU GCC
+ * gcc.gnu.org/onlinedocs/gcc-11.3.0/gcc/Type-Attributes.html
  * Keil GNU mode
  * www.keil.com/support/man/docs/armcc/armcc_chr1359125007083.htm
  * www.keil.com/support/man/docs/armclang_ref/armclang_ref_chr1393328521340.htm
@@ -41,9 +40,8 @@
 #endif
 #define HAVE_FUNC_COMPARE
 #elif defined _MSC_VER
-/* See:
+/* For MSVC:
  * http://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros
- * For MSVC:
  * http://docs.microsoft.com/en-us/cpp/preprocessor/pack
  */
 #define PACK(__definition__) __pragma(pack(push, 1)) \

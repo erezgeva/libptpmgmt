@@ -1,0 +1,266 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright 2022 Erez Geva
+#
+# @brief Impleament linuxptp phc_ctl tool using the libptpmgmt library
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright 2022 Erez Geva
+#
+###############################################################################
+
+import argparse
+import os
+import ptpmgmt
+import time
+import sys
+import getopt
+
+def do_caps(ptp, useSys):
+    if useSys:
+        return ['CLOCK_REALTIME is not a PHC device.', True]
+    caps = ptpmgmt.PtpCaps_t()
+    if not ptp.fetchCaps(caps):
+        return ['get capabilities failed: %s', True]
+    return [f'''
+capabilities:
+  {caps.max_ppb} maximum frequency adjustment (ppb)
+  {caps.num_alarm} programable alarms
+  {caps.num_external_channels} external time stamp channels
+  {caps.num_periodic_sig} programmable periodic signals
+  {caps.num_pins} configurable input/output pins
+  {'has' if caps.pps else "doesn't have"} pulse per second support
+  {'has' if caps.cross_timestamping else "doesn't have"} cross timestamping support
+  {'has' if caps.adjust_phase else "doesn't have"} adjust phase support
+    ''']
+def do_get(ptp):
+    ts = ptp.getTime()
+    val = ts.toFloat()
+    if val == 0:
+        return ['get: failed to get clock time', True]
+    return [f'clock time is {ts.string()} or {time.ctime(val)}']
+def getDistance(before, after):
+    return after.toNanoseconds() - before.toNanoseconds()
+def getDiff(before, after, phcClk):
+    avg = (after.toNanoseconds() + before.toNanoseconds()) / 2
+    return int(avg - phcClk.toNanoseconds())
+def do_cmp(ptp, useSys):
+    if useSys:
+        return ['cmp: no point comparing CLOCK_REALTIME to itself', True]
+    # Using precise sample ioctl
+    sample = ptpmgmt.PtpSamplePrecise_t()
+    if ptp.preciseSamplePtpSys(sample):
+        diff = sample.sysClk.toFloat() - sample.phcClk.toFloat()
+        return [f'offset from CLOCK_REALTIME is {diff}ns']
+    # Using extended sample ioctl
+    samples = ptpmgmt.PtpSampleExt_v()
+    if ptp.extSamplePtpSys(9, samples):
+        sample = samples[0]
+        distance = getDistance(sample.before, sample.after)
+        diff = getDiff(sample.before, sample.after, sample.phcClk)
+        j = 1
+        while j < len(samples):
+            sample = samples[j]
+            ndistance = getDistance(sample.before, sample.after)
+            if ndistance < distance:
+                diff = getDiff(sample.before, sample.after, sample.phcClk)
+                distance = ndistance
+            j+=1
+        return [f'offset from CLOCK_REALTIME is {diff}ns']
+    # Using basic sample ioctl
+    samples = ptpmgmt.PtpSample_v()
+    if ptp.samplePtpSys(10, samples):
+        sample = samples[0]
+        asample = samples[1]
+        distance = getDistance(sample.sysClk, asample.sysClk)
+        diff = getDiff(sample.sysClk, asample.sysClk, sample.phcClk)
+        j = 1
+        while j < len(samples) - 1:
+            sample = samples[j]
+            asample = samples[j + 1]
+            ndistance = getDistance(sample.sysClk, asample.sysClk)
+            if ndistance < distance:
+                diff = getDiff(sample.sysClk, asample.sysClk, sample.phcClk)
+                distance = ndistance
+            j+=1
+        return [f'offset from CLOCK_REALTIME is {diff}ns']
+    # PTP_SYS_OFFSET was add to Kernel v3.7 in 2012, for all ptp devices
+    # No point trying with get time ourself.
+    return ['cmp: failed to compare clocks', True]
+def do_set(ptp, useSys, seconds):
+    if seconds is None:
+        if useSys:
+            return ['set: no point set CLOCK_REALTIME to itself', True]
+        if not ptp.setTimeFromSys():
+            return ['set: fail to set clock from CLOCK_REALTIME', True]
+        ts = ptp.getTime()
+        val = ts.toFloat()
+        if val == 0:
+            return ['set: failed to set clock time', True]
+        return [f'set clock time to {ts.string()} or {time.ctime(val)}']
+    if seconds < 0:
+        return ['set: new time must be positive', True]
+    ts = ptpmgmt.Timestamp_t()
+    ts.fromFloat(seconds)
+    if ptp.setTime(ts):
+        val = ts.toFloat()
+        return [f'set clock time to {ts.string()} or {time.ctime(val)}']
+    return ['set: failed to set clock time', True]
+def do_adj(ptp, seconds):
+    if seconds is None:
+        return ['adj: missing required time argument', True]
+    if ptp.offsetClock(seconds):
+        return [f'adjusted clock by {seconds:.6f} seconds']
+    return ['adj: fail adjust clock', True]
+def do_wait(ptp, seconds):
+    if seconds is None:
+        return ['wait: requires sleep duration argument', True]
+    time.sleep(seconds)
+    return [f'process slept for {seconds:.6f} seconds']
+def do_freq(ptp, freq):
+    if freq is None:
+        return [f'clock frequency offset is {ptp.getFreq():.6f}ppb', True]
+    if ptp.setFreq(freq):
+        return [f'adjusted clock frequency offset to {freq:.6f}ppb']
+    return ['freq: fail set frequency', True]
+
+def usage(name, file=sys.stdout):
+    print(f'''
+usage: {name} [options] <device> -- [command]
+
+ device         ethernet or ptp clock device
+ options
+ -v             prints the software version and exits
+ -h             prints this message and exits
+
+ commands
+ specify commands with arguments. Can specify multiple
+ commands to be executed in order. Seconds are read as
+ double precision floating point values.
+  set  [seconds]  set PHC time (defaults to time on CLOCK_REALTIME)
+  get             get PHC time
+  adj  <seconds>  adjust PHC time by offset
+  freq [ppb]      adjust PHC frequency (default returns current offset)
+  cmp             compare PHC offset to CLOCK_REALTIME
+  caps            display device capabilities (default if no command given)
+  wait <seconds>  pause between commands
+    ''', file=file)
+
+def main():
+    name = os.path.basename(sys.argv[0])
+    if len(sys.argv) < 2:
+        usage(name, sys.stderr)
+        sys.exit(-1)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'vh')
+    except getopt.GetoptError as err:
+        print(err, file=sys.stderr)
+        usage(name, sys.stderr)
+        sys.exit(-1)
+    for o, a in opts:
+        if o == '-h':
+            usage(name)
+            return
+        elif o == '-v':
+            print(ptpmgmt.getVersion())
+            return
+        else:
+            assert False, 'unhandled option'
+    if len(args) < 1:
+        return
+    device =  args[0]
+    if device == 'CLOCK_REALTIME':
+        ptp = ptpmgmt.SysClock()
+        useSys = True
+    else:
+        path = os.path.realpath(device)
+        if ptpmgmt.PtpClock.isCharFile(path):
+            ptp = ptpmgmt.PtpClock()
+            if not ptp.initUsingDevice(path):
+                print("fail init '%s' device" % path, file=sys.stderr)
+                sys.exit(-1)
+        else:
+            ifDev = ptpmgmt.IfInfo()
+            if not ifDev.initUsingName(device):
+                print('Device is not a file nor an ethernet interface: ' + device, file=sys.stderr)
+                sys.exit(-1)
+            idx = ifDev.ptpIndex()
+            if idx == ptpmgmt.NO_SUCH_PTP:
+                print("Ethernet interface '%s' does not have an PHC" % device, file=sys.stderr)
+                sys.exit(-1)
+            ptp = ptpmgmt.PtpClock()
+            if not ptp.initUsingIndex(idx):
+                print("fail init '%s' device" % path, file=sys.stderr)
+                sys.exit(-1)
+        useSys = False
+    if len(args) < 2:
+        args.append('caps')
+
+    i = 1
+    while i < len(args):
+        do = args[i]
+        call = None
+        opt_arg = True # Function can have argument
+        must_arg = False # Function must have argument
+        have_error = False # We have an error
+        do_usage = False # Print usage after error
+        if do == 'caps':
+            call = lambda ptp, useSys : do_caps(ptp, useSys)
+            opt_arg = False
+        elif do == 'get':
+            call = lambda ptp, useSys : do_get(ptp)
+            opt_arg = False
+        elif do == 'cmp':
+            call = lambda ptp, useSys : do_cmp(ptp, useSys)
+            opt_arg = False
+        elif do == 'set':
+            call = lambda ptp, useSys, seconds : do_set(ptp, useSys, seconds)
+        elif do == 'adj':
+            call = lambda ptp, useSys, seconds : do_adj(ptp, seconds)
+            must_arg = True
+        elif do == 'wait':
+            call = lambda ptp, useSys, seconds : do_wait(ptp, seconds)
+            must_arg = True
+        elif do == 'freq':
+            call = lambda ptp, useSys, seconds : do_freq(ptp, seconds)
+        else:
+            call = None
+        if call is None:
+            have_error = True
+            msg = 'unknown command ' + do + '.'
+        elif opt_arg:
+            seconds = None
+            if i == len(args) - 1:
+                do_usage = must_arg
+            else:
+                try:
+                    seconds = float(args[i + 1])
+                    i+=1
+                except ValueError:
+                    if must_arg: # Error only if value is must!
+                        msg = do + ": '" + args[i + 1] + "' is not a valid double"
+                        have_error = True
+                        do_usage = True
+            if not have_error:
+                ret = call(ptp, useSys, seconds)
+                msg = ret[0]
+                if len(ret) > 1:
+                    have_error = True
+        else:
+            ret = call(ptp, useSys)
+            msg = ret[0]
+            if len(ret) > 1:
+                have_error = True
+
+        out = f'{name}[{time.monotonic():.3f}]: {msg}'
+        if have_error:
+            print(out, file=sys.stderr)
+            if do_usage:
+                usage(name, sys.stderr)
+            sys.exit(-2)
+        else:
+            print(out)
+        i+=1
+
+if __name__ == '__main__':
+    main()

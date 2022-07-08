@@ -372,7 +372,7 @@ HEADERS_GEN_COMP:=mngIds.h callDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS)) $(HEADERS_GEN_COMP)
 HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h msgProc.h ids.h,$(HEADERS))\
-  verDef.h $(HEADERS_GEN_COMP)
+  verDef.h
 verDef.h: GEN_FLAGS+=-Dver_maj=$(ver_maj) -Dver_min=$(ver_min) -DVER=$(LIB_VER)\
   -DVER_VAL=$(VER_VAL)
 # MAP for  %.cc to %.h:
@@ -516,7 +516,7 @@ $(LUA_LIB)_LDLIBS:=-Wl,-soname,$(LUA_FLIB)$(SONAME)
 endif
 LUA_LIB:=lua/$(LUA_LIB_NAME)
 lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(call LLC,$($(CPPFLAGS_LUA)))
+	$Q$(call LLC,$(CPPFLAGS_LUA))
 	$(call D_INC,LUA_VER)
 	$(SWIG_DEP)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
@@ -743,8 +743,8 @@ deb_clean:
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
 SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  php/*.sh) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST)) $(HEADERS_SRCS) $(SRCS)\
-  $(wildcard swig/*/*) $(wildcard */*.i)
+  php/*.sh swig/*/* */*.i phc_ctl*) LICENSE $(HEADERS_SRCS) $(SRCS)\
+  $(wordlist 1,2,$(MAKEFILE_LIST))
 SRC_NAME:=libptpmgmt-$(LIB_VER)
 
 ####### RPM build #######
@@ -804,7 +804,9 @@ endif
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
 	$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
-	$(DINST) $(MANDIR)
+	$(BINST) -D phc_ctl $(DESTDIR)$(SBINDIR)/phc_ctl-ptpmgmt
+	$(BINST) -D phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8
+	gzip $(MANDIR)/phc_ctl-ptpmgmt.8
 	$(LN) pmc.8.gz $(MANDIR)/pmc-ptpmgmt.8.gz
 	$(RM) doc/html/*.md5
 	$(DINST) $(DOCDIR)

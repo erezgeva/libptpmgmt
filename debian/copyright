@@ -22,8 +22,15 @@ Files: doc/html/jquery.js
 Copyright: OpenJS Foundation
 License: MIT
 
+Files: phc_ctl.8
+Copyright: 2014 Jacob Keller, linuxptp
+License: GPL-2+
+
 License: LGPL-3+
     See: /usr/share/common-licenses/LGPL-3
+
+License: GPL-2+
+    See: /usr/share/common-licenses/GPL-2
 
 License: GPL-3+
     See: /usr/share/common-licenses/GPL-3

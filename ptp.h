@@ -204,10 +204,18 @@ struct PtpSampleExt_t {
 /**
  * Precise sample of system clock and PHC
  */
-struct PreciseSampleExt_t {
+struct PtpSamplePrecise_t {
     Timestamp_t phcClk; /**< PHC clock sample */
     Timestamp_t sysClk; /**< System clock sample */
     Timestamp_t monoClk; /**< System clock monotonic raw sample */
+};
+/**
+ * Pin period definition
+ */
+struct PtpPinPeriodDef_t {
+    Timestamp_t period; /**< period cycle time */
+    Timestamp_t width; /**< Used width time, used with PTP_PERIOD_WIDTH */
+    Timestamp_t phase; /**< Used phase time, used with PTP_PERIOD_PHASE */
 };
 /**
  * Base class for clock classes
@@ -263,19 +271,24 @@ class BaseClock
     bool setTime(const Timestamp_t &ts) const;
     /**
      * Offset clock time
+     * @param[in] offset in seconds with fractions
+     * @return true for success
+     */
+    bool offsetClock(long double offset) const;
+    /**
+     * Offset clock time
      * @param[in] offset in nanoseconeds
      * @return true for success
      */
-    bool offsetClock(int64_t offset) const;
+    bool offsetClockNsec(int64_t offset) const;
     /**
      * Get clock adjustment frequancy
-     * @param[out] freq
-     * @return true for success
+     * @return freq frequancy in ppb
      */
-    bool getFreq(long double &freq) const;
+    long double getFreq() const;
     /**
      * Set clock adjustment frequancy
-     * @param[in] freq
+     * @param[in] freq frequancy in ppb
      * @return true for success
      */
     bool setFreq(long double freq) const;
@@ -318,7 +331,6 @@ class PtpClock : public BaseClock
     int m_ptpIndex;
     std::string m_device;
     bool init(const char *device, bool readonly);
-    bool setTimeFromTime(clockid_t from, clockid_t to) const;
 
   public:
     PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP) {}
@@ -435,17 +447,14 @@ class PtpClock : public BaseClock
     /**
      * Set PHC pin period signal
      * @param[in] index pin index
-     * @param[in] period cycle time
+     * @param[in] times provides the times used for the period
      * @param[in] flags using the PTP_PERIOD_xxx flags
-     * @param[in] width time, used when PTP_PERIOD_WIDTH flag is used.
-     * @param[in] phase time, used when PTP_PERIOD_PHASE flag is used.
      * @return true for success
      * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
      * @note old kernel do not support flags
      */
-    bool setPinPeriod(unsigned int index, const Timestamp_t &period,
-        uint8_t flags = 0, const Timestamp_t &width = 0,
-        const Timestamp_t &phase = 0) const;
+    bool setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
+        uint8_t flags = 0) const;
     /**
      * Enable or disable Linux pulse per second event
      * @param[in] enable flag
@@ -478,7 +487,7 @@ class PtpClock : public BaseClock
      * @return true for success
      * @note old kernel do not support
      */
-    bool preciseSamplePtpSys(PreciseSampleExt_t &sample) const;
+    bool preciseSamplePtpSys(PtpSamplePrecise_t &sample) const;
 };
 
 #ifndef SWIG

@@ -1004,7 +1004,7 @@ void Timestamp_t::toTimeval(timeval &tv) const
     tv.tv_sec = secondsField;
     tv.tv_usec = nanosecondsField / NSEC_PER_USEC;
 }
-void Timestamp_t::formFloat(long double seconds)
+void Timestamp_t::fromFloat(long double seconds)
 {
     auto ret = _floor(seconds);
     secondsField = ret.intg;

@@ -11,8 +11,8 @@ pkgver=0.8
 pkgrel=1
 pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
   libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt
-  python3-ptpmgmt pmc-ptpmgmt)
-# Source code can be build on most architectures
+  python3-ptpmgmt pmc-ptpmgmt phc-ctl-ptpmgmt)
+# Source code can be build on any architecture
 # But as Arch Linux does not support the 'all' keyword
 arch=(x86_64)
 url=https://github.com/erezgeva/libptpmgmt
@@ -106,8 +106,16 @@ package_pmc-ptpmgmt() {
   license=(GPL3)
   depends=("libptpmgmt=$verdep")
   pkgdesc='pmc tool. new rewrite of linuxptp pmc tool using the libptpmgmt library.'
-  mkdir -p $pkgdir/usr/share/man
-  mv $srcdir/install/usr/bin $pkgdir/usr
-  mv $srcdir/install/usr/share/man/man8 $pkgdir/usr/share/man
+  mkdir -p $pkgdir/usr/local/man/man8 $pkgdir/usr/bin
+  mv $srcdir/install/usr/bin/pmc* $pkgdir/usr/bin
+  mv $srcdir/install/usr/share/man/man8/pmc* $pkgdir/usr/local/man/man8
+}
+package_phc-ctl-ptpmgmt() {
+  license=(GPL3)
+  depends=("python3-ptpmgmt=$verdep")
+  pkgdesc='phc_ctl tool. new rewrite of linuxptp phc_ctl tool using the libptpmgmt library.'
+  mkdir -p $pkgdir/usr/local/man/man8 $pkgdir/usr/bin
+  mv $srcdir/install/usr/bin/phc_ctl* $pkgdir/usr/bin
+  mv $srcdir/install/usr/share/man/man8/phc_ctl* $pkgdir/usr/local/man/man8
 }
 changelog=changelog

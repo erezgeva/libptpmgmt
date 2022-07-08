@@ -30,6 +30,7 @@ static bool fetchClockTicks = false;
 static long clockTicks;
 static long userTicks;
 
+static inline const Timestamp_t toTs(const ptp_clock_time &pct) PURE;
 static inline clockid_t get_clockid_fd(int fd) PURE;
 
 const char ptp_dev[] = "/dev/ptp";
@@ -67,6 +68,24 @@ static void calcTicks()
             userTicks = 0;
         fetchClockTicks = true;
     }
+}
+static bool setOff(clockid_t clkId, timeval time)
+{
+    timex tmx = {0};
+    // ADJ_NANO: Use nanoseconds instead of microseconds!
+    tmx.modes = ADJ_SETOFFSET | ADJ_NANO;
+    tmx.time = time;
+    if(clock_adjtime(clkId, &tmx) != -1)
+        return true;
+    PTPMGMT_PERROR("ADJ_SETOFFSET");
+    return false;
+}
+static bool setTimeFromTime(bool isInit, clockid_t from, clockid_t to)
+{
+    timespec ts;
+    if(isInit && clock_gettime(from, &ts) == 0)
+        return clock_settime(to, &ts) == 0;
+    return false;
 }
 bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
@@ -148,37 +167,37 @@ bool BaseClock::setTime(const Timestamp_t &ts) const
     }
     return false;
 }
-bool BaseClock::offsetClock(int64_t offset) const
+bool BaseClock::offsetClock(long double offset) const
 {
     if(m_isInit) {
-        timex tmx = {0};
-        // ADJ_NANO: Use nanoseconds instead of microseconds!
-        tmx.modes = ADJ_SETOFFSET | ADJ_NANO;
+        time_t secs = floorl(offset);
+        suseconds_t nsecs = (offset - secs) * NSEC_PER_SEC;
+        return setOff(m_clkId, {secs, nsecs});
+    }
+    return false;
+}
+bool BaseClock::offsetClockNsec(int64_t offset) const
+{
+    if(m_isInit) {
         auto d = div((long long)offset, (long long)NSEC_PER_SEC);
         while(d.rem < 0) {
             d.quot--;
             d.rem += NSEC_PER_SEC;
         };
-        tmx.time.tv_sec = d.quot;
-        tmx.time.tv_usec = d.rem;
-        if(clock_adjtime(m_clkId, &tmx) != -1)
-            return true;
-        PTPMGMT_PERROR("ADJ_SETOFFSET");
+        return setOff(m_clkId, {d.quot, d.rem});
     }
     return false;
 }
-bool BaseClock::getFreq(long double &freq) const
+long double BaseClock::getFreq() const
 {
     if(m_isInit) {
         timex tmx = {0};
-        if(clock_adjtime(m_clkId, &tmx) != -1) {
-            freq = (long double)tmx.freq / PPB_TO_SCALE_PPM +
+        if(clock_adjtime(m_clkId, &tmx) != -1)
+            return (long double)tmx.freq / PPB_TO_SCALE_PPM +
                 freqAddTicks(tmx.tick);
-            return true;
-        }
         PTPMGMT_PERROR("clock_adjtime");
     }
-    return false;
+    return 0;
 }
 bool BaseClock::setFreq(long double freq) const
 {
@@ -290,20 +309,13 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
     }
     return false;
 }
-bool PtpClock::setTimeFromTime(clockid_t from, clockid_t to) const
-{
-    timespec ts;
-    if(m_isInit && clock_gettime(from, &ts) == 0)
-        return clock_settime(to, &ts) == 0;
-    return false;
-}
 bool PtpClock::setTimeFromSys() const
 {
-    return setTimeFromTime(CLOCK_REALTIME, m_clkId);
+    return setTimeFromTime(m_isInit, CLOCK_REALTIME, m_clkId);
 }
 bool PtpClock::setTimeToSys() const
 {
-    return setTimeFromTime(m_clkId, CLOCK_REALTIME);
+    return setTimeFromTime(m_isInit, m_clkId, CLOCK_REALTIME);
 }
 bool PtpClock::fetchCaps(PtpCaps_t &caps) const
 {
@@ -456,8 +468,8 @@ int PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
         events.push_back({ent->index, toTs(ent->t)});
     return d.quot;
 }
-bool PtpClock::setPinPeriod(unsigned int index, const Timestamp_t &period,
-    uint8_t flags, const Timestamp_t &width, const Timestamp_t &phase) const
+bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
+    uint8_t flags) const
 {
     if(!m_isInit)
         return false;
@@ -474,9 +486,9 @@ bool PtpClock::setPinPeriod(unsigned int index, const Timestamp_t &period,
     rid = PTP_PEROUT_REQUEST2;
     req.flags = flags;
     if((PTP_PERIOD_WIDTH & flags) > 0)
-        fromTs(req.on, width);
+        fromTs(req.on, times.width);
     if((PTP_PERIOD_PHASE & flags) > 0)
-        fromTs(req.phase, phase);
+        fromTs(req.phase, times.phase);
     else
     #endif
     {
@@ -489,7 +501,7 @@ bool PtpClock::setPinPeriod(unsigned int index, const Timestamp_t &period,
         req.start.nsec = 0;
     }
     req.index = index;
-    fromTs(req.period, period);
+    fromTs(req.period, times.period);
     if(ioctl(m_fd, rid, &req) == -1) {
         PTPMGMT_PERROR("PTP_PEROUT_REQUEST");
         return false;
@@ -514,7 +526,7 @@ bool PtpClock::samplePtpSys(size_t count,
         return false;
     if(count == 0 || count > PTP_MAX_SAMPLES)
         return false;
-    ptp_sys_offset req;
+    ptp_sys_offset req = {0};
     req.n_samples = count;
     if(ioctl(m_fd, PTP_SYS_OFFSET, &req) == -1) {
         PTPMGMT_PERROR("PTP_SYS_OFFSET");
@@ -535,12 +547,10 @@ bool PtpClock::extSamplePtpSys(size_t count,
         return false;
     if(count == 0 || count > PTP_MAX_SAMPLES)
         return false;
-    ptp_sys_offset_extended req;
+    ptp_sys_offset_extended req = {0};
     req.n_samples = count;
-    if(ioctl(m_fd, PTP_SYS_OFFSET_EXTENDED, &req) == -1) {
-        PTPMGMT_PERROR("PTP_SYS_OFFSET_EXTENDED");
+    if(ioctl(m_fd, PTP_SYS_OFFSET_EXTENDED, &req) == -1)
         return false;
-    }
     for(unsigned i = 0; i < req.n_samples; i++) {
         ptp_clock_time *pct = req.ts[i];
         samples.push_back({
@@ -554,15 +564,13 @@ bool PtpClock::extSamplePtpSys(size_t count,
     return false;
     #endif
 }
-bool PtpClock::preciseSamplePtpSys(PreciseSampleExt_t &sample) const
+bool PtpClock::preciseSamplePtpSys(PtpSamplePrecise_t &sample) const
 {
     if(!m_isInit)
         return false;
-    ptp_sys_offset_precise req;
-    if(ioctl(m_fd, PTP_SYS_OFFSET_PRECISE, &req) == -1) {
-        PTPMGMT_PERROR("PTP_SYS_OFFSET_PRECISE");
+    ptp_sys_offset_precise req = {0};
+    if(ioctl(m_fd, PTP_SYS_OFFSET_PRECISE, &req) == -1)
         return false;
-    }
     sample.phcClk = toTs(req.device);
     sample.sysClk = toTs(req.sys_realtime);
     sample.monoClk = toTs(req.sys_monoraw);
