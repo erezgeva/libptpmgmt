@@ -367,7 +367,7 @@ distclean: deb_clean clean
 	$(Q_DISTCLEAN)$(RM) $(DISTCLEAN)
 	$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS_GEN:=mngIds.h callDef.h vecDef.h verDef.h
+HEADERS_GEN:=mngIds.h callDef.h verDef.h cnvFunc.h
 HEADERS_GEN_COMP:=mngIds.h callDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS)) $(HEADERS_GEN_COMP)

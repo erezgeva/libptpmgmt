@@ -33,8 +33,8 @@
 #define SWIG_THREAD_END %nothread
 #endif
 
-/* Include standatd types and SWIG macroes */
-/* From /usr/share/swig./ */
+/* Include standatd types and SWIG macroes
+   From /usr/share/swig./ */
 %include "stdint.i"
 %include "cpointer.i"
 /* From /usr/share/swig././  */
@@ -64,7 +64,7 @@
  *   SWIGWARN_LANG_OVERLOAD_SHADOW   509
  *   SWIGWARN_RUBY_WRONG_NAME        801
  ************************************************************************/
-/*****
+/*********
  * Ruby
  *********/
 #ifdef SWIGRUBY
@@ -76,7 +76,7 @@
  * Scripts can use Binary::append() */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSEQ) Binary::operator+=;
 #endif /* SWIGRUBY */
-/*****
+/*********
  * PHP
  *********/
 #ifdef SWIGPHP
@@ -97,7 +97,7 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator+=;
 #define SWIG_OPERS_LANG_IDENTIFIER
 #endif /* SWIGPHP */
-/*****
+/*********
  * Tcl
  *********/
 #ifdef SWIGTCL
@@ -135,9 +135,6 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-;
 #endif /* SWIG_OPERS_LANG_IDENTIFIER */
 
-/* Mark base sockets as non-abstract classes */
-%feature("notabstract") SockBase;
-%feature("notabstract") SockBaseIf;
 /* library code */
 %include "cfg.h"
 %include "ptp.h"
@@ -145,7 +142,7 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "bin.h"
 %include "buf.h"
 %include "types.h"
-%include "mngIds.h" /* Add Management TLVs enumerator */
+%include "mngIds.h"
 %include "proc.h"
 %include "sig.h"
 %include "msg.h"
@@ -155,10 +152,7 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "init.h"
 %include "timeCvrt.h"
 
-/* Handle management vectors inside structures
- * See documenting of XXXX_v classes in mngIds.h and
- *  Doxygen generated documents
- */
+/* Handle management vectors inside structures */
 #define _ptpmMkVec(n) %template(n##_v) std::vector<n##_t>
 _ptpmMkVec(FaultRecord);
 _ptpmMkVec(ClockIdentity);
@@ -168,24 +162,22 @@ _ptpmMkVec(LinuxptpUnicastMaster);
 _ptpmMkVec(PtpEvent);
 _ptpmMkVec(PtpSample);
 _ptpmMkVec(PtpSampleExt);
-/* Handle signalig vectors inside structures
- * See documenting of SigXXXX classes in mngIds.h and
- *  Doxygen generated documents
- */
+/* Handle signalig vectors inside structures */
 #define _ptpmMkRecVec(n, m) %template(n) std::vector<m##_rec_t>
 _ptpmMkRecVec(SigTime, SLAVE_RX_SYNC_TIMING_DATA);
 _ptpmMkRecVec(SigComp, SLAVE_RX_SYNC_COMPUTED_DATA);
 _ptpmMkRecVec(SigEvent, SLAVE_TX_EVENT_TIMESTAMPS);
 _ptpmMkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
+
 /* convert base management tlv to a specific management tlv structure
- * See documenting of conv_XXX functions in mngIds.h and
+ * See documenting of conv_XXX functions in cnvFunc.h and
  *  Doxygen generated documents
  */
 #define _ptpmCaseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 %include "ids.h"
 /* convert base signaling tlv to a specific signaling tlv structure
- * See documenting of conv_XXX functions in mngIds.h and
+ * See documenting of conv_XXX functions in cnvFunc.h and
  *  Doxygen generated documents
  */
 #define _ptpmSigCnv(n) %pointer_cast(BaseSigTlv*, n##_t*, conv_##n);
@@ -201,4 +193,5 @@ _ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
 _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
+
 %include "msgCall.i"
