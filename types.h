@@ -305,7 +305,7 @@ struct TimeInterval_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return sizeof(Integer64_t); }
+    static size_t size() { return sizeof scaledNanoseconds; }
     /**
      * Get interval from time interval in nanoseconds
      * @return scaled time interval in nanoseconds
@@ -325,7 +325,7 @@ struct Timestamp_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return sizeof_UInteger48_t + sizeof(UInteger32_t); }
+    static size_t size() { return sizeof_UInteger48_t + sizeof nanosecondsField; }
     /**
      * Convert to string
      * @return string
@@ -675,7 +675,7 @@ struct PortAddress_t {
      * @return object size
      */
     size_t size() const {
-        return sizeof(networkProtocol_e) + sizeof(UInteger16_t) +
+        return sizeof networkProtocol + sizeof addressLength +
             addressField.length();
     }
     /**
@@ -721,7 +721,8 @@ struct ClockQuality_t {
      * @return object size
      */
     static size_t size() {
-        return sizeof(UInteger8_t) + sizeof(clockAccuracy_e) + sizeof(uint16_t);
+        return sizeof clockClass + sizeof clockAccuracy +
+            sizeof offsetScaledLogVariance;
     }
 };
 /** PTP text value */
@@ -738,7 +739,7 @@ struct PTPText_t {
      * Get object size
      * @return object size
      */
-    size_t size() const { return sizeof(uint8_t) + textField.length(); }
+    size_t size() const { return sizeof lengthField + textField.length(); }
     /**
      * Get string
      * @return pointer to string
@@ -758,7 +759,7 @@ struct FaultRecord_t {
      * @return object size
      */
     size_t size() const {
-        return sizeof(uint16_t) + Timestamp_t::size() + sizeof(faultRecord_e) +
+        return sizeof faultRecordLength + faultTime.size() + sizeof severityCode +
             faultName.size() + faultValue.size() + faultDescription.size();
     }
 };
@@ -770,7 +771,9 @@ struct AcceptableMaster_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return PortIdentity_t::size() + sizeof(uint8_t); }
+    static size_t size() {
+        return PortIdentity_t::size() + sizeof alternatePriority1;
+    }
 };
 /** Properties of a PTP management TLV */
 struct ManagementId_t {
@@ -830,9 +833,9 @@ struct LinuxptpUnicastMaster_t {
      * @return object size
      */
     size_t size() const {
-        return PortIdentity_t::size() + ClockQuality_t::size() +
-            sizeof(uint8_t) + sizeof(linuxptpUnicastState_e) + sizeof(UInteger8_t) +
-            sizeof(UInteger8_t) + portAddress.size();
+        return portIdentity.size() + clockQuality.size() +
+            sizeof selected + sizeof portState + sizeof priority1 +
+            sizeof priority2 + portAddress.size();
     }
 };
 

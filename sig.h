@@ -156,7 +156,8 @@ struct SLAVE_RX_SYNC_TIMING_DATA_rec_t {
      * @return object size
      */
     static size_t size() {
-        return 6 + TimeInterval_t::size() + 2 * Timestamp_t::size();
+        return sizeof sequenceId + 2 * Timestamp_t::size() +
+            TimeInterval_t::size() + sizeof scaledCumulativeRateOffset;
     }
 };
 /** SLAVE_RX_SYNC_TIMING_DATA TLV */
@@ -180,7 +181,10 @@ struct SLAVE_RX_SYNC_COMPUTED_DATA_rec_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 6 + 2 * TimeInterval_t::size(); }
+    static size_t size() {
+        return sizeof sequenceId + 2 * TimeInterval_t::size() +
+            sizeof scaledNeighborRateRatio;
+    }
 };
 /** SLAVE_RX_SYNC_COMPUTED_DATA TLV */
 struct SLAVE_RX_SYNC_COMPUTED_DATA_t : public BaseSigTlv {
@@ -207,7 +211,7 @@ struct SLAVE_TX_EVENT_TIMESTAMPS_rec_t {
      * Get object size
      * @return object size
      */
-    static size_t size() { return 2 + Timestamp_t::size(); }
+    static size_t size() { return sizeof sequenceId + Timestamp_t::size(); }
 };
 /** SLAVE_TX_EVENT_TIMESTAMPS TLV */
 struct SLAVE_TX_EVENT_TIMESTAMPS_t : public BaseSigTlv {
@@ -243,7 +247,8 @@ struct SLAVE_DELAY_TIMING_DATA_NP_rec_t {
      * @return object size
      */
     static size_t size() {
-        return 2 + TimeInterval_t::size() + 2 * Timestamp_t::size();
+        return sizeof sequenceId + TimeInterval_t::size() +
+            2 * Timestamp_t::size();
     }
 };
 /** SLAVE_DELAY_TIMING_DATA_NP TLV

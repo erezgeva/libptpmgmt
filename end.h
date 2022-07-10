@@ -24,6 +24,20 @@ namespace ptpmgmt
 #endif
 
 /**
+ * convert unsigned 8 bits integer from host order to network order
+ * @param[in] value host order unsigned 16 bits integer
+ * @return network order unsigned 16 bits integer
+ * @note provide function for consistence, as byte do no need conversion!
+ */
+inline uint16_t cpu_to_net8(uint8_t value) {return value;}
+/**
+ * convert unsigned 8 bits integer from network order to host order
+ * @param[in] value network order unsigned 16 bits integer
+ * @return host order unsigned 16 bits integer
+ * @note provide function for consistence, as byte do no need conversion!
+ */
+inline uint16_t net_to_cpu8(uint8_t value) {return value;}
+/**
  * convert unsigned 16 bits integer from host order to network order
  * @param[in] value host order unsigned 16 bits integer
  * @return network order unsigned 16 bits integer

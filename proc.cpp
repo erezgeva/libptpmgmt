@@ -72,40 +72,34 @@ MNG_PARSE_ERROR_e MsgProc::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
     // The mng ID is not supported yet
     return MNG_PARSE_ERROR_OK;
 }
-bool MsgProc::proc(uint8_t &val)
-{
-    if(m_left < (ssize_t)sizeof(uint8_t))
-        return true;
-    if(m_build)
-        *m_cur = val;
-    else
-        val = *m_cur;
-    move(sizeof(uint8_t));
-    return false;
-}
-bool MsgProc::proc(uint16_t &val)
-{
-    if(m_left < (ssize_t)sizeof(uint16_t))
-        return true;
-    if(m_build)
-        *(uint16_t *)m_cur = cpu_to_net16(val);
-    else
-        val = net_to_cpu16(*(uint16_t *)m_cur);
-    move(sizeof(uint16_t));
-    return false;
-}
-bool MsgProc::proc(uint32_t &val)
-{
-    if(m_left < (ssize_t)sizeof(uint32_t))
-        return true;
-    if(m_build)
-        *(uint32_t *)m_cur = cpu_to_net32(val);
-    else
-        val = net_to_cpu32(*(uint32_t *)m_cur);
-    move(sizeof(uint32_t));
-    return false;
-}
-bool MsgProc::proc48(uint64_t &val)
+#define procInt(n) \
+    bool MsgProc::proc(uint##n##_t &val) \
+    { \
+        if(m_left < (ssize_t)sizeof(uint##n##_t)) \
+            return true; \
+        if(m_build) \
+            *(uint##n##_t *)m_cur = cpu_to_net##n(val); \
+        else \
+            val = net_to_cpu##n(*(uint##n##_t *)m_cur); \
+        move(sizeof(uint##n##_t)); \
+        return false; \
+    } \
+    bool MsgProc::proc(int##n##_t &val) \
+    { \
+        if(m_left < (ssize_t)sizeof(int##n##_t)) \
+            return true; \
+        if(m_build) \
+            *(uint##n##_t *)m_cur = cpu_to_net##n((uint##n##_t)val); \
+        else \
+            val = (int##n##_t)net_to_cpu##n(*(uint##n##_t *)m_cur); \
+        move(sizeof(int##n##_t)); \
+        return false; \
+    }
+procInt(8)
+procInt(16)
+procInt(32)
+procInt(64)
+bool MsgProc::proc48(UInteger48_t &val)
 {
     uint16_t high;
     uint32_t low;
@@ -122,54 +116,10 @@ bool MsgProc::proc48(uint64_t &val)
     if(proc(high) || proc(low))
         return true;
     if(!m_build)
-        val = low | ((uint64_t)high << 32);
+        val = low | ((UInteger48_t)high << 32);
     return false;
 }
-bool MsgProc::proc(uint64_t &val)
-{
-    if(m_left < (ssize_t)sizeof(uint64_t))
-        return true;
-    if(m_build)
-        *(uint64_t *)m_cur = cpu_to_net64(val);
-    else
-        val = net_to_cpu64(*(uint64_t *)m_cur);
-    move(sizeof(uint64_t));
-    return false;
-}
-bool MsgProc::proc(int8_t &val)
-{
-    if(m_left < (ssize_t)sizeof(int8_t))
-        return true;
-    if(m_build)
-        *(int8_t *)m_cur = val;
-    else
-        val = *(int8_t *)m_cur;
-    move(sizeof(int8_t));
-    return false;
-}
-bool MsgProc::proc(int16_t &val)
-{
-    if(m_left < (ssize_t)sizeof(int16_t))
-        return true;
-    if(m_build)
-        *(uint16_t *)m_cur = cpu_to_net16((uint16_t)val);
-    else
-        val = (int16_t)net_to_cpu16(*(uint16_t *)m_cur);
-    move(sizeof(int16_t));
-    return false;
-}
-bool MsgProc::proc(int32_t &val)
-{
-    if(m_left < (ssize_t)sizeof(int32_t))
-        return true;
-    if(m_build)
-        *(uint32_t *)m_cur = cpu_to_net32((uint32_t)val);
-    else
-        val = (int32_t)net_to_cpu32(*(uint32_t *)m_cur);
-    move(sizeof(int32_t));
-    return false;
-}
-bool MsgProc::proc48(int64_t &val)
+bool MsgProc::proc48(Integer48_t &val)
 {
     uint16_t high;
     uint32_t low;
@@ -188,22 +138,11 @@ bool MsgProc::proc48(int64_t &val)
     if(proc(high) || proc(low))
         return true;
     if(!m_build) {
-        uint64_t ret = low | (((uint64_t)high & INT16_MAX) << 32);
+        UInteger48_t ret = low | (((UInteger48_t)high & INT16_MAX) << 32);
         if(high & sig_16bits) // Add sign bit for negative
             ret |= sig_64bits;
-        memcpy(&val, &ret, sizeof(uint64_t));
+        memcpy(&val, &ret, sizeof ret);
     }
-    return false;
-}
-bool MsgProc::proc(int64_t &val)
-{
-    if(m_left < (ssize_t)sizeof(int64_t))
-        return true;
-    if(m_build)
-        *(uint64_t *)m_cur = cpu_to_net64((uint64_t)val);
-    else
-        val = (int64_t)net_to_cpu64(*(uint64_t *)m_cur);
-    move(sizeof(int64_t));
     return false;
 }
 bool MsgProc::proc(Float64_t &val)
@@ -214,34 +153,38 @@ bool MsgProc::proc(Float64_t &val)
         return true;
     uint64_t num;
     int64_t mnt, exp;
+    // see ieee754.h
+    #ifdef NO_IEEE_754
+    // Most processors support IEEE 754
+    // For Hardware that do not use IEEE 754
+    bool use64 = false;
+    #else
     // true: Float64_t is 64 bits IEEE 754
     // false: calculate IEEE 754
-    bool use64 = false;
+    bool use64 = sizeof num == sizeof(Float64_t);
+    #endif
     enum {
         // when calculate always use host order
         USE_HOST, // use host order
         USE_BIG, // float is big endian (network order)
         USE_LT, // float is little endian
-    } ordMod = USE_HOST;
-    // see ieee754.h
-    // Most processors support IEEE 754
-    // Hardware that do not use IEEE 754, should define NO_IEEE_754
-    #ifndef NO_IEEE_754
-    if(sizeof(uint64_t) == sizeof(Float64_t)) {
-        #if __FLOAT_WORD_ORDER == __BIG_ENDIAN
-        use64 = true;
-        ordMod = USE_BIG;
-        #elif __FLOAT_WORD_ORDER == __BYTE_ORDER
-        use64 = true;
-        #elif __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
-        use64 = true;
+    } ordMod;
+    if(use64) {
+        #if __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__
+        ordMod = USE_BIG; // Prefer network order
+        #elif __FLOAT_WORD_ORDER__ == __BYTE_ORDER__
+        ordMod = USE_HOST; // Prefer host order!
+        #elif __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__
         ordMod = USE_LT;
+        #else // float use unkown order, we must build it manually
+        ordMod = USE_HOST;
+        use64 = false;
         #endif
-    }
-    #endif /* NO_IEEE_754 */
+    } else
+        ordMod = USE_HOST;
     if(m_build) {
         if(use64) // Float64_t is 64 bits IEEE 754
-            memcpy(&num, &val, sizeof(uint64_t));
+            memcpy(&num, &val, sizeof num);
         else {
             /* For processors that do not support IEEE 754
              *  or endian is not clear
@@ -318,6 +261,10 @@ bool MsgProc::proc(Float64_t &val)
                 num = *(uint64_t *)m_cur;
             move(8);
             break;
+        case USE_HOST:
+            if(proc(num)) // host order to network order
+                return true;
+            break;
         case USE_LT:
             if(m_build)
                 *(uint64_t *)m_cur = bswap_64(num);
@@ -325,14 +272,10 @@ bool MsgProc::proc(Float64_t &val)
                 num = bswap_64(*(uint64_t *)m_cur);
             move(8);
             break;
-        case USE_HOST:
-            if(proc(num)) // host order to network order
-                return true;
-            break;
     }
     if(!m_build) {
         if(use64) // Float64_t is 64 bits IEEE 754
-            memcpy(&val, &num, sizeof(uint64_t));
+            memcpy(&val, &num, sizeof num);
         else {
             /* For processors that do not support IEEE 754
              *  or endian is not clear
@@ -428,7 +371,7 @@ bool MsgProc::proc(Timestamp_t &d)
 }
 bool MsgProc::proc(ClockIdentity_t &v)
 {
-    return proc(v.v, sizeof(ClockIdentity_t));
+    return proc(v.v, v.size());
 }
 bool MsgProc::proc(PortIdentity_t &d)
 {
@@ -452,12 +395,12 @@ bool MsgProc::proc(PTPText_t &d)
 }
 bool MsgProc::proc(FaultRecord_t &d)
 {
+    if(m_build)
+        d.faultRecordLength = d.size();
     if(proc(d.faultRecordLength) || proc(d.faultTime) || proc(d.severityCode) ||
         proc(d.faultName) || proc(d.faultValue) || proc(d.faultDescription))
         return true;
-    if(d.faultRecordLength != sizeof(uint16_t) + Timestamp_t::size() +
-        sizeof(faultRecord_e) + 3 * sizeof(uint8_t) + d.faultName.lengthField +
-        d.faultValue.lengthField + d.faultDescription.lengthField) {
+    if(!m_build && d.faultRecordLength != d.size()) {
         m_err = MNG_PARSE_ERROR_SIZE_MISS;
         return true;
     }

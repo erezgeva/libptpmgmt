@@ -364,7 +364,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 return MNG_PARSE_ERROR_HEADER;
             break;
         case Management:
-            if(msgSize < (ssize_t)sizeof(managementMessage_p) + tlvSizeHdr)
+            if(msgSize < (ssize_t)sizeof(*msg) + tlvSizeHdr)
                 return MNG_PARSE_ERROR_TOO_SMALL;
             if(msg->controlField != controlFieldMng)
                 return MNG_PARSE_ERROR_HEADER;
@@ -405,21 +405,22 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     uint16_t *cur = (uint16_t *)(msg + 1);
     uint16_t tlvType = net_to_cpu16(*cur++);
     mp.m_left = net_to_cpu16(*cur++); // lengthField
-    ssize_t size = msgSize - sizeof(managementMessage_p) - tlvSizeHdr;
+    ssize_t size = msgSize - sizeof(*msg) - tlvSizeHdr;
     if(MANAGEMENT_ERROR_STATUS == tlvType) {
-        if(size < (ssize_t)sizeof(managementErrorTLV_p))
+        managementErrorTLV_p *errTlv;
+        if(size < (ssize_t)sizeof(*errTlv))
             return MNG_PARSE_ERROR_TOO_SMALL;
-        size -= sizeof(managementErrorTLV_p);
-        managementErrorTLV_p *errTlv = (managementErrorTLV_p *)cur;
+        size -= sizeof(*errTlv);
+        errTlv = (managementErrorTLV_p *)cur;
         if(!findTlvId(errTlv->managementId, m_tlv_id, m_prms.implementSpecific))
             return MNG_PARSE_ERROR_INVALID_ID;
         if(!checkReplyAction(actionField))
             return MNG_PARSE_ERROR_ACTION;
         m_errorId = (managementErrorId_e)net_to_cpu16(errTlv->managementErrorId);
         // check minimum size and even
-        if(mp.m_left < (ssize_t)sizeof(managementErrorTLV_p) || mp.m_left & 1)
+        if(mp.m_left < (ssize_t)sizeof(*errTlv) || mp.m_left & 1)
             return MNG_PARSE_ERROR_TOO_SMALL;
-        mp.m_left -= sizeof(managementErrorTLV_p);
+        mp.m_left -= sizeof(*errTlv);
         mp.m_cur = (uint8_t *)(errTlv + 1);
         // Check displayData size
         if(size < mp.m_left)
@@ -430,9 +431,9 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
         return MNG_PARSE_ERROR_MSG;
     } else if(MANAGEMENT != tlvType)
         return MNG_PARSE_ERROR_INVALID_TLV;
-    if(size < (ssize_t)sizeof(uint16_t))
+    if(size < (ssize_t)sizeof tlvType)
         return MNG_PARSE_ERROR_TOO_SMALL;
-    size -= sizeof(uint16_t);
+    size -= sizeof tlvType;
     if(!findTlvId(*cur++, m_tlv_id, m_prms.implementSpecific)) // managementId
         return MNG_PARSE_ERROR_INVALID_ID;
     if(!checkReplyAction(actionField))
@@ -517,7 +518,7 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
             case caseBuild(SLAVE_TX_EVENT_TIMESTAMPS);
             case caseBuild(CUMULATIVE_RATE_RATIO);
             case MANAGEMENT_ERROR_STATUS:
-                if(mp.m_left < (ssize_t)sizeof(managementErrorTLV_p))
+                if(mp.m_left < (ssize_t)sizeof(*errTlv))
                     return MNG_PARSE_ERROR_TOO_SMALL;
                 errTlv = (managementErrorTLV_p *)mp.m_cur;
                 if(findTlvId(errTlv->managementId, managementId,
@@ -525,8 +526,8 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
                     MANAGEMENT_ERROR_STATUS_t *d = new MANAGEMENT_ERROR_STATUS_t;
                     if(d == nullptr)
                         return MNG_PARSE_ERROR_MEM;
-                    mp.m_cur += sizeof(managementErrorTLV_p);
-                    mp.m_left -= sizeof(managementErrorTLV_p);
+                    mp.m_cur += sizeof(*errTlv);
+                    mp.m_left -= sizeof(*errTlv);
                     if(mp.m_left > 1 && mp.proc(d->displayData)) {
                         delete d;
                         return MNG_PARSE_ERROR_TOO_SMALL;
