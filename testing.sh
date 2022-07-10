@@ -212,8 +212,14 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
  enter php
  enter tcl
  rm $t3
- printf "\n =====  Test JSON $1  ===== \n\n"
+ printf "\n =====  Test JSON  ===== \n\n"
  eval "$ldPathJson $useSudo./testJson.pl | jsonlint"
+ if [[ -n "$(which valgrind)" ]]; then
+   printf "\n * Valgrid test of testJson.pl"
+   eval "$ldPathJson $useSudo valgrind --read-inline-info=yes ./testJson.pl" |&\
+     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+ fi
+ do_phc_ctl
 }
 ###############################################################################
 do_perl()
@@ -256,6 +262,36 @@ do_python()
    eval "$need $useSudo python$i ./test.py $runOptions" > /dev/null
    time eval "$need $useSudo python$i ./test.py $runOptions" | diff - ../$t3
  done
+}
+do_phc_ctl()
+{
+ # Use python3
+ printf "\n =====  Test phc_ctl  ===== \n\n"
+ cd python
+ if [[ -n "$ldPathPython3" ]]; then
+   if [[ -f 3/_ptpmgmt.so ]]; then
+     ln -sf 3/_ptpmgmt.so
+   else
+     echo "Fail to find python3 library!!!"
+     cd ..
+     return
+   fi
+ else
+   rm -f _ptpmgmt.so
+ fi
+ cp ../phc_ctl .
+ echo "End clock should be '10 = 4 * 150% + 4'"
+ local run="$sudo $ldPathPython3 ./phc_ctl $def_ifName freq 500000000 set 0"
+ run+=" wait 4 adj 4 get"
+ eval "$run"
+ if [[ -n "$(which valgrind)" ]]; then
+   printf "\n * Valgrid test of phc_ctl"
+   eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc valgrind --read-inline-info=yes"\
+     " ./phc_ctl $def_ifName freq 500000000 set 0 wait 4 adj 4 get" |&\
+     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+ fi
+ rm -f phc_ctl
+ cd ..
 }
 do_php()
 {
