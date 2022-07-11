@@ -26,6 +26,10 @@ Files: phc_ctl.8
 Copyright: 2014 Jacob Keller, linuxptp
 License: GPL-2+
 
+Files: pmc.8
+Copyright: 2012 Richard Cochran, Miroslav Lichvar, linuxptp developers
+License: GPL-2+
+
 License: LGPL-3+
     See: /usr/share/common-licenses/LGPL-3
 

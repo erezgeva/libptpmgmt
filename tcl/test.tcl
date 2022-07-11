@@ -228,6 +228,17 @@ proc main {cfg_file} {
   }
   puts "maskEvent(NOTIFY_PORT_STATE)=$mask, getEvent(NOTIFY_PORT_STATE)=$txt"
 
+  # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
+  # SigEvent behave like a ruby array
+  # See libptpmgmt.i for full list of vectors representors
+  ptpmgmt::SigEvent evnts
+  ptpmgmt::SLAVE_TX_EVENT_TIMESTAMPS_rec_t e
+  e configure -sequenceId 1
+  [ e cget -eventEgressTimestamp ] fromFloat 4.5
+  evnts push e
+  puts [ subst {Events size [ evnts size ],\
+         seq\[0\]=[[ evnts get 0 ] cget -sequenceId],\
+         ts\[0\]=[[[ evnts get 0 ] cget -eventEgressTimestamp] string ]} ]
   return 0
 }
 

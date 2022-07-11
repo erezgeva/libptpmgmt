@@ -8,6 +8,7 @@
 /mngIds.h
 /callDef.h
 /verDef.h
+/vecDef.h
 /cnvFunc.h
 *.o
 *.lo

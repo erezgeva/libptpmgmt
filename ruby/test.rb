@@ -223,6 +223,15 @@ def main
        ", getEvent(NOTIFY_PORT_STATE)=" +
        (event.getEvent(Ptpmgmt::NOTIFY_PORT_STATE()) ? 'have' : 'not')
 
+  # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
+  # See std_vectors.md for more information
+  evnts = Ptpmgmt::SigEvent.new
+  e = Ptpmgmt::SLAVE_TX_EVENT_TIMESTAMPS_rec_t.new
+  e.sequenceId = 1
+  e.eventEgressTimestamp.fromFloat(4.5)
+  evnts << e
+  puts "Events size #{evnts.size()}, seq[0]=#{evnts[0].sequenceId}, ts[0]=" +
+        evnts[0].eventEgressTimestamp.string()
   return 0
 end
 

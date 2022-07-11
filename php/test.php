@@ -215,6 +215,15 @@ function main($cfg_file)
        ", getEvent(NOTIFY_PORT_STATE)=" .
        ($event->getEvent(ptpmgmt::NOTIFY_PORT_STATE_get()) ? 'have' : 'not') . "\n";
 
+  # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
+  # See std_vectors.md for more information
+  $evnts = new SigEvent();
+  $e = new SLAVE_TX_EVENT_TIMESTAMPS_rec_t();
+  $e->sequenceId = 1;
+  $e->eventEgressTimestamp->fromFloat(4.5);
+  $evnts->push($e);
+  printf("Events size %d, seq[0]=%d, ts[0]=%s\n", $evnts->size(),
+      $evnts->get(0)->sequenceId, $evnts->get(0)->eventEgressTimestamp->string());
   return 0;
 }
 

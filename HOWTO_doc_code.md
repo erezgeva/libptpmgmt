@@ -10,14 +10,14 @@ This document guide how to do it properly.
  1. We use document block before the item we describe
     * We use this style `/** xxxxx */`. The block is usually spread on multiple lines. For example:
 
-          /**
-           * @xxx text
-           *  text
-           */
+            /**  
+             * @xxx text  
+             *  text  
+             */  
 
     * Alternatively, you may use a short block after a property or a constant. Do not use it with classes, structures, enumerators, functions or methods.
 
-          void property; /**< description */
+          `void property; /**< description */`
 
  1. Each header file start with
     * The licence using SPDX ID, our project uses LGPL 3 or later for all library source code

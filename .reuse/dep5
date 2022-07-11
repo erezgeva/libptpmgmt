@@ -7,7 +7,7 @@ Files: *.md */changelog
 Copyright: 2021 Erez Geva
 License: GFDL-1.3-no-invariants-or-later
 
-Files: debian/co* debian/source/format libptpmgmt.cbp
+Files: debian/co* debian/source/format
 Copyright: 2021 Erez Geva
 License: GPL-3.0-or-later
 
@@ -17,4 +17,8 @@ License: GPL-3.0-or-later
 
 Files: phc_ctl.8
 Copyright: 2014 Jacob Keller, linuxptp
+License: GPL-2.0-or-later
+
+Files: pmc.8
+Copyright: 2012 Richard Cochran, Miroslav Lichvar, linuxptp developers
 License: GPL-2.0-or-later

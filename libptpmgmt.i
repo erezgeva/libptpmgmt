@@ -46,7 +46,7 @@
 /* SWIG does not support */
 %apply double { long double };
 /* initialize variables for argcargv
- * Bug fix in SWIG 4.1 */
+ * Bug fix in SWIG 4.1.0 */
 %typemap(arginit) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}
 /* Support Options::parse_options in scripts */
 %apply (int ARGC, char **ARGV) {(int argc, char *const argv[])}

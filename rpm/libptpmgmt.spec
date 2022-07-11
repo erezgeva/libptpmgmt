@@ -186,8 +186,10 @@ make distclean
 %{_mandir}/man8/phc_ctl-%{bname}.8*
 
 ###############################################################################
-# The changelog is updated with the 'update_changelog.pl' script
+# The changelog is updated with the 'update_changelog.pl' script.
 # Anything add after here will be toss, add only above.
+# The changelog is under GFDL-1.3-no-invariants-or-later license.
+###############################################################################
 %changelog
 * Sat May 14 2022 ErezGeva2@gmail.com 0.8-1
 - Fix cross compilation in make-file.

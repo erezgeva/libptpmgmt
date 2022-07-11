@@ -223,6 +223,19 @@ sub main
         ", getEvent(NOTIFY_PORT_STATE)=" .
         ($event->getEvent($PtpMgmtLib::NOTIFY_PORT_STATE) ? 'have' : 'not') . "\n");
 
+  # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
+  # See std_vectors.md for more information
+  my $evnts = PtpMgmtLib::SigEvent->new;
+  my $e = PtpMgmtLib::SLAVE_TX_EVENT_TIMESTAMPS_rec_t->new;
+  $e->swig_sequenceId_set(1);
+  my $t = PtpMgmtLib::Timestamp_t->new;
+  $t->fromFloat(4.5);
+  $e->swig_eventEgressTimestamp_set($t);
+  $evnts->push($e);
+  print("Events size " . $evnts->size() .
+        ", seq[0]=" . $evnts->get(0)->swig_sequenceId_get() .
+        ", ts[0]=" . $evnts->get(0)->swig_eventEgressTimestamp_get()->string() .
+        "\n");
   0;
 }
 main;

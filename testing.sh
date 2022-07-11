@@ -287,7 +287,7 @@ do_phc_ctl()
  if [[ -n "$(which valgrind)" ]]; then
    printf "\n * Valgrid test of phc_ctl"
    eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc valgrind --read-inline-info=yes"\
-     " ./phc_ctl $def_ifName freq 500000000 set 0 wait 4 adj 4 get" |&\
+     " ./phc_ctl $def_ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
  rm -f phc_ctl

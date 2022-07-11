@@ -367,7 +367,7 @@ distclean: deb_clean clean
 	$(Q_DISTCLEAN)$(RM) $(DISTCLEAN)
 	$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS_GEN:=mngIds.h callDef.h verDef.h cnvFunc.h
+HEADERS_GEN:=mngIds.h callDef.h verDef.h vecDef.h cnvFunc.h
 HEADERS_GEN_COMP:=mngIds.h callDef.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS)) $(HEADERS_GEN_COMP)
@@ -434,8 +434,8 @@ ifneq ($(call verCheck,$(swig_ver),3.0.12),)
 # Old SWIG does not support PHP 7
 NO_PHP=1
 endif ## ! swig 3.0.12
-endif # ! swig 4.0
-endif # ! swig 4.1
+endif # ! swig 4.0.0
+endif # ! swig 4.1.0
 %/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS) $(HEADERS_GEN_COMP)
 	$(Q_SWIG)$(SWIG) -c++ -I. -I$(@D) -outdir $(@D) -Wextra $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
@@ -743,7 +743,7 @@ deb_clean:
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
 SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  php/*.sh swig/*/* */*.i phc_ctl*) LICENSE $(HEADERS_SRCS) $(SRCS)\
+  php/*.sh swig/*/* */*.i *.8) phc_ctl LICENSE $(HEADERS_SRCS) $(SRCS)\
   $(wordlist 1,2,$(MAKEFILE_LIST))
 SRC_NAME:=libptpmgmt-$(LIB_VER)
 
@@ -804,10 +804,11 @@ endif
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
 	$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
+	$(BINST) -D pmc.8 $(MANDIR)/pmc-ptpmgmt.8
+	gzip $(MANDIR)/pmc-ptpmgmt.8
 	$(BINST) -D phc_ctl $(DESTDIR)$(SBINDIR)/phc_ctl-ptpmgmt
 	$(BINST) -D phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8
 	gzip $(MANDIR)/phc_ctl-ptpmgmt.8
-	$(LN) pmc.8.gz $(MANDIR)/pmc-ptpmgmt.8.gz
 	$(RM) doc/html/*.md5
 	$(DINST) $(DOCDIR)
 	cp -a doc/html $(DOCDIR)

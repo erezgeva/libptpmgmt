@@ -55,6 +55,14 @@ Some C++ syntax is ignored or renamed in various scripts,
 for example in PHP: Binary::empty is renamed to Binary::c_empty  
 See comments in libptpmgmt.i for the relevant changes
 
+Some C++ structure and functions use C++ standard vector "`std::vector<>`"  
+SWIG map C++ standard vector to a class.  
+See libptpmgmt.i for the full list of the mapping classes.  
+All languages create the vector as a class object.  
+In Python, Ruby and TCL the vector have properties of a native list.  
+Lua uses subst of C++ standard vector methods.  
+Perl and PHP use class methods, see PtpMgmtLib.pm and ptpmgmt.php for these methods.
+
 # <u>Library content</u>
   * Binary in bin.h - class that hold a binary
   * Buf in buf.h - Allocate buffer for scripting
@@ -68,6 +76,11 @@ See comments in libptpmgmt.i for the relevant changes
   * Signalling TLVs in sig.h - structures that hold a PTP Signalling TLV data
   * Runtime library version in ver.h
   * Library version used during build in verDef.h
+  * Managment TLVs mngIds.h - enumerator for PTP Management TLVs
+  * PTP managment types types.h - enumerators and structure to use with PTP Management messages
+  * Dispatcher and builder in msgCall.h - classes which provice call-backs for specific Management TLVs
+  * Dispatcher and builder base in callDef.h - provide all call-backs which may be impleamented
+  * Time convertion in timeCvrt.h - constants to convert time to different units.
   * Json2msg in json.h - Convert json text to a message, require linking with a JSON library
   * msg2json in json.h - Convert message to json text
   * Options in opt.h - parse a pmc tool command line parameters

@@ -214,6 +214,16 @@ def main():
     .format(ptpmgmt.SUBSCRIBE_EVENTS_NP_t.maskEvent(ptpmgmt.NOTIFY_PORT_STATE),
     txt))
 
+  # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
+  # See std_vectors.md for more information
+  evnts = ptpmgmt.SigEvent()
+  e = ptpmgmt.SLAVE_TX_EVENT_TIMESTAMPS_rec_t()
+  e.sequenceId = 1
+  e.eventEgressTimestamp.fromFloat(4.5)
+  evnts.append(e)
+  print('Events size {}, seq[0]={}, ts[0]={}'
+    .format(evnts.size(), evnts[0].sequenceId,
+    evnts[0].eventEgressTimestamp.string()))
   return 0
 
 main()
