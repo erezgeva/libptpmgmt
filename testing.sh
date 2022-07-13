@@ -279,18 +279,17 @@ do_phc_ctl()
  else
    rm -f _ptpmgmt.so
  fi
- cp ../phc_ctl .
- local run="$sudo $ldPathPython3 ./phc_ctl $def_ifName freq 500000000 set 0"
- run+=" wait 4 adj 4 get"
+ local run="$sudo $ldPathPython3 PYTHONPATH=. ../phc_ctl $def_ifName"
+ run+=" freq 500000000 set 0 wait 4 adj 4 get"
  eval "$run"
  echo "End clock should be '10 = 4 * 150% + 4'"
  if [[ -n "$(which valgrind)" ]]; then
    printf "\n * Valgrid test of phc_ctl"
-   eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc valgrind --read-inline-info=yes"\
-     " ./phc_ctl $def_ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
+   eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc PYTHONPATH=."\
+     " valgrind --read-inline-info=yes"\
+     " ../phc_ctl $def_ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
- rm -f phc_ctl
  cd ..
 }
 do_php()
