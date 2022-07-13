@@ -643,4 +643,5 @@ extern "C" {
     void *_n(parse)(const char *json) { return JSON_PARSE(json); }
     void _n(free)(void *jobj) { JSON_OBJ_FREE((JSON_POBJ)jobj); }
     JsonProcFrom *_n(alloc_proc)() { return new JsonProcFromJson; }
+    const char *_n(name)() { return JLIB_NAME; }
 }

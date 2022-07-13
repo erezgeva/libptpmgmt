@@ -27,7 +27,7 @@ build() {
   make -j LD_SONAME=1 CPPFLAGS_OPT=-Ofast PMC_USE_LIB=so SONAME_USE_MAJ=1\
     NO_PHP=1 --no-print-directory all doxygen
   # Place here as make do not use packages!
-  make -j DESTDIR=install install DEV_PKG=libptpmgmt-dev SBINDIR=/usr/bin\
+  make -j DESTDIR=install install SBINDIR=/usr/bin\
     NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
 }
 makedepends=(doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
@@ -52,7 +52,7 @@ package_libptpmgmt-dev() {
   mkdir -p $pkgdir/$libdir $pkgdir/usr/share
   mv $srcdir/install/usr/share/libptpmgmt-dev $pkgdir/usr/share
   mv $srcdir/install/usr/include $pkgdir/usr
-  mv $srcdir/install/usr/lib/libptpmgmt.a $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/libptpmgmt*.a $pkgdir/$libdir
   mv $srcdir/install/usr/lib/libptpmgmt.so $pkgdir/$libdir
 }
 package_libptpmgmt-doc() {

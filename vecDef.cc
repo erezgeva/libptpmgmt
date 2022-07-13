@@ -152,7 +152,7 @@ class n%^\
  %- %- * Reserve more space for further elements%^\
  %- %- * @note This function available in Python, ruby and PHP.%^\
  %- %- *%@%^\
- %-%- void reserve( size_t new_cap );%^\
+ %-%- void reserve(size_t new_cap);%^\
  %-%- %@**%^\
  %- %- * Get system limitation to container size%^\
  %- %- * @note This function available in lua only.%^\

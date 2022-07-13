@@ -280,10 +280,10 @@ do_phc_ctl()
    rm -f _ptpmgmt.so
  fi
  cp ../phc_ctl .
- echo "End clock should be '10 = 4 * 150% + 4'"
  local run="$sudo $ldPathPython3 ./phc_ctl $def_ifName freq 500000000 set 0"
  run+=" wait 4 adj 4 get"
  eval "$run"
+ echo "End clock should be '10 = 4 * 150% + 4'"
  if [[ -n "$(which valgrind)" ]]; then
    printf "\n * Valgrid test of phc_ctl"
    eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc valgrind --read-inline-info=yes"\

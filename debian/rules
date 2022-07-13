@@ -71,9 +71,10 @@ ifneq ($(wildcard $(DSRC)lib/php),)
 	$(Q)mv $(DSRC)share/php debian/php-ptpmgmt/usr/share
 endif
 	$(Q)mv $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
+	$(Q)mv $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
 ifneq ($(wildcard $(SLIBDIR)/libptpmgmt_jsonc.*),)
 	$(Q)mv $(SLIBDIR)/libptpmgmt_jsonc.* debian/libptpmgmt-jsonc$(LIBDIR)
 endif
 	$(Q)mv $(SLIBDIR)/libptpmgmt_fastjson* debian/libptpmgmt-fastjson$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/*.a $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
+	$(Q)mv $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
 	$(Q)mv $(SLIBDIR)/* debian/libptpmgmt$(LIBDIR)

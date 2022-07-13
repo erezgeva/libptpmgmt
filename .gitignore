@@ -17,7 +17,7 @@
 .sw?
 .*.sw?
 /.libs/
-/libptpmgmt.a
+/libptpmgmt*.a
 /pmc
 /tags
 /doc

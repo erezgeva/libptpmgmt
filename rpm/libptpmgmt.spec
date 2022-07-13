@@ -147,7 +147,7 @@ make distclean
 
 %files devel
 %{_includedir}/*
-%{_libdir}/%{name}.a
+%{_libdir}/%{name}*.a
 %{_datadir}/%{name}-devel/*.mk
 
 %files doc

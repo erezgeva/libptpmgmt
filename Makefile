@@ -103,8 +103,6 @@ define help
 #                                                                              #
 #   NO_FCJSON        Preven usinsg fast JSON library                           #
 #                                                                              #
-#   USE_FCJSON       Use the fast JSON library in static link!                 #
-#                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #
 #   PY_USE_S_THRD    Use python with 'Global Interpreter Lock',                #
@@ -220,12 +218,11 @@ $(LIB_NAME_SO)_LDLIBS:=-lm -ldl
 PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
 JSON_FROM_OBJS:=$(patsubst %.cpp,%.o,$(wildcard jsonF*.cpp))
 LIB_OBJS:=$(filter-out $(JSON_FROM_OBJS) $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS)))
-# Static only objects
-LIB_A_OBJS:=
 PMC_NAME:=pmc
 ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min) -DVER_VAL=$(VER_VAL)
 D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $*.d
 LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) $(CPPFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
+LLA=$(Q_AR)$(AR) rcs $@ $^;$(RL) $@
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
@@ -272,6 +269,7 @@ endif
 JSONC_INC:=/usr/include/json-c
 JSONC_LD:=-ljson-c
 JSONC_LIB:=$(LIB_NAME)_jsonc.so
+JSONC_LIBA:=$(LIB_NAME)_jsonc.a
 JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
 JSON_C+=\"$(JSONC_FLIB)\",
 ifeq ($(NO_CJSON),) # No point probing if user defer
@@ -287,67 +285,52 @@ endif
 endif # wildcard json-c
 endif # NO_CJSON
 ifeq ($(NO_CJSON),)
-JSONC_CFLAGS:=-include $(JSONC_INC)/json.h
+JSONC_CFLAGS:=-include $(JSONC_INC)/json.h -DJLIB_NAME=\"$(JSONC_LIBA)\"
 jsonFromJc.o: jsonFrom.cpp
-	$Q$(call LLC,$(JSONC_CFLAGS))
+	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $(JSONC_CFLAGS) $< -o $@
 	$(call D_INC,JSONC_INC)
+.libs/jsonFromJc.o: jsonFromJc.o
 $(JSONC_LIB)_LDLIBS:=$(JSONC_LD)
-$(JSONC_LIB): jsonFromJc.o $(LIB_NAME).so
-ALL+=$(JSONC_LIB)
-ifeq ($(USE_FCJSON),) # User prefer static link with fastjson
-json.o: CPPFLAGS+=-DJSON_C_SLINK=$(JSONC_FLIB)
-LIB_A_OBJS+=jsonFrom.o
-jsonFrom.o_INC:=JSONC_INC
-CPPFLAGS_jsonFrom.o+=$(JSONC_CFLAGS)
-JSON_C_ST_DONE:=1
-endif # USE_FCJSON
+$(JSONC_LIB): .libs/jsonFromJc.o $(LIB_NAME).so
+$(JSONC_LIBA): jsonFromJc.o
+	$(LLA)
+ALL+=$(JSONC_LIB) $(JSONC_LIBA)
 endif # NO_CJSON
 
 # Using fastjson
 FJSON_INC:=/usr/include/libfastjson
 FJSON_LIB:=$(LIB_NAME)_fastjson.so
+FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 JSON_C+=\"$(FJSON_FLIB)\",
 ifeq ($(wildcard $(FJSON_INC)/json.h),)
 NO_FCJSON:=1
 endif
 ifeq ($(NO_FCJSON),)
-FJSON_CFLAGS:=-include $(FJSON_INC)/json.h
+FJSON_CFLAGS:=-include $(FJSON_INC)/json.h -DJLIB_NAME=\"$(FJSON_LIBA)\"
 jsonFromFj.o: jsonFrom.cpp
-	$Q$(call LLC,$(FJSON_CFLAGS))
+	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $(FJSON_CFLAGS) $< -o $@
 	$(call D_INC,FJSON_INC)
+.libs/jsonFromFj.o: jsonFromFj.o
 $(FJSON_LIB)_LDLIBS:=-lfastjson
-$(FJSON_LIB): jsonFromFj.o $(LIB_NAME).so
-ALL+=$(FJSON_LIB)
-ifeq ($(JSON_C_ST_DONE),)
-json.o: CPPFLAGS+=-DJSON_C_SLINK=$(FJSON_FLIB)
-LIB_A_OBJS+=jsonFrom.o
-jsonFrom.o_INC:=FJSON_INC
-CPPFLAGS_jsonFrom.o+=$(FJSON_CFLAGS)
-JSON_C_ST_DONE:=1
-endif # JSON_C_ST_DONE
-else # NO_FCJSON
-ifneq ($(USE_FCJSON),)
-$(error libfastjson is unavailable for static link)
-endif
+$(FJSON_LIB): .libs/jsonFromFj.o $(LIB_NAME).so
+$(FJSON_LIBA): jsonFromFj.o
+	$(LLA)
+ALL+=$(FJSON_LIB) $(FJSON_LIBA)
 endif # NO_FCJSON
 
 # Add jsonFrom libraries to search
-json.o: CPPFLAGS+=-DJSON_C="$(JSON_C)"
+jsonDef.o: CPPFLAGS+=-DJSON_C="$(JSON_C)"
 
 # Compile library source code
-$(LIB_A_OBJS): %.o: %.cpp
-	$Q$(Q_LCC)$(CXX) -c $(CPPFLAGS) $(CPPFLAGS_$@) $< -o $@
-	$(call D_INC,$($@_INC))
 $(LIB_OBJS): %.o: %.cpp
 	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $< -o $@
 
 # Depened shared library objects on the static library to ensure build
 $(eval $(foreach obj,$(LIB_OBJS), $(call depend,.libs/$(obj),$(obj))))
 
-$(LIB_NAME).a: $(LIB_OBJS) $(LIB_A_OBJS)
-	$(Q_AR)$(AR) rcs $@ $^
-	$(RL) $@
+$(LIB_NAME).a: $(LIB_OBJS)
+	$(LLA)
 $(LIB_NAME_SO): $(foreach obj,$(LIB_OBJS),.libs/$(obj))
 
 # pmc tool
@@ -797,7 +780,7 @@ ifdef SONAME_USE_MAJ
 else
 	$Q$(NINST) -D $(LIB_NAME)*.so -t $(DESTDIR)$(LIBDIR)
 endif
-	$(NINST) $(LIB_NAME).a $(DESTDIR)$(LIBDIR)
+	$(NINST) $(LIB_NAME)*.a $(DESTDIR)$(LIBDIR)
 	$(NINST) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
 	$(foreach f,$(HEADERS_INST),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
