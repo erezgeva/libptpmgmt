@@ -725,9 +725,18 @@ deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
+ifneq ($(call which,git),)
+INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
+endif
+ifeq ($(INSIDE_GIT),)
 SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  php/*.sh swig/*/* */*.i *.8) phc_ctl LICENSE $(HEADERS_SRCS) $(SRCS)\
-  $(wordlist 1,2,$(MAKEFILE_LIST))
+  php/*.sh swig/*.md swig/*/* */*.i *.8 LICENSES/* .reuse/*) phc_ctl\
+  LICENSE $(HEADERS_SRCS) $(SRCS) $(wordlist 1,2,$(MAKEFILE_LIST))
+else
+SRC_FILES!=git ls-files | egrep -v '(^(archlinux|debian|rpm|sample)/|.gitignore)'
+endif
+# To compare manual source list to git based:
+# $(foreach n,$(SRC_FILES),$(info $n))
 SRC_NAME:=libptpmgmt-$(LIB_VER)
 
 ####### RPM build #######
