@@ -714,11 +714,11 @@ DEB_ALL_CLEAN=$(PMC_NAME) $(wildcard *.so */*.so */*/*.so) json.o
 deb_src: distclean
 	$(Q)dpkg-source -b .
 deb:
-	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -uc
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b --no-sign
 	$(RM) $(DEB_ALL_CLEAN)
 ifneq ($(DEB_ARC),)
 deb_arc:
-	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b -uc -a$(DEB_ARC)
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -B --no-sign -a$(DEB_ARC)
 	$(RM) $(DEB_ALL_CLEAN)
 endif
 deb_clean:

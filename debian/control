@@ -3,13 +3,13 @@ Maintainer: Erez Geva <ErezGeva2@gmail.com>
 Section: net
 Priority: optional
 Standards-Version: 4.1.4
-Build-Depends: debhelper (>= 9), dh-exec (>=0.3)
-Build-Depends-Arch: dh-python, dh-lua, dh-php, libtool, coreutils,
-		    swig (>=3.0), perl:native, lua5.2, liblua5.1-0-dev,
+Build-Depends: debhelper (>= 9), dh-exec (>=0.3), coreutils, dh-python,
+               dh-lua, dh-php, swig (>=3.0), libtool
+Build-Depends-Arch: perl:native, lua5.2, liblua5.1-0-dev,
 		    liblua5.2-dev, liblua5.3-dev, ruby:native, ruby-dev,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev,
 		    libfastjson-dev
-Build-Depends-Indep: graphviz, doxygen
+Build-Depends-Indep: graphviz, doxygen, libtool-bin
 Homepage: https://github.com/erezgeva/libptpmgmt
 
 Package: libptpmgmt
