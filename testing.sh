@@ -9,30 +9,35 @@
 ###############################################################################
 main()
 {
- local file i opt n cmds
+ local file i opt n cmds use_asan
  # Default values
  local -r def_ifName=enp0s25
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
  local -r def_linuxptpLoc=../linuxptp
+ # environment variables
+ local -A envVals
+ envVals['ifName']='PTP_IF_NAME'
+ envVals['cfgFile']='PTP_CFG_FILE'
+ envVals['linuxptpLoc']='PTP_PATH'
  ##############################################################################
- while getopts 'i:c:l:' opt; do
+ while getopts 'i:c:l:a' opt; do
    case $opt in
-     i)
-       # Script does not use value!
-       # Only need to run ptp4l
-       local -r ifName="$OPTARG"
-       ;;
-     c)
-       local -r cfgFile="$OPTARG"
-       ;;
-     l)
-       local -r linuxptpLoc="$OPTARG"
-       ;;
+     i) local -r ifName="$OPTARG" ;;
+     c) local -r cfgFile="$OPTARG" ;;
+     l) local -r linuxptpLoc="$OPTARG" ;;
+     a) use_asan=true ;;
    esac
  done
  for n in ifName cfgFile linuxptpLoc; do
    local -n var=$n
-   [[ -n "$var" ]] || eval "local -r $n=\"\$def_$n\""
+   if [[ -z "$var" ]]; then
+     local -n env="${envVals["$n"]}"
+     if [[ -n "$env" ]]; then
+       eval "local -r $n='$env'"
+     else
+       eval "local -r $n=\"\$def_$n\""
+     fi
+   fi
  done
  ##############################################################################
  if ! [[ -f "$cfgFile" ]]; then
@@ -90,7 +95,7 @@ main()
  local -r ldPathBase='LD_LIBRARY_PATH=.'
  local -r ldPath="${ldPathBase}."
  local ldPathPerl ldPathRuby ldPathLua ldPathPython2 ldPathPython3\
-       ldPathPhp ldPathTcl ldPathJson needCmp
+       ldPathPhp ldPathTcl ldPathJson needCmpl
  # Lua 5.4 need lua-posix version 35
  local -r luaVersions='1 2 3'
  local -r pyVersions='2 3'
@@ -98,7 +103,7 @@ main()
  if [[ -f "$file" ]]; then
    probeLibs
  else
-   needCmp=y
+   needCmpl=y
    # We need all!
    ldPathPerl="$ldPath"
    ldPathRuby="$ldPath RUBYLIB=."
@@ -116,12 +121,29 @@ main()
    local -r pmclibtool=$instPmcLib
  else
    local -r pmclibtool=./pmc
-   needCmp=y
+   needCmpl=y
  fi
  ##############################################################################
- if [[ -n "$needCmp" ]]; then
+ if [[ -n "$needCmpl" ]]; then
    printf " * build libptpmgmt\n"
-   time make -j
+   if [[ -n "$use_asan" ]]; then
+     ASAN_OPTIONS='verbosity=1:strict_string_checks=1'
+     ASAN_OPTIONS+=':detect_stack_use_after_return=1'
+     ASAN_OPTIONS+=':check_initialization_order=1:strict_init_order=1'
+     ASAN_OPTIONS+=':detect_invalid_pointer_pairs=2'
+     export ASAN_OPTIONS
+     time make -j USE_ASAN=1
+   else
+     use_asan=false
+     time make -j
+   fi
+ else
+   use_asan=false
+ fi
+ if ! $use_asan && [[ -n "$(which valgrind)" ]]; then
+   local use_valgrind=true
+ else
+   local use_valgrind=false
  fi
  if [[ -z "$(pgrep ptp4l)" ]]; then
    printf "\n * Run ptp daemon"
@@ -132,9 +154,15 @@ main()
    printf "\n\n"
    return
  fi
- ##############################################################################
- # compare linuxptp-pmc with libptpmgmt-pmc dump
- local -r t1=$(mktemp linuxptp.XXXXXXXXXX) t2=$(mktemp libptpmgmt.tool.XXXXXXXXXX)
+ compare_pmc
+ ! $use_asan || return
+ test_scripts
+ test_json
+ test_phc_ctl
+}
+###############################################################################
+compare_pmc()
+{ # compare linuxptp-pmc with libptpmgmt-pmc dump
  # all TLVs that are supported by linuxptp ptp4l
  local -r tlvs='ANNOUNCE_RECEIPT_TIMEOUT CLOCK_ACCURACY CLOCK_DESCRIPTION
    CURRENT_DATA_SET DEFAULT_DATA_SET DELAY_MECHANISM DOMAIN
@@ -151,38 +179,49 @@ n='ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
  local -r verify="get PRIORITY2"
  for n in $tlvs; do cmds+=" \"get $n\"";done
 
- printf "\n * Create $t1 with running linuxptp pmc\n"
- eval "$pmctool $runOptions \"$setmsg\"" > $t1
- eval "$pmctool $runOptions \"$verify\"" >> $t1
- time eval "$pmctool $runOptions $cmds" | grep -v ^sending: >> $t1
+ if $use_asan; then
+   printf "\n * Run libptpmgmt pmc with AddressSanitizer\n"
+   eval "$useSudo$pmclibtool $runOptions $cmds"
+   return
+ fi
+
+ printf "\n * Create output with linuxptp pmc\n"
+ local pmcOut=$(eval "$pmctool $runOptions \"$setmsg\"")
+ pmcOut+="\n"
+ pmcOut+=$(eval "$pmctool $runOptions \"$verify\"")
+ pmcOut+="\n"
+ pmcOut+=$(time eval "$pmctool $runOptions $cmds" | grep -v ^sending:)
 
  # real  0m0.113s
  # user  0m0.009s
  # sys   0m0.002s
 
- printf "\n * Create $t2 with running libptpmgmt\n"
- eval "$useSudo$pmclibtool $runOptions \"$setmsg\"" > $t2
- eval "$useSudo$pmclibtool $runOptions \"$verify\"" >> $t2
- time eval "$useSudo$pmclibtool $runOptions $cmds" | grep -v ^sending: >> $t2
+ printf "\n * Create output with libptpmgmt\n"
+ local libptpOut=$(eval "$useSudo$pmclibtool $runOptions \"$setmsg\"")
+ libptpOut+="\n"
+ libptpOut+=$(eval "$useSudo$pmclibtool $runOptions \"$verify\"")
+ libptpOut+="\n"
+ libptpOut+=$(time eval "$useSudo$pmclibtool $runOptions $cmds" |\
+   grep -v ^sending:)
 
- # real  0m0.019s
- # user  0m0.004s
- # sys   0m0.011s
+ # real  0m0.003s
+ # user  0m0.001s
+ # sys   0m0.004s
 
  printf "\n * We expect 'protocolAddress' and 'timeSource' difference\n%s\n\n"\
           " * Statistics may apprear"
- cmd diff $t1 $t2 | grep '^[0-9-]' -v
- rm $t1 $t2
+ diff <(printf "$pmcOut") <(printf "$libptpOut") | grep '^[0-9-]' -v
 
- if [[ -n "$(which valgrind)" ]]; then
+ if $use_valgrind; then
    printf "\n * Valgrid test"
    $useSudo valgrind --read-inline-info=yes $pmclibtool $runOptions $cmds |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
-
- ##############################################################################
- # Test script languages wrappers
- local -r t3=$(mktemp script.XXXXXXXXXX)
+}
+###############################################################################
+test_scripts()
+{ # Test script languages wrappers
+ local perlOut
  # Expected output of testing scripts
  local -r scriptOut=\
 "Use configuration file $cfgFile
@@ -202,33 +241,35 @@ Get reply for PRIORITY1
 priority1: 153
 maskEvent(NOTIFY_TIME_SYNC)=2, getEvent(NOTIFY_TIME_SYNC)=have
 maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
+Events size 1, seq[0]=1, ts[0]=4.500000000
 "
  enter perl
  printf "\n * We except real 'user desc' on '>'\n"
- diff <(printf "$scriptOut") $t3 | grep '^[0-9-]' -v
+ diff <(printf "$scriptOut") <(printf "$perlOut\n") | grep '^[0-9-]' -v
  enter ruby
  enter lua
  enter python
  enter php
  enter tcl
- rm $t3
- printf "\n =====  Test JSON  ===== \n\n"
- eval "$ldPathJson $useSudo./testJson.pl | jsonlint"
- if [[ -n "$(which valgrind)" ]]; then
-   printf "\n * Valgrid test of testJson.pl"
-   eval "$ldPathJson $useSudo valgrind --read-inline-info=yes ./testJson.pl" |&\
-     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
- fi
- do_phc_ctl
 }
-###############################################################################
 do_perl()
 {
- time eval "$ldPathPerl $useSudo./test.pl $runOptions" > ../$t3
+ perlOut="$(time eval "$ldPathPerl $useSudo./test.pl $runOptions")"
+}
+test_json()
+{ # Use perl
+ printf "\n =====  Test JSON  ===== \n\n"
+ eval "$ldPathJson $useSudo./testJson.pl | jsonlint"
+ if $use_valgrind; then
+   printf "\n * Valgrid test of testJson.pl"
+   eval "$ldPathJson $useSudo valgrind --read-inline-info=yes\
+     ./testJson.pl" |& sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+ fi
 }
 do_ruby()
 {
- time eval "$ldPathRuby $useSudo./test.rb $runOptions" | diff - ../$t3
+ time eval "$ldPathRuby $useSudo./test.rb $runOptions" |\
+   diff - <(printf "$perlOut\n")
 }
 do_lua()
 {
@@ -239,7 +280,8 @@ do_lua()
    else
      rm -f ptpmgmt.so
    fi
-   time eval "$ldPathLua $useSudo lua5.$i ./test.lua $runOptions" | diff - ../$t3
+   time eval "$ldPathLua $useSudo lua5.$i ./test.lua $runOptions" |\
+     diff - <(printf "$perlOut\n")
  done
 }
 do_python()
@@ -260,12 +302,12 @@ do_python()
    printf "\n $(readlink $(command -v python$i)) ---- \n"
    # First compile the python script, so we measure only runing
    eval "$need $useSudo python$i ./test.py $runOptions" > /dev/null
-   time eval "$need $useSudo python$i ./test.py $runOptions" | diff - ../$t3
+   time eval "$need $useSudo python$i ./test.py $runOptions" |\
+     diff - <(printf "$perlOut\n")
  done
 }
-do_phc_ctl()
-{
- # Use python3
+test_phc_ctl()
+{ # Use python3
  printf "\n =====  Test phc_ctl  ===== \n\n"
  cd python
  if [[ -n "$ldPathPython3" ]]; then
@@ -279,15 +321,15 @@ do_phc_ctl()
  else
    rm -f _ptpmgmt.so
  fi
- local run="$sudo $ldPathPython3 PYTHONPATH=. ../phc_ctl $def_ifName"
+ local run="$sudo $ldPathPython3 PYTHONPATH=. ../phc_ctl $ifName"
  run+=" freq 500000000 set 0 wait 4 adj 4 get"
  eval "$run"
  echo "End clock should be '10 = 4 * 150% + 4'"
- if [[ -n "$(which valgrind)" ]]; then
+ if $use_valgrind; then
    printf "\n * Valgrid test of phc_ctl"
    eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc PYTHONPATH=."\
      " valgrind --read-inline-info=yes"\
-     " ../phc_ctl $def_ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
+     " ../phc_ctl $ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
  cd ..
@@ -295,14 +337,16 @@ do_phc_ctl()
 do_php()
 {
  [[ -z "$ldPathPhp" ]] || ./php_ini.sh
- time eval "$ldPathPhp $useSudo./test.php $runOptions" | diff - ../$t3
+ time eval "$ldPathPhp $useSudo./test.php $runOptions" |\
+   diff - <(printf "$perlOut\n")
 }
 do_tcl()
 {
  if [[ -f ptpmgmt.so ]]; then
    sed -i 's#^package require.*#load ./ptpmgmt.so#' test.tcl
  fi
- time eval "$ldPathTcl $useSudo./test.tcl $runOptions" | diff - ../$t3
+ time eval "$ldPathTcl $useSudo./test.tcl $runOptions" |\
+   diff - <(printf "$perlOut\n")
  sed -i 's/^load .*/package require ptpmgmt/' test.tcl
 }
 enter()
@@ -312,15 +356,10 @@ enter()
  do_$1
  cd ..
 }
-cmd()
-{
- echo $@
- $@
-}
 getFirstFile()
 {
  local f
- for f in $@; do
+ for f in "$@"; do
    if [[ -f "$f" ]]; then
      file="$f"
      return
@@ -343,17 +382,18 @@ probeLibs()
    fi
    # One from JSON plugin is sufficient
    if [[ $jsonCount -eq 0 ]];  then
-     needCmp=y
+     needCmpl=y
      ldPathJson="$ldPathBase"
    fi
  else
-   needCmp=y
+   needCmpl=y
    ldPathPerl="$ldPath"
    ldPathJson="$ldPathBase"
  fi
- file="$(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
+ file="$(ruby -rrbconfig -e \
+   'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
-   needCmp=y
+   needCmpl=y
    ldPathRuby="$ldPath RUBYLIB=."
  fi
  for i in $luaVersions; do
@@ -361,7 +401,7 @@ probeLibs()
    if ! [[ -f "$file" ]]; then
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
-     needCmp=y
+     needCmpl=y
      ldPathLua="$ldPath"
    fi
  done
@@ -373,24 +413,24 @@ probeLibs()
    fi
  done
  # Python 2 is optional
- [[ -z "$needPython3" ]] || needCmp=y
+ [[ -z "$needPython3" ]] || needCmpl=y
  if ! [[ -f "$(php-config --extension-dir)/ptpmgmt.so" ]]; then
-   needCmp=y
+   needCmpl=y
    ldPathPhp="$ldPath PHPRC=."
  fi
  getFirstFile "/usr/lib/tcltk/*/ptpmgmt/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
-   needCmp=y
+   needCmpl=y
    ldPathTcl="$ldPath"
  fi
 }
 ###############################################################################
-main $@
+main "$@"
 
 manual()
 {
  # Test network layer sockets on real target
-net=enp7s0 ; pmc -i $net -f /etc/linuxptp/ptp4l.$net.conf "get CLOCK_DESCRIPTION"
+net=enp7s0;pmc -i $net -f /etc/linuxptp/ptp4l.$net.conf "get CLOCK_DESCRIPTION"
  # Using UDS
-net=enp7s0 ; pmc -u -f /etc/linuxptp/ptp4l.$net.conf "get CLOCK_DESCRIPTION"
+net=enp7s0;pmc -u -f /etc/linuxptp/ptp4l.$net.conf "get CLOCK_DESCRIPTION"
 }

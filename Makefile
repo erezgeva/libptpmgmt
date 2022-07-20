@@ -71,6 +71,8 @@ define help
 #                                                                              #
 #   CPPFLAGS_OPT     Compilation optimization, default for debug               #
 #                                                                              #
+#   USE_ASAN         Use the AddressSanitizer, for testing!                    #
+#                                                                              #
 #   TARGET_ARCH      Taget architectue, used for cross compilation.            #
 #                    On Amd and Intel 64 bits default is x86_64-linux-gnu      #
 #                                                                              #
@@ -161,7 +163,7 @@ endif # USE_COL
 
 # Terminal colors
 ifndef NO_COL
-ESC!=printf '\033['
+ESC!=printf '\e['
 COLOR_BLACK:=      $(ESC)30m
 COLOR_RED:=        $(ESC)31m
 COLOR_GREEN:=      $(ESC)32m
@@ -199,9 +201,18 @@ QE:=2>&1 >/dev/null | $(SED) 's@^$(TOP)@@'
 endif
 
 include version
+CPPFLAGS_MD=-MT $@ -MMD -MP -MF $*.d
+override CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_MD)
+ifeq ($(USE_ASAN),)
 CPPFLAGS_OPT?=-Og
-CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_OPT)
-CPPFLAGS+=-MT $@ -MMD -MP -MF $*.d
+override CPPFLAGS+=$(CPPFLAGS_OPT)
+else
+# Use https://github.com/google/sanitizers/wiki/AddressSanitizer
+ASAN_FLAGS:=$(addprefix -fsanitize=,address pointer-compare pointer-subtract\
+ undefined leak)
+override CPPFLAGS+=-Og $(ASAN_FLAGS) -fno-omit-frame-pointer
+override LDFLAGS+=$(ASAN_FLAGS)
+endif # USE_ASAN
 LIBTOOL_CC=$Q$(Q_LCC)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
 LIB_VER:=$(ver_maj).$(ver_min)
 VER_VAL!=printf '0x%.2x%.2x' $(ver_maj) $(ver_min)
@@ -219,7 +230,8 @@ PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
 JSON_FROM_OBJS:=$(patsubst %.cpp,%.o,$(wildcard jsonF*.cpp))
 LIB_OBJS:=$(filter-out $(JSON_FROM_OBJS) $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS)))
 PMC_NAME:=pmc
-ver.o: CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min) -DVER_VAL=$(VER_VAL)
+ver.o: override CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)\
+  -DVER_VAL=$(VER_VAL)
 D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $*.d
 LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) $(CPPFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RL) $@
@@ -232,7 +244,7 @@ else
 CPPFLAGS_COLOR:=-fdiagnostics-color=never
 endif
 endif # verCheck CXX 4.9
-CPPFLAGS+=$(CPPFLAGS_COLOR)
+override CPPFLAGS+=$(CPPFLAGS_COLOR)
 
 ALL:=$(PMC_NAME) $(LIB_NAME_SO) $(LIB_NAME).a
 
@@ -320,7 +332,7 @@ ALL+=$(FJSON_LIB) $(FJSON_LIBA)
 endif # NO_FCJSON
 
 # Add jsonFrom libraries to search
-jsonDef.o: CPPFLAGS+=-DJSON_C="$(JSON_C)"
+jsonDef.o: override CPPFLAGS+=-DJSON_C="$(JSON_C)"
 
 # Compile library source code
 $(LIB_OBJS): %.o: %.cpp
@@ -331,7 +343,7 @@ $(eval $(foreach obj,$(LIB_OBJS), $(call depend,.libs/$(obj),$(obj))))
 
 $(LIB_NAME).a: $(LIB_OBJS)
 	$(LLA)
-$(LIB_NAME_SO): $(foreach obj,$(LIB_OBJS),.libs/$(obj))
+$(LIB_NAME_SO): $(addprefix .libs/,$(LIB_OBJS))
 
 # pmc tool
 $(PMC_OBJS): %.o: %.cpp
@@ -448,7 +460,7 @@ $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_NAME).so
 CLEAN+=$(PERL_NAME).cpp
-DISTCLEAN+=$(foreach e,pm,$(PERL_NAME).$e)
+DISTCLEAN+=$(PERL_NAME).pm
 else # which perl
 NO_PERL=1
 endif
