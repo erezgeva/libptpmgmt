@@ -265,8 +265,9 @@ sk:close()
 
 --[[
 # If libptpmgmt library is not installed in system, run with:
-ln -sf 5.1/ptpmgmt.so && LD_LIBRARY_PATH=.. lua5.1 test.lua
-ln -sf 5.2/ptpmgmt.so && LD_LIBRARY_PATH=.. lua5.2 test.lua
-ln -sf 5.3/ptpmgmt.so && LD_LIBRARY_PATH=.. lua5.3 test.lua
+
+LD_LIBRARY_PATH=.. LUA_CPATH=";;./5.1/?.so" lua5.1 test.lua
+LD_LIBRARY_PATH=.. LUA_CPATH=";;./5.2/?.so" lua5.2 test.lua
+LD_LIBRARY_PATH=.. LUA_CPATH=";;./5.3/?.so" lua5.3 test.lua
 
 ]]

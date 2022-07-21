@@ -108,8 +108,8 @@ main()
    ldPathPerl="$ldPath"
    ldPathRuby="$ldPath RUBYLIB=."
    ldPathLua="$ldPath"
-   ldPathPython2="$ldPath"
-   ldPathPython3="$ldPath"
+   ldPathPython2="$ldPath PYTHONPATH=2"
+   ldPathPython3="$ldPath PYTHONPATH=3"
    ldPathPhp="$ldPath PHPRC=."
    ldPathTcl="$ldPath"
    ldPathJson="$ldPathBase"
@@ -275,63 +275,70 @@ do_lua()
 {
  for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
+   local ldLua=''
    if [[ -n "$ldPathLua" ]]; then
-     ln -sf 5.$i/ptpmgmt.so
-   else
-     rm -f ptpmgmt.so
+     ldLua="LUA_CPATH=\";;./5.$i/?.so\""
    fi
-   time eval "$ldPathLua $useSudo lua5.$i ./test.lua $runOptions" |\
+   time eval "$ldPathLua $ldLua $useSudo lua5.$i ./test.lua $runOptions" |\
      diff - <(printf "$perlOut\n")
  done
 }
 do_python()
 {
  for i in $pyVersions; do
-   # remove previous python compiling
-   rm -rf ptpmgmt.pyc __pycache__
    local -n need=ldPathPython$i
    if [[ -n "$need" ]]; then
-     if [[ -f $i/_ptpmgmt.so ]]; then
-       ln -sf $i/_ptpmgmt.so
+     [[ -f $i/_ptpmgmt.so ]] || continue
+     if [[ $i -eq 2 ]]; then
+       eval "$need pycompile ptpmgmt.py"
      else
-       continue
+       eval "$need py${i}compile ptpmgmt.py"
      fi
-   else
-     rm -f _ptpmgmt.so
+   elif [[ -z "$(which python$i )" ]]; then
+     continue
    fi
    printf "\n $(readlink $(command -v python$i)) ---- \n"
-   # First compile the python script, so we measure only runing
-   eval "$need $useSudo python$i ./test.py $runOptions" > /dev/null
    time eval "$need $useSudo python$i ./test.py $runOptions" |\
      diff - <(printf "$perlOut\n")
+   if [[ -n "$need" ]]; then
+     if [[ $i -eq 2 ]]; then
+       pyclean .
+     else
+       eval "py${i}clean ."
+     fi
+   fi
  done
 }
 test_phc_ctl()
 { # Use python3
  printf "\n =====  Test phc_ctl  ===== \n\n"
  cd python
+ # remove previous python compiling
+ rm -rf ptpmgmt.pyc __pycache__
  if [[ -n "$ldPathPython3" ]]; then
-   if [[ -f 3/_ptpmgmt.so ]]; then
-     ln -sf 3/_ptpmgmt.so
-   else
+   if ! [[ -f 3/_ptpmgmt.so ]]; then
      echo "Fail to find python3 library!!!"
      cd ..
      return
    fi
- else
-   rm -f _ptpmgmt.so
+   eval "$ldPathPython3 py3compile ptpmgmt.py"
+ elif [[ -z "$(which python3 )" ]]; then
+   echo "python3 is not installed on system!!!"
+   cd ..
+   return
  fi
- local run="$sudo $ldPathPython3 PYTHONPATH=. ../phc_ctl $ifName"
+ local run="$sudo $ldPathPython3:. ../phc_ctl $ifName"
  run+=" freq 500000000 set 0 wait 4 adj 4 get"
  eval "$run"
  echo "End clock should be '10 = 4 * 150% + 4'"
  if $use_valgrind; then
    printf "\n * Valgrid test of phc_ctl"
-   eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc PYTHONPATH=."\
+   eval "$sudo $ldPathPython3:. PYTHONMALLOC=malloc"\
      " valgrind --read-inline-info=yes"\
      " ../phc_ctl $ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
+ [[ -z "$ldPathPython3" ]] || py3clean .
  cd ..
 }
 do_php()
@@ -409,7 +416,7 @@ probeLibs()
    getFirstFile "/usr/lib/python$i*/dist-packages/_ptpmgmt.*$mach*.so"
    if ! [[ -f "$file" ]]; then
      local -n need=ldPathPython$i
-     need="$ldPath"
+     need="$ldPath PYTHONPATH=$i"
    fi
  done
  # Python 2 is optional
