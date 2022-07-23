@@ -67,7 +67,7 @@ function setPriority1(newPriority1)
   local pr1
   if(useBuild) then
     builder.pr = newPriority1
-    builder:buildtlv(ptpmgmt.SET, id)
+    builder:buildTlv(ptpmgmt.SET, id)
   else
     pr1 = ptpmgmt.PRIORITY1_t()
     pr1.priority1 = newPriority1
@@ -83,7 +83,9 @@ function setPriority1(newPriority1)
     print "send fail"
     return -1
   end
-  msg:clearData()
+  if(not useBuild) then
+    msg:clearData()
+  end
   if(not sk:poll(500)) then
     print "timeout"
     return -1

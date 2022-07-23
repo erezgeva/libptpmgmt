@@ -18,6 +18,7 @@
 #include <memory>
 #include "callDef.h"
 
+#ifndef SWIG
 namespace ptpmgmt
 {
 
@@ -59,6 +60,7 @@ class MessageDispatcher : public BaseMngDispatchCallback
      */
     virtual void noTlvCallBack(const Message &msg, const char *idStr) const {}
 };
+#endif /* SWIG */
 
 /**
  * @brief build TLV to send a PTP management message
@@ -68,8 +70,6 @@ class MessageDispatcher : public BaseMngDispatchCallback
  *       to ensure Message does not use the TLV.
  *       Do not call Message.build() after deleting this object.
  * @note Class allocate TLV object and store it,
- * @note Lua do @b NOT @/b support destructors for native classes.
- *       You should call Message.clearData() yourself.
  * @note buildTlv() has an implementation per script language.
  *       So, it can call virtual functions defined in the script language itself.
  */
@@ -106,6 +106,8 @@ class MessageBulder : public BaseMngBuildCallback
     bool buildTlv(actionField_e actionField, mng_vals_e tlv_id);
 };
 
+#ifndef SWIG
 }; /* namespace ptpmgmt */
+#endif
 
 #endif /* __PTPMGMT_MSG_CALL_H */

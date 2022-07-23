@@ -8,6 +8,10 @@
  * @copyright 2022 Erez Geva
  */
 
+%rename(MessageBulderBase) MessageBulder;
+%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) MessageBulder;
+%include "msgCall.h"
+
 %luacode %{
 ptpmgmt.MessageDispatcher = {}
 function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
@@ -46,15 +50,16 @@ function ptpmgmt.MessageDispatcher:new()
     return obj
 end
 
-ptpmgmt.MessageBulder = {}
-function ptpmgmt.MessageBulder:buildtlv(actionField, tlv_id)
+ptpmgmt.MessageBulder = { m_buildBase = 0, m_tlv = 0 }
+function ptpmgmt.MessageBulder:buildTlv(actionField, tlv_id)
     if(type(actionField) ~= 'number') then
         error('MessageBulder::buildTlv() actionField must be a number', 2)
     elseif(type(tlv_id) ~= 'number') then
         error('MessageBulder::buildTlv() tlv_id must be a number', 2)
     end
+    local msg = self.m_buildBase:getMsg()
     if(actionField == ptpmgmt.GET or ptpmgmt.Message.isEmpty(tlv_id)) then
-        return self.m_msg:setAction(actionField, tlv_id)
+        return msg:setAction(actionField, tlv_id)
     end
     local idstr = ptpmgmt.Message.mng2str_c(tlv_id)
     local tlv_pkg = idstr .. '_t'
@@ -63,8 +68,8 @@ function ptpmgmt.MessageBulder:buildtlv(actionField, tlv_id)
        type(ptpmgmt[tlv_pkg]) == "table") then
         local tlv = ptpmgmt[tlv_pkg]()
         if(tlv ~= nil and
-           getmetatable(self)[callback_name](self, self.m_msg, tlv) and
-           self.m_msg:setAction(actionField, tlv_id, tlv)) then
+           getmetatable(self)[callback_name](self, msg, tlv) and
+           msg:setAction(actionField, tlv_id, tlv)) then
             self.m_tlv = tlv
             return true
         end
@@ -72,10 +77,7 @@ function ptpmgmt.MessageBulder:buildtlv(actionField, tlv_id)
     return false
 end
 function ptpmgmt.MessageBulder:new(msg)
-    if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
-        error('MessageBulder::MessageBulder() msg must be a Message object', 2)
-    end
-    local obj = { m_msg = msg }
+    local obj = { m_buildBase = ptpmgmt.MessageBulderBase(msg) }
     setmetatable(obj, self)
     self.__index = self
     return obj
