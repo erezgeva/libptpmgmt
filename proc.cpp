@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief parse, buid or both function per PTP managmet id
+ * @brief Parse, buid or both function per PTP managmet id
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -18,8 +18,7 @@
 #include "msgProc.h"
 #include "msg.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * Constants for proc(Float64_t)
@@ -866,4 +865,4 @@ A(POWER_PROFILE_SETTINGS_NP)
 }
 #endif
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

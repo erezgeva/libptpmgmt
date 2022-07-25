@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief convert management messages to json
+ * @brief Convert management messages to json
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -17,8 +17,7 @@
 #include "err.h"
 #include "comp.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 #define JS(n) static inline bool proc_##n(JsonProc &proc, n##_t &d)
 #define PROC_VAL(name) proc.procValue(#name, d.name)
@@ -971,4 +970,4 @@ std::string msg2json(const Message &msg, int indent)
     return proc.m_result;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

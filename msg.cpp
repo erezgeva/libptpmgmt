@@ -18,8 +18,7 @@
 #include "timeCvrt.h"
 #include "comp.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 struct floor_t {
     int64_t intg;
@@ -1118,4 +1117,4 @@ bool PortAddress_t::less(const PortAddress_t &rhs) const
         rhs.addressField : networkProtocol < rhs.networkProtocol;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

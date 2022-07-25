@@ -16,22 +16,18 @@
 #ifndef __PTPMGMT_CFG_H
 #define __PTPMGMT_CFG_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <map>
 #include "bin.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 class ConfigFile;
 
-/**< @cond internal */
 #ifndef SWIG
+/**
+ * @cond internal
+ * Internal class
+ */
 class ConfigSection
 {
   protected:
@@ -51,7 +47,6 @@ class ConfigSection
         last_val,
     };
     /* new values must be add to ranges[] */
-    #ifndef SWIG
     struct range_t {
         const char *name;
         const char *defStr;
@@ -61,7 +56,6 @@ class ConfigSection
     };
     /* ranges and default value */
     static const range_t ranges[];
-    #endif
     /* String values */
     std::string m_str_vals[bin_base_val - str_base_val];
     /* Binaries values */
@@ -83,7 +77,7 @@ class ConfigSection
 /**< @endcond */
 
 /**
- * @brief hold configuration parameters
+ * @brief Hold configuration parameters
  * @details
  *  Stores provides and parses parameters
  *  from a configuration file for all sections
@@ -173,8 +167,6 @@ class ConfigFile
     const Binary &p2p_dst_mac(const std::string &section = "") const;
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_CFG_H */

@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief convert management messages to json
+ * @brief Convert management messages to json
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -17,8 +17,7 @@
 #include "err.h"
 #include "comp.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 // From JSON part
 static int Json2msgCount = 0; // Count how many objects exist
@@ -279,4 +278,4 @@ bool Json2msg::fromJsonObj(const void *jobj)
     return true;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
 
 /** @file
- * @brief messages dispatcher and builder classes
+ * @brief Messages dispatcher and builder classes
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva
@@ -11,19 +11,14 @@
 #ifndef __PTPMGMT_MSG_CALL_H
 #define __PTPMGMT_MSG_CALL_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <memory>
 #include "callDef.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
+#ifndef SWIG
 /**
- * @brief dispatch received PTP management message TLV
+ * @brief Dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
  * @note You must inherit this class to use it!
  * @note callHadler() has an implementation per script language.
@@ -63,7 +58,7 @@ class MessageDispatcher : public BaseMngDispatchCallback
 #endif /* SWIG */
 
 /**
- * @brief build TLV to send a PTP management message
+ * @brief Build TLV to send a PTP management message
  * @note You must inherit this class to use it!
  * @note As this class allocate a new TLV, and store it.
  *       It call Message.clearData() on destructor,
@@ -106,8 +101,6 @@ class MessageBulder : public BaseMngBuildCallback
     bool buildTlv(actionField_e actionField, mng_vals_e tlv_id);
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_MSG_CALL_H */

@@ -16,11 +16,10 @@
 %_
 %#include "msg.h"
 %_
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 %_
 %@**
- * @brief dispacher for management TLV
+ * @brief Dispacher for management TLV
  * @details
  *%- Call-backs used by the MessageDispatcher and the MessageBulder classes.
  * @note these classes are defined in @"msgCall.h@" header.
@@ -46,7 +45,7 @@ class BaseMngDispatchCallback
 };
 %_
 %@**
- * @brief builder for a management TLV
+ * @brief Builder for a management TLV
  * @details
  *%- Call-backs used by the MessageBulder class.
  * @note this class is defined in @"msgCall.h@" header.
@@ -76,6 +75,6 @@ class BaseMngBuildCallback
 #include "ids.h"
 };
 %_
-}; %@* namespace ptpmgmt *%@
+__PTPMGMT_NAMESPACE_END
 %_
 %#endif %@* __PTPMGMT_CALL_DEFS_H *%@

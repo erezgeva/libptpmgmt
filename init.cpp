@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief init a pmc application
+ * @brief Init a pmc application
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -13,8 +13,7 @@
 #include "err.h"
 #include "comp.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 void Init::close()
 {
@@ -165,4 +164,4 @@ int Init::proccess(const Options &opt)
     return 0;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

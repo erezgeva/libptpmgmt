@@ -13,8 +13,7 @@
 #include "cfg.h"
 #include "comp.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 #define get_func(n)\
     uint8_t ConfigFile::n(const std::string &section) const\
@@ -215,4 +214,4 @@ get_str_func(uds_address)
 get_bin_func(ptp_dst_mac)
 get_bin_func(p2p_dst_mac)
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief provide sockets to communicate with a PTP daemon
+ * @brief Provide sockets to communicate with a PTP daemon
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -19,10 +19,6 @@
 #ifndef __PTPMGMT_SOCK_H
 #define __PTPMGMT_SOCK_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <linux/if_packet.h>
@@ -31,13 +27,10 @@
 #include "bin.h"
 #include "buf.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
- * @brief base class for all sockets
+ * @brief Base class for all sockets
  * @details
  *  provide functions that are supported by all socket's classes
  */
@@ -136,8 +129,8 @@ class SockBase
      *  If you want to close the socket use the close function @b ONLY.
      */
     int fileno() const { return m_fd; }
-    #ifdef SWIG_THREAD_START
-    SWIG_THREAD_START;
+    #ifdef __PTPMGMT_SWIG_THREAD_START
+    __PTPMGMT_SWIG_THREAD_START;
     #endif
     /**
      * Single socket polling
@@ -172,8 +165,8 @@ class SockBase
      *  In this case, user may prefer native Python select module.
      */
     bool tpoll(uint64_t &timeout_ms) const; /* poll with timeout update */
-    #ifdef SWIG_THREAD_END
-    SWIG_THREAD_END;
+    #ifdef __PTPMGMT_SWIG_THREAD_END
+    __PTPMGMT_SWIG_THREAD_END;
     #endif
 };
 
@@ -364,7 +357,7 @@ class SockUnix : public SockBase
 };
 
 /**
- * @brief base for socket that uses network interface directly
+ * @brief Base for socket that uses network interface directly
  * @details
  *  provide functions to set network interface for UDP and Raw sockets.
  */
@@ -444,7 +437,7 @@ class SockBaseIf : public SockBase
 };
 
 /**
- * @brief base for UDP sockets
+ * @brief Base for UDP sockets
  * @details
  *  provide functions to set IP TTL, send and receive functions
  *  for UDP sockets
@@ -640,8 +633,6 @@ class SockRaw : public SockBaseIf
     bool setSocketPriority(const ConfigFile &cfg, const std::string &section = "");
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_SOCK_H */

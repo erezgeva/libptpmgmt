@@ -2,7 +2,7 @@
  %- SPDX-FileCopyrightText: Copyright 2022 Erez Geva *%@
 %_
 %@** @file
- * @brief standard vector container classes
+ * @brief Standard vector container classes
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva
@@ -27,8 +27,7 @@
 %#include "proc.h"
 %#include "sig.h"
 %_
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 %_
 #define vecClass(n, T) \
 %@**%^\
@@ -174,13 +173,6 @@ vecClassSig(Comp, SLAVE_RX_SYNC_COMPUTED_DATA)
 vecClassSig(Event, SLAVE_TX_EVENT_TIMESTAMPS)
 vecClassSig(Delay, SLAVE_DELAY_TIMING_DATA_NP)
 %_
-}; %@* namespace ptpmgmt *%@
+__PTPMGMT_NAMESPACE_END
 %_
 %#endif %@* __PTPMGMT_VEC_DEF_H *%@
-
-
-
-
-
-max_size
-

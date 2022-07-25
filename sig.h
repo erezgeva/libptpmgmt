@@ -12,18 +12,11 @@
 #ifndef __PTPMGMT_SIG_H
 #define __PTPMGMT_SIG_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <vector>
 #include <memory>
 #include "types.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 #ifndef SWIG
 /** MANAGEMENT TLV
@@ -34,7 +27,7 @@ struct MANAGEMENT_t : public BaseSigTlv {
     mng_vals_e managementId; /**< Management TLV id */
     std::unique_ptr<BaseMngTlv> tlvData; /**< Management TLV data */
 };
-#endif/* SWIG */
+#endif /* SWIG */
 /** MANAGEMENT_ERROR_STATUS TLV
  * @note: used for error management TLV in a signaling message
  *  management message do not use this structure!
@@ -261,8 +254,6 @@ struct SLAVE_DELAY_TIMING_DATA_NP_t : public BaseSigTlv {
     std::vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t> list;
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_SIG_H */

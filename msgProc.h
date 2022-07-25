@@ -11,15 +11,10 @@
 #ifndef __PTPMGMT_MSG_DEF_H
 #define __PTPMGMT_MSG_DEF_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include "proc.h" /* Structures for management TLVs */
 #include "sig.h" /* Structures for signaling TLVs */
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * @brief Handle PTP management message
@@ -116,6 +111,6 @@ struct MsgProc {
     template <typename T> bool vector_o(std::vector<T> &vec);
 };
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_MSG_DEF_H */

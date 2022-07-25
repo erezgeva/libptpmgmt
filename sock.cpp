@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief use unix socket to communicate with ptp4l
+ * @brief Use unix socket to communicate with ptp4l
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -20,8 +20,8 @@
 #include "err.h"
 #include "sock.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
+
 // Values from IEEE 1588 standard
 const uint16_t udp_port = 320;
 const char *ipv4_udp_mc = "224.0.1.129";
@@ -660,4 +660,4 @@ bool SockRaw::setAllBase(const ConfigFile &cfg, const std::string &section)
     return setPtpDstMac(cfg, section) && setSocketPriority(cfg, section);
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

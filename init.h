@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief init a pmc application
+ * @brief Init a pmc application
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,20 +12,13 @@
 #ifndef __PTPMGMT_INIT_H
 #define __PTPMGMT_INIT_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <memory>
 #include "msg.h"
 #include "ptp.h"
 #include "opt.h"
 #include "sock.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * Initilize configuration file, socket, message based on PMC options.
@@ -78,8 +71,6 @@ class Init
     bool use_uds() const { return m_use_uds; }
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_INIT_H */

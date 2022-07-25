@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief types, enumerators, and structers used by PTP management messages
+ * @brief Types, enumerators, and structers used by PTP management messages
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,18 +12,11 @@
 #ifndef __PTPMGMT_TYPES_H
 #define __PTPMGMT_TYPES_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <map>
 #include "bin.h"
 #include "mngIds.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 #ifndef INT48_MIN
 /** Minimum value for signed integer 48 bits */
@@ -331,13 +324,11 @@ struct Timestamp_t {
      * @return string
      */
     std::string string() const;
-    #ifndef SWIG
     /**
      * Convert to string of seconds with fractions
      * @note scripts can use the string() method
      */
     operator std::string() const { return string(); }
-    #endif
     /**
      * Default constructor
      */
@@ -355,7 +346,7 @@ struct Timestamp_t {
      */
     Timestamp_t(int64_t secs, uint32_t nsecs) : secondsField(secs),
         nanosecondsField(nsecs) {}
-    #ifndef SWIG
+    #ifndef SWIG /* standard C++ structures converting */
     /**
      * Convert from timespec
      * @param[in] ts timespec structure
@@ -388,15 +379,19 @@ struct Timestamp_t {
     /**
      * Convert to timespec
      * @note scripts should not use the timeval structure
+     * @note Trunc nanosecods to microseconds
+     *       Could result zero microseconds from a small nanosecods value
      */
     operator timeval() const { timeval tv; toTimeval(tv); return tv; }
     /**
      * Convert to timeval
      * @param[in, out] tv timeval structure
      * @note scripts should not use the timeval structure
+     * @note Trunc nanosecods to microseconds
+     *       Could result zero microseconds from a small nanosecods value
      */
     void toTimeval(timeval &tv) const;
-    #endif /*SWIG*/
+    #endif /* SWIG */
     /**
      * Convert from seconds with fractions
      * @param[in] seconds with fractions
@@ -407,13 +402,11 @@ struct Timestamp_t {
      * @param[in] seconds with fractions
      */
     void fromFloat(long double seconds);
-    #ifndef SWIG
     /**
      * Convert to seconds with fractions
      * @note scripts can use the toFloat() method
      */
     operator long double() const { return toFloat(); }
-    #endif
     /**
      * Convert to seconds with fractions
      * @return seconds with fractions
@@ -492,14 +485,12 @@ struct Timestamp_t {
      * @return reference to itself
      */
     Timestamp_t &operator+(const Timestamp_t &ts) { return add(ts); }
-    #ifndef SWIG
     /**
      * Add another clock time
      * @param[in] ts another clock time
      * @return reference to itself
      */
     Timestamp_t &operator+=(const Timestamp_t &ts) { return add(ts); }
-    #endif /*SWIG*/
     /**
      * Add another clock time
      * @param[in] ts another clock time
@@ -512,14 +503,12 @@ struct Timestamp_t {
      * @return reference to itself
      */
     Timestamp_t &operator+(long double seconds) { return add(seconds); }
-    #ifndef SWIG
     /**
      * Add a seconds with fractions
      * @param[in] seconds
      * @return reference to itself
      */
     Timestamp_t &operator+=(long double seconds) { return add(seconds); }
-    #endif /*SWIG*/
     /**
      * Add a seconds with fractions
      * @param[in] seconds
@@ -532,14 +521,12 @@ struct Timestamp_t {
      * @return reference to itself
      */
     Timestamp_t &operator-(const Timestamp_t &ts) { return subt(ts); }
-    #ifndef SWIG
     /**
      * Subtract another clock time
      * @param[in] ts another clock time
      * @return reference to itself
      */
     Timestamp_t &operator-=(const Timestamp_t &ts) { return subt(ts); }
-    #endif /*SWIG*/
     /**
      * Subtract another clock time
      * @param[in] ts another clock time
@@ -552,14 +539,12 @@ struct Timestamp_t {
      * @return reference to itself
      */
     Timestamp_t &operator-(long double seconds) { return add(-seconds); }
-    #ifndef SWIG
     /**
      * Subtract seconds with fractions
      * @param[in] seconds
      * @return reference to itself
      */
     Timestamp_t &operator-=(long double seconds) { return add(-seconds); }
-    #endif /*SWIG*/
     /**
      * Subtract seconds with fractions
      * @param[in] seconds
@@ -839,8 +824,6 @@ struct LinuxptpUnicastMaster_t {
     }
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_TYPES_H */

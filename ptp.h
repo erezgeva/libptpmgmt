@@ -15,20 +15,13 @@
 #ifndef __PTPMGMT_IF_H
 #define __PTPMGMT_IF_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <vector>
 #include <net/if.h>
 #include <linux/ethtool.h>
 #include "bin.h"
 #include "types.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 /* The macro might be used, we prefer C++ const */
 #ifndef CLOCK_INVALID
@@ -490,8 +483,6 @@ class PtpClock : public BaseClock
     bool preciseSamplePtpSys(PtpSamplePrecise_t &sample) const;
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_IF_H */

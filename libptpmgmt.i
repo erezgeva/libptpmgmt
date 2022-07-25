@@ -26,11 +26,18 @@
     using namespace ptpmgmt;
 %}
 
-/* Handle multithreads support */
+/* prevent C++ namespace in swig */
+#define __PTPMGMT_NAMESPACE_BEGIN
+#define __PTPMGMT_NAMESPACE_END
+/* Handle multithreads support. */
 #ifdef SWIG_USE_MULTITHREADS
 %nothread;
-#define SWIG_THREAD_START %thread
-#define SWIG_THREAD_END %nothread
+/* Mark functions,
+ * that are allowed to block when using multithreads.
+ * The other threads would not be blocked when using these functions.
+ */
+#define __PTPMGMT_SWIG_THREAD_START %thread
+#define __PTPMGMT_SWIG_THREAD_END %nothread
 #endif
 
 /* Include standatd types and SWIG macroes
@@ -57,13 +64,39 @@
  *  for the specific ignores and renames.
  * Each ignored operator overlaod have an alternative function
  * Warn codes defined in: swig/Source/Include/swigwarn.h
- *   SWIGWARN_PARSE_KEYWORD          314
- *   SWIGWARN_TYPE_UNDEFINED_CLASS   401
- *   SWIGWARN_IGNORE_OPERATOR_PLUSEQ 365
- *   SWIGWARN_LANG_IDENTIFIER        503
- *   SWIGWARN_LANG_OVERLOAD_SHADOW   509
- *   SWIGWARN_RUBY_WRONG_NAME        801
+ *   SWIGWARN_PARSE_KEYWORD           314
+ *   SWIGWARN_TYPE_UNDEFINED_CLASS    401
+ *   SWIGWARN_PARSE_BUILTIN_NAME      321
+ *   SWIGWARN_IGNORE_OPERATOR_EQ      362
+ *   SWIGWARN_IGNORE_OPERATOR_PLUSEQ  365
+ *   SWIGWARN_IGNORE_OPERATOR_MINUSEQ 366
+ *   SWIGWARN_LANG_IDENTIFIER         503
+ *   SWIGWARN_LANG_OVERLOAD_SHADOW    509
+ *   SWIGWARN_RUBY_WRONG_NAME         801
  ************************************************************************/
+/*********
+ * Geberic
+ *********/
+/* Casting to string ignored.
+ * Scripts can use Timestamp_t::toFloat() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator std::string;
+/* Casting to double ignored.
+ * Scripts can use Timestamp_t::string() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator long double;
+/*********
+ * Perl
+ *********/
+#ifdef SWIGPERL
+#define SWIG_OPERS_IGNORE_OPERATOR
+#endif /* SWIGPERL */
+/*********
+ * Python
+ *********/
+#ifdef SWIGPYTHON
+/* internal structure */
+%warnfilter(SWIGWARN_PARSE_BUILTIN_NAME) Message::sigTlv::set;
+#define SWIG_OPERS_IGNORE_OPERATOR
+#endif /* SWIGPYTHON */
 /*********
  * Ruby
  *********/
@@ -72,9 +105,8 @@
  * Ruby capitalize first letter! */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) clockType_e;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) implementSpecific_e;
-/* Operator overload ignored.
- * Scripts can use Binary::append() */
-%warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSEQ) Binary::operator+=;
+#define SWIG_OPERS_OPERATOR_PLUSEQ
+#define SWIG_OPERS_IGNORE_OPERATOR
 #endif /* SWIGRUBY */
 /*********
  * PHP
@@ -95,15 +127,21 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 /* Operator overload ignored.
  * Scripts can use Binary::append() */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator+=;
+/* PHP use the copy constructor :-) */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator=;
+/* Operator overload ignored.
+ * Scripts can use Timestamp_t::add() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator+=;
+/* Operator overload ignored.
+ * Scripts can use Timestamp_t::subt() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-=;
 #define SWIG_OPERS_LANG_IDENTIFIER
 #endif /* SWIGPHP */
 /*********
  * Tcl
  *********/
 #ifdef SWIGTCL
-/* Operator overload ignored.
- * Scripts can use Binary::append() */
-%warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSEQ) Binary::operator+=;
+#define SWIG_OPERS_OPERATOR_PLUSEQ
 #define SWIG_OPERS_LANG_IDENTIFIER
 #endif /* SWIGTCL */
 /*****
@@ -134,6 +172,29 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
  * Scripts can use class subt() method */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-;
 #endif /* SWIG_OPERS_LANG_IDENTIFIER */
+/*********
+ * Tcl and Ruby ignore operator plus equal
+ *********/
+#ifdef SWIG_OPERS_OPERATOR_PLUSEQ
+/* Operator overload ignored.
+ * Scripts can use Binary::append() */
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSEQ) Binary::operator+=;
+/* Operator overload ignored.
+ * Scripts can use Timestamp_t::add() */
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSEQ) Timestamp_t::operator+=;
+/* Operator overload ignored.
+ * Scripts can use Timestamp_t::subt() */
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_MINUSEQ) Timestamp_t::operator-=;
+#endif /* SWIG_OPERS_OPERATOR_PLUSEQ */
+/*********
+ * Perl, python and Ruby ignore operator equal
+ *********/
+#ifdef SWIG_OPERS_IGNORE_OPERATOR
+/* Use the copy constructor :-) */
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Binary::operator=;
+/* internal structure */
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Message::sigTlv::operator=;
+#endif /* SWIG_OPERS_IGNORE_OPERATOR */
 
 /* library code */
 %include "cfg.h"

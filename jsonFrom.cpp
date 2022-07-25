@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief library to parse JSON
+ * @brief Library to parse JSON
  *
  * The library depends on c-json or fastjason libraries
  * And uses the libptpm library!

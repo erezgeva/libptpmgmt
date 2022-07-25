@@ -2,7 +2,7 @@
  %- SPDX-FileCopyrightText: Copyright 2022 Erez Geva *%@
 %_
 %@** @file
- * @brief conversions functions
+ * @brief Conversions functions
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva
@@ -20,8 +20,7 @@
 %#include "proc.h"
 %#include "sig.h"
 %_
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 %_
 #define _ptpmCaseUF(n) \
 %@**%^\
@@ -61,6 +60,6 @@ S(SLAVE_TX_EVENT_TIMESTAMPS)
 S(CUMULATIVE_RATE_RATIO)
 S(SLAVE_DELAY_TIMING_DATA_NP)
 %_
-}; %@* namespace ptpmgmt *%@
+__PTPMGMT_NAMESPACE_END
 %_
 %#endif %@* __PTPMGMT_CONVERT_FUNCTIONS_H *%@

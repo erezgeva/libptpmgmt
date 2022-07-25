@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief version functions
+ * @brief Version functions
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,10 +12,9 @@
 #ifndef __PTPMGMT_VER_H
 #define __PTPMGMT_VER_H
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+#include "name.h"
+
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * Get this library version
@@ -39,8 +38,6 @@ int getVersionMinor();
  */
 unsigned getVersionValue();
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_VER_H */

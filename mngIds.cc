@@ -2,7 +2,7 @@
  %- SPDX-FileCopyrightText: Copyright 2021 Erez Geva *%@
 %_
 %@** @file
- * @brief management IDs enumerator
+ * @brief Management IDs enumerator
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -14,10 +14,9 @@
 %#ifndef __PTPMGMT_MNG_IDS_H
 %#define __PTPMGMT_MNG_IDS_H
 %_
-%#ifndef SWIG
-namespace ptpmgmt
-{
-%#endif
+%#include "name.h"
+%_
+__PTPMGMT_NAMESPACE_BEGIN
 %_
 %#undef DOMAIN %@* Old math.h header uses this macro *%@
 %_
@@ -34,8 +33,6 @@ enum mng_vals_e {
     NULL_MANAGEMENT = NULL_PTP_MANAGEMENT %@**< old name in IEEE 1588-2008 *%@
 };
 %_
-%#ifndef SWIG
-}; %@* namespace ptpmgmt *%@
-%#endif %@* SWIG *%@
+__PTPMGMT_NAMESPACE_END
 %_
 %#endif %@* __PTPMGMT_MNG_IDS_H *%@

@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief allocate buffer
+ * @brief Allocate buffer
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,8 +12,7 @@
 #include <arpa/inet.h>
 #include "bin.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 static const char *idsep = ":.-";
 class Token
@@ -178,4 +177,4 @@ std::string Binary::bufToHex(const uint8_t *bin, size_t len)
     return ret;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

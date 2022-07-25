@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief convert a management or a signaling message to JSON
+ * @brief Convert a management or a signaling message to JSON
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,16 +12,9 @@
 #ifndef __PTPMGMT_JSON_H
 #define __PTPMGMT_JSON_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include "msg.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * Convert Message to JSON string
@@ -217,8 +210,6 @@ class Json2msg
     bool haveDstPort() const { return m_have[have_dstPort]; }
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_JSON_H */

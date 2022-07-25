@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief buffer for send, receive, build, and parse
+ * @brief Buffer for send, receive, build, and parse
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,8 +12,7 @@
 #include <cstdlib>
 #include "buf.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 Buf::~Buf()
 {
@@ -34,4 +33,4 @@ bool Buf::alloc(size_t size)
     return true;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

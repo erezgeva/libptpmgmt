@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
 
 /** @file
- * @brief messages dispatcher and builder classes
+ * @brief Messages dispatcher and builder classes
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva
@@ -11,8 +11,7 @@
 #include "msgCall.h"
 #include "comp.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 void MessageDispatcher::callHadler(const Message &msg)
 {
@@ -70,4 +69,4 @@ bool MessageBulder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
     return m_msg.setAction(actionField, tlv_id, tlv);
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

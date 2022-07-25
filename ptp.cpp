@@ -22,8 +22,7 @@
 #include "comp.h"
 #include "timeCvrt.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 // These are system/hardware based parameters
 static bool fetchClockTicks = false;
@@ -577,4 +576,4 @@ bool PtpClock::preciseSamplePtpSys(PtpSamplePrecise_t &sample) const
     return true;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

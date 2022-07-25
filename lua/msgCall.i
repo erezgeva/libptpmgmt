@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
 
 /** @file
- * @brief messages dispatcher and builder classes
+ * @brief Messages dispatcher and builder classes
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva

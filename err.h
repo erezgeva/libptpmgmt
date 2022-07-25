@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief error log
+ * @brief Error log
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -11,11 +11,6 @@
 
 #ifndef __PTPMGMT_ERR_H
 #define __PTPMGMT_ERR_H
-
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 
 #ifndef PTPMGMT_ERROR
 /**

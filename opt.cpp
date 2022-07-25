@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief handle command line options
+ * @brief Handle command line options
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -13,8 +13,7 @@
 #include "opt.h"
 #include "ver.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 #define _tf true, false  // with argument
 #define _ff false, false // without argument
@@ -194,4 +193,4 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
     return OPT_DONE;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

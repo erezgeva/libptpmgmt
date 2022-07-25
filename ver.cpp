@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief version functions
+ * @brief Version functions
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,8 +12,7 @@
 #include "ver.h"
 #include "comp.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 // Version comes from 'version' file during build.
 #define VER_STR(a, b) stringify(a) "." stringify(b)
@@ -35,4 +34,4 @@ unsigned getVersionValue()
     return VER_VAL;
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

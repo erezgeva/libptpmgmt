@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief buffer for send, receive, build, and parse
+ * @brief Buffer for send, receive, build, and parse
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,15 +12,9 @@
 #ifndef __PTPMGMT_BUF_H
 #define __PTPMGMT_BUF_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
+#include "name.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * Create memory buffer for use in send, receive, build and parse
@@ -68,8 +62,6 @@ class Buf
     bool isAlloc() const {return m_size > 0;}
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_BUF_H */

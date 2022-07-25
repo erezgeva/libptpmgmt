@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief parse signaling TLVs
+ * @brief Parse signaling TLVs
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -11,8 +11,7 @@
 
 #include "msgProc.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 #define A(n) bool MsgProc::n##_f(n##_t &d)
 A(ORGANIZATION_EXTENSION)
@@ -103,4 +102,4 @@ bool MsgProc::proc(SLAVE_DELAY_TIMING_DATA_NP_rec_t &d)
         proc(d.totalCorrectionField) || proc(d.delayResponseTimestamp);
 }
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END

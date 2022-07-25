@@ -12,21 +12,15 @@
 #ifndef __PTPMGMT_BIN_H
 #define __PTPMGMT_BIN_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
+#include "name.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 const size_t EUI48 = 6; /**< 48 bits MAC address length */
 const size_t EUI64 = 8; /**< 64 bits MAC address length */
 
 /**
- * @brief hold octets
+ * @brief Hold octets
  * @note functions returning std::string for readable strings
  */
 class Binary
@@ -46,7 +40,6 @@ class Binary
      * @param[in] length
      */
     Binary(const void *buf, const size_t length) { setBin(buf, length); }
-    #ifndef SWIG
     /**
      * Assign octets using operator =
      * @param[in] rhs Binary to assign
@@ -56,7 +49,6 @@ class Binary
         m_str = rhs.m_str;
         return *this;
     }
-    #endif
     /**
      * Constructor buffer with fixed length
      * @param[in] length of buffer
@@ -283,8 +275,6 @@ class Binary
     }
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_BIN_H */

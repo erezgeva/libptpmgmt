@@ -12,17 +12,10 @@
 #ifndef __PTPMGMT_PROC_H
 #define __PTPMGMT_PROC_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <vector>
 #include "types.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 /** Clock description TLV */
 struct CLOCK_DESCRIPTION_t : public BaseMngTlv {
@@ -621,8 +614,6 @@ struct POWER_PROFILE_SETTINGS_NP_t : public BaseMngTlv {
 };
 #endif
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_PROC_H */

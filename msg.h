@@ -14,10 +14,6 @@
 #ifndef __PTPMGMT_MSG_H
 #define __PTPMGMT_MSG_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <vector>
 #include <functional>
 #include "cfg.h"
@@ -25,10 +21,7 @@
 #include "proc.h"
 #include "sig.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 struct MsgProc;
 
@@ -46,7 +39,6 @@ class Message
      */
   private:
 
-    #ifndef SWIG
     /**
      * hold single TLV from a signaling message
      * Used internaly
@@ -72,7 +64,6 @@ class Message
       private:
         std::unique_ptr<BaseSigTlv> tlv;
     };
-    #endif /* SWIG */
 
     /**< @endcond */
 
@@ -557,12 +548,6 @@ class Message
     const BaseMngTlv *getSigMngTlv(size_t position) const;
 };
 
-/* For SWIG */
-#undef A
-#undef _ptpmCaseUF
-
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_MSG_H */

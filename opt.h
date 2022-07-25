@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
 
 /** @file
- * @brief handle command line options
+ * @brief Handle command line options
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
@@ -12,21 +12,15 @@
 #ifndef __PTPMGMT_OPT_H
 #define __PTPMGMT_OPT_H
 
-#include <string>
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
 #include <getopt.h>
 #include <vector>
 #include <map>
+#include "name.h"
 
-#ifndef SWIG
-namespace ptpmgmt
-{
-#endif
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
- * @brief structre to add new option
+ * @brief Structre to add new option
  */
 struct Pmc_option {
     /**
@@ -43,7 +37,7 @@ struct Pmc_option {
 };
 
 /**
- * @brief hold and proccess options
+ * @brief Hold and proccess options
  */
 class Options
 {
@@ -190,8 +184,6 @@ class Options
     int procces_next() const { return m_end_optind; }
 };
 
-#ifndef SWIG
-}; /* namespace ptpmgmt */
-#endif
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_OPT_H */

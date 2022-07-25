@@ -16,8 +16,7 @@
 
 #include "json.h"
 
-namespace ptpmgmt
-{
+__PTPMGMT_NAMESPACE_BEGIN
 
 struct JsonProc {
     /* This structure implement single method for use by both from and to */
@@ -77,6 +76,6 @@ struct JsonProcFrom : public JsonProc {
     virtual bool parseData() = 0;
 };
 
-}; /* namespace ptpmgmt */
+__PTPMGMT_NAMESPACE_END
 
 #endif /* __PTPMGMT_JSON_DEFS_H */
