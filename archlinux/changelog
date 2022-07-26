@@ -1,3 +1,79 @@
+* Tue Jul 26 2022 ErezGeva2@gmail.com 0.9-1
+- Add header to define the C++ namespace.
+- Swig generated code
+  - Clean compilation warnings of swig generated code.
+  - Define swig vector classes for new PTP structure.
+  - Add vector class for LinuxptpUnicastMaster_t.
+  - Remove python2, it is discontinue for 2 years.
+  - Use proper typemap to initialise variables in argcargv.
+- Swig project files
+  - Add readme for swig files.
+  - Follow swig 4.1.0
+  - Add tcl std_vector.i from version 4.1.0 with bug fix.
+- Message Dispatcher and builder classes.
+  - Add Message.isValidId() to verify an management TLV ID.
+  - Add C++ classes and native classes in each script language.
+  - Call Message.clearData() in destructor of MessageBulder.
+  - Lua use C++ MessageBulder object to ensure
+    calling Message.clearData(), as Lua native do not use destructors.
+  - Beside Lua using C++ MessageBulder, C++ classes are not wrapped by Swig!
+  - Use abstract classes in PHP
+  - MessageDispatcher::callHadler() call virtual noTlvCallBack()
+    if the TLV call back is not inherited.
+  - Use C++ dispatcher and builder classes in the pmc tool.
+- Remove ids.h header from public headers, use generated headers instead.
+- Move process functions of the message class to a private class.
+- Testing
+  - Use python and lua environment to load the wrapper library.
+  - Add support to test with AddressSanitizer.
+  - Add simple test for std::vector<> class in scripts.
+  - Add testing with phc_ctl and valgrind with phc_ctl.
+  - And valgrind test of testJson.pl.
+- Improve Debian build.
+- List source files with git when possible.
+- JSON
+  - Move From JSON part to a new source file.
+    So user can call msg2json() using static link without linking
+     the jsonFrom static library.
+  - Move jsonFrom to separate static libraries.
+    One library using JSON-c, the other one using the fast-JSON.
+  - Users can select which library they wish to use during link.
+    The shared library is loaded dynamically on run time.
+    User can prefer shared library to use by calling selectLib().
+  - Add function to get name of used fromJson library.
+- PTP class
+  - Add all PHC Linux kernel ioctls.
+  - Add PTP and system clock reading and setting.
+  - Use Timestamp_t for clock read and set.
+  - Add PTP clock frequency and offset functions.
+  - Add PHC pins functionality.
+  - Add header with time conversion constants.
+  - Clone the PHC control tool using the python wrapper library,
+    and add new package for it.
+- Add pure attribute for proper functions.
+- Make file
+  - Use Make file one shell option.
+  - Improve make file syntax.
+  - Use one rule for all swig creation.
+  - Remove empty lines when using V=1.
+  - Improve Doxygen filter of warnings.
+- Follow IEEE 1558 alternative terms for "master" and "slave".
+  Source and client are not confirming to IEEE 1558 amendment.
+- Perform valgrind test on pmc.
+  - valgrind found an issue in the ConfigFile
+    Change cfgGlobal type from a reference to a pointer.
+- Documentation.
+  - Update documentation.
+  - Add pmc.8 from linuxptp with updates.
+  - Add phc_ctl.8 from linuxptp with updates.
+  - Update vecDef.cc and
+    add documentation on std::vector<> mapping.
+  - Add Frequently Asked Questions.
+  - Doxygen configuration: remark all default setting.
+  - New doxygen on Arch Linux have:
+      https://github.com/doxygen/doxygen/issues/9319
+      The bug needs a fix in Arch Linux, it is out of scope of this project.
+
 * Sat May 14 2022 ErezGeva2@gmail.com 0.8-1
 - Fix cross compilation in make-file.
   install target should install and not build.
