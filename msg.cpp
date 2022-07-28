@@ -55,8 +55,8 @@ enum allowAction_e { // bits of actionField_e
     A_USE_LINUXPTP = 1 << 5, // Out side of actionField_e
 };
 enum scope_e : uint8_t {
-    s_port,
-    s_clock,
+    s_port,  // 'PTP port' in IEEE Std 1588-2019
+    s_clock, // 'PTP Instance' in IEEE Std 1588-2019
 };
 
 PACK(struct ClockIdentity_p {
@@ -949,7 +949,6 @@ const bool Message::findPortState(const std::string &str, portState_e &state,
     PROC_STR(PRE_MASTER) // PRE_TIME_TRANSMITTER
     PROC_STR(MASTER)     // TIME_TRANSMITTER
     PROC_STR(SLAVE)      // TIME_RECEIVER
-#undef PROC_STR
     return false;
 }
 const char *Message::ts2str_c(linuxptpTimeStamp_e val)

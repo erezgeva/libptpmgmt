@@ -1,55 +1,27 @@
-/* SPDX-License-Identifier: LGPL-3.0-or-later
-   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
-
-/** @file
- * @brief List of management IDs
- *
- * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2021 Erez Geva
- *
- * This header is design to be multiple included
- */
-
-/*
- * Use:
- *  #define A(n, v, sc, a, sz, f) <macro text>
- *  #include "ids.h"
- */
-#undef DOMAIN /* Old math.h header uses this macro */
-#ifndef _ptpmCaseNA
-#define _ptpmCaseNA(n)
-#endif
-#ifndef _ptpmCaseUF
-#define _ptpmCaseUF(n)
-#endif
-#ifndef _ptpmCaseUFS
-#define _ptpmCaseUFS(n) _ptpmCaseUF(n)
-#endif
-#ifndef _ptpmCaseUFB
-#define _ptpmCaseUFB(n) _ptpmCaseUF(n)
-#endif
-#ifndef _ptpmCaseUFBS
-#define _ptpmCaseUFBS(n) _ptpmCaseUFB(n)
-#endif
-/* Shortcuts defined in msg.cpp
- *  use_GSC => A_GET | A_SET | A_COMMAND
- *  use_GS  => A_GET | A_SET
- */
-/*
- * For functions use
- * #define _ptpmCaseXX(n)    <macro text>
- * NA   - no functions needed
- * UF   - functions for parsing
- * UFS  - functions for parsing having variable size
- * UFB  - functions for parsing and build
- * UFBS - functions for parsing and build having variable size
- */
-/*
- * size: > 0  fixed size dataField
- *         0  No dataField (with NA)
- *        -2  Variable length dataField, need calculation
- */
-/*Name                                 value scope  allow       size   func*/
+dnl SPDX-License-Identifier: LGPL-3.0-or-later
+dnl SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+dnl
+dnl @file
+dnl @brief List of management IDs
+dnl
+dnl @author Erez Geva <ErezGeva2@@gmail.com>
+dnl @copyright 2022 Erez Geva
+dnl
+dnl NA   - no function needed
+dnl UF   - need function for parsing
+dnl UFS  - need function for parsing having variable size
+dnl UFB  - need function for parsing and build
+dnl UFBS - need function for parsing and build having variable size
+dnl
+dnl size: > 0  fixed size dataField
+dnl         0  No dataField (with NA)
+dnl        -2  Variable length dataField, need calculation
+dnl
+dnl Shortcuts defined in msg.cpp
+dnl use_GSC => A_GET | A_SET | A_COMMAND
+dnl use_GS  => A_GET | A_SET
+dnl
+dnl Name                               value scope  allow       size   func
 A(NULL_PTP_MANAGEMENT,                 0000, port,  use_GSC,    0,     NA)
 A(CLOCK_DESCRIPTION,                   0001, port,  A_GET,     -2,     UFS)
 A(USER_DESCRIPTION,                    0002, clock, use_GS,    -2,     UFBS)
@@ -94,20 +66,19 @@ A(ALTERNATE_TIME_OFFSET_MAX_KEY,       2020, clock, A_GET,      2,     UF)
 A(ALTERNATE_TIME_OFFSET_PROPERTIES,    2021, clock, use_GS,    16,     UFB)
 A(TRANSPARENT_CLOCK_PORT_DATA_SET,     4001, port,  A_GET,     20,     UF)
 A(LOG_MIN_PDELAY_REQ_INTERVAL,         6001, port,  use_GS,     2,     UFB)
-/* Deprecated in "IEEE Std 1588-2019" */
+dnl Deprecated in "IEEE Std 1588-2019"
 A(TRANSPARENT_CLOCK_DEFAULT_DATA_SET,  4000, clock, A_GET,     12,     UF)
 A(PRIMARY_DOMAIN,                      4002, clock, use_GS,     2,     UFB)
 A(DELAY_MECHANISM,                     6000, port,  use_GS,     2,     UFB)
-/* From "IEEE Std 1588-2019" */
+dnl From "IEEE Std 1588-2019"
 A(EXTERNAL_PORT_CONFIGURATION_ENABLED, 3000, clock, use_GS,     2,     UFB)
 A(MASTER_ONLY,                         3001, port,  use_GS,     2,     UFB)
 A(HOLDOVER_UPGRADE_ENABLE,             3002, clock, use_GS,     2,     UFB)
 A(EXT_PORT_CONFIG_PORT_DATA_SET,       3003, port,  use_GS,     2,     UFB)
-/* linuxptp TLVs (in Implementation-specific C000-DFFF) */
-/* Shortcuts defined in msg.cpp
- *  use_GL  => A_GET | A_USE_LINUXPTP
- *  use_GSL => A_GET | A_SET | A_USE_LINUXPTP
- */
+dnl linuxptp TLVs (in Implementation-specific C000-DFFF)
+dnl Shortcuts defined in msg.cpp
+dnl use_GL  => A_GET | A_USE_LINUXPTP
+dnl use_GSL => A_GET | A_SET | A_USE_LINUXPTP
 A(TIME_STATUS_NP,                      c000, clock, use_GL,    50,     UF)
 A(GRANDMASTER_SETTINGS_NP,             c001, clock, use_GSL,    8,     UFB)
 A(PORT_DATA_SET_NP,                    c002, port,  use_GSL,    8,     UFB)
@@ -118,12 +89,5 @@ A(SYNCHRONIZATION_UNCERTAIN_NP,        c006, clock, use_GSL,    2,     UFB)
 A(PORT_SERVICE_STATS_NP,               c007, port,  use_GL,    90,     UF)
 A(UNICAST_MASTER_TABLE_NP,             c008, port,  use_GL,    -2,     UFS)
 A(PORT_HWCLOCK_NP,                     c009, port,  use_GL,    16,     UF)
-#if 0
-A(POWER_PROFILE_SETTINGS_NP,           c009, port,  use_GSL,   16,     UFB)
-#endif
-#undef A
-#undef _ptpmCaseNA
-#undef _ptpmCaseUF
-#undef _ptpmCaseUFS
-#undef _ptpmCaseUFB
-#undef _ptpmCaseUFBS
+dnl Future linuxptp TLVs, they will add once deployed in linuxptp
+dnl A(POWER_PROFILE_SETTINGS_NP,       c009, port,  use_GSL,   16,     UFB)

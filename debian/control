@@ -4,7 +4,7 @@ Section: net
 Priority: optional
 Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 9), dh-exec (>=0.3), coreutils, dh-python,
-               dh-lua, dh-php, swig (>=3.0), libtool
+               dh-lua, dh-php, swig (>=3.0), libtool, m4
 Build-Depends-Arch: perl:native, lua5.2, liblua5.1-0-dev,
 		    liblua5.2-dev, liblua5.3-dev, ruby:native, ruby-dev,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev,

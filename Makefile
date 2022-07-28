@@ -362,26 +362,15 @@ distclean: deb_clean clean
 	$(Q_DISTCLEAN)$(RM) $(DISTCLEAN)
 	$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS_GEN:=mngIds.h callDef.h verDef.h vecDef.h cnvFunc.h
-HEADERS_GEN_COMP:=mngIds.h callDef.h
+HEADERS_GEN_COMP:=ids.h mngIds.h callDef.h verDef.h
+HEADERS_GEN:=$(HEADERS_GEN_COMP) vecDef.h cnvFunc.h
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
 HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS)) $(HEADERS_GEN_COMP)
-HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h msgProc.h ids.h,$(HEADERS))\
-  verDef.h
-verDef.h: GEN_FLAGS+=-Dver_maj=$(ver_maj) -Dver_min=$(ver_min) -DVER=$(LIB_VER)\
-  -DVER_VAL=$(VER_VAL)
-# MAP for  %.cc to %.h:
-#  %@ => '/'    - Use when a slash is next to a star character
-#  %! => '%'    - Self escape, escape precent sign character
-#  %# => '#'    - Use on line start when starting a preproccesor in result file
-#  %& => '"'    - Escape for double quote character
-#  %_ =>        - Place marker, retain empty lines
-#  %- => ' '    - When need 2 spaces or more. Use with a space between
-#  %^ => '\n'   - Add new line in a preprocessor definition only
-%.h: %.cc
-	$(Q_GEN)$(CXX) -E $< $(GEN_FLAGS) |\
-	  $(SED) -e 's/^#.*//;/^\s*$$/d;s#%@#/#g;s#%&#"#g'\
-	  -e 's/^%#/#/;s/%-/ /g;s/%^/\n/g;s/%_//;s/%!/%/g' > $@
+HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h msgProc.h ids.h,$(HEADERS))
+M4_verDef.m4=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)\
+             -DVER_VAL=$(VER_VAL) -DVER_STR=$(LIB_VER)
+%.h: %.m4 ids_base.m4
+	$(Q_GEN)m4 $(M4_$<) $< > $@
 version:
 DISTCLEAN+=$(HEADERS_GEN)
 
@@ -431,7 +420,7 @@ NO_PHP=1
 endif ## ! swig 3.0.12
 endif # ! swig 4.0.0
 endif # ! swig 4.1.0
-%/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS) $(HEADERS_GEN_COMP)
+%/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS)
 	$(Q_SWIG)$(SWIG) -c++ -I. -I$(@D) -outdir $(@D) -Wextra $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
@@ -707,7 +696,7 @@ endif
 endif # which doxygen
 
 ifneq ($(call which,ctags),)
-tags: $(HEADERS_GEN) $(filter-out ids.h,$(HEADERS_SRCS)) $(SRCS)
+tags: $(filter-out ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)
 	$(Q_TAGS)ctags -R $^
 ALL+=tags
 DISTCLEAN+=tags
@@ -740,9 +729,9 @@ endif # and wildcard debian/rules, which dpkg-buildpackage
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-ifeq ($(INSIDE_GIT),)
+ifneq ($(INSIDE_GIT),true)
 SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  php/*.sh swig/*.md swig/*/* */*.i *.8 LICENSES/* .reuse/*) phc_ctl\
+  *.m4 php/*.sh swig/*.md swig/*/* */*.i *.8 LICENSES/* .reuse/*) phc_ctl\
   LICENSE $(HEADERS_SRCS) $(SRCS) $(wordlist 1,2,$(MAKEFILE_LIST))
 else
 SRC_FILES!=git ls-files | egrep -v '(^(archlinux|debian|rpm|sample)/|.gitignore)'

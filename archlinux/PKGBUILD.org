@@ -30,7 +30,7 @@ build() {
   make -j DESTDIR=install install SBINDIR=/usr/bin\
     NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
 }
-makedepends=(doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
+makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
   python3 json-c)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
