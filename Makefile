@@ -797,14 +797,16 @@ endif
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
 	$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
-	$(BINST) -D pmc.8 $(MANDIR)/pmc-ptpmgmt.8
-	gzip $(MANDIR)/pmc-ptpmgmt.8
+	if [ ! -f $(MANDIR)/pmc-ptpmgmt.8.gz ]; then \
+	$(NINST) -D pmc.8 $(MANDIR)/pmc-ptpmgmt.8;\
+	gzip $(MANDIR)/pmc-ptpmgmt.8;fi
 	$(BINST) -D phc_ctl $(DESTDIR)$(SBINDIR)/phc_ctl-ptpmgmt
-	$(BINST) -D phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8
-	gzip $(MANDIR)/phc_ctl-ptpmgmt.8
+	if [ ! -f $(MANDIR)/phc_ctl-ptpmgmt.8.gz ]; then \
+	$(NINST) -D phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8;\
+	gzip $(MANDIR)/phc_ctl-ptpmgmt.8;fi
 	$(RM) doc/html/*.md5
 	$(DINST) $(DOCDIR)
-	cp -a doc/html $(DOCDIR)
+	cp -a *.md doc/html $(DOCDIR)
 	printf $(REDIR) > $(DOCDIR)/index.html
 ifndef NO_SWIG
 ifndef NO_PERL
@@ -846,8 +848,8 @@ include $(D_FILES)
 checkall: format doxygen
 
 help:
-	$(info $(help))
-	@:
+	@$(info $(help))
+	:
 
 .PHONY: all clean distclean format install deb_src deb deb_arc deb_clean\
         doxygen checkall help rpm rpmsrc pkg pkgsrc

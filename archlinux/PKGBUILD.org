@@ -15,7 +15,7 @@ pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
 # Source code can be build on any architecture
 # But as Arch Linux does not support the 'all' keyword
 arch=(x86_64)
-url=https://github.com/erezgeva/libptpmgmt
+url=https://sf.net/p/libptpmgmt
 license=(LGPL3)
 source=("$pkgname-$pkgver.txz")
 # Target library directory

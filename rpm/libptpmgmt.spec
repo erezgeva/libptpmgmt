@@ -9,7 +9,7 @@
 Name:           libptpmgmt
 Version:        0.9
 Release:        1%{?dist}
-URL:            https://github.com/erezgeva/%{name}
+URL:            https://sf.net/p/%{name}
 BuildRequires:  swig m4
 BuildRequires:  perl perl-devel perl-ExtUtils-Embed
 BuildRequires:  which
