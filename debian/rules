@@ -32,12 +32,13 @@ export PMC_USE_LIB=so
 	$(Q)dh $@ --parallel --with python3,lua
 
 deb_clean:
-	$Q$(RM) -R $(foreach n,$(shell dh_listpackages) files tmp\
-	*debhelper* .*debhelper* *.substvars, debian/$(n))
+	$Q$(RM) -R $(addprefix debian/,$(shell dh_listpackages) files tmp\
+	*debhelper* .*debhelper* *.substvars autoreconf.*)
 
 override_dh_auto_clean:
 	$Q$(MAKE) distclean
 
+MV:=mv
 LIBDIR:=/usr/lib/$(DEB_TARGET_MULTIARCH)
 DSRC:=debian/tmp/usr/
 SLIBDIR:=debian/tmp$(LIBDIR)
@@ -48,33 +49,33 @@ override_dh_prep:
 
 # Make create all targets, we just move them from temporary to proper package
 override_dh_install:
-	$(Q)install -d $(foreach d,python-ptpmgmt/usr/lib python3-ptpmgmt/usr/lib\
-	  libptpmgmt-dev/usr libptpmgmt-dev/usr/share libptpmgmt-doc/usr/share\
-	  pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib php-ptpmgmt/usr/share\
-	  tcl-ptpmgmt/usr/lib phc-ctl-ptpmgmt/usr/share/man/man8\
-	  phc-ctl-ptpmgmt/usr/sbin\
-	  $(foreach n,lua-ptpmgmt libptpmgmt-perl libptpmgmt-dev ruby-ptpmgmt\
-	  libptpmgmt libptpmgmt-jsonc libptpmgmt-fastjson,$n$(LIBDIR)),debian/$d)
-	$(Q)mv $(DSRC)include debian/libptpmgmt-dev/usr
-	$(Q)mv $(DSRC)share/libptpmgmt-dev debian/libptpmgmt-dev/usr/share
-	$(Q)mv $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
-	$(Q)mv $(DSRC)share/man/man8/phc* debian/phc-ctl-ptpmgmt/usr/share/man/man8
-	$(Q)mv $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
-	$(Q)mv $(DSRC)sbin/phc* debian/phc-ctl-ptpmgmt/usr/sbin
-	$(Q)mv $(DSRC)sbin debian/pmc-ptpmgmt/usr
-	$(Q)mv $(DSRC)lib/python3* debian/python3-ptpmgmt/usr/lib
-	$(Q)mv $(SLIBDIR)/lua* $(SLIBDIR)/liblua* debian/lua-ptpmgmt$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/perl* debian/libptpmgmt-perl$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/ruby* debian/ruby-ptpmgmt$(LIBDIR)
+	$(Q)install -d $(addprefix debian/,python3-ptpmgmt/usr/lib\
+	  libptpmgmt-dev/usr libptpmgmt-dev/usr/share\
+	  libptpmgmt-doc/usr/share pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib\
+	  php-ptpmgmt/usr/share tcl-ptpmgmt/usr/lib\
+	  phc-ctl-ptpmgmt/usr/share/man/man8 phc-ctl-ptpmgmt/usr/sbin\
+	  $(addsuffix $(LIBDIR),lua-ptpmgmt libptpmgmt-perl libptpmgmt-dev\
+	  ruby-ptpmgmt libptpmgmt libptpmgmt-jsonc libptpmgmt-fastjson))
+	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
+	$Q$(MV) $(DSRC)share/libptpmgmt-dev debian/libptpmgmt-dev/usr/share
+	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
+	$Q$(MV) $(DSRC)share/man/man8/phc* debian/phc-ctl-ptpmgmt/usr/share/man/man8
+	$Q$(MV) $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
+	$Q$(MV) $(DSRC)sbin/phc* debian/phc-ctl-ptpmgmt/usr/sbin
+	$Q$(MV) $(DSRC)sbin debian/pmc-ptpmgmt/usr
+	$Q$(MV) $(DSRC)lib/python3* debian/python3-ptpmgmt/usr/lib
+	$Q$(MV) $(SLIBDIR)/lua* $(SLIBDIR)/liblua* debian/lua-ptpmgmt$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/perl* debian/libptpmgmt-perl$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/ruby* debian/ruby-ptpmgmt$(LIBDIR)
 ifneq ($(wildcard $(DSRC)lib/php),)
-	$(Q)mv $(DSRC)lib/php debian/php-ptpmgmt/usr/lib
-	$(Q)mv $(DSRC)share/php debian/php-ptpmgmt/usr/share
+	$Q$(MV) $(DSRC)lib/php debian/php-ptpmgmt/usr/lib
+	$Q$(MV) $(DSRC)share/php debian/php-ptpmgmt/usr/share
 endif
-	$(Q)mv $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
-	$(Q)mv $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
+	$Q$(MV) $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
+	$Q$(MV) $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
 ifneq ($(wildcard $(SLIBDIR)/libptpmgmt_jsonc.*),)
-	$(Q)mv $(SLIBDIR)/libptpmgmt_jsonc.* debian/libptpmgmt-jsonc$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libptpmgmt_jsonc.* debian/libptpmgmt-jsonc$(LIBDIR)
 endif
-	$(Q)mv $(SLIBDIR)/libptpmgmt_fastjson* debian/libptpmgmt-fastjson$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
-	$(Q)mv $(SLIBDIR)/* debian/libptpmgmt$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libptpmgmt_fastjson* debian/libptpmgmt-fastjson$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/* debian/libptpmgmt$(LIBDIR)

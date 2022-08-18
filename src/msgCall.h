@@ -63,7 +63,8 @@ class MessageDispatcher : public BaseMngDispatchCallback
  * @note As this class allocate a new TLV, and store it.
  *       It call Message.clearData() on destructor,
  *       to ensure Message does not use the TLV.
- *       Do not call Message.build() after deleting this object.
+ *       Do not call Message.build() after deleting this object,
+ *       without setting a new TLV.
  * @note Class allocate TLV object and store it,
  * @note buildTlv() has an implementation per script language.
  *       So, it can call virtual functions defined in the script language itself.

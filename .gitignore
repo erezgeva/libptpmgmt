@@ -5,21 +5,14 @@
 # @copyright 2021 Erez Geva
 #
 ###############################################################################
-/ids.h
-/mngIds.h
-/callDef.h
-/verDef.h
-/vecDef.h
-/cnvFunc.h
 *.o
-*.lo
 *.d
+/objs/
 *.so
-.sw?
-.*.sw?
-/.libs/
 /libptpmgmt*.a
-/pmc
+/tools/pmc
 /tags
 /doc
 */PtpMgmtLib.cpp
+.sw?
+.*.sw?

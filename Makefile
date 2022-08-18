@@ -138,6 +138,10 @@ endef
 line=$(subst A,,$(lbase))
 space=$(subst A,,A A)
 TOP:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+SRC:=src
+PMC_DIR:=tools
+JSON_SRC:=json
+OBJ_DIR:=objs
 
 # TOOLS
 RL:=ranlib
@@ -192,7 +196,7 @@ Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
 Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
 Q_LD=$Q$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
 Q_AR=$Q$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
-Q_LCC=$(info $(COLOR_BUILD)[LCC] $*.cpp$(COLOR_NORM))
+Q_LCC=$(info $(COLOR_BUILD)[LCC] $(@F)$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
 MAKE_NO_DIRS:=--no-print-directory
@@ -201,15 +205,15 @@ QE:=2>&1 >/dev/null | $(SED) 's@^$(TOP)@@'
 endif
 
 include version
-CPPFLAGS_MD=-MT $@ -MMD -MP -MF $*.d
-override CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g $(CPPFLAGS_MD)
+CPPFLAGS_MD=-MT $@ -MMD -MP -MF $(basename $@).d
+override CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g -Isrc $(CPPFLAGS_MD)
 ifeq ($(USE_ASAN),)
 CPPFLAGS_OPT?=-Og
 override CPPFLAGS+=$(CPPFLAGS_OPT)
 else
 # Use https://github.com/google/sanitizers/wiki/AddressSanitizer
 ASAN_FLAGS:=$(addprefix -fsanitize=,address pointer-compare pointer-subtract\
- undefined leak)
+  undefined leak)
 override CPPFLAGS+=-Og $(ASAN_FLAGS) -fno-omit-frame-pointer
 override LDFLAGS+=$(ASAN_FLAGS)
 endif # USE_ASAN
@@ -221,18 +225,20 @@ SONAME:=.$(ver_maj)
 endif
 LIB_NAME:=libptpmgmt
 LIB_NAME_SO:=$(LIB_NAME).so
-SRCS:=$(wildcard *.cpp)
 ifdef LD_SONAME
 LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
 endif
 $(LIB_NAME_SO)_LDLIBS:=-lm -ldl
-PMC_OBJS:=$(patsubst %.cpp,%.o,$(wildcard pmc*.cpp))
-JSON_FROM_OBJS:=$(patsubst %.cpp,%.o,$(wildcard jsonF*.cpp))
-LIB_OBJS:=$(filter-out $(JSON_FROM_OBJS) $(PMC_OBJS),$(patsubst %.cpp,%.o,$(SRCS)))
-PMC_NAME:=pmc
-ver.o: override CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)\
+SRCS:=$(wildcard $(SRC)/*.cpp)
+LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,$(SRCS)))
+PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
+  $(wildcard $(PMC_DIR)/*.cpp)))
+JSON_FROM_OBJS:=$(subst $(JSON_SRC)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
+  $(wildcard $(JSON_SRC)/*.cpp)))
+PMC_NAME:=$(PMC_DIR)/pmc
+$(OBJ_DIR)/ver.o: override CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)\
   -DVER_VAL=$(VER_VAL)
-D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $*.d
+D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d
 LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) $(CPPFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RL) $@
 
@@ -266,8 +272,8 @@ else
 LIBDIR?=/usr/lib
 endif
 %.so:
-	$(Q_LD)$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES) $($@_LDLIBS)\
-	  $(LDLIBS) -o $@
+	$(Q_LD)$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES)\
+	  $($@_LDLIBS) $(LDLIBS) -o $@
 
 # JSON libraries
 JSON_C:=
@@ -298,13 +304,13 @@ endif # wildcard json-c
 endif # NO_CJSON
 ifeq ($(NO_CJSON),)
 JSONC_CFLAGS:=-include $(JSONC_INC)/json.h -DJLIB_NAME=\"$(JSONC_LIBA)\"
-jsonFromJc.o: jsonFrom.cpp
+$(OBJ_DIR)/jsonFromJc.o: $(JSON_SRC)/jsonFrom.cpp
 	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $(JSONC_CFLAGS) $< -o $@
 	$(call D_INC,JSONC_INC)
-.libs/jsonFromJc.o: jsonFromJc.o
+$(OBJ_DIR)/.libs/jsonFromJc.o: $(OBJ_DIR)/jsonFromJc.o
 $(JSONC_LIB)_LDLIBS:=$(JSONC_LD)
-$(JSONC_LIB): .libs/jsonFromJc.o $(LIB_NAME).so
-$(JSONC_LIBA): jsonFromJc.o
+$(JSONC_LIB): $(OBJ_DIR)/.libs/jsonFromJc.o $(LIB_NAME).so
+$(JSONC_LIBA): $(OBJ_DIR)/jsonFromJc.o
 	$(LLA)
 ALL+=$(JSONC_LIB) $(JSONC_LIBA)
 endif # NO_CJSON
@@ -320,57 +326,64 @@ NO_FCJSON:=1
 endif
 ifeq ($(NO_FCJSON),)
 FJSON_CFLAGS:=-include $(FJSON_INC)/json.h -DJLIB_NAME=\"$(FJSON_LIBA)\"
-jsonFromFj.o: jsonFrom.cpp
+$(OBJ_DIR)/jsonFromFj.o: $(JSON_SRC)/jsonFrom.cpp
 	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $(FJSON_CFLAGS) $< -o $@
 	$(call D_INC,FJSON_INC)
-.libs/jsonFromFj.o: jsonFromFj.o
+$(OBJ_DIR)/.libs/jsonFromFj.o: $(OBJ_DIR)/jsonFromFj.o
 $(FJSON_LIB)_LDLIBS:=-lfastjson
-$(FJSON_LIB): .libs/jsonFromFj.o $(LIB_NAME).so
-$(FJSON_LIBA): jsonFromFj.o
+$(FJSON_LIB): $(OBJ_DIR)/.libs/jsonFromFj.o $(LIB_NAME).so
+$(FJSON_LIBA): $(OBJ_DIR)/jsonFromFj.o
 	$(LLA)
 ALL+=$(FJSON_LIB) $(FJSON_LIBA)
 endif # NO_FCJSON
 
 # Add jsonFrom libraries to search
-jsonDef.o: override CPPFLAGS+=-DJSON_C="$(JSON_C)"
+$(OBJ_DIR)/jsonDef.o: override CPPFLAGS+=-DJSON_C="$(JSON_C)"
 
 # Compile library source code
-$(LIB_OBJS): %.o: %.cpp
+$(LIB_OBJS): $(OBJ_DIR)/%.o: $(SRC)/%.cpp
 	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $< -o $@
 
 # Depened shared library objects on the static library to ensure build
-$(eval $(foreach obj,$(LIB_OBJS), $(call depend,.libs/$(obj),$(obj))))
+$(eval $(foreach obj,$(notdir $(LIB_OBJS)),\
+  $(call depend,$(OBJ_DIR)/.libs/$(obj),$(OBJ_DIR)/$(obj))))
 
 $(LIB_NAME).a: $(LIB_OBJS)
 	$(LLA)
-$(LIB_NAME_SO): $(addprefix .libs/,$(LIB_OBJS))
+$(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
 
 # pmc tool
-$(PMC_OBJS): %.o: %.cpp
+$(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp
 	$(Q_CC)$(CXX) $(CPPFLAGS) -c -o $@ $<
 $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-D_FILES:=$(wildcard *.d */*.d */*/*.d)
-CLEAN:=$(wildcard *.o */*.o */*/*.o) *.lo .libs/* $(D_FILES)
+D_FILES:=$(wildcard */*.d */*/*.d)
+CLEAN:=$(wildcard */*.o */*/*.o) $(D_FILES)
 DISTCLEAN:=$(ALL) $(wildcard *.so */*.so */*/*.so)
-DISTCLEAN_DIRS:=.libs
+# Ensure list is not empty
+DISTCLEAN_DIRS:=$(OBJ_DIR)
 
 clean:
 	$(Q_CLEAN)$(RM) $(CLEAN)
+	$(RM) -R $(OBJ_DIR)
 distclean: deb_clean clean
 	$(Q_DISTCLEAN)$(RM) $(DISTCLEAN)
 	$(RM) -R $(DISTCLEAN_DIRS)
 
-HEADERS_GEN_COMP:=ids.h mngIds.h callDef.h verDef.h
-HEADERS_GEN:=$(HEADERS_GEN_COMP) vecDef.h cnvFunc.h
-HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard *.h))
-HEADERS:=$(filter-out pmc.h,$(HEADERS_SRCS)) $(HEADERS_GEN_COMP)
-HEADERS_INST:=$(filter-out end.h err.h jsonDef.h comp.h msgProc.h ids.h,$(HEADERS))
-M4_verDef.m4=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)\
-             -DVER_VAL=$(VER_VAL) -DVER_STR=$(LIB_VER)
-%.h: %.m4 ids_base.m4
-	$(Q_GEN)m4 $(M4_$<) $< > $@
+HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
+HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
+HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
+HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
+HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,end.h err.h jsonDef.h comp.h\
+  msgProc.h ids.h),$(HEADERS))
+$(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
+	$(Q_GEN)m4 -I $(SRC) $< > $@
+$(SRC)/ver.h: $(SRC)/ver.h.in
+	$(Q_GEN)$(SED) -e 's/@PACKAGE_VERSION_MAJ@/$(ver_maj)/'\
+	  -e 's/@PACKAGE_VERSION_MIN@/$(ver_min)/'\
+	  -e 's/@PACKAGE_VERSION_VAL@/$(VER_VAL)/'\
+	  -e 's/@PACKAGE_VERSION@/$(LIB_VER)/' $< > $@
 version:
 DISTCLEAN+=$(HEADERS_GEN)
 
@@ -386,6 +399,8 @@ endif
 endif
 endif # which astyle
 
+SWIG_NAME:=PtpMgmtLib
+CLEAN+=$(wildcard */$(SWIG_NAME).cpp)
 ifndef NO_SWIG
 ifneq ($(call which,swig),)
 swig_ver=$(lastword $(shell swig -version | grep Version))
@@ -393,7 +408,6 @@ swig_ver=$(lastword $(shell swig -version | grep Version))
 ifeq ($(call verCheck,$(swig_ver),3.0),)
 SWIG:=swig
 SWIG_ALL:=
-SWIG_NAME:=PtpMgmtLib
 ifneq ($(call verCheck,$(swig_ver),4.1),)
 # Only python and ruby have argcargv.i
 perl_SFLAGS+=-Iswig/perl5
@@ -420,11 +434,12 @@ NO_PHP=1
 endif ## ! swig 3.0.12
 endif # ! swig 4.0.0
 endif # ! swig 4.1.0
-%/$(SWIG_NAME).cpp: $(LIB_NAME).i $(HEADERS)
-	$(Q_SWIG)$(SWIG) -c++ -I. -I$(@D) -outdir $(@D) -Wextra $($(@D)_SFLAGS) -o $@ $<
+%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)
+	$(Q_SWIG)$(SWIG) -c++ -Isrc -I$(@D) -outdir $(@D) -Wextra\
+	  $($(@D)_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
-SWIG_DEP=$(SED) -e '1 a\ libptpmgmt.i mngIds.h \\'\
+SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(SRC)/mngIds.h \\'\
   $(foreach n,$(wildcard $(<D)/*.i),-e '1 a\ $n \\')\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
@@ -448,7 +463,6 @@ $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
 $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_NAME).so
-CLEAN+=$(PERL_NAME).cpp
 DISTCLEAN+=$(PERL_NAME).pm
 else # which perl
 NO_PERL=1
@@ -459,7 +473,6 @@ ifndef NO_LUA
 ifneq ($(call which,lua),)
 LUA_LIB_NAME:=ptpmgmt.so
 lua_SFLAGS+=-lua
-CLEAN+=lua/$(SWIG_NAME).cpp
 define lua
 LUA_FLIB_$1:=liblua$1-$(LUA_LIB_NAME)
 LUA_LIB_$1:=lua/$1/$(LUA_LIB_NAME)
@@ -490,7 +503,7 @@ LUA_VER:=$(lastword $(shell lua -e 'print(_VERSION)'))
 # Do we have default lua lib, or is it versioned?
 ifeq ($(shell /sbin/ldconfig -p | grep liblua.so),)
 LUA_BASE:=$(firstword $(subst .so, ,$(notdir $(lastword $(shell\
-   /sbin/ldconfig -p | grep "lua.*$(LUA_VER)\.so$$")))))
+  /sbin/ldconfig -p | grep "lua.*$(LUA_VER)\.so$$")))))
 LUA_FLIB:=$(LUA_BASE)-$(LUA_LIB_NAME)
 else
 LUA_FLIB:=liblua-$(LUA_LIB_NAME)
@@ -546,7 +559,6 @@ python_SFLAGS+=-python
 ifeq ($(PY_USE_S_THRD),)
 python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
 endif
-CLEAN+=$(PY_BASE).cpp
 DISTCLEAN+=python/ptpmgmt.py python/ptpmgmt.pyc
 DISTCLEAN_DIRS+=python/__pycache__
 ifdef USE_PY3
@@ -588,7 +600,6 @@ $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
 $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
-CLEAN+=$(RUBY_NAME)
 else # which ruby
 NO_RUBY=1
 endif
@@ -611,7 +622,7 @@ endif # PHPCFG
 ifndef NO_PHP
 PHPEDIR:=$(DESTDIR)$(shell $(PHPCFG) --extension-dir)
 PHPIDIR:=$(DESTDIR)$(lastword $(subst :, ,$(shell\
-        php -r 'echo get_include_path();')))
+  php -r 'echo get_include_path();')))
 PHP_INC:=-Iphp $(shell $(PHPCFG) --includes)
 PHP_INC_BASE!=$(PHPCFG) --include-dir
 PHP_NAME:=php/$(SWIG_NAME).cpp
@@ -624,7 +635,7 @@ $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so
-CLEAN+=$(PHP_NAME) php/php_ptpmgmt.h
+CLEAN+=php/php_ptpmgmt.h
 DISTCLEAN+=$(PHP_LNAME).php php/php.ini
 endif # NO_PHP
 
@@ -652,7 +663,6 @@ $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(TCL_LNAME).so
-CLEAN+=$(TCL_NAME)
 tcl_paths!=echo 'puts $$auto_path;exit 0' | tclsh
 ifneq ($(TARGET_ARCH),)
 TCL_LIB:=$(firstword $(shell echo $(tcl_paths) |\
@@ -730,9 +740,9 @@ ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
 ifneq ($(INSIDE_GIT),true)
-SRC_FILES:=$(wildcard *.cc *.i */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  *.m4 php/*.sh swig/*.md swig/*/* */*.i *.8 LICENSES/* .reuse/*) phc_ctl\
-  LICENSE $(HEADERS_SRCS) $(SRCS) $(wordlist 1,2,$(MAKEFILE_LIST))
+SRC_FILES:=$(wildcard */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
+  $(SRC)/* php/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
+  $(PMC_DIR)/*) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
 else
 SRC_FILES!=git ls-files | egrep -v '(^(archlinux|debian|rpm|sample)/|.gitignore)'
 endif
@@ -792,18 +802,18 @@ else
 endif
 	$(NINST) $(LIB_NAME)*.a $(DESTDIR)$(LIBDIR)
 	$(NINST) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
-	$(foreach f,$(HEADERS_INST),$(SED) -i\
+	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
-	$(BINST) -D pmc $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
-	if [ ! -f $(MANDIR)/pmc-ptpmgmt.8.gz ]; then \
-	$(NINST) -D pmc.8 $(MANDIR)/pmc-ptpmgmt.8;\
-	gzip $(MANDIR)/pmc-ptpmgmt.8;fi
-	$(BINST) -D phc_ctl $(DESTDIR)$(SBINDIR)/phc_ctl-ptpmgmt
-	if [ ! -f $(MANDIR)/phc_ctl-ptpmgmt.8.gz ]; then \
-	$(NINST) -D phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8;\
-	gzip $(MANDIR)/phc_ctl-ptpmgmt.8;fi
+	$(BINST) -D $(PMC_NAME) $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
+	if [ ! -f $(MANDIR)/pmc-ptpmgmt.8.gz ]; then\
+	  $(NINST) -D man/pmc.8 $(MANDIR)/pmc-ptpmgmt.8;\
+	  gzip $(MANDIR)/pmc-ptpmgmt.8;fi
+	$(BINST) -D $(PMC_DIR)/phc_ctl $(DESTDIR)$(SBINDIR)/phc_ctl-ptpmgmt
+	if [ ! -f $(MANDIR)/phc_ctl-ptpmgmt.8.gz ]; then\
+	  $(NINST) -D man/phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8;\
+	  gzip $(MANDIR)/phc_ctl-ptpmgmt.8;fi
 	$(RM) doc/html/*.md5
 	$(DINST) $(DOCDIR)
 	cp -a *.md doc/html $(DOCDIR)
@@ -845,6 +855,9 @@ endif # NO_SWIG
 
 include $(D_FILES)
 
+$(OBJ_DIR):
+	$(MD) $@
+
 checkall: format doxygen
 
 help:
@@ -852,4 +865,4 @@ help:
 	:
 
 .PHONY: all clean distclean format install deb_src deb deb_arc deb_clean\
-        doxygen checkall help rpm rpmsrc pkg pkgsrc
+  doxygen checkall help rpm rpmsrc pkg pkgsrc

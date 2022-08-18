@@ -7,6 +7,9 @@
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2021 Erez Geva
  *
+ * This header is generated automatically.
+ * @note The compilation macroes are provided for compilation only
+ *       scripts should use version functions.
  */
 
 #ifndef __PTPMGMT_VER_H
@@ -15,6 +18,27 @@
 #include "name.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
+
+/**
+ * Compilation library version major
+ * @note script should use getVersionMajor()
+ */
+#define LIBPTPMGMT_VER_MAJ (@PACKAGE_VERSION_MAJ@)
+/**
+ * Compilation library version minor
+ * @note script should use getVersionMinor()
+ */
+#define LIBPTPMGMT_VER_MIN (@PACKAGE_VERSION_MIN@)
+/**
+ * Compilation library version value
+ * @note script should use getVersionValue()
+ */
+#define LIBPTPMGMT_VER_VAL (@PACKAGE_VERSION_VAL@)
+/**
+ * Compilation library version string
+ * @note script should use getVersion()
+ */
+#define LIBPTPMGMT_VER "@PACKAGE_VERSION@"
 
 /**
  * Get this library version

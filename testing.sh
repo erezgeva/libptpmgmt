@@ -120,7 +120,7 @@ main()
  if [[ -x $instPmcLib ]]; then
    local -r pmclibtool=$instPmcLib
  else
-   local -r pmclibtool=./pmc
+   local -r pmclibtool=./tools/pmc
    needCmpl=y
  fi
  ##############################################################################
@@ -327,7 +327,7 @@ test_phc_ctl()
    cd ..
    return
  fi
- local run="$sudo $ldPathPython3:. ../phc_ctl $ifName"
+ local run="$sudo $ldPathPython3:. ../tools/phc_ctl $ifName"
  run+=" freq 500000000 set 0 wait 4 adj 4 get"
  eval "$run"
  echo "End clock should be '10 = 4 * 150% + 4'"
@@ -335,7 +335,7 @@ test_phc_ctl()
    printf "\n * Valgrid test of phc_ctl"
    eval "$sudo $ldPathPython3:. PYTHONMALLOC=malloc"\
      " valgrind --read-inline-info=yes"\
-     " ../phc_ctl $ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
+     " ../tools/phc_ctl $ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
  [[ -z "$ldPathPython3" ]] || py3clean .

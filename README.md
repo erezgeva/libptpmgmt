@@ -74,8 +74,7 @@ Perl and PHP use class methods, see PtpMgmtLib.pm and ptpmgmt.php for these meth
   * SockUnix in sock.h - socket to communicate with local LinuxPTP daemon
   * Management TLVs in proc.h - structures that hold a PTP Management TLV data
   * Signalling TLVs in sig.h - structures that hold a PTP Signalling TLV data
-  * Runtime library version in ver.h
-  * Library version used during build in verDef.h
+  * Library version in ver.h
   * Managment TLVs mngIds.h - enumerator for PTP Management TLVs
   * PTP managment types types.h - enumerators and structure to use with PTP Management messages
   * Dispatcher and builder in msgCall.h - classes which provice call-backs for specific Management TLVs
