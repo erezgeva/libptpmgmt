@@ -231,7 +231,6 @@ sk.close()
 
 # If libptpmgmt library is not installed in system, run with:
 """
-pyclean .  ; LD_LIBRARY_PATH=.. PYTHONPATH=2 python2 test.py
 py3clean . ; LD_LIBRARY_PATH=.. PYTHONPATH=3 python3 test.py
 
 """

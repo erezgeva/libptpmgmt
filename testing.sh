@@ -94,11 +94,11 @@ main()
  local -r fmach="/$mach*"
  local -r ldPathBase='LD_LIBRARY_PATH=.'
  local -r ldPath="${ldPathBase}."
- local ldPathPerl ldPathRuby ldPathLua ldPathPython2 ldPathPython3\
+ local ldPathPerl ldPathRuby ldPathLua ldPathPython3\
        ldPathPhp ldPathTcl ldPathJson needCmpl
  # Lua 5.4 need lua-posix version 35
  local -r luaVersions='1 2 3'
- local -r pyVersions='2 3'
+ local -r pyVersions='3'
  getFirstFile "/usr/lib$fmach/libptpmgmt.so"
  if [[ -f "$file" ]]; then
    probeLibs
@@ -108,7 +108,6 @@ main()
    ldPathPerl="$ldPath"
    ldPathRuby="$ldPath RUBYLIB=."
    ldPathLua="$ldPath"
-   ldPathPython2="$ldPath PYTHONPATH=2"
    ldPathPython3="$ldPath PYTHONPATH=3"
    ldPathPhp="$ldPath PHPRC=."
    ldPathTcl="$ldPath"
@@ -419,7 +418,6 @@ probeLibs()
      need="$ldPath PYTHONPATH=$i"
    fi
  done
- # Python 2 is optional
  [[ -z "$needPython3" ]] || needCmpl=y
  if ! [[ -f "$(php-config --extension-dir)/ptpmgmt.so" ]]; then
    needCmpl=y

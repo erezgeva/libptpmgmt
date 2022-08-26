@@ -13,7 +13,7 @@ ARG USER
 RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sudo automake autoconf yum-utils rpm-build dnf-utils fedora-packager\
     rpmdevtools doxygen graphviz perl php-devel ruby ruby-devel swig\
-    lua lua-devel python2-devel python3-devel php python2 python3 which\
+    lua lua-devel python3-devel php python3 which\
     perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel libfastjson\
     libfastjson-devel json-c-devel m4 && dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\

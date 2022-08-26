@@ -16,6 +16,7 @@
 #define __PTPMGMT_IF_H
 
 #include <vector>
+#include <time.h>
 #include <net/if.h>
 #include <linux/ethtool.h>
 #include "bin.h"

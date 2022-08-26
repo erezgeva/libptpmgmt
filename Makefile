@@ -196,7 +196,7 @@ Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
 Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
 Q_LD=$Q$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
 Q_AR=$Q$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
-Q_LCC=$(info $(COLOR_BUILD)[LCC] $(@F)$(COLOR_NORM))
+Q_LCC=$(info $(COLOR_BUILD)[LCC] $<$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
 MAKE_NO_DIRS:=--no-print-directory
@@ -741,8 +741,9 @@ INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
 ifneq ($(INSIDE_GIT),true)
 SRC_FILES:=$(wildcard */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  $(SRC)/* php/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
-  $(PMC_DIR)/*) LICENSE $(wordlist 1,2,$(MAKEFILE_LIST))
+  $(SRC)/*.in $(SRC)/*.m4  php/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/*\
+  .reuse/* $(PMC_DIR)/* $(JSON_SRC)/*) $(SRCS) $(HEADERS_SRCS) LICENSE\
+  $(wordlist 1,2,$(MAKEFILE_LIST))
 else
 SRC_FILES!=git ls-files | egrep -v '(^(archlinux|debian|rpm|sample)/|.gitignore)'
 endif
