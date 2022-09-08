@@ -492,7 +492,6 @@ class MsgDump : public MessageDispatcher
     }
     dump(UNICAST_MASTER_TABLE_NP) {
         DUMPS(
-            // TODO should it be 'actualTableSize' in LinuxPTP?
             IDENT "actual_table_size %u"
             IDENT "BM  identity                 address                            "
             "state     clockClass clockQuality offsetScaledLogVariance p1  p2",

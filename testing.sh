@@ -99,7 +99,7 @@ main()
  # Lua 5.4 need lua-posix version 35
  local -r luaVersions='1 2 3'
  local -r pyVersions='3'
- getFirstFile "/usr/lib$fmach/libptpmgmt.so"
+ getFirstFile "/usr/lib$fmach/libptpmgmt.so*"
  if [[ -f "$file" ]]; then
    probeLibs
  else
@@ -326,13 +326,18 @@ test_phc_ctl()
    cd ..
    return
  fi
- local run="$sudo $ldPathPython3:. ../tools/phc_ctl $ifName"
+ if [[ -n "$ldPathPython3" ]]; then
+   local ldFullPathPython3="$ldPathPython3:."
+ else
+   local ldFullPathPython3=''
+ fi
+ local run="$sudo $ldFullPathPython3 ../tools/phc_ctl $ifName"
  run+=" freq 500000000 set 0 wait 4 adj 4 get"
  eval "$run"
  echo "End clock should be '10 = 4 * 150% + 4'"
  if $use_valgrind; then
    printf "\n * Valgrid test of phc_ctl"
-   eval "$sudo $ldPathPython3:. PYTHONMALLOC=malloc"\
+   eval "$sudo $ldFullPathPython3 PYTHONMALLOC=malloc"\
      " valgrind --read-inline-info=yes"\
      " ../tools/phc_ctl $ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
@@ -365,7 +370,7 @@ enter()
 getFirstFile()
 {
  local f
- for f in "$@"; do
+ for f in $@; do
    if [[ -f "$f" ]]; then
      file="$f"
      return
@@ -403,7 +408,7 @@ probeLibs()
    ldPathRuby="$ldPath RUBYLIB=."
  fi
  for i in $luaVersions; do
-   getFirstFile "/usr/lib$fmach/lua/5.$i/ptpmgmt.so"
+   getFirstFile "/usr/lib$fmach/liblua5.$i-ptpmgmt.so*"
    if ! [[ -f "$file" ]]; then
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.

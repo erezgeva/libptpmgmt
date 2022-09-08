@@ -158,8 +158,10 @@ OBJ_DIR:=objs
 
 PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
+SWIG_LNAME:=ptpmgmt
+SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard */*.d */*/*.d)
-PHP_LNAME:=php/ptpmgmt
+PHP_LNAME:=php/$(SWIG_LNAME)
 PERL_NAME:=perl/$(SWIG_NAME)
 HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
 HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
@@ -401,11 +403,10 @@ SWIG_ALL+=$(PERL_NAME).so
 endif # SKIP_PERL5
 
 ifeq ($(SKIP_LUA),)
-LUA_LIB_NAME:=ptpmgmt.so
 lua_SFLAGS+=-lua
 define lua
-LUA_FLIB_$1:=liblua$1-$(LUA_LIB_NAME)
-LUA_LIB_$1:=lua/$1/$(LUA_LIB_NAME)
+LUA_FLIB_$1:=liblua$1-$(SWIG_LIB_NAME)
+LUA_LIB_$1:=lua/$1/$(SWIG_LIB_NAME)
 $$(LUA_LIB_$1)_LDLIBS:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)\
   $$(LUA_$$(subst .,_,$1)_LINK)
 lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
@@ -423,8 +424,8 @@ $(eval $(foreach n,$(LUAVERSIONS),$(call lua,$n)))
 
 # Build single Lua version
 ifneq ($(LUA_VERSION),)
-LUA_FLIB:=liblua$(LUABIN_VERSION)-$(LUA_LIB_NAME)
-LUA_LIB:=lua/$(LUA_LIB_NAME)
+LUA_FLIB:=liblua$(LUABIN_VERSION)-$(SWIG_LIB_NAME)
+LUA_LIB:=lua/$(SWIG_LIB_NAME)
 ifneq ($(LUA_INC),)
 CXXFLAGS_LUA+=-I$(LUA_INC)
 endif
@@ -465,7 +466,7 @@ endif # SKIP_PYTHON3
 
 ifeq ($(SKIP_RUBY),)
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
-RUBY_LNAME:=ruby/ptpmgmt
+RUBY_LNAME:=ruby/$(SWIG_LNAME)
 ruby_SFLAGS:=-ruby
 $(RUBY_LNAME).so_LDLIBS:=$(RUBYLINK)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
@@ -494,22 +495,22 @@ endif # SKIP_PHP
 
 ifeq ($(SKIP_TCL),)
 TCL_NAME:=tcl/$(SWIG_NAME).cpp
-TCL_LNAME:=tcl/ptpmgmt
+TCL_LNAME:=tcl/$(SWIG_LNAME)
 tcl_SFLAGS+=-tcl8 -namespace
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$Q$(call LLC,$(TCLINCLUDE))
 	$(call D_INC,TCLINCDIR)
 	$(SWIG_DEP)
+$(TCL_LNAME).so_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME)$(SONAME)
 $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(TCL_LNAME).so
-TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/ptpmgmt
+TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
 # TODO how the hell tcl "know" the library version? Why does it think it's 0.0?
 # Need to add soname!
-define pkgIndex
-if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}
-package ifneeded ptpmgmt 0.0 [list load [file join $$dir ptpmgmt.so]]
-endef
+pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
+pkgIndex+=package ifneeded $(SWIG_LNAME) $(PACKAGE_VERSION_MAJ)
+pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
 endif # SKIP_TCL
 
 ALL+=$(SWIG_ALL)
@@ -536,6 +537,7 @@ all: $(COMP_DEPS) $(ALL)
 URL:=html/index.html
 REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
 INSTALL_FOLDER:=$(INSTALL) -d
+TOOLS_EXT:=-ptpmgmt
 DEV_PKG?=libptpmgmt-dev
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/libptpmgmt-doc
@@ -558,23 +560,23 @@ install:
 	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
-	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc-ptpmgmt
-	if [ ! -f $(MANDIR)/pmc-ptpmgmt.8.gz ]; then\
-	  $(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc-ptpmgmt.8;\
-	  gzip $(MANDIR)/pmc-ptpmgmt.8;fi
+	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
+	if [ ! -f $(MANDIR)/pmc$(TOOLS_EXT).8.gz ]; then\
+	  $(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8;\
+	  gzip $(MANDIR)/pmc$(TOOLS_EXT).8;fi
 	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\
-	  $(DESTDIR)$(sbindir)/phc_ctl-ptpmgmt
-	if [ ! -f $(MANDIR)/phc_ctl-ptpmgmt.8.gz ]; then\
-	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8;\
-	  gzip $(MANDIR)/phc_ctl-ptpmgmt.8;fi
+	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
+	if [ ! -f $(MANDIR)/phc_ctl$(TOOLS_EXT).8.gz ]; then\
+	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8;\
+	  gzip $(MANDIR)/phc_ctl$(TOOLS_EXT).8;fi
 	$(RM) doc/html/*.md5
 	$(INSTALL_FOLDER) $(DOCDIR)
 	cp -a *.md doc/html $(DOCDIR)
 	printf $(REDIR) > $(DOCDIR)/index.html
 ifeq ($(SKIP_PERL5),)
 	$(INSTALL_PROGRAM) -D perl/$(SWIG_NAME).so -t\
-	  $(DESTDIR)$(PERL5EXT)/auto/$(SWIG_NAME)
-	$(INSTALL_DATA) perl/$(SWIG_NAME).pm $(DESTDIR)$(PERL5EXT)
+	  $(DESTDIR)$(PERL5DIR)/auto/$(SWIG_NAME)
+	$(INSTALL_DATA) perl/$(SWIG_NAME).pm $(DESTDIR)$(PERL5DIR)
 endif # SKIP_PERL5
 ifeq ($(SKIP_LUA),)
 	$(foreach n,$(LUAVERSIONS),\
@@ -584,20 +586,20 @@ ifeq ($(SKIP_LUA),)
 	  $(DLIBDIR)/$(LUA_FLIB_$n)$(SONAME);\
 	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
 	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
-	  $(DLIBDIR)/lua/$n/$(LUA_LIB_NAME);)
+	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME);)
 ifneq ($(LUA_VERSION),)
 	$(INSTALL_PROGRAM) -D $(LUA_LIB) $(DLIBDIR)/$(LUA_FLIB)
 ifneq ($(LUABIN_VERSION),)
 	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUABIN_VERSION)
 	$(LN) ../../$(LUA_FLIB)\
-	$(DLIBDIR)/lua/$(LUABIN_VERSION)/$(LUA_LIB_NAME)
+	$(DLIBDIR)/lua/$(LUABIN_VERSION)/$(SWIG_LIB_NAME)
 endif # LUABIN_VERSION
 endif # LUA_VERSION
 endif # SKIP_LUA
 ifeq ($(SKIP_PYTHON3),)
 	$(INSTALL_PROGRAM) -D python/3/$(PY_LIB_NAME).so\
 	  $(DESTDIR)$(PY3SITE_DIR)/$(PY_LIB_NAME)$(PY3EXT)
-	$(INSTALL_DATA) python/ptpmgmt.py $(DESTDIR)$(PY3SITE_DIR)
+	$(INSTALL_DATA) python/$(SWIG_LNAME).py $(DESTDIR)$(PY3SITE_DIR)
 endif # SKIP_PYTHON3
 ifeq ($(SKIP_RUBY),)
 	$(INSTALL_PROGRAM) -D $(RUBY_LNAME).so -t $(DESTDIR)$(RUBYSITE)
@@ -608,7 +610,7 @@ ifeq ($(SKIP_PHP),)
 endif # SKIP_PHP
 ifeq ($(SKIP_TCL),)
 	$(INSTALL_PROGRAM) -D $(TCL_LNAME).so -t $(TCLDIR)
-	printf '$(subst $(line),\n,$(pkgIndex))\n' > $(TCLDIR)/pkgIndex.tcl
+	printf '$(pkgIndex)' > $(TCLDIR)/pkgIndex.tcl
 endif # SKIP_TCL
 
 include $(D_FILES)
@@ -680,10 +682,10 @@ endif # config.status
 endif # MAKECMDGOALS
 
 CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
-  $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so)\
-  $(D_FILES) $(ARCHL_SRC) $(ARCHL_BLD) python/ptpmgmt.py python/ptpmgmt.pyc\
-  php/php_ptpmgmt.h $(PHP_LNAME).php php/php.ini $(PERL_NAME).pm tags\
-  $(PMC_NAME) $(filter-out src/ver.h,$(HEADERS_GEN))
+  $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
+  python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(ARCHL_SRC)\
+  $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
+  $(filter-out src/ver.h,$(HEADERS_GEN))
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
   archlinux/*/)) doc $(OBJ_DIR)
 DISTCLEAN:=$(foreach n, log status,config.$n) configure src/ver.h defs.mk
