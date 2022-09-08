@@ -48,6 +48,7 @@ PTP management library JSON plugin using the fastjson library
 %package        devel
 Summary:        Development files for the PTP management library
 License:        LGPLv3+
+Provides:       %{name}-static = %{version}-%{release}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description    devel
 The %{name}-devel package contains libraries and header files for
@@ -127,35 +128,36 @@ Requires:       python3-%{bname} = %{version}-%{release}
 %setup -q
 
 %build
-%make_build LD_SONAME=1 CPPFLAGS_OPT=-Ofast --no-print-directory all doxygen
+%configure --with-pmc-flags='-fPIE'
+%make_build PMC_USE_LIB=so --no-print-directory all doxygen
 
 %install
-%make_install LIBDIR=%{_libdir} DEV_PKG=%{name}-devel\
-  PY_LIBDIR=%{_libdir}/python --no-print-directory
+%make_install DEV_PKG=%{name}-devel --no-print-directory
 
 %clean
 make distclean
 
 %files
-%{_libdir}/%{name}.so
+%{_libdir}/%{name}.so.0{,.*}
 
 %files jsonc
-%{_libdir}/%{name}_jsonc.so
+%{_libdir}/%{name}_jsonc.so.0{,.*}
 
 %files fastjson
-%{_libdir}/%{name}_fastjson.so
+%{_libdir}/%{name}_fastjson.so.0{,.*}
 
 %files devel
 %{_includedir}/*
 %{_libdir}/%{name}*.a
+%{_libdir}/%{name}*.so
 %{_datadir}/%{name}-devel/*.mk
 
 %files doc
 %{_datadir}/doc/%{name}-doc/*
 
 %files perl
-%{_prefix}/local/lib*/perl*/*/PtpMgmtLib.pm
-%{_prefix}/local/lib*/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so
+%{_libdir}/perl5/CORE/PtpMgmtLib.pm
+%{_libdir}/perl5/CORE/auto/PtpMgmtLib/PtpMgmtLib.so
 
 %files -n python3-%{bname}
 %{_libdir}/python3*/*/_%{bname}.cpython-*.so
@@ -163,15 +165,14 @@ make distclean
 %{_libdir}/python3*/*/*/%{bname}.*.pyc
 
 %files -n lua-%{bname}
-%{_libdir}/lua/*/%{bname}.so
-%{_libdir}/liblua*-%{bname}.so
+%{_libdir}/liblua-%{bname}.so*
 
 %files -n ruby-%{bname}
 %{_libdir}/ruby/*/%{bname}.so
 
 %files -n php-%{bname}
 %{_libdir}/php/*/%{bname}.so
-%{_datadir}/php/%{bname}.php
+%{_datadir}/pear/%{bname}.php
 
 %files -n tcl-%{bname}
 %{_libdir}/tcl*/%{bname}/%{bname}.so

@@ -17,10 +17,9 @@ define help
 #                                                                              #
 #   all              Build all targets.                                        #
 #                                                                              #
-#   clean            Clean intermediate files.                                 #
+#   clean            Clean build files.                                        #
 #                                                                              #
-#   distclean        Perform full clean includes build application and         #
-#                    generated documents.                                      #
+#   distclean        Perform full clean.                                       #
 #                                                                              #
 #   format           Format source code and warn of format issues.             #
 #                                                                              #
@@ -36,8 +35,6 @@ define help
 #                                                                              #
 #   deb_arc          Build Debian packages for other architecture.             #
 #                    Use DEB_ARC to specify architecture.                      #
-#                                                                              #
-#   deb_src          Build Debian source package.                              #
 #                                                                              #
 #   deb_clean        Clean Debian intermediate files.                          #
 #                                                                              #
@@ -59,51 +56,14 @@ define help
 #   DESTDIR          Destination folder for install target.                    #
 #                    Installation prefix.                                      #
 #                                                                              #
-#   LIBDIR           Library folder for installation                           #
-#                                                                              #
-#   LD_SONAME        Link with soname                                          #
-#                                                                              #
-#   SONAME_USE_MAJ   Use soname with major version                             #
-#                                                                              #
 #   DEV_PKG          Development package name, default libptpmgmt-dev.         #
 #                                                                              #
-#   PY_LIBDIR        Python libraries folder, default /usr/lib/python          #
-#                                                                              #
-#   CPPFLAGS_OPT     Compilation optimization, default for debug               #
-#                                                                              #
 #   USE_ASAN         Use the AddressSanitizer, for testing!                    #
-#                                                                              #
-#   TARGET_ARCH      Taget architectue, used for cross compilation.            #
-#                    On Amd and Intel 64 bits default is x86_64-linux-gnu      #
-#                                                                              #
-#   BUILD_ARCH       Build machine architectue, used for cross compilation.    #
-#                    On Amd and Intel 64 bits default is x86_64-linux-gnu      #
 #                                                                              #
 #   NO_COL           Prevent colour output.                                    #
 #                                                                              #
 #   USE_COL          Force colour when using pipe for tools like 'aha'.        #
 #                    For example: make -j USE_COL=1 | aha > out.html           #
-#                                                                              #
-#   NO_SWIG          Prevent compiling Swig plugins.                           #
-#                                                                              #
-#   NO_PERL          Prevent compiling Perl Swig plugin.                       #
-#                                                                              #
-#   NO_LUA           Prevent compiling Lua swig plugin.                        #
-#                                                                              #
-#   NO_RUBY          Prevent compiling Ruby Swig plugin.                       #
-#                                                                              #
-#   NO_PYTHON        Prevent compiling Python Swig plugin.                     #
-#                                                                              #
-#   NO_PHP           Prevent compiling PHP Swig plugin.                        #
-#                                                                              #
-#   NO_TCL           Prevent compiling TCL Swig plugin.                        #
-#                                                                              #
-#   NO_JSON          Preven compiling JSON parsing plugsins                    #
-#                    and static link                                           #
-#                                                                              #
-#   NO_CJSON         Preven usinsg C JSON library                              #
-#                                                                              #
-#   NO_FCJSON        Preven usinsg fast JSON library                           #
 #                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #
@@ -115,6 +75,9 @@ define help
 ################################################################################
 
 endef
+
+###############################################################################
+### General macroes
 which=$(shell which $1 2>/dev/null)
 define depend
 $1: $2
@@ -137,18 +100,9 @@ A
 endef
 line=$(subst A,,$(lbase))
 space=$(subst A,,A A)
-TOP:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
-SRC:=src
-PMC_DIR:=tools
-JSON_SRC:=json
-OBJ_DIR:=objs
 
-# TOOLS
-RL:=ranlib
-LN:=ln -fs
-SED:=sed
-MD:=mkdir -p
-TAR:=tar cfJ
+###############################################################################
+### output shaper
 
 # Use tput to check if we have ANSI Color code
 # tput works only if TERM is set
@@ -187,162 +141,182 @@ endif
 ifneq ($(V),1)
 Q:=@
 COLOR_BUILD:=$(COLOR_MAGENTA)
+Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
+Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
+Q_TAR=$Q$(info $(COLOR_BUILD)[TAR] $@$(COLOR_NORM))
+MAKE_NO_DIRS:=--no-print-directory
+endif
+
+###############################################################################
+### Generic definitions
+.ONESHELL: # Run rules in a single shell
+
+SRC:=src
+PMC_DIR:=tools
+JSON_SRC:=json
+OBJ_DIR:=objs
+
+PMC_NAME:=$(PMC_DIR)/pmc
+SWIG_NAME:=PtpMgmtLib
+D_FILES:=$(wildcard */*.d */*/*.d)
+PHP_LNAME:=php/ptpmgmt
+PERL_NAME:=perl/$(SWIG_NAME)
+HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
+HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
+HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
+HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
+HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,end.h err.h jsonDef.h comp.h\
+  msgProc.h ids.h),$(HEADERS))
+SRCS:=$(wildcard $(SRC)/*.cpp)
+COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
+
+####### Source tar file #######
+TAR:=tar cfJ
+include version
+SRC_NAME:=libptpmgmt-$(ver_maj).$(ver_min)
+ifneq ($(call which,git),)
+INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
+endif
+ifneq ($(INSIDE_GIT),true)
+SRC_FILES:=$(wildcard */test.* scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
+  config.guess config.sub configure.ac install-sh $(SRC)/*.in $(SRC)/*.m4\
+  php/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/*)\
+  $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
+else
+SRC_FILES!=git ls-files |\
+  egrep -v '(^(archlinux|debian|rpm|sample)/|.gitignore)'
+endif
+# Add configure script for source archive
+SRC_FILES+=configure
+# To compare manual source list to git based:
+# $(foreach n,$(SRC_FILES),$(info $n))
+
+###############################################################################
+### Configure area
+ifeq ($(wildcard defs.mk),)
+ifeq ($(MAKECMDGOALS),)
+$(info defs.mk is missing, please run ./configure)
+endif
+all: configure
+	@:
+
+###############################################################################
+### Build area
+else # wildcard defs.mk
+include defs.mk
+
+ifneq ($(V),1)
 Q_DOXY=$Q$(info $(COLOR_BUILD)Doxygen$(COLOR_NORM))
 Q_FRMT=$Q$(info $(COLOR_BUILD)Format$(COLOR_NORM))
 Q_TAGS=$Q$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
 Q_GEN=$Q$(info $(COLOR_BUILD)[GEN] $@$(COLOR_NORM))
 Q_SWIG=$Q$(info $(COLOR_BUILD)[SWIG] $@$(COLOR_NORM))
-Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
-Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
 Q_LD=$Q$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
 Q_AR=$Q$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
 Q_LCC=$(info $(COLOR_BUILD)[LCC] $<$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
-MAKE_NO_DIRS:=--no-print-directory
 # Filter normal output, send error output to stdout
-QE:=2>&1 >/dev/null | $(SED) 's@^$(TOP)@@'
+QE:=2>&1 >/dev/null | $(SED) 's@^$(ROOT_DIR)/@@'
 endif
 
-include version
-CPPFLAGS_MD=-MT $@ -MMD -MP -MF $(basename $@).d
-override CPPFLAGS+=-Wdate-time -Wall -std=c++11 -g -Isrc $(CPPFLAGS_MD)
+LN:=$(LN_S) -f
+ifeq ($(findstring -O,$(CXXFLAGS)),)
+# Add debug optimization, unless we already have an optimization :-)
+override CXXFLAGS+=-Og
+endif # find '-O'
+override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -Isrc
+override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
 ifeq ($(USE_ASAN),)
-CPPFLAGS_OPT?=-Og
-override CPPFLAGS+=$(CPPFLAGS_OPT)
 else
 # Use https://github.com/google/sanitizers/wiki/AddressSanitizer
 ASAN_FLAGS:=$(addprefix -fsanitize=,address pointer-compare pointer-subtract\
   undefined leak)
-override CPPFLAGS+=-Og $(ASAN_FLAGS) -fno-omit-frame-pointer
+override CXXFLAGS+=$(ASAN_FLAGS) -fno-omit-frame-pointer
 override LDFLAGS+=$(ASAN_FLAGS)
 endif # USE_ASAN
 LIBTOOL_CC=$Q$(Q_LCC)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
-LIB_VER:=$(ver_maj).$(ver_min)
-VER_VAL!=printf '0x%.2x%.2x' $(ver_maj) $(ver_min)
-ifdef SONAME_USE_MAJ
-SONAME:=.$(ver_maj)
-endif
+SONAME:=.$(PACKAGE_VERSION_MAJ)
 LIB_NAME:=libptpmgmt
 LIB_NAME_SO:=$(LIB_NAME).so
-ifdef LD_SONAME
 LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
-endif
 $(LIB_NAME_SO)_LDLIBS:=-lm -ldl
-SRCS:=$(wildcard $(SRC)/*.cpp)
 LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,$(SRCS)))
 PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
 JSON_FROM_OBJS:=$(subst $(JSON_SRC)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(JSON_SRC)/*.cpp)))
-PMC_NAME:=$(PMC_DIR)/pmc
-$(OBJ_DIR)/ver.o: override CPPFLAGS+=-DVER_MAJ=$(ver_maj) -DVER_MIN=$(ver_min)\
-  -DVER_VAL=$(VER_VAL)
-D_INC=$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d
-LLC=$(Q_LCC)$(CXX) $(CPPFLAGS) $(CPPFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
-LLA=$(Q_AR)$(AR) rcs $@ $^;$(RL) $@
+$(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(PACKAGE_VERSION_MAJ)\
+  -DVER_MIN=$(PACKAGE_VERSION_MIN) -DVER_VAL=$(PACKAGE_VERSION_VAL)
+D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
+LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
+LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
 # GCC output colors
 ifndef NO_COL
-CPPFLAGS_COLOR:=-fdiagnostics-color=always
+CXXFLAGS_COLOR:=-fdiagnostics-color=always
 else
-CPPFLAGS_COLOR:=-fdiagnostics-color=never
+CXXFLAGS_COLOR:=-fdiagnostics-color=never
 endif
 endif # verCheck CXX 4.9
-override CPPFLAGS+=$(CPPFLAGS_COLOR)
+# https://clang.llvm.org/docs/UsersManual.html
+# -fcolor-diagnostics
+override CXXFLAGS+=$(CXXFLAGS_COLOR)
 
-ALL:=$(PMC_NAME) $(LIB_NAME_SO) $(LIB_NAME).a
+ALL:=$(PMC_NAME) $(LIB_NAME_SO)$(SONAME) $(LIB_NAME).a
 
-ifneq ($(call which,dpkg-architecture),)
-DEB_TARGET_MULTIARCH?=$(shell dpkg-architecture -qDEB_TARGET_MULTIARCH)
-DEB_BUILD_MULTIARCH?=$(shell dpkg-architecture -qDEB_BUILD_MULTIARCH)
-endif # which dpkg-architecture
-TARGET_ARCH?=$(DEB_TARGET_MULTIARCH)
-BUILD_ARCH?=$(DEB_BUILD_MULTIARCH)
-ifneq ($(BUILD_ARCH),$(TARGET_ARCH)) # Cross compilation
-CROSS_COMP:=1
-rep_arch_f=$(subst /$(BUILD_ARCH)/,/$(TARGET_ARCH)/,$1)
-rep_arch_p=$(subst /$(BUILD_ARCH),/$(TARGET_ARCH),$1)
-rep_arch_o=$(subst $(BUILD_ARCH),$(TARGET_ARCH),$1)
-endif
-ifneq ($(TARGET_ARCH),)
-LIBDIR?=/usr/lib/$(TARGET_ARCH)
-else
-LIBDIR?=/usr/lib
-endif
 %.so:
 	$(Q_LD)$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES)\
 	  $($@_LDLIBS) $(LDLIBS) -o $@
 
 # JSON libraries
 JSON_C:=
-ifneq ($(NO_JSON),)
-# Disabe all JSON libraries
-NO_CJSON:=1
-NO_FCJSON:=1
-endif
-
 # Using json-c
-JSONC_INC:=/usr/include/json-c
-JSONC_LD:=-ljson-c
 JSONC_LIB:=$(LIB_NAME)_jsonc.so
 JSONC_LIBA:=$(LIB_NAME)_jsonc.a
 JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
 JSON_C+=\"$(JSONC_FLIB)\",
-ifeq ($(NO_CJSON),) # No point probing if user defer
-ifeq ($(wildcard $(JSONC_INC)/json.h),)
-NO_CJSON:=1 # No header
-else # wildcard json-c
-# As json-c development do not support multiple architectures
-# we need to verify library available on current architecture
-JSONC_LIB_PROB!=$(CXX) -shared $(JSONC_LD) 2>&1 && rm a.out
-ifneq ($(JSONC_LIB_PROB),) # Error indicat library not found
-NO_CJSON:=1
-endif
-endif # wildcard json-c
-endif # NO_CJSON
-ifeq ($(NO_CJSON),)
-JSONC_CFLAGS:=-include $(JSONC_INC)/json.h -DJLIB_NAME=\"$(JSONC_LIBA)\"
-$(OBJ_DIR)/jsonFromJc.o: $(JSON_SRC)/jsonFrom.cpp
-	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $(JSONC_CFLAGS) $< -o $@
-	$(call D_INC,JSONC_INC)
+ifneq ($(HAVE_JSONC_LIB),)
+JSONC_CFLAGS:=-include $(HAVE_JSONC_LIB) -DJLIB_NAME=\"$(JSONC_LIBA)\"
+$(OBJ_DIR)/jsonFromJc.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
+	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(JSONC_CFLAGS) $< -o $@
 $(OBJ_DIR)/.libs/jsonFromJc.o: $(OBJ_DIR)/jsonFromJc.o
-$(JSONC_LIB)_LDLIBS:=$(JSONC_LD)
+$(JSONC_LIB)_LDLIBS:=$(JSONC_LIB_FLAGS)
+$(JSONC_LIB)$(SONAME): $(JSONC_LIB)
+	$Q$(LN) $^ $@
 $(JSONC_LIB): $(OBJ_DIR)/.libs/jsonFromJc.o $(LIB_NAME).so
 $(JSONC_LIBA): $(OBJ_DIR)/jsonFromJc.o
 	$(LLA)
-ALL+=$(JSONC_LIB) $(JSONC_LIBA)
-endif # NO_CJSON
+ALL+=$(JSONC_LIB)$(SONAME) $(JSONC_LIBA)
+endif # HAVE_JSONC_LIB
 
 # Using fastjson
-FJSON_INC:=/usr/include/libfastjson
 FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 JSON_C+=\"$(FJSON_FLIB)\",
-ifeq ($(wildcard $(FJSON_INC)/json.h),)
-NO_FCJSON:=1
-endif
-ifeq ($(NO_FCJSON),)
-FJSON_CFLAGS:=-include $(FJSON_INC)/json.h -DJLIB_NAME=\"$(FJSON_LIBA)\"
-$(OBJ_DIR)/jsonFromFj.o: $(JSON_SRC)/jsonFrom.cpp
-	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $(FJSON_CFLAGS) $< -o $@
-	$(call D_INC,FJSON_INC)
+ifneq ($(HAVE_FJSON_LIB),)
+FJSON_CFLAGS:=-include $(HAVE_FJSON_LIB) -DJLIB_NAME=\"$(FJSON_LIBA)\"
+$(OBJ_DIR)/jsonFromFj.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
+	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(FJSON_CFLAGS) $< -o $@
 $(OBJ_DIR)/.libs/jsonFromFj.o: $(OBJ_DIR)/jsonFromFj.o
-$(FJSON_LIB)_LDLIBS:=-lfastjson
+$(FJSON_LIB)_LDLIBS:=$(FJSON_LIB_FLAGS)
+$(FJSON_LIB)$(SONAME): $(FJSON_LIB)
+	$Q$(LN) $^ $@
 $(FJSON_LIB): $(OBJ_DIR)/.libs/jsonFromFj.o $(LIB_NAME).so
 $(FJSON_LIBA): $(OBJ_DIR)/jsonFromFj.o
 	$(LLA)
-ALL+=$(FJSON_LIB) $(FJSON_LIBA)
-endif # NO_FCJSON
+ALL+=$(FJSON_LIB)$(SONAME) $(FJSON_LIBA)
+endif # HAVE_FJSON_LIB
 
 # Add jsonFrom libraries to search
-$(OBJ_DIR)/jsonDef.o: override CPPFLAGS+=-DJSON_C="$(JSON_C)"
+$(OBJ_DIR)/jsonDef.o: override CXXFLAGS+=-DJSON_C="$(JSON_C)"
 
 # Compile library source code
-$(LIB_OBJS): $(OBJ_DIR)/%.o: $(SRC)/%.cpp
-	$(LIBTOOL_CC) $(CXX) -c $(CPPFLAGS) $< -o $@
+$(LIB_OBJS): $(OBJ_DIR)/%.o: $(SRC)/%.cpp | $(COMP_DEPS)
+	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
 
 # Depened shared library objects on the static library to ensure build
 $(eval $(foreach obj,$(notdir $(LIB_OBJS)),\
@@ -350,90 +324,61 @@ $(eval $(foreach obj,$(notdir $(LIB_OBJS)),\
 
 $(LIB_NAME).a: $(LIB_OBJS)
 	$(LLA)
+$(LIB_NAME_SO)$(SONAME): $(LIB_NAME_SO)
+	$Q$(LN) $^ $@
 $(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
 
 # pmc tool
-$(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp
-	$(Q_CC)$(CXX) $(CPPFLAGS) -c -o $@ $<
+$(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
+	$(Q_CC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_PMC) -c -o $@ $<
 $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-D_FILES:=$(wildcard */*.d */*/*.d)
-CLEAN:=$(wildcard */*.o */*/*.o) $(D_FILES)
-DISTCLEAN:=$(ALL) $(wildcard *.so */*.so */*/*.so)
-# Ensure list is not empty
-DISTCLEAN_DIRS:=$(OBJ_DIR)
-
-clean:
-	$(Q_CLEAN)$(RM) $(CLEAN)
-	$(RM) -R $(OBJ_DIR)
-distclean: deb_clean clean
-	$(Q_DISTCLEAN)$(RM) $(DISTCLEAN)
-	$(RM) -R $(DISTCLEAN_DIRS)
-
-HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
-HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
-HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
-HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
-HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,end.h err.h jsonDef.h comp.h\
-  msgProc.h ids.h),$(HEADERS))
 $(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
 	$(Q_GEN)m4 -I $(SRC) $< > $@
-$(SRC)/ver.h: $(SRC)/ver.h.in
-	$(Q_GEN)$(SED) -e 's/@PACKAGE_VERSION_MAJ@/$(ver_maj)/'\
-	  -e 's/@PACKAGE_VERSION_MIN@/$(ver_min)/'\
-	  -e 's/@PACKAGE_VERSION_VAL@/$(VER_VAL)/'\
-	  -e 's/@PACKAGE_VERSION@/$(LIB_VER)/' $< > $@
-version:
-DISTCLEAN+=$(HEADERS_GEN)
 
-ifneq ($(call which,astyle),)
-astyle_ver:=$(lastword $(shell astyle -V))
-ifeq ($(call verCheck,$(astyle_ver),3.1),)
+ifneq ($(ASTYLEMINVER),)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(wildcard sample/*.cpp)
-	$(Q_FRMT)astyle --project=none --options=astyle.opt $^
+	$(Q_FRMT)$(ASTYLE) --project=none --options=astyle.opt $^
 	./format.pl
-ifneq ($(call which,cppcheck),)
-	cppcheck --quiet --language=c++ --error-exitcode=-1 $^
+ifneq ($(CPPCHECK),)
+	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1 $^
 endif
-endif
-endif # which astyle
+endif # ASTYLEMINVER
 
-SWIG_NAME:=PtpMgmtLib
-CLEAN+=$(wildcard */$(SWIG_NAME).cpp)
-ifndef NO_SWIG
-ifneq ($(call which,swig),)
-swig_ver=$(lastword $(shell swig -version | grep Version))
-# We need swig 3.0, or above
-ifeq ($(call verCheck,$(swig_ver),3.0),)
-SWIG:=swig
+ifneq ($(SWIGMINVER),)
 SWIG_ALL:=
-ifneq ($(call verCheck,$(swig_ver),4.1),)
+ifneq ($(SWIGARGCARGV),)
 # Only python and ruby have argcargv.i
 perl_SFLAGS+=-Iswig/perl5
 $(foreach n,lua php tcl,$(eval $(n)_SFLAGS+=-Iswig/$n))
+endif #SWIGARGCARGV
+
+# suppress swig compilation warnings for old swig versions
+ifneq ($(call verCheck,$(SWIGVER),4.1),)
 # SWIG warnings
 # comparison integer of different signedness
-CPPFLAGS_RUBY+=-Wno-sign-compare
+CXXFLAGS_RUBY+=-Wno-sign-compare
 # ANYARGS is deprecated (seems related to ruby headers)
-CPPFLAGS_RUBY+=-Wno-deprecated-declarations
+CXXFLAGS_RUBY+=-Wno-deprecated-declarations
 # label 'thrown' is not used
-CPPFLAGS_PHP+=-Wno-unused-label
+CXXFLAGS_PHP+=-Wno-unused-label
 # 'result' may be used uninitialized
-CPPFLAGS_LUA+=-Wno-maybe-uninitialized
+CXXFLAGS_LUA+=-Wno-maybe-uninitialized
 ifeq ($(PY_USE_S_THRD),)
 # PyEval_InitThreads is deprecated
-CPPFLAGS_PY+=-Wno-deprecated-declarations
+CXXFLAGS_PY+=-Wno-deprecated-declarations
 endif
-ifneq ($(call verCheck,$(swig_ver),4.0),)
+ifneq ($(call verCheck,$(SWIGVER),4.0),)
 # catching polymorphic type 'class std::out_of_range' by value
-CPPFLAGS_RUBY+=-Wno-catch-value
-ifneq ($(call verCheck,$(swig_ver),3.0.12),)
-# Old SWIG does not support PHP 7
-NO_PHP=1
-endif ## ! swig 3.0.12
+CXXFLAGS_RUBY+=-Wno-catch-value
+# 'argv[1]' may be used uninitialized
+CXXFLAGS_RUBY+=-Wno-maybe-uninitialized
+# strncpy() specified bound depends on the length of the source argument
+CXXFLAGS_PY+=-Wno-stringop-overflow
 endif # ! swig 4.0.0
 endif # ! swig 4.1.0
+
 %/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)
 	$(Q_SWIG)$(SWIG) -c++ -Isrc -I$(@D) -outdir $(@D) -Wextra\
 	  $($(@D)_SFLAGS) -o $@ $<
@@ -444,426 +389,316 @@ SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(SRC)/mngIds.h \\'\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
-ifndef NO_PERL
-ifneq ($(call which,perl),)
-PERL_INC!=perl -e 'for(@INC){print "$$_/CORE" if-f "$$_/CORE/EXTERN.h"}'
-PERLDIR:=$(DESTDIR)$(lastword $(shell perl -e '$$_=$$^V;s/^v//;\
-  s/^(\d+\.\d+).*/\1/;$$v=$$_;for(@INC){print "$$_\n" if /$$v/ and /lib/}'))
-# Perl does not "know" how to cross properly
-ifdef CROSS_COMP
-PERL_INC:=$(call rep_arch_f,$(PERL_INC))
-PERLDIR:=$(call rep_arch_f,$(PERLDIR))
-endif
-PERL_NAME:=perl/$(SWIG_NAME)
+ifeq ($(SKIP_PERL5),)
 perl_SFLAGS+=-perl5
 $(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
-	$Q$(call LLC,-I$(PERL_INC))
-	$(call D_INC,PERL_INC)
+	$Q$(call LLC,-I$(PERL5EXT))
+	$(call D_INC,PERL5EXT)
 	$(SWIG_DEP)
 $(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_NAME).so
-DISTCLEAN+=$(PERL_NAME).pm
-else # which perl
-NO_PERL=1
-endif
-endif # NO_PERL
+endif # SKIP_PERL5
 
-ifndef NO_LUA
-ifneq ($(call which,lua),)
+ifeq ($(SKIP_LUA),)
 LUA_LIB_NAME:=ptpmgmt.so
 lua_SFLAGS+=-lua
 define lua
 LUA_FLIB_$1:=liblua$1-$(LUA_LIB_NAME)
 LUA_LIB_$1:=lua/$1/$(LUA_LIB_NAME)
-LUA_INC_$1:=/usr/include/lua$1
-ifdef LD_SONAME
-$$(LUA_LIB_$1)_LDLIBS:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)
-endif
+$$(LUA_LIB_$1)_LDLIBS:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)\
+  $$(LUA_$$(subst .,_,$1)_LINK)
 lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(MD) lua/$1
-	$$(call LLC,$$(CPPFLAGS_LUA) -I$$(LUA_INC_$1))
-	$$(call D_INC,LUA_INC_$1)
+	$Q$(MKDIR_P) lua/$1
+	$$(call LLC,$$(CXXFLAGS_LUA) -I$$(LUA_$$(subst .,_,$1)_INC))
+	$$(call D_INC,LUA_$$(subst .,_,$1)_INC)
 	$$(SWIG_DEP)
 $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_LIB_$1)
-DISTCLEAN_DIRS+=lua/$1
 
 endef
 # Build multiple Lua versions
-LUA_VERSIONS:=$(subst /,,$(subst /usr/include/lua,,$(dir\
-  $(wildcard /usr/include/lua*/lua.h))))
-$(eval $(foreach n,$(LUA_VERSIONS),$(call lua,$n)))
+$(eval $(foreach n,$(LUAVERSIONS),$(call lua,$n)))
+
 # Build single Lua version
-ifneq ($(wildcard /usr/include/lua.h),)
-LUA_INC:=/usr/include
-# Get Lua version and library base
-LUA_VER:=$(lastword $(shell lua -e 'print(_VERSION)'))
-# Do we have default lua lib, or is it versioned?
-ifeq ($(shell /sbin/ldconfig -p | grep liblua.so),)
-LUA_BASE:=$(firstword $(subst .so, ,$(notdir $(lastword $(shell\
-  /sbin/ldconfig -p | grep "lua.*$(LUA_VER)\.so$$")))))
-LUA_FLIB:=$(LUA_BASE)-$(LUA_LIB_NAME)
-else
-LUA_FLIB:=liblua-$(LUA_LIB_NAME)
-endif
-ifdef LD_SONAME
-$(LUA_LIB)_LDLIBS:=-Wl,-soname,$(LUA_FLIB)$(SONAME)
-endif
+ifneq ($(LUA_VERSION),)
+LUA_FLIB:=liblua$(LUABIN_VERSION)-$(LUA_LIB_NAME)
 LUA_LIB:=lua/$(LUA_LIB_NAME)
+ifneq ($(LUA_INC),)
+CXXFLAGS_LUA+=-I$(LUA_INC)
+endif
+$(LUA_LIB)_LDLIBS:=-Wl,-soname,$(LUA_FLIB)$(SONAME) $(LUALINK)
 lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(call LLC,$(CPPFLAGS_LUA))
-	$(call D_INC,LUA_VER)
+	$Q$(call LLC,$(CXXFLAGS_LUA))
+	$(call D_INC,LUA_INC)
 	$(SWIG_DEP)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
-endif # /usr/include/lua.h
-else # which lua
-NO_LUA=1
-endif
-endif # NO_LUA
+endif # LUA_VERSION
+endif # SKIP_LUA
 
-ifndef NO_PYTHON
-define python
-PY_BASE_$1:=python/$1/$(SWIG_NAME)
-PY_SO_$1:=python/$1/$(PY_LIB_NAME).so
-PY_INC_$1!=python$1-config --includes
-$$(PY_SO_$1)_LDLIBS!=python$1-config --libs
-PY_INC_BASE_$1:=$$(subst -I,,$$(firstword $$(PY_INC_$1)))
-PY$1_DIR:=$(DESTDIR)$$(lastword $$(shell python$1 -c 'import site;\
-  print("\n".join(site.getsitepackages()))' | grep $(PY_LIBDIR)))
-$$(PY_BASE_$1).o: $(PY_BASE).cpp $(HEADERS)
-	$Q$(MD) python/$1
-	$$(call LLC,$(CPPFLAGS_PY) $$(PY_INC_$1))
-	$$(call D_INC,PY_INC_BASE_$1)
-	$$(SWIG_DEP)
-$$(PY_SO_$1): $$(PY_BASE_$1).o $(LIB_NAME_SO)
-	$$(SWIG_LD)
-SWIG_ALL+=$$(PY_SO_$1)
-DISTCLEAN_DIRS+=python/$1
-
-endef
-
-ifneq ($(call which,python3-config),)
-USE_PY3:=1
-USE_PY:=1
-endif
-
-ifdef USE_PY
+ifeq ($(SKIP_PYTHON3),)
 PY_BASE:=python/$(SWIG_NAME)
 PY_LIB_NAME:=_ptpmgmt
-PY_LIBDIR?=/usr/lib/python
 python_SFLAGS+=-python
 ifeq ($(PY_USE_S_THRD),)
 python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
 endif
-DISTCLEAN+=python/ptpmgmt.py python/ptpmgmt.pyc
-DISTCLEAN_DIRS+=python/__pycache__
-ifdef USE_PY3
-$(eval $(call python,3))
-PY3_EXT!=python3-config --extension-suffix
-ifdef CROSS_COMP
-PY3_EXT:=$(call rep_arch_o,$(PY3_EXT))
+PY_BASE_3:=python/3/$(SWIG_NAME)
+PY_SO_3:=python/3/$(PY_LIB_NAME).so
+$(PY_SO_3)_LDLIBS:=$(PY3LDLIBS)
+PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3INCLUDE)))
+$(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
+	$Q$(MKDIR_P) python/3
+	$(call LLC,$(CXXFLAGS_PY) $(PY3INCLUDE))
+	$(call D_INC,PY3INCDIR)
+ifneq ($(PY3INCDIR),$(PY3PLATINCDIR))
+	$(call D_INC,PY3PLATINCDIR)
 endif
-endif # USE_PY3
+	$(SWIG_DEP)
+$(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
+	$(SWIG_LD)
+SWIG_ALL+=$(PY_SO_3)
+endif # SKIP_PYTHON3
 
-endif # USE_PY
-endif # NO_PYTHON
-
-ifndef NO_RUBY
-ifneq ($(call which,ruby),)
-# configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
-RUBY_SCRIPT_LIB:='puts "-l" + RbConfig::CONFIG["RUBY_SO_NAME"]'
-RUBY_SCRIPT_VDIR:='puts RbConfig::CONFIG["vendorarchdir"]'
-RUBY_INC_BASE!=ruby -rrbconfig -e 'puts RbConfig::CONFIG["rubyhdrdir"]'
-RUBY_INC_ARC!=ruby -rrbconfig -e 'puts RbConfig::CONFIG["rubyarchhdrdir"]'
-RUBY_INC:=-I$(RUBY_INC_BASE) -I$(RUBY_INC_ARC)
-RUBY_LIB!=ruby -rrbconfig -e $(RUBY_SCRIPT_LIB)
-RUBYDIR:=$(DESTDIR)$(shell ruby -rrbconfig -e $(RUBY_SCRIPT_VDIR))
-# Ruby does not "know" how to cross properly
-ifdef CROSS_COMP
-RUBY_INC:=$(call rep_arch_f,$(RUBY_INC))
-RUBY_LIB:=$(call rep_arch_f,$(RUBY_LIB))
-RUBYDIR:=$(call rep_arch_f,$(RUBYDIR))
-endif
+ifeq ($(SKIP_RUBY),)
 RUBY_NAME:=ruby/$(SWIG_NAME).cpp
 RUBY_LNAME:=ruby/ptpmgmt
 ruby_SFLAGS:=-ruby
-$(RUBY_LNAME).so_LDLIBS:=$(RUBY_LIB)
+$(RUBY_LNAME).so_LDLIBS:=$(RUBYLINK)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
-	$Q$(call LLC,$(CPPFLAGS_RUBY) $(RUBY_INC))
-	$(SED) -i -e 's#$(RUBY_INC_BASE)#\$$(RUBY_INC_BASE)#g;'\
-	  -e 's#$(RUBY_INC_ARC)#\$$(RUBY_INC_ARC)#g' $*.d
+	$Q$(call LLC,$(CXXFLAGS_RUBY) $(RUBYINCLUDE))
+	$(call D_INC,RUBYHDRDIR)
+ifneq ($(RUBYHDRDIR),$(RUBYARCHHDRDIR))
+	$(call D_INC,RUBYARCHHDRDIR)
+endif
 	$(SWIG_DEP)
 $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
-else # which ruby
-NO_RUBY=1
-endif
-endif # NO_RUBY
+endif # SKIP_RUBY
 
-ifneq ($(call which,php-config),)
-PHPCFG:=php-config
-endif
-ifneq ($(call which,php-config7),)
-PHPCFG:=php-config7
-endif
-ifeq ($(PHPCFG),)
-NO_PHP=1
-else # PHPCFG
-php_ver=$(subst $(SP),.,$(wordlist 1,2,$(subst ., ,$(shell $(PHPCFG) --version))))
-ifneq ($(call verCheck,$(php_ver),7.0),)
-NO_PHP=1
-endif # PHP 7
-endif # PHPCFG
-ifndef NO_PHP
-PHPEDIR:=$(DESTDIR)$(shell $(PHPCFG) --extension-dir)
-PHPIDIR:=$(DESTDIR)$(lastword $(subst :, ,$(shell\
-  php -r 'echo get_include_path();')))
-PHP_INC:=-Iphp $(shell $(PHPCFG) --includes)
-PHP_INC_BASE!=$(PHPCFG) --include-dir
+ifeq ($(SKIP_PHP),)
 PHP_NAME:=php/$(SWIG_NAME).cpp
-PHP_LNAME:=php/ptpmgmt
 php_SFLAGS+=-php7
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
-	$Q$(call LLC,$(CPPFLAGS_PHP) $(PHP_INC))
-	$(call D_INC,PHP_INC_BASE)
+	$Q$(call LLC,$(CXXFLAGS_PHP) -Iphp $(PHPINC_FLAGS))
+	$(call D_INC,PHPINC)
 	$(SWIG_DEP)
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so
-CLEAN+=php/php_ptpmgmt.h
-DISTCLEAN+=$(PHP_LNAME).php php/php.ini
-endif # NO_PHP
+endif # SKIP_PHP
 
-ifneq ($(wildcard /usr/include/tcl/tcl.h),)
-TCL_INC:=/usr/include/tcl
-else # tcl/tcl.h
-ifneq ($(wildcard /usr/include/tcl.h),)
-TCL_INC:=/usr/include
-else # tcl.h
-NO_TCL:=1
-endif # tcl.h
-endif # tcl/tcl.h
-ifndef NO_TCL
-ifneq ($(call which,tclsh)),)
-tcl_ver!=echo 'puts $$tcl_version;exit 0' | tclsh
-ifeq ($(call verCheck,$(tcl_ver),8.0),)
+ifeq ($(SKIP_TCL),)
 TCL_NAME:=tcl/$(SWIG_NAME).cpp
 TCL_LNAME:=tcl/ptpmgmt
-CPPFLAGS_TCL+=-I$(TCL_INC)
 tcl_SFLAGS+=-tcl8 -namespace
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
-	$Q$(call LLC,$(CPPFLAGS_TCL))
-	$(call D_INC,TCL_INC)
+	$Q$(call LLC,$(TCLINCLUDE))
+	$(call D_INC,TCLINCDIR)
 	$(SWIG_DEP)
 $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(TCL_LNAME).so
-tcl_paths!=echo 'puts $$auto_path;exit 0' | tclsh
-ifneq ($(TARGET_ARCH),)
-TCL_LIB:=$(firstword $(shell echo $(tcl_paths) |\
-  $(SED) 's/ /\n/g' | grep '$(BUILD_ARCH)'))
-ifdef CROSS_COMP
-TCL_LIB:=$(call rep_arch_p,$(TCL_LIB))
-endif
-else
-TCL_LIB:=$(firstword $(shell echo $(tcl_paths) |\
-  $(SED) 's/ /\n/g' | grep '/usr/lib.*/tcl'))
-endif
-TCLDIR:=$(DESTDIR)$(TCL_LIB)/ptpmgmt
+TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/ptpmgmt
 # TODO how the hell tcl "know" the library version? Why does it think it's 0.0?
+# Need to add soname!
 define pkgIndex
-if {![package vsatisfies [package provide Tcl] $(tcl_ver)]} {return}
+if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}
 package ifneeded ptpmgmt 0.0 [list load [file join $$dir ptpmgmt.so]]
 endef
-else # tcl_ver 8.0
-NO_TCL=1
-endif
-else # which tclsh
-NO_TCL=1
-endif
-endif # NO_TCL
+endif # SKIP_TCL
 
 ALL+=$(SWIG_ALL)
-else # swig 3.0
-NO_SWIG=1
-endif
-else # which swig
-NO_SWIG=1
-endif
-endif # NO_SWIG
+endif # SWIGMINVER
 
-ifneq ($(call which,doxygen),)
-ifeq ($(call verCheck,$(shell doxygen -v),1.8),)
+ifneq ($(DOXYGENMINVER),)
 doxygen: $(HEADERS_GEN) $(HEADERS)
-	$(Q_DOXY)doxygen doxygen.cfg $(QE)
-DISTCLEAN_DIRS+=doc
-endif
-endif # which doxygen
+	$(Q_DOXY)$(DOXYGEN) doxygen.cfg $(QE)
+endif # DOXYGENMINVER
 
-ifneq ($(call which,ctags),)
+checkall: format doxygen
+
+ifneq ($(CTAGS),)
 tags: $(filter-out ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)
-	$(Q_TAGS)ctags -R $^
+	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
-DISTCLEAN+=tags
-endif # which ctags
+endif # CTAGS
 
-all: $(HEADERS_GEN_COMP) $(ALL)
-	@:
 .DEFAULT_GOAL=all
-.ONESHELL: # Run rules in a single shell
+all: $(COMP_DEPS) $(ALL)
+	@:
+
+####### installation #######
+URL:=html/index.html
+REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
+INSTALL_FOLDER:=$(INSTALL) -d
+DEV_PKG?=libptpmgmt-dev
+DLIBDIR:=$(DESTDIR)$(libdir)
+DOCDIR:=$(DESTDIR)$(datarootdir)/doc/libptpmgmt-doc
+MANDIR:=$(DESTDIR)$(mandir)/man8
+# 1=Dir 2=file 3=link
+ifeq ($(USE_FULL_PATH_LINK),)
+mkln=$(LN) $2 $(DESTDIR)$1/$3
+else
+mkln=$(LN) $1/$2 $(DESTDIR)$1/$3
+endif
+
+install:
+	$(Q)for lib in $(LIB_NAME)*.so; do\
+	  $(INSTALL_PROGRAM) -D $$lib $(DLIBDIR)/$$lib.$(PACKAGE_VERSION);\
+	  $(call mkln,$(libdir),$$lib.$(PACKAGE_VERSION),$$lib$(SONAME));\
+	  $(call mkln,$(libdir),$$lib$(SONAME),$$lib);done
+	$(INSTALL_DATA) $(LIB_NAME)*.a $(DLIBDIR)
+	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
+	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
+	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
+	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
+	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
+	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc-ptpmgmt
+	if [ ! -f $(MANDIR)/pmc-ptpmgmt.8.gz ]; then\
+	  $(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc-ptpmgmt.8;\
+	  gzip $(MANDIR)/pmc-ptpmgmt.8;fi
+	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\
+	  $(DESTDIR)$(sbindir)/phc_ctl-ptpmgmt
+	if [ ! -f $(MANDIR)/phc_ctl-ptpmgmt.8.gz ]; then\
+	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8;\
+	  gzip $(MANDIR)/phc_ctl-ptpmgmt.8;fi
+	$(RM) doc/html/*.md5
+	$(INSTALL_FOLDER) $(DOCDIR)
+	cp -a *.md doc/html $(DOCDIR)
+	printf $(REDIR) > $(DOCDIR)/index.html
+ifeq ($(SKIP_PERL5),)
+	$(INSTALL_PROGRAM) -D perl/$(SWIG_NAME).so -t\
+	  $(DESTDIR)$(PERL5EXT)/auto/$(SWIG_NAME)
+	$(INSTALL_DATA) perl/$(SWIG_NAME).pm $(DESTDIR)$(PERL5EXT)
+endif # SKIP_PERL5
+ifeq ($(SKIP_LUA),)
+	$(foreach n,$(LUAVERSIONS),\
+	  $(INSTALL_PROGRAM) -D $(LUA_LIB_$n)\
+	  $(DLIBDIR)/$(LUA_FLIB_$n).$(PACKAGE_VERSION);\
+	  $(LN) $(LUA_FLIB_$n).$(PACKAGE_VERSION)\
+	  $(DLIBDIR)/$(LUA_FLIB_$n)$(SONAME);\
+	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
+	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
+	  $(DLIBDIR)/lua/$n/$(LUA_LIB_NAME);)
+ifneq ($(LUA_VERSION),)
+	$(INSTALL_PROGRAM) -D $(LUA_LIB) $(DLIBDIR)/$(LUA_FLIB)
+ifneq ($(LUABIN_VERSION),)
+	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUABIN_VERSION)
+	$(LN) ../../$(LUA_FLIB)\
+	$(DLIBDIR)/lua/$(LUABIN_VERSION)/$(LUA_LIB_NAME)
+endif # LUABIN_VERSION
+endif # LUA_VERSION
+endif # SKIP_LUA
+ifeq ($(SKIP_PYTHON3),)
+	$(INSTALL_PROGRAM) -D python/3/$(PY_LIB_NAME).so\
+	  $(DESTDIR)$(PY3SITE_DIR)/$(PY_LIB_NAME)$(PY3EXT)
+	$(INSTALL_DATA) python/ptpmgmt.py $(DESTDIR)$(PY3SITE_DIR)
+endif # SKIP_PYTHON3
+ifeq ($(SKIP_RUBY),)
+	$(INSTALL_PROGRAM) -D $(RUBY_LNAME).so -t $(DESTDIR)$(RUBYSITE)
+endif # SKIP_RUBY
+ifeq ($(SKIP_PHP),)
+	$(INSTALL_PROGRAM) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHPEXT)
+	$(INSTALL_DATA) -D $(PHP_LNAME).php -t $(DESTDIR)$(PHPINCDIR)
+endif # SKIP_PHP
+ifeq ($(SKIP_TCL),)
+	$(INSTALL_PROGRAM) -D $(TCL_LNAME).so -t $(TCLDIR)
+	printf '$(subst $(line),\n,$(pkgIndex))\n' > $(TCLDIR)/pkgIndex.tcl
+endif # SKIP_TCL
+
+include $(D_FILES)
+
+$(OBJ_DIR):
+	$Q$(MKDIR_P) $@
+
+endif # wildcard defs.mk
+###############################################################################
 
 ####### Debain build #######
 ifneq ($(and $(wildcard debian/rules),$(call which,dpkg-buildpackage)),)
-# Remove all link result as the library have soname
-#  and json.o, as it compile with list of libraries name with soname
-DEB_ALL_CLEAN=$(PMC_NAME) $(wildcard *.so */*.so */*/*.so) json.o
-deb_src: distclean
-	$(Q)dpkg-source -b .
 deb:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b --no-sign
-	$(RM) $(DEB_ALL_CLEAN)
 ifneq ($(DEB_ARC),)
 deb_arc:
-	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -B --no-sign -a$(DEB_ARC)
-	$(RM) $(DEB_ALL_CLEAN)
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -B --no-sign\
+	  -a$(DEB_ARC)
 endif
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
-ifneq ($(call which,git),)
-INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
-endif
-ifneq ($(INSIDE_GIT),true)
-SRC_FILES:=$(wildcard */test.* scripts/* *.sh *.pl *.md *.cfg *.opt\
-  $(SRC)/*.in $(SRC)/*.m4  php/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/*\
-  .reuse/* $(PMC_DIR)/* $(JSON_SRC)/*) $(SRCS) $(HEADERS_SRCS) LICENSE\
-  $(wordlist 1,2,$(MAKEFILE_LIST))
-else
-SRC_FILES!=git ls-files | egrep -v '(^(archlinux|debian|rpm|sample)/|.gitignore)'
-endif
-# To compare manual source list to git based:
-# $(foreach n,$(SRC_FILES),$(info $n))
-SRC_NAME:=libptpmgmt-$(LIB_VER)
-
 ####### RPM build #######
 RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
-$(RPM_SRC): $(SRC_FILES)
-	$Q$(MD) rpm/SOURCES
-	$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
+rpm/SOURCES:
+	$(Q)mkdir -p $@
+$(RPM_SRC): $(SRC_FILES) | rpm/SOURCES
+	$(Q_TAR)$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
 ifneq ($(call which,rpmbuild),)
 rpm: $(RPM_SRC)
 	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/libptpmgmt.spec
 endif # which rpmbuild
 rpmsrc: $(RPM_SRC)
-DISTCLEAN_DIRS+=$(wildcard rpm/[BRS]*)
 
 ####### Arch Linux build #######
 ARCHL_SRC:=archlinux/$(SRC_NAME).txz
 ARCHL_BLD:=archlinux/PKGBUILD
 $(ARCHL_SRC): $(SRC_FILES)
-	$Q$(TAR) $@ $^
+	$(Q_TAR)$(TAR) $@ $^
 $(ARCHL_BLD): $(ARCHL_BLD).org | $(ARCHL_SRC)
 	$(Q)cp $^ $@
-	printf "sha256sums=('%s')\n" $(firstword $(shell sha256sum $(ARCHL_SRC))) >> $@
+	printf "sha256sums=('%s')\n"\
+	  $(firstword $(shell sha256sum $(ARCHL_SRC))) >> $@
 ifneq ($(call which,makepkg),)
 pkg: $(ARCHL_BLD)
 	$(Q)cd archlinux && makepkg
 endif # which makepkg
 pkgsrc: $(ARCHL_BLD)
-DISTCLEAN+=$(ARCHL_SRC) $(ARCHL_BLD) $(wildcard archlinux/*.pkg.tar.zst)
-DISTCLEAN_DIRS+=archlinux/src archlinux/pkg
 
-####### installation #######
-URL:=html/index.html
-REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
-INSTALL?=install -p
-NINST:=$(INSTALL) -m 644
-DINST:=$(INSTALL) -d
-BINST:=$(INSTALL)
-DEV_PKG?=libptpmgmt-dev
-SBINDIR?=/usr/sbin
-LUADIR:=$(DESTDIR)$(LIBDIR)
-DOCDIR:=$(DESTDIR)/usr/share/doc/libptpmgmt-doc
-MANDIR:=$(DESTDIR)/usr/share/man/man8
+####### Generic rules #######
 
-install:
-ifdef SONAME_USE_MAJ
-	$(Q)for lib in $(LIB_NAME)*.so; do\
-	  $(NINST) -D $$lib $(DESTDIR)$(LIBDIR)/$$lib.$(LIB_VER);\
-	  $(LN) $$lib.$(LIB_VER) $(DESTDIR)$(LIBDIR)/$$lib$(SONAME);done
-	$(LN) $(LIB_NAME_SO)$(SONAME) $(DESTDIR)$(LIBDIR)/$(LIB_NAME_SO)
-else
-	$Q$(NINST) -D $(LIB_NAME)*.so -t $(DESTDIR)$(LIBDIR)
-endif
-	$(NINST) $(LIB_NAME)*.a $(DESTDIR)$(LIBDIR)
-	$(NINST) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
-	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
-	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
-	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
-	$(NINST) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
-	$(BINST) -D $(PMC_NAME) $(DESTDIR)$(SBINDIR)/pmc-ptpmgmt
-	if [ ! -f $(MANDIR)/pmc-ptpmgmt.8.gz ]; then\
-	  $(NINST) -D man/pmc.8 $(MANDIR)/pmc-ptpmgmt.8;\
-	  gzip $(MANDIR)/pmc-ptpmgmt.8;fi
-	$(BINST) -D $(PMC_DIR)/phc_ctl $(DESTDIR)$(SBINDIR)/phc_ctl-ptpmgmt
-	if [ ! -f $(MANDIR)/phc_ctl-ptpmgmt.8.gz ]; then\
-	  $(NINST) -D man/phc_ctl.8 $(MANDIR)/phc_ctl-ptpmgmt.8;\
-	  gzip $(MANDIR)/phc_ctl-ptpmgmt.8;fi
-	$(RM) doc/html/*.md5
-	$(DINST) $(DOCDIR)
-	cp -a *.md doc/html $(DOCDIR)
-	printf $(REDIR) > $(DOCDIR)/index.html
-ifndef NO_SWIG
-ifndef NO_PERL
-	$(NINST) -D perl/$(SWIG_NAME).so -t $(PERLDIR)/auto/$(SWIG_NAME)
-	$(NINST) perl/$(SWIG_NAME).pm $(PERLDIR)
-endif # NO_PERL
-ifndef NO_LUA
-	$(foreach n,$(LUA_VERSIONS),\
-	  $(NINST) -D $(LUA_LIB_$n) $(LUADIR)/$(LUA_FLIB_$n).$(LIB_VER);\
-	  $(LN) $(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/$(LUA_FLIB_$n)$(SONAME);\
-	  $(DINST) $(LUADIR)/lua/$n;\
-	  $(LN) ../../$(LUA_FLIB_$n).$(LIB_VER) $(LUADIR)/lua/$n/$(LUA_LIB_NAME);)
-ifdef LUA_VER
-	$(NINST) -D $(LUA_LIB) $(LUADIR)/$(LUA_FLIB)
-	$(DINST) $(LUADIR)/lua/$(LUA_VER)
-	$(LN) ../../$(LUA_FLIB) $(LUADIR)/lua/$(LUA_VER)/$(LUA_LIB_NAME)
-endif # LUA_VER
-endif # NO_LUA
-ifdef USE_PY3
-	$(NINST) -D python/3/$(PY_LIB_NAME).so\
-	  $(PY3_DIR)/$(PY_LIB_NAME)$(PY3_EXT)
-	$(NINST) python/ptpmgmt.py $(PY3_DIR)
-endif
-ifndef NO_RUBY
-	$(NINST) -D $(RUBY_LNAME).so -t $(RUBYDIR)
-endif # NO_RUBY
-ifndef NO_PHP
-	$(NINST) -D $(PHP_LNAME).so -t $(PHPEDIR)
-	$(NINST) -D $(PHP_LNAME).php -t $(PHPIDIR)
-endif # NO_PHP
-ifndef NO_TCL
-	$(NINST) -D $(TCL_LNAME).so -t $(TCLDIR)
-	printf '$(subst $(line),\n,$(pkgIndex))\n' > $(TCLDIR)/pkgIndex.tcl
-endif # NO_TCL
-endif # NO_SWIG
+ifeq ($(filter distclean,$(MAKECMDGOALS)),)
+configure: configure.ac
+	$(Q)autoconf
+endif # MAKECMDGOALS
 
-include $(D_FILES)
+ifeq ($(filter help distclean clean,$(MAKECMDGOALS)),)
+ifneq ($(wildcard config.status),)
+config.status: configure
+	$(Q)./config.status --recheck
 
-$(OBJ_DIR):
-	$(MD) $@
+$(SRC)/ver.h: $(SRC)/ver.h.in config.status
+	$(Q)./config.status
 
-checkall: format doxygen
+defs.mk: defs.mk.in config.status
+	$(Q)./config.status
+endif # config.status
+endif # MAKECMDGOALS
+
+CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
+  $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so)\
+  $(D_FILES) $(ARCHL_SRC) $(ARCHL_BLD) python/ptpmgmt.py python/ptpmgmt.pyc\
+  php/php_ptpmgmt.h $(PHP_LNAME).php php/php.ini $(PERL_NAME).pm tags\
+  $(PMC_NAME) $(filter-out src/ver.h,$(HEADERS_GEN))
+CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
+  archlinux/*/)) doc $(OBJ_DIR)
+DISTCLEAN:=$(foreach n, log status,config.$n) configure src/ver.h defs.mk
+DISTCLEAN_DIRS:=autom4te.cache
+
+clean: deb_clean
+	$(Q_CLEAN)$(RM) $(CLEAN)
+	$(RM) -R $(CLEAN_DIRS)
+distclean: deb_clean
+	$(Q_DISTCLEAN)$(RM) $(CLEAN) $(DISTCLEAN)
+	$(RM) -R $(CLEAN_DIRS) $(DISTCLEAN_DIRS)
 
 help:
 	@$(info $(help))
 	:
 
-.PHONY: all clean distclean format install deb_src deb deb_arc deb_clean\
+.PHONY: all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help rpm rpmsrc pkg pkgsrc

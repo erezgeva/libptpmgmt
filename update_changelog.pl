@@ -20,6 +20,7 @@ sub main()
   my $arcfile='archlinux/changelog';
   my $first;
   exit unless -f $debfile and -f $rpmfile and -f $arcfile;
+  `./new_version.sh -u`;
   open IN, $rpmfile or die "Fail open $rpmfile: $!";
   my @org = <IN>;
   close IN;

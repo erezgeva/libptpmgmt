@@ -10,9 +10,15 @@
 /objs/
 *.so
 /libptpmgmt*.a
+/libptpmgmt*.so.*
 /tools/pmc
 /tags
 /doc
 */PtpMgmtLib.cpp
+/autom4te.cache/
+/config.log
+/config.status
+/configure
+/defs.mk
 .sw?
 .*.sw?

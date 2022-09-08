@@ -23,12 +23,11 @@ libdir='usr/lib'
 # version for depends
 verdep="$pkgver-$pkgrel"
 build() {
-  # Exclude PHP as it does not have a system include path
-  make -j LD_SONAME=1 CPPFLAGS_OPT=-Ofast PMC_USE_LIB=so SONAME_USE_MAJ=1\
-    NO_PHP=1 --no-print-directory all doxygen
+  # PHP is excluded as it does not have a system include path
+  ./configure --prefix=/usr --sbindir=\${prefix}/bin
+  make -j PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
-  make -j DESTDIR=install install SBINDIR=/usr/bin\
-    NO_PHP=1 SONAME_USE_MAJ=1 LIBDIR=/usr/lib --no-print-directory
+  make -j DESTDIR=install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
   python3 json-c)
@@ -96,9 +95,9 @@ package_tcl-ptpmgmt() {
 }
 
 #package_php-ptpmgmt() {
-# Arch linux php7 do not have system include_path!
+# Arch linux php do not have system include_path!
 # pkgdesc='PTP management library php wrapper'
-# depends=("libptpmgmt=$verdep" php7)
+# depends=("libptpmgmt=$verdep" php)
 # mkdir -p $pkgdir/$libdir
 # mv $srcdir/install/usr/lib/php* $pkgdir/$libdir
 #}

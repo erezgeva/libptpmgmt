@@ -12,7 +12,7 @@ Files: doc *.md
 Copyright: 2021 Erez Geva
 License: GFDL-1.3+ without invariant sections
 
-Files: pmc*
+Files: tools/*
 Copyright: 2021 Erez Geva
 License: GPL-3+
 
@@ -24,11 +24,11 @@ Files: doc/html/jquery.js
 Copyright: OpenJS Foundation
 License: MIT
 
-Files: phc_ctl.8
+Files: man/phc_ctl.8
 Copyright: 2014 Jacob Keller, linuxptp
 License: GPL-2+
 
-Files: pmc.8
+Files: man/pmc.8
 Copyright: 2012 Richard Cochran, Miroslav Lichvar, linuxptp developers
 License: GPL-2+
 
