@@ -1,4 +1,13 @@
 #!/usr/bin/perl
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright 2022 Erez Geva
+#
+# Update doxygen configuration file
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright 2022 Erez Geva
+#
+###############################################################################
 
 sub main
 {
