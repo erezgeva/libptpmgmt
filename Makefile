@@ -186,13 +186,13 @@ SRC_FILES:=$(wildcard */test.* scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/*)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
 else
-SRC_FILES!=git ls-files |\
-  egrep -v '(^(archlinux|debian|rpm|sample)/|.gitignore)'
+SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample,':!/:$n')\
+  ':!:*.gitignore'
 endif
 # Add configure script for source archive
 SRC_FILES+=configure
 # To compare manual source list to git based:
-# $(foreach n,$(SRC_FILES),$(info $n))
+# $(foreach n,$(sort $(SRC_FILES)),$(info $n))
 
 ###############################################################################
 ### Configure area
@@ -338,6 +338,9 @@ $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 
 $(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
 	$(Q_GEN)m4 -I $(SRC) $< > $@
+$(SRC)/ver.h: $(SRC)/ver.h.in
+	$(Q_GEN)$(SED) $(foreach n,PACKAGE_VERSION_MAJ PACKAGE_VERSION_MIN\
+	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
 ifneq ($(ASTYLEMINVER),)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(wildcard sample/*.cpp)
@@ -673,9 +676,6 @@ ifneq ($(wildcard config.status),)
 config.status: configure
 	$(Q)./config.status --recheck
 
-$(SRC)/ver.h: $(SRC)/ver.h.in config.status
-	$(Q)./config.status
-
 defs.mk: defs.mk.in config.status
 	$(Q)./config.status
 endif # config.status
@@ -684,11 +684,10 @@ endif # MAKECMDGOALS
 CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
   python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(ARCHL_SRC)\
-  $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
-  $(filter-out src/ver.h,$(HEADERS_GEN))
+  $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
   archlinux/*/)) doc $(OBJ_DIR)
-DISTCLEAN:=$(foreach n, log status,config.$n) configure src/ver.h defs.mk
+DISTCLEAN:=$(foreach n, log status,config.$n) configure defs.mk
 DISTCLEAN_DIRS:=autom4te.cache
 
 clean: deb_clean
