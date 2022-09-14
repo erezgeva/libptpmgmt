@@ -41,8 +41,7 @@ class IfInfo
 {
   private:
     bool m_isInit;
-    int m_ifIndex;
-    int m_ptpIndex;
+    int m_ifIndex, m_ptpIndex;
     std::string m_ifName;
     Binary m_mac;
 
@@ -222,36 +221,21 @@ class BaseClock
      */
     clockid_t m_clkId; /**< clock ID for clock functions */
     bool m_isInit; /**< clcok ID is initailize and ready for use */
+    bool m_freq; /**< system clock need frequancy add */
     /**
      * Constructor for known clock IDs
      * No need for initailize
      * @param[in] clkId clock ID
      */
-    BaseClock(clockid_t clkId) : m_clkId(clkId), m_isInit(true) {}
+    BaseClock(clockid_t clkId, bool freq) : m_clkId(clkId), m_isInit(true),
+        m_freq(freq) {}
     /**
      * Constructor for dynamicly created clock IDs
      * Clocks access with ID need initailizing
      */
-    BaseClock() : m_clkId(CLOCK_INVALID), m_isInit(false) {}
-    /**
-     * Frequancy add, 0 for PHC clocks.
-     * @param[in] tick reported by Linux kernel
-     * @return 0 for PHC clocks
-     */
-    virtual long double freqAddTicks(long long tick) const { return 0; }
-    /**
-     * Frequancy set adjust for PHC clocks.
-     * @param[in, out] freq frequancy
-     * @param[out] tmx time extended structure to fill
-     */
-    virtual void freqModeTicks(long double &freq, timex &tmx) const {}
+    BaseClock() : m_clkId(CLOCK_INVALID), m_isInit(false), m_freq(false) {}
     /**< @endcond */
   public:
-    /**
-     * Empty virtual destructor
-     * Enable using virtual functions
-     */
-    virtual ~BaseClock() {}
     /**
      * Get clock time
      * @return clock time or zero on error
@@ -290,21 +274,8 @@ class BaseClock
 /**
  * System clock
  */
-class SysClock : public BaseClock
+class SysClock final : public BaseClock
 {
-  protected:
-    /**
-     * Frequancy add, for system clock based on system ticks.
-     * @param[in] tick reported by Linux kernel
-     * @return frequancy add
-     */
-    long double freqAddTicks(long long tick) const;
-    /**
-     * Frequancy set adjust for PHC clocks.
-     * @param[in, out] freq frequancy
-     * @param[out] tmx time extended structure to fill
-     */
-    void freqModeTicks(long double &freq, timex &tmx) const;
   public:
     SysClock();
 };
@@ -318,17 +289,16 @@ class SysClock : public BaseClock
  *  Do @b NOT delete the object while using the dynamic clock id.
  * @note A network interface may have multiple PHCs
  */
-class PtpClock : public BaseClock
+class PtpClock final : public BaseClock
 {
   private:
-    int m_fd;
-    int m_ptpIndex;
+    int m_fd, m_ptpIndex;
     std::string m_device;
     bool init(const char *device, bool readonly);
 
   public:
     PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP) {}
-    virtual ~PtpClock();
+    ~PtpClock();
     /**
      * Check file is a char file
      * @param[in] file name to check

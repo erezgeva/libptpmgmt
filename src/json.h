@@ -51,14 +51,10 @@ class Json2msg
     };
     bool m_have[have_limit];
     bool m_unicastFlag;
-    uint8_t m_PTPProfileSpecific;
-    uint8_t m_domainNumber;
-    uint8_t m_versionPTP;
-    uint8_t m_minorVersionPTP;
+    uint8_t m_PTPProfileSpecific, m_domainNumber, m_versionPTP, m_minorVersionPTP;
     uint16_t m_sequenceId;
     uint32_t m_sdoId;
-    PortIdentity_t m_srcPort;
-    PortIdentity_t m_dstPort;
+    PortIdentity_t m_srcPort, m_dstPort;
   public:
     Json2msg();
     ~Json2msg();

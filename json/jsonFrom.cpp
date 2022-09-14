@@ -243,7 +243,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         }
         return true;
     }
-    bool mainProc(const void *_jobj) {
+    bool mainProc(const void *_jobj) override final {
         JSON_POBJ jobj = (JSON_POBJ)_jobj;
         if(!jloop(jobj))
             return false;
@@ -265,7 +265,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         testMand(managementId, "management ID")
         return true;
     }
-    bool procMng(mng_vals_e &id, const char *&str) {
+    bool procMng(mng_vals_e &id, const char *&str) override final {
         bool ret = Message::findMngID(found["managementId"].strV, id);
         if(!ret)
             PTPMGMT_ERRORA("No such managementId '%s'", str);
@@ -604,22 +604,22 @@ struct JsonProcFromJson : public JsonProcFrom {
     procVector(FaultRecord_t)
     procVector(AcceptableMaster_t)
     procVector(LinuxptpUnicastMaster_t)
-    const std::string &getActionField() {
+    const std::string &getActionField() override final {
         return found["actionField"].strV;
     }
-    bool getUnicastFlag(bool &unicastFlag) {
+    bool getUnicastFlag(bool &unicastFlag) override final {
         if(!isType("unicastFlag", JT_BOOL))
             return false;
         unicastFlag = found["unicastFlag"].blV();
         return true;
     }
-    bool getIntVal(const char *key, int64_t &val) {
+    bool getIntVal(const char *key, int64_t &val) override final {
         if(!isType(key, JT_INT))
             return false;
         val = found[key].intV;
         return true;
     }
-    bool parsePort(const char *key, bool &have, PortIdentity_t &port) {
+    bool parsePort(const char *key, bool &have, PortIdentity_t &port) override final {
         if(isType(key, JT_OBJ)) {
             if(!procValue(key, port)) {
                 PTPMGMT_ERRORA("Fail parsing %s", key);
@@ -630,8 +630,9 @@ struct JsonProcFromJson : public JsonProcFrom {
             have = false;
         return true; // No error
     }
-    bool haveData() { return isType("dataField", JT_OBJ); }
-    bool parseData() {
+    bool haveData() override final
+    { return isType("dataField", JT_OBJ); }
+    bool parseData() override final {
         JSON_POBJ dataField = found["dataField"].objV;
         return jloop(dataField, false);
     }

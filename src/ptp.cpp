@@ -191,9 +191,15 @@ long double BaseClock::getFreq() const
 {
     if(m_isInit) {
         timex tmx = {0};
-        if(clock_adjtime(m_clkId, &tmx) != -1)
-            return (long double)tmx.freq / PPB_TO_SCALE_PPM +
-                freqAddTicks(tmx.tick);
+        if(clock_adjtime(m_clkId, &tmx) != -1) {
+            long double add = 0;
+            if(m_freq) {
+                calcTicks();
+                if(userTicks != 0 && tmx.tick != 0)
+                    add = 1e3 * clockTicks * (tmx.tick - userTicks);
+            }
+            return (long double)tmx.freq / PPB_TO_SCALE_PPM + add;
+        }
         PTPMGMT_PERROR("clock_adjtime");
     }
     return 0;
@@ -203,7 +209,14 @@ bool BaseClock::setFreq(long double freq) const
     if(m_isInit) {
         timex tmx = {0};
         tmx.modes = ADJ_FREQUENCY;
-        freqModeTicks(freq, tmx);
+        if(m_freq) {
+            calcTicks();
+            if(userTicks != 0) {
+                tmx.modes |= ADJ_TICK;
+                tmx.tick = round(freq / 1e3 / clockTicks) + userTicks;
+                freq -= 1e3 * clockTicks * (tmx.tick - userTicks);
+            }
+        }
         tmx.freq = (long)(freq * PPB_TO_SCALE_PPM);
         if(clock_adjtime(m_clkId, &tmx) != -1)
             return true;
@@ -211,23 +224,7 @@ bool BaseClock::setFreq(long double freq) const
     }
     return false;
 }
-SysClock::SysClock() : BaseClock(CLOCK_REALTIME) {}
-long double SysClock::freqAddTicks(long long tick) const
-{
-    calcTicks();
-    if(tick == 0 || userTicks == 0)
-        return 0;
-    return 1e3 * clockTicks * (tick - userTicks);
-}
-void SysClock::freqModeTicks(long double &freq, timex &tmx) const
-{
-    calcTicks();
-    if(userTicks != 0) {
-        tmx.modes |= ADJ_TICK;
-        tmx.tick = round(freq / 1e3 / clockTicks) + userTicks;
-        freq -= 1e3 * clockTicks * (tmx.tick - userTicks);
-    }
-}
+SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
 PtpClock::~PtpClock()
 {
     if(m_fd >= 0)

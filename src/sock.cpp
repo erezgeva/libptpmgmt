@@ -401,7 +401,7 @@ bool SockIp::initBase()
         PTPMGMT_ERRORA("multicast %s", m_mcast_str);
         return false;
     }
-    if(!init2())
+    if(!initIp())
         return false;
     m_isInit = true;
     return true;
@@ -414,7 +414,7 @@ SockIp4::SockIp4() : SockIp(AF_INET, ipv4_udp_mc, (sockaddr *) & m_addr4,
     m_addr4.sin_addr.s_addr = cpu_to_net32(INADDR_ANY);
     m_addr4.sin_port = cpu_to_net16(udp_port);
 }
-bool SockIp4::init2()
+bool SockIp4::initIp()
 {
     if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_TTL, &m_udp_ttl,
             sizeof m_udp_ttl) != 0) {
@@ -455,7 +455,7 @@ SockIp6::SockIp6() : SockIp(AF_INET6, ipv6_udp_mc, (sockaddr *) & m_addr6,
     m_addr6.sin6_addr = IN6ADDR_ANY_INIT;
     m_addr6.sin6_port = cpu_to_net16(udp_port);
 }
-bool SockIp6::init2()
+bool SockIp6::initIp()
 {
     if(m_udp6_scope < 0)
         return false;

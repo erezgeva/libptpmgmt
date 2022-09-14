@@ -48,11 +48,7 @@ class Options
     /* We need to store the string used in option */
     std::vector<std::string> long_options_list_string;
     std::map<int, std::string> options;
-    std::string net_options;
-    std::string all_options;
-    std::string all_short_options;
-    std::string with_options;
-    std::string msg;
+    std::string net_options, all_options, all_short_options, with_options, msg;
     char net_select;
     int m_argc;
     int m_end_optind;
@@ -61,8 +57,7 @@ class Options
     class helpStore
     {
       private:
-        std::string start;
-        std::string end;
+        std::string start, end;
       public:
         helpStore(const char *s, const char *e = nullptr): start(s) {
             if(e != nullptr)

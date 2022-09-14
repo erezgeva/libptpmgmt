@@ -179,20 +179,17 @@ class SockBase
 class SockUnix : public SockBase
 {
   private:
-    std::string m_me;
-    std::string m_peer;
-    std::string m_homeDir;
-    std::string m_lastFrom;
+    std::string m_me, m_peer, m_homeDir, m_lastFrom;
     sockaddr_un m_peerAddr;
     bool setPeerInternal(const std::string &str);
     bool sendAny(const void *msg, size_t len, const sockaddr_un &addr) const;
     static void setUnixAddr(sockaddr_un &addr, const std::string &str);
   protected:
     /**< @cond internal */
-    bool sendBase(const void *msg, size_t len);
-    ssize_t rcvBase(void *buf, size_t bufSize, bool block);
-    bool initBase();
-    void closeChild();
+    bool sendBase(const void *msg, size_t len) override final;
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block) override final;
+    bool initBase() override final;
+    void closeChild() override final;
     /**< @endcond */
 
   public:
@@ -446,18 +443,17 @@ class SockIp : public SockBaseIf
 {
   protected:
     /**< @cond internal */
-    int m_domain;
-    int m_udp_ttl;
+    int m_domain, m_udp_ttl;
     /* First for bind then for send */
     sockaddr *m_addr;
     size_t m_addr_len;
     const char *m_mcast_str; /* string form */
     Binary m_mcast;
     SockIp(int domain, const char *mcast, sockaddr *addr, size_t len);
-    virtual bool init2() = 0;
-    bool sendBase(const void *msg, size_t len);
-    ssize_t rcvBase(void *buf, size_t bufSize, bool block);
-    bool initBase();
+    virtual bool initIp() = 0;
+    bool sendBase(const void *msg, size_t len) override final;
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block) override final;
+    bool initBase() override final;
     /**< @endcond */
 
   public:
@@ -495,8 +491,9 @@ class SockIp4 : public SockIp
 
   protected:
     /**< @cond internal */
-    bool init2();
-    bool setAllBase(const ConfigFile &cfg, const std::string &section);
+    bool initIp() override final;
+    bool setAllBase(const ConfigFile &cfg,
+        const std::string &section) override final;
 
   public:
     SockIp4();
@@ -514,8 +511,9 @@ class SockIp6 : public SockIp
 
   protected:
     /**< @cond internal */
-    bool init2();
-    bool setAllBase(const ConfigFile &cfg, const std::string &section);
+    bool initIp() override final;
+    bool setAllBase(const ConfigFile &cfg,
+        const std::string &section) override final;
 
   public:
     SockIp6();
@@ -560,10 +558,11 @@ class SockRaw : public SockBaseIf
 
   protected:
     /**< @cond internal */
-    bool setAllBase(const ConfigFile &cfg, const std::string &section);
-    bool sendBase(const void *msg, size_t len);
-    ssize_t rcvBase(void *buf, size_t bufSize, bool block);
-    bool initBase();
+    bool setAllBase(const ConfigFile &cfg,
+        const std::string &section) override final;
+    bool sendBase(const void *msg, size_t len) override final;
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block) override final;
+    bool initBase() override final;
 
   public:
     SockRaw();

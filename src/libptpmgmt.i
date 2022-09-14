@@ -26,6 +26,8 @@
     using namespace ptpmgmt;
 %}
 
+/* Unrecognized C++ keywords */
+#define final
 /* prevent C++ namespace in swig */
 #define __PTPMGMT_NAMESPACE_BEGIN
 #define __PTPMGMT_NAMESPACE_END
