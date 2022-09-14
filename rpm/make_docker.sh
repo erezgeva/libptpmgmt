@@ -9,8 +9,8 @@
 ###############################################################################
 cmd()
 {
-  echo $*
-  $*
+  echo "$@"
+  "$@"
 }
 clean_cont()
 {
@@ -49,5 +49,5 @@ main()
   cmd docker build $no_cache -f $base_dir/Dockerfile $args -t $name .
   clean_unused_images
 }
-main $*
+main "$@"
 # docker run -it -v $(realpath .):/home/builder/rpm rpmbuild
