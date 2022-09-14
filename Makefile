@@ -140,6 +140,7 @@ endif
 
 ifneq ($(V),1)
 Q:=@
+COLOR_WARNING:=$(COLOR_RED)
 COLOR_BUILD:=$(COLOR_MAGENTA)
 Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
 Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
@@ -521,7 +522,11 @@ endif # SWIGMINVER
 
 ifneq ($(DOXYGENMINVER),)
 doxygen: $(HEADERS_GEN) $(HEADERS)
+ifeq ($(DOTTOOL),)
+	$Q:$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
+else
 	$(Q_DOXY)$(DOXYGEN) doxygen.cfg $(QE)
+endif # DOTTOOL
 endif # DOXYGENMINVER
 
 checkall: format doxygen

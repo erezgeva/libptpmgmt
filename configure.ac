@@ -51,6 +51,7 @@ AS_UNSET([ASTYLEVER])
 AS_UNSET([ASTYLEMINVER])
 AS_UNSET([DOXYGENVER])
 AS_UNSET([DOXYGENMINVER])
+AS_UNSET([DOTTOOL])
 
 AC_CHECK_TOOLS([M4], [m4 autom4te])
 AC_CHECK_TOOLS([CTAGS], [ctags ctags-exuberant])
@@ -78,11 +79,13 @@ AS_VERSION_COMPARE([1.8], [$DOXYGENVER],
                    [AS_VAR_SET([DOXYGENMINVER], [$DOXYGENVER])], # above 3.1
                    [AS_VAR_SET([DOXYGENMINVER], [$DOXYGENVER])]) # equal 3.1
 ptpm_result([DOXYGENMINVER])
+AC_CHECK_TOOL([DOTTOOL], [dot])
 
 AC_SUBST([ASTYLEVER])
 AC_SUBST([ASTYLEMINVER])
 AC_SUBST([DOXYGENVER])
 AC_SUBST([DOXYGENMINVER])
+AC_SUBST([DOTTOOL])
 
 #----------------------------------------------------------------
 # cross compilation
@@ -707,6 +710,7 @@ AS_UNSET([PHP])
 AS_UNSET([PHPCONFIG])
 AS_UNSET([PHPINCDIR])
 AS_UNSET([PHPVER])
+AS_UNSET([PHPMINVER])
 AS_UNSET([PHPEXT])
 AS_UNSET([PHPINC])
 AS_UNSET([PHPINC_FLAGS])
@@ -785,6 +789,12 @@ else
               [AC_MSG_RESULT([found PHP $PHPVER - not PHP 7 or 8])])
 
     fi
+    AS_VERSION_COMPARE([$SWIGVER], [4.1],
+                       # Swig bellow 4.1
+                       [AS_VERSION_COMPARE([$PHPVER], [8.0],
+                                           # Require PHP below 8.0
+                                           [AS_VAR_SET([PHPMINVER],
+                                                       [$PHPVER])])])
   fi
 fi
 
@@ -792,6 +802,7 @@ AC_SUBST([PHP])
 AC_SUBST([PHPCONFIG])
 AC_SUBST([PHPINCDIR])
 AC_SUBST([PHPVER])
+AC_SUBST([PHPMINVER])
 AC_SUBST([PHPEXT])
 AC_SUBST([PHPINC])
 AC_SUBST([PHPINC_FLAGS])
@@ -973,7 +984,7 @@ if test -n "$SWIGMINVER"; then
   AS_IF([test -z "$RUBYLINK" || test -z "$RUBYINCLUDE" || test -z "$RUBYLIB"],
         [AS_VAR_SET([SKIP_RUBY], [1])])
   AS_IF([test -z "$PHPINC" || test -z "$PHPINC_FLAGS" ||\
-         test -z "$PHPINCDIR"],
+         test -z "$PHPINCDIR" || test -z "$PHPMINVER"],
         [AS_VAR_SET([SKIP_PHP], [1])])
   AS_IF([test -z "$LUABIN"], [AS_VAR_SET([SKIP_LUA], [1])])
 else

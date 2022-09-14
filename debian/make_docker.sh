@@ -61,13 +61,15 @@ main()
   local -r repo=http://ftp.de.debian.org/debian
   local -r base_dir=$(dirname $(realpath $0))
   local -r bname=deb.
-  local -r names='bullseye buster stretch'
+  local -r names='stretch buster bullseye bookworm'
   local -r main_arch=$(dpkg --print-architecture) # amd64
   local -r ARCHS='arm64'
   local -r USER=builder
-  local -r DPKGS_stretch=''
-  local -r DPKGS_buster=''
-  local -r DPKGS_bullseye='lua5.4 liblua5.4-dev@'
+  local -r DPKGS_stretch='vim-gtk'
+  local -r DPKGS_buster='vim-gtk'
+  local -r lua54='lua5.4 liblua5.4-dev@'
+  local -r DPKGS_bullseye="vim-gtk $lua54"
+  local -r DPKGS_bookworm="reuse vim-gtk3 $lua54"
   # Packages per architecture
   for n in libstdc++6 liblua5.1-0-dev liblua5.2-dev liblua5.3-dev\
            libpython3-all-dev ruby-dev tcl-dev libpython3-dev\
@@ -106,6 +108,7 @@ main()
   clean_unused_images
 }
 main "$@"
-# docker run -it -v $(realpath .):/home/builder/debian deb.bullseye
-# docker run -it -v $(realpath .):/home/builder/debian deb.buster
 # docker run -it -v $(realpath .):/home/builder/debian deb.stretch
+# docker run -it -v $(realpath .):/home/builder/debian deb.buster
+# docker run -it -v $(realpath .):/home/builder/debian deb.bullseye
+# docker run -it -v $(realpath .):/home/builder/debian deb.bookworm
