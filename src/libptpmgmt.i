@@ -72,6 +72,7 @@
  *   SWIGWARN_IGNORE_OPERATOR_EQ      362
  *   SWIGWARN_IGNORE_OPERATOR_PLUSEQ  365
  *   SWIGWARN_IGNORE_OPERATOR_MINUSEQ 366
+ *   SWIGWARN_IGNORE_OPERATOR_INDEX   389
  *   SWIGWARN_LANG_IDENTIFIER         503
  *   SWIGWARN_LANG_OVERLOAD_SHADOW    509
  *   SWIGWARN_RUBY_WRONG_NAME         801
@@ -150,6 +151,8 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
  * PHP and Tcl ignore operators overload
  *********/
 #ifdef SWIG_OPERS_LANG_IDENTIFIER
+/* use Binary::getBin() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator [];
 /* Operator overload ignored.
  * Scripts can use Buf::get() */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Buf::operator();
@@ -189,9 +192,11 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_MINUSEQ) Timestamp_t::operator-=;
 #endif /* SWIG_OPERS_OPERATOR_PLUSEQ */
 /*********
- * Perl, python and Ruby ignore operator equal
+ * Perl, python and Ruby ignore operators overload
  *********/
 #ifdef SWIG_OPERS_IGNORE_OPERATOR
+/* use Binary::getBin() */
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_INDEX) Binary::operator [];
 /* Use the copy constructor :-) */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Binary::operator=;
 /* internal structure */

@@ -31,6 +31,8 @@ define help
 #                                                                              #
 #   install          Install application, libraries, and headers in system.    #
 #                                                                              #
+#   utest            Build and run the unit test                               #
+#                                                                              #
 #   deb              Build Debian packages.                                    #
 #                                                                              #
 #   deb_arc          Build Debian packages for other architecture.             #
@@ -104,6 +106,14 @@ space=$(subst A,,A A)
 ###############################################################################
 ### output shaper
 
+ifdef USE_COL
+GTEST_NO_COL=--gtest_color=yes
+else
+ifdef NO_COL # gtest handles terminal by itself
+GTEST_NO_COL=--gtest_color=no
+endif
+endif
+
 # Use tput to check if we have ANSI Color code
 # tput works only if TERM is set
 ifneq ($(and $(TERM),$(call which,tput)),)
@@ -112,7 +122,6 @@ NO_COL:=1
 endif
 endif # which tput
 # Detect output is not device (terminal), it must be a pipe or a file
-# In case of using 'aha' just call: $ make -j USE_COL=1 | aha > out.html
 ifndef USE_COL
 ifndef MAKE_TERMOUT
 NO_COL:=1
@@ -172,6 +181,7 @@ HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,end.h err.h jsonDef.h comp.h\
   msgProc.h ids.h),$(HEADERS))
 SRCS:=$(wildcard $(SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
+UTEST:=utest/utest
 
 ####### Source tar file #######
 TAR:=tar cfJ
@@ -187,8 +197,8 @@ SRC_FILES:=$(wildcard */test.* scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/*)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
 else
-SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample,':!/:$n')\
-  ':!:*.gitignore'
+SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample\
+  utest,':!/:$n') ':!:*.gitignore'
 endif
 # Add configure script for source archive
 SRC_FILES+=configure
@@ -330,6 +340,22 @@ $(LIB_NAME).a: $(LIB_OBJS)
 $(LIB_NAME_SO)$(SONAME): $(LIB_NAME_SO)
 	$Q$(LN) $^ $@
 $(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
+
+# testing
+ifneq ($(GTEST_LIB_FLAGS),)
+TEST_OBJS:=$(patsubst %.cpp,%.o,$(wildcard utest/*.cpp))
+
+utest/%.o: utest/%.cpp
+	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS) -c -o $@ $<
+
+$(UTEST): $(TEST_OBJS) $(LIB_NAME_SO)$(SONAME)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
+	  $(GTEST_LIB_FLAGS) -o $@
+
+utest: $(UTEST)
+	$Q$(UTEST) $(GTEST_NO_COL)
+
+endif #  GTEST_LIB_FLAGS
 
 # pmc tool
 $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
@@ -690,7 +716,7 @@ CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
   python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(ARCHL_SRC)\
   $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
-  $(HEADERS_GEN)
+  $(HEADERS_GEN) $(UTEST)
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
   archlinux/*/)) doc $(OBJ_DIR)
 DISTCLEAN:=$(foreach n, log status,config.$n) configure defs.mk
@@ -708,4 +734,4 @@ help:
 	:
 
 .PHONY: all clean distclean format install deb deb_arc deb_clean\
-  doxygen checkall help rpm rpmsrc pkg pkgsrc
+  doxygen checkall help rpm rpmsrc pkg pkgsrc utest

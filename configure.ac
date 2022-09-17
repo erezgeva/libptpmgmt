@@ -128,6 +128,27 @@ AC_ARG_ENABLE([full-link],
 AC_SUBST([USE_FULL_PATH_LINK])
 
 #----------------------------------------------------------------
+# Testing tools
+#----------------------------------------------------------------
+AS_UNSET([HAVE_GTEST_HEADER])
+AS_UNSET([GTEST_INC_FLAGS])
+AS_UNSET([GTEST_LIB_FLAGS])
+
+AC_CHECK_HEADER([gtest/gtest.h],
+                [AS_VAR_SET([HAVE_GTEST_HEADER], [gtest/gtest.h])])
+AS_IF([test -n "$HAVE_GTEST_HEADER" && test -n "$PKG_CONFIG"],
+      [AS_VAR_SET([GTEST_INC_FLAGS], [`$PKG_CONFIG --cflags gtest`])
+       AS_VAR_SET([GTEST_LIB_FLAGS], [`$PKG_CONFIG --libs gtest`])
+       AC_CHECK_LIB([gtest], [main],
+                    [],
+                    [AS_UNSET([GTEST_LIB_FLAGS])],
+                    ["$GTEST_LIB_FLAGS"])])
+
+AC_SUBST([HAVE_GTEST_HEADER])
+AC_SUBST([GTEST_INC_FLAGS])
+AC_SUBST([GTEST_LIB_FLAGS])
+
+#----------------------------------------------------------------
 # JSON libraries
 #----------------------------------------------------------------
 

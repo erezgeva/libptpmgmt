@@ -41,7 +41,18 @@ class Binary
      */
     Binary(const void *buf, const size_t length) { setBin(buf, length); }
     /**
-     * Assign octets using operator =
+     * Constructor buffer with fixed length
+     * @param[in] length of buffer
+     * @param[in] set value to set all octests
+     */
+    Binary(const size_t length, uint8_t set = 0) { m_str.resize(length, set); }
+    /**
+     * Constructor from binary based string
+     * @param[in] string string with octets content
+     */
+    Binary(const std::string &string) { m_str = string; }
+    /**
+     * Copy value from another object
      * @param[in] rhs Binary to assign
      * @return reference to itself
      */
@@ -49,12 +60,6 @@ class Binary
         m_str = rhs.m_str;
         return *this;
     }
-    /**
-     * Constructor buffer with fixed length
-     * @param[in] length of buffer
-     * @param[in] set value to set all octests
-     */
-    Binary(const size_t length, uint8_t set = 0) { m_str.resize(length, set); }
     /**
      * Get Binary length
      * @return Binary length
@@ -94,12 +99,12 @@ class Binary
     }
     /**
      * Set new value from binary based string
-     * @param[in] str string with octets content
+     * @param[in] string string with octets content
      * @return reference to itself
      * @note for scripts, to use packing assignment
      *       and create a string from array or list of octets
      */
-    Binary &setBin(const std::string str) { m_str = str; return *this; }
+    Binary &setBin(const std::string &string) { m_str = string; return *this; }
     /**
      * Set value in position
      * @param[in] position in Binary octets
@@ -122,6 +127,14 @@ class Binary
         if(position >= length())
             return 0;
         return (uint8_t)m_str[position];
+    }
+    /**
+     * Get octet in position
+     * @param[in] position in Binary octets
+     * @return octet value or zero if out of range
+     */
+    const uint8_t operator [](const size_t position) const {
+        return getBin(position);
     }
     /**
      * Resize buffer

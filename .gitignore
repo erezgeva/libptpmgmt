@@ -20,5 +20,6 @@
 /config.status
 /configure
 /defs.mk
+/utest/utest
 .sw?
 .*.sw?
