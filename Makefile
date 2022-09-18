@@ -33,10 +33,15 @@ define help
 #                                                                              #
 #   utest            Build and run the unit test                               #
 #                                                                              #
+#   utest <filter>   Build and run the unit test with filer                    #
+#                                                                              #
 #   deb              Build Debian packages.                                    #
 #                                                                              #
 #   deb_arc          Build Debian packages for other architecture.             #
 #                    Use DEB_ARC to specify architecture.                      #
+#                                                                              #
+#   deb_arc <arc>    Build Debian packages for other architecture.             #
+#                    With the architecture, skip using DEB_ARC                 #
 #                                                                              #
 #   deb_clean        Clean Debian intermediate files.                          #
 #                                                                              #
@@ -85,6 +90,12 @@ define depend
 $1: $2
 
 endef
+define phony
+.PHONY: $1
+$1:
+	@:
+
+endef
 SP:=$(subst X, ,X)
 verCheckDo=$(shell if [ $1 -eq $4 ];then test $2 -eq $5 && a=$3 b=$6 ||\
   a=$2 b=$5; else a=$1 b=$4;fi;test $$a -lt $$b && echo l)
@@ -114,7 +125,7 @@ GTEST_NO_COL=--gtest_color=no
 endif
 endif
 
-# Use tput to check if we have ANSI Color code
+# Use tput to check if we have ANSI Colour code
 # tput works only if TERM is set
 ifneq ($(and $(TERM),$(call which,tput)),)
 ifeq ($(shell tput setaf 1),)
@@ -128,7 +139,7 @@ NO_COL:=1
 endif
 endif # USE_COL
 
-# Terminal colors
+# Terminal colours
 ifndef NO_COL
 ESC!=printf '\e['
 COLOR_BLACK:=      $(ESC)30m
@@ -160,12 +171,20 @@ endif
 ###############################################################################
 ### Generic definitions
 .ONESHELL: # Run rules in a single shell
+include version
+# ver_maj=PACKAGE_VERSION_MAJ
+# ver_min=PACKAGE_VERSION_MIN
 
 SRC:=src
 PMC_DIR:=tools
 JSON_SRC:=json
 OBJ_DIR:=objs
 
+SONAME:=.$(ver_maj)
+LIB_NAME:=libptpmgmt
+LIB_NAME_SO:=$(LIB_NAME).so
+LIB_NAME_A:=$(LIB_NAME).a
+LIB_NAME_FSO:=$(LIB_NAME_SO)$(SONAME)
 PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
@@ -182,11 +201,22 @@ HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,end.h err.h jsonDef.h comp.h\
 SRCS:=$(wildcard $(SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 UTEST:=utest/utest
+# json-c
+JSONC_LIB:=$(LIB_NAME)_jsonc.so
+JSONC_LIBA:=$(LIB_NAME)_jsonc.a
+JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
+# fastjson
+FJSON_LIB:=$(LIB_NAME)_fastjson.so
+FJSON_LIBA:=$(LIB_NAME)_fastjson.a
+FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
+PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
+           doxygen checkall help rpm rpmsrc pkg pkgsrc utest
+.PHONY: $(PHONY_TGT)
+NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
 
 ####### Source tar file #######
 TAR:=tar cfJ
-include version
-SRC_NAME:=libptpmgmt-$(ver_maj).$(ver_min)
+SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
@@ -250,24 +280,21 @@ override CXXFLAGS+=$(ASAN_FLAGS) -fno-omit-frame-pointer
 override LDFLAGS+=$(ASAN_FLAGS)
 endif # USE_ASAN
 LIBTOOL_CC=$Q$(Q_LCC)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
-SONAME:=.$(PACKAGE_VERSION_MAJ)
-LIB_NAME:=libptpmgmt
-LIB_NAME_SO:=$(LIB_NAME).so
 LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
 $(LIB_NAME_SO)_LDLIBS:=-lm -ldl
-LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,$(SRCS)))
+LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(SRCS:.cpp=.o))
 PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
 JSON_FROM_OBJS:=$(subst $(JSON_SRC)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(JSON_SRC)/*.cpp)))
-$(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(PACKAGE_VERSION_MAJ)\
-  -DVER_MIN=$(PACKAGE_VERSION_MIN) -DVER_VAL=$(PACKAGE_VERSION_VAL)
+$(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
+  -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@
 
 ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
-# GCC output colors
+# GCC output colours
 ifndef NO_COL
 CXXFLAGS_COLOR:=-fdiagnostics-color=always
 else
@@ -278,7 +305,7 @@ endif # verCheck CXX 4.9
 # -fcolor-diagnostics
 override CXXFLAGS+=$(CXXFLAGS_COLOR)
 
-ALL:=$(PMC_NAME) $(LIB_NAME_SO)$(SONAME) $(LIB_NAME).a
+ALL:=$(PMC_NAME) $(LIB_NAME_FSO) $(LIB_NAME_A)
 
 %.so:
 	$(Q_LD)$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES)\
@@ -287,9 +314,6 @@ ALL:=$(PMC_NAME) $(LIB_NAME_SO)$(SONAME) $(LIB_NAME).a
 # JSON libraries
 JSON_C:=
 # Using json-c
-JSONC_LIB:=$(LIB_NAME)_jsonc.so
-JSONC_LIBA:=$(LIB_NAME)_jsonc.a
-JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
 JSON_C+=\"$(JSONC_FLIB)\",
 ifneq ($(HAVE_JSONC_LIB),)
 JSONC_CFLAGS:=-include $(HAVE_JSONC_LIB) -DJLIB_NAME=\"$(JSONC_LIBA)\"
@@ -297,18 +321,15 @@ $(OBJ_DIR)/jsonFromJc.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(JSONC_CFLAGS) $< -o $@
 $(OBJ_DIR)/.libs/jsonFromJc.o: $(OBJ_DIR)/jsonFromJc.o
 $(JSONC_LIB)_LDLIBS:=$(JSONC_LIB_FLAGS)
-$(JSONC_LIB)$(SONAME): $(JSONC_LIB)
+$(JSONC_FLIB): $(JSONC_LIB)
 	$Q$(LN) $^ $@
 $(JSONC_LIB): $(OBJ_DIR)/.libs/jsonFromJc.o $(LIB_NAME).so
 $(JSONC_LIBA): $(OBJ_DIR)/jsonFromJc.o
 	$(LLA)
-ALL+=$(JSONC_LIB)$(SONAME) $(JSONC_LIBA)
+ALL+=$(JSONC_FLIB) $(JSONC_LIBA)
 endif # HAVE_JSONC_LIB
 
 # Using fastjson
-FJSON_LIB:=$(LIB_NAME)_fastjson.so
-FJSON_LIBA:=$(LIB_NAME)_fastjson.a
-FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 JSON_C+=\"$(FJSON_FLIB)\",
 ifneq ($(HAVE_FJSON_LIB),)
 FJSON_CFLAGS:=-include $(HAVE_FJSON_LIB) -DJLIB_NAME=\"$(FJSON_LIBA)\"
@@ -316,12 +337,12 @@ $(OBJ_DIR)/jsonFromFj.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(FJSON_CFLAGS) $< -o $@
 $(OBJ_DIR)/.libs/jsonFromFj.o: $(OBJ_DIR)/jsonFromFj.o
 $(FJSON_LIB)_LDLIBS:=$(FJSON_LIB_FLAGS)
-$(FJSON_LIB)$(SONAME): $(FJSON_LIB)
+$(FJSON_FLIB): $(FJSON_LIB)
 	$Q$(LN) $^ $@
 $(FJSON_LIB): $(OBJ_DIR)/.libs/jsonFromFj.o $(LIB_NAME).so
 $(FJSON_LIBA): $(OBJ_DIR)/jsonFromFj.o
 	$(LLA)
-ALL+=$(FJSON_LIB)$(SONAME) $(FJSON_LIBA)
+ALL+=$(FJSON_FLIB) $(FJSON_LIBA)
 endif # HAVE_FJSON_LIB
 
 # Add jsonFrom libraries to search
@@ -335,9 +356,9 @@ $(LIB_OBJS): $(OBJ_DIR)/%.o: $(SRC)/%.cpp | $(COMP_DEPS)
 $(eval $(foreach obj,$(notdir $(LIB_OBJS)),\
   $(call depend,$(OBJ_DIR)/.libs/$(obj),$(OBJ_DIR)/$(obj))))
 
-$(LIB_NAME).a: $(LIB_OBJS)
+$(LIB_NAME_A): $(LIB_OBJS)
 	$(LLA)
-$(LIB_NAME_SO)$(SONAME): $(LIB_NAME_SO)
+$(LIB_NAME_FSO): $(LIB_NAME_SO)
 	$Q$(LN) $^ $@
 $(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
 
@@ -345,15 +366,22 @@ $(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
 ifneq ($(GTEST_LIB_FLAGS),)
 TEST_OBJS:=$(patsubst %.cpp,%.o,$(wildcard utest/*.cpp))
 
+ifneq ($(filter utest,$(MAKECMDGOALS)),)
+ifneq ($(NONPHONY_TGT),)
+$(eval $(call phony,$(NONPHONY_TGT)))
+GTEST_FLAGS:=--gtest_filter=*$(NONPHONY_TGT)*
+endif # NONPHONY_TGT
+endif # filter utest,$(MAKECMDGOALS)
+
 utest/%.o: utest/%.cpp
 	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS) -c -o $@ $<
 
-$(UTEST): $(TEST_OBJS) $(LIB_NAME_SO)$(SONAME)
+$(UTEST): $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 
 utest: $(UTEST)
-	$Q$(UTEST) $(GTEST_NO_COL)
+	$Q$(UTEST) $(GTEST_NO_COL) $(GTEST_FLAGS)
 
 endif #  GTEST_LIB_FLAGS
 
@@ -539,7 +567,7 @@ TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
 # TODO how the hell tcl "know" the library version? Why does it think it's 0.0?
 # Need to add soname!
 pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
-pkgIndex+=package ifneeded $(SWIG_LNAME) $(PACKAGE_VERSION_MAJ)
+pkgIndex+=package ifneeded $(SWIG_LNAME) $(ver_maj)
 pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
 endif # SKIP_TCL
 
@@ -572,9 +600,9 @@ URL:=html/index.html
 REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
 INSTALL_FOLDER:=$(INSTALL) -d
 TOOLS_EXT:=-ptpmgmt
-DEV_PKG?=libptpmgmt-dev
+DEV_PKG?=$(LIB_NAME)-dev
 DLIBDIR:=$(DESTDIR)$(libdir)
-DOCDIR:=$(DESTDIR)$(datarootdir)/doc/libptpmgmt-doc
+DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(LIB_NAME)-doc
 MANDIR:=$(DESTDIR)$(mandir)/man8
 # 1=Dir 2=file 3=link
 ifeq ($(USE_FULL_PATH_LINK),)
@@ -647,7 +675,9 @@ ifeq ($(SKIP_TCL),)
 	printf '$(pkgIndex)' > $(TCLDIR)/pkgIndex.tcl
 endif # SKIP_TCL
 
+ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
 include $(D_FILES)
+endif
 
 $(OBJ_DIR):
 	$Q$(MKDIR_P) $@
@@ -657,6 +687,16 @@ endif # wildcard defs.mk
 
 ####### Debain build #######
 ifneq ($(and $(wildcard debian/rules),$(call which,dpkg-buildpackage)),)
+ifneq ($(filter deb_arc,$(MAKECMDGOALS)),)
+ifeq ($(DEB_ARC),)
+ifneq ($(NONPHONY_TGT),)
+ifneq ($(shell dpkg-architecture -qDEB_TARGET_ARCH -a$(NONPHONY_TGT) 2>/dev/null),)
+DEB_ARC:=$(NONPHONY_TGT)
+$(eval $(call phony,$(DEB_ARC)))
+endif # dpkg-architecture -qDEB_TARGET_ARCH
+endif # $(NONPHONY_TGT)
+endif # $(DEB_ARC)
+endif # filter deb_arc,$(MAKECMDGOALS)
 deb:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b --no-sign
 ifneq ($(DEB_ARC),)
@@ -676,7 +716,7 @@ $(RPM_SRC): $(SRC_FILES) | rpm/SOURCES
 	$(Q_TAR)$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
 ifneq ($(call which,rpmbuild),)
 rpm: $(RPM_SRC)
-	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/libptpmgmt.spec
+	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/$(LIB_NAME).spec
 endif # which rpmbuild
 rpmsrc: $(RPM_SRC)
 
@@ -732,6 +772,3 @@ distclean: deb_clean
 help:
 	@$(info $(help))
 	:
-
-.PHONY: all clean distclean format install deb deb_arc deb_clean\
-  doxygen checkall help rpm rpmsrc pkg pkgsrc utest

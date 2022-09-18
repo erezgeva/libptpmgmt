@@ -57,7 +57,8 @@ std::string Options::helpStore::get(size_t length) const
     return ret;
 }
 
-Options::Options(bool useDef) : max_arg_name(0), net_select(0), m_useDef(false)
+Options::Options(bool useDef) : max_arg_name(0), net_select(0), m_useDef(false),
+    helpUpdate(false)
 {
     if(useDef)
         useDefOption();
@@ -144,6 +145,7 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
     // Prevent getopt_long() printing errors
     // Handle errors with '?'
     opterr = 0;
+    optind = 1; // ensure we start from first argument!
     while((c = getopt_long(argc, argv, all_short_options.c_str(),
                     long_options_list.data(), nullptr)) != -1) {
         if(c == '?') { // Error handling

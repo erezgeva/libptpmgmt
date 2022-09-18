@@ -49,7 +49,7 @@ The container provids the following constructors, following `std::vector<>` cons
 |---|-----------------------|----------|----------|
 |0  |empty                  |          |          |
 |1  |copy constructor       |container |          |
-|1  |insert defualt elements|number    |          |
+|1  |insert default elements|number    |          |
 |2  |copies of element      |number    |element   |
 
 * PHP do not support the last, 2 arguments constructor!

@@ -33,7 +33,7 @@ struct Pmc_option {
     bool long_only; /**< Use long option only flag */
     std::string help_msg; /**< Help message */
     std::string arg_help; /**< Argument name for help */
-    std::string def_val; /**< Defualt value for help */
+    std::string def_val; /**< Default value for help */
 };
 
 /**
@@ -86,7 +86,7 @@ class Options
      */
     Options(bool useDef = true);
     /**
-     * Use PMC defult options
+     * Use PMC default options
      */
     void useDefOption();
     /**
@@ -116,8 +116,10 @@ class Options
      * @param[in] argc number of arguments
      * @param[in] argv array of command line arguments
      * @return Parse state
-     * @note This class do not store argument 0,
-     *       i.e application name from command line!
+     * @note Follow the command line.
+     *       Argument 0 is the application name,
+     *       as apear in the command line.
+     *       This class do not store it.
      * @note regarding using scripts: @n
      *  Python and PHP uses full argument list.
      *  For Ruby, Perl and Tcl user need to add argument 0.
@@ -125,9 +127,9 @@ class Options
      * To call from scripts: @n
      *  Python  obj.parse_options(sys.argv) @n
      *  PHP     $obj->parse_options($argv) @n
-     *  Tcl     obj parse_options [list {*}$argv0 {*}$@::argv] @n
-     *  Perl    obj->parse_options([$0, @@ARGV]); @n
      *  Ruby    $obj.parse_options([$0] + ARGV) @n
+     *  Perl    obj->parse_options([$0, @@ARGV]); @n
+     *  Tcl     obj parse_options [list {*}$argv0 {*}$@::argv] @n
      *  Lua     table.insert(arg, 1, "myname"); obj:parse_options(arg)
      */
     loop_val parse_options(int argc, char *const argv[]);

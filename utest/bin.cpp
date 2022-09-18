@@ -17,7 +17,7 @@ using namespace ptpmgmt;
 
 // Tests Binary empty constructor
 // Binary()
-TEST(BinaryTest, MethodEmotyConstructor) {
+TEST(BinaryTest, MethodEmptyConstructor) {
   Binary f;
   EXPECT_TRUE(f.getBinString() == "");
   EXPECT_EQ(f.length(), 0);
