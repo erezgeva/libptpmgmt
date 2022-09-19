@@ -26,77 +26,76 @@ const size_t EUI64 = 8; /**< 64 bits MAC address length */
 class Binary
 {
   private:
-    std::string m_str;
+    uint8_t *m_buf; // Used buffer
+    size_t m_alloc; // Allocation size
+    size_t m_size; // Binary size
+    void init();
+    bool iResize(size_t newAllocSize);
   public:
-    Binary() {}
+    Binary();
+    ~Binary();
     /**
      * Copy constructor
      * @param[in] rhs object
      */
-    Binary(const Binary &rhs) { m_str = rhs.m_str; }
+    Binary(const Binary &rhs);
     /**
      * Constructor from buffer
      * @param[in] buf pointer to Binary octets
      * @param[in] length
      */
-    Binary(const void *buf, const size_t length) { setBin(buf, length); }
+    Binary(const void *buf, const size_t length);
     /**
      * Constructor buffer with fixed length
      * @param[in] length of buffer
      * @param[in] set value to set all octests
      */
-    Binary(const size_t length, uint8_t set = 0) { m_str.resize(length, set); }
+    Binary(const size_t length, uint8_t set = 0);
     /**
      * Constructor from binary based string
      * @param[in] string string with octets content
      */
-    Binary(const std::string &string) { m_str = string; }
+    Binary(const std::string &string);
     /**
      * Copy value from another object
      * @param[in] rhs Binary to assign
      * @return reference to itself
      */
-    Binary &operator=(const Binary &rhs) {
-        m_str = rhs.m_str;
-        return *this;
-    }
+    Binary &operator=(const Binary &rhs);
     /**
      * Get Binary length
      * @return Binary length
      */
-    size_t length() const { return m_str.length(); }
+    size_t length() const { return m_size; }
     /**
      * Get Binary length
      * @return Binary length
      */
-    size_t size() const { return m_str.length(); }
+    size_t size() const { return m_size; }
     /**
      * Return if Binary is empty
      * @return true if empty
      */
-    bool empty() const { return m_str.empty(); }
+    bool empty() const { return m_size == 0; }
     /**
      * Get pointer to Binary
      * @return pointer to octets
      */
-    const uint8_t *get() const { return (const uint8_t *)m_str.c_str(); }
+    const uint8_t *get() const { return m_buf; }
     /**
      * Get binary content in a string
      * @return string with binary content
      * @note for scripts, to use unpacking assignment
      *       and split octets into array or list
      */
-    std::string getBinString() const { return m_str; }
+    std::string getBinString() const { return std::string((char *)m_buf, m_size); }
     /**
      * Set new value
      * @param[in] buf pointer to Binary octets
      * @param[in] length
      * @return reference to itself
      */
-    Binary &setBin(const void *buf, const size_t length) {
-        m_str = std::string((const char *)buf, length);
-        return *this;
-    }
+    Binary &setBin(const void *buf, const size_t length);
     /**
      * Set new value from binary based string
      * @param[in] string string with octets content
@@ -104,7 +103,7 @@ class Binary
      * @note for scripts, to use packing assignment
      *       and create a string from array or list of octets
      */
-    Binary &setBin(const std::string &string) { m_str = string; return *this; }
+    Binary &setBin(const std::string &string);
     /**
      * Set value in position
      * @param[in] position in Binary octets
@@ -112,40 +111,30 @@ class Binary
      * @return reference to itself
      * @note resize the Binary as needed
      */
-    Binary &setBin(const size_t position, const uint8_t value) {
-        if(position >= length())
-            resize(position + 1);
-        m_str[position] = value;
-        return *this;
-    }
+    Binary &setBin(const size_t position, const uint8_t value);
     /**
      * Get octet in position
      * @param[in] position in Binary octets
      * @return octet value or zero if out of range
      */
-    const uint8_t getBin(const size_t position) const {
-        if(position >= length())
-            return 0;
-        return (uint8_t)m_str[position];
-    }
+    const uint8_t getBin(const size_t position) const;
     /**
      * Get octet in position
+     * Caller can change value using @code bin[pos] = new_value @endcode
      * @param[in] position in Binary octets
      * @return octet value or zero if out of range
      */
-    const uint8_t operator [](const size_t position) const {
-        return getBin(position);
-    }
+    uint8_t &operator [](const size_t position);
     /**
      * Resize buffer
      * @param[in] length new length
      */
-    Binary &resize(const size_t length) { m_str.resize(length); return *this; }
+    Binary &resize(const size_t length);
     /**
      * Copy Binary to target memory block
      * @param[in, out] target memory block
      */
-    void copy(uint8_t *target) const { memcpy(target, get(), length()); }
+    void copy(uint8_t *target) const { memcpy(target, m_buf, m_size); }
     /**
      * Append single octet using operator +=
      * @param[in] octet to add
@@ -158,10 +147,7 @@ class Binary
      * @param[in] octet to add
      * @return reference to itself
      */
-    Binary &append(const uint8_t octet) {
-        m_str.append(1, octet);
-        return *this;
-    }
+    Binary &append(const uint8_t octet);
     /**
      * append octets using operator +=
      * @param[in] rhs Binary to add
@@ -174,10 +160,7 @@ class Binary
      * @param[in] rhs Binary to add
      * @return reference to itself
      */
-    Binary &append(const Binary &rhs) {
-        m_str += rhs.m_str;
-        return *this;
-    }
+    Binary &append(const Binary &rhs);
     /**
      * Convert IP address to string
      * @return Ip address
@@ -206,7 +189,7 @@ class Binary
      * @return address
      * @note Support MAC addresses
      */
-    std::string toId() const { return bufToId((uint8_t *)m_str.c_str(), length()); }
+    std::string toId() const { return bufToId(m_buf, m_size); }
     /**
      * Convert Binary ID to string
      * @param[in] id pointer to memory buffer
@@ -232,7 +215,7 @@ class Binary
      * Check if ID length is a valid MAC address
      * @return true if ID length is valid MAC length
      */
-    bool isMacLen() const { return length() == EUI48 || length() == EUI64; }
+    bool isMacLen() const { return m_size == EUI48 || m_size == EUI64; }
     /**
      * Convert ID from EUI48 to EUI64 using 0xfffe padding
      * @return true if ID is EUI64 after conversion
@@ -249,7 +232,7 @@ class Binary
      * @return hex string
      */
     std::string toHex() const {
-        return bufToHex((uint8_t *)m_str.c_str(), length());
+        return bufToHex(m_buf, m_size);
     }
     /**
      * Convert Binary to hex string
@@ -269,9 +252,7 @@ class Binary
      * @param[in] rhs Binary to compare
      * @return true if binaries are identical
      */
-    bool eq(const Binary &rhs) const {
-        return m_str == rhs.m_str;
-    }
+    bool eq(const Binary &rhs) const;
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare
@@ -283,9 +264,7 @@ class Binary
      * @param[in] rhs Binary to compare
      * @return true if binary is smaller
      */
-    bool less(const Binary &rhs) const {
-        return m_str < rhs.m_str;
-    }
+    bool less(const Binary &rhs) const;
 };
 
 __PTPMGMT_NAMESPACE_END

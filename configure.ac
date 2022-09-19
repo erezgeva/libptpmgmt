@@ -140,7 +140,9 @@ AS_IF([test -n "$HAVE_GTEST_HEADER" && test -n "$PKG_CONFIG"],
       [AS_VAR_SET([GTEST_INC_FLAGS], [`$PKG_CONFIG --cflags gtest`])
        AS_VAR_SET([GTEST_LIB_FLAGS], [`$PKG_CONFIG --libs gtest`])
        AC_CHECK_LIB([gtest], [main],
-                    [],
+                    [AS_IF([test -z "$GTEST_LIB_FLAGS"],
+                           [AS_VAR_SET([GTEST_LIB_FLAGS],
+                                       ['-lgtest -lpthread'])])],
                     [AS_UNSET([GTEST_LIB_FLAGS])],
                     ["$GTEST_LIB_FLAGS"])])
 

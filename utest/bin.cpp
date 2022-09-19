@@ -136,6 +136,8 @@ TEST(BinaryTest, MethodGetBinPosVal) {
 TEST(BinaryTest, MethodOpIdx) {
   Binary f("\x1\x2\x3\x4");
   EXPECT_EQ(f[2], 3);
+  f[5] = 6;
+  EXPECT_EQ(memcmp(f.get(), "\x1\x2\x3\x4\0\x6", 6), 0);
 }
 
 // Test resize

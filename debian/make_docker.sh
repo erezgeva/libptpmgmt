@@ -73,7 +73,7 @@ main()
   # Packages per architecture
   for n in libstdc++6 liblua5.1-0-dev liblua5.2-dev liblua5.3-dev\
            libpython3-all-dev ruby-dev tcl-dev libpython3-dev\
-           libfastjson-dev
+           libfastjson-dev libgtest-dev
   do
     # Main architecture
     DPKGS_all+=" $n:$main_arch"

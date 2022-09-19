@@ -373,14 +373,14 @@ GTEST_FLAGS:=--gtest_filter=*$(NONPHONY_TGT)*
 endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
-utest/%.o: utest/%.cpp
+utest/%.o: utest/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS) -c -o $@ $<
 
 $(UTEST): $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 
-utest: $(UTEST)
+utest: $(HEADERS_GEN_COMP) $(UTEST)
 	$Q$(UTEST) $(GTEST_NO_COL) $(GTEST_FLAGS)
 
 endif #  GTEST_LIB_FLAGS

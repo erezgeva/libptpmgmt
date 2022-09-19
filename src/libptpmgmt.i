@@ -151,7 +151,7 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
  * PHP and Tcl ignore operators overload
  *********/
 #ifdef SWIG_OPERS_LANG_IDENTIFIER
-/* use Binary::getBin() */
+/* use Binary::getBin() and Binary::setBin() */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator [];
 /* Operator overload ignored.
  * Scripts can use Buf::get() */
@@ -195,7 +195,7 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
  * Perl, python and Ruby ignore operators overload
  *********/
 #ifdef SWIG_OPERS_IGNORE_OPERATOR
-/* use Binary::getBin() */
+/* use Binary::getBin() and Binary::setBin() */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_INDEX) Binary::operator [];
 /* Use the copy constructor :-) */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Binary::operator=;

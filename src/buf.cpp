@@ -25,10 +25,10 @@ bool Buf::alloc(size_t size)
         return false;
     if(size <= m_size)
         return true;
-    void *nb = realloc(m_buf, size);
-    if(nb == nullptr)
+    void *l_buf = realloc(m_buf, size);
+    if(l_buf == nullptr)
         return false;
-    m_buf = nb;
+    m_buf = l_buf;
     m_size = size;
     return true;
 }
