@@ -65,6 +65,8 @@ lineend=linux
 formatted
 # Do not retain a backup of the original file
 suffix=none
+# Print errors and help information to standard-output rather than to standard-error.
+errors-to-stdout
 
 # To disable format use // *INDENT-OFF*
 # To reenable use       // *INDENT-ON*

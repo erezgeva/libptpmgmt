@@ -26,9 +26,9 @@ const size_t EUI64 = 8; /**< 64 bits MAC address length */
 class Binary
 {
   private:
-    uint8_t *m_buf; // Used buffer
-    size_t m_alloc; // Allocation size
-    size_t m_size; // Binary size
+    uint8_t *m_buf; /* Used buffer */
+    size_t m_alloc; /* Allocation size */
+    size_t m_size; /* Binary size */
     void init();
     bool iResize(size_t newAllocSize);
   public:

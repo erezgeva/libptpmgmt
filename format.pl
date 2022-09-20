@@ -13,12 +13,20 @@ use File::Touch;
 
 sub main
 {
-    for(glob "*.cpp *.h *.sh Makefile debian/rules debian/changelog " .
-             "debian/copyright scripts/* */test.* testJson.pl sample/*.cpp " .
-             "sample/*.h")
+    my ($file, $exit);
+    sub err
+    {
+        print STDERR "Check: $file:$.: " . shift . ": $_\n";
+        $exit = -1;
+    }
+    my @list = @ARGV;
+    push @list, glob
+        "*.sh Makefile debian/rules debian/changelog debian/copyright " .
+        "scripts/* */test.* testJson.pl ";
+    for(@list)
     {
         next if -l or not -f;
-        my $file = $_;
+        $file = $_;
         # As script removes empty lines only
         # Use touch to prevent compilation
         my $touch_obj = File::Touch->new(reference => $file);
@@ -44,41 +52,42 @@ sub main
             # Verify we use proper characters!
             if($file =~ /\.cpp$/ or $file =~ /\.h$/) {
                 if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]/) {
-                    print STDERR "Check: $file:$.: for wrong char: $_\n";
-                } elsif(/\\[^ntr"'\\]/) {
-                    print STDERR "Check: $file:$.: wrong escape char: $_\n";
+                    err 'for wrong char';
+                } elsif(/\\[^xntr0"'\\]/) {
+                    err 'wrong escape char';
                 }
                 if(/\*INDENT-ON\*/i || /\*INDENT-OFF\*/i || /\*NOPAD\*/i) {
-                    print STDERR "Check: $file:$.: for using astyle skip: $_\n";
+                    err 'for using astyle skip';
                 }
                 if(/[^"_]NULL\b/) {
-                    print STDERR "Check: $file:$.: use C++ nullptr: $_\n";
+                    err 'use C++ nullptr';
                 }
                 if(/.{85}/) {
-                    print STDERR "Check: $file:$.: line is too long: $_\n";
+                    err 'line is too long';
                 }
             } else {
                 if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
-                    print STDERR "Check: $file:$.: for wrong char: $_\n";
+                    err 'for wrong char';
                 } elsif(/\\[^denrst"()<>.+\d\$'\\\[\] ]/) {
-                    print STDERR "Check: $file:$.: wrong escape char: $_\n";
+                    err 'wrong escape char';
                 } elsif(/.\t/) {
-                    print STDERR "Check: $file:$.: Tabs are allowed only in begining: $_\n";
+                    err 'Tabs are allowed only in begining';
                 }
                 if(/.{85}/) {
-                    print STDERR "Check: $file:$.: line is too long: $_\n";
+                    err 'line is too long';
                 }
             }
             #######################################
             # proper comments in headers
             if($file =~ /\.h$/) {
                 if(m#^//# or m#[^:]//#) { # Ignore protocol '://' sign
-                    print STDERR "Check: $file:$.: use C comments only: $_\n";
+                    err 'use C comments only';
                 }
             }
             print "$_\n";
         }
         $touch_obj->touch($file);
     }
+    exit $exit if $exit;
 }
 main;

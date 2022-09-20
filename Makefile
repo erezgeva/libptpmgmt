@@ -398,9 +398,12 @@ $(SRC)/ver.h: $(SRC)/ver.h.in
 	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
 ifneq ($(ASTYLEMINVER),)
-format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(wildcard sample/*.cpp)
-	$(Q_FRMT)$(ASTYLE) --project=none --options=astyle.opt $^
-	./format.pl
+EXTRA_SRCS:=$(wildcard $(foreach n,sample utest,$n/*.cpp $n/*.h))
+format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS)
+	$(Q_FRMT)
+	r=`$(ASTYLE) --project=none --options=astyle.opt $^`
+	test -z "$$r" || echo "$$r";./format.pl $^
+	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
 ifneq ($(CPPCHECK),)
 	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1 $^
 endif
@@ -612,9 +615,9 @@ mkln=$(LN) $1/$2 $(DESTDIR)$1/$3
 endif
 
 install:
-	$(Q)for lib in $(LIB_NAME)*.so; do\
-	  $(INSTALL_PROGRAM) -D $$lib $(DLIBDIR)/$$lib.$(PACKAGE_VERSION);\
-	  $(call mkln,$(libdir),$$lib.$(PACKAGE_VERSION),$$lib$(SONAME));\
+	$(Q)for lib in $(LIB_NAME)*.so
+	  do $(INSTALL_PROGRAM) -D $$lib $(DLIBDIR)/$$lib.$(PACKAGE_VERSION)
+	  $(call mkln,$(libdir),$$lib.$(PACKAGE_VERSION),$$lib$(SONAME))
 	  $(call mkln,$(libdir),$$lib$(SONAME),$$lib);done
 	$(INSTALL_DATA) $(LIB_NAME)*.a $(DLIBDIR)
 	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
@@ -623,13 +626,13 @@ install:
 	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
 	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
 	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
-	if [ ! -f $(MANDIR)/pmc$(TOOLS_EXT).8.gz ]; then\
-	  $(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8;\
+	if [ ! -f $(MANDIR)/pmc$(TOOLS_EXT).8.gz ]
+	  then $(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8
 	  gzip $(MANDIR)/pmc$(TOOLS_EXT).8;fi
 	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\
 	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
-	if [ ! -f $(MANDIR)/phc_ctl$(TOOLS_EXT).8.gz ]; then\
-	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8;\
+	if [ ! -f $(MANDIR)/phc_ctl$(TOOLS_EXT).8.gz ];	then
+	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
 	  gzip $(MANDIR)/phc_ctl$(TOOLS_EXT).8;fi
 	$(RM) doc/html/*.md5
 	$(INSTALL_FOLDER) $(DOCDIR)
