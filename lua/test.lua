@@ -51,6 +51,15 @@ dispacher = myDisp:new()
 builder = myBuild:new(msg)
 sequence = 0
 
+function printError(msg)
+  if(ptpmgmt.Error.isError()) then
+    print(ptpmgmt.Error.getError())
+  else
+    print(msg)
+  end
+  return -1
+end
+
 function nextSequence()
   -- Ensure sequence in in range of unsigned 16 bits
   sequence = sequence + 1
@@ -80,20 +89,17 @@ function setPriority1(newPriority1)
     print("build error ", txt)
   end
   if(not sk:send(buf, msg:getMsgLen())) then
-    print "send fail"
-    return -1
+    return printError("send fail")
   end
   if(not useBuild) then
     msg:clearData()
   end
   if(not sk:poll(500)) then
-    print "timeout"
-    return -1
+    return printError("timeout")
   end
   local cnt = sk:rcv(buf)
   if(cnt <= 0) then
-    print "rcv cnt"
-    return -1
+    return printError("rcv cnt")
   end
   err = msg:parse(buf, cnt)
   if(err ~= ptpmgmt.MNG_PARSE_ERROR_OK or msg:getTlvId() ~= id or
@@ -110,17 +116,14 @@ function setPriority1(newPriority1)
     print("build error ", txt)
   end
   if(not sk:send(buf, msg:getMsgLen())) then
-    print "send fail"
-    return -1
+    return printError("send fail")
   end
   if(not sk:poll(500)) then
-    print "timeout"
-    return -1
+    return printError("timeout")
   end
   local cnt = sk:rcv(buf)
   if(cnt <= 0) then
-    print "rcv cnt"
-    return -1
+    return printError("rcv cnt")
   end
   err = msg:parse(buf, cnt)
   if(err == ptpmgmt.MNG_PARSE_ERROR_MSG) then
@@ -153,13 +156,11 @@ function main()
   print("Use configuration file " .. cfg_file)
   local cfg = ptpmgmt.ConfigFile()
   if(not cfg:read_cfg(cfg_file)) then
-    print "fail reading configuration file"
-    return -1
+    return printError("fail reading configuration file")
   end
   if(not sk:setDefSelfAddress() or not sk:init() or
      not sk:setPeerAddress(cfg)) then
-    print "fail init socket"
-    return -1
+    return printError("fail init socket")
   end
   local prms = msg:getParams()
   -- When using Lua 5.3, you can use "and" bitwise operator.
@@ -183,18 +184,15 @@ function main()
     return -1
   end
   if(not sk:send(buf(), msg:getMsgLen())) then
-    print "send fail"
-    return -1
+    return printError("send fail")
   end
   -- You can get file descriptor with sk:fileno() and use Lua socket.select()
   if(not sk:poll(500)) then
-    print "timeout"
-    return -1
+    return printError("timeout")
   end
   local cnt = sk:rcv(buf)
   if(cnt <= 0) then
-    print("rcv error", cnt)
-    return -1
+    return printError("rcv cnt")
   end
   err = msg:parse(buf, cnt)
   if(err == ptpmgmt.MNG_PARSE_ERROR_MSG) then

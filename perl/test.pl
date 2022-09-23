@@ -51,6 +51,16 @@ my $dispacher = myDisp->new();
 my $builder = myBuild->new($msg);
 my $sequence = 0;
 
+sub printError
+{
+  if(PtpMgmtLib::Error::isError()) {
+    print PtpMgmtLib::Error::getError() . "\n";
+  } else {
+    print(shift . "\n");
+  }
+  return -1
+}
+
 sub nextSequence
 {
   # Ensure sequence in in range of unsigned 16 bits
@@ -79,16 +89,10 @@ sub setPriority1
   die "send" unless $sk->send($buf, $msg->getMsgLen());
   $msg->clearData() unless $useBuild;
 
-  unless($sk->poll(500)) {
-    print "timeout";
-    return -1;
-  }
+  return printError("timeout") unless $sk->poll(500);
 
   my $cnt = $sk->rcv($buf);
-  if($cnt <= 0) {
-    print "rcv $cnt\n";
-    return -1;
-  }
+  return printError("rcv $cnt") if $cnt <= 0;
 
   $err = $msg->parse($buf, $cnt);
   if($err != $PtpMgmtLib::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
@@ -106,16 +110,10 @@ sub setPriority1
 
   die "send" unless $sk->send($buf, $msg->getMsgLen());
 
-  unless($sk->poll(500)) {
-    print "timeout";
-    return -1;
-  }
+  return printError("timeout") unless $sk->poll(500);
 
   my $cnt = $sk->rcv($buf);
-  if($cnt <= 0) {
-    print "rcv $cnt\n";
-    return -1;
-  }
+  return printError("rcv $cnt") if $cnt <= 0;
   $err = $msg->parse($buf, $cnt);
   if($err == $PtpMgmtLib::MNG_PARSE_ERROR_MSG) {
     print "error message\n";
@@ -164,16 +162,10 @@ sub main
   die "send" unless $sk->send($buf, $msg->getMsgLen());
 
   # You can get file descriptor with sk->fileno() and use Perl select
-  unless($sk->poll(500)) {
-    print "timeout";
-    return -1;
-  }
+  return printError("timeout") unless $sk->poll(500);
 
   my $cnt = $sk->rcv($buf);
-  if($cnt <= 0) {
-    print "rcv $cnt\n";
-    return -1;
-  }
+  return printError("rcv $cnt") if $cnt <= 0;
 
   $err = $msg->parse($buf, $cnt);
 

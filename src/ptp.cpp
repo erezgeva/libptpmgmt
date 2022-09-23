@@ -17,7 +17,6 @@
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
 #include <linux/ptp_clock.h>
-#include "err.h"
 #include "ptp.h"
 #include "comp.h"
 #include "timeCvrt.h"
@@ -74,23 +73,36 @@ static bool setOff(clockid_t clkId, timeval time)
     // ADJ_NANO: Use nanoseconds instead of microseconds!
     tmx.modes = ADJ_SETOFFSET | ADJ_NANO;
     tmx.time = time;
-    if(clock_adjtime(clkId, &tmx) != -1)
-        return true;
-    PTPMGMT_PERROR("ADJ_SETOFFSET");
-    return false;
+    if(clock_adjtime(clkId, &tmx) != 0) {
+        PTPMGMT_ERROR_P("ADJ_SETOFFSET");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
 }
 static bool setTimeFromTime(bool isInit, clockid_t from, clockid_t to)
 {
     timespec ts;
-    if(isInit && clock_gettime(from, &ts) == 0)
-        return clock_settime(to, &ts) == 0;
-    return false;
+    if(!isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return false;
+    }
+    if(clock_gettime(from, &ts) != 0) {
+        PTPMGMT_ERROR_P("clock_gettime");
+        return false;
+    }
+    if(clock_settime(to, &ts) != 0) {
+        PTPMGMT_ERROR_P("clock_settime");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
 }
 bool IfInfo::initPtp(int fd, ifreq &ifr)
 {
     /* retrieve corresponding MAC */
     if(ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
-        PTPMGMT_PERROR("SIOCGIFHWADDR");
+        PTPMGMT_ERROR_P("SIOCGIFHWADDR");
         close(fd);
         return false;
     }
@@ -99,29 +111,36 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
     info.phc_index = NO_SUCH_PTP;
     ifr.ifr_data = (char *)&info;
     if(ioctl(fd, SIOCETHTOOL, &ifr) == -1) {
-        PTPMGMT_PERROR("SIOCETHTOOL");
+        PTPMGMT_ERROR_P("SIOCETHTOOL");
         close(fd);
         return false;
     }
     close(fd);
     m_ptpIndex = info.phc_index;
     m_isInit = true;
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool IfInfo::initUsingName(const std::string &ifName)
 {
-    if(m_isInit || ifName.empty() || ifName.length() >= IFNAMSIZ)
+    if(m_isInit) {
+        PTPMGMT_ERROR("Alreay initialized");
         return false;
+    }
+    if(ifName.empty() || ifName.length() >= IFNAMSIZ) {
+        PTPMGMT_ERROR("missing interface");
+        return false;
+    }
     int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(fd < 0) {
-        PTPMGMT_PERROR("socket");
+        PTPMGMT_ERROR_P("socket");
         return false;
     }
     ifreq ifr = {0};
     // ifName is shorter than IFNAMSIZ
     strcpy(ifr.ifr_name, ifName.c_str());
     if(ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
-        PTPMGMT_PERROR("SIOCGIFINDEX");
+        PTPMGMT_ERROR_P("SIOCGIFINDEX");
         close(fd);
         return false;
     }
@@ -131,17 +150,19 @@ bool IfInfo::initUsingName(const std::string &ifName)
 }
 bool IfInfo::initUsingIndex(int ifIndex)
 {
-    if(m_isInit)
+    if(m_isInit) {
+        PTPMGMT_ERROR("Alreay initialized");
         return false;
+    }
     int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
     if(fd < 0) {
-        PTPMGMT_PERROR("socket");
+        PTPMGMT_ERROR_P("socket");
         return false;
     }
     ifreq ifr = {0};
     ifr.ifr_ifindex = ifIndex;
     if(ioctl(fd, SIOCGIFNAME, &ifr) == -1) {
-        PTPMGMT_PERROR("SIOCGIFNAME");
+        PTPMGMT_ERROR_P("SIOCGIFNAME");
         close(fd);
         return false;
     }
@@ -151,78 +172,98 @@ bool IfInfo::initUsingIndex(int ifIndex)
 }
 Timestamp_t BaseClock::getTime() const
 {
-    if(m_isInit) {
-        timespec ts1;
-        if(clock_gettime(m_clkId, &ts1) == 0)
-            return ts1;
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return 0;
     }
-    return 0;
+    timespec ts1;
+    if(clock_gettime(m_clkId, &ts1) != 0) {
+        PTPMGMT_ERROR_P("clock_gettime");
+        return 0;
+    }
+    PTPMGMT_ERROR_CLR;
+    return ts1;
 }
 bool BaseClock::setTime(const Timestamp_t &ts) const
 {
-    if(m_isInit) {
-        timespec ts1 = ts;
-        return clock_settime(m_clkId, &ts1) == 0;
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return false;
     }
-    return false;
+    timespec ts1 = ts;
+    if(clock_settime(m_clkId, &ts1) != 0) {
+        PTPMGMT_ERROR_P("clock_settime");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
 }
 bool BaseClock::offsetClock(long double offset) const
 {
-    if(m_isInit) {
-        time_t secs = floorl(offset);
-        suseconds_t nsecs = (offset - secs) * NSEC_PER_SEC;
-        return setOff(m_clkId, {secs, nsecs});
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return false;
     }
-    return false;
+    time_t secs = floorl(offset);
+    suseconds_t nsecs = (offset - secs) * NSEC_PER_SEC;
+    return setOff(m_clkId, {secs, nsecs});
 }
 bool BaseClock::offsetClockNsec(int64_t offset) const
 {
-    if(m_isInit) {
-        auto d = div((long long)offset, (long long)NSEC_PER_SEC);
-        while(d.rem < 0) {
-            d.quot--;
-            d.rem += NSEC_PER_SEC;
-        };
-        return setOff(m_clkId, {d.quot, d.rem});
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return false;
     }
-    return false;
+    auto d = div((long long)offset, (long long)NSEC_PER_SEC);
+    while(d.rem < 0) {
+        d.quot--;
+        d.rem += NSEC_PER_SEC;
+    };
+    return setOff(m_clkId, {d.quot, d.rem});
 }
 long double BaseClock::getFreq() const
 {
-    if(m_isInit) {
-        timex tmx = {0};
-        if(clock_adjtime(m_clkId, &tmx) != -1) {
-            long double add = 0;
-            if(m_freq) {
-                calcTicks();
-                if(userTicks != 0 && tmx.tick != 0)
-                    add = 1e3 * clockTicks * (tmx.tick - userTicks);
-            }
-            return (long double)tmx.freq / PPB_TO_SCALE_PPM + add;
-        }
-        PTPMGMT_PERROR("clock_adjtime");
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return 0;
     }
-    return 0;
+    timex tmx = {0};
+    if(clock_adjtime(m_clkId, &tmx) != 0) {
+        PTPMGMT_ERROR_P("clock_adjtime");
+        return 0;
+    }
+    long double add = 0;
+    if(m_freq) {
+        calcTicks();
+        if(userTicks != 0 && tmx.tick != 0)
+            add = 1e3 * clockTicks * (tmx.tick - userTicks);
+    }
+    PTPMGMT_ERROR_CLR;
+    return (long double)tmx.freq / PPB_TO_SCALE_PPM + add;
 }
 bool BaseClock::setFreq(long double freq) const
 {
-    if(m_isInit) {
-        timex tmx = {0};
-        tmx.modes = ADJ_FREQUENCY;
-        if(m_freq) {
-            calcTicks();
-            if(userTicks != 0) {
-                tmx.modes |= ADJ_TICK;
-                tmx.tick = round(freq / 1e3 / clockTicks) + userTicks;
-                freq -= 1e3 * clockTicks * (tmx.tick - userTicks);
-            }
-        }
-        tmx.freq = (long)(freq * PPB_TO_SCALE_PPM);
-        if(clock_adjtime(m_clkId, &tmx) != -1)
-            return true;
-        PTPMGMT_PERROR("ADJ_FREQUENCY");
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return 0;
     }
-    return false;
+    timex tmx = {0};
+    tmx.modes = ADJ_FREQUENCY;
+    if(m_freq) {
+        calcTicks();
+        if(userTicks != 0) {
+            tmx.modes |= ADJ_TICK;
+            tmx.tick = round(freq / 1e3 / clockTicks) + userTicks;
+            freq -= 1e3 * clockTicks * (tmx.tick - userTicks);
+        }
+    }
+    tmx.freq = (long)(freq * PPB_TO_SCALE_PPM);
+    if(clock_adjtime(m_clkId, &tmx) != 0) {
+        PTPMGMT_ERROR_P("ADJ_FREQUENCY");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
 }
 SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
 PtpClock::~PtpClock()
@@ -233,14 +274,19 @@ PtpClock::~PtpClock()
 bool PtpClock::isCharFile(const std::string &file)
 {
     struct stat sb;
-    return stat(file.c_str(), &sb) == 0 && (sb.st_mode & S_IFMT) == S_IFCHR;
+    if(stat(file.c_str(), &sb) != 0) {
+        PTPMGMT_ERROR_P("stat");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return (sb.st_mode & S_IFMT) == S_IFCHR;
 }
 bool PtpClock::init(const char *device, bool readonly)
 {
     int flags = readonly ? O_RDONLY : O_RDWR;
     int fd = open(device, flags);
     if(fd < 0) {
-        PTPMGMT_ERRORA("opening %s: %m", device);
+        PTPMGMT_ERROR_P("opening %s: %m", device);
         return false;
     }
     clockid_t cid = get_clockid_fd(fd);
@@ -251,59 +297,72 @@ bool PtpClock::init(const char *device, bool readonly)
     }
     timespec ts;
     if(clock_gettime(cid, &ts) != 0) {
-        PTPMGMT_PERROR("clock_gettime");
+        PTPMGMT_ERROR_P("clock_gettime");
         close(fd);
         return false;
     }
     m_fd = fd;
     m_clkId = cid;
     m_isInit = true;
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::initUsingDevice(const std::string &device, bool readonly)
 {
-    if(m_isInit)
+    if(m_isInit) {
+        PTPMGMT_ERROR("Alreay initialized");
         return false;
+    }
     char file[PATH_MAX];
     if(!isCharFile(device)) {
         std::string dev;
-        if(device.find('/') != std::string::npos)
+        if(device.find('/') != std::string::npos) {
+            PTPMGMT_ERROR("Wrong device '%s'", device.c_str());
             return false;
+        }
         // A bare file name, lets try under '/dev/'
         dev = "/dev/";
         dev += device;
         // File can be symbolic link in the /dev folder
-        if(!isCharFile(dev) || realpath(dev.c_str(), file) == nullptr)
+        if(!isCharFile(dev) || realpath(dev.c_str(), file) == nullptr) {
+            PTPMGMT_ERROR("Wrong device '%s'", dev.c_str());
             return false;
-    } else if(realpath(device.c_str(), file) == nullptr)
-        return false;
-    if(init(file, readonly)) {
-        m_device = file; // Store the realpath
-        // Does this device have a ptp index?
-        char *num; // Store number location
-        if(strncmp(file, ptp_dev, sizeof ptp_dev) == 0 &&
-            *(num = file + sizeof ptp_dev) != 0) {
-            char *endptr;
-            long ret = strtol(num, &endptr, 10);
-            if(ret >= 0 && *endptr == 0 && ret < LONG_MAX)
-                m_ptpIndex = ret;
         }
-        return true;
+    } else if(realpath(device.c_str(), file) == nullptr) {
+        PTPMGMT_ERROR("device does not exist '%s'", device.c_str());
+        return false;
     }
-    return false;
+    if(!init(file, readonly))
+        return false;
+    m_device = file; // Store the realpath
+    // Does this device have a ptp index?
+    char *num; // Store number location
+    if(strncmp(file, ptp_dev, sizeof ptp_dev) == 0 &&
+        *(num = file + sizeof ptp_dev) != 0) {
+        char *endptr;
+        long ret = strtol(num, &endptr, 10);
+        if(ret >= 0 && *endptr == 0 && ret < LONG_MAX)
+            m_ptpIndex = ret;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
 }
 bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
 {
-    if(m_isInit)
+    if(m_isInit) {
+        PTPMGMT_ERROR("Alreay initialized");
         return false;
+    }
     std::string dev = ptp_dev;
     dev += std::to_string(ptpIndex);
-    if(isCharFile(dev) && init(dev.c_str(), readonly)) {
-        m_ptpIndex = ptpIndex;
-        m_device = dev;
-        return true;
-    }
-    return false;
+    if(!isCharFile(dev))
+        return false;
+    if(!init(dev.c_str(), readonly))
+        return false;
+    m_ptpIndex = ptpIndex;
+    m_device = dev;
+    PTPMGMT_ERROR_CLR;
+    return true;
 }
 bool PtpClock::setTimeFromSys() const
 {
@@ -315,11 +374,13 @@ bool PtpClock::setTimeToSys() const
 }
 bool PtpClock::fetchCaps(PtpCaps_t &caps) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
+    }
     ptp_clock_caps cps = {0};
     if(ioctl(m_fd, PTP_CLOCK_GETCAPS, &cps) == -1) {
-        PTPMGMT_PERROR("PTP_CLOCK_GETCAPS");
+        PTPMGMT_ERROR_P("PTP_CLOCK_GETCAPS");
         return false;
     }
     caps.max_ppb = cps.max_adj;
@@ -334,16 +395,19 @@ bool PtpClock::fetchCaps(PtpCaps_t &caps) const
     #else
     caps.adjust_phase = false;
     #endif
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::readPin(unsigned int index, PtpPin_t &pin) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
+    }
     ptp_pin_desc desc = {0};
     desc.index = index;
     if(ioctl(m_fd, PTP_PIN_GETFUNC, &desc) == -1) {
-        PTPMGMT_PERROR("PTP_PIN_GETFUNC");
+        PTPMGMT_ERROR_P("PTP_PIN_GETFUNC");
         return false;
     }
     pin.index = index;
@@ -363,15 +427,18 @@ bool PtpClock::readPin(unsigned int index, PtpPin_t &pin) const
             pin.functional = PTP_PIN_PHY_SYNC;
             break;
         default:
-            PTPMGMT_ERRORA("readPin unknown functional %d", desc.func);
+            PTPMGMT_ERROR("readPin unknown functional %d", desc.func);
             return false;
     };
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::writePin(PtpPin_t &pin) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
+    }
     ptp_pin_desc desc;
     switch(pin.functional) {
         case PTP_PIN_UNUSED:
@@ -387,21 +454,24 @@ bool PtpClock::writePin(PtpPin_t &pin) const
             desc.func = PTP_PF_PHYSYNC;
             break;
         default:
-            PTPMGMT_ERRORA("writePin wrong functional %d", pin.functional);
+            PTPMGMT_ERROR("writePin wrong functional %d", pin.functional);
             return false;
     };
     desc.index = pin.index;
     desc.chan = pin.channel;
     if(ioctl(m_fd, PTP_PIN_SETFUNC, &desc) == -1) {
-        PTPMGMT_PERROR("PTP_PIN_SETFUNC");
+        PTPMGMT_ERROR_P("PTP_PIN_SETFUNC");
         return false;
     }
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::ExternTSEbable(unsigned int index, uint8_t flags) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
+    }
     unsigned long rid;
     #ifdef PTP_EXTTS_REQUEST2
     rid = PTP_EXTTS_REQUEST2;
@@ -415,60 +485,84 @@ bool PtpClock::ExternTSEbable(unsigned int index, uint8_t flags) const
     ptp_extts_request req = { .index = index };
     req.flags = flags | PTP_ENABLE_FEATURE;
     if(ioctl(m_fd, rid, &req) == -1) {
-        PTPMGMT_PERROR("PTP_EXTTS_REQUEST");
+        PTPMGMT_ERROR_P("PTP_EXTTS_REQUEST");
         return false;
     }
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::ExternTSDisable(unsigned int index) const
 {
-    if(!m_isInit)
-        return false;
-    ptp_extts_request req = { .index = index };
-    if(ioctl(m_fd, PTP_EXTTS_REQUEST, &req) == -1) {
-        PTPMGMT_PERROR("PTP_EXTTS_REQUEST");
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
     }
+    ptp_extts_request req = { .index = index };
+    if(ioctl(m_fd, PTP_EXTTS_REQUEST, &req) == -1) {
+        PTPMGMT_ERROR_P("PTP_EXTTS_REQUEST");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::readEvent(PtpEvent_t &event) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
+    }
     ptp_extts_event ent;
-    if(read(m_fd, &ent, sizeof ent) != sizeof ent)
+    ssize_t ret = read(m_fd, &ent, sizeof ent);
+    if(ret < 0) {
+        PTPMGMT_ERROR_P("read");
         return false;
+    }
+    if(ret != sizeof ent) {
+        PTPMGMT_ERROR("read wrong size %zd", ret);
+        return false;
+    }
     event = { ent.index, toTs(ent.t) };
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 const size_t PTP_BUF_TIMESTAMPS = 30; // From Linux kernel ptp_private.h
 int PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return -1;
+    }
     if(max == 0)
         max = PTP_BUF_TIMESTAMPS;
     else
         max = std::min(max, PTP_BUF_TIMESTAMPS);
     ptp_extts_event ents[max];
     ssize_t cnt = read(m_fd, ents, sizeof ents);
-    if(cnt < 0)
+    if(cnt < 0) {
+        PTPMGMT_ERROR_P("read");
         return -1;
-    else if(cnt == 0)
+    } else if(cnt == 0) {
+        PTPMGMT_ERROR_CLR;
         return 0;
+    }
     auto d = div(cnt, sizeof(ptp_extts_event));
-    if(d.rem != 0)
+    if(d.rem != 0) {
+        PTPMGMT_ERROR("Wrong size %zd, not divisible", cnt);
         return -1;
+    }
     ptp_extts_event *ent = ents;
     for(int i = 0; i < d.quot; i++, ent++)
         events.push_back({ent->index, toTs(ent->t)});
+    PTPMGMT_ERROR_CLR;
     return d.quot;
 }
 bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
     uint8_t flags) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
+    }
     unsigned long rid;
     struct ptp_perout_request req = {0};
     #ifndef PTP_PEROUT_REQUEST2
@@ -490,7 +584,7 @@ bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
     {
         timespec ts;
         if(clock_gettime(m_clkId, &ts)) {
-            PTPMGMT_PERROR("clock_gettime");
+            PTPMGMT_ERROR_P("clock_gettime");
             return false;
         }
         req.start.sec = ts.tv_sec + 2;
@@ -499,33 +593,41 @@ bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
     req.index = index;
     fromTs(req.period, times.period);
     if(ioctl(m_fd, rid, &req) == -1) {
-        PTPMGMT_PERROR("PTP_PEROUT_REQUEST");
+        PTPMGMT_ERROR_P("PTP_PEROUT_REQUEST");
         return false;
     }
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::setPtpPpsEvent(bool enable) const
 {
-    if(!m_isInit)
-        return false;
-    int req = enable ? 1 : 0;
-    if(ioctl(m_fd, PTP_ENABLE_PPS, &req) == -1) {
-        PTPMGMT_PERROR("PTP_ENABLE_PPS");
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
     }
+    int req = enable ? 1 : 0;
+    if(ioctl(m_fd, PTP_ENABLE_PPS, &req) == -1) {
+        PTPMGMT_ERROR_P("PTP_ENABLE_PPS");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::samplePtpSys(size_t count,
     std::vector<PtpSample_t> &samples) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
-    if(count == 0 || count > PTP_MAX_SAMPLES)
+    }
+    if(count == 0 || count > PTP_MAX_SAMPLES) {
+        PTPMGMT_ERROR("Wrong count");
         return false;
+    }
     ptp_sys_offset req = {0};
     req.n_samples = count;
     if(ioctl(m_fd, PTP_SYS_OFFSET, &req) == -1) {
-        PTPMGMT_PERROR("PTP_SYS_OFFSET");
+        PTPMGMT_ERROR_P("PTP_SYS_OFFSET");
         return false;
     }
     ptp_clock_time *pct = req.ts;
@@ -533,20 +635,27 @@ bool PtpClock::samplePtpSys(size_t count,
         samples.push_back({
         toTs(*pct++), // System clock
         toTs(*pct++)}); // PHP clock
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool PtpClock::extSamplePtpSys(size_t count,
     std::vector<PtpSampleExt_t> &samples) const
 {
     #ifdef PTP_SYS_OFFSET_EXTENDED
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
-    if(count == 0 || count > PTP_MAX_SAMPLES)
+    }
+    if(count == 0 || count > PTP_MAX_SAMPLES) {
+        PTPMGMT_ERROR("Wrong count");
         return false;
+    }
     ptp_sys_offset_extended req = {0};
     req.n_samples = count;
-    if(ioctl(m_fd, PTP_SYS_OFFSET_EXTENDED, &req) == -1)
+    if(ioctl(m_fd, PTP_SYS_OFFSET_EXTENDED, &req) == -1) {
+        PTPMGMT_ERROR_P("PTP_SYS_OFFSET_EXTENDED");
         return false;
+    }
     for(unsigned i = 0; i < req.n_samples; i++) {
         ptp_clock_time *pct = req.ts[i];
         samples.push_back({
@@ -554,6 +663,7 @@ bool PtpClock::extSamplePtpSys(size_t count,
             toTs(*pct++), // PHP clock
             toTs(*pct++)}); // System clock after
     }
+    PTPMGMT_ERROR_CLR;
     return true;
     #else
     PTPMGMT_ERROR("Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported");
@@ -562,14 +672,19 @@ bool PtpClock::extSamplePtpSys(size_t count,
 }
 bool PtpClock::preciseSamplePtpSys(PtpSamplePrecise_t &sample) const
 {
-    if(!m_isInit)
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
         return false;
+    }
     ptp_sys_offset_precise req = {0};
-    if(ioctl(m_fd, PTP_SYS_OFFSET_PRECISE, &req) == -1)
+    if(ioctl(m_fd, PTP_SYS_OFFSET_PRECISE, &req) == -1) {
+        PTPMGMT_ERROR_P("PTP_SYS_OFFSET_PRECISE");
         return false;
+    }
     sample.phcClk = toTs(req.device);
     sample.sysClk = toTs(req.sys_realtime);
     sample.monoClk = toTs(req.sys_monoraw);
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 

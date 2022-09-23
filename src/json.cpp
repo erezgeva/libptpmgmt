@@ -13,8 +13,6 @@
 #include <cmath>
 #include <mutex>
 #include <dlfcn.h>
-#include "jsonDef.h"
-#include "err.h"
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_BEGIN

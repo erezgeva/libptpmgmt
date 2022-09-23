@@ -45,6 +45,15 @@ myDisp create dispacher
 myBuild create builder msg
 set sequence 0
 
+proc printError {msg} {
+  if {ptpmgmt::Error_isError} {
+    puts ptpmgmt::Error_getError
+  } else {
+    puts msg
+  }
+  return -1
+}
+
 proc nextSequence {} {
   global sequence
   incr sequence
@@ -75,20 +84,17 @@ proc setPriority1 {newPriority1} {
     return -1
   }
   if { ! [ sk send buf [ msg getMsgLen ] ] } {
-    puts "send fail"
-    return -1
+    return printError "send fail"
   }
   if { !$useBuild } then {
     msg clearData
   }
   if { ! [ sk poll 500 ] } {
-    puts "timeout"
-    return -1
+    return printError "timeout"
   }
   set cnt [ sk rcvBuf buf ]
   if {$cnt <= 0} {
-    puts "rcv error $cnt"
-    return -1
+    return printError "rcv error $cnt"
   }
   set err [ msg parse buf $cnt ]
   if {$err != $ptpmgmt::MNG_PARSE_ERROR_OK || [ msg getTlvId ] != $id || \
@@ -106,17 +112,14 @@ proc setPriority1 {newPriority1} {
     return -1
   }
   if { ! [ sk send buf [ msg getMsgLen ] ] } {
-    puts "send fail"
-    return -1
+    return printError "send fail"
   }
   if { ! [ sk poll 500 ] } {
-    puts "timeout"
-    return -1
+    return printError "timeout"
   }
   set cnt [ sk rcvBuf buf ]
   if {$cnt <= 0} {
-    puts "rcv error $cnt"
-    return -1
+    return printError "rcv error $cnt"
   }
   set err [ msg parse buf $cnt ]
   if {$err == $ptpmgmt::MNG_PARSE_ERROR_MSG} {
@@ -143,8 +146,7 @@ proc main {cfg_file} {
   }
   if { ! [ sk setDefSelfAddress ] || ! [ sk init ] || \
        ! [ sk setPeerAddress $cfg ] } {
-    puts "fail init socket"
-    return -1
+    return printError "fail init socket"
   }
   set prms [ msg getParams ]
   [ $prms cget -self_id] configure -portNumber [ expr [ pid ] & 0xffff ]
@@ -163,18 +165,15 @@ proc main {cfg_file} {
     return -1
   }
   if { ! [ sk send buf [ msg getMsgLen ] ] } {
-    puts "send fail"
-    return -1
+    return printError "send fail"
   }
   # You can get file descriptor with [ sk fileno ] and use select
   if { ! [ sk poll 500 ] } {
-    puts "timeout"
-    return -1
+    return printError "timeout"
   }
   set cnt [ sk rcvBuf buf ]
   if {$cnt <= 0} {
-    puts "rcv error $cnt"
-    return -1
+    return printError "rcv error $cnt"
   }
   set err [ msg parse buf $cnt ]
   if {$err == $ptpmgmt::MNG_PARSE_ERROR_MSG} {

@@ -23,6 +23,7 @@
     #include "init.h"
     #include "msgCall.h"
     #include "timeCvrt.h"
+    #include "err.h"
     using namespace ptpmgmt;
 %}
 
@@ -115,6 +116,8 @@
  * PHP
  *********/
 #ifdef SWIGPHP
+/* PHP already use Error */
+%rename(c_error) Error;
 /* PHP rename to c_empty */
 %warnfilter(SWIGWARN_PARSE_KEYWORD) Binary::empty;
 /* PHP rename to c_list */
@@ -218,6 +221,7 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 %include "ver.h"
 %include "opt.h"
 %include "init.h"
+%include "err.h"
 %include "timeCvrt.h"
 
 /* Handle management vectors inside structures */

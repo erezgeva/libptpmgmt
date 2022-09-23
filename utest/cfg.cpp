@@ -39,7 +39,7 @@ TEST(ConfigFileTest, MethodEmptyConstructor)
 TEST(ConfigFileTest, MethodReadConfiguration)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     // Check file configuration
     EXPECT_EQ(f.transportSpecific(), 7);
     EXPECT_EQ(f.domainNumber(), 5);
@@ -60,7 +60,7 @@ TEST(ConfigFileTest, MethodReadConfiguration)
 TEST(ConfigFileTest, MethodTransportSpecific)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_EQ(f.transportSpecific("dumm"), 9);
     EXPECT_EQ(f.transportSpecific("non"), 7);
 }
@@ -70,7 +70,7 @@ TEST(ConfigFileTest, MethodTransportSpecific)
 TEST(ConfigFileTest, MethodDomainNumber)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_EQ(f.domainNumber("dumm"), 3);
     EXPECT_EQ(f.domainNumber("non"), 5);
 }
@@ -80,7 +80,7 @@ TEST(ConfigFileTest, MethodDomainNumber)
 TEST(ConfigFileTest, MethodUdp6_scope)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_EQ(f.udp6_scope("dumm"), 0xf);
     EXPECT_EQ(f.udp6_scope("non"), 0xd);
 }
@@ -90,7 +90,7 @@ TEST(ConfigFileTest, MethodUdp6_scope)
 TEST(ConfigFileTest, MethodUdp_ttl)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_EQ(f.udp_ttl("dumm"), 7);
     EXPECT_EQ(f.udp_ttl("non"), 3);
 }
@@ -100,7 +100,7 @@ TEST(ConfigFileTest, MethodUdp_ttl)
 TEST(ConfigFileTest, MethodSocketPriority)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_EQ(f.socket_priority("dumm"), 7);
     EXPECT_EQ(f.socket_priority("non"), 11);
 }
@@ -110,7 +110,7 @@ TEST(ConfigFileTest, MethodSocketPriority)
 TEST(ConfigFileTest, MethodNetworkTransport)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_EQ(f.network_transport("dumm"), '4');
     EXPECT_EQ(f.network_transport("non"), '6');
 }
@@ -120,7 +120,7 @@ TEST(ConfigFileTest, MethodNetworkTransport)
 TEST(ConfigFileTest, MethodUDSAddress)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_STREQ(f.uds_address("dumm").c_str(), "/var/run/dummy2");
     EXPECT_STREQ(f.uds_address("non").c_str(), "/var/run/dummy");
 }
@@ -130,7 +130,7 @@ TEST(ConfigFileTest, MethodUDSAddress)
 TEST(ConfigFileTest, MethodPTPDstMac)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     Binary b;
     EXPECT_TRUE(b.fromMac("1:1b:17:f:c:0"));
     EXPECT_EQ(f.ptp_dst_mac("dumm"), b);
@@ -143,7 +143,7 @@ TEST(ConfigFileTest, MethodPTPDstMac)
 TEST(ConfigFileTest, MethodP2pDstMac)
 {
     ConfigFile f;
-    EXPECT_TRUE(f.read_cfg("utest/test.cfg"));
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     Binary b;
     EXPECT_TRUE(b.fromMac("1:80:c1:1:0:e"));
     EXPECT_EQ(f.p2p_dst_mac("dumm"), b);

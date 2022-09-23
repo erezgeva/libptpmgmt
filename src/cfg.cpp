@@ -9,7 +9,6 @@
  *
  */
 
-#include "err.h"
 #include "cfg.h"
 #include "comp.h"
 
@@ -152,7 +151,7 @@ bool ConfigFile::read_cfg(const std::string &_file)
     const char *file = _file.c_str();
     FILE *f = fopen(file, "r");
     if(f == nullptr) {
-        PTPMGMT_ERRORA("fail to open %s: %m", file);
+        PTPMGMT_ERROR("fail to open %s: %m", file);
         return false;
     }
     char buf[512];
@@ -164,18 +163,19 @@ bool ConfigFile::read_cfg(const std::string &_file)
             cur = skip_spaces(cur + 1);
             char *end = strchr(cur, ']');
             if(end == nullptr) {
-                PTPMGMT_ERRORA("wrong line in %s: '%s'", file, buf);
+                PTPMGMT_ERROR("wrong line in %s: '%s'", file, buf);
                 return false;
             }
             strip_end_spaces(end);
             curSection = cur;
         } else if(*cur != 0 && *cur != '#' &&
             !cfgSec[curSection].set_val(cur)) {
-            PTPMGMT_ERRORA("wrong line in %s: '%s'", file, buf);
+            PTPMGMT_ERROR("wrong line in %s: '%s'", file, buf);
             return false;
         }
     }
     fclose(f);
+    PTPMGMT_ERROR_CLR;
     return true;
 }
 bool ConfigFile::is_global(int idx, const std::string &section) const

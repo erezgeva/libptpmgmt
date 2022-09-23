@@ -13,8 +13,6 @@
 #include <cmath>
 #include <mutex>
 #include <dlfcn.h>
-#include "jsonDef.h"
-#include "err.h"
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -51,7 +49,7 @@ extern "C" {
 static void doLibRm()
 {
     if(dlclose(jsonLib) != 0)
-        PTPMGMT_ERRORA("Fail to unload the libptpmngt from JSON library: %s",
+        PTPMGMT_ERROR("Fail to unload the libptpmngt from JSON library: %s",
             dlerror());
 }
 static void doLibNull()
@@ -84,20 +82,20 @@ static bool tryLib(const char *name)
 static inline bool loadMatchLibrary(const char *libMatch, const char *found)
 {
     if(found == nullptr) {
-        PTPMGMT_ERRORA("Fail to find any library to matche pattern '%s'", libMatch);
+        PTPMGMT_ERROR("Fail to find any library to matche pattern '%s'", libMatch);
         return false;
     } else if(jsonLib == nullptr) {
         // Try loading
         if(!tryLib(found)) {
             doLibNull(); // Ensure all pointers stay null
-            PTPMGMT_ERRORA("Fail loading the matched fromJson library '%s' for "
+            PTPMGMT_ERROR("Fail loading the matched fromJson library '%s' for "
                 "pattern '%s'", found, libMatch);
             return false;
         }
     }
     // Already load, just check if it is the library we want
     else if(useLib != found) {  // We compare pointers, not strings!
-        PTPMGMT_ERRORA("Already load a different library '%s', not the "
+        PTPMGMT_ERROR("Already load a different library '%s', not the "
             "matched '%s' to pattern '%s'", useLib, found, libMatch);
         return false;
     }
@@ -112,7 +110,7 @@ static bool doLoadLibrary(const char *libMatch = nullptr)
         for(const char **cur = list; *cur != nullptr; cur++) {
             if(strcasestr(*cur, libMatch) != nullptr) {
                 if(found != nullptr) {
-                    PTPMGMT_ERRORA("Found multiple libraries match to pattern '%s'",
+                    PTPMGMT_ERROR("Found multiple libraries match to pattern '%s'",
                         libMatch);
                     return false;
                 }
@@ -202,6 +200,7 @@ bool Json2msg::fromJsonObj(const void *jobj)
         return false;
     }
     hold.reset(pproc); // delete the object once we return :-)
+    PTPMGMT_ERROR_CLR;
     if(!pproc->mainProc(jobj))
         return false;
     const std::string &str = pproc->getActionField();
@@ -215,7 +214,7 @@ bool Json2msg::fromJsonObj(const void *jobj)
     else if(str == "COMMAND")
         m_action = COMMAND;
     else {
-        PTPMGMT_ERRORA("Message have wrong action field '%s'", str.c_str());
+        PTPMGMT_ERROR("Message have wrong action field '%s'", str.c_str());
         return false;
     }
     const char *mngStrID;
@@ -254,23 +253,20 @@ bool Json2msg::fromJsonObj(const void *jobj)
         }
     } else if(Message::isEmpty(m_managementId)) {
         if(have_data) {
-            PTPMGMT_ERRORA("%s do use dataField", mngStrID);
+            PTPMGMT_ERROR("%s do use dataField", mngStrID);
             return false;
         }
     } else {
         if(!have_data) {
-            PTPMGMT_ERRORA("%s must use dataField", mngStrID);
+            PTPMGMT_ERROR("%s must use dataField", mngStrID);
             return false;
         }
         if(!pproc->parseData())
             return false;
         const BaseMngTlv *data = nullptr;
         if(!pproc->procData(m_managementId, data)) {
-            if(data != nullptr) {
+            if(data != nullptr)
                 delete data;
-                PTPMGMT_ERROR("dataField parse error");
-            } else
-                PTPMGMT_ERRORA("Fail allocate %s_t", mngStrID);
             return false;
         }
         m_tlvData.reset(const_cast<BaseMngTlv *>(data));

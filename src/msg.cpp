@@ -11,10 +11,7 @@
  */
 
 #include <cmath>
-#include "err.h"
-#include "end.h"
 #include "msg.h"
-#include "msgProc.h"
 #include "timeCvrt.h"
 #include "comp.h"
 

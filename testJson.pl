@@ -21,6 +21,17 @@ my $msg;
 my $buf;
 my $sequence = 0;
 
+sub printError
+{
+    my $msg;
+    if(PtpMgmtLib::Error::isError()) {
+        $msg=PtpMgmtLib::Error::getError();
+    } else {
+        $msg=shift;
+    }
+    print "$msg\n";
+}
+
 sub runId
 {
     my $id = shift;
@@ -31,16 +42,10 @@ sub runId
     die "send" unless $sk->send($buf, $msg->getMsgLen());
 
     # You can get file descriptor with sk->fileno() and use Perl select
-    unless($sk->poll(500)) {
-        print "timeout";
-        return;
-    }
+    return printError("timeout") unless $sk->poll(500);
 
     my $cnt = $sk->rcv($buf);
-    if($cnt <= 0) {
-        print "rcv $cnt\n";
-        return;
-    }
+    return printError("rcv $cnt") if $cnt <= 0;
 
     $msg->parse($buf, $cnt);
 

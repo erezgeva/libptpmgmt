@@ -12,10 +12,7 @@
 #include <cmath>
 #include <limits>
 #include <byteswap.h>
-#include "err.h"
-#include "end.h"
 #include "comp.h"
-#include "msgProc.h"
 #include "msg.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -148,6 +145,7 @@ bool MsgProc::proc(Float64_t &val)
 {
     // Float64_t
     // Using IEEE 754 64-bit floating-point
+    PTPMGMT_ERROR_CLR;
     if(m_left < 8)
         return true;
     uint64_t num;
@@ -228,8 +226,6 @@ bool MsgProc::proc(Float64_t &val)
                             }
                             break; // Break normal
                         }
-                        PTPMGMT_ERROR("wrong calculation of float, "
-                            "norm is too small");
                     }
                     FALLTHROUGH;
                 case FP_SUBNORMAL: // Subnormal number

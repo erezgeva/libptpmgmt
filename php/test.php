@@ -39,6 +39,16 @@ $dispacher = new myDisp();
 $builder = new myBuild($msg);
 $sequence = 0;
 
+function printError($msg)
+{
+  if(c_error::isError()) {
+    echo c_error::getError() . "\n";
+  } else {
+    echo $msg . "\n";
+  }
+  return -1;
+}
+
 function nextSequence()
 {
   # Ensure sequence in in range of unsigned 16 bits
@@ -68,25 +78,22 @@ function setPriority1($newPriority1)
     echo "build error $txt\n";
   }
   if(!$sk->send($buf, $msg->getMsgLen())) {
-    echo "send fail";
-    return -1;
+    return printError("send fail");
   }
   if(!$useBuild) {
     $msg->clearData();
   }
   if(!$sk->poll(500)) {
-    echo "timeout";
-    return -1;
+    return printError("timeout");
   }
   $cnt = $sk->rcvBuf($buf);
   if($cnt <= 0) {
-    echo "rcv error $cnt";
-    return -1;
+    return printError("rcv error $cnt");
   }
   $err = $msg->parse($buf, $cnt);
   if($err != ptpmgmt::MNG_PARSE_ERROR_OK || $msg->getTlvId() != $id ||
      $seq != $msg->getSequence()) {
-    echo "set fails";
+    echo "set fails\n";
     return -1;
   }
   echo "set new priority $newPriority1 success\n";
@@ -98,21 +105,18 @@ function setPriority1($newPriority1)
     echo "build error $txt\n";
   }
   if(!$sk->send($buf, $msg->getMsgLen())) {
-    echo "send fail";
-    return -1;
+    return printError("send fail");
   }
   if(!$sk->poll(500)) {
-    echo "timeout";
-    return -1;
+    return printError("timeout");
   }
   $cnt = $sk->rcvBuf($buf);
   if($cnt <= 0) {
-    echo "rcv error $cnt";
-    return -1;
+    return printError("rcv error $cnt");
   }
   $err = $msg->parse($buf, $cnt);
   if($err == ptpmgmt::MNG_PARSE_ERROR_MSG) {
-    echo "error message";
+    echo "error message\n";
   } else if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "parse error $txt\n";
@@ -132,12 +136,10 @@ function main($cfg_file)
   }
   $cfg = new ConfigFile();
   if(!$cfg->read_cfg($cfg_file)) {
-    echo "fail reading configuration file";
-    return -1;
+    return printError("fail reading configuration file");
   }
   if(!$sk->setDefSelfAddress() || !$sk->init() || !$sk->setPeerAddress($cfg)) {
-    echo "fail init socket";
-    return -1;
+    return printError("fail init socket");
   }
   $prms = $msg->getParams();
   $prms->self_id->portNumber = posix_getpid() & 0xffff;
@@ -156,22 +158,19 @@ function main($cfg_file)
     return -1;
   }
   if(!$sk->send($buf, $msg->getMsgLen())) {
-    echo "send fail";
-    return -1;
+    return printError("send fail");
   }
   # You can get file descriptor with $sk->fileno() and use select;
   if(!$sk->poll(500)) {
-    echo "timeout";
-    return -1;
+    return printError("timeout");
   }
   $cnt = $sk->rcvBuf($buf);
   if($cnt <= 0) {
-    echo "rcv error $cnt\n";
-    return -1;
+    return printError("rcv error $cnt");
   }
   $err = $msg->parse($buf, $cnt);
   if($err == ptpmgmt::MNG_PARSE_ERROR_MSG) {
-    echo "error message";
+    echo "error message\n";
   } else if($err != ptpmgmt::MNG_PARSE_ERROR_OK) {
     $txt = Message::err2str_c($err);
     echo "parse error $txt\n";
@@ -194,7 +193,7 @@ function main($cfg_file)
   $clk_dec->physicalAddress->setBin(2, 0xf3);
   $clk_dec->physicalAddress->setBin(3, 0xf4);
   echo "clk.physicalAddress: " . $clk_dec->physicalAddress->toId() . "\n";
-  echo "clk.physicalAddress: " . $clk_dec->physicalAddress->toHex() . "\n";;
+  echo "clk.physicalAddress: " . $clk_dec->physicalAddress->toHex() . "\n";
   echo "manufacturerIdentity: " .
       Binary::bufToId($clk_dec->manufacturerIdentity, 3) . "\n";
   $clk_dec->revisionData->textField = "This is a test";
@@ -235,7 +234,7 @@ if($opt->parse_options($argv) == Options_OPT_DONE) {
   echo "Use configuration file $cfg_file\n";
   main($cfg_file);
 } else {
-  echo "fail parsing command line";
+  echo "fail parsing command line\n";
 }
 $sk->close();
 

@@ -9,7 +9,7 @@
  *
  */
 
-#include "msgProc.h"
+#include "comp.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 

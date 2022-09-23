@@ -18,6 +18,7 @@
 #include "init.h"
 #include "msg.h"
 #include "msgCall.h"
+#include "err.h"
 
 using namespace ptpmgmt;
 
@@ -27,6 +28,10 @@ using namespace ptpmgmt;
 #define DUMPS(format, ...) printf(format, __VA_ARGS__)
 /** dump end of line */
 #define DUMPNL printf("\n");
+/** print library error */
+#define PMCLERR {\
+    if(Error::isError())\
+        fprintf(stderr, "%s\n", Error::getError().c_str());}while(0)
 
 static const char toksep[] = " \t\n\r"; /* while spaces */
 

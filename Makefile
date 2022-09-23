@@ -196,8 +196,7 @@ HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
 HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
 HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
-HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,end.h err.h jsonDef.h comp.h\
-  msgProc.h ids.h),$(HEADERS))
+HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,comp.h ids.h),$(HEADERS))
 SRCS:=$(wildcard $(SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 UTEST:=utest/utest
@@ -383,7 +382,7 @@ $(UTEST): $(TEST_OBJS) $(LIB_NAME_A)
 utest: $(HEADERS_GEN_COMP) $(UTEST)
 	$Q$(UTEST) $(GTEST_NO_COL) $(GTEST_FLAGS)
 
-endif #  GTEST_LIB_FLAGS
+endif # GTEST_LIB_FLAGS
 
 # pmc tool
 $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
@@ -589,7 +588,8 @@ endif # DOXYGENMINVER
 checkall: format doxygen
 
 ifneq ($(CTAGS),)
-tags: $(filter-out ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)
+tags: $(filter-out ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
+	$(wildcard $(JSON_SRC)/*.cpp)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
 endif # CTAGS
@@ -631,7 +631,7 @@ install:
 	  gzip $(MANDIR)/pmc$(TOOLS_EXT).8;fi
 	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\
 	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
-	if [ ! -f $(MANDIR)/phc_ctl$(TOOLS_EXT).8.gz ];	then
+	if [ ! -f $(MANDIR)/phc_ctl$(TOOLS_EXT).8.gz ]; then
 	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
 	  gzip $(MANDIR)/phc_ctl$(TOOLS_EXT).8;fi
 	$(RM) doc/html/*.md5

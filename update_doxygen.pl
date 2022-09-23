@@ -24,7 +24,7 @@ sub main
   # Also catch any option that default value is changed on new version
   {
     local($^I, @ARGV) = ('', ($cfg));
-    my $cont_comm = 0; # Continue strip comment a multiple lines option
+    my $cont_comm = 0; # Continue strip comments on multiple lines option
     while (<>) {
       if(/^#([A-Z])/) {
         $cont_comm = 0;

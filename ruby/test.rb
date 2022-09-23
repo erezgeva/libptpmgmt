@@ -41,6 +41,15 @@ $dispacher = MyDisp.new
 $builder = MyBuild.new($msg)
 $sequence = 0
 
+def printError(msg)
+  if Ptpmgmt::Error.isError() then
+    puts Ptpmgmt::Error.getError()
+  else
+    puts msg
+  end
+  return -1
+end
+
 def nextSequence()
   # Ensure sequence in in range of unsigned 16 bits
   if ++$sequence > 0xffff then
@@ -67,20 +76,17 @@ def setPriority1(newPriority1)
     puts "build error " + txt
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
-    puts "send fail"
-    return -1
+    return printError("send fail")
   end
   if !useBuild then
     $msg.clearData()
   end
   if !$sk.poll(500) then
-    puts "timeout"
-    return -1
+    return printError("timeout")
   end
   cnt = $sk.rcv($buf)
   if cnt <= 0 then
-    puts "rcv cnt"
-    return -1
+    return printError("rcv cnt")
   end
   err = $msg.parse($buf, cnt)
   if err != Ptpmgmt::MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
@@ -97,17 +103,14 @@ def setPriority1(newPriority1)
     puts "build error " + txt
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
-    puts "send fail"
-    return -1
+    return printError("send fail")
   end
   if !$sk.poll(500) then
-    puts "timeout"
-    return -1
+    return printError("timeout")
   end
   cnt = $sk.rcv($buf)
   if cnt <= 0 then
-    puts "rcv cnt"
-    return -1
+    return printError("rcv cnt")
   end
   err = $msg.parse($buf, cnt)
   if err == Ptpmgmt::MNG_PARSE_ERROR_MSG then
@@ -142,8 +145,7 @@ def main
     return -1
   end
   if !$sk.setDefSelfAddress() || !$sk.init() || !$sk.setPeerAddress(cfg) then
-    puts "fail init socket"
-    return -1
+    return printError("fail init socket")
   end
   prms = $msg.getParams()
   prms.self_id.portNumber = $$ & 0xffff # getpid()
@@ -163,18 +165,15 @@ def main
     return -1
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
-    puts "send fail"
-    return -1
+    return printError("send fail")
   end
   # You can get file descriptor with $sk.fileno() and use select
   if !$sk.poll(500) then
-    puts "timeout"
-    return -1
+    return printError("timeout")
   end
   cnt = $sk.rcv($buf)
   if cnt <= 0 then
-    puts "rcv error #{cnt}"
-    return -1
+    return printError("rcv error #{cnt}")
   end
 
   err = $msg.parse($buf, cnt)

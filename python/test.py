@@ -37,6 +37,13 @@ dispacher = myDisp()
 builder = myBuild(msg)
 sequence = 0
 
+def printError(msg):
+  if ptpmgmt.Error.isError():
+    print(ptpmgmt.Error.getError())
+  else:
+    print(msg)
+  return -1
+
 def nextSequence():
   # Ensure sequence in in range of unsigned 16 bits
   global sequence
@@ -61,17 +68,14 @@ def setPriority1(newPriority1):
     txt = ptpmgmt.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
-    print("send fail")
-    return -1
+    return printError("send fail")
   if not useBuild:
     msg.clearData()
   if not sk.poll(500):
-    print("timeout")
-    return -1
+    return printError("timeout")
   cnt = sk.rcv(buf)
   if cnt <= 0:
-    print("rcv cnt")
-    return -1
+    return printError("rcv cnt")
   err = msg.parse(buf, cnt)
   if(err != ptpmgmt.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
      seq != msg.getSequence()):
@@ -85,15 +89,12 @@ def setPriority1(newPriority1):
     txt = ptpmgmt.Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
-    print("send fail")
-    return -1
+    return printError("send fail")
   if not sk.poll(500):
-    print("timeout")
-    return -1
+    return printError("timeout")
   cnt = sk.rcv(buf)
   if cnt <= 0:
-    print("rcv cnt")
-    return -1
+    return printError("rcv cnt")
   err = msg.parse(buf, cnt)
   if err == ptpmgmt.MNG_PARSE_ERROR_MSG:
     print("error message")
@@ -118,16 +119,13 @@ def main():
     cfg_file = DEF_CFG_FILE
   print("Use configuration file %s" % cfg_file)
   if not cfg.read_cfg(cfg_file):
-    print("fail reading configuration file")
-    return -1
+    return printError("fail reading configuration file")
 
   if not sk.setDefSelfAddress() or not sk.init():
-    print("fail init socket")
-    return -1
+    return printError("fail init socket")
 
   if not sk.setPeerAddress(cfg):
-    print("fail init peer address")
-    return -1
+    return printError("fail init peer address")
 
   prms = msg.getParams()
   prms.self_id.portNumber = os.getpid() & 0xffff
@@ -144,8 +142,7 @@ def main():
     return -1
 
   if not sk.send(buf(), msg.getMsgLen()):
-    print("send fail")
-    return -1
+    return printError("send fail")
 
   # You can get file descriptor with sk.fileno() and use select
   # When using multithreaded Python script, it is better to use
@@ -153,13 +150,11 @@ def main():
   # as the wrapper uses Python 'Global Interpreter Lock' which might block
   # other threads.
   if not sk.poll(500):
-    print("timeout")
-    return -1
+    return printError("timeout")
 
   cnt = sk.rcv(buf)
   if cnt <= 0:
-    print("rcv error %d" % cnt)
-    return -1
+    return printError("rcv cnt")
 
   err = msg.parse(buf, cnt)
   if err == ptpmgmt.MNG_PARSE_ERROR_MSG:

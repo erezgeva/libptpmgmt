@@ -80,16 +80,20 @@ bool sendAction()
         DUMPS("build error %s\n", msg.err2str_c(err));
         return false;
     }
-    if(!sk->send(buf, msg.getMsgLen()))
+    if(!sk->send(buf, msg.getMsgLen())) {
+        PMCLERR;
         return false;
+    }
     seq++;
     return true;
 }
 static inline int rcv()
 {
     const auto cnt = sk->rcv(buf, bufSize);
-    if(cnt < 0)
+    if(cnt < 0) {
+        PMCLERR;
         return -1;
+    }
     MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
     switch(err) {
         case MNG_PARSE_ERROR_MSG:
@@ -117,7 +121,12 @@ static inline int rcv()
 static inline void rcv_timeout()
 {
     timeout = wait;
-    while(sk->tpoll(timeout) && rcv() == 1 && timeout > 0);
+    do {
+        if(!sk->tpoll(timeout)) {
+            PMCLERR;
+            break;
+        }
+    }while(rcv() == 1 && timeout > 0);
 }
 static bool run_line(char *line)
 {
@@ -191,8 +200,10 @@ int main(int argc, char *const argv[])
             break;
     }
     int ret = obj.proccess(opt);
-    if(ret)
+    if(ret) {
+        PMCLERR;
         return ret;
+    }
     sk = obj.sk();
     use_uds = obj.use_uds();
     // allowed signaling TLV

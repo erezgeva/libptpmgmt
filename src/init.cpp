@@ -10,7 +10,6 @@
  */
 #include <unistd.h>
 #include "init.h"
-#include "err.h"
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -75,10 +74,8 @@ int Init::proccess(const Options &opt)
             else
                 uds_address = m_cfg.uds_address(interface);
             if(!sku->setDefSelfAddress() || !sku->init() ||
-                !sku->setPeerAddress(uds_address)) {
-                PTPMGMT_ERROR("failed to create transport");
+                !sku->setPeerAddress(uds_address))
                 return -1;
-            }
             prms.self_id.portNumber = getpid() & 0xffff;
             m_use_uds = true;
             break;
@@ -92,18 +89,12 @@ int Init::proccess(const Options &opt)
                 return -1;
             }
             m_sk.reset(sk4);
-            if(!sk4->setAll(ifObj, m_cfg, interface)) {
-                PTPMGMT_ERROR("failed to set transport");
+            if(!sk4->setAll(ifObj, m_cfg, interface))
                 return -1;
-            }
-            if(opt.have('T') && !sk4->setUdpTtl(opt.val_i('T'))) {
-                PTPMGMT_ERROR("failed to set udp_ttl");
+            if(opt.have('T') && !sk4->setUdpTtl(opt.val_i('T')))
                 return -1;
-            }
-            if(!sk4->init()) {
-                PTPMGMT_ERROR("failed to init transport");
+            if(!sk4->init())
                 return -1;
-            }
             break;
         }
         case '6': {
@@ -113,22 +104,14 @@ int Init::proccess(const Options &opt)
                 return -1;
             }
             m_sk.reset(sk6);
-            if(!sk6->setAll(ifObj, m_cfg, interface)) {
-                PTPMGMT_ERROR("failed to set transport");
+            if(!sk6->setAll(ifObj, m_cfg, interface))
                 return -1;
-            }
-            if(opt.have('T') && !sk6->setUdpTtl(opt.val_i('T'))) {
-                PTPMGMT_ERROR("failed to set udp_ttl");
+            if(opt.have('T') && !sk6->setUdpTtl(opt.val_i('T')))
                 return -1;
-            }
-            if(opt.have('S') && !sk6->setScope(opt.val_i('S'))) {
-                PTPMGMT_ERROR("failed to set udp6_scope");
+            if(opt.have('S') && !sk6->setScope(opt.val_i('S')))
                 return -1;
-            }
-            if(!sk6->init()) {
-                PTPMGMT_ERROR("failed to init transport");
+            if(!sk6->init())
                 return -1;
-            }
             break;
         }
         case '2': {
@@ -138,29 +121,27 @@ int Init::proccess(const Options &opt)
                 return -1;
             }
             m_sk.reset(skr);
-            if(!skr->setAll(ifObj, m_cfg, interface)) {
-                PTPMGMT_ERROR("failed to set transport");
+            if(!skr->setAll(ifObj, m_cfg, interface))
                 return -1;
-            }
             if(opt.have('P') &&
-                !skr->setSocketPriority(opt.val_i('P'))) {
-                PTPMGMT_ERROR("failed to set socket_priority");
+                !skr->setSocketPriority(opt.val_i('P')))
                 return -1;
+            if(opt.have('M')) {
+                Binary mac;
+                if(!mac.fromMac(opt.val('M'))) {
+                    PTPMGMT_ERROR("Wrong MAC address '%s'", opt.val('M'));
+                    return -1;
+                }
+                if(!skr->setPtpDstMac(mac))
+                    return -1;
             }
-            Binary mac;
-            if(opt.have('M') && (!mac.fromMac(opt.val('M')) ||
-                    !skr->setPtpDstMac(mac))) {
-                PTPMGMT_ERROR("failed to set ptp_dst_mac");
+            if(!skr->init())
                 return -1;
-            }
-            if(!skr->init()) {
-                PTPMGMT_ERROR("failed to init transport");
-                return -1;
-            }
             break;
         }
     }
     m_msg.updateParams(prms);
+    PTPMGMT_ERROR_CLR;
     return 0;
 }
 

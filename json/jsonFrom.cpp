@@ -15,9 +15,7 @@
 #include <stack>
 #include <cmath>
 #include <memory>
-#include "jsonDef.h"
 #include "timeCvrt.h"
-#include "err.h"
 #include "comp.h"
 
 // JSON library type
@@ -219,15 +217,15 @@ struct JsonProcFromJson : public JsonProcFrom {
             const char *key = JI_NAME(it);
             JSON_POBJ val = JI_VAL(it);
             if(withAllow && allow.count(key) != 1) {
-                PTPMGMT_ERRORA("Key '%s' in not allowed", key);
+                PTPMGMT_ERROR("Key '%s' in not allowed", key);
                 return false;
             }
             if(val == nullptr) {
-                PTPMGMT_ERRORA("Key '%s' do not have value", key);
+                PTPMGMT_ERROR("Key '%s' do not have value", key);
                 return false;
             }
             if(found.count(key) != 0) {
-                PTPMGMT_ERRORA("Key '%s' apear twice", key);
+                PTPMGMT_ERROR("Key '%s' apear twice", key);
                 return false;
             }
             JSON_TYPE type = JG_TYPE(val);
@@ -235,7 +233,7 @@ struct JsonProcFromJson : public JsonProcFrom {
             if(withAllow && !found[key].convType(allow[key])) {
                 // Ignore dataField with null
                 if(strcmp("dataField", key) || type != JT_NULL) {
-                    PTPMGMT_ERRORA("Key '%s' use wrong type '%s' instead of '%s'",
+                    PTPMGMT_ERROR("Key '%s' use wrong type '%s' instead of '%s'",
                         key, JG_TNAME(type), JG_TNAME(allow[key]));
                     return false;
                 }
@@ -250,7 +248,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         // Optional, if value present verify it
 #define testOpt(key, val, emsg)\
     if(isType(#key, JT_STR) && found[#key].strV.compare(#val)) {\
-        PTPMGMT_ERRORA("Message must " emsg", not '%s'", found[#key].strV.c_str());\
+        PTPMGMT_ERROR("Message must " emsg", not '%s'", found[#key].strV.c_str());\
         return false;\
     }
         testOpt(messageType, Management, "be management")
@@ -268,7 +266,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool procMng(mng_vals_e &id, const char *&str) override final {
         bool ret = Message::findMngID(found["managementId"].strV, id);
         if(!ret)
-            PTPMGMT_ERRORA("No such managementId '%s'", str);
+            PTPMGMT_ERROR("No such managementId '%s'", str);
         return ret;
     }
 #define procType(type) \
@@ -622,7 +620,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool parsePort(const char *key, bool &have, PortIdentity_t &port) override final {
         if(isType(key, JT_OBJ)) {
             if(!procValue(key, port)) {
-                PTPMGMT_ERRORA("Fail parsing %s", key);
+                PTPMGMT_ERROR("Fail parsing %s", key);
                 return false; // Error
             }
             have = true;
