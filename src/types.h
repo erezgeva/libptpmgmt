@@ -308,27 +308,12 @@ struct TimeInterval_t {
      * Get interval from time interval in nanoseconds, trunc to integer
      * @return scaled time interval in nanoseconds
      */
-    int64_t getIntervalInt() const { return scaledNanoseconds >> 16; }
+    int64_t getIntervalInt() const;
 };
 /** PTP Time stamp */
 struct Timestamp_t {
     UInteger48_t secondsField; /**< seconds */
     UInteger32_t nanosecondsField; /**< nanoseconds */
-    /**
-     * Get object size
-     * @return object size
-     */
-    static size_t size() { return sizeof_UInteger48_t + sizeof nanosecondsField; }
-    /**
-     * Convert to string
-     * @return string
-     */
-    std::string string() const;
-    /**
-     * Convert to string of seconds with fractions
-     * @note scripts can use the string() method
-     */
-    operator std::string() const { return string(); }
     /**
      * Default constructor
      */
@@ -346,6 +331,22 @@ struct Timestamp_t {
      */
     Timestamp_t(int64_t secs, uint32_t nsecs) : secondsField(secs),
         nanosecondsField(nsecs) {}
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() { return sizeof_UInteger48_t + sizeof nanosecondsField; }
+    /**
+     * Convert to string
+     * @return string
+     */
+    std::string string() const;
+    /**
+     * Convert to string of seconds with fractions
+     * @note scripts can use the string() method
+     */
+    operator std::string() const { return string(); }
+
     #ifndef SWIG /* standard C++ structures converting */
     /**
      * Convert from timespec
@@ -441,12 +442,14 @@ struct Timestamp_t {
      * Compare to seconds with fractions
      * @param[in] seconds
      * @return true if the same time
+     * @note due to pressision, the compare use +-1 nanosecond of value
      */
     bool operator==(long double seconds) const { return eq(seconds); }
     /**
      * Compare to seconds with fractions
      * @param[in] seconds
      * @return true if the same time
+     * @note due to pressision, the compare use +-1 nanosecond of value
      */
     bool eq(long double seconds) const;
     /**
@@ -596,7 +599,7 @@ struct ClockIdentity_t {
      * @return true if ID is smaller
      */
     bool less(const ClockIdentity_t &rhs) const {
-        return memcmp(rhs.v, v, size()) < 0;
+        return memcmp(v, rhs.v, size()) < 0;
     }
 };
 /** PTP port ID */
@@ -791,10 +794,10 @@ struct MsgParams {
      * allow TLVs that are in the map, the bool value is ignored */
     std::map<tlvType_e, bool> allowSigTlvs;
     void allowSigTlv(tlvType_e type); /**< Add TLV type to allowed signalling */
-    void removeSigTlv(tlvType_e
-        type); /**< Remove TLV type from allowed signalling */
-    bool isSigTlv(tlvType_e type)
-    const; /**< Query if TLV type is allowed signalling */
+    /** Remove TLV type from allowed signalling */
+    void removeSigTlv(tlvType_e type);
+    /** Query if TLV type is allowed signalling */
+    bool isSigTlv(tlvType_e type) const;
 };
 /** Base for all Management TLV structures */
 struct BaseMngTlv {

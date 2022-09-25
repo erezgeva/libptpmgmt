@@ -984,6 +984,12 @@ const char *Message::us2str_c(linuxptpUnicastState_e state)
             return "???";
     }
 }
+int64_t TimeInterval_t::getIntervalInt() const
+{
+    if(scaledNanoseconds < 0)
+        return -((-scaledNanoseconds) >> 16);
+    return scaledNanoseconds >> 16;
+}
 std::string Timestamp_t::string() const
 {
     char buf[200];
@@ -1010,9 +1016,9 @@ long double Timestamp_t::toFloat() const
 {
     return (long double)nanosecondsField / NSEC_PER_SEC + secondsField;
 }
-void Timestamp_t::fromNanoseconds(uint64_t nanosecondsField)
+void Timestamp_t::fromNanoseconds(uint64_t nanoseconds)
 {
-    auto d = div((long long)nanosecondsField, (long long)NSEC_PER_SEC);
+    auto d = lldiv((long long)nanoseconds, (long long)NSEC_PER_SEC);
     while(d.rem < 0) {
         d.quot--;
         d.rem += NSEC_PER_SEC;
@@ -1026,13 +1032,25 @@ uint64_t Timestamp_t::toNanoseconds() const
 }
 bool Timestamp_t::eq(long double seconds) const
 {
+    // We use unsigned, negitive can not ne equal
+    if(seconds < 0)
+        return false;
     uint64_t secs = floorl(seconds);
-    if(secondsField == secs)
-        return nanosecondsField == (seconds - secs) * NSEC_PER_SEC;
+    if(secondsField == secs) {
+        // Float can shift in 1 ns above or bellow :-)
+        uint64_t nano = (seconds - secs) * NSEC_PER_SEC;
+        // Check +-1 nanoseconds range
+        if(nanosecondsField <= nano + 1 &&
+            nanosecondsField + 1 >= nano)
+            return true;
+    }
     return false;
 }
 bool Timestamp_t::less(long double seconds) const
 {
+    // As we use unsigned, we are always bigger than negitive
+    if(seconds < 0)
+        return false;
     uint64_t secs = floorl(seconds);
     if(secondsField == secs)
         return nanosecondsField < (seconds - secs) * NSEC_PER_SEC;
