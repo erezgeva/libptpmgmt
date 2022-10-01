@@ -21,7 +21,7 @@ RUN apt-get update;\
     ca-certificates apt-utils;for a in $ARCHS;do dpkg --add-architecture $a;\
     done;printf "$SRC_CFG" > /etc/apt/sources.list; apt-get update;\
     apt-get install -y --no-install-recommends debhelper coreutils sudo\
-    dh-lua dh-make-perl dh-exec git procps dh-php build-essential\
+    dh-lua dh-make-perl dh-exec git procps dh-php build-essential ncurses-bin\
     dlocate dialog lsb-release quilt apt-file libtool libtool-bin swig\
     install-info libjson-c-dev doxygen graphviz qemu-user-static distro-info\
     tree lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\

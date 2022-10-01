@@ -585,9 +585,11 @@ endif # SWIGMINVER
 ifneq ($(DOXYGENMINVER),)
 doxygen: $(HEADERS_GEN) $(HEADERS)
 ifeq ($(DOTTOOL),)
-	$Q:$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
+	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
+	exit 1
 else
-	$(Q_DOXY)$(DOXYGEN) doxygen.cfg $(QE)
+	$(Q_DOXY)r=`$(DOXYGEN) doxygen.cfg $(QE)`
+	if test -n "$$r"; then echo "$$r";exit 1;fi
 endif # DOTTOOL
 endif # DOXYGENMINVER
 
