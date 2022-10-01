@@ -372,10 +372,16 @@ GTEST_FLAGS:=--gtest_filter=*$(NONPHONY_TGT)*
 endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
+# Main for gtest
+$(OBJ_DIR)/utest.o: | $(OBJ_DIR)
+	$(Q)printf 'int main(int argc,char**argv)%s'\
+	  '{::testing::InitGoogleTest(&argc,argv);return RUN_ALL_TESTS();}' |\
+	  $(CXX) -include $(HAVE_GTEST_HEADER) $(GTEST_INC_FLAGS)\
+	  -c -x c++ - -o $@
 utest/%.o: utest/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS) -c -o $@ $<
 
-$(UTEST): $(TEST_OBJS) $(LIB_NAME_A)
+$(UTEST): $(OBJ_DIR)/utest.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 
