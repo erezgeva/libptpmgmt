@@ -131,12 +131,12 @@ class MsgDump : public MessageDispatcher
             IDENT "frequencyTraceable    %u"
             IDENT "timeSource            %s",
             d.currentUtcOffset,
-            m.is_LI_61(d.flags),
-            m.is_LI_59(d.flags),
-            m.is_UTCV(d.flags),
-            m.is_PTP(d.flags),
-            m.is_TTRA(d.flags),
-            m.is_FTRA(d.flags),
+            m.is_LI_61(d.flags) ? 1 : 0,
+            m.is_LI_59(d.flags) ? 1 : 0,
+            m.is_UTCV(d.flags) ? 1 : 0,
+            m.is_PTP(d.flags) ? 1 : 0,
+            m.is_TTRA(d.flags) ? 1 : 0,
+            m.is_FTRA(d.flags) ? 1 : 0,
             m.timeSrc2str_c(d.timeSource));
     }
     dump(PORT_DATA_SET) {
@@ -199,19 +199,19 @@ class MsgDump : public MessageDispatcher
             IDENT "leap59                %u"
             IDENT "currentUtcOffsetValid %u",
             d.currentUtcOffset,
-            m.is_LI_61(d.flags),
-            m.is_LI_59(d.flags),
-            m.is_UTCV(d.flags));
+            m.is_LI_61(d.flags) ? 1 : 0,
+            m.is_LI_59(d.flags) ? 1 : 0,
+            m.is_UTCV(d.flags) ? 1 : 0);
     }
     dump(TRACEABILITY_PROPERTIES) {
         DUMPS(
             IDENT "timeTraceable      %u"
             IDENT "frequencyTraceable %u",
-            m.is_TTRA(d.flags),
-            m.is_FTRA(d.flags));
+            m.is_TTRA(d.flags) ? 1 : 0,
+            m.is_FTRA(d.flags) ? 1 : 0);
     }
     dump(TIMESCALE_PROPERTIES) {
-        DUMPS(IDENT "ptpTimescale %u", m.is_PTP(d.flags));
+        DUMPS(IDENT "ptpTimescale %u", m.is_PTP(d.flags) ? 1 : 0);
     }
     dump(UNICAST_NEGOTIATION_ENABLE) {
         DUMPS(IDENT "unicastNegotiationPortDS %sabled", d.flags ? "e" : "dis");
@@ -382,12 +382,12 @@ class MsgDump : public MessageDispatcher
             d.clockQuality.clockAccuracy,
             d.clockQuality.offsetScaledLogVariance,
             d.currentUtcOffset,
-            m.is_LI_61(d.flags),
-            m.is_LI_59(d.flags),
-            m.is_UTCV(d.flags),
-            m.is_PTP(d.flags),
-            m.is_TTRA(d.flags),
-            m.is_FTRA(d.flags),
+            m.is_LI_61(d.flags) ? 1 : 0,
+            m.is_LI_59(d.flags) ? 1 : 0,
+            m.is_UTCV(d.flags) ? 1 : 0,
+            m.is_PTP(d.flags) ? 1 : 0,
+            m.is_TTRA(d.flags) ? 1 : 0,
+            m.is_FTRA(d.flags) ? 1 : 0,
             m.timeSrc2str_c(d.timeSource));
     }
     dump(PORT_DATA_SET_NP) {

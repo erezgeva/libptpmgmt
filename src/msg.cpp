@@ -156,9 +156,9 @@ bool Message::allowedAction(mng_vals_e id, actionField_e action)
 {
     switch(action) {
         case GET:
-            FALLTHROUGH;
+            break;
         case SET:
-            FALLTHROUGH;
+            break;
         case COMMAND:
             break;
         default:
@@ -179,15 +179,9 @@ Message::Message() :
     m_isUnicast(true),
     m_replyAction(RESPONSE),
     m_tlv_id(NULL_PTP_MANAGEMENT),
-    m_prms{0},
     m_peer{0},
     m_target{0}
 {
-    m_prms.boundaryHops = 1;
-    m_prms.isUnicast = true;
-    m_prms.implementSpecific = linuxptp;
-    m_prms.filterSignaling = true;
-    setAllClocks();
 }
 Message::Message(const MsgParams &prms) :
     m_sendAction(GET),
@@ -400,6 +394,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     m_replyAction = (actionField_e)actionField;
     uint16_t *cur = (uint16_t *)(msg + 1);
     uint16_t tlvType = net_to_cpu16(*cur++);
+    m_mngType = (tlvType_e)tlvType;
     mp.m_left = net_to_cpu16(*cur++); // lengthField
     ssize_t size = msgSize - sizeof(*msg) - tlvSizeHdr;
     if(MANAGEMENT_ERROR_STATUS == tlvType) {
@@ -423,7 +418,6 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
             return MNG_PARSE_ERROR_TOO_SMALL;
         if(mp.m_left > 1 && mp.proc(m_errorDisplay))
             return MNG_PARSE_ERROR_TOO_SMALL;
-        m_mngType = MANAGEMENT_ERROR_STATUS;
         return MNG_PARSE_ERROR_MSG;
     } else if(MANAGEMENT != tlvType)
         return MNG_PARSE_ERROR_INVALID_TLV;
@@ -448,7 +442,6 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     if(err != MNG_PARSE_ERROR_OK)
         return err;
     m_dataGet.reset(tlv);
-    m_mngType = MANAGEMENT;
     return MNG_PARSE_ERROR_OK;
 }
 MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t msgSize)
@@ -632,7 +625,7 @@ bool Message::useConfig(const ConfigFile &cfg, const std::string &section)
     if(transportSpecific > 0xf)
         return false;
     m_prms.transportSpecific = transportSpecific;
-    m_prms.domainNumber = cfg.domainNumber();
+    m_prms.domainNumber = cfg.domainNumber(section);
     return true;
 }
 const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
@@ -640,6 +633,7 @@ const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
     switch(err) {
         case caseItem(MNG_PARSE_ERROR_OK);
         case caseItem(MNG_PARSE_ERROR_MSG);
+        case caseItem(MNG_PARSE_ERROR_SIG);
         case caseItem(MNG_PARSE_ERROR_INVALID_ID);
         case caseItem(MNG_PARSE_ERROR_INVALID_TLV);
         case caseItem(MNG_PARSE_ERROR_SIZE_MISS);
@@ -650,9 +644,8 @@ const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
         case caseItem(MNG_PARSE_ERROR_ACTION);
         case caseItem(MNG_PARSE_ERROR_UNSUPPORT);
         case caseItem(MNG_PARSE_ERROR_MEM);
-        default:
-            return "unknown";
     }
+    return "unknown";
 }
 const char *Message::type2str_c(msgType_e type)
 {
@@ -667,9 +660,8 @@ const char *Message::type2str_c(msgType_e type)
         case caseItem(Announce);
         case caseItem(Signaling);
         case caseItem(Management);
-        default:
-            return "unknown message type";
     }
+    return "unknown message type";
 }
 const char *Message::tlv2str_c(tlvType_e type)
 {
@@ -697,9 +689,8 @@ const char *Message::tlv2str_c(tlvType_e type)
         case caseItem(SLAVE_DELAY_TIMING_DATA_NP);
         case TLV_PAD:
             return "PAD";
-        default:
-            return "unknown TLV";
     }
+    return "unknown TLV";
 }
 const char *Message::act2str_c(actionField_e action)
 {
@@ -709,9 +700,8 @@ const char *Message::act2str_c(actionField_e action)
         case caseItem(RESPONSE);
         case caseItem(COMMAND);
         case caseItem(ACKNOWLEDGE);
-        default:
-            return "unknown";
     }
+    return "unknown";
 }
 const char *Message::mng2str_c(mng_vals_e id)
 {
@@ -770,9 +760,8 @@ const char *Message::errId2str_c(managementErrorId_e err)
         case caseItem(NOT_SETABLE);
         case caseItem(NOT_SUPPORTED);
         case caseItem(GENERAL_ERROR);
-        default:
-            return "unknown";
     }
+    return "unknown";
 }
 const char *Message::clkType2str_c(clockType_e val)
 {
@@ -782,9 +771,8 @@ const char *Message::clkType2str_c(clockType_e val)
         case caseItem(p2pTransparentClock);
         case caseItem(e2eTransparentClock);
         case caseItem(managementClock);
-        default:
-            return "unknown";
     }
+    return "unknown";
 }
 const char *Message::netProt2str_c(networkProtocol_e val)
 {
@@ -795,9 +783,8 @@ const char *Message::netProt2str_c(networkProtocol_e val)
         case caseItem(DeviceNet);
         case caseItem(ControlNet);
         case caseItem(PROFINET);
-        default:
-            return "unknown";
     }
+    return "unknown";
 }
 const char *Message::clockAcc2str_c(clockAccuracy_e val)
 {
@@ -849,9 +836,8 @@ const char *Message::faultRec2str_c(faultRecord_e val)
         case caseItemOff(F_Notice);
         case caseItemOff(F_Informational);
         case caseItemOff(F_Debug);
-        default:
-            return "unknown fault record";
     }
+    return "unknown fault record";
 }
 const char *Message::timeSrc2str_c(timeSource_e val)
 {
@@ -865,9 +851,8 @@ const char *Message::timeSrc2str_c(timeSource_e val)
         case caseItem(HAND_SET);
         case caseItem(OTHER);
         case caseItem(INTERNAL_OSCILLATOR);
-        default:
-            return "unknown clock";
     }
+    return "unknown clock";
 }
 const bool Message::findTimeSrc(const std::string &str, timeSource_e &type,
     bool exact)
@@ -917,9 +902,8 @@ const char *Message::portState2str_c(portState_e val)
         case caseItem(PASSIVE);
         case caseItem(UNCALIBRATED);
         case caseItem(TIME_RECEIVER);
-        default:
-            return "unknown state";
     }
+    return "unknown state";
 }
 const bool Message::findPortState(const std::string &str, portState_e &state,
     bool caseSens)
@@ -957,9 +941,8 @@ const char *Message::ts2str_c(linuxptpTimeStamp_e val)
         case caseItemOff(TS_LEGACY_HW);
         case caseItemOff(TS_ONESTEP);
         case caseItemOff(TS_P2P1STEP);
-        default:
-            return "unknown";
     }
+    return "unknown";
 }
 const char *Message::pwr2str_c(linuxptpPowerProfileVersion_e ver)
 {
@@ -968,9 +951,8 @@ const char *Message::pwr2str_c(linuxptpPowerProfileVersion_e ver)
         case caseItemOff(IEEE_C37_238_VERSION_NONE);
         case caseItemOff(IEEE_C37_238_VERSION_2011);
         case caseItemOff(IEEE_C37_238_VERSION_2017);
-        default:
-            return "unknown state";
     }
+    return "unknown state";
 }
 const char *Message::us2str_c(linuxptpUnicastState_e state)
 {
@@ -980,9 +962,8 @@ const char *Message::us2str_c(linuxptpUnicastState_e state)
         case caseItemOff(UC_HAVE_ANN);
         case caseItemOff(UC_NEED_SYDY);
         case caseItemOff(UC_HAVE_SYDY);
-        default:
-            return "???";
     }
+    return "???";
 }
 int64_t TimeInterval_t::getIntervalInt() const
 {
@@ -1114,21 +1095,33 @@ std::string PortAddress_t::string() const
         case UDP_IPv6:
             return addressField.toIp();
         case IEEE_802_3:
-            FALLTHROUGH;
+            break;
         case DeviceNet:
-            FALLTHROUGH;
+            break;
         case ControlNet:
-            FALLTHROUGH;
+            break;
         case PROFINET:
-            FALLTHROUGH;
-        default:
-            return addressField.toId();
+            break;
     }
+    return addressField.toId();
 }
 bool PortAddress_t::less(const PortAddress_t &rhs) const
 {
     return networkProtocol == rhs.networkProtocol ?  addressField <
         rhs.addressField : networkProtocol < rhs.networkProtocol;
+}
+MsgParams::MsgParams() :
+    transportSpecific(0),
+    domainNumber(0),
+    boundaryHops(1),
+    isUnicast(true),
+    implementSpecific(linuxptp),
+    target{allClocks, allPorts},
+    self_id{0},
+    useZeroGet(true),
+    rcvSignaling(false),
+    filterSignaling(true)
+{
 }
 
 __PTPMGMT_NAMESPACE_END

@@ -278,39 +278,39 @@ class Message
     /**
      * Check if leap 61 seconds flag is enabled
      * @param[in] flags
-     * @return 1 if flag on or 0 if not
+     * @return true if flag on
      */
-    static uint8_t is_LI_61(uint8_t flags) { return flags & F_LI_61 ? 1 : 0; }
+    static bool is_LI_61(uint8_t flags) { return (flags & F_LI_61) != 0; }
     /**
      * Check if leap 59 seconds flag is enabled
      * @param[in] flags
-     * @return 1 if flag on or 0 if not
+     * @return true if flag on
      */
-    static uint8_t is_LI_59(uint8_t flags) { return flags & F_LI_59 ? 1 : 0; }
+    static bool is_LI_59(uint8_t flags) { return (flags & F_LI_59) != 0; }
     /**
      * Check if UTC offset is valid flag is enabled
      * @param[in] flags
-     * @return 1 if flag on or 0 if not
+     * @return true if flag on
      */
-    static uint8_t is_UTCV(uint8_t flags)  { return flags & F_UTCV  ? 1 : 0; }
+    static bool is_UTCV(uint8_t flags)  { return (flags & F_UTCV) != 0; }
     /**
      * Check if is PTP instance flag is enabled
      * @param[in] flags
-     * @return 1 if flag on or 0 if not
+     * @return true if flag on
      */
-    static uint8_t is_PTP(uint8_t flags)   { return flags & F_PTP   ? 1 : 0; }
+    static bool is_PTP(uint8_t flags)   { return (flags & F_PTP) != 0; }
     /**
      * Check if timescale is traceable flag is enabled
      * @param[in] flags
-     * @return 1 if flag on or 0 if not
+     * @return true if flag on
      */
-    static uint8_t is_TTRA(uint8_t flags)  { return flags & F_TTRA  ? 1 : 0; }
+    static bool is_TTRA(uint8_t flags)  { return (flags & F_TTRA) != 0; }
     /**
      * Check if frequency is traceable flag is enabled
      * @param[in] flags
-     * @return 1 if flag on or 0 if not
+     * @return true if flag on
      */
-    static uint8_t is_FTRA(uint8_t flags)  { return flags & F_FTRA  ? 1 : 0; }
+    static bool is_FTRA(uint8_t flags)  { return (flags & F_FTRA) != 0; }
     /**
      * Check management TLV id uses empty dataField
      * @param[in] id management TLV id

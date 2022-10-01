@@ -585,7 +585,7 @@ struct ClockIdentity_t {
      * @return true if IDs are indentical
      */
     bool eq(const ClockIdentity_t &rhs) const {
-        return memcmp(rhs.v, v, size()) == 0;
+        return memcmp(v, rhs.v, size()) == 0;
     }
     /**
      * Compare to another clock ID
@@ -600,6 +600,21 @@ struct ClockIdentity_t {
      */
     bool less(const ClockIdentity_t &rhs) const {
         return memcmp(v, rhs.v, size()) < 0;
+    }
+    /**
+     * Compare equal with a binary value
+     * @param[in] bin another clock id
+     * @return true if binary is equal
+     */
+    bool operator==(const Binary &bin) const { return eq(bin); }
+    /**
+     * Compare equal with a binary value
+     * @param[in] bin another clock id
+     * @return true if binary is equal
+     */
+    bool eq(const Binary &bin) const {
+        return bin.size() == size() &&
+            memcmp(v, bin.get(), size()) == 0;
     }
 };
 /** PTP port ID */
@@ -790,6 +805,7 @@ struct MsgParams {
     bool useZeroGet; /**< send get with zero dataField */
     bool rcvSignaling; /**< parse signaling messages */
     bool filterSignaling; /**< filter signaling messages TLVs */
+    MsgParams();
     /** when filter TLVs in signalling messages
      * allow TLVs that are in the map, the bool value is ignored */
     std::map<tlvType_e, bool> allowSigTlvs;

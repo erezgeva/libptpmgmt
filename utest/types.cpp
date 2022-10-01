@@ -499,6 +499,24 @@ TEST(ClockIdentityTest, MethodLess)
     EXPECT_TRUE(t1.less(t2));
 }
 
+// Tests equal operator method with binary
+// bool operator==(const Binary &bin) const
+TEST(ClockIdentityTest, MethodEqBinOp)
+{
+    ClockIdentity_t t = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    Binary b("\x1\x2\x3\x4\x5\x6\x7\x8");
+    EXPECT_TRUE(t == b);
+}
+
+// Tests operator method with binary
+// bool eq(const Binary &bin) const
+TEST(ClockIdentityTest, MethodEqBin)
+{
+    ClockIdentity_t t = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    Binary b("\x1\x2\x3\x4\x5\x6\x7\x8");
+    EXPECT_TRUE(t.eq(b));
+}
+
 /*****************************************************************************/
 // Unit tests for struct PortIdentity_t
 
