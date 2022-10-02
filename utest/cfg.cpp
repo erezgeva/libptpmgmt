@@ -9,7 +9,6 @@
  *
  */
 
-#include <gtest/gtest.h>
 #include "cfg.h"
 
 using namespace ptpmgmt;

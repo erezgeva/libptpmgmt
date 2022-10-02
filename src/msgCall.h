@@ -26,6 +26,9 @@ __PTPMGMT_NAMESPACE_BEGIN
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
+  protected:
+    /** Force inherit, prevent direct use */
+    MessageDispatcher() = default;
   public:
     /**
      * Call handler based on Message last received message
@@ -46,14 +49,14 @@ class MessageDispatcher : public BaseMngDispatchCallback
      * It could be an empty TLV or not set
      * @param[in] msg Message object
      */
-    virtual void noTlv(const Message &msg) const {}
+    virtual void noTlv(const Message &msg) {}
     /**
      * Handler called if TLV does not have a callback.
      * i.e. inherit class did not implement a proper method for this TLV
      * @param[in] msg Message object
      * @param[in] idStr string of the tlv_id
      */
-    virtual void noTlvCallBack(const Message &msg, const char *idStr) const {}
+    virtual void noTlvCallBack(const Message &msg, const char *idStr) {}
 };
 #endif /* SWIG */
 

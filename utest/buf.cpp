@@ -9,7 +9,6 @@
  *
  */
 
-#include <gtest/gtest.h>
 #include "buf.h"
 
 using namespace ptpmgmt;

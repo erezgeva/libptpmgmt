@@ -17,7 +17,7 @@ class MsgDump : public MessageDispatcher
     MsgDump() {}
 
 #define IDENT "\n\t\t"
-#define dump(n) void n##_h(const Message &m, const n##_t &d, const char*) const
+#define dump(n) void n##_h(const Message &m, const n##_t &d, const char*) override
 
     dump(CLOCK_DESCRIPTION) {
         DUMPS(
@@ -551,7 +551,7 @@ class MsgBuild : public MessageBulder
     char *save;
     MsgBuild(Message &msg, char *s) : MessageBulder(msg), save(s) {}
 
-#define build(n) bool n##_b(const Message &, n##_t &d)
+#define build(n) bool n##_b(const Message &, n##_t &d) override
 #define defKeys std::map<std::string, val_key_t> keys;
 #define parseKeys if(parseKeysFunc(keys, save)) return false;
 #define build_end return true;

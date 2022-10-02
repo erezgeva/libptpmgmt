@@ -9,7 +9,6 @@
  *
  */
 
-#include <gtest/gtest.h>
 #include "ver.h"
 
 using namespace ptpmgmt;

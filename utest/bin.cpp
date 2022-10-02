@@ -9,7 +9,6 @@
  *
  */
 
-#include <gtest/gtest.h>
 #include <arpa/inet.h>
 #include "bin.h"
 

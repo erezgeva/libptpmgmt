@@ -379,7 +379,8 @@ $(OBJ_DIR)/utest.o: | $(OBJ_DIR)
 	  $(CXX) -include $(HAVE_GTEST_HEADER) $(GTEST_INC_FLAGS)\
 	  -c -x c++ - -o $@
 utest/%.o: utest/%.cpp | $(COMP_DEPS)
-	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS) -c -o $@ $<
+	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS)\
+	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
 
 $(UTEST): $(OBJ_DIR)/utest.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\

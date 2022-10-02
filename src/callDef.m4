@@ -49,7 +49,7 @@ define(D,`    /**
      * @param[in] idStr ID string of the management tlv
      */
     virtual void $1_h(const Message &msg,
-        const $1_t &tlv, const char *idStr) const
+        const $1_t &tlv, const char *idStr)
     {}')dnl
 define(A, `ifelse(regexp($6, `^UF', `0'),`0',`D($1)',`dnl')')dnl
 include(ids_base.m4)dnl

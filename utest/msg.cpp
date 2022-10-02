@@ -9,7 +9,6 @@
  *
  */
 
-#include <gtest/gtest.h>
 #include "msg.h"
 #include "comp.h"
 

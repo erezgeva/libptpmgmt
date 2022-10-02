@@ -9,7 +9,6 @@
  *
  */
 
-#include <gtest/gtest.h>
 #include "opt.h"
 #include "ver.h"
 

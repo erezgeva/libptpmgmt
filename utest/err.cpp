@@ -9,7 +9,6 @@
  *
  */
 
-#include <gtest/gtest.h>
 #include <locale.h>
 #include "comp.h"
 
@@ -22,7 +21,7 @@ TEST(ErrorTest, MacroError)
     PTPMGMT_ERROR("test %s", "macro");
     EXPECT_TRUE(Error::isError());
     EXPECT_STREQ(Error::getError().c_str(),
-        "[utest/err.cpp:22:TestBody] test macro");
+        "[utest/err.cpp:21:TestBody] test macro");
 }
 
 // Tests system error macro
@@ -34,7 +33,7 @@ TEST(ErrorTest, MacroPerror)
     EXPECT_TRUE(Error::isError());
     setlocale(LC_MESSAGES, "C");
     EXPECT_STREQ(Error::getError().c_str(),
-        "[utest/err.cpp:33:TestBody] test macro: Interrupted system call");
+        "[utest/err.cpp:32:TestBody] test macro: Interrupted system call");
 }
 
 // Tests error clear macro
@@ -54,7 +53,7 @@ TEST(ErrorTest, MethodIsError)
     EXPECT_TRUE(Error::isError());
     setlocale(LC_MESSAGES, "C");
     EXPECT_STREQ(Error::getError().c_str(),
-        "[utest/err.cpp:53:TestBody] test macro: Resource temporarily unavailable");
+        "[utest/err.cpp:52:TestBody] test macro: Resource temporarily unavailable");
 }
 
 // Tests get error full message
@@ -64,7 +63,7 @@ TEST(ErrorTest, MethodGetError)
     PTPMGMT_ERROR("test %s", "macro");
     EXPECT_TRUE(Error::isError());
     EXPECT_STREQ(Error::getError().c_str(),
-        "[utest/err.cpp:64:TestBody] test macro");
+        "[utest/err.cpp:63:TestBody] test macro");
 }
 
 // Tests get error file name
@@ -82,7 +81,7 @@ TEST(ErrorTest, MethodGetFileLine)
 {
     PTPMGMT_ERROR("test %s", "macro");
     EXPECT_TRUE(Error::isError());
-    EXPECT_EQ(Error::getFileLine(), 83);
+    EXPECT_EQ(Error::getFileLine(), 82);
 }
 
 // Tests get error in function name
