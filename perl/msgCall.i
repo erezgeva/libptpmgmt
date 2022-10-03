@@ -71,9 +71,9 @@ sub ACQUIRE {
 }
 
 
-############# Class : PtpMgmtLib::MessageBulder ##############
+############# Class : PtpMgmtLib::MessageBuilder ##############
 
-package PtpMgmtLib::MessageBulder;
+package PtpMgmtLib::MessageBuilder;
 use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 @ISA = qw( PtpMgmtLib );
 %OWNER = ();

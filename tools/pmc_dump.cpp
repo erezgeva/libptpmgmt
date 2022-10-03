@@ -545,11 +545,11 @@ void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *data)
     DUMPNL;
 }
 
-class MsgBuild : public MessageBulder
+class MsgBuild : public MessageBuilder
 {
   public:
     char *save;
-    MsgBuild(Message &msg, char *s) : MessageBulder(msg), save(s) {}
+    MsgBuild(Message &msg, char *s) : MessageBuilder(msg), save(s) {}
 
 #define build(n) bool n##_b(const Message &, n##_t &d) override
 #define defKeys std::map<std::string, val_key_t> keys;

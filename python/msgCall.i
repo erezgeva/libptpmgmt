@@ -34,7 +34,7 @@ class MessageDispatcher(object):
         if type(self) is MessageDispatcher:
             raise Exception('MessageDispatcher is an abstract class and cannot be instantiated directly')
 
-class MessageBulder(object):
+class MessageBuilder(object):
     def buildTlv(self, actionField : int, tlv_id : int):
         if actionField == GET or Message.isEmpty(tlv_id):
             return self.m_msg.setAction(actionField, tlv_id)
@@ -50,10 +50,10 @@ class MessageBulder(object):
                 return True
         return False
     def __init__(self, msg : Message):
-        if type(self) is MessageBulder:
+        if type(self) is MessageBuilder:
             raise Exception('MessageDispatcher is an abstract class and cannot be instantiated directly')
         if msg is None:
-            raise AttributeError("MessageBulder::MessageBulder() You must use Message object")
+            raise AttributeError("MessageBuilder::MessageBuilder() You must use Message object")
         else:
             self.m_msg=msg
     def __del__(self):

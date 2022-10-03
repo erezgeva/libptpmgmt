@@ -22,7 +22,7 @@ class myDisp extends MessageDispatcher {
         echo "get user desc: " . $tlv->userDescription->textField . "\n";
     }
 }
-class myBuild extends MessageBulder {
+class myBuild extends MessageBuilder {
     public int $pr;
     function PRIORITY1_b($msg, $tlv) {
         $tlv->priority1 = $this->pr;

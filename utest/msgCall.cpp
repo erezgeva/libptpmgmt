@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
 
 /** @file
- * @brief MessageDispatcher and MessageBulder classes unit test
+ * @brief MessageDispatcher and MessageBuilder classes unit test
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva
@@ -149,12 +149,12 @@ TEST_F(MessageDispatcherTest, MethodProvidedCallHadlerTLVNoCallback)
     EXPECT_STREQ(idStr_noTlvCallBack.c_str(), "PRIORITY2");
 }
 
-class MessageBulderTest : public ::testing::Test, public MessageBulder
+class MessageBuilderTest : public ::testing::Test, public MessageBuilder
 {
   protected:
     bool have_priority1;
     Message msg;
-    MessageBulderTest() : MessageBulder(msg), have_priority1(false) {}
+    MessageBuilderTest() : MessageBuilder(msg), have_priority1(false) {}
 
     bool PRIORITY1_b(const Message &msg, PRIORITY1_t &tlv) override {
         tlv.priority1 = 97;
@@ -165,7 +165,7 @@ class MessageBulderTest : public ::testing::Test, public MessageBulder
 
 // Tests get Message method
 //  Message &getMsg()
-TEST_F(MessageBulderTest, MethodGetMsg)
+TEST_F(MessageBuilderTest, MethodGetMsg)
 {
     // The address of the referece should be equal to the address of the original
     EXPECT_EQ(&msg, &(getMsg()));
@@ -173,7 +173,7 @@ TEST_F(MessageBulderTest, MethodGetMsg)
 
 // Tests build empty TLV
 //  bool buildTlv(actionField_e actionField, mng_vals_e tlv_id)
-TEST_F(MessageBulderTest, BuildEmptyTLV)
+TEST_F(MessageBuilderTest, BuildEmptyTLV)
 {
     EXPECT_TRUE(buildTlv(COMMAND, ENABLE_PORT));
     EXPECT_FALSE(have_priority1);
@@ -181,7 +181,7 @@ TEST_F(MessageBulderTest, BuildEmptyTLV)
 
 // Tests build TLV that lack callback
 //  bool buildTlv(actionField_e actionField, mng_vals_e tlv_id)
-TEST_F(MessageBulderTest, BuildNOCallback)
+TEST_F(MessageBuilderTest, BuildNOCallback)
 {
     EXPECT_FALSE(buildTlv(SET, PRIORITY2));
     EXPECT_FALSE(have_priority1);
@@ -189,7 +189,7 @@ TEST_F(MessageBulderTest, BuildNOCallback)
 
 // Tests build TLV that have callback
 //  bool buildTlv(actionField_e actionField, mng_vals_e tlv_id)
-TEST_F(MessageBulderTest, BuildWithCallback)
+TEST_F(MessageBuilderTest, BuildWithCallback)
 {
     EXPECT_TRUE(buildTlv(SET, PRIORITY1));
     EXPECT_TRUE(have_priority1);

@@ -37,7 +37,7 @@
 "  }\n"
 "  constructor {} {}\n"
 "}\n"
-"::oo::class create ptpmgmt::MessageBulder {\n"
+"::oo::class create ptpmgmt::MessageBuilder {\n"
 "  variable m_msg\n"
 "  variable m_tlv\n"
 "  method buildTlv { actionField  tlv_id } {\n"

@@ -21,7 +21,7 @@ class MyDisp < Ptpmgmt::MessageDispatcher
     puts "get user desc: " + tlv.userDescription.textField
   end
 end
-class MyBuild < Ptpmgmt::MessageBulder
+class MyBuild < Ptpmgmt::MessageBuilder
   def pr(pr)
     @pr = pr
   end

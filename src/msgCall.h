@@ -16,7 +16,6 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
-#ifndef SWIG
 /**
  * @brief Dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
@@ -27,7 +26,9 @@ __PTPMGMT_NAMESPACE_BEGIN
 class MessageDispatcher : public BaseMngDispatchCallback
 {
   protected:
-    /** Force inherit, prevent direct use */
+    /**
+     * Construct a message TLV dispatcher
+     */
     MessageDispatcher() = default;
   public:
     /**
@@ -58,7 +59,6 @@ class MessageDispatcher : public BaseMngDispatchCallback
      */
     virtual void noTlvCallBack(const Message &msg, const char *idStr) {}
 };
-#endif /* SWIG */
 
 /**
  * @brief Build TLV to send a PTP management message
@@ -72,26 +72,25 @@ class MessageDispatcher : public BaseMngDispatchCallback
  * @note buildTlv() has an implementation per script language.
  *       So, it can call virtual functions defined in the script language itself.
  */
-class MessageBulder : public BaseMngBuildCallback
+class MessageBuilder : public BaseMngBuildCallback
 {
   private:
     std::unique_ptr<BaseMngTlv> m_tlv; /**< Store allocated TLV for send */
     Message &m_msg; /**< Message Object to send message */
 
+  protected:
+    /**
+     * Construct a message TLV builder
+     * @param[in] msg Message object
+     */
+    MessageBuilder(Message &msg) : m_msg(msg) {}
   public:
     /**
      * Get reference to the Message object
      * @return reference to the msg Message object
      */
     Message &getMsg() { return m_msg; }
-    /**
-     * Construct a message TLV builder
-     * @param[in] msg Message object
-     * @note This constructor is used internaly.
-     *       You must inherit this class to use it!
-     */
-    MessageBulder(Message &msg) : m_msg(msg) {}
-    virtual ~MessageBulder() { m_msg.clearData(); }
+    virtual ~MessageBuilder() { m_msg.clearData(); }
     /**
      * Allocate a management TLV, use a call-back to set its values and
      *  assign it with the Message object ready for sending

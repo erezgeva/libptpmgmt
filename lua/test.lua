@@ -28,10 +28,10 @@ function myDisp:USER_DESCRIPTION_h(msg, tlv, tlv_id)
   print("Get reply for " .. tlv_id)
   print("get user desc: " .. tlv.userDescription.textField)
 end
-myBuild = {} -- Inherit from ptpmgmt.MessageBulder
+myBuild = {} -- Inherit from ptpmgmt.MessageBuilder
 function myBuild:new(msg)
-  local obj = ptpmgmt.MessageBulder:new(msg)
-  setmetatable(self, {__index = ptpmgmt.MessageBulder})
+  local obj = ptpmgmt.MessageBuilder:new(msg)
+  setmetatable(self, {__index = ptpmgmt.MessageBuilder})
   setmetatable(obj, self)
   self.__index = self
   return obj

@@ -47,7 +47,7 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
     }
 }
 DIAG_END
-bool MessageBulder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
+bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 {
     if(actionField == GET || m_msg.isEmpty(tlv_id))
         return m_msg.setAction(actionField, tlv_id);

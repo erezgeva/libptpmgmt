@@ -8,9 +8,25 @@
  * @copyright 2022 Erez Geva
  */
 
-%rename(MessageBulderBase) MessageBulder;
-%warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) MessageBulder;
-%include "msgCall.h"
+%{
+namespace ptpmgmt {
+class MessageBuilderBase
+{
+  private:
+    Message &m_msg;
+  public:
+    Message &getMsg() { return m_msg; }
+    MessageBuilderBase(Message &msg) : m_msg(msg) {}
+    ~MessageBuilderBase() { m_msg.clearData(); }
+};
+};
+%}
+class MessageBuilderBase
+{
+  public:
+    Message &getMsg();
+    MessageBuilderBase(Message &msg);
+};
 
 %luacode %{
 ptpmgmt.MessageDispatcher = {}
@@ -50,12 +66,12 @@ function ptpmgmt.MessageDispatcher:new()
     return obj
 end
 
-ptpmgmt.MessageBulder = { m_buildBase = 0, m_tlv = 0 }
-function ptpmgmt.MessageBulder:buildTlv(actionField, tlv_id)
+ptpmgmt.MessageBuilder = { m_buildBase = 0, m_tlv = 0 }
+function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
     if(type(actionField) ~= 'number') then
-        error('MessageBulder::buildTlv() actionField must be a number', 2)
+        error('MessageBuilder::buildTlv() actionField must be a number', 2)
     elseif(type(tlv_id) ~= 'number') then
-        error('MessageBulder::buildTlv() tlv_id must be a number', 2)
+        error('MessageBuilder::buildTlv() tlv_id must be a number', 2)
     end
     local msg = self.m_buildBase:getMsg()
     if(actionField == ptpmgmt.GET or ptpmgmt.Message.isEmpty(tlv_id)) then
@@ -76,8 +92,8 @@ function ptpmgmt.MessageBulder:buildTlv(actionField, tlv_id)
     end
     return false
 end
-function ptpmgmt.MessageBulder:new(msg)
-    local obj = { m_buildBase = ptpmgmt.MessageBulderBase(msg) }
+function ptpmgmt.MessageBuilder:new(msg)
+    local obj = { m_buildBase = ptpmgmt.MessageBuilderBase(msg) }
     setmetatable(obj, self)
     self.__index = self
     return obj

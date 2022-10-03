@@ -207,10 +207,10 @@ make distclean
 - Message Dispatcher and builder classes.
   - Add Message.isValidId() to verify an management TLV ID.
   - Add C++ classes and native classes in each script language.
-  - Call Message.clearData() in destructor of MessageBulder.
-  - Lua use C++ MessageBulder object to ensure
+  - Call Message.clearData() in destructor of MessageBuilder.
+  - Lua use C++ MessageBuilder object to ensure
     calling Message.clearData(), as Lua native do not use destructors.
-  - Beside Lua using C++ MessageBulder, C++ classes are not wrapped by Swig!
+  - Beside Lua using C++ MessageBuilder, C++ classes are not wrapped by Swig!
   - Use abstract classes in PHP
   - MessageDispatcher::callHadler() call virtual noTlvCallBack()
     if the TLV call back is not inherited.

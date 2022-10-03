@@ -30,7 +30,7 @@ sub USER_DESCRIPTION_h
 }
 
 package myBuild;
-@ISA = qw ( PtpMgmtLib::MessageBulder );
+@ISA = qw ( PtpMgmtLib::MessageBuilder );
 sub PRIORITY1_b
 {
   my ($self, $msg, $tlv) = @_;

@@ -32,7 +32,7 @@
 	}
 }
 
-abstract class MessageBulder {
+abstract class MessageBuilder {
 	private Message $m_msg;
 	private $m_tlv=null;
 	function buildTlv(int $actionField, int $tlv_id) {

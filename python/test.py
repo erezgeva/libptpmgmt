@@ -22,7 +22,7 @@ class myDisp(ptpmgmt.MessageDispatcher):
   def USER_DESCRIPTION_h(self, msg, tlv, tlv_id):
     print("Get reply for %s" % tlv_id)
     print("get user desc: %s" % tlv.userDescription.textField)
-class myBuild(ptpmgmt.MessageBulder):
+class myBuild(ptpmgmt.MessageBuilder):
   pr : int
   def PRIORITY1_b(self, msg, tlv):
     tlv.priority1 = self.pr

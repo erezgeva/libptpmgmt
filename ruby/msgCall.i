@@ -29,7 +29,7 @@
 "    end\n"
 "  end\n"
 "end\n"
-"class Ptpmgmt::MessageBulder\n"
+"class Ptpmgmt::MessageBuilder\n"
 "  def buildTlv(actionField, tlv_id)\n"
 "    if actionField == Ptpmgmt::GET or Ptpmgmt::Message.isEmpty(tlv_id) then\n"
 "      return @m_msg.setAction(actionField, tlv_id)\n"

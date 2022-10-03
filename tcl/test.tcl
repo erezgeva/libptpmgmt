@@ -23,7 +23,7 @@ package require ptpmgmt
   }
 }
 ::oo::class create myBuild {
-  superclass ptpmgmt::MessageBulder
+  superclass ptpmgmt::MessageBuilder
   variable pr
   method setPr { val } {
     variable pr
