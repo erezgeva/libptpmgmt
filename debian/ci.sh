@@ -38,10 +38,15 @@ equit()
 main()
 {
     local last_ret out
-    local -r esc=`printf '\e['`
-    local -r color_red=${esc}31m
-    local -r color_blue=${esc}34m
-    local -r color_norm=${esc}00m
+    # Make sure we output to STDOUT directly, no pipes
+    # check our teminal support coulors
+    if [[ -t 1 ]] && tput setaf 1; then
+        local -r esc=`printf '\e['`
+        local -r color_red=${esc}31m
+        local -r color_blue=${esc}34m
+        local -r color_norm=${esc}00m
+        printf "$color_norm"
+    fi
     cd $(dirname $(realpath $0))/..
     if [[ -n "$(which reuse)" ]]; then
         echo " * Check files licenses with 'reuse'"
