@@ -9,8 +9,6 @@
 #
 ###############################################################################
 
-BEGIN { push @INC, '.' }
-
 use PtpMgmtLib;
 
 package myDisp;
@@ -233,5 +231,4 @@ sub main
 main;
 $sk->close();
 
-# If libptpmgmt library is not installed in system, run with:
-#  LD_LIBRARY_PATH=.. ./test.pl
+# LD_PRELOAD=../libptpmgmt.so PERL5LIB=. ./test.pl

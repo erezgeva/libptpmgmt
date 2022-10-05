@@ -130,4 +130,3 @@ package main;
 
 my $tests = Testing->new;
 Test::Class->runtests($tests);
-# LD_PRELOAD=../libptpmgmt.so PERL5LIB=. ./utest.pl

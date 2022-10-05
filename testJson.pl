@@ -157,12 +157,4 @@ $sk->close();
 
 __END__
 
-dpkg --get-selections |\
-sed -n '/-dbgsym/d ; /ptpmgmt.*\<install$/ { s/\s\+install// ; p }' |\
-xargs sudo dpkg --remove --force-all
-
-sudo apt --fix-broken install
-
-apt-mark showmanual | grep ptpmgmt | xargs sudo apt-mark auto
-
-LD_LIBRARY_PATH=. ./testJson.pl | jsonlint
+LD_PRELOAD=./libptpmgmt.so LD_LIBRARY_PATH=. PERL5LIB=perl ./testJson.pl | jsonlint

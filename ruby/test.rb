@@ -237,7 +237,4 @@ end
 main
 $sk.close()
 
-######################################
-
-# If libptpmgmt and ruby-ptpmgmt libraries are not installed in system, run with:
-#  LD_LIBRARY_PATH=.. RUBYLIB=. ./test.rb
+# LD_PRELOAD=../libptpmgmt.so RUBYLIB=. ./test.rb

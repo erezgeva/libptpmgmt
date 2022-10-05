@@ -53,10 +53,11 @@ main()
         ecmd reuse lint
         equit "'reuse' detect missing SPDX tags"
     fi
-    # We run Debian package first, as it create 'def.mk' we need
-    echo " * Build Debian packages"
-    eacmd make deb
-    equit "Build Debian packages fails"
+    echo " * Configure"
+    autoconf
+    ecmd dh_auto_configure
+    equit "Configuratation fails"
+    # Run syntax checking
     make checkall -j
     echo " * Run unit test"
     ecmd make utest -j
@@ -93,6 +94,9 @@ main()
             mquit "Make clean left unused files"
         fi
     fi
+    echo " * Build Debian packages"
+    eacmd make deb
+    equit "Build Debian packages fails"
     echo "$color_blue * CI test done$color_norm"
 }
 main "$@"

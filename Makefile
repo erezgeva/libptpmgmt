@@ -86,6 +86,7 @@ endef
 ###############################################################################
 ### General macroes
 which=$(shell which $1 2>/dev/null)
+NOP:=@:
 define depend
 $1: $2
 
@@ -93,7 +94,7 @@ endef
 define phony
 .PHONY: $1
 $1:
-	@:
+	$(NOP)
 
 endef
 SP:=$(subst X, ,X)
@@ -191,7 +192,6 @@ SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard */*.d */*/*.d)
 PHP_LNAME:=php/$(SWIG_LNAME)
-PERL_NAME:=perl/$(SWIG_NAME)
 HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
 HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
@@ -209,7 +209,7 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
-           doxygen checkall help rpm rpmsrc pkg pkgsrc utest
+           doxygen checkall help rpm rpmsrc pkg pkgsrc utest config
 .PHONY: $(PHONY_TGT)
 NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
 
@@ -241,7 +241,7 @@ ifeq ($(MAKECMDGOALS),)
 $(info defs.mk is missing, please run ./configure)
 endif
 all: configure
-	@:
+	$(NOP)
 
 ###############################################################################
 ### Build area
@@ -460,13 +460,16 @@ SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 ifeq ($(SKIP_PERL5),)
 perl_SFLAGS+=-perl5
-$(PERL_NAME).o: $(PERL_NAME).cpp $(HEADERS)
+perl/$(SWIG_NAME).o: perl/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(call LLC,-I$(PERL5EXT))
 	$(call D_INC,PERL5EXT)
 	$(SWIG_DEP)
-$(PERL_NAME).so: $(PERL_NAME).o $(LIB_NAME_SO)
+PERL_SO_DIR:=perl/auto/$(SWIG_NAME)
+$(PERL_SO_DIR):
+	$Q$(MKDIR_P) $@
+$(PERL_SO_DIR)/$(SWIG_NAME).so: perl/$(SWIG_NAME).o $(LIB_NAME_SO) | $(PERL_SO_DIR)
 	$(SWIG_LD)
-SWIG_ALL+=$(PERL_NAME).so
+SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
 endif # SKIP_PERL5
 
 ifeq ($(SKIP_LUA),)
@@ -605,7 +608,7 @@ endif # CTAGS
 
 .DEFAULT_GOAL=all
 all: $(COMP_DEPS) $(ALL)
-	@:
+	$(NOP)
 
 ####### installation #######
 URL:=html/index.html
@@ -648,9 +651,9 @@ install:
 	cp -a *.md doc/html $(DOCDIR)
 	printf $(REDIR) > $(DOCDIR)/index.html
 ifeq ($(SKIP_PERL5),)
-	$(INSTALL_PROGRAM) -D perl/$(SWIG_NAME).so -t\
+	$(INSTALL_PROGRAM) -D perl/auto/*/*.so -t\
 	  $(DESTDIR)$(PERL5DIR)/auto/$(SWIG_NAME)
-	$(INSTALL_DATA) perl/$(SWIG_NAME).pm $(DESTDIR)$(PERL5DIR)
+	$(INSTALL_DATA) perl/*.pm $(DESTDIR)$(PERL5DIR)
 endif # SKIP_PERL5
 ifeq ($(SKIP_LUA),)
 	$(foreach n,$(LUAVERSIONS),\
@@ -752,7 +755,32 @@ pkgsrc: $(ARCHL_BLD)
 ifeq ($(filter distclean,$(MAKECMDGOALS)),)
 configure: configure.ac
 	$(Q)autoconf
-endif # MAKECMDGOALS
+# Debian default configuration
+ifneq ($(call which,dh_auto_configure),)
+HAVE_CONFIG_GAOL:=1
+config: configure
+	$(Q)dh_auto_configure
+endif # which,dh_auto_configure
+ifeq ($(HAVE_CONFIG_GAOL),)
+ifneq ($(call which,rpm),)
+rpm_list!=rpm -qa
+ifneq ($(rpm_list),)
+# Default configuration on RPM based distributions
+HAVE_CONFIG_GAOL:=1
+config: configure
+	$(Q)`rpm --eval %configure | sed -ne '/^\s*.\/configure/,$$ p'`
+endif # rpm_list
+endif # which rpm
+endif # HAVE_CONFIG_GAOL
+ifeq ($(HAVE_CONFIG_GAOL),)
+ifneq ($(wildcard /usr/share/pacman/PKGBUILD.proto),)
+# Default configuration on Arch Linux
+HAVE_CONFIG_GAOL:=1
+config: configure
+	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto`
+endif # wildcard pacman/PKGBUILD.proto
+endif # HAVE_CONFIG_GAOL
+endif # filter distclean,MAKECMDGOALS
 
 ifeq ($(filter help distclean clean,$(MAKECMDGOALS)),)
 ifneq ($(wildcard config.status),)
@@ -768,9 +796,9 @@ CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
   python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(ARCHL_SRC)\
   $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
-  $(HEADERS_GEN) $(UTEST)
+  tcl/pkgIndex.tcl $(HEADERS_GEN) $(UTEST)
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
-  archlinux/*/)) doc $(OBJ_DIR)
+  archlinux/*/)) doc $(OBJ_DIR) perl/auto
 DISTCLEAN:=$(foreach n, log status,config.$n) configure defs.mk
 DISTCLEAN_DIRS:=autom4te.cache
 
@@ -782,5 +810,4 @@ distclean: deb_clean
 	$(RM) -R $(CLEAN_DIRS) $(DISTCLEAN_DIRS)
 
 help:
-	@$(info $(help))
-	:
+	$(NOP)$(info $(help))

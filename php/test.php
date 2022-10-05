@@ -238,12 +238,12 @@ if($opt->parse_options($argv) == Options_OPT_DONE) {
 }
 $sk->close();
 
-/*********************************************/
 // Use "Dynamically loaded extensions"
 // Enable "enable_dl = On" in /etc/php/*/cli/php.ini
+// Run: sed -i 's/.*enable_dl.*=.*/enable_dl = On/' /etc/php/*/cli/php.ini
 //
 // Run ./php_ini.sh to create php.ini
 //
-// If libptpmgmt and php wrapper libraries are not installed in system, run with:
-// LD_LIBRARY_PATH=.. PHPRC=. ./test.php
+// run to use build here:
+// LD_PRELOAD=../libptpmgmt.so PHPRC=. ./test.php
 ?>

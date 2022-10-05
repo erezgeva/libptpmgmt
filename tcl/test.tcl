@@ -254,7 +254,5 @@ if { $ret == $ptpmgmt::Options_OPT_DONE } {
 }
 sk close
 
-######################################
-
-# If libptpmgmt library is not installed in system, run with:
-#  LD_LIBRARY_PATH=.. ./test.tcl
+# Run ./pkgIndex_tcl.sh to create pkgIndex.tcl
+# LD_PRELOAD=../libptpmgmt.so TCLLIBPATH=. ./test.tcl

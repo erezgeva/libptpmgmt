@@ -224,8 +224,4 @@ def main():
 main()
 sk.close()
 
-# If libptpmgmt library is not installed in system, run with:
-"""
-py3clean . ; LD_LIBRARY_PATH=.. PYTHONPATH=3 python3 test.py
-
-"""
+# LD_PRELOAD=../libptpmgmt.so PYTHONPATH=3 python3 test.py
