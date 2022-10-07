@@ -53,6 +53,8 @@ define help
 #                                                                              #
 #   pkgsrc           Create source tar for Arch Linux build.                   #
 #                                                                              #
+#   config           Configure using system default configuration              #
+#                                                                              #
 ################################################################################
 #  Make file parameters                                                        #
 ################################################################################
@@ -208,9 +210,11 @@ JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
 FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
+UTEST_TGT:=utest_cpp utest_perl5 utest_python3 utest_ruby\
+           utest_lua utest_php utest_tcl
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
            doxygen checkall help rpm rpmsrc pkg pkgsrc utest config
-.PHONY: $(PHONY_TGT)
+.PHONY: $(PHONY_TGT) $(UTEST_TGT)
 NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
 
 ####### Source tar file #######
@@ -258,6 +262,7 @@ Q_LD=$Q$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
 Q_AR=$Q$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
 Q_LCC=$(info $(COLOR_BUILD)[LCC] $<$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
+Q_UTEST=$Q$(info $(COLOR_BUILD)[UTEST $1]$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
 # Filter normal output, send error output to stdout
 QE:=2>&1 >/dev/null | $(SED) 's@^$(ROOT_DIR)/@@'
@@ -386,8 +391,9 @@ $(UTEST): $(OBJ_DIR)/utest.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 
-utest: $(HEADERS_GEN_COMP) $(UTEST)
-	$Q$(UTEST) $(GTEST_NO_COL) $(GTEST_FLAGS)
+utest_cpp: $(HEADERS_GEN_COMP) $(UTEST)
+	$(call Q_UTEST,C++)$(UTEST) $(GTEST_NO_COL) $(GTEST_FLAGS)
+utest: $(UTEST_TGT)
 
 endif # GTEST_LIB_FLAGS
 
@@ -470,6 +476,8 @@ $(PERL_SO_DIR):
 $(PERL_SO_DIR)/$(SWIG_NAME).so: perl/$(SWIG_NAME).o $(LIB_NAME_SO) | $(PERL_SO_DIR)
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
+utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
+	$(call Q_UTEST,Perl5)LD_PRELOAD=$< PERL5LIB=perl perl/utest.pl
 endif # SKIP_PERL5
 
 ifeq ($(SKIP_LUA),)
@@ -549,6 +557,8 @@ endif
 $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
+utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
+	$(call Q_UTEST,Ruby)LD_PRELOAD=$< RUBYLIB=ruby ruby/utest.rb
 endif # SKIP_RUBY
 
 ifeq ($(SKIP_PHP),)

@@ -79,7 +79,7 @@
  * @param[in] ... parameters match for format
  */
 #define PTPMGMT_ERROR(format, ...) do\
-    { Error::error(__FILE__, __LINE__, __FUNCTION__ ,\
+    { Error::error(__FILE__, __LINE__, __func__ ,\
             Error::doFormat(format, ##__VA_ARGS__)); }\
     while(0)
 /**
@@ -88,7 +88,7 @@
  * @param[in] ... parameters match for format
  */
 #define PTPMGMT_ERROR_P(format, ...) do\
-    { Error::perror(__FILE__, __LINE__, __FUNCTION__ ,\
+    { Error::perror(__FILE__, __LINE__, __func__ ,\
             Error::doFormat(format, ##__VA_ARGS__)); }\
     while(0)
 /**

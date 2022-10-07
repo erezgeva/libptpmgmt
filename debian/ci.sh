@@ -35,6 +35,32 @@ equit()
       mquit "$@"
   fi
 }
+check_clean()
+{
+  local n m left=''
+  local name=$1
+  shift
+  readarray <<< `git clean -fxdn`
+  for n in "${MAPFILE[@]}"; do
+      if [[ -z "${n%$'\n'}" ]] ||\
+         [[ $n =~ \/\.[^\/]+\.swp ]] ||\
+         [[ $n =~ ^$would\.[^\/]+\.swp ]]; then
+          continue
+      fi
+      for m in "$@"; do
+          if [[ $n =~ ^$would$m ]]; then
+              continue 2
+          fi
+      done
+      if [[ -n "${n%$'\n'}" ]]; then
+          left+="$n"
+      fi
+  done
+  if [[ -n "$left" ]]; then
+      printf "$color_red$left"
+      mquit "Make $name left unused files"
+  fi
+}
 main()
 {
     local last_ret out
@@ -65,34 +91,12 @@ main()
     eacmd git rev-parse --is-inside-work-tree
     if [[ $last_ret -eq 0 ]]; then
         out=''
+        local -r would='Would[[:space:]]remove[[:space:]]'
         make clean
-        local n m left=''
-        local clean_left='autom4te.cache/ config.log
-                          config.status configure defs.mk'
-        readarray <<< `git clean -fxdn`
-        for n in "${MAPFILE[@]}"; do
-            if [[ -z "${n%$'\n'}" ]]; then
-                continue
-            fi
-            for m in $clean_left; do
-                if [[ $n =~ ^Would[[:space:]]remove[[:space:]]$m ]]; then
-                    continue 2
-                fi
-            done
-            if [[ -n "${n%$'\n'}" ]]; then
-                left+="$n"
-            fi
-        done
-        if [[ -n "$left" ]]; then
-            printf "$color_red|$left|"
-            mquit "Make clean left unused files"
-        fi
+        check_clean clean autom4te.cache/ config.log\
+                          config.status configure defs.mk
         make distclean
-        left=`git clean -fxdn`
-        if [[ -n "$left" ]]; then
-            echo "$color_red$left"
-            mquit "Make clean left unused files"
-        fi
+        check_clean distclean
     fi
     echo " * Build Debian packages"
     eacmd make deb
