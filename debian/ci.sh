@@ -74,20 +74,6 @@ main()
         printf "$color_norm"
     fi
     cd $(dirname $(realpath $0))/..
-    if [[ -n "$(which reuse)" ]]; then
-        echo " * Check files licenses with 'reuse'"
-        ecmd reuse lint
-        equit "'reuse' detect missing SPDX tags"
-    fi
-    echo " * Configure"
-    autoconf
-    ecmd dh_auto_configure
-    equit "Configuratation fails"
-    # Run syntax checking
-    make checkall -j
-    echo " * Run unit test"
-    ecmd make utest -j
-    equit "Unit test fails"
     eacmd git rev-parse --is-inside-work-tree
     if [[ $last_ret -eq 0 ]]; then
         out=''
@@ -97,7 +83,22 @@ main()
                           config.status configure defs.mk
         make distclean
         check_clean distclean
+        # Reuse workd in side git
+        if [[ -n "$(which reuse)" ]]; then
+            echo " * Check files licenses with 'reuse'"
+            ecmd reuse lint
+            equit "'reuse' detect missing SPDX tags"
+        fi
     fi
+    echo " * Configure"
+    autoconf
+    ecmd dh_auto_configure
+    equit "Configuratation fails"
+    # Run syntax checking
+    make checkall -j
+    echo " * Run unit test"
+    eacmd make utest -j
+    equit "Unit test fails"
     echo " * Build Debian packages"
     eacmd make deb
     equit "Build Debian packages fails"

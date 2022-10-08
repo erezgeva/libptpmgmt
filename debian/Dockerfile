@@ -25,8 +25,9 @@ RUN apt-get update;\
     dlocate dialog lsb-release quilt apt-file libtool libtool-bin swig\
     install-info libjson-c-dev doxygen graphviz qemu-user-static distro-info\
     tree lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
-    astyle cppcheck exuberant-ctags $DPKGS;for a in $ARCHS;\
-    do all='';for p in libperl-dev;do all="$all $p:$a";\
+    astyle cppcheck exuberant-ctags libtest-class-perl ruby-test-unit\
+    ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl $DPKGS;\
+    for a in $ARCHS;do all='';for p in libperl-dev;do all="$all $p:$a";\
     done; apt-get install -y --no-install-recommends $all;done;\
     apt-get install -y --no-install-recommends libperl-dev;\
     apt-get upgrade -y --no-install-recommends;\

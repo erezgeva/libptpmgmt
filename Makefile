@@ -417,7 +417,8 @@ format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS)
 	test -z "$$r" || echo "$$r";./format.pl $^
 	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
 ifneq ($(CPPCHECK),)
-	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1 $^
+	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1\
+	  $(filter-out $(addprefix $(SRC)/,ids.h proc.cpp),$^)
 endif
 endif # ASTYLEMINVER
 
@@ -477,7 +478,7 @@ $(PERL_SO_DIR)/$(SWIG_NAME).so: perl/$(SWIG_NAME).o $(LIB_NAME_SO) | $(PERL_SO_D
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
 utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
-	$(call Q_UTEST,Perl5)LD_PRELOAD=$< PERL5LIB=perl perl/utest.pl
+	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=perl perl/utest.pl
 endif # SKIP_PERL5
 
 ifeq ($(SKIP_LUA),)
@@ -540,6 +541,8 @@ endif
 $(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_SO_3)
+utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
+	$(call Q_UTEST,Python3)LD_PRELOAD=./$< PYTHONPATH=python/3 python/utest.py
 endif # SKIP_PYTHON3
 
 ifeq ($(SKIP_RUBY),)
@@ -558,7 +561,7 @@ $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
 utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
-	$(call Q_UTEST,Ruby)LD_PRELOAD=$< RUBYLIB=ruby ruby/utest.rb
+	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=ruby ruby/utest.rb
 endif # SKIP_RUBY
 
 ifeq ($(SKIP_PHP),)
@@ -610,7 +613,7 @@ endif # DOXYGENMINVER
 checkall: format doxygen
 
 ifneq ($(CTAGS),)
-tags: $(filter-out ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
+tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
 	$(wildcard $(JSON_SRC)/*.cpp)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
