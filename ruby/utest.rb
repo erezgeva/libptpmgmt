@@ -11,6 +11,8 @@
 
 require 'ptpmgmt'
 require 'test/unit'
+# See: https://ruby-doc.org/stdlib/libdoc/test-unit/rdoc/Test/Unit.html
+#      https://ruby-doc.org/stdlib/libdoc/test-unit/rdoc/Test/Unit/Assertions.html
 
 class MyDisp < Ptpmgmt::MessageDispatcher
   def initialize
@@ -64,9 +66,9 @@ class TestPtpmgmtMessageDispBuild < Test::Unit::TestCase
   # Tests callHadler with empty TLV
   def test_parsedCallHadlerEmptyTLV
     @disp.callHadler(@msg)
-    assert_equal(@disp.func(), 0x2,    'should call noTlv.')
-    assert_equal(@disp.id(), '',       'should have empty ID')
-    assert_equal(@disp.priority1(), 0, 'should not have priority1 value')
+    assert_equal(0x2, @disp.func(),      'should call noTlv')
+    assert_equal('',  @disp.id(),        'should have empty ID')
+    assert_equal(0,   @disp.priority1(), 'should not have priority1 value')
   end
 
   # Tests callHadler method with TLV
@@ -74,9 +76,9 @@ class TestPtpmgmtMessageDispBuild < Test::Unit::TestCase
     tlv = Ptpmgmt::PRIORITY1_t.new
     tlv.priority1 = 117
     @disp.callHadler(@msg, Ptpmgmt::PRIORITY1, tlv)
-    assert_equal(@disp.func(), 0x1,       'should call PRIORITY1_h')
-    assert_equal(@disp.id(), 'PRIORITY1', 'should have PRIORITY1 ID')
-    assert_equal(@disp.priority1(), 117,  'should have priority1 value')
+    assert_equal(0x1,         @disp.func(),      'should call PRIORITY1_h')
+    assert_equal('PRIORITY1', @disp.id(),        'should have PRIORITY1 ID')
+    assert_equal(117,         @disp.priority1(), 'should have priority1 value')
   end
 
   # Tests callHadler method with TLV without callback
@@ -84,26 +86,26 @@ class TestPtpmgmtMessageDispBuild < Test::Unit::TestCase
     tlv = Ptpmgmt::PRIORITY2_t.new
     tlv.priority2 = 117
     @disp.callHadler(@msg, Ptpmgmt::PRIORITY2, tlv)
-    assert_equal(@disp.func(), 0x4,       'should call noTlvCallBack')
-    assert_equal(@disp.id(), 'PRIORITY2', "should have PRIORITY2 ID")
-    assert_equal(@disp.priority1(), 0,    "shouldn't have priority1 value")
+    assert_equal(0x4,         @disp.func(),      'should call noTlvCallBack')
+    assert_equal('PRIORITY2', @disp.id(),        "should have PRIORITY2 ID")
+    assert_equal(0,           @disp.priority1(), "shouldn't have priority1 value")
   end
 
   # Tests build empty TLV
   def test_buildEmptyTLV
-    assert(@build.buildTlv(Ptpmgmt::COMMAND, Ptpmgmt::ENABLE_PORT), 'should pass')
-    assert_equal(@build.run(), 0, "shouldn't call PRIORITY1 callback")
+    assert_true(@build.buildTlv(Ptpmgmt::COMMAND, Ptpmgmt::ENABLE_PORT), 'should pass')
+    assert_equal(0, @build.run(), "shouldn't call PRIORITY1 callback")
   end
 
   # Tests build TLV
   def test_buildTLV
-    assert(@build.buildTlv(Ptpmgmt::SET, Ptpmgmt::PRIORITY1), 'should pass')
-    assert_equal(@build.run(), 1, 'should call PRIORITY1 callback')
+    assert_true(@build.buildTlv(Ptpmgmt::SET, Ptpmgmt::PRIORITY1), 'should pass')
+    assert_equal(1, @build.run(), 'should call PRIORITY1 callback')
   end
 
   # Tests build TLV that lack callback
   def test_buildTLVNoCallback
-    assert(!@build.buildTlv(Ptpmgmt::SET, Ptpmgmt::PRIORITY2), 'should no pass')
-    assert_equal(@build.run(), 0, "shouldn't call PRIORITY1 callback")
+    assert_false(@build.buildTlv(Ptpmgmt::SET, Ptpmgmt::PRIORITY2), 'should no pass')
+    assert_equal(0, @build.run(), "shouldn't call PRIORITY1 callback")
   end
 end

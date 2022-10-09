@@ -14,6 +14,15 @@ use PtpMgmtLib;
 package myDisp;
 
 @ISA = qw ( PtpMgmtLib::MessageDispatcher );
+
+sub new {
+    bless {
+        priority1 => 0,
+        func => 0,
+        id => ''
+    }, shift;
+}
+
 sub PRIORITY1_h
 {
     my ($self, $msg, $tlv, $tlv_id) = @_;
@@ -56,9 +65,6 @@ sub setup_test : Test(setup) {
     $self->{disp} = myDisp->new();
     $self->{build} = myBuild->new($self->{msg});
     my $disp = $self->{disp};
-    $disp->{func} = 0;
-    $disp->{id} = '';
-    $disp->{priority1} = 0;
     $self->{build}->{run} = 0;
 }
 

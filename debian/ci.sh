@@ -89,6 +89,8 @@ main()
             ecmd reuse lint
             equit "'reuse' detect missing SPDX tags"
         fi
+    else
+        make clean
     fi
     echo " * Configure"
     autoconf

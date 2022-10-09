@@ -9,7 +9,7 @@
  */
 
 %pragma(php) code="abstract class MessageDispatcher {
-	function callHadler(Message $msg, int $tlv_id = -1, ?BaseMngTlv $tlv = null) {
+	function callHadler(Message $msg, int $tlv_id = -1, ?BaseMngTlv $tlv = null) : void {
 		if(is_null($tlv)) {
 			$tlv_id = $msg->getTlvId();
 			$tlv = $msg->getData();
@@ -35,7 +35,7 @@
 abstract class MessageBuilder {
 	private Message $m_msg;
 	private $m_tlv=null;
-	function buildTlv(int $actionField, int $tlv_id) {
+	function buildTlv(int $actionField, int $tlv_id) : bool {
 		if($actionField == ptpmgmt::GET or Message::isEmpty($tlv_id)) {
 			return $this->m_msg->setAction($actionField, $tlv_id);
 		}

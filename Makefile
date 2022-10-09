@@ -211,7 +211,7 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 UTEST_TGT:=utest_cpp utest_perl5 utest_python3 utest_ruby\
-           utest_lua utest_php utest_tcl
+           utest_lua utest_php utest_tcl utest_lua_a
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
            doxygen checkall help rpm rpmsrc pkg pkgsrc utest config
 .PHONY: $(PHONY_TGT) $(UTEST_TGT)
@@ -223,20 +223,28 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-ifneq ($(INSIDE_GIT),true)
-SRC_FILES:=$(wildcard */test.* scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
+SRC_FILES_DIR:=$(wildcard */*test.* scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   config.guess config.sub configure.ac install-sh $(SRC)/*.in $(SRC)/*.m4\
-  php/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
+  php/*.sh tcl/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/*)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
-else
+ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample\
   utest,':!/:$n') ':!:*.gitignore'
+# compare manual source list to git based:
+diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
+diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
+ifneq ($(diff1),)
+$(info $(COLOR_WARNING)source files missed in SRC_FILES_DIR: $(diff1)$(COLOR_NORM))
 endif
+ifneq ($(diff2),)
+$(info $(COLOR_WARNING)source files present only in SRC_FILES_DIR: $(diff2))
+endif
+else # ($(INSIDE_GIT),true)
+SRC_FILES:=$(SRC_FILES_DIR)
+endif # ($(INSIDE_GIT),true)
 # Add configure script for source archive
 SRC_FILES+=configure
-# To compare manual source list to git based:
-# $(foreach n,$(sort $(SRC_FILES)),$(info $n))
 
 ###############################################################################
 ### Configure area
@@ -378,7 +386,7 @@ endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
 # Main for gtest
-$(OBJ_DIR)/utest.o: | $(OBJ_DIR)
+$(OBJ_DIR)/utest_m.o: | $(OBJ_DIR)
 	$(Q)printf 'int main(int argc,char**argv)%s'\
 	  '{::testing::InitGoogleTest(&argc,argv);return RUN_ALL_TESTS();}' |\
 	  $(CXX) -include $(HAVE_GTEST_HEADER) $(GTEST_INC_FLAGS)\
@@ -387,7 +395,7 @@ utest/%.o: utest/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS)\
 	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
 
-$(UTEST): $(OBJ_DIR)/utest.o $(TEST_OBJS) $(LIB_NAME_A)
+$(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 
@@ -496,6 +504,10 @@ lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_LIB_$1)
+utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1)
+	$$(call Q_UTEST,Lua$1)LD_PRELOAD=./$$< LUA_CPATH=";;lua/$1/?.so"\
+	  lua$1 lua/utest.lua
+.PHONY: utest_lua_$1
 
 endef
 # Build multiple Lua versions
@@ -516,7 +528,10 @@ lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
+utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
+	$(call Q_UTEST,Lua)LD_PRELOAD=./$< LUA_CPATH=";;lua/?.so" $(LUABIN) lua/utest.lua
 endif # LUA_VERSION
+utest_lua: utest_lua_a $(foreach n,$(filter-out 5.4,$(LUAVERSIONS)),utest_lua_$n)
 endif # SKIP_LUA
 
 ifeq ($(SKIP_PYTHON3),)
@@ -574,6 +589,10 @@ $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so
+php/php.ini:
+	$(Q)php/php_ini.sh php/
+utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
+	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php phpunit php/utest.php
 endif # SKIP_PHP
 
 ifeq ($(SKIP_TCL),)
@@ -809,7 +828,8 @@ CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
   python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(ARCHL_SRC)\
   $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
-  tcl/pkgIndex.tcl $(HEADERS_GEN) $(UTEST)
+  tcl/pkgIndex.tcl php/.phpunit.result.cache .phpunit.result.cache\
+  $(HEADERS_GEN) $(UTEST)
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
   archlinux/*/)) doc $(OBJ_DIR) perl/auto
 DISTCLEAN:=$(foreach n, log status,config.$n) configure defs.mk
