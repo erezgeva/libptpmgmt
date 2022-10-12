@@ -510,7 +510,7 @@ $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_LIB_$1)
 utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1)
-	$$(call Q_UTEST,Lua$1)LD_PRELOAD=./$$< LUA_CPATH=";;lua/$1/?.so"\
+	$$(call Q_UTEST,Lua$1)LD_PRELOAD=./$$< LUA_CPATH="lua/$1/?.so;;"\
 	  lua$1 lua/utest.lua $(LUA_FILTERS)
 .PHONY: utest_lua_$1
 
@@ -534,7 +534,7 @@ $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
 utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
-	$(call Q_UTEST,Lua)LD_PRELOAD=./$< LUA_CPATH=";;lua/?.so" $(LUABIN)\
+	$(call Q_UTEST,Lua)LD_PRELOAD=./$< LUA_CPATH="lua/?.so;;" $(LUABIN)\
 	  lua/utest.lua $(LUA_FILTERS)
 endif # LUA_VERSION
 utest_lua: utest_lua_a $(foreach n,$(filter-out 5.4,$(LUAVERSIONS)),utest_lua_$n)

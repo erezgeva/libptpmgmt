@@ -263,4 +263,4 @@ end
 main()
 sk:close()
 
--- LD_PRELOAD=../libptpmgmt.so LUA_CPATH=";;./5.3/?.so" lua5.3 test.lua
+-- LD_PRELOAD=../libptpmgmt.so LUA_CPATH="./5.3/?.so;;" lua5.3 test.lua

@@ -112,7 +112,7 @@ main()
    ldPathPerl="$ldPath PERL5LIB=perl"
    ldPathRuby="$ldPath RUBYLIB=ruby"
    for i in $luaVersions; do
-     eval "ldPathLua$i='$ldPath LUA_CPATH=\";;lua/5.$i/?.so\"'"
+     eval "ldPathLua$i='$ldPath LUA_CPATH=\"lua/5.$i/?.so;;\"'"
    done
    for i in $pyVersions; do
      eval "ldPathPython$i=\"$ldPath PYTHONPATH=python:python/$i\""
@@ -444,7 +444,7 @@ probeLibs()
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
      needCmpl=y
-     eval "ldPathLua$i='LUA_CPATH=\";;lua/5.$i/?.so\"'"
+     eval "ldPathLua$i='LUA_CPATH=\"lua/5.$i/?.so;;\"'"
    fi
  done
  for i in $pyVersions; do
