@@ -215,7 +215,7 @@ UTEST_TGT:=utest_cpp utest_perl5 utest_python3 utest_ruby\
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
            doxygen checkall help rpm rpmsrc pkg pkgsrc utest config
 .PHONY: $(PHONY_TGT) $(UTEST_TGT)
-NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
+NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT) $(UTEST_TGT),$(MAKECMDGOALS)))
 
 ####### Source tar file #######
 TAR:=tar cfJ
@@ -378,10 +378,15 @@ $(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
 ifneq ($(GTEST_LIB_FLAGS),)
 TEST_OBJS:=$(patsubst %.cpp,%.o,$(wildcard utest/*.cpp))
 
-ifneq ($(filter utest,$(MAKECMDGOALS)),)
+ifneq ($(filter utest $(UTEST_TGT),$(MAKECMDGOALS)),)
 ifneq ($(NONPHONY_TGT),)
 $(eval $(call phony,$(NONPHONY_TGT)))
-GTEST_FLAGS:=--gtest_filter=*$(NONPHONY_TGT)*
+GTEST_FILTERS:=--gtest_filter=*$(NONPHONY_TGT)*
+RUBY_FILTERS:=-v -n '/$(NONPHONY_TGT)/i'
+PY_FILTERS:=-v -k $(NONPHONY_TGT)
+PHP_FILTERS:=--testdox --filter $(NONPHONY_TGT)
+LUA_FILTERS:=-v -p $(NONPHONY_TGT)
+TCL_FILTERS:=-verbose "pass body erro" -match "*$(NONPHONY_TGT)*"
 endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
@@ -400,7 +405,7 @@ $(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
 	  $(GTEST_LIB_FLAGS) -o $@
 
 utest_cpp: $(HEADERS_GEN_COMP) $(UTEST)
-	$(call Q_UTEST,C++)$(UTEST) $(GTEST_NO_COL) $(GTEST_FLAGS)
+	$(call Q_UTEST,C++)$(UTEST) $(GTEST_NO_COL) $(GTEST_FILTERS)
 utest: $(UTEST_TGT)
 
 endif # GTEST_LIB_FLAGS
@@ -506,7 +511,7 @@ $$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$$(LUA_LIB_$1)
 utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1)
 	$$(call Q_UTEST,Lua$1)LD_PRELOAD=./$$< LUA_CPATH=";;lua/$1/?.so"\
-	  lua$1 lua/utest.lua
+	  lua$1 lua/utest.lua $(LUA_FILTERS)
 .PHONY: utest_lua_$1
 
 endef
@@ -529,7 +534,8 @@ $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
 utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
-	$(call Q_UTEST,Lua)LD_PRELOAD=./$< LUA_CPATH=";;lua/?.so" $(LUABIN) lua/utest.lua
+	$(call Q_UTEST,Lua)LD_PRELOAD=./$< LUA_CPATH=";;lua/?.so" $(LUABIN)\
+	  lua/utest.lua $(LUA_FILTERS)
 endif # LUA_VERSION
 utest_lua: utest_lua_a $(foreach n,$(filter-out 5.4,$(LUAVERSIONS)),utest_lua_$n)
 endif # SKIP_LUA
@@ -557,7 +563,8 @@ $(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_SO_3)
 utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
-	$(call Q_UTEST,Python3)LD_PRELOAD=./$< PYTHONPATH=python/3 python/utest.py
+	$(call Q_UTEST,Python3)LD_PRELOAD=./$< PYTHONPATH=python/3\
+	  python/utest.py $(PY_FILTERS)
 endif # SKIP_PYTHON3
 
 ifeq ($(SKIP_RUBY),)
@@ -576,7 +583,7 @@ $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
 utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
-	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=ruby ruby/utest.rb
+	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=ruby ruby/utest.rb $(RUBY_FILTERS)
 endif # SKIP_RUBY
 
 ifeq ($(SKIP_PHP),)
@@ -592,7 +599,7 @@ SWIG_ALL+=$(PHP_LNAME).so
 php/php.ini:
 	$(Q)php/php_ini.sh php/
 utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
-	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php phpunit php/utest.php
+	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php phpunit php/utest.php $(PHP_FILTERS)
 endif # SKIP_PHP
 
 ifeq ($(SKIP_TCL),)
@@ -608,11 +615,13 @@ $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(TCL_LNAME).so
 TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
-# TODO how the hell tcl "know" the library version? Why does it think it's 0.0?
-# Need to add soname!
 pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
 pkgIndex+=package ifneeded $(SWIG_LNAME) $(ver_maj)
 pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
+tcl/pkgIndex.tcl:
+	$(Q)tcl/pkgIndex_tcl.sh tcl
+utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so tcl/pkgIndex.tcl
+	$(call Q_UTEST,TCL)LD_PRELOAD=./$< TCLLIBPATH=tcl tcl/utest.tcl $(TCL_FILTERS)
 endif # SKIP_TCL
 
 ALL+=$(SWIG_ALL)

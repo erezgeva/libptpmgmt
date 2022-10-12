@@ -61,8 +61,20 @@ check_clean()
       mquit "Make $name left unused files"
   fi
 }
+test_clean()
+{
+    if $have_git; then
+        out=''
+        make clean
+        check_clean clean autom4te.cache/ config.log\
+                          config.status configure defs.mk
+        make distclean
+        check_clean distclean
+    fi
+}
 main()
 {
+    local -r jobs=3  # Number of Make parallel jobs
     local last_ret out
     # Make sure we output to STDOUT directly, no pipes
     # check our teminal support coulors
@@ -76,34 +88,36 @@ main()
     cd $(dirname $(realpath $0))/..
     eacmd git rev-parse --is-inside-work-tree
     if [[ $last_ret -eq 0 ]]; then
-        out=''
+        local -r have_git=true
         local -r would='Would[[:space:]]remove[[:space:]]'
-        make clean
-        check_clean clean autom4te.cache/ config.log\
-                          config.status configure defs.mk
-        make distclean
-        check_clean distclean
-        # Reuse workd in side git
-        if [[ -n "$(which reuse)" ]]; then
-            echo " * Check files licenses with 'reuse'"
-            ecmd reuse lint
-            equit "'reuse' detect missing SPDX tags"
-        fi
+        test_clean
     else
-        make clean
+        local -r have_git=false
+        # Make sure we do not have leftovers
+        ecmd make clean
+    fi
+    if $have_git && [[ -n "$(which reuse)" ]]; then
+        echo " * Check files licenses with 'reuse'"
+        ecmd reuse lint
+        equit "'reuse' detect missing SPDX tags"
     fi
     echo " * Configure"
     autoconf
     ecmd dh_auto_configure
     equit "Configuratation fails"
     # Run syntax checking
-    make checkall -j
+    make checkall -j$jobs
     echo " * Run unit test"
-    eacmd make utest -j
+    eacmd make utest -j$jobs
     equit "Unit test fails"
+    echo " * Build"
+    ecmd make -j$jobs
+    equit "Build fails"
+    test_clean
     echo " * Build Debian packages"
     eacmd make deb
     equit "Build Debian packages fails"
+    test_clean
     echo "$color_blue * CI test done$color_norm"
 }
 main "$@"

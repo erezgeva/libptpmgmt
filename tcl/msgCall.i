@@ -17,7 +17,7 @@
 "    }\n"
 "    set objClass [ info object class [self object] ]\n"
 "    set objMthods \" [ info class methods $objClass -private ] \"\n"
-"    if { [ $msg isValidId $tlv_id ] } {\n"
+"    if { [ $msg isValidId $tlv_id ] && ! [ ptpmgmt::Message_isEmpty $tlv_id ] } {\n"
 "      set idstr [ ptpmgmt::Message_mng2str_c $tlv_id ]\n"
 "      set callback_name \"${idstr}_h\"\n"
 "      if { [ regexp \" $callback_name \" $objMthods ] } {\n"

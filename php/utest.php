@@ -60,7 +60,7 @@ final class utest extends TestCase
     }
 
     # Tests callHadler with empty TLV
-    public function testParsedCallHadlerEmptyTLV(): void {
+    public function testParsedCallHadlerEmptyTlv(): void {
       $this->disp->callHadler($this->msg);
       $this->assertEquals(0x2, $this->disp->func,      'should call noTlv');
       $this->assertEquals('',  $this->disp->id,        'should have empty ID');
@@ -68,7 +68,7 @@ final class utest extends TestCase
     }
 
     # Tests callHadler method with TLV
-    public function testParsedCallHadlerTLV(): void {
+    public function testParsedCallHadlerTlv(): void {
       $tlv = new PRIORITY1_t();
       $tlv->priority1 = 117;
       $this->disp->callHadler($this->msg, ptpmgmt::PRIORITY1, $tlv);
@@ -78,7 +78,7 @@ final class utest extends TestCase
     }
 
     # Tests callHadler method with TLV without callback
-    public function testParsedCallHadlerTLVNoCallback(): void {
+    public function testParsedCallHadlerTlvWithoutCallback(): void {
       $tlv = new PRIORITY2_t();
       $tlv->priority2 = 117;
       $this->disp->callHadler($this->msg, ptpmgmt::PRIORITY2, $tlv);
@@ -88,19 +88,19 @@ final class utest extends TestCase
     }
 
     # Tests build empty TLV
-    public function test_buildEmptyTLV(): void {
+    public function test_buildEmptyTlv(): void {
       $this->assertTrue($this->build->buildTlv(ptpmgmt::COMMAND, ptpmgmt::ENABLE_PORT), 'should pass');
       $this->assertEquals(0, $this->build->run, "shouldn't call PRIORITY1 callback");
     }
 
     # Tests build TLV
-    public function test_buildTLV(): void {
+    public function test_buildTlv(): void {
       $this->assertTrue($this->build->buildTlv(ptpmgmt::SET, ptpmgmt::PRIORITY1), 'should pass');
       $this->assertEquals(1, $this->build->run, 'should call PRIORITY1 callback');
     }
 
     # Tests build TLV that lack callback
-    public function test_buildTLVNoCallback(): void {
+    public function test_buildTlvWithoutCallback(): void {
       $this->assertFalse($this->build->buildTlv(ptpmgmt::SET, ptpmgmt::PRIORITY2), 'should no pass');
       $this->assertEquals(0, $this->build->run, "shouldn't call PRIORITY1 callback");
     }
