@@ -241,7 +241,6 @@ struct MsgProc {
     /* For Enumerators using 16 bits */
     template <typename T> bool procE16(T &val);
     bool proc(networkProtocol_e &val) { return procE16(val); }
-    bool proc(linuxptpPowerProfileVersion_e &val) { return procE16(val); }
     bool proc(TimeInterval_t &v);
     bool proc(Timestamp_t &d);
     bool proc(ClockIdentity_t &v);
@@ -291,7 +290,6 @@ struct JsonProc {
     _ptpmProcType(timeSource_e)
     _ptpmProcType(portState_e)
     _ptpmProcType(linuxptpTimeStamp_e)
-    _ptpmProcType(linuxptpPowerProfileVersion_e)
     _ptpmProcType(linuxptpUnicastState_e)
     _ptpmProcType(TimeInterval_t)
     _ptpmProcType(Timestamp_t)

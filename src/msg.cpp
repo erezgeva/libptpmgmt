@@ -944,16 +944,6 @@ const char *Message::ts2str_c(linuxptpTimeStamp_e val)
     }
     return "unknown";
 }
-const char *Message::pwr2str_c(linuxptpPowerProfileVersion_e ver)
-{
-    const size_t off = 21; // Remove prefix 'IEEE_C37_238_VERSION_'
-    switch(ver) {
-        case caseItemOff(IEEE_C37_238_VERSION_NONE);
-        case caseItemOff(IEEE_C37_238_VERSION_2011);
-        case caseItemOff(IEEE_C37_238_VERSION_2017);
-    }
-    return "unknown state";
-}
 const char *Message::us2str_c(linuxptpUnicastState_e state)
 {
     const size_t off = 3; // Remove prefix 'UC_'

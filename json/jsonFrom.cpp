@@ -381,18 +381,6 @@ struct JsonProcFromJson : public JsonProcFrom {
         }
         return false;
     }
-    bool procValue(const char *key, linuxptpPowerProfileVersion_e &d) {
-        GET_STR
-        for(int i = IEEE_C37_238_VERSION_NONE; i <= IEEE_C37_238_VERSION_2017;
-            i++) {
-            linuxptpPowerProfileVersion_e v = (linuxptpPowerProfileVersion_e)i;
-            if(strcmp(str, Message::pwr2str_c(v)) == 0) {
-                d = v;
-                return true;
-            }
-        }
-        return false;
-    }
     bool procValue(const char *key, linuxptpUnicastState_e &d) {
         GET_STR
         for(int i = UC_WAIT; i <= UC_HAVE_SYDY; i++) {

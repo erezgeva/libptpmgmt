@@ -605,15 +605,6 @@ TEST(MessageTest, MethodTs2str)
     EXPECT_STREQ(Message::ts2str_c(TS_P2P1STEP), "P2P1STEP");
 }
 
-// tests convert linuxptp power profile version to string
-// static const char *pwr2str_c(linuxptpPowerProfileVersion_e ver)
-TEST(MessageTest, MethodPwr2str)
-{
-    EXPECT_STREQ(Message::pwr2str_c(IEEE_C37_238_VERSION_NONE), "NONE");
-    EXPECT_STREQ(Message::pwr2str_c(IEEE_C37_238_VERSION_2011), "2011");
-    EXPECT_STREQ(Message::pwr2str_c(IEEE_C37_238_VERSION_2017), "2017");
-}
-
 // tests convert linuxptp master unicasy state to string
 // static const char *us2str_c(linuxptpUnicastState_e state)
 TEST(MessageTest, MethodUs2str)

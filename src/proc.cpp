@@ -354,7 +354,6 @@ template <typename T> bool MsgProc::procE16(T &val)
 }
 #define E16(t) template bool MsgProc::procE16<t>(t &)
 E16(networkProtocol_e);
-E16(linuxptpPowerProfileVersion_e);
 E16(linuxptpUnicastState_e);
 bool MsgProc::proc(TimeInterval_t &v)
 {
@@ -852,13 +851,5 @@ A(PORT_HWCLOCK_NP)
 {
     return proc(d.portIdentity) || proc(d.phc_index) || proc(d.flags);
 };
-#if 0
-A(POWER_PROFILE_SETTINGS_NP)
-{
-    return proc(d.version) || proc(d.grandmasterID) ||
-        proc(d.grandmasterTimeInaccuracy) || proc(d.networkTimeInaccuracy) ||
-        proc(d.totalTimeInaccuracy);
-}
-#endif
 
 __PTPMGMT_NAMESPACE_END
