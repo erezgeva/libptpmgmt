@@ -472,6 +472,9 @@ const int NOTIFY_TIME_SYNC = 1;
 struct SUBSCRIBE_EVENTS_NP_t : public BaseMngTlv {
     uint16_t duration; /**< duration in seconds */
     uint8_t bitmask[EVENT_BITMASK_CNT]; /**< bitmask of events state */
+    /**< Default constructor */
+    /**< We need to zero the bitmask, as we do not set it explicity! */
+    SUBSCRIBE_EVENTS_NP_t() : bitmask{0} {}
     /** Set event bit in bitmask */
     void setEvent(int event) {
         if(event >= 0 && event < EVENT_BITMASK_CNT)

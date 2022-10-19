@@ -11,6 +11,8 @@
 
 package require ptpmgmt
 package require tcltest
+# See: man tcltest
+#      https://wiki.tcl-lang.org/page/tcltest
 
 ::oo::class create myDisp {
   superclass ptpmgmt::MessageDispatcher

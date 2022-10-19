@@ -238,6 +238,7 @@ struct MsgProc {
     bool proc(portState_e &val) { return procE8(val); }
     bool proc(msgType_e &val) { return procE8(val); }
     bool proc(linuxptpTimeStamp_e &val) { return procE8(val); }
+    bool proc(linuxptpUnicastState_e &val) { return procE8(val); }
     /* For Enumerators using 16 bits */
     template <typename T> bool procE16(T &val);
     bool proc(networkProtocol_e &val) { return procE16(val); }
@@ -250,7 +251,6 @@ struct MsgProc {
     bool proc(PTPText_t &d);
     bool proc(FaultRecord_t &d);
     bool proc(AcceptableMaster_t &d);
-    bool proc(linuxptpUnicastState_e &val) { return procE16(val); }
     bool proc(LinuxptpUnicastMaster_t &d);
     bool proc(SLAVE_RX_SYNC_TIMING_DATA_rec_t &rec);
     bool proc(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t &rec);

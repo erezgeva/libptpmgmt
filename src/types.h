@@ -195,7 +195,7 @@ enum clockAccuracy_e : uint8_t {
     Accurate_within_1s    = 0x2f, /**< higher than 1 seconds */
     Accurate_within_10s   = 0x30, /**< higher than 10 seconds */
     Accurate_more_10s     = 0x31, /**< lower than 10 seconds */
-    Accurate_Unknown      = 0xef, /**< Unknown */
+    Accurate_Unknown      = 0xfe, /**< Unknown */
 };
 /** Fault record severity code */
 enum faultRecord_e : uint8_t {

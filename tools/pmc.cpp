@@ -20,7 +20,7 @@
 static const int wait = 500; // milli
 // buffer for send and receive
 static const size_t bufSize = 2000;
-static char buf[bufSize];
+static uint8_t buf[bufSize];
 static Init obj;
 static Message &msg = obj.msg();
 static SockBase *sk;

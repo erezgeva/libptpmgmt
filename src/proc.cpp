@@ -345,6 +345,7 @@ E8(timeSource_e);
 E8(portState_e);
 E8(msgType_e);
 E8(linuxptpTimeStamp_e);
+E8(linuxptpUnicastState_e);
 template <typename T> bool MsgProc::procE16(T &val)
 {
     uint16_t v = val;
@@ -354,7 +355,6 @@ template <typename T> bool MsgProc::procE16(T &val)
 }
 #define E16(t) template bool MsgProc::procE16<t>(t &)
 E16(networkProtocol_e);
-E16(linuxptpUnicastState_e);
 bool MsgProc::proc(TimeInterval_t &v)
 {
     return proc(v.scaledNanoseconds);

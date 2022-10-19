@@ -14,7 +14,6 @@
 class MsgDump : public MessageDispatcher
 {
   public:
-    MsgDump() {}
 
 #define IDENT "\n\t\t"
 #define dump(n) void n##_h(const Message &m, const n##_t &d, const char*) override

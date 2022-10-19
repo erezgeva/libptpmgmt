@@ -121,10 +121,14 @@ space=$(subst A,,A A)
 ### output shaper
 
 ifdef USE_COL
-GTEST_NO_COL=--gtest_color=yes
+GTEST_NO_COL:=--gtest_color=yes
+RUBY_NO_COL:=--use-color=yes
+PHP_NO_COL:=--colors=always
 else
 ifdef NO_COL # gtest handles terminal by itself
-GTEST_NO_COL=--gtest_color=no
+GTEST_NO_COL:=--gtest_color=no
+RUBY_NO_COL:=--no-use-color
+PHP_NO_COL:=--colors=never
 endif
 endif
 
@@ -159,6 +163,9 @@ COLOR_BACKGROUND:= $(ESC)07m
 COLOR_BRIGHTEN:=   $(ESC)01m
 COLOR_UNDERLINE:=  $(ESC)04m
 COLOR_BLINK:=      $(ESC)05m
+GTEST_NO_COL?=--gtest_color=auto
+RUBY_NO_COL?=--use-color=auto
+PHP_NO_COL?=--colors=auto
 endif
 
 ifneq ($(V),1)
@@ -583,7 +590,8 @@ $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
 utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
-	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=ruby ruby/utest.rb $(RUBY_FILTERS)
+	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=ruby ruby/utest.rb\
+	  $(RUBY_NO_COL) $(RUBY_FILTERS)
 endif # SKIP_RUBY
 
 ifeq ($(SKIP_PHP),)
@@ -599,7 +607,8 @@ SWIG_ALL+=$(PHP_LNAME).so
 php/php.ini:
 	$(Q)php/php_ini.sh php/
 utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
-	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php phpunit php/utest.php $(PHP_FILTERS)
+	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php phpunit php/utest.php\
+	  $(PHP_NO_COL) $(PHP_FILTERS)
 endif # SKIP_PHP
 
 ifeq ($(SKIP_TCL),)
