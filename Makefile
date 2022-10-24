@@ -279,8 +279,6 @@ Q_LCC=$(info $(COLOR_BUILD)[LCC] $<$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 Q_UTEST=$Q$(info $(COLOR_BUILD)[UTEST $1]$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
-# Filter normal output, send error output to stdout
-QE:=2>&1 >/dev/null | $(SED) 's@^$(ROOT_DIR)/@@'
 endif
 
 LN:=$(LN_S) -f
@@ -642,8 +640,11 @@ ifeq ($(DOTTOOL),)
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
 	exit 1
 else
-	$(Q_DOXY)r=`$(DOXYGEN) doxygen.cfg $(QE)`
-	if test -n "$$r"; then echo "$$r";exit 1;fi
+ifdef Q_DOXY
+	$(Q_DOXY)$(DOXYGEN) doxygen.cfg >/dev/null
+else
+	$(DOXYGEN) doxygen.cfg
+endif
 endif # DOTTOOL
 endif # DOXYGENMINVER
 

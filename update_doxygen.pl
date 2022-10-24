@@ -14,12 +14,16 @@ sub main
   my $cfg='doxygen.cfg';
   return unless -f $cfg;
   my $yes = 'YES';
+  my $key_reg=qr([A-Z0-9_]+); # regular expression to catch a key
   # These options are always used
   my %options = (
     CASE_SENSE_NAMES => $yes, # Default is system dependent.
-    HAVE_DOT => $yes, # Default value change in 1.9.3
   );
-  my $key_reg=qr([A-Z0-9_]+); # regular expression to catch a key
+  # Store current used options
+  my %cur_options = %options;
+  for((split (/\n/,`doxygen -x $cfg`))) {
+    $cur_options{$1} = $2 if /^($key_reg)\s*=\s*(.*)/;
+  }
   # Unmark all options, so the double comments retain thier place
   # Also catch any option that default value is changed on new version
   {
@@ -97,6 +101,10 @@ sub main
       }
       print;
     }
+  }
+  # New options added due to default value changed on new version!
+  for(keys %options) {
+    print "New option: $_\n" unless exists $cur_options{$_};
   }
   unlink "$cfg.bak" if -f "$cfg.bak";
 }

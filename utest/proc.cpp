@@ -55,18 +55,18 @@ TEST_F(ProcTest, CLOCK_DESCRIPTION)
     const CLOCK_DESCRIPTION_t *r = (const CLOCK_DESCRIPTION_t *)getData();
     EXPECT_EQ(r->clockType, ordinaryClock);
     EXPECT_EQ(r->physicalLayerProtocol.lengthField, 10);
-    EXPECT_STREQ(r->physicalLayerProtocol.textField.c_str(), "IEEE 802.3");
+    EXPECT_STREQ(r->physicalLayerProtocol.string(), "IEEE 802.3");
     EXPECT_EQ(r->physicalAddressLength, 6);
     EXPECT_EQ(r->physicalAddress, physicalAddress);
     PortAddress_t portAddress = { IEEE_802_3, 6, physicalAddress };
     EXPECT_EQ(r->protocolAddress, portAddress);
     EXPECT_EQ(memcmp(r->manufacturerIdentity, "\x0\x0\x0", 3), 0);
     EXPECT_EQ(r->productDescription.lengthField, 2);
-    EXPECT_STREQ(r->productDescription.textField.c_str(), ";;");
+    EXPECT_STREQ(r->productDescription.string(), ";;");
     EXPECT_EQ(r->revisionData.lengthField, 2);
-    EXPECT_STREQ(r->revisionData.textField.c_str(), ";;");
+    EXPECT_STREQ(r->revisionData.string(), ";;");
     EXPECT_EQ(r->userDescription.lengthField, 7);
-    EXPECT_STREQ(r->userDescription.textField.c_str(), "test123");
+    EXPECT_STREQ(r->userDescription.string(), "test123");
     EXPECT_EQ(memcmp(r->profileIdentity, "\x0\x1b\x19\x0\x2\x0", 6), 0);
 }
 
@@ -83,7 +83,7 @@ TEST_F(ProcTest, USER_DESCRIPTION)
     ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
     const USER_DESCRIPTION_t *r = (const USER_DESCRIPTION_t *)getData();
     EXPECT_EQ(r->userDescription.lengthField, 7);
-    EXPECT_STREQ(r->userDescription.textField.c_str(), "test123");
+    EXPECT_STREQ(r->userDescription.string(), "test123");
 }
 
 // Tests INITIALIZE structure
@@ -120,21 +120,21 @@ TEST_F(ProcTest, FAULT_LOG)
     EXPECT_EQ(r->faultRecords[0].faultTime, 9.000709);
     EXPECT_EQ(r->faultRecords[0].severityCode, F_Critical);
     EXPECT_EQ(r->faultRecords[0].faultName.lengthField, 7);
-    EXPECT_STREQ(r->faultRecords[0].faultName.textField.c_str(), "error 1");
+    EXPECT_STREQ(r->faultRecords[0].faultName.string(), "error 1");
     EXPECT_EQ(r->faultRecords[0].faultValue.lengthField, 7);
-    EXPECT_STREQ(r->faultRecords[0].faultValue.textField.c_str(), "test123");
+    EXPECT_STREQ(r->faultRecords[0].faultValue.string(), "test123");
     EXPECT_EQ(r->faultRecords[0].faultDescription.lengthField, 20);
-    EXPECT_STREQ(r->faultRecords[0].faultDescription.textField.c_str(),
+    EXPECT_STREQ(r->faultRecords[0].faultDescription.string(),
         "This is first record");
     EXPECT_EQ(r->faultRecords[1].faultRecordLength, 55);
     EXPECT_EQ(r->faultRecords[1].faultTime, 1791.003019);
     EXPECT_EQ(r->faultRecords[1].severityCode, F_Warning);
     EXPECT_EQ(r->faultRecords[1].faultName.lengthField, 7);
-    EXPECT_STREQ(r->faultRecords[1].faultName.textField.c_str(), "error 2");
+    EXPECT_STREQ(r->faultRecords[1].faultName.string(), "error 2");
     EXPECT_EQ(r->faultRecords[1].faultValue.lengthField, 7);
-    EXPECT_STREQ(r->faultRecords[1].faultValue.textField.c_str(), "test321");
+    EXPECT_STREQ(r->faultRecords[1].faultValue.string(), "test321");
     EXPECT_EQ(r->faultRecords[1].faultDescription.lengthField, 25);
-    EXPECT_STREQ(r->faultRecords[1].faultDescription.textField.c_str(),
+    EXPECT_STREQ(r->faultRecords[1].faultDescription.string(),
         "This is the second record");
 }
 
@@ -661,7 +661,7 @@ TEST_F(ProcTest, ALTERNATE_TIME_OFFSET_NAME)
         (const ALTERNATE_TIME_OFFSET_NAME_t *)getData();
     EXPECT_EQ(r->keyField, 11);
     EXPECT_EQ(r->displayName.lengthField, 3);
-    EXPECT_STREQ(r->displayName.textField.c_str(), "123");
+    EXPECT_STREQ(r->displayName.string(), "123");
 }
 
 // Tests ALTERNATE_TIME_OFFSET_MAX_KEY structure
@@ -949,7 +949,7 @@ TEST_F(ProcTest, PORT_PROPERTIES_NP)
     EXPECT_EQ(r->portState, LISTENING);
     EXPECT_EQ(r->timestamping, TS_HARDWARE);
     EXPECT_EQ(r->interface.lengthField, 7);
-    EXPECT_STREQ(r->interface.textField.c_str(), "enp0s25");
+    EXPECT_STREQ(r->interface.string(), "enp0s25");
 }
 
 // Tests PORT_STATS_NP structure
