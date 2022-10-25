@@ -230,14 +230,14 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard */*test.* scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
+SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   config.guess config.sub configure.ac install-sh $(SRC)/*.in $(SRC)/*.m4\
   php/*.sh tcl/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/*)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample\
-  utest,':!/:$n') ':!:*.gitignore'
+  utest,':!/:$n') ':!:*.gitignore' ':!:*test.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))

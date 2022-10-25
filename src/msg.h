@@ -39,32 +39,6 @@ class Message
      */
   private:
 
-    /**
-     * hold single TLV from a signaling message
-     * Used internaly
-     */
-    struct sigTlv {
-        tlvType_e tlvType;
-        /**
-         * As we use a vector of this structure,
-         * And we do not want the vector to pass the sig-tlv pointer or copy it.
-         * We do not pass the sig-tlv pointer in copy and assignment functions.
-         * We pass the sig-tlv pointer directly
-         *  afer we insert a new item to the vector!
-         * We only copy the type value here.
-         */
-        sigTlv(tlvType_e type) : tlvType(type) {}
-        sigTlv(const sigTlv &rhs) : tlvType(rhs.tlvType) {}
-        sigTlv &operator=(const sigTlv &rhs) {
-            tlvType = rhs.tlvType;
-            return *this;
-        }
-        const BaseSigTlv *get() const { return tlv.get(); }
-        void set(BaseSigTlv *t) { tlv.reset(t); }
-      private:
-        std::unique_ptr<BaseSigTlv> tlv;
-    };
-
     /**< @endcond */
 
     /* build parameters */
@@ -83,7 +57,11 @@ class Message
     uint8_t           m_domainNumber; /* parsed message domainNumber*/
     uint8_t           m_versionPTP; /* parsed message ptp version */
     uint8_t           m_minorVersionPTP; /* parsed message ptp version */
-    std::vector<sigTlv> m_sigTlvs; /* hold signaling TLVs */
+    /* hold signaling TLVs */
+    std::vector<std::unique_ptr<BaseSigTlv>> m_sigTlvs;
+    /* hold signaling TLVs type */
+    std::vector<tlvType_e> m_sigTlvsType;
+    /* parsed managment TLV */
     std::unique_ptr<BaseMngTlv> m_dataGet;
 
     /* Generic */

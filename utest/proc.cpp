@@ -21,9 +21,7 @@ class ProcTest : public ::testing::Test, public Message
     uint8_t buf[400];
     const size_t tlvLoc = 54;
     const Binary physicalAddress = Binary("\xc4\x7d\x46\x20\xac\xae", 6);
-    const ClockIdentity_t clockIdentity = { 0xc4, 0x7d, 0x46, 0xff,
-                              0xfe, 0x20, 0xac, 0xae
-                          };
+    const ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
     size_t sizeMsg(size_t tlvLength, actionField_e act = RESPONSE) {
         buf[46] = act;
         return tlvLoc + tlvLength;
@@ -156,7 +154,7 @@ TEST_F(ProcTest, DEFAULT_DATA_SET)
     EXPECT_EQ(r->clockQuality.clockAccuracy, Accurate_Unknown);
     EXPECT_EQ(r->clockQuality.offsetScaledLogVariance, 0xffff);
     EXPECT_EQ(r->priority2, 137);
-    EXPECT_EQ(r->clockIdentity, clockIdentity);
+    EXPECT_EQ(r->clockIdentity, clockId);
     EXPECT_EQ(r->domainNumber, 0);
 }
 
@@ -188,7 +186,7 @@ TEST_F(ProcTest, PARENT_DATA_SET)
     ASSERT_EQ(parse(buf, rsp(0x2002, m, sizeof m)), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getTlvId(), PARENT_DATA_SET);
     const PARENT_DATA_SET_t *r = (const PARENT_DATA_SET_t *)getData();
-    PortIdentity_t portIdentity = { clockIdentity, 0 };
+    PortIdentity_t portIdentity = { clockId, 0 };
     EXPECT_EQ(r->parentPortIdentity, portIdentity);
     EXPECT_EQ(r->flags, 0);
     EXPECT_EQ(r->observedParentOffsetScaledLogVariance, 0xffff);
@@ -198,7 +196,7 @@ TEST_F(ProcTest, PARENT_DATA_SET)
     EXPECT_EQ(r->grandmasterClockQuality.clockAccuracy, Accurate_Unknown);
     EXPECT_EQ(r->grandmasterClockQuality.offsetScaledLogVariance, 0xffff);
     EXPECT_EQ(r->grandmasterPriority2, 255);
-    EXPECT_EQ(r->grandmasterIdentity, clockIdentity);
+    EXPECT_EQ(r->grandmasterIdentity, clockId);
 }
 
 // Tests TIME_PROPERTIES_DATA_SET structure
@@ -227,7 +225,7 @@ TEST_F(ProcTest, PORT_DATA_SET)
     ASSERT_EQ(parse(buf, rsp(0x2004, m, sizeof m)), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getTlvId(), PORT_DATA_SET);
     const PORT_DATA_SET_t *r = (const PORT_DATA_SET_t *)getData();
-    PortIdentity_t portIdentity = { clockIdentity, 1 };
+    PortIdentity_t portIdentity = { clockId, 1 };
     EXPECT_EQ(r->portIdentity, portIdentity);
     EXPECT_EQ(r->portState, LISTENING);
     EXPECT_EQ(r->logMinDelayReqInterval, 0);
@@ -468,7 +466,7 @@ TEST_F(ProcTest, PATH_TRACE_LIST)
     ASSERT_EQ(parse(buf, rsp(0x2015, m, sizeof m)), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getTlvId(), PATH_TRACE_LIST);
     const PATH_TRACE_LIST_t *r = (const PATH_TRACE_LIST_t *)getData();
-    EXPECT_EQ(r->pathSequence[0], clockIdentity);
+    EXPECT_EQ(r->pathSequence[0], clockId);
     ClockIdentity_t c2 = {12, 4, 19, 97, 11, 74, 12, 74};
     EXPECT_EQ(r->pathSequence[1], c2);
 }
@@ -558,7 +556,7 @@ TEST_F(ProcTest, UNICAST_MASTER_MAX_TABLE_SIZE)
 TEST_F(ProcTest, ACCEPTABLE_MASTER_TABLE)
 {
     ACCEPTABLE_MASTER_TABLE_t t;
-    PortIdentity_t a0 = { clockIdentity, 1 };
+    PortIdentity_t a0 = { clockId, 1 };
     t.list.push_back({a0, 127});
     PortIdentity_t a1 = { { 9, 8, 7, 6, 5, 4, 1, 7}, 2 };
     t.list.push_back({a1, 111});
@@ -713,7 +711,7 @@ TEST_F(ProcTest, TRANSPARENT_CLOCK_PORT_DATA_SET)
     EXPECT_EQ(getTlvId(), TRANSPARENT_CLOCK_PORT_DATA_SET);
     const TRANSPARENT_CLOCK_PORT_DATA_SET_t *r =
         (const TRANSPARENT_CLOCK_PORT_DATA_SET_t *)getData();
-    PortIdentity_t portIdentity = { clockIdentity, 1 };
+    PortIdentity_t portIdentity = { clockId, 1 };
     EXPECT_EQ(r->portIdentity, portIdentity);
     EXPECT_EQ(r->flags, 1);
     EXPECT_EQ(r->logMinPdelayReqInterval, -21);
@@ -746,7 +744,7 @@ TEST_F(ProcTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     EXPECT_EQ(getTlvId(), TRANSPARENT_CLOCK_DEFAULT_DATA_SET);
     const TRANSPARENT_CLOCK_DEFAULT_DATA_SET_t *r =
         (const TRANSPARENT_CLOCK_DEFAULT_DATA_SET_t *)getData();
-    EXPECT_EQ(r->clockIdentity, clockIdentity);
+    EXPECT_EQ(r->clockIdentity, clockId);
     EXPECT_EQ(r->numberPorts, 0x177a);
     EXPECT_EQ(r->delayMechanism, 0xfe);
     EXPECT_EQ(r->primaryDomain, 18);
@@ -868,7 +866,7 @@ TEST_F(ProcTest, TIME_STATUS_NP)
     EXPECT_EQ(r->nanoseconds_lsb, 0);
     EXPECT_EQ(r->fractional_nanoseconds, 0);
     EXPECT_EQ(r->gmPresent, 0);
-    EXPECT_EQ(r->gmIdentity, clockIdentity);
+    EXPECT_EQ(r->gmIdentity, clockId);
 }
 
 // Tests GRANDMASTER_SETTINGS_NP structure
@@ -944,7 +942,7 @@ TEST_F(ProcTest, PORT_PROPERTIES_NP)
     ASSERT_EQ(parse(buf, rsp(0xc004, m, sizeof m)), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getTlvId(), PORT_PROPERTIES_NP);
     const PORT_PROPERTIES_NP_t *r = (const PORT_PROPERTIES_NP_t *)getData();
-    PortIdentity_t portIdentity = { clockIdentity, 1 };
+    PortIdentity_t portIdentity = { clockId, 1 };
     EXPECT_EQ(r->portIdentity, portIdentity);
     EXPECT_EQ(r->portState, LISTENING);
     EXPECT_EQ(r->timestamping, TS_HARDWARE);
@@ -963,7 +961,7 @@ TEST_F(ProcTest, PORT_STATS_NP)
     ASSERT_EQ(parse(buf, rsp(0xc005, m, sizeof m)), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getTlvId(), PORT_STATS_NP);
     const PORT_STATS_NP_t *r = (const PORT_STATS_NP_t *)getData();
-    PortIdentity_t portIdentity = { clockIdentity, 1 };
+    PortIdentity_t portIdentity = { clockId, 1 };
     EXPECT_EQ(r->portIdentity, portIdentity);
     EXPECT_EQ(r->rxMsgType[STAT_SYNC], 0);
     EXPECT_EQ(r->rxMsgType[STAT_DELAY_REQ], 0);
@@ -1014,7 +1012,7 @@ TEST_F(ProcTest, PORT_SERVICE_STATS_NP)
     ASSERT_EQ(parse(buf, rsp(0xc007, m, sizeof m)), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getTlvId(), PORT_SERVICE_STATS_NP);
     const PORT_SERVICE_STATS_NP_t *r = (const PORT_SERVICE_STATS_NP_t *)getData();
-    PortIdentity_t portIdentity = { clockIdentity, 1 };
+    PortIdentity_t portIdentity = { clockId, 1 };
     EXPECT_EQ(r->portIdentity, portIdentity);
     EXPECT_EQ(r->announce_timeout, 9041);
     EXPECT_EQ(r->sync_timeout, 0);
@@ -1042,7 +1040,7 @@ TEST_F(ProcTest, UNICAST_MASTER_TABLE_NP)
     const UNICAST_MASTER_TABLE_NP_t *r =
         (const UNICAST_MASTER_TABLE_NP_t *)getData();
     EXPECT_EQ(r->actualTableSize, 1);
-    PortIdentity_t portIdentity = { clockIdentity, 1 };
+    PortIdentity_t portIdentity = { clockId, 1 };
     EXPECT_EQ(r->unicastMasters[0].portIdentity, portIdentity);
     EXPECT_EQ(r->unicastMasters[0].clockQuality.clockClass, 255);
     EXPECT_EQ(r->unicastMasters[0].clockQuality.clockAccuracy, Accurate_Unknown);
@@ -1064,7 +1062,7 @@ TEST_F(ProcTest, PORT_HWCLOCK_NP)
     ASSERT_EQ(parse(buf, rsp(0xc009, m, sizeof m)), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getTlvId(), PORT_HWCLOCK_NP);
     const PORT_HWCLOCK_NP_t *r = (const PORT_HWCLOCK_NP_t *)getData();
-    PortIdentity_t portIdentity = { clockIdentity, 1 };
+    PortIdentity_t portIdentity = { clockId, 1 };
     EXPECT_EQ(r->portIdentity, portIdentity);
     EXPECT_EQ(r->phc_index, 1);
     EXPECT_EQ(r->flags, 0);

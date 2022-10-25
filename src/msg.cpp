@@ -469,6 +469,7 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
     MsgProc &mp = *pMp;
     ssize_t leftAll = mp.m_size;
     m_sigTlvs.clear(); // remove old TLVs
+    m_sigTlvsType.clear();
     while(leftAll >= tlvSizeHdr) {
         uint16_t *cur = (uint16_t *)mp.m_cur;
         tlvType_e tlvType = (tlvType_e)net_to_cpu16(*cur++);
@@ -559,10 +560,10 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
         if(mp.m_left > 0)
             mp.m_cur += mp.m_left;
         if(tlv != nullptr) {
-            sigTlv rec(tlvType);
-            auto it = m_sigTlvs.insert(m_sigTlvs.end(), rec);
-            // Put the tlv to the object inside the vector
-            it->set(tlv);
+            m_sigTlvs.push_back(nullptr);
+            m_sigTlvsType.push_back(tlvType);
+            // pass the tlv to the vector
+            m_sigTlvs.back().reset(tlv);
         };
     }
     return MNG_PARSE_ERROR_SIG; // We have signaling message
@@ -571,8 +572,8 @@ bool Message::traversSigTlvs(std::function<bool (const Message &msg,
         tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const
 {
     if(m_type == Signaling)
-        for(const auto &tlv : m_sigTlvs) {
-            if(callback(*this, tlv.tlvType, tlv.get()))
+        for(size_t i = 0; i < m_sigTlvs.size(); i++) {
+            if(callback(*this, m_sigTlvsType[i], m_sigTlvs[i].get()))
                 return true;
         }
     return false;
@@ -589,12 +590,12 @@ const BaseSigTlv *Message::getSigTlv(size_t pos) const
 tlvType_e Message::getSigTlvType(size_t pos) const
 {
     return m_type == Signaling && pos < m_sigTlvs.size() ?
-        m_sigTlvs[pos].tlvType : (tlvType_e)0;
+        m_sigTlvsType[pos] : (tlvType_e)0;
 }
 mng_vals_e Message::getSigMngTlvType(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size() &&
-        m_sigTlvs[pos].tlvType == MANAGEMENT) {
+        m_sigTlvsType[pos] == MANAGEMENT) {
         const MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].get();
         return mng->managementId;
     }
@@ -603,7 +604,7 @@ mng_vals_e Message::getSigMngTlvType(size_t pos) const
 const BaseMngTlv *Message::getSigMngTlv(size_t pos) const
 {
     if(m_type == Signaling && pos < m_sigTlvs.size() &&
-        m_sigTlvs[pos].tlvType == MANAGEMENT) {
+        m_sigTlvsType[pos] == MANAGEMENT) {
         const MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].get();
         return mng->tlvData.get();
     }
@@ -1008,11 +1009,11 @@ bool Timestamp_t::eq(long double seconds) const
         return false;
     uint64_t secs = floorl(seconds);
     if(secondsField == secs) {
-        // Float can shift in 1 ns above or bellow :-)
-        uint64_t nano = (seconds - secs) * NSEC_PER_SEC;
-        // Check +-1 nanoseconds range
-        if(nanosecondsField <= nano + 1 &&
-            nanosecondsField + 1 >= nano)
+        uint32_t nano = (seconds - secs) * NSEC_PER_SEC;
+        uint32_t diff = nano > nanosecondsField ?
+            nano - nanosecondsField : nanosecondsField - nano;
+        // printf("secs %lu diff %d\n", secs, diff);
+        if(diff < 10)
             return true;
     }
     return false;

@@ -27,7 +27,7 @@ A(PATH_TRACE)
 A(ALTERNATE_TIME_OFFSET_INDICATOR)
 {
     return proc(d.keyField) || proc(d.currentOffset) || proc(d.jumpSeconds) ||
-        proc(d.timeOfNextJump) || proc(d.displayName);
+        proc48(d.timeOfNextJump) || proc(d.displayName);
 }
 A(ENHANCED_ACCURACY_METRICS)
 {
