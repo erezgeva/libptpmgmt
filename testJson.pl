@@ -157,4 +157,6 @@ $sk->close();
 
 __END__
 
+apt-mark showmanual | grep ptpmgmt | xargs sudo apt-mark auto
+
 LD_PRELOAD=./libptpmgmt.so LD_LIBRARY_PATH=. PERL5LIB=perl ./testJson.pl | jsonlint

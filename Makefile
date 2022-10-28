@@ -217,12 +217,14 @@ JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
 FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
-UTEST_TGT:=utest_cpp utest_perl5 utest_python3 utest_ruby\
-           utest_lua utest_php utest_tcl utest_lua_a
+TGT_LNG:=perl5 lua python3 ruby php tcl
+UTEST_TGT:=utest_cpp utest_lua_a $(foreach n,$(TGT_LNG),utest_$n)
+INS_TGT:=install_main $(foreach n,$(TGT_LNG),install_$n)
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
-           doxygen checkall help rpm rpmsrc pkg pkgsrc utest config
-.PHONY: $(PHONY_TGT) $(UTEST_TGT)
-NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT) $(UTEST_TGT),$(MAKECMDGOALS)))
+           doxygen checkall help rpm rpmsrc pkg pkgsrc utest config\
+           $(UTEST_TGT) $(INS_TGT)
+.PHONY: $(PHONY_TGT)
+NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
 
 ####### Source tar file #######
 TAR:=tar cfJ
@@ -233,11 +235,11 @@ endif
 SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   config.guess config.sub configure.ac install-sh $(SRC)/*.in $(SRC)/*.m4\
   php/*.sh tcl/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/*)\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample\
-  utest,':!/:$n') ':!:*.gitignore' ':!:*test.*'
+  utest/*.c*,':!/:$n') ':!:*.gitignore' ':!:*test.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
@@ -302,8 +304,6 @@ $(LIB_NAME_SO)_LDLIBS:=-lm -ldl
 LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(SRCS:.cpp=.o))
 PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
-JSON_FROM_OBJS:=$(subst $(JSON_SRC)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
-  $(wildcard $(JSON_SRC)/*.cpp)))
 $(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
@@ -329,41 +329,7 @@ ALL:=$(PMC_NAME) $(LIB_NAME_FSO) $(LIB_NAME_A)
 	  $($@_LDLIBS) $(LDLIBS) -o $@
 
 # JSON libraries
-JSON_C:=
-# Using json-c
-JSON_C+=\"$(JSONC_FLIB)\",
-ifneq ($(HAVE_JSONC_LIB),)
-JSONC_CFLAGS:=-include $(HAVE_JSONC_LIB) -DJLIB_NAME=\"$(JSONC_LIBA)\"
-$(OBJ_DIR)/jsonFromJc.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
-	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(JSONC_CFLAGS) $< -o $@
-$(OBJ_DIR)/.libs/jsonFromJc.o: $(OBJ_DIR)/jsonFromJc.o
-$(JSONC_LIB)_LDLIBS:=$(JSONC_LIB_FLAGS)
-$(JSONC_FLIB): $(JSONC_LIB)
-	$Q$(LN) $^ $@
-$(JSONC_LIB): $(OBJ_DIR)/.libs/jsonFromJc.o $(LIB_NAME).so
-$(JSONC_LIBA): $(OBJ_DIR)/jsonFromJc.o
-	$(LLA)
-ALL+=$(JSONC_FLIB) $(JSONC_LIBA)
-endif # HAVE_JSONC_LIB
-
-# Using fastjson
-JSON_C+=\"$(FJSON_FLIB)\",
-ifneq ($(HAVE_FJSON_LIB),)
-FJSON_CFLAGS:=-include $(HAVE_FJSON_LIB) -DJLIB_NAME=\"$(FJSON_LIBA)\"
-$(OBJ_DIR)/jsonFromFj.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
-	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(FJSON_CFLAGS) $< -o $@
-$(OBJ_DIR)/.libs/jsonFromFj.o: $(OBJ_DIR)/jsonFromFj.o
-$(FJSON_LIB)_LDLIBS:=$(FJSON_LIB_FLAGS)
-$(FJSON_FLIB): $(FJSON_LIB)
-	$Q$(LN) $^ $@
-$(FJSON_LIB): $(OBJ_DIR)/.libs/jsonFromFj.o $(LIB_NAME).so
-$(FJSON_LIBA): $(OBJ_DIR)/jsonFromFj.o
-	$(LLA)
-ALL+=$(FJSON_FLIB) $(FJSON_LIBA)
-endif # HAVE_FJSON_LIB
-
-# Add jsonFrom libraries to search
-$(OBJ_DIR)/jsonDef.o: override CXXFLAGS+=-DJSON_C="$(JSON_C)"
+include json/Makefile
 
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.o: $(SRC)/%.cpp | $(COMP_DEPS)
@@ -379,41 +345,7 @@ $(LIB_NAME_FSO): $(LIB_NAME_SO)
 	$Q$(LN) $^ $@
 $(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
 
-# testing
-ifneq ($(GTEST_LIB_FLAGS),)
-TEST_OBJS:=$(patsubst %.cpp,%.o,$(wildcard utest/*.cpp))
-
-ifneq ($(filter utest $(UTEST_TGT),$(MAKECMDGOALS)),)
-ifneq ($(NONPHONY_TGT),)
-$(eval $(call phony,$(NONPHONY_TGT)))
-GTEST_FILTERS:=--gtest_filter=*$(NONPHONY_TGT)*
-RUBY_FILTERS:=-v -n '/$(NONPHONY_TGT)/i'
-PY_FILTERS:=-v -k $(NONPHONY_TGT)
-PHP_FILTERS:=--testdox --filter $(NONPHONY_TGT)
-LUA_FILTERS:=-v -p $(NONPHONY_TGT)
-TCL_FILTERS:=-verbose "pass body erro" -match "*$(NONPHONY_TGT)*"
-endif # NONPHONY_TGT
-endif # filter utest,$(MAKECMDGOALS)
-
-# Main for gtest
-$(OBJ_DIR)/utest_m.o: | $(OBJ_DIR)
-	$(Q)printf 'int main(int argc,char**argv)%s'\
-	  '{::testing::InitGoogleTest(&argc,argv);return RUN_ALL_TESTS();}' |\
-	  $(CXX) -include $(HAVE_GTEST_HEADER) $(GTEST_INC_FLAGS)\
-	  -c -x c++ - -o $@
-utest/%.o: utest/%.cpp | $(COMP_DEPS)
-	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS)\
-	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
-
-$(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
-	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
-	  $(GTEST_LIB_FLAGS) -o $@
-
-utest_cpp: $(HEADERS_GEN_COMP) $(UTEST)
-	$(call Q_UTEST,C++)$(UTEST) $(GTEST_NO_COL) $(GTEST_FILTERS)
-utest: $(UTEST_TGT)
-
-endif # GTEST_LIB_FLAGS
+include utest/Makefile
 
 # pmc tool
 $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
@@ -483,153 +415,25 @@ SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(SRC)/mngIds.h \\'\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
+
 ifeq ($(SKIP_PERL5),)
-perl_SFLAGS+=-perl5
-perl/$(SWIG_NAME).o: perl/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(call LLC,-I$(PERL5EXT))
-	$(call D_INC,PERL5EXT)
-	$(SWIG_DEP)
-PERL_SO_DIR:=perl/auto/$(SWIG_NAME)
-$(PERL_SO_DIR):
-	$Q$(MKDIR_P) $@
-$(PERL_SO_DIR)/$(SWIG_NAME).so: perl/$(SWIG_NAME).o $(LIB_NAME_SO) | $(PERL_SO_DIR)
-	$(SWIG_LD)
-SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
-utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
-	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=perl perl/utest.pl
-endif # SKIP_PERL5
-
+include perl/Makefile
+endif
 ifeq ($(SKIP_LUA),)
-lua_SFLAGS+=-lua
-define lua
-LUA_FLIB_$1:=liblua$1-$(SWIG_LIB_NAME)
-LUA_LIB_$1:=lua/$1/$(SWIG_LIB_NAME)
-$$(LUA_LIB_$1)_LDLIBS:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)\
-  $$(LUA_$$(subst .,_,$1)_LINK)
-lua/$1/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(MKDIR_P) lua/$1
-	$$(call LLC,$$(CXXFLAGS_LUA) -I$$(LUA_$$(subst .,_,$1)_INC))
-	$$(call D_INC,LUA_$$(subst .,_,$1)_INC)
-	$$(SWIG_DEP)
-$$(LUA_LIB_$1): lua/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
-	$$(SWIG_LD)
-SWIG_ALL+=$$(LUA_LIB_$1)
-utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1)
-	$$(call Q_UTEST,Lua$1)LD_PRELOAD=./$$< LUA_CPATH="lua/$1/?.so;;"\
-	  lua$1 lua/utest.lua $(LUA_FILTERS)
-.PHONY: utest_lua_$1
-
-endef
-# Build multiple Lua versions
-$(eval $(foreach n,$(LUAVERSIONS),$(call lua,$n)))
-
-# Build single Lua version
-ifneq ($(LUA_VERSION),)
-LUA_FLIB:=liblua$(LUABIN_VERSION)-$(SWIG_LIB_NAME)
-LUA_LIB:=lua/$(SWIG_LIB_NAME)
-ifneq ($(LUA_INC),)
-CXXFLAGS_LUA+=-I$(LUA_INC)
+include lua/Makefile
 endif
-$(LUA_LIB)_LDLIBS:=-Wl,-soname,$(LUA_FLIB)$(SONAME) $(LUALINK)
-lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(call LLC,$(CXXFLAGS_LUA))
-	$(call D_INC,LUA_INC)
-	$(SWIG_DEP)
-$(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
-	$(SWIG_LD)
-SWIG_ALL+=$(LUA_LIB)
-utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
-	$(call Q_UTEST,Lua)LD_PRELOAD=./$< LUA_CPATH="lua/?.so;;" $(LUABIN)\
-	  lua/utest.lua $(LUA_FILTERS)
-endif # LUA_VERSION
-utest_lua: utest_lua_a $(foreach n,$(filter-out 5.4,$(LUAVERSIONS)),utest_lua_$n)
-endif # SKIP_LUA
-
 ifeq ($(SKIP_PYTHON3),)
-PY_BASE:=python/$(SWIG_NAME)
-PY_LIB_NAME:=_ptpmgmt
-python_SFLAGS+=-python
-ifeq ($(PY_USE_S_THRD),)
-python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
+include python/Makefile
 endif
-PY_BASE_3:=python/3/$(SWIG_NAME)
-PY_SO_3:=python/3/$(PY_LIB_NAME).so
-$(PY_SO_3)_LDLIBS:=$(PY3LDLIBS)
-PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3INCLUDE)))
-$(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
-	$Q$(MKDIR_P) python/3
-	$(call LLC,$(CXXFLAGS_PY) $(PY3INCLUDE))
-	$(call D_INC,PY3INCDIR)
-ifneq ($(PY3INCDIR),$(PY3PLATINCDIR))
-	$(call D_INC,PY3PLATINCDIR)
-endif
-	$(SWIG_DEP)
-$(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
-	$(SWIG_LD)
-SWIG_ALL+=$(PY_SO_3)
-utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
-	$(call Q_UTEST,Python3)LD_PRELOAD=./$< PYTHONPATH=python/3\
-	  python/utest.py $(PY_FILTERS)
-endif # SKIP_PYTHON3
-
 ifeq ($(SKIP_RUBY),)
-RUBY_NAME:=ruby/$(SWIG_NAME).cpp
-RUBY_LNAME:=ruby/$(SWIG_LNAME)
-ruby_SFLAGS:=-ruby
-$(RUBY_LNAME).so_LDLIBS:=$(RUBYLINK)
-$(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
-	$Q$(call LLC,$(CXXFLAGS_RUBY) $(RUBYINCLUDE))
-	$(call D_INC,RUBYHDRDIR)
-ifneq ($(RUBYHDRDIR),$(RUBYARCHHDRDIR))
-	$(call D_INC,RUBYARCHHDRDIR)
+include ruby/Makefile
 endif
-	$(SWIG_DEP)
-$(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
-	$(SWIG_LD)
-SWIG_ALL+=$(RUBY_LNAME).so
-utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
-	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=ruby ruby/utest.rb\
-	  $(RUBY_NO_COL) $(RUBY_FILTERS)
-endif # SKIP_RUBY
-
 ifeq ($(SKIP_PHP),)
-PHP_NAME:=php/$(SWIG_NAME).cpp
-php_SFLAGS+=-php7
-$(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
-	$Q$(call LLC,$(CXXFLAGS_PHP) -Iphp $(PHPINC_FLAGS))
-	$(call D_INC,PHPINC)
-	$(SWIG_DEP)
-$(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
-	$(SWIG_LD)
-SWIG_ALL+=$(PHP_LNAME).so
-php/php.ini:
-	$(Q)php/php_ini.sh php/
-utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
-	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php phpunit php/utest.php\
-	  $(PHP_NO_COL) $(PHP_FILTERS)
-endif # SKIP_PHP
-
+include php/Makefile
+endif
 ifeq ($(SKIP_TCL),)
-TCL_NAME:=tcl/$(SWIG_NAME).cpp
-TCL_LNAME:=tcl/$(SWIG_LNAME)
-tcl_SFLAGS+=-tcl8 -namespace
-$(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
-	$Q$(call LLC,$(TCLINCLUDE))
-	$(call D_INC,TCLINCDIR)
-	$(SWIG_DEP)
-$(TCL_LNAME).so_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME)$(SONAME)
-$(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
-	$(SWIG_LD)
-SWIG_ALL+=$(TCL_LNAME).so
-TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
-pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
-pkgIndex+=package ifneeded $(SWIG_LNAME) $(ver_maj)
-pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
-tcl/pkgIndex.tcl:
-	$(Q)tcl/pkgIndex_tcl.sh tcl
-utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so tcl/pkgIndex.tcl
-	$(call Q_UTEST,TCL)LD_PRELOAD=./$< TCLLIBPATH=tcl tcl/utest.tcl $(TCL_FILTERS)
-endif # SKIP_TCL
+include tcl/Makefile
+endif
 
 ALL+=$(SWIG_ALL)
 endif # SWIGMINVER
@@ -677,7 +481,8 @@ else
 mkln=$(LN) $1/$2 $(DESTDIR)$1/$3
 endif
 
-install:
+install: $(INS_TGT)
+install_main:
 	$(Q)for lib in $(LIB_NAME)*.so
 	  do $(INSTALL_PROGRAM) -D $$lib $(DLIBDIR)/$$lib.$(PACKAGE_VERSION)
 	  $(call mkln,$(libdir),$$lib.$(PACKAGE_VERSION),$$lib$(SONAME))
@@ -701,45 +506,6 @@ install:
 	$(INSTALL_FOLDER) $(DOCDIR)
 	cp -a *.md doc/html $(DOCDIR)
 	printf $(REDIR) > $(DOCDIR)/index.html
-ifeq ($(SKIP_PERL5),)
-	$(INSTALL_PROGRAM) -D perl/auto/*/*.so -t\
-	  $(DESTDIR)$(PERL5DIR)/auto/$(SWIG_NAME)
-	$(INSTALL_DATA) perl/*.pm $(DESTDIR)$(PERL5DIR)
-endif # SKIP_PERL5
-ifeq ($(SKIP_LUA),)
-	$(foreach n,$(LUAVERSIONS),\
-	  $(INSTALL_PROGRAM) -D $(LUA_LIB_$n)\
-	  $(DLIBDIR)/$(LUA_FLIB_$n).$(PACKAGE_VERSION);\
-	  $(LN) $(LUA_FLIB_$n).$(PACKAGE_VERSION)\
-	  $(DLIBDIR)/$(LUA_FLIB_$n)$(SONAME);\
-	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
-	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
-	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME);)
-ifneq ($(LUA_VERSION),)
-	$(INSTALL_PROGRAM) -D $(LUA_LIB) $(DLIBDIR)/$(LUA_FLIB)
-ifneq ($(LUABIN_VERSION),)
-	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUABIN_VERSION)
-	$(LN) ../../$(LUA_FLIB)\
-	$(DLIBDIR)/lua/$(LUABIN_VERSION)/$(SWIG_LIB_NAME)
-endif # LUABIN_VERSION
-endif # LUA_VERSION
-endif # SKIP_LUA
-ifeq ($(SKIP_PYTHON3),)
-	$(INSTALL_PROGRAM) -D python/3/$(PY_LIB_NAME).so\
-	  $(DESTDIR)$(PY3SITE_DIR)/$(PY_LIB_NAME)$(PY3EXT)
-	$(INSTALL_DATA) python/$(SWIG_LNAME).py $(DESTDIR)$(PY3SITE_DIR)
-endif # SKIP_PYTHON3
-ifeq ($(SKIP_RUBY),)
-	$(INSTALL_PROGRAM) -D $(RUBY_LNAME).so -t $(DESTDIR)$(RUBYSITE)
-endif # SKIP_RUBY
-ifeq ($(SKIP_PHP),)
-	$(INSTALL_PROGRAM) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHPEXT)
-	$(INSTALL_DATA) -D $(PHP_LNAME).php -t $(DESTDIR)$(PHPINCDIR)
-endif # SKIP_PHP
-ifeq ($(SKIP_TCL),)
-	$(INSTALL_PROGRAM) -D $(TCL_LNAME).so -t $(TCLDIR)
-	printf '$(pkgIndex)' > $(TCLDIR)/pkgIndex.tcl
-endif # SKIP_TCL
 
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
 include $(D_FILES)

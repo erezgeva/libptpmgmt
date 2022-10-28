@@ -87,69 +87,10 @@
 /* Casting to double ignored.
  * Scripts can use Timestamp_t::string() */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator long double;
-/*********
- * Perl
- *********/
-#ifdef SWIGPERL
-#define SWIG_OPERS_IGNORE_OPERATOR
-#endif /* SWIGPERL */
-/*********
- * Python
- *********/
-#ifdef SWIGPYTHON
-/* internal structure */
-%warnfilter(SWIGWARN_PARSE_BUILTIN_NAME) Message::sigTlv::set;
-#define SWIG_OPERS_IGNORE_OPERATOR
-#endif /* SWIGPYTHON */
-/*********
- * Ruby
- *********/
-#ifdef SWIGRUBY
-/* Ignore Wrong constant name.
- * Ruby capitalize first letter! */
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) clockType_e;
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) implementSpecific_e;
-#define SWIG_OPERS_OPERATOR_PLUSEQ
-#define SWIG_OPERS_IGNORE_OPERATOR
-#endif /* SWIGRUBY */
-/*********
- * PHP
- *********/
-#ifdef SWIGPHP
-/* PHP already use Error */
-%rename(c_error) Error;
-/* PHP rename to c_empty */
-%warnfilter(SWIGWARN_PARSE_KEYWORD) Binary::empty;
-/* PHP rename to c_list */
-#define _ptpmList(n) %warnfilter(SWIGWARN_PARSE_KEYWORD) n::list;
-_ptpmList(ACCEPTABLE_MASTER_TABLE_t)
-_ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
-_ptpmList(SLAVE_RX_SYNC_COMPUTED_DATA_t)
-_ptpmList(SLAVE_TX_EVENT_TIMESTAMPS_t)
-_ptpmList(SLAVE_DELAY_TIMING_DATA_NP_t)
-_ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
-/* PHP rename c_interface */
-%warnfilter(SWIGWARN_PARSE_KEYWORD) PORT_PROPERTIES_NP_t::interface;
-/* Operator overload ignored.
- * Scripts can use Binary::append() */
-%warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator+=;
-/* PHP use the copy constructor :-) */
-%warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator=;
-/* Operator overload ignored.
- * Scripts can use Timestamp_t::add() */
-%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator+=;
-/* Operator overload ignored.
- * Scripts can use Timestamp_t::subt() */
-%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-=;
-#define SWIG_OPERS_LANG_IDENTIFIER
-#endif /* SWIGPHP */
-/*********
- * Tcl
- *********/
-#ifdef SWIGTCL
-#define SWIG_OPERS_OPERATOR_PLUSEQ
-#define SWIG_OPERS_LANG_IDENTIFIER
-#endif /* SWIGTCL */
+
+/* warning definitions per language */
+%include "warn.i"
+
 /*****
  * PHP and Tcl ignore operators overload
  *********/
