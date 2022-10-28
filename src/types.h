@@ -64,19 +64,20 @@ typedef double Float64_t;
 
 /** Parsing and building errors */
 enum MNG_PARSE_ERROR_e {
-    MNG_PARSE_ERROR_OK,          /**< no error */
-    MNG_PARSE_ERROR_MSG,         /**< Error message */
-    MNG_PARSE_ERROR_SIG,         /**< Signaling message */
-    MNG_PARSE_ERROR_INVALID_ID,  /**< Invalid TLV mng id or action for TLV */
-    MNG_PARSE_ERROR_INVALID_TLV, /**< Wrong TLV header */
-    MNG_PARSE_ERROR_SIZE_MISS,   /**< size mismatch of field with length */
-    MNG_PARSE_ERROR_TOO_SMALL,   /**< buffer is too small */
-    MNG_PARSE_ERROR_SIZE,        /**< size is even */
-    MNG_PARSE_ERROR_VAL,         /**< Value is out of range or invalid */
-    MNG_PARSE_ERROR_HEADER,      /**< Wrong value in header */
-    MNG_PARSE_ERROR_ACTION,      /**< Wrong action value */
-    MNG_PARSE_ERROR_UNSUPPORT,   /**< Do not know how to parse the TLV data */
-    MNG_PARSE_ERROR_MEM,         /**< fail to allocate TLV data */
+    MNG_PARSE_ERROR_OK,           /**< no error */
+    MNG_PARSE_ERROR_MSG,          /**< Error message */
+    MNG_PARSE_ERROR_SIG,          /**< Signaling message */
+    MNG_PARSE_ERROR_INVALID_ID,   /**< Invalid TLV mng id or action for TLV */
+    MNG_PARSE_ERROR_INVALID_TLV,  /**< Wrong TLV header */
+    MNG_PARSE_ERROR_MISMATCH_TLV, /**< Mismatch TLV */
+    MNG_PARSE_ERROR_SIZE_MISS,    /**< size mismatch of field with length */
+    MNG_PARSE_ERROR_TOO_SMALL,    /**< buffer is too small */
+    MNG_PARSE_ERROR_SIZE,         /**< size is even */
+    MNG_PARSE_ERROR_VAL,          /**< Value is out of range or invalid */
+    MNG_PARSE_ERROR_HEADER,       /**< Wrong value in header */
+    MNG_PARSE_ERROR_ACTION,       /**< Wrong action value */
+    MNG_PARSE_ERROR_UNSUPPORT,    /**< Do not know how to parse the TLV data */
+    MNG_PARSE_ERROR_MEM,          /**< fail to allocate TLV data */
 };
 /** PTP messages type
  * @note: 4 bits
@@ -793,16 +794,20 @@ struct MsgParams {
     PortIdentity_t self_id; /**< own port ID */
     bool useZeroGet; /**< send get with zero dataField */
     bool rcvSignaling; /**< parse signaling messages */
-    bool filterSignaling; /**< filter signaling messages TLVs */
+    bool filterSignaling; /**< use filter for signaling messages TLVs */
     MsgParams();
+    /** Add TLV type to allowed signalling filter */
+    void allowSigTlv(tlvType_e type);
+    /** Remove TLV type from allowed signalling filter */
+    void removeSigTlv(tlvType_e type);
+    /** Query if TLV type is allowed signalling filter */
+    bool isSigTlv(tlvType_e type) const;
+    /** Query how many signaling TLVs are allowd in filter */
+    size_t countSigTlvs() const;
+  private:
     /** when filter TLVs in signalling messages
      * allow TLVs that are in the map, the bool value is ignored */
     std::map<tlvType_e, bool> allowSigTlvs;
-    void allowSigTlv(tlvType_e type); /**< Add TLV type to allowed signalling */
-    /** Remove TLV type from allowed signalling */
-    void removeSigTlv(tlvType_e type);
-    /** Query if TLV type is allowed signalling */
-    bool isSigTlv(tlvType_e type) const;
 };
 /** Base for all Management TLV structures */
 struct BaseMngTlv {

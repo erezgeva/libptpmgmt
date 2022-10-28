@@ -447,12 +447,12 @@ JS(PORT_HWCLOCK_NP)
     }
 #define procTypeEnum(type, func)\
     bool procValue(const char *name, type val) {\
-        procString(name, m_msg.func(val));\
+        procString(name, Message::func(val));\
         return true;\
     }
 #define procTypeEnumR(type, func)\
     bool procValue(const char *name, type &val) {\
-        procString(name, m_msg.func(val));\
+        procString(name, Message::func(val));\
         return true;\
     }
 #define procVector(type) \
@@ -468,15 +468,14 @@ JS(PORT_HWCLOCK_NP)
 
 bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
 {
-#define _ptpmCaseUF(n) case n:\
-        if(data == nullptr) {\
-            n##_t *d = new n##_t;\
-            if(d == nullptr)\
-                return false;\
-            data = d;\
-        }\
-        return proc_##n(*this, *dynamic_cast<n##_t *>\
-                (const_cast<BaseMngTlv *>(data)));
+#define _ptpmCaseUF(n) case n: {\
+            n##_t *d;\
+            if(data == nullptr) {\
+                d = new n##_t;\
+                data = d;\
+            } else\
+                d = dynamic_cast<n##_t *>(const_cast<BaseMngTlv *>(data));\
+            return d == nullptr ? false : proc_##n(*this, *d); }
     switch(managementId) {
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
@@ -486,13 +485,14 @@ bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
 }
 
 struct JsonProcToJson : public JsonProc {
-    const Message &m_msg;
     std::string m_result;
     std::stack<bool> m_first_vals;
     int m_base_indent;
     bool m_first;
     JsonProcToJson(const Message &msg, int indent);
-    bool data2json(mng_vals_e managementId, const BaseMngTlv *data);
+    JsonProcToJson(mng_vals_e managementId, const BaseMngTlv *data, int indent);
+    bool data2json(mng_vals_e managementId, const BaseMngTlv *data,
+        bool header = true);
     void sig2json(tlvType_e tlvType, const BaseSigTlv *tlv);
     void close() {
         if(!m_first)
@@ -501,8 +501,7 @@ struct JsonProcToJson : public JsonProc {
         m_first = false;
     }
     void indent() {
-        for(size_t i = 0; i < m_first_vals.size() + m_base_indent; i++)
-            m_result += "  ";
+        m_result += std::string(m_first_vals.size() * 2 + m_base_indent, ' ');
     }
     void startName(const char *name, const char *end) {
         close();
@@ -664,7 +663,7 @@ struct JsonProcToJson : public JsonProc {
             snprintf(buf, sizeof buf, "0x%x", val);
             procString(name, buf);
         } else
-            procString(name, m_msg.clockAcc2str_c(val));
+            procString(name, Message::clockAcc2str_c(val));
         return true;
     }
     procTypeEnumR(faultRecord_e, faultRec2str_c)
@@ -746,12 +745,16 @@ struct JsonProcToJson : public JsonProc {
     procVector(SLAVE_DELAY_TIMING_DATA_NP_rec_t)
 };
 
-bool JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *data)
+bool JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *data,
+    bool header)
 {
     if(data == nullptr)
         procNull("dataField");
     else {
-        procObject("dataField");
+        if(header)
+            procObject("dataField");
+        else // header can be false only if data is NOT null!
+            startObject();
         procData(managementId, data);
         closeObject();
     }
@@ -899,7 +902,7 @@ void JsonProcToJson::sig2json(tlvType_e tlvType, const BaseSigTlv *tlv)
     closeObject();
 }
 
-JsonProcToJson::JsonProcToJson(const Message &msg, int indent) : m_msg(msg),
+JsonProcToJson::JsonProcToJson(const Message &msg, int indent) :
     m_base_indent(indent), m_first(false)
 {
     startObject();
@@ -950,9 +953,23 @@ JsonProcToJson::JsonProcToJson(const Message &msg, int indent) : m_msg(msg),
     closeObject();
 }
 
+JsonProcToJson::JsonProcToJson(mng_vals_e managementId, const BaseMngTlv *tlv,
+    int indent) : m_base_indent(indent), m_first(false)
+{
+    data2json(managementId, tlv, false);
+}
+
 std::string msg2json(const Message &msg, int indent)
 {
     JsonProcToJson proc(msg, indent);
+    return proc.m_result;
+}
+
+std::string tlv2json(mng_vals_e managementId, const BaseMngTlv *tlv, int indent)
+{
+    if(tlv == nullptr || Message::isEmpty(managementId))
+        return "{}"; // empty JSON
+    JsonProcToJson proc(managementId, tlv, indent);
     return proc.m_result;
 }
 

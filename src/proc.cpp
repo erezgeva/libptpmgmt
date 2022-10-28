@@ -45,7 +45,10 @@ MNG_PARSE_ERROR_e MsgProc::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
 #define _ptpmCaseNA(n) case n: return MNG_PARSE_ERROR_OK
 #define _ptpmCaseUF(n) case n:\
         if(m_build) {\
-            if(n##_f(*dynamic_cast<n##_t *>(tlv)))\
+            n##_t *a = dynamic_cast<n##_t *>(tlv);\
+            if(a == nullptr)\
+                return MNG_PARSE_ERROR_MISMATCH_TLV;\
+            if(n##_f(*a))\
                 return m_err;\
         } else {\
             n##_t *t = new n##_t;\
@@ -56,7 +59,7 @@ MNG_PARSE_ERROR_e MsgProc::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
                 return m_err;\
             }\
             tlv = t;\
-        } break
+        }; break
     // The default error on build or parsing
     m_err = MNG_PARSE_ERROR_TOO_SMALL;
     switch(id) {
@@ -541,12 +544,14 @@ S(UNICAST_MASTER_TABLE_NP)
 
 ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
 {
-#define _ptpmCaseUFS(n) case n:\
-        if(data == nullptr) {\
+#define _ptpmCaseUFS(n) case n: {\
+            if(data != nullptr) {\
+                const n##_t *a=dynamic_cast<const n##_t*>(data);\
+                if(a != nullptr)\
+                    return n##_s(*a);\
+            }\
             n##_t empty;\
-            return n##_s(empty);\
-        } else\
-            return n##_s(*dynamic_cast<const n##_t*>(data));
+            return n##_s(empty); }
 #define _ptpmCaseUFBS(n) _ptpmCaseUFS(n)
     switch(m_tlv_id) {
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)

@@ -672,8 +672,7 @@ TEST(MsgParamsTest, MethodAllowSigTlv)
 {
     MsgParams t;
     t.allowSigTlv(ORGANIZATION_EXTENSION);
-    EXPECT_EQ(t.allowSigTlvs.count(ORGANIZATION_EXTENSION), 1);
-    EXPECT_TRUE(t.allowSigTlvs[ORGANIZATION_EXTENSION]);
+    EXPECT_TRUE(t.isSigTlv(ORGANIZATION_EXTENSION));
 }
 
 // Tests remove a signal TLV method
@@ -682,11 +681,10 @@ TEST(MsgParamsTest, MethodRemoveSigTlv)
 {
     MsgParams t;
     t.allowSigTlv(ORGANIZATION_EXTENSION);
-    EXPECT_EQ(t.allowSigTlvs.count(ORGANIZATION_EXTENSION), 1);
-    EXPECT_TRUE(t.allowSigTlvs[ORGANIZATION_EXTENSION]);
+    EXPECT_TRUE(t.isSigTlv(ORGANIZATION_EXTENSION));
     t.allowSigTlv(MANAGEMENT_ERROR_STATUS);
     t.removeSigTlv(ORGANIZATION_EXTENSION);
-    EXPECT_EQ(t.allowSigTlvs.count(ORGANIZATION_EXTENSION), 0);
+    EXPECT_FALSE(t.isSigTlv(ORGANIZATION_EXTENSION));
 }
 
 // Tests query if a signal TLV present method

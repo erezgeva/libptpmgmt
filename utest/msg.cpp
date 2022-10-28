@@ -150,6 +150,8 @@ TEST(MessageTest, MethodErr2str)
         "MNG_PARSE_ERROR_INVALID_ID");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_INVALID_TLV),
         "MNG_PARSE_ERROR_INVALID_TLV");
+    EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_MISMATCH_TLV),
+        "MNG_PARSE_ERROR_MISMATCH_TLV");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_SIZE_MISS),
         "MNG_PARSE_ERROR_SIZE_MISS");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_TOO_SMALL),
@@ -1110,7 +1112,7 @@ TEST(MessageTest, MethodGetErrId)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
-    uint8_t buf[70];
+    uint8_t buf[80];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // Follow location IEEE "PTP management message"
     // Change to actionField to response of get/set message

@@ -208,8 +208,8 @@ int main(int argc, char *const argv[])
     use_uds = obj.use_uds();
     // allowed signaling TLV
     MsgParams prms = msg.getParams();
-    prms.allowSigTlvs[SLAVE_RX_SYNC_TIMING_DATA] = true;
-    prms.allowSigTlvs[SLAVE_DELAY_TIMING_DATA_NP] = true;
+    prms.allowSigTlv(SLAVE_RX_SYNC_TIMING_DATA);
+    prms.allowSigTlv(SLAVE_DELAY_TIMING_DATA_NP);
     bool batch = opt.have_more();
     // if we use real network layer and run mode, allow signaling
     if(!batch && !use_uds)

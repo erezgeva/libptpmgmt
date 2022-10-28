@@ -116,6 +116,10 @@ bool MsgParams::isSigTlv(tlvType_e type) const
 {
     return allowSigTlvs.count(type) > 0;
 }
+size_t MsgParams::countSigTlvs() const
+{
+    return allowSigTlvs.size();
+}
 
 // Shortcuts for the ids table
 #define use_GSC A_GET | A_SET | A_COMMAND
@@ -480,7 +484,7 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
             return MNG_PARSE_ERROR_TOO_SMALL;
         leftAll -= lengthField;
         // Check signalling filter
-        if(m_prms.filterSignaling && m_prms.allowSigTlvs.count(tlvType) == 0) {
+        if(m_prms.filterSignaling && !m_prms.isSigTlv(tlvType)) {
             // TLV not in filter is skiped
             mp.m_cur += lengthField;
             continue;
@@ -637,6 +641,7 @@ const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
         case caseItem(MNG_PARSE_ERROR_SIG);
         case caseItem(MNG_PARSE_ERROR_INVALID_ID);
         case caseItem(MNG_PARSE_ERROR_INVALID_TLV);
+        case caseItem(MNG_PARSE_ERROR_MISMATCH_TLV);
         case caseItem(MNG_PARSE_ERROR_SIZE_MISS);
         case caseItem(MNG_PARSE_ERROR_TOO_SMALL);
         case caseItem(MNG_PARSE_ERROR_SIZE);

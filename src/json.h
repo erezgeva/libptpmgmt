@@ -25,6 +25,16 @@ __PTPMGMT_NAMESPACE_BEGIN
 std::string msg2json(const Message &message, int indent = 0);
 
 /**
+ * Convert PTP managment TLV to JSON string
+ * @param[in] managementId PTP managment TLV id
+ * @param[in] tlv PTP managment TLV
+ * @param[in] indent base indent for the JSON string
+ * @return JSON string
+ */
+std::string tlv2json(mng_vals_e managementId, const BaseMngTlv *tlv,
+    int indent = 0);
+
+/**
  * Parse JSON to PTP management message
  * Class provide converting function and
  *  store the result of the parsing.
