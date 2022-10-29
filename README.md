@@ -85,12 +85,10 @@ Perl and PHP use class methods, see PtpMgmtLib.pm and ptpmgmt.php for these meth
   * Options in opt.h - parse a pmc tool command line parameters
   * Init in init.h - Initialize objects for a pmc tool
 
-# <u>pmc tool</u>
+# <u>pmc and phc_ctl tools</u>
 The project provides a clone of [LinuxPTP](http://linuxptp.sf.net)
-pmc tool using the libptpmgmt library.  
-The project does not provide a manual page to the tool.
-As the tool mimic the original tool in command line, input and in output.  
-Please refer to the [pmc man page](https://manpages.debian.org/unstable/linuxptp/pmc.8.en.html)
+pmc tool using the libptpmgmt library  
+and phc_ctl using the libptpmgmt library and python wrapper.
 
 # <u>Inspiration</u>
 The library provide functionality that is provided by the pmc tool of the LinuxPTP project.  
@@ -107,4 +105,4 @@ The project comes with packaging:
 The Licence of this project is
 
   * The library is under LGPL 3 or later
-  * The pmc tool and the testing scripts are under GPL 3 or later
+  * The pmc and phc_ctl tools and the testing scripts are under GPL 3 or later

@@ -20,7 +20,7 @@
 /config.status
 /configure
 /defs.mk
-/utest/utest
+/utest/utest*
 .phpunit.result.cache
 .sw?
 .*.sw?

@@ -101,6 +101,23 @@ struct JsonVal {
                         return false;
                 }
                 break;
+            case JT_BOOL:
+                switch(to) {
+                    case JT_INT:
+                        break;
+                    case JT_DOUBLE:
+                        fltV = intV;
+                        break;
+                    case JT_STR:
+                        if(intV == 0)
+                           strV = "false";
+                        else
+                           strV = "true";
+                        break;
+                    default:
+                        return false;
+                }
+                break;
             case JT_STR:
                 str = strV.c_str();
                 if(*str == 0)
@@ -220,10 +237,6 @@ struct JsonProcFromJson : public JsonProcFrom {
                 PTPMGMT_ERROR("Key '%s' in not allowed", key);
                 return false;
             }
-            if(val == nullptr) {
-                PTPMGMT_ERROR("Key '%s' do not have value", key);
-                return false;
-            }
             if(found.count(key) != 0) {
                 PTPMGMT_ERROR("Key '%s' apear twice", key);
                 return false;
@@ -270,7 +283,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         return ret;
     }
 #define procType(type) \
-    bool procValue(const char *key, type &val) {\
+    bool procValue(const char *key, type &val) override {\
         if(!convertType(key, JT_INT))\
             return false;\
         val = found[key].intV;\
@@ -285,7 +298,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     procType(int32_t)
     procType(int64_t)
 #define procTypeDb(type) \
-    bool procValue(const char *key, type &val) {\
+    bool procValue(const char *key, type &val) override {\
         if(!convertType(key, JT_DOUBLE))\
             return false;\
         val = found[key].fltV;\
@@ -294,7 +307,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     procTypeDb(float)
     procTypeDb(double)
     procTypeDb(long double)
-    bool procValue(const char *key, networkProtocol_e &d) {
+    bool procValue(const char *key, networkProtocol_e &d) override {
         GET_STR
         for(int i = UDP_IPv4; i <= PROFINET; i++) {
             networkProtocol_e v = (networkProtocol_e)i;
@@ -305,7 +318,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         }
         return false;
     }
-    bool procValue(const char *key, clockAccuracy_e &d) {
+    bool procValue(const char *key, clockAccuracy_e &d) override {
         if(found.count(key) != 1)
             return false;
         auto &val = found[key];
@@ -349,7 +362,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         d = (clockAccuracy_e)a;
         return true;
     }
-    bool procValue(const char *key, faultRecord_e &d) {
+    bool procValue(const char *key, faultRecord_e &d) override {
         GET_STR
         for(int i = F_Emergency; i <= F_Debug; i++) {
             faultRecord_e v = (faultRecord_e)i;
@@ -360,17 +373,17 @@ struct JsonProcFromJson : public JsonProcFrom {
         }
         return false;
     }
-    bool procValue(const char *key, timeSource_e &d) {
+    bool procValue(const char *key, timeSource_e &d) override {
         if(!isType(key, JT_STR))
             return false;
         return Message::findTimeSrc(found[key].strV, d);
     }
-    bool procValue(const char *key, portState_e &d) {
+    bool procValue(const char *key, portState_e &d) override {
         if(!isType(key, JT_STR))
             return false;
         return Message::findPortState(found[key].strV, d);
     }
-    bool procValue(const char *key, linuxptpTimeStamp_e &d) {
+    bool procValue(const char *key, linuxptpTimeStamp_e &d) override {
         GET_STR
         for(int i = TS_SOFTWARE; i <= TS_P2P1STEP; i++) {
             linuxptpTimeStamp_e v = (linuxptpTimeStamp_e)i;
@@ -381,7 +394,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         }
         return false;
     }
-    bool procValue(const char *key, linuxptpUnicastState_e &d) {
+    bool procValue(const char *key, linuxptpUnicastState_e &d) override {
         GET_STR
         for(int i = UC_WAIT; i <= UC_HAVE_SYDY; i++) {
             linuxptpUnicastState_e v = (linuxptpUnicastState_e)i;
@@ -393,7 +406,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         return false;
     }
 #define procObj(type)\
-    bool procValue(const char *key, type &d) {\
+    bool procValue(const char *key, type &d) override {\
         if(!isType(key, JT_OBJ))\
             return false;\
         JSON_POBJ obj = found[key].objV;\
@@ -402,13 +415,13 @@ struct JsonProcFromJson : public JsonProcFrom {
         pop();\
         return ret;\
     }
-    bool procValue(const char *key, TimeInterval_t &d) {
+    bool procValue(const char *key, TimeInterval_t &d) override {
         if(!convertType(key, JT_INT))
             return false;
         d.scaledNanoseconds = found[key].intV;
         return true;
     }
-    bool procValue(const char *key, Timestamp_t &d) {
+    bool procValue(const char *key, Timestamp_t &d) override {
         if(!convertType(key, JT_DOUBLE))
             return false;
         double v = found[key].fltV;
@@ -424,10 +437,10 @@ struct JsonProcFromJson : public JsonProcFrom {
         b.copy(d.v);
         return true;
     }
-    bool procValue(const char *key, ClockIdentity_t &d) {
+    bool procValue(const char *key, ClockIdentity_t &d) override {
         return isType(key, JT_STR) && procClock(found[key].strV, d);
     }
-    bool procValue(const char *key, PortIdentity_t &d) {
+    bool procValue(const char *key, PortIdentity_t &d) override {
         if(!isType(key, JT_OBJ))
             return false;
         allow.clear();
@@ -450,7 +463,7 @@ struct JsonProcFromJson : public JsonProcFrom {
             procBinary("addressField", d.addressField, d.addressLength);
     }
     procObj(PortAddress_t)
-    bool procValue(const char *key, ClockQuality_t &d) {
+    bool procValue(const char *key, ClockQuality_t &d) override {
         if(!isType(key, JT_OBJ))
             return false;
         allow.clear();
@@ -466,7 +479,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         pop();
         return ret;
     }
-    bool procValue(const char *key, PTPText_t &d) {
+    bool procValue(const char *key, PTPText_t &d) override {
         if(!convertType(key, JT_STR))
             return false;
         d.textField = found[key].strV;
@@ -502,7 +515,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         allow.clear();
         allow["portIdentity"] = JT_OBJ;
         allow["clockQuality"] = JT_OBJ;
-        allow["selected"] = JT_BOOL;
+        allow["selected"] = JT_INT;
         allow["portState"] = JT_STR;
         allow["priority1"] = JT_INT;
         allow["priority2"] = JT_INT;
@@ -532,12 +545,15 @@ struct JsonProcFromJson : public JsonProcFrom {
         b.copy(d);
         return true;
     }
-    bool procFlag(const char *key, uint8_t &flags, int mask) {
+    bool procFlag(const char *key, uint8_t &flags, int mask) override {
         if(!convertType(key, JT_BOOL))
             return false;
         if(found[key].blV())
             flags |= mask;
         return true;
+    }
+    void procZeroFlag(uint8_t &flags) override {
+        flags = 0;
     }
     bool procArray(const char *key, std::vector<ClockIdentity_t> &d) {
         if(!isType(key, JT_ARRAY))

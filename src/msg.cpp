@@ -248,14 +248,30 @@ bool Message::isValidId(mng_vals_e id)
         return false;
     return true;
 }
+bool Message::verifyTlv(mng_vals_e tlv_id, const BaseMngTlv *tlv)
+{
+    if(tlv == nullptr)
+        return false;
+#define _ptpmCaseNA(n) case n: break;
+#define _ptpmCaseUF(n) case n: {\
+            const n##_t *t = dynamic_cast<const n##_t *>(tlv);\
+            return t != nullptr; }
+    switch(tlv_id) {
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n);
+#include "ids.h"
+        default:
+            break;
+    }
+    return false;
+}
 bool Message::setAction(actionField_e actionField, mng_vals_e tlv_id,
     const BaseMngTlv *dataSend)
 {
     if(!allowedAction(tlv_id, actionField))
         return false;
-    if(tlv_id > FIRST_MNG_ID && actionField != GET &&
+    if(tlv_id != NULL_PTP_MANAGEMENT && actionField != GET &&
         mng_all_vals[tlv_id].size != 0) {
-        if(dataSend == nullptr)
+        if(!verifyTlv(tlv_id, dataSend))
             return false;
         m_dataSend = dataSend;
     } else

@@ -214,6 +214,13 @@ class Json2msg
      * @return true if target port ID in JSON
      */
     bool haveDstPort() const { return m_have[have_dstPort]; }
+    /**
+     * Call message setAction with parsed JSON
+     * @return message setAction result
+     */
+    bool setAction(Message &message) const {
+        return message.setAction(m_action, m_managementId, m_tlvData.get());
+    }
 };
 
 __PTPMGMT_NAMESPACE_END

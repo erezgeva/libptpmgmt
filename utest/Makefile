@@ -9,8 +9,8 @@
 ###############################################################################
 
 ifneq ($(GTEST_LIB_FLAGS),)
-TEST_OBJS:=$(patsubst %.cpp,%.o,$(wildcard utest/*.cpp))
-
+TEST_OBJS:=$(patsubst %.cpp,%.o,$(filter-out\
+  $(foreach n,json2msg,utest/$n.cpp),$(wildcard utest/*.cpp)))
 ifneq ($(filter utest $(UTEST_TGT),$(MAKECMDGOALS)),)
 ifneq ($(NONPHONY_TGT),)
 $(eval $(call phony,$(NONPHONY_TGT)))
@@ -36,7 +36,6 @@ utest/%.o: utest/%.cpp | $(COMP_DEPS)
 $(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-
 utest_cpp: $(HEADERS_GEN_COMP) $(UTEST)
 	$(call Q_UTEST,C++)$(UTEST) $(GTEST_NO_COL) $(GTEST_FILTERS)
 utest: $(UTEST_TGT)

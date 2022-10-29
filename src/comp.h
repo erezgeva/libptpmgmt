@@ -304,6 +304,7 @@ struct JsonProc {
     virtual bool procBinary(const char *name, Binary &val, uint16_t &len) = 0;
     virtual bool procBinary(const char *name, uint8_t *val, size_t len) = 0;
     virtual bool procFlag(const char *name, uint8_t &flags, int mask) = 0;
+    virtual void procZeroFlag(uint8_t &flags) = 0;
 #define _ptpmProcVector(type) \
     virtual bool procArray(const char *name, std::vector<type> &val) = 0;
     _ptpmProcVector(ClockIdentity_t)

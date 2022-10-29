@@ -1,8 +1,8 @@
-/* SPDX-License-Identifier: LGPL-3.0-or-later
+/* SPDX-License-Identifier: GPL-3.0-or-later
    SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
 
 /** @file
- * @brief XXX class/functions unit test
+ * @brief PTP message and TLV to JSON functions unit test
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright 2022 Erez Geva
@@ -45,8 +45,7 @@ TEST(Msg2JsonTest, Empty)
         "  },\n"
         "  \"actionField\" : \"RESPONSE\",\n"
         "  \"tlvType\" : \"MANAGEMENT\",\n"
-        "  \"managementId\" : \"NULL_PTP_MANAGEMENT\",\n"
-        "  \"dataField\" : null\n"
+        "  \"managementId\" : \"NULL_PTP_MANAGEMENT\"\n"
         "}");
     EXPECT_STREQ(msg2json(m, 3).c_str(),
         "   {\n"
@@ -70,8 +69,7 @@ TEST(Msg2JsonTest, Empty)
         "     },\n"
         "     \"actionField\" : \"RESPONSE\",\n"
         "     \"tlvType\" : \"MANAGEMENT\",\n"
-        "     \"managementId\" : \"NULL_PTP_MANAGEMENT\",\n"
-        "     \"dataField\" : null\n"
+        "     \"managementId\" : \"NULL_PTP_MANAGEMENT\"\n"
         "   }");
 }
 
@@ -1497,7 +1495,7 @@ TEST(Tlv2JsonTest, UNICAST_MASTER_TABLE_NP)
         "        \"clockAccuracy\" : \"Unknown\",\n"
         "        \"offsetScaledLogVariance\" : 65535\n"
         "      },\n"
-        "      \"selected\" : 1,\n"
+        "      \"selected\" : true,\n"
         "      \"portState\" : \"HAVE_SYDY\",\n"
         "      \"priority1\" : 126,\n"
         "      \"priority2\" : 134,\n"

@@ -91,6 +91,14 @@ class Message
      * The size is determined by the m_dataSend content
      */
     ssize_t dataFieldSize(const BaseMngTlv *data) const;
+    /**
+     * Verift TLV is of the proper type, match to the TLV ID
+     * Set and use a user MsgParams parameters
+     * @param[in] tlv_id TLV ID
+     * @param[in] tlv TLV to verify
+     * @return true if TLV is not null and is of TLV ID type
+     */
+    static bool verifyTlv(mng_vals_e tlv_id, const BaseMngTlv *tlv);
 
   public:
     Message();

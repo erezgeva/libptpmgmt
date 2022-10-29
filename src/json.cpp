@@ -21,6 +21,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 #define PROC_VAL(name) proc.procValue(#name, d.name)
 #define PROC_BIN(name, len) proc.procBinary(#name, d.name, d.len)
 #define PROC_OCT(name) proc.procBinary(#name, d.name, sizeof d.name)
+#define PROC_ZFLG proc.procZeroFlag(d.flags)
 #define PROC_FLG(name, mask) proc.procFlag(#name, d.flags, mask)
 #define PROC_FLG1(name) proc.procFlag(#name, d.flags, 1)
 #define PROC_FLGB(name, flag, bit) proc.procFlag(#name, d.flag, (1 << bit))
@@ -59,6 +60,7 @@ JS(FAULT_LOG)
 }
 JS(DEFAULT_DATA_SET)
 {
+    PROC_ZFLG;
     return
         PROC_FLG(twoStepFlag, 1) &&
         PROC_FLG(slaveOnly, 2) &&
@@ -78,6 +80,7 @@ JS(CURRENT_DATA_SET)
 }
 JS(PARENT_DATA_SET)
 {
+    PROC_ZFLG;
     return
         PROC_VAL(parentPortIdentity) &&
         PROC_FLG1(parentStats) &&
@@ -90,6 +93,7 @@ JS(PARENT_DATA_SET)
 }
 JS(TIME_PROPERTIES_DATA_SET)
 {
+    PROC_ZFLG;
     return
         PROC_VAL(currentUtcOffset) &&
         PROC_FLG(leap61, F_LI_61) &&
@@ -131,6 +135,7 @@ JS(DOMAIN)
 }
 JS(SLAVE_ONLY)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(slaveOnly);
 }
@@ -166,6 +171,7 @@ JS(CLOCK_ACCURACY)
 }
 JS(UTC_PROPERTIES)
 {
+    PROC_ZFLG;
     return
         PROC_VAL(currentUtcOffset) &&
         PROC_FLG(leap61, F_LI_61) &&
@@ -174,18 +180,21 @@ JS(UTC_PROPERTIES)
 }
 JS(TRACEABILITY_PROPERTIES)
 {
+    PROC_ZFLG;
     return
         PROC_FLG(timeTraceable, F_TTRA) &&
         PROC_FLG(frequencyTraceable, F_FTRA);
 }
 JS(TIMESCALE_PROPERTIES)
 {
+    PROC_ZFLG;
     return
         PROC_FLG(ptpTimescale, F_PTP) &&
         PROC_VAL(timeSource);
 }
 JS(UNICAST_NEGOTIATION_ENABLE)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(unicastNegotiationPortDS);
 }
@@ -196,6 +205,7 @@ JS(PATH_TRACE_LIST)
 }
 JS(PATH_TRACE_ENABLE)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(pathTraceDS);
 }
@@ -226,6 +236,7 @@ JS(ACCEPTABLE_MASTER_TABLE)
 }
 JS(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(acceptableMasterPortDS);
 }
@@ -236,6 +247,7 @@ JS(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 }
 JS(ALTERNATE_MASTER)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(transmitAlternateMulticastSync) &&
         PROC_VAL(logAlternateMulticastSyncInterval) &&
@@ -243,6 +255,7 @@ JS(ALTERNATE_MASTER)
 }
 JS(ALTERNATE_TIME_OFFSET_ENABLE)
 {
+    PROC_ZFLG;
     return
         PROC_VAL(keyField) &&
         PROC_FLG1(alternateTimescaleOffsetsDS);
@@ -268,6 +281,7 @@ JS(ALTERNATE_TIME_OFFSET_PROPERTIES)
 }
 JS(TRANSPARENT_CLOCK_PORT_DATA_SET)
 {
+    PROC_ZFLG;
     return
         PROC_VAL(portIdentity) &&
         PROC_FLG1(transparentClockPortDS) &&
@@ -299,21 +313,25 @@ JS(DELAY_MECHANISM)
 }
 JS(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(externalPortConfiguration);
 }
 JS(MASTER_ONLY)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(masterOnly);
 }
 JS(HOLDOVER_UPGRADE_ENABLE)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(holdoverUpgradeDS);
 }
 JS(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
+    PROC_ZFLG;
     return
         PROC_FLG1(acceptableMasterPortDS) &&
         PROC_VAL(desiredState);
@@ -335,6 +353,7 @@ JS(TIME_STATUS_NP)
 }
 JS(GRANDMASTER_SETTINGS_NP)
 {
+    PROC_ZFLG;
     return
         PROC_VAL(clockQuality) &&
         PROC_VAL(currentUtcOffset) &&
@@ -440,7 +459,7 @@ JS(PORT_HWCLOCK_NP)
         startName(name, " ");\
         m_result += std::to_string(val);\
     }\
-    bool procValue(const char *name, type &val) {\
+    bool procValue(const char *name, type &val) override {\
         startName(name, " ");\
         m_result += std::to_string(val);\
         return true;\
@@ -561,10 +580,6 @@ struct JsonProcToJson : public JsonProc {
         startName(name, " ");
         m_result += val ? "true" : "false";
     }
-    void procNull(const char *name) {
-        startName(name, " ");
-        m_result += "null";
-    }
     void procValue(ClockIdentity_t &val) {
         indent();
         m_result += '"';
@@ -603,7 +618,9 @@ struct JsonProcToJson : public JsonProc {
         startObject();
         procProperty(portIdentity);
         procProperty(clockQuality);
-        procProperty(selected);
+        // Linuxptp bool value
+        bool selected = val.selected != 0;
+        procBool("selected", selected);
         procProperty(portState);
         procProperty(priority1);
         procProperty(priority2);
@@ -657,7 +674,7 @@ struct JsonProcToJson : public JsonProc {
     procTypeEnum(mng_vals_e, mng2str_c)
     procTypeEnum(managementErrorId_e, errId2str_c)
     procTypeEnumR(networkProtocol_e, netProt2str_c)
-    bool procValue(const char *name, clockAccuracy_e &val) {
+    bool procValue(const char *name, clockAccuracy_e &val) override {
         if(val < Accurate_within_1ps) {
             char buf[10];
             snprintf(buf, sizeof buf, "0x%x", val);
@@ -671,31 +688,31 @@ struct JsonProcToJson : public JsonProc {
     procTypeEnumR(portState_e, portState2str_c)
     procTypeEnumR(linuxptpTimeStamp_e, ts2str_c)
     procTypeEnumR(linuxptpUnicastState_e, us2str_c)
-    bool procValue(const char *name, TimeInterval_t &val) {
+    bool procValue(const char *name, TimeInterval_t &val) override {
         procValue(name, val.scaledNanoseconds);
         return true;
     }
-    bool procValue(const char *name, Timestamp_t &val) {
+    bool procValue(const char *name, Timestamp_t &val) override {
         procValue(name, val.string());
         return true;
     }
-    bool procValue(const char *name, ClockIdentity_t &val) {
+    bool procValue(const char *name, ClockIdentity_t &val) override {
         procString(name, val.string());
         return true;
     }
-    bool procValue(const char *name, PortIdentity_t &val) {
+    bool procValue(const char *name, PortIdentity_t &val) override {
         procObject(name);
         procString("clockIdentity", val.clockIdentity.string());
         procProperty(portNumber);
         closeObject();
         return true;
     }
-    bool procValue(const char *name, PortAddress_t &val) {
+    bool procValue(const char *name, PortAddress_t &val) override {
         startName(name, "\n");
         procValue(val);
         return true;
     }
-    bool procValue(const char *name, ClockQuality_t &val) {
+    bool procValue(const char *name, ClockQuality_t &val) override {
         procObject(name);
         procProperty(clockClass);
         procProperty(clockAccuracy);
@@ -703,37 +720,38 @@ struct JsonProcToJson : public JsonProc {
         closeObject();
         return true;
     }
-    bool procValue(const char *name, PTPText_t &val) {
+    bool procValue(const char *name, PTPText_t &val) override {
         procString(name, val.textField);
         return true;
     }
-    bool procValue(const char *name, FaultRecord_t &val) {
+    bool procValue(const char *name, FaultRecord_t &val) override {
         startName(name, "\n");
         procValue(val);
         return true;
     }
-    bool procValue(const char *name, AcceptableMaster_t &val) {
+    bool procValue(const char *name, AcceptableMaster_t &val) override {
         startName(name, "\n");
         procValue(val);
         return true;
     }
-    bool procValue(const char *name, LinuxptpUnicastMaster_t &val) {
+    bool procValue(const char *name, LinuxptpUnicastMaster_t &val) override {
         startName(name, "\n");
         procValue(val);
         return true;
     }
-    bool procBinary(const char *name, Binary &val, uint16_t &) {
+    bool procBinary(const char *name, Binary &val, uint16_t &) override {
         procString(name, val.toId());
         return true;
     }
-    bool procBinary(const char *name, uint8_t *val, size_t len) {
+    bool procBinary(const char *name, uint8_t *val, size_t len) override {
         procString(name, Binary::bufToId(val, len));
         return true;
     }
-    bool procFlag(const char *name, uint8_t &flags, int mask) {
+    bool procFlag(const char *name, uint8_t &flags, int mask) override {
         procBool(name, (flags & mask) > 0);
         return true;
     }
+    void procZeroFlag(uint8_t &flags) override {}
     procVector(ClockIdentity_t)
     procVector(PortAddress_t)
     procVector(FaultRecord_t)
@@ -748,9 +766,7 @@ struct JsonProcToJson : public JsonProc {
 bool JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *data,
     bool header)
 {
-    if(data == nullptr)
-        procNull("dataField");
-    else {
+    if(data != nullptr) {
         if(header)
             procObject("dataField");
         else // header can be false only if data is NOT null!
