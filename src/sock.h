@@ -82,6 +82,17 @@ class SockBase
     bool send(Buf &buf, size_t len)
     { return sendBase(buf.get(), len); }
     /**
+     * Send the message using the socket
+     * @param[in] buf object with message memory buffer
+     * @param[in] len message length
+     * @return true if message is sent
+     * @note true does @b NOT guarantee the frame was successfully
+     *  arrives its target. Only the network layer sends it.
+     * @note identical to send. Some scripts fail to match proper function
+     */
+    bool sendBuf(Buf &buf, size_t len)
+    { return sendBase(buf.get(), len); }
+    /**
      * Receive a message using the socket
      * @param[in, out] buf pointer to a memory buffer
      * @param[in] bufSize memory buffer size

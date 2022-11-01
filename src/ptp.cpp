@@ -67,19 +67,6 @@ static void calcTicks()
         fetchClockTicks = true;
     }
 }
-static bool setOff(clockid_t clkId, timeval time)
-{
-    timex tmx = {0};
-    // ADJ_NANO: Use nanoseconds instead of microseconds!
-    tmx.modes = ADJ_SETOFFSET | ADJ_NANO;
-    tmx.time = time;
-    if(clock_adjtime(clkId, &tmx) != 0) {
-        PTPMGMT_ERROR_P("ADJ_SETOFFSET");
-        return false;
-    }
-    PTPMGMT_ERROR_CLR;
-    return true;
-}
 static bool setTimeFromTime(bool isInit, clockid_t from, clockid_t to)
 {
     timespec ts;
@@ -198,28 +185,27 @@ bool BaseClock::setTime(const Timestamp_t &ts) const
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool BaseClock::offsetClock(long double offset) const
+bool BaseClock::offsetClock(int64_t offset) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("not initialized yet");
         return false;
     }
-    time_t secs = floorl(offset);
-    suseconds_t nsecs = (offset - secs) * NSEC_PER_SEC;
-    return setOff(m_clkId, {secs, nsecs});
-}
-bool BaseClock::offsetClockNsec(int64_t offset) const
-{
-    if(!m_isInit) {
-        PTPMGMT_ERROR("not initialized yet");
-        return false;
-    }
-    auto d = div((long long)offset, (long long)NSEC_PER_SEC);
+    auto d = lldiv((long long)offset, (long long)NSEC_PER_SEC);
     while(d.rem < 0) {
         d.quot--;
         d.rem += NSEC_PER_SEC;
     };
-    return setOff(m_clkId, {d.quot, d.rem});
+    timex tmx = {0};
+    // ADJ_NANO: Use nanoseconds instead of microseconds!
+    tmx.modes = ADJ_SETOFFSET | ADJ_NANO;
+    tmx.time = {d.quot, d.rem};
+    if(clock_adjtime(m_clkId, &tmx) != 0) {
+        PTPMGMT_ERROR_P("ADJ_SETOFFSET");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
 }
 long double BaseClock::getFreq() const
 {
@@ -526,7 +512,7 @@ bool PtpClock::readEvent(PtpEvent_t &event) const
     return true;
 }
 const size_t PTP_BUF_TIMESTAMPS = 30; // From Linux kernel ptp_private.h
-int PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
+bool PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("not initialized yet");
@@ -540,21 +526,21 @@ int PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
     ssize_t cnt = read(m_fd, ents, sizeof ents);
     if(cnt < 0) {
         PTPMGMT_ERROR_P("read");
-        return -1;
+        return false;
     } else if(cnt == 0) {
         PTPMGMT_ERROR_CLR;
-        return 0;
+        return true;
     }
     auto d = div(cnt, sizeof(ptp_extts_event));
     if(d.rem != 0) {
         PTPMGMT_ERROR("Wrong size %zd, not divisible", cnt);
-        return -1;
+        return false;
     }
     ptp_extts_event *ent = ents;
     for(int i = 0; i < d.quot; i++, ent++)
         events.push_back({ent->index, toTs(ent->t)});
     PTPMGMT_ERROR_CLR;
-    return d.quot;
+    return true;
 }
 bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
     uint8_t flags) const

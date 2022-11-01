@@ -208,9 +208,6 @@ HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
 HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,comp.h ids.h),$(HEADERS))
 SRCS:=$(wildcard $(SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
-UTEST:=utest/utest
-UTEST_JSONC:=utest/utest_json_c
-UTEST_FJSON:=utest/utest_json_f
 # json-c
 JSONC_LIB:=$(LIB_NAME)_jsonc.so
 JSONC_LIBA:=$(LIB_NAME)_jsonc.a
@@ -220,8 +217,7 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl
-UTEST_TGT:=utest_cpp utest_jsonc utest_fjson\
-           $(foreach n,$(TGT_LNG),utest_$n)
+UTEST_TGT:=utest_cpp utest_json utest_sys $(foreach n,$(TGT_LNG),utest_$n)
 INS_TGT:=install_main $(foreach n,$(TGT_LNG),install_$n)
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
            doxygen checkall help rpm rpmsrc pkg pkgsrc utest config\
@@ -242,7 +238,7 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample\
-  utest/*.c*,':!/:$n') ':!:*.gitignore' ':!:*test.*'
+  utest/*.[ch]*,':!/:$n') ':!:*.gitignore' ':!:*test.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
@@ -617,7 +613,7 @@ CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(ARCHL_SRC)\
   $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
   tcl/pkgIndex.tcl php/.phpunit.result.cache .phpunit.result.cache\
-  $(HEADERS_GEN) $(UTEST) $(UTEST_JSONC) $(UTEST_FJSON)
+  $(HEADERS_GEN)
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
   archlinux/*/)) doc $(OBJ_DIR) perl/auto
 DISTCLEAN:=$(foreach n, log status,config.$n) configure defs.mk

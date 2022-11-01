@@ -11,6 +11,8 @@
 # List of libraries of jsonFrom
 JSON_C:=
 
+UTEST_JSONC:=$(OBJ_DIR)/utest_json_c
+UTEST_FJSON:=$(OBJ_DIR)/utest_json_f
 # Using json-c
 JSON_C+=\"$(JSONC_FLIB)\",
 ifneq ($(HAVE_JSONC_LIB),)
@@ -56,6 +58,7 @@ utest_fjson: $(HEADERS_GEN_COMP) $(UTEST_FJSON)
 	$(call Q_UTEST,JSON-F)$(UTEST_FJSON) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS
 endif # HAVE_FJSON_LIB
-
+.PHONY: utest_jsonc utest_fjson
+utest_json: utest_jsonc utest_fjson
 # Add jsonFrom libraries to search
 $(OBJ_DIR)/jsonDef.o: override CXXFLAGS+=-DJSON_C="$(JSON_C)"

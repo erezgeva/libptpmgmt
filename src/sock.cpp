@@ -18,6 +18,7 @@
 #include <linux/filter.h>
 #include "comp.h"
 #include "sock.h"
+#include "timeCvrt.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 
@@ -130,19 +131,22 @@ bool SockBase::poll(uint64_t timeout_ms) const
 }
 bool SockBase::tpoll(uint64_t &timeout_ms) const
 {
-    timeval start;
-    if(timeout_ms > 0)
-        gettimeofday(&start, nullptr);
+    bool have_clock = timeout_ms > 0;
+    timespec start;
+    if(have_clock)
+        have_clock = clock_gettime(CLOCK_REALTIME, &start) == 0;
     bool ret = poll(timeout_ms);
-    if(timeout_ms > 0) {
-        timeval now, left;
-        gettimeofday(&now, nullptr);
-        timersub(&now, &start, &left);
-        uint64_t pass = left.tv_sec * 1000 + left.tv_usec / 1000;
-        if(timeout_ms > pass)
-            timeout_ms -= pass;
-        else
-            timeout_ms = 0; // No time out!
+    if(have_clock) {
+        timespec now;
+        if(clock_gettime(CLOCK_REALTIME, &now) == 0) {
+            Timestamp_t s(start), n(now);
+            n -= s;
+            uint64_t pass = n.toNanoseconds() / NSEC_PER_MSEC;
+            if(timeout_ms > pass)
+                timeout_ms -= pass;
+            else
+                timeout_ms = 0; // No time out!
+        }
     }
     return ret;
 }
@@ -781,13 +785,17 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
         PTPMGMT_ERROR_P("recvmsg");
         return -1;
     }
+    if(cnt < (ssize_t)(sizeof m_rx_buf)) {
+        PTPMGMT_ERROR("rcv %zu less than Ethernet header", cnt);
+        return -1;
+    }
     if(cnt > (ssize_t)(bufSize + sizeof m_rx_buf)) {
         PTPMGMT_ERROR("rcv %zd more than buffer size %zu", cnt,
             bufSize + sizeof m_rx_buf);
         return -1;
     }
     PTPMGMT_ERROR_CLR;
-    return cnt;
+    return cnt - sizeof m_rx_buf;
 }
 bool SockRaw::setAllBase(const ConfigFile &cfg, const std::string &section)
 {

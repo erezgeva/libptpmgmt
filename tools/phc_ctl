@@ -109,7 +109,7 @@ def do_set(ptp, useSys, seconds):
 def do_adj(ptp, seconds):
     if seconds is None:
         return ['adj: missing required time argument', True]
-    if ptp.offsetClock(seconds):
+    if ptp.offsetClock(int(seconds * ptpmgmt.NSEC_PER_SEC)):
         return [f'adjusted clock by {seconds:.6f} seconds']
     return ['adj: fail adjust clock', True]
 def do_wait(ptp, seconds):

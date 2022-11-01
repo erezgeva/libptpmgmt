@@ -8,9 +8,6 @@
 #
 ###############################################################################
 
-ifneq ($(GTEST_LIB_FLAGS),)
-TEST_OBJS:=$(patsubst %.cpp,%.o,$(filter-out\
-  $(foreach n,json2msg,utest/$n.cpp),$(wildcard utest/*.cpp)))
 ifneq ($(filter utest $(UTEST_TGT),$(MAKECMDGOALS)),)
 ifneq ($(NONPHONY_TGT),)
 $(eval $(call phony,$(NONPHONY_TGT)))
@@ -23,21 +20,44 @@ TCL_FILTERS:=-verbose "pass body erro" -match "*$(NONPHONY_TGT)*"
 endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
+utest: $(UTEST_TGT)
+
+ifneq ($(GTEST_LIB_FLAGS),)
+UTEST:=$(OBJ_DIR)/utest
+UTEST_SYS:=$(OBJ_DIR)/utest_sys
+UTEST_SYS_SRCS:=sock ptp
+TEST_OBJS:=$(patsubst %.cpp,%.o,$(filter-out\
+  $(foreach n,json2msg libsys $(UTEST_SYS_SRCS),utest/$n.cpp)\
+  ,$(wildcard utest/*.cpp)))
+TEST_SYS_OBJS:=$(foreach n,$(UTEST_SYS_SRCS),utest/$n.o)
+TEST_LIBSYS:=objs/libsys.so
 # Main for gtest
 $(OBJ_DIR)/utest_m.o: | $(OBJ_DIR)
 	$(Q)printf 'int main(int argc,char**argv)%s'\
 	  '{::testing::InitGoogleTest(&argc,argv);return RUN_ALL_TESTS();}' |\
 	  $(CXX) -include $(HAVE_GTEST_HEADER) $(GTEST_INC_FLAGS)\
 	  -c -x c++ - -o $@
+$(OBJ_DIR)/utest_sys.o: | $(OBJ_DIR)
+	$(Q)printf 'int main(int argc,char**argv)%s%s'\
+	  '{initLibSys();::testing::InitGoogleTest(&argc,argv);'\
+	  'return RUN_ALL_TESTS();}' |\
+	  $(CXX) -include $(HAVE_GTEST_HEADER) -include utest/libsys.h\
+	  $(GTEST_INC_FLAGS) -c -x c++ - -o $@
+$(TEST_SYS_OBJS): override CXXFLAGS+=-include utest/libsys.h
 utest/%.o: utest/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS)\
 	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
-
+$(TEST_LIBSYS): utest/libsys.cpp
+	$(Q_CC)$(CXX) -shared -fPIC\
+	  -include utest/libsys.h -o $@ $^ -ldl
 $(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 utest_cpp: $(HEADERS_GEN_COMP) $(UTEST)
 	$(call Q_UTEST,C++)$(UTEST) $(GTEST_NO_COL) $(GTEST_FILTERS)
-utest: $(UTEST_TGT)
-
+$(UTEST_SYS): $(OBJ_DIR)/utest_sys.o $(TEST_SYS_OBJS) $(LIB_NAME_A) $(TEST_LIBSYS)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
+	  $(GTEST_LIB_FLAGS) -o $@
+utest_sys: $(HEADERS_GEN_COMP) $(UTEST_SYS)
+	$(call Q_UTEST,C++-SYS)LD_PRELOAD=$(TEST_LIBSYS) $(UTEST_SYS) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS

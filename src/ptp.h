@@ -249,16 +249,10 @@ class BaseClock
     bool setTime(const Timestamp_t &ts) const;
     /**
      * Offset clock time
-     * @param[in] offset in seconds with fractions
-     * @return true for success
-     */
-    bool offsetClock(long double offset) const;
-    /**
-     * Offset clock time
      * @param[in] offset in nanoseconeds
      * @return true for success
      */
-    bool offsetClockNsec(int64_t offset) const;
+    bool offsetClock(int64_t offset) const;
     /**
      * Get clock adjustment frequancy
      * @return freq frequancy in ppb
@@ -274,7 +268,7 @@ class BaseClock
 /**
  * System clock
  */
-class SysClock final : public BaseClock
+class SysClock : public BaseClock
 {
   public:
     SysClock();
@@ -289,7 +283,7 @@ class SysClock final : public BaseClock
  *  Do @b NOT delete the object while using the dynamic clock id.
  * @note A network interface may have multiple PHCs
  */
-class PtpClock final : public BaseClock
+class PtpClock : public BaseClock
 {
   private:
     int m_fd, m_ptpIndex;
@@ -404,10 +398,10 @@ class PtpClock final : public BaseClock
      * Read external events
      * @param[out] events retrieved events
      * @param[in] max maximum number of events to read
-     * @return the number of events read, or -1 on error
+     * @return true for success
      * @note the maximum is trunced to 30 events
      */
-    int readEvents(std::vector<PtpEvent_t> &events, size_t max = 0) const;
+    bool readEvents(std::vector<PtpEvent_t> &events, size_t max = 0) const;
     /**
      * Set PHC pin period signal
      * @param[in] index pin index
