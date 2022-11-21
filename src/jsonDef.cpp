@@ -172,7 +172,7 @@ const char *Json2msg::loadLibrary()
 bool Json2msg::selectLib(const std::string &libMatch)
 {
     LIB_LOAD(libMatch.c_str());
-    return false;
+    return LIB_SHARED;
 }
 bool Json2msg::isLibShared()
 {

@@ -25,9 +25,10 @@ utest: $(UTEST_TGT)
 ifneq ($(GTEST_LIB_FLAGS),)
 UTEST:=$(OBJ_DIR)/utest
 UTEST_SYS:=$(OBJ_DIR)/utest_sys
+UTEST_JSON_LOAD:=$(OBJ_DIR)/utest_json_load
 UTEST_SYS_SRCS:=sock ptp init
 TEST_OBJS:=$(patsubst %.cpp,%.o,$(filter-out\
-  $(foreach n,json2msg libsys $(UTEST_SYS_SRCS),utest/$n.cpp)\
+  $(foreach n,json2msg jsonLoad libsys $(UTEST_SYS_SRCS),utest/$n.cpp)\
   ,$(wildcard utest/*.cpp)))
 TEST_SYS_OBJS:=$(foreach n,$(UTEST_SYS_SRCS),utest/$n.o)
 TEST_LIBSYS:=objs/libsys.so
@@ -59,5 +60,13 @@ $(UTEST_SYS): $(OBJ_DIR)/utest_sys.o $(TEST_SYS_OBJS) $(LIB_NAME_A) $(TEST_LIBSY
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 utest_sys: $(HEADERS_GEN_COMP) $(UTEST_SYS)
-	$(call Q_UTEST,C++-SYS)LD_PRELOAD=$(TEST_LIBSYS) $(UTEST_SYS) $(GTEST_NO_COL) $(GTEST_FILTERS)
+	$(call Q_UTEST,C++-SYS)LD_PRELOAD=$(TEST_LIBSYS) $(UTEST_SYS)\
+	  $(GTEST_NO_COL) $(GTEST_FILTERS)
+$(UTEST_JSON_LOAD): $(OBJ_DIR)/utest_m.o utest/jsonLoad.o $(LIB_NAME_SO) |\
+  $(JSONC_LIB) $(FJSON_LIB)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
+	  $(GTEST_LIB_FLAGS) -o $@ -ldl
+utest_json_load: $(HEADERS_GEN_COMP) $(UTEST_JSON_LOAD)
+	$(call Q_UTEST,JSON_LOAD)LD_PRELOAD=$(LIB_NAME_SO) LD_LIBRARY_PATH=.\
+	  $(UTEST_JSON_LOAD) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS

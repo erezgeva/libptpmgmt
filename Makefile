@@ -217,11 +217,12 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl
-UTEST_TGT:=utest_cpp utest_json utest_sys $(foreach n,$(TGT_LNG),utest_$n)
+UTEST_TGT:=utest_cpp utest_json utest_sys utest_json_load\
+  $(foreach n,$(TGT_LNG),utest_$n)
 INS_TGT:=install_main $(foreach n,$(TGT_LNG),install_$n)
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
-           doxygen checkall help rpm rpmsrc pkg pkgsrc utest config\
-           $(UTEST_TGT) $(INS_TGT) utest_lua_a
+  doxygen checkall help rpm rpmsrc pkg pkgsrc utest config\
+  $(UTEST_TGT) $(INS_TGT) utest_lua_a
 .PHONY: $(PHONY_TGT)
 NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
 

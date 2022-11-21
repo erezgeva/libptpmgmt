@@ -107,6 +107,8 @@ main()
     equit "Configuratation fails"
     # Run syntax checking
     make checkall -j$jobs
+    # Make sure we have all compiled for the unit tests
+    make -j$jobs
     echo " * Run unit test"
     eacmd make utest -j$jobs
     equit "Unit test fails"
