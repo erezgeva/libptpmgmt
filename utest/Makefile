@@ -25,7 +25,7 @@ utest: $(UTEST_TGT)
 ifneq ($(GTEST_LIB_FLAGS),)
 UTEST:=$(OBJ_DIR)/utest
 UTEST_SYS:=$(OBJ_DIR)/utest_sys
-UTEST_SYS_SRCS:=sock ptp
+UTEST_SYS_SRCS:=sock ptp init
 TEST_OBJS:=$(patsubst %.cpp,%.o,$(filter-out\
   $(foreach n,json2msg libsys $(UTEST_SYS_SRCS),utest/$n.cpp)\
   ,$(wildcard utest/*.cpp)))

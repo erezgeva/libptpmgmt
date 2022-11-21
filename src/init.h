@@ -42,6 +42,7 @@ class Init
      * Proccess PMC options
      * @param[in] opt PMC options
      * @return 0 on scuccess
+     * @note function return proper value to return from main()
      */
     int proccess(const Options &opt);
 

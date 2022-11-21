@@ -1025,7 +1025,7 @@ uint64_t Timestamp_t::toNanoseconds() const
 }
 bool Timestamp_t::eq(long double seconds) const
 {
-    // We use unsigned, negitive can not ne equal
+    // We use unsigned, negitive can not be equal
     if(seconds < 0)
         return false;
     uint64_t secs = floorl(seconds);

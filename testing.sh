@@ -13,7 +13,7 @@ main()
 {
  local file i opt n cmds use_asan
  # Default values
- local -r def_ifName=enp0s25
+ local -r def_ifName=enp0s31f6
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
  local -r def_linuxptpLoc=../linuxptp
  # environment variables
@@ -86,7 +86,7 @@ main()
    fi
    make --no-print-directory -j -C "$linuxptpLoc"
    local -r pmctool="$sudo\"$linuxptpLoc/pmc\""
-   local -r phcctrltool="$sudo\"$linuxptpLoc/phc_ctl\""
+   local -r phcctrltool="$sudo$linuxptpLoc/phc_ctl"
    local -r ptpLocCfrm=true
  else
    [[ -n "$setUds" ]] || local -r useSudo="$sudo"
@@ -224,7 +224,8 @@ compare_pmc()
  # user  0m0.001s
  # sys   0m0.004s
 
- printf "\n * We expect 'protocolAddress' and 'timeSource' difference\n%s\n\n"\
+ printf "\n * We expect 'protocolAddress', %s\n%s\n\n"\
+          "'timeSource' and 'portState' difference"\
           " * Statistics may apprear"
  diff <(printf "$pmcOut") <(printf "$libptpOut") | grep '^[0-9-]' -v
 
@@ -322,7 +323,7 @@ parse_phc_out()
  for n in "${MAPFILE[@]}"; do
    if [[ $n =~ ^$matchPhc:[[:space:]](.*[^$'\n']) ]]; then
      local s1="${BASH_REMATCH[1]}"
-     if [[ $s1 =~ (.*[[:digit:]]+\.[[:digit:]]{2})[[:digit:]]+([[:space:]].*) ]]
+     if [[ $s1 =~ (.*[[:digit:]]+\.[[:digit:]])[[:digit:]]+([[:space:]].*) ]]
        then parseOut+="${BASH_REMATCH[1]}${BASH_REMATCH[2]}\n"
      else
        parseOut+="$s1\n"
@@ -345,7 +346,7 @@ test_phc_ctl()
    eval "$ldPathPython3 py3compile python/ptpmgmt.py"
  fi
  local -r matchPhc='phc_ctl[^\[]*\[[[:digit:]]+\.[[:digit:]]+\]'
- local -r runPhc="$ifName freq 500000000 set 0 wait 4 adj 4 get"
+ local -r runPhc="$ifName freq 20000000 set 0 wait 4 adj 4 get"
  local parseOut runOut
  printf " * Create output with linuxptp phc_ctrl, wait 4 seconds ...\n"
  runOut=$(eval "$phcctrltool $runPhc" 2>&1)

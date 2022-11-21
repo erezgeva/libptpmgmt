@@ -178,6 +178,8 @@ static inline clockid_t fd_to_clockid(int fd)
 #define cmp_addr(n) if(addrlen != sizeof n || addr == nullptr ||\
     memcmp(addr, n, sizeof n) != 0)\
     return retErr(EINVAL);break
+#define cmp_paddr(n) if(addrlen == sizeof n && memcmp(addr, n, sizeof n) == 0)\
+        return 0
 #define cmp_opt(n) if(optlen != sizeof n || optval == nullptr ||\
     memcmp(optval, n, sizeof n) != 0)\
     return retErr(EINVAL);break
@@ -239,6 +241,9 @@ int select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, timeval *to)
     return _select(nfds, rfds, wfds, efds, to);
 }
 const uint8_t ua_addr_b[110] = { 1, 0, 47, 109, 101 };
+const uint8_t ua_addr_b0[110] = {1, 0, 47, 104, 111, 109, 101, 47, 117, 115,
+        114, 47, 46, 112, 109, 99, 46, 49, 49, 49
+    };
 const uint8_t ip_addr_b[16] = { 2, 0, 1, 64 };
 const uint8_t ip6_addr_b[28] = { 10, 0, 1, 64 };
 const uint8_t  raw_addr_b[20] = { 17, 0, 0, 3, 7 };
@@ -249,17 +254,22 @@ int bind(int fd, const sockaddr *addr, socklen_t addrlen)
         return retErr(EINVAL);
     switch(fdesc[fd].domain) {
         case AF_UNIX:
-            cmp_addr(ua_addr_b);
+            cmp_paddr(ua_addr_b);
+            cmp_paddr(ua_addr_b0);
+            break;
         case AF_INET:
-            cmp_addr(ip_addr_b);
+            cmp_paddr(ip_addr_b);
+            break;
         case AF_INET6:
-            cmp_addr(ip6_addr_b);
+            cmp_paddr(ip6_addr_b);
+            break;
         case AF_PACKET:
-            cmp_addr(raw_addr_b);
+            cmp_paddr(raw_addr_b);
+            break;
         default:
             return retErr(ENOTSOCK);
     }
-    return 0;
+    return retErr(EINVAL);
 }
 const uint8_t bpf_filter[4] = {40};
 const uint8_t so_bindtodevice[4] = { 'e', 't', 'h', '0' };
