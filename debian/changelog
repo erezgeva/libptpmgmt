@@ -1,3 +1,72 @@
+libptpmgmt (1.0) bullseye; urgency=medium
+
+  * Project uses 5 script languages, 2 JSON libraries,
+    support 3 Linux distribution and support cross compilation.
+  * Add autoconf configuration as most distribution provide autoconf
+    probing of current system.
+  * Remove all options from make file that are probed or
+     set by the configuration script.
+  * Add unit tests
+    - ptpmgmt library
+    - scripts languages Message dispatcher and builder classes
+    - Json to messages
+    - load Json to messages libraries
+  * Build
+    - Split make file
+    - Catch Doxygen warning and exit with error.
+    - Add unit test main to the unit test make file.
+    - Improve format script and exit with error on error.
+    - Probe astyle change and exit with error.
+      So we can use the make format goal in
+      a continuous integration checking container.
+    - Check for dot application to use with doxygen.
+    - Fix clean.
+    - Update source files list for archive.
+    - Fix installed man pages file mode.
+    - Prevent copy of man pages on seconds install.
+    - Add all markdown documentation to documentation package.
+  * Add update_doxygen.pl script file header.
+  * Fix Doxygen configuration.
+  * Update Doxygen to version 1.9.1
+  * Improve Doxygen handling.
+  * testing
+    - Fix Lua using local library.
+    - Improve testing.
+    - Run all testing from root folder.
+    - Use system libraries only if specify with a flag.
+    - Add rule to run default configuration of distribution system.
+  * Add Message Builder Base C++ class to Lua.
+    The C++ class destructor free the send TLV in the message object.
+  * Debian Bookworm have a installation bug with GCC C++ cross compiler.
+  * Add CI script to run all steps needed in CI:
+     - check licenses with reuse tool
+     - build Debian packages
+     - pass format and Doxygen
+     - run unit tests
+     - verify no left over after clean and distribution clean.
+     - The system test and build packages on other distribution is done
+       out side CI.
+  * Merge headers used during compilation only,
+    into a single compilation only header.
+    The compilation header is used during compilation only,
+    and do not hold any public API.
+  * Add a new error class to store the last error happened in the library.
+    The library do not print the error to standard error no longer.
+    It is up to the application how to handle the error.
+  * Improve error in: socket, PTP and clock classes.
+  * Rebase binary class to support operator [] with reference.
+  * Add support for Debian bookworm.
+  * Add docker for Debian to use on github CI.
+  * Create the version header by the make file.
+    So we have only one configuration file created by configure.
+    All the reset is created by the make file.
+  * Fix tcl library package version in index file.
+  * Fix Perl library folder location.
+  * Move source code and objects to sub-folders.
+  * Replace GCC prepossess with m4 to generate headers files.
+
+ -- Erez Geva <ErezGeva2@gmail.com>  Mon, 21 Nov 2022 22:05:27 +0100
+
 libptpmgmt (0.9) bullseye; urgency=medium
 
   * Add header to define the C++ namespace.

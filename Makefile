@@ -380,11 +380,11 @@ perl_SFLAGS+=-Iswig/perl5
 $(foreach n,lua php tcl,$(eval $(n)_SFLAGS+=-Iswig/$n))
 endif #SWIGARGCARGV
 
-# suppress swig compilation warnings for old swig versions
-ifneq ($(call verCheck,$(SWIGVER),4.1),)
 # SWIG warnings
 # comparison integer of different signedness
 CXXFLAGS_RUBY+=-Wno-sign-compare
+# suppress swig compilation warnings for old swig versions
+ifneq ($(call verCheck,$(SWIGVER),4.1),)
 # ANYARGS is deprecated (seems related to ruby headers)
 CXXFLAGS_RUBY+=-Wno-deprecated-declarations
 # label 'thrown' is not used

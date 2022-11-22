@@ -747,7 +747,8 @@ AS_HELP_STRING([--with-php=path], [Set location of PHP executable])],
 AS_IF([test -z "$SWIGMINVER"],
       [AS_VAR_SET([PHPBIN], ["no"])],
       [AS_VERSION_COMPARE([$SWIGMINVER], [3.0.12],
-                          [AS_VAR_SET([PHPBIN], ["no"])])]) # below 3.0.12
+                          [AS_VAR_SET([PHPBIN], ["no"])],   # below 3.0.12
+                          [AS_VAR_SET([PHPBIN], ["no"])])]) # equal 3.0.12
 
 # First, check for "--without-php" or "--with-php=no".
 if test "x$PHPBIN" = xno; then
@@ -841,6 +842,7 @@ AS_UNSET([LUALIB])
 AS_UNSET([LUA_INC])
 AS_UNSET([LUALINK])
 AS_UNSET([LUAVERSIONS])
+AS_UNSET([LUAVERSIONS_UNIT])
 AS_UNSET([LUA_5_1_INC])
 AS_UNSET([LUA_5_2_INC])
 AS_UNSET([LUA_5_3_INC])
@@ -888,7 +890,10 @@ else
                     AS_VAR_SET([tag], [`echo $name | $SED 's%\.%_%'`])
                     AS_VAR_SET([LUA_${tag}_INC], ["$v"])
                     AS_VAR_SET([LUA_${tag}_LINK], ["-llua$name"])
-                    AS_VAR_SET([LUAVERSIONS], ["$LUAVERSIONS $name"])])
+                    AS_VAR_SET([LUAVERSIONS], ["$LUAVERSIONS $name"])
+                    AS_IF([lua$name -e "require 'luaunit'" 2>/dev/null],
+                          [AS_VAR_SET([LUAVERSIONS_UNIT],
+                                      ["$LUAVERSIONS_UNIT $name"])])])
            done
          done])
 
@@ -972,6 +977,7 @@ AC_SUBST([LUABIN_VERSION])
 AC_SUBST([LUA_INC])
 AC_SUBST([LUALINK])
 AC_SUBST([LUAVERSIONS])
+AC_SUBST([LUAVERSIONS_UNIT])
 AC_SUBST([LUA_5_1_INC])
 AC_SUBST([LUA_5_2_INC])
 AC_SUBST([LUA_5_3_INC])

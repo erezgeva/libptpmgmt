@@ -14,9 +14,6 @@ import unittest
 # See: https://wiki.python.org/moin/PyUnit
 
 class myDisp(ptpmgmt.MessageDispatcher):
-  priority1 :int
-  func : int
-  id : str
   def __init__(self):
     self.priority1 = 0
     self.func = 0
@@ -31,7 +28,6 @@ class myDisp(ptpmgmt.MessageDispatcher):
     self.func |= 0x4
     self.id = tlv_id
 class myBuild(ptpmgmt.MessageBuilder):
-  run : int
   def PRIORITY1_b(self, msg, tlv):
     self.run = 1
     tlv.priority1 = 117

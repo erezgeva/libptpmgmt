@@ -50,10 +50,10 @@ utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
 	$(call Q_UTEST,Lua)LD_PRELOAD=./$< LUA_CPATH="lua/?.so;;" $(LUABIN)\
 	  lua/utest.lua $(LUA_FILTERS)
 endif # LUA_VERSION
-utest_lua: utest_lua_a $(foreach n,$(filter-out 5.4,$(LUAVERSIONS)),utest_lua_$n)
+utest_lua: utest_lua_a $(foreach n,$(LUAVERSIONS_UNIT),utest_lua_$n)
 
 install_lua:
-	$(foreach n,$(LUAVERSIONS),\
+	$Q$(foreach n,$(LUAVERSIONS),\
 	  $(INSTALL_PROGRAM) -D $(LUA_LIB_$n)\
 	  $(DLIBDIR)/$(LUA_FLIB_$n).$(PACKAGE_VERSION);\
 	  $(LN) $(LUA_FLIB_$n).$(PACKAGE_VERSION)\

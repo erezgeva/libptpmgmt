@@ -10,6 +10,7 @@
  */
 
 #include "ptp.h"
+#include "err.h"
 
 using namespace ptpmgmt;
 
@@ -253,7 +254,7 @@ TEST_F(PtpClockTest, MethodFetchCaps)
     EXPECT_TRUE(caps.pps);
     EXPECT_EQ(caps.num_pins, 12);
     EXPECT_TRUE(caps.cross_timestamping);
-    EXPECT_TRUE(caps.adjust_phase);
+    EXPECT_FALSE(caps.adjust_phase);
 }
 
 // Tests readPin method
@@ -336,7 +337,12 @@ TEST_F(PtpClockTest, MethodExtSamplePtpSys)
 {
     EXPECT_TRUE(initUsingIndex(0));
     std::vector<PtpSampleExt_t> samples;
-    EXPECT_TRUE(extSamplePtpSys(7, samples));
+    bool ret = extSamplePtpSys(7, samples);
+    if(!ret) {
+        EXPECT_STREQ(Error::getMsg().c_str(),
+            "Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported");
+        return;
+    }
     EXPECT_EQ(samples.size(), 2);
     EXPECT_EQ(samples[0].before, Timestamp_t(11, 33));
     EXPECT_EQ(samples[0].phcClk, Timestamp_t(22, 44));

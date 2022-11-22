@@ -25,8 +25,9 @@ clean_unused_images()
 make_all_args()
 {
   local arg
-  for arg in USER SRC UID ARCHS
+  for arg in USER SRC ARCHS
   do local -n d=$arg;args+=" --build-arg $arg=$d";done
+  args+=" --build-arg UID=$uid"
 }
 set_dist_args()
 {
@@ -66,10 +67,10 @@ main()
   local -r ARCHS='arm64'
   local -r USER=builder
   local -r lua54='lua5.4 liblua5.4-dev@'
-  local DPKGS_stretch='vim-gtk'
-  local DPKGS_buster='vim-gtk'
-  local DPKGS_bullseye="vim-gtk $lua54"
-  local DPKGS_bookworm="reuse vim-gtk3 $lua54"
+  local -r DPKGS_stretch='vim-gtk'
+  local -r DPKGS_buster='vim-gtk'
+  local -r DPKGS_bullseye="vim-gtk $lua54"
+  local -r DPKGS_bookworm="reuse vim-gtk3 $lua54"
   # Packages per architecture
   for n in libstdc++6 liblua5.1-0-dev liblua5.2-dev liblua5.3-dev\
            libpython3-all-dev ruby-dev tcl-dev libpython3-dev\
@@ -83,14 +84,10 @@ main()
   done
   for a in $ARCHS; do
     n="$(dpkg-architecture -a$a -qDEB_TARGET_GNU_TYPE 2> /dev/null)"
-    # TODO: bookworm have a bug
-    DPKGS_stretch+=" g++-$n"
-    DPKGS_buster+=" g++-$n"
-    DPKGS_bullseye+=" g++-$n"
-   #DPKGS_all+=" g++-$n"
+    DPKGS_all+=" g++-$n"
   done
   local -r SRC=.
-  local -r UID=$(id -u)
+  local -r uid=$(id -u)
   cd $base_dir/..
   while getopts 'n' opt; do
     case $opt in

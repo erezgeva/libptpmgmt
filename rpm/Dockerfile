@@ -5,6 +5,7 @@
 # @copyright 2021 Erez Geva
 #
 # Docker file for Fedora contianer for building and create rpm packages
+# Search packages at: https://packages.fedoraproject.org/
 ###############################################################################
 FROM fedora
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
@@ -15,7 +16,8 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     rpmdevtools doxygen graphviz perl php-devel ruby ruby-devel swig\
     lua lua-devel python3-devel php python3 which gtest-devel gtest\
     perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel libfastjson\
-    libfastjson-devel json-c-devel m4 && dnf clean all &&\
+    libfastjson-devel json-c-devel m4 rubygem-test-unit perl-Test-Class\
+    texlive-epstopdf ghostscript && dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers

@@ -90,7 +90,9 @@ sysFuncDec(int, clock_adjtime, clockid_t, timex *)
 sysFuncDec(long, sysconf, int)
 sysFuncDec(int, open, const char *, int, ...)
 sysFuncDec(ssize_t, read, int, void *, size_t)
-// glibc stat fucntion
+// glibc stat fucntions
+sysFuncDec(int, stat, const char *, struct stat *)
+sysFuncDec(int, stat64, const char *, struct stat64 *)
 sysFuncDec(int, __xstat, int, const char *, struct stat *)
 sysFuncDec(int, __xstat64, int, const char *, struct stat64 *)
 sysFuncDec(char *, realpath, const char *, char *)
@@ -119,6 +121,8 @@ void initLibSys(void)
     sysFuncAgn(long, sysconf, int)
     sysFuncAgn(int, open, const char *, int, ...)
     sysFuncAgn(ssize_t, read, int, void *, size_t)
+    sysFuncDec(int, stat, const char *, struct stat *)
+    sysFuncDec(int, stat64, const char *, struct stat64 *)
     sysFuncAgn(int, __xstat, int, const char *, struct stat *)
     sysFuncAgn(int, __xstat64, int, const char *, struct stat64 *)
     sysFuncAgn(char *, realpath, const char *, char *)
@@ -669,25 +673,34 @@ ssize_t read(int fd, void *buf, size_t count)
     }
     return retErr(EINVAL);
 }
-// glibc stat fucntion
+// glibc stat fucntions
+#define STAT_BODY\
+    if(sp == nullptr)\
+        return retErr(EINVAL);\
+    if(strcmp("/dev/ptp0", name) != 0 &&\
+        strcmp("/dev/ptp1", name) != 0)\
+        return retErr(EINVAL);\
+    sp->st_mode = S_IFCHR;\
+    return 0
+int stat(const char *name, struct stat *sp)
+{
+    retTest(stat, name, sp);
+    STAT_BODY;
+}
+int stat64(const char *name, struct stat64 *sp)
+{
+    retTest(stat64, name, sp);
+    STAT_BODY;
+}
 int __xstat(int ver, const char *name, struct stat *sp)
 {
     retTest(__xstat, ver, name, sp);
-    if(sp == nullptr)
-        return retErr(EINVAL);
-    if(strcmp("/dev/ptp0", name) != 0 &&
-        strcmp("/dev/ptp1", name) != 0)
-        return retErr(EINVAL);
-    sp->st_mode = S_IFCHR;
-    return 0;
+    STAT_BODY;
 }
 int __xstat64(int ver, const char *name, struct stat64 *sp)
 {
     retTest(__xstat64, ver, name, sp);
-    if(sp == nullptr || strcmp("/dev/char", name) != 0)
-        return retErr(EINVAL);
-    sp->st_mode = S_IFCHR | ~S_IFMT;
-    return 0;
+    STAT_BODY;
 }
 char *realpath(const char *path, char *resolved_path)
 {
@@ -747,7 +760,9 @@ int ioctl(int fd, unsigned long request, ...)
             cps->pps = 13;
             cps->n_pins = 12;
             cps->cross_timestamping = 1;
-            cps->adjust_phase = 1;
+            #ifdef PTP_CLOCK_GETCAPS2
+            cps->adjust_phase = 0;
+            #endif
             break;
         }
         case PTP_PIN_GETFUNC: {
@@ -780,6 +795,7 @@ int ioctl(int fd, unsigned long request, ...)
             req->ts[3] = { .sec = 62, .nsec = 84 }; // 1 phc
             break;
         }
+        #ifdef PTP_SYS_OFFSET_EXTENDED
         case PTP_SYS_OFFSET_EXTENDED: {
             ptp_sys_offset_extended *req = (ptp_sys_offset_extended *)arg;
             if(req->n_samples != 7)
@@ -793,6 +809,7 @@ int ioctl(int fd, unsigned long request, ...)
             req->ts[1][2] = { .sec = 45, .nsec = 753 }; // 1 sys after
             break;
         }
+        #endif // PTP_SYS_OFFSET_EXTENDED
         case PTP_SYS_OFFSET_PRECISE: {
             ptp_sys_offset_precise *req = (ptp_sys_offset_precise *)arg;
             req->device = { .sec = 17, .nsec = 135 };

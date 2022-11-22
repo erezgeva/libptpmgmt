@@ -7,7 +7,7 @@
 # RPM specification file for libptpmgmt rpm packages
 ###############################################################################
 Name:           libptpmgmt
-Version:        0.9
+Version:        1.0
 Release:        1%{?dist}
 URL:            https://sf.net/p/%{name}
 BuildRequires:  swig m4
@@ -16,7 +16,7 @@ BuildRequires:  which
 BuildRequires:  python3 python3-devel
 BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
-BuildRequires:  php php-devel
+#BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  libfastjson libfastjson-devel json-c-devel
 BuildRequires:  doxygen graphviz
@@ -93,13 +93,14 @@ Requires:       ruby
 %description -n ruby-%{bname}
 PTP management library ruby wrapper
 
-%package -n     php-%{bname}
-Summary:        PTP management library php wrapper
-License:        LGPLv3+
-Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       php
-%description -n php-%{bname}
-PTP management library php wrapper
+# PHP 8 require swig 4.1
+#%%package -n     php-%%{bname}
+#Summary:        PTP management library php wrapper
+#License:        LGPLv3+
+#Requires:       %%{name}%%{?_isa} = %%{version}-%%{release}
+#Requires:       php
+#%%description -n php-%%{bname}
+#PTP management library php wrapper
 
 %package -n     tcl-%{bname}
 Summary:        PTP management library tcl wrapper
@@ -138,13 +139,13 @@ Requires:       python3-%{bname} = %{version}-%{release}
 make distclean
 
 %files
-%{_libdir}/%{name}.so.0{,.*}
+%{_libdir}/%{name}.so.1{,.*}
 
 %files jsonc
-%{_libdir}/%{name}_jsonc.so.0{,.*}
+%{_libdir}/%{name}_jsonc.so.1{,.*}
 
 %files fastjson
-%{_libdir}/%{name}_fastjson.so.0{,.*}
+%{_libdir}/%{name}_fastjson.so.1{,.*}
 
 %files devel
 %{_includedir}/*
@@ -156,8 +157,8 @@ make distclean
 %{_datadir}/doc/%{name}-doc/*
 
 %files perl
-%{_libdir}/perl5/CORE/PtpMgmtLib.pm
-%{_libdir}/perl5/CORE/auto/PtpMgmtLib/PtpMgmtLib.so
+%{_libdir}/perl5/PtpMgmtLib.pm
+%{_libdir}/perl5/auto/PtpMgmtLib/PtpMgmtLib.so
 
 %files -n python3-%{bname}
 %{_libdir}/python3*/*/_%{bname}.cpython-*.so
@@ -170,9 +171,9 @@ make distclean
 %files -n ruby-%{bname}
 %{_libdir}/ruby/*/%{bname}.so
 
-%files -n php-%{bname}
-%{_libdir}/php/*/%{bname}.so
-%{_datadir}/pear/%{bname}.php
+#%%files -n php-%%{bname}
+#%%{_libdir}/php/*/%%{bname}.so
+#%%{_datadir}/pear/%%{bname}.php
 
 %files -n tcl-%{bname}
 %{_libdir}/tcl*/%{bname}/%{bname}.so
@@ -192,6 +193,72 @@ make distclean
 # The changelog is under GFDL-1.3-no-invariants-or-later license.
 ###############################################################################
 %changelog
+* Mon Nov 21 2022 ErezGeva2@gmail.com 1.0-1
+- Project uses 5 script languages, 2 JSON libraries,
+  support 3 Linux distribution and support cross compilation.
+- Add autoconf configuration as most distribution provide autoconf
+  probing of current system.
+- Remove all options from make file that are probed or
+   set by the configuration script.
+- Add unit tests
+  - ptpmgmt library
+  - scripts languages Message dispatcher and builder classes
+  - Json to messages
+  - load Json to messages libraries
+- Build
+  - Split make file
+  - Catch Doxygen warning and exit with error.
+  - Add unit test main to the unit test make file.
+  - Improve format script and exit with error on error.
+  - Probe astyle change and exit with error.
+    So we can use the make format goal in
+    a continuous integration checking container.
+  - Check for dot application to use with doxygen.
+  - Fix clean.
+  - Update source files list for archive.
+  - Fix installed man pages file mode.
+  - Prevent copy of man pages on seconds install.
+  - Add all markdown documentation to documentation package.
+- Add update_doxygen.pl script file header.
+- Fix Doxygen configuration.
+- Update Doxygen to version 1.9.1
+- Improve Doxygen handling.
+- testing
+  - Fix Lua using local library.
+  - Improve testing.
+  - Run all testing from root folder.
+  - Use system libraries only if specify with a flag.
+  - Add rule to run default configuration of distribution system.
+- Add Message Builder Base C++ class to Lua.
+  The C++ class destructor free the send TLV in the message object.
+- Debian Bookworm have a installation bug with GCC C++ cross compiler.
+- Add CI script to run all steps needed in CI:
+   - check licenses with reuse tool
+   - build Debian packages
+   - pass format and Doxygen
+   - run unit tests
+   - verify no left over after clean and distribution clean.
+   - The system test and build packages on other distribution is done
+     out side CI.
+- Merge headers used during compilation only,
+  into a single compilation only header.
+  The compilation header is used during compilation only,
+  and do not hold any public API.
+- Add a new error class to store the last error happened in the library.
+  The library do not print the error to standard error no longer.
+  It is up to the application how to handle the error.
+- Improve error in: socket, PTP and clock classes.
+- Rebase binary class to support operator [] with reference.
+- Add support for Debian bookworm.
+- Add docker for Debian to use on github CI.
+- Create the version header by the make file.
+  So we have only one configuration file created by configure.
+  All the reset is created by the make file.
+- Fix tcl library package version in index file.
+- Fix Perl library folder location.
+- Move source code and objects to sub-folders.
+- Replace GCC prepossess with m4 to generate headers files.
+
 * Tue Jul 26 2022 ErezGeva2@gmail.com 0.9-1
 - Add header to define the C++ namespace.
 - Swig generated code

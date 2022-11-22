@@ -21,13 +21,14 @@ $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(TCL_LNAME).so
 TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
 pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
-pkgIndex+=package ifneeded $(SWIG_LNAME) $(ver_maj)
+# TODO tcl do not find the library major version
+pkgIndex+=package ifneeded $(SWIG_LNAME) 0
 pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
 tcl/pkgIndex.tcl:
-	$(Q)tcl/pkgIndex_tcl.sh tcl
+	$(Q)tcl/pkgIndex_tcl.sh tcl 0
 utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so tcl/pkgIndex.tcl
 	$(call Q_UTEST,TCL)LD_PRELOAD=./$< TCLLIBPATH=tcl tcl/utest.tcl $(TCL_FILTERS)
 
 install_tcl:
-	$(INSTALL_PROGRAM) -D $(TCL_LNAME).so -t $(TCLDIR)
+	$Q$(INSTALL_PROGRAM) -D $(TCL_LNAME).so -t $(TCLDIR)
 	printf '$(pkgIndex)' > $(TCLDIR)/pkgIndex.tcl

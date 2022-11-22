@@ -24,5 +24,5 @@ utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
 	  $(PHP_NO_COL) $(PHP_FILTERS)
 
 install_php:
-	$(INSTALL_PROGRAM) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHPEXT)
+	$Q$(INSTALL_PROGRAM) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHPEXT)
 	$(INSTALL_DATA) -D $(PHP_LNAME).php -t $(DESTDIR)$(PHPINCDIR)

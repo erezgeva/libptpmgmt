@@ -7,7 +7,7 @@
 # @copyright 2021 Erez Geva
 #
 ###############################################################################
-pkgver=0.9
+pkgver=1.0
 pkgrel=1
 pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
   libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt

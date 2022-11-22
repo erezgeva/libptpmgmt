@@ -34,6 +34,6 @@ utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
 	  python/utest.py $(PY_FILTERS)
 
 install_python3:
-	$(INSTALL_PROGRAM) -D python/3/$(PY_LIB_NAME).so\
+	$Q$(INSTALL_PROGRAM) -D python/3/$(PY_LIB_NAME).so\
 	  $(DESTDIR)$(PY3SITE_DIR)/$(PY_LIB_NAME)$(PY3EXT)
 	$(INSTALL_DATA) python/$(SWIG_LNAME).py $(DESTDIR)$(PY3SITE_DIR)

@@ -23,6 +23,6 @@ utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
 	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=perl perl/utest.pl
 
 install_perl5:
-	$(INSTALL_PROGRAM) -D perl/auto/*/*.so -t\
+	$Q$(INSTALL_PROGRAM) -D perl/auto/*/*.so -t\
 	  $(DESTDIR)$(PERL5DIR)/auto/$(SWIG_NAME)
 	$(INSTALL_DATA) perl/*.pm $(DESTDIR)$(PERL5DIR)
