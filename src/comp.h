@@ -317,7 +317,7 @@ struct JsonProc {
 /* Used by From Json */
 struct JsonProcFrom : public JsonProc {
     virtual bool mainProc(const void *jobj) = 0;
-    virtual bool procMng(mng_vals_e &id, const char *&str) = 0;
+    virtual bool procMng(mng_vals_e &id) = 0;
     virtual const std::string &getActionField() = 0;
     virtual bool getUnicastFlag(bool &unicastFlag) = 0;
     virtual bool getIntVal(const char *key, int64_t &val) = 0;

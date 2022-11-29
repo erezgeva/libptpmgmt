@@ -33,6 +33,8 @@ const clockid_t CLOCK_INVALID = -1;
 const int NO_SUCH_IF = -1;
 /** No such PTP clock */
 const int NO_SUCH_PTP = -1;
+/** float frequancy */
+typedef long double float_freq;
 
 /**
  * @brief Network interface information
@@ -257,13 +259,13 @@ class BaseClock
      * Get clock adjustment frequancy
      * @return freq frequancy in ppb
      */
-    long double getFreq() const;
+    float_freq getFreq() const;
     /**
      * Set clock adjustment frequancy
      * @param[in] freq frequancy in ppb
      * @return true for success
      */
-    bool setFreq(long double freq) const;
+    bool setFreq(float_freq freq) const;
 };
 /**
  * System clock

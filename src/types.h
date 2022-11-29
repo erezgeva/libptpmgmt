@@ -61,6 +61,8 @@ typedef int64_t  Integer64_t;
 typedef uint8_t  Octet_t;
 /** IEEE Std 754 binary64 (64-bit double-precision floating-point format) */
 typedef double Float64_t;
+/** Float seconds used in Timestamp_t */
+typedef long double float_seconds;
 
 /** Parsing and building errors */
 enum MNG_PARSE_ERROR_e {
@@ -387,12 +389,12 @@ struct Timestamp_t {
      * Convert from seconds with fractions
      * @param[in] seconds with fractions
      */
-    Timestamp_t(long double seconds) {fromFloat(seconds);}
+    Timestamp_t(float_seconds seconds) {fromFloat(seconds);}
     /**
      * Convert from seconds with fractions
      * @param[in] seconds with fractions
      */
-    void fromFloat(long double seconds);
+    void fromFloat(float_seconds seconds);
     /**
      * Convert to seconds with fractions
      * @note scripts can use the toFloat() method
@@ -402,7 +404,7 @@ struct Timestamp_t {
      * Convert to seconds with fractions
      * @return seconds with fractions
      */
-    long double toFloat() const;
+    float_seconds toFloat() const;
     /**
      * Convert from nanoseconds
      * @param[in] nanoseconds
@@ -434,14 +436,14 @@ struct Timestamp_t {
      * @return true if the same time
      * @note due to pressision, the compare use +-1 nanosecond of value
      */
-    bool operator==(long double seconds) const { return eq(seconds); }
+    bool operator==(float_seconds seconds) const { return eq(seconds); }
     /**
      * Compare to seconds with fractions
      * @param[in] seconds
      * @return true if the same time
      * @note due to pressision, the compare use +-1 nanosecond of value
      */
-    bool eq(long double seconds) const;
+    bool eq(float_seconds seconds) const;
     /**
      * Compare to another clock time
      * @param[in] ts another clock time
@@ -465,13 +467,13 @@ struct Timestamp_t {
      * @param[in] seconds
      * @return true if smaller
      */
-    bool operator<(long double seconds) const { return less(seconds); }
+    bool operator<(float_seconds seconds) const { return less(seconds); }
     /**
      * Compare to seconds with fractions
      * @param[in] seconds
      * @return true if smaller
      */
-    bool less(long double seconds) const;
+    bool less(float_seconds seconds) const;
     /**
      * Add another clock time
      * @param[in] ts another clock time
@@ -495,19 +497,19 @@ struct Timestamp_t {
      * @param[in] seconds
      * @return reference to itself
      */
-    Timestamp_t &operator+(long double seconds) { return add(seconds); }
+    Timestamp_t &operator+(float_seconds seconds) { return add(seconds); }
     /**
      * Add a seconds with fractions
      * @param[in] seconds
      * @return reference to itself
      */
-    Timestamp_t &operator+=(long double seconds) { return add(seconds); }
+    Timestamp_t &operator+=(float_seconds seconds) { return add(seconds); }
     /**
      * Add a seconds with fractions
      * @param[in] seconds
      * @return reference to itself
      */
-    Timestamp_t &add(long double seconds);
+    Timestamp_t &add(float_seconds seconds);
     /**
      * Subtract another clock time
      * @param[in] ts another clock time
@@ -531,19 +533,19 @@ struct Timestamp_t {
      * @param[in] seconds
      * @return reference to itself
      */
-    Timestamp_t &operator-(long double seconds) { return add(-seconds); }
+    Timestamp_t &operator-(float_seconds seconds) { return add(-seconds); }
     /**
      * Subtract seconds with fractions
      * @param[in] seconds
      * @return reference to itself
      */
-    Timestamp_t &operator-=(long double seconds) { return add(-seconds); }
+    Timestamp_t &operator-=(float_seconds seconds) { return add(-seconds); }
     /**
      * Subtract seconds with fractions
      * @param[in] seconds
      * @return reference to itself
      */
-    Timestamp_t &subt(long double seconds) { return add(-seconds); }
+    Timestamp_t &subt(float_seconds seconds) { return add(-seconds); }
 };
 /** PTP clock ID */
 struct ClockIdentity_t {

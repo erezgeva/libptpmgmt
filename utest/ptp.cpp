@@ -108,17 +108,17 @@ TEST_F(SysClockTest, MethodOffsetClock)
 }
 
 // Tests getFreq method
-// long double getFreq() const
+// float_freq getFreq() const
 TEST_F(SysClockTest, MethodGetFreq)
 {
-    long double f = getFreq();
+    float_freq f = getFreq();
     // Float range
     EXPECT_GE(f, 77599999999.0l);
     EXPECT_LE(f, 77600000004.0l);
 }
 
 // Tests setFreq method
-// bool setFreq(long double freq) const
+// bool setFreq(float_freq freq) const
 TEST_F(SysClockTest, MethodSetFreq)
 {
     EXPECT_TRUE(setFreq(376000000.0l));
@@ -206,18 +206,18 @@ TEST_F(PtpClockTest, MethodOffsetClock)
 }
 
 // Tests getFreq method
-// long double getFreq() const
+// float_freq getFreq() const
 TEST_F(PtpClockTest, MethodGetFreq)
 {
     EXPECT_TRUE(initUsingIndex(1, true));
-    long double f = getFreq();
+    float_freq f = getFreq();
     // Float range
     EXPECT_GE(f, 9.97924l);
     EXPECT_LE(f, 9.97926l);
 }
 
 // Tests setFreq method
-// bool setFreq(long double freq) const
+// bool setFreq(float_freq freq) const
 TEST_F(PtpClockTest, MethodSetFreq)
 {
     EXPECT_TRUE(initUsingIndex(0));

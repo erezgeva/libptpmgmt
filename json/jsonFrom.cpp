@@ -276,10 +276,19 @@ struct JsonProcFromJson : public JsonProcFrom {
         testMand(managementId, "management ID")
         return true;
     }
-    bool procMng(mng_vals_e &id, const char *&str) override final {
-        bool ret = Message::findMngID(found["managementId"].strV, id);
+    bool procMng(mng_vals_e &id) override final {
+        if(found.count("managementId") < 1) {
+            PTPMGMT_ERROR("Message do not have a managementId field");
+            return false;
+        }
+        std::string &str = found["managementId"].strV;
+        if(str.empty()) {
+            PTPMGMT_ERROR("Message have an empty managementId field");
+            return false;
+        }
+        bool ret = Message::findMngID(str, id);
         if(!ret)
-            PTPMGMT_ERROR("No such managementId '%s'", str);
+            PTPMGMT_ERROR("No such managementId '%s'", str.c_str());
         return ret;
     }
 #define procType(type) \

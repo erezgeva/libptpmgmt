@@ -19,9 +19,9 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 struct floor_t {
     int64_t intg;
-    long double rem;
+    float_seconds rem;
 };
-static inline floor_t _floor(long double val)
+static inline floor_t _floor(float_seconds val)
 {
     floor_t ret;
     ret.intg = floorl(val);
@@ -999,15 +999,15 @@ void Timestamp_t::toTimeval(timeval &tv) const
     tv.tv_sec = secondsField;
     tv.tv_usec = nanosecondsField / NSEC_PER_USEC;
 }
-void Timestamp_t::fromFloat(long double seconds)
+void Timestamp_t::fromFloat(float_seconds seconds)
 {
     auto ret = _floor(seconds);
     secondsField = ret.intg;
     nanosecondsField = ret.rem * NSEC_PER_SEC;
 }
-long double Timestamp_t::toFloat() const
+float_seconds Timestamp_t::toFloat() const
 {
-    return (long double)nanosecondsField / NSEC_PER_SEC + secondsField;
+    return (float_seconds)nanosecondsField / NSEC_PER_SEC + secondsField;
 }
 void Timestamp_t::fromNanoseconds(uint64_t nanoseconds)
 {
@@ -1023,7 +1023,7 @@ uint64_t Timestamp_t::toNanoseconds() const
 {
     return nanosecondsField + secondsField * NSEC_PER_SEC;
 }
-bool Timestamp_t::eq(long double seconds) const
+bool Timestamp_t::eq(float_seconds seconds) const
 {
     // We use unsigned, negitive can not be equal
     if(seconds < 0)
@@ -1039,7 +1039,7 @@ bool Timestamp_t::eq(long double seconds) const
     }
     return false;
 }
-bool Timestamp_t::less(long double seconds) const
+bool Timestamp_t::less(float_seconds seconds) const
 {
     // As we use unsigned, we are always bigger than negitive
     if(seconds < 0)
@@ -1063,7 +1063,7 @@ Timestamp_t &Timestamp_t::add(const Timestamp_t &ts)
     nanosecondsField += ts.nanosecondsField;
     return normNano(this);
 }
-Timestamp_t &Timestamp_t::add(long double seconds)
+Timestamp_t &Timestamp_t::add(float_seconds seconds)
 {
     auto ret = _floor(seconds);
     secondsField += ret.intg;

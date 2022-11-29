@@ -55,6 +55,8 @@
 %apply long { ssize_t };
 /* SWIG does not support */
 %apply double { long double };
+%apply double { float_seconds };
+%apply double { float_freq };
 /* initialize variables for argcargv
  * Bug fix in SWIG 4.1.0 */
 %typemap(arginit) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}

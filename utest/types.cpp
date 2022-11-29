@@ -174,7 +174,7 @@ TEST(TimeStampTest, MethodToTimeval)
 }
 
 // Tests convert from seconds constructor
-// Timestamp_t(long double seconds)
+// Timestamp_t(float_seconds seconds)
 TEST(TimeStampTest, MethodFromSecondsConstructor)
 {
     Timestamp_t t(39.000000654);
@@ -188,7 +188,7 @@ TEST(TimeStampTest, MethodFromSecondsConstructor)
 }
 
 // Tests convert from seconds
-// void fromFloat(long double seconds);
+// void fromFloat(float_seconds seconds);
 TEST(TimeStampTest, MethodFromSeconds)
 {
     Timestamp_t t;
@@ -199,17 +199,17 @@ TEST(TimeStampTest, MethodFromSeconds)
 }
 
 // Tests convert to seconds using the casting operator
-// operator long double() const
+// operator float_seconds() const
 TEST(TimeStampTest, MethodToSecondsOp)
 {
     Timestamp_t t = { 53, 654 };
-    long double d = t;
+    float_seconds d = t;
     EXPECT_DOUBLE_EQ(d, 53.000000654);
-    EXPECT_DOUBLE_EQ((long double)t, 53.000000654);
+    EXPECT_DOUBLE_EQ((float_seconds)t, 53.000000654);
 }
 
 // Tests convert to seconds
-// long double toFloat() const
+// float_seconds toFloat() const
 TEST(TimeStampTest, MethodToSeconds)
 {
     Timestamp_t t = { 53, 654 };
@@ -257,20 +257,20 @@ TEST(TimeStampTest, MethodEq)
 }
 
 // Tests equal to seconds with operator
-// bool operator==(long double seconds) const
+// bool operator==(float_seconds seconds) const
 TEST(TimeStampTest, MethodEqSecondsOp)
 {
     Timestamp_t t = { 53, 230000000 };
-    long double s = 53.23;
+    float_seconds s = 53.23;
     EXPECT_TRUE(t == s);
 }
 
 // Tests equal to seconds
-// bool eq(long double seconds) const
+// bool eq(float_seconds seconds) const
 TEST(TimeStampTest, MethodEqSeconds)
 {
     Timestamp_t t = { 53, 230000000 };
-    long double s = 53.23;
+    float_seconds s = 53.23;
     EXPECT_TRUE(t.eq(s));
 }
 
@@ -293,20 +293,20 @@ TEST(TimeStampTest, MethodLess)
 }
 
 // Tests less to seconds with operator
-// bool operator<(long double seconds) const
+// bool operator<(float_seconds seconds) const
 TEST(TimeStampTest, MethodLessSecondsOp)
 {
     Timestamp_t t = { 53, 230561233 };
-    long double s = 53.230561234;
+    float_seconds s = 53.230561234;
     EXPECT_TRUE(t < s);
 }
 
 // Tests less to seconds
-// bool less(long double seconds) const
+// bool less(float_seconds seconds) const
 TEST(TimeStampTest, MethodLessSeconds)
 {
     Timestamp_t t = { 53, 230561233 };
-    long double s = 53.230561234;
+    float_seconds s = 53.230561234;
     EXPECT_TRUE(t.less(s));
 }
 
@@ -344,11 +344,11 @@ TEST(TimeStampTest, MethodAdd)
 }
 
 // Tests add seconds with plus operator
-// Timestamp_t &operator+(long double seconds)
+// Timestamp_t &operator+(float_seconds seconds)
 TEST(TimeStampTest, MethodPlusSecondsOp)
 {
     Timestamp_t t1 = { 17, 930000012 };
-    long double s = 24.540000045;
+    float_seconds s = 24.540000045;
     Timestamp_t t = t1 + s;
     EXPECT_EQ(t.secondsField, 42);
     EXPECT_GE(t.nanosecondsField, 470000056);
@@ -356,11 +356,11 @@ TEST(TimeStampTest, MethodPlusSecondsOp)
 }
 
 // Tests add seconds with plus operator
-// Timestamp_t &add(long double seconds)
+// Timestamp_t &add(float_seconds seconds)
 TEST(TimeStampTest, MethodPlusSeconds)
 {
     Timestamp_t t = { 17, 930000012 };
-    long double s = 24.540000045;
+    float_seconds s = 24.540000045;
     t.add(s);
     EXPECT_EQ(t.secondsField, 42);
     EXPECT_GE(t.nanosecondsField, 470000056);
@@ -401,33 +401,33 @@ TEST(TimeStampTest, MethodMinus)
 }
 
 // Tests minus seconds operator
-// Timestamp_t &operator-(long double seconds)
+// Timestamp_t &operator-(float_seconds seconds)
 TEST(TimeStampTest, MethodMinusSecondsOp)
 {
     Timestamp_t t1 = { 42, 470000000 };
-    long double s = 24.540000000;
+    float_seconds s = 24.540000000;
     Timestamp_t t = t1 - s;
     EXPECT_EQ(t.secondsField, 17);
     EXPECT_EQ(t.nanosecondsField, 930000000);
 }
 
 // Tests minus assign seconds operator
-// Timestamp_t &operator-=(long double seconds)
+// Timestamp_t &operator-=(float_seconds seconds)
 TEST(TimeStampTest, MethodMinusAssignSecondsOp)
 {
     Timestamp_t t = { 42, 470000000 };
-    long double s = 24.540000000;
+    float_seconds s = 24.540000000;
     t -= s;
     EXPECT_EQ(t.secondsField, 17);
     EXPECT_EQ(t.nanosecondsField, 930000000);
 }
 
 // Tests minus seconds method
-// Timestamp_t &subt(long double seconds)
+// Timestamp_t &subt(float_seconds seconds)
 TEST(TimeStampTest, MethodMinusSeconds)
 {
     Timestamp_t t = { 42, 470000000 };
-    long double s = 24.540000000;
+    float_seconds s = 24.540000000;
     t.subt(s);
     EXPECT_EQ(t.secondsField, 17);
     EXPECT_EQ(t.nanosecondsField, 930000000);

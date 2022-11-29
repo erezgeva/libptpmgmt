@@ -217,8 +217,7 @@ bool Json2msg::fromJsonObj(const void *jobj)
         PTPMGMT_ERROR("Message have wrong action field '%s'", str.c_str());
         return false;
     }
-    const char *mngStrID;
-    if(!pproc->procMng(m_managementId, mngStrID))
+    if(!pproc->procMng(m_managementId))
         return false;
     // Optional
     int64_t val;
@@ -253,12 +252,14 @@ bool Json2msg::fromJsonObj(const void *jobj)
         }
     } else if(Message::isEmpty(m_managementId)) {
         if(have_data) {
-            PTPMGMT_ERROR("%s do use dataField", mngStrID);
+            PTPMGMT_ERROR("%s do use dataField",
+                Message::mng2str_c(m_managementId));
             return false;
         }
     } else {
         if(!have_data) {
-            PTPMGMT_ERROR("%s must use dataField", mngStrID);
+            PTPMGMT_ERROR("%s must use dataField",
+                Message::mng2str_c(m_managementId));
             return false;
         }
         if(!pproc->parseData())

@@ -34,7 +34,7 @@ static inline clockid_t get_clockid_fd(int fd) PURE;
 const char ptp_dev[] = "/dev/ptp";
 // parts per billion (ppb) = 10^9
 // to scale parts per billion (ppm) = 10^6 * 2^16
-const long double PPB_TO_SCALE_PPM = 65.536; // (2^16 / 1000)
+const float_freq PPB_TO_SCALE_PPM = 65.536; // (2^16 / 1000)
 
 // man netdevice
 // From linux/posix-timers.h
@@ -207,7 +207,7 @@ bool BaseClock::offsetClock(int64_t offset) const
     PTPMGMT_ERROR_CLR;
     return true;
 }
-long double BaseClock::getFreq() const
+float_freq BaseClock::getFreq() const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("not initialized yet");
@@ -218,16 +218,16 @@ long double BaseClock::getFreq() const
         PTPMGMT_ERROR_P("clock_adjtime");
         return 0;
     }
-    long double add = 0;
+    float_freq add = 0;
     if(m_freq) {
         calcTicks();
         if(userTicks != 0 && tmx.tick != 0)
             add = 1e3 * clockTicks * (tmx.tick - userTicks);
     }
     PTPMGMT_ERROR_CLR;
-    return (long double)tmx.freq / PPB_TO_SCALE_PPM + add;
+    return (float_freq)tmx.freq / PPB_TO_SCALE_PPM + add;
 }
-bool BaseClock::setFreq(long double freq) const
+bool BaseClock::setFreq(float_freq freq) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("not initialized yet");
