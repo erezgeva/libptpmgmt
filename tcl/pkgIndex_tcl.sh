@@ -14,12 +14,11 @@ if [[ -n "$1" ]]; then
 else
   local -r file=pkgIndex.tcl
 fi
-# TODO tcl do not find the library major version, why?
-#if [[ -n "$2" ]]; then
-#  local -r ver_maj=$2
-#else
-   local -r ver_maj=0
-#fi
+if [[ -n "$2" ]]; then
+  local -r ver_maj=$2
+else
+  local -r ver_maj=1
+fi
 cat << EOF > $file
 package ifneeded ptpmgmt $ver_maj [list load [file join $PWD $1 ptpmgmt.so]]
 EOF
