@@ -109,7 +109,14 @@ main()
   clean_unused_images
 }
 main "$@"
-# docker run -it -v $(realpath .):/home/builder/debian deb.stretch
-# docker run -it -v $(realpath .):/home/builder/debian deb.buster
-# docker run -it -v $(realpath .):/home/builder/debian deb.bullseye
-# docker run -it -v $(realpath .):/home/builder/debian deb.bookworm
+ext()
+{
+docker run -it -w /home/builder/libptpmgmt\
+  -v $(realpath .):/home/builder/debian deb.stretch
+docker run -it -w /home/builder/libptpmgmt\
+  -v $(realpath .):/home/builder/debian deb.buster
+docker run -it -w /home/builder/libptpmgmt\
+  -v $(realpath .):/home/builder/debian deb.bullseye
+docker run -it -w /home/builder/libptpmgmt\
+  -v $(realpath .):/home/builder/debian deb.bookworm
+}

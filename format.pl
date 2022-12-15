@@ -21,7 +21,7 @@ sub main
     }
     my @list = @ARGV;
     push @list, glob
-        "*.sh Makefile */Makefile debian/rules debian/changelog " .
+        "*.sh */*.sh Makefile */Makefile debian/rules debian/changelog " .
         "debian/copyright scripts/* */test.* testJson.pl ";
     for(@list)
     {

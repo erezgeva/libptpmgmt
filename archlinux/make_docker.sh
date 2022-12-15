@@ -51,4 +51,8 @@ main()
   clean_unused_images
 }
 main "$@"
-# docker run -it -v $(realpath .):/home/builder/archlinux pacmanbuild
+ext()
+{
+docker run -it -w /home/builder/libptpmgmt\
+  -v $(realpath .):/home/builder/archlinux pacmanbuild
+}
