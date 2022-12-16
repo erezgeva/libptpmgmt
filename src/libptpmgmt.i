@@ -57,6 +57,7 @@
 %apply double { long double };
 %apply double { float_seconds };
 %apply double { float_freq };
+%apply int { clockid_t };
 /* initialize variables for argcargv
  * Bug fix in SWIG 4.1.0 */
 %typemap(arginit) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}
@@ -88,7 +89,7 @@
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator std::string;
 /* Casting to double ignored.
  * Scripts can use Timestamp_t::string() */
-%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator long double;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator float_seconds;
 
 /* warning definitions per language */
 %include "warn.i"

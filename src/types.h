@@ -399,7 +399,7 @@ struct Timestamp_t {
      * Convert to seconds with fractions
      * @note scripts can use the toFloat() method
      */
-    operator long double() const { return toFloat(); }
+    operator float_seconds() const { return toFloat(); }
     /**
      * Convert to seconds with fractions
      * @return seconds with fractions
