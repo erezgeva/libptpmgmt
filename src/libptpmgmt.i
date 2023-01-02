@@ -56,6 +56,7 @@
 /* SWIG does not support */
 %apply double { long double };
 %apply double { float_seconds };
+%apply double { float_nanoseconds };
 %apply double { float_freq };
 %apply int { clockid_t };
 /* initialize variables for argcargv

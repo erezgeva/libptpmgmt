@@ -63,6 +63,8 @@ typedef uint8_t  Octet_t;
 typedef double Float64_t;
 /** Float seconds used in Timestamp_t */
 typedef long double float_seconds;
+/** Float nano-seconds */
+typedef long double float_nanoseconds;
 
 /** Parsing and building errors */
 enum MNG_PARSE_ERROR_e {
@@ -295,7 +297,9 @@ struct TimeInterval_t {
      * Get interval from time interval in nanoseconds
      * @return scaled time interval in nanoseconds
      */
-    double getInterval() const { return (double)scaledNanoseconds / 0x10000; }
+    float_nanoseconds getInterval() const {
+        return (float_nanoseconds)scaledNanoseconds / 0x10000;
+    }
     /**
      * Get interval from time interval in nanoseconds, trunc to integer
      * @return scaled time interval in nanoseconds

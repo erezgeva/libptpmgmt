@@ -411,7 +411,7 @@ struct EXT_PORT_CONFIG_PORT_DATA_SET_t : public BaseMngTlv {
     portState_e desiredState; /**< Desired port state */
 };
 /** TIME_STATUS_NP.cumulativeScaledRateOffset scale factor */
-const double P41 = 1ULL << 41;
+const float_nanoseconds P41 = 1ULL << 41;
 /** Time status TLV
  * @note linuxptp implementation specific
  */

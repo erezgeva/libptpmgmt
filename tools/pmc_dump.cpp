@@ -90,8 +90,8 @@ class MsgDump : public MessageDispatcher
     dump(CURRENT_DATA_SET) {
         DUMPS(
             IDENT "stepsRemoved     %u"
-            IDENT "offsetFromMaster %.1f"
-            IDENT "meanPathDelay    %.1f",
+            IDENT "offsetFromMaster %.1Lf"
+            IDENT "meanPathDelay    %.1Lf",
             d.stepsRemoved,
             d.offsetFromMaster.getInterval(),
             d.meanPathDelay.getInterval());
@@ -346,7 +346,7 @@ class MsgDump : public MessageDispatcher
         DUMPS(
             IDENT "master_offset              %jd"
             IDENT "ingress_time               %jd"
-            IDENT "cumulativeScaledRateOffset %+.9f"
+            IDENT "cumulativeScaledRateOffset %+.9Lf"
             IDENT "scaledLastGmPhaseChange    %d"
             IDENT "gmTimeBaseIndicator        %u"
             IDENT "lastGmPhaseChange          0x%04hx'%016jd.%04hx"
@@ -354,7 +354,7 @@ class MsgDump : public MessageDispatcher
             IDENT "gmIdentity                 %s",
             d.master_offset,
             d.ingress_time,
-            (double)d.cumulativeScaledRateOffset / P41,
+            (float_nanoseconds)d.cumulativeScaledRateOffset / P41,
             d.scaledLastGmPhaseChange,
             d.gmTimeBaseIndicator,
             // lastGmPhaseChange

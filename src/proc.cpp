@@ -197,7 +197,7 @@ bool MsgProc::proc(Float64_t &val)
                     val = fabsl(val);
             } else
                 num = 0;
-            double norm;
+            long double norm;
             switch(std::fpclassify(val)) {
                 case FP_NAN: // Not a number
                     exp = ieee754_exp_nan;
