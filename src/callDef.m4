@@ -33,10 +33,13 @@ __PTPMGMT_NAMESPACE_BEGIN
 /**
  * @brief Dispacher for management TLV
  * @details
- *  Call-backs used by the MessageDispatcher and the MessageBuilder classes.
- * @note these classes are defined in @"msgCall.h@" header.
- *  Use it in your application
+ *  Call-backs used by the MessageDispatcher class.
+ * @note this class is defined in @"msgCall.h@" header.
+ *  Use this include in your application
  *  @code{.cpp} #include "msgCall.h" @endcode
+ * @note User need to inherit MessageDispatcher and may override these methods
+    to handle the dispached TLVs.
+ * @attention Do @b NOT @p use this header in your application.
  */
 class BaseMngDispatchCallback
 {
@@ -63,7 +66,10 @@ undefine(`A')dnl
  * @note this class is defined in @"msgCall.h@" header.
  *  Use this include in your application
  *  @code{.cpp} #include "msgCall.h" @endcode
- * @note User need to inherie MessageBuilder and implement the call-backs
+ * @note Developers need to inherit MessageBuilder and
+ *  may override these methods.
+ *  Only override methods that return true are used.
+ *  Developers may set the TLV values.
  * @attention Do @b NOT @p use this header in your application.
  */
 class BaseMngBuildCallback
@@ -77,7 +83,7 @@ define(B,`    /**
      * @param[in, out] tlv referance to the new management tlv
      * @return true if set success
      * @note MessageBuilder::buildTlv call setAction with new TLV
-     *  if this handler return true!
+     *  if an inherit method return true!
      */
     virtual bool $1_b(const Message &msg,
         $1_t &tlv)

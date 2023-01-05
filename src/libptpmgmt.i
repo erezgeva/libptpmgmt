@@ -55,10 +55,11 @@
 %apply long { ssize_t };
 /* SWIG does not support */
 %apply double { long double };
+%apply int { clockid_t };
+/* Project float definitions */
 %apply double { float_seconds };
 %apply double { float_nanoseconds };
 %apply double { float_freq };
-%apply int { clockid_t };
 /* initialize variables for argcargv
  * Bug fix in SWIG 4.1.0 */
 %typemap(arginit) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}
@@ -83,7 +84,7 @@
  *   SWIGWARN_RUBY_WRONG_NAME         801
  ************************************************************************/
 /*********
- * Geberic
+ * Generic
  *********/
 /* Casting to string ignored.
  * Scripts can use Timestamp_t::toFloat() */
@@ -125,6 +126,7 @@
  * Scripts can use class subt() method */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-;
 #endif /* SWIG_OPERS_LANG_IDENTIFIER */
+
 /*********
  * Tcl and Ruby ignore operator plus equal
  *********/
@@ -139,6 +141,7 @@
  * Scripts can use Timestamp_t::subt() */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_MINUSEQ) Timestamp_t::operator-=;
 #endif /* SWIG_OPERS_OPERATOR_PLUSEQ */
+
 /*********
  * Perl, python and Ruby ignore operators overload
  *********/
@@ -211,4 +214,5 @@ _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
 
+/* MessageDispatcher and MessageBuilder classes per language */
 %include "msgCall.i"

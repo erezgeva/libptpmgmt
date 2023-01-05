@@ -12,5 +12,7 @@
  * Ruby capitalize first letter! */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) clockType_e;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) implementSpecific_e;
+
+/* See more warnings in libptpmgmt.i for SWIG_OPERS_xxxx */
 #define SWIG_OPERS_OPERATOR_PLUSEQ
 #define SWIG_OPERS_IGNORE_OPERATOR

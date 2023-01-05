@@ -10,4 +10,6 @@
 
 /* internal structure */
 %warnfilter(SWIGWARN_PARSE_BUILTIN_NAME) Message::sigTlv::set;
+
+/* See more warnings in libptpmgmt.i for these SWIG_OPERS_xxxx */
 #define SWIG_OPERS_IGNORE_OPERATOR

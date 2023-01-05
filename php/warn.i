@@ -33,4 +33,6 @@ _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
 /* Operator overload ignored.
  * Scripts can use Timestamp_t::subt() */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-=;
+
+/* See more warnings in libptpmgmt.i for SWIG_OPERS_xxxx */
 #define SWIG_OPERS_LANG_IDENTIFIER

@@ -7,5 +7,7 @@
  * @copyright 2022 Erez Geva
  *
  */
+
+/* See more warnings in libptpmgmt.i for SWIG_OPERS_xxxx */
 #define SWIG_OPERS_OPERATOR_PLUSEQ
 #define SWIG_OPERS_LANG_IDENTIFIER
