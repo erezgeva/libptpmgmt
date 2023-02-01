@@ -113,7 +113,7 @@ enum tlvType_e : uint16_t {
     CANCEL_UNICAST_TRANSMISSION             = 0x0006, /**< Cancel unicast */
     ACKNOWLEDGE_CANCEL_UNICAST_TRANSMISSION = 0x0007, /**< Ack cancel unicast */
     PATH_TRACE                              = 0x0008, /**< Path trace */
-    ALTERNATE_TIME_OFFSET_INDICATOR         = 0x0009, /**< Alternate tine offset */
+    ALTERNATE_TIME_OFFSET_INDICATOR         = 0x0009, /**< Alternate time offset */
     /* Obsolete valuse 2000, 2001, 2002, 2003 */
     ORGANIZATION_EXTENSION_PROPAGATE        = 0x4000, /**< Organization extension */
     ENHANCED_ACCURACY_METRICS               = 0x4001, /**< Enhanced accuracy */
