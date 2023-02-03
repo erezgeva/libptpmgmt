@@ -25,7 +25,7 @@ Copyright: OpenJS Foundation
 License: MIT
 
 Files: man/phc_ctl.8
-Copyright: 2014 Jacob Keller, linuxptp
+Copyright: 2014 Jacob Keller, linuxptp developers
 License: GPL-2+
 
 Files: man/pmc.8

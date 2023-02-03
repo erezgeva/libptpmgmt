@@ -13,7 +13,7 @@ Copyright: 2021 Erez Geva
 License: GPL-3.0-or-later
 
 Files: config.guess config.sub
-Copyright: 1992-2018 Free Software Foundation, Inc.
+Copyright: 1992-2022 Free Software Foundation, Inc.
 License: GPL-3.0-or-later
 
 Files: swig/*/*.i
@@ -21,7 +21,7 @@ Copyright: 2022 The SWIG Developers
 License: GPL-3.0-or-later
 
 Files: man/phc_ctl.8
-Copyright: 2014 Jacob Keller, linuxptp
+Copyright: 2014 Jacob Keller, linuxptp developers
 License: GPL-2.0-or-later
 
 Files: man/pmc.8
