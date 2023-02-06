@@ -179,12 +179,10 @@ TEST(TimeStampTest, MethodFromSecondsConstructor)
 {
     Timestamp_t t(39.000000654);
     EXPECT_EQ(t.secondsField, 39);
-    EXPECT_GE(t.nanosecondsField, 653);
-    EXPECT_LE(t.nanosecondsField, 655);
+    EXPECT_NEAR(t.nanosecondsField, 654, 1);
     t = 17.000000834;
     EXPECT_EQ(t.secondsField, 17);
-    EXPECT_GE(t.nanosecondsField, 833);
-    EXPECT_LE(t.nanosecondsField, 835);
+    EXPECT_NEAR(t.nanosecondsField, 834, 1);
 }
 
 // Tests convert from seconds
@@ -194,8 +192,7 @@ TEST(TimeStampTest, MethodFromSeconds)
     Timestamp_t t;
     t.fromFloat(53.000000654);
     EXPECT_EQ(t.secondsField, 53);
-    EXPECT_GE(t.nanosecondsField, 653);
-    EXPECT_LE(t.nanosecondsField, 655);
+    EXPECT_NEAR(t.nanosecondsField, 654, 1);
 }
 
 // Tests convert to seconds using the casting operator
@@ -351,8 +348,7 @@ TEST(TimeStampTest, MethodPlusSecondsOp)
     float_seconds s = 24.540000045;
     Timestamp_t t = t1 + s;
     EXPECT_EQ(t.secondsField, 42);
-    EXPECT_GE(t.nanosecondsField, 470000056);
-    EXPECT_LE(t.nanosecondsField, 470000058);
+    EXPECT_NEAR(t.nanosecondsField, 470000057, 1);
 }
 
 // Tests add seconds with plus operator
@@ -363,8 +359,7 @@ TEST(TimeStampTest, MethodPlusSeconds)
     float_seconds s = 24.540000045;
     t.add(s);
     EXPECT_EQ(t.secondsField, 42);
-    EXPECT_GE(t.nanosecondsField, 470000056);
-    EXPECT_LE(t.nanosecondsField, 470000058);
+    EXPECT_NEAR(t.nanosecondsField, 470000057, 1);
 }
 
 // Tests minus operator
