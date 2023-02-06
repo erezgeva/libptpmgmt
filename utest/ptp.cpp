@@ -112,9 +112,7 @@ TEST_F(SysClockTest, MethodOffsetClock)
 TEST_F(SysClockTest, MethodGetFreq)
 {
     float_freq f = getFreq();
-    // Float range
-    EXPECT_GE(f, 77599999999.0l);
-    EXPECT_LE(f, 77600000004.0l);
+    EXPECT_DOUBLE_EQ(f, 77600000003.875732l);
 }
 
 // Tests setFreq method
@@ -211,9 +209,7 @@ TEST_F(PtpClockTest, MethodGetFreq)
 {
     EXPECT_TRUE(initUsingIndex(1, true));
     float_freq f = getFreq();
-    // Float range
-    EXPECT_GE(f, 9.97924l);
-    EXPECT_LE(f, 9.97926l);
+    EXPECT_DOUBLE_EQ(f, 9.979248046875l);
 }
 
 // Tests setFreq method
