@@ -17,6 +17,7 @@ class MsgDump : public MessageDispatcher
 
 #define IDENT "\n\t\t"
 #define dump(n) void n##_h(const Message &m, const n##_t &d, const char*) override
+#define isFlag(f)  (m.is_##f(d.flags) ? 1 : 0)
 
     dump(CLOCK_DESCRIPTION) {
         DUMPS(
@@ -130,12 +131,12 @@ class MsgDump : public MessageDispatcher
             IDENT "frequencyTraceable    %u"
             IDENT "timeSource            %s",
             d.currentUtcOffset,
-            m.is_LI_61(d.flags) ? 1 : 0,
-            m.is_LI_59(d.flags) ? 1 : 0,
-            m.is_UTCV(d.flags) ? 1 : 0,
-            m.is_PTP(d.flags) ? 1 : 0,
-            m.is_TTRA(d.flags) ? 1 : 0,
-            m.is_FTRA(d.flags) ? 1 : 0,
+            isFlag(LI_61),
+            isFlag(LI_59),
+            isFlag(UTCV),
+            isFlag(PTP),
+            isFlag(TTRA),
+            isFlag(FTRA),
             m.timeSrc2str_c(d.timeSource));
     }
     dump(PORT_DATA_SET) {
@@ -198,19 +199,19 @@ class MsgDump : public MessageDispatcher
             IDENT "leap59                %u"
             IDENT "currentUtcOffsetValid %u",
             d.currentUtcOffset,
-            m.is_LI_61(d.flags) ? 1 : 0,
-            m.is_LI_59(d.flags) ? 1 : 0,
-            m.is_UTCV(d.flags) ? 1 : 0);
+            isFlag(LI_61),
+            isFlag(LI_59),
+            isFlag(UTCV));
     }
     dump(TRACEABILITY_PROPERTIES) {
         DUMPS(
             IDENT "timeTraceable      %u"
             IDENT "frequencyTraceable %u",
-            m.is_TTRA(d.flags) ? 1 : 0,
-            m.is_FTRA(d.flags) ? 1 : 0);
+            isFlag(TTRA),
+            isFlag(FTRA));
     }
     dump(TIMESCALE_PROPERTIES) {
-        DUMPS(IDENT "ptpTimescale %u", m.is_PTP(d.flags) ? 1 : 0);
+        DUMPS(IDENT "ptpTimescale %u", isFlag(PTP));
     }
     dump(UNICAST_NEGOTIATION_ENABLE) {
         DUMPS(IDENT "unicastNegotiationPortDS %sabled", d.flags ? "e" : "dis");
@@ -381,12 +382,12 @@ class MsgDump : public MessageDispatcher
             d.clockQuality.clockAccuracy,
             d.clockQuality.offsetScaledLogVariance,
             d.currentUtcOffset,
-            m.is_LI_61(d.flags) ? 1 : 0,
-            m.is_LI_59(d.flags) ? 1 : 0,
-            m.is_UTCV(d.flags) ? 1 : 0,
-            m.is_PTP(d.flags) ? 1 : 0,
-            m.is_TTRA(d.flags) ? 1 : 0,
-            m.is_FTRA(d.flags) ? 1 : 0,
+            isFlag(LI_61),
+            isFlag(LI_59),
+            isFlag(UTCV),
+            isFlag(PTP),
+            isFlag(TTRA),
+            isFlag(FTRA),
             m.timeSrc2str_c(d.timeSource));
     }
     dump(PORT_DATA_SET_NP) {
@@ -536,9 +537,14 @@ class MsgBuild : public MessageBuilder
     MsgBuild(Message &msg, char *s) : MessageBuilder(msg), save(s) {}
 
 #define build(n) bool n##_b(const Message &, n##_t &d) override
-#define defKeys std::map<std::string, val_key_t> keys;
-#define parseKeys if(parseKeysFunc(keys, save)) return false;
-#define build_end return true;
+#define defKeys std::map<std::string, val_key_t> keys
+#define parseKeys if(parseKeysFunc(keys, save)) return false
+#define build_end return true
+#define defFlags uint8_t flags = 0
+#define useFlag(n) keys[#n].flag = true;
+#define addFlag(n, f) if(keys[#n].num) flags |= F_##f
+#define add1Flag(n) d.flags = keys[#n].num
+#define endFlags d.flags = flags
 
     /* structure for parser */
     struct val_key_t {
@@ -814,9 +820,9 @@ class MsgBuild : public MessageBuilder
     }
     build(SLAVE_ONLY) {
         defKeys;
-        keys["slaveOnly"].flag = true ;
+        useFlag(slaveOnly);
         parseKeys;
-        d.flags = keys["slaveOnly"].num;
+        add1Flag(slaveOnly);
         build_end;
     }
     build(LOG_ANNOUNCE_INTERVAL) {
@@ -875,56 +881,50 @@ class MsgBuild : public MessageBuilder
         defKeys;
         keys["currentUtcOffset"].max = INT16_MAX;
         keys["currentUtcOffset"].req = true;
-        keys["leap61"].flag = true ;
-        keys["leap59"].flag = true ;
-        keys["currentUtcOffsetValid"].flag = true ;
+        useFlag(leap61);
+        useFlag(leap59);
+        useFlag(currentUtcOffsetValid);
         parseKeys;
-        uint8_t flags = 0;
-        if(keys["leap61"].num)
-            flags |= F_LI_61;
-        if(keys["leap59"].num)
-            flags |= F_LI_59;
-        if(keys["currentUtcOffsetValid"].num)
-            flags |= F_UTCV;
+        defFlags;
+        addFlag(leap61, LI_61);
+        addFlag(leap59, LI_59);
+        addFlag(currentUtcOffsetValid, UTCV);
         d.currentUtcOffset = keys["currentUtcOffset"].num;
-        d.flags = flags;
+        endFlags;
         build_end;
     }
     build(TRACEABILITY_PROPERTIES) {
         defKeys;
-        keys["timeTraceable"].flag = true ;
-        keys["frequencyTraceable"].flag = true ;
+        useFlag(timeTraceable);
+        useFlag(frequencyTraceable);
         parseKeys;
-        uint8_t flags = 0;
-        if(keys["timeTraceable"].num)
-            flags |= F_TTRA;
-        if(keys["frequencyTraceable"].num)
-            flags |= F_FTRA;
-        d.flags = flags;
+        defFlags;
+        addFlag(timeTraceable, TTRA);
+        addFlag(frequencyTraceable, FTRA);
+        endFlags;
         build_end;
     }
     build(TIMESCALE_PROPERTIES) {
         defKeys;
-        keys["ptpTimescale"].flag = true ;
+        useFlag(ptpTimescale);
         parseKeys;
-        uint8_t flags = 0;
-        if(keys["ptpTimescale"].num)
-            flags |= F_PTP;
-        d.flags = flags;
+        defFlags;
+        addFlag(ptpTimescale, PTP);
+        endFlags;
         build_end;
     }
     build(UNICAST_NEGOTIATION_ENABLE) {
         defKeys;
-        keys["unicastNegotiationPortDS"].flag = true ;
+        useFlag(unicastNegotiationPortDS);
         parseKeys;
-        d.flags = keys["unicastNegotiationPortDS"].num;
+        add1Flag(unicastNegotiationPortDS);
         build_end;
     }
     build(PATH_TRACE_ENABLE) {
         defKeys;
-        keys["pathTraceDS"].flag = true ;
+        useFlag(pathTraceDS);
         parseKeys;
-        d.flags = keys["pathTraceDS"].num;
+        add1Flag(pathTraceDS);
         build_end;
     }
     /*
@@ -935,18 +935,18 @@ class MsgBuild : public MessageBuilder
     */
     build(ACCEPTABLE_MASTER_TABLE_ENABLED) {
         defKeys;
-        keys["acceptableMasterPortDS"].flag = true ;
+        useFlag(acceptableMasterPortDS);
         parseKeys;
-        d.flags = keys["acceptableMasterPortDS"].num;
+        add1Flag(acceptableMasterPortDS);
         build_end;
     }
     build(ALTERNATE_MASTER) {
         defKeys;
-        keys["transmitAlternateMulticastSync"].flag = true ;
+        useFlag(transmitAlternateMulticastSync);
         keys["logAlternateMulticastSyncInterval"].max = INT8_MAX;
         keys["numberOfAlternateMasters"].max = UINT8_MAX;
         parseKeys;
-        d.flags = keys["transmitAlternateMulticastSync"].num;
+        add1Flag(transmitAlternateMulticastSync);
         d.logAlternateMulticastSyncInterval =
             keys["logAlternateMulticastSyncInterval"].num;
         d.numberOfAlternateMasters = keys["numberOfAlternateMasters"].num;
@@ -954,9 +954,9 @@ class MsgBuild : public MessageBuilder
     }
     build(ALTERNATE_TIME_OFFSET_ENABLE) {
         defKeys;
-        keys["alternateTimescaleOffsetsDS"].flag = true ;
+        useFlag(alternateTimescaleOffsetsDS);
         parseKeys;
-        d.flags = keys["alternateTimescaleOffsetsDS"].num;
+        add1Flag(alternateTimescaleOffsetsDS);
         build_end;
     }
     build(ALTERNATE_TIME_OFFSET_NAME) {
@@ -964,7 +964,7 @@ class MsgBuild : public MessageBuilder
         keys["keyField"].max = UINT8_MAX;
         keys["keyField"].req = true;
         keys["displayName"].can_str = true;
-        keys["displayName"].req = true  ;
+        keys["displayName"].req = true;
         parseKeys;
         d.keyField = keys["keyField"].num;
         d.displayName.textField = keys["displayName"].str_val;
@@ -1006,31 +1006,31 @@ class MsgBuild : public MessageBuilder
     }
     build(EXTERNAL_PORT_CONFIGURATION_ENABLED) {
         defKeys;
-        keys["externalPortConfiguration"].flag = true ;
+        useFlag(externalPortConfiguration);
         parseKeys;
-        d.flags = keys["externalPortConfiguration"].num;
+        add1Flag(externalPortConfiguration);
         build_end;
     }
     build(MASTER_ONLY) {
         defKeys;
-        keys["masterOnly"].flag = true ;
+        useFlag(masterOnly);
         parseKeys;
-        d.flags = keys["masterOnly"].num;
+        add1Flag(masterOnly);
         build_end;
     }
     build(HOLDOVER_UPGRADE_ENABLE) {
         defKeys;
-        keys["holdoverUpgradeDS"].flag = true ;
+        useFlag(holdoverUpgradeDS);
         parseKeys;
-        d.flags = keys["holdoverUpgradeDS"].num;
+        add1Flag(holdoverUpgradeDS);
         build_end;
     }
     build(EXT_PORT_CONFIG_PORT_DATA_SET) {
         defKeys;
-        keys["acceptableMasterPortDS"].flag = true ;
+        useFlag(acceptableMasterPortDS);
         keys["desiredState"].handle = getPortState;
         parseKeys;
-        d.flags = keys["acceptableMasterPortDS"].num;
+        add1Flag(acceptableMasterPortDS);
         d.desiredState = (portState_e)keys["desiredState"].num;
         build_end;
     }
@@ -1041,41 +1041,35 @@ class MsgBuild : public MessageBuilder
         keys["clockClass"].req = true;
         keys["clockAccuracy"].base = 16;
         keys["clockAccuracy"].max = UINT8_MAX;
-        keys["clockAccuracy"].req = true ;
+        keys["clockAccuracy"].req = true;
         keys["offsetScaledLogVariance"].base = 16;
         keys["offsetScaledLogVariance"].max = UINT16_MAX;
         keys["offsetScaledLogVariance"].req = true;
         keys["currentUtcOffset"].max = INT16_MAX;
         keys["currentUtcOffset"].req = true;
-        keys["leap61"].flag = true ;
-        keys["leap59"].flag = true ;
-        keys["currentUtcOffsetValid"].flag = true ;
-        keys["ptpTimescale"].flag = true ;
-        keys["timeTraceable"].flag = true ;
-        keys["frequencyTraceable"].flag = true ;
+        useFlag(leap61);
+        useFlag(leap59);
+        useFlag(currentUtcOffsetValid);
+        useFlag(ptpTimescale);
+        useFlag(timeTraceable);
+        useFlag(frequencyTraceable);
         keys["timeSource"].req = true;
         keys["timeSource"].handle = getTimeSource;
         parseKeys;
-        uint8_t flags = 0;
-        if(keys["leap61"].num)
-            flags |= F_LI_61;
-        if(keys["leap59"].num)
-            flags |= F_LI_59;
-        if(keys["currentUtcOffsetValid"].num)
-            flags |= F_UTCV;
-        if(keys["ptpTimescale"].num)
-            flags |= F_PTP;
-        if(keys["timeTraceable"].num)
-            flags |= F_TTRA;
-        if(keys["frequencyTraceable"].num)
-            flags |= F_FTRA;
+        defFlags;
+        addFlag(leap61, LI_61);
+        addFlag(leap59, LI_59);
+        addFlag(currentUtcOffsetValid, UTCV);
+        addFlag(ptpTimescale, PTP);
+        addFlag(timeTraceable, TTRA);
+        addFlag(frequencyTraceable, FTRA);
         d.clockQuality.clockClass = keys["clockClass"].num;
         d.clockQuality.clockAccuracy = (clockAccuracy_e)keys["clockAccuracy"].num;
         d.clockQuality.offsetScaledLogVariance =
             keys["offsetScaledLogVariance"].num;
         d.currentUtcOffset = keys["currentUtcOffset"].num;
-        d.flags = flags;
         d.timeSource = (timeSource_e)keys["timeSource"].num;
+        endFlags;
         build_end;
     }
     build(PORT_DATA_SET_NP) {
@@ -1093,8 +1087,8 @@ class MsgBuild : public MessageBuilder
         defKeys;
         keys["duration"].max = UINT16_MAX;
         keys["duration"].req = true;
-        keys["NOTIFY_PORT_STATE"].flag = true ;
-        keys["NOTIFY_TIME_SYNC"].flag = true ;
+        keys["NOTIFY_PORT_STATE"].flag = true;
+        keys["NOTIFY_TIME_SYNC"].flag = true;
         parseKeys;
         memset(d.bitmask, 0, sizeof d.bitmask);
         if(keys["NOTIFY_PORT_STATE"].num)
