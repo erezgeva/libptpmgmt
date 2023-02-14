@@ -14,20 +14,18 @@ cmd()
 }
 clean_cont()
 {
-  local -r n=$1
-  docker ps -a -f "ancestor=$n" -q | xargs -r docker rm -f
+  docker ps -a -f "ancestor=$1" -q | xargs -r docker rm -f
 }
 clean_unused_images()
 {
   # Remove unnamed images
   docker images -f 'dangling=true' -q | xargs -r docker image rm -f
 }
-make_all_args()
+make_args()
 {
-  local arg
-  for arg in USER SRC ARCHS
-  do local -n d=$arg;args+=" --build-arg $arg=$d";done
-  args+=" --build-arg UID=$uid"
+  args=''
+  for arg in "$@"
+  do local -n d=$arg;args+=" --build-arg ${arg^^}=$d";done
 }
 set_dist_args()
 {
@@ -40,54 +38,53 @@ set_dist_args()
       SRC_CFG+="deb $repo-security $1-security main\n"
       ;;
   esac
-  DPKGS="$DPKGS_all"
-  local -n d=DPKGS_$1
-  local m
+  dpkgs="$dpkgs_all"
+  local -n d=dpkgs_$1
   for m in $d; do
     if [[ $m =~ @$ ]]; then
       # Package per architecture
-      local p=${m%@}
-      DPKGS+=" $p:$main_arch"
-      for a in $ARCHS; do
-        DPKGS+=" $p:$a"
+      p=${m%@}
+      dpkgs+=" $p:$main_arch"
+      for a in $archs; do
+        dpkgs+=" $p:$a"
       done
     else
-      DPKGS+=" $m"
+      dpkgs+=" $m"
     fi
   done
 }
 main()
 {
-  local a n SRC_CFG DPKGS
   local -r repo=http://ftp.de.debian.org/debian
   local -r base_dir=$(dirname $(realpath $0))
   local -r bname=deb.
   local -r names='stretch buster bullseye bookworm'
   local -r main_arch=$(dpkg --print-architecture) # amd64
-  local -r ARCHS='arm64'
-  local -r USER=builder
+  local -r archs='arm64'
+  local -r user=builder
+  local -r src=.
+  local -r uid=$(id -u)
   local -r lua54='lua5.4 liblua5.4-dev@'
-  local -r DPKGS_stretch='vim-gtk'
-  local -r DPKGS_buster='vim-gtk'
-  local -r DPKGS_bullseye="vim-gtk $lua54"
-  local -r DPKGS_bookworm="reuse vim-gtk3 $lua54"
+  local -r dpkgs_stretch='vim-gtk'
+  local -r dpkgs_buster='vim-gtk'
+  local -r dpkgs_bullseye="vim-gtk $lua54"
+  local -r dpkgs_bookworm="reuse vim-gtk3 $lua54"
+  local a n m p arg args
   # Packages per architecture
   for n in libstdc++6 liblua5.1-0-dev liblua5.2-dev liblua5.3-dev\
            libpython3-all-dev ruby-dev tcl-dev libpython3-dev\
            libfastjson-dev libgtest-dev
   do
     # Main architecture
-    DPKGS_all+=" $n:$main_arch"
-    for a in $ARCHS; do
-      DPKGS_all+=" $n:$a"
+    dpkgs_all+=" $n:$main_arch"
+    for a in $archs; do
+      dpkgs_all+=" $n:$a"
     done
   done
-  for a in $ARCHS; do
+  for a in $archs; do
     n="$(dpkg-architecture -a$a -qDEB_TARGET_GNU_TYPE 2> /dev/null)"
-    DPKGS_all+=" g++-$n"
+    dpkgs_all+=" g++-$n"
   done
-  local -r SRC=.
-  local -r uid=$(id -u)
   cd $base_dir/..
   while getopts 'n' opt; do
     case $opt in
@@ -97,14 +94,16 @@ main()
     esac
   done
   for n in $names; do clean_cont $bname$n; done
-  make_all_args
-  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$USER/" $base_dir/Dockerfile
-  for n in $names; do
-    set_dist_args $n
-    cmd docker build $no_cache -f $base_dir/Dockerfile $args\
-        --build-arg DIST=$n --build-arg SRC_CFG="$SRC_CFG" \
-        --build-arg DPKGS="$DPKGS"\
-        -t $bname$n .
+  make_args user src uid
+  local SRC_CFG dpkgs all_args="$args"
+  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" $base_dir/Dockerfile
+  for dist in $names; do
+    make_args dist
+    set_dist_args $dist
+    cmd docker build $no_cache -f $base_dir/Dockerfile $all_args $args\
+        --build-arg ARCHS="$archs"\
+        --build-arg SRC_CFG="$SRC_CFG"\
+        --build-arg DPKGS="$dpkgs" -t $bname$dist .
   done
   clean_unused_images
 }

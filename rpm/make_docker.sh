@@ -14,27 +14,25 @@ cmd()
 }
 clean_cont()
 {
-  local -r n=$1
-  docker ps -a -f "ancestor=$n" -q | xargs -r docker rm -f
+  docker ps -a -f "ancestor=$1" -q | xargs -r docker rm -f
 }
 clean_unused_images()
 {
   # Remove unnamed images
-  docker images -f "dangling=true" -q | xargs -r docker image rm -f
+  docker images -f 'dangling=true' -q | xargs -r docker image rm -f
 }
 make_all_args()
 {
   local arg
-  for arg in USER SRC
-  do local -n n=$arg;args+=" --build-arg $arg=$n";done
-  args+=" --build-arg UID=$uid"
+  for arg in user src uid
+  do local -n d=$arg;args+=" --build-arg ${arg^^}=$d";done
 }
 main()
 {
   local -r base_dir=$(dirname $(realpath $0))
   local -r name=rpmbuild
-  local -r USER=builder
-  local -r SRC=.
+  local -r user=builder
+  local -r src=.
   local -r uid=$(id -u)
   cd $base_dir/..
   while getopts 'n' opt; do
@@ -46,7 +44,7 @@ main()
   done
   clean_cont $name
   make_all_args
-  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$USER/" $base_dir/Dockerfile
+  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" $base_dir/Dockerfile
   cmd docker build $no_cache -f $base_dir/Dockerfile $args -t $name .
   clean_unused_images
 }
