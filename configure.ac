@@ -1,14 +1,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+# SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 #
 # @file
 # @brief configuration
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
-# @copyright 2022 Erez Geva
+# @copyright © 2022 Erez Geva
 #
 
-AC_COPYRIGHT(Copyright 2022 Erez Geva)
+AC_COPYRIGHT(Copyright © 2022 Erez Geva)
 AC_PREREQ([2.69])
 m4_define([ptpm_VER], m4_esyscmd_s([. ./version && echo "$ver_maj.$ver_min"]))
 AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],

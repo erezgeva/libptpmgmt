@@ -1,22 +1,22 @@
 dnl SPDX-License-Identifier: LGPL-3.0-or-later
-dnl SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+dnl SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 dnl
 dnl @file
 dnl @brief Standard vector container classes
 dnl
 dnl @author Erez Geva <ErezGeva2@@gmail.com>
-dnl @copyright 2022 Erez Geva
+dnl @copyright © 2022 Erez Geva
 dnl
 dnl Create vecDef.h, used by Doxygen
 dnl
 /* SPDX-License-Identifier: LGPL-3.0-or-later
-   SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+   SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
  * @brief Standard vector container classes
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2022 Erez Geva
+ * @copyright © 2022 Erez Geva
  *
  * This header is generated automatically, do @b NOT change,
  * or use it in your application!

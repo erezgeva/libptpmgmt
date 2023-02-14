@@ -1,11 +1,11 @@
 dnl SPDX-License-Identifier: LGPL-3.0-or-later
-dnl SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+dnl SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 dnl
 dnl @file
 dnl @brief List of management IDs
 dnl
 dnl @author Erez Geva <ErezGeva2@@gmail.com>
-dnl @copyright 2022 Erez Geva
+dnl @copyright © 2022 Erez Geva
 dnl
 dnl NA   - no function needed
 dnl UF   - need function for parsing

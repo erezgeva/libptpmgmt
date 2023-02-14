@@ -1,22 +1,22 @@
 dnl SPDX-License-Identifier: LGPL-3.0-or-later
-dnl SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+dnl SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 dnl
 dnl @file
 dnl @brief Management IDs enumerator
 dnl
 dnl @author Erez Geva <ErezGeva2@@gmail.com>
-dnl @copyright 2022 Erez Geva
+dnl @copyright © 2022 Erez Geva
 dnl
 dnl Create mngIds.h
 dnl
 /* SPDX-License-Identifier: LGPL-3.0-or-later
-   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
+   SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
  * @brief Management IDs enumerator
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2021 Erez Geva
+ * @copyright © 2021 Erez Geva
  *
  * This header is generated automatically.
  *

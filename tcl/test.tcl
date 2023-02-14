@@ -1,11 +1,11 @@
 #!/usr/bin/tclsh
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright 2021 Erez Geva
+# SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com>
 #
 # testing for tcl wrapper of libptpmgmt
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
-# @copyright 2021 Erez Geva
+# @copyright © 2021 Erez Geva
 #
 ###############################################################################
 

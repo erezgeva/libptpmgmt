@@ -1,23 +1,23 @@
 dnl SPDX-License-Identifier: LGPL-3.0-or-later
-dnl SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+dnl SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 dnl
 dnl @file
 dnl @brief Conversions functions
 dnl
 dnl @author Erez Geva <ErezGeva2@@gmail.com>
-dnl @copyright 2022 Erez Geva
+dnl @copyright © 2022 Erez Geva
 dnl
 dnl Create cnvFunc.h used by Doxygen
 dnl Contain conversions functions per TLV created by swig
 dnl
 /* SPDX-License-Identifier: LGPL-3.0-or-later
-   SPDX-FileCopyrightText: Copyright 2022 Erez Geva */
+   SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
  * @brief Conversions functions
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2022 Erez Geva
+ * @copyright © 2022 Erez Geva
  *
  * This header is generated automatically, do @b NOT change,
  * or use it in your application!

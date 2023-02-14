@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
-   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
+   SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
  * @brief Utility program to wait until an PTP is synchronized
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2021 Erez Geva
+ * @copyright © 2021 Erez Geva
  *
  * @note Convert Vladimir Oltean <olteanv@gmail.com> application
  *  This is a sample code, not a product! You should use it as a reference.

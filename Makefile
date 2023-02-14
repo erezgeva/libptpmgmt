@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright 2021 Erez Geva
+# SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com>
 #
 # Makefile Create libptpmgmt and pmc for testing
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
-# @copyright 2021 Erez Geva
+# @copyright © 2021 Erez Geva
 #
 ###############################################################################
 
@@ -580,7 +580,7 @@ config: configure
 endif # which,dh_auto_configure
 ifeq ($(HAVE_CONFIG_GAOL),)
 ifneq ($(call which,rpm),)
-rpm_list!=rpm -qa
+rpm_list!=rpm -qa 2>/dev/null
 ifneq ($(rpm_list),)
 # Default configuration on RPM based distributions
 HAVE_CONFIG_GAOL:=1
@@ -617,7 +617,7 @@ CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(HEADERS_GEN)
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
   archlinux/*/)) doc $(OBJ_DIR) perl/auto
-DISTCLEAN:=$(foreach n, log status,config.$n) configure defs.mk
+DISTCLEAN:=$(foreach n, log status,config.$n) configure configure~ defs.mk
 DISTCLEAN_DIRS:=autom4te.cache
 
 clean: deb_clean

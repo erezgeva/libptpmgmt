@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright 2021 Erez Geva
+# SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com>
 #
 # extra formatter, run after astyle
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
-# @copyright 2021 Erez Geva
+# @copyright © 2021 Erez Geva
 #
 ###############################################################################
 
@@ -51,7 +51,7 @@ sub main
             #######################################
             # Verify we use proper characters!
             if($file =~ /\.cpp$/ or $file =~ /\.h$/) {
-                if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]/) {
+                if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]/) {
                     err 'for wrong char';
                 } elsif(/\\[^xntr0"'\\]/) {
                     err 'wrong escape char';
@@ -66,7 +66,7 @@ sub main
                     err 'line is too long';
                 }
             } else {
-                if(/[^a-zA-Z0-9{}()<>~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
+                if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
                     err 'for wrong char';
                 } elsif(m#\\[^denrst"()<>.+\d\$'/\\\[\] ]#) {
                     err 'wrong escape char';

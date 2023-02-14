@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: LGPL-3.0-or-later
-   SPDX-FileCopyrightText: Copyright 2021 Erez Geva */
+   SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
  * @brief Get Last Error happend in library
@@ -7,7 +7,7 @@
  *       users can use this class to fetch error.
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright 2021 Erez Geva
+ * @copyright © 2021 Erez Geva
  *
  */
 

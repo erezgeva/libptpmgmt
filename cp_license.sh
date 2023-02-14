@@ -1,9 +1,9 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright 2022 Erez Geva
+# SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com>
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
-# @copyright 2022 Erez Geva
+# @copyright © 2022 Erez Geva
 #
 # Follow FSF RESUSE Specification https://reuse.software/spec/
 # Provide folders with all licenses
