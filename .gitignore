@@ -23,6 +23,7 @@
 /configure
 /configure~
 /defs.mk
+/libptpmgmt-*.txz
 .phpunit.result.cache
 .sw?
 .*.sw?

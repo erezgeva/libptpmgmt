@@ -17,17 +17,18 @@ pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
 arch=(x86_64)
 url=https://sf.net/p/libptpmgmt
 license=(LGPL3)
-source=("$pkgname-$pkgver.txz")
+#source=("$pkgname-$pkgver.tar.gz::https://github.com/erezgeva/$pkgname/archive/refs/tags/$pkgver.tar.gz")
 # Target library directory
 libdir='usr/lib'
 # version for depends
 verdep="$pkgver-$pkgrel"
 build() {
-  # PHP is excluded as it does not have a system include path
+  cd $pkgname-$pkgver
+  autoconf
   ./configure --prefix=/usr --sbindir=\${prefix}/bin
   make -j PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
-  make -j DESTDIR=install install --no-print-directory
+  make -j DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
   python3 json-c)
@@ -86,14 +87,12 @@ package_ruby-ptpmgmt() {
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/ruby $pkgdir/$libdir
 }
-
 package_tcl-ptpmgmt() {
   pkgdesc='PTP management library tcl wrapper'
   depends=("libptpmgmt=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/tcl* $pkgdir/$libdir
 }
-
 #package_php-ptpmgmt() {
 # Arch linux php do not have system include_path!
 # pkgdesc='PTP management library php wrapper'
@@ -118,3 +117,5 @@ package_phc-ctl-ptpmgmt() {
   mv $srcdir/install/usr/share/man/man8/phc_ctl* $pkgdir/usr/local/man/man8
 }
 changelog=changelog
+# We copy the src localy, so we can debug current code :-)
+source=("$pkgname-$pkgver.txz")

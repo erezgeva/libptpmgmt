@@ -45,13 +45,13 @@ define help
 #                                                                              #
 #   deb_clean        Clean Debian intermediate files.                          #
 #                                                                              #
-#   rpm              Build Red Hat packages.                                   #
+#   srcpkg           Create source tar with library code only.                 #
 #                                                                              #
-#   rpmsrc           Create source tar for Red Hat build.                      #
+#   rpm              Build Red Hat packages.                                   #
 #                                                                              #
 #   pkg              Build Arch Linux packages.                                #
 #                                                                              #
-#   pkgsrc           Create source tar for Arch Linux build.                   #
+#   gentoo           Build on gentoo target.                                   #
 #                                                                              #
 #   config           Configure using system default configuration              #
 #                                                                              #
@@ -221,7 +221,7 @@ UTEST_TGT:=utest_cpp utest_json utest_sys utest_json_load\
   $(foreach n,$(TGT_LNG),utest_$n)
 INS_TGT:=install_main $(foreach n,$(TGT_LNG),install_$n)
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
-  doxygen checkall help rpm rpmsrc pkg pkgsrc utest config\
+  doxygen checkall help srcpkg rpm pkg gentoo utest config\
   $(UTEST_TGT) $(INS_TGT) utest_lua_a
 .PHONY: $(PHONY_TGT)
 NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
@@ -238,7 +238,7 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
 ifeq ($(INSIDE_GIT),true)
-SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample\
+SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[ch]*,':!/:$n') ':!:*.gitignore' ':!:*test.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
@@ -383,6 +383,10 @@ endif #SWIGARGCARGV
 # SWIG warnings
 # comparison integer of different signedness
 CXXFLAGS_RUBY+=-Wno-sign-compare
+# a label defined but not used
+CXXFLAGS_PHP+=-Wno-unused-label
+# variable defined but not used
+CXXFLAGS_PHP+=-Wno-unused-variable
 # suppress swig compilation warnings for old swig versions
 ifneq ($(call verCheck,$(SWIGVER),4.1),)
 # ANYARGS is deprecated (seems related to ruby headers)
@@ -442,14 +446,16 @@ ifneq ($(DOXYGENMINVER),)
 doxygen: $(HEADERS_GEN) $(HEADERS)
 ifeq ($(DOTTOOL),)
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
-	exit 1
-else
+	$Q$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' doxygen.cfg
+endif
 ifdef Q_DOXY
 	$(Q_DOXY)$(DOXYGEN) doxygen.cfg >/dev/null
 else
 	$(DOXYGEN) doxygen.cfg
 endif
-endif # DOTTOOL
+ifeq ($(DOTTOOL),)
+	$Q$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' doxygen.cfg
+endif
 endif # DOXYGENMINVER
 
 checkall: format doxygen
@@ -502,6 +508,7 @@ install_main:
 	if [ ! -f $(MANDIR)/phc_ctl$(TOOLS_EXT).8.gz ]; then
 	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
 	  gzip $(MANDIR)/phc_ctl$(TOOLS_EXT).8;fi
+	$(MKDIR_P) "doc/html"
 	$(RM) doc/html/*.md5
 	$(INSTALL_FOLDER) $(DOCDIR)
 	cp -a *.md doc/html $(DOCDIR)
@@ -512,7 +519,7 @@ include $(D_FILES)
 endif
 
 $(OBJ_DIR):
-	$Q$(MKDIR_P) $@
+	$Q$(MKDIR_P) "$@"
 
 endif # wildcard defs.mk
 ###############################################################################
@@ -540,32 +547,38 @@ deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
 endif # and wildcard debian/rules, which dpkg-buildpackage
 
-####### RPM build #######
-RPM_SRC:=rpm/SOURCES/$(SRC_NAME).txz
-rpm/SOURCES:
-	$(Q)mkdir -p $@
-$(RPM_SRC): $(SRC_FILES) | rpm/SOURCES
+####### library code only #######
+LIB_SRC:=$(SRC_NAME).txz
+$(LIB_SRC): $(SRC_FILES)
 	$(Q_TAR)$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
+srcpkg: $(LIB_SRC)
+
+####### RPM build #######
 ifneq ($(call which,rpmbuild),)
-rpm: $(RPM_SRC)
+rpm/SOURCES:
+	$(Q)mkdir -p "$@"
+rpm: $(LIB_SRC) rpm/SOURCES
+	$(Q)cp $(LIB_SRC) rpm/SOURCES/
 	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/$(LIB_NAME).spec
 endif # which rpmbuild
-rpmsrc: $(RPM_SRC)
 
 ####### Arch Linux build #######
-ARCHL_SRC:=archlinux/$(SRC_NAME).txz
-ARCHL_BLD:=archlinux/PKGBUILD
-$(ARCHL_SRC): $(SRC_FILES)
-	$(Q_TAR)$(TAR) $@ $^
-$(ARCHL_BLD): $(ARCHL_BLD).org | $(ARCHL_SRC)
-	$(Q)cp $^ $@
-	printf "sha256sums=('%s')\n"\
-	  $(firstword $(shell sha256sum $(ARCHL_SRC))) >> $@
 ifneq ($(call which,makepkg),)
+ARCHL_BLD:=archlinux/PKGBUILD
+$(ARCHL_BLD): $(ARCHL_BLD).org | $(LIB_SRC)
+	$(Q)cp $^ $@
+	cp $(LIB_SRC) archlinux/
+	printf "sha256sums=('%s')\n"\
+	  $(firstword $(shell sha256sum $(LIB_SRC))) >> $@
 pkg: $(ARCHL_BLD)
 	$(Q)cd archlinux && makepkg
 endif # which makepkg
-pkgsrc: $(ARCHL_BLD)
+
+####### Gentoo build #######
+ifneq ($(call which,ebuild),)
+gentoo: $(LIB_SRC)
+	$(Q)gentoo/build.sh
+endif # which ebuild
 
 ####### Generic rules #######
 
@@ -611,7 +624,7 @@ endif # MAKECMDGOALS
 
 CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
-  python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(ARCHL_SRC)\
+  python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
   tcl/pkgIndex.tcl php/.phpunit.result.cache .phpunit.result.cache\
   $(HEADERS_GEN)

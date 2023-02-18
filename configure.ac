@@ -770,7 +770,7 @@ else
                         [`echo "$PHP" | $SED 's%8\...*$%-config&%'`])],
             [AS_VAR_SET([phpconfig], [$PHP-config])])
 
-    AC_CHECK_TOOL([PHPCONFIG], [$phpconfig])
+    AC_CHECK_PROGS([PHPCONFIG], [$phpconfig php-config])
 
     AC_MSG_CHECKING([for PHP include folder])
     AS_VAR_SET([dirs],
@@ -818,7 +818,11 @@ else
                        [AS_VERSION_COMPARE([$PHPVER], [8.0],
                                            # Require PHP below 8.0
                                            [AS_VAR_SET([PHPMINVER],
-                                                       [$PHPVER])])])
+                                                       [$PHPVER])])],
+                       # Swig 4.1
+                       [AS_VAR_SET([PHPMINVER], [$PHPVER])],
+                       # Above swig 4.1
+                       [AS_VAR_SET([PHPMINVER], [$PHPVER])])
   fi
 fi
 

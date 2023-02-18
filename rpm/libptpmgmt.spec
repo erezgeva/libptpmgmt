@@ -20,6 +20,7 @@ BuildRequires:  ruby ruby-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  libfastjson libfastjson-devel json-c-devel
 BuildRequires:  doxygen graphviz
+#Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
 Source0:        %{name}-%{version}.txz
 
 %define bname   ptpmgmt
@@ -129,14 +130,12 @@ Requires:       python3-%{bname} = %{version}-%{release}
 %setup -q
 
 %build
+autoconf
 %configure --with-pmc-flags='-fPIE'
 %make_build PMC_USE_LIB=so --no-print-directory all doxygen
 
 %install
 %make_install DEV_PKG=%{name}-devel --no-print-directory
-
-%clean
-make distclean
 
 %files
 %{_libdir}/%{name}.so.1{,.*}
