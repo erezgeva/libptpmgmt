@@ -1,4 +1,4 @@
-.TH PMC 8 "October 2013" "linuxptp / libptpmgmt"
+.TH PMC 8 "February 2023" "linuxptp / libptpmgmt"
 .SH NAME
 pmc-ptpmgmt \- PTP management client
 
@@ -167,10 +167,6 @@ See RFC 4291. The default is 0x0E for the global scope.
 Specifies the address of the server's UNIX domain socket, same as the -s option.
 
 .SH PORT OPTIONS
-.TP
-.B transportSpecific
-The transport specific field. Must be in the range 0 to 255.
-The default is 0.
 
 .TP
 .B network_transport
@@ -181,6 +177,11 @@ The default is UDPv4.
 .B ptp_dst_mac
 The MAC address to which PTP management messages should be sent.
 Relevant only with L2 transport. The default is 01:1B:19:00:00:00.
+
+.TP
+.B transportSpecific
+The transport specific field. Must be in the range 0 to 255.
+The default is 0.
 
 .TP
 .B udp_ttl
