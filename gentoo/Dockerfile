@@ -8,6 +8,7 @@
 # Search packages at: https://portagefilelist.de/
 ###############################################################################
 FROM gentoo/stage3
+MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 ARG UID
 ARG USER
 RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\
