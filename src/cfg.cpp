@@ -39,7 +39,7 @@ const ConfigSection::range_t ConfigSection::ranges[] = {
     rang_val(transportSpecific, 0, 0, 0xf),
     // IEEE 1588-2019 permit upto 239 based on sdoId value
     //  (transportSpecific == majorSdoId)
-    rang_val(domainNumber, 0, 0, 239),
+    rang_val(domainNumber, 0, 0, 0xff),
     rang_val(udp6_scope, 0xe, 0, 0xf),
     rang_val(udp_ttl, 1, 1, 255),
     rang_val(socket_priority, 0, 0, 15),
