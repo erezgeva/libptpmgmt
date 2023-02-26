@@ -2181,3 +2181,29 @@ TEST(Json2msgTest, PORT_HWCLOCK_NP)
     EXPECT_EQ(t->phc_index, 1);
     EXPECT_EQ(t->flags, 7);
 }
+
+// Tests POWER_PROFILE_SETTINGS_NP managment ID
+TEST(Json2msgTest, POWER_PROFILE_SETTINGS_NP)
+{
+    Json2msg m;
+    ASSERT_TRUE(m.fromJson("{\"actionField\":\"SET\","
+            "\"managementId\":\"POWER_PROFILE_SETTINGS_NP\",\"dataField\":{"
+            "\"version\":\"2011\","
+            "\"grandmasterID\":56230,"
+            "\"grandmasterTimeInaccuracy\":4124796349,"
+            "\"networkTimeInaccuracy\":3655058877,"
+            "\"totalTimeInaccuracy\":4223530875"
+            "}}"));
+    EXPECT_EQ(m.actionField(), SET);
+    EXPECT_EQ(m.managementId(), POWER_PROFILE_SETTINGS_NP);
+    const BaseMngTlv *d = m.dataField();
+    ASSERT_NE(d, nullptr);
+    const POWER_PROFILE_SETTINGS_NP_t *t =
+        dynamic_cast<const POWER_PROFILE_SETTINGS_NP_t *>(d);
+    ASSERT_NE(t, nullptr);
+    EXPECT_EQ(t->version, IEEE_C37_238_VERSION_2011);
+    EXPECT_EQ(t->grandmasterID, 56230);
+    EXPECT_EQ(t->grandmasterTimeInaccuracy, 4124796349);
+    EXPECT_EQ(t->networkTimeInaccuracy, 3655058877);
+    EXPECT_EQ(t->totalTimeInaccuracy, 4223530875);
+}

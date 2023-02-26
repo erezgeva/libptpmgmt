@@ -332,6 +332,8 @@ TEST(MessageTest, MethodMng2str)
     EXPECT_STREQ(Message::mng2str_c(UNICAST_MASTER_TABLE_NP),
         "UNICAST_MASTER_TABLE_NP");
     EXPECT_STREQ(Message::mng2str_c(PORT_HWCLOCK_NP), "PORT_HWCLOCK_NP");
+    EXPECT_STREQ(Message::mng2str_c(POWER_PROFILE_SETTINGS_NP),
+        "POWER_PROFILE_SETTINGS_NP");
     EXPECT_STREQ(Message::mng2str_c(LAST_MNG_ID), "out of range");
     // Confirm compatability
     EXPECT_EQ(FIRST_MNG_ID, NULL_PTP_MANAGEMENT);
@@ -607,6 +609,15 @@ TEST(MessageTest, MethodTs2str)
     EXPECT_STREQ(Message::ts2str_c(TS_P2P1STEP), "P2P1STEP");
 }
 
+// tests convert linuxptp power profile version to string
+// static const char *pwr2str_c(linuxptpPowerProfileVersion_e ver)
+TEST(MessageTest, MethodPwr2str)
+{
+    EXPECT_STREQ(Message::pwr2str_c(IEEE_C37_238_VERSION_NONE), "NONE");
+    EXPECT_STREQ(Message::pwr2str_c(IEEE_C37_238_VERSION_2011), "2011");
+    EXPECT_STREQ(Message::pwr2str_c(IEEE_C37_238_VERSION_2017), "2017");
+}
+
 // tests convert linuxptp master unicasy state to string
 // static const char *us2str_c(linuxptpUnicastState_e state)
 TEST(MessageTest, MethodUs2str)
@@ -736,6 +747,7 @@ TEST(MessageTest, MethodIsEmpty)
     EXPECT_FALSE(Message::isEmpty(PORT_SERVICE_STATS_NP));
     EXPECT_FALSE(Message::isEmpty(UNICAST_MASTER_TABLE_NP));
     EXPECT_FALSE(Message::isEmpty(PORT_HWCLOCK_NP));
+    EXPECT_FALSE(Message::isEmpty(POWER_PROFILE_SETTINGS_NP));
 }
 
 // Test if management TLV is valid for use method

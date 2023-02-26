@@ -276,11 +276,17 @@ class MsgDump : public MessageDispatcher
     }
     dump(ALTERNATE_TIME_OFFSET_ENABLE) {
         DUMPS(
-            IDENT "alternateTimescaleOffsetsDS[%u] %sabled", d.keyField,
-            d.flags ? "e" : "dis");
+            IDENT "keyField       %u"
+            IDENT "enable         %d",
+            d.keyField,
+            d.flags & 1);
     }
     dump(ALTERNATE_TIME_OFFSET_NAME) {
-        DUMPS(IDENT "[%u] %s", d.keyField, d.displayName.string());
+        DUMPS(
+            IDENT "keyField       %u"
+            IDENT "displayName    %s",
+            d.keyField,
+            d.displayName.string());
     }
     dump(ALTERNATE_TIME_OFFSET_MAX_KEY) {
         DUMPS(IDENT "maxKey %u", d.maxKey);
@@ -518,6 +524,19 @@ class MsgDump : public MessageDispatcher
             d.portIdentity.string().c_str(),
             d.phc_index,
             d.flags);
+    }
+    dump(POWER_PROFILE_SETTINGS_NP) {
+        DUMPS(
+            IDENT "version                   %s"
+            IDENT "grandmasterID             0x%04hx"
+            IDENT "grandmasterTimeInaccuracy %u"
+            IDENT "networkTimeInaccuracy     %u"
+            IDENT "totalTimeInaccuracy       %u",
+            m.pwr2str_c(d.version),
+            d.grandmasterID,
+            d.grandmasterTimeInaccuracy,
+            d.networkTimeInaccuracy,
+            d.totalTimeInaccuracy);
     }
 }; // class MsgDump
 void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *data)
@@ -778,6 +797,30 @@ class MsgBuild : public MessageBuilder
             return false; // No errors!
         }
         return true;
+    }
+    static bool getPwrVer(val_key_t &key) {
+        const char base[] = "IEEE_C37_238_VERSION_";
+        int64_t num;
+        const char *t2, *tkn = key.str_val;
+        if(strcasecmp(base, tkn) == 0)
+            t2 = tkn + sizeof base;
+        else
+            t2 = tkn;
+        if(strcasecmp("NONE", t2) == 0)
+            num = IEEE_C37_238_VERSION_NONE;
+        else if(strcasecmp("2011", t2) == 0)
+            num = IEEE_C37_238_VERSION_2011;
+        else if(strcasecmp("2017", t2) == 0)
+            num = IEEE_C37_238_VERSION_2017;
+        else { // Fallback into integer
+            char *end;
+            num = strtol(tkn, &end, 0);
+            if(tkn == end || *end != 0 || num < 0 ||
+                num > IEEE_C37_238_VERSION_2017)
+                return true;
+        }
+        key.num = num;
+        return false; // No errors!
     }
 
     build(USER_DESCRIPTION) {
@@ -1104,6 +1147,27 @@ class MsgBuild : public MessageBuilder
         keys["duration"].req = true;
         parseKeys;
         d.val = keys["duration"].num;
+        build_end;
+    }
+    build(POWER_PROFILE_SETTINGS_NP) {
+        defKeys;
+        keys["version"].handle = getPwrVer;
+        keys["version"].req = true;
+        keys["grandmasterID"].max = UINT16_MAX;
+        keys["grandmasterID"].base = 16;
+        keys["grandmasterID"].req = true;
+        keys["grandmasterTimeInaccuracy"].max = UINT32_MAX;
+        keys["grandmasterTimeInaccuracy"].req = true;
+        keys["networkTimeInaccuracy"].max = UINT32_MAX;
+        keys["networkTimeInaccuracy"].req = true;
+        keys["totalTimeInaccuracy"].max = UINT32_MAX;
+        keys["totalTimeInaccuracy"].req = true;
+        parseKeys;
+        d.version = (linuxptpPowerProfileVersion_e)keys["version"].num;
+        d.grandmasterID = keys["grandmasterID"].num;
+        d.grandmasterTimeInaccuracy = keys["grandmasterTimeInaccuracy"].num;
+        d.networkTimeInaccuracy = keys["networkTimeInaccuracy"].num;
+        d.totalTimeInaccuracy = keys["totalTimeInaccuracy"].num;
         build_end;
     }
 }; // class MsgBuild

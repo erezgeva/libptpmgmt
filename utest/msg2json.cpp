@@ -1529,3 +1529,22 @@ TEST(Tlv2JsonTest, PORT_HWCLOCK_NP)
         "  \"flags\" : 7\n"
         "}");
 }
+
+// Tests POWER_PROFILE_SETTINGS_NP structure
+TEST(Tlv2JsonTest, POWER_PROFILE_SETTINGS_NP)
+{
+    POWER_PROFILE_SETTINGS_NP_t t;
+    t.version = IEEE_C37_238_VERSION_2011;
+    t.grandmasterID = 56230;
+    t.grandmasterTimeInaccuracy = 4124796349;
+    t.networkTimeInaccuracy = 3655058877;
+    t.totalTimeInaccuracy = 4223530875;
+    EXPECT_STREQ(tlv2json(POWER_PROFILE_SETTINGS_NP, &t).c_str(),
+        "{\n"
+        "  \"version\" : \"2011\",\n"
+        "  \"grandmasterID\" : 56230,\n"
+        "  \"grandmasterTimeInaccuracy\" : 4124796349,\n"
+        "  \"networkTimeInaccuracy\" : 3655058877,\n"
+        "  \"totalTimeInaccuracy\" : 4223530875\n"
+        "}");
+}

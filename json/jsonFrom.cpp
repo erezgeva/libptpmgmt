@@ -110,9 +110,9 @@ struct JsonVal {
                         break;
                     case JT_STR:
                         if(intV == 0)
-                           strV = "false";
+                            strV = "false";
                         else
-                           strV = "true";
+                            strV = "true";
                         break;
                     default:
                         return false;
@@ -403,6 +403,18 @@ struct JsonProcFromJson : public JsonProcFrom {
         }
         return false;
     }
+    bool procValue(const char *key, linuxptpPowerProfileVersion_e &d) override {
+        GET_STR
+        for(int i = IEEE_C37_238_VERSION_NONE;
+            i <= IEEE_C37_238_VERSION_2017; i++) {
+            linuxptpPowerProfileVersion_e v = (linuxptpPowerProfileVersion_e)i;
+            if(strcmp(str, Message::pwr2str_c(v)) == 0) {
+                d = v;
+                return true;
+            }
+        }
+        return false;
+    }
     bool procValue(const char *key, linuxptpUnicastState_e &d) override {
         GET_STR
         for(int i = UC_WAIT; i <= UC_HAVE_SYDY; i++) {
@@ -630,7 +642,8 @@ struct JsonProcFromJson : public JsonProcFrom {
         val = found[key].intV;
         return true;
     }
-    bool parsePort(const char *key, bool &have, PortIdentity_t &port) override final {
+    bool parsePort(const char *key, bool &have,
+        PortIdentity_t &port) override final {
         if(isType(key, JT_OBJ)) {
             if(!procValue(key, port)) {
                 PTPMGMT_ERROR("Fail parsing %s", key);

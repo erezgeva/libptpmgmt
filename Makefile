@@ -207,6 +207,7 @@ HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
 HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
 HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,comp.h ids.h),$(HEADERS))
 SRCS:=$(wildcard $(SRC)/*.cpp)
+SRCS_JSON:=$(wildcard $(JSON_SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 # json-c
 JSONC_LIB:=$(LIB_NAME)_jsonc.so
@@ -361,7 +362,7 @@ $(SRC)/ver.h: $(SRC)/ver.h.in
 
 ifneq ($(ASTYLEMINVER),)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest,$n/*.cpp $n/*.h))
-format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS)
+format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=astyle.opt $^`
 	test -z "$$r" || echo "$$r";./format.pl $^
@@ -462,7 +463,7 @@ checkall: format doxygen
 
 ifneq ($(CTAGS),)
 tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
-	$(wildcard $(JSON_SRC)/*.cpp)
+	$(SRCS_JSON)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
 endif # CTAGS

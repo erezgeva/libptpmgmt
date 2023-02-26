@@ -1067,3 +1067,29 @@ TEST_F(ProcTest, PORT_HWCLOCK_NP)
     EXPECT_EQ(r->phc_index, 1);
     EXPECT_EQ(r->flags, 0);
 }
+
+// Tests POWER_PROFILE_SETTINGS_NP structure
+TEST_F(ProcTest, POWER_PROFILE_SETTINGS_NP)
+{
+    POWER_PROFILE_SETTINGS_NP_t t;
+    t.version = IEEE_C37_238_VERSION_2011;
+    t.grandmasterID = 56230;
+    t.grandmasterTimeInaccuracy = 4124796349;
+    t.networkTimeInaccuracy = 3655058877;
+    t.totalTimeInaccuracy = 4223530875;
+    EXPECT_TRUE(setAction(SET, POWER_PROFILE_SETTINGS_NP, &t));
+    EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
+    uint8_t m[16] = {0, 1, 219, 166, 245, 219, 101, 189, 217, 219,
+            197, 189, 251, 189, 247, 123
+        };
+    EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
+    EXPECT_EQ(memcmp(buf + tlvLoc, m, sizeof m), 0);
+    ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
+    const POWER_PROFILE_SETTINGS_NP_t *r =
+        (const POWER_PROFILE_SETTINGS_NP_t *)getData();
+    EXPECT_EQ(r->version, IEEE_C37_238_VERSION_2011);
+    EXPECT_EQ(r->grandmasterID, 56230);
+    EXPECT_EQ(r->grandmasterTimeInaccuracy, 4124796349);
+    EXPECT_EQ(r->networkTimeInaccuracy, 3655058877);
+    EXPECT_EQ(r->totalTimeInaccuracy, 4223530875);
+}

@@ -190,7 +190,9 @@ compare_pmc()
    VERSION_NUMBER PORT_DATA_SET
    TIME_STATUS_NP GRANDMASTER_SETTINGS_NP PORT_DATA_SET_NP PORT_PROPERTIES_NP
    PORT_STATS_NP SUBSCRIBE_EVENTS_NP SYNCHRONIZATION_UNCERTAIN_NP MASTER_ONLY
-   PORT_SERVICE_STATS_NP UNICAST_MASTER_TABLE_NP PORT_HWCLOCK_NP'
+   PORT_SERVICE_STATS_NP UNICAST_MASTER_TABLE_NP PORT_HWCLOCK_NP
+   ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
+   ALTERNATE_TIME_OFFSET_ENABLE POWER_PROFILE_SETTINGS_NP'
  local -r setmsg="set PRIORITY2 137"
  local -r verify="get PRIORITY2"
  for n in $tlvs; do cmds+=" \"get $n\"";done
@@ -225,7 +227,7 @@ compare_pmc()
  # sys   0m0.004s
 
  printf "\n * We expect 'protocolAddress', %s\n%s\n\n"\
-          "'timeSource' and 'portState' difference"\
+          "'timeSource', 'version' and 'portState' difference"\
           " * Statistics may apprear"
  diff <(printf "$pmcOut") <(printf "$libptpOut") | grep '^[0-9-]' -v
 

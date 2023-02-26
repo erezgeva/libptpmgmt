@@ -448,6 +448,15 @@ JS(PORT_HWCLOCK_NP)
         PROC_VAL(phc_index) &&
         PROC_VAL(flags);
 };
+JS(POWER_PROFILE_SETTINGS_NP)
+{
+    return
+        PROC_VAL(version) &&
+        PROC_VAL(grandmasterID) &&
+        PROC_VAL(grandmasterTimeInaccuracy) &&
+        PROC_VAL(networkTimeInaccuracy) &&
+        PROC_VAL(totalTimeInaccuracy);
+}
 
 /* Finish Proccess functions of JsonProc */
 #undef JS
@@ -687,6 +696,7 @@ struct JsonProcToJson : public JsonProc {
     procTypeEnumR(timeSource_e, timeSrc2str_c)
     procTypeEnumR(portState_e, portState2str_c)
     procTypeEnumR(linuxptpTimeStamp_e, ts2str_c)
+    procTypeEnumR(linuxptpPowerProfileVersion_e, pwr2str_c)
     procTypeEnumR(linuxptpUnicastState_e, us2str_c)
     bool procValue(const char *name, TimeInterval_t &val) override {
         procValue(name, val.scaledNanoseconds);

@@ -250,6 +250,12 @@ class Message
      */
     static const char *ts2str_c(linuxptpTimeStamp_e type);
     /**
+     * Convert linuxptp power profile version to string
+     * @param[in] ver version
+     * @return string with the Linux power profile version
+     */
+    static const char *pwr2str_c(linuxptpPowerProfileVersion_e ver);
+    /**
      * Convert linuxptp master unicasy state to string
      * @param[in] state
      * @return string with the master state in the unicast master table

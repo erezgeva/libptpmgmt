@@ -264,6 +264,17 @@ enum linuxptpTimeStamp_e : uint8_t {
     /** One step PTP plus insert time to PDelay_Resp */
     TS_P2P1STEP,
 };
+/** linuxptp Power Profile version
+ *  Specify the which power system profile to use
+ */
+enum linuxptpPowerProfileVersion_e : uint16_t {
+    /** Do not use power system */
+    IEEE_C37_238_VERSION_NONE,
+    /** Use IEEE C37.238-2011 profile */
+    IEEE_C37_238_VERSION_2011,
+    /** Use IEEE C37.238-2017 profile */
+    IEEE_C37_238_VERSION_2017,
+};
 /** linuxptp timeReceiver side unicast negotiation state */
 enum linuxptpUnicastState_e : uint8_t {
     UC_WAIT, /**< Wait for answer */
