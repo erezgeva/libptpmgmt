@@ -58,7 +58,7 @@ package_libptpmgmt-dev() {
 package_libptpmgmt-doc() {
   arch=(any)
   pkgdesc='PTP management library documentation, to communicate with ptp4l'
-  license=(FDL1.3)
+  license=(FDL1.3) # Know also as GFDL
   mkdir -p $pkgdir/usr/share
   mv $srcdir/install/usr/share/doc/* $pkgdir/usr/share
 }
