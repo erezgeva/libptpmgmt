@@ -3,7 +3,7 @@
 # <u>Preface</u>
 
 The library for PTP management client uses IEEE 1558 management messages to communicate with PTP entities over the network.  
-We support get, set and command of all management TLVs that are described in IEEE 1588-2019.
+We support get, set and command of all management TLVs that are described in IEEE 1588-2019.  
 In addition, we support LinuxPTP specific implementation management TLVs.  
 The library supports the three PTP network layers
 
@@ -14,6 +14,8 @@ The library supports the three PTP network layers
 In addition, we support using the Unix network and communicate with LinuxPTP ptp4l.
 
 We support also parsing incoming signalling messages.
+
+Usrs can use Linux VLAN with all sockets.
 
 # <u>libptpmgmt Library</u>
 The library is written in C++ using a data-oriented model.  
@@ -35,12 +37,12 @@ Users that want to use the library with their C application,
 need to write a wrapping in C++ and combine it with their application.
 
 # <u>Scripting</u>
-This project uses [SWIG](http://www.swig.org/) to generate wrapper to script languages.
+This project uses [SWIG](http://www.swig.org/) to generate wrapper to script languages.  
 For now, we support:
 
   * Perl version 5
-  * Python 2.7 and Python 3
-  * Lua 5.1, 5.2, 5.3, 5.4
+  * Python version 3
+  * Lua versions 5.1, 5.2, 5.3, 5.4
   * Ruby version 2
   * PHP version 7
   * TCL version 8
@@ -100,9 +102,11 @@ The project comes with packaging:
   * Debian packages for Debian and Debian based Linux systems.
   * RPM packages for Red Hat based Linux systems.
   * Arch Linux packages.
+  * Gentoo build recipe using ebuild.
 
 # <u>Licence</u>
 The Licence of this project is
 
-  * The library is under LGPL 3 or later
-  * The pmc and phc_ctl tools and the testing scripts are under GPL 3 or later
+  * The library is under LGPL v3 or later.
+  * The pmc and phc_ctl tools and the testing scripts are under GPL v3 or later.
+  * Documentation is under under GFDL v1.3 or later without invariants sections.
