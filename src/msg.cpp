@@ -33,8 +33,6 @@ const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
 const uint8_t ptp_minor_ver = 0x0; // IEEE 1588-2019 uses 0x1
 const uint8_t ptp_version = (ptp_minor_ver << 4) | ptp_major_ver;
 const uint8_t controlFieldMng = 0x04; // For Management
-// For Pdelay_Req, Pdelay_Resp, Pdelay_Resp_Follow_Up, Announce, Signaling
-const uint8_t controlFieldDef = 0x05;
 // For Delay_Req, Signaling, Management, Pdelay_Resp, Pdelay_Resp_Follow_Up
 const uint8_t logMessageIntervalDef = 0x7f;
 const uint16_t allPorts = UINT16_MAX;
@@ -305,6 +303,8 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     if(m_prms.isUnicast)
         msg->flagField[0] |= unicastFlag;
     msg->sequenceId = cpu_to_net16(sequence);
+    // Only needed for PTP V1 hardware with IPv4.
+    // Keep as backward with old hardware.
     msg->controlField = controlFieldMng;
     msg->logMessageInterval = logMessageIntervalDef;
     msg->startingBoundaryHops = m_prms.boundaryHops;
@@ -370,14 +370,10 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
         case Signaling:
             if(!m_prms.rcvSignaling)
                 return MNG_PARSE_ERROR_HEADER;
-            if(msg->controlField != controlFieldDef)
-                return MNG_PARSE_ERROR_HEADER;
             break;
         case Management:
             if(msgSize < (ssize_t)sizeof(*msg) + tlvSizeHdr)
                 return MNG_PARSE_ERROR_TOO_SMALL;
-            if(msg->controlField != controlFieldMng)
-                return MNG_PARSE_ERROR_HEADER;
             break;
         default:
             return MNG_PARSE_ERROR_HEADER;
