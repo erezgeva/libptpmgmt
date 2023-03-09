@@ -5,25 +5,29 @@
 # @copyright © 2021 Erez Geva
 #
 ###############################################################################
+# Generic files
 *.o
 *.d
-/objs/
 *.so
-/libptpmgmt*.a
-/libptpmgmt*.so.*
-/tools/pmc
+.phpunit.result.cache
+.sw?
+.*.sw?
+# Files in root
 /tags
-/doc
-*/PtpMgmtLib.cpp
-/perl/PtpMgmtLib.pm
-/tcl/pkgIndex.tcl
-/autom4te.cache/
 /config.log
 /config.status
 /configure
 /configure~
 /defs.mk
 /libptpmgmt-*.txz
-.phpunit.result.cache
-.sw?
-.*.sw?
+/libptpmgmt*.a
+/libptpmgmt*.so.*
+# In folders
+*/PtpMgmtLib.cpp
+/doc
+/objs/
+/tools/pmc
+/perl/PtpMgmtLib.pm
+/tcl/pkgIndex.tcl
+/autom4te.cache/
+/gentoo/.upgrade_cockie

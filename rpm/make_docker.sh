@@ -24,25 +24,34 @@ clean_unused_images()
 make_all_args()
 {
   local arg
-  for arg in user src uid
+  for arg in user src uid cookie
   do local -n d=$arg;args+=" --build-arg ${arg^^}=$d";done
 }
 main()
 {
-  local -r base_dir=$(dirname $(realpath $0))
+  local -r base_dir="$(dirname $(realpath $0))"
+  local -r cfile="$base_dir/.upgrade_cockie"
   local -r name=rpmbuild
   local -r user=builder
   local -r src=.
   local -r uid=$(id -u)
-  cd $base_dir/..
-  while getopts 'n' opt; do
+  cd "$base_dir/.."
+  while getopts 'nu' opt; do
     case $opt in
       n)
         local -r no_cache=--no-cache
         ;;
+      u)
+        local -r upgrade=yes
+        ;;
     esac
   done
   clean_cont $name
+  if [[ -n "$upgrade" ]] || ! [[ -f $cfile ]]; then
+    head -c200 /dev/urandom | tr -dc 'a-zA-Z0-9' |\
+      fold -w 16 | head -n 1 > "$cfile"
+  fi
+  local -r cookie=$(cat "$cfile")
   make_all_args
   sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" $base_dir/Dockerfile
   cmd docker build $no_cache -f $base_dir/Dockerfile $args -t $name .

@@ -5,8 +5,8 @@
 # @copyright © 2021 Erez Geva
 #
 # Docker file for Fedora contianer for building and create rpm packages
+# Search packages at: https://packages.debian.org
 ###############################################################################
-
 ARG DIST
 FROM debian:${DIST}
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
@@ -34,6 +34,8 @@ RUN apt-get update;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
     sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers
+ARG COOKIE
+RUN apt-get update; apt-get upgrade -y --no-install-recommends
 USER $USER
 ARG SRC
 COPY --chown=builder $SRC /home/$USER/libptpmgmt

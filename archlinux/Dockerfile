@@ -16,6 +16,8 @@ RUN pacman -Syu --noconfirm --needed bash rustup gcc fakeroot pkgconf libtool\
     lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+ARG COOKIE
+RUN pacman -Syu --noconfirm --needed
 USER $USER
 ARG SRC
 COPY --chown=builder $SRC /home/$USER/libptpmgmt

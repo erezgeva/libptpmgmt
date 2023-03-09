@@ -21,6 +21,8 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+ARG COOKIE
+RUN dnf upgrade -y
 USER $USER
 ARG SRC
 COPY --chown=builder $SRC /home/$USER/libptpmgmt

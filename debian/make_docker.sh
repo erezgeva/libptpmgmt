@@ -56,7 +56,8 @@ set_dist_args()
 main()
 {
   local -r repo=http://ftp.de.debian.org/debian
-  local -r base_dir=$(dirname $(realpath $0))
+  local -r base_dir="$(dirname $(realpath $0))"
+  local -r cfile="$base_dir/.upgrade_cockie"
   local -r bname=deb.
   local -r names='stretch buster bullseye bookworm'
   local -r main_arch=$(dpkg --print-architecture) # amd64
@@ -86,15 +87,23 @@ main()
     dpkgs_all+=" g++-$n"
   done
   cd $base_dir/..
-  while getopts 'n' opt; do
+  while getopts 'nu' opt; do
     case $opt in
       n)
         local -r no_cache=--no-cache
         ;;
+      u)
+        local -r upgrade=yes
+        ;;
     esac
   done
+  if [[ -n "$upgrade" ]] || ! [[ -f $cfile ]]; then
+    head -c200 /dev/urandom | tr -dc 'a-zA-Z0-9' |\
+      fold -w 16 | head -n 1 > "$cfile"
+  fi
+  local -r cookie=$(cat "$cfile")
   for n in $names; do clean_cont $bname$n; done
-  make_args user src uid
+  make_args user src uid cookie
   local SRC_CFG dpkgs all_args="$args"
   sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" $base_dir/Dockerfile
   for dist in $names; do

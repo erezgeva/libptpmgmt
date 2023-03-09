@@ -399,6 +399,11 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     MsgProc mp;
     mp.m_build = false;
     if(m_type == Signaling) {
+        // initialize values, only to make cppcheck happy
+        mp.m_left = 0;
+        mp.reserved = 0;
+        mp.m_err = MNG_PARSE_ERROR_TOO_SMALL;
+        // Real initializing
         mp.m_cur = (uint8_t *)buf + sigBaseSize;
         mp.m_size = msgSize - sigBaseSize; // pass left to parseSig()
         return parseSig(&mp);

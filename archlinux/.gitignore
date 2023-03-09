@@ -8,3 +8,4 @@
 /libptpmgmt-*.txz
 /PKGBUILD
 /*.pkg.tar.zst
+/.upgrade_cockie
