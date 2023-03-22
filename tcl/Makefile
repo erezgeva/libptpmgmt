@@ -29,5 +29,5 @@ utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so tcl/pkgIndex.tcl
 	$(call Q_UTEST,TCL)LD_PRELOAD=./$< TCLLIBPATH=tcl tcl/utest.tcl $(TCL_FILTERS)
 
 install_tcl:
-	$Q$(INSTALL_PROGRAM) -D $(TCL_LNAME).so -t $(TCLDIR)
+	$Q$(INSTALL_LIB) -D $(TCL_LNAME).so -t $(TCLDIR)
 	printf '$(pkgIndex)' > $(TCLDIR)/pkgIndex.tcl

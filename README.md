@@ -45,25 +45,50 @@ For now, we support:
   * Lua versions 5.1, 5.2, 5.3, 5.4
   * Ruby version 2
   * PHP version 7
-  * TCL version 8
+  * Tcl version 8
+  * Go version 1.14 and above
 
 Though the C++ library uses the namespace 'ptpmgmt'.  
 SWIG for PHP do not support namespace.  
 Ruby uses 'Ptpmgmt' as namespace follow Ruby convention.  
 Perl uses the name 'PtpMgmtLib' follow Perl convention.  
-Tcl, Lua, and Python do use the namespace 'ptpmgmt'.
+Tcl, Lua, Go, and Python do use the namespace 'ptpmgmt'.
 
 Some C++ syntax is ignored or renamed in various scripts,  
 for example in PHP: Binary::empty is renamed to Binary::c_empty  
-See comments in libptpmgmt.i for the relevant changes
+See comments in libptpmgmt.i and warn.i of each language for the relevant changes
 
 Some C++ structure and functions use C++ standard vector "`std::vector<>`"  
 SWIG map C++ standard vector to a class.  
 See libptpmgmt.i for the full list of the mapping classes.  
 All languages create the vector as a class object.  
-In Python, Ruby and TCL the vector have properties of a native list.  
+In Python, Ruby and Tcl the vector have properties of a native list.  
 Lua uses subst of C++ standard vector methods.  
-Perl and PHP use class methods, see PtpMgmtLib.pm and ptpmgmt.php for these methods.
+Perl, PHP and Go use class methods, see PtpMgmtLib.pm for Perl, ptpmgmt.php for php
+ and ptpmgmt.go for php, for these methods.
+
+std_vectors.md provides more information on vectors mapping and the Doxygen documentation provide information per class.
+
+# <u>Go wrapper</u>
+
+Go is a compile language.  
+And not a "pure" script, the wrapper is used a bit different.  
+The wrapper is only required during development,  
+ as the result application is a binary that do not require the Go wrapper, only the main library.  
+During development, you need the Go wrapper and the main library development headers,  
+ as the Go build check compilation of the Go wrapper.  
+In addition add the '-lm -lptpmgmt' flags to the linking using the `CGO_LDFLAGS` environment,  
+ so Go will link your application with the main library.  
+Pay attention that although Go uses static typing and check the types in compilation,
+some C++ methods uses variable arguments or share name for different methods, in this case swig will use the `... interface{}` parameter
+and perform the type check in runtime, if types are wrong, the Go swig wrapper will issue an exception to your application.  
+For example, `Binary.SetBin(position, value)` require `position` to be `int64` and `value` to be `byte`.
+Go uses methods for interface are using Pascal notation, so all class functions in the main library are convert to use first letter capital.  
+Go do not use constructors and destructors.  
+You need to use the New'Class' functions and release with Delete'Class'.  
+You can use the `defer` statment for the releasing, if the release is due to the same function.  
+As Go do not provide destructors, MessageBuilder is not a class and it does not call `message.clearData()` once it is removed.  
+You are advices to call `message.clearData()` once you build the message, and do not plan to use the send TLV no further.
 
 # <u>Library content</u>
   * Binary in bin.h - class that hold a binary

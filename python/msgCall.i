@@ -36,8 +36,12 @@ class MessageDispatcher(object):
 
 class MessageBuilder(object):
     def buildTlv(self, actionField : int, tlv_id : int):
+        if not self.m_msg.isValidId(tlv_id):
+            return False
         if actionField == GET or Message.isEmpty(tlv_id):
             return self.m_msg.setAction(actionField, tlv_id)
+        if actionField != SET and actionField != COMMAND:
+            return False
         idstr=Message.mng2str_c(tlv_id)
         tlv_pkg=idstr + '_t'
         callback_name=idstr + '_b'

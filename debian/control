@@ -4,7 +4,7 @@ Section: net
 Priority: optional
 Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 9), dh-exec (>=0.3), coreutils, dh-python,
-               dh-lua, dh-php, swig (>=3.0), libtool, m4
+               dh-lua, dh-php, swig (>=3.0), libtool, m4, dh-golang
 Build-Depends-Arch: perl:native, lua5.2, liblua5.1-0-dev,
 		    liblua5.2-dev, liblua5.3-dev, ruby:native, ruby-dev,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev,
@@ -50,7 +50,7 @@ Description: PTP management library development
 
 Package: libptpmgmt-doc
 Architecture: all
-Section: libs
+Section: doc
 Pre-Depends: ${misc:Pre-Depends}
 Depends: libptpmgmt (= ${binary:Version})
 Description: PTP management library documentation, to communicate with ptp4l
@@ -113,6 +113,16 @@ Provides: ${tcl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
 	 libptpmgmt (= ${binary:Version})
 Description: PTP management library tcl wrapper
+
+Package: golang-ptpmgmt
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${golang:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${golang:Depends}, golang,
+	 libptpmgmt-dev (= ${binary:Version})
+Description: PTP management library golang development wrapper
 
 Package: pmc-ptpmgmt
 Architecture: any

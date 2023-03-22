@@ -118,14 +118,16 @@ class Options
      * @return Parse state
      * @note Follow the command line.
      *       Argument 0 is the application name,
-     *       as apear in the command line.
+     *       as appear in the command line.
      *       This class do not store it.
      * @note regarding using scripts: @n
-     *  Python and PHP uses full argument list.
+     *  Python, Go and PHP uses full argument list.
      *  For Ruby, Perl and Tcl user need to add argument 0.
-     *  Lua miss argument 0 completly, so user should add name manually! @n
+     *  Lua miss argument 0 completely,
+     *  so user should add argument 0 manually! @n
      * To call from scripts: @n
      *  Python  obj.parse_options(sys.argv) @n
+     *  Go      obj.Parse_options(os.Args)
      *  PHP     $obj->parse_options($argv) @n
      *  Ruby    $obj.parse_options([$0] + ARGV) @n
      *  Perl    obj->parse_options([$0, @@ARGV]); @n

@@ -49,8 +49,12 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
 DIAG_END
 bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 {
+    if(!m_msg.isValidId(tlv_id))
+        return false;
     if(actionField == GET || m_msg.isEmpty(tlv_id))
         return m_msg.setAction(actionField, tlv_id);
+    if(actionField != SET && actionField != COMMAND)
+        return false;
     BaseMngTlv *tlv = nullptr;
 #define _ptpmCaseUFB(n) case n: {\
             n##_t *d = new n##_t;\

@@ -14,7 +14,7 @@ ARG USER
 RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sudo automake autoconf yum-utils rpm-build dnf-utils fedora-packager\
     rpmdevtools doxygen graphviz perl php-devel ruby ruby-devel swig\
-    lua lua-devel python3-devel php python3 which gtest-devel gtest\
+    lua lua-devel python3-devel php python3 which gtest-devel gtest golang\
     perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel libfastjson\
     libfastjson-devel json-c-devel m4 rubygem-test-unit perl-Test-Class\
     texlive-epstopdf ghostscript && dnf clean all &&\

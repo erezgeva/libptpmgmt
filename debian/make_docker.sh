@@ -66,10 +66,10 @@ main()
   local -r src=.
   local -r uid=$(id -u)
   local -r lua54='lua5.4 liblua5.4-dev@'
-  local -r dpkgs_stretch='vim-gtk'
-  local -r dpkgs_buster='vim-gtk'
-  local -r dpkgs_bullseye="vim-gtk $lua54"
-  local -r dpkgs_bookworm="reuse vim-gtk3 $lua54"
+  local -r dpkgs_stretch='vim-gtk dh-golang'
+  local -r dpkgs_buster='vim-gtk dh-golang'
+  local -r dpkgs_bullseye="vim-gtk $lua54 dh-golang"
+  local -r dpkgs_bookworm="reuse vim-gtk3 $lua54 dh-golang"
   local a n m p arg args
   # Packages per architecture
   for n in libstdc++6 liblua5.1-0-dev liblua5.2-dev liblua5.3-dev\

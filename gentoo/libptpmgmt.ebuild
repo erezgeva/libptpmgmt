@@ -17,6 +17,7 @@ SLOT="0"
 # CHOST build dependencies, on installed system
 DEPEND="dev-lang/perl dev-lang/ruby dev-lang/python dev-lang/lua dev-lang/php
 	dev-lang/tcl"
+# Fail to install: dev-lang/go
 # CBUILD build dependencies, on build system
 BDEPEND="sys-devel/gcc sys-devel/libtool sys-apps/which sys-devel/make
 	dev-lang/swig app-doc/doxygen"

@@ -31,3 +31,6 @@
 /tcl/pkgIndex.tcl
 /autom4te.cache/
 /gentoo/.upgrade_cockie
+# Go lang cache
+/obj-*/pkg/mod/cache/lock
+/obj-*/go-build

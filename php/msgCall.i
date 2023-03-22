@@ -36,8 +36,14 @@ abstract class MessageBuilder {
 	private Message $m_msg;
 	private $m_tlv=null;
 	function buildTlv(int $actionField, int $tlv_id) : bool {
+		if(!$this->m_msg->isValidId($tlv_id)) {
+			return false;
+		}
 		if($actionField == ptpmgmt::GET or Message::isEmpty($tlv_id)) {
 			return $this->m_msg->setAction($actionField, $tlv_id);
+		}
+		if($actionField != ptpmgmt::SET and $actionField != ptpmgmt::COMMAND) {
+			return false;
 		}
 		$idstr = Message::mng2str_c($tlv_id);
 		$tlv_pkg=$idstr . '_t';

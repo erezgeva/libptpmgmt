@@ -176,6 +176,7 @@ Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
 Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
 Q_TAR=$Q$(info $(COLOR_BUILD)[TAR] $@$(COLOR_NORM))
 MAKE_NO_DIRS:=--no-print-directory
+Q_ERR:=2>/dev/null
 endif
 
 ###############################################################################
@@ -217,10 +218,10 @@ JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
 FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
-TGT_LNG:=perl5 lua python3 ruby php tcl
+TGT_LNG:=perl5 lua python3 ruby php tcl go
 UTEST_TGT:=utest_cpp utest_json utest_sys utest_json_load\
-  $(foreach n,$(TGT_LNG),utest_$n)
-INS_TGT:=install_main $(foreach n,$(TGT_LNG),install_$n)
+  $(addprefix utest_,$(TGT_LNG))
+INS_TGT:=install_main $(addprefix install_,$(TGT_LNG))
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\
   $(UTEST_TGT) $(INS_TGT) utest_lua_a
@@ -236,11 +237,13 @@ endif
 SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
   config.guess config.sub configure.ac install-sh $(SRC)/*.in $(SRC)/*.m4\
   php/*.sh tcl/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile)\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile go/gtest/*.go)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
+# go/* go/*/*.go)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[ch]*,':!/:$n') ':!:*.gitignore' ':!:*test.*'
+  utest/*.[ch]* go/unit_test,':!/:$n') ':!:*.gitignore' ':!*/test.*'\
+  ':!*/utest.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
@@ -290,6 +293,7 @@ ifeq ($(findstring -O,$(CXXFLAGS)),)
 override CXXFLAGS+=-Og
 endif # find '-O'
 override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -Isrc
+CXXFLAGS_GO:=-Wdate-time -Wall -std=c++11 -g
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
 ifeq ($(USE_ASAN),)
 else
@@ -356,6 +360,9 @@ $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 
 $(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
 	$(Q_GEN)m4 -I $(SRC) $< > $@
+# This is basically what configure does.
+# Yet, I prefer configure create only the def.mk,
+# and forward the version parameters here :-)
 $(SRC)/ver.h: $(SRC)/ver.h.in
 	$(Q_GEN)$(SED) $(foreach n,PACKAGE_VERSION_MAJ PACKAGE_VERSION_MIN\
 	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
@@ -380,6 +387,10 @@ ifneq ($(SWIGARGCARGV),)
 perl_SFLAGS+=-Iswig/perl5
 $(foreach n,lua php tcl,$(eval $(n)_SFLAGS+=-Iswig/$n))
 endif #SWIGARGCARGV
+ifneq ($(SWIGARGCARGV_GO),)
+# go add argcargv.i later
+go_SFLAGS+=-Iswig/go
+endif #SWIGARGCARGV_GO
 
 # SWIG warnings
 # comparison integer of different signedness
@@ -388,10 +399,16 @@ CXXFLAGS_RUBY+=-Wno-sign-compare
 CXXFLAGS_PHP+=-Wno-unused-label
 # variable defined but not used
 CXXFLAGS_PHP+=-Wno-unused-variable
-# suppress swig compilation warnings for old swig versions
-ifneq ($(call verCheck,$(SWIGVER),4.1),)
+# function defined but not used
+CXXFLAGS_GO+=-Wno-unused-function
+# dereferencing type-punned pointer will break strict-aliasing rules
+CXXFLAGS_GO+=-Wno-strict-aliasing
+# variable is used uninitialized in this function
+CXXFLAGS_GO+=-Wno-uninitialized
 # ANYARGS is deprecated (seems related to ruby headers)
 CXXFLAGS_RUBY+=-Wno-deprecated-declarations
+# suppress swig compilation warnings for old swig versions
+ifneq ($(call verCheck,$(SWIGVER),4.1),)
 # label 'thrown' is not used
 CXXFLAGS_PHP+=-Wno-unused-label
 # 'result' may be used uninitialized
@@ -439,6 +456,9 @@ endif
 ifeq ($(SKIP_TCL),)
 include tcl/Makefile
 endif
+ifeq ($(SKIP_GO),)
+include go/Makefile
+endif
 
 ALL+=$(SWIG_ALL)
 endif # SWIGMINVER
@@ -476,7 +496,8 @@ all: $(COMP_DEPS) $(ALL)
 URL:=html/index.html
 REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
 INSTALL_FOLDER:=$(INSTALL) -d
-TOOLS_EXT:=-ptpmgmt
+INSTALL_LIB:=$(INSTALL_DATA)
+TOOLS_EXT:=-$(SWIG_LNAME)
 DEV_PKG?=$(LIB_NAME)-dev
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(LIB_NAME)-doc
@@ -491,14 +512,14 @@ endif
 install: $(INS_TGT)
 install_main:
 	$(Q)for lib in $(LIB_NAME)*.so
-	  do $(INSTALL_PROGRAM) -D $$lib $(DLIBDIR)/$$lib.$(PACKAGE_VERSION)
+	  do $(INSTALL_LIB) -D $$lib $(DLIBDIR)/$$lib.$(PACKAGE_VERSION)
 	  $(call mkln,$(libdir),$$lib.$(PACKAGE_VERSION),$$lib$(SONAME))
 	  $(call mkln,$(libdir),$$lib$(SONAME),$$lib);done
-	$(INSTALL_DATA) $(LIB_NAME)*.a $(DLIBDIR)
-	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/ptpmgmt
+	$(INSTALL_LIB) $(LIB_NAME)*.a $(DLIBDIR)
+	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
-	  's!#include\s*\"\([^"]\+\)\"!#include <ptpmgmt/\1>!'\
-	  $(DESTDIR)/usr/include/ptpmgmt/$f;)
+	  's!#include\s*\"\([^"]\+\)\"!#include <$(SWIG_LNAME)/\1>!'\
+	  $(DESTDIR)/usr/include/$(SWIG_LNAME)/$f;)
 	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
 	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
 	if [ ! -f $(MANDIR)/pmc$(TOOLS_EXT).8.gz ]
@@ -625,13 +646,13 @@ endif # MAKECMDGOALS
 
 CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
-  python/*.pyc php/*.h php/*.ini perl/*.pm) $(D_FILES) $(LIB_SRC)\
-  $(ARCHL_BLD) tags python/ptpmgmt.py $(PHP_LNAME).php $(PMC_NAME)\
+  python/*.pyc php/*.h php/*.ini perl/*.pm go/*/go.mod) $(D_FILES) $(LIB_SRC)\
+  $(ARCHL_BLD) tags python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   tcl/pkgIndex.tcl php/.phpunit.result.cache .phpunit.result.cache\
-  $(HEADERS_GEN)
+  go/$(SWIG_LNAME).go $(HEADERS_GEN) go/gtest/gtest
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
-  archlinux/*/)) doc $(OBJ_DIR) perl/auto
-DISTCLEAN:=$(foreach n, log status,config.$n) configure configure~ defs.mk
+  archlinux/*/ obj-*/)) doc $(OBJ_DIR) perl/auto go/$(SWIG_LNAME)
+DISTCLEAN:=$(addprefix config.,log status) configure configure~ defs.mk
 DISTCLEAN_DIRS:=autom4te.cache
 
 clean: deb_clean

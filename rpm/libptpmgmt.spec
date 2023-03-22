@@ -18,6 +18,7 @@ BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
 #BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
+BuildRequires:  golang
 BuildRequires:  libfastjson libfastjson-devel json-c-devel
 BuildRequires:  doxygen graphviz
 #Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
@@ -111,6 +112,14 @@ Requires:       tcl
 %description -n tcl-%{bname}
 PTP management library tcl wrapper
 
+%package -n     golang-%{bname}
+Summary:        PTP management library golang development wrapper
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       golang
+%description -n golang-%{bname}
+PTP management library golang development wrapper
+
 %package -n     pmc-%{bname}
 Summary:        pmc tool
 License:        GPLv3+
@@ -177,6 +186,9 @@ autoconf
 %files -n tcl-%{bname}
 %{_libdir}/tcl*/%{bname}/%{bname}.so
 %{_libdir}/tcl*/%{bname}/pkgIndex.tcl
+
+%files -n golang-%{bname}
+/usr/lib/golang/src/%{bname}/*
 
 %files -n pmc-%{bname}
 %{_sbindir}/pmc-%{bname}

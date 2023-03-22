@@ -60,21 +60,21 @@ C++ are the methods of [`std::vector<>`](https://en.cppreference.com/w/cpp/conta
 -NA- means method is not available  
 Python and Ruby support more methods  
 
-|C++          |Perl |PHP     |tcl  |Lua      |Python   |Ruby    |
-|-------------|-----|--------|-----|---------|---------|--------|
-|size         |size |size    |size |size     |size     |size    |
-|empty        |empty|is_empty|empty|empty    |empty    |empty?  |
-|clear        |clear|clear   |clear|clear    |clear    |clear   |
-|push_back    |push |push    |push |push_back|push_back|push    |
-|back+pop_back|pop  |pop     |pop  |-NA-     |pop      |pop     |
-|back         |-NA- |-NA-    |-NA- |back     |back     |back    |
-|pop_back     |-NA- |-NA-    |-NA- |pop_back |pop_back |-NA-    |
-|front        |-NA- |-NA-    |-NA- |front    |front    |front   |
-|[]           |get  |get     |get  |[]       |[]       |[]      |
-|[]=          |set  |set     |set  |[]=      |[]=      |[]=     |
-|capacity     |-NA- |capacity|-NA- |-NA-     |capacity |capacity|
-|reserve      |-NA- |reserve |-NA- |-NA-     |reserve  |reserve |
-|max_size     |-NA- |-NA-    |-NA- |max_size |-NA-     |-NA-    |
+|C++          |Perl |PHP     |Tcl  |Go      |Lua      |Python   |Ruby    |
+|-------------|-----|--------|-----|--------|---------|---------|--------|
+|size         |size |size    |size |Size    |size     |size     |size    |
+|empty        |empty|is_empty|empty|IsEmpty |empty    |empty    |empty?  |
+|clear        |clear|clear   |clear|Clear   |clear    |clear    |clear   |
+|push_back    |push |push    |push |Add     |push_back|push_back|push    |
+|back+pop_back|pop  |pop     |pop  |-NA-    |-NA-     |pop      |pop     |
+|back         |-NA- |-NA-    |-NA- |-NA-    |back     |back     |back    |
+|pop_back     |-NA- |-NA-    |-NA- |-NA-    |pop_back |pop_back |-NA-    |
+|front        |-NA- |-NA-    |-NA- |-NA-    |front    |front    |front   |
+|[]           |get  |get     |get  |Get     |[]       |[]       |[]      |
+|[]=          |set  |set     |set  |Set     |[]=      |[]=      |[]=     |
+|capacity     |-NA- |capacity|-NA- |Capacity|-NA-     |capacity |capacity|
+|reserve      |-NA- |reserve |-NA- |Reserve |-NA-     |reserve  |reserve |
+|max_size     |-NA- |-NA-    |-NA- |-NA-    |max_size |-NA-     |-NA-    |
 
 # more documentation
 
@@ -83,5 +83,5 @@ The container in Python act as list and in Ruby as array.
   * [Python list](https://docs.python.org/3/tutorial/datastructures.html)
   * [Ruby array](https://ruby-doc.org/core/Array.html)
 
-Perl, Lua, PHP and tcl uses only the methods declared in `vecDef.h`.  
+Perl, Lua, PHP, Tcl and Go uses only the methods declared in `vecDef.h`.  
 See doxygen documentation of `vecDef.h` for more detailed on the container methods.

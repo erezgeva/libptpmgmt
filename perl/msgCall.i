@@ -86,8 +86,14 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 sub buildTlv {
     my ($self, $actionField, $tlv_id) = @_;
     $m_msg = $self->{m_msg};
+    if(!$m_msg->isValidId($tlv_id)) {
+        return false;
+    }
     if($actionField == $PtpMgmtLib::GET or PtpMgmtLib::Message::isEmpty($tlv_id)) {
         return $m_msg->setAction($actionField, $tlv_id);
+    }
+    if($actionField != $PtpMgmtLib::SET and $actionField != $PtpMgmtLib::COMMAND) {
+        return false;
     }
     my $idstr = PtpMgmtLib::Message::mng2str_c($tlv_id);
     my $tlv_pkg="PtpMgmtLib::${idstr}_t";

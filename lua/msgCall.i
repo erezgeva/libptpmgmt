@@ -101,8 +101,14 @@ function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
         error('MessageBuilder::buildTlv() tlv_id must be a number', 2)
     end
     local msg = self.m_buildBase:getMsg()
+    if(not msg:isValidId(tlv_id)) then
+        return false;
+    end
     if(actionField == ptpmgmt.GET or ptpmgmt.Message.isEmpty(tlv_id)) then
         return msg:setAction(actionField, tlv_id)
+    end
+    if(actionField ~= ptpmgmt.SET and actionField ~= ptpmgmt.COMMAND) then
+        return false;
     end
     local idstr = ptpmgmt.Message.mng2str_c(tlv_id)
     local tlv_pkg = idstr .. '_t'

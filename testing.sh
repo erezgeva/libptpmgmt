@@ -270,6 +270,7 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
  enter python
  enter php
  enter tcl
+ enter go
 }
 do_perl()
 {
@@ -317,6 +318,16 @@ do_python()
      eval "py${i}clean python"
    fi
  done
+}
+do_go()
+{
+ if [[ -x go/gtest/gtest ]]; then
+   time eval "$ldPath $useSudo go/gtest/gtest $runOptions" |\
+     diff - <(printf "$perlOut\n")
+ else
+   time CGO_LDFLAGS="-lm -lptpmgmt" go run go/gtest/gtest.go |\
+     diff - <(printf "$perlOut\n")
+ fi
 }
 parse_phc_out()
 {
@@ -465,6 +476,10 @@ probeLibs()
  if ! [[ -f "$file" ]]; then
    needCmpl=y
    ldPathTcl="TCLLIBPATH=tcl"
+ fi
+ getFirstFile "/usr/lib/go*/src/ptpmgmt/PtpMgmtLib.cpp"
+ if ! [[ -f "$file" ]]; then
+   needCmpl=y
  fi
 }
 ###############################################################################

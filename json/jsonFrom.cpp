@@ -238,7 +238,7 @@ struct JsonProcFromJson : public JsonProcFrom {
                 return false;
             }
             if(found.count(key) != 0) {
-                PTPMGMT_ERROR("Key '%s' apear twice", key);
+                PTPMGMT_ERROR("Key '%s' appear twice", key);
                 return false;
             }
             JSON_TYPE type = JG_TYPE(val);

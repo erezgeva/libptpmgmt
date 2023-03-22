@@ -10,7 +10,7 @@
 pkgver=1.0
 pkgrel=1
 pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
-  libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt
+  libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt go-ptpmgmt
   python3-ptpmgmt pmc-ptpmgmt phc-ctl-ptpmgmt)
 # Source code can be build on any architecture
 # But as Arch Linux does not support the 'all' keyword
@@ -31,7 +31,7 @@ build() {
   make -j DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
-  python3 json-c)
+  python3 json-c go)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/$libdir
@@ -41,7 +41,7 @@ package_libptpmgmt-jsonc() {
   pkgdesc='PTP management library JSON plugin using the json-c library'
   depends=("libptpmgmt=$verdep" json-c)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/libptpmgmt_jsonc.so.* $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/libptpmgmt_jsonc.so* $pkgdir/$libdir
 }
 package_libptpmgmt-dev() {
   # development package can use static library
@@ -92,6 +92,12 @@ package_tcl-ptpmgmt() {
   depends=("libptpmgmt=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/tcl* $pkgdir/$libdir
+}
+package_go-ptpmgmt() {
+  pkgdesc='PTP management library golang development wrapper'
+  depends=("libptpmgmt=$verdep" go)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/go $pkgdir/$libdir
 }
 #package_php-ptpmgmt() {
 # Arch linux php do not have system include_path!

@@ -37,7 +37,7 @@ equit()
 }
 check_clean()
 {
-  local n m left=''
+  local left=''
   local name=$1
   shift
   readarray <<< `git clean -fxdn`
@@ -66,16 +66,15 @@ test_clean()
     if $have_git; then
         out=''
         make clean
-        check_clean clean autom4te.cache/ config.log\
-                          config.status configure defs.mk
+        check_clean clean $clean_list $distclean_list
         make distclean
-        check_clean distclean
+        check_clean distclean $distclean_list
     fi
 }
 main()
 {
     local -r jobs=3  # Number of Make parallel jobs
-    local last_ret out
+    local n m last_ret out distclean_list
     # Make sure we output to STDOUT directly, no pipes
     # check our teminal support coulors
     if [[ -t 1 ]] && tput setaf 1; then
@@ -85,6 +84,11 @@ main()
         local -r color_norm=${esc}00m
         printf "$color_norm"
     fi
+    local clean_list="autom4te.cache/ config.log config.status"
+    clean_list+=" configure defs.mk"
+    for n in archlinux debian gentoo rpm; do
+      distclean_list+=" $n/.upgrade_cockie"
+    done
     cd $(dirname $(realpath $0))/..
     eacmd git rev-parse --is-inside-work-tree
     if [[ $last_ret -eq 0 ]]; then

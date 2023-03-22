@@ -97,7 +97,7 @@
 %include "warn.i"
 
 /*****
- * PHP and Tcl ignore operators overload
+ * PHP, Tcl and Go ignore operators overload
  *********/
 #ifdef SWIG_OPERS_LANG_IDENTIFIER
 /* use Binary::getBin() and Binary::setBin() */
@@ -126,6 +126,24 @@
  * Scripts can use class subt() method */
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-;
 #endif /* SWIG_OPERS_LANG_IDENTIFIER */
+
+/*****
+ * PHP and Go ignore operators overload
+ *********/
+#ifdef SWIG_OPERS_LANG_IDENTIFIER2
+/* Operator overload ignored.
+ * Scripts can use Binary::append() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator+=;
+/* Operator overload ignored
+   Scripts can use the copy constructor :-) */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Binary::operator=;
+/* Operator overload ignored.
+ * Scripts can use Timestamp_t::add() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator+=;
+/* Operator overload ignored.
+ * Scripts can use Timestamp_t::subt() */
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Timestamp_t::operator-=;
+#endif /* SWIG_OPERS_LANG_IDENTIFIER2 */
 
 /*********
  * Tcl and Ruby ignore operator plus equal

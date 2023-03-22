@@ -46,7 +46,7 @@ override_dh_install:
 	$(Q)install -d $(addprefix debian/,python3-ptpmgmt/usr/lib\
 	  libptpmgmt-dev/usr libptpmgmt-dev/usr/share\
 	  libptpmgmt-doc/usr/share pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib\
-	  php-ptpmgmt/usr/share tcl-ptpmgmt/usr/lib\
+	  php-ptpmgmt/usr/share tcl-ptpmgmt/usr/lib golang-ptpmgmt/usr/lib\
 	  phc-ctl-ptpmgmt/usr/share/man/man8 phc-ctl-ptpmgmt/usr/sbin\
 	  $(addsuffix $(LIBDIR),lua-ptpmgmt libptpmgmt-perl libptpmgmt-dev\
 	  ruby-ptpmgmt libptpmgmt libptpmgmt-jsonc libptpmgmt-fastjson))
@@ -68,6 +68,9 @@ ifneq ($(wildcard $(DSRC)lib/php),)
 endif
 	$Q$(MV) $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
 	$Q$(MV) $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
+ifneq ($(wildcard $(DSRC)lib/go*),)
+	$Q$(MV) $(DSRC)lib/go* debian/golang-ptpmgmt/usr/lib
+endif
 ifneq ($(wildcard $(SLIBDIR)/libptpmgmt_jsonc.*),)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_jsonc.* debian/libptpmgmt-jsonc$(LIBDIR)
 endif

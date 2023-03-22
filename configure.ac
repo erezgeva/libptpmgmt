@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LGPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 #
 # @file
@@ -235,6 +235,7 @@ AS_UNSET([SWIGVER])
 AS_UNSET([SWIGMINVER])
 AS_UNSET([SWIGLIB])
 AS_UNSET([SWIGARGCARGV])
+AS_UNSET([SWIGARGCARGV_GO])
 
 AC_ARG_WITH([swig],
             [AS_HELP_STRING([--without-swig], [Disable swig])]
@@ -269,6 +270,11 @@ else
                   break])
          done
          ptpm_result([SWIGARGCARGV])])
+  AS_IF([test -n "$SWIGLIB"],
+        [AC_MSG_CHECKING([for swig argcargv])
+         AS_IF([test ! -r $SWIGLIB/go/argcargv.i],
+               [AS_VAR_SET([SWIGARGCARGV_GO], [true])])
+         ptpm_result([SWIGARGCARGV_GO])])
 fi
 
 AC_SUBST([SWIG])
@@ -277,6 +283,7 @@ AC_SUBST([SWIGVER])
 AC_SUBST([SWIGMINVER])
 AC_SUBST([SWIGLIB])
 AC_SUBST([SWIGARGCARGV])
+AC_SUBST([SWIGARGCARGV_GO])
 
 #--------------------------------------------------------------------
 # Target languages
@@ -325,9 +332,6 @@ AC_ARG_WITH([tcllib],
             [AS_HELP_STRING([--with-tcllib=path],
                             [Set location of Tcl library directory])],
             [AS_VAR_SET([TCLLIB], ["-L$withval"])])
-
-AS_IF([test -z "$SWIGMINVER"],
-      [AS_VAR_SET([TCLPACKAGE], ["no"])])
 
 # First, check for "--without-tcl" or "--with-tcl=no".
 if test "x$TCLPACKAGE" = xno; then
@@ -454,9 +458,6 @@ dnl '
             [AS_VAR_SET([PY3BIN], ["$withval"])],
             [AS_VAR_SET([PY3BIN], ["$alllang_default"])])
 
-AS_IF([test -z "$SWIGMINVER"],
-      [AS_VAR_SET([PY3BIN], ["no"])])
-
 # First, check for "--without-python3" or "--with-python3=no".
 if test "x$PY3BIN" = xno; then
   AC_MSG_NOTICE([Disabling Python 3.x probe])
@@ -576,9 +577,6 @@ AC_ARG_WITH([perl5],
             [AS_VAR_SET([PERLBIN], ["$withval"])],
             [AS_VAR_SET([PERLBIN], [yes])])
 
-AS_IF([test -z "$SWIGMINVER"],
-      [AS_VAR_SET([PERLBIN], ["no"])])
-
 # First, check for "--without-perl5" or "--with-perl5=no".
 if test "x$PERLBIN" = xno; then
   AC_MSG_NOTICE([Disabling Perl5])
@@ -633,9 +631,6 @@ AC_ARG_WITH([ruby],
 [AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable])],
             [AS_VAR_SET([RUBYBIN], ["$withval"])],
             [AS_VAR_SET([RUBYBIN], ["$alllang_default"])])
-
-AS_IF([test -z "$SWIGMINVER"],
-      [AS_VAR_SET([RUBYBIN], ["no"])])
 
 # First, check for "--without-ruby" or "--with-ruby=no".
 if test "x$RUBYBIN" = xno; then
@@ -876,9 +871,6 @@ AC_ARG_WITH([lualib],
                             [Set location of Lua library directory])],
             [AS_VAR_SET([LUALIB], ["$withval"])])
 
-AS_IF([test -z "$SWIGMINVER"],
-      [AS_VAR_SET([LUABIN], ["no"])])
-
 # First, check for "--without-lua" or "--with-lua=no".
 if test "x$LUABIN" = xno; then
   AC_MSG_NOTICE([Disabling Lua])
@@ -998,6 +990,62 @@ AC_SUBST([LUA_5_6_LINK])
 AC_SUBST([LUA_5_7_LINK])
 
 #----------------------------------------------------------------
+# Look for go
+#----------------------------------------------------------------
+AS_UNSET([GO])
+AS_UNSET([GOBIN])
+AS_UNSET([GOVER])
+AS_UNSET([GOMINVER])
+AS_UNSET([GOROOT])
+AS_UNSET([GOVCS])
+AS_UNSET([SWIG_INTGOSIZE])
+
+AC_ARG_WITH([go],
+            [AS_HELP_STRING([--without-go], [Disable Go])]
+[AS_HELP_STRING([--with-go=path], [Set location of Go executable])],
+            [AS_VAR_SET([GO], ["$withval"])],
+            [AS_VAR_SET([GO], ["$alllang_default"])])
+
+# First, check for "--without-go" or "--with-go=no".
+if test "x$GO" = xno; then
+  AC_MSG_NOTICE([Disabling Go])
+else
+  # figure out what is the name of Go application
+  AS_IF([test "x$GO" = xyes],
+        [AC_CHECK_TOOL([GOBIN], [go])],
+        [AS_VAR_SET([GOBIN], ["$GO"])])
+  AS_VAR_SET([GOROOT],
+             [`$GOBIN env GOROOT`])
+  AS_VERSION_COMPARE([$SWIGVER], [4.1],
+                     # Swig bellow 4.1
+                     [AS_VAR_SET([SWIG_INTGOSIZE], ["$SWIGVER"])])
+  AS_VAR_SET([GOVER],
+             [`$GOBIN version | sed 's/^go version go//;s/ .*//'`])
+  AS_VERSION_COMPARE([$GOVER], [1.14],
+                     # Go bellow 1.14
+                     [AS_UNSET([GOMINVER])],
+                     # Go 1.14
+                     [AS_VAR_SET([GOMINVER], [$GOVER])],
+                     # Above go 1.14
+                     [AS_VAR_SET([GOMINVER], [$GOVER])])
+  AS_VERSION_COMPARE([$GOVER], [1.18],
+                     # Go bellow 1.18
+                     [AS_UNSET([GOVCS])],
+                     # Go 1.18
+                     [AS_VAR_SET([GOVCS], [true])],
+                     # Above go 1.18
+                     [AS_VAR_SET([GOVCS], [true])])
+fi # if not disabled
+
+AC_SUBST([GO])
+AC_SUBST([GOBIN])
+AC_SUBST([GOVER])
+AC_SUBST([GOMINVER])
+AC_SUBST([GOROOT])
+AC_SUBST([GOVCS])
+AC_SUBST([SWIG_INTGOSIZE])
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -1008,6 +1056,7 @@ if test -n "$SWIGMINVER"; then
   AS_UNSET([SKIP_RUBY])
   AS_UNSET([SKIP_PHP])
   AS_UNSET([SKIP_LUA])
+  AS_UNSET([SKIP_GO])
 
   AS_IF([test -z "$TCLLIB" || test -z "$TCLINCDIR" || test -z "$TCLMINVER"],
         [AS_VAR_SET([SKIP_TCL], [1])])
@@ -1020,6 +1069,8 @@ if test -n "$SWIGMINVER"; then
          test -z "$PHPINCDIR" || test -z "$PHPMINVER"],
         [AS_VAR_SET([SKIP_PHP], [1])])
   AS_IF([test -z "$LUABIN"], [AS_VAR_SET([SKIP_LUA], [1])])
+  AS_IF([test -z "$GOBIN" || test -z "$GOMINVER"],
+        [AS_VAR_SET([SKIP_GO], [1])])
 else
   AS_VAR_SET([SKIP_TCL], [1])
   AS_VAR_SET([SKIP_PYTHON3], [1])
@@ -1027,6 +1078,7 @@ else
   AS_VAR_SET([SKIP_RUBY], [1])
   AS_VAR_SET([SKIP_PHP], [1])
   AS_VAR_SET([SKIP_LUA], [1])
+  AS_VAR_SET([SKIP_GO], [1])
 fi
 
 AC_SUBST([SKIP_TCL])
@@ -1035,6 +1087,7 @@ AC_SUBST([SKIP_PERL5])
 AC_SUBST([SKIP_RUBY])
 AC_SUBST([SKIP_PHP])
 AC_SUBST([SKIP_LUA])
+AC_SUBST([SKIP_GO])
 
 #----------------------------------------------------------------
 # End

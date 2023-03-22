@@ -22,7 +22,8 @@ sub main
     my @list = @ARGV;
     push @list, glob
         "*.sh */*.sh Makefile */Makefile debian/rules debian/changelog " .
-        "debian/copyright scripts/* */test.* testJson.pl";
+        "debian/copyright scripts/* */test.* testJson.pl go/src/*test/*" .
+        "*/*.i";
     for(@list)
     {
         next if -l or not -f;

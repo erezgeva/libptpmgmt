@@ -22,13 +22,14 @@ RUN apt-get update;\
     done;printf "$SRC_CFG" > /etc/apt/sources.list; apt-get update;\
     apt-get install -y --no-install-recommends debhelper coreutils sudo\
     dh-lua dh-make-perl dh-exec git procps dh-php build-essential ncurses-bin\
-    dlocate dialog lsb-release quilt apt-file libtool libtool-bin swig\
+    dlocate dialog lsb-release quilt apt-file libtool libtool-bin swig golang\
     install-info libjson-c-dev doxygen graphviz qemu-user-static distro-info\
     tree lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck exuberant-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
-    $DPKGS;for a in $ARCHS;do all='';for p in libperl-dev;do all="$all $p:$a";\
-    done; apt-get install -y --no-install-recommends $all;done;\
+    dh-make-golang $DPKGS;\
+    for a in $ARCHS;do all='';for p in libperl-dev;do all="$all $p:$a";done;\
+    apt-get install -y --no-install-recommends $all;done;\
     apt-get install -y --no-install-recommends libperl-dev;\
     apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
