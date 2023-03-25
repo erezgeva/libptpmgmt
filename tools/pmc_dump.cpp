@@ -148,7 +148,7 @@ class MsgDump : public MessageDispatcher
             IDENT "logAnnounceInterval     %d"
             IDENT "announceReceiptTimeout  %u"
             IDENT "logSyncInterval         %d"
-            IDENT "delayMechanism          %u"
+            IDENT "delayMechanism          %s"
             IDENT "logMinPdelayReqInterval %d"
             IDENT "versionNumber           %u",
             d.portIdentity.string().c_str(),
@@ -158,7 +158,7 @@ class MsgDump : public MessageDispatcher
             d.logAnnounceInterval,
             d.announceReceiptTimeout,
             d.logSyncInterval,
-            d.delayMechanism,
+            m.delayMech2str_c(d.delayMechanism),
             d.logMinPdelayReqInterval,
             d.versionNumber);
     }
@@ -320,18 +320,18 @@ class MsgDump : public MessageDispatcher
         DUMPS(
             IDENT "clockIdentity  %s"
             IDENT "numberPorts    %u"
-            IDENT "delayMechanism %u"
+            IDENT "delayMechanism %s"
             IDENT "primaryDomain  %u",
             d.clockIdentity.string().c_str(),
             d.numberPorts,
-            d.delayMechanism,
+            m.delayMech2str_c(d.delayMechanism),
             d.primaryDomain);
     }
     dump(PRIMARY_DOMAIN) {
         DUMPS(IDENT "primaryDomain %u", d.primaryDomain);
     }
     dump(DELAY_MECHANISM) {
-        DUMPS(IDENT "delayMechanism %u", d.delayMechanism);
+        DUMPS(IDENT "delayMechanism %s", m.delayMech2str_c(d.delayMechanism));
     }
     dump(EXTERNAL_PORT_CONFIGURATION_ENABLED) {
         DUMPS(IDENT "externalPortConfiguration %sabled", d.flags ? "e" : "dis");
@@ -798,6 +798,20 @@ class MsgBuild : public MessageBuilder
         }
         return true;
     }
+    static bool getDelayMech(val_key_t &key) {
+        delayMechanism_e type;
+        const char *tkn = key.str_val;
+        if(tkn != nullptr && Message::findDelayMech(tkn, type, false)) {
+            key.num = type;
+            return false; // No errors!
+        }
+        // Fallback into integer
+        char *end;
+        key.num = strtol(tkn, &end, 0);
+        if(tkn == end || *end != 0 || key.num < 0 || key.num > NO_MECHANISM)
+            return true;
+        return false; // No errors!
+    }
     static bool getPwrVer(val_key_t &key) {
         const char base[] = "IEEE_C37_238_VERSION_";
         int64_t num;
@@ -1042,9 +1056,9 @@ class MsgBuild : public MessageBuilder
     }
     build(DELAY_MECHANISM) {
         defKeys;
-        keys["delayMechanism"].max = 0xfe;
+        keys["delayMechanism"].handle = getDelayMech;
         parseKeys;
-        d.delayMechanism = keys["delayMechanism"].num;
+        d.delayMechanism = (delayMechanism_e)keys["delayMechanism"].num;
         build_end;
     }
     build(EXTERNAL_PORT_CONFIGURATION_ENABLED) {

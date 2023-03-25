@@ -955,6 +955,42 @@ const bool Message::findPortState(const std::string &str, portState_e &state,
     PROC_STR(SLAVE)      // TIME_RECEIVER
     return false;
 }
+const char *Message::delayMech2str_c(delayMechanism_e type)
+{
+    switch(type) {
+        case caseItem(AUTO);
+        case caseItem(E2E);
+        case caseItem(P2P);
+        case caseItem(NO_MECHANISM);
+        case caseItem(COMMON_P2P);
+        case caseItem(SPECIAL);
+    }
+    return "unknown";
+}
+const bool Message::findDelayMech(const std::string &str,
+    delayMechanism_e &type, bool exact)
+{
+    if(str.empty())
+        return false;
+    int (*_strcmp)(const char *, const char *);
+    if(!exact)
+        _strcmp = strcasecmp;
+    else
+        _strcmp = strcmp; // Excect match
+    for(int i = AUTO; i <= SPECIAL; i++) {
+        delayMechanism_e v = (delayMechanism_e)i;
+        if(_strcmp(str.c_str(), delayMech2str_c(v)) == 0) {
+            type = v;
+            return true;
+        }
+    }
+    // As range has a huge gap
+    if(_strcmp(str.c_str(), delayMech2str_c(NO_MECHANISM)) == 0) {
+        type = NO_MECHANISM;
+        return true;
+    }
+    return false;
+}
 const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 {
     const size_t off = 3; // Remove prefix 'TS_'

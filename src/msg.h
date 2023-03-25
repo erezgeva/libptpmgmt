@@ -244,6 +244,21 @@ class Message
     static const bool findPortState(const std::string &str, portState_e &state,
         bool caseSens = true);
     /**
+     * Convert delay mechanism to string
+     * @param[in] type delay mechanism
+     * @return string with a delay mechanism type
+     */
+    static const char *delayMech2str_c(delayMechanism_e type);
+    /**
+     * Convert string to delay mechanism
+     * @param[in] str string to search
+     * @param[out] type delay mechanism
+     * @param[in] exact perform an exact match
+     * @return true if found
+     */
+    static const bool findDelayMech(const std::string &str, delayMechanism_e &type,
+        bool exact = true);
+    /**
      * Convert linuxptp time stamp type to string
      * @param[in] type time stamp type
      * @return string with the Linux time stamp type

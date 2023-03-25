@@ -224,7 +224,7 @@ enum timeSource_e : uint8_t {
     NTP                 = 0x50, /**< IP Network time protocol */
     HAND_SET            = 0x60, /**< Manually set */
     OTHER               = 0x90, /**< Other */
-    INTERNAL_OSCILLATOR = 0xA0, /**< Internal oscillator */
+    INTERNAL_OSCILLATOR = 0xa0, /**< Internal oscillator */
 };
 /** Port state */
 enum portState_e : uint8_t {
@@ -240,6 +240,27 @@ enum portState_e : uint8_t {
     UNCALIBRATED         = 8, /**< Uncalibrated */
     SLAVE                = 9, /**< TimeReceiver */
     TIME_RECEIVER        = 9, /**< TimeReceiver */
+};
+/** Delay mechanizem */
+enum delayMechanism_e : uint8_t {
+    /**
+     *  Automatic probing
+     *  @note LinuxPTP value
+     */
+    AUTO          = 0,
+    /** The PTP Port is configured to use the delay request-response mechanism. */
+    E2E           = 1,
+    /** The PTP Port is configured to use the peer-to-peer delay mechanism. */
+    P2P           = 2,
+    /** The PTP Port does not implement the delay mechanism. */
+    NO_MECHANISM  = 0xfe,
+    /**
+     *  The PTP Port is configured to use the
+     *  Common Mean Link Delay Service option.
+     */
+    COMMON_P2P    = 3,
+    /** Special Ports do not use either delay mechanism. */
+    SPECIAL       = 4,
 };
 /** Specify Management TLV implementation-specific to use
  * @note: Ruby's wrapping, capitalize first letter of enumerators values

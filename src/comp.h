@@ -236,6 +236,7 @@ struct MsgProc {
     bool proc(faultRecord_e &val) { return procE8(val); }
     bool proc(timeSource_e &val) { return procE8(val); }
     bool proc(portState_e &val) { return procE8(val); }
+    bool proc(delayMechanism_e &val) { return procE8(val); }
     bool proc(msgType_e &val) { return procE8(val); }
     bool proc(linuxptpTimeStamp_e &val) { return procE8(val); }
     bool proc(linuxptpUnicastState_e &val) { return procE8(val); }
@@ -290,6 +291,7 @@ struct JsonProc {
     _ptpmProcType(faultRecord_e)
     _ptpmProcType(timeSource_e)
     _ptpmProcType(portState_e)
+    _ptpmProcType(delayMechanism_e)
     _ptpmProcType(linuxptpTimeStamp_e)
     _ptpmProcType(linuxptpPowerProfileVersion_e)
     _ptpmProcType(linuxptpUnicastState_e)

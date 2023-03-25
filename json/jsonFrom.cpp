@@ -392,6 +392,11 @@ struct JsonProcFromJson : public JsonProcFrom {
             return false;
         return Message::findPortState(found[key].strV, d);
     }
+    bool procValue(const char *key, delayMechanism_e &d) override {
+        if(!isType(key, JT_STR))
+            return false;
+        return Message::findDelayMech(found[key].strV, d);
+    }
     bool procValue(const char *key, linuxptpTimeStamp_e &d) override {
         GET_STR
         for(int i = TS_SOFTWARE; i <= TS_P2P1STEP; i++) {

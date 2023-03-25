@@ -993,7 +993,7 @@ TEST(Json2msgTest, PORT_DATA_SET)
             "\"logAnnounceInterval\":1,"
             "\"announceReceiptTimeout\":3,"
             "\"logSyncInterval\":0,"
-            "\"delayMechanism\":2,"
+            "\"delayMechanism\":\"P2P\","
             "\"logMinPdelayReqInterval\":0,"
             "\"versionNumber\":2"
             "}}"));
@@ -1012,7 +1012,7 @@ TEST(Json2msgTest, PORT_DATA_SET)
     EXPECT_EQ(t->logAnnounceInterval, 1);
     EXPECT_EQ(t->announceReceiptTimeout, 3);
     EXPECT_EQ(t->logSyncInterval, 0);
-    EXPECT_EQ(t->delayMechanism, 2);
+    EXPECT_EQ(t->delayMechanism, P2P);
     EXPECT_EQ(t->logMinPdelayReqInterval, 0);
     EXPECT_EQ(t->versionNumber, 2);
 };
@@ -1688,7 +1688,7 @@ TEST(Json2msgTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
             "\"dataField\":{"
             "\"clockIdentity\":\"c47d46.fffe.20acae\","
             "\"numberPorts\":6010,"
-            "\"delayMechanism\":254,"
+            "\"delayMechanism\":\"NO_MECHANISM\","
             "\"primaryDomain\":18"
             "}}"));
     EXPECT_EQ(m.actionField(), SET);
@@ -1701,7 +1701,7 @@ TEST(Json2msgTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
     EXPECT_EQ(t->clockIdentity, clockId);
     EXPECT_EQ(t->numberPorts, 0x177a);
-    EXPECT_EQ(t->delayMechanism, 0xfe);
+    EXPECT_EQ(t->delayMechanism, NO_MECHANISM);
     EXPECT_EQ(t->primaryDomain, 18);
 }
 
@@ -1730,7 +1730,7 @@ TEST(Json2msgTest, DELAY_MECHANISM)
     Json2msg m;
     ASSERT_TRUE(m.fromJson("{\"actionField\":\"SET\","
             "\"managementId\":\"DELAY_MECHANISM\",\"dataField\":{"
-            "\"delayMechanism\":2"
+            "\"delayMechanism\":\"P2P\""
             "}}"));
     EXPECT_EQ(m.actionField(), SET);
     EXPECT_EQ(m.managementId(), DELAY_MECHANISM);
@@ -1738,7 +1738,7 @@ TEST(Json2msgTest, DELAY_MECHANISM)
     ASSERT_NE(d, nullptr);
     const DELAY_MECHANISM_t *t = dynamic_cast<const DELAY_MECHANISM_t *>(d);
     ASSERT_NE(t, nullptr);
-    EXPECT_EQ(t->delayMechanism, 2);
+    EXPECT_EQ(t->delayMechanism, P2P);
     Message msg;
     EXPECT_TRUE(m.setAction(msg));
 }

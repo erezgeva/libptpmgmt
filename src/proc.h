@@ -119,11 +119,8 @@ struct PORT_DATA_SET_t : public BaseMngTlv {
     Integer8_t logSyncInterval;
     /**
      * Delay mechanism values
-     * @li 1: E2E - end to end, delay request-response
-     * @li 2: P2P - peer to peer, peer delay
-     * @li 0xfe:  - disabled
      */
-    uint8_t delayMechanism;
+    delayMechanism_e delayMechanism;
     /** the minimum permitted mean time interval between
         successive Pdelay_Req messages */
     Integer8_t logMinPdelayReqInterval;
@@ -352,11 +349,8 @@ struct TRANSPARENT_CLOCK_DEFAULT_DATA_SET_t : public BaseMngTlv {
     UInteger16_t numberPorts; /**< Number of ports */
     /**
      * Delay mechanism values
-     * @li 1: E2E - end to end, delay request-response
-     * @li 2: P2P - peer to peer, peer delay
-     * @li 0xfe:  - disabled
      */
-    uint8_t delayMechanism;
+    delayMechanism_e delayMechanism;
     UInteger8_t primaryDomain; /**< Primary Domain ID number */
 };
 /** Primary domain TLV */
@@ -367,11 +361,8 @@ struct PRIMARY_DOMAIN_t : public BaseMngTlv {
 struct DELAY_MECHANISM_t : public BaseMngTlv {
     /**
      * Delay mechanism values
-     * @li 1: E2E - end to end, delay request-response
-     * @li 2: P2P - peer to peer, peer delay
-     * @li 0xfe:  - disabled
      */
-    uint8_t delayMechanism;
+    delayMechanism_e delayMechanism;
 };
 /** External port configuration enabled TLV */
 struct EXTERNAL_PORT_CONFIGURATION_ENABLED_t : public BaseMngTlv {

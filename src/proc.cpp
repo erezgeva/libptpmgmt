@@ -346,6 +346,7 @@ E8(clockAccuracy_e);
 E8(faultRecord_e);
 E8(timeSource_e);
 E8(portState_e);
+E8(delayMechanism_e);
 E8(msgType_e);
 E8(linuxptpTimeStamp_e);
 E8(linuxptpUnicastState_e);

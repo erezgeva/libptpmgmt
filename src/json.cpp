@@ -695,6 +695,7 @@ struct JsonProcToJson : public JsonProc {
     procTypeEnumR(faultRecord_e, faultRec2str_c)
     procTypeEnumR(timeSource_e, timeSrc2str_c)
     procTypeEnumR(portState_e, portState2str_c)
+    procTypeEnumR(delayMechanism_e, delayMech2str_c)
     procTypeEnumR(linuxptpTimeStamp_e, ts2str_c)
     procTypeEnumR(linuxptpPowerProfileVersion_e, pwr2str_c)
     procTypeEnumR(linuxptpUnicastState_e, us2str_c)

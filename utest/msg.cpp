@@ -598,6 +598,50 @@ TEST(MessageTest, MethodFindPortState)
     EXPECT_EQ(SLAVE, TIME_RECEIVER);
 }
 
+// tests convert delay mechanism to string
+// static const char *delayMech2str_c(delayMechanism_e type)
+TEST(MessageTest, MethodDelayMech2str)
+{
+    EXPECT_STREQ(Message::delayMech2str_c(AUTO), "AUTO");
+    EXPECT_STREQ(Message::delayMech2str_c(E2E), "E2E");
+    EXPECT_STREQ(Message::delayMech2str_c(P2P), "P2P");
+    EXPECT_STREQ(Message::delayMech2str_c(NO_MECHANISM), "NO_MECHANISM");
+    EXPECT_STREQ(Message::delayMech2str_c(COMMON_P2P), "COMMON_P2P");
+    EXPECT_STREQ(Message::delayMech2str_c(SPECIAL), "SPECIAL");
+}
+
+// tests convert string to delay mechanism
+// static const bool findDelayMech(const std::string &str, delayMechanism_e &type,
+//     bool exact = true);
+TEST(MessageTest, MethodFindDelayMech)
+{
+    delayMechanism_e t;
+    EXPECT_TRUE(Message::findDelayMech("AUTO", t, true));
+    EXPECT_EQ(t, AUTO);
+    EXPECT_TRUE(Message::findDelayMech("Auto", t, false));
+    EXPECT_EQ(t, AUTO);
+    EXPECT_TRUE(Message::findDelayMech("E2E", t, true));
+    EXPECT_EQ(t, E2E);
+    EXPECT_TRUE(Message::findDelayMech("e2e", t, false));
+    EXPECT_EQ(t, E2E);
+    EXPECT_TRUE(Message::findDelayMech("P2P", t, true));
+    EXPECT_EQ(t, P2P);
+    EXPECT_TRUE(Message::findDelayMech("p2p", t, false));
+    EXPECT_EQ(t, P2P);
+    EXPECT_TRUE(Message::findDelayMech("NO_MECHANISM", t, true));
+    EXPECT_EQ(t, NO_MECHANISM);
+    EXPECT_TRUE(Message::findDelayMech("No_mechanism", t, false));
+    EXPECT_EQ(t, NO_MECHANISM);
+    EXPECT_TRUE(Message::findDelayMech("COMMON_P2P", t, true));
+    EXPECT_EQ(t, COMMON_P2P);
+    EXPECT_TRUE(Message::findDelayMech("Common_p2p", t, false));
+    EXPECT_EQ(t, COMMON_P2P);
+    EXPECT_TRUE(Message::findDelayMech("SPECIAL", t, true));
+    EXPECT_EQ(t, SPECIAL);
+    EXPECT_TRUE(Message::findDelayMech("Special", t, false));
+    EXPECT_EQ(t, SPECIAL);
+}
+
 // tests convert linuxptp time stamp type to string
 // static const char *ts2str_c(linuxptpTimeStamp_e type)
 TEST(MessageTest, MethodTs2str)

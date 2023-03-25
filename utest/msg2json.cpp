@@ -714,7 +714,7 @@ TEST(Tlv2JsonTest, PORT_DATA_SET)
     t.logAnnounceInterval = 1;
     t.announceReceiptTimeout = 3;
     t.logSyncInterval = 0;
-    t.delayMechanism = 2;
+    t.delayMechanism = P2P;
     t.logMinPdelayReqInterval = 0;
     t.versionNumber = 2;
     EXPECT_STREQ(tlv2json(PORT_DATA_SET, &t).c_str(),
@@ -730,7 +730,7 @@ TEST(Tlv2JsonTest, PORT_DATA_SET)
         "  \"logAnnounceInterval\" : 1,\n"
         "  \"announceReceiptTimeout\" : 3,\n"
         "  \"logSyncInterval\" : 0,\n"
-        "  \"delayMechanism\" : 2,\n"
+        "  \"delayMechanism\" : \"P2P\",\n"
         "  \"logMinPdelayReqInterval\" : 0,\n"
         "  \"versionNumber\" : 2\n"
         "}");
@@ -1164,13 +1164,13 @@ TEST(Tlv2JsonTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
     t.clockIdentity = clockId;
     t.numberPorts = 0x177a;
-    t.delayMechanism = 0xfe;
+    t.delayMechanism = NO_MECHANISM;
     t.primaryDomain = 18;
     EXPECT_STREQ(tlv2json(TRANSPARENT_CLOCK_DEFAULT_DATA_SET, &t).c_str(),
         "{\n"
         "  \"clockIdentity\" : \"c47d46.fffe.20acae\",\n"
         "  \"numberPorts\" : 6010,\n"
-        "  \"delayMechanism\" : 254,\n"
+        "  \"delayMechanism\" : \"NO_MECHANISM\",\n"
         "  \"primaryDomain\" : 18\n"
         "}");
 }
@@ -1190,10 +1190,10 @@ TEST(Tlv2JsonTest, PRIMARY_DOMAIN)
 TEST(Tlv2JsonTest, DELAY_MECHANISM)
 {
     DELAY_MECHANISM_t t;
-    t.delayMechanism = 2;
+    t.delayMechanism = P2P;
     EXPECT_STREQ(tlv2json(DELAY_MECHANISM, &t).c_str(),
         "{\n"
-        "  \"delayMechanism\" : 2\n"
+        "  \"delayMechanism\" : \"P2P\"\n"
         "}");
 }
 

@@ -233,7 +233,7 @@ TEST_F(ProcTest, PORT_DATA_SET)
     EXPECT_EQ(r->logAnnounceInterval, 1);
     EXPECT_EQ(r->announceReceiptTimeout, 3);
     EXPECT_EQ(r->logSyncInterval, 0);
-    EXPECT_EQ(r->delayMechanism, 2);
+    EXPECT_EQ(r->delayMechanism, P2P);
     EXPECT_EQ(r->logMinPdelayReqInterval, 0);
     EXPECT_EQ(r->versionNumber, 2);
 };
@@ -746,7 +746,7 @@ TEST_F(ProcTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
         (const TRANSPARENT_CLOCK_DEFAULT_DATA_SET_t *)getData();
     EXPECT_EQ(r->clockIdentity, clockId);
     EXPECT_EQ(r->numberPorts, 0x177a);
-    EXPECT_EQ(r->delayMechanism, 0xfe);
+    EXPECT_EQ(r->delayMechanism, NO_MECHANISM);
     EXPECT_EQ(r->primaryDomain, 18);
 }
 
@@ -769,7 +769,7 @@ TEST_F(ProcTest, PRIMARY_DOMAIN)
 TEST_F(ProcTest, DELAY_MECHANISM)
 {
     DELAY_MECHANISM_t t;
-    t.delayMechanism = 2;
+    t.delayMechanism = P2P;
     EXPECT_TRUE(setAction(SET, DELAY_MECHANISM, &t));
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {2};
@@ -777,7 +777,7 @@ TEST_F(ProcTest, DELAY_MECHANISM)
     EXPECT_EQ(memcmp(buf + tlvLoc, m, sizeof m), 0);
     ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
     const DELAY_MECHANISM_t *r = (const DELAY_MECHANISM_t *)getData();
-    EXPECT_EQ(r->delayMechanism, 2);
+    EXPECT_EQ(r->delayMechanism, P2P);
 }
 
 // Tests EXTERNAL_PORT_CONFIGURATION_ENABLED structure

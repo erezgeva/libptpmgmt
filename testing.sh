@@ -226,8 +226,8 @@ compare_pmc()
  # user  0m0.001s
  # sys   0m0.004s
 
- printf "\n * We expect 'protocolAddress', %s\n%s\n\n"\
-          "'timeSource', 'version' and 'portState' difference"\
+ printf "\n * 'protocolAddress', 'timeSource', 'version',%s\n%s\n\n"\
+          " 'portState' and 'delayMechanism' use enum values"\
           " * Statistics may apprear"
  diff <(printf "$pmcOut") <(printf "$libptpOut") | grep '^[0-9-]' -v
 
