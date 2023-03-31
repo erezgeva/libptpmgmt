@@ -115,8 +115,7 @@ Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
 Description: PTP management library tcl wrapper
 
 Package: golang-ptpmgmt
-Architecture: any
-Multi-Arch: same
+Architecture: all
 Section: libdevel
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${golang:Provides}

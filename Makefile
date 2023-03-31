@@ -359,7 +359,7 @@ $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 $(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
-	$(Q_GEN)m4 -I $(SRC) $< > $@
+	$(Q_GEN)$(M4) -I $(SRC) $< > $@
 # This is basically what configure does.
 # Yet, I prefer configure create only the def.mk,
 # and forward the version parameters here :-)

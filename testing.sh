@@ -321,13 +321,12 @@ do_python()
 }
 do_go()
 {
- if [[ -x go/gtest/gtest ]]; then
-   time eval "$ldPath $useSudo go/gtest/gtest $runOptions" |\
-     diff - <(printf "$perlOut\n")
- else
-   time CGO_LDFLAGS="-lm -lptpmgmt" go run go/gtest/gtest.go |\
-     diff - <(printf "$perlOut\n")
+ local -r gtest=go/gtest/gtest
+ if [[ ! -x $gtest ]]; then
+   CGO_LDFLAGS="-lm -lptpmgmt" go build -o $gtest $gtest.go
  fi
+ time eval "$ldPath $useSudo $gtest $runOptions" |\
+   diff - <(printf "$perlOut\n")
 }
 parse_phc_out()
 {

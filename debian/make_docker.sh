@@ -31,7 +31,7 @@ set_dist_args()
 {
   SRC_CFG="deb $repo $1 main\ndeb $repo $1-updates main\n"
   case $1 in
-    buster|stretch)
+    buster)
       SRC_CFG+="deb $repo-security $1/updates main\n"
       ;;
     *)
@@ -59,14 +59,13 @@ main()
   local -r base_dir="$(dirname $(realpath $0))"
   local -r cfile="$base_dir/.upgrade_cockie"
   local -r bname=deb.
-  local -r names='stretch buster bullseye bookworm'
+  local -r names='buster bullseye bookworm'
   local -r main_arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
   local -r user=builder
   local -r src=.
   local -r uid=$(id -u)
   local -r lua54='lua5.4 liblua5.4-dev@'
-  local -r dpkgs_stretch='vim-gtk dh-golang'
   local -r dpkgs_buster='vim-gtk dh-golang'
   local -r dpkgs_bullseye="vim-gtk $lua54 dh-golang"
   local -r dpkgs_bookworm="reuse vim-gtk3 $lua54 dh-golang"
@@ -119,8 +118,6 @@ main()
 main "$@"
 ext()
 {
-docker run -it -w /home/builder/libptpmgmt\
-  -v $(realpath .):/home/builder/debian deb.stretch
 docker run -it -w /home/builder/libptpmgmt\
   -v $(realpath .):/home/builder/debian deb.buster
 docker run -it -w /home/builder/libptpmgmt\

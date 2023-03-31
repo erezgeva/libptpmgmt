@@ -64,3 +64,4 @@ install_go:
 	cp -a go/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
 	$(SED) -i 's@^\s*#include "\([^.]\+\.h\)"@#include <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
+	rm $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(LIB_NAME_SO)*
