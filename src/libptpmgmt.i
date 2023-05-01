@@ -45,12 +45,12 @@
 
 /* Include standatd types and SWIG macroes
    From /usr/share/swig./ */
-%include "stdint.i"
-%include "cpointer.i"
+%include <stdint.i>
+%include <cpointer.i>
 /* From /usr/share/swig././  */
-%include "std_string.i"
-%include "std_vector.i"
-%include "argcargv.i"
+%include <std_string.i>
+%include <std_vector.i>
+%include <argcargv.i>
 /* The type is POSIX only, not standard! */
 %apply long { ssize_t };
 /* SWIG does not support */

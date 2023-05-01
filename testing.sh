@@ -84,7 +84,7 @@ main()
      [[ -z "$(grep "$reg.*GRP)" "$uds")" ]] ||\
        sed -i "/$reg/ s#GRP).*#GRP|S_IROTH|S_IWOTH)#" "$uds"
    fi
-   make --no-print-directory -j -C "$linuxptpLoc"
+   make --no-print-directory -C "$linuxptpLoc"
    local -r pmctool="$sudo\"$linuxptpLoc/pmc\""
    local -r phcctrltool="$sudo$linuxptpLoc/phc_ctl"
    local -r ptpLocCfrm=true
@@ -149,10 +149,10 @@ main()
      ASAN_OPTIONS+=':check_initialization_order=1:strict_init_order=1'
      ASAN_OPTIONS+=':detect_invalid_pointer_pairs=2'
      export ASAN_OPTIONS
-     time make -j USE_ASAN=1
+     time make USE_ASAN=1
    else
      use_asan=false
-     time make -j
+     time make
    fi
  else
    use_asan=false

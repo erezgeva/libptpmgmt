@@ -20,7 +20,7 @@ TCL_FILTERS:=-verbose "pass body erro" -match "*$(NONPHONY_TGT)*"
 endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
-utest: $(UTEST_TGT)
+utest: utest_cpp $(UTEST_TGT_LNG)
 
 ifneq ($(GTEST_LIB_FLAGS),)
 UTEST:=$(OBJ_DIR)/utest
@@ -54,7 +54,7 @@ $(TEST_LIBSYS): utest/libsys.cpp
 $(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-utest_cpp: $(HEADERS_GEN_COMP) $(UTEST)
+utest_no_sys: $(HEADERS_GEN_COMP) $(UTEST)
 	$(call Q_UTEST,C++)$(UTEST) $(GTEST_NO_COL) $(GTEST_FILTERS)
 $(UTEST_SYS): $(OBJ_DIR)/utest_sys.o $(TEST_SYS_OBJS) $(LIB_NAME_A) $(TEST_LIBSYS)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
@@ -69,4 +69,5 @@ $(UTEST_JSON_LOAD): $(OBJ_DIR)/utest_m.o utest/jsonLoad.o $(LIB_NAME_SO) |\
 utest_json_load: $(HEADERS_GEN_COMP) $(UTEST_JSON_LOAD)
 	$(call Q_UTEST,JSON_LOAD)LD_PRELOAD=./$(LIB_NAME_SO) LD_LIBRARY_PATH=.\
 	  $(UTEST_JSON_LOAD) $(GTEST_NO_COL) $(GTEST_FILTERS)
+utest_cpp: $(UTEST_CPP_TGT)
 endif # GTEST_LIB_FLAGS

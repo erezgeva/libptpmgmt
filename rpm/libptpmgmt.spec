@@ -16,7 +16,7 @@ BuildRequires:  which
 BuildRequires:  python3 python3-devel
 BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
-#BuildRequires:  php php-devel
+BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  golang
 BuildRequires:  libfastjson libfastjson-devel json-c-devel
@@ -95,14 +95,13 @@ Requires:       ruby
 %description -n ruby-%{bname}
 PTP management library ruby wrapper
 
-# PHP 8 require swig 4.1
-#%%package -n     php-%%{bname}
-#Summary:        PTP management library php wrapper
-#License:        LGPLv3+
-#Requires:       %%{name}%%{?_isa} = %%{version}-%%{release}
-#Requires:       php
-#%%description -n php-%%{bname}
-#PTP management library php wrapper
+%package -n     php-%{bname}
+Summary:        PTP management library php wrapper
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       php
+%description -n php-%{bname}
+PTP management library php wrapper
 
 %package -n     tcl-%{bname}
 Summary:        PTP management library tcl wrapper
@@ -179,9 +178,9 @@ autoconf
 %files -n ruby-%{bname}
 %{_libdir}/ruby/*/%{bname}.so
 
-#%%files -n php-%%{bname}
-#%%{_libdir}/php/*/%%{bname}.so
-#%%{_datadir}/pear/%%{bname}.php
+%files -n php-%{bname}
+%{_libdir}/php/*/%{bname}.so
+%{_datadir}/pear/%{bname}.php
 
 %files -n tcl-%{bname}
 %{_libdir}/tcl*/%{bname}/%{bname}.so

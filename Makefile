@@ -72,7 +72,7 @@ define help
 #   NO_COL           Prevent colour output.                                    #
 #                                                                              #
 #   USE_COL          Force colour when using pipe for tools like 'aha'.        #
-#                    For example: make -j USE_COL=1 | aha > out.html           #
+#                    For example: make USE_COL=1 | aha > out.html              #
 #                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
 #                                                                              #
@@ -219,8 +219,9 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl go
-UTEST_TGT:=utest_cpp utest_json utest_sys utest_json_load\
-  $(addprefix utest_,$(TGT_LNG))
+UTEST_CPP_TGT:=utest_no_sys utest_json utest_sys utest_json_load
+UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
+UTEST_TGT:=utest_cpp $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)
 INS_TGT:=install_main $(addprefix install_,$(TGT_LNG))
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\
@@ -619,8 +620,10 @@ rpm_list!=rpm -qa 2>/dev/null
 ifneq ($(rpm_list),)
 # Default configuration on RPM based distributions
 HAVE_CONFIG_GAOL:=1
+config: FCFG!=rpm --eval %configure | sed -ne '/^\s*.\/configure/,$$ p' |\
+	  sed 's@\\$$@@'
 config: configure
-	$(Q)`rpm --eval %configure | sed -ne '/^\s*.\/configure/,$$ p'`
+	$(Q)$(FCFG)
 endif # rpm_list
 endif # which rpm
 endif # HAVE_CONFIG_GAOL
@@ -646,7 +649,8 @@ endif # MAKECMDGOALS
 
 CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
-  python/*.pyc php/*.h php/*.ini perl/*.pm go/*/go.mod) $(D_FILES) $(LIB_SRC)\
+  python/*.pyc php/*.h php/*.ini perl/*.pm go/*/go.mod */$(LIB_SRC)\
+  */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   tcl/pkgIndex.tcl php/.phpunit.result.cache .phpunit.result.cache\
   go/$(SWIG_LNAME).go $(HEADERS_GEN) go/gtest/gtest

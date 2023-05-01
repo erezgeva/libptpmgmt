@@ -26,9 +26,9 @@ build() {
   cd $pkgname-$pkgver
   autoconf
   ./configure --prefix=/usr --sbindir=\${prefix}/bin
-  make -j PMC_USE_LIB=so --no-print-directory all doxygen
+  make PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
-  make -j DESTDIR=../install install --no-print-directory
+  make DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
   python3 json-c go)

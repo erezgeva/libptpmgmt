@@ -69,7 +69,7 @@ sub main
             } else {
                 if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
                     err 'for wrong char';
-                } elsif(/\\[^denrst"()<>.+\d\$'#\/\\\[\] ]/) {
+                } elsif(/\\[^denrst"@()<>.+\d\$'#\/\\\[\] ]/) {
                     err 'wrong escape char';
                 } elsif(/.\t/) {
                     err 'Tabs are allowed only in begining';
