@@ -312,6 +312,12 @@ PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
 $(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
+ifneq ($(HAVE_GET_CAPS2),)
+$(OBJ_DIR)/ptp.o: override CXXFLAGS+=-DHAVE_GET_CAPS2
+endif # HAVE_GET_CAPS2
+ifneq ($(HAVE_PEROUT_REQUEST2),)
+$(OBJ_DIR)/ptp.o: override CXXFLAGS+=-DHAVE_PEROUT_REQUEST2
+endif # HAVE_PEROUT_REQUEST2
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@

@@ -376,7 +376,7 @@ bool PtpClock::fetchCaps(PtpCaps_t &caps) const
     caps.pps = cps.pps > 0;
     caps.num_pins = cps.n_pins;
     caps.cross_timestamping = cps.cross_timestamping > 0;
-    #ifdef PTP_CLOCK_GETCAPS2
+    #ifdef HAVE_GET_CAPS2
     caps.adjust_phase = cps.adjust_phase > 0;
     #else
     caps.adjust_phase = false;
@@ -551,7 +551,7 @@ bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
     }
     unsigned long rid;
     struct ptp_perout_request req = {0};
-    #ifndef PTP_PEROUT_REQUEST2
+    #ifndef HAVE_PEROUT_REQUEST2
     if(flags != 0) {
         PTPMGMT_ERROR("Old kernel, flags are not supported");
         return false;
