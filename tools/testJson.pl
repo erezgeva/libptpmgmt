@@ -8,9 +8,6 @@
 # @copyright © 2021 Erez Geva
 #
 ###############################################################################
-
-BEGIN { push @INC, './perl' }
-
 use PtpMgmtLib;
 
 use constant DEF_CFG_FILE => '/etc/linuxptp/ptp4l.conf';
@@ -159,4 +156,4 @@ __END__
 
 apt-mark showmanual | grep ptpmgmt | xargs sudo apt-mark auto
 
-LD_PRELOAD=./libptpmgmt.so LD_LIBRARY_PATH=. PERL5LIB=perl ./testJson.pl | jsonlint
+LD_PRELOAD=./libptpmgmt.so LD_LIBRARY_PATH=. PERL5LIB=perl ./tools/testJson.pl | jsonlint

@@ -73,8 +73,10 @@ sub rcv
     given($msg->getTlvId()) {
         when($PtpMgmtLib::PORT_DATA_SET) {
             $data = PtpMgmtLib::conv_PORT_DATA_SET($msg->getData());
-            $peerMeanPathDelay = $data->swig_peerMeanPathDelay_get()->getIntervalInt();
-            $portState = PtpMgmtLib::Message::portState2str_c($data->swig_portState_get());
+            $peerMeanPathDelay =
+              $data->swig_peerMeanPathDelay_get()->getIntervalInt();
+            $portState =
+              PtpMgmtLib::Message::portState2str_c($data->swig_portState_get());
         }
         when($PtpMgmtLib::PARENT_DATA_SET) {
             $data = PtpMgmtLib::conv_PARENT_DATA_SET($msg->getData());
@@ -82,15 +84,18 @@ sub rcv
         }
         when($PtpMgmtLib::CURRENT_DATA_SET) {
             $data = PtpMgmtLib::conv_CURRENT_DATA_SET($msg->getData());
-            $timeTransmitterOffset = $data->swig_offsetFromMaster_get()->getIntervalInt();
+            $timeTransmitterOffset =
+              $data->swig_offsetFromMaster_get()->getIntervalInt();
         }
     }
 }
 
 sub probe
 {
-    sendId(eval('$PtpMgmtLib::'.$_)) for qw(PORT_DATA_SET PARENT_DATA_SET CURRENT_DATA_SET);
-    # Proper receive should check the port ID, to ensure the information match the desired port.
+    sendId(eval('$PtpMgmtLib::'.$_))
+      for qw(PORT_DATA_SET PARENT_DATA_SET CURRENT_DATA_SET);
+    # Proper receive should check the port ID,
+    # to ensure the information match the desired port.
     for (1..3) {
         unless($sk->poll(500)) {
             print "timeout";
@@ -111,9 +116,11 @@ sub probe
         when('TIME_RECEIVER') {
             # Proper sync should probe few times, before conclude
             if (abs($timeTransmitterOffset) <= TIME_RECEIVER_SYNC_THRESHOULD) {
-                print "Port is sync with $timeTransmitterOffset offset from $gmIdentity time transmitter\n";
+                print "Port is sync with $timeTransmitterOffset " ..
+                      "offset from $gmIdentity time transmitter\n";
             } else {
-                print "Port is NOT sync yet, current $timeTransmitterOffset offset from $gmIdentity time transmitter\n";
+                print "Port is NOT sync yet, current $timeTransmitterOffset " ..
+                      "offset from $gmIdentity time transmitter\n";
             }
         }
         default {

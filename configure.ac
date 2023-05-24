@@ -10,7 +10,7 @@
 
 AC_COPYRIGHT(Copyright © 2022 Erez Geva)
 AC_PREREQ([2.69])
-m4_define([ptpm_VER], m4_esyscmd_s([. ./version && echo "$ver_maj.$ver_min"]))
+m4_define([ptpm_VER], m4_esyscmd_s([. ./tools/version && echo "$ver_maj.$ver_min"]))
 AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],
         [libptpmgmt-]m4_defn([ptpm_VER]).txz,
         [https://sf.net/p/libptpmgmt])
@@ -202,7 +202,7 @@ AS_UNSET([PACKAGE_VERSION_VAL])
 
 AC_MSG_CHECKING([for package version string])
 ptpm_result([PACKAGE_VERSION])
-. ./version
+. ./tools/version
 AC_MSG_CHECKING([for package version major])
 AS_VAR_SET([PACKAGE_VERSION_MAJ], [$ver_maj])
 ptpm_result([PACKAGE_VERSION_MAJ])

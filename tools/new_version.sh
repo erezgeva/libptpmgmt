@@ -7,11 +7,11 @@
 #
 # Update to a new version
 # Increase the minor version.
-# Updating major version is done manually.
+# Updating major version is done with the '-m' flag.
 ###############################################################################
 main()
 {
- cd $(dirname "$(realpath "$0")")
+ cd "$(dirname "$(realpath "$0")")/.."
  [[ -f rpm/libptpmgmt.spec ]] || [[ -f archlinux/PKGBUILD.org ]] ||\
    return
  local -r email=$(git config --get user.email)
@@ -34,7 +34,7 @@ main()
  esac
  local -r next_ver=$next_maj_ver.$next_min_ver
  sed -i -e "s/^\s*ver_min=.*/ver_min=$next_min_ver/"\
-        -e "s/^\s*ver_maj=.*/ver_maj=$next_maj_ver/" version
+        -e "s/^\s*ver_maj=.*/ver_maj=$next_maj_ver/" tools/version
  sed -i -e "s/^\(Version:\s*\).*/\1$next_ver/"\
         -e "s/\.so\.[0-9]*{/.so.$next_maj_ver{/" rpm/libptpmgmt.spec
  sed -i "s/^pkgver=.*/pkgver=$next_ver/" archlinux/PKGBUILD.org

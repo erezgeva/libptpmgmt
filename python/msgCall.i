@@ -10,16 +10,18 @@
 
 %pythoncode %{
 class MessageDispatcher(object):
-    def callHadler(self, msg : Message, tlv_id : int = -1 , tlv : BaseMngTlv = None):
+    def callHadler(self, msg : Message, tlv_id : int = -1,
+                   tlv : BaseMngTlv = None):
         if msg is None:
-            raise AttributeError("MessageDispatcher::callHadler() You must use Message object")
+            raise AttributeError('MessageDispatcher::callHadler() ' +
+                                 'You must use Message object')
         if tlv is None:
             tlv_id=msg.getTlvId()
             tlv=msg.getData()
         if tlv is not None and msg.isValidId(tlv_id):
             idstr=Message.mng2str_c(tlv_id)
             callback_name=idstr + '_h'
-            conv_func="conv_" + idstr
+            conv_func='conv_' + idstr
             if hasattr(self.__class__, callback_name) and\
                callable(getattr(self.__class__, callback_name)):
                 data=globals()[conv_func](tlv)
@@ -32,7 +34,8 @@ class MessageDispatcher(object):
             self.noTlv(msg)
     def __init__(self):
         if type(self) is MessageDispatcher:
-            raise Exception('MessageDispatcher is an abstract class and cannot be instantiated directly')
+            raise Exception('MessageDispatcher is an abstract class and ' +
+                            'cannot be instantiated directly')
 
 class MessageBuilder(object):
     def buildTlv(self, actionField : int, tlv_id : int):
@@ -55,9 +58,11 @@ class MessageBuilder(object):
         return False
     def __init__(self, msg : Message):
         if type(self) is MessageBuilder:
-            raise Exception('MessageDispatcher is an abstract class and cannot be instantiated directly')
+            raise Exception('MessageDispatcher is an abstract class ' +
+                            'and cannot be instantiated directly')
         if msg is None:
-            raise AttributeError("MessageBuilder::MessageBuilder() You must use Message object")
+            raise AttributeError('MessageBuilder::MessageBuilder() ' +
+                                 'You must use Message object')
         else:
             self.m_msg=msg
     def __del__(self):

@@ -16,11 +16,11 @@
 main()
 {
   local ver_maj ver_min
-  . ../version
+  . ../tools/version
   local -r version="$ver_maj.$ver_min"
   sed '/^Source0:/ d;  /#Source0:/ { s/%%/%/g;s/^#// }' libptpmgmt.spec >\
     libptpmgmt-${version}.spec
 }
-if [[ -f libptpmgmt.spec ]] && [[ -f ../version ]]; then
+if [[ -f libptpmgmt.spec ]] && [[ -f ../tools/version ]]; then
   main
 fi

@@ -182,7 +182,7 @@ endif
 ###############################################################################
 ### Generic definitions
 .ONESHELL: # Run rules in a single shell
-include version
+include tools/version
 # ver_maj=PACKAGE_VERSION_MAJ
 # ver_min=PACKAGE_VERSION_MIN
 
@@ -235,7 +235,7 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md *.cfg *.opt *.in\
+SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md tools/* *.opt *.in\
   config.guess config.sub configure.ac install-sh $(SRC)/*.in $(SRC)/*.m4\
   php/*.sh tcl/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile go/gtest/*.go)\
@@ -378,8 +378,8 @@ ifneq ($(ASTYLEMINVER),)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest,$n/*.cpp $n/*.h))
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	$(Q_FRMT)
-	r=`$(ASTYLE) --project=none --options=astyle.opt $^`
-	test -z "$$r" || echo "$$r";./format.pl $^
+	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
+	test -z "$$r" || echo "$$r";./tools/format.pl $^
 	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
 ifneq ($(CPPCHECK),)
 	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1\
@@ -474,15 +474,15 @@ ifneq ($(DOXYGENMINVER),)
 doxygen: $(HEADERS_GEN) $(HEADERS)
 ifeq ($(DOTTOOL),)
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
-	$Q$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' doxygen.cfg
+	$Q$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' tools/doxygen.cfg
 endif
 ifdef Q_DOXY
-	$(Q_DOXY)$(DOXYGEN) doxygen.cfg >/dev/null
+	$(Q_DOXY)$(DOXYGEN) tools/doxygen.cfg >/dev/null
 else
-	$(DOXYGEN) doxygen.cfg
+	$(DOXYGEN) tools/doxygen.cfg
 endif
 ifeq ($(DOTTOOL),)
-	$Q$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' doxygen.cfg
+	$Q$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' tools/doxygen.cfg
 endif
 endif # DOXYGENMINVER
 

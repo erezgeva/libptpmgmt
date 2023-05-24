@@ -8,10 +8,12 @@
 # @copyright © 2022 Erez Geva
 #
 ###############################################################################
+use File::Basename;
+use Cwd 'realpath';
 
 sub main
 {
-  my $cfg='doxygen.cfg';
+  my $cfg='tools/doxygen.cfg';
   return unless -f $cfg;
   my $yes = 'YES';
   my $key_reg=qr([A-Z0-9_]+); # regular expression to catch a key
@@ -108,4 +110,5 @@ sub main
   }
   unlink "$cfg.bak" if -f "$cfg.bak";
 }
+chdir dirname(realpath($0)) . "/..";
 main;

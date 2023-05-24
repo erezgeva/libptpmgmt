@@ -10,10 +10,10 @@
 main()
 {
   local ver_maj ver_min
-  . ../version
+  . ../tools/version
   local -r version="$ver_maj.$ver_min"
   head -n -3 libptpmgmt.ebuild | sed 's/^# #!#//' > libptpmgmt-${version}.ebuild
 }
-if [[ -f libptpmgmt.ebuild ]] && [[ -f ../version ]]; then
+if [[ -f libptpmgmt.ebuild ]] && [[ -f ../tools/version ]]; then
   main
 fi

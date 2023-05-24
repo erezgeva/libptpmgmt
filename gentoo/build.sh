@@ -31,7 +31,7 @@ main()
 {
   local -r me="$(realpath $0)"
   local -r base="$(realpath $(dirname $0)/..)"
-  local -r ver="$base/version"
+  local -r ver="$base/tools/version"
   if [[ -f "$ver" ]]; then
     local ver_maj ver_min
     . "$ver"

@@ -72,7 +72,8 @@ function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
             elseif(getmetatable(tlv)['.type'] == idstr .. '_t') then
                 data = tlv
             else
-                error('MessageDispatcher::callHadler() tlv must be a BaseMngTlv object', 2)
+                error('MessageDispatcher::callHadler() tlv must be ' ..
+                      'a BaseMngTlv object', 2)
             end
             if(data ~= nil) then
                 getmetatable(self)[callback_name](self, msg, data, idstr)

@@ -8,6 +8,8 @@
 # @copyright © 2021 Erez Geva
 #
 ###############################################################################
+use File::Basename;
+use Cwd 'realpath';
 
 sub main()
 {
@@ -20,7 +22,7 @@ sub main()
   my $arcfile='archlinux/changelog';
   my $first;
   exit unless -f $debfile and -f $rpmfile and -f $arcfile;
-  `./new_version.sh -u`;
+  `./tools/new_version.sh -u`;
   open IN, $rpmfile or die "Fail open $rpmfile: $!";
   my @org = <IN>;
   close IN;
@@ -58,4 +60,5 @@ sub main()
   close OUT;
   close OUT2;
 }
+chdir dirname(realpath($0)) . "/..";
 main;

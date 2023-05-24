@@ -37,7 +37,8 @@ sub callHadler {
                 $self->$callback_name($msg, $btlv, $idstr)
             } else {
                 $self->$callback_name($msg, $tlv, $idstr)
-                    if eval "\$tlv = PtpMgmtLib::conv_$idstr(\$btlv)" and defined $tlv;
+                    if eval "\$tlv = PtpMgmtLib::conv_$idstr(\$btlv)"
+                       and defined $tlv;
             }
         } elsif ($self->can(noTlvCallBack)) {
             $self->noTlvCallBack($msg, $idstr);

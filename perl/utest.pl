@@ -100,9 +100,12 @@ sub test_parsedCallHadlerTLVNoCallback : Test(3) {
     my $tlv = PtpMgmtLib::PRIORITY2_t->new;
     $tlv->swig_priority2_set(117);
     $disp->callHadler($msg, $PtpMgmtLib::PRIORITY2, $tlv);
-    is($disp->{func}, 0x4,       'test_parsedCallHadlerTLVNoCallback call noTlvCallBack');
-    is($disp->{id}, 'PRIORITY2', 'test_parsedCallHadlerTLVNoCallback with PRIORITY2 ID');
-    is($disp->{priority1}, 0,    'test_parsedCallHadlerTLVNoCallback no priority1');
+    is($disp->{func}, 0x4,
+       'test_parsedCallHadlerTLVNoCallback call noTlvCallBack');
+    is($disp->{id}, 'PRIORITY2',
+       'test_parsedCallHadlerTLVNoCallback with PRIORITY2 ID');
+    is($disp->{priority1}, 0,
+       'test_parsedCallHadlerTLVNoCallback no priority1');
 }
 
 # Tests build empty TLV
@@ -110,7 +113,8 @@ sub test_buildEmptyTLV : Test(2) {
     my $self = shift;
     my $msg = $self->{msg};
     my $build = $self->{build};
-    ok($build->buildTlv($PtpMgmtLib::COMMAND, $PtpMgmtLib::ENABLE_PORT), 'test_buildEmptyTLV pass');
+    ok($build->buildTlv($PtpMgmtLib::COMMAND, $PtpMgmtLib::ENABLE_PORT),
+       'test_buildEmptyTLV pass');
     is($build->{run}, 0, 'test_buildEmptyTLV do not need PRIORITY1 callback');
 }
 
@@ -119,7 +123,8 @@ sub test_buildTLV : Test(2) {
     my $self = shift;
     my $msg = $self->{msg};
     my $build = $self->{build};
-    ok($build->buildTlv($PtpMgmtLib::SET, $PtpMgmtLib::PRIORITY1), 'test_buildTLV pass');
+    ok($build->buildTlv($PtpMgmtLib::SET, $PtpMgmtLib::PRIORITY1),
+       'test_buildTLV pass');
     is($build->{run}, 1, 'test_buildTLV call PRIORITY1 callback');
 }
 
@@ -128,7 +133,8 @@ sub test_buildTLVNoCallback : Test(2) {
     my $self = shift;
     my $msg = $self->{msg};
     my $build = $self->{build};
-    ok(!$build->buildTlv($PtpMgmtLib::SET, $PtpMgmtLib::PRIORITY2), 'test_buildTLVNoCallback no callback');
+    ok(!$build->buildTlv($PtpMgmtLib::SET, $PtpMgmtLib::PRIORITY2),
+       'test_buildTLVNoCallback no callback');
     is($build->{run}, 0, 'test_buildTLVNoCallback do not have callback');
 }
 

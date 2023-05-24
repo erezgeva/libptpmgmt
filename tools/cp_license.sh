@@ -17,11 +17,11 @@ down_lic()
 }
 main()
 {
+ cd "$(dirname "$(realpath "$0")")/.."
  mkdir -p LICENSES
  local n
  for n in GPL-3.0-or-later LGPL-3.0-or-later BSD-3-Clause\
           GFDL-1.3-no-invariants-or-later GPL-2.0-or-later MIT
  do down_lic $n; done
 }
-cd $(dirname $(realpath $0))
-main
+main "$@"

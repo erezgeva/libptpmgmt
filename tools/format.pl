@@ -8,8 +8,9 @@
 # @copyright © 2021 Erez Geva
 #
 ###############################################################################
-
+use File::Basename;
 use File::Touch;
+use Cwd 'realpath';
 
 sub main
 {
@@ -21,9 +22,9 @@ sub main
     }
     my @list = @ARGV;
     push @list, glob
-        "*.sh */*.sh Makefile */Makefile debian/rules debian/changelog " .
-        "debian/copyright scripts/* */test.* testJson.pl go/src/*test/*" .
-        "*/*.i";
+        "*/*.sh Makefile */Makefile debian/rules debian/changelog " .
+        "debian/copyright scripts/* */test.* *.pl go/src/*test/* " .
+        "*/*.pl */*.i";
     for(@list)
     {
         next if -l or not -f;
@@ -69,9 +70,9 @@ sub main
             } else {
                 if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
                     err 'for wrong char';
-                } elsif(/\\[^denrst"@()<>.+\d\$'#\/\\\[\] ]/) {
+                } elsif(/\\[^denrst"@()<>.+\d\$'#\/\\\[\-] ]/) {
                     err 'wrong escape char';
-                } elsif(/.\t/) {
+                } elsif(/[^\t]\t/) {
                     err 'Tabs are allowed only in begining';
                 }
                 if(/.{85}/) {
@@ -91,4 +92,5 @@ sub main
     }
     exit $exit if $exit;
 }
+chdir dirname(realpath($0)) . "/..";
 main;

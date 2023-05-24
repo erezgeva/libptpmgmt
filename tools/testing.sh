@@ -11,6 +11,7 @@
 ###############################################################################
 main()
 {
+ cd "$(dirname "$(realpath "$0")")/.."
  local file i opt n cmds use_asan
  # Default values
  local -r def_ifName=enp0s31f6

@@ -9,7 +9,8 @@
  */
 
 %pragma(php) code="abstract class MessageDispatcher {
-	function callHadler(Message $msg, int $tlv_id = -1, ?BaseMngTlv $tlv = null) : void {
+	function callHadler(Message $msg, int $tlv_id = -1,
+	                    ?BaseMngTlv $tlv = null) : void {
 		if(is_null($tlv)) {
 			$tlv_id = $msg->getTlvId();
 			$tlv = $msg->getData();
