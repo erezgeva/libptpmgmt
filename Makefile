@@ -187,7 +187,7 @@ include version
 # ver_min=PACKAGE_VERSION_MIN
 
 SRC:=src
-PMC_DIR:=tools
+PMC_DIR:=ptp-tools
 JSON_SRC:=json
 OBJ_DIR:=objs
 

@@ -26,7 +26,7 @@
 */PtpMgmtLib.cpp
 /doc
 /objs/
-/tools/pmc
+/ptp-tools/pmc
 /perl/PtpMgmtLib.pm
 /tcl/pkgIndex.tcl
 /autom4te.cache/

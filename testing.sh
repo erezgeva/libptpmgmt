@@ -127,14 +127,14 @@ main()
  if [[ -x $instPmcLib ]] && [[ -n "$probeSystem" ]]; then
    local -r pmclibtool=$instPmcLib
  else
-   local -r pmclibtool=./tools/pmc
+   local -r pmclibtool=./ptp-tools/pmc
    needCmpl=y
  fi
  local -r instPhcCtlLib=/usr/sbin/phc_ctl-ptpmgmt
  if [[ -x $instPhcCtlLib ]] && [[ -n "$probeSystem" ]]; then
    local -r phcctrllibtool=$instPhcCtlLib
  else
-   local -r phcctrllibtool=./tools/phc_ctl
+   local -r phcctrllibtool=./ptp-tools/phc_ctl
  fi
  ##############################################################################
  if [[ -n "$needCmpl" ]]; then
