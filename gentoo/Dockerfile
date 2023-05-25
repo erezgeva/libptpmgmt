@@ -22,8 +22,9 @@ RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\
 # 'dot' application fails: emerge media-gfx/graphviz
 # 'epstopdf' fails: emerge app-text/texlive-core
 # 'go' lang fails: emerge dev-lang/go
+LABEL org.opencontainers.image.description "RPM build for libptpmgmt"
 ARG COOKIE
 RUN emerge --oneshot -tv sys-apps/portage
-USER $USER
 ARG SRC
-COPY --chown=builder $SRC /home/$USER/libptpmgmt
+ARG DST
+COPY --chown=builder $SRC $DST

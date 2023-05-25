@@ -35,8 +35,9 @@ RUN apt-get update;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
     sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers
+LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
 ARG COOKIE
 RUN apt-get update; apt-get upgrade -y --no-install-recommends
-USER $USER
 ARG SRC
-COPY --chown=builder $SRC /home/$USER/libptpmgmt
+ARG DST
+COPY --chown=builder $SRC $DST

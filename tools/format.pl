@@ -64,27 +64,28 @@ sub main
                 if(/[^"_]NULL\b/) {
                     err 'use C++ nullptr';
                 }
-                if(/.{85}/) {
-                    err 'line is too long';
+                #######################################
+                # proper comments in headers
+                if($file =~ /\.h$/) {
+                    if(m#^//# or m#[^:]//#) { # Ignore protocol '://' sign
+                        err 'use C comments only';
+                    }
+                }
+            } elsif($file =~ /\.sh$/) {
+                if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\`-]/) {
+                    err 'for wrong char';
+                } elsif(/\\[^0-9nes".()\[\]\$\/\\]/) {
+                    err 'wrong escape char';
                 }
             } else {
                 if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]/) {
                     err 'for wrong char';
-                } elsif(/\\[^denrst"@()<>.+\d\$'#\/\\\[\-] ]/) {
-                    err 'wrong escape char';
                 } elsif(/[^\t]\t/) {
                     err 'Tabs are allowed only in begining';
                 }
-                if(/.{85}/) {
-                    err 'line is too long';
-                }
             }
-            #######################################
-            # proper comments in headers
-            if($file =~ /\.h$/) {
-                if(m#^//# or m#[^:]//#) { # Ignore protocol '://' sign
-                    err 'use C comments only';
-                }
+            if(/.{85}/) {
+                err 'line is too long';
             }
             print "$_\n";
         }

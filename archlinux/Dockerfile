@@ -16,8 +16,9 @@ RUN pacman -Syu --noconfirm --needed bash rustup gcc fakeroot pkgconf libtool\
     lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+LABEL org.opencontainers.image.description "Arch Linux build for libptpmgmt"
 ARG COOKIE
 RUN pacman -Syu --noconfirm --needed
-USER $USER
 ARG SRC
-COPY --chown=builder $SRC /home/$USER/libptpmgmt
+ARG DST
+COPY --chown=builder $SRC $DST
