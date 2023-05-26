@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2023 Erez Geva
+#
+# GitHub Deploy Doxygen documents with GitHub Pages
+# Deploy to: https://erezgeva.github.io/libptpmgmt/
+###############################################################################
+
+name: deploy doxygen documents
+
+# Deploy after release a new version, or manually
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/deb.bookworm:latest
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v3
+
+    - name: setup pages
+      uses: actions/configure-pages@v3
+
+    - name: build documents
+      run: tools/github_pages.sh
+
+    - name: upload artifact
+      uses: actions/upload-pages-artifact@v1
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2

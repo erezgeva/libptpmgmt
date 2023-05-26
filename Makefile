@@ -130,15 +130,18 @@ GTEST_NO_COL:=--gtest_color=no
 RUBY_NO_COL:=--no-use-color
 PHP_NO_COL:=--colors=never
 endif
-endif
+endif # USE_COL
 
 # Use tput to check if we have ANSI Colour code
 # tput works only if TERM is set
+ifndef NO_COL
 ifneq ($(and $(TERM),$(call which,tput)),)
 ifeq ($(shell tput setaf 1),)
 NO_COL:=1
 endif
 endif # which tput
+endif # NO_COL
+
 # Detect output is not device (terminal), it must be a pipe or a file
 ifndef USE_COL
 ifndef MAKE_TERMOUT
@@ -235,16 +238,15 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* *.sh *.pl *.md tools/* *.opt *.in\
-  config.guess config.sub configure.ac install-sh $(SRC)/*.in $(SRC)/*.m4\
+SRC_FILES_DIR:=$(wildcard scripts/* tools/*.sh tools/*.pl *.md *.in */*.in\
+  */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
   php/*.sh tcl/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile go/gtest/*.go)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
-# go/* go/*/*.go)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[ch]* go/unit_test,':!/:$n') ':!:*.gitignore' ':!*/test.*'\
-  ':!*/utest.*'
+  utest/*.[ch]* go/unit_test .github/workflows/*,':!/:$n') ':!:*.gitignore'\
+ ':!*/test.*' ':!*/utest.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
@@ -294,7 +296,7 @@ ifeq ($(findstring -O,$(CXXFLAGS)),)
 override CXXFLAGS+=-Og
 endif # find '-O'
 override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -Isrc
-CXXFLAGS_GO:=-Wdate-time -Wall -std=c++11 -g
+CXXFLAGS_GO:=$(filter-out -I%,$(CXXFLAGS))
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
 ifeq ($(USE_ASAN),)
 else
@@ -470,8 +472,11 @@ endif
 ALL+=$(SWIG_ALL)
 endif # SWIGMINVER
 
+tools/doxygen.cfg: tools/doxygen.cfg.in
+	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
+
 ifneq ($(DOXYGENMINVER),)
-doxygen: $(HEADERS_GEN) $(HEADERS)
+doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
 ifeq ($(DOTTOOL),)
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
 	$Q$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' tools/doxygen.cfg
@@ -656,12 +661,12 @@ endif # MAKECMDGOALS
 CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
   python/*.pyc php/*.h php/*.ini perl/*.pm go/*/go.mod */$(LIB_SRC)\
-  */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC)\
+  */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
   $(ARCHL_BLD) tags python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   tcl/pkgIndex.tcl php/.phpunit.result.cache .phpunit.result.cache\
-  go/$(SWIG_LNAME).go $(HEADERS_GEN) go/gtest/gtest
+  go/$(SWIG_LNAME).go $(HEADERS_GEN) go/gtest/gtest .null
 CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
-  archlinux/*/ obj-*/)) doc $(OBJ_DIR) perl/auto go/$(SWIG_LNAME)
+  archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) perl/auto go/$(SWIG_LNAME)
 DISTCLEAN:=$(addprefix config.,log status) configure configure~ defs.mk
 DISTCLEAN_DIRS:=autom4te.cache
 

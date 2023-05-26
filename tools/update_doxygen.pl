@@ -13,7 +13,7 @@ use Cwd 'realpath';
 
 sub main
 {
-  my $cfg='tools/doxygen.cfg';
+  my $cfg='tools/doxygen.cfg.in';
   return unless -f $cfg;
   my $yes = 'YES';
   my $key_reg=qr([A-Z0-9_]+); # regular expression to catch a key

@@ -20,6 +20,13 @@ ext()
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/gentoo portage
 
+docker pull ghcr.io/erezgeva/portage
+docker run -it -w /tmp\
+  -v $(realpath ..):/tmp/libptpmgmt ghcr.io/erezgeva/portage
+useradd builder2 -u 1000 -m -G users,wheel,portage
+su -l builder2
+cd /tmp/libptpmgmt
+
 emerge world -ep
 qlist -Iv
 ls /var/db/pkg/*

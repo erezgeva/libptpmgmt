@@ -44,9 +44,10 @@ $(OBJ_DIR)/utest_sys.o: | $(OBJ_DIR)
 	  'return RUN_ALL_TESTS();}' |\
 	  $(CXX) -include $(HAVE_GTEST_HEADER) -include utest/libsys.h\
 	  $(GTEST_INC_FLAGS) -c -x c++ - -o $@
-$(TEST_SYS_OBJS): override CXXFLAGS+=-include utest/libsys.h
+CXXFLAGS_UTEST=$(filter-out -std=%,$(CXXFLAGS)) -std=c++14
+$(TEST_SYS_OBJS): CXXFLAGS_UTEST+=-include utest/libsys.h
 utest/%.o: utest/%.cpp | $(COMP_DEPS)
-	$(Q_CC)$(CXX) $(CXXFLAGS) $(GTEST_INC_FLAGS)\
+	$(Q_CC)$(CXX) $(CXXFLAGS_UTEST) $(GTEST_INC_FLAGS)\
 	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
 $(TEST_LIBSYS): utest/libsys.cpp
 	$(Q_CC)$(CXX) -shared -fPIC\

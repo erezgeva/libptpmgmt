@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2023 Erez Geva
+#
+# GitHub Continuous Integration script
+###############################################################################
+
+name: continuous integration
+
+# On evry push and Pull Request (PR)
+on: [push, pull_request]
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        names: [deb.bookworm, deb.bullseye, rpmbuild, pacmanbuild, portage]
+      fail-fast: false
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest
+    env:
+      USER: builder
+      CONTAINER: ${{ matrix.names }}
+
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v3
+
+    - name: continuous integration
+      run: |
+        case "$CONTAINER" in
+          pacmanbuild)
+            chown -R $USER:$USER .
+            sudo -u $USER tools/ci.sh -o
+            ;;
+          *)
+            tools/ci.sh
+            ;;
+        esac

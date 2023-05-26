@@ -7,6 +7,10 @@
 #
 # Log into github docker
 ###############################################################################
+dlog()
+{
+ echo $2 | docker login $server -u $1 --password-stdin
+}
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
@@ -15,8 +19,9 @@ main()
    local server namespace
    . tools/github_params
    local -r a="$(cat $f)"
-   local -r u=${a/:*/} p=${a/*:/}
-   echo $p | docker login $server -u $u --password-stdin
+   dlog "${a/:*/}" "${a/*:/}"
+ elif [[ -n "$1" ]] && [[ -n "$2" ]]; then
+   dlog "$1" "$2"
  else
    echo "No token for github"
  fi

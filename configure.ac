@@ -1052,27 +1052,29 @@ else
   AS_IF([test "x$GO" = xyes],
         [AC_CHECK_TOOL([GOBIN], [go])],
         [AS_VAR_SET([GOBIN], ["$GO"])])
-  AS_VAR_SET([GOROOT],
-             [`$GOBIN env GOROOT`])
-  AS_VERSION_COMPARE([$SWIGVER], [4.1],
-                     # Swig bellow 4.1
-                     [AS_VAR_SET([SWIG_INTGOSIZE], ["$SWIGVER"])])
-  AS_VAR_SET([GOVER],
-             [`$GOBIN version | sed 's/^go version go//;s/ .*//'`])
-  AS_VERSION_COMPARE([$GOVER], [1.14],
-                     # Go bellow 1.14
-                     [AS_UNSET([GOMINVER])],
-                     # Go 1.14
-                     [AS_VAR_SET([GOMINVER], [$GOVER])],
-                     # Above go 1.14
-                     [AS_VAR_SET([GOMINVER], [$GOVER])])
-  AS_VERSION_COMPARE([$GOVER], [1.18],
-                     # Go bellow 1.18
-                     [AS_UNSET([GOVCS])],
-                     # Go 1.18
-                     [AS_VAR_SET([GOVCS], [true])],
-                     # Above go 1.18
-                     [AS_VAR_SET([GOVCS], [true])])
+  if test -n "$GOBIN"; then
+    AS_VAR_SET([GOROOT],
+               [`$GOBIN env GOROOT`])
+    AS_VERSION_COMPARE([$SWIGVER], [4.1],
+                       # Swig bellow 4.1
+                       [AS_VAR_SET([SWIG_INTGOSIZE], ["$SWIGVER"])])
+    AS_VAR_SET([GOVER],
+               [`$GOBIN version | sed 's/^go version go//;s/ .*//'`])
+    AS_VERSION_COMPARE([$GOVER], [1.14],
+                       # Go bellow 1.14
+                       [AS_UNSET([GOMINVER])],
+                       # Go 1.14
+                       [AS_VAR_SET([GOMINVER], [$GOVER])],
+                       # Above go 1.14
+                       [AS_VAR_SET([GOMINVER], [$GOVER])])
+    AS_VERSION_COMPARE([$GOVER], [1.18],
+                       # Go bellow 1.18
+                       [AS_UNSET([GOVCS])],
+                       # Go 1.18
+                       [AS_VAR_SET([GOVCS], [true])],
+                       # Above go 1.18
+                       [AS_VAR_SET([GOVCS], [true])])
+  fi # GOBIN
 fi # if not disabled
 
 AC_SUBST([GO])
