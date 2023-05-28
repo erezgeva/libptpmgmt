@@ -5,12 +5,14 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# CI (Continous integration) script for containers
+# Script to build doxygen in GitHub
 ###############################################################################
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
- make config
+ sudo apt-get install -y --no-install-recommends doxygen graphviz
+ autoconf
+ ./configure
  make doxygen
  cp -a doc/html _site
 }

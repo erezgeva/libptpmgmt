@@ -29,8 +29,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/deb.bookworm:latest
     steps:
 
     - name: checkout repository
