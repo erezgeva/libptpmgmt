@@ -27,7 +27,7 @@ using namespace ptpmgmt;
 /** dump */
 #define DUMPS(format, ...) printf(format, __VA_ARGS__)
 /** dump end of line */
-#define DUMPNL printf("\n");
+#define DUMPNL puts("\n");
 /** print library error */
 #define PMCLERR {\
     if(Error::isError())\

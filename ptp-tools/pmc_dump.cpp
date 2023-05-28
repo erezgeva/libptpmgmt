@@ -214,7 +214,7 @@ class MsgDump : public MessageDispatcher
         DUMPS(IDENT "ptpTimescale %u", isFlag(PTP));
     }
     dump(UNICAST_NEGOTIATION_ENABLE) {
-        DUMPS(IDENT "unicastNegotiationPortDS %sabled", d.flags ? "e" : "dis");
+        DUMPS(IDENT "unicastNegotiationPortDS %sabled", d.flags ? "en" : "dis");
     }
     dump(PATH_TRACE_LIST) {
         uint16_t i = 0;
@@ -222,7 +222,7 @@ class MsgDump : public MessageDispatcher
             DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     }
     dump(PATH_TRACE_ENABLE) {
-        DUMPS(IDENT "pathTraceDS %sabled", d.flags ? "e" : "dis");
+        DUMPS(IDENT "pathTraceDS %sabled", d.flags ? "en" : "dis");
     }
     dump(GRANDMASTER_CLUSTER_TABLE) {
         DUMPS(
@@ -260,7 +260,7 @@ class MsgDump : public MessageDispatcher
         }
     }
     dump(ACCEPTABLE_MASTER_TABLE_ENABLED) {
-        DUMPS(IDENT "acceptableMasterPortDS %sabled", d.flags ? "e" : "dis");
+        DUMPS(IDENT "acceptableMasterPortDS %sabled", d.flags ? "en" : "dis");
     }
     dump(ACCEPTABLE_MASTER_MAX_TABLE_SIZE) {
         DUMPS(IDENT "maxTableSize %u", d.maxTableSize);
@@ -270,7 +270,7 @@ class MsgDump : public MessageDispatcher
             IDENT "transmitAlternateMulticastSync    %sabled"
             IDENT "logAlternateMulticastSyncInterval %d"
             IDENT "numberOfAlternateMasters          %u",
-            d.flags ? "e" : "dis",
+            d.flags ? "en" : "dis",
             d.logAlternateMulticastSyncInterval,
             d.numberOfAlternateMasters);
     }
@@ -334,19 +334,19 @@ class MsgDump : public MessageDispatcher
         DUMPS(IDENT "delayMechanism %s", m.delayMech2str_c(d.delayMechanism));
     }
     dump(EXTERNAL_PORT_CONFIGURATION_ENABLED) {
-        DUMPS(IDENT "externalPortConfiguration %sabled", d.flags ? "e" : "dis");
+        DUMPS(IDENT "externalPortConfiguration %sabled", d.flags ? "en" : "dis");
     }
     dump(MASTER_ONLY) {
         DUMPS(IDENT "masterOnly %u", d.flags);
     }
     dump(HOLDOVER_UPGRADE_ENABLE) {
-        DUMPS(IDENT "holdoverUpgradeDS %sabled", d.flags ? "e" : "dis");
+        DUMPS(IDENT "holdoverUpgradeDS %sabled", d.flags ? "en" : "dis");
     }
     dump(EXT_PORT_CONFIG_PORT_DATA_SET) {
         DUMPS(
             IDENT "acceptableMasterPortDS %sabled"
             IDENT "desiredState           %s",
-            d.flags ? "e" : "dis",
+            d.flags ? "en" : "dis",
             m.portState2str_c(d.desiredState));
     }
     dump(TIME_STATUS_NP) {
@@ -1223,7 +1223,7 @@ bool call_dumpSig(const Message &msg, tlvType_e tlvType, const BaseSigTlv *tlv)
         case SLAVE_DELAY_TIMING_DATA_NP: {
             const auto &d = *(SLAVE_DELAY_TIMING_DATA_NP_t *)tlv;
             DUMPS(
-                "SLAVE_DELAY_TIMING_DATA_NP N %zu "
+                "SLAVE_DELAY_TIMING_DATA_NP N %zu"
                 IDENT "sourcePortIdentity         %s",
                 d.list.size(), d.sourcePortIdentity.string().c_str());
             for(const auto &rec : d.list)
