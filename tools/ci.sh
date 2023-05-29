@@ -75,10 +75,14 @@ main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
  local -i jobs=1 # Number of Make parallel jobs
+ local nocolor
+ if [[ "$GITHUB_ACTIONS" = "true" ]] && [[ `id -u` -ne 0 ]]; then
+   nocolor=yes
+ fi
  while getopts 'oj:' opt; do
    case $opt in
      o)
-       local -r nocolor=yes
+       nocolor=yes
        ;;
      j)
        jobs="0 + $OPTARG"

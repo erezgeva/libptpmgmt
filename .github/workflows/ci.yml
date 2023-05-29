@@ -23,7 +23,7 @@ jobs:
       image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest
     env:
       USER: builder
-      CONTAINER: ${{ matrix.names }}
+      GITHUB_CONTAINER: ${{ matrix.names }}
 
     steps:
 
@@ -32,12 +32,18 @@ jobs:
 
     - name: continuous integration
       run: |
-        case "$CONTAINER" in
-          pacmanbuild)
-            chown -R $USER:$USER .
-            sudo -u $USER tools/ci.sh -o
+        case "$GITHUB_CONTAINER" in
+          portage)
+            # Gentoo sudo require password, better to stay with root user
+            tools/ci.sh
+            ;;
+          deb.*)
+            # Debian place the debian packages in the parent folder
+            chown -R $USER:$USER ..
+            su $USER -c tools/ci.sh
             ;;
           *)
-            tools/ci.sh
+            chown -R $USER:$USER .
+            su $USER -c tools/ci.sh
             ;;
         esac
