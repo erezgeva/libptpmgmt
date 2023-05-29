@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief PTP message and TLV to JSON functions unit test
+ * @brief pmc tool TLV dump unit test
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2023 Erez Geva
@@ -10,8 +10,6 @@
  */
 
 #include "pmc.h"
-
-using namespace ptpmgmt;
 
 /* from utest/libsys_pmc.cpp */
 extern const char *getPmcOut();

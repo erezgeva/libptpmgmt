@@ -751,8 +751,9 @@ class MsgBuild : public MessageBuilder
                 } else if(key.flag) {
                     // Is key a flag value
                     if(strcasecmp(tkn, "enable") == 0 ||
-                        strcasecmp(tkn, "on") == 0 ||
-                        strcasecmp(tkn, "true") == 0)
+                       strcasecmp(tkn, "enabled") == 0 ||
+                       strcasecmp(tkn, "on") == 0 ||
+                       strcasecmp(tkn, "true") == 0)
                         key.num = 1;
                     else
                         key.num = 0;
@@ -792,8 +793,17 @@ class MsgBuild : public MessageBuilder
     static bool getPortState(val_key_t &key) {
         portState_e state;
         const char *tkn = key.str_val;
-        if(tkn != nullptr && Message::findPortState(tkn, state, false)) {
+        if(tkn == nullptr || *tkn == 0)
+            return true;
+        if(Message::findPortState(tkn, state, false)) {
             key.num = state;
+            return false; // No errors!
+        } else {
+            char *end;
+            auto num = strtol(tkn, &end, 16);
+            if(*end != 0 || num < INITIALIZING || num > TIME_RECEIVER)
+                return true;
+            key.num = num;
             return false; // No errors!
         }
         return true;
@@ -937,6 +947,7 @@ class MsgBuild : public MessageBuilder
     build(UTC_PROPERTIES) {
         defKeys;
         keys["currentUtcOffset"].max = INT16_MAX;
+        keys["currentUtcOffset"].min = INT16_MIN;
         keys["currentUtcOffset"].req = true;
         useFlag(leap61);
         useFlag(leap59);
@@ -985,7 +996,8 @@ class MsgBuild : public MessageBuilder
         build_end;
     }
     /*
-    TODO handle table input
+     * TODO handle table input, and add proper tests in 'utest/pmc_build.cpp'
+     * As linuxptp do not support table set, yet.
     build(GRANDMASTER_CLUSTER_TABLE)
     build(UNICAST_MASTER_TABLE)
     build(ACCEPTABLE_MASTER_TABLE)
@@ -1001,6 +1013,7 @@ class MsgBuild : public MessageBuilder
         defKeys;
         useFlag(transmitAlternateMulticastSync);
         keys["logAlternateMulticastSyncInterval"].max = INT8_MAX;
+        keys["logAlternateMulticastSyncInterval"].min = INT8_MIN;
         keys["numberOfAlternateMasters"].max = UINT8_MAX;
         parseKeys;
         add1Flag(transmitAlternateMulticastSync);
@@ -1031,7 +1044,9 @@ class MsgBuild : public MessageBuilder
         defKeys;
         keys["keyField"].max = UINT8_MAX;
         keys["currentOffset"].max = INT32_MAX;
+        keys["currentOffset"].min = INT32_MIN;
         keys["jumpSeconds"].max = INT32_MAX;
+        keys["jumpSeconds"].min = INT32_MIN;
         keys["timeOfNextJump"].max = UINT48_MAX;
         parseKeys;
         d.keyField = keys["keyField"].num;
@@ -1103,6 +1118,7 @@ class MsgBuild : public MessageBuilder
         keys["offsetScaledLogVariance"].max = UINT16_MAX;
         keys["offsetScaledLogVariance"].req = true;
         keys["currentUtcOffset"].max = INT16_MAX;
+        keys["currentUtcOffset"].min = INT16_MIN;
         keys["currentUtcOffset"].req = true;
         useFlag(leap61);
         useFlag(leap59);

@@ -1141,7 +1141,7 @@ TEST(MessageTest, MethodGetMinorVersionPTP)
     EXPECT_GE(m.getMinorVersionPTP(), 0);
 }
 
-// Test get data of parsed message
+// Test get tlv data of parsed message
 // const BaseMngTlv *getData() const
 TEST(MessageTest, MethodGetData)
 {
@@ -1160,6 +1160,16 @@ TEST(MessageTest, MethodGetData)
     const PRIORITY1_t *p1 = dynamic_cast<const PRIORITY1_t *>(data);
     ASSERT_NE(p1, nullptr);
     EXPECT_EQ(p1->priority1, p.priority1);
+}
+
+// Test get send tlv data
+// const BaseMngTlv *getSendData() const
+TEST(MessageTest, MethodGetSendData)
+{
+    Message m;
+    PRIORITY1_t p;
+    EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getSendData(), &p);
 }
 
 // Test get error of parsed message

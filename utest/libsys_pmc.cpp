@@ -42,9 +42,6 @@ void initLibSys(void)
     useTestMode(false);
 }
 /*****************************************************************************/
-#define retTest0(name)\
-    if(!testMode)\
-        return _##name()
 #define retTest(name, ...)\
     if(!testMode)\
         return _##name(__VA_ARGS__)
@@ -69,6 +66,3 @@ int puts(const char *s)
     retTest(puts, s);
     return 0;
 }
-/*****************************************************************************/
-/* pmc_dump.cpp call pmc.cpp */
-bool sendAction() {return false;}

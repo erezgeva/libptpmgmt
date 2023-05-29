@@ -28,7 +28,7 @@ UTEST_SYS:=$(OBJ_DIR)/utest_sys
 UTEST_JSON_LOAD:=$(OBJ_DIR)/utest_json_load
 UTEST_SYS_SRCS:=sock ptp init
 TEST_OBJS:=$(patsubst %.cpp,%.o,$(filter-out\
-  $(foreach n,json2msg jsonLoad libsys pmc_dump libsys_pmc\
+  $(foreach n,json2msg jsonLoad libsys pmc_dump pmc_build libsys_pmc\
   $(UTEST_SYS_SRCS),utest/$n.cpp),$(wildcard utest/*.cpp)))
 TEST_SYS_OBJS:=$(foreach n,$(UTEST_SYS_SRCS),utest/$n.o)
 TEST_LIBSYS:=objs/libsys.so
@@ -73,9 +73,9 @@ TEST_LIBSYS_PMC:=objs/libsys_pmc.so
 UTEST_PMC:=$(OBJ_DIR)/utest_pmc
 $(TEST_LIBSYS_PMC): utest/libsys_pmc.cpp
 	$(Q_CC)$(CXX) -shared -fPIC -include utest/libsys.h -o $@ $^ -ldl
-TEST_PMC_OBJS:=$(foreach n,pmc_dump,utest/$n.o)
+TEST_PMC_OBJS:=$(foreach n,pmc_dump pmc_build,utest/$n.o)
 $(TEST_PMC_OBJS): CXXFLAGS_UTEST+=-include utest/libsys.h -Iptp-tools
-$(UTEST_PMC): $(OBJ_DIR)/utest_sys.o $(TEST_PMC_OBJS) $(LIB_NAME_A)\
+$(UTEST_PMC): $(OBJ_DIR)/utest_sys.o $(LIB_NAME_A) $(TEST_PMC_OBJS)\
   objs/pmc_dump.o $(TEST_LIBSYS_PMC)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LIB_NAME_A)\
 	  $(GTEST_LIB_FLAGS) -o $@

@@ -386,7 +386,7 @@ class Message
      * @return planned message size or negative for error
      * @note the planned message size is based on the management TLV id,
      *  action and the dataSend set by the user.
-     * User can use the size to allocate proper buffer for sending
+     * You can use the size to allocate proper buffer for sending
      */
     ssize_t getMsgPlanedLen() const;
     /* Parsed message functions */
@@ -460,11 +460,20 @@ class Message
     /**
      * Get last parsed message dataField
      * @return pointer to last parsed message dataField or null
-     * @note User need to cast to proper structure depends on
-     *  management TLV ID.
-     * @note User @b should not try to free this TLV object
+     * @note You need to cast to proper structure depends on
+     *  management TLV ID, get with  .
+     * @note You @b should not try to free or change this TLV object
      */
     const BaseMngTlv *getData() const { return m_dataGet.get(); }
+    /**
+     * Get send message dataField
+     * @return pointer to send message dataField or null
+     * @note You need to cast to proper structure depends on
+     *  management TLV ID.
+     * @note In case you release this memory,
+     *  you should call @code clearData() @endcode
+     */
+    const BaseMngTlv *getSendData() const { return m_dataSend; }
     /**
      * Get management error code ID
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
@@ -544,7 +553,7 @@ class Message
      * @return management TLV or null
      * @note return null if TLV is not management
      * @note this function is for scripting, normal C++ can just cast
-     * @note User @b should not try to free this TLV object
+     * @note You @b should not try to free this TLV object
      */
     const BaseMngTlv *getSigMngTlv(size_t position) const;
 };
