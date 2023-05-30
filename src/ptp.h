@@ -19,7 +19,6 @@
 #include <time.h>
 #include <net/if.h>
 #include <linux/ethtool.h>
-#include "bin.h"
 #include "types.h"
 
 __PTPMGMT_NAMESPACE_BEGIN

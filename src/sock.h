@@ -24,7 +24,6 @@
 #include <linux/if_packet.h>
 #include "cfg.h"
 #include "ptp.h"
-#include "bin.h"
 #include "buf.h"
 
 __PTPMGMT_NAMESPACE_BEGIN

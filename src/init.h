@@ -12,9 +12,7 @@
 #ifndef __PTPMGMT_INIT_H
 #define __PTPMGMT_INIT_H
 
-#include <memory>
 #include "msg.h"
-#include "ptp.h"
 #include "opt.h"
 #include "sock.h"
 

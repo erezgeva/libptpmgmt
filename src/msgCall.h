@@ -11,7 +11,6 @@
 #ifndef __PTPMGMT_MSG_CALL_H
 #define __PTPMGMT_MSG_CALL_H
 
-#include <memory>
 #include "callDef.h"
 
 __PTPMGMT_NAMESPACE_BEGIN

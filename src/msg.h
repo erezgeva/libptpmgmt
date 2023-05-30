@@ -14,7 +14,6 @@
 #ifndef __PTPMGMT_MSG_H
 #define __PTPMGMT_MSG_H
 
-#include <vector>
 #include <functional>
 #include "cfg.h"
 #include "buf.h"
