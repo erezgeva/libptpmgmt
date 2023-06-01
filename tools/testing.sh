@@ -7,14 +7,14 @@
 #
 # testing script
 #
-# probe libraries according to Debian locations
+# Probe libraries according to Debian locations
 ###############################################################################
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
  local file i opt n cmds use_asan
  # Default values
- local -r def_ifName=enp0s31f6
+ local -r def_ifName=eth0
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
  local -r def_linuxptpLoc=../linuxptp
  # environment variables
@@ -23,12 +23,13 @@ main()
  envVals['cfgFile']='PTP_CFG_FILE'
  envVals['linuxptpLoc']='PTP_PATH'
  ##############################################################################
- while getopts 'i:c:l:as' opt; do
+ while getopts 'i:f:l:asp' opt; do
    case $opt in
      i) local -r ifName="$OPTARG" ;;
-     c) local -r cfgFile="$OPTARG" ;;
+     f) local -r cfgFile="$OPTARG" ;;
      l) local -r linuxptpLoc="$OPTARG" ;;
-     a) use_asan=true ;;
+     p) local -r use_sim_phc=true ;;
+     a) use_asan=true ;;             # Use AddressSanitizer
      s) local -r probeSystem=true ;; # Use system libraries
    esac
  done
@@ -50,12 +51,11 @@ main()
  fi
  ##############################################################################
  # Root does not need sudo, we assume proper root :-)
+ local out
+ local -i last_ret
  if [[ $(id -u) -ne 0 ]]; then
-   set +e
-   sudo id &> /dev/null
-   local -ir ret=$?
-   set -e
-   if [[ $ret -ne 0 ]]; then
+   ecmd sudo id
+   if [[ $last_ret -ne 0 ]]; then
      echo "Script need to run pmc tool with sudo"
      echo "But sudo is not available!!"
      exit -1
@@ -86,28 +86,30 @@ main()
        sed -i "/$reg/ s#GRP).*#GRP|S_IROTH|S_IWOTH)#" "$uds"
    fi
    make --no-print-directory -C "$linuxptpLoc"
-   local -r pmctool="$sudo\"$linuxptpLoc/pmc\""
-   local -r phcctrltool="$sudo$linuxptpLoc/phc_ctl"
+   local -r pmctool="$sudo'$linuxptpLoc/pmc'"
+   local -r phcctrltool="$linuxptpLoc/phc_ctl"
    local -r ptpLocCfrm=true
  else
    [[ -n "$setUds" ]] || local -r useSudo="$sudo"
    local -r pmctool="$sudo/usr/sbin/pmc"
-   local -r phcctrltool="$sudo/usr/sbin/phc_ctl"
+   local -r phcctrltool="/usr/sbin/phc_ctl"
  fi
  ##############################################################################
  # script languages source
  local -r mach=$(uname -m)
  local -r fmach="/$mach*"
- local ldPathPerl ldPathRuby ldPathPython3 ldPathPhp ldPathTcl\
-       ldPathJson needCmpl ldPathLua1 ldPathLua2 ldPathLua3
+ local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
+       ldPathPhp ldPathTcl ldPathJson needCmpl\
+       ldPathLua1 ldPathLua2 ldPathLua3
  # Lua 5.4 need lua-posix version 35
  local -r luaVersions='1 2 3'
  local -r pyVersions='3'
- getFirstFile "/usr/lib$fmach/libptpmgmt.so*"
+ local -r libptpm='/libptpmgmt.so'
+ getFirstFile "/usr/lib$fmach$libptpm*"
  if [[ -f "$file" ]] && [[ -n "$probeSystem" ]]; then
    probeLibs
  else
-   local -r ldPath='LD_PRELOAD=./libptpmgmt.so'
+   local -r ldPath="LD_PRELOAD=.$libptpm"
    needCmpl=y
    # We need all!
    ldPathPerl="$ldPath PERL5LIB=perl"
@@ -116,7 +118,8 @@ main()
      eval "ldPathLua$i='$ldPath LUA_CPATH=\"lua/5.$i/?.so;;\"'"
    done
    for i in $pyVersions; do
-     eval "ldPathPython$i=\"$ldPath PYTHONPATH=python:python/$i\""
+     eval "ldPathPython$i='PYTHONPATH=python:python/$i'"
+     eval "ldPrePathPython$i='$ldPath '"
    done
    ldPathPhp="$ldPath PHPRC=php"
    ldPathTcl="$ldPath TCLLIBPATH=tcl"
@@ -196,7 +199,7 @@ compare_pmc()
    ALTERNATE_TIME_OFFSET_ENABLE POWER_PROFILE_SETTINGS_NP'
  local -r setmsg="set PRIORITY2 137"
  local -r verify="get PRIORITY2"
- for n in $tlvs; do cmds+=" \"get $n\"";done
+ for n in $tlvs; do cmds+=" 'get $n'";done
 
  if $use_asan; then
    printf "\n * Run libptpmgmt pmc with AddressSanitizer\n"
@@ -205,9 +208,9 @@ compare_pmc()
  fi
 
  printf "\n * Create output with linuxptp pmc\n"
- local pmcOut=$(eval "$pmctool $runOptions \"$setmsg\"")
+ local pmcOut=$(eval "$pmctool $runOptions '$setmsg'")
  pmcOut+="\n"
- pmcOut+=$(eval "$pmctool $runOptions \"$verify\"")
+ pmcOut+=$(eval "$pmctool $runOptions '$verify'")
  pmcOut+="\n"
  pmcOut+=$(time eval "$pmctool $runOptions $cmds" | grep -v ^sending:)
 
@@ -216,9 +219,9 @@ compare_pmc()
  # sys   0m0.002s
 
  printf "\n * Create output with libptpmgmt\n"
- local libptpOut=$(eval "$useSudo$pmclibtool $runOptions \"$setmsg\"")
+ local libptpOut=$(eval "$useSudo$pmclibtool $runOptions '$setmsg'")
  libptpOut+="\n"
- libptpOut+=$(eval "$useSudo$pmclibtool $runOptions \"$verify\"")
+ libptpOut+=$(eval "$useSudo$pmclibtool $runOptions '$verify'")
  libptpOut+="\n"
  libptpOut+=$(time eval "$useSudo$pmclibtool $runOptions $cmds" |\
    grep -v ^sending:)
@@ -227,10 +230,11 @@ compare_pmc()
  # user  0m0.001s
  # sys   0m0.004s
 
+ eecmd "diff <(printf \"$pmcOut\") <(printf \"$libptpOut\")"
  printf "\n * 'protocolAddress', 'timeSource', 'version',%s\n%s\n\n"\
           " 'portState' and 'delayMechanism' use enum values"\
           " * Statistics may apprear"
- diff <(printf "$pmcOut") <(printf "$libptpOut") | grep '^[0-9-]' -v
+ printf "$out" | grep '^[0-9-]' -v
 
  if $use_valgrind; then
    printf "\n * Valgrid test"
@@ -239,6 +243,20 @@ compare_pmc()
  fi
 }
 ###############################################################################
+ecmd()
+{
+ set +e
+ out="`$@ 2>&1`"
+ last_ret=$?
+ set -e
+}
+eecmd()
+{
+ set +e
+ out=$(eval "$@" 2>&1)
+ last_ret=$?
+ set -e
+}
 test_scripts()
 { # Test script languages wrappers
  local perlOut
@@ -264,8 +282,9 @@ maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
 Events size 1, seq[0]=1, ts[0]=4.500000000
 "
  enter perl
+ eecmd "diff <(printf '$scriptOut') <(printf \"$perlOut\n\")"
  printf "\n * We except real 'user desc' on '>'\n"
- diff <(printf "$scriptOut") <(printf "$perlOut\n") | grep '^[0-9-]' -v
+ printf "$out" | grep '^[0-9-]' -v
  enter ruby
  enter lua
  enter python
@@ -275,21 +294,22 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
 }
 do_perl()
 {
- perlOut="$(time eval "$ldPathPerl $useSudo perl/test.pl $runOptions")"
+ perlOut="$(time eval "$useSudo$ldPathPerl perl/test.pl $runOptions")"
 }
 test_json()
 { # Use perl
  printf "\n =====  Test JSON  ===== \n\n"
- eval "$ldPathJson $useSudo ./testJson.pl | jsonlint"
+ eval "$useSudo$ldPathJson tools/testJson.pl $cfgFile | jsonlint"
  if $use_valgrind; then
    printf "\n * Valgrid test of testJson.pl"
-   eval "$ldPathJson $useSudo valgrind --read-inline-info=yes\
-     ./testJson.pl" |& sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+   eval "$useSudo$ldPathJson valgrind --read-inline-info=yes\
+     tools/testJson.pl $cfgFile " |&\
+     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
 }
 do_ruby()
 {
- time eval "$ldPathRuby $useSudo ruby/test.rb $runOptions" |\
+ time eval "$useSudo$ldPathRuby ruby/test.rb $runOptions" |\
    diff - <(printf "$perlOut\n")
 }
 do_lua()
@@ -297,7 +317,7 @@ do_lua()
  for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
    local -n need="ldPathLua$i"
-   time eval "$need $useSudo lua5.$i lua/test.lua $runOptions" |\
+   time eval "$useSudo$need lua5.$i lua/test.lua $runOptions" |\
      diff - <(printf "$perlOut\n")
  done
 }
@@ -308,12 +328,13 @@ do_python()
      continue
    fi
    local -n need="ldPathPython$i"
+   local -n pneed="ldPrePathPython$i"
    if [[ -n "$need" ]]; then
      [[ -f python/$i/_ptpmgmt.so ]] || continue
-     eval "$need py${i}compile python/ptpmgmt.py"
+     eval "$pneed$need py${i}compile python/ptpmgmt.py"
    fi
    printf "\n $(readlink $(command -v python$i)) ---- \n"
-   time eval "$need $useSudo python$i python/test.py $runOptions" |\
+   time eval "$useSudo$pneed$need python$i python/test.py $runOptions" |\
      diff - <(printf "$perlOut\n")
    if [[ -n "$need" ]]; then
      eval "py${i}clean python"
@@ -326,7 +347,7 @@ do_go()
  if [[ ! -x $gtest ]]; then
    CGO_LDFLAGS="-lm -lptpmgmt" go build -o $gtest $gtest.go
  fi
- time eval "$ldPath $useSudo $gtest $runOptions" |\
+ time eval "$useSudo$ldPath $gtest $runOptions" |\
    diff - <(printf "$perlOut\n")
 }
 parse_phc_out()
@@ -351,48 +372,72 @@ test_phc_ctl()
    echo "python3 is not installed on system!!!"
    return
  fi
- if [[ -n "$ldPathPython3" ]]; then
+ local need="$ldPathPython3"
+ local pneed="$ldPrePathPython3"
+ if [[ -n "$need" ]]; then
    if ! [[ -f python/3/_ptpmgmt.so ]]; then
      echo "Fail to find python3 library!!!"
      return
    fi
-   eval "$ldPathPython3 py3compile python/ptpmgmt.py"
+   eval "$pneed$need py3compile python/ptpmgmt.py"
  fi
  local -r matchPhc='phc_ctl[^\[]*\[[[:digit:]]+\.[[:digit:]]+\]'
  local -r runPhc="$ifName freq 20000000 set 0 wait 4 adj 4 get"
- local parseOut runOut
+ if [[ -n "$use_sim_phc" ]]; then
+   local -r ldPhcPath='LD_PRELOAD=./objs/ptp4l_sim.so'
+   if [[ -n "$pneed" ]]; then
+     pneed="$ldPhcPath:.$libptpm "
+   else
+     pneed="$ldPhcPath "
+   fi
+   local -r runCtrl="$ldPhcPath $phcctrltool"
+ else
+   local -r runCtrl="$sudo$phcctrltool"
+   pneed="$sudo$pneed"
+ fi
+ local parseOut
  printf " * Create output with linuxptp phc_ctrl, wait 4 seconds ...\n"
- runOut=$(eval "$phcctrltool $runPhc" 2>&1)
- parse_phc_out "$runOut"
+ eecmd "$runCtrl $runPhc"
+ if [[ $last_ret -ne 0 ]]; then
+   printf "\n @@@ linuxptp phc_ctrl return with error, no point to procced. @@@\n"
+   return
+ fi
+ parse_phc_out "$out"
  if [[ -z "$parseOut" ]]; then
-   echo "No output !!!"
+   printf "\n @@@ linuxptp phc_ctrl provides no output!!! @@@\n"
    return
  fi
  local phcOut="$parseOut"
  printf " * Create output with libptpmgmt, wait 4 seconds ...\n"
- runOut=$(eval "$sudo $ldPathPython3 $phcctrllibtool $runPhc")
- parse_phc_out "$runOut"
- if [[ -z "$parseOut" ]]; then
-   echo "No output !!!"
+ eecmd $pneed$need $phcctrllibtool $runPhc
+ if [[ $last_ret -ne 0 ]]; then
+   printf "\n @@@ libptpmgmt phc_ctrl return with error, no point to procced. @@@\n"
    return
  fi
- runOut=$(diff <(printf "$phcOut") <(printf "$parseOut"))
- if [[ -n "$runOut" ]]; then
-   echo "$runOut" | grep '^[0-9-]' -v
+ parse_phc_out "$out"
+ if [[ -z "$parseOut" ]]; then
+   printf "\n @@@ libptpmgmt phc_ctrl provides no output!!! @@@\n"
+   return
+ fi
+ eecmd "diff <(printf '$phcOut') <(printf '$parseOut')"
+ if [[ $last_ret -ne 0 ]]; then
+   echo "$out" | grep '^[0-9-]' -v
+ else
+   echo " * Equal output $out*"
  fi
  if $use_valgrind; then
    printf "\n * Valgrid test of phc_ctl"
-   eval "$sudo $ldPathPython3 PYTHONMALLOC=malloc"\
+   eval "$pneed$need PYTHONMALLOC=malloc"\
      " valgrind --read-inline-info=yes"\
      " $phcctrllibtool $ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
- [[ -z "$ldPathPython3" ]] || py3clean python
+ [[ -z "$need" ]] || py3clean python
 }
 do_php()
 {
  [[ -z "$ldPathPhp" ]] || php/php_ini.sh php/
- time eval "$ldPathPhp $useSudo php/test.php $runOptions" |\
+ time eval "$useSudo$ldPathPhp php/test.php $runOptions" |\
    diff - <(printf "$perlOut\n")
 }
 do_tcl()
@@ -404,7 +449,7 @@ do_tcl()
    fi
    tcl/pkgIndex_tcl.sh tcl
  fi
- time eval "$ldPathTcl $useSudo tcl/test.tcl $runOptions" |\
+ time eval "$useSudo$ldPathTcl tcl/test.tcl $runOptions" |\
    diff - <(printf "$perlOut\n")
  sed -i 's/^load .*/package require ptpmgmt/' tcl/test.tcl
 }
@@ -436,7 +481,7 @@ probeLibs()
    jsonCount='jsonCount + 1'
  fi
  # One from JSON plugin is sufficient
- if [[ $jsonCount -eq 0 ]];  then
+ if [[ $jsonCount -eq 0 ]]; then
    needCmpl=y
    ldPathJson="LD_LIBRARY_PATH=."
  fi
@@ -464,7 +509,7 @@ probeLibs()
  for i in $pyVersions; do
    getFirstFile "/usr/lib/python$i*/dist-packages/_ptpmgmt.*$mach*.so"
    if ! [[ -f "$file" ]]; then
-     eval "ldPathPython$i=\"PYTHONPATH=python:python/$i\""
+     eval "ldPathPython$i='PYTHONPATH=python:python/$i'"
    fi
  done
  [[ -z "$needPython3" ]] || needCmpl=y

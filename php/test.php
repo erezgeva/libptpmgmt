@@ -226,7 +226,7 @@ function main($cfg_file)
   return 0;
 }
 
-if($opt->parse_options($argv) == Options_OPT_DONE) {
+if($opt->parse_options($argv) == Options::OPT_DONE) {
   $cfg_file = $opt->val('f');
   if($cfg_file == "") {
     $cfg_file = DEF_CFG_FILE;

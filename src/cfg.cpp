@@ -97,8 +97,6 @@ bool ConfigSection::set_val(char *line)
     switch(idx) {
         // String values
         case uds_address_val:
-            if(*val != '/' || strlen(val) < 2)
-                return false;
             m_str_vals[idx - str_base_val] = val;
             break;
         // MAC address values

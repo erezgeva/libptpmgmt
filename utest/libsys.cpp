@@ -69,6 +69,9 @@ void useRoot(bool n) {rootMode = n;}
     if(_##name == nullptr) {\
         fprintf(stderr, "Fail allocating " #name "\n");\
         fail = true;}
+/* Allocation can fail, calling need verify! */
+#define sysFuncAgZ(ret, name, ...)\
+    _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);
 sysFuncDec(int, close, int)
 sysFuncDec(int, select, int, fd_set *, fd_set *, fd_set *, timeval *)
 sysFuncDec(int, socket, int, int, int)
@@ -121,8 +124,8 @@ void initLibSys(void)
     sysFuncAgn(long, sysconf, int)
     sysFuncAgn(int, open, const char *, int, ...)
     sysFuncAgn(ssize_t, read, int, void *, size_t)
-    sysFuncDec(int, stat, const char *, struct stat *)
-    sysFuncDec(int, stat64, const char *, struct stat64 *)
+    sysFuncAgZ(int, stat, const char *, struct stat *)
+    sysFuncAgZ(int, stat64, const char *, struct stat64 *)
     sysFuncAgn(int, __xstat, int, const char *, struct stat *)
     sysFuncAgn(int, __xstat64, int, const char *, struct stat64 *)
     sysFuncAgn(char *, realpath, const char *, char *)
@@ -674,6 +677,13 @@ ssize_t read(int fd, void *buf, size_t count)
     return retErr(EINVAL);
 }
 // glibc stat fucntions
+#define STAT_RET(nm)\
+    if(!testMode) {\
+        if(_##nm != nullptr)\
+            _##nm(name, sp);\
+        else\
+            ___x##nm(3, name, sp);\
+    }
 #define STAT_BODY\
     if(sp == nullptr)\
         return retErr(EINVAL);\
@@ -684,12 +694,12 @@ ssize_t read(int fd, void *buf, size_t count)
     return 0
 int stat(const char *name, struct stat *sp)
 {
-    retTest(stat, name, sp);
+    STAT_RET(stat);
     STAT_BODY;
 }
 int stat64(const char *name, struct stat64 *sp)
 {
-    retTest(stat64, name, sp);
+    STAT_RET(stat64);
     STAT_BODY;
 }
 int __xstat(int ver, const char *name, struct stat *sp)

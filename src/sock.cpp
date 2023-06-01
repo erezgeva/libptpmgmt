@@ -153,7 +153,7 @@ bool SockBase::tpoll(uint64_t &timeout_ms) const
 static inline bool testUnix(const std::string &str)
 {
     size_t len = str.length();
-    if(len < 2 || len > unix_path_max || str.substr(0, 1) != "/") {
+    if(len == 0 || len > unix_path_max) {
         PTPMGMT_ERROR("Wrong unix file name: %s", str.c_str());
         return false;
     }

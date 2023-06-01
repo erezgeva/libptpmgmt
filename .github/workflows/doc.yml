@@ -14,7 +14,7 @@ name: deploy doxygen documents
 on:
   workflow_dispatch:
   release:
-    types: [published]
+    types: published
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:

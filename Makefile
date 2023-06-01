@@ -298,8 +298,7 @@ endif # find '-O'
 override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -Isrc
 CXXFLAGS_GO:=$(filter-out -I%,$(CXXFLAGS))
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
-ifeq ($(USE_ASAN),)
-else
+ifneq ($(USE_ASAN),)
 # Use https://github.com/google/sanitizers/wiki/AddressSanitizer
 ASAN_FLAGS:=$(addprefix -fsanitize=,address pointer-compare pointer-subtract\
   undefined leak)

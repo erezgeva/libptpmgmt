@@ -26,10 +26,9 @@ ifneq ($(GTEST_LIB_FLAGS),)
 UTEST:=$(OBJ_DIR)/utest
 UTEST_SYS:=$(OBJ_DIR)/utest_sys
 UTEST_JSON_LOAD:=$(OBJ_DIR)/utest_json_load
+UTEST_SRCS:=bin buf cfg err mngIds msg2json msgCall msg opt proc sig types ver
+TEST_OBJS:=$(foreach n,$(UTEST_SRCS),utest/$n.o)
 UTEST_SYS_SRCS:=sock ptp init
-TEST_OBJS:=$(patsubst %.cpp,%.o,$(filter-out\
-  $(foreach n,json2msg jsonLoad libsys pmc_dump pmc_build libsys_pmc\
-  $(UTEST_SYS_SRCS),utest/$n.cpp),$(wildcard utest/*.cpp)))
 TEST_SYS_OBJS:=$(foreach n,$(UTEST_SYS_SRCS),utest/$n.o)
 TEST_LIBSYS:=objs/libsys.so
 # Main for gtest
@@ -84,3 +83,7 @@ utest_pmc: $(HEADERS_GEN_COMP) $(UTEST_PMC)
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 utest_cpp: $(UTEST_CPP_TGT)
 endif # GTEST_LIB_FLAGS
+PTP4L_SIM:=objs/ptp4l_sim.so
+$(PTP4L_SIM): utest/ptp4l_sim.cpp
+	$(Q_CC)$(CXX) -shared -fPIC -o $@ $^ -ldl
+ptp4l_sim: $(PTP4L_SIM)
