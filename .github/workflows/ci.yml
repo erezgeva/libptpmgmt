@@ -13,7 +13,7 @@ name: continuous integration
 on: [push, pull_request]
 
 jobs:
-  continuous-integration:
+  ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:

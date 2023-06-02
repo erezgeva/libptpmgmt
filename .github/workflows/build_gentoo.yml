@@ -16,7 +16,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  build-and-push-gentoo:
+  gentoo:
     runs-on: ubuntu-latest
     permissions:
       contents: read

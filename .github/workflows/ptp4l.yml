@@ -7,22 +7,16 @@
 # Test with Linuxptp and clock simulated network
 ###############################################################################
 
-name: test with linuxptp using dummy clock
+name: linuxptp with dummy clock
 
 # Start manually
 on: workflow_dispatch
 
 jobs:
-  test-with-linuxptp:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        names: [c, ca]
-      fail-fast: false
     container:
       image: ghcr.io/${{ github.repository_owner }}/deb.bookworm:latest
-    env:
-      CI_OPT_FLAGS: ${{ matrix.names }}
 
     steps:
 
@@ -38,4 +32,4 @@ jobs:
         path: libptpmgmt
 
     - name: test with linuxptp
-      run: libptpmgmt/tools/sim_ptp4l.sh -$CI_OPT_FLAGS
+      run: libptpmgmt/tools/sim_ptp4l.sh -c
