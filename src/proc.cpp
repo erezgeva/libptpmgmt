@@ -71,33 +71,40 @@ MNG_PARSE_ERROR_e MsgProc::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
     // The mng ID is not supported yet
     return MNG_PARSE_ERROR_OK;
 }
-#define procInt(n) \
-    bool MsgProc::proc(uint##n##_t &val) \
-    { \
-        if(m_left < (ssize_t)sizeof(uint##n##_t)) \
-            return true; \
-        if(m_build) \
-            *(uint##n##_t *)m_cur = cpu_to_net##n(val); \
-        else \
-            val = net_to_cpu##n(*(uint##n##_t *)m_cur); \
-        move(sizeof(uint##n##_t)); \
-        return false; \
-    } \
-    bool MsgProc::proc(int##n##_t &val) \
-    { \
-        if(m_left < (ssize_t)sizeof(int##n##_t)) \
-            return true; \
-        if(m_build) \
-            *(uint##n##_t *)m_cur = cpu_to_net##n((uint##n##_t)val); \
-        else \
-            val = (int##n##_t)net_to_cpu##n(*(uint##n##_t *)m_cur); \
-        move(sizeof(int##n##_t)); \
-        return false; \
+template <typename T> bool MsgProc::procB8(T &val)
+{
+    if(m_left < (ssize_t)sizeof(T))
+        return true;
+    if(m_build)
+        *(T *)m_cur = val;
+    else
+        val = *(T *)m_cur;
+    move(sizeof(T));
+    return false;
+}
+#define B8(t) template bool MsgProc::procB8<t>(t &)
+B8(uint8_t);
+B8(int8_t);
+template <typename T, typename U> bool MsgProc::procBN(T &val)
+{
+    if(m_left < (ssize_t)sizeof(T))
+        return true;
+    U v;
+    if(m_build) {
+        v = cpu_to_net((U)val);
+        memcpy(m_cur, &v, sizeof(T));
+    } else {
+        memcpy(&v, m_cur, sizeof(T));
+        val = (T)net_to_cpu(v);
     }
-procInt(8)
-procInt(16)
-procInt(32)
-procInt(64)
+    move(sizeof(T));
+    return false;
+}
+#define BN_(t, u) template bool MsgProc::procBN<t,u>(t &)
+#define BN(n) BN_(uint##n##_t,uint##n##_t); BN_(int##n##_t,uint##n##_t)
+BN(16);
+BN(32);
+BN(64);
 bool MsgProc::proc48(UInteger48_t &val)
 {
     uint16_t high;

@@ -39,9 +39,8 @@ main()
   local -r names='bullseye bookworm'
   local -r main_arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
-  local -r lua54='lua5.4 liblua5.4-dev@'
-  local -r dpkgs_bullseye="vim-gtk $lua54 dh-golang"
-  local -r dpkgs_bookworm="reuse vim-gtk3 $lua54 dh-golang"
+  local -r dpkgs_bullseye="vim-gtk"
+  local -r dpkgs_bookworm="reuse vim-gtk3"
   local no_cache use_github gh_ns args
   tool_docker_get_opts "$@"
   if [[ -z "$use_github" ]]; then
@@ -56,7 +55,7 @@ main()
   # Packages per architecture
   for n in libstdc++6 liblua5.1-0-dev liblua5.2-dev liblua5.3-dev\
            libpython3-all-dev ruby-dev tcl-dev libpython3-dev\
-           libfastjson-dev libgtest-dev
+           libfastjson-dev libgtest-dev liblua5.4-dev lua-posix
   do
     # Main architecture
     dpkgs_all+=" $n:$main_arch"

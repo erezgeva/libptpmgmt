@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2023 Erez Geva
+#
+# Test with Linuxptp and clock simulated network
+###############################################################################
+
+name: test with linuxptp using dummy clock
+
+# Start manually
+on: workflow_dispatch
+
+jobs:
+  test-with-linuxptp:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        names: [c, ca]
+      fail-fast: false
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/deb.bookworm:latest
+    env:
+      CI_OPT_FLAGS: ${{ matrix.names }}
+
+    steps:
+
+    - name: checkout linuxptp repository
+      uses: actions/checkout@v3
+      with:
+        repository: richardcochran/linuxptp
+        path: linuxptp
+
+    - name: checkout repository
+      uses: actions/checkout@v3
+      with:
+        path: libptpmgmt
+
+    - name: test with linuxptp
+      run: libptpmgmt/tools/sim_ptp4l.sh -$CI_OPT_FLAGS

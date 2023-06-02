@@ -36,7 +36,9 @@ static bool did_init = false;
 static const char ptp_dev[] = "/dev/ptp";
 static timespec start_ts = {1600000000, 0};
 /*****************************************************************************/
-#define sysFuncDec(ret, name, ...) ret (*_##name)(__VA_ARGS__);
+#define sysFuncDec(ret, name, ...)\
+    ret (*_##name)(__VA_ARGS__);\
+    extern "C" ret name(__VA_ARGS__);
 #define sysFuncAgn(ret, name, ...)\
     _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);\
     if(_##name == nullptr) {\
@@ -76,14 +78,19 @@ static void initPtpSim(void)
     did_init = false;
 }
 /*****************************************************************************/
-int clock_gettime(clockid_t, timespec *ts)
+int clock_gettime(clockid_t id, timespec *ts)
 {
-    ts->tv_sec = start_ts.tv_sec;
-    ts->tv_nsec = start_ts.tv_nsec;
-    return 0;
+    if(id < 0) {
+        ts->tv_sec = start_ts.tv_sec++;
+        ts->tv_nsec = start_ts.tv_nsec;
+        return 0;
+    }
+    return orgFunc(clock_gettime, id, ts);
 }
-int clock_settime(clockid_t, const timespec *)
+int clock_settime(clockid_t id, const timespec *)
 {
+    if(id < 0)
+        start_ts.tv_sec = 1;
     return 0;
 }
 int clock_adjtime(clockid_t clk_id, timex *tmx)

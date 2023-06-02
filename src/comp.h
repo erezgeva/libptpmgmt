@@ -103,25 +103,17 @@ __PTPMGMT_NAMESPACE_BEGIN
     host byte order to network byte order */
 
 /**
- * convert unsigned 8 bits integer from host order to network order
- * @param[in] value host order unsigned 16 bits integer
- * @return network order unsigned 16 bits integer
- * @note provide function for consistence, as byte do no need conversion!
- */
-inline uint16_t cpu_to_net8(uint8_t value) {return value;}
-/**
- * convert unsigned 8 bits integer from network order to host order
- * @param[in] value network order unsigned 16 bits integer
- * @return host order unsigned 16 bits integer
- * @note provide function for consistence, as byte do no need conversion!
- */
-inline uint16_t net_to_cpu8(uint8_t value) {return value;}
-/**
  * convert unsigned 16 bits integer from host order to network order
  * @param[in] value host order unsigned 16 bits integer
  * @return network order unsigned 16 bits integer
  */
 inline uint16_t cpu_to_net16(uint16_t value) {return htobe16(value);}
+/**
+ * convert unsigned 16 bits integer from host order to network order
+ * @param[in] value host order unsigned 16 bits integer
+ * @return network order unsigned 16 bits integer
+ */
+inline uint16_t cpu_to_net(uint16_t value) {return htobe16(value);}
 /**
  * convert unsigned 16 bits integer from network order to host order
  * @param[in] value network order unsigned 16 bits integer
@@ -129,11 +121,23 @@ inline uint16_t cpu_to_net16(uint16_t value) {return htobe16(value);}
  */
 inline uint16_t net_to_cpu16(uint16_t value) {return be16toh(value);}
 /**
+ * convert unsigned 16 bits integer from network order to host order
+ * @param[in] value network order unsigned 16 bits integer
+ * @return host order unsigned 16 bits integer
+ */
+inline uint16_t net_to_cpu(uint16_t value) {return be16toh(value);}
+/**
  * convert unsigned 32 bits integer from host order to network order
  * @param[in] value host order unsigned 32 bits integer
  * @return network order unsigned 32 bits integer
  */
 inline uint32_t cpu_to_net32(uint32_t value) {return htobe32(value);}
+/**
+ * convert unsigned 32 bits integer from host order to network order
+ * @param[in] value host order unsigned 32 bits integer
+ * @return network order unsigned 32 bits integer
+ */
+inline uint32_t cpu_to_net(uint32_t value) {return htobe32(value);}
 /**
  * convert unsigned 32 bits integer from network order to host order
  * @param[in] value network order unsigned 32 bits integer
@@ -141,17 +145,35 @@ inline uint32_t cpu_to_net32(uint32_t value) {return htobe32(value);}
  */
 inline uint32_t net_to_cpu32(uint32_t value) {return be32toh(value);}
 /**
+ * convert unsigned 32 bits integer from network order to host order
+ * @param[in] value network order unsigned 32 bits integer
+ * @return host order unsigned 32 bits integer
+ */
+inline uint32_t net_to_cpu(uint32_t value) {return be32toh(value);}
+/**
  * convert unsigned 64 bits integer from host order to network order
  * @param[in] value host order unsigned 64 bits integer
  * @return network order unsigned 64 bits integer
  */
 inline uint64_t cpu_to_net64(uint64_t value) {return htobe64(value);}
 /**
+ * convert unsigned 64 bits integer from host order to network order
+ * @param[in] value host order unsigned 64 bits integer
+ * @return network order unsigned 64 bits integer
+ */
+inline uint64_t cpu_to_net(uint64_t value) {return htobe64(value);}
+/**
  * convert unsigned 64 bits integer from network order to host order
  * @param[in] value network order unsigned 64 bits integer
  * @return host order unsigned 64 bits integer
  */
 inline uint64_t net_to_cpu64(uint64_t value) {return be64toh(value);}
+/**
+ * convert unsigned 64 bits integer from network order to host order
+ * @param[in] value network order unsigned 64 bits integer
+ * @return host order unsigned 64 bits integer
+ */
+inline uint64_t net_to_cpu(uint64_t value) {return be64toh(value);}
 
 /**
  * convert unsigned 64 bits integer from host order to little endian order
@@ -216,16 +238,18 @@ struct MsgProc {
         m_size += val;
     }
     /* val in network order */
-    bool proc(uint8_t &val);
-    bool proc(uint16_t &val);
-    bool proc(uint32_t &val);
+    template <typename T> bool procB8(T &val);
+    bool proc(int8_t &val) { return procB8(val); }
+    bool proc(uint8_t &val) { return procB8(val); }
+    template <typename T, typename U> bool procBN(T &val);
+    bool proc(int16_t &val) { return procBN<int16_t, uint16_t>(val); }
+    bool proc(uint16_t &val) { return procBN<uint16_t, uint16_t>(val); }
+    bool proc(int32_t &val) { return procBN<int32_t, uint32_t>(val); }
+    bool proc(uint32_t &val) { return procBN<uint32_t, uint32_t>(val); }
+    bool proc(int64_t &val) { return procBN<int64_t, uint64_t>(val); }
+    bool proc(uint64_t &val) { return procBN<uint64_t, uint64_t>(val); }
     bool proc48(uint64_t &val);
-    bool proc(uint64_t &val);
-    bool proc(int8_t &val);
-    bool proc(int16_t &val);
-    bool proc(int32_t &val);
     bool proc48(int64_t &val);
-    bool proc(int64_t &val);
     bool proc(Float64_t &val);
     bool proc(std::string &str, uint16_t len);
     bool proc(Binary &bin, uint16_t len);

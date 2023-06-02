@@ -24,7 +24,9 @@ void useTestMode(bool n)
 const char *getPmcOut() {testMode = false; return pmc_out.c_str();}
 void useRoot(bool n) {}
 /*****************************************************************************/
-#define sysFuncDec(ret, name, ...) ret (*_##name)(__VA_ARGS__);
+#define sysFuncDec(ret, name, ...)\
+    ret (*_##name)(__VA_ARGS__);\
+    extern "C" ret name(__VA_ARGS__);
 #define sysFuncAgn(ret, name, ...)\
     _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);\
     if(_##name == nullptr) {\

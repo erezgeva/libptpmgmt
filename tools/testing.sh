@@ -12,7 +12,7 @@
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
- local file i opt n cmds use_asan
+ local file i opt n use_asan
  # Default values
  local -r def_ifName=eth0
  local -r def_cfgFile=/etc/linuxptp/ptp4l.conf
@@ -23,8 +23,9 @@ main()
  envVals['cfgFile']='PTP_CFG_FILE'
  envVals['linuxptpLoc']='PTP_PATH'
  ##############################################################################
- while getopts 'i:f:l:asp' opt; do
+ while getopts 'ci:f:l:asp' opt; do
    case $opt in
+     c) local do_config=true ;;
      i) local -r ifName="$OPTARG" ;;
      f) local -r cfgFile="$OPTARG" ;;
      l) local -r linuxptpLoc="$OPTARG" ;;
@@ -141,12 +142,18 @@ main()
    local -r phcctrllibtool=./ptp-tools/phc_ctl
  fi
  ##############################################################################
+ if [[ -n "$GITHUB_ACTIONS" ]]; then
+   local -r single_tlv=true
+ fi
+ ##############################################################################
  if [[ -n "$needCmpl" ]]; then
-   if ! [[ -f defs.mk ]]; then
+   printf " * build libptpmgmt\n"
+   if [[ -n "$do_config" ]]; then
+     make config
+   elif ! [[ -f defs.mk ]]; then
      echo "You must configure before you can compile!"
      return
    fi
-   printf " * build libptpmgmt\n"
    if [[ -n "$use_asan" ]]; then
      ASAN_OPTIONS='verbosity=1:strict_string_checks=1'
      ASAN_OPTIONS+=':detect_stack_use_after_return=1'
@@ -176,10 +183,11 @@ main()
    return
  fi
  compare_pmc
- ! $use_asan || return
- test_scripts
- test_json
- test_phc_ctl
+ if ! $use_asan; then
+   test_scripts
+   test_json
+   test_phc_ctl
+ fi
  printf "\n #####  Test End  #####\n"
 }
 ###############################################################################
@@ -199,11 +207,14 @@ compare_pmc()
    ALTERNATE_TIME_OFFSET_ENABLE POWER_PROFILE_SETTINGS_NP'
  local -r setmsg="set PRIORITY2 137"
  local -r verify="get PRIORITY2"
- for n in $tlvs; do cmds+=" 'get $n'";done
+ local -a acmds
+ for n in $tlvs; do acmds+=("get $n");done
+ local -r cmds="$(printf " '%s'" "${acmds[@]}")"
 
  if $use_asan; then
    printf "\n * Run libptpmgmt pmc with AddressSanitizer\n"
-   eval "$useSudo$pmclibtool $runOptions $cmds"
+   eval "$useSudo$pmclibtool $runOptions $cmds" > /dev/null
+   eval "$useSudo$pmclibtool $runOptions '$setmsg'" > /dev/null
    return
  fi
 
@@ -212,7 +223,14 @@ compare_pmc()
  pmcOut+="\n"
  pmcOut+=$(eval "$pmctool $runOptions '$verify'")
  pmcOut+="\n"
- pmcOut+=$(time eval "$pmctool $runOptions $cmds" | grep -v ^sending:)
+ if [[ -z "$single_tlv" ]]; then
+   pmcOut+=$(time eval "$pmctool $runOptions $cmds" | grep -v ^sending:)
+ else
+   for n in "${acmds[@]}"; do
+     pmcOut+=$(eval "$pmctool $runOptions '$n'" | grep -v ^sending:)
+     pmcOut+="\n"
+   done
+ fi
 
  # real  0m0.113s
  # user  0m0.009s
@@ -223,8 +241,16 @@ compare_pmc()
  libptpOut+="\n"
  libptpOut+=$(eval "$useSudo$pmclibtool $runOptions '$verify'")
  libptpOut+="\n"
- libptpOut+=$(time eval "$useSudo$pmclibtool $runOptions $cmds" |\
-   grep -v ^sending:)
+ if [[ -z "$single_tlv" ]]; then
+   libptpOut+=$(time eval "$useSudo$pmclibtool $runOptions $cmds" |\
+     grep -v ^sending:)
+ else
+   for n in "${acmds[@]}"; do
+     libptpOut+=$(eval "$useSudo$pmclibtool $runOptions '$n'" |\
+       grep -v ^sending:)
+     libptpOut+="\n"
+   done
+ fi
 
  # real  0m0.003s
  # user  0m0.001s
@@ -238,8 +264,17 @@ compare_pmc()
 
  if $use_valgrind; then
    printf "\n * Valgrid test"
-   $useSudo valgrind --read-inline-info=yes $pmclibtool $runOptions $cmds |&\
-     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+   if [[ -z "$single_tlv" ]]; then
+     $useSudo valgrind --read-inline-info=yes $pmclibtool $runOptions $cmds |&\
+       sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+   else
+     $useSudo valgrind --read-inline-info=yes $pmclibtool $runOptions\
+       'get CLOCK_DESCRIPTION' |&\
+       sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+   fi
+   printf "\n * Valgrid test with set"
+   $useSudo valgrind --read-inline-info=yes $pmclibtool $runOptions\
+     "$setmsg" |& sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
 }
 ###############################################################################
@@ -383,6 +418,7 @@ test_phc_ctl()
  fi
  local -r matchPhc='phc_ctl[^\[]*\[[[:digit:]]+\.[[:digit:]]+\]'
  local -r runPhc="$ifName freq 20000000 set 0 wait 4 adj 4 get"
+ local -r runPhcFast="$ifName freq 500000000 set 0 wait 0.1 adj 4 get"
  if [[ -n "$use_sim_phc" ]]; then
    local -r ldPhcPath='LD_PRELOAD=./objs/ptp4l_sim.so'
    if [[ -n "$pneed" ]]; then
@@ -409,7 +445,7 @@ test_phc_ctl()
  fi
  local phcOut="$parseOut"
  printf " * Create output with libptpmgmt, wait 4 seconds ...\n"
- eecmd $pneed$need $phcctrllibtool $runPhc
+ eecmd "$pneed$need $phcctrllibtool $runPhc"
  if [[ $last_ret -ne 0 ]]; then
    printf "\n @@@ libptpmgmt phc_ctrl return with error, no point to procced. @@@\n"
    return
@@ -429,7 +465,7 @@ test_phc_ctl()
    printf "\n * Valgrid test of phc_ctl"
    eval "$pneed$need PYTHONMALLOC=malloc"\
      " valgrind --read-inline-info=yes"\
-     " $phcctrllibtool $ifName freq 500000000 set 0 wait 0.1 adj 4 get" |&\
+     " $phcctrllibtool $runPhcFast" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
  [[ -z "$need" ]] || py3clean python

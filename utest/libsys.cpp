@@ -63,7 +63,9 @@ void useTestMode(bool n)
 }
 void useRoot(bool n) {rootMode = n;}
 /*****************************************************************************/
-#define sysFuncDec(ret, name, ...) ret (*_##name)(__VA_ARGS__);
+#define sysFuncDec(ret, name, ...)\
+    ret (*_##name)(__VA_ARGS__);\
+    extern "C" ret name(__VA_ARGS__);
 #define sysFuncAgn(ret, name, ...)\
     _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);\
     if(_##name == nullptr) {\

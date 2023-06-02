@@ -30,7 +30,7 @@ UTEST_SRCS:=bin buf cfg err mngIds msg2json msgCall msg opt proc sig types ver
 TEST_OBJS:=$(foreach n,$(UTEST_SRCS),utest/$n.o)
 UTEST_SYS_SRCS:=sock ptp init
 TEST_SYS_OBJS:=$(foreach n,$(UTEST_SYS_SRCS),utest/$n.o)
-TEST_LIBSYS:=objs/libsys.so
+TEST_LIBSYS:=$(OBJ_DIR)/libsys.so
 # Main for gtest
 $(OBJ_DIR)/utest_m.o: | $(OBJ_DIR)
 	$(Q)printf 'int main(int argc,char**argv)%s'\
@@ -48,7 +48,7 @@ $(TEST_SYS_OBJS): CXXFLAGS_UTEST+=-include utest/libsys.h
 utest/%.o: utest/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS_UTEST) $(GTEST_INC_FLAGS)\
 	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
-$(TEST_LIBSYS): utest/libsys.cpp
+$(TEST_LIBSYS): utest/libsys.cpp | $(OBJ_DIR)
 	$(Q_CC)$(CXX) -shared -fPIC -include utest/libsys.h -o $@ $^ -ldl
 $(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
@@ -68,14 +68,14 @@ $(UTEST_JSON_LOAD): $(OBJ_DIR)/utest_m.o utest/jsonLoad.o $(LIB_NAME_SO) |\
 utest_json_load: $(HEADERS_GEN_COMP) $(UTEST_JSON_LOAD)
 	$(call Q_UTEST,JSON_LOAD)LD_PRELOAD=./$(LIB_NAME_SO) LD_LIBRARY_PATH=.\
 	  $(UTEST_JSON_LOAD) $(GTEST_NO_COL) $(GTEST_FILTERS)
-TEST_LIBSYS_PMC:=objs/libsys_pmc.so
+TEST_LIBSYS_PMC:=$(OBJ_DIR)/libsys_pmc.so
 UTEST_PMC:=$(OBJ_DIR)/utest_pmc
-$(TEST_LIBSYS_PMC): utest/libsys_pmc.cpp
+$(TEST_LIBSYS_PMC): utest/libsys_pmc.cpp | $(OBJ_DIR)
 	$(Q_CC)$(CXX) -shared -fPIC -include utest/libsys.h -o $@ $^ -ldl
 TEST_PMC_OBJS:=$(foreach n,pmc_dump pmc_build,utest/$n.o)
 $(TEST_PMC_OBJS): CXXFLAGS_UTEST+=-include utest/libsys.h -Iptp-tools
 $(UTEST_PMC): $(OBJ_DIR)/utest_sys.o $(LIB_NAME_A) $(TEST_PMC_OBJS)\
-  objs/pmc_dump.o $(TEST_LIBSYS_PMC)
+  $(OBJ_DIR)/pmc_dump.o $(TEST_LIBSYS_PMC)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LIB_NAME_A)\
 	  $(GTEST_LIB_FLAGS) -o $@
 utest_pmc: $(HEADERS_GEN_COMP) $(UTEST_PMC)
@@ -83,7 +83,7 @@ utest_pmc: $(HEADERS_GEN_COMP) $(UTEST_PMC)
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 utest_cpp: $(UTEST_CPP_TGT)
 endif # GTEST_LIB_FLAGS
-PTP4L_SIM:=objs/ptp4l_sim.so
-$(PTP4L_SIM): utest/ptp4l_sim.cpp
+PTP4L_SIM:=$(OBJ_DIR)/ptp4l_sim.so
+$(PTP4L_SIM): utest/ptp4l_sim.cpp | $(OBJ_DIR)
 	$(Q_CC)$(CXX) -shared -fPIC -o $@ $^ -ldl
 ptp4l_sim: $(PTP4L_SIM)
