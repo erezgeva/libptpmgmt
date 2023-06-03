@@ -135,8 +135,9 @@ main()
  else
    ecmd make config $mk_noc
  fi
+ tools/config_report.sh
  equit "Configuratation fails"
- if [[ ! -f /etc/gentoo-release ]]; then
+ if ! [[ -f /etc/gentoo-release ]]; then
    # Run syntax checking
    make checkall -j$jobs $mk_noc
  fi

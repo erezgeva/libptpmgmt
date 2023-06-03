@@ -14,7 +14,7 @@ cmd()
 }
 run_root()
 {
-  if [[ ! -f /var/cache/distfiles/libptpmgmt-${version}.txz ]]; then
+  if ! [[ -f /var/cache/distfiles/libptpmgmt-${version}.txz ]]; then
     cp $base/libptpmgmt-${version}.txz /var/cache/distfiles/
   fi
   local -r d=/var/db/repos/gentoo/net-libs/libptpmgmt

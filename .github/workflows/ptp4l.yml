@@ -5,6 +5,9 @@
 # @copyright © 2023 Erez Geva
 #
 # Test with Linuxptp and clock simulated network
+# We run 2 tests
+# * Full test with valgrind
+# * Address Sanitizer
 ###############################################################################
 
 name: linuxptp with dummy clock
@@ -13,7 +16,7 @@ name: linuxptp with dummy clock
 on: workflow_dispatch
 
 jobs:
-  test:
+  full:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository_owner }}/deb.bookworm:latest
@@ -33,3 +36,22 @@ jobs:
 
     - name: test with linuxptp
       run: libptpmgmt/tools/sim_ptp4l.sh -c
+
+  adress:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: checkout linuxptp repository
+      uses: actions/checkout@v3
+      with:
+        repository: richardcochran/linuxptp
+        path: linuxptp
+
+    - name: checkout repository
+      uses: actions/checkout@v3
+      with:
+        path: libptpmgmt
+
+    - name: test with linuxptp
+      run: libptpmgmt/tools/github_address.sh

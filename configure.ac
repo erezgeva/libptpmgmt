@@ -76,8 +76,8 @@ AS_IF([test -n "$DOXYGEN"],
 ptpm_result([DOXYGENVER])
 AC_MSG_CHECKING([for doxygen minimum version])
 AS_VERSION_COMPARE([1.8], [$DOXYGENVER],
-                   [AS_VAR_SET([DOXYGENMINVER], [$DOXYGENVER])], # above 3.1
-                   [AS_VAR_SET([DOXYGENMINVER], [$DOXYGENVER])]) # equal 3.1
+                   [AS_VAR_SET([DOXYGENMINVER], [$DOXYGENVER])], # above 1.8
+                   [AS_VAR_SET([DOXYGENMINVER], [$DOXYGENVER])]) # equal 1.8
 ptpm_result([DOXYGENMINVER])
 AC_CHECK_TOOL([DOTTOOL], [dot])
 
@@ -701,10 +701,12 @@ else
 
       AC_MSG_CHECKING([for Ruby version])
       AS_VAR_SET([RUBYVER],
-                 [`($RUBY -rrbconfig -e\
-                    'print RbConfig::CONFIG[["RUBY_SO_NAME"]]') 2>/dev/null`])
+                 [`$RUBY -e 'print "#{RUBY_VERSION}"'`])
       ptpm_result([RUBYVER])
-      AS_VAR_SET([RUBYLINK], ["-l$RUBYVER"])
+      AS_VAR_SET([RUBYLINK],
+                 [`($RUBY -rrbconfig -e\
+                  'n=RbConfig::CONFIG[["RUBY_SO_NAME"]];print "-l#{n}"')
+                  2>/dev/null`])
 
       # Find library and path for linking.
       AC_MSG_CHECKING([for Ruby library])

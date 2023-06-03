@@ -379,7 +379,7 @@ do_python()
 do_go()
 {
  local -r gtest=go/gtest/gtest
- if [[ ! -x $gtest ]]; then
+ if ! [[ -x $gtest ]]; then
    CGO_LDFLAGS="-lm -lptpmgmt" go build -o $gtest $gtest.go
  fi
  time eval "$useSudo$ldPath $gtest $runOptions" |\
