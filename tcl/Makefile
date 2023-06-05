@@ -26,7 +26,8 @@ pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
 tcl/pkgIndex.tcl:
 	$(Q)tcl/pkgIndex_tcl.sh tcl $(ver_maj)
 utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so tcl/pkgIndex.tcl
-	$(call Q_UTEST,TCL)LD_PRELOAD=./$< TCLLIBPATH=tcl tcl/utest.tcl $(TCL_FILTERS)
+	$(call Q_UTEST,TCL)LD_PRELOAD=./$< TCLLIBPATH=tcl$(UVGD)tcl/utest.tcl\
+	  $(TCL_FILTERS)
 
 install_tcl:
 	$Q$(INSTALL_LIB) -D $(TCL_LNAME).so -t $(TCLDIR)

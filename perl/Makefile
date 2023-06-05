@@ -20,7 +20,7 @@ $(PERL_SO_DIR)/$(SWIG_NAME).so: perl/$(SWIG_NAME).o $(LIB_NAME_SO) | $(PERL_SO_D
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
 utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
-	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=perl perl/utest.pl
+	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=perl$(UVGD)perl/utest.pl
 
 install_perl5:
 	$Q$(INSTALL_LIB) -D perl/auto/*/*.so -t\

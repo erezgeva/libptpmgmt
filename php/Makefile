@@ -20,7 +20,7 @@ SWIG_ALL+=$(PHP_LNAME).so
 php/php.ini:
 	$(Q)php/php_ini.sh php/
 utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
-	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php phpunit php/utest.php\
+	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php$(UVGD)phpunit php/utest.php\
 	  $(PHP_NO_COL) $(PHP_FILTERS)
 
 install_php:

@@ -59,6 +59,8 @@ define help
 #  Make file parameters                                                        #
 ################################################################################
 #                                                                              #
+#   V=1              Verbose, show running commands                            #
+#                                                                              #
 #   PMC_USE_LIB      Select the pmc tool library link,                         #
 #                    use 'a' for static library or 'so' for shared library.    #
 #                                                                              #
@@ -75,6 +77,10 @@ define help
 #                    For example: make USE_COL=1 | aha > out.html              #
 #                                                                              #
 #   DEB_ARC          Specify Debian architectue to build                       #
+#                                                                              #
+#   VGD              Use valgrid with unit test                                #
+#                                                                              #
+#   VGD_OPTIONS      Specify more options for valgrid                          #
 #                                                                              #
 #   PY_USE_S_THRD    Use python with 'Global Interpreter Lock',                #
 #                    Which use mutex on all library functions.                 #
@@ -340,6 +346,14 @@ ALL:=$(PMC_NAME) $(LIB_NAME_FSO) $(LIB_NAME_A)
 %.so:
 	$(Q_LD)$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES)\
 	  $($@_LDLIBS) $(LDLIBS) -o $@
+
+UVGD:=$(SP)
+ifneq ($(VALGRIND),)
+ifdef VGD
+UVGD+=$(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(SP)
+# failing: utest_ruby utest_go utest_sys
+endif # VGD
+endif # VALGRIND
 
 # JSON libraries
 include json/Makefile

@@ -359,17 +359,20 @@ TEST_F(SigTest, VectorTlvs)
     EXPECT_EQ(p1->syncSourcePortIdentity, portId);
     EXPECT_EQ(p1->list.size(), 2);
     EXPECT_EQ(p1->list[0].sequenceId, 1024);
-    EXPECT_EQ(p1->list[0].syncOriginTimestamp, 618611609856.9223454l);
+    EXPECT_EQ(p1->list[0].syncOriginTimestamp,
+        Timestamp_t(618611609856, 922345400));
     EXPECT_EQ(p1->list[0].totalCorrectionField.scaledNanoseconds,
         0x4538afb71794d2a1);
     EXPECT_EQ(p1->list[0].scaledCumulativeRateOffset, -1726344771);
-    EXPECT_EQ(p1->list[0].syncEventIngressTimestamp, 653925548622.953155584l);
+    EXPECT_EQ(p1->list[0].syncEventIngressTimestamp,
+        Timestamp_t(653925548622, 953155584));
     EXPECT_EQ(p1->list[1].sequenceId, 3015);
     EXPECT_EQ(p1->list[1].syncOriginTimestamp, 554118423048);
     EXPECT_EQ(p1->list[1].totalCorrectionField.scaledNanoseconds,
         0x12435b4af4d41e48);
     EXPECT_EQ(p1->list[1].scaledCumulativeRateOffset, -1109460388);
-    EXPECT_EQ(p1->list[1].syncEventIngressTimestamp, 556472476704.941228032l);
+    EXPECT_EQ(p1->list[1].syncEventIngressTimestamp,
+        Timestamp_t(556472476704, 941228032));
     ASSERT_EQ(getSigTlvType(2), SLAVE_RX_SYNC_COMPUTED_DATA);
     const SLAVE_RX_SYNC_COMPUTED_DATA_t *p2 =
         dynamic_cast<const SLAVE_RX_SYNC_COMPUTED_DATA_t *>(getSigTlv(2));
@@ -393,9 +396,10 @@ TEST_F(SigTest, VectorTlvs)
     EXPECT_EQ(p3->eventMessageType, Delay_Resp);
     EXPECT_EQ(p3->list.size(), 2);
     EXPECT_EQ(p3->list[0].sequenceId, 753);
-    EXPECT_EQ(p3->list[0].eventEgressTimestamp, 8741454368.912334864l);
+    EXPECT_EQ(p3->list[0].eventEgressTimestamp, Timestamp_t(8741454368, 912334864));
     EXPECT_EQ(p3->list[1].sequenceId, 2547);
-    EXPECT_EQ(p3->list[1].eventEgressTimestamp, 137448392768.912354684l);
+    EXPECT_EQ(p3->list[1].eventEgressTimestamp,
+        Timestamp_t(137448392768, 912354684));
 }
 
 // Tests enhanced accuracy_metrics TLV

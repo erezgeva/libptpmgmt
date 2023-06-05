@@ -51,7 +51,6 @@ AS_UNSET([ASTYLEVER])
 AS_UNSET([ASTYLEMINVER])
 AS_UNSET([DOXYGENVER])
 AS_UNSET([DOXYGENMINVER])
-AS_UNSET([DOTTOOL])
 
 AC_CHECK_TOOLS([M4], [m4 autom4te])
 AC_CHECK_TOOLS([CTAGS], [ctags ctags-exuberant])
@@ -80,12 +79,12 @@ AS_VERSION_COMPARE([1.8], [$DOXYGENVER],
                    [AS_VAR_SET([DOXYGENMINVER], [$DOXYGENVER])]) # equal 1.8
 ptpm_result([DOXYGENMINVER])
 AC_CHECK_TOOL([DOTTOOL], [dot])
+AC_CHECK_TOOL([VALGRIND], [valgrind])
 
 AC_SUBST([ASTYLEVER])
 AC_SUBST([ASTYLEMINVER])
 AC_SUBST([DOXYGENVER])
 AC_SUBST([DOXYGENMINVER])
-AC_SUBST([DOTTOOL])
 
 #----------------------------------------------------------------
 # cross compilation
