@@ -57,14 +57,12 @@ main()
  [[ -n "$HAVE_GTEST_HEADER" ]] && local -r gtest='v' || local -r gtest='x'
  [[ -n "$HAVE_JSONC_LIB" ]] && local -r jsonc='v' || local -r jsonc='x'
  [[ -n "$HAVE_FJSON_LIB" ]] && local -r fjson='v' || local -r fjson='x'
- [[ -n "$HAVE_GET_CAPS2" ]] && local -r caps2='v' || local -r caps2='x'
- [[ -n "$HAVE_PEROUT_REQUEST2" ]] && local -r req2='v' || local -r req2='x'
  [[ -n "$SWIGMINVER" ]] && local -r swig="$SWIGMINVER" || local -r swig='x'
  [[ -n "$DOXYGENMINVER" ]] && local -r doxy="$DOXYGENMINVER" || local -r doxy='v'
  cat << EOF
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon gcc '$gccver' astyle '$astyle'
-Jsonc '$jsonc' Fjson '$fjson' ptp caps2 '$caps2' preout req2 '$req2'
+Jsonc '$jsonc' Fjson '$fjson'
 Doxygen '$doxy' dot '$dver' Goole test '$gtest'
 swig '$swig' Python '$python' Ruby '$ruby' PHP '$php'
 Perl '$perl' go '$go' tcl '$tcl' Lua '$lua'

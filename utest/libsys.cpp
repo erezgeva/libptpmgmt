@@ -564,7 +564,7 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
     retClk(clock_adjtime, tmx);
     if(tmx == nullptr)
         return retErr(EFAULT);
-    if(tmx->offset != 0 || tmx->maxerror != 0 || tmx->esterror != 0 ||
+    if(tmx->maxerror != 0 || tmx->esterror != 0 ||
         tmx->status != 0 || tmx->constant != 0 || tmx->precision != 0 ||
         tmx->tolerance != 0 || tmx->ppsfreq != 0 || tmx->jitter != 0 ||
         tmx->shift != 0 || tmx->stabil != 0 || tmx->jitcnt != 0 ||
@@ -573,7 +573,7 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
     if(clk_id == CLOCK_REALTIME) {
         switch(tmx->modes) {
             case ADJ_SETOFFSET | ADJ_NANO:
-                if(tmx->tick != 0 || tmx->freq != 0)
+                if(tmx->tick != 0 || tmx->freq != 0 || tmx->offset != 0)
                     return retErr(EINVAL);
                 if(tmx->time.tv_sec == 17 && tmx->time.tv_usec == 29)
                     break;
@@ -582,12 +582,18 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
                 return retErr(EINVAL);
             case ADJ_FREQUENCY | ADJ_TICK:
                 if(tmx->tick != 14 || tmx->freq != -1572864000 ||
-                    tmx->time.tv_sec != 0 || tmx->time.tv_usec != 0)
+                    tmx->time.tv_sec != 0 || tmx->time.tv_usec != 0 ||
+                    tmx->offset != 0)
+                    return retErr(EINVAL);
+                break;
+            case ADJ_OFFSET | ADJ_NANO:
+                if(tmx->tick != 0 || tmx->freq != 0 || tmx->time.tv_sec != 0 ||
+                    tmx->time.tv_usec != 0 || tmx->offset != 218150012)
                     return retErr(EINVAL);
                 break;
             case 0:
                 if(tmx->tick != 0 || tmx->freq != 0 || tmx->time.tv_sec != 0 ||
-                    tmx->time.tv_usec != 0)
+                    tmx->time.tv_usec != 0 || tmx->offset != 0)
                     return retErr(EINVAL);
                 tmx->tick = 786;
                 tmx->freq = 254;
@@ -598,7 +604,7 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
     } else {
         switch(tmx->modes) {
             case ADJ_SETOFFSET | ADJ_NANO:
-                if(tmx->tick != 0 || tmx->freq != 0)
+                if(tmx->tick != 0 || tmx->freq != 0 || tmx->offset != 0)
                     return retErr(EINVAL);
                 if(tmx->time.tv_sec == 93 && tmx->time.tv_usec == 571)
                     break;
@@ -607,12 +613,18 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
                 return retErr(EINVAL);
             case ADJ_FREQUENCY:
                 if(tmx->tick != 0 || tmx->freq != 15386542 ||
-                    tmx->time.tv_sec != 0 || tmx->time.tv_usec != 0)
+                    tmx->time.tv_sec != 0 || tmx->time.tv_usec != 0 ||
+                    tmx->offset != 0)
+                    return retErr(EINVAL);
+                break;
+            case ADJ_OFFSET | ADJ_NANO:
+                if(tmx->tick != 0 || tmx->freq != 0 || tmx->time.tv_sec != 0 ||
+                    tmx->time.tv_usec != 0 || tmx->offset != 265963)
                     return retErr(EINVAL);
                 break;
             case 0:
                 if(tmx->tick != 0 || tmx->freq != 0 || tmx->time.tv_sec != 0 ||
-                    tmx->time.tv_usec != 0)
+                    tmx->time.tv_usec != 0 || tmx->offset != 0)
                     return retErr(EINVAL);
                 tmx->tick = 934;
                 tmx->freq = 654;

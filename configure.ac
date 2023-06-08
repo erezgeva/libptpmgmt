@@ -226,44 +226,6 @@ AC_ARG_ENABLE([silent-rules],
               [AS_HELP_STRING([--disable-silent-rules], [ignored])])
 
 #----------------------------------------------------------------
-# Test for PTP headers features
-#----------------------------------------------------------------
-AS_UNSET([HAVE_GET_CAPS2])
-AS_UNSET([HAVE_PEROUT_REQUEST2])
-
-AC_MSG_CHECKING([Test for PTP_CLOCK_GETCAPS2 and fields])
-AC_COMPILE_IFELSE(
-   [AC_LANG_PROGRAM([#include <linux/ptp_clock.h>],
-                    [#ifdef PTP_CLOCK_GETCAPS2
-                     struct ptp_clock_caps cps;
-                     int a = cps.adjust_phase;
-                     #else
-                     #error "no PTP_CLOCK_GETCAPS2"
-                     #endif])],
-   [AC_MSG_RESULT([yes])
-    AS_VAR_SET([HAVE_GET_CAPS2], [true])],
-   [AC_MSG_RESULT([no])]
-)
-
-AC_MSG_CHECKING([Test for PTP_PEROUT_REQUEST2 and fields])
-AC_COMPILE_IFELSE(
-   [AC_LANG_PROGRAM([#include <linux/ptp_clock.h>],
-                    [#ifdef PTP_PEROUT_REQUEST2
-                     struct ptp_perout_request req;
-                     struct ptp_clock_time a = req.on;
-                     a = req.phase;
-                     #else
-                     #error "no PTP_PEROUT_REQUEST2"
-                     #endif])],
-   [AC_MSG_RESULT([yes])
-    AS_VAR_SET([HAVE_PEROUT_REQUEST2], [true])],
-   [AC_MSG_RESULT([no])]
-)
-
-AC_SUBST([HAVE_GET_CAPS2])
-AC_SUBST([HAVE_PEROUT_REQUEST2])
-
-#----------------------------------------------------------------
 # Look for swig
 #----------------------------------------------------------------
 AS_UNSET([SWIG])

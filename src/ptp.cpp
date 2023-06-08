@@ -17,6 +17,7 @@
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
 #include <linux/ptp_clock.h>
+#include <linux/version.h>
 #include "ptp.h"
 #include "comp.h"
 #include "timeCvrt.h"
@@ -29,18 +30,103 @@ static long clockTicks;
 static long userTicks;
 
 static inline const Timestamp_t toTs(const ptp_clock_time &pct) PURE;
-static inline clockid_t get_clockid_fd(int fd) PURE;
+static inline clockid_t make_process_cpuclock(unsigned int pid,
+    clockid_t clock) PURE;
+static inline clockid_t fd_to_clockid(int fd) PURE;
+static inline int clockid_to_fd(clockid_t clk) PURE;
 
 const char ptp_dev[] = "/dev/ptp";
 // parts per billion (ppb) = 10^9
 // to scale parts per billion (ppm) = 10^6 * 2^16
 const float_freq PPB_TO_SCALE_PPM = 65.536; // (2^16 / 1000)
 
-// man netdevice
-// From linux/posix-timers.h
-#define CPUCLOCK_MAX      3
-#define CLOCKFD           CPUCLOCK_MAX
-#define FD_TO_CLOCKID(fd) ((~(clockid_t) (fd) << 3) | CLOCKFD)
+// From kernel include/linux/posix-timers.h
+const clockid_t CLOCKFD = 3;
+static inline clockid_t make_process_cpuclock(unsigned int pid, clockid_t clock)
+{
+    return ((~pid) << 3) | clock;
+}
+static inline clockid_t fd_to_clockid(int fd)
+{
+    return make_process_cpuclock((unsigned int) fd, CLOCKFD);
+}
+static inline int clockid_to_fd(clockid_t clk)
+{
+    return ~(clk >> 3);
+}
+
+// From Kernel include/uapi/linux/timex.h
+#ifndef ADJ_OFFSET
+const int ADJ_OFFSET    = 0x0001;
+#endif
+#ifndef ADJ_FREQUENCY
+const int ADJ_FREQUENCY = 0x0002;
+#endif
+#ifndef ADJ_SETOFFSET
+const int ADJ_SETOFFSET = 0x0100;
+#endif
+#ifndef ADJ_NANO
+const int ADJ_NANO      = 0x2000;
+#endif
+#ifndef ADJ_TICK
+const int ADJ_TICK      = 0x4000;
+#endif
+
+// From kernel include/uapi/linux/ptp_clock.h
+#ifndef PTP_MAX_SAMPLES
+#define PTP_MAX_SAMPLES 25
+#endif
+#ifndef PTP_SYS_OFFSET_EXTENDED
+#define PTP_SYS_OFFSET_EXTENDED _IOWR(PTP_CLK_MAGIC, 9, ptp_sys_offset_extended)
+extern "C" {
+    struct ptp_sys_offset_extended {
+        unsigned int n_samples;
+        unsigned int rsv[3];
+        ptp_clock_time ts[PTP_MAX_SAMPLES][3];
+    };
+}
+#endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6,5,0)
+extern "C" {
+    struct next_ptp_clock_caps {
+        int max_adj;
+        int n_alarm;
+        int n_ext_ts;
+        int n_per_out;
+        int pps;
+        int n_pins;
+        int cross_timestamping;
+        int adjust_phase;
+        int max_phase_adj;
+        int rsv[11];
+    };
+}
+#define ptp_clock_caps next_ptp_clock_caps
+#endif
+#ifndef PTP_EXTTS_REQUEST2
+#define PTP_EXTTS_REQUEST2  _IOW(PTP_CLK_MAGIC, 11, ptp_extts_request)
+#endif
+#ifndef PTP_PEROUT_REQUEST2
+#define PTP_PEROUT_REQUEST2 _IOW(PTP_CLK_MAGIC, 12, ptp_perout_request)
+#endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,9,0)
+extern "C" {
+    struct next_ptp_perout_request {
+        union {
+            ptp_clock_time start;
+            ptp_clock_time phase;
+        };
+        ptp_clock_time period;
+        unsigned int index;
+        unsigned int flags;
+        union {
+            ptp_clock_time on;
+            unsigned int rsv[4];
+        };
+    };
+}
+#define ptp_perout_request next_ptp_perout_request
+#endif
 
 //==========================================================================//
 static inline const Timestamp_t toTs(const ptp_clock_time &pct)
@@ -51,10 +137,6 @@ static inline void fromTs(ptp_clock_time &pct, const Timestamp_t &ts)
 {
     pct.sec = ts.secondsField;
     pct.nsec = ts.nanosecondsField;
-}
-static inline clockid_t get_clockid_fd(int fd)
-{
-    return FD_TO_CLOCKID(fd);
 }
 static void calcTicks()
 {
@@ -251,6 +333,23 @@ bool BaseClock::setFreq(float_freq freq) const
     PTPMGMT_ERROR_CLR;
     return true;
 }
+bool BaseClock::setPhase(int64_t offset) const
+{
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return false;
+    }
+    timex tmx = {0};
+    // ADJ_NANO: Use nanoseconds instead of microseconds!
+    tmx.modes = ADJ_OFFSET | ADJ_NANO;
+    tmx.offset = (long)offset;
+    if(clock_adjtime(m_clkId, &tmx) != 0) {
+        PTPMGMT_ERROR_P("ADJ_OFFSET");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
+}
 SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
 PtpClock::~PtpClock()
 {
@@ -275,7 +374,7 @@ bool PtpClock::init(const char *device, bool readonly)
         PTPMGMT_ERROR_P("opening %s: %m", device);
         return false;
     }
-    clockid_t cid = get_clockid_fd(fd);
+    clockid_t cid = fd_to_clockid(fd);
     if(cid == CLOCK_INVALID) {
         PTPMGMT_ERROR("failed to read clock id");
         close(fd);
@@ -376,11 +475,8 @@ bool PtpClock::fetchCaps(PtpCaps_t &caps) const
     caps.pps = cps.pps > 0;
     caps.num_pins = cps.n_pins;
     caps.cross_timestamping = cps.cross_timestamping > 0;
-    #ifdef HAVE_GET_CAPS2
     caps.adjust_phase = cps.adjust_phase > 0;
-    #else
-    caps.adjust_phase = false;
-    #endif
+    caps.max_phase_adj = cps.max_phase_adj;
     PTPMGMT_ERROR_CLR;
     return true;
 }
@@ -459,15 +555,10 @@ bool PtpClock::ExternTSEbable(unsigned int index, uint8_t flags) const
         return false;
     }
     unsigned long rid;
-    #ifdef PTP_EXTTS_REQUEST2
-    rid = PTP_EXTTS_REQUEST2;
-    #else
-    if((PTP_EXTERN_TS_STRICT & flags) > 0) {
-        PTPMGMT_ERROR("Old kernel, PTP_EXTERN_TS_STRICT flag is not supported");
-        return false;
-    }
-    rid = PTP_EXTTS_REQUEST;
-    #endif
+    if((PTP_EXTERN_TS_STRICT & flags) > 0)
+        rid = PTP_EXTTS_REQUEST2;
+    else
+        rid = PTP_EXTTS_REQUEST;
     ptp_extts_request req = { .index = index };
     req.flags = flags | PTP_ENABLE_FEATURE;
     if(ioctl(m_fd, rid, &req) == -1) {
@@ -550,24 +641,17 @@ bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
         return false;
     }
     unsigned long rid;
-    struct ptp_perout_request req = {0};
-    #ifndef HAVE_PEROUT_REQUEST2
-    if(flags != 0) {
-        PTPMGMT_ERROR("Old kernel, flags are not supported");
-        return false;
-    }
-    rid = PTP_PEROUT_REQUEST;
-    req.flags = 0;
-    #else
-    rid = PTP_PEROUT_REQUEST2;
+    ptp_perout_request req = {0};
     req.flags = flags;
+    if(flags == 0)
+        rid = PTP_PEROUT_REQUEST;
+    else
+        rid = PTP_PEROUT_REQUEST2;
     if((PTP_PERIOD_WIDTH & flags) > 0)
         fromTs(req.on, times.width);
     if((PTP_PERIOD_PHASE & flags) > 0)
         fromTs(req.phase, times.phase);
-    else
-    #endif
-    {
+    else {
         timespec ts;
         if(clock_gettime(m_clkId, &ts)) {
             PTPMGMT_ERROR_P("clock_gettime");
@@ -627,7 +711,6 @@ bool PtpClock::samplePtpSys(size_t count,
 bool PtpClock::extSamplePtpSys(size_t count,
     std::vector<PtpSampleExt_t> &samples) const
 {
-    #ifdef PTP_SYS_OFFSET_EXTENDED
     if(!m_isInit) {
         PTPMGMT_ERROR("not initialized yet");
         return false;
@@ -651,10 +734,6 @@ bool PtpClock::extSamplePtpSys(size_t count,
     }
     PTPMGMT_ERROR_CLR;
     return true;
-    #else
-    PTPMGMT_ERROR("Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported");
-    return false;
-    #endif
 }
 bool PtpClock::preciseSamplePtpSys(PtpSamplePrecise_t &sample) const
 {

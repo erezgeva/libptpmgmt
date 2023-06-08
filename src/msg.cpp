@@ -63,7 +63,7 @@ PACK(struct PortIdentity_p {
 });
 PACK(struct managementMessage_p {
     // Header 34 Octets
-    Nibble_t       messageType_majorSdoId; // minorSdoId == transportSpecific;
+    Nibble_t       messageType_majorSdoId; // majorSdoId == transportSpecific;
     Nibble_t       versionPTP; // minorVersionPTP | versionPTP
     UInteger16_t   messageLength;
     UInteger8_t    domainNumber;

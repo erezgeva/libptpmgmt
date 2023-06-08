@@ -110,7 +110,7 @@ class IfInfo
  * Bridge to Linux kernel struct ptp_clock_caps
  */
 struct PtpCaps_t {
-    int max_ppb; /**< Maximum frequency adjustment in parts per billon. */
+    int64_t max_ppb; /**< Maximum frequency adjustment in parts per billon. */
     int num_alarm; /**< Number of programmable alarms. */
     int num_external_channels; /**< Number of external time stamp channels. */
     int num_periodic_sig; /**< Number of programmable periodic signals. */
@@ -118,7 +118,8 @@ struct PtpCaps_t {
     int num_pins; /**< Number of input/output pins. */
     /** Clock supports precise system-device cross timestamps. */
     bool cross_timestamping;
-    bool adjust_phase; /**< Clock supports adjust phase */
+    bool adjust_phase; /**< Clock supports adjust phase. */
+    int64_t max_phase_adj; /**< Maximum phase adjustment. */
 };
 /**
  * PHC hardware pin functional state value enumerator
@@ -265,6 +266,12 @@ class BaseClock
      * @return true for success
      */
     bool setFreq(float_freq freq) const;
+    /**
+     * Set clock phase offset
+     * @param[in] offset in nanoseconeds
+     * @return true for success
+     */
+    bool setPhase(int64_t offset) const;
 };
 /**
  * System clock

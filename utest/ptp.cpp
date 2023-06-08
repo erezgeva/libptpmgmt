@@ -122,6 +122,13 @@ TEST_F(SysClockTest, MethodSetFreq)
     EXPECT_TRUE(setFreq(376000000.0l));
 }
 
+// Tests setPhase method
+// bool setPhase(int64_t offset) const
+TEST_F(SysClockTest, MethodSetPhase)
+{
+    EXPECT_TRUE(setPhase(218150012.0l));
+}
+
 class PtpClockTest : public ::testing::Test, public PtpClock
 {
   protected:
@@ -218,6 +225,14 @@ TEST_F(PtpClockTest, MethodSetFreq)
 {
     EXPECT_TRUE(initUsingIndex(0));
     EXPECT_TRUE(setFreq(234780.0l));
+}
+
+// Tests setPhase method
+// bool setPhase(int64_t offset) const
+TEST_F(PtpClockTest, MethodSetPhase)
+{
+    EXPECT_TRUE(initUsingIndex(0));
+    EXPECT_TRUE(setPhase(265963.0l));
 }
 
 // Tests setTimeFromSys method

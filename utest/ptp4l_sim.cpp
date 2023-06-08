@@ -93,7 +93,7 @@ int clock_settime(clockid_t id, const timespec *)
         start_ts.tv_sec = 1;
     return 0;
 }
-int clock_adjtime(clockid_t clk_id, timex *tmx)
+int clock_adjtime(clockid_t, timex *)
 {
     return TIME_OK;
 }

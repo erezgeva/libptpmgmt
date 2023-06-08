@@ -123,6 +123,12 @@ def do_freq(ptp, freq):
     if ptp.setFreq(freq):
         return [f'adjusted clock frequency offset to {freq:.6f}ppb']
     return ['freq: fail set frequency', True]
+def do_phase(ptp, seconds):
+    if seconds is None:
+        return ['phase: missing required time argument', True]
+    if ptp.setPhase(int(seconds * ptpmgmt.NSEC_PER_SEC)):
+        return [f'offset of {seconds:.6f} seconds provided to PHC phase control keyword']
+    return ['phase: fail set phase offset', True]
 
 def usage(name, file=sys.stdout):
     print(f'''
@@ -137,13 +143,14 @@ usage: {name} [options] <device> -- [command]
  specify commands with arguments. Can specify multiple
  commands to be executed in order. Seconds are read as
  double precision floating point values.
-  set  [seconds]  set PHC time (defaults to time on CLOCK_REALTIME)
-  get             get PHC time
-  adj  <seconds>  adjust PHC time by offset
-  freq [ppb]      adjust PHC frequency (default returns current offset)
-  cmp             compare PHC offset to CLOCK_REALTIME
-  caps            display device capabilities (default if no command given)
-  wait <seconds>  pause between commands
+  set  [seconds]   set PHC time (defaults to time on CLOCK_REALTIME)
+  get              get PHC time
+  adj  <seconds>   adjust PHC time by offset
+  freq [ppb]       adjust PHC frequency (default returns current offset)
+  phase <seconds>  pass offset to PHC phase control keyword
+  cmp              compare PHC offset to CLOCK_REALTIME
+  caps             display device capabilities (default if no command given)
+  wait <seconds>   pause between commands
     ''', file=file)
 
 def main():
@@ -223,6 +230,9 @@ def main():
             must_arg = True
         elif do == 'freq':
             call = lambda ptp, useSys, seconds : do_freq(ptp, seconds)
+        elif do == 'phase':
+            call = lambda ptp, useSys, seconds : do_phase(ptp, seconds)
+            must_arg = True
         else:
             call = None
         if call is None:
