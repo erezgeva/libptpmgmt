@@ -9,18 +9,17 @@
 ###############################################################################
 main()
 {
+local base="$(dirname "$(realpath "$0")")"
+local ver_maj ver_min
+. $base/../tools/version
 if [[ -n "$1" ]]; then
   local -r file=$1/pkgIndex.tcl
 else
   local -r file=pkgIndex.tcl
 fi
-if [[ -n "$2" ]]; then
-  local -r ver_maj=$2
-else
-  local -r ver_maj=1
-fi
+local -r ver="$ver_maj.$ver_min"
 cat << EOF > $file
-package ifneeded ptpmgmt $ver_maj [list load [file join $PWD $1 ptpmgmt.so]]
+package ifneeded ptpmgmt $ver [list load [file join $PWD $1 ptpmgmt.so]]
 EOF
 }
 main "$@"

@@ -226,9 +226,9 @@ AS_UNSET([PACKAGE_VERSION_MAJ])
 AS_UNSET([PACKAGE_VERSION_MIN])
 AS_UNSET([PACKAGE_VERSION_VAL])
 
+. ./tools/version
 AC_MSG_CHECKING([for package version string])
 ptpm_result([PACKAGE_VERSION])
-. ./tools/version
 AC_MSG_CHECKING([for package version major])
 AS_VAR_SET([PACKAGE_VERSION_MAJ], [$ver_maj])
 ptpm_result([PACKAGE_VERSION_MAJ])

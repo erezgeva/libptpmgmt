@@ -21,10 +21,10 @@ $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(TCL_LNAME).so
 TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
 pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
-pkgIndex+=package ifneeded $(SWIG_LNAME) $(ver_maj)
+pkgIndex+=package ifneeded $(SWIG_LNAME) $(PACKAGE_VERSION)
 pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
 tcl/pkgIndex.tcl:
-	$(Q)tcl/pkgIndex_tcl.sh tcl $(ver_maj)
+	$(Q)tcl/pkgIndex_tcl.sh tcl
 utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so tcl/pkgIndex.tcl
 	$(call Q_UTEST,TCL)LD_PRELOAD=$(ASAN_PRE)./$< TCLLIBPATH=tcl$(UVGD)tcl/utest.tcl\
 	  $(TCL_FILTERS)

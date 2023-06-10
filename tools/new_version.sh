@@ -38,7 +38,6 @@ main()
  sed -i -e "s/^\(Version:\s*\).*/\1$next_ver/"\
         -e "s/\.so\.[0-9]*{/.so.$next_maj_ver{/" rpm/libptpmgmt.spec
  sed -i "s/^pkgver=.*/pkgver=$next_ver/" archlinux/PKGBUILD.org
- sed -i "s/ver_maj=[0-9][0-9]*/ver_maj=$next_maj_ver/" tcl/pkgIndex_tcl.sh
  if [[ "$update_only" != "true" ]]; then
    local -r hash=$(git blame debian/changelog  | head -n1 | sed 's/ .*//')
    local -a log
