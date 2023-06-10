@@ -47,3 +47,23 @@ jobs:
             su $USER -c tools/ci.sh
             ;;
         esac
+
+  mem_leaks:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        names: [utest_address, utest_valgrid]
+      fail-fast: false
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/deb.bookworm:latest
+    env:
+      GITHUB_TOOL: ${{ matrix.names }}
+
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v3
+
+    - name: unit test with memory check
+      run: tools/$GITHUB_TOOL.sh

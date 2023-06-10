@@ -5,7 +5,7 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# Log into github docker
+# Run unit tests with valgrind tool
 ###############################################################################
 main()
 {

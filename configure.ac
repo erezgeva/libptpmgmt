@@ -150,6 +150,33 @@ AC_SUBST([GTEST_INC_FLAGS])
 AC_SUBST([GTEST_LIB_FLAGS])
 
 #----------------------------------------------------------------
+# Find Address Sanitizer libraries
+#----------------------------------------------------------------
+AS_UNSET([ASAN_LIBS])
+
+keep_CPPFLAGS="$CPPFLAGS"
+keep_LDFLAGS="$LDFLAGS"
+
+for n in address pointer-compare pointer-subtract undefined leak; do
+   CPPFLAGS+=" -fsanitize=$n"
+   LDFLAGS+=" -fsanitize=$n"
+done
+
+AC_MSG_CHECKING([Search Address Sanitizer libraries])
+AC_LINK_IFELSE(
+   [AC_LANG_PROGRAM([],[])],
+   [AS_VAR_SET([ASAN_LIBS],
+               [`ldd conftest$EXEEXT | $GREP 'san.so' | $SED 's/=>.*//;s/\n//' |\
+                 tr '\n' ' ' `])
+    AC_MSG_RESULT([$ASAN_LIBS])],
+   [AC_MSG_RESULT([no])])
+
+CPPFLAGS="$keep_CPPFLAGS"
+LDFLAGS="$keep_LDFLAGS"
+
+AC_SUBST([ASAN_LIBS])
+
+#----------------------------------------------------------------
 # JSON libraries
 #----------------------------------------------------------------
 
@@ -1022,7 +1049,7 @@ else
                        # Swig bellow 4.1
                        [AS_VAR_SET([SWIG_INTGOSIZE], ["$SWIGVER"])])
     AS_VAR_SET([GOVER],
-               [`$GOBIN version | sed 's/^go version go//;s/ .*//'`])
+               [`$GOBIN version | $SED 's/^go version go//;s/ .*//'`])
     AS_VERSION_COMPARE([$GOVER], [1.14],
                        # Go bellow 1.14
                        [AS_UNSET([GOMINVER])],

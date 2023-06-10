@@ -310,6 +310,7 @@ ASAN_FLAGS:=$(addprefix -fsanitize=,address pointer-compare pointer-subtract\
   undefined leak)
 override CXXFLAGS+=$(ASAN_FLAGS) -fno-omit-frame-pointer
 override LDFLAGS+=$(ASAN_FLAGS)
+ASAN_PRE:=$(subst $(SP),,$(foreach n,$(ASAN_LIBS),$n:))
 endif # USE_ASAN
 LIBTOOL_CC=$Q$(Q_LCC)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
 LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
