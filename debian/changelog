@@ -1,3 +1,76 @@
+libptpmgmt (1.1) bullseye; urgency=medium
+
+  * Support Linuxptp version 4.0
+  * GitHub workflow
+    - Pages: Install doxygen and generate documents on Ubuntu.
+    - Continuous Integration
+    - Add docker label.
+    - Upload Docker containers.
+    - Unit tests with valgrind and Address Sanitizer.
+    - Run testing with a Dummy clock for linuxptp daemon.
+      With valgrind and Address Sanitizer.
+  * Add setPhase() that call clock_adjtime() with ADJ_OFFSET.
+  * Improve Linux kernel support for PTP clases
+  * Fix wrong alignment assignment in MsgProc::proc.
+  * Add external "C" to system function override in
+    unit test and dummy clock simulation.
+  * Fix phc_tool testing.
+  * Multiple indirect includes headers cleaning.
+  * Add unit test for the pmc tool build and output of different TLVs.
+  * Move common part of make docker script to tools.
+  * Improve format script.
+  * Move tools from root folder to tools folder.
+    Previous tool was moved to ptp-tools
+  * Update Swig files from Swig project.
+    The files are provided for backward compatible of old Swig.
+  * Remove the '-j' flag from make files.
+    The number of jobs should be set by user.
+  * CI script
+     - Use the CI script for all distributions.
+     - Use proper unit tests for each distribution.
+     - Build packages per distribution.
+  * Restore PHP in RPM, as new Fedora swig support PHP 8.
+  * Fix RPM 'config' target.
+  * Use system include for swig files.
+  * Add `utest_cpp` target to run unit test for C++ only.
+  * Remove stretch, as it's Long Term Support is over.
+    https://wiki.debian.org/LTS/Stretch
+    Remove `buster` as it is old Debian version.
+  * Add Go language wrapper.
+  * Add enumeration for delay mechanism.
+  * Add checks in buildTlv(), so we do not call callback for false cases.
+  * Handle cppcheck warning.
+  * Add cookie to docker creation, for updating docker containers.
+  * Ignore PTP message control Field as it was used by PTP v1.
+  * Add remark on Arc Linux license for documents.
+    Most call them GFDL, yet Arc Linux use only FDL.
+  * Add support for Linuxptp power profile TLV.
+  * Remove restriction on domain number.
+  * Add maintainer tag to the Gentoo docker file.
+  * Follow linuxptp.
+    Alphabetise configuration options and bump date in the pmc man page.
+  * Add support to Gentoo.
+  * Add release scripts to Arc Linux and for RPM.
+  * Improve make docker scripts.
+  * Add copyright sign to SPDX copyright.
+  * pmc tool: add macros for flags.
+  * Unit test: Use expect near for range assertion.
+  * Unit test: Use float compare for float numbers.
+  * Fix the source filed in reuse copyright file.
+  * Improve comments in SWIG definitions files.
+  * improve comments in callDef header.
+  * Add float types for seconds, floating and frequency.
+  * Swig
+     - Apply int on clockid_t type.
+     - Timestamp_t operator uses the float_seconds type.
+  * Add shell scripts to check format.
+  * Add working directory to docker run.
+  * Fix TCL package version to match library version.
+  * Fix JsonProcFromJson::procMng() it should not return the string.
+  * Remove small git ignore files.
+
+ -- Erez Geva <ErezGeva2@gmail.com>  Sat, 10 Jun 2023 16:14:50 +0200
+
 libptpmgmt (1.0) bullseye; urgency=medium
 
   * Project uses 5 script languages, 2 JSON libraries,

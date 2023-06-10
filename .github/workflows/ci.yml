@@ -48,7 +48,7 @@ jobs:
             ;;
         esac
 
-  mem_leaks:
+  mem:
     runs-on: ubuntu-latest
 
     strategy:
