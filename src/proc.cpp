@@ -446,7 +446,7 @@ bool MsgProc::procLe(uint64_t &val)
 // list build part
 #define vector_b(vec)\
     if(m_build) {\
-        for(auto &rec : vec) {\
+        for(T &rec : vec) {\
             if(proc(rec))\
                 return true;\
         }\
@@ -497,7 +497,7 @@ template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec) PURE;
 // size of variable length list
 template <typename T> size_t vector_l(size_t ret, const std::vector<T> &vec)
 {
-    for(const auto &rec : vec)
+    for(const T &rec : vec)
         ret += rec.size();
     return ret;
 }

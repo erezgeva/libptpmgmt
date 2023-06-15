@@ -50,24 +50,41 @@
 #define JSON_OBJ_FREE(obj) json_object_put(obj)
 #define PROC_VAL(key) procValue(#key, d.key)
 #define PROC_STR(val) (strcmp(str, #val) == 0)
+#define EMPTY_STR(str) (str == nullptr || *str == 0)
 #define GET_STR\
-    if(!isType(key, JT_STR) || found[key].strV.empty())\
+    if(!isType(key, JT_STR))\
         return false;\
-    const char *str = found[key].strV.c_str();
+    const char *str = valsMap[key].strV;\
+    if(EMPTY_STR(str))\
+        return false;
 
 struct JsonVal {
+    JSON_TYPE allow;
     JSON_TYPE type;
-    std::string strV;
-    int64_t intV; // Also boolean
-    double fltV;
-    JSON_POBJ objV;
+    bool found;
+    char *strV;
+    union {
+        int64_t intV; // Also boolean
+        double fltV;
+        JSON_POBJ objV;
+    };
+    JsonVal() : allow(JT_NULL), found(false), strV(nullptr) {}
+    ~JsonVal() { free(strV); }
+    bool isAllowed() { return allow != JT_NULL; }
+    JSON_TYPE &operator()() { return allow; }
     // If it is not false, it is true :-)
     bool blV() { return intV != false; }
+    void setStr(const char *str) {
+        free(strV);
+        strV = strdup(str);
+    }
+    bool emptyStr() { return EMPTY_STR(strV); }
     bool convType(JSON_TYPE to) {
+        if(!found)
+            return false;
         if(type == to)
             return true;
-        char *end;
-        const char *str;
+        char *end, strBuf[100];
         switch(type) {
             case JT_INT:
                 switch(to) {
@@ -78,7 +95,8 @@ struct JsonVal {
                         intV = intV != 0;
                         break;
                     case JT_STR:
-                        strV = std::to_string(intV);
+                        snprintf(strBuf, sizeof(strBuf), "%jd", intV);
+                        setStr(strBuf);
                         break;
                     default:
                         return false;
@@ -95,7 +113,8 @@ struct JsonVal {
                         intV = fltV != 0;
                         break;
                     case JT_STR:
-                        strV = std::to_string(fltV);
+                        snprintf(strBuf, sizeof(strBuf), "%lf", fltV);
+                        setStr(strBuf);
                         break;
                     default:
                         return false;
@@ -110,41 +129,40 @@ struct JsonVal {
                         break;
                     case JT_STR:
                         if(intV == 0)
-                            strV = "false";
+                            setStr("false");
                         else
-                            strV = "true";
+                            setStr("true");
                         break;
                     default:
                         return false;
                 }
                 break;
             case JT_STR:
-                str = strV.c_str();
-                if(*str == 0)
+                if(emptyStr())
                     return false;
                 switch(to) {
                     case JT_INT:
-                        intV = strtoll(str, &end, 0);
-                        if(end == str || *end != 0)
+                        intV = strtoll(strV, &end, 0);
+                        if(end == strV || *end != 0)
                             return false;
                         break;
                     case JT_DOUBLE:
-                        fltV = strtod(str, &end);
-                        if(end == str || *end != 0)
+                        fltV = strtod(strV, &end);
+                        if(end == strV || *end != 0)
                             return false;
                         break;
                     case JT_BOOL:
-                        if(strcasecmp(str, "true") == 0 ||
-                            strcasecmp(str, "enable") == 0 ||
-                            strcasecmp(str, "on") == 0)
+                        if(strcasecmp(strV, "true") == 0 ||
+                            strcasecmp(strV, "enable") == 0 ||
+                            strcasecmp(strV, "on") == 0)
                             intV = true;
-                        else if(strcasecmp(str, "false") == 0 ||
-                            strcasecmp(str, "disable") == 0 ||
-                            strcasecmp(str, "off") == 0)
+                        else if(strcasecmp(strV, "false") == 0 ||
+                            strcasecmp(strV, "disable") == 0 ||
+                            strcasecmp(strV, "off") == 0)
                             intV = false;
                         else {
-                            auto i = strtoll(str, &end, 0);
-                            if(end == str || *end != 0)
+                            auto i = strtoll(strV, &end, 0);
+                            if(end == strV || *end != 0)
                                 return false;
                             intV = i != 0;
                         }
@@ -162,6 +180,7 @@ struct JsonVal {
     void set(JSON_POBJ obj, JSON_TYPE t) {
         type = t;
         objV = obj;
+        found = true;
         switch(type) {
             case JT_INT:
                 intV = JG_INT(obj);
@@ -170,7 +189,7 @@ struct JsonVal {
                 fltV = JG_DOUBLE(obj);
                 break;
             case JT_STR:
-                strV = JG_STR(obj);
+                setStr(JG_STR(obj));
                 break;
             case JT_BOOL:
                 // Use JSON false!
@@ -184,70 +203,65 @@ struct JsonVal {
                 break;
         }
     }
+    bool isType(JSON_TYPE _type) {
+        return found && type == _type;
+    }
 };
 
 using namespace ptpmgmt;
 
 struct JsonProcFromJson : public JsonProcFrom {
-    std::map<std::string, JSON_TYPE> allow; // Allowed type
-    std::map<std::string, JsonVal> found;   // Actual values
-    std::stack<std::map<std::string, JsonVal>> history;
+    mapStackStr<JsonVal> valsMap;
 
     JsonProcFromJson() {
         // Map main part
-        allow["sequenceId"] = JT_INT;
-        allow["sdoId"] = JT_INT;
-        allow["domainNumber"] = JT_INT;
-        allow["versionPTP"] = JT_INT;
-        allow["minorVersionPTP"] = JT_INT;
-        allow["PTPProfileSpecific"] = JT_INT;
-        allow["unicastFlag"] = JT_BOOL;
-        allow["messageType"] = JT_STR;
-        allow["actionField"] = JT_STR;
-        allow["tlvType"] = JT_STR;
-        allow["managementId"] = JT_STR;
-        allow["sourcePortIdentity"] = JT_OBJ;
-        allow["targetPortIdentity"] = JT_OBJ;
-        allow["dataField"] = JT_OBJ;
+        valsMap["sequenceId"]() = JT_INT;
+        valsMap["sdoId"]() = JT_INT;
+        valsMap["domainNumber"]() = JT_INT;
+        valsMap["versionPTP"]() = JT_INT;
+        valsMap["minorVersionPTP"]() = JT_INT;
+        valsMap["PTPProfileSpecific"]() = JT_INT;
+        valsMap["unicastFlag"]() = JT_BOOL;
+        valsMap["messageType"]() = JT_STR;
+        valsMap["actionField"]() = JT_STR;
+        valsMap["tlvType"]() = JT_STR;
+        valsMap["managementId"]() = JT_STR;
+        valsMap["sourcePortIdentity"]() = JT_OBJ;
+        valsMap["targetPortIdentity"]() = JT_OBJ;
+        valsMap["dataField"]() = JT_OBJ;
     }
     bool convertType(const char *key, JSON_TYPE to) {
-        if(found.count(key) != 1)
-            return false;
-        return found[key].convType(to);
-    }
-    bool isType(const char *key, JSON_TYPE type) {
-        if(found.count(key) == 1 && found[key].type == type)
-            return true;
+        if(valsMap.have(key))
+            return valsMap[key].convType(to);
         return false;
     }
-    void push() {
-        history.push(found);
-    }
-    void pop() {
-        found = history.top();
-        history.pop();
+    bool isType(const char *key, JSON_TYPE type) {
+        if(valsMap.have(key))
+            return valsMap[key].isType(type);
+        return false;
     }
     bool jloop(JSON_POBJ jobj, bool withAllow = true) {
-        found.clear();
         auto end = JI_END(jobj);
         for(auto it = JI_BEGIN(jobj); !JI_EQ(it, end); JI_NEXT(it)) {
             const char *key = JI_NAME(it);
             JSON_POBJ val = JI_VAL(it);
-            if(withAllow && allow.count(key) != 1) {
+            bool have = valsMap.have(key);
+            if(withAllow && have && valsMap[key].isAllowed() != 1) {
                 PTPMGMT_ERROR("Key '%s' in not allowed", key);
                 return false;
             }
-            if(found.count(key) != 0) {
+            if(have && valsMap[key].found) {
                 PTPMGMT_ERROR("Key '%s' appear twice", key);
                 return false;
             }
             JSON_TYPE type = JG_TYPE(val);
-            found[key].set(val, type);
-            if(withAllow && !found[key].convType(allow[key])) {
+            JsonVal &jVal = valsMap[key];
+            jVal.set(val, type);
+            if(withAllow && !jVal.convType(jVal())) {
                 // Ignore dataField with null
                 if(strcmp("dataField", key) || type != JT_NULL) {
                     PTPMGMT_ERROR("Key '%s' use wrong type '%s' instead of '%s'",
-                        key, JG_TNAME(type), JG_TNAME(allow[key]));
+                        key, JG_TNAME(type), JG_TNAME(jVal()));
                     return false;
                 }
             }
@@ -259,9 +273,11 @@ struct JsonProcFromJson : public JsonProcFrom {
         if(!jloop(jobj))
             return false;
         // Optional, if value present verify it
+        const char *str;
 #define testOpt(key, val, emsg)\
-    if(isType(#key, JT_STR) && found[#key].strV.compare(#val)) {\
-        PTPMGMT_ERROR("Message must " emsg", not '%s'", found[#key].strV.c_str());\
+    str = valsMap[#key].strV;\
+    if(isType(#key, JT_STR) && (EMPTY_STR(str) || strcmp(str, #val) != 0)) {\
+        PTPMGMT_ERROR("Message must " emsg", not '%s'", str);\
         return false;\
     }
         testOpt(messageType, Management, "be management")
@@ -277,25 +293,25 @@ struct JsonProcFromJson : public JsonProcFrom {
         return true;
     }
     bool procMng(mng_vals_e &id) override final {
-        if(found.count("managementId") < 1) {
+        if(!valsMap["managementId"].found) {
             PTPMGMT_ERROR("Message do not have a managementId field");
             return false;
         }
-        std::string &str = found["managementId"].strV;
-        if(str.empty()) {
+        const char *str = valsMap["managementId"].strV;
+        if(EMPTY_STR(str)) {
             PTPMGMT_ERROR("Message have an empty managementId field");
             return false;
         }
         bool ret = Message::findMngID(str, id);
         if(!ret)
-            PTPMGMT_ERROR("No such managementId '%s'", str.c_str());
+            PTPMGMT_ERROR("No such managementId '%s'", str);
         return ret;
     }
 #define procType(type) \
     bool procValue(const char *key, type &val) override {\
         if(!convertType(key, JT_INT))\
             return false;\
-        val = found[key].intV;\
+        val = valsMap[key].intV;\
         return true;\
     }
     procType(uint8_t)
@@ -310,7 +326,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool procValue(const char *key, type &val) override {\
         if(!convertType(key, JT_DOUBLE))\
             return false;\
-        val = found[key].fltV;\
+        val = valsMap[key].fltV;\
         return true;\
     }
     procTypeDb(float)
@@ -328,18 +344,20 @@ struct JsonProcFromJson : public JsonProcFrom {
         return false;
     }
     bool procValue(const char *key, clockAccuracy_e &d) override {
-        if(found.count(key) != 1)
+        if(!valsMap.have(key))
             return false;
-        auto &val = found[key];
-        auto type = val.type;
+        JsonVal &jVal = valsMap[key];
+        if(!jVal.found)
+            return false;
+        JSON_TYPE type = jVal.type;
         if(type == JT_INT) {
-            auto v = val.intV;
+            int64_t v = jVal.intV;
             if(v == Accurate_Unknown || (v <= Accurate_more_10s && v >= 0))
                 d = (clockAccuracy_e)v;
             else
                 return false;
         } else if(type == JT_DOUBLE) {
-            auto v = val.fltV;
+            double v = jVal.fltV;
             if(fmod(v, 1) == 0 && (v == Accurate_Unknown ||
                     (v <= Accurate_more_10s && v >= 0)))
                 d = (clockAccuracy_e)v;
@@ -347,25 +365,25 @@ struct JsonProcFromJson : public JsonProcFrom {
                 return false;
         } else if(type != JT_STR)
             return false;
-        const char *str = val.strV.c_str();
-        if(*str == 0)
+        if(jVal.emptyStr())
             return false;
         // Check enumerator values
+        const char *str = jVal.strV;
         if(PROC_STR(Unknown)) {
             d = Accurate_Unknown;
             return true;
         }
         for(int i = Accurate_within_1ps; i <= Accurate_more_10s; i++) {
             clockAccuracy_e v = (clockAccuracy_e)i;
-            if(strcmp(str, Message::clockAcc2str_c(v)) == 0) {
+            if(strcmp(jVal.strV, Message::clockAcc2str_c(v)) == 0) {
                 d = v;
                 return true;
             }
         }
         // Fall to number value
         char *end;
-        long a = strtol(str, &end, 0);
-        if(end == str || *end != 0 || a < 0 ||
+        long a = strtol(jVal.strV, &end, 0);
+        if(end == jVal.strV || *end != 0 || a < 0 ||
             (a > Accurate_more_10s && a != Accurate_Unknown))
             return false;
         d = (clockAccuracy_e)a;
@@ -385,17 +403,17 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool procValue(const char *key, timeSource_e &d) override {
         if(!isType(key, JT_STR))
             return false;
-        return Message::findTimeSrc(found[key].strV, d);
+        return Message::findTimeSrc(valsMap[key].strV, d);
     }
     bool procValue(const char *key, portState_e &d) override {
         if(!isType(key, JT_STR))
             return false;
-        return Message::findPortState(found[key].strV, d);
+        return Message::findPortState(valsMap[key].strV, d);
     }
     bool procValue(const char *key, delayMechanism_e &d) override {
         if(!isType(key, JT_STR))
             return false;
-        return Message::findDelayMech(found[key].strV, d);
+        return Message::findDelayMech(valsMap[key].strV, d);
     }
     bool procValue(const char *key, linuxptpTimeStamp_e &d) override {
         GET_STR
@@ -435,118 +453,122 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool procValue(const char *key, type &d) override {\
         if(!isType(key, JT_OBJ))\
             return false;\
-        JSON_POBJ obj = found[key].objV;\
-        push();\
+        JSON_POBJ obj = valsMap[key].objV;\
+        valsMap.push();\
         bool ret = procValue(obj, d);\
-        pop();\
+        valsMap.pop();\
         return ret;\
     }
     bool procValue(const char *key, TimeInterval_t &d) override {
         if(!convertType(key, JT_INT))
             return false;
-        d.scaledNanoseconds = found[key].intV;
+        d.scaledNanoseconds = valsMap[key].intV;
         return true;
     }
     bool procValue(const char *key, Timestamp_t &d) override {
         if(!convertType(key, JT_DOUBLE))
             return false;
-        double v = found[key].fltV;
+        double v = valsMap[key].fltV;
         d.secondsField = trunc(v);
         v -= d.secondsField;
         d.nanosecondsField = trunc(v * NSEC_PER_SEC);
         return true;
     }
-    bool procClock(const std::string &val, ClockIdentity_t &d) {
+    bool procClock(const char *str, ClockIdentity_t &d) {
         Binary b;
-        if(!b.fromHex(val) || b.size() != d.size())
+        if(EMPTY_STR(str) || !b.fromHex(str) || b.size() != d.size())
             return false;
         b.copy(d.v);
         return true;
     }
     bool procValue(const char *key, ClockIdentity_t &d) override {
-        return isType(key, JT_STR) && procClock(found[key].strV, d);
+        return isType(key, JT_STR) && procClock(valsMap[key].strV, d);
     }
     bool procValue(const char *key, PortIdentity_t &d) override {
         if(!isType(key, JT_OBJ))
             return false;
-        allow.clear();
-        allow["clockIdentity"] = JT_STR;
-        allow["portNumber"] = JT_INT;
-        auto o = found[key].objV;
-        push();
+        JSON_POBJ o = valsMap[key].objV;
+        valsMap.push();
+        valsMap["clockIdentity"]() = JT_STR;
+        valsMap["portNumber"]() = JT_INT;
         bool ret = jloop(o) &&
             PROC_VAL(clockIdentity) &&
             PROC_VAL(portNumber);
-        pop();
+        valsMap.pop();
         return ret;
     }
     bool procValue(JSON_POBJ obj, PortAddress_t &d) {
-        allow.clear();
-        allow["networkProtocol"] = JT_STR;
-        allow["addressField"] = JT_STR;
-        return jloop(obj) &&
+        valsMap.push();
+        valsMap["networkProtocol"]() = JT_STR;
+        valsMap["addressField"]() = JT_STR;
+        bool ret = jloop(obj) &&
             PROC_VAL(networkProtocol) &&
             procBinary("addressField", d.addressField, d.addressLength);
+        valsMap.pop();
+        return ret;
     }
     procObj(PortAddress_t)
     bool procValue(const char *key, ClockQuality_t &d) override {
         if(!isType(key, JT_OBJ))
             return false;
-        allow.clear();
-        allow["clockClass"] = JT_INT;
-        allow["clockAccuracy"] = JT_STR;
-        allow["offsetScaledLogVariance"] = JT_INT;
-        auto o = found[key].objV;
-        push();
+        JSON_POBJ o = valsMap[key].objV;
+        valsMap.push();
+        valsMap["clockClass"]() = JT_INT;
+        valsMap["clockAccuracy"]() = JT_STR;
+        valsMap["offsetScaledLogVariance"]() = JT_INT;
         bool ret = jloop(o) &&
             PROC_VAL(clockClass) &&
             PROC_VAL(clockAccuracy) &&
             PROC_VAL(offsetScaledLogVariance);
-        pop();
+        valsMap.pop();
         return ret;
     }
     bool procValue(const char *key, PTPText_t &d) override {
         if(!convertType(key, JT_STR))
             return false;
-        d.textField = found[key].strV;
+        d.textField = valsMap[key].strV;
         return true;
     }
     bool procValue(JSON_POBJ obj, FaultRecord_t &d) {
-        allow.clear();
-        allow["faultRecordLength"] = JT_INT;
-        allow["faultTime"] = JT_DOUBLE;
-        allow["severityCode"] = JT_STR;
-        allow["faultName"] = JT_STR;
-        allow["faultValue"] = JT_STR;
-        allow["faultDescription"] = JT_STR;
-        return jloop(obj) &&
+        valsMap.push();
+        valsMap["faultRecordLength"]() = JT_INT;
+        valsMap["faultTime"]() = JT_DOUBLE;
+        valsMap["severityCode"]() = JT_STR;
+        valsMap["faultName"]() = JT_STR;
+        valsMap["faultValue"]() = JT_STR;
+        valsMap["faultDescription"]() = JT_STR;
+        bool ret = jloop(obj) &&
             PROC_VAL(faultRecordLength) &&
             PROC_VAL(faultTime) &&
             PROC_VAL(severityCode) &&
             PROC_VAL(faultName) &&
             PROC_VAL(faultValue) &&
             PROC_VAL(faultDescription);
+        valsMap.pop();
+        return ret;
     }
     procObj(FaultRecord_t)
     bool procValue(JSON_POBJ obj, AcceptableMaster_t &d) {
-        allow.clear();
-        allow["alternatePriority1"] = JT_INT;
-        allow["acceptablePortIdentity"] = JT_OBJ;
-        return jloop(obj) &&
+        valsMap.push();
+        valsMap["alternatePriority1"]() = JT_INT;
+        valsMap["acceptablePortIdentity"]() = JT_OBJ;
+        bool ret = jloop(obj) &&
             PROC_VAL(alternatePriority1) &&
             PROC_VAL(acceptablePortIdentity);
+        valsMap.pop();
+        return ret;
     }
     procObj(AcceptableMaster_t)
     bool procValue(JSON_POBJ obj, LinuxptpUnicastMaster_t &d) {
-        allow.clear();
-        allow["portIdentity"] = JT_OBJ;
-        allow["clockQuality"] = JT_OBJ;
-        allow["selected"] = JT_INT;
-        allow["portState"] = JT_STR;
-        allow["priority1"] = JT_INT;
-        allow["priority2"] = JT_INT;
-        allow["portAddress"] = JT_OBJ;
-        return jloop(obj) &&
+        valsMap.push();
+        valsMap["portIdentity"]() = JT_OBJ;
+        valsMap["clockQuality"]() = JT_OBJ;
+        valsMap["selected"]() = JT_INT;
+        valsMap["portState"]() = JT_STR;
+        valsMap["priority1"]() = JT_INT;
+        valsMap["priority2"]() = JT_INT;
+        valsMap["portAddress"]() = JT_OBJ;
+        bool ret = jloop(obj) &&
             PROC_VAL(portIdentity) &&
             PROC_VAL(clockQuality) &&
             PROC_VAL(selected) &&
@@ -554,10 +576,12 @@ struct JsonProcFromJson : public JsonProcFrom {
             PROC_VAL(priority1) &&
             PROC_VAL(priority2) &&
             PROC_VAL(portAddress);
+        valsMap.pop();
+        return ret;
     }
     procObj(LinuxptpUnicastMaster_t)
     bool procBinary(const char *key, Binary &d, uint16_t &len) {
-        if(!isType(key, JT_STR) || !d.fromId(found[key].strV) ||
+        if(!isType(key, JT_STR) || !d.fromId(valsMap[key].strV) ||
             d.size() == 0)
             return false;
         len = d.size();
@@ -565,7 +589,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     }
     bool procBinary(const char *key, uint8_t *d, size_t len) {
         Binary b;
-        if(!isType(key, JT_STR) || !b.fromId(found[key].strV) ||
+        if(!isType(key, JT_STR) || !b.fromId(valsMap[key].strV) ||
             b.size() != len)
             return false;
         b.copy(d);
@@ -574,7 +598,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool procFlag(const char *key, uint8_t &flags, int mask) override {
         if(!convertType(key, JT_BOOL))
             return false;
-        if(found[key].blV())
+        if(valsMap[key].blV())
             flags |= mask;
         return true;
     }
@@ -584,7 +608,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool procArray(const char *key, std::vector<ClockIdentity_t> &d) {
         if(!isType(key, JT_ARRAY))
             return false;
-        auto arr = found[key].objV;
+        JSON_POBJ arr = valsMap[key].objV;
         int size = JA_LEN(arr);
         bool ret = true;
         if(size > 0) {
@@ -607,11 +631,11 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool procArray(const char *key, std::vector<type> &d) {\
         if(!isType(key, JT_ARRAY))\
             return false;\
-        auto arr = found[key].objV;\
+        JSON_POBJ arr = valsMap[key].objV;\
         int size = JA_LEN(arr);\
         bool ret = true;\
         if(size > 0) {\
-            push();\
+            valsMap.push();\
             for(int i = 0; i < size; i++) {\
                 type rec;\
                 JSON_POBJ obj = JA_GET(arr, i);\
@@ -624,7 +648,7 @@ struct JsonProcFromJson : public JsonProcFrom {
                     break;\
                 d.push_back(rec);\
             }\
-            pop();\
+            valsMap.pop();\
         }\
         return ret;\
     }
@@ -632,19 +656,19 @@ struct JsonProcFromJson : public JsonProcFrom {
     procVector(FaultRecord_t)
     procVector(AcceptableMaster_t)
     procVector(LinuxptpUnicastMaster_t)
-    const std::string &getActionField() override final {
-        return found["actionField"].strV;
+    const char *getActionField() override final {
+        return valsMap["actionField"].strV;
     }
     bool getUnicastFlag(bool &unicastFlag) override final {
         if(!isType("unicastFlag", JT_BOOL))
             return false;
-        unicastFlag = found["unicastFlag"].blV();
+        unicastFlag = valsMap["unicastFlag"].blV();
         return true;
     }
     bool getIntVal(const char *key, int64_t &val) override final {
         if(!isType(key, JT_INT))
             return false;
-        val = found[key].intV;
+        val = valsMap[key].intV;
         return true;
     }
     bool parsePort(const char *key, bool &have,
@@ -662,7 +686,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     bool haveData() override final
     { return isType("dataField", JT_OBJ); }
     bool parseData() override final {
-        JSON_POBJ dataField = found["dataField"].objV;
+        JSON_POBJ dataField = valsMap["dataField"].objV;
         return jloop(dataField, false);
     }
 };

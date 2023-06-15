@@ -203,18 +203,18 @@ bool Json2msg::fromJsonObj(const void *jobj)
     PTPMGMT_ERROR_CLR;
     if(!pproc->mainProc(jobj))
         return false;
-    const std::string &str = pproc->getActionField();
-    if(str.empty()) {
+    const char *str = pproc->getActionField();
+    if(str == nullptr || *str == 0) {
         PTPMGMT_ERROR("Message do not have an action field");
         return false;
-    } else if(str == "GET")
+    } else if(strcmp(str, "GET") == 0)
         m_action = GET;
-    else if(str == "SET")
+    else if(strcmp(str, "SET") == 0)
         m_action = SET;
-    else if(str == "COMMAND")
+    else if(strcmp(str, "COMMAND") == 0)
         m_action = COMMAND;
     else {
-        PTPMGMT_ERROR("Message have wrong action field '%s'", str.c_str());
+        PTPMGMT_ERROR("Message have wrong action field '%s'", str);
         return false;
     }
     if(!pproc->procMng(m_managementId))

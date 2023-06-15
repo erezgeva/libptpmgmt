@@ -56,7 +56,7 @@ main()
      add_line=true
     fi
    done
-   DEBEMAIL="$email" debchange -r bullseye
+   DEBEMAIL="$email" debchange -r bookworm
    gvim debian/changelog
    gitk &
  fi

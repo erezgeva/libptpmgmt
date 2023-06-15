@@ -50,7 +50,7 @@ class MsgDump : public MessageDispatcher
     dump(FAULT_LOG) {
         DUMPS(IDENT "numberOfFaultRecords %u", d.numberOfFaultRecords);
         uint16_t i = 0;
-        for(const auto &rec : d.faultRecords) {
+        for(const FaultRecord_t &rec : d.faultRecords) {
             DUMPS(
                 IDENT "[%u] faultTime        %s"
                 IDENT "[%u] severityCode     %s"
@@ -218,7 +218,7 @@ class MsgDump : public MessageDispatcher
     }
     dump(PATH_TRACE_LIST) {
         uint16_t i = 0;
-        for(const auto &rec : d.pathSequence)
+        for(const ClockIdentity_t &rec : d.pathSequence)
             DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     }
     dump(PATH_TRACE_ENABLE) {
@@ -231,7 +231,7 @@ class MsgDump : public MessageDispatcher
             d.logQueryInterval,
             d.actualTableSize);
         uint16_t i = 0;
-        for(const auto &rec : d.PortAddress)
+        for(const PortAddress_t &rec : d.PortAddress)
             DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     }
     dump(UNICAST_MASTER_TABLE) {
@@ -241,7 +241,7 @@ class MsgDump : public MessageDispatcher
             d.logQueryInterval,
             d.actualTableSize);
         uint16_t i = 0;
-        for(const auto &rec : d.PortAddress)
+        for(const PortAddress_t &rec : d.PortAddress)
             DUMPS(IDENT "[%u] %s", i++, rec.string().c_str());
     }
     dump(UNICAST_MASTER_MAX_TABLE_SIZE) {
@@ -250,7 +250,7 @@ class MsgDump : public MessageDispatcher
     dump(ACCEPTABLE_MASTER_TABLE) {
         DUMPS(IDENT "actualTableSize %d", d.actualTableSize);
         uint16_t i = 0;
-        for(const auto &rec : d.list) {
+        for(const AcceptableMaster_t &rec : d.list) {
             DUMPS(
                 IDENT "[%u] acceptablePortIdentity %s"
                 IDENT "[%u] alternatePriority1     %u",
@@ -502,7 +502,7 @@ class MsgDump : public MessageDispatcher
             IDENT "BM  identity                 address                            "
             "state     clockClass clockQuality offsetScaledLogVariance p1  p2",
             d.actualTableSize);
-        for(const auto &rec : d.unicastMasters)
+        for(const LinuxptpUnicastMaster_t &rec : d.unicastMasters)
             DUMPS(
                 IDENT "%s %-24s %-34s %-9s %-10u 0x%02x         "
                 "0x%04x                  %-3u %-3u",
@@ -678,7 +678,7 @@ class MsgBuild : public MessageBuilder
                 it.second.num = it.second.def;
             }
         }
-        const auto &firstKey = keys.begin()->second;
+        const val_key_t &firstKey = keys.begin()->second;
         const bool singleKey = keys.size() == 1;
         // In case we found quoted string we point after it.
         // so, we look for the next token on the proper place.
@@ -782,7 +782,7 @@ class MsgBuild : public MessageBuilder
             return false; // No errors!
         } else {
             char *end;
-            auto num = strtol(tkn, &end, 16);
+            long num = strtol(tkn, &end, 16);
             if(*end != 0 || num < 0 || num > UINT8_MAX)
                 return true;
             key.num = num;
@@ -800,7 +800,7 @@ class MsgBuild : public MessageBuilder
             return false; // No errors!
         } else {
             char *end;
-            auto num = strtol(tkn, &end, 16);
+            long num = strtol(tkn, &end, 16);
             if(*end != 0 || num < INITIALIZING || num > TIME_RECEIVER)
                 return true;
             key.num = num;

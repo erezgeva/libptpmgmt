@@ -226,7 +226,7 @@ class Binary
      * @param[in] hex string
      * @return true if hex is proper
      */
-    bool fromHex(const std::string hex);
+    bool fromHex(const std::string &hex);
     /**
      * Convert Binary to hex string
      * @return hex string

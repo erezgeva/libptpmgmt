@@ -10,14 +10,22 @@
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
- [[ -f defs.mk ]] || make config
- make clean
+ while getopts 'c' opt; do
+   case $opt in
+     c) local do_config=true ;;
+   esac
+ done
+ if [[ -n "$do_config" ]]; then
+   make config
+ elif ! [[ -f defs.mk ]]; then
+   echo "You must configure before you can compile!"
+   return
+ fi
  ASAN_OPTIONS='verbosity=1:strict_string_checks=1'
  ASAN_OPTIONS+=':detect_stack_use_after_return=1'
  ASAN_OPTIONS+=':check_initialization_order=1:strict_init_order=1'
  ASAN_OPTIONS+=':detect_invalid_pointer_pairs=2'
  export ASAN_OPTIONS
- make utest_no_sys utest_lua utest_tcl USE_ASAN=1 V=1
- # TODO add utest_json
+ make utest_no_sys utest_lua utest_tcl USE_ASAN=1
 }
 main "$@"

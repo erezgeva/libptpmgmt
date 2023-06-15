@@ -320,6 +320,10 @@ PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
 $(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
+ifneq ($(HAVE_METHODS_COMPARE),)
+$(OBJ_DIR)/msgCall.o: override CXXFLAGS+=-DHAVE_METHODS_COMPARE\
+  -DMETHODS_COMPARE_FLAGS="$(METHODS_COMPARE_FLAGS)"
+endif
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@

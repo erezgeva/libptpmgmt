@@ -19,7 +19,7 @@ jobs:
   full:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository_owner }}/deb.bookworm:latest
+      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
 
     steps:
 

@@ -89,7 +89,7 @@ bool sendAction()
 }
 static inline int rcv()
 {
-    const auto cnt = sk->rcv(buf, bufSize);
+    const ssize_t cnt = sk->rcv(buf, bufSize);
     if(cnt < 0) {
         PMCLERR;
         return -1;

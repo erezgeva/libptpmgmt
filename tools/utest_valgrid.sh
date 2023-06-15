@@ -10,7 +10,17 @@
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
- [[ -f defs.mk ]] || make config
+ while getopts 'c' opt; do
+   case $opt in
+     c) local do_config=true ;;
+   esac
+ done
+ if [[ -n "$do_config" ]]; then
+   make config
+ elif ! [[ -f defs.mk ]]; then
+   echo "You must configure before you can compile!"
+   return
+ fi
  make utest
  echo "======= Run utest with valgrind ======="
  local n

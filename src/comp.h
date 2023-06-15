@@ -42,13 +42,13 @@
 #define PURE __attribute__((pure))
 #define MAYBE_UNUSED __attribute__((unused))
 #define PRINT_FORMAT(a, b) __attribute__((format(printf,a,b)))
-#define DIAG_START  DO_PRAGMA(GCC diagnostic push)
-#define DIAG_IGNORE(warn) DO_PRAGMA(GCC diagnostic ignored warn)
-#define DIAG_END   DO_PRAGMA(GCC diagnostic pop)
+#define DIAG_START DO_PRAGMA(GCC diagnostic push)
+#define DIAG_IGNORE0(warn) DO_PRAGMA(GCC diagnostic ignored warn)
+#define DIAG_IGNORE(warn) DIAG_IGNORE0(stringify(warn))
+#define DIAG_END DO_PRAGMA(GCC diagnostic pop)
 #if __GNUC__ > 6
 #define FALLTHROUGH __attribute__((fallthrough))
 #endif
-#define HAVE_FUNC_COMPARE
 #elif defined _MSC_VER
 /* For MSVC:
  * http://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros
@@ -56,16 +56,28 @@
  */
 #define PACK(__definition__) __pragma(pack(push, 1)) \
     __definition__ __pragma(pack(pop))
-#define PURE
-#define MAYBE_UNUSED
-#define PRINT_FORMAT(a, b)
-#define DIAG_START
-#define DIAG_IGNORE(warn)
-#define DIAG_END
 #else
 #error Unknown compiler
 #endif
 
+#ifndef PURE
+#define PURE
+#endif
+#ifndef MAYBE_UNUSED
+#define MAYBE_UNUSED
+#endif
+#ifndef PRINT_FORMAT
+#define PRINT_FORMAT(a, b)
+#endif
+#ifndef DIAG_START
+#define DIAG_START
+#endif
+#ifndef DIAG_IGNORE
+#define DIAG_IGNORE(warn)
+#endif
+#ifndef DIAG_END
+#define DIAG_END
+#endif
 #ifndef FALLTHROUGH
 #define FALLTHROUGH
 #endif
@@ -292,6 +304,132 @@ struct MsgProc {
 };
 
 /* ************************************************************************** */
+/* map of values with string key and stack of these maps */
+
+template <class T> class mapStackStr
+{
+  protected:
+    class elem_t
+    {
+      protected:
+        char *m_key;
+        T m_elem;
+        elem_t *m_hashNext, *m_topNext;
+        elem_t(const char *key) {
+            m_key = strdup(key);
+        }
+        ~elem_t() {
+            free(m_key);
+        }
+        T &getElem() { return m_elem; }
+        friend class mapStackStr<T>;
+    };
+    class map_t
+    {
+      protected:
+        map_t *m_nextMap; /* For heap of maps */
+        elem_t *m_topElem; /* List of all elements, for cleanup */
+        elem_t *m_elemHash[UINT8_MAX]; /* Hash for finding */
+        map_t() : m_topElem(nullptr) {
+            memset(m_elemHash, 0, sizeof(m_elemHash));
+        }
+        void freeElems() {
+            elem_t *n, *c = m_topElem;
+            while(c != nullptr) {
+                n = c->m_topNext;
+                delete c;
+                c = n;
+            }
+        }
+        void clean() {
+            freeElems();
+            m_topElem = nullptr;
+            memset(m_elemHash, 0, sizeof(m_elemHash));
+        }
+        ~map_t() {freeElems();}
+        static uint8_t hash_f(const char *key) {
+            size_t a = std::min(strlen(key), (size_t)8);
+            uint8_t h = key[0];
+            for(size_t i = 1; i < a; i++)
+                h ^= key[i];
+            return h;
+        }
+        elem_t *get(const char *key, bool add) {
+            uint8_t h = hash_f(key);
+            elem_t *ne, *p = nullptr, *c = m_elemHash[h];
+            for(;;) {
+                int r;
+                if(c == nullptr)
+                    r = 1;
+                else {
+                    r = strcmp(key, c->m_key);
+                    if(r == 0)
+                        return c;
+                }
+                if(r > 0) { /* bigger or end of list */
+                    if(!add)
+                        return nullptr;
+                    ne = new elem_t(key);
+                    if(ne == nullptr)
+                        return nullptr;
+                    if(p == nullptr)
+                        m_elemHash[h] = ne;
+                    else
+                        p->m_hashNext = ne;
+                    ne->m_hashNext = c;
+                    break;
+                }
+                p = c;
+                c = p->m_hashNext;
+            }
+            ne->m_topNext = m_topElem;
+            m_topElem = ne;
+            return ne;
+        }
+        friend class mapStackStr<T>;
+    };
+    map_t *topMap, *curMap;
+  public:
+    mapStackStr() : topMap(nullptr), curMap(new map_t) {}
+    ~mapStackStr() {
+        if(curMap != nullptr)
+            delete curMap;
+        map_t *n, *c = topMap;
+        while(c != nullptr) {
+            n = c->m_nextMap;
+            delete c;
+            c = n;
+        }
+    }
+    bool push() { /* Push into heap */
+        if(curMap != nullptr) {
+            curMap->m_nextMap = topMap;
+            topMap = curMap;
+        }
+        curMap = new map_t; /* Create new map */
+        return curMap != nullptr;
+    }
+    bool pop() { /* Pop from heap */
+        if(topMap == nullptr)
+            return false;
+        /* Delete current map */
+        if(curMap != nullptr)
+            delete curMap;
+        curMap = topMap;
+        topMap = topMap->m_nextMap;
+        return true;
+    }
+    bool have(const char *key) {
+        if(curMap == nullptr)
+            return false;
+        return curMap->get(key, false) != nullptr;
+    }
+    T &operator [](const char *key) {
+        return curMap->get(key, true)->getElem();
+    }
+};
+
+/* ************************************************************************** */
 /* JSON base structure used by both build and parse of JSON */
 
 struct JsonProc {
@@ -346,7 +484,7 @@ struct JsonProc {
 struct JsonProcFrom : public JsonProc {
     virtual bool mainProc(const void *jobj) = 0;
     virtual bool procMng(mng_vals_e &id) = 0;
-    virtual const std::string &getActionField() = 0;
+    virtual const char *getActionField() = 0;
     virtual bool getUnicastFlag(bool &unicastFlag) = 0;
     virtual bool getIntVal(const char *key, int64_t &val) = 0;
     virtual bool parsePort(const char *key, bool &have, PortIdentity_t &port) = 0;

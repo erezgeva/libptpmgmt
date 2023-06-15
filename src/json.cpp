@@ -486,7 +486,7 @@ JS(POWER_PROFILE_SETTINGS_NP)
 #define procVector(type) \
     bool procArray(const char *name, std::vector<type> &val) {\
         procArray(name);\
-        for(auto &rec : val) {\
+        for(type &rec : val) {\
             close();\
             procValue(rec);\
         }\

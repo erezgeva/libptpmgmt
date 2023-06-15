@@ -273,7 +273,7 @@ bool BaseClock::offsetClock(int64_t offset) const
         PTPMGMT_ERROR("not initialized yet");
         return false;
     }
-    auto d = lldiv((long long)offset, (long long)NSEC_PER_SEC);
+    lldiv_t d = lldiv((long long)offset, (long long)NSEC_PER_SEC);
     while(d.rem < 0) {
         d.quot--;
         d.rem += NSEC_PER_SEC;
@@ -622,7 +622,7 @@ bool PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
         PTPMGMT_ERROR_CLR;
         return true;
     }
-    auto d = div(cnt, sizeof(ptp_extts_event));
+    div_t d = div(cnt, sizeof(ptp_extts_event));
     if(d.rem != 0) {
         PTPMGMT_ERROR("Wrong size %zd, not divisible", cnt);
         return false;

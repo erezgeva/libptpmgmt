@@ -126,6 +126,29 @@ AC_ARG_ENABLE([full-link],
               [AS_VAR_SET([USE_FULL_PATH_LINK], ["true"])])
 AC_SUBST([USE_FULL_PATH_LINK])
 
+AS_UNSET([HAVE_METHODS_COMPARE])
+method_warn="pmf-conversions"
+AS_VAR_SET([METHODS_COMPARE_FLAGS], [-W$method_warn])
+keep_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS+=" -Wno-$method_warn"
+
+AC_MSG_CHECKING([Check if compiler can compare inherited class methods])
+AC_RUN_IFELSE(
+   [AC_LANG_PROGRAM(
+    [struct B{virtual void f1(void){} virtual void f2(void){}};
+     struct C:public B{virtual void f1(void){}};],
+    [C c; return !((void*)(&B::f1) == (void*)(c.*(&B::f1))) &&
+     ((void*)(&B::f2) == (void*)(c.*(&B::f2))) ? 0 : -1])],
+   [AS_VAR_SET([HAVE_METHODS_COMPARE],[yes]) # success run
+    AC_MSG_RESULT([$HAVE_METHODS_COMPARE])],
+   [AC_MSG_RESULT([no])],                    # failure
+   [AS_VAR_SET([HAVE_METHODS_COMPARE],[cross]) # cross compilation
+    AC_MSG_RESULT([$HAVE_METHODS_COMPARE])])
+
+CPPFLAGS="$keep_CPPFLAGS"
+AC_SUBST([HAVE_METHODS_COMPARE])
+AC_SUBST([METHODS_COMPARE_FLAGS])
+
 #----------------------------------------------------------------
 # Testing tools
 #----------------------------------------------------------------

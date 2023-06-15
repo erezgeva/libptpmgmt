@@ -17,17 +17,17 @@ void MessageDispatcher::callHadler(const Message &msg)
 {
     callHadler(msg, msg.getTlvId(), msg.getData());
 }
+#ifdef HAVE_METHODS_COMPARE
 DIAG_START
-DIAG_IGNORE("-Wpmf-conversions")
-#ifdef HAVE_FUNC_COMPARE
+DIAG_IGNORE(METHODS_COMPARE_FLAGS)
 // We convert function pointer for comparing, ignore warning
 #define check_inherit(n) \
     if ((void*)(&MessageDispatcher::n##_h) == \
         (void*)(this->*(&MessageDispatcher::n##_h))) {\
         noTlvCallBack(msg, #n); return; }
-#else /*HAVE_FUNC_COMPARE*/
+#else /*HAVE_METHODS_COMPARE*/
 #define check_inherit(n)
-#endif /*HAVE_FUNC_COMPARE*/
+#endif /*HAVE_METHODS_COMPARE*/
 #define _ptpmCaseUF(n) \
     case n: check_inherit(n)\
     n##_h(msg, *dynamic_cast<const n##_t*>(tlv), #n); break;
@@ -46,7 +46,9 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
             break;
     }
 }
+#ifdef HAVE_METHODS_COMPARE
 DIAG_END
+#endif /*HAVE_METHODS_COMPARE*/
 bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 {
     if(!m_msg.isValidId(tlv_id))

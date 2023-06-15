@@ -78,7 +78,7 @@ void Options::useDefOption()
     helpVec.push_back(helpStore(" -u", "UDS local\n"));
     helpVec.push_back(helpStore(" Other Options\n"));
     helpUpdate = true;
-    for(auto *cur = startOptions; cur->short_name; cur++)
+    for(Pmc_option *cur = startOptions; cur->short_name; cur++)
         insert(*cur);
     m_useDef = true;
 }
@@ -132,7 +132,7 @@ const char *Options::get_help()
 {
     if(helpUpdate) {
         help = "";
-        for(const auto &a : helpVec)
+        for(const helpStore &a : helpVec)
             help += a.get(max_arg_name + 7);
         helpUpdate = false;
     }

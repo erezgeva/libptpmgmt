@@ -1048,7 +1048,7 @@ void Timestamp_t::toTimeval(timeval &tv) const
 }
 void Timestamp_t::fromFloat(float_seconds seconds)
 {
-    auto ret = _floor(seconds);
+    floor_t ret = _floor(seconds);
     secondsField = ret.intg;
     nanosecondsField = ret.rem * NSEC_PER_SEC;
 }
@@ -1058,7 +1058,7 @@ float_seconds Timestamp_t::toFloat() const
 }
 void Timestamp_t::fromNanoseconds(uint64_t nanoseconds)
 {
-    auto d = lldiv((long long)nanoseconds, (long long)NSEC_PER_SEC);
+    lldiv_t d = lldiv((long long)nanoseconds, (long long)NSEC_PER_SEC);
     while(d.rem < 0) {
         d.quot--;
         d.rem += NSEC_PER_SEC;
@@ -1112,7 +1112,7 @@ Timestamp_t &Timestamp_t::add(const Timestamp_t &ts)
 }
 Timestamp_t &Timestamp_t::add(float_seconds seconds)
 {
-    auto ret = _floor(seconds);
+    floor_t ret = _floor(seconds);
     secondsField += ret.intg;
     nanosecondsField += ret.rem * NSEC_PER_SEC;
     return normNano(this);

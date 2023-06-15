@@ -269,7 +269,7 @@ bool Binary::eui48ToEui64()
     m_buf[3] = 0xff;
     return true;
 }
-bool Binary::fromHex(const std::string hex)
+bool Binary::fromHex(const std::string &hex)
 {
     if(hex.empty())
         return false;
