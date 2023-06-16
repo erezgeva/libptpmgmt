@@ -17,8 +17,8 @@ Python script needs 2 libraries:
 
 You can install the libraries in your system.  
 Or you can use:  
- 1. LD_LIBRARY_PATH to tell the shell, where is libptpmgmt.so.  
- 2. PYTHONPATH to tell the shell where the python wrapper library files are.
+ 1. LD_LIBRARY_PATH to tell the shell the path to libptpmgmt.so.  
+ 2. PYTHONPATH to tell the shell the location of the python wrapper library files.
 
 For example:  
 `$ LD_LIBRARY_PATH=.. PYTHONPATH=3 python3 test.py`
@@ -32,11 +32,11 @@ The PTP daemon comes with its own configuration.
 The ptpmgmt uses the PTP IEEE management messages to monitor, query and set.
 
 Look in the test.py, it shows reading and setting of `PRIORITY1`.  
-You could also see "sample/sync_watch.py" which monitor
+You could also see "sample/sync_watch.py" which 
 "continuously checks whether a PTP client is well synced to its master",  
 using the `PORT_DATA_SET`, `PARENT_DATA_SET`, `CURRENT_DATA_SET`.
 
-The library support [linuxptp](http://linuxptp.sf.net/) vendor specific TLVs
+The library support [linuxptp](https://linuxptp.nwtime.org) vendor specific TLVs
 like: `SUBSCRIBE_EVENTS_NP`.
 
 
@@ -68,7 +68,7 @@ You can build packages for you Linux distribution.
  2. [RPM package](https://rpm.org/)  
  3. [Arch Linux package](https://wiki.archlinux.org/title/creating_packages)  
 
-Users can create packages to their system.  
+Users can create packages for their system.  
 The packages are per language, so for example, you can install the package for python only.
 
 
