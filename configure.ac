@@ -13,7 +13,7 @@ AC_PREREQ([2.69])
 m4_define([ptpm_VER], m4_esyscmd_s([. ./tools/version && echo "$ver_maj.$ver_min"]))
 AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],
         [libptpmgmt-]m4_defn([ptpm_VER]).txz,
-        [https://sf.net/p/libptpmgmt])
+        [https://libptpmgmt.nwtime.org])
 AC_CONFIG_FILES([defs.mk])
 AC_CONFIG_SRCDIR([src/mngIds.m4])
 AC_CANONICAL_BUILD

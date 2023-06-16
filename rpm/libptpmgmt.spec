@@ -9,7 +9,7 @@
 Name:           libptpmgmt
 Version:        1.1
 Release:        1%{?dist}
-URL:            https://sf.net/p/%{name}
+URL:            https://%{name}.nwtime.org
 BuildRequires:  swig m4
 BuildRequires:  perl perl-devel perl-ExtUtils-Embed
 BuildRequires:  which

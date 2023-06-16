@@ -1,6 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: libptpmgmt
 Upstream-Contact: Erez Geva <ErezGeva2@gmail.com>
+Source: https://libptpmgmt.nwtime.org
 Source: https://sf.net/p/libptpmgmt
 Source: https://github.com/erezgeva/libptpmgmt
 

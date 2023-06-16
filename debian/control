@@ -10,7 +10,7 @@ Build-Depends-Arch: perl:native, lua5.2, liblua5.1-0-dev,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev,
 		    libfastjson-dev
 Build-Depends-Indep: graphviz, doxygen, libtool-bin
-Homepage: https://sf.net/p/libptpmgmt
+Homepage: https://libptpmgmt.nwtime.org
 
 Package: libptpmgmt
 Architecture: any
