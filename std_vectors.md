@@ -1,22 +1,22 @@
-# C++ std::vector<> map in scripts languages
+# C++ std::vector<> map in Scripts Languages
 
 We use C++ `std::vector<T>` when we need an array or a list.  
 The benefits of the `std::vector<T>`, are:
 
- 1. C++ manage the memory for us. We don't need to allocate or free.
- 1. The vector can grow, we do not need to allocate on advance.
+ 1. C++ manages the memory for us. We don't need to allocate or free.
+ 1. The vector can grow as we do not need to allocate on advance.
 
 
-In the following disccusuin we shall call
+In the following discussion we shall call:
 
   * ***'container'*** to the mapped class in scripts.
   * ***'element'*** to the C++ class, we use in the container.
 
 
-SWIG does a special translation of `std::vector<T>` in a way which differ script language to other.  
-In addition SWIG require explicit announcement for the mapping.
+SWIG does a special translation of `std::vector<T>` in a way which differs from one script language to another.  
+In addition, SWIG requires explicit announcement for the mapping.
 
-Currently the follow `std::vector<T>` maps are announced in libptpmgmt.i  
+Currently the follow `std::vector<T>` maps are announced in `libptpmgmt.i`:
 
 |Class name in scripts  |C++ `std::vector<T>`             |header |
 |-----------------------|---------------------------------|-------|
@@ -40,10 +40,10 @@ For example `std::vector<FaultRecord_t>` is part of `FAULT_LOG_t`, the structure
 It could be an argument of a function.  
 For example `std::vector<PtpEvent_t>` is an argument of `readEvents()`.
 
-# Container constructors
+# Container Constructors
 
 The allocation and release of both container and element are done in the same way we allocate other SWIG classes.  
-The container provids the following constructors, following `std::vector<>` constructors.
+The container provides the following constructors, following `std::vector<>` constructors.
 
 |#  |result                 |argument 1|argument 2|
 |---|-----------------------|----------|----------|
@@ -52,13 +52,13 @@ The container provids the following constructors, following `std::vector<>` cons
 |1  |insert default elements|number    |          |
 |2  |copies of element      |number    |element   |
 
-* PHP do not support the last, 2 arguments constructor!
+* PHP does not support the last 2 arguments constructor!
 
-# Compare of C++ class methods with scripts  
+# Comparison of C++ Class Methods with Scripts  
 
-C++ are the methods of [`std::vector<>`](https://en.cppreference.com/w/cpp/container/vector)  
--NA- means method is not available  
-Python and Ruby support more methods  
+C++ are the methods of [`std::vector<>`](https://en.cppreference.com/w/cpp/container/vector).
+-NA- means method is not available.
+Python and Ruby support more methods.
 
 |C++          |Perl |PHP     |Tcl  |Go      |Lua      |Python   |Ruby    |
 |-------------|-----|--------|-----|--------|---------|---------|--------|
@@ -76,12 +76,12 @@ Python and Ruby support more methods
 |reserve      |-NA- |reserve |-NA- |Reserve |-NA-     |reserve  |reserve |
 |max_size     |-NA- |-NA-    |-NA- |-NA-    |max_size |-NA-     |-NA-    |
 
-# more documentation
+# More Documentation
 
-The container in Python act as list and in Ruby as array.  
+The container in Python acts as list, and in Ruby as array.  
 
   * [Python list](https://docs.python.org/3/tutorial/datastructures.html)
   * [Ruby array](https://ruby-doc.org/core/Array.html)
 
-Perl, Lua, PHP, Tcl and Go uses only the methods declared in `vecDef.h`.  
-See doxygen documentation of `vecDef.h` for more detailed on the container methods.
+Perl, Lua, PHP, Tcl, and Go use only the methods declared in `vecDef.h`.  
+See doxygen documentation of `vecDef.h` for more details on the container methods.
