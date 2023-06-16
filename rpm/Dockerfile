@@ -17,7 +17,7 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     lua lua-devel python3-devel php python3 which gtest-devel gtest golang\
     perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel libfastjson\
     libfastjson-devel json-c-devel m4 rubygem-test-unit perl-Test-Class\
-    texlive-epstopdf ghostscript && dnf clean all &&\
+    texlive-epstopdf ghostscript php-phpunit-PHPUnit && dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers

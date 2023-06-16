@@ -127,12 +127,12 @@ AC_ARG_ENABLE([full-link],
 AC_SUBST([USE_FULL_PATH_LINK])
 
 AS_UNSET([HAVE_METHODS_COMPARE])
-method_warn="pmf-conversions"
-AS_VAR_SET([METHODS_COMPARE_FLAGS], [-W$method_warn])
-keep_CPPFLAGS="$CPPFLAGS"
-CPPFLAGS+=" -Wno-$method_warn"
+AS_VAR_SET([ptpm_method_warn], [pmf-conversions])
+AS_VAR_SET([METHODS_COMPARE_FLAGS], ["-W$ptpm_method_warn"])
+AS_VAR_SET([ptpm_keep_cppflags], ["$CPPFLAGS"])
+AS_VAR_SET([CPPFLAGS], ["$CPPFLAGS -Wno-$ptpm_method_warn"])
 
-AC_MSG_CHECKING([Check if compiler can compare inherited class methods])
+AC_MSG_CHECKING([whether compiler can compare inherited class methods])
 AC_RUN_IFELSE(
    [AC_LANG_PROGRAM(
     [struct B{virtual void f1(void){} virtual void f2(void){}};
@@ -145,7 +145,7 @@ AC_RUN_IFELSE(
    [AS_VAR_SET([HAVE_METHODS_COMPARE],[cross]) # cross compilation
     AC_MSG_RESULT([$HAVE_METHODS_COMPARE])])
 
-CPPFLAGS="$keep_CPPFLAGS"
+AS_VAR_SET([CPPFLAGS], [$ptpm_keep_cppflags])
 AC_SUBST([HAVE_METHODS_COMPARE])
 AC_SUBST([METHODS_COMPARE_FLAGS])
 
@@ -177,15 +177,15 @@ AC_SUBST([GTEST_LIB_FLAGS])
 #----------------------------------------------------------------
 AS_UNSET([ASAN_LIBS])
 
-keep_CPPFLAGS="$CPPFLAGS"
-keep_LDFLAGS="$LDFLAGS"
+AS_VAR_SET([ptpm_keep_cppflags], [$CPPFLAGS])
+AS_VAR_SET([ptpm_keep_ldflags], [$LDFLAGS])
 
 for n in address pointer-compare pointer-subtract undefined leak; do
-   CPPFLAGS+=" -fsanitize=$n"
-   LDFLAGS+=" -fsanitize=$n"
+   AS_VAR_SET([CPPFLAGS], ["$CPPFLAGS -fsanitize=$n"])
+   AS_VAR_SET([LDFLAGS], ["$LDFLAGS -fsanitize=$n"])
 done
 
-AC_MSG_CHECKING([Search Address Sanitizer libraries])
+AC_MSG_CHECKING([for Address Sanitizer libraries])
 AC_LINK_IFELSE(
    [AC_LANG_PROGRAM([],[])],
    [AS_VAR_SET([ASAN_LIBS],
@@ -194,8 +194,8 @@ AC_LINK_IFELSE(
     AC_MSG_RESULT([$ASAN_LIBS])],
    [AC_MSG_RESULT([no])])
 
-CPPFLAGS="$keep_CPPFLAGS"
-LDFLAGS="$keep_LDFLAGS"
+AS_VAR_SET([CPPFLAGS], [$ptpm_keep_cppflags])
+AS_VAR_SET([LDFLAGS], [$ptpm_keep_ldflags])
 
 AC_SUBST([ASAN_LIBS])
 
@@ -617,6 +617,7 @@ AS_UNSET([PERL])
 AS_UNSET([PERLBIN])
 AS_UNSET([PERL5DIR])
 AS_UNSET([PERL5EXT])
+AS_UNSET([PERL5TEST])
 
 AC_ARG_WITH([perl5],
             [AS_HELP_STRING([--without-perl5],
@@ -654,6 +655,8 @@ else
            done
            ptpm_result(PERL5EXT)],
           [AC_MSG_RESULT([unable to determine perl5 configuration])])
+    AS_IF([$PERL -e 'use Test::Class;Test::More;' 2>/dev/null],
+          [AS_VAR_SET([PERL5TEST], [have])])
   else
     AC_MSG_RESULT([could not figure out how to run perl5])
   fi
@@ -661,6 +664,7 @@ fi
 AC_SUBST([PERL])
 AC_SUBST([PERL5DIR])
 AC_SUBST([PERL5EXT])
+AC_SUBST([PERL5TEST])
 
 #----------------------------------------------------------------
 # Look for Ruby
@@ -783,6 +787,7 @@ AS_UNSET([PHPMINVER])
 AS_UNSET([PHPEXT])
 AS_UNSET([PHPINC])
 AS_UNSET([PHPINC_FLAGS])
+AS_UNSET([PHPUNIT])
 
 AC_ARG_WITH([php],
             [AS_HELP_STRING([--without-php], [Disable PHP])
@@ -869,6 +874,7 @@ else
                        [AS_VAR_SET([PHPMINVER], [$PHPVER])],
                        # Above swig 4.1
                        [AS_VAR_SET([PHPMINVER], [$PHPVER])])
+    AC_CHECK_PROGS([PHPUNIT], [phpunit])
   fi
 fi
 
@@ -880,6 +886,7 @@ AC_SUBST([PHPMINVER])
 AC_SUBST([PHPEXT])
 AC_SUBST([PHPINC])
 AC_SUBST([PHPINC_FLAGS])
+AC_SUBST([PHPUNIT])
 
 #----------------------------------------------------------------
 # Look for Lua
@@ -893,6 +900,7 @@ AS_UNSET([LUA_INC])
 AS_UNSET([LUALINK])
 AS_UNSET([LUAVERSIONS])
 AS_UNSET([LUAVERSIONS_UNIT])
+AS_UNSET([LUAUNIT])
 AS_UNSET([LUA_5_1_INC])
 AS_UNSET([LUA_5_2_INC])
 AS_UNSET([LUA_5_3_INC])
@@ -1015,6 +1023,8 @@ else
                               [AS_UNSET([LUABIN])])])
       fi
     fi
+    AS_IF([test -n "$LUABIN" && $LUABIN -e "require 'luaunit'" 2>/dev/null],
+          [AS_VAR_SET([LUAUNIT], [have])])
   fi # test -z "$LUAVERSIONS"; then
 fi # if not disabled
 
@@ -1025,6 +1035,7 @@ AC_SUBST([LUA_INC])
 AC_SUBST([LUALINK])
 AC_SUBST([LUAVERSIONS])
 AC_SUBST([LUAVERSIONS_UNIT])
+AC_SUBST([LUAUNIT])
 AC_SUBST([LUA_5_1_INC])
 AC_SUBST([LUA_5_2_INC])
 AC_SUBST([LUA_5_3_INC])

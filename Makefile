@@ -230,7 +230,7 @@ FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl go
 UTEST_CPP_TGT:=$(addprefix utest_,no_sys json sys json_load pmc)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
-UTEST_TGT:=utest_cpp $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)
+UTEST_TGT:=utest_cpp utest_lang $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)
 INS_TGT:=install_main $(addprefix install_,$(TGT_LNG))
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\

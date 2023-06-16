@@ -46,9 +46,11 @@ lua/$(SWIG_NAME).o: lua/$(SWIG_NAME).cpp $(HEADERS)
 $(LUA_LIB): lua/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
+ifneq ($(LUAUNIT),)
 utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
 	$(call Q_UTEST,Lua)LD_PRELOAD=$(ASAN_PRE)./$< LUA_CPATH="lua/?.so;;" $(LUABIN)\
 	  $(UVGD)lua/utest.lua $(LUA_FILTERS)
+endif # LUAUNIT
 endif # LUA_VERSION
 utest_lua: utest_lua_a $(addprefix utest_lua_,$(LUAVERSIONS_UNIT))
 

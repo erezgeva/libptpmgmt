@@ -19,9 +19,11 @@ $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(PHP_LNAME).so
 php/php.ini:
 	$(Q)php/php_ini.sh php/
+ifneq ($(PHPUNIT),)
 utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
 	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php$(UVGD)phpunit php/utest.php\
 	  $(PHP_NO_COL) $(PHP_FILTERS)
+endif
 
 install_php:
 	$Q$(INSTALL_LIB) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHPEXT)

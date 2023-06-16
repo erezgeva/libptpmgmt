@@ -71,6 +71,23 @@ test_clean()
    check_clean distclean $distclean_list
  fi
 }
+distribution()
+{
+ if [[ -f /etc/debian_version ]]; then
+   dist=debian
+ else
+   for n in /etc/*-release; do
+     m="${n%-release}"
+     dist="${m#/etc/}"
+     break
+   done
+ fi
+ if [[ "$dist" != "gentoo" ]]; then
+   not_gentoo=true
+ else
+   not_gentoo=false
+ fi
+}
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
@@ -92,8 +109,9 @@ main()
  if [[ $jobs -le 0 ]]; then
    jobs=1
  fi
- local n m out distclean_list utests dist_clean_more
+ local n m out distclean_list dist not_gentoo dist_clean_more
  local -i last_ret
+ distribution
  # Make sure we output to STDOUT directly, no pipes
  # check our teminal support coulors
  if [[ -n "$nocolor" ]]; then
@@ -127,83 +145,65 @@ main()
  fi
  echo " * Configure"
  autoconf
- if [[ -f /etc/gentoo-release ]]; then
+ if $not_gentoo; then
+   ecmd make config $mk_noc
+ else
    # Were is Gentoo defualt configure setting?
    # This is after the build flags, we use 64 bits container.
    ecmd ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var/lib\
      --libdir=/usr/lib64
- else
-   ecmd make config $mk_noc
  fi
  tools/config_report.sh
  equit "Configuratation fails"
- if ! [[ -f /etc/gentoo-release ]]; then
+ if $not_gentoo; then
+   # Gentoo miss the dot tool
    # Run syntax checking
    make checkall -j$jobs $mk_noc
  fi
- if [[ -f /etc/debian_version ]]; then
-   echo " * Run unit test"
-   eacmd make utest -j$jobs $mk_noc
-   equit "Unit test fails"
- elif [[ -f /etc/fedora-release ]]; then
-   utests=''
-   # No luaunit, missing phpunit
-   for n in cpp perl5 python3 ruby tcl go; do
-     utests+=" utest_$n"
-   done
-   echo " * Run unit test"
-   eacmd make $utests -j$jobs $mk_noc
-   equit "Unit test fails"
- elif [[ -f /etc/arch-release ]]; then
-   utests=''
-   # json_load fails, no php, Perl test is missing
-   for n in no_sys json sys lua python3 ruby tcl go; do
-     utests+=" utest_$n"
-   done
-   echo " * Run unit test"
-   eacmd make $utests -j$jobs $mk_noc
-   equit "Unit test fails"
- elif [[ -f /etc/gentoo-release ]]; then
-   utests=''
-   for n in python3 ruby tcl ; do
-     utests+=" utest_$n"
-   done
-   echo " * Run unit test"
-   eacmd make $utests -j$jobs $mk_noc
-   equit "Unit test fails"
- fi
+ echo " * Run unit test"
+ eacmd make utest -j$jobs $mk_noc
+ equit "Unit test fails"
  echo " * Build"
  ecmd make -j$jobs $mk_noc
  equit "Build fails"
  test_clean
- if [[ -f /etc/debian_version ]] &&\
-    [[ -n "$(which dpkg-buildpackage 2> /dev/null)" ]]; then
-   echo " * Build Debian packages"
-   eacmd make deb -j$jobs $mk_noc
-   equit "Build Debian packages fails"
-   test_clean
- elif [[ -f /etc/fedora-release ]] &&\
-      [[ -n "$(which rpmbuild 2> /dev/null)" ]]; then
-   echo " * Build Fedora RPM packages"
-   eacmd nice -n 3 make rpm -j$jobs $mk_noc
-   equit "Build Fedora RPM packages fails"
-   test_clean
- elif [[ -f /etc/arch-release ]] &&\
-      [[ -n "$(which makepkg 2> /dev/null)" ]]; then
-   echo " * Build Arch Linux packages"
-   eacmd nice -n 8 make pkg -j$jobs MAKEFLAGS="-j$jobs" $mk_noc
-   equit "Build Arch Linux packages fails"
-   for n in archlinux/libptpmgmt-*.txz; do
-     dist_clean_more+=" $n"
-   done
-   test_clean
- elif [[ -f /etc/gentoo-release ]] &&\
-      [[ -n "$(which ebuild 2> /dev/null)" ]]; then
-   echo " * Build Gentoo packages"
-   eacmd nice -n 3 make gentoo -j$jobs $mk_noc
-   equit "Build Gentoo fails"
-   test_clean
- fi
+ case $dist in
+   debian)
+     if [[ -n "$(which dpkg-buildpackage 2> /dev/null)" ]]; then
+       echo " * Build Debian packages"
+       eacmd make deb -j$jobs $mk_noc
+       equit "Build Debian packages fails"
+       test_clean
+     fi
+     ;;
+   fedora)
+     if [[ -n "$(which rpmbuild 2> /dev/null)" ]]; then
+       echo " * Build Fedora RPM packages"
+       eacmd make rpm -j$jobs $mk_noc
+       equit "Build Fedora RPM packages fails"
+       test_clean
+     fi
+     ;;
+   arch)
+     if [[ -n "$(which makepkg 2> /dev/null)" ]]; then
+       echo " * Build Arch Linux packages"
+       eacmd make pkg -j$jobs MAKEFLAGS="-j$jobs" $mk_noc
+       equit "Build Arch Linux packages fails"
+       for n in archlinux/libptpmgmt-*.txz; do
+         dist_clean_more+=" $n"
+       done
+       test_clean
+     fi
+     ;;
+   gentoo)
+     if [[ -n "$(which ebuild 2> /dev/null)" ]]; then
+       echo " * Build Gentoo packages"
+       eacmd make gentoo -j$jobs $mk_noc
+       equit "Build Gentoo fails"
+       test_clean
+     fi
+     ;;
+ esac
  echo "$color_blue * CI test done$color_norm"
 }
 main "$@"

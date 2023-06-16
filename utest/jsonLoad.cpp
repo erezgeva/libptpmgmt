@@ -25,6 +25,7 @@ int (*json_object_put)(void *);
 // static const char *loadLibrary();
 // static bool isLibShared();
 // bool fromJsonObj(const void *jobj);
+#ifdef HAVE_JSONC_LIB
 TEST(jsonLoadTest, MethodLoadJsonC)
 {
     Json2msg m;
@@ -47,8 +48,10 @@ TEST(jsonLoadTest, MethodLoadJsonC)
     json_object_put(obj);
     dlclose(handle);
 }
+#endif /*HAVE_JSONC_LIB*/
 
 // Tests loading fastjson library
+#ifdef HAVE_FJSON_LIB
 TEST(jsonLoadTest, MethodLoadFastJson)
 {
     Json2msg m;
@@ -71,3 +74,4 @@ TEST(jsonLoadTest, MethodLoadFastJson)
     json_object_put(obj);
     dlclose(handle);
 }
+#endif /*HAVE_FJSON_LIB*/
