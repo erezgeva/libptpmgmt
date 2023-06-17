@@ -17,47 +17,39 @@ GOFLAGS!=$(GOBIN) env GOFLAGS
 ifneq ($(GOVCS),)
 GOFLAGS:=-buildvcs=false
 endif
+export GOFLAGS CGO_CXXFLAGS CGO_LDFLAGS
+export GO111MODULE=on
+ifneq ($(GOARCH),)
+# Cross compilation
+export CXX CC GOARCH
+export CGO_ENABLED=1
+endif
 go_SFLAGS+=-go
 # New swig, calculate the integer size automatic
 ifneq ($(SWIG_INTGOSIZE),)
-ifneq ($(call which,dpkg-architecture),)
-# Debian support cross compilation
-GO_BITS!=dpkg-architecture -q DEB_TARGET_ARCH_BITS
-else
-# On unix long size represent also machine bit size
-GO_BITS!=getconf LONG_BIT
-endif
 # We use the CPU bits for integer size
-go_SFLAGS+=-intgosize $(GO_BITS)
-endif # SWIG_INTGOSIZE
+go_SFLAGS+=-intgosize $(SWIG_INTGOSIZE)
+endif
 
 GO_SRC:=go/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 $(GO_SRC): go/$(SWIG_NAME).cpp $(LIB_NAME_FSO)
 	$Q$(MKDIR_P) $(@D)
 	cp $^ go/$(SWIG_LNAME).go $(@D)
 go/$(SWIG_LNAME)/go.mod:
-	$(Q_GEN)if [ -f $@ ]; then touch $@;\
-	else export GO111MODULE=on GOFLAGS="$(GOFLAGS)";$(MKDIR_P) $(@D);\
-	cd $(@D); $(GOBIN) mod init $(SWIG_LNAME) $(Q_ERR);fi
+	$(Q_GEN)if [ -f $@ ]; then touch $@; else $(MKDIR_P) $(@D);\
+	cd $(@D) && $(GOBIN) mod init $(SWIG_LNAME) $(Q_ERR);fi
 go/gtest/go.mod go/unit_test/go.mod: go/$(SWIG_LNAME)/go.mod $(GO_SRC)
 	$(Q_GEN)cd $(@D);if [ -f $(@F) ]; then touch $(@F);\
-	else export GO111MODULE=on GOFLAGS="$(GOFLAGS)";\
-	$(GOBIN) mod init $(subst go/,,$(@D)) $(Q_ERR);\
+	else $(GOBIN) mod init $(subst go/,,$(@D)) $(Q_ERR);\
 	$(GOBIN) mod edit -replace $(SWIG_LNAME)=../$(SWIG_LNAME);fi;\
 	$(GOBIN) mod tidy $(Q_ERR)
 go/gtest/gtest: go/gtest/go.mod go/gtest/gtest.go $(GO_SRC)
-	$(Q_LD)export CGO_CXXFLAGS="$(CGO_CXXFLAGS)"
-	export CGO_LDFLAGS="$(CGO_LDFLAGS)"
-	export GO111MODULE=on GOFLAGS="$(GOFLAGS)"
-	cd $(@D);$(GOBIN) build .
+	$(Q_LD)cd $(@D) && $(GOBIN) build .
 SWIG_ALL+=go/gtest/gtest
 
 utest_go: go/unit_test/go.mod
-	$(call Q_UTEST,GO)export CGO_CXXFLAGS="$(CGO_CXXFLAGS)"
-	export CGO_LDFLAGS="$(CGO_LDFLAGS)"
-	export GO111MODULE=on GOFLAGS="$(GOFLAGS)"
-	export LD_PRELOAD="$(PWD)/$(LIB_NAME_SO)"
-	cd go/unit_test;$(GOBIN) test .
+	$(call Q_UTEST,GO)export LD_PRELOAD="$(PWD)/$(LIB_NAME_SO)"
+	cd go/unit_test && $(GOBIN) test .
 
 install_go:
 	$Q$(INSTALL_FOLDER) $(DESTDIR)$(GOROOT)/src

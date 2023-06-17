@@ -19,6 +19,7 @@ AC_CONFIG_SRCDIR([src/mngIds.m4])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_LANG([C++])
+AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_GREP
 AC_PROG_EGREP
@@ -158,7 +159,9 @@ AS_UNSET([GTEST_LIB_FLAGS])
 
 AC_CHECK_HEADER([gtest/gtest.h],
                 [AS_VAR_SET([HAVE_GTEST_HEADER], [gtest/gtest.h])])
-AS_IF([test -n "$HAVE_GTEST_HEADER" && test -n "$PKG_CONFIG"],
+# We do not use google test on cross compilation
+AS_IF([test -n "$HAVE_GTEST_HEADER" && test -n "$PKG_CONFIG" &&\
+       test -z "$USE_CROSS_COMPILE" ],
       [AS_VAR_SET([GTEST_INC_FLAGS], [`$PKG_CONFIG --cflags gtest`])
        AS_VAR_SET([GTEST_LIB_FLAGS], [`$PKG_CONFIG --libs gtest`])
        AC_CHECK_LIB([gtest], [main],
@@ -1060,6 +1063,7 @@ AS_UNSET([GOVER])
 AS_UNSET([GOMINVER])
 AS_UNSET([GOROOT])
 AS_UNSET([GOVCS])
+AS_UNSET([GOARCH])
 AS_UNSET([SWIG_INTGOSIZE])
 
 AC_ARG_WITH([go],
@@ -1081,7 +1085,8 @@ else
                [`$GOBIN env GOROOT`])
     AS_VERSION_COMPARE([$SWIGVER], [4.1],
                        # Swig bellow 4.1
-                       [AS_VAR_SET([SWIG_INTGOSIZE], ["$SWIGVER"])])
+                       [AS_VAR_SET([SWIG_INTGOSIZE],
+                       [`./tools/goarch.sh "$host_cpu" bits`])])
     AS_VAR_SET([GOVER],
                [`$GOBIN version | $SED 's/^go version go//;s/ .*//'`])
     AS_VERSION_COMPARE([$GOVER], [1.14],
@@ -1098,6 +1103,8 @@ else
                        [AS_VAR_SET([GOVCS], [true])],
                        # Above go 1.18
                        [AS_VAR_SET([GOVCS], [true])])
+    AS_IF([test -n "$USE_CROSS_COMPILE"],
+          [AS_VAR_SET([GOARCH], [`./tools/goarch.sh "$host_cpu" GOARCH`])])
   fi # GOBIN
 fi # if not disabled
 
@@ -1107,6 +1114,7 @@ AC_SUBST([GOVER])
 AC_SUBST([GOMINVER])
 AC_SUBST([GOROOT])
 AC_SUBST([GOVCS])
+AC_SUBST([GOARCH])
 AC_SUBST([SWIG_INTGOSIZE])
 
 #----------------------------------------------------------------

@@ -107,8 +107,8 @@ BN(32);
 BN(64);
 bool MsgProc::proc48(UInteger48_t &val)
 {
-    uint16_t high;
-    uint32_t low;
+    uint16_t high = 0;
+    uint32_t low = 0;
     if(m_left < (ssize_t)sizeof_UInteger48_t)
         return true;
     if(m_build) {
@@ -127,8 +127,8 @@ bool MsgProc::proc48(UInteger48_t &val)
 }
 bool MsgProc::proc48(Integer48_t &val)
 {
-    uint16_t high;
-    uint32_t low;
+    uint16_t high = 0;
+    uint32_t low = 0;
     if(m_left < (ssize_t)sizeof_Integer48_t)
         return true;
     if(m_build) {

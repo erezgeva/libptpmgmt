@@ -586,8 +586,8 @@ deb:
 	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -b --no-sign
 ifneq ($(DEB_ARC),)
 deb_arc:
-	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q dpkg-buildpackage -B --no-sign\
-	  -a$(DEB_ARC)
+	$(Q)MAKEFLAGS=$(MAKE_NO_DIRS) Q=$Q DEB_BUILD_OPTIONS=nocheck\
+	  dpkg-buildpackage -B --no-sign -a$(DEB_ARC)
 endif
 deb_clean:
 	$Q$(MAKE) $(MAKE_NO_DIRS) -f debian/rules deb_clean Q=$Q
