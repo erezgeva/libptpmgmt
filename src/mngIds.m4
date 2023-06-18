@@ -40,6 +40,7 @@ enum mng_vals_e {
 define(A, `    $1,')dnl
 include(ids_base.m4)dnl
     LAST_MNG_ID, /**< Last management ID excluded */
+    SMPTE_MNG_ID, /**< SMPTE Organization Extension TLV */
     FIRST_MNG_ID = NULL_PTP_MANAGEMENT, /**< First management ID */
     NULL_MANAGEMENT = NULL_PTP_MANAGEMENT /**< old name in IEEE 1588-2008 */
 };

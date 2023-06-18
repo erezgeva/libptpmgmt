@@ -521,6 +521,7 @@ struct JsonProcToJson : public JsonProc {
     JsonProcToJson(mng_vals_e managementId, const BaseMngTlv *data, int indent);
     bool data2json(mng_vals_e managementId, const BaseMngTlv *data,
         bool header = true);
+    bool smpte2json(SMPTE_ORGANIZATION_EXTENSION_t *data);
     void sig2json(tlvType_e tlvType, const BaseSigTlv *tlv);
     void close() {
         if(!m_first)
@@ -680,9 +681,16 @@ struct JsonProcToJson : public JsonProc {
     procType(long double)
     procTypeEnum(msgType_e, type2str_c)
     procTypeEnum(tlvType_e, tlv2str_c)
-    procTypeEnum(mng_vals_e, mng2str_c)
     procTypeEnum(managementErrorId_e, errId2str_c)
+    procTypeEnum(SMPTEmasterLockingStatus_e, smpteLck2str_c)
     procTypeEnumR(networkProtocol_e, netProt2str_c)
+    bool procValue(const char *name, mng_vals_e val) {
+        if(val != SMPTE_MNG_ID)
+            procString(name, Message::mng2str_c(val));
+        else
+            procString(name, "SMPTE_MNG_ID");
+        return true;
+    }
     bool procValue(const char *name, clockAccuracy_e &val) override {
         if(val < Accurate_within_1ps) {
             char buf[10];
@@ -891,6 +899,23 @@ JS(CUMULATIVE_RATE_RATIO)
 {
     PROC_VAL(scaledCumulativeRateRatio);
 }
+JS(SMPTE_ORGANIZATION_EXTENSION)
+{
+    PROC_OCT(organizationId);
+    PROC_OCT(organizationSubType);
+    PROC_VAL(defaultSystemFrameRate_numerator);
+    PROC_VAL(defaultSystemFrameRate_denominator);
+    PROC_VAL(masterLockingStatus);
+    PROC_VAL(timeAddressFlags);
+    PROC_VAL(currentLocalOffset);
+    PROC_VAL(jumpSeconds);
+    PROC_VAL(timeOfNextJump);
+    PROC_VAL(timeOfNextJam);
+    PROC_VAL(timeOfPreviousJam);
+    PROC_VAL(previousJamLocalOffset);
+    PROC_VAL(daylightSaving);
+    PROC_VAL(leapSecondJump);
+}
 // linuxptp implementation specific
 JS(SLAVE_DELAY_TIMING_DATA_NP)
 {
@@ -929,6 +954,13 @@ void JsonProcToJson::sig2json(tlvType_e tlvType, const BaseSigTlv *tlv)
     closeObject();
 }
 
+bool JsonProcToJson::smpte2json(SMPTE_ORGANIZATION_EXTENSION_t *data)
+{
+    if(data != nullptr)
+        parse_SMPTE_ORGANIZATION_EXTENSION(*this, *data);
+    return true;
+}
+
 JsonProcToJson::JsonProcToJson(const Message &msg, int indent) :
     m_base_indent(indent), m_first(false)
 {
@@ -960,6 +992,10 @@ JsonProcToJson::JsonProcToJson(const Message &msg, int indent) :
                 case MANAGEMENT_ERROR_STATUS:
                     procValue("managementErrorId", msg.getErrId());
                     procString("displayData", msg.getErrDisplay());
+                    break;
+                case ORGANIZATION_EXTENSION:
+                    if(managementId == SMPTE_MNG_ID)
+                        smpte2json((SMPTE_ORGANIZATION_EXTENSION_t *)msg.getData());
                     break;
                 default:
                     break;

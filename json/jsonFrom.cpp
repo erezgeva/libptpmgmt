@@ -95,7 +95,7 @@ struct JsonVal {
                         intV = intV != 0;
                         break;
                     case JT_STR:
-                        snprintf(strBuf, sizeof(strBuf), "%jd", intV);
+                        snprintf(strBuf, sizeof strBuf, "%jd", intV);
                         setStr(strBuf);
                         break;
                     default:
@@ -113,7 +113,7 @@ struct JsonVal {
                         intV = fltV != 0;
                         break;
                     case JT_STR:
-                        snprintf(strBuf, sizeof(strBuf), "%lf", fltV);
+                        snprintf(strBuf, sizeof strBuf, "%lf", fltV);
                         setStr(strBuf);
                         break;
                     default:

@@ -75,6 +75,24 @@ A(CUMULATIVE_RATE_RATIO)
 {
     return proc(d.scaledCumulativeRateRatio);
 }
+A(SMPTE_ORGANIZATION_EXTENSION)
+{
+    bool ret = proc(d.organizationId, 3);
+    if(ret)
+        return true;
+    if(memcmp(d.organizationId, "\x68\x97\xe8", 3) != 0) {
+        m_err = MNG_PARSE_ERROR_INVALID_ID;
+        return true;
+    }
+    return proc(d.organizationSubType, 3) ||
+        proc(d.defaultSystemFrameRate_numerator) ||
+        proc(d.defaultSystemFrameRate_denominator) ||
+        proc(d.masterLockingStatus) || proc(d.timeAddressFlags) ||
+        proc(d.currentLocalOffset) || proc(d.jumpSeconds) ||
+        proc48(d.timeOfNextJump) || proc48(d.timeOfNextJam) ||
+        proc48(d.timeOfPreviousJam) || proc(d.previousJamLocalOffset) ||
+        proc(d.daylightSaving) || proc(d.leapSecondJump);
+}
 bool MsgProc::proc(SLAVE_RX_SYNC_TIMING_DATA_rec_t &d)
 {
     return proc(d.sequenceId) || proc(d.syncOriginTimestamp) ||

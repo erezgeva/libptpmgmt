@@ -642,6 +642,17 @@ TEST(MessageTest, MethodFindDelayMech)
     EXPECT_EQ(t, SPECIAL);
 }
 
+// tests convert SMPTE clock locking state to string
+// static const char *smpteLck2str_c(SMPTEmasterLockingStatus_e state)
+TEST(MessageTest, MethodSmpteLck2str)
+{
+    EXPECT_STREQ(Message::smpteLck2str_c(SMPTE_NOT_IN_USE), "NOT_IN_USE");
+    EXPECT_STREQ(Message::smpteLck2str_c(SMPTE_FREE_RUN), "FREE_RUN");
+    EXPECT_STREQ(Message::smpteLck2str_c(SMPTE_COLD_LOCKING), "COLD_LOCKING");
+    EXPECT_STREQ(Message::smpteLck2str_c(SMPTE_WARM_LOCKING), "WARM_LOCKING");
+    EXPECT_STREQ(Message::smpteLck2str_c(SMPTE_LOCKED), "LOCKED");
+}
+
 // tests convert linuxptp time stamp type to string
 // static const char *ts2str_c(linuxptpTimeStamp_e type)
 TEST(MessageTest, MethodTs2str)

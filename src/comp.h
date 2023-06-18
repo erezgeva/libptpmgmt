@@ -240,6 +240,7 @@ struct MsgProc {
     _ptpmParseFunc(SLAVE_RX_SYNC_COMPUTED_DATA);
     _ptpmParseFunc(SLAVE_TX_EVENT_TIMESTAMPS);
     _ptpmParseFunc(CUMULATIVE_RATE_RATIO);
+    _ptpmParseFunc(SMPTE_ORGANIZATION_EXTENSION);
     _ptpmParseFunc(SLAVE_DELAY_TIMING_DATA_NP);
 #undef _ptpmParseFunc
 
@@ -274,6 +275,7 @@ struct MsgProc {
     bool proc(portState_e &val) { return procE8(val); }
     bool proc(delayMechanism_e &val) { return procE8(val); }
     bool proc(msgType_e &val) { return procE8(val); }
+    bool proc(SMPTEmasterLockingStatus_e &val) { return procE8(val); }
     bool proc(linuxptpTimeStamp_e &val) { return procE8(val); }
     bool proc(linuxptpUnicastState_e &val) { return procE8(val); }
     /* For Enumerators using 16 bits */
@@ -331,7 +333,7 @@ template <class T> class mapStackStr
         elem_t *m_topElem; /* List of all elements, for cleanup */
         elem_t *m_elemHash[UINT8_MAX]; /* Hash for finding */
         map_t() : m_topElem(nullptr) {
-            memset(m_elemHash, 0, sizeof(m_elemHash));
+            memset(m_elemHash, 0, sizeof m_elemHash);
         }
         void freeElems() {
             elem_t *n, *c = m_topElem;
@@ -344,7 +346,7 @@ template <class T> class mapStackStr
         void clean() {
             freeElems();
             m_topElem = nullptr;
-            memset(m_elemHash, 0, sizeof(m_elemHash));
+            memset(m_elemHash, 0, sizeof m_elemHash);
         }
         ~map_t() {freeElems();}
         static uint8_t hash_f(const char *key) {

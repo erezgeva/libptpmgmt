@@ -138,7 +138,7 @@ int ioctl(int fd, unsigned long rq, ...)
         }
         case PTP_CLOCK_GETCAPS: {
             ptp_clock_caps *cps = (ptp_clock_caps *)arg;
-            memset(cps, 0, sizeof(ptp_clock_caps));
+            memset(cps, 0, sizeof ptp_clock_caps);
             cps->max_adj = 0xffffff;
             cps->n_pins = 1;
             break;

@@ -224,6 +224,60 @@ struct CUMULATIVE_RATE_RATIO_t : public BaseSigTlv {
     /** (@<cumulativeRateRatio@> - 1) * 2^41 */
     Integer32_t scaledCumulativeRateRatio;
 };
+/**
+ * SMPTE (the Society of Motion Picture and Television Engineers)
+ * Management Message with Synchronization Metadata (SM)
+ * Using Organization Extension TLV
+ */
+struct SMPTE_ORGANIZATION_EXTENSION_t : public BaseMngTlv {
+    Octet_t organizationId[3]; /**< always SMPTE OUI 68 97 E8 */
+    Octet_t organizationSubType[3]; /**< SM TLV version */
+    /** Default video frame rate - the numerator for a division */
+    UInteger32_t defaultSystemFrameRate_numerator;
+    /** Default video frame rate - the denominator for a division */
+    UInteger32_t defaultSystemFrameRate_denominator;
+    /** Complementary information to clockClass */
+    SMPTEmasterLockingStatus_e masterLockingStatus;
+    uint8_t timeAddressFlags;  /**< SMPTE ST 12-1 flags */
+    /** Offset in seconds of Local Time from grandmaster PTP time */
+    Integer32_t currentLocalOffset;
+    /** The size of the next discontinuity, in seconds, of Local Time */
+    Integer32_t jumpSeconds;
+    /**
+     * The value of the seconds portion of the grandmaster PTP time
+     * at the time that the next discontinuity of the currentLocalOffset will occur.
+     */
+    UInteger48_t timeOfNextJump;
+    /**
+     * The value of the seconds portion of the PTP time corresponding
+     * to the next scheduled occurrence of the Daily Jam.
+     */
+    UInteger48_t timeOfNextJam;
+    /**
+     * The value of the seconds portion of the PTP time corresponding
+     * to the previous occurrence of the Daily Jam.
+     */
+    UInteger48_t timeOfPreviousJam;
+    /**
+     * The value of currentLocalOffset at the time of the previous Daily Jam event.
+     */
+    Integer32_t previousJamLocalOffset;
+    uint8_t daylightSaving; /**< Daylight saving flags */
+    /**
+     * The reason for the forthcoming discontinuity of currentLocalOffset
+     * indicated by timeOfNextJump.
+     */
+    uint8_t leapSecondJump;
+    /**
+     * Get object size
+     * @return object size
+     */
+    static size_t size() {
+        return 3 * 2 + sizeof(UInteger32_t) * 2 + sizeof(uint8_t) * 3 +
+            sizeof(Integer32_t) * 3 + sizeof_UInteger48_t * 3
+            + sizeof(SMPTEmasterLockingStatus_e);
+    }
+};
 /** SLAVE_DELAY_TIMING_DATA_NP TLV record
  * @note linuxptp implementation specific
  */

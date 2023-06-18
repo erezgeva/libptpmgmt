@@ -483,3 +483,40 @@ TEST_F(SigTest, LinuxptpTlvs)
     EXPECT_EQ(p->list[1].delayResponseTimestamp,
         Timestamp_t(216603929217188, 923151586));
 }
+
+// Tests enhanced accuracy_metrics TLV
+TEST(SMPTETest, SMPTE_Org)
+{
+    Message m;
+    uint8_t b[100] = {0xd, 2, 0, 0x64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0x74, 0xda, 0x38, 0xff, 0xfe, 0xf6, 0x98, 0x5e, 0, 1, 0, 0, 4,
+            0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 3,
+            3, 3, 0, 0, 3, 0, 0x30, 0x68, 0x97, 0xe8, 0, 0, 1, 0, 0, 0, 0x1e, 0,
+            0, 0, 1, 1
+        };
+    MsgParams a = m.getParams();
+    a.rcvSMPTEOrg = 1;
+    EXPECT_TRUE(m.updateParams(a));
+    ASSERT_EQ(m.parse(b, sizeof b), MNG_PARSE_ERROR_SMPTE);
+    ASSERT_EQ(m.getTlvId(), SMPTE_MNG_ID);
+    ASSERT_EQ(m.getReplyAction(), COMMAND);
+    const BaseMngTlv *t = m.getData();
+    ASSERT_NE(t, nullptr);
+    SMPTE_ORGANIZATION_EXTENSION_t *o = (SMPTE_ORGANIZATION_EXTENSION_t *)t;
+    ASSERT_NE(o, nullptr);
+    ASSERT_EQ(o->size(), 48); // Fixed size of tlv
+    ASSERT_EQ(memcmp(o->organizationId, "\x68\x97\xe8", 3), 0); //always SMPTE OUI
+    ASSERT_EQ(memcmp(o->organizationSubType, "\x0\x0\x1", 3), 0); // SM TLV version
+    ASSERT_EQ(o->defaultSystemFrameRate_numerator, 30);
+    ASSERT_EQ(o->defaultSystemFrameRate_denominator, 1);
+    ASSERT_EQ(o->masterLockingStatus, SMPTE_FREE_RUN);
+    ASSERT_EQ(o->timeAddressFlags, 0);
+    ASSERT_EQ(o->currentLocalOffset, 0);
+    ASSERT_EQ(o->jumpSeconds, 0);
+    ASSERT_EQ(o->timeOfNextJump, 0);
+    ASSERT_EQ(o->timeOfNextJam, 0);
+    ASSERT_EQ(o->timeOfPreviousJam, 0);
+    ASSERT_EQ(o->previousJamLocalOffset, 0);
+    ASSERT_EQ(o->daylightSaving, 0);
+    ASSERT_EQ(o->leapSecondJump, 0);
+}

@@ -258,6 +258,12 @@ class Message
     static const bool findDelayMech(const std::string &str, delayMechanism_e &type,
         bool exact = true);
     /**
+     * Convert SMPTE clock locking state to string
+     * @param[in] state SMPTE clock locking state
+     * @return string with the SMPTE clock locking state
+     */
+    static const char *smpteLck2str_c(SMPTEmasterLockingStatus_e state);
+    /**
      * Convert linuxptp time stamp type to string
      * @param[in] type time stamp type
      * @return string with the Linux time stamp type

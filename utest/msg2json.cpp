@@ -1243,6 +1243,61 @@ TEST(Tlv2JsonTest, EXT_PORT_CONFIG_PORT_DATA_SET)
         "}");
 }
 
+// Tests SMPTE organization extension
+TEST(Tlv2JsonTest, SMPTE_ORGANIZATION_EXTENSION)
+{
+    Message msg;
+    uint8_t b[100] = {0xd, 2, 0, 0x64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0x74, 0xda, 0x38, 0xff, 0xfe, 0xf6, 0x98, 0x5e, 0, 1, 0, 0, 4,
+            0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 3,
+            3, 3, 0, 0, 3, 0, 0x30, 0x68, 0x97, 0xe8, 0, 0, 1, 0, 0, 0, 0x1e, 0,
+            0, 0, 1, 1
+        };
+    MsgParams a = msg.getParams();
+    a.rcvSMPTEOrg = 1;
+    EXPECT_TRUE(msg.updateParams(a));
+    ASSERT_EQ(msg.parse(b, sizeof b), MNG_PARSE_ERROR_SMPTE);
+    ASSERT_EQ(msg.getTlvId(), SMPTE_MNG_ID);
+    EXPECT_STREQ(msg2json(msg).c_str(),
+        "{\n"
+        "  \"sequenceId\" : 0,\n"
+        "  \"sdoId\" : 0,\n"
+        "  \"domainNumber\" : 0,\n"
+        "  \"versionPTP\" : 2,\n"
+        "  \"minorVersionPTP\" : 0,\n"
+        "  \"unicastFlag\" : false,\n"
+        "  \"PTPProfileSpecific\" : 0,\n"
+        "  \"messageType\" : \"Management\",\n"
+        "  \"sourcePortIdentity\" :\n"
+        "  {\n"
+        "    \"clockIdentity\" : \"74da38.fffe.f6985e\",\n"
+        "    \"portNumber\" : 1\n"
+        "  },\n"
+        "  \"targetPortIdentity\" :\n"
+        "  {\n"
+        "    \"clockIdentity\" : \"ffffff.ffff.ffffff\",\n"
+        "    \"portNumber\" : 65535\n"
+        "  },\n"
+        "  \"actionField\" : \"COMMAND\",\n"
+        "  \"tlvType\" : \"ORGANIZATION_EXTENSION\",\n"
+        "  \"managementId\" : \"SMPTE_MNG_ID\",\n"
+        "  \"organizationId\" : \"68:97:e8\",\n"
+        "  \"organizationSubType\" : \"00:00:01\",\n"
+        "  \"defaultSystemFrameRate_numerator\" : 30,\n"
+        "  \"defaultSystemFrameRate_denominator\" : 1,\n"
+        "  \"masterLockingStatus\" : \"FREE_RUN\",\n"
+        "  \"timeAddressFlags\" : 0,\n"
+        "  \"currentLocalOffset\" : 0,\n"
+        "  \"jumpSeconds\" : 0,\n"
+        "  \"timeOfNextJump\" : 0,\n"
+        "  \"timeOfNextJam\" : 0,\n"
+        "  \"timeOfPreviousJam\" : 0,\n"
+        "  \"previousJamLocalOffset\" : 0,\n"
+        "  \"daylightSaving\" : 0,\n"
+        "  \"leapSecondJump\" : 0\n"
+        "}");
+}
+
 // Tests TIME_STATUS_NP structure
 TEST(Tlv2JsonTest, TIME_STATUS_NP)
 {

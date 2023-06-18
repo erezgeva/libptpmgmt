@@ -71,6 +71,7 @@ enum MNG_PARSE_ERROR_e {
     MNG_PARSE_ERROR_OK,           /**< no error */
     MNG_PARSE_ERROR_MSG,          /**< Error message */
     MNG_PARSE_ERROR_SIG,          /**< Signaling message */
+    MNG_PARSE_ERROR_SMPTE,        /**< SMPTE message */
     MNG_PARSE_ERROR_INVALID_ID,   /**< Invalid TLV mng id or action for TLV */
     MNG_PARSE_ERROR_INVALID_TLV,  /**< Wrong TLV header */
     MNG_PARSE_ERROR_MISMATCH_TLV, /**< Mismatch TLV */
@@ -268,6 +269,24 @@ enum delayMechanism_e : uint8_t {
 enum implementSpecific_e {
     noImplementSpecific, /**< Do not use any implementation-specific */
     linuxptp,            /**< linuxptp project */
+};
+/** SMPTE master clock locking status */
+enum SMPTEmasterLockingStatus_e : uint8_t {
+    SMPTE_NOT_IN_USE   = 0, /**< Not in use */
+    SMPTE_FREE_RUN     = 1, /**< Free Run */
+    /**
+     * In response to a disturbance, the grandmaster is re-locking quickly.
+     * In this situation, a rapid phase adjustment with a time discontinuity
+     * can be expected.
+     */
+    SMPTE_COLD_LOCKING = 2,
+    /**
+     * In response to a disturbance, the grandmaster is re-locking slowly
+     * by means of a frequency adjustment, with no phase discontinuity.
+     * Time continuity is maintained.
+     */
+    SMPTE_WARM_LOCKING = 3,
+    SMPTE_LOCKED       = 4, /**< Locked, in normal operation and stable. */
 };
 /** linuxptp timestamp
  *  Specify the underlaying Linux time stamps type that the daemon receive
@@ -833,6 +852,7 @@ struct MsgParams {
     bool useZeroGet; /**< send get with zero dataField */
     bool rcvSignaling; /**< parse signaling messages */
     bool filterSignaling; /**< use filter for signaling messages TLVs */
+    bool rcvSMPTEOrg; /**< parse SMPTE Organization Extension TLV */
     MsgParams();
     /** Add TLV type to allowed signalling filter */
     void allowSigTlv(tlvType_e type);

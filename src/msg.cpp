@@ -410,60 +410,93 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     }
     // Management message part
     uint8_t actionField = 0xf & msg->actionField;
-    if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
+    if(actionField != RESPONSE && actionField != ACKNOWLEDGE &&
+        actionField != COMMAND)
         return MNG_PARSE_ERROR_ACTION;
-    m_replyAction = (actionField_e)actionField;
     uint16_t *cur = (uint16_t *)(msg + 1);
     uint16_t tlvType = net_to_cpu16(*cur++);
     m_mngType = (tlvType_e)tlvType;
     mp.m_left = net_to_cpu16(*cur++); // lengthField
     ssize_t size = msgSize - sizeof(*msg) - tlvSizeHdr;
-    if(MANAGEMENT_ERROR_STATUS == tlvType) {
-        managementErrorTLV_p *errTlv;
-        if(size < (ssize_t)sizeof(*errTlv))
-            return MNG_PARSE_ERROR_TOO_SMALL;
-        size -= sizeof(*errTlv);
-        errTlv = (managementErrorTLV_p *)cur;
-        if(!findTlvId(errTlv->managementId, m_tlv_id, m_prms.implementSpecific))
-            return MNG_PARSE_ERROR_INVALID_ID;
-        if(!checkReplyAction(actionField))
-            return MNG_PARSE_ERROR_ACTION;
-        m_errorId = (managementErrorId_e)net_to_cpu16(errTlv->managementErrorId);
-        // check minimum size and even
-        if(mp.m_left < (ssize_t)sizeof(*errTlv) || mp.m_left & 1)
-            return MNG_PARSE_ERROR_TOO_SMALL;
-        mp.m_left -= sizeof(*errTlv);
-        mp.m_cur = (uint8_t *)(errTlv + 1);
-        // Check displayData size
-        if(size < mp.m_left)
-            return MNG_PARSE_ERROR_TOO_SMALL;
-        if(mp.m_left > 1 && mp.proc(m_errorDisplay))
-            return MNG_PARSE_ERROR_TOO_SMALL;
-        return MNG_PARSE_ERROR_MSG;
-    } else if(MANAGEMENT != tlvType)
-        return MNG_PARSE_ERROR_INVALID_TLV;
-    if(size < (ssize_t)sizeof tlvType)
-        return MNG_PARSE_ERROR_TOO_SMALL;
-    size -= sizeof tlvType;
-    if(!findTlvId(*cur++, m_tlv_id, m_prms.implementSpecific)) // managementId
-        return MNG_PARSE_ERROR_INVALID_ID;
-    if(!checkReplyAction(actionField))
-        return MNG_PARSE_ERROR_ACTION;
-    // Check minimum size and even
-    if(mp.m_left < lengthFieldMngBase || mp.m_left & 1)
-        return MNG_PARSE_ERROR_TOO_SMALL;
-    mp.m_left -= lengthFieldMngBase;
-    if(mp.m_left == 0)
-        return MNG_PARSE_ERROR_OK;
-    mp.m_cur = (uint8_t *)cur;
-    if(size < mp.m_left) // Check dataField size
-        return MNG_PARSE_ERROR_TOO_SMALL;
     BaseMngTlv *tlv;
-    MNG_PARSE_ERROR_e err = mp.call_tlv_data(m_tlv_id, tlv);
-    if(err != MNG_PARSE_ERROR_OK)
-        return err;
-    m_dataGet.reset(tlv);
-    return MNG_PARSE_ERROR_OK;
+    MNG_PARSE_ERROR_e err;
+    switch(tlvType) {
+        case MANAGEMENT_ERROR_STATUS:
+            if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
+                return MNG_PARSE_ERROR_ACTION;
+            m_replyAction = (actionField_e)actionField;
+            managementErrorTLV_p *errTlv;
+            if(size < (ssize_t)sizeof(*errTlv))
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            size -= sizeof(*errTlv);
+            errTlv = (managementErrorTLV_p *)cur;
+            if(!findTlvId(errTlv->managementId, m_tlv_id, m_prms.implementSpecific))
+                return MNG_PARSE_ERROR_INVALID_ID;
+            if(!checkReplyAction(actionField))
+                return MNG_PARSE_ERROR_ACTION;
+            m_errorId =
+                (managementErrorId_e)net_to_cpu16(errTlv->managementErrorId);
+            // check minimum size and even
+            if(mp.m_left < (ssize_t)sizeof(*errTlv) || mp.m_left & 1)
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            mp.m_left -= sizeof(*errTlv);
+            mp.m_cur = (uint8_t *)(errTlv + 1);
+            // Check displayData size
+            if(size < mp.m_left)
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            if(mp.m_left > 1 && mp.proc(m_errorDisplay))
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            return MNG_PARSE_ERROR_MSG;
+        case MANAGEMENT:
+            if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
+                return MNG_PARSE_ERROR_ACTION;
+            m_replyAction = (actionField_e)actionField;
+            if(size < (ssize_t)sizeof tlvType)
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            size -= sizeof tlvType;
+            // managementId
+            if(!findTlvId(*cur++, m_tlv_id, m_prms.implementSpecific))
+                return MNG_PARSE_ERROR_INVALID_ID;
+            if(!checkReplyAction(actionField))
+                return MNG_PARSE_ERROR_ACTION;
+            // Check minimum size and even
+            if(mp.m_left < lengthFieldMngBase || mp.m_left & 1)
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            mp.m_left -= lengthFieldMngBase;
+            if(mp.m_left == 0)
+                return MNG_PARSE_ERROR_OK;
+            mp.m_cur = (uint8_t *)cur;
+            if(size < mp.m_left) // Check dataField size
+                return MNG_PARSE_ERROR_TOO_SMALL;
+            err = mp.call_tlv_data(m_tlv_id, tlv);
+            if(err != MNG_PARSE_ERROR_OK)
+                return err;
+            m_dataGet.reset(tlv);
+            return MNG_PARSE_ERROR_OK;
+        case ORGANIZATION_EXTENSION:
+            if(m_prms.rcvSMPTEOrg) {
+                // rcvSMPTEOrg uses the COMMAND message
+                if(actionField != COMMAND)
+                    return MNG_PARSE_ERROR_ACTION;
+                m_replyAction = COMMAND;
+                if(size < mp.m_left)
+                    return MNG_PARSE_ERROR_TOO_SMALL;
+                mp.m_cur = (uint8_t *)cur;
+                SMPTE_ORGANIZATION_EXTENSION_t *tlvOrg;
+                tlvOrg = new SMPTE_ORGANIZATION_EXTENSION_t;
+                if(tlvOrg == nullptr)
+                    return MNG_PARSE_ERROR_MEM;
+                if(mp.SMPTE_ORGANIZATION_EXTENSION_f(*tlvOrg))
+                    return mp.m_err;
+                m_dataGet.reset(tlvOrg);
+                m_tlv_id = SMPTE_MNG_ID;
+                return MNG_PARSE_ERROR_SMPTE;
+            }
+            FALLTHROUGH;
+        default:
+            break;
+    }
+    return MNG_PARSE_ERROR_INVALID_TLV;
 }
 MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t msgSize)
 {
@@ -656,6 +689,7 @@ const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
         case caseItem(MNG_PARSE_ERROR_OK);
         case caseItem(MNG_PARSE_ERROR_MSG);
         case caseItem(MNG_PARSE_ERROR_SIG);
+        case caseItem(MNG_PARSE_ERROR_SMPTE);
         case caseItem(MNG_PARSE_ERROR_INVALID_ID);
         case caseItem(MNG_PARSE_ERROR_INVALID_TLV);
         case caseItem(MNG_PARSE_ERROR_MISMATCH_TLV);
@@ -991,6 +1025,18 @@ const bool Message::findDelayMech(const std::string &str,
     }
     return false;
 }
+const char *Message::smpteLck2str_c(SMPTEmasterLockingStatus_e val)
+{
+    const size_t off = 6; // Remove prefix 'SMPTE_'
+    switch(val) {
+        case caseItemOff(SMPTE_NOT_IN_USE);
+        case caseItemOff(SMPTE_FREE_RUN);
+        case caseItemOff(SMPTE_COLD_LOCKING);
+        case caseItemOff(SMPTE_WARM_LOCKING);
+        case caseItemOff(SMPTE_LOCKED);
+    }
+    return "unknown";
+}
 const char *Message::ts2str_c(linuxptpTimeStamp_e val)
 {
     const size_t off = 3; // Remove prefix 'TS_'
@@ -1179,7 +1225,8 @@ MsgParams::MsgParams() :
     self_id{0},
     useZeroGet(true),
     rcvSignaling(false),
-    filterSignaling(true)
+    filterSignaling(true),
+    rcvSMPTEOrg(true)
 {
 }
 
