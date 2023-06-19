@@ -328,17 +328,14 @@ D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@
 
-ifeq ($(call verCheck,$(shell $(CXX) -dumpversion),4.9),)
+ifneq ($(CXX_COLOR_USE),)
 # GCC output colours
 ifndef NO_COL
-CXXFLAGS_COLOR:=-fdiagnostics-color=always
+override CXXFLAGS+=$(CXX_COLOR_USE)
 else
-CXXFLAGS_COLOR:=-fdiagnostics-color=never
+override CXXFLAGS+=$(CXX_COLOR_NONE)
 endif
-endif # verCheck CXX 4.9
-# https://clang.llvm.org/docs/UsersManual.html
-# -fcolor-diagnostics
-override CXXFLAGS+=$(CXXFLAGS_COLOR)
+endif # CXX_COLOR_USE
 
 ALL:=$(PMC_NAME) $(LIB_NAME_FSO) $(LIB_NAME_A)
 
@@ -403,19 +400,11 @@ endif # ASTYLEMINVER
 
 ifneq ($(SWIGMINVER),)
 SWIG_ALL:=
-ifneq ($(SWIGARGCARGV),)
-# Only python and ruby have argcargv.i
-perl_SFLAGS+=-Iswig/perl5
-$(foreach n,lua php tcl,$(eval $(n)_SFLAGS+=-Iswig/$n))
-endif #SWIGARGCARGV
 ifneq ($(SWIGARGCARGV_GO),)
-# go add argcargv.i later
 go_SFLAGS+=-Iswig/go
 endif #SWIGARGCARGV_GO
 
 # SWIG warnings
-# comparison integer of different signedness
-CXXFLAGS_RUBY+=-Wno-sign-compare
 # a label defined but not used
 CXXFLAGS_PHP+=-Wno-unused-label
 # variable defined but not used
@@ -428,25 +417,11 @@ CXXFLAGS_GO+=-Wno-strict-aliasing
 CXXFLAGS_GO+=-Wno-uninitialized
 # ANYARGS is deprecated (seems related to ruby headers)
 CXXFLAGS_RUBY+=-Wno-deprecated-declarations
+# comparison integer of different signedness
+CXXFLAGS_RUBY+=-Wno-sign-compare
 # suppress swig compilation warnings for old swig versions
-ifneq ($(call verCheck,$(SWIGVER),4.1),)
-# label 'thrown' is not used
-CXXFLAGS_PHP+=-Wno-unused-label
-# 'result' may be used uninitialized
-CXXFLAGS_LUA+=-Wno-maybe-uninitialized
-ifeq ($(PY_USE_S_THRD),)
-# PyEval_InitThreads is deprecated
-CXXFLAGS_PY+=-Wno-deprecated-declarations
-endif
-ifneq ($(call verCheck,$(SWIGVER),4.0),)
-# catching polymorphic type 'class std::out_of_range' by value
-CXXFLAGS_RUBY+=-Wno-catch-value
-# 'argv[1]' may be used uninitialized
-CXXFLAGS_RUBY+=-Wno-maybe-uninitialized
-# strncpy() specified bound depends on the length of the source argument
-CXXFLAGS_PY+=-Wno-stringop-overflow
-endif # ! swig 4.0.0
-endif # ! swig 4.1.0
+#ifneq ($(call verCheck,$(SWIGVER),4.1),)
+#endif # ! swig 4.1
 
 %/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)
 	$(Q_SWIG)$(SWIG) -c++ -Isrc -I$(@D) -outdir $(@D) -Wextra\

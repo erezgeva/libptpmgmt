@@ -27,7 +27,8 @@ RUN apt-get update;\
     tree lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck exuberant-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
-    python3-demjson lua5.4 valgrind dh-golang dh-make-golang $DPKGS;\
+    python3-demjson lua5.4 valgrind dh-golang dh-make-golang reuse vim-gtk3\
+    $DPKGS;\
     for a in $ARCHS;do all='';for p in libperl-dev;do all="$all $p:$a";done;\
     apt-get install -y --no-install-recommends $all;done;\
     apt-get install -y --no-install-recommends libperl-dev;\

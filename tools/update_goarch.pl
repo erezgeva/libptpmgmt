@@ -21,12 +21,9 @@ sub case
   my ($goarch, $deb_arch) = @_;
   my $gnu = `$dpkg_arc -qDEB_TARGET_GNU_CPU -a$deb_arch 2> /dev/null`;
   $gnu =~ s/\n//;
-  my $bits = `$dpkg_arc -qDEB_TARGET_ARCH_BITS -a$deb_arch 2> /dev/null`;
-  $bits =~ s/\n//;
   return <<"EOF";
     $gnu)
       GOARCH="$goarch"
-      bits="$bits"
       ;;
 EOF
 }
@@ -50,8 +47,8 @@ sub main
 ###############################################################################
 main()
 {
-  [[ -n "$2" ]] || return
-  local GOARCH bits
+  [[ -n "$1" ]] || return
+  local GOARCH
   case "$1" in
 EOF
   print OUT case('386', 'i386');
@@ -64,15 +61,12 @@ EOF
     *)
       if [[ -n "`which dpkg-architecture 2> /dev/null`" ]]; then
         GOARCH="`dpkg-architecture -qDEB_TARGET_GNU_CPU -a$1 2> /dev/null`"
-        bits="`dpkg-architecture -qDEB_TARGET_ARCH_BITS -a$1 2> /dev/null`"
       else
         GOARCH="$1"
-        bits=`getconf LONG_BIT`
       fi
       ;;
   esac
-  local -n v=$2
-  printf "$v"
+  printf "$GOARCH"
 }
 main "$@"
 EOF

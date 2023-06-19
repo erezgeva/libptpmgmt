@@ -19,8 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        names: [deb.trixie, deb.bookworm, deb.bullseye,
-                rpmbuild, pacmanbuild, portage]
+        names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
       fail-fast: false
     container:
       image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest
@@ -54,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        names: [deb.trixie, deb.bookworm, deb.bullseye]
+        names: [deb.trixie, deb.bookworm]
       fail-fast: false
     container:
       image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest

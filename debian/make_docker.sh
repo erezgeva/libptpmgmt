@@ -36,12 +36,11 @@ main()
   cd "$base_dir/.."
   source tools/make_docker.sh
   local -r repo=http://ftp.de.debian.org/debian
-  local -r names='bullseye bookworm trixie'
+  local -r names='bookworm trixie'
   local -r main_arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
-  local -r dpkgs_bullseye="vim-gtk"
-  local -r dpkgs_bookworm="reuse vim-gtk3"
-  local -r dpkgs_trixie="reuse vim-gtk3"
+  local -r dpkgs_bookworm=''
+  local -r dpkgs_trixie=''
   local no_cache use_github gh_ns args
   tool_docker_get_opts "$@"
   if [[ -z "$use_github" ]]; then
@@ -85,8 +84,6 @@ main()
 main "$@"
 ext()
 {
-docker run -it -w /home/builder/libptpmgmt -u builder\
-  -v $(realpath .):/home/builder/debian deb.bullseye
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/debian deb.bookworm
 docker run -it -w /home/builder/libptpmgmt -u builder\

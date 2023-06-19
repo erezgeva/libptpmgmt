@@ -14,9 +14,7 @@ CGO_CXXFLAGS+=$(CXXFLAGS_GO) -I $(PWD)/src
 CGO_LDFLAGS!=$(GOBIN) env CGO_LDFLAGS
 CGO_LDFLAGS+=$(LDFLAGS) -lm $(PWD)/$(LIB_NAME_SO)
 GOFLAGS!=$(GOBIN) env GOFLAGS
-ifneq ($(GOVCS),)
-GOFLAGS:=-buildvcs=false
-endif
+GOFLAGS+=-buildvcs=false
 export GOFLAGS CGO_CXXFLAGS CGO_LDFLAGS
 export GO111MODULE=on
 ifneq ($(GOARCH),)
@@ -25,11 +23,6 @@ export CXX CC GOARCH
 export CGO_ENABLED=1
 endif
 go_SFLAGS+=-go
-# New swig, calculate the integer size automatic
-ifneq ($(SWIG_INTGOSIZE),)
-# We use the CPU bits for integer size
-go_SFLAGS+=-intgosize $(SWIG_INTGOSIZE)
-endif
 
 GO_SRC:=go/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 $(GO_SRC): go/$(SWIG_NAME).cpp $(LIB_NAME_FSO)
