@@ -479,12 +479,22 @@ JS(POWER_PROFILE_SETTINGS_NP)
         return true;\
     }
 #define procTypeEnumR(type, func)\
-    bool procValue(const char *name, type &val) {\
+    bool procValue(const char *name, type &val) override {\
         procString(name, Message::func(val));\
         return true;\
     }
 #define procVector(type) \
     bool procArray(const char *name, std::vector<type> &val) {\
+        procArray(name);\
+        for(type &rec : val) {\
+            close();\
+            procValue(rec);\
+        }\
+        closeArray();\
+        return true;\
+    }
+#define procVectorA(type) \
+    bool procArray(const char *name, std::vector<type> &val) override {\
         procArray(name);\
         for(type &rec : val) {\
             close();\
@@ -771,11 +781,11 @@ struct JsonProcToJson : public JsonProc {
         return true;
     }
     void procZeroFlag(uint8_t &flags) override {}
-    procVector(ClockIdentity_t)
-    procVector(PortAddress_t)
-    procVector(FaultRecord_t)
-    procVector(AcceptableMaster_t)
-    procVector(LinuxptpUnicastMaster_t)
+    procVectorA(ClockIdentity_t)
+    procVectorA(PortAddress_t)
+    procVectorA(FaultRecord_t)
+    procVectorA(AcceptableMaster_t)
+    procVectorA(LinuxptpUnicastMaster_t)
     procVector(SLAVE_RX_SYNC_TIMING_DATA_rec_t)
     procVector(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t)
     procVector(SLAVE_TX_EVENT_TIMESTAMPS_rec_t)

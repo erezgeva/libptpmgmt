@@ -33,7 +33,9 @@ static inline const Timestamp_t toTs(const ptp_clock_time &pct) PURE;
 static inline clockid_t make_process_cpuclock(unsigned int pid,
     clockid_t clock) PURE;
 static inline clockid_t fd_to_clockid(int fd) PURE;
+#if 0
 static inline int clockid_to_fd(clockid_t clk) PURE;
+#endif
 
 const char ptp_dev[] = "/dev/ptp";
 // parts per billion (ppb) = 10^9
@@ -50,10 +52,12 @@ static inline clockid_t fd_to_clockid(int fd)
 {
     return make_process_cpuclock((unsigned int) fd, CLOCKFD);
 }
+#if 0
 static inline int clockid_to_fd(clockid_t clk)
 {
     return ~(clk >> 3);
 }
+#endif
 
 // From Kernel include/uapi/linux/timex.h
 #ifndef ADJ_OFFSET
@@ -205,7 +209,8 @@ bool IfInfo::initUsingName(const std::string &ifName)
         PTPMGMT_ERROR_P("socket");
         return false;
     }
-    ifreq ifr = {0};
+    ifreq ifr;
+    memset(&ifr, 0, sizeof ifr);
     // ifName is shorter than IFNAMSIZ
     strcpy(ifr.ifr_name, ifName.c_str());
     if(ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
@@ -228,7 +233,8 @@ bool IfInfo::initUsingIndex(int ifIndex)
         PTPMGMT_ERROR_P("socket");
         return false;
     }
-    ifreq ifr = {0};
+    ifreq ifr;
+    memset(&ifr, 0, sizeof ifr);
     ifr.ifr_ifindex = ifIndex;
     if(ioctl(fd, SIOCGIFNAME, &ifr) == -1) {
         PTPMGMT_ERROR_P("SIOCGIFNAME");
@@ -486,7 +492,8 @@ bool PtpClock::readPin(unsigned int index, PtpPin_t &pin) const
         PTPMGMT_ERROR("not initialized yet");
         return false;
     }
-    ptp_pin_desc desc = {0};
+    ptp_pin_desc desc;
+    memset(&desc, 0, sizeof desc);
     desc.index = index;
     if(ioctl(m_fd, PTP_PIN_GETFUNC, &desc) == -1) {
         PTPMGMT_ERROR_P("PTP_PIN_GETFUNC");
@@ -641,7 +648,8 @@ bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
         return false;
     }
     unsigned long rid;
-    ptp_perout_request req = {0};
+    ptp_perout_request req;
+    memset(&req, 0, sizeof req);
     req.flags = flags;
     if(flags == 0)
         rid = PTP_PEROUT_REQUEST;
@@ -741,7 +749,8 @@ bool PtpClock::preciseSamplePtpSys(PtpSamplePrecise_t &sample) const
         PTPMGMT_ERROR("not initialized yet");
         return false;
     }
-    ptp_sys_offset_precise req = {0};
+    ptp_sys_offset_precise req;
+    memset(&req, 0, sizeof req);
     if(ioctl(m_fd, PTP_SYS_OFFSET_PRECISE, &req) == -1) {
         PTPMGMT_ERROR_P("PTP_SYS_OFFSET_PRECISE");
         return false;

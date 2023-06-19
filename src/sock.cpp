@@ -36,11 +36,15 @@ const size_t unix_path_max = sizeof(((sockaddr_un *)nullptr)->sun_path) - 1;
 // Berkeley Packet Filter code
 // The code run on network order (big endian).
 // 0x30 Load bottom (2 last bytes of word)
+#if 0
 const uint16_t OP_LDB = BPF_LD  | BPF_B   | BPF_ABS;
+#endif
 // 0x28 Load high (2 first bytes)
 const uint16_t OP_LDH = BPF_LD  | BPF_H   | BPF_ABS;
 // 0x20 Load word (4 bytes)
+#if 0
 const uint16_t OP_LDW = BPF_LD  | BPF_W   | BPF_ABS;
+#endif
 // 0x15 Jump Equal
 const uint16_t OP_JEQ = BPF_JMP | BPF_JEQ | BPF_K;
 //  0x6 Return with pass or drop
@@ -500,7 +504,8 @@ bool SockIp4::initIp()
         PTPMGMT_ERROR_P("IP_MULTICAST_TTL");
         return false;
     }
-    ip_mreqn req = {0};
+    ip_mreqn req;
+    memset(&req, 0, sizeof req);
     req.imr_multiaddr = *(in_addr *)m_mcast.get();
     req.imr_ifindex = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof req) != 0) {
@@ -512,7 +517,7 @@ bool SockIp4::initIp()
         PTPMGMT_ERROR_P("IP_MULTICAST_LOOP");
         return false;
     }
-    req = {0};
+    memset(&req, 0, sizeof req);
     req.imr_ifindex = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IP, IP_MULTICAST_IF, &req, sizeof req) != 0) {
         PTPMGMT_ERROR_P("IP_MULTICAST_IF");
@@ -547,7 +552,8 @@ bool SockIp6::initIp()
         return false;
     }
     m_mcast.setBin(1, m_udp6_scope);
-    ipv6_mreq req = {0};
+    ipv6_mreq req;
+    memset(&req, 0, sizeof req);
     req.ipv6mr_multiaddr = *(in6_addr *)m_mcast.get();
     req.ipv6mr_interface = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, &req, sizeof req) != 0) {
@@ -559,7 +565,7 @@ bool SockIp6::initIp()
         PTPMGMT_ERROR_P("IPV6_MULTICAST_LOOP");
         return false;
     }
-    req = {0};
+    memset(&req, 0, sizeof req);
     req.ipv6mr_interface = m_ifIndex;
     if(setsockopt(m_fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &req, sizeof req) != 0) {
         PTPMGMT_ERROR_P("IPV6_MULTICAST_IF");
@@ -605,7 +611,7 @@ SockRaw::SockRaw() :
     m_addr{0},
     m_msg_tx{0},
     m_msg_rx{0},
-    m_hdr{0}
+    m_hdr{{0}}
 {
 }
 bool SockRaw::setPtpDstMacStr(const std::string &str)

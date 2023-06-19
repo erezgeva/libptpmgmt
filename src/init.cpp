@@ -129,7 +129,7 @@ int Init::proccess(const Options &opt)
             if(opt.have('M')) {
                 Binary mac;
                 if(!mac.fromMac(opt.val('M'))) {
-                    PTPMGMT_ERROR("Wrong MAC address '%s'", opt.val('M'));
+                    PTPMGMT_ERROR("Wrong MAC address '%s'", opt.val('M').c_str());
                     return -1;
                 }
                 if(!skr->setPtpDstMac(mac))

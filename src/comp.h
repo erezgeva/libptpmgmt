@@ -23,7 +23,7 @@
 /* compilation macroes */
 
 #define caseItem(a) a: return #a
-#define caseItemOff(a) a: return #a + off
+#define caseItemOff(a) a: return (#a) + off
 
 #define stringify(s) #s
 /* Need 2 levels to stringify macros value instead of macro name */
@@ -492,6 +492,7 @@ struct JsonProcFrom : public JsonProc {
     virtual bool parsePort(const char *key, bool &have, PortIdentity_t &port) = 0;
     virtual bool haveData() = 0;
     virtual bool parseData() = 0;
+    virtual ~JsonProcFrom() {}
 };
 
 __PTPMGMT_NAMESPACE_END
