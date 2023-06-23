@@ -113,8 +113,8 @@ bool SockBase::poll(uint64_t timeout_ms) const
     timeval to, *pto;
     if(timeout_ms > 0) {
         to = {
-            .tv_sec = (long)(timeout_ms / 1000),
-            .tv_usec = (long)(timeout_ms % 1000) * 1000
+            .tv_sec = (long)(timeout_ms / MSEC_PER_SEC),
+            .tv_usec = (long)(timeout_ms % MSEC_PER_SEC) * USEC_PER_MSEC
         };
         pto = &to;
     } else
