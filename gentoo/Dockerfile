@@ -9,7 +9,7 @@
 ###############################################################################
 FROM gentoo/stage3
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
-LABEL org.opencontainers.image.description "RPM build for libptpmgmt"
+LABEL org.opencontainers.image.description "Gentoo build for libptpmgmt"
 ARG UID
 ARG USER
 RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\

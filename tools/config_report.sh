@@ -53,12 +53,12 @@ main()
  fi
  local -r gccver=$(g++ -v 2>&1 | tail -1 | sed 's/.* version //;s/ .*//')
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
- [[ -n "$ASTYLEVER" ]] && local -r astyle="$ASTYLEVER" || local -r astyle='v'
+ [[ -n "$ASTYLEMINVER" ]] && local -r astyle="$ASTYLEMINVER" || local -r astyle='x'
  [[ -n "$HAVE_GTEST_HEADER" ]] && local -r gtest='v' || local -r gtest='x'
  [[ -n "$HAVE_JSONC_LIB" ]] && local -r jsonc='v' || local -r jsonc='x'
  [[ -n "$HAVE_FJSON_LIB" ]] && local -r fjson='v' || local -r fjson='x'
  [[ -n "$SWIGMINVER" ]] && local -r swig="$SWIGMINVER" || local -r swig='x'
- [[ -n "$DOXYGENMINVER" ]] && local -r doxy="$DOXYGENMINVER" || local -r doxy='v'
+ [[ -n "$DOXYGENMINVER" ]] && local -r doxy="$DOXYGENMINVER" || local -r doxy='x'
  cat << EOF
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon gcc '$gccver' astyle '$astyle'

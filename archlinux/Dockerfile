@@ -15,7 +15,7 @@ ARG USER
 RUN pacman -Syu --noconfirm --needed bash rustup gcc fakeroot pkgconf libtool\
     autoconf which make git sudo doxygen graphviz perl ruby swig python3\
     lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go\
-    texlive-fontutils && useradd $USER -u $UID -m -G users,wheel &&\
+    texlive-fontutils astyle && useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 ARG COOKIE
 RUN pacman -Syu --noconfirm --needed

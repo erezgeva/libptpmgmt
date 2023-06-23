@@ -6,7 +6,7 @@
 #
 ###############################################################################
 
-# See http://astyle.sf.net/astyle.html or
+# See https://astyle.sf.net/astyle.html or
 #  your astyle.html on your system
 # On Debian look at /usr/share/doc/astyle/html/astyle.html
 
@@ -67,6 +67,9 @@ formatted
 suffix=none
 # Print errors and help information to standard-output rather than to standard-error.
 errors-to-stdout
+# New option in version 3.3 - TODO
+# improves indentation of C++ lambda functions
+# lambda-indent
 
 # To disable format use // *INDENT-OFF*
 # To reenable use       // *INDENT-ON*

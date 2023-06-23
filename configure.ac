@@ -67,6 +67,9 @@ AC_MSG_CHECKING([for astyle minimum version])
 AS_VERSION_COMPARE([3.1], [$ASTYLEVER],
                    [AS_VAR_SET([ASTYLEMINVER], ["$ASTYLEVER"])], # above 3.1
                    [AS_VAR_SET([ASTYLEMINVER], ["$ASTYLEVER"])]) # equal 3.1
+# version 3.3 add some changes, we will use in the future
+AS_VERSION_COMPARE([3.2], [$ASTYLEVER],
+                   [AS_UNSET([ASTYLEMINVER])]) # above 3.2
 ptpm_result([ASTYLEMINVER])
 AC_CHECK_TOOL([CPPCHECK], [cppcheck])
 AC_CHECK_TOOL([DOXYGEN], [doxygen])
@@ -641,6 +644,7 @@ AS_UNSET([PERLBIN])
 AS_UNSET([PERL5DIR])
 AS_UNSET([PERL5EXT])
 AS_UNSET([PERL5TEST])
+AS_UNSET([PERL5TOUCH])
 
 AC_ARG_WITH([perl5],
             [AS_HELP_STRING([--without-perl5],
@@ -680,6 +684,8 @@ else
           [AC_MSG_RESULT([unable to determine perl5 configuration])])
     AS_IF([$PERL -e 'use Test::Class;Test::More;' 2>/dev/null],
           [AS_VAR_SET([PERL5TEST], ["have"])])
+    AS_IF([$PERL -e 'use File::Touch;' 2>/dev/null],
+          [AS_VAR_SET([PERL5TOUCH], ["have"])])
   else
     AC_MSG_RESULT([could not figure out how to run perl5])
   fi
@@ -688,6 +694,7 @@ AC_SUBST([PERL])
 AC_SUBST([PERL5DIR])
 AC_SUBST([PERL5EXT])
 AC_SUBST([PERL5TEST])
+AC_SUBST([PERL5TOUCH])
 
 #----------------------------------------------------------------
 # Look for Ruby

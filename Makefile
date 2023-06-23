@@ -385,7 +385,7 @@ $(SRC)/ver.h: $(SRC)/ver.h.in
 	$(Q_GEN)$(SED) $(foreach n,PACKAGE_VERSION_MAJ PACKAGE_VERSION_MIN\
 	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
-ifneq ($(ASTYLEMINVER),)
+ifneq ($(and $(ASTYLEMINVER),$(PERL5TOUCH)),)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest,$n/*.cpp $n/*.h))
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	$(Q_FRMT)
@@ -396,7 +396,7 @@ ifneq ($(CPPCHECK),)
 	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1\
 	  $(filter-out $(addprefix $(SRC)/,ids.h proc.cpp),$^)
 endif
-endif # ASTYLEMINVER
+endif # ASTYLEMINVER && PERL5TOUCH
 
 ifneq ($(SWIGMINVER),)
 SWIG_ALL:=
