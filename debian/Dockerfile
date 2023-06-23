@@ -10,6 +10,7 @@
 ARG DIST
 FROM debian:${DIST}
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
+LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
 ARG UID
 ARG USER
 ARG ARCHS
@@ -28,15 +29,10 @@ RUN apt-get update;\
     astyle cppcheck exuberant-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
     python3-demjson lua5.4 valgrind dh-golang dh-make-golang reuse vim-gtk3\
-    $DPKGS;\
-    for a in $ARCHS;do all='';for p in libperl-dev;do all="$all $p:$a";done;\
-    apt-get install -y --no-install-recommends $all;done;\
-    apt-get install -y --no-install-recommends libperl-dev;\
-    apt-get upgrade -y --no-install-recommends;\
+    $DPKGS;apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
     sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers
-LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
 ARG COOKIE
 RUN apt-get update; apt-get upgrade -y --no-install-recommends
 ARG SRC

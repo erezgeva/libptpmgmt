@@ -9,14 +9,14 @@
 ###############################################################################
 FROM archlinux
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
+LABEL org.opencontainers.image.description "Arch Linux build for libptpmgmt"
 ARG UID
 ARG USER
 RUN pacman -Syu --noconfirm --needed bash rustup gcc fakeroot pkgconf libtool\
     autoconf which make git sudo doxygen graphviz perl ruby swig python3\
-    lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go &&\
-    useradd $USER -u $UID -m -G users,wheel &&\
+    lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go\
+    texlive-fontutils && useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-LABEL org.opencontainers.image.description "Arch Linux build for libptpmgmt"
 ARG COOKIE
 RUN pacman -Syu --noconfirm --needed
 ARG SRC

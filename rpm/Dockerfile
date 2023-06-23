@@ -9,6 +9,7 @@
 ###############################################################################
 FROM fedora
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
+LABEL org.opencontainers.image.description "RPM build for libptpmgmt"
 ARG UID
 ARG USER
 RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
@@ -21,7 +22,6 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-LABEL org.opencontainers.image.description "RPM build for libptpmgmt"
 ARG COOKIE
 RUN dnf upgrade -y
 ARG SRC

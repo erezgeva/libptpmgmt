@@ -41,6 +41,10 @@ main()
   local -r archs='arm64'
   local -r dpkgs_bookworm=''
   local -r dpkgs_trixie=''
+  local dpkgs_arch='libstdc++6
+    libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
+    libfastjson-dev libgtest-dev lua-posix'
+  for n in 1-0 {2..4};do dpkgs_arch+=" liblua5.$n-dev";done
   local no_cache use_github gh_ns args
   tool_docker_get_opts "$@"
   if [[ -z "$use_github" ]]; then
@@ -53,10 +57,7 @@ main()
   fi
   local a n m p
   # Packages per architecture
-  for n in libstdc++6 liblua5.1-0-dev liblua5.2-dev liblua5.3-dev\
-           libpython3-all-dev ruby-dev tcl-dev libpython3-dev\
-           libfastjson-dev libgtest-dev liblua5.4-dev lua-posix
-  do
+  for n in $dpkgs_arch; do
     # Main architecture
     dpkgs_all+=" $n:$main_arch"
     for a in $archs; do
