@@ -231,4 +231,4 @@ sub main
 main;
 $sk->close();
 
-# LD_PRELOAD=../libptpmgmt.so PERL5LIB=. ./test.pl
+# LD_PRELOAD=../../libptpmgmt.so PERL5LIB=. ./test.pl

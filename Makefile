@@ -210,7 +210,7 @@ SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard */*.d */*/*.d)
-PHP_LNAME:=php/$(SWIG_LNAME)
+PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
 HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
 HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
 HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
@@ -244,15 +244,15 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* tools/*.sh tools/*.pl *.md *.in */*.in\
+SRC_FILES_DIR:=$(wildcard scripts/* *.md *.in */*.in t*/*.pl\
   */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
-  php/*.sh tcl/*.sh swig/*.md swig/*/* */*.i man/* LICENSES/* .reuse/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile go/gtest/*.go)\
-  $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
+  t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/*.i man/* LICENSES/* .reuse/*\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
+  */*/*test*/*.go) $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[ch]* go/unit_test .github/workflows/*,':!/:$n') ':!:*.gitignore'\
- ':!*/test.*' ':!*/utest.*'
+  utest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
+ ':!*/*/test.*' ':!*/*/utest.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
@@ -423,9 +423,9 @@ CXXFLAGS_RUBY+=-Wno-sign-compare
 #ifneq ($(call verCheck,$(SWIGVER),4.1),)
 #endif # ! swig 4.1
 
-%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)
+wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)
 	$(Q_SWIG)$(SWIG) -c++ -Isrc -I$(@D) -outdir $(@D) -Wextra\
-	  $($(@D)_SFLAGS) -o $@ $<
+	  $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
 SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(SRC)/mngIds.h \\'\
@@ -435,25 +435,25 @@ SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 
 ifeq ($(SKIP_PERL5),)
-include perl/Makefile
+include wrappers/perl/Makefile
 endif
 ifeq ($(SKIP_LUA),)
-include lua/Makefile
+include wrappers/lua/Makefile
 endif
 ifeq ($(SKIP_PYTHON3),)
-include python/Makefile
+include wrappers/python/Makefile
 endif
 ifeq ($(SKIP_RUBY),)
-include ruby/Makefile
+include wrappers/ruby/Makefile
 endif
 ifeq ($(SKIP_PHP),)
-include php/Makefile
+include wrappers/php/Makefile
 endif
 ifeq ($(SKIP_TCL),)
-include tcl/Makefile
+include wrappers/tcl/Makefile
 endif
 ifeq ($(SKIP_GO),)
-include go/Makefile
+include wrappers/go/Makefile
 endif
 
 ALL+=$(SWIG_ALL)
@@ -645,15 +645,18 @@ defs.mk: defs.mk.in config.status
 endif # config.status
 endif # MAKECMDGOALS
 
-CLEAN:=$(wildcard */*.o */*/*.o */$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
+CLEAN:=$(wildcard */*.o */*/*.o */*/$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
-  python/*.pyc php/*.h php/*.ini perl/*.pm go/*/go.mod */$(LIB_SRC)\
+  wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
+  wrappers/go/*/go.mod */$(LIB_SRC)\
   */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
-  $(ARCHL_BLD) tags python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
-  tcl/pkgIndex.tcl php/.phpunit.result.cache .phpunit.result.cache\
-  go/$(SWIG_LNAME).go $(HEADERS_GEN) go/gtest/gtest .null
-CLEAN_DIRS:=$(filter %/, $(wildcard lua/*/ python/*/ rpm/*/\
-  archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) perl/auto go/$(SWIG_LNAME)
+  $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
+  wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
+  .phpunit.result.cache\
+  wrappers/go/$(SWIG_LNAME).go $(HEADERS_GEN) wrappers/go/gtest/gtest .null
+CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
+  archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) wrappers/perl/auto\
+  wrappers/go/$(SWIG_LNAME)
 DISTCLEAN:=$(addprefix config.,log status) configure configure~ defs.mk
 DISTCLEAN_DIRS:=autom4te.cache
 

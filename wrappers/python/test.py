@@ -224,4 +224,4 @@ def main():
 main()
 sk.close()
 
-# LD_PRELOAD=../libptpmgmt.so PYTHONPATH=3 python3 test.py
+# LD_PRELOAD=../../libptpmgmt.so PYTHONPATH=3 python3 test.py

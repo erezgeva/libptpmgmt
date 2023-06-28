@@ -8,18 +8,19 @@
 #
 ###############################################################################
 
-PY_BASE:=python/$(SWIG_NAME)
+PY_D:=wrappers/python
+PY_BASE:=$(PY_D)/$(SWIG_NAME)
 PY_LIB_NAME:=_ptpmgmt
 python_SFLAGS+=-python
 ifeq ($(PY_USE_S_THRD),)
 python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
 endif
-PY_BASE_3:=python/3/$(SWIG_NAME)
-PY_SO_3:=python/3/$(PY_LIB_NAME).so
+PY_BASE_3:=$(PY_D)/3/$(SWIG_NAME)
+PY_SO_3:=$(PY_D)/3/$(PY_LIB_NAME).so
 $(PY_SO_3)_LDLIBS:=$(PY3LDLIBS)
 PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3INCLUDE)))
 $(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
-	$Q$(MKDIR_P) python/3
+	$Q$(MKDIR_P) $(PY_D)/3
 	$(call LLC,$(CXXFLAGS_PY) $(PY3INCLUDE))
 	$(call D_INC,PY3INCDIR)
 ifneq ($(PY3INCDIR),$(PY3PLATINCDIR))
@@ -33,10 +34,10 @@ ifneq ($(UVGD),$(SP)) # VALGRIND
 PYUVGD:=PYTHONMALLOC=malloc$(UVGD)
 endif
 utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
-	$(call Q_UTEST,Python3)LD_PRELOAD=./$< PYTHONPATH=python/3\
-	  $(PYUVGD)python/utest.py $(PY_FILTERS)
+	$(call Q_UTEST,Python3)LD_PRELOAD=./$< PYTHONPATH=$(PY_D)/3\
+	  $(PYUVGD)$(PY_D)/utest.py $(PY_FILTERS)
 
 install_python3:
-	$Q$(INSTALL_LIB) -D python/3/$(PY_LIB_NAME).so\
+	$Q$(INSTALL_LIB) -D $(PY_D)/3/$(PY_LIB_NAME).so\
 	  $(DESTDIR)$(PY3SITE_DIR)/$(PY_LIB_NAME)$(PY3EXT)
-	$(INSTALL_LIB) python/$(SWIG_LNAME).py $(DESTDIR)$(PY3SITE_DIR)
+	$(INSTALL_LIB) $(PY_D)/$(SWIG_LNAME).py $(DESTDIR)$(PY3SITE_DIR)

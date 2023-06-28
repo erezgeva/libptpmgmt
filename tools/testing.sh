@@ -113,18 +113,18 @@ main()
    local -r ldPath="LD_PRELOAD=.$libptpm"
    needCmpl=y
    # We need all!
-   ldPathPerl="$ldPath PERL5LIB=perl"
-   ldPathRuby="$ldPath RUBYLIB=ruby"
+   ldPathPerl="$ldPath PERL5LIB=wrappers/perl"
+   ldPathRuby="$ldPath RUBYLIB=wrappers/ruby"
    for i in $luaVersions; do
-     eval "ldPathLua$i='$ldPath LUA_CPATH=\"lua/5.$i/?.so;;\"'"
+     eval "ldPathLua$i='$ldPath LUA_CPATH=\"wrappers/lua/5.$i/?.so;;\"'"
    done
    for i in $pyVersions; do
-     eval "ldPathPython$i='PYTHONPATH=python:python/$i'"
+     eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
      eval "ldPrePathPython$i='$ldPath '"
    done
-   ldPathPhp="$ldPath PHPRC=php"
-   ldPathTcl="$ldPath TCLLIBPATH=tcl"
-   ldPathJson="$ldPath LD_LIBRARY_PATH=. PERL5LIB=perl"
+   ldPathPhp="$ldPath PHPRC=wrappers/php"
+   ldPathTcl="$ldPath TCLLIBPATH=wrappers/tcl"
+   ldPathJson="$ldPath LD_LIBRARY_PATH=. PERL5LIB=wrappers/perl"
  fi
  local -r runOptions="-u -f $cfgFile"
  ##############################################################################
@@ -329,7 +329,7 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
 }
 do_perl()
 {
- perlOut="$(time eval "$useSudo$ldPathPerl perl/test.pl $runOptions")"
+ perlOut="$(time eval "$useSudo$ldPathPerl wrappers/perl/test.pl $runOptions")"
 }
 test_json()
 { # Use perl
@@ -344,7 +344,7 @@ test_json()
 }
 do_ruby()
 {
- time eval "$useSudo$ldPathRuby ruby/test.rb $runOptions" |\
+ time eval "$useSudo$ldPathRuby wrappers/ruby/test.rb $runOptions" |\
    diff - <(printf "$perlOut\n")
 }
 do_lua()
@@ -352,7 +352,7 @@ do_lua()
  for i in $luaVersions; do
    printf "\n lua 5.$i ---- \n"
    local -n need="ldPathLua$i"
-   time eval "$useSudo$need lua5.$i lua/test.lua $runOptions" |\
+   time eval "$useSudo$need lua5.$i wrappers/lua/test.lua $runOptions" |\
      diff - <(printf "$perlOut\n")
  done
 }
@@ -365,11 +365,11 @@ do_python()
    local -n need="ldPathPython$i"
    local -n pneed="ldPrePathPython$i"
    if [[ -n "$need" ]]; then
-     [[ -f python/$i/_ptpmgmt.so ]] || continue
-     eval "$pneed$need py${i}compile python/ptpmgmt.py"
+     [[ -f wrappers/python/$i/_ptpmgmt.so ]] || continue
+     eval "$pneed$need py${i}compile wrappers/python/ptpmgmt.py"
    fi
    printf "\n $(readlink $(command -v python$i)) ---- \n"
-   time eval "$useSudo$pneed$need python$i python/test.py $runOptions" |\
+   time eval "$useSudo$pneed$need python$i wrappers/python/test.py $runOptions" |\
      diff - <(printf "$perlOut\n")
    if [[ -n "$need" ]]; then
      eval "py${i}clean python"
@@ -378,7 +378,7 @@ do_python()
 }
 do_go()
 {
- local -r gtest=go/gtest/gtest
+ local -r gtest=wrappers/go/gtest/gtest
  if ! [[ -x $gtest ]]; then
    CGO_LDFLAGS="-lm -lptpmgmt" go build -o $gtest $gtest.go
  fi
@@ -410,11 +410,11 @@ test_phc_ctl()
  local need="$ldPathPython3"
  local pneed="$ldPrePathPython3"
  if [[ -n "$need" ]]; then
-   if ! [[ -f python/3/_ptpmgmt.so ]]; then
+   if ! [[ -f wrappers/python/3/_ptpmgmt.so ]]; then
      echo "Fail to find python3 library!!!"
      return
    fi
-   eval "$pneed$need py3compile python/ptpmgmt.py"
+   eval "$pneed$need py3compile wrappers/python/ptpmgmt.py"
  fi
  local -r matchPhc='phc_ctl[^\[]*\[[[:digit:]]+\.[[:digit:]]+\]'
  local -r runPhc="$ifName freq 20000000 set 0 wait 4 adj 4 get"
@@ -472,22 +472,26 @@ test_phc_ctl()
 }
 do_php()
 {
- [[ -z "$ldPathPhp" ]] || php/php_ini.sh php/
- time eval "$useSudo$ldPathPhp php/test.php $runOptions" |\
+ if [[ -n "$ldPathPhp" ]]; then
+   wrappers/php/php_ini.sh
+ else
+   local -r pa='php -dextension=ptpmgmt.so'
+ fi
+ time eval "$useSudo$ldPathPhp $pa wrappers/php/test.php $runOptions" |\
    diff - <(printf "$perlOut\n")
 }
 do_tcl()
 {
  if [[ -n "$ldPathTcl" ]]; then
-   if ! [[ -f tcl/ptpmgmt.so ]]; then
+   if ! [[ -f wrappers/tcl/ptpmgmt.so ]]; then
      echo "Fail to find tcl library!!!"
      return
    fi
-   tcl/pkgIndex_tcl.sh tcl
+   wrappers/tcl/pkgIndex_tcl.sh wrappers/tcl
  fi
- time eval "$useSudo$ldPathTcl tcl/test.tcl $runOptions" |\
+ time eval "$useSudo$ldPathTcl wrappers/tcl/test.tcl $runOptions" |\
    diff - <(printf "$perlOut\n")
- sed -i 's/^load .*/package require ptpmgmt/' tcl/test.tcl
+ sed -i 's/^load .*/package require ptpmgmt/' wrappers/tcl/test.tcl
 }
 enter()
 {
@@ -524,14 +528,14 @@ probeLibs()
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
    needCmpl=y
-   ldPathPerl="PERL5LIB=perl"
-   ldPathJson+=" PERL5LIB=perl"
+   ldPathPerl="PERL5LIB=wrappers/perl"
+   ldPathJson+=" PERL5LIB=wrappers/perl"
  fi
  file="$(ruby -rrbconfig -e \
    'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    needCmpl=y
-   ldPathRuby="RUBYLIB=ruby"
+   ldPathRuby="RUBYLIB=wrappers/ruby"
  fi
  for i in $luaVersions; do
    getFirstFile "/usr/lib$fmach/liblua5.$i-ptpmgmt.so*"
@@ -539,24 +543,24 @@ probeLibs()
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
      needCmpl=y
-     eval "ldPathLua$i='LUA_CPATH=\"lua/5.$i/?.so;;\"'"
+     eval "ldPathLua$i='LUA_CPATH=\"wrappers/lua/5.$i/?.so;;\"'"
    fi
  done
  for i in $pyVersions; do
    getFirstFile "/usr/lib/python$i*/dist-packages/_ptpmgmt.*$mach*.so"
    if ! [[ -f "$file" ]]; then
-     eval "ldPathPython$i='PYTHONPATH=python:python/$i'"
+     eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
    fi
  done
  [[ -z "$needPython3" ]] || needCmpl=y
  if ! [[ -f "$(php-config --extension-dir)/ptpmgmt.so" ]]; then
    needCmpl=y
-   ldPathPhp="PHPRC=php"
+   ldPathPhp="PHPRC=wrappers/php"
  fi
  getFirstFile "/usr/lib/tcltk/*/ptpmgmt/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    needCmpl=y
-   ldPathTcl="TCLLIBPATH=tcl"
+   ldPathTcl="TCLLIBPATH=wrappers/tcl"
  fi
  getFirstFile "/usr/lib/go*/src/ptpmgmt/PtpMgmtLib.cpp"
  if ! [[ -f "$file" ]]; then

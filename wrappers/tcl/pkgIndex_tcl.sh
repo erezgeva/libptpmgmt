@@ -11,7 +11,7 @@ main()
 {
 local base="$(dirname "$(realpath "$0")")"
 local ver_maj ver_min
-. $base/../tools/version
+. $base/../../tools/version
 if [[ -n "$1" ]]; then
   local -r file=$1/pkgIndex.tcl
 else

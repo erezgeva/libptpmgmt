@@ -24,12 +24,12 @@
 /libptpmgmt*.so.*
 /.null
 # In folders
-*/PtpMgmtLib.cpp
+*/*/PtpMgmtLib.cpp
 /doc
 /objs/
 /ptp-tools/pmc
-/perl/PtpMgmtLib.pm
-/tcl/pkgIndex.tcl
+/wrappers/perl/PtpMgmtLib.pm
+/wrappers/tcl/pkgIndex.tcl
 /autom4te.cache/
 /*/.upgrade_cockie
 # Go lang cache

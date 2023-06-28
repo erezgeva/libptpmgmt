@@ -8,8 +8,9 @@
 #
 ###############################################################################
 
-TCL_NAME:=tcl/$(SWIG_NAME).cpp
-TCL_LNAME:=tcl/$(SWIG_LNAME)
+TCL_D:=wrappers/tcl
+TCL_NAME:=$(TCL_D)/$(SWIG_NAME).cpp
+TCL_LNAME:=$(TCL_D)/$(SWIG_LNAME)
 tcl_SFLAGS+=-tcl8 -namespace -pkgversion $(PACKAGE_VERSION)
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$Q$(call LLC,$(TCLINCLUDE))
@@ -23,11 +24,11 @@ TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
 pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
 pkgIndex+=package ifneeded $(SWIG_LNAME) $(PACKAGE_VERSION)
 pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
-tcl/pkgIndex.tcl:
-	$(Q)tcl/pkgIndex_tcl.sh tcl
-utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so tcl/pkgIndex.tcl
-	$(call Q_UTEST,TCL)LD_PRELOAD=$(ASAN_PRE)./$< TCLLIBPATH=tcl$(UVGD)tcl/utest.tcl\
-	  $(TCL_FILTERS)
+$(TCL_D)/pkgIndex.tcl:
+	$(Q)$(TCL_D)/pkgIndex_tcl.sh $(TCL_D)
+utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so $(TCL_D)/pkgIndex.tcl
+	$(call Q_UTEST,TCL)LD_PRELOAD=$(ASAN_PRE)./$<\
+	  TCLLIBPATH=$(TCL_D)$(UVGD)$(TCL_D)/utest.tcl $(TCL_FILTERS)
 
 install_tcl:
 	$Q$(INSTALL_LIB) -D $(TCL_LNAME).so -t $(TCLDIR)

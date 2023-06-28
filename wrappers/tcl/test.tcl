@@ -255,4 +255,4 @@ if { $ret == $ptpmgmt::Options_OPT_DONE } {
 sk close
 
 # Run ./pkgIndex_tcl.sh to create pkgIndex.tcl
-# LD_PRELOAD=../libptpmgmt.so TCLLIBPATH=. ./test.tcl
+# LD_PRELOAD=../../libptpmgmt.so TCLLIBPATH=. ./test.tcl

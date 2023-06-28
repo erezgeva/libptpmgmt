@@ -237,4 +237,4 @@ end
 main
 $sk.close()
 
-# LD_PRELOAD=../libptpmgmt.so RUBYLIB=. ./test.rb
+# LD_PRELOAD=../../libptpmgmt.so RUBYLIB=. ./test.rb

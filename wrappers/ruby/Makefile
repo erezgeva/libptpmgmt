@@ -8,8 +8,9 @@
 #
 ###############################################################################
 
-RUBY_NAME:=ruby/$(SWIG_NAME).cpp
-RUBY_LNAME:=ruby/$(SWIG_LNAME)
+RUBY_D:=wrappers/ruby
+RUBY_NAME:=$(RUBY_D)/$(SWIG_NAME).cpp
+RUBY_LNAME:=$(RUBY_D)/$(SWIG_LNAME)
 ruby_SFLAGS:=-ruby
 $(RUBY_LNAME).so_LDLIBS:=$(RUBYLINK)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
@@ -23,7 +24,7 @@ $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
 utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
-	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=ruby ruby/utest.rb\
+	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=$(RUBY_D) $(RUBY_D)/utest.rb\
 	  $(RUBY_NO_COL) $(RUBY_FILTERS)
 
 install_ruby:

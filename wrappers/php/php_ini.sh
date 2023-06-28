@@ -9,9 +9,10 @@
 ###############################################################################
 main()
 {
-cat << EOF > ${1}php.ini
+local -r base_dir="$(dirname "$(realpath "$0")")"
+cat << EOF > $base_dir/php.ini
 [PHP]
-extension=$PWD/${1}ptpmgmt.so
+extension=$base_dir/ptpmgmt.so
 EOF
 }
 main "$@"

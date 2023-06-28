@@ -9,22 +9,24 @@
 ###############################################################################
 
 perl_SFLAGS+=-perl5
-perl/$(SWIG_NAME).o: perl/$(SWIG_NAME).cpp $(HEADERS)
+PERL_D:=wrappers/perl
+$(PERL_D)/$(SWIG_NAME).o: $(PERL_D)/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(call LLC,-I$(PERL5EXT))
 	$(call D_INC,PERL5EXT)
 	$(SWIG_DEP)
-PERL_SO_DIR:=perl/auto/$(SWIG_NAME)
+PERL_SO_DIR:=$(PERL_D)/auto/$(SWIG_NAME)
 $(PERL_SO_DIR):
 	$Q$(MKDIR_P) $@
-$(PERL_SO_DIR)/$(SWIG_NAME).so: perl/$(SWIG_NAME).o $(LIB_NAME_SO) | $(PERL_SO_DIR)
+$(PERL_SO_DIR)/$(SWIG_NAME).so: $(PERL_D)/$(SWIG_NAME).o $(LIB_NAME_SO) |\
+	  $(PERL_SO_DIR)
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
 ifneq ($(PERL5TEST),)
 utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
-	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=perl$(UVGD)perl/utest.pl
+	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=$(PERL_D)$(UVGD)$(PERL_D)/utest.pl
 endif
 
 install_perl5:
-	$Q$(INSTALL_LIB) -D perl/auto/*/*.so -t\
+	$Q$(INSTALL_LIB) -D $(PERL_D)/auto/*/*.so -t\
 	  $(DESTDIR)$(PERL5DIR)/auto/$(SWIG_NAME)
-	$(INSTALL_LIB) perl/*.pm $(DESTDIR)$(PERL5DIR)
+	$(INSTALL_LIB) $(PERL_D)/*.pm $(DESTDIR)$(PERL5DIR)

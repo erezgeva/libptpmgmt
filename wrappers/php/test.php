@@ -245,5 +245,5 @@ $sk->close();
 // Run ./php_ini.sh to create php.ini
 //
 // run to use build here:
-// LD_PRELOAD=../libptpmgmt.so PHPRC=. ./test.php
+// LD_PRELOAD=../../libptpmgmt.so PHPRC=. ./test.php
 ?>

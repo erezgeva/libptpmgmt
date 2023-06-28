@@ -8,7 +8,8 @@
 #
 ###############################################################################
 
-PHP_NAME:=php/$(SWIG_NAME).cpp
+PHP_D:=wrappers/php
+PHP_NAME:=$(PHP_D)/$(SWIG_NAME).cpp
 php_SFLAGS+=-php7
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$Q$(call LLC,$(CXXFLAGS_PHP) -Iphp $(PHPINC_FLAGS))
@@ -17,11 +18,11 @@ $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so
-php/php.ini:
-	$(Q)php/php_ini.sh php/
+$(PHP_D)/php.ini:
+	$(Q)$(PHP_D)/php_ini.sh
 ifneq ($(PHPUNIT),)
-utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so php/php.ini
-	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=php$(UVGD)phpunit php/utest.php\
+utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so $(PHP_D)/php.ini
+	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=$(PHP_D)$(UVGD)phpunit $(PHP_D)/utest.php\
 	  $(PHP_NO_COL) $(PHP_FILTERS)
 endif
 
