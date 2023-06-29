@@ -14,6 +14,7 @@
 #ifndef __PTPMGMT_MSG_H
 #define __PTPMGMT_MSG_H
 
+#ifdef __cplusplus
 #include <functional>
 #include "cfg.h"
 #include "buf.h"
@@ -302,25 +303,25 @@ class Message
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_UTCV(uint8_t flags)  { return (flags & F_UTCV) != 0; }
+    static bool is_UTCV(uint8_t flags) { return (flags & F_UTCV) != 0; }
     /**
      * Check if is PTP instance flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_PTP(uint8_t flags)   { return (flags & F_PTP) != 0; }
+    static bool is_PTP(uint8_t flags) { return (flags & F_PTP) != 0; }
     /**
      * Check if timescale is traceable flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_TTRA(uint8_t flags)  { return (flags & F_TTRA) != 0; }
+    static bool is_TTRA(uint8_t flags) { return (flags & F_TTRA) != 0; }
     /**
      * Check if frequency is traceable flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_FTRA(uint8_t flags)  { return (flags & F_FTRA) != 0; }
+    static bool is_FTRA(uint8_t flags) { return (flags & F_FTRA) != 0; }
     /**
      * Check management TLV id uses empty dataField
      * @param[in] id management TLV id
@@ -470,7 +471,7 @@ class Message
      * Get last parsed message dataField
      * @return pointer to last parsed message dataField or null
      * @note You need to cast to proper structure depends on
-     *  management TLV ID, get with  .
+     *  management TLV ID, get with.
      * @note You @b should not try to free or change this TLV object
      */
     const BaseMngTlv *getData() const { return m_dataGet.get(); }
@@ -568,5 +569,8 @@ class Message
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/msg.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_MSG_H */

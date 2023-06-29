@@ -17,20 +17,9 @@ void MessageDispatcher::callHadler(const Message &msg)
 {
     callHadler(msg, msg.getTlvId(), msg.getData());
 }
-#ifdef HAVE_METHODS_COMPARE
-DIAG_START
-DIAG_IGNORE(METHODS_COMPARE_FLAGS)
-// We convert function pointer for comparing, ignore warning
-#define check_inherit(n) \
-    if ((void*)(&MessageDispatcher::n##_h) == \
-        (void*)(this->*(&MessageDispatcher::n##_h))) {\
-        noTlvCallBack(msg, #n); return; }
-#else /*HAVE_METHODS_COMPARE*/
-#define check_inherit(n)
-#endif /*HAVE_METHODS_COMPARE*/
-#define _ptpmCaseUF(n) \
-    case n: check_inherit(n)\
-    n##_h(msg, *dynamic_cast<const n##_t*>(tlv), #n); break;
+#define _ptpmCaseUF(n)\
+    case n: n##_h(msg, *dynamic_cast<const n##_t*>(tlv), #n);\
+    if(_noTlv()){noTlvCallBack(msg, #n);}break;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
     const BaseMngTlv *tlv)
@@ -39,6 +28,7 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
         noTlv(msg);
         return;
     }
+    _noTlv(); /* Clear the flag */
     switch(tlv_id) {
 #include "ids.h"
         default:
@@ -46,9 +36,6 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
             break;
     }
 }
-#ifdef HAVE_METHODS_COMPARE
-DIAG_END
-#endif /*HAVE_METHODS_COMPARE*/
 bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 {
     if(!m_msg.isValidId(tlv_id))
@@ -76,3 +63,37 @@ bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 }
 
 __PTPMGMT_NAMESPACE_END
+
+extern "C" {
+
+#include "c/msgCall.h"
+
+    // C interfaces
+#define _ptpmCaseUF(n)\
+case PTPMGMT_##n:if(d->n##_h != nullptr){\
+        d->n##_h(cookie, msg, (const ptpmgmt_##n##_t*)tlv, #n);}else{\
+        if(d->noTlvCallBack != nullptr){d->noTlvCallBack(cookie, msg, #n);}}break;
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+    void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d,
+        ptpmgmt_msg msg, enum ptpmgmt_mng_vals_e tlv_id, const void *tlv)
+    {
+        if(tlv == nullptr) {
+            if(d->noTlv != nullptr)
+                d->noTlv(cookie, msg);
+            return;
+        }
+        switch(tlv_id) {
+#include "ids.h"
+            default:
+                if(d->noTlv != nullptr)
+                    d->noTlv(cookie, msg);
+                break;
+        }
+    }
+    void ptpmgmt_callHadler(void *cookie, const_ptpmgmt_dispatcher d,
+        ptpmgmt_msg msg)
+    {
+        ptpmgmt_callHadler_tlv(cookie, d, msg, msg->getTlvId(msg),
+            msg->getData(msg));
+    }
+}

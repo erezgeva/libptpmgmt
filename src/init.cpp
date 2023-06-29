@@ -151,3 +151,137 @@ int Init::proccess(const Options &opt)
 }
 
 __PTPMGMT_NAMESPACE_END
+
+__PTPMGMT_NAMESPACE_USE;
+
+extern "C" {
+
+#include "c/init.h"
+
+    extern ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(void *cfg);
+    extern ptpmgmt_msg ptpmgmt_msg_alloc_wrap(void *msg);
+    extern ptpmgmt_sk ptpmgmt_sk_alloc_wrap(ptpmgmt_socket_class type, void *sk);
+
+    static void ptpmgmt_init_free(ptpmgmt_init me)
+    {
+        if(me != nullptr) {
+            if(me->sCfg != nullptr) {
+                me->sCfg->free(me->sCfg);
+                free(me->sCfg);
+                me->sCfg = nullptr;
+            }
+            if(me->sMsg != nullptr) {
+                me->sMsg->free(me->sMsg);
+                free(me->sMsg);
+                me->sMsg = nullptr;
+            }
+            if(me->sSk != nullptr) {
+                me->sSk->free(me->sSk);
+                free(me->sSk);
+                me->sSk = nullptr;
+            }
+            if(me->_this != nullptr) {
+                delete(Init *)me->_this;
+                me->_this = nullptr;
+            }
+            free(me);
+        }
+    }
+    static void ptpmgmt_init_close(ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            ((Init *)me->_this)->close();
+    }
+    static int ptpmgmt_init_proccess(ptpmgmt_init me, const_ptpmgmt_opt opt)
+    {
+        if(me != nullptr && me->_this != nullptr && opt != nullptr)
+            return ((Init *)me->_this)->proccess(*(const Options *)opt->_this);
+        return -1;
+    }
+    static ptpmgmt_cfg ptpmgmt_init_cfg(ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr) {
+            if(me->sCfg == nullptr) {
+                const ConfigFile &c = ((Init *)me->_this)->cfg();
+                me->sCfg = ptpmgmt_cfg_alloc_wrap((void *)&c);
+            }
+            return me->sCfg;
+        }
+        return nullptr;
+    }
+    static ptpmgmt_msg ptpmgmt_init_msg(ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr) {
+            if(me->sMsg == nullptr) {
+                const Message &m = ((Init *)me->_this)->msg();
+                me->sMsg = ptpmgmt_msg_alloc_wrap((void *)&m);
+            }
+            return me->sMsg;
+        }
+        return nullptr;
+    }
+    static ptpmgmt_sk ptpmgmt_init_sk(ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr) {
+            Init *pi = (Init *)me->_this;
+            if(me->sSk == nullptr) {
+                ptpmgmt_socket_class type;
+                switch(pi->getNetSelect()) {
+                    case 'u':
+                        type = ptpmgmt_SockUnix;
+                        break;
+                    case '4':
+                        type = ptpmgmt_SockIp4;
+                        break;
+                    case '6':
+                        type = ptpmgmt_SockIp6;
+                        break;
+                    case '2':
+                        type = ptpmgmt_SockRaw;
+                        break;
+                    default:
+                        return nullptr;
+                }
+                SockBase *s = pi->sk();
+                me->sSk = ptpmgmt_sk_alloc_wrap(type, (void *)s);
+            }
+            return me->sSk;
+        }
+        return nullptr;
+    }
+    static char ptpmgmt_init_getNetSelect(const_ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Init *)me->_this)->getNetSelect();
+        return 0;
+    }
+    static bool ptpmgmt_init_use_uds(ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Init *)me->_this)->use_uds();
+        return false;
+    }
+    ptpmgmt_init ptpmgmt_init_alloc()
+    {
+        ptpmgmt_init me = (ptpmgmt_init)malloc(sizeof(ptpmgmt_init_t));
+        if(me == nullptr)
+            return nullptr;
+        me->_this = (void *)(new Init);
+        if(me->_this == nullptr) {
+            free(me);
+            return nullptr;
+        }
+        me->free = ptpmgmt_init_free;
+        me->close = ptpmgmt_init_close;
+        me->proccess = ptpmgmt_init_proccess;
+        me->cfg = ptpmgmt_init_cfg;
+        me->msg = ptpmgmt_init_msg;
+        me->sk = ptpmgmt_init_sk;
+        me->getNetSelect = ptpmgmt_init_getNetSelect;
+        me->use_uds = ptpmgmt_init_use_uds;
+        me->sCfg = nullptr;
+        me->sMsg = nullptr;
+        me->sSk = nullptr;
+        return me;
+    }
+}

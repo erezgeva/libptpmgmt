@@ -32,9 +32,14 @@ The configuration file uses the [ptp4l](https://linuxptp.nwtime.org/documentatio
 parameters that are relevant to the pmc tool.
 
 # <u>Using C</u>
-This project does **NOT** support C directly.  
-Users that want to use the library with their C application,
-need to write a wrapping in C++ and combine it with their application.
+The library is written in C++ and provides a C wrapper.  
+Regarding memory:  
+The classes wrappers, provide a `free` callback which free any memory allocation by the wrpper itself.  
+The user needs to release any memory allocated by itself,
+ as the library and the wrappers do **not** free them!  
+The functions `ptpmgmt_json_msg2json` and `ptpmgmt_json_tlv2json` allocate string,
+ which the user need to free!  
+As C do not provides namespace, the globals are prefix with `ptpmgmt_` or `PTPMGMT_`.
 
 # <u>Scripting</u>
 This project uses [SWIG](http://www.swig.org/) to generate wrapper to script languages.  

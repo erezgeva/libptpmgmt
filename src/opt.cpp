@@ -202,3 +202,145 @@ const std::string &Options::val(char opt) const
 }
 
 __PTPMGMT_NAMESPACE_END
+
+__PTPMGMT_NAMESPACE_USE;
+
+extern "C" {
+
+#include "c/opt.h"
+
+    static void ptpmgmt_opt_free(ptpmgmt_opt me)
+    {
+        if(me != nullptr) {
+            if(me->_this != nullptr)
+                delete(Options *)me->_this;
+            free(me);
+        }
+    }
+    static void ptpmgmt_opt_useDefOption(ptpmgmt_opt me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->useDefOption();
+    }
+    static bool ptpmgmt_opt_insert(ptpmgmt_opt me, struct ptpmgmt_opt_option *opt)
+    {
+        if(me != nullptr && me->_this != nullptr && opt != nullptr) {
+            Pmc_option o = {
+                .short_name = opt->short_name,
+                .have_arg = opt->have_arg,
+                .long_only = opt->long_only
+            };
+            if(opt->long_name != nullptr)
+                o.long_name = opt->long_name;
+            if(opt->help_msg != nullptr)
+                o.help_msg = opt->help_msg;
+            if(opt->arg_help != nullptr)
+                o.arg_help = opt->arg_help;
+            if(opt->def_val != nullptr)
+                o.def_val = opt->def_val;
+            return ((Options *)me->_this)->insert(o);
+        }
+        return false;
+    }
+    static const char *ptpmgmt_opt_get_help(ptpmgmt_opt me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->get_help();
+        return nullptr;
+    }
+    static const char *ptpmgmt_opt_get_msg(ptpmgmt_opt me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->get_msg().c_str();
+        return nullptr;
+    }
+    static enum ptpmgmt_opt_loop_val ptpmgmt_opt_parse_options(ptpmgmt_opt me,
+        int argc, char *argv[])
+    {
+        if(me != nullptr && me->_this != nullptr && argc > 0 && argv != nullptr) {
+            Options::loop_val v = ((Options *)me->_this)->parse_options(argc, argv);
+            switch(v) {
+                case Options::OPT_MSG:
+                    return PTPMGMT_OPT_MSG;
+                case Options::OPT_HELP:
+                    return PTPMGMT_OPT_HELP;
+                case Options::OPT_DONE:
+                    return PTPMGMT_OPT_DONE;
+                default:
+                    break;
+            }
+        }
+        return PTPMGMT_OPT_ERR;
+    }
+    static bool ptpmgmt_opt_have(ptpmgmt_opt me, char opt)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->have(opt);
+        return false;
+    }
+    static const char *ptpmgmt_opt_val(ptpmgmt_opt me, char opt)
+    {
+        if(me != nullptr && me->_this != nullptr) {
+            const std::string &v = ((Options *)me->_this)->val(opt);
+            if(!v.empty())
+                return v.c_str();
+        }
+        return nullptr;
+    }
+    static int ptpmgmt_opt_val_i(ptpmgmt_opt me, char opt)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->val_i(opt);
+        return 0;
+    }
+    static char ptpmgmt_opt_get_net_transport(ptpmgmt_opt me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->get_net_transport();
+        return 0;
+    }
+    static bool ptpmgmt_opt_have_more(ptpmgmt_opt me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->have_more();
+        return false;
+    }
+    static int ptpmgmt_opt_procces_next(ptpmgmt_opt me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Options *)me->_this)->procces_next();
+        return 0;
+    }
+    static inline ptpmgmt_opt alloc_opt(bool useDef)
+    {
+        ptpmgmt_opt me = (ptpmgmt_opt)malloc(sizeof(ptpmgmt_opt_t));
+        if(me == nullptr)
+            return nullptr;
+        me->_this = (void *)new Options(useDef);
+        if(me->_this == nullptr) {
+            free(me);
+            return nullptr;
+        }
+        me->free = ptpmgmt_opt_free;
+        me->useDefOption = ptpmgmt_opt_useDefOption;
+        me->insert = ptpmgmt_opt_insert;
+        me->get_help = ptpmgmt_opt_get_help;
+        me->get_msg = ptpmgmt_opt_get_msg;
+        me->parse_options = ptpmgmt_opt_parse_options;
+        me->have = ptpmgmt_opt_have;
+        me->val = ptpmgmt_opt_val;
+        me->val_i = ptpmgmt_opt_val_i;
+        me->get_net_transport = ptpmgmt_opt_get_net_transport;
+        me->have_more = ptpmgmt_opt_have_more;
+        me->procces_next = ptpmgmt_opt_procces_next;
+        return me;
+    }
+    ptpmgmt_opt ptpmgmt_opt_alloc()
+    {
+        return alloc_opt(true);
+    }
+    ptpmgmt_opt ptpmgmt_opt_alloc_empty()
+    {
+        return alloc_opt(false);
+    }
+}

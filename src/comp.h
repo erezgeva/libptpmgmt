@@ -42,10 +42,6 @@
 #define PURE __attribute__((pure))
 #define MAYBE_UNUSED __attribute__((unused))
 #define PRINT_FORMAT(a, b) __attribute__((format(printf,a,b)))
-#define DIAG_START DO_PRAGMA(GCC diagnostic push)
-#define DIAG_IGNORE0(warn) DO_PRAGMA(GCC diagnostic ignored warn)
-#define DIAG_IGNORE(warn) DIAG_IGNORE0(stringify(warn))
-#define DIAG_END DO_PRAGMA(GCC diagnostic pop)
 #if __GNUC__ > 6
 #define FALLTHROUGH __attribute__((fallthrough))
 #endif
@@ -68,15 +64,6 @@
 #endif
 #ifndef PRINT_FORMAT
 #define PRINT_FORMAT(a, b)
-#endif
-#ifndef DIAG_START
-#define DIAG_START
-#endif
-#ifndef DIAG_IGNORE
-#define DIAG_IGNORE(warn)
-#endif
-#ifndef DIAG_END
-#define DIAG_END
 #endif
 #ifndef FALLTHROUGH
 #define FALLTHROUGH
@@ -308,6 +295,12 @@ struct MsgProc {
     /* countless list proccess */
     template <typename T> bool vector_o(std::vector<T> &vec);
 };
+
+void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x);
+BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *data);
+void *cpp2cSigTlv(tlvType_e tlv_id, const BaseSigTlv *data, void *&x,
+    void *&x2);
+void *cpp2cSmpte(const BaseMngTlv *tlv);
 
 /* ************************************************************************** */
 /* map of values with string key and stack of these maps */

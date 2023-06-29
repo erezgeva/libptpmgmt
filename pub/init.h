@@ -12,6 +12,7 @@
 #ifndef __PTPMGMT_INIT_H
 #define __PTPMGMT_INIT_H
 
+#ifdef __cplusplus
 #include "msg.h"
 #include "opt.h"
 #include "sock.h"
@@ -82,5 +83,8 @@ class Init
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/init.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_INIT_H */

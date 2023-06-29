@@ -213,3 +213,138 @@ get_bin_func(ptp_dst_mac)
 get_bin_func(p2p_dst_mac)
 
 __PTPMGMT_NAMESPACE_END
+
+static const char ptpm_empty_str[] = "";
+__PTPMGMT_NAMESPACE_USE;
+
+extern "C" {
+
+#include "c/cfg.h"
+
+    // C interfaces
+    static void ptpmgmt_cfg_free(ptpmgmt_cfg me)
+    {
+        if(me != nullptr) {
+            if(me->_this != nullptr)
+                delete(ConfigFile *)me->_this;
+            free(me);
+        }
+    }
+    static void ptpmgmt_cfg_free_wrap(ptpmgmt_cfg me)
+    {
+    }
+    static bool ptpmgmt_cfg_read_cfg(ptpmgmt_cfg me, const char *file)
+    {
+        if(me != nullptr && me->_this != nullptr && file != nullptr)
+            return ((ConfigFile *)me->_this)->read_cfg(file);
+        return false;
+    }
+#define C2CPP_func(func)\
+    if(me != nullptr && me->_this != nullptr) {\
+        if (section == nullptr)\
+            return (( ConfigFile*)me->_this)->func();\
+        return (( ConfigFile*)me->_this)->func(section);\
+    }\
+    return 0
+    static uint8_t ptpmgmt_cfg_transportSpecific(const_ptpmgmt_cfg me,
+        const char *section)
+    {
+        C2CPP_func(transportSpecific);
+    }
+    static uint8_t ptpmgmt_cfg_domainNumber(const_ptpmgmt_cfg me,
+        const char *section)
+    {
+        C2CPP_func(domainNumber);
+    }
+    static uint8_t ptpmgmt_cfg_udp6_scope(const_ptpmgmt_cfg me, const char *section)
+    {
+        C2CPP_func(udp6_scope);
+    }
+    static uint8_t ptpmgmt_cfg_udp_ttl(const_ptpmgmt_cfg me, const char *section)
+    {
+        C2CPP_func(udp_ttl);
+    }
+    static uint8_t ptpmgmt_cfg_socket_priority(const_ptpmgmt_cfg me,
+        const char *section)
+    {
+        C2CPP_func(socket_priority);
+    }
+    static uint8_t ptpmgmt_cfg_network_transport(const_ptpmgmt_cfg me,
+        const char *section)
+    {
+        C2CPP_func(network_transport);
+    }
+    static const char *ptpmgmt_cfg_uds_address(const_ptpmgmt_cfg me,
+        const char *section)
+    {
+        if(me != nullptr && me->_this != nullptr) {
+            const char *a = section != nullptr ? section : ptpm_empty_str;
+            const std::string &s = ((ConfigFile *)me->_this)->uds_address(a);
+            if(!s.empty())
+                return s.c_str();
+        }
+        return nullptr;
+    }
+#define C2CPP_bfunc(func)\
+    if(me != nullptr && me->_this != nullptr) {\
+        const char *a = section != nullptr ? section : ptpm_empty_str;\
+        const Binary &b = ((ConfigFile*)me->_this)->func(a);\
+        if(b.length() > 0) {\
+            if (len != nullptr)\
+                *len = b.length();\
+            return b.get();\
+        }\
+    }\
+    if (len != nullptr)\
+        *len = 0;\
+    return nullptr
+    static const void *ptpmgmt_cfg_ptp_dst_mac(const_ptpmgmt_cfg me, size_t *len,
+        const char *section)
+    {
+        C2CPP_bfunc(ptp_dst_mac);
+    }
+    static const void *ptpmgmt_cfg_p2p_dst_mac(const_ptpmgmt_cfg me, size_t *len,
+        const char *section)
+    {
+        C2CPP_bfunc(p2p_dst_mac);
+    }
+    static inline void ptpmgmt_cfg_asign_cb(ptpmgmt_cfg me)
+    {
+        me->read_cfg = ptpmgmt_cfg_read_cfg;
+        me->transportSpecific = ptpmgmt_cfg_transportSpecific;
+        me->domainNumber = ptpmgmt_cfg_domainNumber;
+        me->udp6_scope = ptpmgmt_cfg_udp6_scope;
+        me->udp_ttl = ptpmgmt_cfg_udp_ttl;
+        me->socket_priority = ptpmgmt_cfg_socket_priority;
+        me->network_transport = ptpmgmt_cfg_network_transport;
+        me->uds_address = ptpmgmt_cfg_uds_address;
+        me->ptp_dst_mac = ptpmgmt_cfg_ptp_dst_mac;
+        me->p2p_dst_mac = ptpmgmt_cfg_p2p_dst_mac;
+    }
+    ptpmgmt_cfg ptpmgmt_cfg_alloc()
+    {
+        ptpmgmt_cfg me = (ptpmgmt_cfg)malloc(sizeof(ptpmgmt_cfg_t));
+        if(me == nullptr)
+            return nullptr;
+        me->_this = (void *)(new ConfigFile);
+        if(me->_this == nullptr) {
+            free(me);
+            return nullptr;
+        }
+        me->free = ptpmgmt_cfg_free;
+        ptpmgmt_cfg_asign_cb(me);
+        return me;
+    }
+    ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(void *cfg)
+    {
+        if(cfg == nullptr)
+            return nullptr;
+        ptpmgmt_cfg me = (ptpmgmt_cfg)malloc(sizeof(ptpmgmt_cfg_t));
+        if(me == nullptr)
+            return nullptr;
+        me->_this = cfg;
+        me->free = ptpmgmt_cfg_free_wrap;
+        ptpmgmt_cfg_asign_cb(me);
+        return me;
+    }
+}

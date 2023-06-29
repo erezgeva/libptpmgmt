@@ -10,6 +10,7 @@ dnl
 dnl Create callDef.h used by msgCall.h
 dnl Contain virtual function per TLV
 dnl
+include(lang().m4)dnl
 /* SPDX-License-Identifier: LGPL-3.0-or-later
    SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 
@@ -23,13 +24,17 @@ dnl
  *
  */
 
-#ifndef __PTPMGMT_CALL_DEFS_H
-#define __PTPMGMT_CALL_DEFS_H
+ics(CALL_DEFS)
 
-#include "msg.h"
+cpp_st()dnl
+incb(msg)
 
-__PTPMGMT_NAMESPACE_BEGIN
-
+ns_s()dnl
+c_cod(`/** pointer to ptpmgmt dispatcher structure */')dnl
+c_cod(`typedef const struct ptpmgmt_dispatcher_t *const_ptpmgmt_dispatcher;')dnl
+c_cod(`/** pointer to ptpmgmt builder structure */')dnl
+c_cod(`typedef const struct ptpmgmt_builder_t *const_ptpmgmt_builder;')dnl
+c_cod(`')dnl
 /**
  * @brief Dispacher for management TLV
  * @details
@@ -41,22 +46,46 @@ __PTPMGMT_NAMESPACE_BEGIN
     to handle the dispached TLVs.
  * @attention Do @b NOT @p use this header in your application.
  */
-class BaseMngDispatchCallback
-{
-  protected:
-    virtual ~BaseMngDispatchCallback() = default;
+cpp_cod(`class BaseMngDispatchCallback')dnl
+cpp_cod(`{')dnl
+c_cod(`struct ptpmgmt_dispatcher_t {')dnl
+cpp_cod(`    /** @cond internal */')dnl
+cpp_cod(`  private:')dnl
+cpp_cod(`    bool _nc; /**< flag indicating no inherite call back */')dnl
+cpp_cod(`  protected:')dnl
+cpp_cod(`    bool _noTlv() {bool r = _nc; _nc = false; return r;}')dnl
+cpp_cod(`    /**< @endcond */')dnl
+cpp_cod(`    virtual ~BaseMngDispatchCallback() = default;')dnl
 define(D,`    /**
      * Handle $1 management TLV
-     * @param[in] msg referance to the Message object
-     * @param[in] tlv referance to the management tlv
+c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
+     * @param[in] msg ref_s() to the Message object
+     * @param[in] tlv ref_s() to the management tlv
      * @param[in] idStr ID string of the management tlv
      */
-    virtual void $1_h(const Message &msg,
-        const $1_t &tlv, const char *idStr)
-    {}')dnl
+c_cod(`    void (*$1_h)(void *cookie, ptpmgmt_msg msg,')dnl
+c_cod(`        const struct ptpmgmt_$1_t *tlv,')dnl
+c_cod(`        const char *idStr);')dnl
+cpp_cod(`    virtual void $1_h(const Message &msg,')dnl
+cpp_cod(`        const $1_t &tlv, const char *idStr)')dnl
+cpp_cod(`    {_nc = true;}')dnl')dnl
 define(A, `ifelse(regexp($6, `^UF', `0'),`0',`D($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 undefine(`A')dnl
+c_cod(`    /**')dnl
+c_cod(`     * Handler called if there is no TLV data')dnl
+c_cod(`     * It could be an empty TLV or unkown')dnl
+c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
+c_cod(`     * @param[in] msg pointer to the Message object')dnl
+c_cod(`     */')dnl
+c_cod(`    void (*noTlv)(void *cookie, ptpmgmt_msg msg);')dnl
+c_cod(`    /**')dnl
+c_cod(`     * Handler called if TLV does not have a callback.')dnl
+c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
+c_cod(`     * @param[in] msg pointer to the Message object')dnl
+c_cod(`     * @param[in] idStr string of the tlv_id')dnl
+c_cod(`     */')dnl
+c_cod(`    void (*noTlvCallBack)(void *cookie, ptpmgmt_msg msg, const char *idStr);')dnl
 };
 
 /**
@@ -72,26 +101,30 @@ undefine(`A')dnl
  *  Developers may set the TLV values.
  * @attention Do @b NOT @p use this header in your application.
  */
-class BaseMngBuildCallback
-{
-  protected:
-    virtual ~BaseMngBuildCallback() = default;
+cpp_cod(`class BaseMngBuildCallback')dnl
+cpp_cod(`{')dnl
+c_cod(`struct ptpmgmt_builder_t {')dnl
+cpp_cod(`  protected:')dnl
+cpp_cod(`    virtual ~BaseMngBuildCallback() = default;')dnl
 define(B,`    /**
      * Handle $1 management TLV
      * Set values in the new TLV
-     * @param[in] msg referance to the Message object
-     * @param[in, out] tlv referance to the new management tlv
+c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
+     * @param[in] msg ref_s() to the Message object
+     * @param[in, out] tlv ref_s() to the new management tlv
      * @return true if set success
      * @note MessageBuilder::buildTlv call setAction with new TLV
      *  if an inherit method return true!
      */
-    virtual bool $1_b(const Message &msg,
-        $1_t &tlv)
-    {return false;}')dnl
+c_cod(`    bool (*$1_b)(void *cookie, ptpmgmt_msg msg,')dnl
+c_cod(`        struct ptpmgmt_$1_t *tlv);')dnl
+cpp_cod(`    virtual bool $1_b(const Message &msg,')dnl
+cpp_cod(`        $1_t &tlv)')dnl
+cpp_cod(`    {return false;}')dnl')dnl
 define(A, `ifelse(regexp($6, `^UFB', `0'),`0',`B($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 };
+ns_e()dnl
+cpp_en(callDef)dnl
 
-__PTPMGMT_NAMESPACE_END
-
-#endif /* __PTPMGMT_CALL_DEFS_H */
+ice(CALL_DEFS)

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com>
 #
-# Create converting scripts from configure/GBU target architecture
+# Create converting scripts from configure/GNU target architecture
 #  to GOARCH using Debian dpkg-architecture tool.
 #
 # See: https://pkg.go.dev/internal/goarch

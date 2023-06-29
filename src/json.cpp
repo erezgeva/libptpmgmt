@@ -1052,3 +1052,36 @@ std::string tlv2json(mng_vals_e managementId, const BaseMngTlv *tlv, int indent)
 }
 
 __PTPMGMT_NAMESPACE_END
+
+__PTPMGMT_NAMESPACE_USE;
+
+extern "C" {
+
+#include "c/json.h"
+
+    // C interfaces
+    char *ptpmgmt_json_msg2json(const_ptpmgmt_msg m, int indent)
+    {
+        if(m != nullptr && m->_this != nullptr) {
+            std::string ret = msg2json(*(Message *)m->_this, indent);
+            if(!ret.empty())
+                return strdup(ret.c_str());
+        }
+        return nullptr;
+    }
+    char *ptpmgmt_json_tlv2json(ptpmgmt_mng_vals_e managementId, const void *tlv,
+        int indent)
+    {
+        if(tlv != nullptr) {
+            mng_vals_e id = (mng_vals_e)managementId;
+            BaseMngTlv *t = c2cppMngTlv(id, tlv);
+            if(t != nullptr) {
+                std::string ret = tlv2json(id, t, indent);
+                delete t;
+                if(!ret.empty())
+                    return strdup(ret.c_str());
+            }
+        }
+        return nullptr;
+    }
+}

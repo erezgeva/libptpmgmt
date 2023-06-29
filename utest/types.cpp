@@ -693,3 +693,24 @@ TEST(MsgParamsTest, MethodIsSigTlv)
     EXPECT_TRUE(t.isSigTlv(MANAGEMENT_ERROR_STATUS));
     EXPECT_FALSE(t.isSigTlv(REQUEST_UNICAST_TRANSMISSION));
 }
+
+// Tests count of signal TLVs method
+// size_t countSigTlvs() const
+TEST(MsgParamsTest, MethodCountSigTlv)
+{
+    MsgParams t;
+    t.filterSignaling = true;
+    t.allowSigTlv(ORGANIZATION_EXTENSION);
+    t.allowSigTlv(ORGANIZATION_EXTENSION_PROPAGATE);
+    t.allowSigTlv(ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE);
+    EXPECT_TRUE(t.isSigTlv(ORGANIZATION_EXTENSION));
+    EXPECT_TRUE(t.isSigTlv(ORGANIZATION_EXTENSION_PROPAGATE));
+    EXPECT_TRUE(t.isSigTlv(ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE));
+    EXPECT_EQ(t.countSigTlvs(), 3);
+    // Filter the middle TLV :-)
+    t.removeSigTlv(ORGANIZATION_EXTENSION_PROPAGATE);
+    EXPECT_TRUE(t.isSigTlv(ORGANIZATION_EXTENSION));
+    EXPECT_FALSE(t.isSigTlv(ORGANIZATION_EXTENSION_PROPAGATE));
+    EXPECT_TRUE(t.isSigTlv(ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE));
+    EXPECT_EQ(t.countSigTlvs(), 2);
+}

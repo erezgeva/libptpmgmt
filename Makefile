@@ -199,6 +199,7 @@ include tools/version
 
 SRC:=src
 PUB:=pub
+PUB_C:=$(PUB)/c
 PMC_DIR:=ptp-tools
 JSON_SRC:=json
 OBJ_DIR:=objs
@@ -214,13 +215,17 @@ SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard */*.d */*/*.d)
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
-HEADERS_GEN_PUB:=$(addprefix $(PUB)/,mngIds.h callDef.h ver.h)
+HDR_BTH:=mngIds types proc sig callDef
+HEADERS_GEN_PUB:=$(foreach n,ver $(HDR_BTH),$(PUB)/$n.h)
 HEADERS_PUB:=$(filter-out $(HEADERS_GEN_PUB),$(wildcard $(PUB)/*.h))
-HEADERS_GEN_COMP:=$(HEADERS_GEN_PUB) $(SRC)/ids.h
-HEADERS_SRCS:=$(HEADERS_PUB) $(SRC)/comp.h
+HEADERS_GEN_PUB_C:=$(foreach n,$(HDR_BTH),$(PUB_C)/$n.h)
+HEADERS_PUB_C:=$(filter-out $(HEADERS_GEN_PUB_C),$(wildcard $(PUB_C)/*.h))
+HEADERS_GEN_COMP:=$(HEADERS_GEN_PUB) $(HEADERS_GEN_PUB_C) $(SRC)/ids.h
+HEADERS_SRCS:=$(HEADERS_PUB) $(HEADERS_PUB_C) $(SRC)/comp.h
 HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
 HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
 HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
+HEADERS_INST_C:=$(HEADERS_PUB_C) $(HEADERS_GEN_PUB_C)
 SRCS:=$(wildcard $(SRC)/*.cpp)
 SRCS_JSON:=$(wildcard $(JSON_SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
@@ -234,12 +239,14 @@ FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl go
 UTEST_CPP_TGT:=$(addprefix utest_,no_sys json sys json_load pmc)
+UTEST_C_TGT:=$(addprefix uctest_,no_sys json sys)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
-UTEST_TGT:=utest_cpp utest_lang $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)
+UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
+  $(UTEST_C_TGT)
 INS_TGT:=install_main $(addprefix install_,$(TGT_LNG))
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\
-  $(UTEST_TGT) $(INS_TGT) utest_lua_a
+  $(UTEST_TGT) $(INS_TGT) utest_lua_a uctest
 .PHONY: $(PHONY_TGT)
 NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
 
@@ -256,7 +263,7 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.md *.in */*.in t*/*.pl\
   */*/*test*/*.go) $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
+  utest/*.[ch]* uctest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
   ':!*/*/test.*' ':!*/*/utest.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
@@ -325,10 +332,6 @@ PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
 $(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
-ifneq ($(HAVE_METHODS_COMPARE),)
-$(OBJ_DIR)/msgCall.o: override CXXFLAGS+=-DHAVE_METHODS_COMPARE\
-  -DMETHODS_COMPARE_FLAGS="$(METHODS_COMPARE_FLAGS)"
-endif
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@
@@ -377,6 +380,9 @@ $(LIB_NAME_FSO): $(LIB_NAME_SO)
 $(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
 
 include utest/Makefile
+ifneq ($(CRITERION_LIB_FLAGS),)
+include uctest/Makefile
+endif
 
 # pmc tool
 $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
@@ -384,10 +390,12 @@ $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
 $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-$(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
-	$(Q_GEN)$(M4) -I $(SRC) $< > $@
-$(PUB)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
-	$(Q_GEN)$(M4) -I $(SRC) $< > $@
+$(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/cpp.m4
+	$(Q_GEN)$(M4) -I $(SRC) -D lang=cpp $< > $@
+$(PUB)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/cpp.m4
+	$(Q_GEN)$(M4) -I $(SRC) -D lang=cpp $< > $@
+$(PUB_C)/%.h: $(SRC)/%.m4 $(SRC)/c.m4
+	$(Q_GEN)$(M4) -I $(SRC) -D lang=c $< > $@
 # This is basically what configure does.
 # Yet, I prefer configure create only the def.mk,
 # and forward the version parameters here :-)
@@ -396,7 +404,9 @@ $(PUB)/ver.h: $(SRC)/ver.h.in
 	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
 ifneq ($(and $(ASTYLEMINVER),$(PERL5TOUCH)),)
-EXTRA_SRCS:=$(wildcard $(foreach n,sample utest,$n/*.cpp $n/*.h))
+EXTRA_C_SRCS:=$(wildcard uctest/*.c)
+EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
+EXTRA_SRCS+=$(EXTRA_C_SRCS)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
@@ -404,7 +414,7 @@ format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
 ifneq ($(CPPCHECK),)
 	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1\
-	  $(filter-out $(addprefix $(SRC)/,ids.h proc.cpp),$^)
+	  $(filter-out $(EXTRA_C_SRCS) $(addprefix $(SRC)/,ids.h proc.cpp),$^)
 endif
 endif # ASTYLEMINVER && PERL5TOUCH
 
@@ -528,11 +538,15 @@ install_main:
 	  $(call mkln,$(libdir),$$lib.$(PACKAGE_VERSION),$$lib$(SONAME))
 	  $(call mkln,$(libdir),$$lib$(SONAME),$$lib);done
 	$(INSTALL_LIB) $(LIB_NAME)*.a $(DLIBDIR)
-	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)/usr/include/$(SWIG_LNAME)
+	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
+	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <$(SWIG_LNAME)/\1>!'\
-	  $(DESTDIR)/usr/include/$(SWIG_LNAME)/$f;)
-	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)/usr/share/$(DEV_PKG)
+	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/$f;)
+	$(foreach f,$(notdir $(HEADERS_INST_C)),$(SED) -i\
+	  's!#include\s*\"\([^"]\+\)\"!#include <$(SWIG_LNAME)/\1>!'\
+	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
+	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)$(datarootdir)/$(DEV_PKG)
 	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
 	if [ ! -f $(MANDIR)/pmc$(TOOLS_EXT).8.gz ]
 	  then $(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8

@@ -1215,7 +1215,7 @@ std::string PortAddress_t::string() const
 }
 bool PortAddress_t::less(const PortAddress_t &rhs) const
 {
-    return networkProtocol == rhs.networkProtocol ?  addressField <
+    return networkProtocol == rhs.networkProtocol ? addressField <
         rhs.addressField : networkProtocol < rhs.networkProtocol;
 }
 MsgParams::MsgParams() :
@@ -1234,3 +1234,657 @@ MsgParams::MsgParams() :
 }
 
 __PTPMGMT_NAMESPACE_END
+
+__PTPMGMT_NAMESPACE_USE;
+
+extern "C" {
+
+#include "c/msg.h"
+
+    // C interfaces
+    static void ptpmgmt_MsgParams_free(ptpmgmt_pMsgParams m)
+    {
+        if(m != nullptr) {
+            if(m->_this != nullptr) {
+                delete(MsgParams *)m->_this;
+                m->_this = nullptr;
+            }
+            free(m);
+        }
+    }
+    static void ptpmgmt_MsgParams_free_wrap(ptpmgmt_pMsgParams m)
+    {
+    }
+    static inline MsgParams &getMsgParams(ptpmgmt_cpMsgParams p)
+    {
+        MsgParams &r = *(MsgParams *)p->_this;
+        r.transportSpecific = p->transportSpecific;
+        r.domainNumber = p->domainNumber;
+        r.boundaryHops = p->boundaryHops;
+        r.isUnicast = p->isUnicast;
+        r.useZeroGet = p->useZeroGet;
+        r.rcvSignaling = p->rcvSignaling;
+        r.filterSignaling = p->filterSignaling;
+        r.rcvSMPTEOrg = p->rcvSMPTEOrg;
+        r.implementSpecific = (implementSpecific_e)p->implementSpecific;
+        memcpy(r.target.clockIdentity.v, p->target.clockIdentity.v,
+            ClockIdentity_t::size());
+        r.target.portNumber = p->target.portNumber;
+        memcpy(r.self_id.clockIdentity.v, p->self_id.clockIdentity.v,
+            ClockIdentity_t::size());
+        r.self_id.portNumber = p->self_id.portNumber;
+        return r;
+    }
+    static inline void cpyMsgParams(ptpmgmt_pMsgParams p)
+    {
+        MsgParams &r = *(MsgParams *)p->_this;
+        p->transportSpecific = r.transportSpecific;
+        p->domainNumber = r.domainNumber;
+        p->boundaryHops = r.boundaryHops;
+        p->isUnicast = r.isUnicast;
+        p->useZeroGet = r.useZeroGet;
+        p->rcvSignaling = r.rcvSignaling;
+        p->filterSignaling = r.filterSignaling;
+        p->rcvSMPTEOrg = r.rcvSMPTEOrg;
+        p->implementSpecific = (ptpmgmt_implementSpecific_e)r.implementSpecific;
+        memcpy(p->target.clockIdentity.v, r.target.clockIdentity.v,
+            ClockIdentity_t::size());
+        p->target.portNumber = r.target.portNumber;
+        memcpy(p->self_id.clockIdentity.v, r.self_id.clockIdentity.v,
+            ClockIdentity_t::size());
+        p->self_id.portNumber = r.self_id.portNumber;
+    }
+    static void ptpmgmt_allowSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            ((MsgParams *)m->_this)->allowSigTlv((tlvType_e)type);
+    }
+    static void ptpmgmt_removeSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            ((MsgParams *)m->_this)->removeSigTlv((tlvType_e)type);
+    }
+    static bool ptpmgmt_isSigTlv(ptpmgmt_cpMsgParams m, ptpmgmt_tlvType_e type)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            return ((MsgParams *)m->_this)->isSigTlv((tlvType_e)type);
+        return false;
+    }
+    static size_t ptpmgmt_countSigTlvs(ptpmgmt_cpMsgParams m)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            return ((MsgParams *)m->_this)->countSigTlvs();
+        return 0;
+    }
+    static inline void ptpmgmt_MsgParams_asign_cb(ptpmgmt_pMsgParams m)
+    {
+        m->allowSigTlv    = ptpmgmt_allowSigTlv;
+        m->removeSigTlv   = ptpmgmt_removeSigTlv;
+        m->isSigTlv       = ptpmgmt_isSigTlv;
+        m->countSigTlvs   = ptpmgmt_countSigTlvs;
+        cpyMsgParams(m);
+    }
+    ptpmgmt_pMsgParams ptpmgmt_MsgParams_alloc()
+    {
+        ptpmgmt_pMsgParams m =
+            (ptpmgmt_pMsgParams)malloc(sizeof(struct ptpmgmt_MsgParams));
+        if(m == nullptr)
+            return nullptr;
+        m->_this = (void *)(new MsgParams);
+        if(m->_this == nullptr) {
+            free(m);
+            return nullptr;
+        }
+        ptpmgmt_MsgParams_asign_cb(m);
+        m->free = ptpmgmt_MsgParams_free;
+        return m;
+    }
+    static void ptpmgmt_msg_free_wrap(ptpmgmt_msg m)
+    {
+        if(m != nullptr) {
+            if(m->sendTlv != nullptr) {
+                delete(BaseMngTlv *)m->sendTlv;
+                m->sendTlv = nullptr;
+            }
+            free(m->data);
+            free(m->dataTbl);
+            m->data = nullptr;
+            m->dataTbl = nullptr;
+            free(m->dataSig1);
+            free(m->dataSig2);
+            free(m->dataSig3);
+            m->dataSig1 = nullptr;
+            m->dataSig2 = nullptr;
+            m->dataSig3 = nullptr;
+        }
+    }
+    static void ptpmgmt_msg_free(ptpmgmt_msg m)
+    {
+        if(m != nullptr) {
+            if(m->_this != nullptr) {
+                delete(Message *)m->_this;
+                m->_this = nullptr;
+            }
+            ptpmgmt_msg_free_wrap(m);
+            free(m);
+        }
+    }
+#define C2CPP_void(func)\
+    if(m != nullptr && m->_this != nullptr)\
+        ((Message*)m->_this)->func()
+#define C2CPP_ret(func, def)\
+    if(m != nullptr && m->_this != nullptr)\
+        return ((Message*)m->_this)->func();\
+    return def
+#define C2CPP_cret(func, cast, def)\
+    if(m != nullptr && m->_this != nullptr)\
+        return (ptpmgmt_##cast)((Message*)m->_this)->func();\
+    return def
+#define C2CPP_ret_1(func, arg1) return Message::func(arg1)
+#define C2CPP_cret_1(func, cast, arg1, def)\
+    if(m != nullptr && m->_this != nullptr)\
+        return (ptpmgmt_##cast)((Message*)m->_this)->func(arg1);\
+    return def
+#define C2CPP_ret_c1(func, cast1, arg1) return Message::func((cast1)arg1)
+#define C2CPP_find(func, _typ, arg1, arg2)\
+    if(str != nullptr && arg1 != nullptr) {\
+        _typ x;\
+        if(Message::func(str, x, arg2)) {\
+            *arg1 = (ptpmgmt_##_typ)x;\
+            return true; }\
+    } return false
+#define C2CPP_port(func, prm)\
+    if(m != nullptr && m->_this != nullptr) {\
+        const PortIdentity_t &p = ((Message *)m->_this)->func();\
+        ptpmgmt_PortIdentity_t *l = &(m->prm);\
+        memcpy(l->clockIdentity.v, p.clockIdentity.v, ClockIdentity_t::size());\
+        l->portNumber = p.portNumber;return l;\
+    } return nullptr
+
+    ptpmgmt_pMsgParams ptpmgmt_msg_getParams(ptpmgmt_msg m)
+    {
+        if(m != nullptr) {
+            ptpmgmt_pMsgParams p = &(m->_prms);
+            cpyMsgParams(p);
+            return p;
+        }
+        return nullptr;
+    }
+    bool ptpmgmt_msg_updateParams(ptpmgmt_msg m, ptpmgmt_cpMsgParams prms)
+    {
+        if(m != nullptr && m->_this != nullptr) {
+            MsgParams &p = getMsgParams(prms);
+            return ((Message *)m->_this)->updateParams(p);
+        }
+        return false;
+    }
+    static ptpmgmt_mng_vals_e ptpmgmt_msg_getTlvId(const_ptpmgmt_msg m)
+    {
+        C2CPP_cret(getTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT);
+    }
+    static ptpmgmt_mng_vals_e ptpmgmt_msg_getBuildTlvId(const_ptpmgmt_msg m)
+    {
+        C2CPP_cret(getBuildTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT);
+    }
+    static void ptpmgmt_msg_setAllClocks(const_ptpmgmt_msg m)
+    {
+        C2CPP_void(setAllClocks);
+    }
+    static bool ptpmgmt_msg_isAllClocks(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(isAllClocks, false);
+    }
+    static bool ptpmgmt_msg_useConfig(ptpmgmt_msg m, const_ptpmgmt_cfg cfg,
+        const char *section)
+    {
+        if(m != nullptr && m->_this != nullptr && cfg != nullptr &&
+            cfg->_this != nullptr) {
+            Message *me = (Message *)m->_this;
+            ConfigFile &c = *(ConfigFile *)cfg->_this;
+            if(section != nullptr)
+                return me->useConfig(c, section);
+            return me->useConfig(c);
+        }
+        return false;
+    }
+    const char *ptpmgmt_msg_err2str(ptpmgmt_MNG_PARSE_ERROR_e err)
+    {
+        C2CPP_ret_c1(err2str_c, MNG_PARSE_ERROR_e, err);
+    }
+    const char *ptpmgmt_msg_type2str(ptpmgmt_msgType_e type)
+    {
+        C2CPP_ret_c1(type2str_c, msgType_e, type);
+    }
+    const char *ptpmgmt_msg_tlv2str(ptpmgmt_tlvType_e type)
+    {
+        C2CPP_ret_c1(tlv2str_c, tlvType_e, type);
+    }
+    const char *ptpmgmt_msg_act2str(ptpmgmt_actionField_e action)
+    {
+        C2CPP_ret_c1(act2str_c, actionField_e, action);
+    }
+    const char *ptpmgmt_msg_mng2str(ptpmgmt_mng_vals_e id)
+    {
+        C2CPP_ret_c1(mng2str_c, mng_vals_e, id);
+    }
+    bool ptpmgmt_msg_findMngID(const char *str, ptpmgmt_mng_vals_e *id, bool exact)
+    {
+        C2CPP_find(findMngID, mng_vals_e, id, exact);
+    }
+    const char *ptpmgmt_msg_errId2str(ptpmgmt_managementErrorId_e err)
+    {
+        C2CPP_ret_c1(errId2str_c, managementErrorId_e, err);
+    }
+    const char *ptpmgmt_msg_clkType2str(ptpmgmt_clockType_e type)
+    {
+        C2CPP_ret_c1(clkType2str_c, clockType_e, type);
+    }
+    const char *ptpmgmt_msg_netProt2str(ptpmgmt_networkProtocol_e protocol)
+    {
+        C2CPP_ret_c1(netProt2str_c, networkProtocol_e, protocol);
+    }
+    const char *ptpmgmt_msg_clockAcc2str(ptpmgmt_clockAccuracy_e value)
+    {
+        C2CPP_ret_c1(clockAcc2str_c, clockAccuracy_e, value);
+    }
+    const char *ptpmgmt_msg_faultRec2str(ptpmgmt_faultRecord_e code)
+    {
+        C2CPP_ret_c1(faultRec2str_c, faultRecord_e, code);
+    }
+    const char *ptpmgmt_msg_timeSrc2str(ptpmgmt_timeSource_e type)
+    {
+        C2CPP_ret_c1(timeSrc2str_c, timeSource_e, type);
+    }
+    bool ptpmgmt_msg_findTimeSrc(const char *str, ptpmgmt_timeSource_e *type,
+        bool exact)
+    {
+        C2CPP_find(findTimeSrc, timeSource_e, type, exact);
+    }
+    const char *ptpmgmt_msg_portState2str(ptpmgmt_portState_e state)
+    {
+        C2CPP_ret_c1(portState2str_c, portState_e, state);
+    }
+    bool ptpmgmt_msg_findPortState(const char *str, ptpmgmt_portState_e *state,
+        bool caseSens)
+    {
+        C2CPP_find(findPortState, portState_e, state, caseSens);
+    }
+    const char *ptpmgmt_msg_delayMech2str(ptpmgmt_delayMechanism_e type)
+    {
+        C2CPP_ret_c1(delayMech2str_c, delayMechanism_e, type);
+    }
+    bool ptpmgmt_msg_findDelayMech(const char *str, ptpmgmt_delayMechanism_e *type,
+        bool exact)
+    {
+        C2CPP_find(findDelayMech, delayMechanism_e, type, exact);
+    }
+    const char *ptpmgmt_msg_smpteLck2str(ptpmgmt_SMPTEmasterLockingStatus_e state)
+    {
+        C2CPP_ret_c1(smpteLck2str_c, SMPTEmasterLockingStatus_e, state);
+    }
+    const char *ptpmgmt_msg_ts2str(ptpmgmt_linuxptpTimeStamp_e type)
+    {
+        C2CPP_ret_c1(ts2str_c, linuxptpTimeStamp_e, type);
+    }
+    const char *ptpmgmt_msg_pwr2str(ptpmgmt_linuxptpPowerProfileVersion_e ver)
+    {
+        C2CPP_ret_c1(pwr2str_c, linuxptpPowerProfileVersion_e, ver);
+    }
+    const char *ptpmgmt_msg_us2str(ptpmgmt_linuxptpUnicastState_e state)
+    {
+        C2CPP_ret_c1(us2str_c, linuxptpUnicastState_e, state);
+    }
+    bool ptpmgmt_msg_is_LI_61(uint8_t flags)
+    {
+        C2CPP_ret_1(is_LI_61, flags);
+    }
+    bool ptpmgmt_msg_is_LI_59(uint8_t flags)
+    {
+        C2CPP_ret_1(is_LI_59, flags);
+    }
+    bool ptpmgmt_msg_is_UTCV(uint8_t flags)
+    {
+        C2CPP_ret_1(is_UTCV, flags);
+    }
+    bool ptpmgmt_msg_is_PTP(uint8_t flags)
+    {
+        C2CPP_ret_1(is_PTP, flags);
+    }
+    bool ptpmgmt_msg_is_TTRA(uint8_t flags)
+    {
+        C2CPP_ret_1(is_TTRA, flags);
+    }
+    bool ptpmgmt_msg_is_FTRA(uint8_t flags)
+    {
+        C2CPP_ret_1(is_FTRA, flags);
+    }
+    bool ptpmgmt_msg_isEmpty(ptpmgmt_mng_vals_e id)
+    {
+        C2CPP_ret_c1(isEmpty, mng_vals_e, id);
+    }
+    static bool ptpmgmt_msg_isValidId(const_ptpmgmt_msg m, ptpmgmt_mng_vals_e id)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            return ((Message *)m->_this)->isValidId((mng_vals_e)id);
+        return false;
+    }
+    static bool ptpmgmt_msg_setAction(ptpmgmt_msg m,
+        ptpmgmt_actionField_e actionField, ptpmgmt_mng_vals_e tlv_id,
+        const void *dataSend)
+    {
+        if(m != nullptr && m->_this != nullptr) {
+            BaseMngTlv *tlv = nullptr;
+            if(actionField != PTPMGMT_GET && dataSend != nullptr) {
+                tlv = c2cppMngTlv((mng_vals_e) tlv_id, dataSend);
+                if(tlv != nullptr) {
+                    if(m->sendTlv != nullptr)
+                        delete(BaseMngTlv *)m->sendTlv;
+                    m->sendTlv = (void *)tlv;
+                }
+                m->dataSend = dataSend;
+            }
+            return ((Message *)m->_this)->setAction((actionField_e)actionField,
+                    (mng_vals_e) tlv_id, tlv);
+        }
+        return false;
+    }
+    static void ptpmgmt_msg_clearData(const_ptpmgmt_msg m)
+    {
+        C2CPP_void(clearData);
+    }
+    static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_build(const_ptpmgmt_msg m,
+        void *buf, size_t bufSize, uint16_t sequence)
+    {
+        if(m != nullptr && m->_this != nullptr && buf != nullptr)
+            return (ptpmgmt_MNG_PARSE_ERROR_e)
+                ((Message *)m->_this)->build(buf, bufSize, sequence);
+        return PTPMGMT_MNG_PARSE_ERROR_TOO_SMALL;
+    }
+    static ptpmgmt_actionField_e ptpmgmt_msg_getSendAction(const_ptpmgmt_msg m)
+    {
+        C2CPP_cret(getSendAction, actionField_e, PTPMGMT_GET);
+    }
+    static size_t ptpmgmt_msg_getMsgLen(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getMsgLen, 0);
+    }
+    static ssize_t ptpmgmt_msg_getMsgPlanedLen(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getMsgPlanedLen, 0);
+    }
+    static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_parse(const_ptpmgmt_msg m,
+        const void *buf, ssize_t msgSize)
+    {
+        if(m != nullptr && m->_this != nullptr && buf != nullptr)
+            return (ptpmgmt_MNG_PARSE_ERROR_e)
+                ((Message *)m->_this)->parse(buf, msgSize);
+        return PTPMGMT_MNG_PARSE_ERROR_UNSUPPORT;
+    }
+    static ptpmgmt_actionField_e ptpmgmt_msg_getReplyAction(const_ptpmgmt_msg m)
+    {
+        C2CPP_cret(getReplyAction, actionField_e, PTPMGMT_GET);
+    }
+    static bool ptpmgmt_msg_isUnicast(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(isUnicast, false);
+    }
+    static uint8_t ptpmgmt_msg_getPTPProfileSpecific(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getPTPProfileSpecific, 0);
+    }
+    static uint16_t ptpmgmt_msg_getSequence(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getSequence, 0);
+    }
+    static const ptpmgmt_PortIdentity_t *ptpmgmt_msg_getPeer(ptpmgmt_msg m)
+    {
+        C2CPP_port(getPeer, _peer);
+    }
+    static const ptpmgmt_PortIdentity_t *ptpmgmt_msg_getTarget(ptpmgmt_msg m)
+    {
+        C2CPP_port(getTarget, _target);
+    }
+    static uint32_t ptpmgmt_msg_getSdoId(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getSdoId, 0);
+    }
+    static uint8_t ptpmgmt_msg_getDomainNumber(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getDomainNumber, 0);
+    }
+    static uint8_t ptpmgmt_msg_getVersionPTP(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getVersionPTP, 0);
+    }
+    static uint8_t ptpmgmt_msg_getMinorVersionPTP(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getMinorVersionPTP, 0);
+    }
+    static const void *ptpmgmt_msg_getData(ptpmgmt_msg m)
+    {
+        if(m != nullptr && m->_this != nullptr) {
+            Message *me = (Message *)m->_this;
+            const BaseMngTlv *t = me->getData();
+            if(t != nullptr) {
+                void *x = nullptr;
+                void *tlv = cpp2cMngTlv(me->getTlvId(), t, x);
+                if(tlv != nullptr) {
+                    free(m->data);
+                    free(m->dataTbl);
+                    m->data = tlv;
+                    m->dataTbl = x;
+                    return tlv;
+                }
+            }
+        }
+        return nullptr;
+    }
+    static const void *ptpmgmt_msg_getSendData(const_ptpmgmt_msg m)
+    {
+        if(m != nullptr)
+            return m->dataSend;
+        return nullptr;
+    }
+    static ptpmgmt_managementErrorId_e ptpmgmt_msg_getErrId(const_ptpmgmt_msg m)
+    {
+        C2CPP_cret(getErrId, managementErrorId_e, PTPMGMT_GENERAL_ERROR);
+    }
+    static const char *ptpmgmt_msg_getErrDisplay(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getErrDisplay_c, nullptr);
+    }
+    static bool ptpmgmt_msg_isLastMsgSig(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(isLastMsgSig, false);
+    }
+    static ptpmgmt_msgType_e ptpmgmt_msg_getType(const_ptpmgmt_msg m)
+    {
+        C2CPP_cret(getType, msgType_e, ptpmgmt_Management);
+    }
+    static ptpmgmt_tlvType_e ptpmgmt_msg_getMngType(const_ptpmgmt_msg m)
+    {
+        C2CPP_cret(getMngType, tlvType_e, PTPMGMT_MANAGEMENT);
+    }
+    static size_t ptpmgmt_msg_getSigTlvsCount(const_ptpmgmt_msg m)
+    {
+        C2CPP_ret(getSigTlvsCount, 0);
+    }
+    static const void *ptpmgmt_msg_getSigTlv(ptpmgmt_msg m, size_t position)
+    {
+        if(m != nullptr && m->_this != nullptr) {
+            Message *me = (Message *)m->_this;
+            const BaseSigTlv *s = me->getSigTlv(position);
+            if(s != nullptr) {
+                void *x = nullptr;
+                void *x2 = nullptr;
+                void *sig = cpp2cSigTlv(me->getSigTlvType(position), s, x, x2);
+                if(sig != nullptr) {
+                    free(m->dataSig1);
+                    free(m->dataSig2);
+                    free(m->dataSig3);
+                    m->dataSig1 = sig;
+                    m->dataSig2 = x;
+                    m->dataSig3 = x2;
+                    return sig;
+                }
+            }
+        }
+        return nullptr;
+    }
+    static ptpmgmt_tlvType_e ptpmgmt_msg_getSigTlvType(const_ptpmgmt_msg m,
+        size_t position)
+    {
+        C2CPP_cret_1(getSigTlvType, tlvType_e, position, PTPMGMT_MANAGEMENT);
+    }
+    static ptpmgmt_mng_vals_e ptpmgmt_msg_getSigMngTlvType(const_ptpmgmt_msg m,
+        size_t position)
+    {
+        C2CPP_cret_1(getSigMngTlvType, mng_vals_e, position,
+            PTPMGMT_NULL_PTP_MANAGEMENT);
+    }
+    static const void *ptpmgmt_msg_getSigMngTlv(ptpmgmt_msg m, size_t position)
+    {
+        if(m != nullptr && m->_this != nullptr) {
+            Message *me = (Message *)m->_this;
+            const BaseMngTlv *t = me->getSigMngTlv(position);
+            if(t != nullptr) {
+                void *x = nullptr;
+                void *tlv = cpp2cMngTlv(me->getSigMngTlvType(position), t, x);
+                if(tlv != nullptr) {
+                    free(m->dataSig1);
+                    free(m->dataSig2);
+                    free(m->dataSig3);
+                    m->dataSig1 = nullptr;
+                    m->dataSig2 = tlv;
+                    m->dataSig3 = x;
+                    return tlv;
+                }
+            }
+        }
+        return nullptr;
+    }
+    static inline void ptpmgmt_msg_asign_cb(ptpmgmt_msg m)
+    {
+        m->sendTlv = nullptr;
+        m->dataSend = nullptr;
+        m->data = nullptr;
+        m->dataTbl = nullptr;
+        m->dataSig1 = nullptr;
+        m->dataSig2 = nullptr;
+        m->dataSig3 = nullptr;
+        m->getParams = ptpmgmt_msg_getParams;
+        m->updateParams = ptpmgmt_msg_updateParams;
+        m->getTlvId = ptpmgmt_msg_getTlvId;
+        m->getBuildTlvId = ptpmgmt_msg_getBuildTlvId;
+        m->setAllClocks = ptpmgmt_msg_setAllClocks;
+        m->isAllClocks = ptpmgmt_msg_isAllClocks;
+        m->useConfig = ptpmgmt_msg_useConfig;
+        m->err2str = ptpmgmt_msg_err2str;
+        m->type2str = ptpmgmt_msg_type2str;
+        m->tlv2str = ptpmgmt_msg_tlv2str;
+        m->act2str = ptpmgmt_msg_act2str;
+        m->mng2str = ptpmgmt_msg_mng2str;
+        m->findMngID = ptpmgmt_msg_findMngID;
+        m->errId2str = ptpmgmt_msg_errId2str;
+        m->clkType2str = ptpmgmt_msg_clkType2str;
+        m->netProt2str = ptpmgmt_msg_netProt2str;
+        m->clockAcc2str = ptpmgmt_msg_clockAcc2str;
+        m->faultRec2str = ptpmgmt_msg_faultRec2str;
+        m->timeSrc2str = ptpmgmt_msg_timeSrc2str;
+        m->findTimeSrc = ptpmgmt_msg_findTimeSrc;
+        m->portState2str = ptpmgmt_msg_portState2str;
+        m->findPortState = ptpmgmt_msg_findPortState;
+        m->delayMech2str = ptpmgmt_msg_delayMech2str;
+        m->findDelayMech = ptpmgmt_msg_findDelayMech;
+        m->smpteLck2str = ptpmgmt_msg_smpteLck2str;
+        m->ts2str = ptpmgmt_msg_ts2str;
+        m->pwr2str = ptpmgmt_msg_pwr2str;
+        m->us2str = ptpmgmt_msg_us2str;
+        m->is_LI_61 = ptpmgmt_msg_is_LI_61;
+        m->is_LI_59 = ptpmgmt_msg_is_LI_59;
+        m->is_UTCV = ptpmgmt_msg_is_UTCV;
+        m->is_PTP = ptpmgmt_msg_is_PTP;
+        m->is_TTRA = ptpmgmt_msg_is_TTRA;
+        m->is_FTRA = ptpmgmt_msg_is_FTRA;
+        m->isEmpty = ptpmgmt_msg_isEmpty;
+        m->isValidId = ptpmgmt_msg_isValidId;
+        m->setAction = ptpmgmt_msg_setAction;
+        m->clearData = ptpmgmt_msg_clearData;
+        m->build = ptpmgmt_msg_build;
+        m->getSendAction = ptpmgmt_msg_getSendAction;
+        m->getMsgLen = ptpmgmt_msg_getMsgLen;
+        m->getMsgPlanedLen = ptpmgmt_msg_getMsgPlanedLen;
+        m->parse = ptpmgmt_msg_parse;
+        m->getReplyAction = ptpmgmt_msg_getReplyAction;
+        m->isUnicast = ptpmgmt_msg_isUnicast;
+        m->getPTPProfileSpecific = ptpmgmt_msg_getPTPProfileSpecific;
+        m->getSequence = ptpmgmt_msg_getSequence;
+        m->getPeer = ptpmgmt_msg_getPeer;
+        m->getTarget = ptpmgmt_msg_getTarget;
+        m->getSdoId = ptpmgmt_msg_getSdoId;
+        m->getDomainNumber = ptpmgmt_msg_getDomainNumber;
+        m->getVersionPTP = ptpmgmt_msg_getVersionPTP;
+        m->getMinorVersionPTP = ptpmgmt_msg_getMinorVersionPTP;
+        m->getData = ptpmgmt_msg_getData;
+        m->getSendData = ptpmgmt_msg_getSendData;
+        m->getErrId = ptpmgmt_msg_getErrId;
+        m->getErrDisplay = ptpmgmt_msg_getErrDisplay;
+        m->isLastMsgSig = ptpmgmt_msg_isLastMsgSig;
+        m->getType = ptpmgmt_msg_getType;
+        m->getMngType = ptpmgmt_msg_getMngType;
+        m->getSigTlvsCount = ptpmgmt_msg_getSigTlvsCount;
+        m->getSigTlv = ptpmgmt_msg_getSigTlv;
+        m->getSigTlvType = ptpmgmt_msg_getSigTlvType;
+        m->getSigMngTlvType = ptpmgmt_msg_getSigMngTlvType;
+        m->getSigMngTlv = ptpmgmt_msg_getSigMngTlv;
+        // set MsgParams
+        const MsgParams &pm = ((Message *)m->_this)->getParams();
+        m->_prms._this = (void *)&pm; // point to actual message parameters
+        ptpmgmt_pMsgParams p = &(m->_prms);
+        ptpmgmt_MsgParams_asign_cb(p);
+        p->free = ptpmgmt_MsgParams_free_wrap;
+    }
+    ptpmgmt_msg ptpmgmt_msg_alloc()
+    {
+        ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
+        if(m == nullptr)
+            return nullptr;
+        m->_this = (void *)(new Message);
+        if(m->_this == nullptr) {
+            free(m);
+            return nullptr;
+        }
+        m->free = ptpmgmt_msg_free;
+        ptpmgmt_msg_asign_cb(m);
+        return m;
+    }
+    ptpmgmt_msg ptpmgmt_msg_alloc_prms(ptpmgmt_cpMsgParams prms)
+    {
+        if(prms == nullptr || prms->_this == nullptr)
+            return nullptr;
+        MsgParams &prm = getMsgParams(prms);
+        ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
+        if(m == nullptr)
+            return nullptr;
+        m->_this = (void *)(new Message(prm));
+        if(m->_this == nullptr) {
+            free(m);
+            return nullptr;
+        }
+        m->free = ptpmgmt_msg_free;
+        ptpmgmt_msg_asign_cb(m);
+        return m;
+    }
+    ptpmgmt_msg ptpmgmt_msg_alloc_wrap(void *msg)
+    {
+        if(msg == nullptr)
+            return nullptr;
+        ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
+        if(m == nullptr)
+            return nullptr;
+        m->_this = msg;
+        m->free = ptpmgmt_msg_free_wrap;
+        ptpmgmt_msg_asign_cb(m);
+        return m;
+    }
+}

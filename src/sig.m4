@@ -1,3 +1,16 @@
+dnl SPDX-License-Identifier: LGPL-3.0-or-later
+dnl SPDX-FileCopyrightText: Copyright © 2024 Erez Geva <ErezGeva2@gmail.com> */
+dnl
+dnl @file
+dnl @brief Create PTP signaling TLV structures
+dnl        for main C++ library and for wrapper C
+dnl
+dnl @author Erez Geva <ErezGeva2@@gmail.com>
+dnl @copyright © 2024 Erez Geva
+dnl
+dnl Create types for main C++ library and for wrapper C
+dnl
+include(lang().m4)dnl
 /* SPDX-License-Identifier: LGPL-3.0-or-later
    SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
@@ -9,33 +22,32 @@
  *
  */
 
-#ifndef __PTPMGMT_SIG_H
-#define __PTPMGMT_SIG_H
+ics(SIG)
 
-#include <vector>
-#include <memory>
-#include "types.h"
+cpp_st()dnl
+incpp(<vector>)dnl
+incpp(<memory>)dnl
+incb(types)
 
-__PTPMGMT_NAMESPACE_BEGIN
-
+ns_s()dnl
 #ifndef SWIG
 /** MANAGEMENT TLV
  * @note: used for management TLV in a signaling message
  *  management message do not use this structure!
  */
-struct MANAGEMENT_t : public BaseSigTlv {
-    mng_vals_e managementId; /**< Management TLV id */
-    std::unique_ptr<BaseMngTlv> tlvData; /**< Management TLV data */
+strc(MANAGEMENT_t) sz(: public BaseSigTlv) {
+    enmc(mng_vals_e) managementId; /**< Management TLV id */
+    pmng()tlvData; /**< Management TLV data */
 };
 #endif /* SWIG */
 /** MANAGEMENT_ERROR_STATUS TLV
  * @note: used for error management TLV in a signaling message
  *  management message do not use this structure!
  */
-struct MANAGEMENT_ERROR_STATUS_t : public BaseSigTlv {
-    mng_vals_e managementId; /**< Management TLV id */
-    managementErrorId_e managementErrorId; /**< Error code */
-    PTPText_t displayData; /**< Error message */
+strc(MANAGEMENT_ERROR_STATUS_t) sz(: public BaseSigTlv) {
+    enmc(mng_vals_e) managementId; /**< Management TLV id */
+    enmc(managementErrorId_e) managementErrorId; /**< Error code */
+    strcc(PTPText_t) displayData; /**< Error message */
 };
 /** Organization extension TLV
  * For
@@ -43,50 +55,51 @@ struct MANAGEMENT_ERROR_STATUS_t : public BaseSigTlv {
  * @li ORGANIZATION_EXTENSION_PROPAGATE
  * @li ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE
  */
-struct ORGANIZATION_EXTENSION_t : public BaseSigTlv {
+strc(ORGANIZATION_EXTENSION_t) sz(: public BaseSigTlv) {
     Octet_t organizationId[3]; /**< IEEE organization ID */
     Octet_t organizationSubType[3]; /**< sub-organization ID */
-    Binary dataField; /**< organization own data */
+    bintyp()dataField; /**< organization own data */
 };
 /** PATH_TRACE TLV */
-struct PATH_TRACE_t : public BaseSigTlv {
-    std::vector<ClockIdentity_t> pathSequence; /**< clock id per path */
+strc(PATH_TRACE_t) sz(: public BaseSigTlv) {
+    vec(ClockIdentity_t)pathSequence; /**< clock id per path */
 };
 /** ALTERNATE_TIME_OFFSET_INDICATOR TLV */
-struct ALTERNATE_TIME_OFFSET_INDICATOR_t : public BaseSigTlv {
+strc(ALTERNATE_TIME_OFFSET_INDICATOR_t) sz(: public BaseSigTlv) {
     UInteger8_t keyField; /**< the index to the alternate timescale offsets */
     Integer32_t currentOffset; /**< Current offset */
     Integer32_t jumpSeconds; /**< Jump seconds */
     UInteger48_t timeOfNextJump; /**< Time of next jump */
-    PTPText_t displayName; /**< description of the alternate timescale */
+    /** description of the alternate timescale */
+    strcc(PTPText_t) displayName;
 };
 /** ENHANCED_ACCURACY_METRICS TLV */
-struct ENHANCED_ACCURACY_METRICS_t : public BaseSigTlv {
+strc(ENHANCED_ACCURACY_METRICS_t) sz(: public BaseSigTlv) {
     UInteger8_t bcHopCount; /**< number of Boundary Clocks in this TLV */
     UInteger8_t tcHopCount; /**< number of Transparent Clocks in this TLV */
     /** Max metric of Grandmaster inaccuracy in 2^16 nanoseconds units */
-    TimeInterval_t maxGmInaccuracy;
+    strcc(TimeInterval_t) maxGmInaccuracy;
     /** Var metrics of Grandmaster inaccuracy in seconds' square */
     Float64_t varGmInaccuracy;
     /** Max metric of Transient inaccuracy in 2^16 nanoseconds units */
-    TimeInterval_t maxTransientInaccuracy;
+    strcc(TimeInterval_t) maxTransientInaccuracy;
     /** Var metrics of Transient inaccuracy in seconds' square */
     Float64_t varTransientInaccuracy;
     /** Max metric of Dynamic inaccuracy in 2^16 nanoseconds units */
-    TimeInterval_t maxDynamicInaccuracy;
+    strcc(TimeInterval_t) maxDynamicInaccuracy;
     /** Var metrics of Dynamic inaccuracy in seconds' square */
     Float64_t varDynamicInaccuracy;
     /** Max metric of Static inaccuracy in 2^16 nanoseconds units */
-    TimeInterval_t maxStaticInstanceInaccuracy;
+    strcc(TimeInterval_t) maxStaticInstanceInaccuracy;
     /** Var metrics of Static inaccuracy in seconds' square */
     Float64_t varStaticInstanceInaccuracy;
     /** Max metric of Static Medium inaccuracy in 2^16 nanoseconds units */
-    TimeInterval_t maxStaticMediumInaccuracy;
+    strcc(TimeInterval_t) maxStaticMediumInaccuracy;
     /** Var metrics of Static Medium inaccuracy in seconds' square */
     Float64_t varStaticMediumInaccuracy;
 };
 /** L1_SYNC TLV */
-struct L1_SYNC_t : public BaseSigTlv {
+strc(L1_SYNC_t) sz(: public BaseSigTlv) {
     /**
      * Bit fields flag
      * @li bit 0: TCR   L1SyncBasicPortDS.txCoherentIsRequired
@@ -95,7 +108,7 @@ struct L1_SYNC_t : public BaseSigTlv {
      * @li bit 3: OPE   L1SyncBasicPortDS.optParamsEnabled
      */
     uint8_t flags1;
-    const uint8_t flagsMask1 = 0xf; /**< mask for flags1 */
+cpp_cod(`    const uint8_t flagsMask1 = 0xf; /**< mask for flags1 */')dnl
     /**
      * Bit fields flag
      * @li bit 0: ITC   L1SyncBasicPortDS.isTxCoherent
@@ -103,10 +116,10 @@ struct L1_SYNC_t : public BaseSigTlv {
      * @li bit 2: IC    L1SyncBasicPortDS.isCongruent
      */
     uint8_t flags2;
-    const uint8_t flagsMask2 = 0x7; /**< Mask for flags2 */
+cpp_cod(`    const uint8_t flagsMask2 = 0x7; /**< Mask for flags2 */')dnl
 };
 /** PORT_COMMUNICATION_AVAILABILITY */
-struct PORT_COMMUNICATION_AVAILABILITY_t : public BaseSigTlv {
+strc(PORT_COMMUNICATION_AVAILABILITY_t) sz(: public BaseSigTlv) {
     /**
      * Bit fields syncMessageAvailability
      * @li bit 0 syncCapabilities.multicastCapable
@@ -117,7 +130,7 @@ struct PORT_COMMUNICATION_AVAILABILITY_t : public BaseSigTlv {
      * flags from communicationCapabilitiesPortDS.syncCapabilities
      */
     uint8_t syncMessageAvailability;
-    const uint8_t flagsMask1 = 0xf; /**< Mask for syncMessageAvailability */
+cpp_cod(`    const uint8_t flagsMask1 = 0xf; /**< Mask for syncMessageAvailability */')dnl
     /**
      * Bit fields delayRespMessageAvailability
      * @li bit 0 delayRespCapabilities.multicastCapable
@@ -128,61 +141,62 @@ struct PORT_COMMUNICATION_AVAILABILITY_t : public BaseSigTlv {
      * flags from communicationCapabilitiesPortDS.delayRespCapabilities.
      */
     uint8_t delayRespMessageAvailability;
-    const uint8_t flagsMask2 = 0xf; /**< Mask for delayRespMessageAvailability */
+cpp_cod(`    const uint8_t flagsMask2 = 0xf; /**< Mask for delayRespMessageAvailability */')dnl
 };
 /** PROTOCOL_ADDRESS TLV */
-struct PROTOCOL_ADDRESS_t : public BaseSigTlv {
-    PortAddress_t portProtocolAddress; /**< protocol address */
+strc(PROTOCOL_ADDRESS_t) sz(: public BaseSigTlv) {
+    strcc(PortAddress_t) portProtocolAddress; /**< protocol address */
 };
 /** SLAVE_RX_SYNC_TIMING_DATA TLV record */
-struct SLAVE_RX_SYNC_TIMING_DATA_rec_t {
+strc(SLAVE_RX_SYNC_TIMING_DATA_rec_t) {
     UInteger16_t sequenceId; /**< Sequence of the sync message */
-    Timestamp_t syncOriginTimestamp; /**< sync Event Egress Timestamp value */
+    /** sync Event Egress Timestamp value */
+    strcc(Timestamp_t) syncOriginTimestamp;
     /** aggregate value of the correctionField */
-    TimeInterval_t totalCorrectionField;
+    strcc(TimeInterval_t) totalCorrectionField;
     /** scaled Cumulative Rate Offset value */
     Integer32_t scaledCumulativeRateOffset;
     /** sync Event Ingress Timestamp value */
-    Timestamp_t syncEventIngressTimestamp;
-    /**
-     * Get object size
-     * @return object size
-     */
-    static size_t size() {
-        return sizeof sequenceId + 2 * Timestamp_t::size() +
-            TimeInterval_t::size() + sizeof scaledCumulativeRateOffset;
-    }
+    strcc(Timestamp_t) syncEventIngressTimestamp;
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Get object size')dnl
+cpp_cod(`     * @return object size')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    static size_t size() {')dnl
+cpp_cod(`        return sizeof sequenceId + 2 * Timestamp_t::size() +')dnl
+cpp_cod(`            TimeInterval_t::size() + sizeof scaledCumulativeRateOffset;')dnl
+cpp_cod(`    }')dnl
 };
 /** SLAVE_RX_SYNC_TIMING_DATA TLV */
-struct SLAVE_RX_SYNC_TIMING_DATA_t : public BaseSigTlv {
+strc(SLAVE_RX_SYNC_TIMING_DATA_t) sz(: public BaseSigTlv) {
 
     /** Port identity of the received sync message. */
-    PortIdentity_t syncSourcePortIdentity;
+    strcc(PortIdentity_t) syncSourcePortIdentity;
     /** Records of received synchronization messages */
-    std::vector<SLAVE_RX_SYNC_TIMING_DATA_rec_t> list;
+    vec(SLAVE_RX_SYNC_TIMING_DATA_rec_t)list;
 };
 /** SLAVE_RX_SYNC_COMPUTED_DATA TLV record */
-struct SLAVE_RX_SYNC_COMPUTED_DATA_rec_t {
+strc(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t) {
     UInteger16_t sequenceId; /**< Sequence of the sync message */
     /** offsetFromMaster after calculation based on Sync message */
-    TimeInterval_t offsetFromMaster;
+    strcc(TimeInterval_t) offsetFromMaster;
     /** meanPathDelay after calculation based on Sync message */
-    TimeInterval_t meanPathDelay;
+    strcc(TimeInterval_t) meanPathDelay;
     /** scaledNeighborRateRatio after calculation based on Sync message */
     Integer32_t scaledNeighborRateRatio;
-    /**
-     * Get object size
-     * @return object size
-     */
-    static size_t size() {
-        return sizeof sequenceId + 2 * TimeInterval_t::size() +
-            sizeof scaledNeighborRateRatio;
-    }
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Get object size')dnl
+cpp_cod(`     * @return object size')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    static size_t size() {')dnl
+cpp_cod(`        return sizeof sequenceId + 2 * TimeInterval_t::size() +')dnl
+cpp_cod(`            sizeof scaledNeighborRateRatio;')dnl
+cpp_cod(`    }')dnl
 };
 /** SLAVE_RX_SYNC_COMPUTED_DATA TLV */
-struct SLAVE_RX_SYNC_COMPUTED_DATA_t : public BaseSigTlv {
+strc(SLAVE_RX_SYNC_COMPUTED_DATA_t) sz(: public BaseSigTlv) {
     /** Port identity of the received sync message. */
-    PortIdentity_t sourcePortIdentity;
+    strcc(PortIdentity_t) sourcePortIdentity;
     /**
      * Bit fields computedFlags
      * @li bit 0: scaledNeighborRateRatioValid
@@ -190,37 +204,37 @@ struct SLAVE_RX_SYNC_COMPUTED_DATA_t : public BaseSigTlv {
      * @li bit 2: offsetFromMasterValid
     */
     uint8_t computedFlags;
-    const uint8_t flagsMask = 0x7; /**< Mask for computedFlags */
+cpp_cod(`    const uint8_t flagsMask = 0x7; /**< Mask for computedFlags */')dnl
     /** records of received sync messages */
-    std::vector<SLAVE_RX_SYNC_COMPUTED_DATA_rec_t> list;
+    vec(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t)list;
 };
 
 /** SLAVE_TX_EVENT_TIMESTAMPS TLV record */
-struct SLAVE_TX_EVENT_TIMESTAMPS_rec_t {
+strc(SLAVE_TX_EVENT_TIMESTAMPS_rec_t) {
     UInteger16_t sequenceId; /**< Sequence of the event message */
     /** egress Timestamp acquired for the event message */
-    Timestamp_t eventEgressTimestamp;
-    /**
-     * Get object size
-     * @return object size
-     */
-    static size_t size() { return sizeof sequenceId + Timestamp_t::size(); }
+    strcc(Timestamp_t) eventEgressTimestamp;
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Get object size')dnl
+cpp_cod(`     * @return object size')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    static size_t size() { return sizeof sequenceId + Timestamp_t::size(); }')dnl
 };
 /** SLAVE_TX_EVENT_TIMESTAMPS TLV */
-struct SLAVE_TX_EVENT_TIMESTAMPS_t : public BaseSigTlv {
+strc(SLAVE_TX_EVENT_TIMESTAMPS_t) sz(: public BaseSigTlv) {
     /** Port identity of the transmitted event message. */
-    PortIdentity_t sourcePortIdentity;
+    strcc(PortIdentity_t) sourcePortIdentity;
     /**
      * Event massage type
      * @li Nibble:  event massage type
      * @li Nibble:  reserved
      */
-    msgType_e eventMessageType;
+    enmc(msgType_e) eventMessageType;
     /** records of transmitted event messages */
-    std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t> list;
+    vec(SLAVE_TX_EVENT_TIMESTAMPS_rec_t)list;
 };
 /** CUMULATIVE_RATE_RATIO TLV */
-struct CUMULATIVE_RATE_RATIO_t : public BaseSigTlv {
+strc(CUMULATIVE_RATE_RATIO_t) sz(: public BaseSigTlv) {
     /** (@<cumulativeRateRatio@> - 1) * 2^41 */
     Integer32_t scaledCumulativeRateRatio;
 };
@@ -229,7 +243,7 @@ struct CUMULATIVE_RATE_RATIO_t : public BaseSigTlv {
  * Management Message with Synchronization Metadata (SM)
  * Using Organization Extension TLV
  */
-struct SMPTE_ORGANIZATION_EXTENSION_t : public BaseMngTlv {
+strc(SMPTE_ORGANIZATION_EXTENSION_t) sz(: public BaseMngTlv) {
     Octet_t organizationId[3]; /**< always SMPTE OUI 68 97 E8 */
     Octet_t organizationSubType[3]; /**< SM TLV version */
     /** Default video frame rate - the numerator for a division */
@@ -237,7 +251,7 @@ struct SMPTE_ORGANIZATION_EXTENSION_t : public BaseMngTlv {
     /** Default video frame rate - the denominator for a division */
     UInteger32_t defaultSystemFrameRate_denominator;
     /** Complementary information to clockClass */
-    SMPTEmasterLockingStatus_e masterLockingStatus;
+    enmc(SMPTEmasterLockingStatus_e) masterLockingStatus;
     uint8_t timeAddressFlags;  /**< SMPTE ST 12-1 flags */
     /** Offset in seconds of Local Time from grandmaster PTP time */
     Integer32_t currentLocalOffset;
@@ -268,46 +282,46 @@ struct SMPTE_ORGANIZATION_EXTENSION_t : public BaseMngTlv {
      * indicated by timeOfNextJump.
      */
     uint8_t leapSecondJump;
-    /**
-     * Get object size
-     * @return object size
-     */
-    static size_t size() {
-        return 3 * 2 + sizeof(UInteger32_t) * 2 + sizeof(uint8_t) * 3 +
-            sizeof(Integer32_t) * 3 + sizeof_UInteger48_t * 3
-            + sizeof(SMPTEmasterLockingStatus_e);
-    }
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Get object size')dnl
+cpp_cod(`     * @return object size')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    static size_t size() {')dnl
+cpp_cod(`        return 3 * 2 + sizeof(UInteger32_t) * 2 + sizeof(uint8_t) * 3 +')dnl
+cpp_cod(`            sizeof(Integer32_t) * 3 + sizeof_UInteger48_t * 3')dnl
+cpp_cod(`            + sizeof(SMPTEmasterLockingStatus_e);')dnl
+cpp_cod(`    }')dnl
 };
 /** SLAVE_DELAY_TIMING_DATA_NP TLV record
  * @note linuxptp implementation specific
  */
-struct SLAVE_DELAY_TIMING_DATA_NP_rec_t {
+strc(SLAVE_DELAY_TIMING_DATA_NP_rec_t) {
     UInteger16_t sequenceId; /**< Sequence of the message */
     /** delay Origin Timestamp value */
-    Timestamp_t delayOriginTimestamp;
+    strcc(Timestamp_t) delayOriginTimestamp;
     /** aggregate value of the correctionField */
-    TimeInterval_t totalCorrectionField;
+    strcc(TimeInterval_t) totalCorrectionField;
     /** delay Response Timestamp */
-    Timestamp_t delayResponseTimestamp;
-    /**
-     * Get object size
-     * @return object size
-     */
-    static size_t size() {
-        return sizeof sequenceId + TimeInterval_t::size() +
-            2 * Timestamp_t::size();
-    }
+    strcc(Timestamp_t) delayResponseTimestamp;
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Get object size')dnl
+cpp_cod(`     * @return object size')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    static size_t size() {')dnl
+cpp_cod(`        return sizeof sequenceId + TimeInterval_t::size() +')dnl
+cpp_cod(`            2 * Timestamp_t::size();')dnl
+cpp_cod(`    }')dnl
 };
 /** SLAVE_DELAY_TIMING_DATA_NP TLV
  * @note linuxptp implementation specific
  */
-struct SLAVE_DELAY_TIMING_DATA_NP_t : public BaseSigTlv {
+strc(SLAVE_DELAY_TIMING_DATA_NP_t) sz(: public BaseSigTlv) {
     /** Port identity of the message. */
-    PortIdentity_t sourcePortIdentity;
+    strcc(PortIdentity_t) sourcePortIdentity;
     /** records of messages */
-    std::vector<SLAVE_DELAY_TIMING_DATA_NP_rec_t> list;
+    vec(SLAVE_DELAY_TIMING_DATA_NP_rec_t)list;
 };
+ns_e()dnl
+cpp_en(sig)dnl
 
-__PTPMGMT_NAMESPACE_END
-
-#endif /* __PTPMGMT_SIG_H */
+ice(SIG)

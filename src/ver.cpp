@@ -35,3 +35,13 @@ unsigned getVersionValue()
 }
 
 __PTPMGMT_NAMESPACE_END
+
+__PTPMGMT_NAMESPACE_USE;
+
+extern "C" {
+    // C interfaces
+    const char *ptpmgmt_getVersion() {return getVersion();}
+    int ptpmgmt_getVersionMajor() {return getVersionMajor();}
+    int ptpmgmt_getVersionMinor() {return getVersionMinor();}
+    unsigned ptpmgmt_getVersionValue() {return getVersionValue();}
+}

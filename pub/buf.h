@@ -12,6 +12,7 @@
 #ifndef __PTPMGMT_BUF_H
 #define __PTPMGMT_BUF_H
 
+#ifdef __cplusplus
 #include "name.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -63,5 +64,8 @@ class Buf
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#error "this header is for C++ and scripts use only, NOT for C"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_BUF_H */

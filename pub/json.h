@@ -12,6 +12,7 @@
 #ifndef __PTPMGMT_JSON_H
 #define __PTPMGMT_JSON_H
 
+#ifdef __cplusplus
 #include "msg.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -224,5 +225,8 @@ class Json2msg
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/json.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_JSON_H */

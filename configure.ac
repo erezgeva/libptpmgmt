@@ -55,6 +55,7 @@ AS_UNSET([DOXYGENMINVER])
 
 AC_CHECK_TOOLS([M4], [m4 autom4te])
 AC_CHECK_TOOLS([CTAGS], [ctags ctags-exuberant])
+AC_CHECK_TOOLS([READLINK], [readlink])
 AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
 AC_CHECK_TOOL([ASTYLE], [astyle])
 AC_MSG_CHECKING([for astyle version])
@@ -161,35 +162,15 @@ AC_ARG_ENABLE([full-link],
               [AS_VAR_SET([USE_FULL_PATH_LINK], ["true"])])
 AC_SUBST([USE_FULL_PATH_LINK])
 
-AS_UNSET([HAVE_METHODS_COMPARE])
-AS_VAR_SET([ptpm_method_warn], ["pmf-conversions"])
-AS_VAR_SET([METHODS_COMPARE_FLAGS], ["-W$ptpm_method_warn"])
-AS_VAR_SET([ptpm_keep_cppflags], ["$CPPFLAGS"])
-AS_VAR_SET([CPPFLAGS], ["$CPPFLAGS -Wno-$ptpm_method_warn"])
-
-AC_MSG_CHECKING([whether compiler can compare inherited class methods])
-AC_RUN_IFELSE(
-   [AC_LANG_PROGRAM(
-    [struct B{virtual void f1(void){} virtual void f2(void){}};
-     struct C:public B{virtual void f1(void){}};],
-    [C c; return !((void*)(&B::f1) == (void*)(c.*(&B::f1))) &&
-     ((void*)(&B::f2) == (void*)(c.*(&B::f2))) ? 0 : -1])],
-   [AS_VAR_SET([HAVE_METHODS_COMPARE],[yes]) # success run
-    AC_MSG_RESULT([$HAVE_METHODS_COMPARE])],
-   [AC_MSG_RESULT([no])], # failure
-   [AS_VAR_SET([HAVE_METHODS_COMPARE],[cross]) # cross compilation
-    AC_MSG_RESULT([$HAVE_METHODS_COMPARE])])
-
-AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags"])
-AC_SUBST([HAVE_METHODS_COMPARE])
-AC_SUBST([METHODS_COMPARE_FLAGS])
-
 #----------------------------------------------------------------
 # Testing tools
 #----------------------------------------------------------------
 AS_UNSET([HAVE_GTEST_HEADER])
 AS_UNSET([GTEST_INC_FLAGS])
 AS_UNSET([GTEST_LIB_FLAGS])
+AS_UNSET([HAVE_CRITERION_HEADER])
+AS_UNSET([CRITERION_INC_FLAGS])
+AS_UNSET([CRITERION_LIB_FLAGS])
 
 AC_CHECK_HEADER([gtest/gtest.h],
                 [AS_VAR_SET([HAVE_GTEST_HEADER], ["gtest/gtest.h"])])
@@ -205,9 +186,33 @@ AS_IF([test -n "$HAVE_GTEST_HEADER" && test -n "$PKG_CONFIG" &&\
                     [AS_UNSET([GTEST_LIB_FLAGS])],
                     ["$GTEST_LIB_FLAGS"])])
 
+AC_CHECK_HEADER([criterion/criterion.h],
+                [AS_VAR_SET([HAVE_CRITERION_HEADER], ["criterion/criterion.h"])])
+AS_VAR_SET([ptpm_c_include], ["#include"])
+AC_COMPILE_IFELSE(
+   [AC_LANG_PROGRAM([$ptpm_c_include <$HAVE_CRITERION_HEADER>
+                     $ptpm_c_include <criterion/new/assert.h>
+                     $ptpm_c_include <criterion/new/memory.h>])],
+   [AS_VAR_SET([HAVE_CRITERION_HEADER],
+               ["$HAVE_CRITERION_HEADER criterion/new/assert.h criterion/new/memory.h"])])
+# We do not use unit test with cross compilation
+AS_IF([test -n "$HAVE_CRITERION_HEADER" && test -n "$PKG_CONFIG" &&\
+       test -z "$USE_CROSS_COMPILE" ],
+      [AS_VAR_SET([CRITERION_INC_FLAGS], ["`$PKG_CONFIG --cflags criterion`"])
+       AS_VAR_SET([CRITERION_LIB_FLAGS], ["`$PKG_CONFIG --libs criterion`"])
+       AC_CHECK_LIB([criterion], [main],
+                    [AS_IF([test -z "$CRITERION_LIB_FLAGS"],
+                           [AS_VAR_SET([CRITERION_LIB_FLAGS],
+                                       ['-lcriterion'])])],
+                    [AS_UNSET([CRITERION_LIB_FLAGS])],
+                    ["$CRITERION_LIB_FLAGS"])])
+
 AC_SUBST([HAVE_GTEST_HEADER])
 AC_SUBST([GTEST_INC_FLAGS])
 AC_SUBST([GTEST_LIB_FLAGS])
+AC_SUBST([HAVE_CRITERION_HEADER])
+AC_SUBST([CRITERION_INC_FLAGS])
+AC_SUBST([CRITERION_LIB_FLAGS])
 
 #----------------------------------------------------------------
 # Find Address Sanitizer libraries
@@ -669,9 +674,14 @@ else
   # perl -MExtUtils::Embed -e ccopts
   AC_MSG_CHECKING([for Perl5 confiuration])
   if test -n "$PERL"; then
-    AS_VAR_SET([PERL5DIR],
+    AS_VAR_SET([ptpm_perl_dir],
                [`($PERL -MConfig -le 'print $Config{archlibexp}')\
                   2>/dev/null`])
+    AS_IF([test -h "$ptpm_perl_dir" && test "x$READLINK" != x ],
+          [AS_VAR_SET([PERL5DIR],[`$READLINK -f $ptpm_perl_dir 2>/dev/null`])],
+          [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
+    AS_IF([test "x$PERL5DIR" = x],
+          [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
     ptpm_cross([PERL5DIR])
     AS_IF([test -n "$PERL5DIR"],
           [AC_MSG_RESULT([$PERL5DIR])

@@ -9,6 +9,7 @@ dnl @copyright © 2022 Erez Geva
 dnl
 dnl Create mngIds.h
 dnl
+include(lang().m4)dnl
 /* SPDX-License-Identifier: LGPL-3.0-or-later
    SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
@@ -22,29 +23,28 @@ dnl
  *
  */
 
-#ifndef __PTPMGMT_MNG_IDS_H
-#define __PTPMGMT_MNG_IDS_H
+ics(MNG_IDS)
 
+cpp_st()dnl
 #include "name.h"
 
-__PTPMGMT_NAMESPACE_BEGIN
-
-#undef DOMAIN /* Old math.h header uses this macro */
-
+ns_s()dnl
+cpp_cod(`#undef DOMAIN /* Old math.h header uses this macro */')dnl
+cpp_cod(`')dnl
 /**
  * @brief Management TLVs ID
  * @details
  *  Available Management TLVs for use with PTP managment messages.
  */
-enum mng_vals_e {
-define(A, `    $1,')dnl
+enm(mng_vals_e) {
+define(A, `    NM($1),')dnl
 include(ids_base.m4)dnl
-    LAST_MNG_ID, /**< Last management ID excluded */
-    SMPTE_MNG_ID, /**< SMPTE Organization Extension TLV */
-    FIRST_MNG_ID = NULL_PTP_MANAGEMENT, /**< First management ID */
-    NULL_MANAGEMENT = NULL_PTP_MANAGEMENT /**< old name in IEEE 1588-2008 */
+    NM(LAST_MNG_ID), /**< Last management ID excluded */
+    NM(SMPTE_MNG_ID), /**< SMPTE Organization Extension TLV */
+cpp_cod(`    FIRST_MNG_ID = NULL_PTP_MANAGEMENT, /**< First management ID */')dnl
+cpp_cod(`    NULL_MANAGEMENT = NULL_PTP_MANAGEMENT /**< old name in IEEE 1588-2008 */')dnl
 };
+ns_e()dnl
+cpp_en(mngIds)dnl
 
-__PTPMGMT_NAMESPACE_END
-
-#endif /* __PTPMGMT_MNG_IDS_H */
+ice(MNG_IDS)

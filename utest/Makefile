@@ -21,7 +21,7 @@ endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
 utest_lang: $(UTEST_TGT_LNG)
-utest: utest_cpp utest_lang
+utest: utest_cpp utest_lang utest_c
 
 ifneq ($(GTEST_LIB_FLAGS),)
 UTEST:=$(OBJ_DIR)/utest

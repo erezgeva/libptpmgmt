@@ -62,6 +62,11 @@ func MessageDispatcherCallHadler(self MessageDispatcher, msg Message,
   }
 }
 
+/**
+ * @note Do not forget to call msg.ClearData() after sending the message.
+ *       You may use 'defer msg.ClearData()' if BuildTlv return true
+ *        and the sending is done in the same function context :-)
+ */
 type MessageBuilder interface {
   BuildTlv(msg Message, actionField ActionField_e, tlv_id Mng_vals_e) bool
 }

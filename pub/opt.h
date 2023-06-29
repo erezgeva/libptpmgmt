@@ -12,6 +12,7 @@
 #ifndef __PTPMGMT_OPT_H
 #define __PTPMGMT_OPT_H
 
+#ifdef __cplusplus
 #include <getopt.h>
 #include <vector>
 #include <map>
@@ -183,5 +184,8 @@ class Options
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/opt.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_OPT_H */

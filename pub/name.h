@@ -13,6 +13,7 @@
 #ifndef __PTPMGMT_NAME_H
 #define __PTPMGMT_NAME_H
 
+#ifdef __cplusplus
 /* system headers used by all modules */
 #include <string>
 #include <cstdint>
@@ -29,5 +30,15 @@
  */
 #define __PTPMGMT_NAMESPACE_END };
 #endif
+#else /* __cplusplus */
+
+#include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+
+#define __PTPMGMT_NAMESPACE_BEGIN
+#define __PTPMGMT_NAMESPACE_END
+
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_NAME_H */

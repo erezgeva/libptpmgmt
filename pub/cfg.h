@@ -16,6 +16,7 @@
 #ifndef __PTPMGMT_CFG_H
 #define __PTPMGMT_CFG_H
 
+#ifdef __cplusplus
 #include <map>
 #include "bin.h"
 
@@ -168,5 +169,8 @@ class ConfigFile
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/cfg.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_CFG_H */

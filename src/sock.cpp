@@ -808,3 +808,550 @@ bool SockRaw::setAllBase(const ConfigFile &cfg, const std::string &section)
 }
 
 __PTPMGMT_NAMESPACE_END
+
+static const char ptpm_empty_str[] = "";
+__PTPMGMT_NAMESPACE_USE;
+
+extern "C" {
+
+#include "c/sock.h"
+
+#define C2CPP_valid(cls)\
+    if(sk == nullptr || sk->_this == nullptr)\
+        return nullptr;\
+    return (cls *)(sk->_this)
+    static inline SockBase *valid_csk(const_ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockBase);
+    }
+    static inline SockBase *valid_sk(ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockBase);
+    }
+    static inline SockUnix *valid_cusk(const_ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockUnix);
+    }
+    static inline SockUnix *valid_usk(ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockUnix);
+    }
+    static inline SockBaseIf *valid_isk(ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockBaseIf);
+    }
+    static inline SockIp *valid_ipsk(ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockIp);
+    }
+    static inline SockIp6 *valid_ip6sk(ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockIp6);
+    }
+    static inline SockRaw *valid_rsk(ptpmgmt_sk sk)
+    {
+        C2CPP_valid(SockRaw);
+    }
+    static void ptpmgmt_sk_free(ptpmgmt_sk sk)
+    {
+        SockBase *s = valid_sk(sk);
+        if(s != nullptr) {
+            delete s;
+            free(sk);
+        }
+    }
+    static void ptpmgmt_sk_free_wrap(ptpmgmt_sk sk)
+    {
+    }
+    static void ptpmgmt_sk_close(ptpmgmt_sk sk)
+    {
+        SockBase *s = valid_sk(sk);
+        if(s != nullptr)
+            s->close();
+    }
+    static bool ptpmgmt_sk_init(ptpmgmt_sk sk)
+    {
+        SockBase *s = valid_sk(sk);
+        if(s != nullptr)
+            return s->init();
+        return false;
+    }
+    static bool ptpmgmt_sk_send(ptpmgmt_sk sk, const void *msg, size_t len)
+    {
+        SockBase *s = valid_sk(sk);
+        if(s != nullptr)
+            return s->send(msg, len);
+        return false;
+    }
+    static ssize_t ptpmgmt_sk_rcv(ptpmgmt_sk sk, void *buf, size_t bufSize,
+        bool block)
+    {
+        SockBase *s = valid_sk(sk);
+        if(s != nullptr)
+            return s->rcv(buf, bufSize, block);
+        return false;
+    }
+    static int ptpmgmt_sk_getFd(const_ptpmgmt_sk sk)
+    {
+        SockBase *s = valid_csk(sk);
+        if(s != nullptr)
+            return s->getFd();
+        return -1;
+    }
+    static bool ptpmgmt_sk_poll(ptpmgmt_sk sk, uint64_t timeout_ms)
+    {
+        SockBase *s = valid_sk(sk);
+        if(s != nullptr)
+            return s->poll(timeout_ms);
+        return false;
+    }
+    static bool ptpmgmt_sk_tpoll(ptpmgmt_sk sk, uint64_t *timeout_ms)
+    {
+        SockBase *s = valid_sk(sk);
+        if(s != nullptr) {
+            if(timeout_ms != nullptr)
+                return s->tpoll(*timeout_ms);
+            return s->poll(0);
+        }
+        return false;
+    }
+    static const char *non_ptpmgmt_sk_getPeerAddress(const_ptpmgmt_sk)
+    {
+        return nullptr;
+    }
+    static const char *ptpmgmt_sk_getPeerAddress(const_ptpmgmt_sk sk)
+    {
+        SockUnix *s = valid_cusk(sk);
+        if(s != nullptr)
+            return s->getPeerAddress_c();
+        return nullptr;
+    }
+    static bool non_ptpmgmt_sk_setPeerAddress(ptpmgmt_sk, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setPeerAddress(ptpmgmt_sk sk, const char *str)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && str != nullptr)
+            return s->setPeerAddress(str);
+        return false;
+    }
+#define C2CPP_func(func)\
+    if (s != nullptr && cfg != nullptr && cfg->_this != nullptr) {\
+        if (section == nullptr)\
+            return s->func(*(const ConfigFile *)cfg->_this);\
+        return s->func(*(const ConfigFile *)cfg->_this, section);\
+    }\
+    return false
+#define C2CPP_func2(func)\
+    SockBaseIf *s = valid_isk(sk);\
+    if (s != nullptr && ifObj != nullptr && ifObj->_this != nullptr\
+        && cfg != nullptr && cfg->_this != nullptr) {\
+        if (section == nullptr)\
+            return s->func(*(const IfInfo*)ifObj->_this,\
+                    *(const ConfigFile *)cfg->_this);\
+        return s->func(*(const IfInfo*)ifObj->_this,\
+                *(const ConfigFile *)cfg->_this, section);\
+    }\
+    return false
+    static bool non_ptpmgmt_sk_setPeerAddressCfg(ptpmgmt_sk, const_ptpmgmt_cfg,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setPeerAddressCfg(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg,
+        const char *section)
+    {
+        SockUnix *s = valid_usk(sk);
+        C2CPP_func(setPeerAddress);
+    }
+    static const char *non_ptpmgmt_sk_getSelfAddress(const_ptpmgmt_sk)
+    {
+        return nullptr;
+    }
+    static const char *ptpmgmt_sk_getSelfAddress(const_ptpmgmt_sk sk)
+    {
+        SockUnix *s = valid_cusk(sk);
+        if(s != nullptr)
+            return s->getSelfAddress_c();
+        return nullptr;
+    }
+    static bool non_ptpmgmt_sk_setSelfAddress(ptpmgmt_sk, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setSelfAddress(ptpmgmt_sk sk, const char *str)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && str != nullptr)
+            return s->setSelfAddress(str);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setDefSelfAddress(ptpmgmt_sk, const char *,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setDefSelfAddress(ptpmgmt_sk sk, const char *rootBase,
+        const char *useDef)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr) {
+            const char *r = rootBase == nullptr ? ptpm_empty_str : rootBase;
+            const char *u = useDef == nullptr ? ptpm_empty_str : useDef;
+            return s->setDefSelfAddress(r, u);
+        }
+        return false;
+    }
+    static const char *non_ptpmgmt_sk_getHomeDir(ptpmgmt_sk)
+    {
+        return nullptr;
+    }
+    static const char *ptpmgmt_sk_getHomeDir(ptpmgmt_sk sk)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr)
+            return s->getHomeDir_c();
+        return nullptr;
+    }
+    static bool non_ptpmgmt_sk_sendTo(ptpmgmt_sk, const void *, size_t,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_sendTo(ptpmgmt_sk sk, const void *msg, size_t len,
+        const char *addrStr)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && msg != nullptr && addrStr != nullptr && len > 0)
+            return s->sendTo(msg, len, addrStr);
+        return false;
+    }
+    static ssize_t non_ptpmgmt_sk_rcvFrom(ptpmgmt_sk, void *, size_t, char *,
+        size_t, bool)
+    {
+        return false;
+    }
+    static ssize_t ptpmgmt_sk_rcvFrom(ptpmgmt_sk sk, void *buf, size_t bufSize,
+        char *from, size_t fromSize, bool block)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && buf != nullptr && bufSize > 0) {
+            std::string f;
+            ssize_t ret = s->rcvFrom(buf, bufSize, f, block);
+            if(from != nullptr && fromSize > 1 && !f.empty()) {
+                size_t c = std::min(f.length(), fromSize - 1);
+                memcpy(from, f.c_str(), c);
+                from[c] = 0;
+            }
+            return ret;
+        }
+        return false;
+    }
+    static ssize_t non_ptpmgmt_sk_rcvFromA(ptpmgmt_sk, void *, size_t, bool)
+    {
+        return false;
+    }
+    static ssize_t ptpmgmt_sk_rcvFromA(ptpmgmt_sk sk, void *buf, size_t bufSize,
+        bool block)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && buf != nullptr && bufSize > 0)
+            return s->rcvFrom(buf, bufSize, block);
+        return false;
+    }
+    static const char *non_ptpmgmt_sk_getLastFrom(const_ptpmgmt_sk)
+    {
+        return nullptr;
+    }
+    static const char *ptpmgmt_sk_getLastFrom(const_ptpmgmt_sk sk)
+    {
+        SockUnix *s = valid_cusk(sk);
+        if(s != nullptr)
+            return s->getLastFrom().c_str();
+        return nullptr;
+    }
+    static bool non_ptpmgmt_sk_setIfUsingName(ptpmgmt_sk, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setIfUsingName(ptpmgmt_sk sk, const char *ifName)
+    {
+        SockBaseIf *s = valid_isk(sk);
+        if(s != nullptr && ifName != nullptr)
+            return s->setIfUsingName(ifName);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setIfUsingIndex(ptpmgmt_sk, int)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setIfUsingIndex(ptpmgmt_sk sk, int ifIndex)
+    {
+        SockBaseIf *s = valid_isk(sk);
+        if(s != nullptr)
+            return s->setIfUsingIndex(ifIndex);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setIf(ptpmgmt_sk, const_ptpmgmt_ifInfo)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setIf(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj)
+    {
+        SockBaseIf *s = valid_isk(sk);
+        if(s != nullptr && ifObj != nullptr && ifObj->_this != nullptr)
+            return s->setIf(*(const IfInfo *)ifObj->_this);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setAll(ptpmgmt_sk, const_ptpmgmt_ifInfo,
+        const_ptpmgmt_cfg, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setAll(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj,
+        const_ptpmgmt_cfg cfg, const char *section)
+    {
+        C2CPP_func2(setAll);
+    }
+    static bool non_ptpmgmt_sk_setAllInit(ptpmgmt_sk, const_ptpmgmt_ifInfo,
+        const_ptpmgmt_cfg, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setAllInit(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj,
+        const_ptpmgmt_cfg cfg, const char *section)
+    {
+        C2CPP_func2(setAllInit);
+    }
+    static bool non_ptpmgmt_sk_setUdpTtl(ptpmgmt_sk, uint8_t)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setUdpTtl(ptpmgmt_sk sk, uint8_t udp_ttl)
+    {
+        SockIp *s = valid_ipsk(sk);
+        if(s != nullptr)
+            return s->setUdpTtl(udp_ttl);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setUdpTtlCfg(ptpmgmt_sk, const_ptpmgmt_cfg,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setUdpTtlCfg(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg,
+        const char *section)
+    {
+        SockIp *s = valid_ipsk(sk);
+        C2CPP_func(setUdpTtl);
+    }
+    static bool non_ptpmgmt_sk_setScope(ptpmgmt_sk, uint8_t)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setScope(ptpmgmt_sk sk, uint8_t udp6_scope)
+    {
+        SockIp6 *s = valid_ip6sk(sk);
+        if(s != nullptr)
+            return s->setScope(udp6_scope);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setScopeCfg(ptpmgmt_sk, const_ptpmgmt_cfg,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setScopeCfg(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg,
+        const char *section)
+    {
+        SockIp6 *s = valid_ip6sk(sk);
+        C2CPP_func(setScope);
+    }
+    static bool non_ptpmgmt_sk_setPtpDstMacStr(ptpmgmt_sk, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setPtpDstMacStr(ptpmgmt_sk sk, const char *str)
+    {
+        SockRaw *s = valid_rsk(sk);
+        if(s != nullptr && str != nullptr)
+            return s->setPtpDstMacStr(str);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setPtpDstMac(ptpmgmt_sk, const void *, size_t)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setPtpDstMac(ptpmgmt_sk sk, const void *ptp_dst_mac,
+        size_t len)
+    {
+        SockRaw *s = valid_rsk(sk);
+        if(s != nullptr && ptp_dst_mac != nullptr && len > 0)
+            return s->setPtpDstMac(ptp_dst_mac, len);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setPtpDstMacCfg(ptpmgmt_sk, const_ptpmgmt_cfg,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setPtpDstMacCfg(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg,
+        const char *section)
+    {
+        SockRaw *s = valid_rsk(sk);
+        C2CPP_func(setPtpDstMac);
+    }
+    static bool non_ptpmgmt_sk_setSocketPriority(ptpmgmt_sk, uint8_t)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setSocketPriority(ptpmgmt_sk sk, uint8_t socket_priority)
+    {
+        SockRaw *s = valid_rsk(sk);
+        if(s != nullptr)
+            return s->setSocketPriority(socket_priority);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setSocketPriorityCfg(ptpmgmt_sk, const_ptpmgmt_cfg,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setSocketPriorityCfg(ptpmgmt_sk sk,
+        const_ptpmgmt_cfg cfg, const char *section)
+    {
+        SockRaw *s = valid_rsk(sk);
+        C2CPP_func(setSocketPriority);
+    }
+    static ptpmgmt_sk ptpmgmt_sk_alloc_all(enum ptpmgmt_socket_class type,
+        void *sko)
+    {
+        ptpmgmt_sk sk = (ptpmgmt_sk)malloc(sizeof(ptpmgmt_sk_t));
+        if(sk == nullptr)
+            return nullptr;
+        memset(sk, 0, sizeof(ptpmgmt_sk_t));
+        SockBase *s = nullptr;
+        sk->getPeerAddress = non_ptpmgmt_sk_getPeerAddress;
+        sk->setPeerAddress = non_ptpmgmt_sk_setPeerAddress;
+        sk->setPeerAddressCfg = non_ptpmgmt_sk_setPeerAddressCfg;
+        sk->getSelfAddress = non_ptpmgmt_sk_getSelfAddress;
+        sk->setSelfAddress = non_ptpmgmt_sk_setSelfAddress;
+        sk->setDefSelfAddress = non_ptpmgmt_sk_setDefSelfAddress;
+        sk->getHomeDir = non_ptpmgmt_sk_getHomeDir;
+        sk->sendTo = non_ptpmgmt_sk_sendTo;
+        sk->rcvFrom = non_ptpmgmt_sk_rcvFrom;
+        sk->rcvFromA = non_ptpmgmt_sk_rcvFromA;
+        sk->getLastFrom = non_ptpmgmt_sk_getLastFrom;
+        sk->setIfUsingName = non_ptpmgmt_sk_setIfUsingName;
+        sk->setIfUsingIndex = non_ptpmgmt_sk_setIfUsingIndex;
+        sk->setIf = non_ptpmgmt_sk_setIf;
+        sk->setAll = non_ptpmgmt_sk_setAll;
+        sk->setAllInit = non_ptpmgmt_sk_setAllInit;
+        sk->setUdpTtl = non_ptpmgmt_sk_setUdpTtl;
+        sk->setUdpTtlCfg = non_ptpmgmt_sk_setUdpTtlCfg;
+        sk->setScope = non_ptpmgmt_sk_setScope;
+        sk->setScopeCfg = non_ptpmgmt_sk_setScopeCfg;
+        sk->setPtpDstMacStr = non_ptpmgmt_sk_setPtpDstMacStr;
+        sk->setPtpDstMac = non_ptpmgmt_sk_setPtpDstMac;
+        sk->setPtpDstMacCfg = non_ptpmgmt_sk_setPtpDstMacCfg;
+        sk->setSocketPriority = non_ptpmgmt_sk_setSocketPriority;
+        sk->setSocketPriorityCfg = non_ptpmgmt_sk_setSocketPriorityCfg;
+        switch(type) {
+            case ptpmgmt_SockUnix:
+                if(sko == nullptr)
+                    s = new SockUnix();
+                sk->getPeerAddress = ptpmgmt_sk_getPeerAddress;
+                sk->setPeerAddress = ptpmgmt_sk_setPeerAddress;
+                sk->setPeerAddressCfg = ptpmgmt_sk_setPeerAddressCfg;
+                sk->getSelfAddress = ptpmgmt_sk_getSelfAddress;
+                sk->setSelfAddress = ptpmgmt_sk_setSelfAddress;
+                sk->setDefSelfAddress = ptpmgmt_sk_setDefSelfAddress;
+                sk->getHomeDir = ptpmgmt_sk_getHomeDir;
+                sk->sendTo = ptpmgmt_sk_sendTo;
+                sk->rcvFrom = ptpmgmt_sk_rcvFrom;
+                sk->rcvFromA = ptpmgmt_sk_rcvFromA;
+                sk->getLastFrom = ptpmgmt_sk_getLastFrom;
+                break;
+            case ptpmgmt_SockIp4:
+                if(sko == nullptr)
+                    s = new SockIp4();
+                // Used by PTP network sockets
+                sk->setIfUsingName = ptpmgmt_sk_setIfUsingName;
+                sk->setIfUsingIndex = ptpmgmt_sk_setIfUsingIndex;
+                sk->setIf = ptpmgmt_sk_setIf;
+                sk->setAll = ptpmgmt_sk_setAll;
+                sk->setAllInit = ptpmgmt_sk_setAllInit;
+                // IP sockets
+                sk->setUdpTtl = ptpmgmt_sk_setUdpTtl;
+                sk->setUdpTtlCfg = ptpmgmt_sk_setUdpTtlCfg;
+                break;
+            case ptpmgmt_SockIp6:
+                if(sko == nullptr)
+                    s = new SockIp6();
+                // Used by PTP network sockets
+                sk->setIfUsingName = ptpmgmt_sk_setIfUsingName;
+                sk->setIfUsingIndex = ptpmgmt_sk_setIfUsingIndex;
+                sk->setIf = ptpmgmt_sk_setIf;
+                sk->setAll = ptpmgmt_sk_setAll;
+                sk->setAllInit = ptpmgmt_sk_setAllInit;
+                // IP sockets
+                sk->setUdpTtl = ptpmgmt_sk_setUdpTtl;
+                sk->setUdpTtlCfg = ptpmgmt_sk_setUdpTtlCfg;
+                // IPv6
+                sk->setScope = ptpmgmt_sk_setScope;
+                sk->setScopeCfg = ptpmgmt_sk_setScopeCfg;
+                break;
+            case ptpmgmt_SockRaw:
+                if(sko == nullptr)
+                    s = new SockRaw();
+                // Raw socket interfaces
+                sk->setPtpDstMacStr = ptpmgmt_sk_setPtpDstMacStr;
+                sk->setPtpDstMac = ptpmgmt_sk_setPtpDstMac;
+                sk->setPtpDstMacCfg = ptpmgmt_sk_setPtpDstMacCfg;
+                sk->setSocketPriority = ptpmgmt_sk_setSocketPriority;
+                sk->setSocketPriorityCfg = ptpmgmt_sk_setSocketPriorityCfg;
+                // Used by PTP network sockets
+                sk->setIfUsingName = ptpmgmt_sk_setIfUsingName;
+                sk->setIfUsingIndex = ptpmgmt_sk_setIfUsingIndex;
+                sk->setIf = ptpmgmt_sk_setIf;
+                sk->setAll = ptpmgmt_sk_setAll;
+                sk->setAllInit = ptpmgmt_sk_setAllInit;
+                break;
+            default:
+                free(sk);
+                return nullptr;
+        }
+        if(sko != nullptr) {
+            sk->_this = sko;
+            sk->free = ptpmgmt_sk_free_wrap;
+        } else if(s != nullptr) {
+            sk->_this = (void *)s;
+            sk->free = ptpmgmt_sk_free;
+        } else {
+            free(sk);
+            return nullptr;
+        }
+        // Used by all sockets
+        sk->close = ptpmgmt_sk_close;
+        sk->init = ptpmgmt_sk_init;
+        sk->send = ptpmgmt_sk_send;
+        sk->rcv = ptpmgmt_sk_rcv;
+        sk->getFd = ptpmgmt_sk_getFd;
+        sk->fileno = ptpmgmt_sk_getFd;
+        sk->poll = ptpmgmt_sk_poll;
+        sk->tpoll = ptpmgmt_sk_tpoll;
+        return sk;
+    }
+    ptpmgmt_sk ptpmgmt_sk_alloc(enum ptpmgmt_socket_class type)
+    {
+        return ptpmgmt_sk_alloc_all(type, nullptr);
+    }
+    ptpmgmt_sk ptpmgmt_sk_alloc_wrap(enum ptpmgmt_socket_class type, void *sko)
+    {
+        if(sko == nullptr)
+            return nullptr;
+        return ptpmgmt_sk_alloc_all(type, sko);
+    }
+}

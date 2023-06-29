@@ -3,12 +3,12 @@
 
 /** @file
  * @brief Get Last Error happend in library
- * @note library do not use C++ exceptions,
- *       users can use this class to fetch error.
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2021 Erez Geva
  *
+ * @note library do not use C++ exceptions,
+ *       users can use this class to fetch error.
  */
 
 #ifndef __PTPMGMT_ERR_H
@@ -16,6 +16,7 @@
 
 #include "name.h"
 
+#ifdef __cplusplus
 __PTPMGMT_NAMESPACE_BEGIN
 
 /**
@@ -100,5 +101,8 @@ class Error
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/err.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_ERR_H */

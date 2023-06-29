@@ -5,6 +5,14 @@
 # @copyright © 2023 Erez Geva
 #
 ###############################################################################
-/mngIds.h
-/callDef.h
 /ver.h
+/callDef.h
+/c/callDef.h
+/mngIds.h
+/c/mngIds.h
+/types.h
+/c/types.h
+/proc.h
+/c/proc.h
+/sig.h
+/c/sig.h

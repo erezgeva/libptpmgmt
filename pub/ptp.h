@@ -15,6 +15,7 @@
 #ifndef __PTPMGMT_IF_H
 #define __PTPMGMT_IF_H
 
+#ifdef __cplusplus
 #include <vector>
 #include <time.h>
 #include <net/if.h>
@@ -467,5 +468,8 @@ class PtpClock : public BaseClock
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/ptp.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_IF_H */

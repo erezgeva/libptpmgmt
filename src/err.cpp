@@ -61,3 +61,15 @@ const std::string &Error::getErrnoMsg()
 }
 
 __PTPMGMT_NAMESPACE_END
+
+__PTPMGMT_NAMESPACE_USE;
+extern "C" {
+    int ptpmgmt_err_isError() { return Error::isError(); }
+    const char *ptpmgmt_err_getError() { return Error::getError().c_str(); }
+    const char *ptpmgmt_err_getFile() { return Error::getFile().c_str(); }
+    int ptpmgmt_err_getFileLine() { return Error::getFileLine(); }
+    const char *ptpmgmt_err_getFunc() { return Error::getFunc().c_str(); }
+    int ptpmgmt_err_getErrno() { return Error::getErrno(); }
+    const char *ptpmgmt_err_getMsg() { return Error::getMsg().c_str(); }
+    const char *ptpmgmt_err_getErrnoMsg() { return Error::getErrnoMsg().c_str(); }
+}

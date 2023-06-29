@@ -19,6 +19,7 @@
 #ifndef __PTPMGMT_SOCK_H
 #define __PTPMGMT_SOCK_H
 
+#ifdef __cplusplus
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <linux/if_packet.h>
@@ -643,5 +644,8 @@ class SockRaw : public SockBaseIf
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/sock.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_SOCK_H */

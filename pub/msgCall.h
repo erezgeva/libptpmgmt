@@ -11,6 +11,7 @@
 #ifndef __PTPMGMT_MSG_CALL_H
 #define __PTPMGMT_MSG_CALL_H
 
+#ifdef __cplusplus
 #include "callDef.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -40,13 +41,13 @@ class MessageDispatcher : public BaseMngDispatchCallback
      * @param[in] msg Message object
      * @param[in] tlv_id TLV ID
      * @param[in] tlv pointer to a TLV of TLV ID
-     * @note caller @b MUST @/b ensure the TLV is of TLV ID!
+     * @note caller @b MUST @/b ensure the TLV ID match the actual TLV!
      */
     void callHadler(const Message &msg, mng_vals_e tlv_id,
         const BaseMngTlv *tlv);
     /**
      * Handler called if there is no TLV data
-     * It could be an empty TLV or not set
+     * It could be an empty TLV or unkown
      * @param[in] msg Message object
      */
     virtual void noTlv(const Message &msg) {}
@@ -104,5 +105,8 @@ class MessageBuilder : public BaseMngBuildCallback
 };
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/msgCall.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_MSG_CALL_H */

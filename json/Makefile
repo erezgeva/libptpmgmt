@@ -13,6 +13,8 @@ JSON_C:=
 
 UTEST_JSONC:=$(OBJ_DIR)/utest_json_c
 UTEST_FJSON:=$(OBJ_DIR)/utest_json_f
+UCTEST_JSONC:=$(OBJ_DIR)/uctest_json_c
+UCTEST_FJSON:=$(OBJ_DIR)/uctest_json_f
 # Using json-c
 JSON_C+=\"$(JSONC_FLIB)\",
 ifneq ($(HAVE_JSONC_LIB),)
@@ -34,6 +36,13 @@ $(UTEST_JSONC): $(OBJ_DIR)/utest_m.o utest/json2msg.o $(LIB_NAME_A) $(JSONC_LIBA
 utest_jsonc: $(HEADERS_GEN_COMP) $(UTEST_JSONC)
 	$(call Q_UTEST,JSON-C)$(UVGD)$(UTEST_JSONC) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS
+ifneq ($(CRITERION_LIB_FLAGS),)
+$(UCTEST_JSONC): uctest/json2msg.o $(LIB_NAME_A) $(JSONC_LIBA)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(JSONC_LIB_FLAGS)\
+	  $(CRITERION_LIB_FLAGS) -o $@
+uctest_jsonc: $(HEADERS_GEN_COMP) $(UCTEST_JSONC)
+	$(call Q_UTEST,C-JSON-C)$(UVGD)$(UCTEST_JSONC)
+endif # CRITERION_LIB_FLAGS
 endif # HAVE_JSONC_LIB
 
 # Using fastjson
@@ -57,8 +66,17 @@ $(UTEST_FJSON): $(OBJ_DIR)/utest_m.o utest/json2msg.o $(LIB_NAME_A) $(FJSON_LIBA
 utest_fjson: $(HEADERS_GEN_COMP) $(UTEST_FJSON)
 	$(call Q_UTEST,JSON-F)$(UVGD)$(UTEST_FJSON) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS
+ifneq ($(CRITERION_LIB_FLAGS),)
+$(UCTEST_FJSON): uctest/json2msg.o $(LIB_NAME_A) $(FJSON_LIBA)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(FJSON_LIB_FLAGS)\
+	  $(CRITERION_LIB_FLAGS) -o $@
+uctest_fjson: $(HEADERS_GEN_COMP) $(UCTEST_FJSON)
+	$(call Q_UTEST,C-JSON-F)$(UVGD)$(UCTEST_FJSON)
+endif # CRITERION_LIB_FLAGS
 endif # HAVE_FJSON_LIB
-.PHONY: utest_jsonc utest_fjson
+
+.PHONY: utest_jsonc utest_fjson uctest_jsonc uctest_fjson
 utest_json: utest_jsonc utest_fjson
+uctest_json: uctest_jsonc uctest_fjson
 # Add jsonFrom libraries to search
 $(OBJ_DIR)/jsonDef.o: override CXXFLAGS+=-DJSON_C="$(JSON_C)"

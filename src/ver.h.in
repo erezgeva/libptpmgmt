@@ -22,24 +22,29 @@ __PTPMGMT_NAMESPACE_BEGIN
 /**
  * Compilation library version major
  * @note script should use getVersionMajor()
+ * @note Available for C
  */
 #define LIBPTPMGMT_VER_MAJ (@PACKAGE_VERSION_MAJ@)
 /**
  * Compilation library version minor
  * @note script should use getVersionMinor()
+ * @note Available for C
  */
 #define LIBPTPMGMT_VER_MIN (@PACKAGE_VERSION_MIN@)
 /**
  * Compilation library version value
  * @note script should use getVersionValue()
+ * @note Available for C
  */
 #define LIBPTPMGMT_VER_VAL (@PACKAGE_VERSION_VAL@)
 /**
  * Compilation library version string
  * @note script should use getVersion()
+ * @note Available for C
  */
 #define LIBPTPMGMT_VER "@PACKAGE_VERSION@"
 
+#ifdef __cplusplus
 /**
  * Get this library version
  * @return this library version
@@ -63,5 +68,8 @@ int getVersionMinor();
 unsigned getVersionValue();
 
 __PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#include "c/ver.h"
+#endif /* __cplusplus */
 
 #endif /* __PTPMGMT_VER_H */

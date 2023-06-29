@@ -62,6 +62,7 @@ TEST(MessageTest, MethodGetParams)
     EXPECT_EQ(p.useZeroGet, p1.useZeroGet);
     EXPECT_EQ(p.rcvSignaling, p1.rcvSignaling);
     EXPECT_EQ(p.filterSignaling, p1.filterSignaling);
+    EXPECT_EQ(p.rcvSMPTEOrg, p1.rcvSMPTEOrg);
 }
 
 // Tests set parameters method
@@ -86,6 +87,7 @@ TEST(MessageTest, MethodUpdateParams)
     EXPECT_EQ(p.useZeroGet, p1.useZeroGet);
     EXPECT_EQ(p.rcvSignaling, p1.rcvSignaling);
     EXPECT_EQ(p.filterSignaling, p1.filterSignaling);
+    EXPECT_EQ(p.rcvSMPTEOrg, p1.rcvSMPTEOrg);
 }
 
 // Tests get parsed TLV ID method
@@ -154,6 +156,8 @@ TEST(MessageTest, MethodErr2str)
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_OK), "MNG_PARSE_ERROR_OK");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_MSG), "MNG_PARSE_ERROR_MSG");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_SIG), "MNG_PARSE_ERROR_SIG");
+    EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_SMPTE),
+        "MNG_PARSE_ERROR_SMPTE");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_INVALID_ID),
         "MNG_PARSE_ERROR_INVALID_ID");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_INVALID_TLV),
