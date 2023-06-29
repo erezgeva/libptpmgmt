@@ -196,6 +196,7 @@ include tools/version
 # ver_min=PACKAGE_VERSION_MIN
 
 SRC:=src
+PUB:=pub
 PMC_DIR:=ptp-tools
 JSON_SRC:=json
 OBJ_DIR:=objs
@@ -211,11 +212,13 @@ SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard */*.d */*/*.d)
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
-HEADERS_GEN_COMP:=$(addprefix $(SRC)/,ids.h mngIds.h callDef.h ver.h)
-HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
-HEADERS_SRCS:=$(filter-out $(HEADERS_GEN),$(wildcard $(SRC)/*.h))
+HEADERS_GEN_PUB:=$(addprefix $(PUB)/,mngIds.h callDef.h ver.h)
+HEADERS_PUB:=$(filter-out $(HEADERS_GEN_PUB),$(wildcard $(PUB)/*.h))
+HEADERS_GEN_COMP:=$(HEADERS_GEN_PUB) $(SRC)/ids.h
+HEADERS_SRCS:=$(HEADERS_PUB) $(SRC)/comp.h
 HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
-HEADERS_INST:=$(filter-out $(addprefix $(SRC)/,comp.h ids.h),$(HEADERS))
+HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
+HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
 SRCS:=$(wildcard $(SRC)/*.cpp)
 SRCS_JSON:=$(wildcard $(JSON_SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
@@ -252,7 +255,7 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.md *.in */*.in t*/*.pl\
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
- ':!*/*/test.*' ':!*/*/utest.*'
+  ':!*/*/test.*' ':!*/*/utest.*'
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
@@ -301,7 +304,7 @@ ifeq ($(findstring -O,$(CXXFLAGS)),)
 # Add debug optimization, unless we already have an optimization :-)
 override CXXFLAGS+=-Og
 endif # find '-O'
-override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -Isrc
+override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -I$(SRC) -I$(PUB)
 CXXFLAGS_GO:=$(filter-out -I%,$(CXXFLAGS))
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
 ifneq ($(USE_ASAN),)
@@ -376,12 +379,12 @@ $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
 $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-$(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
+$(SRC)/%.h $(PUB)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
 	$(Q_GEN)$(M4) -I $(SRC) $< > $@
 # This is basically what configure does.
 # Yet, I prefer configure create only the def.mk,
 # and forward the version parameters here :-)
-$(SRC)/ver.h: $(SRC)/ver.h.in
+$(PUB)/ver.h: $(SRC)/ver.h.in
 	$(Q_GEN)$(SED) $(foreach n,PACKAGE_VERSION_MAJ PACKAGE_VERSION_MIN\
 	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
@@ -424,11 +427,11 @@ CXXFLAGS_RUBY+=-Wno-sign-compare
 #endif # ! swig 4.1
 
 wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)
-	$(Q_SWIG)$(SWIG) -c++ -Isrc -I$(@D) -outdir $(@D) -Wextra\
+	$(Q_SWIG)$(SWIG) -c++ -I$(SRC) -I$(PUB) -I$(@D) -outdir $(@D) -Wextra\
 	  $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
-SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(SRC)/mngIds.h \\'\
+SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(PUB)/mngIds.h \\'\
   $(foreach n,$(wildcard $(<D)/*.i),-e '1 a\ $n \\')\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
