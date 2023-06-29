@@ -82,6 +82,10 @@
 #define FALLTHROUGH
 #endif
 
+/* Use namespace */
+#define __PTPMGMT_NAMESPACE ptpmgmt
+#define __PTPMGMT_NAMESPACE_USE using namespace ptpmgmt
+
 /* ************************************************************************** */
 /* Error log interfaces */
 

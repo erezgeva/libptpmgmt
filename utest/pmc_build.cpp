@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief pmc tool build TLV unit test
+ * @brief pmc tool build TLV unit tests
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2023 Erez Geva

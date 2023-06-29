@@ -606,7 +606,7 @@ class SockRaw : public SockBaseIf
      *  User can close the socket, change this value, and
      *  initialize a new socket.
      */
-    bool setPtpDstMac(const uint8_t *ptp_dst_mac, size_t len);
+    bool setPtpDstMac(const void *ptp_dst_mac, size_t len);
     /**
      * Set PTP multicast address using configuration file
      * @param[in] cfg reference to configuration file object

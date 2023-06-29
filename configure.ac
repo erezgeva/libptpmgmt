@@ -192,7 +192,7 @@ AS_UNSET([GTEST_LIB_FLAGS])
 
 AC_CHECK_HEADER([gtest/gtest.h],
                 [AS_VAR_SET([HAVE_GTEST_HEADER], ["gtest/gtest.h"])])
-# We do not use google test on cross compilation
+# We do not use unit tests with cross compilation
 AS_IF([test -n "$HAVE_GTEST_HEADER" && test -n "$PKG_CONFIG" &&\
        test -z "$USE_CROSS_COMPILE" ],
       [AS_VAR_SET([GTEST_INC_FLAGS], ["`$PKG_CONFIG --cflags gtest`"])

@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief types structures unit test
+ * @brief types structures unit tests
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2022 Erez Geva

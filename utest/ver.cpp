@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief Version functions unit test
+ * @brief Version functions unit tests
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2022 Erez Geva
@@ -17,7 +17,7 @@ using namespace ptpmgmt;
 // #define LIBPTPMGMT_VER_MAJ
 TEST(VerTest, MacroMajor)
 {
-    EXPECT_GE(LIBPTPMGMT_VER_MAJ, 0);
+    EXPECT_GT(LIBPTPMGMT_VER_MAJ, 0);
 }
 
 // Tests Version minor macro

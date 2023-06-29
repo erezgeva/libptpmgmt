@@ -56,9 +56,9 @@ typedef int64_t Integer48_t;
 /** Integer48_t octets size */
 const size_t sizeof_Integer48_t = 6;
 /** IEEE 1588 Protocol signed 64 bits integer */
-typedef int64_t  Integer64_t;
+typedef int64_t Integer64_t;
 /** IEEE 1588 protocol octet */
-typedef uint8_t  Octet_t;
+typedef uint8_t Octet_t;
 /** IEEE Std 754 binary64 (64-bit double-precision floating-point format) */
 typedef double Float64_t;
 /** Float seconds used in Timestamp_t */

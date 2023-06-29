@@ -647,7 +647,7 @@ bool SockRaw::setPtpDstMac(const Binary &mac)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockRaw::setPtpDstMac(const uint8_t *mac, size_t len)
+bool SockRaw::setPtpDstMac(const void *mac, size_t len)
 {
     return setPtpDstMac(Binary(mac, len));
 }

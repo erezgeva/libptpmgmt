@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com>
 #
-# Makefile for unit test
+# Makefile for unit tests
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2022 Erez Geva
