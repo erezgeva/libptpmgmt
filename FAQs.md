@@ -1,5 +1,5 @@
 ***Q:***  
-I downloaded the libptpmgmt from [sourceforge](https://sf.net/p/libptpmgmt/)
+I downloaded the libptpmgmt from [github](https://github.com/erezgeva/libptpmgmt/releases)
  and then tried to use the libptpmgmt with python test.  
 But getting following error.  
 
@@ -21,7 +21,7 @@ Or you can use:
  2. PYTHONPATH to tell the shell the location of the python wrapper library files.
 
 For example:  
-`$ LD_LIBRARY_PATH=.. PYTHONPATH=3 python3 test.py`
+`$ LD_LIBRARY_PATH=../.. PYTHONPATH=3 python3 test.py`
 
 
 ***Q:***  

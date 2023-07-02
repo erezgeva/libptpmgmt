@@ -208,7 +208,7 @@ struct JsonVal {
     }
 };
 
-using namespace ptpmgmt;
+__PTPMGMT_NAMESPACE_USE;
 
 struct JsonProcFromJson : public JsonProcFrom {
     mapStackStr<JsonVal> valsMap;

@@ -12,7 +12,7 @@
 #include "msg.h"
 #include "comp.h"
 
-using namespace ptpmgmt;
+__PTPMGMT_NAMESPACE_USE;
 
 // Tests message empty constructor
 // Message()

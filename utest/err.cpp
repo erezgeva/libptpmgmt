@@ -12,7 +12,7 @@
 #include <locale.h>
 #include "comp.h"
 
-using namespace ptpmgmt;
+__PTPMGMT_NAMESPACE_USE;
 
 // Tests error macro
 // #define PTPMGMT_ERROR(format, ...)

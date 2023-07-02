@@ -12,7 +12,7 @@
 #include "json.h"
 #include "comp.h"
 
-using namespace ptpmgmt;
+__PTPMGMT_NAMESPACE_USE;
 
 // Test PTP message without TLV
 TEST(Msg2JsonTest, Empty)

@@ -68,7 +68,7 @@ class Error
      * Get last error source file name
      * @return last error source file name
      */
-    static std::string getFile() { return getCur().m_file; }
+    static const std::string &getFile() { return getCur().m_file; }
     /**
      * Get last error source file line number
      * @return last error source file line number
@@ -78,7 +78,7 @@ class Error
      * Get last error function name
      * @return last error function name
      */
-    static std::string getFunc() { return getCur().m_func; }
+    static const std::string &getFunc() { return getCur().m_func; }
     /**
      * Get last error errno value
      * @return last errno value or zero if last error was not using errno
@@ -89,7 +89,7 @@ class Error
      * @return last error message
      * @note The error do not include the errno message!
      */
-    static std::string getMsg() { return getCur().m_msg; }
+    static const std::string &getMsg() { return getCur().m_msg; }
     /**
      * Get last errno message
      * @return last error message

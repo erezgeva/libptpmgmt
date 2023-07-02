@@ -9,7 +9,7 @@
 
 EAPI=8
 DESCRIPTION="PTP management library, to communicate with ptp4l"
-HOMEPAGE="https://sf.net/p/${PN}"
+HOMEPAGE="https://${PN}.nwtime.org"
 # #!#SRC_URI="https://github.com/erezgeva/${PN}/archive/refs/tags/${PV}.tar.gz
 # #!#	-> ${P}.tar.gz"
 LICENSE="LGPL-3+"

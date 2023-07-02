@@ -13,7 +13,7 @@
 #include "proc.h"
 #include "comp.h"
 
-using namespace ptpmgmt;
+__PTPMGMT_NAMESPACE_USE;
 
 class ProcTest : public ::testing::Test, public Message
 {
