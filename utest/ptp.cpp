@@ -163,6 +163,8 @@ TEST_F(PtpClockTest, MethodInitUsingDevice)
 // Tests initUsingIndex method
 // bool initUsingIndex(int ptpIndex, bool readonly = false)
 // clockid_t clkId() const
+// int getFd() const
+// int fileno() const
 // int ptpIndex() const
 TEST_F(PtpClockTest, initUsingIndex)
 {
@@ -171,6 +173,8 @@ TEST_F(PtpClockTest, initUsingIndex)
     EXPECT_STREQ(device().c_str(), "/dev/ptp0");
     EXPECT_STREQ(device_c(), "/dev/ptp0");
     EXPECT_LT(clkId(), 0);
+    EXPECT_GT(getFd(), 2);
+    EXPECT_EQ(fileno(), getFd());
     EXPECT_EQ(ptpIndex(), 0);
 }
 
@@ -182,6 +186,8 @@ TEST_F(PtpClockTest, initReadOnly)
     EXPECT_STREQ(device().c_str(), "/dev/ptp1");
     EXPECT_STREQ(device_c(), "/dev/ptp1");
     EXPECT_LT(clkId(), 0);
+    EXPECT_GT(getFd(), 2);
+    EXPECT_EQ(fileno(), getFd());
     EXPECT_EQ(ptpIndex(), 1);
 }
 
@@ -278,6 +284,7 @@ TEST_F(PtpClockTest, MethodReadPin)
     EXPECT_EQ(pin.index, 1);
     EXPECT_STREQ(pin.description.c_str(), "pin desc");
     EXPECT_EQ(pin.channel, 19);
+    EXPECT_EQ(pin.functional, PTP_PIN_PHY_SYNC);
 }
 
 // Tests writePin method
@@ -311,7 +318,7 @@ TEST_F(PtpClockTest, MethodExternTSDisable)
 
 // Tests setPinPeriod method
 // bool setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
-//     uint8_t flags = 0) const;
+//     uint8_t flags = 0) const
 TEST_F(PtpClockTest, MethodSetPinPeriod)
 {
     EXPECT_TRUE(initUsingIndex(0));

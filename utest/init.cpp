@@ -32,6 +32,7 @@ const size_t argc_2 = 8;
 // bool use_uds() const
 // Message &msg()
 // SockBase *sk()
+// char getNetSelect()
 // void close()
 TEST(InitTest, MethodProccessUnix)
 {
@@ -44,6 +45,7 @@ TEST(InitTest, MethodProccessUnix)
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
+    EXPECT_EQ(i.getNetSelect(), 'u');
     EXPECT_NE(dynamic_cast<SockUnix *>(i.sk()), nullptr);
     i.close();
     useTestMode(false);
@@ -61,6 +63,7 @@ TEST(InitTest, MethodProccessIPv4)
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
+    EXPECT_EQ(i.getNetSelect(), '4');
     EXPECT_NE(dynamic_cast<SockIp4 *>(i.sk()), nullptr);
     i.close();
     useTestMode(false);
@@ -78,6 +81,7 @@ TEST(InitTest, MethodProccessIPv6)
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
+    EXPECT_EQ(i.getNetSelect(), '6');
     EXPECT_NE(dynamic_cast<SockIp6 *>(i.sk()), nullptr);
     i.close();
     useTestMode(false);
@@ -95,6 +99,7 @@ TEST(InitTest, MethodProccessRaw)
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
+    EXPECT_EQ(i.getNetSelect(), '2');
     EXPECT_NE(dynamic_cast<SockRaw *>(i.sk()), nullptr);
     i.close();
     useTestMode(false);

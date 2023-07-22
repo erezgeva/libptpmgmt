@@ -16,7 +16,8 @@ RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\
     app-admin/sudo app-doc/doxygen app-editors/vim sys-apps/fakeroot\
     sys-apps/which sys-devel/gcc sys-devel/libtool sys-devel/make\
     dev-util/pkgconf dev-vcs/git dev-lang/swig dev-lang/perl dev-lang/ruby\
-    dev-lang/python dev-lang/lua dev-lang/php dev-lang/tcl &&\
+    dev-lang/python dev-lang/lua dev-lang/php dev-lang/tcl\
+    dev-libs/criterion &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel,portage &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers

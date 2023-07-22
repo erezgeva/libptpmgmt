@@ -21,10 +21,10 @@ void *(*json_tokener_parse)(const char *);
 int (*json_object_put)(void *);
 
 // Tests loading json-c library
-// static bool selectLib(const std::string &libName);
-// static const char *loadLibrary();
-// static bool isLibShared();
-// bool fromJsonObj(const void *jobj);
+// static bool selectLib(const std::string &libName)
+// static const char *loadLibrary()
+// static bool isLibShared()
+// bool fromJsonObj(const void *jobj)
 #ifdef HAVE_JSONC_LIB
 TEST(jsonLoadTest, MethodLoadJsonC)
 {

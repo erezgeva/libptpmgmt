@@ -32,11 +32,13 @@ class Error
     std::string m_file;
     std::string m_msg;
     std::string m_func;
+    std::string m_fmsg;
+    std::string m_emsg;
     void doClear();
     Error() : m_line(0) {}
     void doError(bool use_errno, const char *file, int line, const char *func,
         const std::string &msg);
-    void fetch(std::string &ret);
+    const std::string &fetch();
     static Error &getCur();
   public:
 
@@ -62,8 +64,7 @@ class Error
      * Get last error full string
      * @return last error string
      */
-    static std::string getError()
-    { std::string ret; getCur().fetch(ret); return ret; }
+    static const std::string &getError() { return getCur().fetch(); }
     /**
      * Get last error source file name
      * @return last error source file name
@@ -95,7 +96,7 @@ class Error
      * @return last error message
      * @note The error do not include the errno message!
      */
-    static std::string getErrnoMsg();
+    static const std::string &getErrnoMsg();
 };
 
 __PTPMGMT_NAMESPACE_END

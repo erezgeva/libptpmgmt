@@ -9,7 +9,7 @@
  *
  */
 
-#include "err.h"
+#include "comp.h"
 #include <stdarg.h>
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -23,17 +23,18 @@ void Error::doError(bool use_errno, const char *file, int line,
     m_msg = msg;
     m_errno = use_errno ? errno : 0;
 }
-void Error::fetch(std::string &ret)
+const std::string &Error::fetch()
 {
     if(m_line == 0)
-        ret.clear();
-    ret = "[" + m_file +
+        m_fmsg.clear();
+    m_fmsg = "[" + m_file +
         ":" + std::to_string(m_line) +
         ":" + m_func + "] " + m_msg;
     if(m_errno != 0) {
-        ret += ": ";
-        ret += strerror(m_errno);
+        m_fmsg += ": ";
+        m_fmsg += strerror(m_errno);
     }
+    return m_fmsg;
 }
 Error &Error::getCur()
 {
@@ -53,9 +54,10 @@ std::string Error::doFormat(const char *format, ...)
     va_end(va);
     return buf;
 }
-std::string Error::getErrnoMsg()
+const std::string &Error::getErrnoMsg()
 {
-    return getCur().m_errno == 0 ? "" : strerror(getCur().m_errno);
+    getCur().m_emsg = getCur().m_errno == 0 ? "" : strerror(getCur().m_errno);
+    return getCur().m_emsg;
 }
 
 __PTPMGMT_NAMESPACE_END

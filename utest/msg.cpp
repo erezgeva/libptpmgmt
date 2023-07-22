@@ -612,7 +612,7 @@ TEST(MessageTest, MethodDelayMech2str)
 
 // tests convert string to delay mechanism
 // static const bool findDelayMech(const std::string &str, delayMechanism_e &type,
-//     bool exact = true);
+//     bool exact = true)
 TEST(MessageTest, MethodFindDelayMech)
 {
     delayMechanism_e t;

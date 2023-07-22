@@ -147,8 +147,7 @@ class Options
      * @return option value
      * @note relevant for option with argument
      */
-    const std::string val(char opt) const
-    { return have(opt) ? options.at(opt) : ""; }
+    const std::string &val(char opt) const;
     /**
      * get option value
      * @param[in] opt short option character
@@ -172,12 +171,12 @@ class Options
      */
     char get_net_transport() const { return net_select; }
     /**
-     * Do we have more argumends on the command line we did not proccess
+     * Do we have more argumends on the command line, left unproccessed
      * @return true if we have more to proccess
      */
     bool have_more() const { return m_end_optind < m_argc; }
     /**
-     * First argumend on the command line that we did not proccess
+     * First argumend on the command line, left unproccessed
      * @return index of argument
      */
     int procces_next() const { return m_end_optind; }

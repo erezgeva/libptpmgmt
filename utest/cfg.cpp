@@ -85,7 +85,7 @@ TEST(ConfigFileTest, MethodUdp6_scope)
 }
 
 // Tests get UDP IPv4 Time to live parameter
-// uint8_t udp_ttl(const std::string &section = "") const;
+// uint8_t udp_ttl(const std::string &section = "") const
 TEST(ConfigFileTest, MethodUdp_ttl)
 {
     ConfigFile f;
@@ -95,7 +95,7 @@ TEST(ConfigFileTest, MethodUdp_ttl)
 }
 
 // Tests get socket priority parameter
-// uint8_t socket_priority(const std::string &section = "") const;
+// uint8_t socket_priority(const std::string &section = "") const
 TEST(ConfigFileTest, MethodSocketPriority)
 {
     ConfigFile f;
@@ -105,7 +105,7 @@ TEST(ConfigFileTest, MethodSocketPriority)
 }
 
 // Tests get network transport type parameter
-// uint8_t network_transport(const std::string &section = "") const;
+// uint8_t network_transport(const std::string &section = "") const
 TEST(ConfigFileTest, MethodNetworkTransport)
 {
     ConfigFile f;
@@ -115,7 +115,7 @@ TEST(ConfigFileTest, MethodNetworkTransport)
 }
 
 // Tests get Unix Domain socket address parameter
-// const std::string &uds_address(const std::string &section = "") const;
+// const std::string &uds_address(const std::string &section = "") const
 TEST(ConfigFileTest, MethodUDSAddress)
 {
     ConfigFile f;
@@ -125,7 +125,7 @@ TEST(ConfigFileTest, MethodUDSAddress)
 }
 
 // Tests get PTP destination MAC address
-// const Binary &ptp_dst_mac(const std::string &section = "") const;
+// const Binary &ptp_dst_mac(const std::string &section = "") const
 TEST(ConfigFileTest, MethodPTPDstMac)
 {
     ConfigFile f;
@@ -138,7 +138,7 @@ TEST(ConfigFileTest, MethodPTPDstMac)
 }
 
 // Tests get PTP point to point destination MAC address
-// const Binary &p2p_dst_mac(const std::string &section = "") const;
+// const Binary &p2p_dst_mac(const std::string &section = "") const
 TEST(ConfigFileTest, MethodP2pDstMac)
 {
     ConfigFile f;

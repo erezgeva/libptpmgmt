@@ -333,6 +333,16 @@ class PtpClock : public BaseClock
      */
     clockid_t clkId() const { return m_clkId; }
     /**
+     * Get file description
+     * @return file description
+     */
+    int getFd() const { return m_fd; }
+    /**
+     * Get file description
+     * @return file description
+     */
+    int fileno() const { return m_fd; }
+    /**
      * Get PTP index
      * @return index or NO_SUCH_PTP if not initialized or
      *         clock do not have PTP index

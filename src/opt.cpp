@@ -12,6 +12,7 @@
 #include <regex>
 #include "opt.h"
 #include "ver.h"
+#include "comp.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 
@@ -193,6 +194,11 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
     m_argc = argc;
     m_end_optind = optind;
     return OPT_DONE;
+}
+const std::string &Options::val(char opt) const
+{
+    static const std::string empty;
+    return have(opt) ? options.at(opt) : empty;
 }
 
 __PTPMGMT_NAMESPACE_END

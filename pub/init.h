@@ -28,6 +28,7 @@ class Init
     ConfigFile m_cfg;
     Message m_msg;
     std::unique_ptr<SockBase> m_sk;
+    char m_net_select;
     bool m_use_uds;
 
   public:
@@ -62,6 +63,16 @@ class Init
      * @note User @b should not try to free this socket object
      */
     SockBase *sk() { return m_sk.get(); }
+
+    /**
+     * Get network selection character
+     * @return
+     *   'u' for unix socket using a SockUnix object,
+     *   '4' for a PTP IPv4 socket using a SockIp4 object,
+     *   '6' for a PTP IPv6 socket using a SockIp6 object,
+     *   '2' for a PTP layer 2 socket using a SockRaw object,
+     */
+    char getNetSelect() { return m_net_select; }
 
     /**
      * Is the socket provide by this object, a Unix socket?

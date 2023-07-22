@@ -137,7 +137,7 @@ TEST(TimeStampTest, MethodToTimespec)
 }
 
 // Tests convert from timeval constructor
-// Timestamp_t(const timeval &tv);
+// Timestamp_t(const timeval &tv)
 TEST(TimeStampTest, MethodTimevalConstructor)
 {
     timeval ts = { 13, 125 };
@@ -186,7 +186,7 @@ TEST(TimeStampTest, MethodFromSecondsConstructor)
 }
 
 // Tests convert from seconds
-// void fromFloat(float_seconds seconds);
+// void fromFloat(float_seconds seconds)
 TEST(TimeStampTest, MethodFromSeconds)
 {
     Timestamp_t t;
@@ -330,7 +330,7 @@ TEST(TimeStampTest, MethodPlusAssignOp)
 }
 
 // Tests add method
-// Timestamp_t &add(const Timestamp_t &ts);
+// Timestamp_t &add(const Timestamp_t &ts)
 TEST(TimeStampTest, MethodAdd)
 {
     Timestamp_t t = { 17, 930000000 };
@@ -385,7 +385,7 @@ TEST(TimeStampTest, MethodMinusAssignOp)
 }
 
 // Tests minus method
-// Timestamp_t &subt(const Timestamp_t &ts);
+// Timestamp_t &subt(const Timestamp_t &ts)
 TEST(TimeStampTest, MethodMinus)
 {
     Timestamp_t t = { 42, 470000000 };

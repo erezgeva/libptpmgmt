@@ -106,7 +106,7 @@ TEST(OptionsTest, MethodInsert)
 }
 
 // Tests get help text
-// const char *get_help();
+// const char *get_help()
 TEST(OptionsTest, MethodGetHelp)
 {
     Options o;
@@ -132,7 +132,7 @@ TEST(OptionsTest, MethodGetMsgC)
 }
 
 // Tests parse options
-// loop_val parse_options(int argc, char *const argv[]);
+// loop_val parse_options(int argc, char *const argv[])
 TEST(OptionsTest, MethodParseOptions)
 {
     Options o;

@@ -60,6 +60,7 @@ int Init::proccess(const Options &opt)
     else
         prms.transportSpecific = m_cfg.transportSpecific(interface);
     prms.useZeroGet = opt.val('z') == "1";
+    m_net_select = net_select;
     switch(net_select) {
         case 'u': {
             SockUnix *sku = new SockUnix;
@@ -81,6 +82,7 @@ int Init::proccess(const Options &opt)
             break;
         }
         default:
+            m_net_select = '4';
             FALLTHROUGH;
         case '4': {
             SockIp4 *sk4 = new SockIp4;

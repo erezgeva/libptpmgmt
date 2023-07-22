@@ -14,7 +14,7 @@
 using namespace ptpmgmt;
 
 // Tests selectLib method
-// static bool selectLib(const std::string &libName);
+// static bool selectLib(const std::string &libName)
 TEST(Json2msgTest, MethodSelectLib)
 {
     // We use static link :-)

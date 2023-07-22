@@ -41,6 +41,7 @@
 #include <linux/ptp_clock.h>
 #include <linux/ethtool.h>
 /*****************************************************************************/
+static bool didInit = false;
 static bool testMode = false;
 static bool rootMode;
 struct fdesc_info {
@@ -104,6 +105,10 @@ sysFuncDec(char *, realpath, const char *, char *)
 sysFuncDec(int, ioctl, int, unsigned long, ...)
 void initLibSys(void)
 {
+    if(didInit) {
+        useTestMode(false);
+        return;
+    }
     bool fail = false;
     sysFuncAgn(int, close, int)
     sysFuncAgn(int, select, int, fd_set *, fd_set *, fd_set *, timeval *)
@@ -134,8 +139,11 @@ void initLibSys(void)
     sysFuncAgn(int, ioctl, int, unsigned long, ...)
     if(fail)
         fprintf(stderr, "Fail obtain address of functions\n");
+    didInit = true;
     useTestMode(false);
 }
+// Make sure we initialize the library functions call back
+__attribute__((constructor)) static void staticInit(void) { initLibSys(); }
 /*****************************************************************************/
 static inline int retErr(int err)
 {
@@ -255,7 +263,7 @@ const uint8_t ua_addr_b0[110] = {1, 0, 47, 104, 111, 109, 101, 47, 117, 115,
     };
 const uint8_t ip_addr_b[16] = { 2, 0, 1, 64 };
 const uint8_t ip6_addr_b[28] = { 10, 0, 1, 64 };
-const uint8_t  raw_addr_b[20] = { 17, 0, 0, 3, 7 };
+const uint8_t raw_addr_b[20] = { 17, 0, 0, 3, 7 };
 int bind(int fd, const sockaddr *addr, socklen_t addrlen)
 {
     retSock(bind, addr, addrlen);
@@ -637,6 +645,8 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
 }
 long sysconf(int name)
 {
+    if(!didInit) // Somehow this function may be called before the init
+        initLibSys();
     if(testMode && name == _SC_CLK_TCK)
         return 100000;
     return _sysconf(name);
@@ -794,7 +804,8 @@ int ioctl(int fd, unsigned long request, ...)
             if(desc->index != 1)
                 return retErr(EINVAL);
             strcpy(desc->name, "pin desc");
-            desc->chan             = 19;
+            desc->chan = 19;
+            desc->func = PTP_PF_PHYSYNC;
             break;
         }
         case PTP_PIN_SETFUNC: {

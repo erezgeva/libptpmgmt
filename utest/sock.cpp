@@ -38,7 +38,7 @@ TEST_F(SockUnixTest, MethodGetHomeDir)
 
 // Tests setDefSelfAddress method
 //  bool setDefSelfAddress(const std::string &rootBase = "",
-//      const std::string &useDef = "");
+//      const std::string &useDef = "")
 // const std::string &getSelfAddress() const
 // const char *getSelfAddress_c() const
 TEST_F(SockUnixTest, MethodSetDefSelfAddress)
@@ -224,7 +224,7 @@ TEST_F(SockUnixTest, MethodRcvBuf)
 
 // Tests rcvFrom method
 // ssize_t rcvFrom(void *buf, size_t bufSize, std::string &from,
-//     bool block = false) const;
+//     bool block = false) const
 // ssize_t rcvFrom(void *buf, size_t bufSize, bool block = false)
 // const std::string &getLastFrom() const
 TEST_F(SockUnixTest, MethodRcvFrom)
