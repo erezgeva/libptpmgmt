@@ -94,6 +94,7 @@ void SockBase::closeBase()
         m_fd = -1;
     }
     closeChild();
+    m_isInit = false;
 }
 bool SockBase::sendReply(ssize_t cnt, size_t len) const
 {
@@ -172,10 +173,8 @@ void SockUnix::setUnixAddr(sockaddr_un &addr, const std::string &str)
 }
 void SockUnix::closeChild()
 {
-    if(m_isInit) {
+    if(m_isInit && m_me[0] != 0)
         unlink(m_me.c_str());
-        m_isInit = false;
-    }
 }
 bool SockUnix::initBase()
 {
