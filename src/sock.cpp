@@ -173,7 +173,9 @@ void SockUnix::setUnixAddr(sockaddr_un &addr, const std::string &str)
 void SockUnix::closeChild()
 {
     if(m_isInit) {
-        unlink(m_me.c_str());
+        if (m_me != "") {
+            unlink(m_me.c_str());
+        }
         m_isInit = false;
     }
 }
