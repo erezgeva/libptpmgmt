@@ -1,0 +1,26 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com>
+
+Contributors to the project.
+Formatted: name (N), email (E), description (D), Files (F)
+
+N: Dru Lavigne
+D: Fix spelling and syntax
+F: *.md, tools/doxygen.cfg.in
+
+N: Luigi Mantellini
+E: luigi.mantellini@sm-optics.com
+D: Abstract Unix Socket Address
+F: src/sock.cpp
+
+N: Tim Martin
+D: Set domainNumber in python test from configuration file
+F: wrappers/python/test.py
+
+N: Martin Pecka
+E: peci1@seznam.cz
+E: peckama2@fel.cvut.cz
+D: Enable Python multithreading
+F: src/libptpmgmt.i
+D: Sample Python script for watching PTP sync quality
+F: sample/sync_watch.py

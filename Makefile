@@ -251,7 +251,7 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.md *.in */*.in t*/*.pl\
   */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/*.i man/* LICENSES/* .reuse/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
-  */*/*test*/*.go) $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST)
+  */*/*test*/*.go) $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
