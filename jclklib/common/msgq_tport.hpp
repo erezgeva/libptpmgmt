@@ -1,0 +1,66 @@
+/*! \file msgq_tport.hpp
+    \brief Common POSIX message queue transport class.
+
+    (C) Copyright Intel Corporation 2023. All rights reserved. Intel Confidential.
+    Author: Christopher Hall <christopher.s.hall@intel.com>
+*/
+
+#include <cstdint>
+#include <string>
+#include <future>
+#include <memory>
+
+#include <mqueue.h>
+
+#ifndef COMMON_MSGQ_TPORT_HPP
+#define COMMON_MSGQ_TPORT_HPP
+
+//#include <message>
+#include <common/transport.hpp>
+#include <common/util.hpp>
+
+#define MESSAGE_QUEUE_PREFIX "/jclklib"
+
+#define TX_QUEUE_FLAGS (O_WRONLY)
+#define RX_QUEUE_FLAGS (O_RDONLY | O_CREAT)
+#define RX_QUEUE_MODE  (S_IRUSR | S_IWUSR | S_IWGRP)
+
+namespace JClkLibCommon
+{
+	class MessageQueueListenerContext : virtual public TransportListenerContext {
+		friend class MessageQueue;
+	private:
+		mqd_t mqListenerDesc;
+	protected:
+		MessageQueueListenerContext(mqd_t mqListenerDesc);
+	public:
+		virtual ~MessageQueueListenerContext() = default;
+	};
+
+	class MessageQueueTransmitterContext : virtual public TransportTransmitterContext {
+		friend class MessageQueue;
+	private:
+		mqd_t mqTransmitterDesc;
+	protected:
+		MessageQueueTransmitterContext(mqd_t mqTransmitterDesc);
+	public:
+		virtual ~MessageQueueTransmitterContext() = default;
+		virtual SEND_BUFFER_TYPE(sendBuffer);
+	};
+
+	class MessageQueue : public Transport
+	{
+	protected:
+		static std::string const mqProxyName;
+		static TransportWorkDesc mqListenerDesc;
+		static mqd_t mqNativeListenerDesc;
+		static bool MqListenerWork(TransportContext *mqListenerContext);
+		static bool MqTransmit(TransportContext *mqTransmitterContext, Message *msg);
+	public:
+		static bool initTransport() { return true; };
+		static bool stopTransport() { return true; };
+		static bool finalizeTransport() { return true; };
+	};
+}
+
+#endif/*COMMON_MSGQ_TPORT_HPP*/
