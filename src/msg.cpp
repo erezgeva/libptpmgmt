@@ -413,6 +413,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     if(actionField != RESPONSE && actionField != ACKNOWLEDGE &&
         actionField != COMMAND)
         return MNG_PARSE_ERROR_ACTION;
+    m_actionField = (actionField_e)(actionField);
     uint16_t *cur = (uint16_t *)(msg + 1);
     uint16_t tlvType = net_to_cpu16(*cur++);
     m_mngType = (tlvType_e)tlvType;
