@@ -81,6 +81,7 @@ TEST(Msg2JsonTest, MngTlv)
     USER_DESCRIPTION_t t;
     t.userDescription.textField = "test123";
     EXPECT_TRUE(m.setAction(SET, USER_DESCRIPTION, &t));
+    EXPECT_EQ(m.getBuildTlvId(), USER_DESCRIPTION);
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(m.getMsgLen(), 62);
     buf[46] = RESPONSE;
@@ -121,6 +122,7 @@ TEST(Msg2JsonTest, MngErrTlv)
     Message m;
     uint8_t buf[80];
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     buf[46] = RESPONSE;
     // Create error managementTLV

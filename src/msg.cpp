@@ -147,7 +147,7 @@ bool Message::findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec)
 }
 bool Message::checkReplyAction(uint8_t actionField)
 {
-    uint8_t allowed = mng_all_vals[m_tlv_id].allowed;
+    uint8_t allowed = mng_all_vals[m_replayTlv_id].allowed;
     if(actionField == ACKNOWLEDGE)
         return allowed & A_COMMAND;
     else if(actionField == RESPONSE)
@@ -177,10 +177,11 @@ Message::Message() :
     m_sendAction(GET),
     m_msgLen(0),
     m_dataSend(nullptr),
+    m_tlv_id(NULL_PTP_MANAGEMENT),
     m_sequence(0),
     m_isUnicast(true),
     m_replyAction(RESPONSE),
-    m_tlv_id(NULL_PTP_MANAGEMENT),
+    m_replayTlv_id(NULL_PTP_MANAGEMENT),
     m_peer{0},
     m_target{0}
 {
@@ -189,10 +190,11 @@ Message::Message(const MsgParams &prms) :
     m_sendAction(GET),
     m_msgLen(0),
     m_dataSend(nullptr),
+    m_tlv_id(NULL_PTP_MANAGEMENT),
     m_sequence(0),
     m_isUnicast(true),
     m_replyAction(RESPONSE),
-    m_tlv_id(NULL_PTP_MANAGEMENT),
+    m_replayTlv_id(NULL_PTP_MANAGEMENT),
     m_prms(prms),
     m_peer{0},
     m_target{0}
@@ -430,7 +432,8 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 return MNG_PARSE_ERROR_TOO_SMALL;
             size -= sizeof(*errTlv);
             errTlv = (managementErrorTLV_p *)cur;
-            if(!findTlvId(errTlv->managementId, m_tlv_id, m_prms.implementSpecific))
+            if(!findTlvId(errTlv->managementId, m_replayTlv_id,
+                    m_prms.implementSpecific))
                 return MNG_PARSE_ERROR_INVALID_ID;
             if(!checkReplyAction(actionField))
                 return MNG_PARSE_ERROR_ACTION;
@@ -455,7 +458,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 return MNG_PARSE_ERROR_TOO_SMALL;
             size -= sizeof tlvType;
             // managementId
-            if(!findTlvId(*cur++, m_tlv_id, m_prms.implementSpecific))
+            if(!findTlvId(*cur++, m_replayTlv_id, m_prms.implementSpecific))
                 return MNG_PARSE_ERROR_INVALID_ID;
             if(!checkReplyAction(actionField))
                 return MNG_PARSE_ERROR_ACTION;
@@ -468,7 +471,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
             mp.m_cur = (uint8_t *)cur;
             if(size < mp.m_left) // Check dataField size
                 return MNG_PARSE_ERROR_TOO_SMALL;
-            err = mp.call_tlv_data(m_tlv_id, tlv);
+            err = mp.call_tlv_data(m_replayTlv_id, tlv);
             if(err != MNG_PARSE_ERROR_OK)
                 return err;
             m_dataGet.reset(tlv);
@@ -489,7 +492,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 if(mp.SMPTE_ORGANIZATION_EXTENSION_f(*tlvOrg))
                     return mp.m_err;
                 m_dataGet.reset(tlvOrg);
-                m_tlv_id = SMPTE_MNG_ID;
+                m_replayTlv_id = SMPTE_MNG_ID;
                 return MNG_PARSE_ERROR_SMPTE;
             }
             FALLTHROUGH;

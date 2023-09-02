@@ -40,6 +40,7 @@ class MessageDispatcherTest : public ::testing::Test, public MessageDispatcher
 TEST_F(MessageDispatcherTest, MethodParsedCallHadlerEmptyTLV)
 {
     EXPECT_TRUE(msg.setAction(COMMAND, ENABLE_PORT));
+    EXPECT_EQ(msg.getBuildTlvId(), ENABLE_PORT);
     uint8_t buf[70];
     EXPECT_EQ(msg.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -78,6 +79,7 @@ TEST_F(MessageDispatcherTest, MethodParsedCallHadlerTLV)
     tlv.priority1 = 0;
     noTlvCalled = false;
     EXPECT_TRUE(msg.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(msg.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(msg.build(buf, sizeof buf, 137), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -117,6 +119,7 @@ TEST_F(MessageDispatcherTest, MethodParsedCallHadlerTLVNoCallback)
     tlv.priority1 = 0;
     noTlvCalled = false;
     EXPECT_TRUE(msg.setAction(SET, PRIORITY2, &p));
+    EXPECT_EQ(msg.getBuildTlvId(), PRIORITY2);
     uint8_t buf[70];
     EXPECT_EQ(msg.build(buf, sizeof buf, 137), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"

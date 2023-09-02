@@ -74,6 +74,7 @@ TEST_F(ProcTest, USER_DESCRIPTION)
     USER_DESCRIPTION_t t;
     t.userDescription.textField = "test123";
     EXPECT_TRUE(setAction(SET, USER_DESCRIPTION, &t));
+    EXPECT_EQ(getBuildTlvId(), USER_DESCRIPTION);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(getMsgLen(), tlvLoc + 8);
     uint8_t m[8] = {7, 116, 101, 115, 116, 49, 50, 51};
@@ -244,6 +245,7 @@ TEST_F(ProcTest, PRIORITY1)
     PRIORITY1_t t;
     t.priority1 = 153;
     EXPECT_TRUE(setAction(SET, PRIORITY1, &t));
+    EXPECT_EQ(getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {153};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -259,6 +261,7 @@ TEST_F(ProcTest, PRIORITY2)
     PRIORITY2_t t;
     t.priority2 = 137;
     EXPECT_TRUE(setAction(SET, PRIORITY2, &t));
+    EXPECT_EQ(getBuildTlvId(), PRIORITY2);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {137};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -274,6 +277,7 @@ TEST_F(ProcTest, DOMAIN)
     DOMAIN_t t;
     t.domainNumber = 7;
     EXPECT_TRUE(setAction(SET, DOMAIN, &t));
+    EXPECT_EQ(getBuildTlvId(), DOMAIN);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {7};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -289,6 +293,7 @@ TEST_F(ProcTest, SLAVE_ONLY)
     SLAVE_ONLY_t t;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, SLAVE_ONLY, &t));
+    EXPECT_EQ(getBuildTlvId(), SLAVE_ONLY);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -304,6 +309,7 @@ TEST_F(ProcTest, LOG_ANNOUNCE_INTERVAL)
     LOG_ANNOUNCE_INTERVAL_t t;
     t.logAnnounceInterval = 1;
     EXPECT_TRUE(setAction(SET, LOG_ANNOUNCE_INTERVAL, &t));
+    EXPECT_EQ(getBuildTlvId(), LOG_ANNOUNCE_INTERVAL);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -319,6 +325,7 @@ TEST_F(ProcTest, ANNOUNCE_RECEIPT_TIMEOUT)
     ANNOUNCE_RECEIPT_TIMEOUT_t t;
     t.announceReceiptTimeout = 3;
     EXPECT_TRUE(setAction(SET, ANNOUNCE_RECEIPT_TIMEOUT, &t));
+    EXPECT_EQ(getBuildTlvId(), ANNOUNCE_RECEIPT_TIMEOUT);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {3};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -335,6 +342,7 @@ TEST_F(ProcTest, LOG_SYNC_INTERVAL)
     LOG_SYNC_INTERVAL_t t;
     t.logSyncInterval = 7;
     EXPECT_TRUE(setAction(SET, LOG_SYNC_INTERVAL, &t));
+    EXPECT_EQ(getBuildTlvId(), LOG_SYNC_INTERVAL);
     EXPECT_EQ(build(buf, sizeof buf, 7), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {7};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -350,6 +358,7 @@ TEST_F(ProcTest, VERSION_NUMBER)
     VERSION_NUMBER_t t;
     t.versionNumber = 2;
     EXPECT_TRUE(setAction(SET, VERSION_NUMBER, &t));
+    EXPECT_EQ(getBuildTlvId(), VERSION_NUMBER);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {2};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -365,6 +374,7 @@ TEST_F(ProcTest, TIME)
     TIME_t t;
     t.currentTime = 13.15;
     EXPECT_TRUE(setAction(SET, TIME, &t));
+    EXPECT_EQ(getBuildTlvId(), TIME);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[10] = {0, 0, 0, 0, 0, 13, 8, 240, 209, 128};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -380,6 +390,7 @@ TEST_F(ProcTest, CLOCK_ACCURACY)
     CLOCK_ACCURACY_t t;
     t.clockAccuracy = Accurate_Unknown;
     EXPECT_TRUE(setAction(SET, CLOCK_ACCURACY, &t));
+    EXPECT_EQ(getBuildTlvId(), CLOCK_ACCURACY);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {254};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -396,6 +407,7 @@ TEST_F(ProcTest, UTC_PROPERTIES)
     t.currentUtcOffset = -0x5433;
     t.flags = 7;
     EXPECT_TRUE(setAction(SET, UTC_PROPERTIES, &t));
+    EXPECT_EQ(getBuildTlvId(), UTC_PROPERTIES);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[4] = {171, 205, 7};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -412,6 +424,7 @@ TEST_F(ProcTest, TRACEABILITY_PROPERTIES)
     TRACEABILITY_PROPERTIES_t t;
     t.flags = F_TTRA | F_FTRA;
     EXPECT_TRUE(setAction(SET, TRACEABILITY_PROPERTIES, &t));
+    EXPECT_EQ(getBuildTlvId(), TRACEABILITY_PROPERTIES);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {48};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -429,6 +442,7 @@ TEST_F(ProcTest, TIMESCALE_PROPERTIES)
     t.flags = F_PTP;
     t.timeSource = HAND_SET;
     EXPECT_TRUE(setAction(SET, TIMESCALE_PROPERTIES, &t));
+    EXPECT_EQ(getBuildTlvId(), TIMESCALE_PROPERTIES);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {8, 96};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -445,6 +459,7 @@ TEST_F(ProcTest, UNICAST_NEGOTIATION_ENABLE)
     UNICAST_NEGOTIATION_ENABLE_t t;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, UNICAST_NEGOTIATION_ENABLE, &t));
+    EXPECT_EQ(getBuildTlvId(), UNICAST_NEGOTIATION_ENABLE);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -477,6 +492,7 @@ TEST_F(ProcTest, PATH_TRACE_ENABLE)
     PATH_TRACE_ENABLE_t t;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, PATH_TRACE_ENABLE, &t));
+    EXPECT_EQ(getBuildTlvId(), PATH_TRACE_ENABLE);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -497,6 +513,7 @@ TEST_F(ProcTest, GRANDMASTER_CLUSTER_TABLE)
     PortAddress_t portAddress1 = { UDP_IPv4, 4, ip };
     t.PortAddress.push_back(portAddress1);
     EXPECT_TRUE(setAction(SET, GRANDMASTER_CLUSTER_TABLE, &t));
+    EXPECT_EQ(getBuildTlvId(), GRANDMASTER_CLUSTER_TABLE);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[20] = {237, 2,
             0, 3, 0, 6, 196, 125, 70, 32, 172, 174,
@@ -524,6 +541,7 @@ TEST_F(ProcTest, UNICAST_MASTER_TABLE)
     PortAddress_t portAddress1 = { UDP_IPv4, 4, ip };
     t.PortAddress.push_back(portAddress1);
     EXPECT_TRUE(setAction(SET, UNICAST_MASTER_TABLE, &t));
+    EXPECT_EQ(getBuildTlvId(), UNICAST_MASTER_TABLE);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[22] = {237, 0, 2,
             0, 3, 0, 6, 196, 125, 70, 32, 172, 174,
@@ -561,6 +579,7 @@ TEST_F(ProcTest, ACCEPTABLE_MASTER_TABLE)
     PortIdentity_t a1 = { { 9, 8, 7, 6, 5, 4, 1, 7}, 2 };
     t.list.push_back({a1, 111});
     EXPECT_TRUE(setAction(SET, ACCEPTABLE_MASTER_TABLE, &t));
+    EXPECT_EQ(getBuildTlvId(), ACCEPTABLE_MASTER_TABLE);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[24] = {0, 2, 196, 125, 70, 255, 254, 32, 172, 174, 0, 1, 127,
             9, 8, 7, 6, 5, 4, 1, 7, 0, 2, 111
@@ -583,6 +602,7 @@ TEST_F(ProcTest, ACCEPTABLE_MASTER_TABLE_ENABLED)
     ACCEPTABLE_MASTER_TABLE_ENABLED_t t;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, ACCEPTABLE_MASTER_TABLE_ENABLED, &t));
+    EXPECT_EQ(getBuildTlvId(), ACCEPTABLE_MASTER_TABLE_ENABLED);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -614,6 +634,7 @@ TEST_F(ProcTest, ALTERNATE_MASTER)
     t.logAlternateMulticastSyncInterval = -17;
     t.numberOfAlternateMasters = 210;
     EXPECT_TRUE(setAction(SET, ALTERNATE_MASTER, &t));
+    EXPECT_EQ(getBuildTlvId(), ALTERNATE_MASTER);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[4] = {1, 239, 210};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -632,6 +653,7 @@ TEST_F(ProcTest, ALTERNATE_TIME_OFFSET_ENABLE)
     t.keyField = 7;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, ALTERNATE_TIME_OFFSET_ENABLE, &t));
+    EXPECT_EQ(getBuildTlvId(), ALTERNATE_TIME_OFFSET_ENABLE);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {7, 1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -650,6 +672,7 @@ TEST_F(ProcTest, ALTERNATE_TIME_OFFSET_NAME)
     t.keyField = 11;
     t.displayName.textField = "123";
     EXPECT_TRUE(setAction(SET, ALTERNATE_TIME_OFFSET_NAME, &t));
+    EXPECT_EQ(getBuildTlvId(), ALTERNATE_TIME_OFFSET_NAME);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[6] = {11, 3, 49, 50, 51};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -684,6 +707,7 @@ TEST_F(ProcTest, ALTERNATE_TIME_OFFSET_PROPERTIES)
     t.jumpSeconds = -2147413249;
     t.timeOfNextJump = 0x912478321891LL;
     EXPECT_TRUE(setAction(SET, ALTERNATE_TIME_OFFSET_PROPERTIES, &t));
+    EXPECT_EQ(getBuildTlvId(), ALTERNATE_TIME_OFFSET_PROPERTIES);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[16] = {13, 128, 30, 95, 1, 128, 1, 18, 255, 145, 36,
             120, 50, 24, 145
@@ -724,6 +748,7 @@ TEST_F(ProcTest, LOG_MIN_PDELAY_REQ_INTERVAL)
     LOG_MIN_PDELAY_REQ_INTERVAL_t t;
     t.logMinPdelayReqInterval = 9;
     EXPECT_TRUE(setAction(SET, LOG_MIN_PDELAY_REQ_INTERVAL, &t));
+    EXPECT_EQ(getBuildTlvId(), LOG_MIN_PDELAY_REQ_INTERVAL);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {9};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -756,6 +781,7 @@ TEST_F(ProcTest, PRIMARY_DOMAIN)
     PRIMARY_DOMAIN_t t;
     t.primaryDomain = 17;
     EXPECT_TRUE(setAction(SET, PRIMARY_DOMAIN, &t));
+    EXPECT_EQ(getBuildTlvId(), PRIMARY_DOMAIN);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {17};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -771,6 +797,7 @@ TEST_F(ProcTest, DELAY_MECHANISM)
     DELAY_MECHANISM_t t;
     t.delayMechanism = P2P;
     EXPECT_TRUE(setAction(SET, DELAY_MECHANISM, &t));
+    EXPECT_EQ(getBuildTlvId(), DELAY_MECHANISM);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {2};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -786,6 +813,7 @@ TEST_F(ProcTest, EXTERNAL_PORT_CONFIGURATION_ENABLED)
     EXTERNAL_PORT_CONFIGURATION_ENABLED_t t;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, EXTERNAL_PORT_CONFIGURATION_ENABLED, &t));
+    EXPECT_EQ(getBuildTlvId(), EXTERNAL_PORT_CONFIGURATION_ENABLED);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -802,6 +830,7 @@ TEST_F(ProcTest, MASTER_ONLY)
     MASTER_ONLY_t t;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, MASTER_ONLY, &t));
+    EXPECT_EQ(getBuildTlvId(), MASTER_ONLY);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -817,6 +846,7 @@ TEST_F(ProcTest, HOLDOVER_UPGRADE_ENABLE)
     HOLDOVER_UPGRADE_ENABLE_t t;
     t.flags = 1;
     EXPECT_TRUE(setAction(SET, HOLDOVER_UPGRADE_ENABLE, &t));
+    EXPECT_EQ(getBuildTlvId(), HOLDOVER_UPGRADE_ENABLE);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -834,6 +864,7 @@ TEST_F(ProcTest, EXT_PORT_CONFIG_PORT_DATA_SET)
     t.flags = 1;
     t.desiredState = PASSIVE;
     EXPECT_TRUE(setAction(SET, EXT_PORT_CONFIG_PORT_DATA_SET, &t));
+    EXPECT_EQ(getBuildTlvId(), EXT_PORT_CONFIG_PORT_DATA_SET);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {1, 7};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -880,6 +911,7 @@ TEST_F(ProcTest, GRANDMASTER_SETTINGS_NP)
     t.flags = F_PTP;
     t.timeSource = INTERNAL_OSCILLATOR;
     EXPECT_TRUE(setAction(SET, GRANDMASTER_SETTINGS_NP, &t));
+    EXPECT_EQ(getBuildTlvId(), GRANDMASTER_SETTINGS_NP);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[8] = {255, 254, 255, 255, 0, 37, 8, 160};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -902,6 +934,7 @@ TEST_F(ProcTest, PORT_DATA_SET_NP)
     t.neighborPropDelayThresh = 20000000;
     t.asCapable = 1;
     EXPECT_TRUE(setAction(SET, PORT_DATA_SET_NP, &t));
+    EXPECT_EQ(getBuildTlvId(), PORT_DATA_SET_NP);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[8] = {1, 49, 45, 0, 0, 0, 0, 1};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -920,6 +953,7 @@ TEST_F(ProcTest, SUBSCRIBE_EVENTS_NP)
     t.setEvent(NOTIFY_PORT_STATE);
     t.setEvent(NOTIFY_TIME_SYNC);
     EXPECT_TRUE(setAction(SET, SUBSCRIBE_EVENTS_NP, &t));
+    EXPECT_EQ(getBuildTlvId(), SUBSCRIBE_EVENTS_NP);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[66] = {18, 52, 3};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -991,6 +1025,7 @@ TEST_F(ProcTest, SYNCHRONIZATION_UNCERTAIN_NP)
     SYNCHRONIZATION_UNCERTAIN_NP_t t;
     t.val = SYNC_UNCERTAIN_DONTCARE;
     EXPECT_TRUE(setAction(SET, SYNCHRONIZATION_UNCERTAIN_NP, &t));
+    EXPECT_EQ(getBuildTlvId(), SYNCHRONIZATION_UNCERTAIN_NP);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[2] = {255};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
@@ -1078,6 +1113,7 @@ TEST_F(ProcTest, POWER_PROFILE_SETTINGS_NP)
     t.networkTimeInaccuracy = 3655058877;
     t.totalTimeInaccuracy = 4223530875;
     EXPECT_TRUE(setAction(SET, POWER_PROFILE_SETTINGS_NP, &t));
+    EXPECT_EQ(getBuildTlvId(), POWER_PROFILE_SETTINGS_NP);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     uint8_t m[16] = {0, 1, 219, 166, 245, 219, 101, 189, 217, 219,
             197, 189, 251, 189, 247, 123

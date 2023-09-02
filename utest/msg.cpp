@@ -88,12 +88,20 @@ TEST(MessageTest, MethodUpdateParams)
     EXPECT_EQ(p.filterSignaling, p1.filterSignaling);
 }
 
-// Tests get TLV ID method
+// Tests get parsed TLV ID method
 // mng_vals_e getTlvId() const
 TEST(MessageTest, MethodGetTlvId)
 {
     Message m;
     EXPECT_EQ(m.getTlvId(), NULL_PTP_MANAGEMENT);
+}
+
+// Tests get build TLV ID method
+// mng_vals_e getBuildTlvId() const
+TEST(MessageTest, MethodBuildGetTlvId)
+{
+    Message m;
+    EXPECT_EQ(m.getBuildTlvId(), NULL_PTP_MANAGEMENT);
 }
 
 // Tests set using all clocks method
@@ -840,10 +848,12 @@ TEST(MessageTest, MethodSetAction)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), GET);
     PRIORITY1_t p;
     p.priority1 = 0x7f;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
     m.clearData();
 }
@@ -856,6 +866,7 @@ TEST(MessageTest, MethodClearData)
     PRIORITY1_t p;
     p.priority1 = 0x7f;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
     m.clearData();
     EXPECT_EQ(m.getSendAction(), GET);
@@ -869,6 +880,7 @@ TEST(MessageTest, MethodBuildVoid)
     PRIORITY1_t p;
     p.priority1 = 0x7f;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
     ssize_t plen = m.getMsgPlanedLen();
     EXPECT_EQ(plen, 56);
@@ -889,6 +901,7 @@ TEST(MessageTest, MethodBuildObj)
     PRIORITY1_t p;
     p.priority1 = 0x7f;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
     ssize_t plen = m.getMsgPlanedLen();
     EXPECT_EQ(plen, 56);
@@ -911,6 +924,7 @@ TEST(MessageTest, MethodGetSendAction)
     PRIORITY1_t p;
     p.priority1 = 0x7f;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
 }
 
@@ -922,6 +936,7 @@ TEST(MessageTest, MethodGetMsgLen)
     PRIORITY1_t p;
     p.priority1 = 0x7f;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
@@ -936,6 +951,7 @@ TEST(MessageTest, MethodGetMsgPlanedLen)
     PRIORITY1_t p;
     p.priority1 = 1;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
     EXPECT_EQ(m.getMsgPlanedLen(), 56);
 }
@@ -948,6 +964,7 @@ TEST(MessageTest, MethodParseVoid)
     PRIORITY1_t p;
     p.priority1 = 0x7f;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendAction(), SET);
     ssize_t plen = m.getMsgPlanedLen();
     uint8_t buf[70];
@@ -966,6 +983,7 @@ TEST(MessageTest, MethodParseObj)
     PRIORITY1_t p;
     p.priority1 = 1;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     Buf buf;
     EXPECT_TRUE(buf.alloc(70));
     EXPECT_EQ(m.build(buf, 1), MNG_PARSE_ERROR_OK);
@@ -983,6 +1001,7 @@ TEST(MessageTest, MethodGetReplyAction)
     PRIORITY1_t p;
     p.priority1 = 1;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 137), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -999,6 +1018,7 @@ TEST(MessageTest, MethodIsUnicast)
     Message m;
     MsgParams p = m.getParams();
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1022,6 +1042,7 @@ TEST(MessageTest, MethodGetPTPProfileSpecific)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[60];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1037,6 +1058,7 @@ TEST(MessageTest, MethodGetSequence)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[60];
     EXPECT_EQ(m.build(buf, sizeof buf, 0x4231), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1053,6 +1075,7 @@ TEST(MessageTest, MethodGetPeer)
     Message m;
     MsgParams p = m.getParams();
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     PortIdentity_t t = { { 1, 2, 3, 4, 5, 6, 7, 8}, 0x3184 };
     p.self_id = t;
     EXPECT_TRUE(m.updateParams(p));
@@ -1072,6 +1095,7 @@ TEST(MessageTest, MethodGetTarget)
     Message m;
     MsgParams p = m.getParams();
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     PortIdentity_t t = { { 1, 2, 3, 4, 5, 6, 7, 8}, 0x3184 };
     p.target = t;
     EXPECT_TRUE(m.updateParams(p));
@@ -1091,6 +1115,7 @@ TEST(MessageTest, MethodGetSdoId)
     Message m;
     MsgParams p = m.getParams();
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     p.transportSpecific = 14;
     EXPECT_TRUE(m.updateParams(p));
     uint8_t buf[60];
@@ -1109,6 +1134,7 @@ TEST(MessageTest, MethodGetDomainNumber)
     Message m;
     MsgParams p = m.getParams();
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     p.domainNumber = 7;
     EXPECT_TRUE(m.updateParams(p));
     uint8_t buf[60];
@@ -1126,6 +1152,7 @@ TEST(MessageTest, MethodGetVersionPTP)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[60];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1141,6 +1168,7 @@ TEST(MessageTest, MethodGetMinorVersionPTP)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[60];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1160,6 +1188,7 @@ TEST(MessageTest, MethodGetData)
     PRIORITY1_t p;
     p.priority1 = 137;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1180,6 +1209,7 @@ TEST(MessageTest, MethodGetSendData)
     Message m;
     PRIORITY1_t p;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     EXPECT_EQ(m.getSendData(), &p);
 }
 
@@ -1189,6 +1219,7 @@ TEST(MessageTest, MethodGetErrId)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[80];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // Follow location IEEE "PTP management message"
@@ -1219,6 +1250,7 @@ TEST(MessageTest, MethodGetErrDisplay)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // Follow location IEEE "PTP management message"
@@ -1249,6 +1281,7 @@ TEST(MessageTest, MethodGetErrDisplayC)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // Follow location IEEE "PTP management message"
@@ -1281,6 +1314,7 @@ TEST(MessageTest, MethodIsLastMsgSig)
     PRIORITY1_t p;
     p.priority1 = 1;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1311,6 +1345,7 @@ TEST(MessageTest, MethodGetType)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[60];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1326,6 +1361,7 @@ TEST(MessageTest, MethodGetMngType)
 {
     Message m;
     EXPECT_TRUE(m.setAction(GET, PRIORITY1));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[60];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1353,6 +1389,7 @@ TEST(MessageTest, MethodTraversSigTlvs)
     PRIORITY1_t p;
     p.priority1 = 137;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1384,6 +1421,7 @@ TEST(MessageTest, MethodGetSigTlvsCount)
     PRIORITY1_t p;
     p.priority1 = 137;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1416,6 +1454,7 @@ TEST(MessageTest, MethodGetSigTlv)
     PRIORITY1_t p;
     p.priority1 = 137;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"
@@ -1457,6 +1496,7 @@ TEST(MessageTest, MethodGetSigMngTlvType)
     PRIORITY1_t p;
     p.priority1 = 137;
     EXPECT_TRUE(m.setAction(SET, PRIORITY1, &p));
+    EXPECT_EQ(m.getBuildTlvId(), PRIORITY1);
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
     // actionField location IEEE "PTP management message"

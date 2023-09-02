@@ -44,12 +44,14 @@ class Message
     actionField_e     m_sendAction;
     size_t            m_msgLen;
     const BaseMngTlv *m_dataSend;
+    mng_vals_e        m_tlv_id; /* managementId */
 
     /* parsing parameters */
     uint16_t          m_sequence;
     bool              m_isUnicast;
     uint8_t           m_PTPProfileSpecific;
     actionField_e     m_replyAction;
+    mng_vals_e        m_replayTlv_id; /* managementId */
     uint32_t          m_sdoId; /* parsed message sdoId (transportSpecific) */
     msgType_e         m_type; /* parsed message type */
     tlvType_e         m_mngType; /* parsed management message type */
@@ -64,7 +66,6 @@ class Message
     std::unique_ptr<BaseMngTlv> m_dataGet;
 
     /* Generic */
-    mng_vals_e        m_tlv_id; /* managementId */
     MsgParams         m_prms;
 
     /* parsing parameters */
@@ -85,7 +86,7 @@ class Message
     MNG_PARSE_ERROR_e parseSig(MsgProc *); /* parse signaling message */
     /*
      * dataFieldSize() for sending SET/COMMAND
-     * Get dataField of current m_tlv_id
+     * Get dataField of current build managment ID
      * For id with non fixed size
      * The size is determined by the m_dataSend content
      */
@@ -119,12 +120,15 @@ class Message
      */
     bool updateParams(const MsgParams &prms);
     /**
-     * Get the current TLV id
-     * @return current TLV id
-     * @note the message object holds a single value from the last setting or
-     *  reply parsing.
+     * Get the current parsed TLV id
+     * @return current parsed TLV id
      */
-    mng_vals_e getTlvId() const { return m_tlv_id; }
+    mng_vals_e getTlvId() const { return m_replayTlv_id; }
+    /**
+     * Get the current build TLV id
+     * @return current TLV id
+     */
+    mng_vals_e getBuildTlvId() const { return m_tlv_id; }
     /**
      * Set target clock ID to use all clocks.
      */

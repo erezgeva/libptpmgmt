@@ -44,6 +44,7 @@ TEST(InitTest, MethodProccessUnix)
     EXPECT_TRUE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
+    EXPECT_EQ(i.msg().getBuildTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
     EXPECT_EQ(i.getNetSelect(), 'u');
     EXPECT_NE(dynamic_cast<SockUnix *>(i.sk()), nullptr);
@@ -62,6 +63,7 @@ TEST(InitTest, MethodProccessIPv4)
     EXPECT_FALSE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
+    EXPECT_EQ(i.msg().getBuildTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
     EXPECT_EQ(i.getNetSelect(), '4');
     EXPECT_NE(dynamic_cast<SockIp4 *>(i.sk()), nullptr);
@@ -80,6 +82,7 @@ TEST(InitTest, MethodProccessIPv6)
     EXPECT_FALSE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
+    EXPECT_EQ(i.msg().getBuildTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
     EXPECT_EQ(i.getNetSelect(), '6');
     EXPECT_NE(dynamic_cast<SockIp6 *>(i.sk()), nullptr);
@@ -98,6 +101,7 @@ TEST(InitTest, MethodProccessRaw)
     EXPECT_FALSE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
+    EXPECT_EQ(i.msg().getBuildTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);
     EXPECT_EQ(i.getNetSelect(), '2');
     EXPECT_NE(dynamic_cast<SockRaw *>(i.sk()), nullptr);
