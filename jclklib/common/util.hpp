@@ -11,6 +11,8 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+#include <common/mutex_signal.hpp>
+
 #define UNIQUE_TYPEOF(x) remove_reference<decltype(*(x).get())>::type
 #define FUTURE_TYPEOF(x) decltype((x).get())
 #define DECLARE_STATIC(x,...) decltype(x) x __VA_OPT__({) __VA_ARGS__ __VA_OPT__(})
@@ -35,21 +37,6 @@ bool isFutureSet(std::future<type> &f)
 		}							\
 	}
 	
-
-namespace JClkLibCommon {
-	class MutexSignal {
-	private:
-		pthread_mutex_t c_lock;
-		pthread_mutex_t p_lock;
-	public:
-		MutexSignal();
-		bool init();
-		bool PreProduce(bool &have);
-		bool PostProduce();
-		bool PostConsume();
-		bool PreConsume();
-	};
-}
 
 #endif/*UTIL_HPP*/
 
