@@ -9,7 +9,8 @@ JCLKLIB_COMMON_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR := $(JCLKLIB_COMMON_DIR)/..
 LIBS = pthread rt
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
-OBJ = jclklib_import message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport util
+OBJ = jclklib_import message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport\
+	mutex_signal
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 OBJ_DIR = $(JCLKLIB_COMMON_DIR)/obj
@@ -57,5 +58,5 @@ common-obj: $(OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -g -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -Werror -Wall -fdiagnostics-color=always
+	g++ -c $< -g -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -Werror -Wall -Wextra -Wno-unused-parameter -fdiagnostics-color=always
 
