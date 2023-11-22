@@ -139,8 +139,14 @@ main()
    ecmd make clean $mk_noc
  fi
  if $have_git && [[ -n "$(which reuse 2> /dev/null)" ]]; then
+   local -ri reuse_ver="$(reuse --version | sed 's/^reuse\s*//;s/\..*//')"
    echo " * Check files licenses with 'reuse'"
-   ecmd reuse lint
+   if [[ $reuse_ver -ge 2 ]]; then
+     # reuse 2.1 can detect copyright better, suppress warnings
+     ecmd reuse --suppress-deprecation lint
+   else
+     ecmd reuse lint
+   fi
    equit "'reuse' detect missing SPDX tags"
  fi
  echo " * Configure"
