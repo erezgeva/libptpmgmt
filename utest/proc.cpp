@@ -952,10 +952,11 @@ TEST_F(ProcTest, SUBSCRIBE_EVENTS_NP)
     t.duration = 0x1234;
     t.setEvent(NOTIFY_PORT_STATE);
     t.setEvent(NOTIFY_TIME_SYNC);
+    t.setEvent(NOTIFY_PARENT_DATA_SET);
     EXPECT_TRUE(setAction(SET, SUBSCRIBE_EVENTS_NP, &t));
     EXPECT_EQ(getBuildTlvId(), SUBSCRIBE_EVENTS_NP);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
-    uint8_t m[66] = {18, 52, 3};
+    uint8_t m[66] = {18, 52, 7};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
     EXPECT_EQ(memcmp(buf + tlvLoc, m, sizeof m), 0);
     ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
@@ -963,6 +964,7 @@ TEST_F(ProcTest, SUBSCRIBE_EVENTS_NP)
     EXPECT_EQ(r->duration, 0x1234);
     EXPECT_TRUE(r->getEvent(NOTIFY_PORT_STATE));
     EXPECT_TRUE(r->getEvent(NOTIFY_TIME_SYNC));
+    EXPECT_TRUE(r->getEvent(NOTIFY_PARENT_DATA_SET));
 }
 
 // Tests PORT_PROPERTIES_NP structure

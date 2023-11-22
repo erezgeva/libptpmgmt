@@ -1928,7 +1928,8 @@ TEST(Json2msgTest, SUBSCRIBE_EVENTS_NP)
             "\"managementId\":\"SUBSCRIBE_EVENTS_NP\",\"dataField\":{"
             "\"duration\":4660,"
             "\"NOTIFY_PORT_STATE\":true,"
-            "\"NOTIFY_TIME_SYNC\":true"
+            "\"NOTIFY_TIME_SYNC\":true,"
+            "\"NOTIFY_PARENT_DATA_SET\":true"
             "}}"));
     EXPECT_EQ(m.actionField(), SET);
     EXPECT_EQ(m.managementId(), SUBSCRIBE_EVENTS_NP);
@@ -1939,6 +1940,7 @@ TEST(Json2msgTest, SUBSCRIBE_EVENTS_NP)
     EXPECT_EQ(t->duration, 0x1234);
     EXPECT_TRUE(t->getEvent(NOTIFY_PORT_STATE));
     EXPECT_TRUE(t->getEvent(NOTIFY_TIME_SYNC));
+    EXPECT_TRUE(t->getEvent(NOTIFY_PARENT_DATA_SET));
     Message msg;
     EXPECT_TRUE(m.setAction(msg));
 }

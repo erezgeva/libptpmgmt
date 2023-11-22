@@ -826,12 +826,14 @@ TEST(PmcDumpTest, SUBSCRIBE_EVENTS_NP)
     t.duration = 0x1234;
     t.setEvent(NOTIFY_PORT_STATE);
     t.setEvent(NOTIFY_TIME_SYNC);
+    t.setEvent(NOTIFY_PARENT_DATA_SET);
     useTestMode(true);
     call_dump(m, SUBSCRIBE_EVENTS_NP, &t);
     EXPECT_STREQ(getPmcOut(),
-        IDENT "duration          4660"
-        IDENT "NOTIFY_PORT_STATE on"
-        IDENT "NOTIFY_TIME_SYNC  on");
+        IDENT "duration               4660"
+        IDENT "NOTIFY_PORT_STATE      on"
+        IDENT "NOTIFY_TIME_SYNC       on"
+        IDENT "NOTIFY_PARENT_DATA_SET on");
 }
 
 // Tests dump PORT_PROPERTIES_NP tlv

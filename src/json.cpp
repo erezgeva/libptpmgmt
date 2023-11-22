@@ -380,7 +380,10 @@ JS(SUBSCRIBE_EVENTS_NP)
             d.maskEvent(NOTIFY_PORT_STATE)) &&
         proc.procFlag("NOTIFY_TIME_SYNC",
             d.byteEvent(NOTIFY_TIME_SYNC),
-            d.maskEvent(NOTIFY_TIME_SYNC));
+            d.maskEvent(NOTIFY_TIME_SYNC)) &&
+        proc.procFlag("NOTIFY_PARENT_DATA_SET",
+            d.byteEvent(NOTIFY_PARENT_DATA_SET),
+            d.maskEvent(NOTIFY_PARENT_DATA_SET));
 }
 JS(PORT_PROPERTIES_NP)
 {

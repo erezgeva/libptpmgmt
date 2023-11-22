@@ -405,12 +405,14 @@ class MsgDump : public MessageDispatcher
     }
     dump(SUBSCRIBE_EVENTS_NP) {
         DUMPS(
-            IDENT "duration          %u"
-            IDENT "NOTIFY_PORT_STATE %s"
-            IDENT "NOTIFY_TIME_SYNC  %s",
+            IDENT "duration               %u"
+            IDENT "NOTIFY_PORT_STATE      %s"
+            IDENT "NOTIFY_TIME_SYNC       %s"
+            IDENT "NOTIFY_PARENT_DATA_SET %s",
             d.duration,
             d.getEvent(NOTIFY_PORT_STATE) ? "on" : "off",
-            d.getEvent(NOTIFY_TIME_SYNC) ? "on" : "off");
+            d.getEvent(NOTIFY_TIME_SYNC) ? "on" : "off",
+            d.getEvent(NOTIFY_PARENT_DATA_SET) ? "on" : "off");
     }
     dump(PORT_PROPERTIES_NP) {
         DUMPS(
@@ -1162,12 +1164,15 @@ class MsgBuild : public MessageBuilder
         keys["duration"].req = true;
         keys["NOTIFY_PORT_STATE"].flag = true;
         keys["NOTIFY_TIME_SYNC"].flag = true;
+        keys["NOTIFY_PARENT_DATA_SET"].flag = true;
         parseKeys;
         memset(d.bitmask, 0, sizeof d.bitmask);
         if(keys["NOTIFY_PORT_STATE"].num)
             d.setEvent(NOTIFY_PORT_STATE);
         if(keys["NOTIFY_TIME_SYNC"].num)
             d.setEvent(NOTIFY_TIME_SYNC);
+        if(keys["NOTIFY_PARENT_DATA_SET"].num)
+            d.setEvent(NOTIFY_PARENT_DATA_SET);
         d.duration = keys["duration"].num;
         build_end;
     }

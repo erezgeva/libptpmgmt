@@ -457,6 +457,8 @@ const int EVENT_BITMASK_CNT = 64;
 const int NOTIFY_PORT_STATE = 0;
 /** Notify time synchronization offset in SUBSCRIBE_EVENTS_NP.bitmask */
 const int NOTIFY_TIME_SYNC = 1;
+/** Notify parent data in SUBSCRIBE_EVENTS_NP.bitmask */
+const int NOTIFY_PARENT_DATA_SET = 2;
 /** Subscribe events TLV
  * @note linuxptp implementation specific
  */

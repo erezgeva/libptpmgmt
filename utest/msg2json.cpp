@@ -1379,11 +1379,13 @@ TEST(Tlv2JsonTest, SUBSCRIBE_EVENTS_NP)
     t.duration = 0x1234;
     t.setEvent(NOTIFY_PORT_STATE);
     t.setEvent(NOTIFY_TIME_SYNC);
+    t.setEvent(NOTIFY_PARENT_DATA_SET);
     EXPECT_STREQ(tlv2json(SUBSCRIBE_EVENTS_NP, &t).c_str(),
         "{\n"
         "  \"duration\" : 4660,\n"
         "  \"NOTIFY_PORT_STATE\" : true,\n"
-        "  \"NOTIFY_TIME_SYNC\" : true\n"
+        "  \"NOTIFY_TIME_SYNC\" : true,\n"
+        "  \"NOTIFY_PARENT_DATA_SET\" : true\n"
         "}");
 }
 
