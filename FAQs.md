@@ -1,13 +1,15 @@
 ***Q:***  
 I downloaded the libptpmgmt from [github](https://github.com/erezgeva/libptpmgmt/releases)
  and then tried to use the libptpmgmt with python test.  
-But getting following error.  
+But getting following error.
 
-    # python3 test.py
-    Traceback (most recent call last):
-      File "test.py", line 14, in <module>
-        import ptpmgmt
-    ModuleNotFoundError: No module named 'ptpmgmt'
+```
+# python3 test.py
+Traceback (most recent call last):
+  File "test.py", line 14, in <module>
+    import ptpmgmt
+ModuleNotFoundError: No module named 'ptpmgmt'
+```
 
 ***A:***  
 The test script fails to find the libraries.  
@@ -83,4 +85,3 @@ You can build RPMs with
 The RPM are tested on Fedora and should work on all [RPM-based Linux distributions](https://en.wikipedia.org/wiki/List_of_Linux_distributions#RPM-based).
 
 The RPM files are stored under the `rpm/RPMS/` folder.
-

@@ -10,14 +10,17 @@ This document guides how to do it properly.
  1. We use document block before the item we describe:
     * We use this style `/** xxxxx */`. The block is usually spread on multiple lines. For example:
 
-            /**  
-             * @xxx text  
-             *  text  
-             */  
+    ```
+    /**
+     * @xxx text
+     *  text
+     */
+    ```
 
     * Alternatively, you may use a short block after a property or a constant. Do not use it with classes, structures, enumerators, functions, or methods.
-
-          `void property; /**< description */`
+    ```
+    void property; /**< description */
+    ```
 
  1. Each header file starts with:
     * The licence using SPDX ID; our project uses LGPL 3 or later for all library source code
@@ -29,12 +32,13 @@ This document guides how to do it properly.
  1. Before function and methods we use a multiple lines block. We start with descriptions, and then we list parameters with the `@param`, and the return value with `@return`, if any. You may add `@note` and `@attention` if you wish to add clarifications. Use `@attention` for more important issues.
  1. The `@param` command should comes with `[in]`, `[out]`, `[in ,out]` to specify if parameter is used as input, output or both. You can use 'const' for input only parameters. But do not omit `[in]` in this case. If non static method does not change the object it is better to define it as constant by adding `const` like `method(type param ...) const`.
  1. Private sections are not documented by default, but sometimes items in a protected section or in public sections are intended for internal only. You may remove the block using the conditional command. Feel free to use multiple lines block on starting the conditional block and write explanation for blocking.
-
-          /**< @cond internal
-           * description why we block
-           */
-          ...
-          /**< @endcond */
+    ```
+    /**< @cond internal
+     * description why we block
+     */
+    ...
+    /**< @endcond */
+    ```
 
  1. You may use type mark for formatting the text:
     * For bold `@b word` or `<b>multiple words</b>`

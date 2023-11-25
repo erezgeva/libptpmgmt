@@ -22,19 +22,19 @@ Copyright: 2021 © Erez Geva
 License: GPL-3+
 
 Files: doc/html/*.js
-Copyright: 1997-2020 Dimitri van Heesch
+Copyright: 1997-2020 © Dimitri van Heesch
 License: MIT
 
 Files: doc/html/jquery.js
-Copyright: OpenJS Foundation
+Copyright: © OpenJS Foundation
 License: MIT
 
 Files: man/phc_ctl.8
-Copyright: 2014 Jacob Keller, linuxptp developers
+Copyright: 2014 © Jacob Keller, linuxptp developers
 License: GPL-2+
 
 Files: man/pmc.8
-Copyright: 2012 Richard Cochran, Miroslav Lichvar, linuxptp developers
+Copyright: 2012 © Richard Cochran, Miroslav Lichvar, linuxptp developers
 License: GPL-2+
 
 License: LGPL-3+
