@@ -12,7 +12,9 @@ MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "Arch Linux build for libptpmgmt"
 ARG UID
 ARG USER
-RUN pacman -Syu --noconfirm --needed bash rustup gcc fakeroot pkgconf libtool\
+RUN pacman-key --init && pacman-key --populate &&\
+    pacman -Syu --noconfirm --needed archlinux-keyring &&\
+    pacman -Syu --noconfirm --needed bash rustup gcc fakeroot pkgconf libtool\
     autoconf which make git sudo doxygen graphviz perl ruby swig python3\
     lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go\
     texlive-fontutils astyle && useradd $USER -u $UID -m -G users,wheel &&\

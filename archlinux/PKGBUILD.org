@@ -31,7 +31,7 @@ build() {
   make DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
-  python3 json-c go)
+  python3 json-c go gcc libtool autoconf make texlive-fontutils)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/$libdir

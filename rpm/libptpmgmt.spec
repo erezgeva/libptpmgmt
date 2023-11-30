@@ -20,7 +20,7 @@ BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  golang
 BuildRequires:  libfastjson libfastjson-devel json-c-devel
-BuildRequires:  doxygen graphviz
+BuildRequires:  doxygen graphviz texlive-epstopdf
 #Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
 Source0:        %{name}-%{version}.txz
 

@@ -379,7 +379,9 @@ $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
 $(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-$(SRC)/%.h $(PUB)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
+$(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
+	$(Q_GEN)$(M4) -I $(SRC) $< > $@
+$(PUB)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4
 	$(Q_GEN)$(M4) -I $(SRC) $< > $@
 # This is basically what configure does.
 # Yet, I prefer configure create only the def.mk,
@@ -472,7 +474,10 @@ ifeq ($(DOTTOOL),)
 	$Q$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' tools/doxygen.cfg
 endif
 ifdef Q_DOXY
-	$(Q_DOXY)$(DOXYGEN) tools/doxygen.cfg >/dev/null
+# doxygen fails with cairo 1.17.6, use workaround
+# https://github.com/doxygen/doxygen/issues/9319
+# TODO The bug should be fixed in doxygen version 1.9.7
+	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg >/dev/null
 else
 	$(DOXYGEN) tools/doxygen.cfg
 endif

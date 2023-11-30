@@ -63,7 +63,7 @@ main()
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon gcc '$gccver' astyle '$astyle'
 Jsonc '$jsonc' Fjson '$fjson'
-Doxygen '$doxy' dot '$dver' Goole test '$gtest'
+Doxygen '$doxy' dot '$dver' Google test '$gtest'
 swig '$swig' Python '$python' Ruby '$ruby' PHP '$php'
 Perl '$perl' go '$go' tcl '$tcl' Lua '$lua'
 ============================================================

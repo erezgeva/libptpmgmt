@@ -18,8 +18,8 @@ ARG SRC_CFG
 ARG DPKGS
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update;\
-    apt-get install -y --no-install-recommends gnupg apt-transport-https\
-    ca-certificates apt-utils;for a in $ARCHS;do dpkg --add-architecture $a;\
+    apt-get install -y --no-install-recommends gnupg ca-certificates\
+    apt-utils;for a in $ARCHS;do dpkg --add-architecture $a;\
     done;printf "$SRC_CFG" > /etc/apt/sources.list; apt-get update;\
     apt-get install -y --no-install-recommends debhelper coreutils sudo\
     dh-lua dh-make-perl dh-exec git procps dh-php build-essential ncurses-bin\
@@ -28,8 +28,9 @@ RUN apt-get update;\
     tree lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck exuberant-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
-    python3-demjson lua5.4 valgrind dh-golang dh-make-golang reuse vim-gtk3\
-    libcriterion-dev $DPKGS;apt-get upgrade -y --no-install-recommends;\
+    python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3\
+    texlive-font-utils libcriterion-dev $DPKGS;\
+    apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
     sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers
