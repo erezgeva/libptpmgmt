@@ -30,9 +30,6 @@ endif
 $(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_SO_3)
-ifneq ($(UVGD),$(SP)) # VALGRIND
-PYUVGD:=PYTHONMALLOC=malloc$(UVGD)
-endif
 utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
 	$(call Q_UTEST,Python3)LD_PRELOAD=./$< PYTHONPATH=$(PY_D)/3\
 	  $(PYUVGD)$(PY_D)/utest.py $(PY_FILTERS)

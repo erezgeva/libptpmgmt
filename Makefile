@@ -80,6 +80,8 @@ define help
 #                                                                              #
 #   VGD              Use valgrid with unit test                                #
 #                                                                              #
+#   VGD_PY           Use valgrid with Python unit test                         #
+#                                                                              #
 #   VGD_OPTIONS      Specify more options for valgrid                          #
 #                                                                              #
 #   PY_USE_S_THRD    Use python with 'Global Interpreter Lock',                #
@@ -352,6 +354,9 @@ ifdef VGD
 UVGD+=$(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(SP)
 # failing: utest_ruby utest_go utest_sys
 endif # VGD
+ifdef VGD_PY
+PYUVGD:=PYTHONMALLOC=malloc $(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(SP)
+endif # VGD_PY
 endif # VALGRIND
 
 # JSON libraries
