@@ -212,20 +212,18 @@ proc main {cfg_file} {
 
   set event [ ptpmgmt::SUBSCRIBE_EVENTS_NP_t ]
   $event setEvent $ptpmgmt::NOTIFY_TIME_SYNC
-  set mask [ ptpmgmt::SUBSCRIBE_EVENTS_NP_t_maskEvent $ptpmgmt::NOTIFY_TIME_SYNC ]
   if { [ $event getEvent $ptpmgmt::NOTIFY_TIME_SYNC ] } {
     set txt "have"
   } else {
     set txt "not"
   }
-  puts "maskEvent(NOTIFY_TIME_SYNC)=$mask, getEvent(NOTIFY_TIME_SYNC)=$txt"
-  set mask [ ptpmgmt::SUBSCRIBE_EVENTS_NP_t_maskEvent $ptpmgmt::NOTIFY_PORT_STATE ]
+  puts "getEvent(NOTIFY_TIME_SYNC)=$txt"
   if { [ $event getEvent $ptpmgmt::NOTIFY_PORT_STATE ] } {
     set txt "have"
   } else {
     set txt "not"
   }
-  puts "maskEvent(NOTIFY_PORT_STATE)=$mask, getEvent(NOTIFY_PORT_STATE)=$txt"
+  puts "getEvent(NOTIFY_PORT_STATE)=$txt"
 
   # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
   # SigEvent behave like a ruby array

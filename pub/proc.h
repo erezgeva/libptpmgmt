@@ -13,6 +13,7 @@
 #define __PTPMGMT_PROC_H
 
 #include <vector>
+#include <cstdlib>
 #include "types.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -470,13 +471,15 @@ struct SUBSCRIBE_EVENTS_NP_t : public BaseMngTlv {
     SUBSCRIBE_EVENTS_NP_t() : bitmask{0} {}
     /** Set event bit in bitmask */
     void setEvent(int event) {
-        if(event >= 0 && event < EVENT_BITMASK_CNT)
-            byteEvent(event) |= maskEvent(event);
+        std::div_t d;
+        if(div_event(event, d))
+            bitmask[d.quot] |= d.rem;
     }
     /** Clear event bit in bitmask */
     void clearEvent(int event) {
-        if(event >= 0 && event < EVENT_BITMASK_CNT)
-            byteEvent(event) &= ~maskEvent(event);
+        std::div_t d;
+        if(div_event(event, d))
+            bitmask[d.quot] &= ~d.rem;
     }
     /** Clear all events in bitmask */
     void clearAll() {
@@ -484,23 +487,32 @@ struct SUBSCRIBE_EVENTS_NP_t : public BaseMngTlv {
     }
     /** Get bit value in bitmask */
     bool getEvent(int event) const {
-        if(event >= 0 && event < EVENT_BITMASK_CNT)
-            return (bitmask[event / 8] & maskEvent(event)) > 0;
+        std::div_t d;
+        if(div_event(event, d))
+            return (bitmask[d.quot] & d.rem) > 0;
         return false;
     }
-    /** Get event byte in bitmask */
-    uint8_t &byteEvent(int event) {
-        if(event >= 0 && event < EVENT_BITMASK_CNT)
-            return bitmask[event / 8];
-        static uint8_t dummy = 0;
-        return dummy;
+    /** @cond internal */
+    /** Divide event to byte and bit locations */
+    static std::div_t div_event(int event) {
+        std::div_t d;
+        div_event_wo(event, d);
+        return d;
     }
-    /** Get event bit location in byte in bitmask */
-    static uint8_t maskEvent(int event) {
-        if(event >= 0 && event < EVENT_BITMASK_CNT)
-            return 1 << (event % 8);
-        return 0;
+  private:
+    /** Divide event to byte and bit locations without check */
+    static void div_event_wo(int event, std::div_t &d) {
+        d = div(event, 8);
+        d.rem = 1 << d.rem;
     }
+    /** Divide event to byte and bit locations */
+    static bool div_event(int event, std::div_t &d) {
+        if(event < 0 || event >= EVENT_BITMASK_CNT)
+            return false;
+        div_event_wo(event, d);
+        return true;
+    }
+    /**< @endcond */
 };
 /** Port properties TLV
  * @note linuxptp implementation specific

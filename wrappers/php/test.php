@@ -205,13 +205,9 @@ function main($cfg_file)
 
   $event = new SUBSCRIBE_EVENTS_NP_t();
   $event->setEvent(ptpmgmt::NOTIFY_TIME_SYNC_get());
-  echo "maskEvent(NOTIFY_TIME_SYNC)=" .
-       $event->maskEvent(ptpmgmt::NOTIFY_TIME_SYNC_get()) .
-       ", getEvent(NOTIFY_TIME_SYNC)=" .
+  echo "getEvent(NOTIFY_TIME_SYNC)=" .
        ($event->getEvent(ptpmgmt::NOTIFY_TIME_SYNC_get()) ? 'have' : 'not') . "\n" .
-       "maskEvent(NOTIFY_PORT_STATE)=" .
-       $event->maskEvent(ptpmgmt::NOTIFY_PORT_STATE_get()) .
-       ", getEvent(NOTIFY_PORT_STATE)=" .
+       "getEvent(NOTIFY_PORT_STATE)=" .
        ($event->getEvent(ptpmgmt::NOTIFY_PORT_STATE_get()) ? 'have' : 'not') . "\n";
 
   # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>

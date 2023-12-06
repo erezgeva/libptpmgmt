@@ -197,17 +197,13 @@ def main():
     txt = 'have'
   else:
     txt = 'not'
-  print('maskEvent(NOTIFY_TIME_SYNC)={}, getEvent(NOTIFY_TIME_SYNC)={}'
-    .format(ptpmgmt.SUBSCRIBE_EVENTS_NP_t.maskEvent(ptpmgmt.NOTIFY_TIME_SYNC),
-    txt))
+  print('getEvent(NOTIFY_TIME_SYNC)={}'.format(txt))
 
   if event.getEvent(ptpmgmt.NOTIFY_PORT_STATE):
     txt = 'have'
   else:
     txt = 'not'
-  print('maskEvent(NOTIFY_PORT_STATE)={}, getEvent(NOTIFY_PORT_STATE)={}'
-    .format(ptpmgmt.SUBSCRIBE_EVENTS_NP_t.maskEvent(ptpmgmt.NOTIFY_PORT_STATE),
-    txt))
+  print('getEvent(NOTIFY_PORT_STATE)={}'.format(txt))
 
   # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
   # See std_vectors.md for more information

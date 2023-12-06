@@ -213,13 +213,9 @@ def main
 
   event = Ptpmgmt::SUBSCRIBE_EVENTS_NP_t.new
   event.setEvent(Ptpmgmt::NOTIFY_TIME_SYNC())
-  puts "maskEvent(NOTIFY_TIME_SYNC)=" +
-       "#{Ptpmgmt::SUBSCRIBE_EVENTS_NP_t.maskEvent(Ptpmgmt::NOTIFY_TIME_SYNC())}" +
-       ", getEvent(NOTIFY_TIME_SYNC)=" +
+  puts "getEvent(NOTIFY_TIME_SYNC)=" +
        (event.getEvent(Ptpmgmt::NOTIFY_TIME_SYNC()) ? 'have' : 'not')
-  puts "maskEvent(NOTIFY_PORT_STATE)=" +
-       "#{Ptpmgmt::SUBSCRIBE_EVENTS_NP_t.maskEvent(Ptpmgmt::NOTIFY_PORT_STATE())}" +
-       ", getEvent(NOTIFY_PORT_STATE)=" +
+  puts "getEvent(NOTIFY_PORT_STATE)=" +
        (event.getEvent(Ptpmgmt::NOTIFY_PORT_STATE()) ? 'have' : 'not')
 
   # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>

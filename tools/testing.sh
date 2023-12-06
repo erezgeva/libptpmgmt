@@ -312,8 +312,8 @@ priority1: 147
 set new priority 153 success
 Get reply for PRIORITY1
 priority1: 153
-maskEvent(NOTIFY_TIME_SYNC)=2, getEvent(NOTIFY_TIME_SYNC)=have
-maskEvent(NOTIFY_PORT_STATE)=1, getEvent(NOTIFY_PORT_STATE)=not
+getEvent(NOTIFY_TIME_SYNC)=have
+getEvent(NOTIFY_PORT_STATE)=not
 Events size 1, seq[0]=1, ts[0]=4.500000000
 "
  enter perl

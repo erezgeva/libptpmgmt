@@ -29,6 +29,14 @@ __PTPMGMT_NAMESPACE_BEGIN
 #define PROC_FLD(dir, name, macro)\
     proc.procValue(#dir "_" #name, d.dir##MsgType[STAT_##macro])
 
+#define DIV_EVENT(n)\
+    static auto n##_L = SUBSCRIBE_EVENTS_NP_t::div_event(n)
+DIV_EVENT(NOTIFY_PORT_STATE);
+DIV_EVENT(NOTIFY_TIME_SYNC);
+DIV_EVENT(NOTIFY_PARENT_DATA_SET);
+#define PROC_EVENT_FLG(name)\
+    proc.procFlag(#name, d.bitmask[name##_L.quot], name##_L.rem)
+
 JS(CLOCK_DESCRIPTION)
 {
     return
@@ -375,15 +383,9 @@ JS(SUBSCRIBE_EVENTS_NP)
 {
     return
         PROC_VAL(duration) &&
-        proc.procFlag("NOTIFY_PORT_STATE",
-            d.byteEvent(NOTIFY_PORT_STATE),
-            d.maskEvent(NOTIFY_PORT_STATE)) &&
-        proc.procFlag("NOTIFY_TIME_SYNC",
-            d.byteEvent(NOTIFY_TIME_SYNC),
-            d.maskEvent(NOTIFY_TIME_SYNC)) &&
-        proc.procFlag("NOTIFY_PARENT_DATA_SET",
-            d.byteEvent(NOTIFY_PARENT_DATA_SET),
-            d.maskEvent(NOTIFY_PARENT_DATA_SET));
+        PROC_EVENT_FLG(NOTIFY_PORT_STATE) &&
+        PROC_EVENT_FLG(NOTIFY_TIME_SYNC) &&
+        PROC_EVENT_FLG(NOTIFY_PARENT_DATA_SET);
 }
 JS(PORT_PROPERTIES_NP)
 {

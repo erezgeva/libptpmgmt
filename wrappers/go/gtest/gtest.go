@@ -248,17 +248,13 @@ func main() {
   } else {
     eStr = "not"
   }
-  fmt.Printf("maskEvent(NOTIFY_TIME_SYNC)=%v, getEvent(NOTIFY_TIME_SYNC)=%v\n",
-    ptpmgmt.SUBSCRIBE_EVENTS_NP_tMaskEvent(ptpmgmt.GetNOTIFY_TIME_SYNC()),
-    eStr)
+  fmt.Printf("getEvent(NOTIFY_TIME_SYNC)=%v\n", eStr)
   if event.GetEvent(ptpmgmt.GetNOTIFY_PORT_STATE()) {
     eStr = "have"
   } else {
     eStr = "not"
   }
-  fmt.Printf("maskEvent(NOTIFY_PORT_STATE)=%v, getEvent(NOTIFY_PORT_STATE)=%v\n",
-    ptpmgmt.SUBSCRIBE_EVENTS_NP_tMaskEvent(ptpmgmt.GetNOTIFY_PORT_STATE()),
-    eStr)
+  fmt.Printf("getEvent(NOTIFY_PORT_STATE)=%v\n", eStr)
   /* test SigEvent that represent stdVector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
      See std_vectors.Md for more information */
   evnts := ptpmgmt.NewSigEvent()

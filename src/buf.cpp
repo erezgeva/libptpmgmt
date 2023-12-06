@@ -9,7 +9,6 @@
  *
  */
 
-#include <cstdlib>
 #include "buf.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
