@@ -7,7 +7,7 @@
 # RPM specification file for libptpmgmt rpm packages
 ###############################################################################
 Name:           libptpmgmt
-Version:        1.1
+Version:        1.2
 Release:        1%{?dist}
 URL:            https://%{name}.nwtime.org
 BuildRequires:  swig m4
@@ -198,11 +198,68 @@ autoconf
 %{_mandir}/man8/phc_ctl-%{bname}.8*
 
 ###############################################################################
-# The changelog is updated with the 'update_changelog.pl' script.
+# The changelog is updated with the 'tools/update_changelog.pl' script.
 # Anything add after here will be toss, add only above.
 # The changelog is under GFDL-1.3-no-invariants-or-later license.
 ###############################################################################
 %changelog
+* Wed Dec 06 2023 ErezGeva2@gmail.com 1.2-1
+- Support Linuxptp version 4.2
+- Improve linuxptp subscribe events TLV.
+- Use a separate flag for Python unit test with Valgrid
+  as it breaks on Ubuntu.
+- Add Doxygen bug workaround.
+- Fix Arch container, add GPG keys.
+- Add and probe epstopdf, as alternative to dot tool.
+- Split m4 rule for creating headers as some make file differ.
+- Add documentation for build.
+- Support reuse version 2.1
+- Add NOTIFY_PARENT_DATA_SET event after linuxptp.
+- Follow linuxptp pmc, avoid conflicting port IDs over UDS.
+- Use separate management TLV ID to build and parse in managment class.
+- Add credits for contributors of project.
+- Fix examle make files for development package.
+- Support abstract Unix Socket Address.
+  Skip deleting abstract unix socket as they do not use real files.
+- Add copyright sign in copyright files.
+- Add criterion unit testing framework to docker files.
+- Init class: add getNetSelect() method to specify which socket is created.
+- PtpClock class: add function to return socket file description.
+- Small library improvements.
+- Remove semicolon from comments in unit test source code.
+- Order home sites: Network Time Foundation, GitHub, SourceForge.
+- Change main home page to Network Time Foundation.
+- Use constant string reference in Error class,
+  when stored as class property.
+- Move public headers to pub folder.
+- Add new GitHub action Linuxptp with dummy simulated clock:
+  - With full build.
+  - with installed Debian packages in system.
+    To verify the integrity of the installed Debian packages.
+- Move wrapper scripts into a wrapper folder.
+- Add astyle to fedora and Arch Linux docker containers.
+- Fix configuration report script.
+- Move docker label to start of docker file.
+- Debian docker: Move Perl developer library to packages list,
+  as it is multi-architecture on all used Debian versions.
+- Use proper macros for time conversions in socket poll function.
+- Resolve warnings found with clang.
+- Remove Debian bullseye and support for old versions of swig and go.
+- Parse SMPTE Organization Extension TLV.
+- Fix GO cross compilation.
+- Add Github action for cross compilation.
+- Update Doxygen configuration file to Doxygen version 1.9.4.
+- Fix grammar in Doxygen configuration file and documents.
+- Improve unit test configuration probing.
+- Improve Github actions script.
+- Improve and fix grammar in README.md.
+- Add new Debian trixie version.
+- Replace automatic type with defined type for short types.
+- Binary::fromHex uses reference to constant C++ string input.
+- Replace maps and stack classes with a single class in fromJSON.
+- Probe if C++ compiler support, comparing pointer of inherited methods.
+- Fix TCL version.
+
 * Sat Jun 10 2023 ErezGeva2@gmail.com 1.1-1
 - Support Linuxptp version 4.0
 - GitHub workflow
