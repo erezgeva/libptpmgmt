@@ -192,13 +192,10 @@ The default is 1 to restrict the messages sent by ptp4l to the same subnet.
 
 .SH MANAGEMENT IDS
 
-pmc-ptpmgmt support all PTP version 2 (IEEE Std 1588-2019) Managment TLVs
-and linuxptp implementation specific.
-Though build of GRANDMASTER_CLUSTER_TABLE, UNICAST_MASTER_TABLE,
-ACCEPTABLE_MASTER_TABLE are not support as they use tables.
-
-.TP
-.B ANNOUNCE_RECEIPT_TIMEOUT
+pmc-ptpmgmt supports all PTP version 2 (IEEE Std 1588-2019) Managment TLVs
+and those specific to the linuxptp implementation.
+Though build of GRANDMASTER_CLUSTER_TABLE, UNICAST_MASTER_TABLE, and 
+ACCEPTABLE_MASTER_TABLE are not supported as they use tables.
 
 .SH WARNING
 
