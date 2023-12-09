@@ -6,7 +6,7 @@ Formatted: name (N), email (E), description (D), Files (F)
 
 N: Dru Lavigne
 D: Fix spelling and syntax
-F: *.md, tools/doxygen.cfg.in
+F: *.md, tools/doxygen.cfg.in, man/pmc.8
 
 N: Luigi Mantellini
 E: luigi.mantellini@sm-optics.com
