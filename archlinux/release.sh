@@ -9,7 +9,9 @@
 ###############################################################################
 main()
 {
-  head -n -2 PKGBUILD.org | sed '/^#source=/ s/^#//' > PKGBUILD
+  sed '/^source=/ d;/#source=/ {s/^#//}' PKGBUILD.org > PKGBUILD
+  echo "Take time to download source file ..."
+  echo "makepkg -g"
   makepkg -g >> PKGBUILD
 }
 if [[ -f PKGBUILD.org ]] && [[ -x "$(which makepkg)" ]]; then

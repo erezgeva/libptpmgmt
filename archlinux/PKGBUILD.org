@@ -18,6 +18,7 @@ arch=(x86_64)
 url=https://libptpmgmt.nwtime.org
 license=(LGPL3)
 #source=("$pkgname-$pkgver.tar.gz::https://github.com/erezgeva/$pkgname/archive/refs/tags/$pkgver.tar.gz")
+source=("$pkgname-$pkgver.txz")
 # Target library directory
 libdir='usr/lib'
 # version for depends
@@ -123,5 +124,3 @@ package_phc-ctl-ptpmgmt() {
   mv $srcdir/install/usr/share/man/man8/phc_ctl* $pkgdir/usr/local/man/man8
 }
 changelog=changelog
-# We copy the src localy, so we can debug current code :-)
-source=("$pkgname-$pkgver.txz")

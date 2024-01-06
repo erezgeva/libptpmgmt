@@ -10,8 +10,10 @@
 EAPI=8
 DESCRIPTION="PTP management library, to communicate with ptp4l"
 HOMEPAGE="https://${PN}.nwtime.org"
-# #!#SRC_URI="https://github.com/erezgeva/${PN}/archive/refs/tags/${PV}.tar.gz
-# #!#	-> ${P}.tar.gz"
+#!#!#SRC_URI="https://github.com/erezgeva/${PN}/archive/refs/tags/${PV}.tar.gz
+#!#!#	-> ${P}.tar.gz"
+RESTRICT="fetch"
+SRC_URI="${P}.txz"
 LICENSE="LGPL-3+"
 SLOT="0"
 # CHOST build dependencies, on installed system
@@ -32,6 +34,3 @@ src_compile() {
 	# Fail to install a package containing: epstopdf
 	# doxygen
 }
-# We copy the src localy, so we can debug current code :-)
-RESTRICT="fetch"
-SRC_URI="${P}.txz"
