@@ -9,7 +9,6 @@
 *.o
 *.d
 *.so
-.phpunit.result.cache
 .sw?
 .*.sw?
 # Files in root
@@ -23,17 +22,20 @@
 /libptpmgmt*.a
 /libptpmgmt*.so.*
 /.null
+/.phpunit.result.cache
 # In folders
-*/*/PtpMgmtLib.cpp
 /doc
 /objs/
 /ptp-tools/pmc
-/wrappers/perl/PtpMgmtLib.pm
-/wrappers/tcl/pkgIndex.tcl
 /autom4te.cache/
 /*/.upgrade_cockie
+# In wrappers folder
+/wrappers/*/PtpMgmtLib.cpp
+/wrappers/perl/PtpMgmtLib.pm
+/wrappers/tcl/pkgIndex.tcl
+# Doxygen
+/tools/doxygen.cfg
 # Go lang cache
 /obj-*/pkg/mod/cache/lock
 /obj-*/go-build
-/tools/doxygen.cfg
 /_site/

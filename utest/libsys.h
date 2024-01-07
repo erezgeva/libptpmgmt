@@ -9,6 +9,12 @@
  *
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern void initLibSys(void);
 extern void useTestMode(bool);
 extern void useRoot(bool);
+#ifdef __cplusplus
+}
+#endif
