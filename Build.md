@@ -1,8 +1,8 @@
 # Build project documentation
-How do we build the library, and what can we do with the make file.
+How we build the library, and what we can do with the make file.
 
 # <u>GNU build</u>
-We use GNU build
+We use GNU build:
 
 ```
 autoconf
@@ -12,7 +12,7 @@ make
 
 # <u>configure</u>
 The configure script support options.  
-Some basic options comes from autoconf and some are specific to our project.  
+Some basic options come from autoconf and some are specific to our project.  
 Use help to see more information:
 
 ```
@@ -20,7 +20,7 @@ Use help to see more information:
 ```
 
 # <u>Make file</u>
-The make file have many targets and parameters.  
+The make file has many targets and parameters.  
 Use help to see more information:
 
 ```
@@ -30,7 +30,7 @@ make help
 # <u>Linux distribution</u>
 We provide libraries and wrapper libraries for scripting.  
 You can generate packages for installation.  
-For Debain packages (and Ubuntu):
+For Debian and Ubuntu packages:
 
 ```
 make deb
@@ -48,7 +48,7 @@ For Arch Linux packages:
 make pkg
 ```
 
-To install on Gentoo
+To install on Gentoo:
 
 ```
 make gentoo
