@@ -20,17 +20,16 @@ __PTPMGMT_NAMESPACE_BEGIN
  * @brief Dispatch received PTP management message TLV
  * @note Do not handle signaling messages!
  * @note You must inherit this class to use it!
- * @note callHadler() has an implementation per script language.
- *       So, it can call virtual functions defined in the script language itself.
+ * @note callHadler() has an implementation in lua, tcl, go and ruby languages,
+ *       other languages uses swig to translate this class.
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
-  protected:
+  public:
     /**
      * Construct a message TLV dispatcher
      */
     MessageDispatcher() = default;
-  public:
     /**
      * Call handler based on Message last received message
      * @param[in] msg Message object
@@ -69,8 +68,8 @@ class MessageDispatcher : public BaseMngDispatchCallback
  *       Do not call Message.build() after deleting this object,
  *       without setting a new TLV.
  * @note Class allocate TLV object and store it,
- * @note buildTlv() has an implementation per script language.
- *       So, it can call virtual functions defined in the script language itself.
+ * @note buildTlv() has an implementation in lua, tcl, go and ruby languages,
+ *       other languages uses swig to translate this class.
  */
 class MessageBuilder : public BaseMngBuildCallback
 {
@@ -78,13 +77,12 @@ class MessageBuilder : public BaseMngBuildCallback
     std::unique_ptr<BaseMngTlv> m_tlv; /**< Store allocated TLV for send */
     Message &m_msg; /**< Message Object to send message */
 
-  protected:
+  public:
     /**
      * Construct a message TLV builder
      * @param[in] msg Message object
      */
     MessageBuilder(Message &msg) : m_msg(msg) {}
-  public:
     /**
      * Get reference to the Message object
      * @return reference to the msg Message object

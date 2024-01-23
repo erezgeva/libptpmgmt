@@ -21,7 +21,7 @@ $(PY_SO_3)_LDLIBS:=$(PY3LDLIBS)
 PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3INCLUDE)))
 $(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
 	$Q$(MKDIR_P) $(PY_D)/3
-	$(call LLC,$(CXXFLAGS_PY) $(PY3INCLUDE))
+	$(call LLC,$(CXXFLAGS_PY) -I$(PY_D) $(PY3INCLUDE))
 	$(call D_INC,PY3INCDIR)
 ifneq ($(PY3INCDIR),$(PY3PLATINCDIR))
 	$(call D_INC,PY3PLATINCDIR)

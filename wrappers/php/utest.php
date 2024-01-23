@@ -9,7 +9,6 @@
  *
  */
 
-require("ptpmgmt.php");
 use PHPUnit\Framework\TestCase;
 # See: https://phpunit.readthedocs.io/
 #      man phpunit
@@ -19,6 +18,7 @@ class myDisp extends MessageDispatcher {
     public int $func;
     public string $id;
     function __construct() {
+        parent::__construct();
         $this->priority1 = 0;
         $this->func = 0;
         $this->id = '';

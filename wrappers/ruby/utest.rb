@@ -16,6 +16,7 @@ require 'test/unit'
 
 class MyDisp < Ptpmgmt::MessageDispatcher
   def initialize
+    super
     @priority1 = 0
     @func = 0
     @id = ''

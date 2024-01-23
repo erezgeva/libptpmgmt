@@ -11,6 +11,7 @@
 # Go environment
 CGO_CXXFLAGS!=$(GOBIN) env CGO_CXXFLAGS
 CGO_CXXFLAGS+=$(CXXFLAGS_GO) -I$(PWD)/$(SRC) -I$(PWD)/$(PUB)
+CGO_CXXFLAGS+=-I$(PWD)/wrappers/go
 CGO_LDFLAGS!=$(GOBIN) env CGO_LDFLAGS
 CGO_LDFLAGS+=$(LDFLAGS) -lm $(PWD)/$(LIB_NAME_SO)
 GOFLAGS!=$(GOBIN) env GOFLAGS
@@ -48,6 +49,8 @@ utest_go: $(GO_D)/unit_test/go.mod
 install_go:
 	$Q$(INSTALL_FOLDER) $(DESTDIR)$(GOROOT)/src
 	cp -a $(GO_D)/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
+	$(SED) -i '/#include "$(SWIG_NAME).h"/ d'\
+	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 	$(SED) -i 's@^\s*#include "\([^.]\+\.h\)"@#include <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 	rm $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(LIB_NAME_SO)*

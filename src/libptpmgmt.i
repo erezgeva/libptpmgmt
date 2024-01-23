@@ -10,9 +10,9 @@
 
 /* Module name */
 #ifdef SWIGPERL
-%module PtpMgmtLib  /* Perl only */
+%module(directors="1") PtpMgmtLib  /* Perl only */
 #else
-%module ptpmgmt
+%module(directors="1") ptpmgmt
 #endif /* SWIGPERL */
 
 /* Headers and namespace for moudle source code */
@@ -232,5 +232,18 @@ _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
 
+#if defined SWIGLUA || defined SWIGTCL || defined SWIGGO || defined SWIGRUBY
 /* MessageDispatcher and MessageBuilder classes per language */
 %include "msgCall.i"
+#else
+/* Use SWIG director */
+%feature("director") BaseMngDispatchCallback;
+%feature("director") BaseMngBuildCallback;
+%feature("director") MessageDispatcher;
+%feature("director") MessageBuilder;
+%{
+    #include "msgCall.h"
+%}
+%include "callDef.h"
+%include "msgCall.h"
+#endif

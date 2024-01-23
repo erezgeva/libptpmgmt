@@ -10,8 +10,6 @@
  *
  */
 
-require("ptpmgmt.php");
-
 class myDisp extends MessageDispatcher {
     function PRIORITY1_h($msg, $tlv, $tlv_id) {
         echo "Get reply for $tlv_id\n";

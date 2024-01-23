@@ -672,10 +672,11 @@ defs.mk: defs.mk.in config.status
 endif # config.status
 endif # MAKECMDGOALS
 
-CLEAN:=$(wildcard */*.o */*/*.o */*/$(SWIG_NAME).cpp archlinux/*.pkg.tar.zst\
+CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
-  wrappers/go/*/go.mod */$(LIB_SRC)\
+  wrappers/go/*/go.mod */$(LIB_SRC) wrappers/*/$(SWIG_NAME).cpp\
+  wrappers/*/$(SWIG_NAME).h\
   */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
   $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\

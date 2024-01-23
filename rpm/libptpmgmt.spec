@@ -180,7 +180,6 @@ autoconf
 
 %files -n php-%{bname}
 %{_libdir}/php/*/%{bname}.so
-%{_datadir}/pear/%{bname}.php
 
 %files -n tcl-%{bname}
 %{_libdir}/tcl*/%{bname}/%{bname}.so

@@ -11,7 +11,7 @@
 perl_SFLAGS+=-perl5
 PERL_D:=wrappers/perl
 $(PERL_D)/$(SWIG_NAME).o: $(PERL_D)/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(call LLC,-I$(PERL5EXT))
+	$Q$(call LLC,-Iwrappers/perl -I$(PERL5EXT))
 	$(call D_INC,PERL5EXT)
 	$(SWIG_DEP)
 PERL_SO_DIR:=$(PERL_D)/auto/$(SWIG_NAME)
@@ -23,7 +23,7 @@ $(PERL_SO_DIR)/$(SWIG_NAME).so: $(PERL_D)/$(SWIG_NAME).o $(LIB_NAME_SO) |\
 SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
 ifneq ($(PERL5TEST),)
 utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
-	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=$(PERL_D)$(UVGD)$(PERL_D)/utest.pl
+	$(call Q_UTEST,Perl5)LD_PRELOAD=./$< PERL5LIB=$(PERL_D) $(PERL_D)/utest.pl
 endif
 
 install_perl5:

@@ -12,7 +12,7 @@
 use PtpMgmtLib;
 
 package myDisp;
-@ISA = qw ( PtpMgmtLib::MessageDispatcher );
+use base 'PtpMgmtLib::MessageDispatcher';
 sub PRIORITY1_h
 {
   my ($self, $msg, $tlv, $tlv_id) = @_;
@@ -28,7 +28,7 @@ sub USER_DESCRIPTION_h
 }
 
 package myBuild;
-@ISA = qw ( PtpMgmtLib::MessageBuilder );
+use base 'PtpMgmtLib::MessageBuilder';
 sub PRIORITY1_b
 {
   my ($self, $msg, $tlv) = @_;

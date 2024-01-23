@@ -55,6 +55,8 @@ cpp_cod(`    bool _nc; /**< flag indicating no inherite call back */')dnl
 cpp_cod(`  protected:')dnl
 cpp_cod(`    bool _noTlv() {bool r = _nc; _nc = false; return r;}')dnl
 cpp_cod(`    /**< @endcond */')dnl
+cpp_cod(`  public:')dnl
+cpp_cod(`    BaseMngDispatchCallback() = default;')dnl
 cpp_cod(`    virtual ~BaseMngDispatchCallback() = default;')dnl
 define(D,`    /**
      * Handle $1 management TLV
@@ -104,7 +106,8 @@ c_cod(`    void (*noTlvCallBack)(void *cookie, ptpmgmt_msg msg, const char *idSt
 cpp_cod(`class BaseMngBuildCallback')dnl
 cpp_cod(`{')dnl
 c_cod(`struct ptpmgmt_builder_t {')dnl
-cpp_cod(`  protected:')dnl
+cpp_cod(`  public:')dnl
+cpp_cod(`    BaseMngBuildCallback() = default;')dnl
 cpp_cod(`    virtual ~BaseMngBuildCallback() = default;')dnl
 define(B,`    /**
      * Handle $1 management TLV

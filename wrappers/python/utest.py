@@ -15,6 +15,7 @@ import unittest
 
 class myDisp(ptpmgmt.MessageDispatcher):
   def __init__(self):
+    ptpmgmt.MessageDispatcher.__init__(self)
     self.priority1 = 0
     self.func = 0
     self.id = ''

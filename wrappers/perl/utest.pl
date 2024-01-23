@@ -12,17 +12,15 @@
 use PtpMgmtLib;
 
 package myDisp;
-
-@ISA = qw ( PtpMgmtLib::MessageDispatcher );
-
+use base 'PtpMgmtLib::MessageDispatcher';
+use fields qw(priority1 func id);
 sub new {
-    bless {
-        priority1 => 0,
-        func => 0,
-        id => ''
-    }, shift;
+    my $self = shift->SUPER::new(@_);
+    $self->{priority1} = 0;
+    $self->{func} = 0;
+    $self->{id} = '';
+    return $self;
 }
-
 sub PRIORITY1_h
 {
     my ($self, $msg, $tlv, $tlv_id) = @_;
@@ -43,8 +41,8 @@ sub noTlvCallBack
 }
 
 package myBuild;
-
-@ISA = qw ( PtpMgmtLib::MessageBuilder );
+use base 'PtpMgmtLib::MessageBuilder';
+use fields qw(run);
 sub PRIORITY1_b
 {
     my ($self, $msg, $tlv) = @_;
