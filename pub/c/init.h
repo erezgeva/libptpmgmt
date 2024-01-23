@@ -25,7 +25,6 @@ typedef const struct ptpmgmt_init_t *const_ptpmgmt_init;
 /**
  * The ptpmgmt initialization structure hold the initialization object
  *  and call backs to call C++ methods
- * @note: C interface
  */
 struct ptpmgmt_init_t {
     /**< @cond internal */
@@ -38,13 +37,11 @@ struct ptpmgmt_init_t {
     /**
      * Free init object
      * @param[in] i init object
-     * @note: C interface
      */
     void (*free)(ptpmgmt_init i);
     /**
      * close the socket in the init object
      * @param[in, out] i init object
-     * @note: C interface
      */
     void (*close)(ptpmgmt_init i);
     /**
@@ -53,20 +50,17 @@ struct ptpmgmt_init_t {
      * @param[in] opt PMC options
      * @return 0 on scuccess
      * @note function return proper value to return from main()
-     * @note: C interface
      */
     int (*proccess)(ptpmgmt_init i, const_ptpmgmt_opt opt);
     /**
      * Get configuration file object
      * @param[in, out] i init object
      * @return configuration object
-     * @note: C interface
      */
     ptpmgmt_cfg(*cfg)(ptpmgmt_init i);
     /**
      * Get Message object
      * @return object
-     * @note: C interface
      */
     ptpmgmt_msg(*msg)(ptpmgmt_init i);
     /**
@@ -74,7 +68,6 @@ struct ptpmgmt_init_t {
      * @param[in, out] i init object
      * @return object or null if not exist
      * @note User @b should not try to free this socket object
-     * @note: C interface
      */
     ptpmgmt_sk(*sk)(ptpmgmt_init i);
 
@@ -94,7 +87,6 @@ struct ptpmgmt_init_t {
      * Is the socket provide by this object, a Unix socket?
      * @param[in] i init object
      * @return true if the socket is a UDS socket
-     * @note: C interface
      */
     bool (*use_uds)(ptpmgmt_init i);
 };
@@ -102,7 +94,6 @@ struct ptpmgmt_init_t {
 /**
  * Alocate init object
  * @return new allocated object or null in case of error
- * @note: C interface
  */
 ptpmgmt_init ptpmgmt_init_alloc();
 

@@ -24,7 +24,6 @@ typedef const struct ptpmgmt_ifInfo_t *const_ptpmgmt_ifInfo;
 /**
  * the ptpmgmt network interface structure hold the network interface object
  *  and call backs to call c++ methods
- * @note: C interface
  */
 struct ptpmgmt_ifInfo_t {
     /**< @cond internal */
@@ -33,7 +32,6 @@ struct ptpmgmt_ifInfo_t {
     /**
      * Free a network interface object
      * @param[in] i network interface object
-     * @note: C interface
      */
     void (*free)(ptpmgmt_ifInfo i);
     /**
@@ -94,7 +92,6 @@ struct ptpmgmt_ifInfo_t {
 /**
  * Allocate a new network interface object
  * @return a new network interface object or null on error
- * @note: C interface
  */
 ptpmgmt_ifInfo ptpmgmt_ifInfo_alloc();
 
@@ -107,7 +104,6 @@ typedef const struct ptpmgmt_clock_t *const_ptpmgmt_clock;
 /**
  * the ptpmgmt clock structure hold the clock object
  *  and call backs to call c++ methods
- * @note: C interface
  */
 struct ptpmgmt_clock_t {
     /**< @cond internal */
@@ -117,7 +113,6 @@ struct ptpmgmt_clock_t {
     /**
      * Free a clock object
      * @param[in] clk pointer to clock structure
-     * @note: C interface
      */
     void (*free)(ptpmgmt_clock clk);
 
@@ -358,14 +353,12 @@ bool ptpmgmt_clock_isCharFile(const char *file);
 /**
  * Allocate a new ptpmgmt clock structure
  * @return a pointer to a new ptpmgmt clock structure or null on error
- * @note: C interface
  */
 ptpmgmt_clock ptpmgmt_clock_alloc();
 
 /**
  * Allocate a new ptpmgmt clock structure for system clock
  * @return a pointer to a new ptpmgmt clock structure or null on error
- * @note: C interface
  */
 ptpmgmt_clock ptpmgmt_clock_alloc_sys();
 

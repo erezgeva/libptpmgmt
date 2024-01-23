@@ -155,10 +155,10 @@ bool SockBase::tpoll(uint64_t &timeout_ms) const
     }
     return ret;
 }
-static inline bool testUnix(const std::string &str)
+static inline bool testUnix(const std::string &str, size_t extra = 0)
 {
     size_t len = str.length();
-    if(len == 0 || len > unix_path_max) {
+    if(len == 0 || len > unix_path_max - extra) {
         PTPMGMT_ERROR("Wrong unix file name: %s", str.c_str());
         return false;
     }
@@ -169,11 +169,11 @@ void SockUnix::setUnixAddr(sockaddr_un &addr, const std::string &str)
 {
     addr = {0};
     addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, str.c_str(), unix_path_max);
+    memcpy(addr.sun_path, str.c_str(), std::min(str.size(), unix_path_max));
 }
 void SockUnix::closeChild()
 {
-    if(m_isInit && m_me[0] != 0)
+    if(m_isInit && !isSelfAddressAbstract())
         unlink(m_me.c_str());
 }
 bool SockUnix::initBase()
@@ -200,24 +200,30 @@ bool SockUnix::initBase()
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockUnix::setPeerInternal(const std::string &str)
+bool SockUnix::setPeerInternal(const std::string &str, bool useAbstract)
 {
-    if(!testUnix(str))
+    if(!testUnix(str, useAbstract ? 1 : 0))
         return false;
-    m_peer = str;
+    if(useAbstract)
+        m_peer = std::string(1, '\0') + str;
+    else
+        m_peer = str;
     setUnixAddr(m_peerAddr, m_peer);
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockUnix::setSelfAddress(const std::string &str)
+bool SockUnix::setSelfAddress(const std::string &str, bool useAbstract)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("self address can not be changed after initializing is done");
         return false;
     }
-    if(!testUnix(str))
+    if(!testUnix(str, useAbstract ? 1 : 0))
         return false;
-    m_me = str;
+    if(useAbstract)
+        m_me = std::string(1, '\0') + str;
+    else
+        m_me = str;
     PTPMGMT_ERROR_CLR;
     return true;
 }
@@ -289,16 +295,19 @@ bool SockUnix::sendBase(const void *msg, size_t len)
     return sendAny(msg, len, m_peerAddr);
 }
 bool SockUnix::sendTo(const void *msg, size_t len,
-    const std::string &addrStr) const
+    const std::string &addrStr, bool useAbstract) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("Socket is not initialized");
         return false;
     }
-    if(!testUnix(addrStr))
+    if(!testUnix(addrStr, useAbstract ? 1 : 0))
         return false;
     sockaddr_un addr;
-    setUnixAddr(addr, addrStr);
+    if(useAbstract)
+        setUnixAddr(addr, std::string(1, '\0') + addrStr);
+    else
+        setUnixAddr(addr, addrStr);
     return sendAny(msg, len, addr);
 }
 ssize_t SockUnix::rcvBase(void *buf, size_t bufSize, bool block)
@@ -926,6 +935,17 @@ extern "C" {
             return s->getPeerAddress_c();
         return nullptr;
     }
+    static bool non_ptpmgmt_sk_isPeerAddressAbstract(const_ptpmgmt_sk)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_isPeerAddressAbstract(const_ptpmgmt_sk sk)
+    {
+        SockUnix *s = valid_cusk(sk);
+        if(s != nullptr)
+            return s->isPeerAddressAbstract();
+        return false;
+    }
     static bool non_ptpmgmt_sk_setPeerAddress(ptpmgmt_sk, const char *)
     {
         return false;
@@ -935,6 +955,17 @@ extern "C" {
         SockUnix *s = valid_usk(sk);
         if(s != nullptr && str != nullptr)
             return s->setPeerAddress(str);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setPeerAddressA(ptpmgmt_sk, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setPeerAddressA(ptpmgmt_sk sk, const char *str)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && str != nullptr)
+            return s->setPeerAddress(str, true);
         return false;
     }
 #define C2CPP_func(func)\
@@ -977,6 +1008,17 @@ extern "C" {
             return s->getSelfAddress_c();
         return nullptr;
     }
+    static bool non_ptpmgmt_sk_isSelfAddressAbstract(const_ptpmgmt_sk)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_isSelfAddressAbstract(const_ptpmgmt_sk sk)
+    {
+        SockUnix *s = valid_cusk(sk);
+        if(s != nullptr)
+            return s->isSelfAddressAbstract();
+        return false;
+    }
     static bool non_ptpmgmt_sk_setSelfAddress(ptpmgmt_sk, const char *)
     {
         return false;
@@ -986,6 +1028,17 @@ extern "C" {
         SockUnix *s = valid_usk(sk);
         if(s != nullptr && str != nullptr)
             return s->setSelfAddress(str);
+        return false;
+    }
+    static bool non_ptpmgmt_sk_setSelfAddressA(ptpmgmt_sk, const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_setSelfAddressA(ptpmgmt_sk sk, const char *str)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && str != nullptr)
+            return s->setSelfAddress(str, true);
         return false;
     }
     static bool non_ptpmgmt_sk_setDefSelfAddress(ptpmgmt_sk, const char *,
@@ -1028,22 +1081,37 @@ extern "C" {
             return s->sendTo(msg, len, addrStr);
         return false;
     }
+    static bool non_ptpmgmt_sk_sendToA(ptpmgmt_sk, const void *, size_t,
+        const char *)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_sendToA(ptpmgmt_sk sk, const void *msg, size_t len,
+        const char *addrStr)
+    {
+        SockUnix *s = valid_usk(sk);
+        if(s != nullptr && msg != nullptr && addrStr != nullptr && len > 0)
+            return s->sendTo(msg, len, addrStr, true);
+        return false;
+    }
     static ssize_t non_ptpmgmt_sk_rcvFrom(ptpmgmt_sk, void *, size_t, char *,
-        size_t, bool)
+        size_t *, bool)
     {
         return false;
     }
     static ssize_t ptpmgmt_sk_rcvFrom(ptpmgmt_sk sk, void *buf, size_t bufSize,
-        char *from, size_t fromSize, bool block)
+        char *from, size_t *fromSize, bool block)
     {
         SockUnix *s = valid_usk(sk);
         if(s != nullptr && buf != nullptr && bufSize > 0) {
             std::string f;
             ssize_t ret = s->rcvFrom(buf, bufSize, f, block);
-            if(from != nullptr && fromSize > 1 && !f.empty()) {
-                size_t c = std::min(f.length(), fromSize - 1);
+            if(from != nullptr && fromSize != nullptr && *fromSize > 1 &&
+                !f.empty()) {
+                size_t c = std::min(f.length(), *fromSize - 1);
                 memcpy(from, f.c_str(), c);
                 from[c] = 0;
+                *fromSize = c;
             }
             return ret;
         }
@@ -1069,8 +1137,19 @@ extern "C" {
     {
         SockUnix *s = valid_cusk(sk);
         if(s != nullptr)
-            return s->getLastFrom().c_str();
+            return s->getLastFrom_c();
         return nullptr;
+    }
+    static bool non_ptpmgmt_sk_isLastFromAbstract(const_ptpmgmt_sk)
+    {
+        return false;
+    }
+    static bool ptpmgmt_sk_isLastFromAbstract(const_ptpmgmt_sk sk)
+    {
+        SockUnix *s = valid_cusk(sk);
+        if(s != nullptr)
+            return s->isLastFromAbstract();
+        return false;
     }
     static bool non_ptpmgmt_sk_setIfUsingName(ptpmgmt_sk, const char *)
     {
@@ -1234,16 +1313,22 @@ extern "C" {
         memset(sk, 0, sizeof(ptpmgmt_sk_t));
         SockBase *s = nullptr;
         sk->getPeerAddress = non_ptpmgmt_sk_getPeerAddress;
+        sk->isPeerAddressAbstract = non_ptpmgmt_sk_isPeerAddressAbstract;
         sk->setPeerAddress = non_ptpmgmt_sk_setPeerAddress;
+        sk->setPeerAddressA = non_ptpmgmt_sk_setPeerAddressA;
         sk->setPeerAddressCfg = non_ptpmgmt_sk_setPeerAddressCfg;
         sk->getSelfAddress = non_ptpmgmt_sk_getSelfAddress;
+        sk->isSelfAddressAbstract = non_ptpmgmt_sk_isSelfAddressAbstract;
         sk->setSelfAddress = non_ptpmgmt_sk_setSelfAddress;
+        sk->setSelfAddressA = non_ptpmgmt_sk_setSelfAddressA;
         sk->setDefSelfAddress = non_ptpmgmt_sk_setDefSelfAddress;
         sk->getHomeDir = non_ptpmgmt_sk_getHomeDir;
         sk->sendTo = non_ptpmgmt_sk_sendTo;
+        sk->sendToA = non_ptpmgmt_sk_sendToA;
         sk->rcvFrom = non_ptpmgmt_sk_rcvFrom;
         sk->rcvFromA = non_ptpmgmt_sk_rcvFromA;
         sk->getLastFrom = non_ptpmgmt_sk_getLastFrom;
+        sk->isLastFromAbstract = non_ptpmgmt_sk_isLastFromAbstract;
         sk->setIfUsingName = non_ptpmgmt_sk_setIfUsingName;
         sk->setIfUsingIndex = non_ptpmgmt_sk_setIfUsingIndex;
         sk->setIf = non_ptpmgmt_sk_setIf;
@@ -1263,16 +1348,22 @@ extern "C" {
                 if(sko == nullptr)
                     s = new SockUnix();
                 sk->getPeerAddress = ptpmgmt_sk_getPeerAddress;
+                sk->isPeerAddressAbstract = ptpmgmt_sk_isPeerAddressAbstract;
                 sk->setPeerAddress = ptpmgmt_sk_setPeerAddress;
+                sk->setPeerAddressA = ptpmgmt_sk_setPeerAddressA;
                 sk->setPeerAddressCfg = ptpmgmt_sk_setPeerAddressCfg;
                 sk->getSelfAddress = ptpmgmt_sk_getSelfAddress;
+                sk->isSelfAddressAbstract = ptpmgmt_sk_isSelfAddressAbstract;
                 sk->setSelfAddress = ptpmgmt_sk_setSelfAddress;
+                sk->setSelfAddressA = ptpmgmt_sk_setSelfAddressA;
                 sk->setDefSelfAddress = ptpmgmt_sk_setDefSelfAddress;
                 sk->getHomeDir = ptpmgmt_sk_getHomeDir;
                 sk->sendTo = ptpmgmt_sk_sendTo;
+                sk->sendToA = ptpmgmt_sk_sendToA;
                 sk->rcvFrom = ptpmgmt_sk_rcvFrom;
                 sk->rcvFromA = ptpmgmt_sk_rcvFromA;
                 sk->getLastFrom = ptpmgmt_sk_getLastFrom;
+                sk->isLastFromAbstract = ptpmgmt_sk_isLastFromAbstract;
                 break;
             case ptpmgmt_SockIp4:
                 if(sko == nullptr)

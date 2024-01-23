@@ -192,7 +192,7 @@ class SockUnix : public SockBase
   private:
     std::string m_me, m_peer, m_homeDir, m_lastFrom;
     sockaddr_un m_peerAddr;
-    bool setPeerInternal(const std::string &str);
+    bool setPeerInternal(const std::string &str, bool useAbstract);
     bool sendAny(const void *msg, size_t len, const sockaddr_un &addr) const;
     static void setUnixAddr(sockaddr_un &addr, const std::string &str);
   protected:
@@ -216,12 +216,20 @@ class SockUnix : public SockBase
      */
     const char *getPeerAddress_c() const { return m_peer.c_str(); }
     /**
+     * Is peer address abstract?
+     * @return true if peer address is abstract address
+     */
+    bool isPeerAddressAbstract() const { return isAddressAbstract(m_peer); }
+    /**
      * Set peer address
      * @param[in] string object with peer address
+     * @param[in] useAbstract use Abstract socket address
      * @return true if peer address is updated
+     * @note useAbstract add '0' byte at the start of the address
+     *       to mark it as abstract socket address
      */
-    bool setPeerAddress(const std::string &string) {
-        return setPeerInternal(string);
+    bool setPeerAddress(const std::string &string, bool useAbstract = false) {
+        return setPeerInternal(string, useAbstract);
     }
     /**
      * Set peer address using configuration file
@@ -231,7 +239,7 @@ class SockUnix : public SockBase
      * @note calling without section will fetch value from @"global@" section
      */
     bool setPeerAddress(const ConfigFile &cfg, const std::string &section = "") {
-        return setPeerInternal(cfg.uds_address(section));
+        return setPeerInternal(cfg.uds_address(section), false);
     }
     /**
      * Get self address
@@ -244,14 +252,22 @@ class SockUnix : public SockBase
      */
     const char *getSelfAddress_c() const { return m_me.c_str(); }
     /**
+     * Is self address abstract?
+     * @return true if self address is abstract address
+     */
+    bool isSelfAddressAbstract() const { return isAddressAbstract(m_me); }
+    /**
      * Set self address
      * @param[in] string object with self address
+     * @param[in] useAbstract use Abstract socket address
      * @return true if self address is updated
      * @note address can not be changed after initializing.
      *  User can close the socket, change this value, and
      *  initialize a new socket.
+     * @note useAbstract add '0' byte at the start of the address
+     *       to mark it as abstract socket address
      */
-    bool setSelfAddress(const std::string &string);
+    bool setSelfAddress(const std::string &string, bool useAbstract = false);
     /**
      * Set self address using predefined algorithm
      * @param[in] rootBase base used for root user
@@ -278,22 +294,30 @@ class SockUnix : public SockBase
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix socket address (socket file)
+     * @param[in] useAbstract use Abstract socket address
      * @return true if message is sent
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
+     * @note useAbstract add '0' byte at the start of the address
+     *       to mark it as abstract socket address
      */
-    bool sendTo(const void *msg, size_t len, const std::string &addrStr) const;
+    bool sendTo(const void *msg, size_t len, const std::string &addrStr,
+        bool useAbstract = false) const;
     /**
      * Send the message using the socket to a specific address
      * @param[in] buf object with message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix socket address (socket file)
+     * @param[in] useAbstract use Abstract socket address
      * @return true if message is sent
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
+     * @note useAbstract add '0' byte at the start of the address
+     *       to mark it as abstract socket address
      */
-    bool sendTo(Buf &buf, size_t len, const std::string &addrStr) const
-    { return sendTo(buf.get(), len, addrStr); }
+    bool sendTo(Buf &buf, size_t len, const std::string &addrStr,
+        bool useAbstract = false) const
+    { return sendTo(buf.get(), len, addrStr, useAbstract); }
     /**
      * Receive a message using the socket from any address
      * @param[in, out] buf pointer to a memory buffer
@@ -362,6 +386,27 @@ class SockUnix : public SockBase
      *  this object.
      */
     const std::string &getLastFrom() const { return m_lastFrom; }
+    /**
+     * Fetch origin address from last rcvFrom() call
+     * @return Unix socket address
+     * @note store address only on the rcvFrom() call without the from parameter
+     * @attention no protection or thread safe, fetch last rcvFrom() call with
+     *  this object.
+     */
+    const char *getLastFrom_c() const { return m_lastFrom.c_str(); }
+    /**
+     * Is last from address abstract?
+     * @return true if last from address is abstract address
+     */
+    bool isLastFromAbstract() const { return isAddressAbstract(m_lastFrom); }
+    /**
+     * Is address abstract?
+     * @param[in] addr socket address
+     * @return true if address is abstract address
+     */
+    static bool isAddressAbstract(const std::string &addr) {
+        return !addr.empty() && addr[0] == 0;
+    }
 };
 
 /**

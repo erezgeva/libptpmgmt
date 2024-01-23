@@ -19,7 +19,7 @@ TestSuite(SockIp6Test, .init = initLibSys);
 TestSuite(SockRawTest, .init = initLibSys);
 
 // Tests getHomeDir method
-// const char *getHomeDir()
+// const char *getHomeDir(ptpmgmt_sk sk)
 Test(SockUnixTest, MethodGetHomeDir)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -27,7 +27,6 @@ Test(SockUnixTest, MethodGetHomeDir)
     bool r1 = strcmp(sk->getHomeDir(sk), "/home/usr") == 0;
     useRoot(true);
     bool r2 = strcmp(sk->getHomeDir(sk), "/root") == 0;
-    sk->close(sk);
     useTestMode(false);
     cr_expect(r1);
     cr_expect(r2);
@@ -35,9 +34,8 @@ Test(SockUnixTest, MethodGetHomeDir)
 }
 
 // Tests setDefSelfAddress method
-//  bool setDefSelfAddress(const char *rootBase = "",
-//      const char *useDef = "")
-// const char *getSelfAddress()
+// bool setDefSelfAddress(ptpmgmt_sk sk, const char *rootBase, const char *useDef)
+// const char *getSelfAddress(const_ptpmgmt_sk sk)
 Test(SockUnixTest, MethodSetDefSelfAddress)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -51,7 +49,6 @@ Test(SockUnixTest, MethodSetDefSelfAddress)
     bool r6 = strcmp(sk->getSelfAddress(sk), "/var/run/pmc.111") == 0;
     bool r7 = sk->setDefSelfAddress(sk, "/r/", "/u/");
     bool r8 = strcmp(sk->getSelfAddress(sk), "/r/111") == 0;
-    sk->close(sk);
     useTestMode(false);
     cr_expect(r1);
     cr_expect(r2);
@@ -65,22 +62,25 @@ Test(SockUnixTest, MethodSetDefSelfAddress)
 }
 
 // Tests setSelfAddress method
-// bool setSelfAddress(const char *string)
+// bool setSelfAddress(ptpmgmt_sk sk, const char *string)
+// bool setSelfAddressA(ptpmgmt_sk sk, const char *string)
+// bool isSelfAddressAbstract(const_ptpmgmt_sk sk)
 Test(SockUnixTest, MethodSetSelfAddress)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
-    useTestMode(true);
-    bool r1 = sk->setSelfAddress(sk, "/tes1");
-    char *r2 = (char *)sk->getSelfAddress(sk);
-    sk->close(sk);
-    useTestMode(false);
-    cr_expect(r1);
-    cr_expect(eq(str, r2, "/tes1"));
+    cr_expect(sk->setSelfAddress(sk, "/tes1"));
+    cr_expect(eq(str, (char *)sk->getSelfAddress(sk), "/tes1"));
+    cr_expect(not(sk->isSelfAddressAbstract(sk)));
+    // Using abstract socket address
+    cr_expect(sk->setSelfAddressA(sk, "tes1"));
+    cr_expect(eq(str, (char *)sk->getSelfAddress(sk) + 1, "tes1"));
+    cr_expect(eq(str, (char *)sk->getSelfAddress(sk), "")); // First char is 0
+    cr_expect(sk->isSelfAddressAbstract(sk));
     sk->free(sk);
 }
 
 // Tests init method
-// bool init()
+// bool init(ptpmgmt_sk sk)
 Test(SockUnixTest, MethodInit)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -95,7 +95,7 @@ Test(SockUnixTest, MethodInit)
 }
 
 // Tests close method
-// void close()
+// void close(ptpmgmt_sk sk)
 Test(SockUnixTest, MethodClose)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -110,8 +110,8 @@ Test(SockUnixTest, MethodClose)
 }
 
 // Tests getFd method
-// int getFd()
-// int fileno()
+// int getFd(const_ptpmgmt_sk sk)
+// int fileno(const_ptpmgmt_sk sk)
 Test(SockUnixTest, MethodGetFd)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -130,7 +130,7 @@ Test(SockUnixTest, MethodGetFd)
 }
 
 // Tests poll method
-// bool poll(uint64_t timeout_ms = 0)
+// bool poll(ptpmgmt_sk sk, uint64_t timeout_ms)
 Test(SockUnixTest, MethodPoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -151,7 +151,7 @@ Test(SockUnixTest, MethodPoll)
 }
 
 // Tests poll method
-// bool tpoll(uint64_t *timeout_ms)
+// bool tpoll(ptpmgmt_sk sk, uint64_t *timeout_ms)
 Test(SockUnixTest, MethodTpoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -179,23 +179,26 @@ Test(SockUnixTest, MethodTpoll)
 }
 
 // Tests setPeerAddress method
-// bool setPeerAddress(const char *string)
-// const char *getPeerAddress()
+// bool setPeerAddress(ptpmgmt_sk sk, const char *string)
+// bool setPeerAddressA(ptpmgmt_sk sk, const char *string)
+// const char *getPeerAddress(ptpmgmt_sk sk)
+// bool isPeerAddressAbstract(const_ptpmgmt_sk sk)
 Test(SockUnixTest, MethodSetPeerAddress)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
-    useTestMode(true);
-    bool r1 = sk->setPeerAddress(sk, "/tes1");
-    bool r2 = strcmp(sk->getPeerAddress(sk), "/tes1") == 0;
-    sk->close(sk);
-    useTestMode(false);
-    cr_expect(r1);
-    cr_expect(r2);
+    cr_expect(sk->setPeerAddress(sk, "/tes1"));
+    cr_expect(zero(strcmp(sk->getPeerAddress(sk), "/tes1")));
+    cr_expect(not(sk->isPeerAddressAbstract(sk)));
+    // Using abstract socket address
+    cr_expect(sk->setPeerAddressA(sk, "tes1"));
+    cr_expect(eq(str, (char *)sk->getPeerAddress(sk) + 1, "tes1"));
+    cr_expect(eq(str, (char *)sk->getPeerAddress(sk), "")); // First char is 0
+    cr_expect(sk->isPeerAddressAbstract(sk));
     sk->free(sk);
 }
 
 // Tests setPeerAddressCfg method
-// bool setPeerAddressCfg(const_ptpmgmt_cfg cfg, const char *section)
+// bool setPeerAddressCfg(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg, const char *section)
 Test(SockUnixTest, MethodSetPeerAddressCfg)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -218,7 +221,7 @@ Test(SockUnixTest, MethodSetPeerAddressCfg)
 }
 
 // Tests send method
-// bool send(const void *msg, size_t len)
+// bool send(ptpmgmt_sk sk, const void *msg, size_t len)
 Test(SockUnixTest, MethodSend)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -237,24 +240,24 @@ Test(SockUnixTest, MethodSend)
 }
 
 // Tests sendTo method
-// bool sendTo(const void *msg, size_t len, const char *addrStr)
+// bool sendTo(ptpmgmt_sk sk, const void *msg, size_t len, const char *addrStr)
+// bool sendToA(ptpmgmt_sk sk, const void *msg, size_t len, const char *addrStr)
 Test(SockUnixTest, MethodSendTo)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
     useTestMode(true);
-    bool r1 = sk->setSelfAddress(sk, "/me");
-    bool r2 = sk->init(sk);
-    bool r3 = sk->sendTo(sk, "\x1\x2\x3\x4\x5", 5, "/peer");
+    cr_expect(sk->setSelfAddress(sk, "/me"));
+    cr_expect(sk->init(sk));
+    cr_expect(sk->sendTo(sk, "\x1\x2\x3\x4\x5", 5, "/peer"));
+    // Using abstract socket address
+    cr_expect(sk->sendToA(sk, "\x1\x2\x3\x4\x5", 5, "peer"));
     sk->close(sk);
     useTestMode(false);
-    cr_expect(r1);
-    cr_expect(r2);
-    cr_expect(r3);
     sk->free(sk);
 }
 
 // Tests rcv method
-// ssize_t rcv(void *buf, size_t bufSize, bool block = false)
+// ssize_t rcv(ptpmgmt_sk sk, void *buf, size_t bufSize, bool block)
 Test(SockUnixTest, MethodRcv)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
@@ -280,55 +283,48 @@ Test(SockUnixTest, MethodRcv)
 }
 
 // Tests rcvFrom method
-// ssize_t rcvFrom(void *buf, size_t bufSize, std::string &from,
-//     bool block = false)
-// ssize_t rcvFrom(void *buf, size_t bufSize, bool block = false)
-// const char *getLastFrom()
+// ssize_t rcvFrom(ptpmgmt_sk sk, void *buf, size_t bufSize, char *from,
+//     size_t *fromSize, bool block);
+// ssize_t rcvFromA(ptpmgmt_sk sk, void *buf, size_t bufSize, bool block)
+// const char *getLastFrom(ptpmgmt_sk sk)
+// bool isLastFromAbstract(const_ptpmgmt_sk sk)
 Test(SockUnixTest, MethodRcvFrom)
 {
+    uint8_t buf[10];
+    char from[30];
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
     useTestMode(true);
-    bool r1 = sk->setSelfAddress(sk, "/me");
-    bool r2 = sk->init(sk);
-    uint8_t buf[10];
-    bool r3 = sk->rcvFromA(sk, buf, sizeof buf, false) == 5;
-    bool r4 = memcmp(buf, "\x2\x4\x5\x6\x7", 5) == 0;
-    bool r5 = strcmp(sk->getLastFrom(sk), "/peer") == 0;
-    bool r6 = sk->rcvFromA(sk, buf, sizeof buf, true) == 5;
-    bool r7 = memcmp(buf, "\x1\x4\x5\x6\x7", 5) == 0;
-    bool r8 = strcmp(sk->getLastFrom(sk), "/peer") == 0;
-    char from[30];
-    bool r9 = sk->rcvFrom(sk, buf, sizeof buf, from, sizeof from, false) == 5;
-    bool r10 = memcmp(buf, "\x2\x4\x5\x6\x7", 5) == 0;
-    bool r11 = strcmp(from, "/peer") == 0;
-    bool r12 = sk->rcvFrom(sk, buf, sizeof buf, from, sizeof from, true) == 5;
-    bool r13 = memcmp(buf, "\x1\x4\x5\x6\x7", 5) == 0;
-    bool r14 = strcmp(from, "/peer") == 0;
+    cr_expect(sk->setSelfAddress(sk, "/me"));
+    cr_expect(sk->init(sk));
+    cr_expect(sk->rcvFromA(sk, buf, sizeof buf, false) == 5);
+    cr_expect(zero(memcmp(buf, "\x2\x4\x5\x6\x7", 5)));
+    cr_expect(zero(strcmp(sk->getLastFrom(sk), "/peer")));
+    cr_expect(not(sk->isLastFromAbstract(sk)));
+    cr_expect(sk->rcvFromA(sk, buf, sizeof buf, true) == 5);
+    cr_expect(zero(memcmp(buf, "\x1\x4\x5\x6\x7", 5)));
+    cr_expect(zero(strcmp(sk->getLastFrom(sk), "/peer")));
+    cr_expect(not(sk->isLastFromAbstract(sk)));
+    size_t fromSize = sizeof from;
+    cr_expect(sk->rcvFrom(sk, buf, sizeof buf, from, &fromSize, false) == 5);
+    cr_expect(zero(memcmp(buf, "\x2\x4\x5\x6\x7", 5)));
+    cr_expect(zero(strcmp(from, "/peer")));
+    cr_expect(eq(sz, fromSize, 5));
+    fromSize = sizeof from;
+    cr_expect(sk->rcvFrom(sk, buf, sizeof buf, from, &fromSize, true) == 5);
+    cr_expect(zero(memcmp(buf, "\x1\x4\x5\x6\x7", 5)));
+    cr_expect(zero(strcmp(from, "/peer")));
+    cr_expect(eq(sz, fromSize, 5));
     sk->close(sk);
-    useTestMode(false);
-    cr_expect(r1);
-    cr_expect(r2);
-    cr_expect(r3);
-    cr_expect(r4);
-    cr_expect(r5);
-    cr_expect(r6);
-    cr_expect(r7);
-    cr_expect(r8);
-    cr_expect(r9);
-    cr_expect(r10);
-    cr_expect(r11);
-    cr_expect(r12);
-    cr_expect(r13);
-    cr_expect(r14);
     sk->free(sk);
+    useTestMode(false);
 }
 
 // Tests setIfUsingIndex method
-// bool setIfUsingIndex(int ifIndex)
-// bool setUdpTtl(uint8_t udp_ttl)
-// bool init()
-// int getFd()
-// int fileno()
+// bool setIfUsingIndex(ptpmgmt_sk sk, int ifIndex)
+// bool setUdpTtl(ptpmgmt_sk sk, uint8_t udp_ttl)
+// bool init(ptpmgmt_sk sk)
+// int getFd(const_ptpmgmt_sk sk)
+// int fileno(const_ptpmgmt_sk sk)
 Test(SockIp4Test, MethodSetIfUsingIndex)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -349,8 +345,8 @@ Test(SockIp4Test, MethodSetIfUsingIndex)
 }
 
 // Tests setIfUsingName method
-// bool setIfUsingName(const char *ifName)
-// void close()
+// bool setIfUsingName(ptpmgmt_sk sk, const char *ifName)
+// void close(ptpmgmt_sk sk)
 Test(SockIp4Test, MethodSetIfUsingName)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -367,7 +363,7 @@ Test(SockIp4Test, MethodSetIfUsingName)
 }
 
 // Tests setIf method
-// bool setIf(const_ptpmgmt_ifInfo ifObj)
+// bool setIf(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj)
 Test(SockIp4Test, MethodSetIf)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -387,7 +383,7 @@ Test(SockIp4Test, MethodSetIf)
 }
 
 // Tests setUdpTtl method
-// bool setUdpTtl(const_ptpmgmt_cfg cfg, const char *section)
+// bool setUdpTtl(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg, const char *section)
 Test(SockIp4Test, MethodSetUdpTtl)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -410,8 +406,8 @@ Test(SockIp4Test, MethodSetUdpTtl)
 }
 
 // Tests setAll method
-// bool setAll(const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
-//     const char *section) => setAll(i, f, "dumm")
+// bool setAll(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
+//     const char *section)
 Test(SockIp4Test, MethodSetAll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -432,8 +428,8 @@ Test(SockIp4Test, MethodSetAll)
 }
 
 // Tests setAllInit method
-// bool setAllInit(const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
-//     const char *section) => setAllInit(i, f, "dumm")
+// bool setAllInit(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj,
+//     const_ptpmgmt_cfg cfg, const char *section)
 Test(SockIp4Test, MethodSetAllInit)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -452,7 +448,7 @@ Test(SockIp4Test, MethodSetAllInit)
 }
 
 // Tests poll method
-// bool poll(uint64_t timeout_ms = 0)
+// bool poll(ptpmgmt_sk sk, uint64_t timeout_ms)
 Test(SockIp4Test, MethodPoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -475,7 +471,7 @@ Test(SockIp4Test, MethodPoll)
 }
 
 // Tests poll method
-// bool tpoll(uint64_t &timeout_ms)
+// bool tpoll(ptpmgmt_sk sk, uint64_t *timeout_ms)
 Test(SockIp4Test, MethodTpoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -505,7 +501,7 @@ Test(SockIp4Test, MethodTpoll)
 }
 
 // Tests send method
-// bool send(const void *msg, size_t len)
+// bool send(ptpmgmt_sk sk, const void *msg, size_t len)
 Test(SockIp4Test, MethodSend)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -524,7 +520,7 @@ Test(SockIp4Test, MethodSend)
 }
 
 // Tests rcv method
-// ssize_t rcv(void *buf, size_t bufSize, bool block = false)
+// ssize_t rcv(ptpmgmt_sk sk, void *buf, size_t bufSize, bool block)
 Test(SockIp4Test, MethodRcv)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp4);
@@ -550,12 +546,12 @@ Test(SockIp4Test, MethodRcv)
 }
 
 // Tests setIfUsingIndex method
-// bool setIfUsingIndex(int ifIndex)
-// bool setUdpTtl(uint8_t udp_ttl)
-// bool setScope(uint8_t udp6_scope)
-// bool init()
-// int getFd()
-// int fileno()
+// bool setIfUsingIndex(ptpmgmt_sk sk, int ifIndex)
+// bool setUdpTtl(ptpmgmt_sk sk, uint8_t udp_ttl)
+// bool setScope(ptpmgmt_sk sk, uint8_t udp6_scope)
+// bool init(ptpmgmt_sk sk)
+// int getFd(const_ptpmgmt_sk sk)
+// int fileno(const_ptpmgmt_sk sk)
 Test(SockIp6Test, MethodSetIfUsingIndex)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -578,8 +574,8 @@ Test(SockIp6Test, MethodSetIfUsingIndex)
 }
 
 // Tests setIfUsingName method
-// bool setIfUsingName(const char *ifName)
-// void close()
+// bool setIfUsingName(ptpmgmt_sk sk, const char *ifName)
+// void close(ptpmgmt_sk sk)
 Test(SockIp6Test, MethodSetIfUsingName)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -598,7 +594,7 @@ Test(SockIp6Test, MethodSetIfUsingName)
 }
 
 // Tests setIf method
-// bool setIf(const_ptpmgmt_ifInfo ifObj)
+// bool setIf(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj)
 Test(SockIp6Test, MethodSetIf)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -620,8 +616,8 @@ Test(SockIp6Test, MethodSetIf)
 }
 
 // Tests setUdpTtl method
-// bool setUdpTtl(const_ptpmgmt_cfg cfg, const char *section)
-// bool setScope(const_ptpmgmt_cfg cfg, const char *section)
+// bool setUdpTtl(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg, const char *section)
+// bool setScope(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg, const char *section)
 Test(SockIp6Test, MethodSetUdpTtl)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -646,7 +642,7 @@ Test(SockIp6Test, MethodSetUdpTtl)
 }
 
 // Tests setAll method
-// bool setAll(const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
+// bool setAll(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
 //     const char *section)
 Test(SockIp6Test, MethodSetAll)
 {
@@ -668,8 +664,8 @@ Test(SockIp6Test, MethodSetAll)
 }
 
 // Tests setAllInit method
-// bool setAllInit(const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
-//     const char *section)
+// bool setAllInit(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj,
+//     const_ptpmgmt_cfg cfg, const char *section)
 Test(SockIp6Test, MethodSetAllInit)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -688,7 +684,7 @@ Test(SockIp6Test, MethodSetAllInit)
 }
 
 // Tests poll method
-// bool poll(uint64_t timeout_ms = 0)
+// bool poll(ptpmgmt_sk sk, uint64_t timeout_ms)
 Test(SockIp6Test, MethodPoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -713,7 +709,7 @@ Test(SockIp6Test, MethodPoll)
 }
 
 // Tests poll method
-// bool tpoll(uint64_t &timeout_ms)
+// bool tpoll(ptpmgmt_sk sk, uint64_t *timeout_ms)
 Test(SockIp6Test, MethodTpoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -745,7 +741,7 @@ Test(SockIp6Test, MethodTpoll)
 }
 
 // Tests send method
-// bool send(const void *msg, size_t len)
+// bool send(ptpmgmt_sk sk, const void *msg, size_t len)
 Test(SockIp6Test, MethodSend)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -766,7 +762,7 @@ Test(SockIp6Test, MethodSend)
 }
 
 // Tests rcv method
-// ssize_t rcv(void *buf, size_t bufSize, bool block = false)
+// ssize_t rcv(ptpmgmt_sk sk, void *buf, size_t bufSize, bool block)
 Test(SockIp6Test, MethodRcv)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockIp6);
@@ -794,12 +790,12 @@ Test(SockIp6Test, MethodRcv)
 }
 
 // Tests setIfUsingIndex method
-// bool setIfUsingIndex(int ifIndex)
-// bool setPtpDstMac(const uint8_t *ptp_dst_mac, size_t len)
-// bool setSocketPriority(uint8_t socket_priority)
-// bool init()
-// int getFd()
-// int fileno()
+// bool setIfUsingIndex(ptpmgmt_sk sk, int ifIndex)
+// bool setPtpDstMac(ptpmgmt_sk sk, const uint8_t *ptp_dst_mac, size_t len)
+// bool setSocketPriority(ptpmgmt_sk sk, uint8_t socket_priority)
+// bool init(ptpmgmt_sk sk)
+// int getFd(const_ptpmgmt_sk sk)
+// int fileno(const_ptpmgmt_sk sk)
 Test(SockRawTest, MethodSetIfUsingIndex)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -823,9 +819,9 @@ Test(SockRawTest, MethodSetIfUsingIndex)
 }
 
 // Tests setIfUsingName method
-// bool setIfUsingName(const char *ifName)
-// bool setPtpDstMac(const uint8_t *ptp_dst_mac, size_t len)
-// void close()
+// bool setIfUsingName(ptpmgmt_sk sk, const char *ifName)
+// bool setPtpDstMac(ptpmgmt_sk sk, const uint8_t *ptp_dst_mac, size_t len)
+// void close(ptpmgmt_sk sk)
 Test(SockRawTest, MethodSetIfUsingName)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -845,7 +841,7 @@ Test(SockRawTest, MethodSetIfUsingName)
 }
 
 // Tests setPtpDstMacStr method
-// bool setPtpDstMacStr(const char *string)
+// bool setPtpDstMacStr(ptpmgmt_sk sk, const char *string)
 Test(SockRawTest, MethodSetPtpDstMacStr)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -864,7 +860,7 @@ Test(SockRawTest, MethodSetPtpDstMacStr)
 }
 
 // Tests setIf method
-// bool setIf(const_ptpmgmt_ifInfo ifObj)
+// bool setIf(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj)
 Test(SockRawTest, MethodSetIf)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -886,8 +882,8 @@ Test(SockRawTest, MethodSetIf)
 }
 
 // Tests setPtpDstMac method
-// bool setPtpDstMac(const_ptpmgmt_cfg cfg, const char *section)
-// bool setSocketPriority(const_ptpmgmt_cfg cfg, const char *section)
+// bool setPtpDstMac(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg, const char *section)
+// bool setSocketPriority(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg, const char *section)
 Test(SockRawTest, setPtpDstMac)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -909,7 +905,7 @@ Test(SockRawTest, setPtpDstMac)
 }
 
 // Tests setAll method
-// bool setAll(const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
+// bool setAll(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
 //     const char *section)
 Test(SockRawTest, MethodSetAll)
 {
@@ -931,8 +927,8 @@ Test(SockRawTest, MethodSetAll)
 }
 
 // Tests setAllInit method
-// bool setAllInit(const_ptpmgmt_ifInfo ifObj, const_ptpmgmt_cfg cfg,
-//     const char *section)
+// bool setAllInit(ptpmgmt_sk sk, const_ptpmgmt_ifInfo ifObj,
+//     const_ptpmgmt_cfg cfg, const char *section)
 Test(SockRawTest, MethodSetAllInit)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -951,7 +947,7 @@ Test(SockRawTest, MethodSetAllInit)
 }
 
 // Tests poll method
-// bool poll(uint64_t timeout_ms = 0)
+// bool poll(ptpmgmt_sk sk, uint64_t timeout_ms)
 Test(SockRawTest, MethodPoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -976,7 +972,7 @@ Test(SockRawTest, MethodPoll)
 }
 
 // Tests poll method
-// bool tpoll(uint64_t &timeout_ms)
+// bool tpoll(ptpmgmt_sk sk, uint64_t *timeout_ms)
 Test(SockRawTest, MethodTpoll)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -1008,7 +1004,7 @@ Test(SockRawTest, MethodTpoll)
 }
 
 // Tests send method
-// bool send(const void *msg, size_t len)
+// bool send(ptpmgmt_sk sk, const void *msg, size_t len)
 Test(SockRawTest, MethodSend)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);
@@ -1029,7 +1025,7 @@ Test(SockRawTest, MethodSend)
 }
 
 // Tests rcv method
-// ssize_t rcv(void *buf, size_t bufSize, bool block = false)
+// ssize_t rcv(ptpmgmt_sk sk, void *buf, size_t bufSize, bool block)
 Test(SockRawTest, MethodRcv)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockRaw);

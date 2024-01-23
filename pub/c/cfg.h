@@ -26,7 +26,6 @@ typedef const struct ptpmgmt_cfg_t *const_ptpmgmt_cfg;
 /**
  * The ptpmgmt configuration structure hold the configuration object
  *  and call backs to call C++ methods
- * @note: C interface
  */
 struct ptpmgmt_cfg_t {
     /**< @cond internal */
@@ -36,7 +35,6 @@ struct ptpmgmt_cfg_t {
     /**
      * Free a configuration object
      * @param[in] cfg configuration object to free
-     * @note: C interface
      */
     void (*free)(ptpmgmt_cfg cfg);
     /**
@@ -44,7 +42,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] cfg configuration object
      * @param[in] file name with path
      * @return true if parse success
-     * @note: C interface
      */
     bool (*read_cfg)(ptpmgmt_cfg cfg, const char *file);
     /**
@@ -53,7 +50,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return value
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     uint8_t (*transportSpecific)(const_ptpmgmt_cfg cfg, const char *section);
     /**
@@ -62,7 +58,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return value
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     uint8_t (*domainNumber)(const_ptpmgmt_cfg cfg, const char *section);
     /**
@@ -71,7 +66,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return value
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     uint8_t (*udp6_scope)(const_ptpmgmt_cfg cfg, const char *section);
     /**
@@ -80,7 +74,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return value
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     uint8_t (*udp_ttl)(const_ptpmgmt_cfg cfg, const char *section);
     /**
@@ -89,7 +82,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return value
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     uint8_t (*socket_priority)(const_ptpmgmt_cfg cfg, const char *section);
     /**
@@ -98,7 +90,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return value
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     uint8_t (*network_transport)(const_ptpmgmt_cfg cfg, const char *section);
     /**
@@ -107,7 +98,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return null terminated string witg UDS address
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     const char *(*uds_address)(const_ptpmgmt_cfg cfg, const char *section);
     /**
@@ -117,7 +107,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return pointer to binary mac address or null
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     const void *(*ptp_dst_mac)(const_ptpmgmt_cfg cfg, size_t *len,
         const char *section);
@@ -128,7 +117,6 @@ struct ptpmgmt_cfg_t {
      * @param[in] section (optional)
      * @return pointer to binary mac address or null
      * @note calling with null section will fetch value from @"global@" section
-     * @note: C interface
      */
     const void *(*p2p_dst_mac)(const_ptpmgmt_cfg cfg, size_t *len,
         const char *section);
@@ -137,7 +125,6 @@ struct ptpmgmt_cfg_t {
 /**
  * Allocate new configuration structure
  * @return new configuration structure or null on error
- * @note: C interface
  */
 ptpmgmt_cfg ptpmgmt_cfg_alloc();
 

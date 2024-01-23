@@ -60,11 +60,28 @@ TEST_F(SockUnixTest, MethodSetDefSelfAddress)
 
 // Tests setSelfAddress method
 // bool setSelfAddress(const std::string &string)
+// bool isSelfAddressAbstract() const
 TEST_F(SockUnixTest, MethodSetSelfAddress)
 {
     EXPECT_TRUE(setSelfAddress("/tes1"));
     EXPECT_STREQ(getSelfAddress().c_str(), "/tes1");
     EXPECT_STREQ(getSelfAddress_c(), "/tes1");
+    EXPECT_FALSE(isSelfAddressAbstract());
+    // Using abstract socket address
+    EXPECT_TRUE(setSelfAddress(std::string(1, '\0') + "tes1"));
+    EXPECT_STREQ(getSelfAddress().c_str() + 1, "tes1");
+    EXPECT_STREQ(getSelfAddress_c() + 1, "tes1");
+    EXPECT_TRUE(getSelfAddress() == std::string(1, '\0') + "tes1");
+    EXPECT_STREQ(getSelfAddress().c_str(), ""); // First char is 0
+    EXPECT_STREQ(getSelfAddress_c(), ""); // First char is 0
+    EXPECT_TRUE(isSelfAddressAbstract());
+    EXPECT_TRUE(setSelfAddress("tes1", true));
+    EXPECT_STREQ(getSelfAddress().c_str() + 1, "tes1");
+    EXPECT_STREQ(getSelfAddress_c() + 1, "tes1");
+    EXPECT_TRUE(getSelfAddress() == std::string(1, '\0') + "tes1");
+    EXPECT_STREQ(getSelfAddress().c_str(), ""); // First char is 0
+    EXPECT_STREQ(getSelfAddress_c(), ""); // First char is 0
+    EXPECT_TRUE(isSelfAddressAbstract());
 }
 
 // Tests init method
@@ -126,11 +143,28 @@ TEST_F(SockUnixTest, MethodTpoll)
 // bool setPeerAddress(const std::string &string)
 // const char *getPeerAddress_c() const
 // const std::string &getPeerAddress() const
+// bool isPeerAddressAbstract()
 TEST_F(SockUnixTest, MethodSetPeerAddress)
 {
     EXPECT_TRUE(setPeerAddress("/tes1"));
     EXPECT_STREQ(getPeerAddress_c(), "/tes1");
     EXPECT_STREQ(getPeerAddress().c_str(), "/tes1");
+    EXPECT_FALSE(isPeerAddressAbstract());
+    // Using abstract socket address
+    EXPECT_TRUE(setPeerAddress(std::string(1, '\0') + "tes1"));
+    EXPECT_STREQ(getPeerAddress().c_str() + 1, "tes1");
+    EXPECT_STREQ(getPeerAddress_c() + 1, "tes1");
+    EXPECT_TRUE(getPeerAddress() == std::string(1, '\0') + "tes1");
+    EXPECT_STREQ(getPeerAddress().c_str(), ""); // First char is 0
+    EXPECT_STREQ(getPeerAddress_c(), ""); // First char is 0
+    EXPECT_TRUE(isPeerAddressAbstract());
+    EXPECT_TRUE(setPeerAddress("tes1", true));
+    EXPECT_STREQ(getPeerAddress().c_str() + 1, "tes1");
+    EXPECT_STREQ(getPeerAddress_c() + 1, "tes1");
+    EXPECT_TRUE(getPeerAddress() == std::string(1, '\0') + "tes1");
+    EXPECT_STREQ(getPeerAddress().c_str(), ""); // First char is 0
+    EXPECT_STREQ(getPeerAddress_c(), ""); // First char is 0
+    EXPECT_TRUE(isPeerAddressAbstract());
 }
 
 // Tests setPeerAddress method
@@ -176,6 +210,9 @@ TEST_F(SockUnixTest, MethodSendTo)
     EXPECT_TRUE(setSelfAddress("/me"));
     EXPECT_TRUE(init());
     EXPECT_TRUE(sendTo("\x1\x2\x3\x4\x5", 5, "/peer"));
+    // Using abstract socket address
+    EXPECT_TRUE(sendTo("\x1\x2\x3\x4\x5", 5, "peer", true));
+    EXPECT_TRUE(sendTo("\x1\x2\x3\x4\x5", 5, std::string(1, '\0') + "peer"));
 }
 
 // Tests sendTo with Buf method
@@ -227,6 +264,8 @@ TEST_F(SockUnixTest, MethodRcvBuf)
 //     bool block = false) const
 // ssize_t rcvFrom(void *buf, size_t bufSize, bool block = false)
 // const std::string &getLastFrom() const
+// const char *getLastFrom_c() const
+// bool isLastFromAbstract() const
 TEST_F(SockUnixTest, MethodRcvFrom)
 {
     EXPECT_TRUE(setSelfAddress("/me"));
@@ -235,9 +274,13 @@ TEST_F(SockUnixTest, MethodRcvFrom)
     EXPECT_EQ(rcvFrom(buf, sizeof buf), 5);
     EXPECT_EQ(memcmp(buf, "\x2\x4\x5\x6\x7", 5), 0);
     EXPECT_STREQ(getLastFrom().c_str(), "/peer");
+    EXPECT_STREQ(getLastFrom_c(), "/peer");
+    EXPECT_FALSE(isLastFromAbstract());
     EXPECT_EQ(rcvFrom(buf, sizeof buf, true), 5);
     EXPECT_EQ(memcmp(buf, "\x1\x4\x5\x6\x7", 5), 0);
     EXPECT_STREQ(getLastFrom().c_str(), "/peer");
+    EXPECT_STREQ(getLastFrom_c(), "/peer");
+    EXPECT_FALSE(isLastFromAbstract());
     std::string from;
     EXPECT_EQ(rcvFrom(buf, sizeof buf, from), 5);
     EXPECT_EQ(memcmp(buf, "\x2\x4\x5\x6\x7", 5), 0);

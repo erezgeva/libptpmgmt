@@ -18,26 +18,22 @@
 /**
  * Get this library version
  * @return this library version
- * @note: C interface
  */
 const char *ptpmgmt_getVersion();
 /**
  * Get this library major version
  * @return this library version major
- * @note: C interface
  */
 int ptpmgmt_getVersionMajor();
 /**
  * Get this library minor version
  * @return this library version minor
- * @note: C interface
  */
 int ptpmgmt_getVersionMinor();
 /**
  * Get this library version in 16 bits value
  * @return this library version value
  * @note version value use high byte for major and low byte for minor
- * @note: C interface
  */
 unsigned ptpmgmt_getVersionValue();
 

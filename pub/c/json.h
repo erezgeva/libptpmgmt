@@ -43,7 +43,6 @@ char *ptpmgmt_json_tlv2json(enum ptpmgmt_mng_vals_e managementId,
 /**
  * The ptpmgmt message structure hold the json object
  *  and call backs to call C++ methods
- * @note: C interface
  */
 struct ptpmgmt_json_t {
     /**< @cond internal */
@@ -57,7 +56,6 @@ struct ptpmgmt_json_t {
     /**
      * Free json object
      * @param[in] j json object
-     * @note: C interface
      */
     void (*free)(ptpmgmt_json j);
     /**
@@ -240,7 +238,6 @@ bool ptpmgmt_json_isLibShared();
 /**
  * Alocate new json structure
  * @return new json structure or null in case of error
- * @note: C interface
  */
 ptpmgmt_json ptpmgmt_json_alloc();
 

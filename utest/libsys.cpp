@@ -191,9 +191,8 @@ static inline clockid_t fd_to_clockid(int fd)
 {
     return (~(clockid_t)(fd) << 3) | 3;
 }
-#define cmp_addr(n) if(addrlen != sizeof n || addr == nullptr ||\
-    memcmp(addr, n, sizeof n) != 0)\
-    return retErr(EINVAL);break
+#define cmp_addr(n) if(addrlen == sizeof n && addr != nullptr &&\
+    memcmp(addr, n, sizeof n) == 0){break;}
 #define cmp_paddr(n) if(addrlen == sizeof n && memcmp(addr, n, sizeof n) == 0)\
         return 0
 #define cmp_opt(n) if(optlen != sizeof n || optval == nullptr ||\
@@ -426,6 +425,7 @@ ssize_t recvfrom(int fd, void *buf, size_t len, int flags, sockaddr *src_addr,
     return recvFill(buf, len, flags);
 }
 const uint8_t ua_addr_s[110] = { 1, 0, 47, 112, 101, 101, 114 };
+const uint8_t ua_addr_s2[110] = { 1, 0, 0, 112, 101, 101, 114 };
 const uint8_t ip_addr_s[16] = { 2, 0, 1, 64, 224, 0, 1, 129 };
 const uint8_t ip6_addr_s[28] = { 10, 0, 1, 64, 0, 0, 0, 0, 255, 15, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 129
@@ -440,11 +440,15 @@ ssize_t sendto(int fd, const void *buf, size_t len, int flags,
         return retErr(ECONNRESET);
     switch(fdesc[fd].domain) {
         case AF_UNIX:
-            cmp_addr(ua_addr_s);
+            cmp_addr(ua_addr_s)
+            cmp_addr(ua_addr_s2)
+            return retErr(EINVAL);
         case AF_INET:
-            cmp_addr(ip_addr_s);
+            cmp_addr(ip_addr_s)
+            return retErr(EINVAL);
         case AF_INET6:
-            cmp_addr(ip6_addr_s);
+            cmp_addr(ip6_addr_s)
+            return retErr(EINVAL);
         case AF_PACKET:
             return retErr(EINVAL);
     }

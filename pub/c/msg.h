@@ -27,7 +27,6 @@ typedef const struct ptpmgmt_msg_t *const_ptpmgmt_msg;
 /**
  * The ptpmgmt message structure hold the message object
  *  and call backs to call C++ methods
- * @note: C interface
  */
 struct ptpmgmt_msg_t {
     /**< @cond internal */
@@ -48,7 +47,6 @@ struct ptpmgmt_msg_t {
     /**
      * Free msg object
      * @param[in] m msg object
-     * @note: C interface
      */
     void (*free)(ptpmgmt_msg m);
     /**
@@ -697,7 +695,6 @@ bool ptpmgmt_msg_isEmpty(enum ptpmgmt_mng_vals_e id);
 /**
  * Alocate new message structure
  * @return new message structure or null in case of error
- * @note: C interface
  */
 ptpmgmt_msg ptpmgmt_msg_alloc();
 
@@ -705,7 +702,6 @@ ptpmgmt_msg ptpmgmt_msg_alloc();
  * Alocate new message structure with parameters
  * @param[in] prms ptpmgmt_MsgParams
  * @return new message structure or null in case of error
- * @note: C interface
  */
 ptpmgmt_msg ptpmgmt_msg_alloc_prms(ptpmgmt_cpMsgParams prms);
 
