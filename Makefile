@@ -413,8 +413,10 @@ format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	test -z "$$r" || echo "$$r";./tools/format.pl $^
 	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
 ifneq ($(CPPCHECK),)
+	$(SED) -i 's@^#error@// #error@' $(PUB)/*.h
 	$(CPPCHECK) --quiet --language=c++ --error-exitcode=-1\
 	  $(filter-out $(EXTRA_C_SRCS) $(addprefix $(SRC)/,ids.h proc.cpp),$^)
+	$(SED) -i 's@^// #error@#error@' $(PUB)/*.h
 endif
 endif # ASTYLEMINVER && PERL5TOUCH
 
