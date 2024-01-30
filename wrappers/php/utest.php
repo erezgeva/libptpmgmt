@@ -105,4 +105,4 @@ final class utest extends TestCase
       $this->assertEquals(0, $this->build->run, "shouldn't call PRIORITY1 callback");
     }
 }
-# LD_PRELOAD=../libptpmgmt.so PHPRC=. phpunit ./utest.php
+# LD_PRELOAD=../../libptpmgmt.so PHPRC=. phpunit ./utest.php

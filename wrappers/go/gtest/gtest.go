@@ -38,17 +38,20 @@ func (self *myDisp) USER_DESCRIPTION_h(msg ptpmgmt.Message,
 }
 
 type myBuild struct { // Implement ptpmgmt.MessageBuilder
+  msg ptpmgmt.Message
+  tlv ptpmgmt.BaseMngTlv
   newPriority1 byte
 }
-func (self *myBuild) BuildTlv(msg ptpmgmt.Message,
-                             actionField ptpmgmt.ActionField_e,
-                             tlv_id ptpmgmt.Mng_vals_e) bool {
-  return ptpmgmt.MessageBuilderBuildTlv(self, msg, actionField, tlv_id)
+func (self *myBuild) BuildTlv(actionField ptpmgmt.ActionField_e,
+                              tlv_id ptpmgmt.Mng_vals_e) bool {
+  return ptpmgmt.MessageBuilderBuildTlv(self, self.msg, actionField, tlv_id)
 }
-func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message) ptpmgmt.BaseMngTlv {
-  tlv := ptpmgmt.NewPRIORITY1_t()
+func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message,
+                                 bTlv ptpmgmt.BaseMngTlv) bool {
+  tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
   tlv.SetPriority1(self.newPriority1)
-  return tlv
+  self.tlv = bTlv
+  return true
 }
 
 const DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
@@ -58,7 +61,6 @@ var msg ptpmgmt.Message = ptpmgmt.NewMessage()
 var buf ptpmgmt.Buf = ptpmgmt.NewBuf(int64(1000))
 var opt ptpmgmt.Options = ptpmgmt.NewOptions()
 var dispacher = new(myDisp)
-var builder = new(myBuild)
 var sequence uint16 = 0
 
 func printError(msg string) int {
@@ -80,13 +82,15 @@ func nextSequence() uint16 {
 }
 
 func setPriority1(newPriority1 byte) int {
-  useBuild := true
+  builder := myBuild{ msg: msg }
+  const useBuild = true
   id := ptpmgmt.PRIORITY1
   if (useBuild) {
     builder.newPriority1 = newPriority1
-    if builder.BuildTlv(msg, ptpmgmt.SET, id) {
-      /* Nake sure Message object remove the reference to the TLV */
-      defer msg.ClearData()
+    if builder.BuildTlv(ptpmgmt.SET, id) {
+      /* Nake sure Message object remove the reference to the TLV
+         And delete the alocated TLV */
+      defer ptpmgmt.MessageBuilderFree(msg, builder.tlv)
     }
   } else {
     pr1 := ptpmgmt.NewPRIORITY1_t()
@@ -280,4 +284,4 @@ func main() {
   ptpmgmt.DeleteOptions(opt)
 }
 
-// LD_PRELOAD=../libptpmgmt.so gtest/gtest
+// LD_PRELOAD=../../libptpmgmt.so gtest/gtest

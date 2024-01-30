@@ -16,7 +16,7 @@ import (
   "testing"
 )
 
-// Implement ptpmgmt.MessageDispatcher interface
+// Implement ptpmgmt.MessageDispatcher
 type myDisp struct {
   priority1 byte
   funcVal int
@@ -48,23 +48,25 @@ func (self *myDisp) NoTlvCallBack(msg ptpmgmt.Message, tlv_id string) {
 
 // Implement ptpmgmt.MessageBuilder
 type myBuild struct {
+  msg ptpmgmt.Message
+  tlv ptpmgmt.BaseMngTlv
   run int
 }
-func (self *myBuild) BuildTlv(msg ptpmgmt.Message,
-                             actionField ptpmgmt.ActionField_e,
-                             tlv_id ptpmgmt.Mng_vals_e) bool {
-  return ptpmgmt.MessageBuilderBuildTlv(self, msg, actionField, tlv_id)
+func (self *myBuild) BuildTlv(actionField ptpmgmt.ActionField_e,
+                              tlv_id ptpmgmt.Mng_vals_e) bool {
+  return ptpmgmt.MessageBuilderBuildTlv(self, self.msg, actionField, tlv_id)
 }
-func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message) ptpmgmt.BaseMngTlv {
-  tlv := ptpmgmt.NewPRIORITY1_t()
+func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message,
+                                 bTlv ptpmgmt.BaseMngTlv) bool {
+  tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
   self.run = 1
   tlv.SetPriority1(117)
-  return tlv.SwigGetBaseMngTlv()
+  self.tlv = bTlv
+  return true
 }
 
 var msg ptpmgmt.Message = ptpmgmt.NewMessage()
-var disp = new(myDisp)
-var build = new(myBuild)
+var disp myDisp
 
 // Tests CallHadler with empty TLV
 func TestParsedCallHadlerEmptyTLV(t *testing.T) {
@@ -90,7 +92,7 @@ func TestParsedCallHadlerTLV(t *testing.T) {
   defer msg.ClearData()
   defer ptpmgmt.DeletePRIORITY1_t(tlv)
   tlv.SetPriority1(117)
-  disp.CallHadler(msg, ptpmgmt.PRIORITY1, tlv) // .SwigGetBaseMngTlv())
+  disp.CallHadler(msg, ptpmgmt.PRIORITY1, tlv)
   if disp.funcVal != 1 {
     t.Errorf("TestParsedCallHadlerTLV wrong funcVal %d; did not call PRIORITY1_h",
              disp.funcVal)
@@ -129,9 +131,11 @@ func TestParsedCallHadlerTLVNoCallback(t *testing.T) {
 
 // Tests build empty TLV
 func TestBuildEmptyTLV(t *testing.T) {
-  build.run = 0
-  if build.BuildTlv(msg, ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT) {
-    defer msg.ClearData()
+  build := myBuild{
+    msg: msg,
+    run: 0 }
+  if build.BuildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT) {
+    defer ptpmgmt.MessageBuilderFree(msg, build.tlv)
   } else {
     t.Errorf("TestBuildEmptyTLV build fail")
   }
@@ -142,9 +146,11 @@ func TestBuildEmptyTLV(t *testing.T) {
 
 // Tests build TLV
 func TestBuildTLV(t *testing.T) {
-  build.run = 0
-  if build.BuildTlv(msg, ptpmgmt.SET, ptpmgmt.PRIORITY1) {
-    defer msg.ClearData()
+  build := myBuild{
+    msg: msg,
+    run: 0 }
+  if build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
+    defer ptpmgmt.MessageBuilderFree(msg, build.tlv)
   } else {
     t.Errorf("TestBuildTLV fail")
   }
@@ -155,9 +161,11 @@ func TestBuildTLV(t *testing.T) {
 
 // Tests build TLV that lack callback
 func TestBuildTLVNoCallback(t *testing.T) {
-  build.run = 0
-  if build.BuildTlv(msg, ptpmgmt.SET, ptpmgmt.PRIORITY2) {
-    defer msg.ClearData()
+  build := myBuild{
+    msg: msg,
+    run: 0 }
+  if build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2) {
+    defer ptpmgmt.MessageBuilderFree(msg, build.tlv)
     t.Errorf("TestBuildTLVNoCallback build should return false")
   }
   if build.run != 0 {

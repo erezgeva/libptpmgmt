@@ -9,18 +9,40 @@
  */
 
 %go_import("reflect")
+%{
+BaseMngTlv *allocTlv(mng_vals_e id) {
+  switch(id) {
+#define _ptpmCaseUF(n) case n: return new n##_t;
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+#include "ids.h"
+    default:
+      break;
+  }
+  return nullptr;
+}
+void freeTlv(BaseMngTlv *tlv) {
+  if (tlv != nullptr)
+    delete tlv;
+}
+%}
+
+BaseMngTlv *allocTlv(mng_vals_e);
+void freeTlv(BaseMngTlv *tlv);
 
 %insert(go_wrapper) %{
-type MessageDispatcher interface {
+type MessageDispatcherIf interface {
+  /* Call MessageDispatcherCallHadler() with proper struct using the interface */
   CallHadler(msg Message, a ...interface{})
 }
 type MessageDispatcherNoTlvCallBack interface {
+  /* Optional callback called in case a tlv do not have a callback */
   NoTlvCallBack(msg Message, tlv_id string)
 }
 type MessageDispatcherNoTlv interface {
+  /* Optional callback called in case there is not TLV */
   NoTlv(msg Message)
 }
-func MessageDispatcherCallHadler(self MessageDispatcher, msg Message,
+func MessageDispatcherCallHadler(self MessageDispatcherIf, msg Message,
                                  a interface{}) {
   var tlv_id Mng_vals_e
   var tlv BaseMngTlv
@@ -63,36 +85,49 @@ func MessageDispatcherCallHadler(self MessageDispatcher, msg Message,
 }
 
 /**
- * @note Do not forget to call msg.ClearData() after sending the message.
- *       You may use 'defer msg.ClearData()' if BuildTlv return true
- *        and the sending is done in the same function context :-)
+ * @note Do not forget to call msg.ClearData() and free the allocated tlv
+ *       with ptpmgmt.FreeTlv(tlv) after sending the message.
+ *       You may use 'defer ptpmgmt.MessageBuilderFree(msg, tlv)'
+ *        if BuildTlv return true and the sending is done
+ *        in the same function context :-)
  */
-type MessageBuilder interface {
-  BuildTlv(msg Message, actionField ActionField_e, tlv_id Mng_vals_e) bool
+type MessageBuilderIf interface {
+  /** Call MessageBuilderBuildTlv() with proper struct using the interface */
+  BuildTlv(actionField ActionField_e, tlv_id Mng_vals_e) bool
 }
-func MessageBuilderBuildTlv(self MessageBuilder, msg Message,
+func MessageBuilderBuildTlv(self MessageBuilderIf, msg Message,
                             actionField ActionField_e,
                             tlv_id Mng_vals_e) bool {
   if !msg.IsValidId(tlv_id) {
-    return false;
+    return false
   }
   if actionField == GET || MessageIsEmpty(tlv_id) {
     return msg.SetAction(actionField, tlv_id)
   }
   if actionField != SET && actionField != COMMAND {
-    return false;
+    return false
   }
-  idstr := MessageMng2str_c(tlv_id)
-  callback_name := idstr + "_b"
-  mthd := reflect.ValueOf(self).MethodByName(callback_name)
-  if mthd.IsValid() {
-    inputs := make([]reflect.Value, 1)
-    inputs[0] = reflect.ValueOf(msg)
-    ret := mthd.Call(inputs)
-    if val, ok := ret[0].Interface().(BaseMngTlv); ok {
-      return msg.SetAction(actionField, tlv_id, val)
+  tlv := AllocTlv(tlv_id)
+  if tlv != nil {
+    idstr := MessageMng2str_c(tlv_id)
+    callback_name := idstr + "_b"
+    mthd := reflect.ValueOf(self).MethodByName(callback_name)
+    if mthd.IsValid() {
+      inputs := make([]reflect.Value, 2)
+      inputs[0] = reflect.ValueOf(msg)
+      inputs[1] = reflect.ValueOf(tlv)
+      ret := mthd.Call(inputs)
+      if val, ok := ret[0].Interface().(bool); ok && val {
+        return msg.SetAction(actionField, tlv_id, tlv)
+      }
     }
+    /* Resource comes from C++, we should release unless we use it */
+    FreeTlv(tlv)
   }
   return false
+}
+func MessageBuilderFree(msg Message, tlv BaseMngTlv) {
+  msg.ClearData()
+  FreeTlv(tlv)
 }
 %}

@@ -11,6 +11,7 @@
 *.so
 .sw?
 .*.sw?
+.phpunit.result.cache
 # Files in root
 /tags
 /config.log
@@ -22,7 +23,6 @@
 /libptpmgmt*.a
 /libptpmgmt*.so.*
 /.null
-/.phpunit.result.cache
 # In folders
 /doc
 /objs/
