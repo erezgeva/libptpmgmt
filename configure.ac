@@ -171,6 +171,7 @@ AS_UNSET([GTEST_LIB_FLAGS])
 AS_UNSET([HAVE_CRITERION_HEADER])
 AS_UNSET([CRITERION_INC_FLAGS])
 AS_UNSET([CRITERION_LIB_FLAGS])
+AS_UNSET([SKIP_LIBSYS])
 
 AC_CHECK_HEADER([gtest/gtest.h],
                 [AS_VAR_SET([HAVE_GTEST_HEADER], ["gtest/gtest.h"])])
@@ -207,12 +208,20 @@ AS_IF([test -n "$HAVE_CRITERION_HEADER" && test -n "$PKG_CONFIG" &&\
                     [AS_UNSET([CRITERION_LIB_FLAGS])],
                     ["$CRITERION_LIB_FLAGS"])])
 
+AC_ARG_WITH([libsys],
+            [AS_HELP_STRING([--without-libsys],
+                            [Skip unit tests using libsys.so])],
+            [AS_VAR_SET([skip_libsys], ["$withval"])])
+AS_IF([test "x$skip_libsys" == xno],
+      [AS_VAR_SET([SKIP_LIBSYS], ["skip_libsys"])])
+
 AC_SUBST([HAVE_GTEST_HEADER])
 AC_SUBST([GTEST_INC_FLAGS])
 AC_SUBST([GTEST_LIB_FLAGS])
 AC_SUBST([HAVE_CRITERION_HEADER])
 AC_SUBST([CRITERION_INC_FLAGS])
 AC_SUBST([CRITERION_LIB_FLAGS])
+AC_SUBST([SKIP_LIBSYS])
 
 #----------------------------------------------------------------
 # Find Address Sanitizer libraries

@@ -17,11 +17,16 @@ PY_FILTERS:=-v -k $(NONPHONY_TGT)
 PHP_FILTERS:=--testdox --filter $(NONPHONY_TGT)
 LUA_FILTERS:=-v -p $(NONPHONY_TGT)
 TCL_FILTERS:=-verbose "pass body erro" -match "*$(NONPHONY_TGT)*"
+CRTEST_FILTERS:=--filter $(NONPHONY_TGT)
 endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
 utest_lang: $(UTEST_TGT_LNG)
 utest: utest_cpp utest_lang utest_c
+
+TEST_LIBSYS:=$(OBJ_DIR)/libsys.so
+$(TEST_LIBSYS): utest/libsys.cpp | $(OBJ_DIR)
+	$(Q_CC)$(CXX) -shared -fPIC -include utest/libsys.h -o $@ $^ -ldl
 
 ifneq ($(GTEST_LIB_FLAGS),)
 UTEST:=$(OBJ_DIR)/utest
@@ -31,7 +36,6 @@ UTEST_SRCS:=bin buf cfg err mngIds msg2json msgCall msg opt proc sig types ver
 TEST_OBJS:=$(foreach n,$(UTEST_SRCS),utest/$n.o)
 UTEST_SYS_SRCS:=sock ptp init
 TEST_SYS_OBJS:=$(foreach n,$(UTEST_SYS_SRCS),utest/$n.o)
-TEST_LIBSYS:=$(OBJ_DIR)/libsys.so
 # Main for gtest
 $(OBJ_DIR)/utest_m.o: | $(OBJ_DIR)
 	$(Q)printf 'int main(int argc,char**argv)%s'\
@@ -57,8 +61,6 @@ endif
 utest/%.o: utest/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS_UTEST) $(GTEST_INC_FLAGS)\
 	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
-$(TEST_LIBSYS): utest/libsys.cpp | $(OBJ_DIR)
-	$(Q_CC)$(CXX) -shared -fPIC -include utest/libsys.h -o $@ $^ -ldl
 $(UTEST): $(OBJ_DIR)/utest_m.o $(TEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
@@ -67,9 +69,11 @@ utest_no_sys: $(HEADERS_GEN_COMP) $(UTEST)
 $(UTEST_SYS): $(OBJ_DIR)/utest_sys.o $(TEST_SYS_OBJS) $(LIB_NAME_A) $(TEST_LIBSYS)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
+ifndef SKIP_LIBSYS
 utest_sys: $(HEADERS_GEN_COMP) $(UTEST_SYS)
 	$(call Q_UTEST,C++-SYS)LD_PRELOAD=./$(TEST_LIBSYS) $(UTEST_SYS)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
+endif
 $(UTEST_JSON_LOAD): $(OBJ_DIR)/utest_m.o utest/jsonLoad.o $(LIB_NAME_SO) |\
   $(JSON_FLIBS)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
@@ -87,9 +91,11 @@ $(UTEST_PMC): $(OBJ_DIR)/utest_sys.o $(LIB_NAME_A) $(TEST_PMC_OBJS)\
   $(OBJ_DIR)/pmc_dump.o $(TEST_LIBSYS_PMC)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(LIB_NAME_A)\
 	  $(GTEST_LIB_FLAGS) -o $@
+ifndef SKIP_LIBSYS
 utest_pmc: $(HEADERS_GEN_COMP) $(UTEST_PMC)
 	$(call Q_UTEST,PMC)LD_PRELOAD=./$(TEST_LIBSYS_PMC)$(UVGD)$(UTEST_PMC)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
+endif
 utest_cpp: $(UTEST_CPP_TGT)
 endif # GTEST_LIB_FLAGS
 PTP4L_SIM:=$(OBJ_DIR)/ptp4l_sim.so

@@ -10,6 +10,8 @@
 main()
 {
   local -r base_dir="$(dirname "$(realpath "$0")")"
+  local -r d_user=builder2
+  local -r d_dock_file=Dockerfile.github
   cd "$base_dir/.."
   source tools/make_docker.sh
   make_docker portage "$@"
@@ -20,12 +22,10 @@ ext()
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/gentoo portage
 
+# With '-d'
 docker pull ghcr.io/erezgeva/portage
-docker run -it -w /tmp\
-  -v $(realpath ..):/tmp/libptpmgmt ghcr.io/erezgeva/portage
-useradd builder2 -u 1000 -m -G users,wheel,portage
-su -l builder2
-cd /tmp/libptpmgmt
+docker run -it -w /home/builder2/libptpmgmt -u builder2\
+  -v $(realpath .):/home/builder2/gentoo portage
 
 emerge world -ep
 qlist -Iv

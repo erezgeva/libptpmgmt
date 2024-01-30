@@ -157,15 +157,11 @@ main()
    # Were is Gentoo defualt configure setting?
    # This is after the build flags, we use 64 bits container.
    ecmd ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var/lib\
-     --libdir=/usr/lib64
+     --libdir=/usr/lib64 --without-libsys
  fi
  tools/config_report.sh
  equit "Configuratation fails"
- if $not_gentoo; then
-   # Gentoo miss the dot tool
-   # Run syntax checking
-   make checkall -j$jobs $mk_noc
- fi
+ make checkall -j$jobs $mk_noc
  echo " * Run unit test"
  eacmd make utest -j$jobs $mk_noc
  equit "Unit test fails"

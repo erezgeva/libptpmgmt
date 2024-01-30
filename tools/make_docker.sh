@@ -30,9 +30,9 @@ make_args()
 }
 tool_docker_get_opts()
 {
-  local -r user=builder
+  local use_d
   local -r uid=$(id -u)
-  while getopts 'nug' opt; do
+  while getopts 'nugd' opt; do
     case $opt in
       n)
         no_cache=--no-cache
@@ -43,8 +43,19 @@ tool_docker_get_opts()
       g)
         use_github=yes
         ;;
+      d)
+        use_d=yes
+        ;;
     esac
   done
+  if [[ -n "$use_d" ]] && [[ -z "$use_github" ]] &&\
+     [[ -n "$d_user" ]] && [[ -n "$d_dock_file" ]]; then
+    local -r user=$d_user
+    dock_file=$d_dock_file
+  else
+    local -r user=builder
+    dock_file=Dockerfile
+  fi
   if [[ -z "$use_github" ]]; then
     local -r src=.
     local -r dst=/home/$user/libptpmgmt
@@ -63,13 +74,13 @@ tool_docker_get_opts()
   fi
   local -r cookie=$(cat "$cfile")
   make_args user src dst uid cookie
-  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" "$base_dir/Dockerfile"
+  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" "$base_dir/$dock_file"
 }
 make_docker()
 {
   local -r name="$1"
   shift
-  local no_cache use_github gh_ns args
+  local no_cache use_github gh_ns args dock_file
   tool_docker_get_opts "$@"
   if [[ -z "$use_github" ]]; then
     clean_cont $name
@@ -77,7 +88,7 @@ make_docker()
   else
     local -r fname=$gh_ns/$name:latest
   fi
-  cmd docker build $no_cache -f "$base_dir/Dockerfile" $args -t $fname .
+  cmd docker build $no_cache -f "$base_dir/$dock_file" $args -t $fname .
   if [[ -n "$use_github" ]]; then
     cmd docker push $fname
   fi

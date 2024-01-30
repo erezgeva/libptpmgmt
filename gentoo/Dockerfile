@@ -12,19 +12,17 @@ MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "Gentoo build for libptpmgmt"
 ARG UID
 ARG USER
+COPY gentoo/pkgs_use /etc/portage/package.use/pkgs
 RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\
-    app-admin/sudo app-doc/doxygen app-editors/vim sys-apps/fakeroot\
-    sys-apps/which sys-devel/gcc sys-devel/libtool sys-devel/make\
+    app-admin/sudo doxygen app-editors/vim sys-apps/fakeroot\
+    sys-apps/which sys-devel/gcc libtool make dev-lang/go sys-devel/m4\
     dev-util/pkgconf dev-vcs/git dev-lang/swig dev-lang/perl dev-lang/ruby\
     dev-lang/python dev-lang/lua dev-lang/php dev-lang/tcl\
-    dev-libs/criterion &&\
+    dev-libs/criterion media-gfx/graphviz app-text/texlive-core\
+    dev-texlive/texlive-fontutils dev-cpp/gtest dev-util/astyle &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel,portage &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-# 'dot' application fails: emerge media-gfx/graphviz
-# 'epstopdf' fails: emerge app-text/texlive-core
-# 'go' lang fails: emerge dev-lang/go
-# 'phpunit' fails: emerge dev-php/phpunit
 ARG COOKIE
 RUN emerge --oneshot -tv sys-apps/portage
 ARG SRC

@@ -55,6 +55,8 @@ main()
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
  [[ -n "$ASTYLEMINVER" ]] && local -r astyle="$ASTYLEMINVER" || local -r astyle='x'
  [[ -n "$HAVE_GTEST_HEADER" ]] && local -r gtest='v' || local -r gtest='x'
+ [[ -n "$HAVE_CRITERION_HEADER" ]] && local -r crtest='v' || local -r crtest='x'
+ [[ -n "$CPPCHECK" ]] && local -r cppcheck='v' || local -r cppcheck='x'
  [[ -n "$HAVE_JSONC_LIB" ]] && local -r jsonc='v' || local -r jsonc='x'
  [[ -n "$HAVE_FJSON_LIB" ]] && local -r fjson='v' || local -r fjson='x'
  [[ -n "$SWIGMINVER" ]] && local -r swig="$SWIGMINVER" || local -r swig='x'
@@ -63,7 +65,8 @@ main()
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon gcc '$gccver' astyle '$astyle'
 Jsonc '$jsonc' Fjson '$fjson'
-Doxygen '$doxy' dot '$dver' Google test '$gtest'
+Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck'
+Google test '$gtest' Criterion test '$crtest'
 swig '$swig' Python '$python' Ruby '$ruby' PHP '$php'
 Perl '$perl' go '$go' tcl '$tcl' Lua '$lua'
 ============================================================
