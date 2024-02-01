@@ -13,6 +13,7 @@ RUBY_NAME:=$(RUBY_D)/$(SWIG_NAME).cpp
 RUBY_LNAME:=$(RUBY_D)/$(SWIG_LNAME)
 ruby_SFLAGS:=-ruby
 $(RUBY_LNAME).so_LDLIBS:=$(RUBYLINK)
+$(RUBY_NAME): $(RUBY_D)/msgCall.i
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
 	$Q$(call LLC,$(CXXFLAGS_RUBY) -Iwrappers/ruby $(RUBYINCLUDE))
 	$(call D_INC,RUBYHDRDIR)

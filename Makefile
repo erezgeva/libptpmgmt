@@ -256,11 +256,12 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* *.md *.in */*.in t*/*.pl\
+SRC_FILES_DIR:=$(wildcard scripts/* *.md *.in */*.in t*/*.pl */*/*.m4 .reuse/*\
   */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
-  t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/*.i man/* LICENSES/* .reuse/*\
+  t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
-  */*/*test*/*.go) $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
+  */*/*test*/*.go LICENSES/*)\
+  $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[ch]* uctest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
@@ -445,7 +446,7 @@ CXXFLAGS_RUBY+=-Wno-sign-compare
 #ifneq ($(call verCheck,$(SWIGVER),4.1),)
 #endif # ! swig 4.1
 
-wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)
+wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS) wrappers/%/warn.i
 	$(Q_SWIG)$(SWIG) -c++ -I$(SRC) -I$(PUB) -I$(@D) -outdir $(@D) -Wextra\
 	  $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
 # As SWIG does not create a dependencies file
@@ -682,7 +683,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
   $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
-  .phpunit.result.cache\
+  .phpunit.result.cache wrappers/go/allocTlv.i\
   wrappers/go/$(SWIG_LNAME).go $(HEADERS_GEN) wrappers/go/gtest/gtest .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
   archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) wrappers/perl/auto\

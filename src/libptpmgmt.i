@@ -11,6 +11,8 @@
 /* Module name */
 #ifdef SWIGPERL
 %module(directors="1") PtpMgmtLib  /* Perl only */
+#elif SWIGGO
+%module ptpmgmt
 #else
 %module(directors="1") ptpmgmt
 #endif /* SWIGPERL */

@@ -12,6 +12,7 @@ TCL_D:=wrappers/tcl
 TCL_NAME:=$(TCL_D)/$(SWIG_NAME).cpp
 TCL_LNAME:=$(TCL_D)/$(SWIG_LNAME)
 tcl_SFLAGS+=-tcl8 -namespace -pkgversion $(PACKAGE_VERSION)
+$(TCL_NAME): $(TCL_D)/msgCall.i
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
 	$Q$(call LLC,$(TCLINCLUDE))
 	$(call D_INC,TCLINCDIR)

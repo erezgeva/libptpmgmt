@@ -8,26 +8,9 @@
  * @copyright © 2023 Erez Geva
  */
 
-%go_import("reflect")
-%{
-BaseMngTlv *allocTlv(mng_vals_e id) {
-  switch(id) {
-#define _ptpmCaseUF(n) case n: return new n##_t;
-#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-#include "ids.h"
-    default:
-      break;
-  }
-  return nullptr;
-}
-void freeTlv(BaseMngTlv *tlv) {
-  if (tlv != nullptr)
-    delete tlv;
-}
-%}
+%include "allocTlv.i"
 
-BaseMngTlv *allocTlv(mng_vals_e);
-void freeTlv(BaseMngTlv *tlv);
+%go_import("reflect")
 
 %insert(go_wrapper) %{
 type MessageDispatcherIf interface {

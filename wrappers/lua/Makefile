@@ -10,6 +10,7 @@
 
 lua_SFLAGS+=-lua
 LUA_D:=wrappers/lua
+$(LUA_D)/$(SWIG_NAME).cpp: $(LUA_D)/msgCall.i
 define lua
 LUA_FLIB_$1:=liblua$1-$(SWIG_LIB_NAME)
 LUA_LIB_$1:=$(LUA_D)/$1/$(SWIG_LIB_NAME)
