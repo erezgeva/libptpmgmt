@@ -12,7 +12,7 @@ AC_COPYRIGHT(Copyright © 2022 Erez Geva)
 AC_PREREQ([2.69])
 m4_define([ptpm_VER], m4_esyscmd_s([. ./tools/version && echo "$ver_maj.$ver_min"]))
 AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],
-        [libptpmgmt-]m4_defn([ptpm_VER]).txz,
+        [libptpmgmt-]m4_defn([ptpm_VER]),
         [https://libptpmgmt.nwtime.org])
 AC_CONFIG_FILES([defs.mk])
 AC_CONFIG_SRCDIR([src/mngIds.m4])
@@ -56,6 +56,7 @@ AS_UNSET([DOXYGENMINVER])
 AC_CHECK_TOOLS([M4], [m4 autom4te])
 AC_CHECK_TOOLS([CTAGS], [ctags ctags-exuberant])
 AC_CHECK_TOOLS([READLINK], [readlink])
+AC_CHECK_TOOL([LDD], [ldd])
 AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
 AC_CHECK_TOOL([ASTYLE], [astyle])
 AC_MSG_CHECKING([for astyle version])
@@ -240,7 +241,7 @@ AC_MSG_CHECKING([for Address Sanitizer libraries])
 AC_LINK_IFELSE(
    [AC_LANG_PROGRAM([])],
    [AS_VAR_SET([ASAN_LIBS],
-               [`ldd conftest$EXEEXT | $GREP 'san.so' | $SED 's/=>.*//;s/\n//' |\
+               [`$LDD conftest$EXEEXT | $GREP 'san.so' | $SED 's/=>.*//;s/\n//' |\
                  tr '\n' ' ' `])
     AC_MSG_RESULT([$ASAN_LIBS])],
    [AC_MSG_RESULT([no])])

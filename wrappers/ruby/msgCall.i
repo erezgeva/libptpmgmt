@@ -8,6 +8,8 @@
  * @copyright © 2022 Erez Geva
  */
 
+/* TODO why swig director breaks in gentoo? */
+
 %header %{static char MessageDispatcherCode[] =
 "class Ptpmgmt::MessageDispatcher\n"
 "  def callHadler(msg, tlv_id = -1, tlv = nil)\n"

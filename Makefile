@@ -89,6 +89,8 @@ define help
 #                    So poll() and tpoll() can block other threads.            #
 #                    In this case, users may prefer Python native select.      #
 #                                                                              #
+#   NOPARALLEL       Prevent parallel build                                    #
+#                                                                              #
 ################################################################################
 
 endef
@@ -278,8 +280,6 @@ endif
 else # ($(INSIDE_GIT),true)
 SRC_FILES:=$(SRC_FILES_DIR)
 endif # ($(INSIDE_GIT),true)
-# Add configure script for source archive
-SRC_FILES+=configure
 
 ###############################################################################
 ### Configure area
@@ -551,19 +551,18 @@ install_main:
 	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
 	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)$(datarootdir)/$(DEV_PKG)
 	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
-	if [ ! -f $(MANDIR)/pmc$(TOOLS_EXT).8.gz ]
-	  then $(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8
-	  gzip $(MANDIR)/pmc$(TOOLS_EXT).8;fi
+	$(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8
 	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\
 	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
-	if [ ! -f $(MANDIR)/phc_ctl$(TOOLS_EXT).8.gz ]; then
-	  $(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
-	  gzip $(MANDIR)/phc_ctl$(TOOLS_EXT).8;fi
+	$(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
+	$(INSTALL_FOLDER) $(DOCDIR)
+	cp *.md $(DOCDIR)
+ifneq ($(DOXYGENMINVER),)
 	$(MKDIR_P) "doc/html"
 	$(RM) doc/html/*.md5
-	$(INSTALL_FOLDER) $(DOCDIR)
-	cp -a *.md doc/html $(DOCDIR)
+	cp -a doc/html $(DOCDIR)
 	printf $(REDIR) > $(DOCDIR)/index.html
+endif # DOXYGENMINVER
 
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
 include $(D_FILES)
@@ -700,3 +699,7 @@ distclean: deb_clean
 
 help:
 	$(NOP)$(info $(help))
+ifdef NOPARALLEL
+# Use to prevent parallel building
+.NOTPARALLEL: all
+endif

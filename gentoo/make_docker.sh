@@ -27,6 +27,7 @@ docker pull ghcr.io/erezgeva/portage
 docker run -it -w /home/builder2/libptpmgmt -u builder2\
   -v $(realpath .):/home/builder2/gentoo portage
 
+# See https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
 emerge world -ep
 qlist -Iv
 ls /var/db/pkg/*
