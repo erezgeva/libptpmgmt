@@ -14,10 +14,10 @@ ARG UID
 ARG USER
 COPY gentoo/pkgs_use /etc/portage/package.use/pkgs
 RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\
-    app-admin/sudo doxygen app-editors/vim sys-apps/fakeroot\
+    app-admin/sudo doxygen app-editors/vim sys-apps/fakeroot dev-lua/luaposix\
     sys-apps/which sys-devel/gcc libtool make dev-lang/go sys-devel/m4\
     dev-util/pkgconf dev-vcs/git dev-lang/swig dev-lang/perl dev-lang/ruby\
-    dev-lang/python dev-lang/lua dev-lang/php dev-lang/tcl\
+    dev-lang/python dev-lang/lua dev-lang/php dev-lang/tcl app-misc/jq\
     dev-libs/criterion media-gfx/graphviz app-text/texlive-core\
     dev-texlive/texlive-fontutils dev-cpp/gtest dev-util/astyle &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\

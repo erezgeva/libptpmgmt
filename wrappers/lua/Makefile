@@ -35,12 +35,12 @@ $(eval $(foreach n,$(LUAVERSIONS),$(call lua,$n)))
 
 # Build single Lua version
 ifneq ($(LUA_VERSION),)
-LUA_FLIB:=liblua$(LUABIN_VERSION)-$(SWIG_LIB_NAME)
 LUA_LIB:=$(LUA_D)/$(SWIG_LIB_NAME)
 ifneq ($(LUA_INC),)
 CXXFLAGS_LUA+=-I$(LUA_INC)
 endif
-$(LUA_LIB)_LDLIBS:=-Wl,-soname,$(LUA_FLIB)$(SONAME) $(LUALINK)
+$(LUA_LIB)_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME) $(LUALINK)
+
 $(LUA_D)/$(SWIG_NAME).o: $(LUA_D)/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(call LLC,$(CXXFLAGS_LUA))
 	$(call D_INC,LUA_INC)
@@ -66,10 +66,6 @@ install_lua:
 	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
 	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME);)
 ifneq ($(LUA_VERSION),)
-	$(INSTALL_LIB) -D $(LUA_LIB) $(DLIBDIR)/$(LUA_FLIB)
-ifneq ($(LUABIN_VERSION),)
-	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUABIN_VERSION)
-	$(LN) ../../$(LUA_FLIB)\
-	$(DLIBDIR)/lua/$(LUABIN_VERSION)/$(SWIG_LIB_NAME)
-endif # LUABIN_VERSION
+	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUA_VERSION)
+	$(INSTALL_LIB) -D $(LUA_LIB) $(DLIBDIR)/lua/$(LUA_VERSION)/$(SWIG_LIB_NAME)
 endif # LUA_VERSION

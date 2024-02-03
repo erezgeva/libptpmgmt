@@ -71,26 +71,10 @@ test_clean()
    check_clean distclean $distclean_list
  fi
 }
-distribution()
-{
- if [[ -f /etc/debian_version ]]; then
-   dist=debian
- else
-   for n in /etc/*-release; do
-     m="${n%-release}"
-     dist="${m#/etc/}"
-     break
-   done
- fi
- if [[ "$dist" != "gentoo" ]]; then
-   not_gentoo=true
- else
-   not_gentoo=false
- fi
-}
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
+ source tools/util.sh
  local -i jobs=1 # Number of Make parallel jobs
  local nocolor
  if [[ "$GITHUB_ACTIONS" = "true" ]] && [[ `id -u` -ne 0 ]]; then
@@ -109,9 +93,14 @@ main()
  if [[ $jobs -le 0 ]]; then
    jobs=1
  fi
- local n m out distclean_list dist not_gentoo dist_clean_more
+ local n m out distclean_list dist dist_clean_more
  local -i last_ret
  distribution
+ if [[ "$dist" != "gentoo" ]]; then
+   local -r not_gentoo=true
+ else
+   local -r not_gentoo=false
+ fi
  # Make sure we output to STDOUT directly, no pipes
  # check our teminal support coulors
  if [[ -n "$nocolor" ]]; then
@@ -175,7 +164,6 @@ main()
        echo " * Build Debian packages"
        eacmd make deb -j$jobs $mk_noc
        equit "Build Debian packages fails"
-       test_clean
      fi
      ;;
    fedora)
@@ -183,7 +171,6 @@ main()
        echo " * Build Fedora RPM packages"
        eacmd make rpm -j$jobs $mk_noc
        equit "Build Fedora RPM packages fails"
-       test_clean
      fi
      ;;
    arch)
@@ -194,7 +181,6 @@ main()
        for n in archlinux/libptpmgmt-*.txz; do
          dist_clean_more+=" $n"
        done
-       test_clean
      fi
      ;;
    gentoo)
@@ -202,10 +188,10 @@ main()
        echo " * Build Gentoo packages"
        eacmd make gentoo -j$jobs $mk_noc
        equit "Build Gentoo fails"
-       test_clean
      fi
      ;;
  esac
+ test_clean
  echo "$color_blue * CI test done$color_norm"
 }
 main "$@"

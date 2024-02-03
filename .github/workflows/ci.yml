@@ -34,20 +34,15 @@ jobs:
     - name: continuous integration
       run: |
         case "$GITHUB_CONTAINER" in
-          portage)
-            # Gentoo sudo require password, better to stay with root user
-            tools/ci.sh
-            ;;
           deb.*)
             # Debian place the debian packages in the parent folder
             chown -R $USER:$USER ..
-            su $USER -c tools/ci.sh
             ;;
           *)
             chown -R $USER:$USER .
-            su $USER -c tools/ci.sh
             ;;
         esac
+        su $USER -c tools/ci.sh
 
   cross:
     runs-on: ubuntu-latest
@@ -67,6 +62,36 @@ jobs:
       run: |
         chown -R $USER:$USER ..
         su $USER -c "make deb_arc arm64"
+
+  pkgs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild]
+      fail-fast: false
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest
+    env:
+      GITHUB_CONTAINER: ${{ matrix.names }}
+
+    steps:
+
+    - name: checkout linuxptp repository
+      uses: actions/checkout@v3
+      with:
+        repository: nwtime/linuxptp
+        path: linuxptp
+
+    - name: checkout repository
+      uses: actions/checkout@v3
+      with:
+        path: libptpmgmt
+
+    - name: test with linuxptp
+      run: |
+        chown -R $USER:$USER .
+        su $USER -c libptpmgmt/tools/github_build.sh
+        libptpmgmt/tools/github_pkgs.sh
 
   mem:
     runs-on: ubuntu-latest

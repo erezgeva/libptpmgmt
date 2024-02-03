@@ -14,6 +14,6 @@ main()
   echo "makepkg -g"
   makepkg -g >> PKGBUILD
 }
-if [[ -f PKGBUILD.org ]] && [[ -x "$(which makepkg)" ]]; then
+if [[ -f PKGBUILD.org ]] && [[ -x "$(which makepkg 2> /dev/null)" ]]; then
   main
 fi

@@ -26,7 +26,7 @@ jobs:
     - name: checkout linuxptp repository
       uses: actions/checkout@v3
       with:
-        repository: richardcochran/linuxptp
+        repository: nwtime/linuxptp
         path: linuxptp
 
     - name: checkout repository
@@ -35,32 +35,7 @@ jobs:
         path: libptpmgmt
 
     - name: test with linuxptp
-      run: libptpmgmt/tools/sim_ptp4l.sh -c
-
-  deb:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
-
-    steps:
-
-    - name: checkout linuxptp repository
-      uses: actions/checkout@v3
-      with:
-        repository: richardcochran/linuxptp
-        path: linuxptp
-
-    - name: checkout repository
-      uses: actions/checkout@v3
-      with:
-        path: libptpmgmt
-
-    - name: test with linuxptp
-      run: |
-        make deb -C libptpmgmt
-        dpkg -i *.deb
-        make clean -C libptpmgmt
-        libptpmgmt/tools/sim_ptp4l.sh -s
+      run: libptpmgmt/tools/sim_ptp4l.sh -ct
 
   adress:
     runs-on: ubuntu-latest
@@ -70,7 +45,7 @@ jobs:
     - name: checkout linuxptp repository
       uses: actions/checkout@v3
       with:
-        repository: richardcochran/linuxptp
+        repository: nwtime/linuxptp
         path: linuxptp
 
     - name: checkout repository

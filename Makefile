@@ -268,6 +268,8 @@ ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[ch]* uctest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
   ':!*/*/test.*' ':!*/*/utest.*'
+GIT_ROOT!=git rev-parse --show-toplevel
+ifeq ($(GIT_ROOT),$(CURDIR))
 # compare manual source list to git based:
 diff1:=$(filter-out $(SRC_FILES_DIR),$(SRC_FILES))
 diff2:=$(filter-out $(SRC_FILES),$(SRC_FILES_DIR))
@@ -277,6 +279,7 @@ endif
 ifneq ($(diff2),)
 $(info $(COLOR_WARNING)source files present only in SRC_FILES_DIR: $(diff2))
 endif
+endif # ($(GIT_ROOT),$(CURDIR))
 else # ($(INSIDE_GIT),true)
 SRC_FILES:=$(SRC_FILES_DIR)
 endif # ($(INSIDE_GIT),true)

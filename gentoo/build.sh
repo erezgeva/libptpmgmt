@@ -46,6 +46,6 @@ main()
     fi
   fi
 }
-if [[ -n "$(which ebuild)" ]]; then
+if [[ -n "$(which ebuild 2> /dev/null)" ]]; then
   main
 fi

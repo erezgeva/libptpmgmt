@@ -12,6 +12,7 @@
 main()
 {
  cd "$(dirname "$(realpath "$0")")/.."
+ source tools/util.sh
  local file i opt n use_asan
  # Default values
  local -r def_ifName=eth0
@@ -23,7 +24,7 @@ main()
  envVals['cfgFile']='PTP_CFG_FILE'
  envVals['linuxptpLoc']='PTP_PATH'
  ##############################################################################
- while getopts 'ci:f:l:asp' opt; do
+ while getopts 'ci:f:l:aspnt' opt; do
    case $opt in
      c) local do_config=true ;;
      i) local -r ifName="$OPTARG" ;;
@@ -32,6 +33,8 @@ main()
      p) local -r use_sim_phc=true ;;
      a) use_asan=true ;;             # Use AddressSanitizer
      s) local -r probeSystem=true ;; # Use system libraries
+     n) local -r no_build=true ;;    # Do not build, yield error if need to
+     t) local single_tlv=true ;;     # query each tlv by itself
    esac
  done
  for n in ifName cfgFile linuxptpLoc; do
@@ -97,35 +100,13 @@ main()
  fi
  ##############################################################################
  # script languages source
- local -r mach=$(uname -m)
- local -r fmach="/$mach*"
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
-       ldPathPhp ldPathTcl ldPathJson needCmpl\
-       ldPathLua1 ldPathLua2 ldPathLua3
- # Lua 5.4 need lua-posix version 35
- local -r luaVersions='1 2 3'
+       ldPathPhp ldPathTcl ldPathJson needCmpl oneLua skip_php\
+       ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54\
+       ldPath luaVersions luaPosixVersions
  local -r pyVersions='3'
  local -r libptpm='/libptpmgmt.so'
- getFirstFile "/usr/lib$fmach$libptpm*"
- if [[ -f "$file" ]] && [[ -n "$probeSystem" ]]; then
-   probeLibs
- else
-   local -r ldPath="LD_PRELOAD=.$libptpm"
-   needCmpl=y
-   # We need all!
-   ldPathPerl="$ldPath PERL5LIB=wrappers/perl"
-   ldPathRuby="$ldPath RUBYLIB=wrappers/ruby"
-   for i in $luaVersions; do
-     eval "ldPathLua$i='$ldPath LUA_CPATH=\"wrappers/lua/5.$i/?.so;;\"'"
-   done
-   for i in $pyVersions; do
-     eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
-     eval "ldPrePathPython$i='$ldPath '"
-   done
-   ldPathPhp="$ldPath PHPRC=wrappers/php"
-   ldPathTcl="$ldPath TCLLIBPATH=wrappers/tcl"
-   ldPathJson="$ldPath LD_LIBRARY_PATH=. PERL5LIB=wrappers/perl"
- fi
+ probeBuild
  local -r runOptions="-u -f $cfgFile"
  ##############################################################################
  local -r instPmcLib=/usr/sbin/pmc-ptpmgmt
@@ -147,6 +128,10 @@ main()
  fi
  ##############################################################################
  if [[ -n "$needCmpl" ]]; then
+   if [[ -n "$no_build" ]]; then
+     echo "Error: we need to build but prohibit to do so"
+     exit -1
+   fi
    printf " * build libptpmgmt\n"
    if [[ -n "$do_config" ]]; then
      make config
@@ -168,7 +153,7 @@ main()
  else
    use_asan=false
  fi
- if ! $use_asan && [[ -n "$(which valgrind)" ]]; then
+ if ! $use_asan && [[ -n "$(which valgrind 2> /dev/null)" ]]; then
    local use_valgrind=true
  else
    local use_valgrind=false
@@ -323,7 +308,7 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
  enter ruby
  enter lua
  enter python
- enter php
+ [[ -n "$skip_php" ]] || enter php
  enter tcl
  enter go
 }
@@ -334,7 +319,7 @@ do_perl()
 test_json()
 { # Use perl
  printf "\n =====  Test JSON  ===== \n\n"
- eval "$useSudo$ldPathJson tools/testJson.pl $cfgFile | jsonlint"
+ eval "$useSudo$ldPathJson tools/testJson.pl $cfgFile | jq >& /dev/null"
  if $use_valgrind; then
    printf "\n * Valgrid test of testJson.pl"
    eval "$useSudo$ldPathJson valgrind --read-inline-info=yes\
@@ -349,17 +334,22 @@ do_ruby()
 }
 do_lua()
 {
- for i in $luaVersions; do
-   printf "\n lua 5.$i ---- \n"
-   local -n need="ldPathLua$i"
-   time eval "$useSudo$need lua5.$i wrappers/lua/test.lua $runOptions" |\
+ if $oneLua; then
+   time eval "$useSudo$ldPathLua lua wrappers/lua/test.lua $runOptions" |\
      diff - <(printf "$perlOut\n")
- done
+ else
+   for i in $luaPosixVersions; do
+     printf "\n lua $i ---- \n"
+     local -n need="ldPathLua${i/./}"
+     time eval "$useSudo$need lua$i wrappers/lua/test.lua $runOptions" |\
+       diff - <(printf "$perlOut\n")
+   done
+ fi
 }
 do_python()
 {
  for i in $pyVersions; do
-   if [[ -z "$(which python$i)" ]]; then
+   if [[ -z "$(which python$i 2> /dev/null)" ]]; then
      continue
    fi
    local -n need="ldPathPython$i"
@@ -403,7 +393,7 @@ parse_phc_out()
 test_phc_ctl()
 { # Use python3
  printf "\n =====  Test phc_ctl  ===== \n\n"
- if [[ -z "$(which python3)" ]]; then
+ if [[ -z "$(which python3 2> /dev/null)" ]]; then
    echo "python3 is not installed on system!!!"
    return
  fi
@@ -509,14 +499,83 @@ getFirstFile()
  done
  file=''
 }
-probeLibs()
+probeBuild()
+{
+ if [[ -f defs.mk ]]; then
+   local -A R
+   read_defs
+   local -r prefix="${R['prefix']}"
+   local -r exec_prefix=$(eval "echo \"${R['exec_prefix']}\"")
+   local -r libdir=$(eval "echo \"${R['libdir']}\"")
+   local -r libexecdir=$(eval "echo \"${R['libexecdir']}\"")
+   local -r includedir=$(eval "echo \"${R['includedir']}\"")
+   local -r sysconfdir=$(eval "echo \"${R['sysconfdir']}\"")
+   local -r localstatedir=$(eval "echo \"${R['localstatedir']}\"")
+   local -r datarootdir=$(eval "echo \"${R['datarootdir']}\"")
+   local -r mandir=$(eval "echo \"${R['mandir']}\"")
+   local -r infodir=$(eval "echo \"${R['infodir']}\"")
+   local -r sbindir=$(eval "echo \"${R['sbindir']}\"")
+   local -r bindir=$(eval "echo \"${R['bindir']}\"")
+   if [[ -n "${R['LUAVERSIONS']}" ]]; then
+     oneLua=false
+     luaVersions="${R['LUAVERSIONS']}"
+   else
+     oneLua=true
+   fi
+   getFirstFile "$libdir$libptpm*"
+   if [[ -f "$file" ]] && [[ -n "$probeSystem" ]]; then
+     probeLibs
+   else
+     [[ -z "$no_build" ]] || echo "Build as: no libptpmgmt.so"
+     allBuild
+   fi
+ else
+   local -r mach=$(uname -m)
+   local -r fmach="/$mach*"
+   oneLua=false
+   # TODO Debian bookworm uses lua-posix version 33.4
+   #      which do not support lua 5.4
+   #      trixie does support lua 5.4!
+   luaVersions='5.1 5.2 5.3'
+   luaPosixVersions="$luaVersions"
+   getFirstFile "/usr/lib$fmach$libptpm*"
+   if [[ -f "$file" ]] && [[ -n "$probeSystem" ]]; then
+     probeLibsDebian
+   else
+     allBuild
+   fi
+ fi
+}
+allBuild()
+{
+ ldPath="LD_PRELOAD=.$libptpm"
+ needCmpl=y
+ # We need all!
+ ldPathPerl="$ldPath PERL5LIB=wrappers/perl"
+ ldPathRuby="$ldPath RUBYLIB=wrappers/ruby"
+ if $oneLua; then
+   ldPathLua="$ldpath LUA_CPATH='wrappers/lua/?.so;;'"
+ else
+   for i in $luaPosixVersions; do
+     eval "ldPathLua${i/./}='$ldpath LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+   done
+ fi
+ for i in $pyVersions; do
+   eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
+   eval "ldPrePathPython$i='$ldPath '"
+ done
+ ldPathPhp="$ldPath PHPRC=wrappers/php"
+ ldPathTcl="$ldPath TCLLIBPATH=wrappers/tcl"
+ ldPathJson="$ldPath LD_LIBRARY_PATH=. PERL5LIB=wrappers/perl"
+}
+probeLibsDebian()
 {
  local -i jsonCount=0
  getFirstFile "/usr/lib$fmach/libptpmgmt_fastjson.so.*"
  if [[ -f "$file" ]]; then
    jsonCount='jsonCount + 1'
  fi
- getFirstFile "/usr/lib$fmach/libptpmgmt_jsonc.so.0.*"
+ getFirstFile "/usr/lib$fmach/libptpmgmt_jsonc.so.*"
  if [[ -f "$file" ]]; then
    jsonCount='jsonCount + 1'
  fi
@@ -538,12 +597,12 @@ probeLibs()
    ldPathRuby="RUBYLIB=wrappers/ruby"
  fi
  for i in $luaVersions; do
-   getFirstFile "/usr/lib$fmach/liblua5.$i-ptpmgmt.so*"
+   getFirstFile "/usr/lib$fmach/lua/$i/ptpmgmt.so"
    if ! [[ -f "$file" ]]; then
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
      needCmpl=y
-     eval "ldPathLua$i='LUA_CPATH=\"wrappers/lua/5.$i/?.so;;\"'"
+     eval "ldPathLua${i/./}='LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
    fi
  done
  for i in $pyVersions; do
@@ -552,7 +611,7 @@ probeLibs()
      eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
    fi
  done
- [[ -z "$needPython3" ]] || needCmpl=y
+ [[ -z "$ldPathPython3" ]] || needCmpl=y
  if ! [[ -f "$(php-config --extension-dir)/ptpmgmt.so" ]]; then
    needCmpl=y
    ldPathPhp="PHPRC=wrappers/php"
@@ -564,6 +623,104 @@ probeLibs()
  fi
  getFirstFile "/usr/lib/go*/src/ptpmgmt/PtpMgmtLib.cpp"
  if ! [[ -f "$file" ]]; then
+   needCmpl=y
+ fi
+}
+probeLibs()
+{
+ # [[ -n "${R['HAVE_JSONC_LIB']}" ]]
+ # [[ -n "${R['HAVE_FJSON_LIB']}" ]]
+ local -i jsonCount=0
+ getFirstFile "$libdir/libptpmgmt_fastjson.so.*"
+ if [[ -f "$file" ]]; then
+   jsonCount='jsonCount + 1'
+ fi
+ getFirstFile "$libdir/libptpmgmt_jsonc.so.*"
+ if [[ -f "$file" ]]; then
+   jsonCount='jsonCount + 1'
+ fi
+ # One from JSON plugin is sufficient
+ if [[ $jsonCount -eq 0 ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no json plugs"
+   needCmpl=y
+   ldPathJson="LD_LIBRARY_PATH=."
+ fi
+ getFirstFile "${R['PERL5DIR']}/auto/PtpMgmtLib/PtpMgmtLib.so"
+ if ! [[ -f "$file" ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no perl"
+   needCmpl=y
+   ldPathPerl="PERL5LIB=wrappers/perl"
+   ldPathJson+=" PERL5LIB=wrappers/perl"
+ fi
+ file="${R['RUBYSITE']}/ptpmgmt.so"
+ if ! [[ -f "$file" ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no ruby"
+   needCmpl=y
+   ldPathRuby="RUBYLIB=wrappers/ruby"
+ fi
+ if $oneLua; then
+   getFirstFile "$libdir/lua/${R['LUA_VERSION']}/ptpmgmt.so"
+   if ! [[ -f "$file" ]]; then
+     [[ -z "$no_build" ]] || echo "Build as: no lua"
+     needCmpl=y
+     ldPathLua='LUA_CPATH=\"wrappers/lua/?.so;;\"'
+   fi
+ else
+   for i in $luaVersions; do
+     # Test for lua posix
+     # can be a static library or a folder with static libraries
+     getFirstFile "$libdir/lua/$i/posix.so"
+     if ! [[ -f "$file" ]]; then
+       getFirstFile "$libdir/lua/$i/posix/*.so"
+     fi
+     if [[ -f "$file" ]]; then
+       luaPosixVersions+=" $i"
+       getFirstFile "$libdir/lua/$i/ptpmgmt.so"
+       if ! [[ -f "$file" ]]; then
+           # Our Lua wrapper comes in a single package for all versions,
+           # so a single probing flag is sufficient.
+           needCmpl=y
+           eval "ldPathLua${i/./}='LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+       fi
+     fi
+   done
+   if [[ -n "$no_build" ]] && [[ -n "$needCmpl" ]]; then
+     echo "Build as: no lua"
+   fi
+ fi
+ local shopt_extglob=$(shopt -p extglob)
+ shopt -s extglob
+ for i in $pyVersions; do
+   local py_site_dir="${R["PY${i}SITE_DIR"]/python$i+([.0-9])/python$i*}"
+   getFirstFile "$py_site_dir/_ptpmgmt${R["PY${i}EXT"]}"
+   if ! [[ -f "$file" ]]; then
+     eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
+   fi
+ done
+ # restore extglob to previous state
+ $shopt_extglob
+ if [[ -n "$ldPathPython3" ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no python"
+   needCmpl=y
+ fi
+ if [[ -n "${R['SKIP_PHP']}" ]]; then
+   skip_php=true
+ else
+   if ! [[ -f "${R['PHPEXT']}/ptpmgmt.so" ]]; then
+     [[ -z "$no_build" ]] || echo "Build as: no php"
+     needCmpl=y
+     ldPathPhp="PHPRC=wrappers/php"
+   fi
+ fi
+ getFirstFile "${R['TCL_PKG_DIR']}/ptpmgmt/ptpmgmt.so"
+ if ! [[ -f "$file" ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no tcl"
+   needCmpl=y
+   ldPathTcl="TCLLIBPATH=wrappers/tcl"
+ fi
+ getFirstFile "${R['GOROOT']}/src/ptpmgmt/PtpMgmtLib.cpp"
+ if ! [[ -f "$file" ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no go"
    needCmpl=y
  fi
 }

@@ -16,6 +16,12 @@ import time
 import sys
 import getopt
 
+def printError(msg):
+  if ptpmgmt.Error.isError():
+    print(ptpmgmt.Error.getError(), file=sys.stderr)
+  else:
+    print(msg, file=sys.stderr)
+
 def do_caps(ptp, useSys):
     if useSys:
         return ['CLOCK_REALTIME is not a PHC device.', True]
@@ -197,7 +203,7 @@ def main():
                 sys.exit(-1)
             ptp = ptpmgmt.PtpClock()
             if not ptp.initUsingIndex(idx):
-                print("fail init '%s' device" % path, file=sys.stderr)
+                print("fail init '%s' device, %d index" % (device, idx), file=sys.stderr)
                 sys.exit(-1)
         useSys = False
     if len(args) < 2:

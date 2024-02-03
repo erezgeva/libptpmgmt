@@ -173,7 +173,7 @@ autoconf
 %{_libdir}/python3*/*/*/%{bname}.*.pyc
 
 %files -n lua-%{bname}
-%{_libdir}/liblua-%{bname}.so*
+%{_libdir}/lua/*/%{bname}.so
 
 %files -n ruby-%{bname}
 %{_libdir}/ruby/*/%{bname}.so
