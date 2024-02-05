@@ -183,6 +183,12 @@ class Message
      */
     static const char *type2str_c(msgType_e type);
     /**
+     * Convert servo state to string
+     * @param[in] state
+     * @return string with the servo state
+     */
+    static const char *servo2str_c(servoState_e state);
+    /**
      * Convert TLV type to string
      * @param[in] type
      * @return string with the TLV type

@@ -441,6 +441,7 @@ strc(TIME_STATUS_NP_t) sz(: public BaseMngTlv) {
     uint16_t fractional_nanoseconds;
     Integer32_t gmPresent; /**< Flag for grandmaster presence */
     strcc(ClockIdentity_t) gmIdentity; /**< Grandmaster clock ID */
+    enmc(servoState_e) servo_state; /** Servo state */
 };
 /** Grandmaster settings TLV
  * @note linuxptp implementation specific

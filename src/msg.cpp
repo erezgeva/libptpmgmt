@@ -730,6 +730,16 @@ const char *Message::type2str_c(msgType_e type)
     }
     return "unknown message type";
 }
+const char *Message::servo2str_c(servoState_e state)
+{
+    switch(state) {
+        case caseItem(SERVO_UNLOCKED);
+        case caseItem(SERVO_JUMP);
+        case caseItem(SERVO_LOCKED);
+        case caseItem(SERVO_LOCKED_STABLE);
+    }
+    return "unknown servo state";
+}
 const char *Message::tlv2str_c(tlvType_e type)
 {
     switch(type) {

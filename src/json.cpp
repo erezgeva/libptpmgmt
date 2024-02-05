@@ -358,7 +358,8 @@ JS(TIME_STATUS_NP)
         PROC_VAL(nanoseconds_lsb) &&
         PROC_VAL(fractional_nanoseconds) &&
         PROC_VAL(gmPresent) &&
-        PROC_VAL(gmIdentity);
+        PROC_VAL(gmIdentity) &&
+        PROC_VAL(servo_state);
 }
 JS(GRANDMASTER_SETTINGS_NP)
 {
@@ -464,7 +465,7 @@ JS(POWER_PROFILE_SETTINGS_NP)
         PROC_VAL(totalTimeInaccuracy);
 }
 
-/* Finish Proccess functions of JsonProc */
+/* Finish Process functions of JsonProc */
 #undef JS
 
 #define procProperty(name)\
@@ -700,6 +701,7 @@ struct JsonProcToJson : public JsonProc {
     procTypeEnum(managementErrorId_e, errId2str_c)
     procTypeEnum(SMPTEmasterLockingStatus_e, smpteLck2str_c)
     procTypeEnumR(networkProtocol_e, netProt2str_c)
+    procTypeEnumR(servoState_e, servo2str_c)
     bool procValue(const char *name, mng_vals_e val) {
         if(val != SMPTE_MNG_ID)
             procString(name, Message::mng2str_c(val));

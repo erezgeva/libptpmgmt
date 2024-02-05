@@ -358,7 +358,8 @@ class MsgDump : public MessageDispatcher
             IDENT "gmTimeBaseIndicator        %u"
             IDENT "lastGmPhaseChange          0x%04hx'%016jd.%04hx"
             IDENT "gmPresent                  %s"
-            IDENT "gmIdentity                 %s",
+            IDENT "gmIdentity                 %s"
+            IDENT "servo_state                %s",
             d.master_offset,
             d.ingress_time,
             (float_nanoseconds)d.cumulativeScaledRateOffset / P41,
@@ -369,7 +370,8 @@ class MsgDump : public MessageDispatcher
             d.nanoseconds_lsb,
             d.fractional_nanoseconds,
             d.gmPresent ? "true" : "false",
-            d.gmIdentity.string().c_str());
+            d.gmIdentity.string().c_str(),
+            m.servo2str_c(d.servo_state));
     }
     dump(GRANDMASTER_SETTINGS_NP) {
         DUMPS(

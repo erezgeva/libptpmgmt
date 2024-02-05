@@ -321,6 +321,27 @@ enm(delayMechanism_e) sz(: uint8_t) {
     /** Special Ports do not use either delay mechanism. */
     NM(SPECIAL)       = 4,
 };
+/** Servo State */
+enm(servoState_e) sz(: uint8_t) {
+    /**
+     * The servo is not yet ready to track the master clock.
+     */
+    NM(SERVO_UNLOCKED) = 0,
+    /**
+     * The servo is ready to track and requests a clock jump to
+     * immediately correct the estimated offset.
+     */
+    NM(SERVO_JUMP)     = 1,
+    /**
+     * The servo is tracking the master clock.
+     */
+    NM(SERVO_LOCKED)   = 2,
+    /**
+     * The Servo has stabilized. The last 'servo_num_offset_values' values
+     * of the estimated threshold are less than servo_offset_threshold.
+     */
+    NM(SERVO_LOCKED_STABLE)  = 3,
+};
 /** Specify Management TLV implementation-specific to use
  * @note: Ruby's wrapping, capitalize first letter of enumerators values
  */

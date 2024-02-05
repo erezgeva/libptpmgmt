@@ -274,6 +274,7 @@ struct MsgProc {
     bool proc(SMPTEmasterLockingStatus_e &val) { return procE8(val); }
     bool proc(linuxptpTimeStamp_e &val) { return procE8(val); }
     bool proc(linuxptpUnicastState_e &val) { return procE8(val); }
+    bool proc(servoState_e &val) { return procE8(val); }
     /* For Enumerators using 16 bits */
     template <typename T> bool procE16(T &val);
     bool proc(networkProtocol_e &val) { return procE16(val); }
@@ -471,6 +472,7 @@ struct JsonProc {
     _ptpmProcType(FaultRecord_t)
     _ptpmProcType(AcceptableMaster_t)
     _ptpmProcType(LinuxptpUnicastMaster_t)
+    _ptpmProcType(servoState_e)
     virtual bool procBinary(const char *name, Binary &val, uint16_t &len) = 0;
     virtual bool procBinary(const char *name, uint8_t *val, size_t len) = 0;
     virtual bool procFlag(const char *name, uint8_t &flags, int mask) = 0;

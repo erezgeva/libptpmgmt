@@ -79,7 +79,7 @@ dnl linuxptp TLVs (in Implementation-specific C000-DFFF)
 dnl Shortcuts defined in msg.cpp
 dnl use_GL  => A_GET | A_USE_LINUXPTP
 dnl use_GSL => A_GET | A_SET | A_USE_LINUXPTP
-A(TIME_STATUS_NP,                      c000, clock, use_GL,    50,     UF)
+A(TIME_STATUS_NP,                      c000, clock, use_GL,    51,     UF)
 A(GRANDMASTER_SETTINGS_NP,             c001, clock, use_GSL,    8,     UFB)
 A(PORT_DATA_SET_NP,                    c002, port,  use_GSL,    8,     UFB)
 A(SUBSCRIBE_EVENTS_NP,                 c003, clock, use_GSL,   66,     UFB)
