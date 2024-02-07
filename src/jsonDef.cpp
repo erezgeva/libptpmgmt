@@ -15,6 +15,7 @@
 #include <dlfcn.h>
 #include "comp.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 // From JSON part
@@ -22,7 +23,7 @@ static int Json2msgCount = 0; // Count how many objects exist
 #ifdef PIC // Shared library code
 static void *jsonLib = nullptr;
 static const char *useLib = nullptr;
-static std::mutex jsonLoadLock; // Lock loading and unloading
+static mutex jsonLoadLock; // Lock loading and unloading
 #define funcName(fname) ptpm_json_##fname##_p
 #define funcDeclare0(fret, fname, fargs)\
     typedef fret(*fname##_t)(fargs);\
@@ -103,7 +104,7 @@ static inline bool loadMatchLibrary(const char *libMatch, const char *found)
 }
 static bool doLoadLibrary(const char *libMatch = nullptr)
 {
-    std::unique_lock<std::mutex> lock(jsonLoadLock);
+    unique_lock<mutex> lock(jsonLoadLock);
     const char *list[] = { JSON_C nullptr };
     if(libMatch != nullptr) {
         const char *found = nullptr;
@@ -131,7 +132,7 @@ static bool doLoadLibrary(const char *libMatch = nullptr)
 }
 static inline void libFree()
 {
-    std::unique_lock<std::mutex> lock(jsonLoadLock);
+    unique_lock<mutex> lock(jsonLoadLock);
     if(Json2msgCount <= 0) {
         if(jsonLib != nullptr) {
             doLibRm();
@@ -169,7 +170,7 @@ const char *Json2msg::loadLibrary()
 {
     return LIB_NAME;
 }
-bool Json2msg::selectLib(const std::string &libMatch)
+bool Json2msg::selectLib(const string &libMatch)
 {
     LIB_LOAD(libMatch.c_str());
     return LIB_SHARED;
@@ -178,7 +179,7 @@ bool Json2msg::isLibShared()
 {
     return LIB_SHARED;
 }
-bool Json2msg::fromJson(const std::string &json)
+bool Json2msg::fromJson(const string &json)
 {
     LIB_LOAD();
     void *jobj = funcName(parse)(json.c_str());
@@ -193,7 +194,7 @@ bool Json2msg::fromJson(const std::string &json)
 bool Json2msg::fromJsonObj(const void *jobj)
 {
     LIB_LOAD();
-    std::unique_ptr<JsonProcFrom> hold;
+    unique_ptr<JsonProcFrom> hold;
     JsonProcFrom *pproc = funcName(alloc_proc)();
     if(pproc == nullptr) {
         PTPMGMT_ERROR("fromJsonObj fail allocation of JsonProcFrom");

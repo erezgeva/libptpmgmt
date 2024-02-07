@@ -12,10 +12,11 @@
 #include "comp.h"
 #include <stdarg.h>
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 void Error::doError(bool use_errno, const char *file, int line,
-    const char *func, const std::string &msg)
+    const char *func, const string &msg)
 {
     m_file = file;
     m_line = line;
@@ -23,12 +24,12 @@ void Error::doError(bool use_errno, const char *file, int line,
     m_msg = msg;
     m_errno = use_errno ? errno : 0;
 }
-const std::string &Error::fetch()
+const string &Error::fetch()
 {
     if(m_line == 0)
         m_fmsg.clear();
     m_fmsg = "[" + m_file +
-        ":" + std::to_string(m_line) +
+        ":" + to_string(m_line) +
         ":" + m_func + "] " + m_msg;
     if(m_errno != 0) {
         m_fmsg += ": ";
@@ -41,7 +42,7 @@ Error &Error::getCur()
     static thread_local Error obj;
     return obj;
 }
-std::string Error::doFormat(const char *format, ...)
+string Error::doFormat(const char *format, ...)
 {
     va_list va;
     va_start(va, format);
@@ -54,7 +55,7 @@ std::string Error::doFormat(const char *format, ...)
     va_end(va);
     return buf;
 }
-const std::string &Error::getErrnoMsg()
+const string &Error::getErrnoMsg()
 {
     getCur().m_emsg = getCur().m_errno == 0 ? "" : strerror(getCur().m_errno);
     return getCur().m_emsg;

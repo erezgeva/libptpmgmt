@@ -15,6 +15,7 @@
 #include "timeCvrt.h"
 #include "comp.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 struct floor_t {
@@ -625,7 +626,7 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
     }
     return MNG_PARSE_ERROR_SIG; // We have signaling message
 }
-bool Message::traversSigTlvs(std::function<bool (const Message &msg,
+bool Message::traversSigTlvs(function<bool (const Message &msg,
         tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const
 {
     if(m_type == Signaling)
@@ -677,7 +678,7 @@ bool Message::isAllClocks() const
     return m_prms.target.portNumber == allPorts &&
         memcmp(&m_prms.target.clockIdentity, &allClocks, sizeof allClocks) == 0;
 }
-bool Message::useConfig(const ConfigFile &cfg, const std::string &section)
+bool Message::useConfig(const ConfigFile &cfg, const string &section)
 {
     uint8_t transportSpecific = cfg.transportSpecific(section);
     if(transportSpecific > 0xf)
@@ -774,8 +775,7 @@ const char *Message::mng2str_c(mng_vals_e id)
             return "unknown";
     }
 }
-const bool Message::findMngID(const std::string &str, mng_vals_e &id,
-    bool exact)
+const bool Message::findMngID(const string &str, mng_vals_e &id, bool exact)
 {
     if(str.empty())
         return false;
@@ -914,7 +914,7 @@ const char *Message::timeSrc2str_c(timeSource_e val)
     }
     return "unknown clock";
 }
-const bool Message::findTimeSrc(const std::string &str, timeSource_e &type,
+const bool Message::findTimeSrc(const string &str, timeSource_e &type,
     bool exact)
 {
     if(str.empty())
@@ -965,7 +965,7 @@ const char *Message::portState2str_c(portState_e val)
     }
     return "unknown state";
 }
-const bool Message::findPortState(const std::string &str, portState_e &state,
+const bool Message::findPortState(const string &str, portState_e &state,
     bool caseSens)
 {
     if(str.empty())
@@ -1004,8 +1004,8 @@ const char *Message::delayMech2str_c(delayMechanism_e type)
     }
     return "unknown";
 }
-const bool Message::findDelayMech(const std::string &str,
-    delayMechanism_e &type, bool exact)
+const bool Message::findDelayMech(const string &str, delayMechanism_e &type,
+    bool exact)
 {
     if(str.empty())
         return false;
@@ -1079,7 +1079,7 @@ int64_t TimeInterval_t::getIntervalInt() const
         return -((-scaledNanoseconds) >> 16);
     return scaledNanoseconds >> 16;
 }
-std::string Timestamp_t::string() const
+string Timestamp_t::string() const
 {
     char buf[200];
     snprintf(buf, sizeof buf, "%ju.%.9u", secondsField, nanosecondsField);
@@ -1176,18 +1176,18 @@ Timestamp_t &Timestamp_t::subt(const Timestamp_t &ts)
     nanosecondsField -= ts.nanosecondsField;
     return normNano(this);
 }
-std::string ClockIdentity_t::string() const
+string ClockIdentity_t::string() const
 {
     char buf[25];
     snprintf(buf, sizeof buf, "%02x%02x%02x.%02x%02x.%02x%02x%02x",
         v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
     return buf;
 }
-std::string PortIdentity_t::string() const
+string PortIdentity_t::string() const
 {
     std::string ret = clockIdentity.string();
     ret += "-";
-    ret += std::to_string(portNumber);
+    ret += to_string(portNumber);
     return ret;
 }
 bool PortIdentity_t::less(const PortIdentity_t &rhs) const
@@ -1195,7 +1195,7 @@ bool PortIdentity_t::less(const PortIdentity_t &rhs) const
     return clockIdentity == rhs.clockIdentity ?
         portNumber < rhs.portNumber : clockIdentity < rhs.clockIdentity;
 }
-std::string PortAddress_t::string() const
+string PortAddress_t::string() const
 {
     switch(networkProtocol) {
         case UDP_IPv4:

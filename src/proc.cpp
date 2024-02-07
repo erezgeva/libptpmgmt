@@ -20,6 +20,7 @@ extern "C" {
 #include "c/proc.h"
 }
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 /**
@@ -203,14 +204,14 @@ bool MsgProc::proc(Float64_t &val)
              * The computed float is in host order
              */
             // Move negative sign bit
-            if(std::signbit(val)) {
+            if(signbit(val)) {
                 num = sig_64bits; // add sign bit
-                if(std::isfinite(val))
+                if(isfinite(val))
                     val = fabsl(val);
             } else
                 num = 0;
             long double norm;
-            switch(std::fpclassify(val)) {
+            switch(fpclassify(val)) {
                 case FP_NAN: // Not a number
                     exp = ieee754_exp_nan;
                     mnt = 1; // Any positive goes
@@ -298,18 +299,18 @@ bool MsgProc::proc(Float64_t &val)
                 if(mnt == 0) // infinity
                     val = HUGE_VALL;
                 else // NaN
-                    val = std::numeric_limits<Float64_t>::quiet_NaN();
+                    val = numeric_limits<Float64_t>::quiet_NaN();
             } else if(exp == ieee754_exp_sub) // Subnormal or zero
                 val = exp2l(ieee754_exp_min) * mnt / ieee754_mnt_base;
             else // Normal
                 val = exp2l(exp) * (mnt + ieee754_mnt_base) / ieee754_mnt_base;
             if(num & sig_64bits) // Negative
-                val = std::copysign(val, -1);
+                val = copysign(val, -1);
         }
     }
     return false;
 }
-bool MsgProc::proc(std::string &str, uint16_t len)
+bool MsgProc::proc(string &str, uint16_t len)
 {
     if(m_build) // On build ignore length variable
         len = str.length();
@@ -318,7 +319,7 @@ bool MsgProc::proc(std::string &str, uint16_t len)
     if(m_build)
         memcpy(m_cur, str.c_str(), len);
     else
-        str = std::string((char *)m_cur, len);
+        str = string((char *)m_cur, len);
     move(len);
     return false;
 }
@@ -457,8 +458,7 @@ bool MsgProc::procLe(uint64_t &val)
                 return true;\
         }\
     } else
-template <typename T> bool MsgProc::vector_f(uint32_t count,
-    std::vector<T> &vec)
+template <typename T> bool MsgProc::vector_f(uint32_t count, vector<T> &vec)
 {
     vector_b(vec) {
         for(uint32_t i = 0; i < count; i++) {
@@ -470,12 +470,12 @@ template <typename T> bool MsgProc::vector_f(uint32_t count,
     }
     return false;
 }
-#define vf(t) template bool MsgProc::vector_f<t>(uint32_t, std::vector<t> &)
+#define vf(t) template bool MsgProc::vector_f<t>(uint32_t, vector<t> &)
 vf(FaultRecord_t);
 vf(PortAddress_t);
 vf(AcceptableMaster_t);
 vf(LinuxptpUnicastMaster_t);
-template <typename T> bool MsgProc::vector_o(std::vector<T> &vec)
+template <typename T> bool MsgProc::vector_o(vector<T> &vec)
 {
     vector_b(vec) {
         while(m_left >= (ssize_t)T::size()) {
@@ -487,21 +487,21 @@ template <typename T> bool MsgProc::vector_o(std::vector<T> &vec)
     }
     return false;
 }
-#define vo(t) template bool MsgProc::vector_o<t>(std::vector<t> &)
+#define vo(t) template bool MsgProc::vector_o<t>(vector<t> &)
 vo(ClockIdentity_t);
 vo(SLAVE_RX_SYNC_TIMING_DATA_rec_t);
 vo(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t);
 vo(SLAVE_TX_EVENT_TIMESTAMPS_rec_t);
 vo(SLAVE_DELAY_TIMING_DATA_NP_rec_t);
 
-template <typename T> size_t vector_l(size_t ret, std::vector<T> &vec) PURE;
+template <typename T> size_t vector_l(size_t ret, vector<T> &vec) PURE;
 
 // For Octets arrays
 #define oproc(a) proc(a, sizeof a)
 #define fproc procFlags(d.flags, d.flagsMask)
 
 // size of variable length list
-template <typename T> size_t vector_l(size_t ret, const std::vector<T> &vec)
+template <typename T> size_t vector_l(size_t ret, const vector<T> &vec)
 {
     for(const T &rec : vec)
         ret += rec.size();
@@ -1358,7 +1358,7 @@ C2(CLOCK_DESCRIPTION)
     if(d.physicalLayerProtocol.textField != nullptr &&
         d.physicalLayerProtocol.lengthField > 0)
         a.physicalLayerProtocol.textField =
-            std::string(d.physicalLayerProtocol.textField,
+            string(d.physicalLayerProtocol.textField,
                 d.physicalLayerProtocol.lengthField);
     a.physicalAddressLength = d.physicalAddressLength;
     if(d.physicalAddress != nullptr && d.physicalAddressLength > 0)
@@ -1374,15 +1374,15 @@ C2(CLOCK_DESCRIPTION)
     a.productDescription.lengthField = d.productDescription.lengthField;
     if(d.productDescription.textField != nullptr &&
         d.productDescription.lengthField > 0)
-        a.productDescription.textField = std::string(d.productDescription.textField,
+        a.productDescription.textField = string(d.productDescription.textField,
                 d.productDescription.lengthField);
     a.revisionData.lengthField = d.revisionData.lengthField;
     if(d.revisionData.textField != nullptr && d.revisionData.lengthField > 0)
-        a.revisionData.textField = std::string(d.revisionData.textField,
+        a.revisionData.textField = string(d.revisionData.textField,
                 d.revisionData.lengthField);
     a.userDescription.lengthField = d.userDescription.lengthField;
     if(d.userDescription.textField != nullptr && d.userDescription.lengthField > 0)
-        a.userDescription.textField = std::string(d.userDescription.textField,
+        a.userDescription.textField = string(d.userDescription.textField,
                 d.userDescription.lengthField);
     memcpy(a.profileIdentity, d.profileIdentity, 6);
 }
@@ -1390,7 +1390,7 @@ C2(USER_DESCRIPTION)
 {
     a.userDescription.lengthField = d.userDescription.lengthField;
     if(d.userDescription.textField != nullptr && d.userDescription.lengthField > 0)
-        a.userDescription.textField = std::string(d.userDescription.textField,
+        a.userDescription.textField = string(d.userDescription.textField,
                 d.userDescription.lengthField);
 }
 C2(INITIALIZE)
@@ -1409,16 +1409,16 @@ C2(FAULT_LOG)
         r.severityCode = (faultRecord_e)f.severityCode;
         r.faultName.lengthField = f.faultName.lengthField;
         if(f.faultName.textField != nullptr && f.faultName.lengthField > 0)
-            r.faultName.textField = std::string(f.faultName.textField,
+            r.faultName.textField = string(f.faultName.textField,
                     f.faultName.lengthField);
         r.faultValue.lengthField = f.faultValue.lengthField;
         if(f.faultValue.textField != nullptr && f.faultValue.lengthField > 0)
-            r.faultValue.textField = std::string(f.faultValue.textField,
+            r.faultValue.textField = string(f.faultValue.textField,
                     f.faultValue.lengthField);
         r.faultDescription.lengthField = f.faultDescription.lengthField;
         if(f.faultDescription.textField != nullptr &&
             f.faultDescription.lengthField > 0)
-            r.faultDescription.textField = std::string(f.faultDescription.textField,
+            r.faultDescription.textField = string(f.faultDescription.textField,
                     f.faultDescription.lengthField);
         a.faultRecords.push_back(r);
     }
@@ -1628,7 +1628,7 @@ C2(ALTERNATE_TIME_OFFSET_NAME)
     a.keyField = d.keyField;
     a.displayName.lengthField = d.displayName.lengthField;
     if(d.displayName.textField != nullptr && d.displayName.lengthField > 0)
-        a.displayName.textField = std::string(d.displayName.textField,
+        a.displayName.textField = string(d.displayName.textField,
                 d.displayName.lengthField);
 }
 C2(ALTERNATE_TIME_OFFSET_MAX_KEY)
@@ -1730,7 +1730,7 @@ C2(PORT_PROPERTIES_NP)
     a.timestamping = (linuxptpTimeStamp_e)d.timestamping;
     a.interface.lengthField = d.interface.lengthField;
     if(d.interface.textField != nullptr && d.interface.lengthField > 0)
-        a.interface.textField = std::string(d.interface.textField,
+        a.interface.textField = string(d.interface.textField,
                 d.interface.lengthField);
 }
 C2(PORT_STATS_NP)
@@ -1826,7 +1826,7 @@ __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-static inline bool div_event(int event, std::div_t &d)
+static inline bool div_event(int event, div_t &d)
 {
     if(event < 0 || event >= EVENT_BITMASK_CNT)
         return false;
@@ -1837,13 +1837,13 @@ static inline bool div_event(int event, std::div_t &d)
 extern "C" {
     void ptpmgmt_setEvent_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
     {
-        std::div_t d;
+        div_t d;
         if(div_event(event, d))
             e->bitmask[d.quot] |= d.rem;
     }
     void ptpmgmt_clearEvent_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
     {
-        std::div_t d;
+        div_t d;
         if(div_event(event, d))
             e->bitmask[d.quot] &= ~d.rem;
     }
@@ -1853,7 +1853,7 @@ extern "C" {
     }
     bool ptpmgmt_getEvent_lnp(const ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
     {
-        std::div_t d;
+        div_t d;
         if(div_event(event, d))
             return (e->bitmask[d.quot] & d.rem) > 0;
         return false;

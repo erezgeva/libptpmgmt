@@ -15,6 +15,7 @@
 #include <dlfcn.h>
 #include "comp.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 #define JS(n) static inline bool proc_##n(JsonProc &proc, n##_t &d)
@@ -471,11 +472,11 @@ JS(POWER_PROFILE_SETTINGS_NP)
 #define procType(type) \
     void procValue(const char *name, const type &val) {\
         startName(name, " ");\
-        m_result += std::to_string(val);\
+        m_result += to_string(val);\
     }\
     bool procValue(const char *name, type &val) override {\
         startName(name, " ");\
-        m_result += std::to_string(val);\
+        m_result += to_string(val);\
         return true;\
     }
 #define procTypeEnum(type, func)\
@@ -489,7 +490,7 @@ JS(POWER_PROFILE_SETTINGS_NP)
         return true;\
     }
 #define procVector(type) \
-    bool procArray(const char *name, std::vector<type> &val) {\
+    bool procArray(const char *name, vector<type> &val) {\
         procArray(name);\
         for(type &rec : val) {\
             close();\
@@ -499,7 +500,7 @@ JS(POWER_PROFILE_SETTINGS_NP)
         return true;\
     }
 #define procVectorA(type) \
-    bool procArray(const char *name, std::vector<type> &val) override {\
+    bool procArray(const char *name, vector<type> &val) override {\
         procArray(name);\
         for(type &rec : val) {\
             close();\
@@ -528,8 +529,8 @@ bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
 }
 
 struct JsonProcToJson : public JsonProc {
-    std::string m_result;
-    std::stack<bool> m_first_vals;
+    string m_result;
+    stack<bool> m_first_vals;
     int m_base_indent;
     bool m_first;
     JsonProcToJson(const Message &msg, int indent);
@@ -545,7 +546,7 @@ struct JsonProcToJson : public JsonProc {
         m_first = false;
     }
     void indent() {
-        m_result += std::string(m_first_vals.size() * 2 + m_base_indent, ' ');
+        m_result += string(m_first_vals.size() * 2 + m_base_indent, ' ');
     }
     void startName(const char *name, const char *end) {
         close();
@@ -589,12 +590,12 @@ struct JsonProcToJson : public JsonProc {
         startName(name, "\n");
         startArray();
     }
-    void procString(const char *name, const std::string &val) {
+    void procString(const char *name, const string &val) {
         startName(name, " \"");
         m_result += val;
         m_result += '"';
     }
-    void procValue(const char *name, const std::string &val) {
+    void procValue(const char *name, const string &val) {
         startName(name, " ");
         m_result += val;
     }
@@ -1037,13 +1038,13 @@ JsonProcToJson::JsonProcToJson(mng_vals_e managementId, const BaseMngTlv *tlv,
     data2json(managementId, tlv, false);
 }
 
-std::string msg2json(const Message &msg, int indent)
+string msg2json(const Message &msg, int indent)
 {
     JsonProcToJson proc(msg, indent);
     return proc.m_result;
 }
 
-std::string tlv2json(mng_vals_e managementId, const BaseMngTlv *tlv, int indent)
+string tlv2json(mng_vals_e managementId, const BaseMngTlv *tlv, int indent)
 {
     if(tlv == nullptr || Message::isEmpty(managementId))
         return "{}"; // empty JSON
@@ -1063,7 +1064,7 @@ extern "C" {
     char *ptpmgmt_json_msg2json(const_ptpmgmt_msg m, int indent)
     {
         if(m != nullptr && m->_this != nullptr) {
-            std::string ret = msg2json(*(Message *)m->_this, indent);
+            string ret = msg2json(*(Message *)m->_this, indent);
             if(!ret.empty())
                 return strdup(ret.c_str());
         }
@@ -1076,7 +1077,7 @@ extern "C" {
             mng_vals_e id = (mng_vals_e)managementId;
             BaseMngTlv *t = c2cppMngTlv(id, tlv);
             if(t != nullptr) {
-                std::string ret = tlv2json(id, t, indent);
+                string ret = tlv2json(id, t, indent);
                 delete t;
                 if(!ret.empty())
                     return strdup(ret.c_str());

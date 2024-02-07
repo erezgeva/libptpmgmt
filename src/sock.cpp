@@ -20,6 +20,7 @@
 #include "sock.h"
 #include "timeCvrt.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 // Values from IEEE 1588 standard
@@ -155,7 +156,7 @@ bool SockBase::tpoll(uint64_t &timeout_ms) const
     }
     return ret;
 }
-static inline bool testUnix(const std::string &str, size_t extra = 0)
+static inline bool testUnix(const string &str, size_t extra = 0)
 {
     size_t len = str.length();
     if(len == 0 || len > unix_path_max - extra) {
@@ -165,11 +166,11 @@ static inline bool testUnix(const std::string &str, size_t extra = 0)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-void SockUnix::setUnixAddr(sockaddr_un &addr, const std::string &str)
+void SockUnix::setUnixAddr(sockaddr_un &addr, const string &str)
 {
     addr = {0};
     addr.sun_family = AF_UNIX;
-    memcpy(addr.sun_path, str.c_str(), std::min(str.size(), unix_path_max));
+    memcpy(addr.sun_path, str.c_str(), min(str.size(), unix_path_max));
 }
 void SockUnix::closeChild()
 {
@@ -200,19 +201,19 @@ bool SockUnix::initBase()
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockUnix::setPeerInternal(const std::string &str, bool useAbstract)
+bool SockUnix::setPeerInternal(const string &str, bool useAbstract)
 {
     if(!testUnix(str, useAbstract ? 1 : 0))
         return false;
     if(useAbstract)
-        m_peer = std::string(1, '\0') + str;
+        m_peer = string(1, '\0') + str;
     else
         m_peer = str;
     setUnixAddr(m_peerAddr, m_peer);
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockUnix::setSelfAddress(const std::string &str, bool useAbstract)
+bool SockUnix::setSelfAddress(const string &str, bool useAbstract)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("self address can not be changed after initializing is done");
@@ -221,25 +222,24 @@ bool SockUnix::setSelfAddress(const std::string &str, bool useAbstract)
     if(!testUnix(str, useAbstract ? 1 : 0))
         return false;
     if(useAbstract)
-        m_me = std::string(1, '\0') + str;
+        m_me = string(1, '\0') + str;
     else
         m_me = str;
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockUnix::setDefSelfAddress(const std::string &rootBase,
-    const std::string &useDef)
+bool SockUnix::setDefSelfAddress(const string &rootBase, const string &useDef)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("self address can not be changed after initializing is done");
         return false;
     }
-    std::string new_me;
+    string new_me;
     uid_t uid = getuid();
     if(uid) {
         if(useDef.empty()) {
             new_me = useDefstrPre;
-            new_me += std::to_string(uid);
+            new_me += to_string(uid);
             // Ensure system run folder per user exist
             if(!ensureDir(new_me.c_str())) {
                 // If not use on home directory
@@ -263,10 +263,10 @@ bool SockUnix::setDefSelfAddress(const std::string &rootBase,
         else
             new_me = rootBase;
     }
-    new_me += std::to_string(getpid());
+    new_me += to_string(getpid());
     return setSelfAddress(new_me);
 }
-const std::string &SockUnix::getHomeDir()
+const string &SockUnix::getHomeDir()
 {
     passwd *pwd = getpwuid(getuid());
     if(pwd != nullptr)
@@ -294,8 +294,8 @@ bool SockUnix::sendBase(const void *msg, size_t len)
         return false;
     return sendAny(msg, len, m_peerAddr);
 }
-bool SockUnix::sendTo(const void *msg, size_t len,
-    const std::string &addrStr, bool useAbstract) const
+bool SockUnix::sendTo(const void *msg, size_t len, const string &addrStr,
+    bool useAbstract) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("Socket is not initialized");
@@ -305,7 +305,7 @@ bool SockUnix::sendTo(const void *msg, size_t len,
         return false;
     sockaddr_un addr;
     if(useAbstract)
-        setUnixAddr(addr, std::string(1, '\0') + addrStr);
+        setUnixAddr(addr, string(1, '\0') + addrStr);
     else
         setUnixAddr(addr, addrStr);
     return sendAny(msg, len, addr);
@@ -314,7 +314,7 @@ ssize_t SockUnix::rcvBase(void *buf, size_t bufSize, bool block)
 {
     if(!testUnix(m_peer))
         return -1;
-    std::string from;
+    string from;
     ssize_t cnt = rcvFrom(buf, bufSize, from, block);
     if(cnt < 0)
         return -1;
@@ -328,7 +328,7 @@ ssize_t SockUnix::rcvBase(void *buf, size_t bufSize, bool block)
     }
     return cnt;
 }
-ssize_t SockUnix::rcvFrom(void *buf, size_t bufSize, std::string &from,
+ssize_t SockUnix::rcvFrom(void *buf, size_t bufSize, string &from,
     bool block) const
 {
     if(!m_isInit) {
@@ -363,7 +363,7 @@ bool SockBaseIf::setInt(const IfInfo &ifObj)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockBaseIf::setIfUsingName(const std::string &ifName)
+bool SockBaseIf::setIfUsingName(const string &ifName)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Socket is already initialized");
@@ -413,7 +413,7 @@ bool SockIp::setUdpTtl(uint8_t udp_ttl)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockIp::setUdpTtl(const ConfigFile &cfg, const std::string &section)
+bool SockIp::setUdpTtl(const ConfigFile &cfg, const string &section)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Can not set ttl after socket is initialized");
@@ -536,7 +536,7 @@ bool SockIp4::initIp()
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockIp4::setAllBase(const ConfigFile &cfg, const std::string &section)
+bool SockIp4::setAllBase(const ConfigFile &cfg, const string &section)
 {
     return setUdpTtl(cfg, section);
 }
@@ -600,7 +600,7 @@ bool SockIp6::setScope(uint8_t udp6_scope)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockIp6::setScope(const ConfigFile &cfg, const std::string &section)
+bool SockIp6::setScope(const ConfigFile &cfg, const string &section)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Socket is already initialized");
@@ -610,7 +610,7 @@ bool SockIp6::setScope(const ConfigFile &cfg, const std::string &section)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockIp6::setAllBase(const ConfigFile &cfg, const std::string &section)
+bool SockIp6::setAllBase(const ConfigFile &cfg, const string &section)
 {
     return setUdpTtl(cfg, section) && setScope(cfg, section);
 }
@@ -622,7 +622,7 @@ SockRaw::SockRaw() :
     m_hdr{{0}}
 {
 }
-bool SockRaw::setPtpDstMacStr(const std::string &str)
+bool SockRaw::setPtpDstMacStr(const string &str)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Socket is already initialized");
@@ -659,7 +659,7 @@ bool SockRaw::setPtpDstMac(const void *mac, size_t len)
 {
     return setPtpDstMac(Binary(mac, len));
 }
-bool SockRaw::setPtpDstMac(const ConfigFile &cfg, const std::string &section)
+bool SockRaw::setPtpDstMac(const ConfigFile &cfg, const string &section)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Socket is already initialized");
@@ -683,8 +683,7 @@ bool SockRaw::setSocketPriority(uint8_t socket_priority)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockRaw::setSocketPriority(const ConfigFile &cfg,
-    const std::string &section)
+bool SockRaw::setSocketPriority(const ConfigFile &cfg, const string &section)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Socket is already initialized");
@@ -811,7 +810,7 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
     PTPMGMT_ERROR_CLR;
     return cnt - sizeof m_rx_buf;
 }
-bool SockRaw::setAllBase(const ConfigFile &cfg, const std::string &section)
+bool SockRaw::setAllBase(const ConfigFile &cfg, const string &section)
 {
     return setPtpDstMac(cfg, section) && setSocketPriority(cfg, section);
 }
@@ -1104,11 +1103,11 @@ extern "C" {
     {
         SockUnix *s = valid_usk(sk);
         if(s != nullptr && buf != nullptr && bufSize > 0) {
-            std::string f;
+            string f;
             ssize_t ret = s->rcvFrom(buf, bufSize, f, block);
             if(from != nullptr && fromSize != nullptr && *fromSize > 1 &&
                 !f.empty()) {
-                size_t c = std::min(f.length(), *fromSize - 1);
+                size_t c = min(f.length(), *fromSize - 1);
                 memcpy(from, f.c_str(), c);
                 from[c] = 0;
                 *fromSize = c;

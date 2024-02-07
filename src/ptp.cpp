@@ -21,6 +21,7 @@
 #include "comp.h"
 #include "timeCvrt.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 // These are system/hardware based parameters
@@ -193,7 +194,7 @@ bool IfInfo::initPtp(int fd, ifreq &ifr)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool IfInfo::initUsingName(const std::string &ifName)
+bool IfInfo::initUsingName(const string &ifName)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Alreay initialized");
@@ -361,7 +362,7 @@ PtpClock::~PtpClock()
     if(m_fd >= 0)
         close(m_fd);
 }
-bool PtpClock::isCharFile(const std::string &file)
+bool PtpClock::isCharFile(const string &file)
 {
     struct stat sb;
     if(stat(file.c_str(), &sb) != 0) {
@@ -397,7 +398,7 @@ bool PtpClock::init(const char *device, bool readonly)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool PtpClock::initUsingDevice(const std::string &device, bool readonly)
+bool PtpClock::initUsingDevice(const string &device, bool readonly)
 {
     if(m_isInit) {
         PTPMGMT_ERROR("Alreay initialized");
@@ -405,8 +406,8 @@ bool PtpClock::initUsingDevice(const std::string &device, bool readonly)
     }
     char file[PATH_MAX];
     if(!isCharFile(device)) {
-        std::string dev;
-        if(device.find('/') != std::string::npos) {
+        string dev;
+        if(device.find('/') != string::npos) {
             PTPMGMT_ERROR("Wrong device '%s'", device.c_str());
             return false;
         }
@@ -443,8 +444,8 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
         PTPMGMT_ERROR("Alreay initialized");
         return false;
     }
-    std::string dev = ptp_dev;
-    dev += std::to_string(ptpIndex);
+    string dev = ptp_dev;
+    dev += to_string(ptpIndex);
     if(!isCharFile(dev))
         return false;
     if(!init(dev.c_str(), readonly))
@@ -644,7 +645,7 @@ static inline size_t PtpClock_readEvents(int fd, ptp_extts_event *ents,
         PTPMGMT_ERROR_CLR;
         return 0;
     }
-    div_t d = div(cnt, sizeof(ptp_extts_event));
+    div_t d = ::div(cnt, sizeof(ptp_extts_event));
     if(d.rem != 0) {
         PTPMGMT_ERROR("Wrong size %zd, not divisible", cnt);
         return 0;
@@ -652,7 +653,7 @@ static inline size_t PtpClock_readEvents(int fd, ptp_extts_event *ents,
     PTPMGMT_ERROR_CLR;
     return d.quot;
 }
-bool PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
+bool PtpClock::readEvents(vector<PtpEvent_t> &events, size_t max) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("not initialized yet");
@@ -661,7 +662,7 @@ bool PtpClock::readEvents(std::vector<PtpEvent_t> &events, size_t max) const
     if(max == 0)
         max = PTP_BUF_TIMESTAMPS;
     else
-        max = std::min(max, PTP_BUF_TIMESTAMPS);
+        max = min(max, PTP_BUF_TIMESTAMPS);
     ptp_extts_event ents[max];
     size_t num = PtpClock_readEvents(m_fd, ents, max);
     if(num == 0)
@@ -747,8 +748,7 @@ static inline bool PtpClock_samplePtpSys(bool isInit, int fd, size_t count,
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool PtpClock::samplePtpSys(size_t count,
-    std::vector<PtpSample_t> &samples) const
+bool PtpClock::samplePtpSys(size_t count, vector<PtpSample_t> &samples) const
 {
     ptp_sys_offset req;
     if(!PtpClock_samplePtpSys(m_isInit, m_fd, count, req))
@@ -781,7 +781,7 @@ static inline bool PtpClock_extSamplePtpSys(bool isInit, int fd, size_t count,
     return true;
 }
 bool PtpClock::extSamplePtpSys(size_t count,
-    std::vector<PtpSampleExt_t> &samples) const
+    vector<PtpSampleExt_t> &samples) const
 {
     ptp_sys_offset_extended req;
     if(!PtpClock_extSamplePtpSys(m_isInit, m_fd, count, req))
@@ -864,7 +864,7 @@ extern "C" {
     static const char *ptpmgmt_ifInfo_ifName(const_ptpmgmt_ifInfo me)
     {
         if(me != nullptr && me->_this != nullptr) {
-            const std::string &a = ((IfInfo *)me->_this)->ifName();
+            const string &a = ((IfInfo *)me->_this)->ifName();
             if(!a.empty())
                 return a.c_str();
         }
@@ -1145,7 +1145,7 @@ extern "C" {
             size != nullptr && *size > 0) {
             PtpClock *p = (PtpClock *)clk->_this;
             if(p->isInit()) {
-                size_t ret = PtpClock_readEvents(p->getFd(), events, std::min(*size,
+                size_t ret = PtpClock_readEvents(p->getFd(), events, min(*size,
                             PTP_BUF_TIMESTAMPS));
                 if(ret > 0) {
                     *size = ret;

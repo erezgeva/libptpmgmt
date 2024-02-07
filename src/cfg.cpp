@@ -12,20 +12,21 @@
 #include "cfg.h"
 #include "comp.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 #define get_func(n)\
-    uint8_t ConfigFile::n(const std::string &section) const\
+    uint8_t ConfigFile::n(const string &section) const\
     {\
         return get_num(ConfigSection::n##_val, section);\
     }
 #define get_str_func(n)\
-    const std::string &ConfigFile:: n(const std::string &section) const\
+    const string &ConfigFile:: n(const string &section) const\
     {\
         return get_str(ConfigSection::n##_val, section);\
     }
 #define get_bin_func(n)\
-    const Binary &ConfigFile:: n(const std::string &section) const\
+    const Binary &ConfigFile:: n(const string &section) const\
     {\
         return get_bin(ConfigSection::n##_val, section);\
     }
@@ -140,7 +141,7 @@ void ConfigFile::clear_sections()
     cfgGlobal->setGlobal(); // default values
 }
 // read PTP configuration from file
-bool ConfigFile::read_cfg(const std::string &_file)
+bool ConfigFile::read_cfg(const string &_file)
 {
     if(_file.empty()) {
         PTPMGMT_ERROR("Empty file name");
@@ -154,7 +155,7 @@ bool ConfigFile::read_cfg(const std::string &_file)
     }
     char buf[512];
     clear_sections(); // remove old configuration
-    std::string curSection = globalSection;
+    string curSection = globalSection;
     while(fgets(buf, sizeof buf, f) != nullptr) {
         char *cur = skip_spaces(buf);
         if(*cur == '[') {
@@ -176,27 +177,26 @@ bool ConfigFile::read_cfg(const std::string &_file)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool ConfigFile::is_global(int idx, const std::string &section) const
+bool ConfigFile::is_global(int idx, const string &section) const
 {
     if(section.empty() || cfgSec.count(section) == 0 ||
         !cfgSec.at(section).m_set[idx])
         return true;
     return false;
 }
-uint8_t ConfigFile::get_num(int idx, const std::string &section) const
+uint8_t ConfigFile::get_num(int idx, const string &section) const
 {
     if(is_global(idx, section))
         return cfgGlobal->m_vals[idx - ConfigSection::val_base_val];
     return cfgSec.at(section).m_vals[idx - ConfigSection::val_base_val];
 }
-const std::string &ConfigFile::get_str(int idx,
-    const std::string &section) const
+const string &ConfigFile::get_str(int idx, const string &section) const
 {
     if(is_global(idx, section))
         return cfgGlobal->m_str_vals[idx - ConfigSection::str_base_val];
     return cfgSec.at(section).m_str_vals[idx - ConfigSection::str_base_val];
 }
-const Binary &ConfigFile::get_bin(int idx, const std::string &section) const
+const Binary &ConfigFile::get_bin(int idx, const string &section) const
 {
     if(is_global(idx, section))
         return cfgGlobal->m_bin_vals[idx - ConfigSection::bin_base_val];
@@ -279,7 +279,7 @@ extern "C" {
     {
         if(me != nullptr && me->_this != nullptr) {
             const char *a = section != nullptr ? section : ptpm_empty_str;
-            const std::string &s = ((ConfigFile *)me->_this)->uds_address(a);
+            const string &s = ((ConfigFile *)me->_this)->uds_address(a);
             if(!s.empty())
                 return s.c_str();
         }

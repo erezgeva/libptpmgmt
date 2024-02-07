@@ -14,6 +14,7 @@
 #include "ver.h"
 #include "comp.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 #define _tf true, false  // with argument
@@ -47,11 +48,11 @@ Pmc_option Options::startOptions[] = {
     { 0 },
 };
 
-std::string Options::helpStore::get(size_t length) const
+string Options::helpStore::get(size_t length) const
 {
-    std::string ret = start;
+    string ret = start;
     if(!end.empty()) {
-        ret += std::string(length - start.length(), ' ');
+        ret += string(length - start.length(), ' ');
         ret += end;
     }
     ret += "\n";
@@ -90,7 +91,7 @@ bool Options::insert(const Pmc_option &opt)
     if(opt.short_name == 0 || strchr(":+-W", opt.short_name) != nullptr)
         return false;
     // short_name must be uniq
-    if(all_options.find(opt.short_name) != std::string::npos)
+    if(all_options.find(opt.short_name) != string::npos)
         return false;
     bool have_long_name = !opt.long_name.empty();
     if(opt.long_only) {
@@ -105,7 +106,7 @@ bool Options::insert(const Pmc_option &opt)
         if(opt.have_arg) {
             all_short_options += ':';
             h.addStart(" [").addStart(opt.arg_help).addStart("]");
-            max_arg_name = std::max(max_arg_name, opt.arg_help.length());
+            max_arg_name = max(max_arg_name, opt.arg_help.length());
         }
         h.addEnd(opt.help_msg);
         if(opt.have_arg && !opt.def_val.empty())
@@ -180,11 +181,11 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
                     break;
             }
         }
-        if(net_options.find(c) != std::string::npos)
+        if(net_options.find(c) != string::npos)
             net_select = c; // Network Transport value
-        else if(with_options.find(c) != std::string::npos)
+        else if(with_options.find(c) != string::npos)
             options[c] = optarg;
-        else if(all_options.find(c) != std::string::npos)
+        else if(all_options.find(c) != string::npos)
             options[c] = "1";
         else {
             msg = "error";
@@ -195,9 +196,9 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
     m_end_optind = optind;
     return OPT_DONE;
 }
-const std::string &Options::val(char opt) const
+const string &Options::val(char opt) const
 {
-    static const std::string empty;
+    static const string empty;
     return have(opt) ? options.at(opt) : empty;
 }
 
@@ -281,7 +282,7 @@ extern "C" {
     static const char *ptpmgmt_opt_val(ptpmgmt_opt me, char opt)
     {
         if(me != nullptr && me->_this != nullptr) {
-            const std::string &v = ((Options *)me->_this)->val(opt);
+            const string &v = ((Options *)me->_this)->val(opt);
             if(!v.empty())
                 return v.c_str();
         }

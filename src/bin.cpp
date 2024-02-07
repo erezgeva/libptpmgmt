@@ -12,6 +12,7 @@
 #include <arpa/inet.h>
 #include "bin.h"
 
+using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 static const size_t min_alloc_size = 1 << 5; // 32 bytes
@@ -26,13 +27,13 @@ class Token
         if(buf != nullptr)
             free(buf);
     }
-    Token(const std::string &str) : buf(strdup(str.c_str())) {}
+    Token(const string &str) : buf(strdup(str.c_str())) {}
     bool fail() {return buf == nullptr;}
     const char *first() {return strtok_r(buf, idsep, &save);}
     const char *next() {return strtok_r(nullptr, idsep, &save);}
 };
 
-static inline bool parseByte(const char *cur, std::string &id)
+static inline bool parseByte(const char *cur, string &id)
 {
     char *end;
     long a = strtol(cur, &end, 16);
@@ -98,7 +99,7 @@ Binary::Binary(const size_t length, uint8_t set)
     }
     iResize(min_alloc_size);
 }
-Binary::Binary(const std::string &string)
+Binary::Binary(const string &string)
 {
     init();
     setBin(string);
@@ -119,14 +120,14 @@ Binary &Binary::setBin(const void *buf, const size_t length)
     }
     return *this;
 }
-Binary &Binary::setBin(const std::string &string)
+Binary &Binary::setBin(const string &string)
 {
     return setBin(string.c_str(), string.length());
 }
 Binary &Binary::setBin(const size_t position, const uint8_t value)
 {
     if(iResize(position + 1)) {
-        m_size = std::max(m_size, position + 1);
+        m_size = max(m_size, position + 1);
         m_buf[position] = value;
     }
     return *this;
@@ -140,7 +141,7 @@ const uint8_t Binary::getBin(const size_t position) const
 uint8_t &Binary::operator [](const size_t position)
 {
     if(iResize(position + 1)) {
-        m_size = std::max(m_size, position + 1);
+        m_size = max(m_size, position + 1);
         return m_buf[position];
     }
     // Used if allocation fails
@@ -174,7 +175,7 @@ Binary &Binary::append(const Binary &rhs)
     }
     return *this;
 }
-std::string Binary::toIp() const
+string Binary::toIp() const
 {
     char buf[INET6_ADDRSTRLEN];
     const char *ret = nullptr;
@@ -192,7 +193,7 @@ std::string Binary::toIp() const
         return "";
     return ret;
 }
-bool Binary::fromIp(const std::string &string, int domain)
+bool Binary::fromIp(const string &string, int domain)
 {
     if(string.length() < 2)
         return false;
@@ -213,33 +214,33 @@ bool Binary::fromIp(const std::string &string, int domain)
     setBin(buf, len);
     return true;
 }
-bool Binary::fromIp(const std::string &string)
+bool Binary::fromIp(const string &string)
 {
     if(string.length() < 2)
         return false;
     int domain;
-    if(string.find('.') != std::string::npos)
+    if(string.find('.') != string::npos)
         domain = AF_INET; // IP v4
-    else if(string.find(':') != std::string::npos)
+    else if(string.find(':') != string::npos)
         domain = AF_INET6; // IP v6
     else
         return false;
     return fromIp(string, domain);
 }
-std::string Binary::bufToId(const uint8_t *id, size_t len)
+string Binary::bufToId(const uint8_t *id, size_t len)
 {
     if(len < 1)
         return "";
     char buf[10];
     snprintf(buf, sizeof buf, "%02x", *id);
-    std::string ret = buf;
+    string ret = buf;
     for(len--; len > 0; len--) {
         snprintf(buf, sizeof buf, ":%02x", *++id);
         ret += buf;
     }
     return ret;
 }
-bool Binary::fromId(const std::string &string)
+bool Binary::fromId(const string &string)
 {
     if(string.length() < 2)
         return false;
@@ -269,14 +270,14 @@ bool Binary::eui48ToEui64()
     m_buf[3] = 0xff;
     return true;
 }
-bool Binary::fromHex(const std::string &hex)
+bool Binary::fromHex(const string &hex)
 {
     if(hex.empty())
         return false;
     Token tkn(hex);
     if(tkn.fail())
         return false;
-    std::string id;
+    string id;
     char nibbles[3];
     nibbles[2] = 0;
     const char *cur = tkn.first();
@@ -296,12 +297,12 @@ bool Binary::fromHex(const std::string &hex)
     setBin(id);
     return true;
 }
-std::string Binary::bufToHex(const uint8_t *bin, size_t len)
+string Binary::bufToHex(const uint8_t *bin, size_t len)
 {
     if(len < 1)
         return "";
     char buf[10];
-    std::string ret;
+    string ret;
     for(; len > 0; len--) {
         snprintf(buf, sizeof buf, "%02x", *bin++);
         ret += buf;
@@ -318,7 +319,7 @@ bool Binary::eq(const Binary &rhs) const
 }
 bool Binary::less(const Binary &rhs) const
 {
-    size_t size = std::min(m_size, rhs.m_size);
+    size_t size = min(m_size, rhs.m_size);
     return size > 0 && memcmp(m_buf, rhs.m_buf, size) < 0;
 }
 
