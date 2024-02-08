@@ -59,6 +59,7 @@ developing applications that use the PTP management library.
 %package        doc
 Summary:        Documentation files for the PTP management library
 License:        GFDLv1.3+
+BuildArch:      noarch
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description    doc
 PTP management library documentation, to communicate with ptp4l
@@ -114,6 +115,7 @@ PTP management library tcl wrapper
 %package -n     golang-%{bname}
 Summary:        PTP management library golang development wrapper
 License:        LGPLv3+
+BuildArch:      noarch
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       golang
 %description -n golang-%{bname}
@@ -130,6 +132,7 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 %package -n     phc-ctl-%{bname}
 Summary:        phc_ctl tool
 License:        GPLv3+
+BuildArch:      noarch
 Requires:       python3-%{bname} = %{version}-%{release}
 %description -n phc-ctl-%{bname}
  new rewrite of linuxptp phc_ctl tool using the PTP managemen library.

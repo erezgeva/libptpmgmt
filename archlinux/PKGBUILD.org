@@ -95,6 +95,7 @@ package_tcl-ptpmgmt() {
   mv $srcdir/install/usr/lib/tcl* $pkgdir/$libdir
 }
 package_go-ptpmgmt() {
+  arch=(any)
   pkgdesc='PTP management library golang development wrapper'
   depends=("libptpmgmt=$verdep" go)
   mkdir -p $pkgdir/$libdir
@@ -116,6 +117,7 @@ package_pmc-ptpmgmt() {
   mv $srcdir/install/usr/share/man/man8/pmc* $pkgdir/usr/local/man/man8
 }
 package_phc-ctl-ptpmgmt() {
+  arch=(any)
   license=(GPL3)
   depends=("python3-ptpmgmt=$verdep")
   pkgdesc='phc_ctl tool. new rewrite of linuxptp phc_ctl tool using the libptpmgmt library.'

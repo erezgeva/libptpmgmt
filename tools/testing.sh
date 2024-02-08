@@ -101,7 +101,7 @@ main()
  ##############################################################################
  # script languages source
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
-       ldPathPhp ldPathTcl ldPathJson needCmpl oneLua skip_php\
+       ldPathPhp ldPathTcl ldPathJson needCmpl oneLua skip_php skip_json\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54\
        ldPath luaVersions luaPosixVersions
  local -r pyVersions='3'
@@ -308,7 +308,7 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
  enter ruby
  enter lua
  enter python
- [[ -n "$skip_php" ]] || enter php
+ enter php
  enter tcl
  enter go
 }
@@ -318,13 +318,15 @@ do_perl()
 }
 test_json()
 { # Use perl
- printf "\n =====  Test JSON  ===== \n\n"
- eval "$useSudo$ldPathJson tools/testJson.pl $cfgFile | jq >& /dev/null"
- if $use_valgrind; then
-   printf "\n * Valgrid test of testJson.pl"
-   eval "$useSudo$ldPathJson valgrind --read-inline-info=yes\
-     tools/testJson.pl $cfgFile " |&\
-     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+ if [[ -z "$skip_json" ]]; then
+   printf "\n =====  Test JSON  ===== \n\n"
+   eval "$useSudo$ldPathJson tools/testJson.pl $cfgFile | jq >& /dev/null"
+   if $use_valgrind; then
+     printf "\n * Valgrid test of testJson.pl"
+     eval "$useSudo$ldPathJson valgrind --read-inline-info=yes\
+       tools/testJson.pl $cfgFile " |&\
+       sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
+   fi
  fi
 }
 do_ruby()
@@ -339,7 +341,7 @@ do_lua()
      diff - <(printf "$perlOut\n")
  else
    for i in $luaPosixVersions; do
-     printf "\n lua $i ---- \n"
+     printf "\n lua $i ----\n"
      local -n need="ldPathLua${i/./}"
      time eval "$useSudo$need lua$i wrappers/lua/test.lua $runOptions" |\
        diff - <(printf "$perlOut\n")
@@ -358,7 +360,7 @@ do_python()
      [[ -f wrappers/python/$i/_ptpmgmt.so ]] || continue
      eval "$pneed$need py${i}compile wrappers/python/ptpmgmt.py"
    fi
-   printf "\n $(readlink $(command -v python$i)) ---- \n"
+   printf "\n $(readlink $(command -v python$i)) ----\n"
    time eval "$useSudo$pneed$need python$i wrappers/python/test.py $runOptions" |\
      diff - <(printf "$perlOut\n")
    if [[ -n "$need" ]]; then
@@ -485,8 +487,11 @@ do_tcl()
 }
 enter()
 {
- printf "\n =====  Run $1  ===== \n"
- do_$1
+ local -n skip="skip_$1"
+ if [[ -z "$skip" ]]; then
+   printf "\n =====  Run $1  =====\n"
+   do_$1
+ fi
 }
 getFirstFile()
 {
@@ -628,22 +633,24 @@ probeLibsDebian()
 }
 probeLibs()
 {
- # [[ -n "${R['HAVE_JSONC_LIB']}" ]]
- # [[ -n "${R['HAVE_FJSON_LIB']}" ]]
- local -i jsonCount=0
- getFirstFile "$libdir/libptpmgmt_fastjson.so.*"
- if [[ -f "$file" ]]; then
-   jsonCount='jsonCount + 1'
- fi
- getFirstFile "$libdir/libptpmgmt_jsonc.so.*"
- if [[ -f "$file" ]]; then
-   jsonCount='jsonCount + 1'
- fi
- # One from JSON plugin is sufficient
- if [[ $jsonCount -eq 0 ]]; then
-   [[ -z "$no_build" ]] || echo "Build as: no json plugs"
-   needCmpl=y
-   ldPathJson="LD_LIBRARY_PATH=."
+ if [[ -z "${R['HAVE_JSONC_LIB']}" ]] && [[ -z "${R['HAVE_FJSON_LIB']}" ]]; then
+   skip_json=true
+ else
+   local -i jsonCount=0
+   getFirstFile "$libdir/libptpmgmt_fastjson.so.*"
+   if [[ -f "$file" ]]; then
+     jsonCount='jsonCount + 1'
+   fi
+   getFirstFile "$libdir/libptpmgmt_jsonc.so.*"
+   if [[ -f "$file" ]]; then
+     jsonCount='jsonCount + 1'
+   fi
+   # One from JSON plugin is sufficient
+   if [[ $jsonCount -eq 0 ]]; then
+     [[ -z "$no_build" ]] || echo "Build as: no json plugs"
+     needCmpl=y
+     ldPathJson="LD_LIBRARY_PATH=."
+   fi
  fi
  getFirstFile "${R['PERL5DIR']}/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then

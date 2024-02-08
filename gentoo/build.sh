@@ -14,21 +14,19 @@ cmd()
 }
 run_root()
 {
-  if ! [[ -f /var/cache/distfiles/libptpmgmt-${version}.txz ]]; then
-    cp $base/libptpmgmt-${version}.txz /var/cache/distfiles/
-  fi
-  local -r d=/var/db/repos/gentoo/net-libs/libptpmgmt
-  mkdir -p "$d"
-  cd "$d"
+  mkdir -p "/var/db/repos/gentoo/net-libs/libptpmgmt"
+  cd "/var/db/repos/gentoo/net-libs/libptpmgmt"
   local -r s="libptpmgmt-${version}.ebuild"
   cp "$base/gentoo/libptpmgmt.ebuild" "$s"
+  # manifest    : create a manifest file for the package
+  # clean       : clean up all source and temporary files
+  # unpack      : unpack sources
   cmd ebuild "./$s" manifest clean unpack
+  # configure   : configure sources
+  # compile     : compile sources
+  # test        : test package (unpack/configure/compile)
+  # install     : install the package to the temporary install directory
   cmd ebuild "$s" clean test install
-}
-run_user()
-{
-  cp $base/libptpmgmt-${version}.txz /var/cache/distfiles/
-  sudo "$me"
 }
 main()
 {
@@ -39,10 +37,13 @@ main()
     local ver_maj ver_min
     . "$ver"
     local -r version="$ver_maj.$ver_min"
+    if ! [[ -f /var/cache/distfiles/libptpmgmt-${version}.txz ]]; then
+      cp $base/libptpmgmt-${version}.txz /var/cache/distfiles/
+    fi
     if [[ $(id -u) -eq 0 ]]; then
       run_root
     else
-      run_user
+      sudo "$me"
     fi
   fi
 }

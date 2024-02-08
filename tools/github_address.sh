@@ -72,7 +72,7 @@ github_build()
      ;;
    fedora)
      make rpm
-     sudo dnf install -y rpm/RPMS/x86_64/*.rpm
+     sudo dnf install -y rpm/RPMS/*/*.rpm
      make config
      ;;
    arch)
@@ -82,7 +82,7 @@ github_build()
      ;;
    gentoo)
      make gentoo
-     # TODO
+     gentoo/install.sh
      ;;
  esac
  make clean
