@@ -29,6 +29,11 @@ AC_PROG_SED
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
+AC_CHECK_TOOL([DATE], [date])
+AS_IF([test -n "$DATE"],
+      AS_VAR_SET([ptpm_date], [`$DATE "+%s"`])
+      AS_IF([test "x$ptpm_date" = "x%s" ],
+            AS_UNSET([DATE])))
 
 #----------------------------------------------------------------
 # globals

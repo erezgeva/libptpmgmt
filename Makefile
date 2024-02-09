@@ -460,6 +460,17 @@ SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(PUB)/mngIds.h \\'\
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 
+ifdef DATE
+CYEAR!=$(DATE) "+%Y"
+else
+CYEAR=2024
+endif
+SPDXLI:=SPDX-License-Identifier:
+SPDXCY:=SPDX-FileCopyrightText:
+SPDXCY+=Copyright © $(CYEAR) Erez Geva <ErezGeva2@gmail.com>
+SPDXGFDL:=GFDL-1.3-no-invariants-or-later
+SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
+
 ifeq ($(SKIP_PERL5),)
 include wrappers/perl/Makefile
 endif
@@ -522,7 +533,8 @@ all: $(COMP_DEPS) $(ALL)
 
 ####### installation #######
 URL:=html/index.html
-REDIR:="<meta http-equiv=\"refresh\" charset=\"utf-8\" content=\"0; url=$(URL)\"/>"
+REDIR:=$(SPDXHTML)\n<meta
+REDIR+=http-equiv="refresh" charset="utf-8" content="0; url=$(URL)"/>\n
 INSTALL_FOLDER:=$(INSTALL) -d
 INSTALL_LIB:=$(INSTALL_DATA)
 TOOLS_EXT:=-$(SWIG_LNAME)
@@ -562,9 +574,12 @@ install_main:
 	cp *.md $(DOCDIR)
 ifneq ($(DOXYGENMINVER),)
 	$(MKDIR_P) "doc/html"
-	$(RM) doc/html/*.md5
+	$(RM) doc/html/*.md5 doc/html/*.map
 	cp -a doc/html $(DOCDIR)
-	printf $(REDIR) > $(DOCDIR)/index.html
+	printf '$(REDIR)' > $(DOCDIR)/index.html
+	$(SED) -i '1 i$(SPDXHTML)' $(DOCDIR)/html/*.html $(DOCDIR)/html/*/*.html
+	$(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
+	  $(DOCDIR)/html/search/*_*.js $(DOCDIR)/html/search/searchdata.js
 endif # DOXYGENMINVER
 
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)

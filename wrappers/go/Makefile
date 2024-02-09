@@ -56,3 +56,5 @@ install_go:
 	$(SED) -i 's@^\s*#include "\([^.]\+\.h\)"@#include <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 	rm $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(LIB_NAME_SO)*
+	$(SED) -i '1 i/* $(SPDXLI) MIT\n   $(SPDXCY) */\n'\
+	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/*

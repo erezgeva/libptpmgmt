@@ -38,3 +38,5 @@ install_python3:
 	$Q$(INSTALL_LIB) -D $(PY_D)/3/$(PY_LIB_NAME).so\
 	  $(DESTDIR)$(PY3SITE_DIR)/$(PY_LIB_NAME)$(PY3EXT)
 	$(INSTALL_LIB) $(PY_D)/$(SWIG_LNAME).py $(DESTDIR)$(PY3SITE_DIR)
+	$(SED) -i "1 i# $(SPDXLI) LGPL-3.0-or-later\n# $(SPDXCY)\n"\
+	  $(DESTDIR)$(PY3SITE_DIR)/*.py

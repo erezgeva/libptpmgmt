@@ -21,7 +21,7 @@ Files: ptp-tools/*
 Copyright: 2021 © Erez Geva
 License: GPL-3+
 
-Files: doc/html/*.js
+Files: doc/html/*.js doc/html/search/search.js
 Copyright: 1997-2020 © Dimitri van Heesch
 License: MIT
 

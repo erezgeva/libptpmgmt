@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief Utility program to wait until an PTP is synchronized
+ * @brief Utility program to wait until a PTP is synchronized
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2021 Erez Geva

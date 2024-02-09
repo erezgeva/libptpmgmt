@@ -128,7 +128,7 @@ TEST(Json2msgTest, MethodDataField)
             " }"
             "}"));
     EXPECT_EQ(m.managementId(), PRIORITY1);
-    auto d = m.dataField();
+    const BaseMngTlv *d = m.dataField();
     ASSERT_NE(d, nullptr);
     const PRIORITY1_t *t = dynamic_cast<const PRIORITY1_t *>(d);
     ASSERT_NE(t, nullptr);
@@ -661,7 +661,7 @@ TEST(Json2msgTest, MinimumSet)
             "}}"));
     EXPECT_EQ(m.actionField(), SET);
     EXPECT_EQ(m.managementId(), PRIORITY1);
-    auto d = m.dataField();
+    const BaseMngTlv *d = m.dataField();
     ASSERT_NE(d, nullptr);
     const PRIORITY1_t *t = dynamic_cast<const PRIORITY1_t *>(d);
     ASSERT_NE(t, nullptr);

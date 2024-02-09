@@ -131,7 +131,7 @@ static bool loopCheck(const Message &, tlvType_e tlvType, const BaseSigTlv *tlv)
     const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(tlv);
     if(mng == nullptr)
         return true;
-    const auto *p = mng->tlvData.get();
+    const BaseMngTlv *p = mng->tlvData.get();
     if(p == nullptr)
         return true;
     // printf("loopCheck %s-%s\n", Message::tlv2str_c(tlvType),
