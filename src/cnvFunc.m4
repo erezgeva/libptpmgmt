@@ -48,9 +48,9 @@ define(A, `ifelse(regexp($6, `^UF', `0'),`0',`D($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 
 define(S,`/**
- * Convert a signaling TLV from BaseSigTlv
+ * Convert a signalling TLV from BaseSigTlv
  *  to $1_t structure
- * @param[in] tlv pointer to a TLV from a signaling message
+ * @param[in] tlv pointer to a TLV from a signalling message
  * @return pointer to $1_t
  * @note This function is available in scripts only!
  *  C++ code can simply cast.

@@ -106,7 +106,7 @@ static inline int rcv()
         case MNG_PARSE_ERROR_SIG:
             dump_sig();
             msg.traversSigTlvs(call_dumpSig);
-            return 1; // Do not count signaling messages
+            return 1; // Do not count signalling messages
         case MNG_PARSE_ERROR_ACTION: // Not management, or another clock id
         case MNG_PARSE_ERROR_HEADER: // Not reply
             if(!use_uds)
@@ -206,12 +206,12 @@ int main(int argc, char *const argv[])
     }
     sk = obj.sk();
     use_uds = obj.use_uds();
-    // allowed signaling TLV
+    // allowed signalling TLV
     MsgParams prms = msg.getParams();
     prms.allowSigTlv(SLAVE_RX_SYNC_TIMING_DATA);
     prms.allowSigTlv(SLAVE_DELAY_TIMING_DATA_NP);
     bool batch = opt.have_more();
-    // if we use real network layer and run mode, allow signaling
+    // if we use real network layer and run mode, allow signalling
     if(!batch && !use_uds)
         prms.rcvSignaling = true;
     msg.updateParams(prms);

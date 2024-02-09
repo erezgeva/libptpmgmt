@@ -44,7 +44,7 @@ static const char toksep[] = " \t\n\r"; /* while spaces */
 void call_dump(Message &msg, mng_vals_e id = NULL_PTP_MANAGEMENT,
     BaseMngTlv *data = nullptr);
 /**
- * Dump a signaling message TLV
+ * Dump a signalling message TLV
  * @param[in] msg object
  * @param[in] tlvType TLV type
  * @param[in] tlv to dump

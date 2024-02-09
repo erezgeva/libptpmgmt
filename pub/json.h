@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief Convert a management or a signaling message to JSON
+ * @brief Convert a management or a signalling message to JSON
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2021 Erez Geva

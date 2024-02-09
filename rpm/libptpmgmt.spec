@@ -636,7 +636,7 @@ autoconf
 - JSON module: for
   - Message to JSON and JSON to message
   - JSON to message require C JSON library or the fast C JSON library.
-  - Parse signaling messages.
+  - Parse signalling messages.
   - Handle TLVs with array.
   - Handle linuxptp Events and statistics TLVs.
   - Add testing for JSON module.
@@ -648,7 +648,7 @@ autoconf
 - Add error macros
 - Add PHP wrapper.
 - Replace use of std::move with unique_ptr reset() function.
-- Parse MANAGEMENT_ERROR_STATUS in signaling message.
+- Parse MANAGEMENT_ERROR_STATUS in signalling message.
 - PMC tool:
   - Set unique_ptr after socket creation and before internalizing.
     In case socket internalize fials, unique_ptr will release it.
@@ -699,7 +699,7 @@ autoconf
 - Prepare for using a different implementation specific management TLVs.
 - Add key flag to pmc build.
 - Use optimization for fast execution When packaging.
-- Add signaling messages support.
+- Add signalling messages support.
 - Add IEEE 754 64-bit floating point.
 - Add install goal in make file.
 - Debian rules uses make file install goal.

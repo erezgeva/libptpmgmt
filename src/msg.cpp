@@ -34,7 +34,7 @@ const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
 const uint8_t ptp_minor_ver = 0x0; // IEEE 1588-2019 uses 0x1
 const uint8_t ptp_version = (ptp_minor_ver << 4) | ptp_major_ver;
 const uint8_t controlFieldMng = 0x04; // For Management
-// For Delay_Req, Signaling, Management, Pdelay_Resp, Pdelay_Resp_Follow_Up
+// For Delay_Req, Signalling, Management, Pdelay_Resp, Pdelay_Resp_Follow_Up
 const uint8_t logMessageIntervalDef = 0x7f;
 const uint16_t allPorts = UINT16_MAX;
 const ClockIdentity_t allClocks = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -395,7 +395,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     m_peer.portNumber = net_to_cpu16(msg->sourcePortIdentity.portNumber);
     memcpy(m_peer.clockIdentity.v, msg->sourcePortIdentity.clockIdentity.v,
         m_peer.clockIdentity.size());
-    // Exist in both Management and signaling
+    // Exist in both Management and signalling
     m_target.portNumber = net_to_cpu16(msg->targetPortIdentity.portNumber);
     memcpy(m_target.clockIdentity.v, msg->targetPortIdentity.clockIdentity.v,
         m_target.clockIdentity.size());
@@ -624,7 +624,7 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
             m_sigTlvs.back().reset(tlv);
         };
     }
-    return MNG_PARSE_ERROR_SIG; // We have signaling message
+    return MNG_PARSE_ERROR_SIG; // We have signalling message
 }
 bool Message::traversSigTlvs(function<bool (const Message &msg,
         tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const
@@ -635,6 +635,11 @@ bool Message::traversSigTlvs(function<bool (const Message &msg,
                 return true;
         }
     return false;
+}
+bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback)
+{
+    return traversSigTlvs([&callback](const Message & msg, tlvType_e tlvType,
+    const BaseSigTlv * tlv) { return callback.callback(msg, tlvType, tlv); });
 }
 size_t Message::getSigTlvsCount() const
 {
@@ -1705,6 +1710,31 @@ extern "C" {
     {
         C2CPP_cret(getMngType, tlvType_e, PTPMGMT_MANAGEMENT);
     }
+    static bool ptpmgmt_msg_traversSigTlvs(ptpmgmt_msg m, void *cookie,
+        ptpmgmt_msg_sig_callback callback)
+    {
+        if(m != nullptr && m->_this != nullptr && callback != nullptr) {
+            return ((Message *)m->_this)->traversSigTlvs([&m, cookie, callback](
+            const Message &, tlvType_e tlvType, const BaseSigTlv * tlv) {
+                void *sig = nullptr;
+                if(tlv != nullptr) {
+                    void *x = nullptr;
+                    void *x2 = nullptr;
+                    sig = cpp2cSigTlv(tlvType, tlv, x, x2);
+                    if(sig != nullptr) {
+                        free(m->dataSig1);
+                        free(m->dataSig2);
+                        free(m->dataSig3);
+                        m->dataSig1 = sig;
+                        m->dataSig2 = x;
+                        m->dataSig3 = x2;
+                    }
+                }
+                return callback(cookie, m, (ptpmgmt_tlvType_e)tlvType, sig);
+            });
+        }
+        return false;
+    }
     static size_t ptpmgmt_msg_getSigTlvsCount(const_ptpmgmt_msg m)
     {
         C2CPP_ret(getSigTlvsCount, 0);
@@ -1832,6 +1862,7 @@ extern "C" {
         m->isLastMsgSig = ptpmgmt_msg_isLastMsgSig;
         m->getType = ptpmgmt_msg_getType;
         m->getMngType = ptpmgmt_msg_getMngType;
+        m->traversSigTlvs = ptpmgmt_msg_traversSigTlvs;
         m->getSigTlvsCount = ptpmgmt_msg_getSigTlvsCount;
         m->getSigTlv = ptpmgmt_msg_getSigTlv;
         m->getSigTlvType = ptpmgmt_msg_getSigTlvType;

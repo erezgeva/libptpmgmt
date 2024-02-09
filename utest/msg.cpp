@@ -1379,6 +1379,7 @@ TEST(MessageTest, MethodGetMngType)
 // bool traversSigTlvs(const std::function<bool
 //     (const Message &msg, tlvType_e tlvType,
 //         const BaseSigTlv *tlv)> callback) const
+// bool traversSigTlvsCl(MessageSigTlvCallback &callback);
 static bool verifyPr1(const Message &, tlvType_e tlvType, const BaseSigTlv *tlv)
 {
     const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(tlv);
@@ -1387,6 +1388,12 @@ static bool verifyPr1(const Message &, tlvType_e tlvType, const BaseSigTlv *tlv)
         p1 = dynamic_cast<const PRIORITY1_t *>(mng->tlvData.get());
     return tlvType == MANAGEMENT && p1 != nullptr && p1->priority1 == 137;
 }
+class verifyPr1Cl : public MessageSigTlvCallback
+{
+  public:
+    bool callback(const Message &msg, tlvType_e tlvType,
+        const BaseSigTlv *tlv) override {return verifyPr1(msg, tlvType, tlv);}
+};
 TEST(MessageTest, MethodTraversSigTlvs)
 {
     Message m;
@@ -1415,6 +1422,11 @@ TEST(MessageTest, MethodTraversSigTlvs)
     // valueField already have Mng TLV at the proper place :-)
     EXPECT_EQ(m.parse(buf, 52), MNG_PARSE_ERROR_SIG);
     EXPECT_TRUE(m.traversSigTlvs(verifyPr1));
+    // Test with Lambda function
+    EXPECT_TRUE(m.traversSigTlvs([](const Message & msg, tlvType_e tlvType,
+    const BaseSigTlv * tlv) {return verifyPr1(msg, tlvType, tlv);}));
+    verifyPr1Cl cb;
+    EXPECT_TRUE(m.traversSigTlvsCl(cb));
 }
 
 // Test get number of TLVs in a PTP signaling message

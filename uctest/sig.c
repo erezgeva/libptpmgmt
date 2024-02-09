@@ -139,6 +139,67 @@ Test(SigTest, OrgTwoManagmentTlvs)
     m->free(m);
 }
 
+// Tests loop two managment TLV
+struct cookie_t { size_t cnt; };
+static bool loopCheck(void *cookie, const_ptpmgmt_msg,
+    enum ptpmgmt_tlvType_e tlvType, const void *tlv)
+{
+    /**
+     * Function return true to stop!
+     * So we return false if all pass!
+     */
+    if(tlvType != PTPMGMT_MANAGEMENT || tlv == NULL)
+        return true;
+    struct ptpmgmt_MANAGEMENT_t *mng = (struct ptpmgmt_MANAGEMENT_t *)tlv;
+    if(mng == NULL)
+        return true;
+    const void *p = mng->tlvData;
+    if(p == NULL)
+        return true;
+    // printf("loopCheck %s-%s\n", ptpmgmt_msg_tlv2str(tlvType),
+    //     ptpmgmt_msg_mng2str(mng->managementId));
+    ((struct cookie_t *)cookie)->cnt++;
+    if(mng->managementId == PTPMGMT_PRIORITY1) {
+        struct ptpmgmt_PRIORITY1_t *p1 = (struct ptpmgmt_PRIORITY1_t *)p;
+        return p1->priority1 != 137;
+    } else if(mng->managementId == PTPMGMT_PRIORITY2) {
+        struct ptpmgmt_PRIORITY2_t *p2 = (struct ptpmgmt_PRIORITY2_t *)p;
+        return p2->priority2 != 119;
+    }
+    return true;
+}
+Test(SigTest, LoopTwoManagmentTlvs)
+{
+    size_t curLen;
+    ptpmgmt_msg m;
+    ptpmgmt_pMsgParams a;
+    uint8_t buf[bufSize];
+    cr_assert(eq(int, setUp(&curLen, &m, &a, buf), PTPMGMT_MNG_PARSE_ERROR_OK));
+    uint8_t m1[4] = {0x20, 5, 137}; // PRIORITY1 priority1 = 137
+    uint8_t m2[4] = {0x20, 6, 119}; // PRIORITY2 priority2 = 119
+    addTlv(buf, &curLen, PTPMGMT_MANAGEMENT, m1, sizeof m1);
+    addTlv(buf, &curLen, PTPMGMT_MANAGEMENT, m2, sizeof m2);
+    a->filterSignaling = false;
+    cr_expect(m->updateParams(m, a));
+    cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
+    cr_expect(m->isLastMsgSig(m));
+    cr_expect(eq(int, m->getSigTlvsCount(m), 2));
+    cr_assert(eq(int, m->getSigTlvType(m, 0), PTPMGMT_MANAGEMENT));
+    cr_expect(eq(int, m->getSigMngTlvType(m, 0), PTPMGMT_PRIORITY1));
+    const struct ptpmgmt_PRIORITY1_t *p1 =
+        (const struct ptpmgmt_PRIORITY1_t *)m->getSigMngTlv(m, 0);
+    cr_assert(not(zero(ptr, (void *)p1)));
+    cr_expect(eq(int, p1->priority1, 137));
+    cr_expect(eq(int, m->getSigMngTlvType(m, 1), PTPMGMT_PRIORITY2));
+    const struct ptpmgmt_PRIORITY2_t *p2 =
+        (const struct ptpmgmt_PRIORITY2_t *)m->getSigMngTlv(m, 1);
+    cr_assert(not(zero(ptr, (void *)p2)));
+    cr_expect(eq(int, p2->priority2, 119));
+    struct cookie_t ck = { 0 };
+    cr_expect(not(m->traversSigTlvs(m, &ck, loopCheck)));
+    cr_expect(eq(sz, ck.cnt, 2));
+}
+
 // Tests all organization TLVs
 Test(SigTest, AllOrgTlvs)
 {

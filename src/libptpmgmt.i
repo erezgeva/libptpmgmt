@@ -174,6 +174,9 @@
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Message::sigTlv::operator=;
 #endif /* SWIG_OPERS_IGNORE_OPERATOR */
 
+/* Support  Message::traversSigTlvsCl() */
+%feature("director") MessageSigTlvCallback;
+
 /* library code */
 %include "cfg.h"
 %include "ptp.h"
@@ -216,7 +219,7 @@ _ptpmMkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
 #define _ptpmCaseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 %include "ids.h"
-/* convert base signaling tlv to a specific signaling tlv structure
+/* convert base signalling tlv to a specific signalling tlv structure
  * See documenting of conv_XXX functions in cnvFunc.h and
  *  Doxygen generated documents
  */

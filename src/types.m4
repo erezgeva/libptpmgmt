@@ -86,7 +86,7 @@ enm(MNG_PARSE_ERROR_e) {
     NM(MNG_PARSE_ERROR_OK),
     /** Error message */
     NM(MNG_PARSE_ERROR_MSG),
-    /** Signaling message */
+    /** Signalling message */
     NM(MNG_PARSE_ERROR_SIG),
     /** SMPTE message */
     NM(MNG_PARSE_ERROR_SMPTE),
@@ -135,14 +135,14 @@ enm(msgType_e) sz(: Nibble_t) {
     nm(Pdelay_Resp_Follow_Up)   = 0xa,
     /** Announce message*/
     nm(Announce)                = 0xb,
-    /** Signaling message */
+    /** Signalling message */
     nm(Signaling)               = 0xc,
     /** Management message */
     nm(Management)              = 0xd,
 };
 /**
  * PTP messages TLV types
- * @note: With new signaling TLVs from "IEEE Std 1588-2019@"
+ * @note: With new signalling TLVs from "IEEE Std 1588-2019@"
  */
 enm(tlvType_e) sz(: uint16_t) {
     /** Management TLV */
@@ -927,8 +927,8 @@ c_cod(`    /**< @endcond */')dnl
     strcc(PortIdentity_t) target; /**< target port ID */
     strcc(PortIdentity_t) self_id; /**< own port ID */
     bool useZeroGet; /**< send get with zero dataField */
-    bool rcvSignaling; /**< parse signaling messages */
-    bool filterSignaling; /**< use filter for signaling messages TLVs */
+    bool rcvSignaling; /**< parse signalling messages */
+    bool filterSignaling; /**< use filter for signalling messages TLVs */
     bool rcvSMPTEOrg; /**< parse SMPTE Organization Extension TLV */
 cpp_cod(`    MsgParams();')dnl
     /** Add TLV type to allowed signalling filter */
@@ -940,7 +940,7 @@ c_cod(`    void (*removeSigTlv)(ptpmgmt_pMsgParams m, enum ptpmgmt_tlvType_e typ
     /** Query if TLV type is allowed signalling filter */
 cpp_cod(`    bool isSigTlv(tlvType_e type) const;')dnl
 c_cod(`    bool (*isSigTlv)(ptpmgmt_cpMsgParams m, enum ptpmgmt_tlvType_e type);')dnl
-    /** Query how many signaling TLVs are allowd in filter */
+    /** Query how many signalling TLVs are allowd in filter */
 cpp_cod(`    size_t countSigTlvs() const;')dnl
 c_cod(`    size_t (*countSigTlvs)(ptpmgmt_cpMsgParams m);')dnl
 c_cod(`    /** Free structure object */')dnl
@@ -954,7 +954,7 @@ cpp_cod(`/** Base for all Management TLV structures */')dnl
 cpp_cod(`struct BaseMngTlv {')dnl
 cpp_cod(`    virtual ~BaseMngTlv() = default;')dnl
 cpp_cod(`};')dnl
-cpp_cod(`/** Base for all Signaling TLV structures */')dnl
+cpp_cod(`/** Base for all Signalling TLV structures */')dnl
 cpp_cod(`struct BaseSigTlv {')dnl
 cpp_cod(`    virtual ~BaseSigTlv() = default;')dnl
 cpp_cod(`};')dnl

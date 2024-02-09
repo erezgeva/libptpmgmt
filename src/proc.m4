@@ -565,7 +565,7 @@ cnst_st() int NM(STAT_DELAY_RESP) = 9;
 cnst_st() int NM(STAT_PDELAY_RESP_FOLLOW_UP) = 10;
 /** Announce messages count in PORT_STATS_NP */
 cnst_st() int NM(STAT_ANNOUNCE) = 11;
-/** Signaling messages count in PORT_STATS_NP */
+/** Signalling messages count in PORT_STATS_NP */
 cnst_st() int NM(STAT_SIGNALING) = 12;
 /** Management messages count in PORT_STATS_NP */
 cnst_st() int NM(STAT_MANAGEMENT) = 13;

@@ -2,7 +2,7 @@ dnl SPDX-License-Identifier: LGPL-3.0-or-later
 dnl SPDX-FileCopyrightText: Copyright © 2024 Erez Geva <ErezGeva2@gmail.com> */
 dnl
 dnl @file
-dnl @brief Create PTP signaling TLV structures
+dnl @brief Create PTP signalling TLV structures
 dnl        for main C++ library and for wrapper C
 dnl
 dnl @author Erez Geva <ErezGeva2@@gmail.com>
@@ -15,7 +15,7 @@ include(lang().m4)dnl
    SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief PTP signaling TLV structures
+ * @brief PTP signalling TLV structures
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2021 Erez Geva
@@ -32,7 +32,7 @@ incb(types)
 ns_s()dnl
 #ifndef SWIG
 /** MANAGEMENT TLV
- * @note: used for management TLV in a signaling message
+ * @note: used for management TLV in a signalling message
  *  management message do not use this structure!
  */
 strc(MANAGEMENT_t) sz(: public BaseSigTlv) {
@@ -41,7 +41,7 @@ strc(MANAGEMENT_t) sz(: public BaseSigTlv) {
 };
 #endif /* SWIG */
 /** MANAGEMENT_ERROR_STATUS TLV
- * @note: used for error management TLV in a signaling message
+ * @note: used for error management TLV in a signalling message
  *  management message do not use this structure!
  */
 strc(MANAGEMENT_ERROR_STATUS_t) sz(: public BaseSigTlv) {

@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief Parse signaling TLVs
+ * @brief Parse signalling TLVs
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2021 Erez Geva

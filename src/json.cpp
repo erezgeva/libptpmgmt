@@ -812,7 +812,7 @@ bool JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *data,
     return true;
 }
 
-/* Signaling functions */
+/* Signalling functions */
 #define JS(n) static inline void parse_##n(JsonProcToJson &proc, n##_t &d)
 #define parseTlv(n)\
     n:\

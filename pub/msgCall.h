@@ -18,7 +18,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * @brief Dispatch received PTP management message TLV
- * @note Do not handle signaling messages!
+ * @note Do not handle signalling messages!
  * @note You must inherit this class to use it!
  * @note callHadler() has an implementation in lua, tcl, go and ruby languages,
  *       other languages uses swig to translate this class.

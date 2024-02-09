@@ -1673,6 +1673,56 @@ Test(MessageTest, MethodGetMngType)
     m->free(m);
 }
 
+// Test travers signalling message of TLVs
+// bool traversSigTlvs(ptpmgmt_msg m, void *cookie,
+//     ptpmgmt_msg_sig_callback callback)
+// bool ptpmgmt_msg_sig_callback(void *cookie, const_ptpmgmt_msg m,
+//     enum ptpmgmt_tlvType_e tlvType, const void *tlv)
+struct cookie_t { int val; };
+static bool verifyPr1(void *cookie, const_ptpmgmt_msg,
+    enum ptpmgmt_tlvType_e tlvType, const void *tlv)
+{
+    // Verify cookie value
+    if(((struct cookie_t *)cookie)->val != 0xfefe)
+        return false;
+    struct ptpmgmt_MANAGEMENT_t *mng = (struct ptpmgmt_MANAGEMENT_t *)tlv;
+    struct ptpmgmt_PRIORITY1_t *p1 = NULL;
+    if(mng != NULL && mng->managementId == PTPMGMT_PRIORITY1)
+        p1 = (struct ptpmgmt_PRIORITY1_t *)mng->tlvData;
+    return tlvType == PTPMGMT_MANAGEMENT && p1 != NULL && p1->priority1 == 137;
+}
+Test(MessageTest, MethodTraversSigTlvs)
+{
+    ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    struct ptpmgmt_PRIORITY1_t p;
+    p.priority1 = 137;
+    cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
+    cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
+    uint8_t buf[70];
+    cr_expect(eq(int, m->build(m, buf, sizeof buf, 1), PTPMGMT_MNG_PARSE_ERROR_OK));
+    // actionField location IEEE "PTP management message"
+    // Change to response action of get/set message
+    buf[46] = PTPMGMT_RESPONSE;
+    // MNG msg = 36 + 10 targetPortIdentity + 4 = 48
+    // MNG msg 48 + 6 Mng TLV + 2 PRIORITY1 TLV = 56
+    // signalling = 36 header + 10 targetPortIdentity = 44
+    // signalling MSG 44 + 6 Mng TLV + 2 PRIORITY1 TLV = 52
+    buf[0] = (buf[0] & 0xf0) | ptpmgmt_Signaling; // messageType
+    buf[32] = 5; // controlField
+    // Move the 8 bytes of Mng TLV
+    for(int i = 0; i < 8; i++)
+        buf[44 + i] = buf[48 + i];
+    ptpmgmt_pMsgParams mp = m->getParams(m);
+    mp->rcvSignaling = true;
+    mp->filterSignaling = false;
+    cr_expect(m->updateParams(m, mp));
+    // valueField already have Mng TLV at the proper place :-)
+    cr_expect(eq(int, m->parse(m, buf, 52), PTPMGMT_MNG_PARSE_ERROR_SIG));
+    cr_expect(eq(int, m->getSigTlvsCount(m), 1));
+    struct cookie_t a = { 0xfefe };
+    cr_expect(m->traversSigTlvs(m, &a, verifyPr1));
+}
+
 // Test get number of TLVs in a PTP signaling message
 // size_t getSigTlvsCount(const_ptpmgmt_msg m)
 Test(MessageTest, MethodGetSigTlvsCount)

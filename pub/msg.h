@@ -24,6 +24,28 @@
 __PTPMGMT_NAMESPACE_BEGIN
 
 struct MsgProc;
+class Message;
+
+/**
+ * @brief Abstract class used for callback for Signalling TLVs traverse
+ * @note For PHP, Perl, Python and Ruby use
+ */
+class MessageSigTlvCallback
+{
+  public:
+    MessageSigTlvCallback() = default;
+    virtual ~MessageSigTlvCallback() = default;
+    /**
+     * Callback for handling a single signalling TLV
+     * @param[in] msg reference to the Message object calling this callback
+     * @param[in] tlvType signalling TLV type
+     * @param[in] tlv signalling TLV
+     * @return true to stop traverse
+     * @note Available for PHP, Perl, Python and Ruby use
+     */
+    virtual bool callback(const Message &msg, tlvType_e tlvType,
+        const BaseSigTlv *tlv) = 0;
+};
 
 /**
  * @brief Handle PTP management message
@@ -59,9 +81,9 @@ class Message
     uint8_t           m_domainNumber; /* parsed message domainNumber*/
     uint8_t           m_versionPTP; /* parsed message ptp version */
     uint8_t           m_minorVersionPTP; /* parsed message ptp version */
-    /* hold signaling TLVs */
+    /* hold signalling TLVs */
     std::vector<std::unique_ptr<BaseSigTlv>> m_sigTlvs;
-    /* hold signaling TLVs type */
+    /* hold signalling TLVs type */
     std::vector<tlvType_e> m_sigTlvsType;
     /* parsed managment TLV */
     std::unique_ptr<BaseMngTlv> m_dataGet;
@@ -84,7 +106,7 @@ class Message
     /* val in network order */
     static bool findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec);
     bool checkReplyAction(uint8_t actionField);
-    MNG_PARSE_ERROR_e parseSig(MsgProc *); /* parse signaling message */
+    MNG_PARSE_ERROR_e parseSig(MsgProc *); /* parse signalling message */
     /*
      * dataFieldSize() for sending SET/COMMAND
      * Get dataField of current build managment ID
@@ -503,8 +525,8 @@ class Message
      */
     const char *getErrDisplay_c() const { return m_errorDisplay.string(); }
     /**
-     * query if last message is a signaling message
-     * @return true if last message is a signaling message
+     * query if last message is a signalling message
+     * @return true if last message is a signalling message
      */
     bool isLastMsgSig() const { return m_type == Signaling; }
     /**
@@ -519,50 +541,51 @@ class Message
      */
     tlvType_e getMngType() const { return m_mngType; }
     /**
-     * Traverse all last signaling message TLVs
+     * Traverse all last signalling message TLVs
      * @param[in] callback function to call with each TLV
      * @return true if any of the calling to call-back return true
      * @note stop if any of the calling to call-back return true
-     * @note if scripting can not provide C++ call-back
-     *  it may use the function bellow
      */
     bool traversSigTlvs(const std::function<bool (const Message &msg,
             tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const;
     /**
-     * Get number of the last signaling message TLVs
+     * Traverse all last signalling message TLVs
+     * @param[in] callback object with callback to be called with each TLV
+     * @return true if any of the calling to call-back return true
+     * @note stop if any of the calling to call-back return true
+     * @note Available for PHP, Perl, Python and Ruby use
+     */
+    bool traversSigTlvsCl(MessageSigTlvCallback &callback);
+    /**
+     * Get number of the last signalling message TLVs
      * @return number of TLVs or zero
-     * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
     size_t getSigTlvsCount() const;
     /**
-     * Get a TLV from the last signaling message TLVs by position
+     * Get a TLV from the last signalling message TLVs by position
      * @param[in] position of TLV
      * @return TLV or null
-     * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
     const BaseSigTlv *getSigTlv(size_t position) const;
     /**
-     * Get a type of TLV from the last signaling message TLVs by position
+     * Get a type of TLV from the last signalling message TLVs by position
      * @param[in] position of TLV
      * @return type of TLV or unknown
-     * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
     tlvType_e getSigTlvType(size_t position) const;
     /**
      * Get the management TLV ID of a management TLV
-     * from the last signaling message TLVs by position
+     * from the last signalling message TLVs by position
      * @param[in] position of TLV
      * @return management TLV ID or NULL_PTP_MANAGEMENT
      * @note return NULL_PTP_MANAGEMENT if TLV is not management
-     * @note this function is for scripting, normal C++ can just cast
      */
     mng_vals_e getSigMngTlvType(size_t position) const;
     /**
-     * Get a management TLV from the last signaling message TLVs by position
+     * Get a management TLV from the last signalling message TLVs by position
      * @param[in] position of TLV
      * @return management TLV or null
      * @note return null if TLV is not management
-     * @note this function is for scripting, normal C++ can just cast
      * @note You @b should not try to free this TLV object
      */
     const BaseMngTlv *getSigMngTlv(size_t position) const;

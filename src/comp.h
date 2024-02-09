@@ -16,7 +16,7 @@
 #include "name.h"
 #include "err.h"
 #include "proc.h" /* Structures for management TLVs */
-#include "sig.h" /* Structures for signaling TLVs */
+#include "sig.h" /* Structures for signalling TLVs */
 #include "json.h"
 
 /* ************************************************************************** */

@@ -25,6 +25,18 @@ typedef struct ptpmgmt_msg_t *ptpmgmt_msg;
 typedef const struct ptpmgmt_msg_t *const_ptpmgmt_msg;
 
 /**
+ * pointer to callback traverse sig TLVs
+ * @param[in] cookie pointer to a user cookie
+ * @param[in] m msg object
+ * @param[in] tlvType Signalling TLV type
+ * @param[in] tlv Signalling TLV
+ * @return true to stop traverse
+ * @note user should cast the tlv to the proper Signalling TLV type structure
+ */
+typedef bool (*ptpmgmt_msg_sig_callback)(void *cookie, const_ptpmgmt_msg m,
+    enum ptpmgmt_tlvType_e tlvType, const void *tlv);
+
+/**
  * The ptpmgmt message structure hold the message object
  *  and call backs to call C++ methods
  */
@@ -39,9 +51,9 @@ struct ptpmgmt_msg_t {
     void *sendTlv; /**< The BaseMngTlv object used to send on C++ */
     void *data; /**< Received managment TLV converted to C */
     void *dataTbl; /**< Received managment TLV table converted to C */
-    void *dataSig1; /**< Last signaling converted to C part 1 */
-    void *dataSig2; /**< Last signaling converted to C part 2 */
-    void *dataSig3; /**< Last signaling converted to C part 3 */
+    void *dataSig1; /**< Last signalling converted to C part 1 */
+    void *dataSig2; /**< Last signalling converted to C part 2 */
+    void *dataSig3; /**< Last signalling converted to C part 3 */
     /**< @endcond */
 
     /**
@@ -446,9 +458,9 @@ struct ptpmgmt_msg_t {
      */
     const char *(*getErrDisplay)(const_ptpmgmt_msg m);
     /**
-     * query if last message is a signaling message
+     * query if last message is a signalling message
      * @param[in] m msg object
-     * @return true if last message is a signaling message
+     * @return true if last message is a signalling message
      */
     bool (*isLastMsgSig)(const_ptpmgmt_msg m);
     /**
@@ -465,46 +477,51 @@ struct ptpmgmt_msg_t {
      */
     enum ptpmgmt_tlvType_e(*getMngType)(const_ptpmgmt_msg m);
     /**
-     * Get number of the last signaling message TLVs
+     * Traverse all last signalling message TLVs
+     * @param[in] m msg object
+     * @param[in] cookie pointer to a user cookie
+     * @param[in] callback function to call with each TLV
+     * @return true if any of the calling to call-back return true
+     * @note stop once a call-back return true
+     */
+    bool (*traversSigTlvs)(ptpmgmt_msg m, void *cookie,
+        ptpmgmt_msg_sig_callback callback);
+    /**
+     * Get number of the last signalling message TLVs
      * @param[in] m msg object
      * @return number of TLVs or zero
-     * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
     size_t (*getSigTlvsCount)(const_ptpmgmt_msg m);
     /**
-     * Get a TLV from the last signaling message TLVs by position
+     * Get a TLV from the last signalling message TLVs by position
      * @param[in] m msg object
      * @param[in] position of TLV
      * @return TLV or null
-     * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
     const void *(*getSigTlv)(ptpmgmt_msg m, size_t position);
     /**
-     * Get a type of TLV from the last signaling message TLVs by position
+     * Get a type of TLV from the last signalling message TLVs by position
      * @param[in] m msg object
      * @param[in] position of TLV
      * @return type of TLV or unknown
-     * @note this function is for scripting, normal C++ can use traversSigTlvs
      */
     enum ptpmgmt_tlvType_e(*getSigTlvType)(const_ptpmgmt_msg m, size_t position);
     /**
      * Get the management TLV ID of a management TLV
-     * from the last signaling message TLVs by position
+     * from the last signalling message TLVs by position
      * @param[in] m msg object
      * @param[in] position of TLV
      * @return management TLV ID or NULL_PTP_MANAGEMENT
      * @note return NULL_PTP_MANAGEMENT if TLV is not management
-     * @note this function is for scripting, normal C++ can just cast
      */
     enum ptpmgmt_mng_vals_e(*getSigMngTlvType)(const_ptpmgmt_msg m,
         size_t position);
     /**
-     * Get a management TLV from the last signaling message TLVs by position
+     * Get a management TLV from the last signalling message TLVs by position
      * @param[in] m msg object
      * @param[in] position of TLV
      * @return management TLV or null
      * @note return null if TLV is not management
-     * @note this function is for scripting, normal C++ can just cast
      * @note You @b should not try to free this TLV object
      */
     const void *(*getSigMngTlv)(ptpmgmt_msg m, size_t position);

@@ -122,22 +122,28 @@ TEST_F(SigTest, OrgTwoManagmentTlvs)
 // Tests loop two managment TLV
 static bool loopCheck(const Message &, tlvType_e tlvType, const BaseSigTlv *tlv)
 {
+    /**
+     * Function return true to stop!
+     * So we return false if all pass!
+     */
     if(tlvType != MANAGEMENT || tlv == nullptr)
-        return false;
+        return true;
     const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(tlv);
     if(mng == nullptr)
-        return false;
+        return true;
     const auto *p = mng->tlvData.get();
     if(p == nullptr)
-        return false;
+        return true;
+    // printf("loopCheck %s-%s\n", Message::tlv2str_c(tlvType),
+    //     Message::mng2str_c(mng->managementId));
     if(mng->managementId == PRIORITY1) {
         const PRIORITY1_t *p1 = dynamic_cast<const PRIORITY1_t *>(p);
-        return p1 != nullptr && p1->priority1 == 137;
+        return p1 == nullptr || p1->priority1 != 137;
     } else if(mng->managementId == PRIORITY2) {
         const PRIORITY2_t *p2 = dynamic_cast<const PRIORITY2_t *>(p);
-        return p2 != nullptr && p2->priority2 == 119;
+        return p2 == nullptr || p2->priority2 != 119;
     }
-    return false;
+    return true;
 }
 TEST_F(SigTest, LoopTwoManagmentTlvs)
 {
@@ -159,7 +165,15 @@ TEST_F(SigTest, LoopTwoManagmentTlvs)
     const PRIORITY2_t *p2 = dynamic_cast<const PRIORITY2_t *>(getSigMngTlv(1));
     ASSERT_NE(p2, nullptr);
     EXPECT_EQ(p2->priority2, 119);
-    EXPECT_TRUE(traversSigTlvs(loopCheck));
+    size_t cnt = 0;
+    EXPECT_FALSE(traversSigTlvs([&cnt](const Message & msg, tlvType_e tlvType,
+    const BaseSigTlv * tlv) {
+        bool ret = loopCheck(msg, tlvType, tlv);
+        if(!ret)
+            cnt++;
+        return ret;
+    }));
+    EXPECT_EQ(cnt, 2);
 }
 
 // Tests all organization TLVs
