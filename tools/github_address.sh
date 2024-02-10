@@ -344,9 +344,9 @@ EOF
 ###############################################################################
 main()
 {
+ local -r me1="$(realpath -s "$0")"
  cd "$(dirname "$(realpath "$0")")/.."
  source tools/util.sh
- local -r me1="$(realpath -s "$0")"
  local -r dr1="$(dirname "$me1")"
  local -r me="${me1//$dr1\//}"
  local n
