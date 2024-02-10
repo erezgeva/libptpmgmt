@@ -973,8 +973,15 @@ if test "x$LUABIN" = xno; then
   AC_MSG_NOTICE([Disabling Lua])
   AS_UNSET([LUABIN])
 else
+  # can we find lua?
+  AS_IF([test "x$LUABIN" = xyes],
+    # We look for a versioned Lua binary first, as there can be
+    # multiple versions of Lua installed on some systems (like Debian).
+        [AC_PATH_PROGS([LUABIN],
+         [lua5.7 lua5.6 lua5.5 lua5.4 lua5.3 lua5.2 lua5.1 lua])])
+
   # Try to probe all Lua version on Debian and similar
-  AS_IF([test -z "$LUAINCLUDE" && test "x$LUABIN" = xyes &&\
+  AS_IF([test -z "$LUAINCLUDE" && test "x$LUABIN" != xno &&\
          test -z "$LUALIB"],
         [for i in $ptpm_include_dirs; do
            for v in $i/lua5.*; do
@@ -990,80 +997,86 @@ else
            done
          done])
 
-  # can we find lua?
-  AS_IF([test "x$LUABIN" = xyes],
-    # We look for a versioned Lua binary first, as there can be
-    # multiple versions of Lua installed on some systems (like Debian).
-        [AC_PATH_PROGS([LUABIN],
-         [lua5.7 lua5.6 lua5.5 lua5.4 lua5.3 lua5.2 lua5.1 lua])])
-
-  if test -z "$LUAVERSIONS" && test -n "$LUABIN"; then
-    # check version: we need Lua 5.x
-    AC_MSG_CHECKING([Lua version])
-    AS_VAR_SET([LUA_VERSION],
+  if test "$LUABIN" != xno; then
+    AS_VAR_SET([lua_version],
                [`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`])
-    ptpm_result([LUA_VERSION])
+    if test -n "$LUAVERSIONS"; then
+      AS_IF([! (echo $LUAVERSIONS | $GREP "$lua_version" >/dev/null)],
+            [for i in $ptpm_include_dirs; do
+             AS_IF([test -r $i/lua.h],
+                   [AS_VAR_SET([tag], ["`echo $lua_version | $SED 's%\.%_%'`"])
+                    AS_VAR_SET([LUA_${tag}_INC], ["$i"])
+                    AS_VAR_SET([LUA_${tag}_LINK], ["-llua"])
+                    AS_VAR_SET([LUAVERSIONS], ["$LUAVERSIONS $lua_version"])
+                    break])
+             done])
+    else
+      # check version: we need Lua 5.x
+      AC_MSG_CHECKING([Lua version])
+      AS_VAR_SET([LUA_VERSION],["$lua_version"])
+      ptpm_result([LUA_VERSION])
 
-    AS_CASE([$LUA_VERSION],
-            [5.*], [],
-            [AS_VAR_SET([msg], ["Not Lua 5.x, SWIG does not support"])
-             AC_MSG_WARN([$msg this version of Lua])
-             AS_UNSET([LUABIN])])
+      AS_CASE([$LUA_VERSION],
+              [5.*], [],
+              [AS_VAR_SET([msg], ["Not Lua 5.x, SWIG does not support"])
+               AC_MSG_WARN([$msg this version of Lua])
+               AS_UNSET([LUABIN])])
 
-    if test -n "$LUABIN"; then
-      # look for the header files & set LUA_INC accordingly
-      # will clear LUABIN if not present
-      if test -n "$LUAINCLUDE"; then
-        AC_CHECK_FILE([$LUAINCLUDE/lua.h],
-                      [AS_VAR_SET([LUA_INC], ["$LUAINCLUDE"])],
-                      [AS_UNSET([LUABIN])])
-      else
-        AS_UNSET([found_lua_h])
-        # Use empty CFLAGS to avoid failure: "present but cannot be compiled"
-        AS_VAR_SET([cflags_saved], ["$CFLAGS"])
-        AS_UNSET([CFLAGS])
-        AC_CHECK_HEADER([lua.h], [AS_VAR_SET([found_lua_h], [1])])
-        AS_VAR_SET([CFLAGS], ["$cflags_saved"])
-        # if we didn't get it, going to have to look elsewhere (the hard way)
-        if test -z "$found_lua_h"; then
-          AC_MSG_CHECKING([for lua.h in other locations])
-          # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
-          # The ordering of the include directories to search should match
-          # the ordering of libraries to search in the library test below.
-          AS_UNSET([dirs])
-          for d in $ptpm_include_dirs; do
-            AS_VAR_SET([dirs], ["$dirs $d $d/lua$LUA_VERSION"])
-          done
-          for i in $dirs; do
-            AS_IF([test -r $i/lua.h],
-                  [AC_MSG_RESULT([$i/lua.h])
-                   AS_VAR_SET([LUA_INC], ["$i"])
-                   break])
-          done
-          AS_IF([test -z "$LUA_INC"],
-                [AC_MSG_RESULT([not found])
-                 AS_UNSET([LUABIN])]) # clear the bin
+      if test -n "$LUABIN"; then
+        # look for the header files & set LUA_INC accordingly
+        # will clear LUABIN if not present
+        if test -n "$LUAINCLUDE"; then
+          AC_CHECK_FILE([$LUAINCLUDE/lua.h],
+                        [AS_VAR_SET([LUA_INC], ["$LUAINCLUDE"])],
+                        [AS_UNSET([LUABIN])])
+        else
+          AS_UNSET([found_lua_h])
+          # Use empty CFLAGS to avoid failure: "present but cannot be compiled"
+          AS_VAR_SET([cflags_saved], ["$CFLAGS"])
+          AS_UNSET([CFLAGS])
+          AC_CHECK_HEADER([lua.h], [AS_VAR_SET([found_lua_h], [1])])
+          AS_VAR_SET([CFLAGS], ["$cflags_saved"])
+          # if we didn't get it, going to have to look elsewhere (the hard way)
+          if test -z "$found_lua_h"; then
+            AC_MSG_CHECKING([for lua.h in other locations])
+            # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+            # The ordering of the include directories to search should match
+            # the ordering of libraries to search in the library test below.
+            AS_UNSET([dirs])
+            for d in $ptpm_include_dirs; do
+              AS_VAR_SET([dirs], ["$dirs $d $d/lua$LUA_VERSION"])
+            done
+            for i in $dirs; do
+              AS_IF([test -r $i/lua.h],
+                    [AC_MSG_RESULT([$i/lua.h])
+                     AS_VAR_SET([LUA_INC], ["$i"])
+                     break])
+            done
+            AS_IF([test -z "$LUA_INC"],
+                  [AC_MSG_RESULT([not found])
+                   AS_UNSET([LUABIN])]) # clear the bin
+          fi
+        fi
+        # Does Lua use versions for libraries on this system?
+        if test -n "$LUABIN"; then
+          ptpm_basename([bin], ["$LUABIN"])
+          AS_IF([test "x$bin" != "xlua"],
+                [AS_VAR_SET([LUABIN_VERSION], ["$LUA_VERSION"])])
+
+          AS_IF([test -n "$LUALIB"],
+                [AC_CHECK_FILE([$LUALIB/liblua.so],
+                               [LUALINK="-L$LUALIB -llua"],
+                               [AS_UNSET([LUABIN])])],
+                [AC_SEARCH_LIBS([lua_close],
+                                [lua lua$LUA_VERSION],
+                                [LUALINK="-l$ac_lib"],
+                                [AS_UNSET([LUABIN])])])
         fi
       fi
-      # Does Lua use versions for libraries on this system?
-      if test -n "$LUABIN"; then
-        ptpm_basename([bin], ["$LUABIN"])
-        AS_IF([test "x$bin" != "xlua"],
-              [AS_VAR_SET([LUABIN_VERSION], ["$LUA_VERSION"])])
-
-        AS_IF([test -n "$LUALIB"],
-              [AC_CHECK_FILE([$LUALIB/liblua.so],
-                             [LUALINK="-L$LUALIB -llua"],
-                             [AS_UNSET([LUABIN])])],
-              [AC_SEARCH_LIBS([lua_close],
-                              [lua lua$LUA_VERSION],
-                              [LUALINK="-l$ac_lib"],
-                              [AS_UNSET([LUABIN])])])
-      fi
-    fi
-    AS_IF([test -n "$LUABIN" && $LUABIN -e "require 'luaunit'" 2>/dev/null],
-          [AS_VAR_SET([LUAUNIT], ["have"])])
-  fi # test -z "$LUAVERSIONS"; then
+      AS_IF([test -n "$LUABIN" && $LUABIN -e "require 'luaunit'" 2>/dev/null],
+            [AS_VAR_SET([LUAUNIT], ["have"])])
+    fi # test -n "$LUAVERSIONS"
+  fi # "$LUABIN" != xno
 fi # if not disabled
 
 AC_SUBST([LUABIN])

@@ -5,6 +5,11 @@
 # @copyright © 2023 Erez Geva
 #
 # GitHub Continuous Integration script
+# - Main Continuous Integration
+# - Build cross packages on Debian
+# - Build packages install them in system and
+#   test with linuxptp and clock simulated network
+#   to verify proper installation
 ###############################################################################
 
 name: continuous integration
@@ -29,7 +34,7 @@ jobs:
     steps:
 
     - name: checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: continuous integration
       run: |
@@ -56,7 +61,7 @@ jobs:
     steps:
 
     - name: checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: cross build
       run: |
@@ -77,13 +82,13 @@ jobs:
     steps:
 
     - name: checkout linuxptp repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: nwtime/linuxptp
         path: linuxptp
 
     - name: checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: libptpmgmt
 
@@ -92,25 +97,3 @@ jobs:
         chown -R $USER:$USER .
         su $USER -c libptpmgmt/tools/github_build.sh
         libptpmgmt/tools/github_pkgs.sh
-
-  mem:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        names: [utest_address, utest_valgrid]
-      fail-fast: false
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
-    env:
-      GITHUB_TOOL: ${{ matrix.names }}
-
-    steps:
-
-    - name: checkout repository
-      uses: actions/checkout@v3
-
-    - name: unit test with memory check
-      run: |
-        chown -R $USER:$USER .
-        su $USER -c "tools/$GITHUB_TOOL.sh -c"

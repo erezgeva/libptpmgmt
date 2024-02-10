@@ -21,14 +21,35 @@ RESTRICT="fetch"
 SRC_URI="${P}.txz"
 LICENSE="LGPL-3+"
 SLOT="0"
-DEPEND="dev-lang/perl dev-lang/ruby dev-lang/python dev-lang/lua dev-lang/php
-	dev-lang/tcl dev-lang/go"
+IUSE="skip_perl skip_python skip_ruby skip_lua skip_php skip_tcl skip_go
+	skip_swig"
+REQUIRED_USE="skip_swig? ( skip_perl skip_python skip_ruby skip_lua skip_php
+	skip_tcl skip_go )"
+DEPEND="!skip_perl? ( dev-lang/perl ) !skip_python? ( dev-lang/python )
+	!skip_ruby? ( dev-lang/ruby ) !skip_lua? ( dev-lang/lua )
+	!skip_php? ( dev-lang/php ) !skip_tcl? ( dev-lang/tcl )
+	!skip_go? ( dev-lang/go )"
 BDEPEND="sys-devel/gcc dev-build/libtool sys-apps/which dev-build/make
-	dev-lang/swig app-text/doxygen"
+	app-text/doxygen !skip_swig? ( dev-lang/swig )"
 RDEPEND="${DEPEND}"
 src_prepare() {
 	default
 	eautoconf
+}
+src_configure() {
+	local opts
+	if use skip_swig; then
+		opts+=" --without-swig"
+	else
+		if use skip_perl; then opts+=" --without-perl5"; fi
+		if use skip_python; then opts+=" --without-python3"; fi
+		if use skip_ruby; then opts+=" --without-ruby"; fi
+		if use skip_lua; then opts+=" --without-lua"; fi
+		if use skip_php; then opts+=" --without-php"; fi
+		if use skip_tcl; then opts+=" --without-tcl"; fi
+		if use skip_go; then opts+=" --without-go"; fi
+	fi
+	econf $opts
 }
 src_compile() {
 	emake PMC_USE_LIB=so all doxygen

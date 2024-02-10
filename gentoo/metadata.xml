@@ -1,0 +1,43 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later
+     SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<!-- See: https://devmanual.gentoo.org/ebuild-writing/misc-files/metadata/ -->
+<pkgmetadata>
+  <maintainer type="person">
+    <email>ErezGeva2@gmail.com</email>
+    <description>Erez Geva</description>
+  </maintainer>
+  <longdescription>
+    Library to communicate with linuxptp using IEEE 1558 management messages
+    over Unix network.
+    The library provide functionality that is provided
+    by the pmc tool of the linuxptp project.
+  </longdescription>
+  <use>
+    <flag name="skip_perl">
+      Do not use Perl wrapper.
+    </flag>
+    <flag name="skip_python">
+      Do not use Python wrapper.
+    </flag>
+    <flag name="skip_ruby">
+      Do not use Ruby wrapper.
+    </flag>
+    <flag name="skip_lua">
+      Do not use Lua wrapper.
+    </flag>
+    <flag name="skip_php">
+      Do not use PHP wrapper.
+    </flag>
+    <flag name="skip_tcl">
+      Do not use Tcl wrapper.
+    </flag>
+    <flag name="skip_go">
+      Do not use Go development wrapper.
+    </flag>
+    <flag name="skip_swig">
+      Do not use any wrapper.
+    </flag>
+  </use>
+</pkgmetadata>

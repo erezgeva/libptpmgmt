@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
-  -- SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> -->
+     SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> -->
 ***Q:***  
 I downloaded the libptpmgmt from [github](https://github.com/erezgeva/libptpmgmt/releases)
  and then tried to use the libptpmgmt with python test.  

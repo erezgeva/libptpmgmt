@@ -4,13 +4,13 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# Test with Linuxptp and clock simulated network
-# We run 2 tests
-# * Full test with valgrind
-# * Address Sanitizer
+# Manual tesings
+# - Test with linuxptp and clock simulated network
+# - Address Sanitizer with Linuxptp and clock simulated network
+# - Address Sanitizer and valgrid with unit tests
 ###############################################################################
 
-name: linuxptp with dummy clock
+name: manual testing
 
 # Start manually
 on: workflow_dispatch
@@ -24,13 +24,13 @@ jobs:
     steps:
 
     - name: checkout linuxptp repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: nwtime/linuxptp
         path: linuxptp
 
     - name: checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: libptpmgmt
 
@@ -43,15 +43,37 @@ jobs:
     steps:
 
     - name: checkout linuxptp repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: nwtime/linuxptp
         path: linuxptp
 
     - name: checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: libptpmgmt
 
     - name: test with linuxptp
       run: libptpmgmt/tools/github_address.sh
+
+  mem:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        names: [utest_address, utest_valgrid]
+      fail-fast: false
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
+    env:
+      GITHUB_TOOL: ${{ matrix.names }}
+
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v4
+
+    - name: unit test with memory check
+      run: |
+        chown -R $USER:$USER .
+        su $USER -c "tools/$GITHUB_TOOL.sh -c"

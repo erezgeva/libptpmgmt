@@ -691,8 +691,12 @@ probeLibs()
        fi
      fi
    done
-   if [[ -n "$no_build" ]] && [[ -n "$needCmpl" ]]; then
-     echo "Build as: no lua"
+   if [[ -n "$no_build" ]]; then
+     [[ -z "$needCmpl" ]] || "Build as: no lua"
+     if [[ -z "$luaPosixVersions" ]]; then
+       echo "Error: no lua to test with"
+       exit -1
+     fi
    fi
  fi
  local shopt_extglob=$(shopt -p extglob)

@@ -77,7 +77,8 @@ package_python3-ptpmgmt() {
 }
 package_lua-ptpmgmt() {
   pkgdesc='PTP management library Lua wrapper'
-  depends=("libptpmgmt=$verdep" lua lua51 lua52 lua53)
+  depends=("libptpmgmt=$verdep")
+  optdepends=(lua lua51 lua52 lua53)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/lua* $pkgdir/$libdir
   mv $srcdir/install/usr/lib/liblua* $pkgdir/$libdir

@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
-  -- SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> -->
+     SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> -->
 # C++ std::vector<> map in Scripts Languages
 
 We use C++ `std::vector<T>` when we need an array or a list.  

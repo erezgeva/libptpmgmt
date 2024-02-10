@@ -18,6 +18,7 @@ run_root()
   cd "/var/db/repos/gentoo/net-libs/libptpmgmt"
   local -r s="libptpmgmt-${version}.ebuild"
   cp "$base/gentoo/libptpmgmt.ebuild" "$s"
+  cp "$base/gentoo/metadata.xml" .
   # manifest    : create a manifest file for the package
   # clean       : clean up all source and temporary files
   # unpack      : unpack sources
