@@ -532,6 +532,7 @@ probeBuild()
      probeLibs
    else
      [[ -z "$no_build" ]] || echo "Build as: no libptpmgmt.so"
+     luaPosixVersions="$luaVersions"
      allBuild
    fi
  else
@@ -559,10 +560,10 @@ allBuild()
  ldPathPerl="$ldPath PERL5LIB=wrappers/perl"
  ldPathRuby="$ldPath RUBYLIB=wrappers/ruby"
  if $oneLua; then
-   ldPathLua="$ldpath LUA_CPATH='wrappers/lua/?.so;;'"
+   ldPathLua="$ldPath LUA_CPATH='wrappers/lua/?.so;;'"
  else
    for i in $luaPosixVersions; do
-     eval "ldPathLua${i/./}='$ldpath LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+     eval "ldPathLua${i/./}='$ldPath LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
    done
  fi
  for i in $pyVersions; do
