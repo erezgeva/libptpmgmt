@@ -15,7 +15,7 @@ pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
 # Source code can be build on any architecture
 # But as Arch Linux does not support the 'all' keyword
 arch=(x86_64)
-url=https://libptpmgmt.nwtime.org
+url="https://$pkgname.nwtime.org"
 license=(LGPL3)
 #source=("$pkgname-$pkgver.tar.gz::https://github.com/erezgeva/$pkgname/archive/refs/tags/$pkgver.tar.gz")
 source=("$pkgname-$pkgver.txz")
@@ -32,29 +32,29 @@ build() {
   make DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
-  python3 json-c go gcc libtool autoconf make texlive-fontutils)
+  python3 json-c go gcc libtool autoconf make texlive-fontutils which)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/libptpmgmt.so.* $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/$pkgbase.so.* $pkgdir/$libdir
 }
 package_libptpmgmt-jsonc() {
   pkgdesc='PTP management library JSON plugin using the json-c library'
-  depends=("libptpmgmt=$verdep" json-c)
+  depends=("$pkgbase=$verdep" json-c)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/libptpmgmt_jsonc.so* $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/${pkgname/-/_}.so* $pkgdir/$libdir
 }
 package_libptpmgmt-dev() {
   # development package can use static library
   # But as Arch linux does not use development packages, we add it here
   options=(staticlibs)
   pkgdesc='PTP management library development, provides header files and static library.'
-  depends=("libptpmgmt=$verdep")
+  depends=("$pkgbase=$verdep")
   mkdir -p $pkgdir/$libdir $pkgdir/usr/share
-  mv $srcdir/install/usr/share/libptpmgmt-dev $pkgdir/usr/share
+  mv $srcdir/install/usr/share/$pkgname $pkgdir/usr/share
   mv $srcdir/install/usr/include $pkgdir/usr
-  mv $srcdir/install/usr/lib/libptpmgmt*.a $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/libptpmgmt.so $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/$pkgbase*.a $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/$pkgbase.so $pkgdir/$libdir
 }
 package_libptpmgmt-doc() {
   arch=(any)
@@ -65,19 +65,19 @@ package_libptpmgmt-doc() {
 }
 package_libptpmgmt-perl() {
   pkgdesc='PTP management library Perl wrapper'
-  depends=("libptpmgmt=$verdep" perl)
+  depends=("$pkgbase=$verdep" perl)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/perl* $pkgdir/$libdir
 }
 package_python3-ptpmgmt() {
   pkgdesc='PTP management library python version 3 wrapper'
-  depends=("libptpmgmt=$verdep" python3)
+  depends=("$pkgbase=$verdep" python3)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/python3* $pkgdir/$libdir
 }
 package_lua-ptpmgmt() {
   pkgdesc='PTP management library Lua wrapper'
-  depends=("libptpmgmt=$verdep")
+  depends=("$pkgbase=$verdep")
   optdepends=(lua lua51 lua52 lua53)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/lua* $pkgdir/$libdir
@@ -85,34 +85,34 @@ package_lua-ptpmgmt() {
 }
 package_ruby-ptpmgmt() {
   pkgdesc='PTP management library ruby wrapper'
-  depends=("libptpmgmt=$verdep" ruby)
+  depends=("$pkgbase=$verdep" ruby)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/ruby $pkgdir/$libdir
 }
 package_tcl-ptpmgmt() {
   pkgdesc='PTP management library tcl wrapper'
-  depends=("libptpmgmt=$verdep" tcl)
+  depends=("$pkgbase=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/tcl* $pkgdir/$libdir
 }
 package_go-ptpmgmt() {
   arch=(any)
   pkgdesc='PTP management library golang development wrapper'
-  depends=("libptpmgmt=$verdep" go)
+  depends=("$pkgbase=$verdep" go)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/go $pkgdir/$libdir
 }
 #package_php-ptpmgmt() {
 # Arch linux php do not have system include_path!
 # pkgdesc='PTP management library php wrapper'
-# depends=("libptpmgmt=$verdep" php)
+# depends=("$pkgbase=$verdep" php)
 # mkdir -p $pkgdir/$libdir
 # mv $srcdir/install/usr/lib/php* $pkgdir/$libdir
 #}
 package_pmc-ptpmgmt() {
   license=(GPL3)
-  depends=("libptpmgmt=$verdep")
-  pkgdesc='pmc tool. new rewrite of linuxptp pmc tool using the libptpmgmt library.'
+  depends=("$pkgbase=$verdep")
+  pkgdesc="pmc tool. new rewrite of linuxptp pmc tool using the $pkgbase library."
   mkdir -p $pkgdir/usr/local/man/man8 $pkgdir/usr/bin
   mv $srcdir/install/usr/bin/pmc* $pkgdir/usr/bin
   mv $srcdir/install/usr/share/man/man8/pmc* $pkgdir/usr/local/man/man8
@@ -121,7 +121,7 @@ package_phc-ctl-ptpmgmt() {
   arch=(any)
   license=(GPL3)
   depends=("python3-ptpmgmt=$verdep")
-  pkgdesc='phc_ctl tool. new rewrite of linuxptp phc_ctl tool using the libptpmgmt library.'
+  pkgdesc="phc_ctl tool. new rewrite of linuxptp phc_ctl tool using the $pkgbase library."
   mkdir -p $pkgdir/usr/local/man/man8 $pkgdir/usr/bin
   mv $srcdir/install/usr/bin/phc_ctl* $pkgdir/usr/bin
   mv $srcdir/install/usr/share/man/man8/phc_ctl* $pkgdir/usr/local/man/man8

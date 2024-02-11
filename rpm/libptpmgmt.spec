@@ -10,17 +10,17 @@ Name:           libptpmgmt
 Version:        1.2
 Release:        1%{?dist}
 URL:            https://%{name}.nwtime.org
-BuildRequires:  swig m4
-BuildRequires:  perl perl-devel perl-ExtUtils-Embed
-BuildRequires:  which
+BuildRequires:  gcc-c++ libtool pkgconfig autoconf m4 which swig
+BuildRequires:  doxygen graphviz texlive-epstopdf
+BuildRequires:  json-c json-c-devel
+BuildRequires:  libfastjson libfastjson-devel
+BuildRequires:  perl perl-devel
 BuildRequires:  python3 python3-devel
 BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
 BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  golang
-BuildRequires:  libfastjson libfastjson-devel json-c-devel
-BuildRequires:  doxygen graphviz texlive-epstopdf
 #Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
 Source0:        %{name}-%{version}.txz
 

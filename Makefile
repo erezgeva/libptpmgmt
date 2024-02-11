@@ -577,7 +577,8 @@ ifneq ($(DOXYGENMINVER),)
 	$(RM) doc/html/*.md5 doc/html/*.map
 	cp -a doc/html $(DOCDIR)
 	printf '$(REDIR)' > $(DOCDIR)/index.html
-	$(SED) -i '1 i$(SPDXHTML)' $(DOCDIR)/html/*.html $(DOCDIR)/html/*/*.html
+	$(SED) -i '1 i$(SPDXHTML)' $(DOCDIR)/html/*.html\
+	  $(subst doc/html/,$(DOCDIR)/html/,$(wildcard doc/html/*/*.html))
 	$(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
 	  $(DOCDIR)/html/search/*_*.js $(DOCDIR)/html/search/searchdata.js
 endif # DOXYGENMINVER
