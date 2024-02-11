@@ -27,6 +27,7 @@ distribution()
 read_defs()
 {
  [[ -f defs.mk ]] || retrurn
+ local l="$@"
  local var val
  mapfile < defs.mk
  for n in "${MAPFILE[@]}"; do
@@ -45,4 +46,11 @@ read_defs()
     fi
   fi
  done
+  if [[ -n "$l" ]]; then
+  local n a
+  for n in $l; do
+   a="$(eval "echo '${R["$n"]}'")"
+   eval "$n=\"$a\""
+  done
+ fi
 }

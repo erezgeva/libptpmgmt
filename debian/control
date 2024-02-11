@@ -3,14 +3,14 @@ Maintainer: Erez Geva <ErezGeva2@gmail.com>
 Section: net
 Priority: optional
 Standards-Version: 4.1.4
-Build-Depends: debhelper (>= 9), dh-exec (>=0.3), coreutils, dh-python,
-               dh-lua, dh-php, swig (>=3.0), libtool, m4, dh-golang,
-               texlive-font-utils
-Build-Depends-Arch: perl:native, lua5.2, liblua5.1-0-dev,
-		    liblua5.2-dev, liblua5.3-dev, ruby:native, ruby-dev,
-		    python3-dev:native, libpython3-dev, php-dev, tcl-dev,
-		    libfastjson-dev
-Build-Depends-Indep: graphviz, doxygen, libtool-bin
+Build-Depends: debhelper (>= 9), libtool, texlive-font-utils, dh-python,
+	       dh-lua, dh-php, dh-golang, golang-src
+Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
+		    liblua5.2-dev, liblua5.3-dev, liblua5.4-dev,
+		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),
+		    ruby:native, ruby-dev, libfastjson-dev, libjson-c-dev
+Build-Depends-Indep: graphviz, doxygen (>=1.8), libtool-bin, dh-exec (>=0.3),
+		     swig (>=4.1), coreutils, m4
 Homepage: https://libptpmgmt.nwtime.org
 
 Package: libptpmgmt

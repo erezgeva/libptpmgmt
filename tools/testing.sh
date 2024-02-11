@@ -508,22 +508,15 @@ probeBuild()
 {
  if [[ -f defs.mk ]]; then
    local -A R
-   read_defs
-   local -r prefix="${R['prefix']}"
-   local -r exec_prefix=$(eval "echo \"${R['exec_prefix']}\"")
-   local -r libdir=$(eval "echo \"${R['libdir']}\"")
-   local -r libexecdir=$(eval "echo \"${R['libexecdir']}\"")
-   local -r includedir=$(eval "echo \"${R['includedir']}\"")
-   local -r sysconfdir=$(eval "echo \"${R['sysconfdir']}\"")
-   local -r localstatedir=$(eval "echo \"${R['localstatedir']}\"")
-   local -r datarootdir=$(eval "echo \"${R['datarootdir']}\"")
-   local -r mandir=$(eval "echo \"${R['mandir']}\"")
-   local -r infodir=$(eval "echo \"${R['infodir']}\"")
-   local -r sbindir=$(eval "echo \"${R['sbindir']}\"")
-   local -r bindir=$(eval "echo \"${R['bindir']}\"")
-   if [[ -n "${R['LUAVERSIONS']}" ]]; then
+   local list='prefix exec_prefix libdir libexecdir includedir sysconfdir
+     localstatedir datarootdir mandir infodir sbindir bindir LUAVERSIONS
+     HAVE_JSONC_LIB HAVE_FJSON_LIB PERL5DIR RUBYSITE LUA_VERSION SKIP_PHP
+     PHPEXT TCL_PKG_DIR GOROOT'
+   local $list
+   read_defs $list
+   if [[ -n "$LUAVERSIONS" ]]; then
      oneLua=false
-     luaVersions="${R['LUAVERSIONS']}"
+     luaVersions="$LUAVERSIONS"
    else
      oneLua=true
    fi
@@ -634,7 +627,7 @@ probeLibsDebian()
 }
 probeLibs()
 {
- if [[ -z "${R['HAVE_JSONC_LIB']}" ]] && [[ -z "${R['HAVE_FJSON_LIB']}" ]]; then
+ if [[ -z "$HAVE_JSONC_LIB" ]] && [[ -z "$HAVE_FJSON_LIB" ]]; then
    skip_json=true
  else
    local -i jsonCount=0
@@ -653,21 +646,21 @@ probeLibs()
      ldPathJson="LD_LIBRARY_PATH=."
    fi
  fi
- getFirstFile "${R['PERL5DIR']}/auto/PtpMgmtLib/PtpMgmtLib.so"
+ getFirstFile "$PERL5DIR/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no perl"
    needCmpl=y
    ldPathPerl="PERL5LIB=wrappers/perl"
    ldPathJson+=" PERL5LIB=wrappers/perl"
  fi
- file="${R['RUBYSITE']}/ptpmgmt.so"
+ file="$RUBYSITE/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no ruby"
    needCmpl=y
    ldPathRuby="RUBYLIB=wrappers/ruby"
  fi
  if $oneLua; then
-   getFirstFile "$libdir/lua/${R['LUA_VERSION']}/ptpmgmt.so"
+   getFirstFile "$libdir/lua/$LUA_VERSION/ptpmgmt.so"
    if ! [[ -f "$file" ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no lua"
      needCmpl=y
@@ -715,22 +708,22 @@ probeLibs()
    [[ -z "$no_build" ]] || echo "Build as: no python"
    needCmpl=y
  fi
- if [[ -n "${R['SKIP_PHP']}" ]]; then
+ if [[ -n "$SKIP_PHP" ]]; then
    skip_php=true
  else
-   if ! [[ -f "${R['PHPEXT']}/ptpmgmt.so" ]]; then
+   if ! [[ -f "$PHPEXT/ptpmgmt.so" ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no php"
      needCmpl=y
      ldPathPhp="PHPRC=wrappers/php"
    fi
  fi
- getFirstFile "${R['TCL_PKG_DIR']}/ptpmgmt/ptpmgmt.so"
+ getFirstFile "$TCL_PKG_DIR/ptpmgmt/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no tcl"
    needCmpl=y
    ldPathTcl="TCLLIBPATH=wrappers/tcl"
  fi
- getFirstFile "${R['GOROOT']}/src/ptpmgmt/PtpMgmtLib.cpp"
+ getFirstFile "$GOROOT/src/ptpmgmt/PtpMgmtLib.cpp"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no go"
    needCmpl=y

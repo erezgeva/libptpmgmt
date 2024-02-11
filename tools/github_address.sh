@@ -222,28 +222,32 @@ new_version()
 config_report()
 {
  local -A R
- read_defs
+ local list='TCLVER PERL PY3VERSION RUBYVER PHPVER LUAVERSIONS LUA_VERSION
+   GOVER DOTTOOL ASTYLEMINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
+   CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIGMINVER DOXYGENMINVER
+   PACKAGE_VERSION'
  local langs='tcl perl python ruby php lua go'
- local $langs
+ local $list $langs
+ read_defs $list
  local -A setLang
- setLang[tcl]="@'${R['TCLVER']}'"
+ setLang[tcl]="@'$TCLVER'"
  local -r p2=';@"${perl#v}"'
- setLang[perl]="@'$(${R['PERL']} -e 'print "$^V"')'$p2"
- setLang[python]="@'${R['PY3VERSION']#python}'"
- setLang[ruby]="@'${R['RUBYVER']}'"
- setLang[php]="@'${R['PHPVER']}'"
- if [[ -n "${R['LUAVERSIONS']}" ]]; then
-   setLang[lua]="@'${R['LUAVERSIONS']}'"
+ setLang[perl]="@'$($PERL -e 'print "$^V"')'$p2"
+ setLang[python]="@'${PY3VERSION#python}'"
+ setLang[ruby]="@'$RUBYVER'"
+ setLang[php]="@'$PHPVER'"
+ if [[ -n "$LUAVERSIONS" ]]; then
+   setLang[lua]="@'$LUAVERSIONS'"
  else
-   setLang[lua]="@'${R['LUA_VERSION']}'"
+   setLang[lua]="@'$LUA_VERSION'"
  fi
- setLang[go]="@'$R['GOVER']'"
+ setLang[go]="@'$GOVER'"
  for n in $langs; do
    [[ -n "${R["SKIP_${n^^}"]}" ]] && local $n='x' ||\
      eval "${setLang[$n]//@/local $n=}"
  done
- if [[ -n "${R['DOTTOOL']}" ]]; then
-   local dver="$(${R['DOTTOOL']} -V 2>&1)"
+ if [[ -n "$DOTTOOL" ]]; then
+   local dver="$($DOTTOOL -V 2>&1)"
    dver="${dver#*version }"
    dver="${dver% (0)}"
  else
@@ -251,21 +255,17 @@ config_report()
  fi
  local -r gccver=$(g++ -v 2>&1 | tail -1 | sed 's/.* version //;s/ .*//')
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
- [[ -n "${R['ASTYLEMINVER']}" ]] && local -r astyle="${R['ASTYLEMINVER']}" ||\
-   local -r astyle='x'
- [[ -n "${R['HAVE_GTEST_HEADER']}" ]] && local -r gtest='v' || local -r gtest='x'
- [[ -n "${R['HAVE_CRITERION_HEADER']}" ]] && local -r crtest='v' ||\
-   local -r crtest='x'
- [[ -n "${R['CPPCHECK']}" ]] && local -r cppcheck='v' || local -r cppcheck='x'
- [[ -n "${R['HAVE_JSONC_LIB']}" ]] && local -r jsonc='v' || local -r jsonc='x'
- [[ -n "${R['HAVE_FJSON_LIB']}" ]] && local -r fjson='v' || local -r fjson='x'
- [[ -n "${R['SWIGMINVER']}" ]] && local -r swig="${R['SWIGMINVER']}" ||\
-   local -r swig='x'
- [[ -n "${R['DOXYGENMINVER']}" ]] && local -r doxy="${R['DOXYGENMINVER']}" ||\
-   local -r doxy='x'
+ [[ -n "$ASTYLEMINVER" ]] && local -r astyle="$ASTYLEMINVER" || local -r astyle='x'
+ [[ -n "$HAVE_GTEST_HEADER" ]] && local -r gtest='v' || local -r gtest='x'
+ [[ -n "$HAVE_CRITERION_HEADER" ]] && local -r crtest='v' || local -r crtest='x'
+ [[ -n "$CPPCHECK" ]] && local -r cppcheck='v' || local -r cppcheck='x'
+ [[ -n "$HAVE_JSONC_LIB" ]] && local -r jsonc='v' || local -r jsonc='x'
+ [[ -n "$HAVE_FJSON_LIB" ]] && local -r fjson='v' || local -r fjson='x'
+ [[ -n "$SWIGMINVER" ]] && local -r swig="$SWIGMINVER" || local -r swig='x'
+ [[ -n "$DOXYGENMINVER" ]] && local -r doxy="$DOXYGENMINVER" || local -r doxy='x'
  cat << EOF
 ========================== Config ==========================
-Version '${R['PACKAGE_VERSION']}' build $bon gcc '$gccver' astyle '$astyle'
+Version '$PACKAGE_VERSION' build $bon gcc '$gccver' astyle '$astyle'
 Jsonc '$jsonc' Fjson '$fjson'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck'
 Google test '$gtest' Criterion test '$crtest'
