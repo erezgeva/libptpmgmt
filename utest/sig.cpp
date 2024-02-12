@@ -381,7 +381,7 @@ TEST_F(SigTest, VectorTlvs)
     EXPECT_EQ(p1->list[0].syncEventIngressTimestamp,
         Timestamp_t(653925548622, 953155584));
     EXPECT_EQ(p1->list[1].sequenceId, 3015);
-    EXPECT_EQ(p1->list[1].syncOriginTimestamp, 554118423048);
+    EXPECT_EQ(p1->list[1].syncOriginTimestamp, (float_seconds)554118423048);
     EXPECT_EQ(p1->list[1].totalCorrectionField.scaledNanoseconds,
         0x12435b4af4d41e48);
     EXPECT_EQ(p1->list[1].scaledCumulativeRateOffset, -1109460388);

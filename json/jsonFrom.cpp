@@ -580,14 +580,14 @@ struct JsonProcFromJson : public JsonProcFrom {
         return ret;
     }
     procObj(LinuxptpUnicastMaster_t)
-    bool procBinary(const char *key, Binary &d, uint16_t &len) {
+    bool procBinary(const char *key, Binary &d, uint16_t &len) override {
         if(!isType(key, JT_STR) || !d.fromId(valsMap[key].strV) ||
             d.size() == 0)
             return false;
         len = d.size();
         return true;
     }
-    bool procBinary(const char *key, uint8_t *d, size_t len) {
+    bool procBinary(const char *key, uint8_t *d, size_t len) override {
         Binary b;
         if(!isType(key, JT_STR) || !b.fromId(valsMap[key].strV) ||
             b.size() != len)
@@ -605,7 +605,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     void procZeroFlag(uint8_t &flags) override {
         flags = 0;
     }
-    bool procArray(const char *key, std::vector<ClockIdentity_t> &d) {
+    bool procArray(const char *key, std::vector<ClockIdentity_t> &d) override {
         if(!isType(key, JT_ARRAY))
             return false;
         JSON_POBJ arr = valsMap[key].objV;
@@ -628,7 +628,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         return ret;
     }
 #define procVector(type)\
-    bool procArray(const char *key, std::vector<type> &d) {\
+    bool procArray(const char *key, std::vector<type> &d) override {\
         if(!isType(key, JT_ARRAY))\
             return false;\
         JSON_POBJ arr = valsMap[key].objV;\

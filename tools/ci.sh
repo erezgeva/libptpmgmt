@@ -21,6 +21,20 @@ eacmd()
  last_ret=$?
  set -e
 }
+e_mk()
+{
+ set +e
+ out="`CXXFLAGS=-Werror make $@`"
+ last_ret=$?
+ set -e
+}
+ea_mk()
+{
+ set +e
+ out="`CXXFLAGS=-Werror make $@ 2>&1`"
+ last_ret=$?
+ set -e
+}
 mquit()
 {
  if [[ -n "$out" ]]; then
@@ -65,10 +79,14 @@ test_clean()
 {
  if $have_git; then
    out=''
-   make clean $mk_noc
+   ecmd make clean $mk_noc
+   equit "'make clean' fails"
    check_clean clean $clean_list $distclean_list $dist_clean_more
-   make distclean $mk_noc
+   ecmd make distclean $mk_noc
+   equit "'make distclean' fails"
    check_clean distclean $distclean_list
+ elif [[ "$1" = "clean" ]]; then
+   make clean $mk_noc
  fi
 }
 main()
@@ -117,6 +135,10 @@ main()
  for n in archlinux debian gentoo rpm; do
    distclean_list+=" $n/.upgrade_cockie"
  done
+ ##########################################################
+ ######                 Test start                   ######
+ ##########################################################
+ ### clean ###
  eacmd git rev-parse --is-inside-work-tree
  if [[ $last_ret -eq 0 ]]; then
    local -r have_git=true
@@ -126,7 +148,9 @@ main()
    local -r have_git=false
    # Make sure we do not have leftovers
    ecmd make clean $mk_noc
+   equit "'make clean' fails"
  fi
+ ### run reuse lint ###
  if $have_git && [[ -n "$(which reuse 2> /dev/null)" ]]; then
    local -ri reuse_ver="$(reuse --version | sed 's/^reuse\s*//;s/\..*//')"
    echo " * Check files licenses with 'reuse'"
@@ -138,6 +162,7 @@ main()
    fi
    equit "'reuse' detect missing SPDX tags"
  fi
+ ### Configure ###
  echo " * Configure"
  autoconf
  if $not_gentoo; then
@@ -146,23 +171,42 @@ main()
    # Were is Gentoo defualt configure setting?
    # This is after the build flags, we use 64 bits container.
    ecmd ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var/lib\
-     --libdir=/usr/lib64 --without-libsys
+     --libdir=/usr/lib64 --disable-libsys
  fi
- tools/config_report.sh
  equit "Configuratation fails"
+ tools/config_report.sh
  make checkall -j$jobs $mk_noc
+ ### unit test ###
  echo " * Run unit test"
- eacmd make utest -j$jobs $mk_noc
+ ea_mk utest -j$jobs $mk_noc
  equit "Unit test fails"
  echo " * Build"
- ecmd make -j$jobs $mk_noc
+ e_mk -j$jobs $mk_noc
  equit "Build fails"
+ if $not_gentoo; then
+   test_clean clean
+   ### Configure clang ###
+   echo " * Configure with clang"
+   autoconf
+   # Use clang
+   ecmd ./configure --with-clang-cpp --with-clang-c
+   equit "Configuratation with clang fails"
+   tools/config_report.sh
+   ### unit test clang ###
+   echo " * Run unit test with clang"
+   ea_mk utest -j$jobs $mk_noc
+   equit "Unit test with clang fails"
+   echo " * Build with clang"
+   e_mk -j$jobs $mk_noc
+   equit "Build with clang fails"
+ fi
  test_clean
+ ### make packages ###
  case $dist in
    debian)
      if [[ -n "$(which dpkg-buildpackage 2> /dev/null)" ]]; then
        echo " * Build Debian packages"
-       eacmd make deb -j$jobs $mk_noc
+       ea_mk deb -j$jobs $mk_noc
        equit "Build Debian packages fails"
      fi
      ;;
@@ -176,7 +220,7 @@ main()
    arch)
      if [[ -n "$(which makepkg 2> /dev/null)" ]]; then
        echo " * Build Arch Linux packages"
-       eacmd make pkg -j$jobs MAKEFLAGS="-j$jobs" $mk_noc
+       ea_mk pkg -j$jobs MAKEFLAGS="-j$jobs" $mk_noc
        equit "Build Arch Linux packages fails"
        for n in archlinux/libptpmgmt-*.txz; do
          dist_clean_more+=" $n"
@@ -186,7 +230,7 @@ main()
    gentoo)
      if [[ -n "$(which ebuild 2> /dev/null)" ]]; then
        echo " * Build Gentoo packages"
-       eacmd make gentoo -j$jobs $mk_noc
+       ea_mk gentoo -j$jobs $mk_noc
        equit "Build Gentoo fails"
      fi
      ;;

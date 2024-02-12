@@ -37,6 +37,7 @@ github_pages()
  ./configure
  make doxygen
  mv doc/html _site
+ rm -f _site/*.md5 _site/*.map
 }
 ###############################################################################
 # Log into github docker
@@ -225,7 +226,7 @@ config_report()
  local list='TCLVER PERL PY3VERSION RUBYVER PHPVER LUAVERSIONS LUA_VERSION
    GOVER DOTTOOL ASTYLEMINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
    CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIGMINVER DOXYGENMINVER
-   PACKAGE_VERSION'
+   PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC'
  local langs='tcl perl python ruby php lua go'
  local $list $langs
  read_defs $list
@@ -253,7 +254,6 @@ config_report()
  else
    local -r dver='x'
  fi
- local -r gccver=$(g++ -v 2>&1 | tail -1 | sed 's/.* version //;s/ .*//')
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
  [[ -n "$ASTYLEMINVER" ]] && local -r astyle="$ASTYLEMINVER" || local -r astyle='x'
  [[ -n "$HAVE_GTEST_HEADER" ]] && local -r gtest='v' || local -r gtest='x'
@@ -265,9 +265,10 @@ config_report()
  [[ -n "$DOXYGENMINVER" ]] && local -r doxy="$DOXYGENMINVER" || local -r doxy='x'
  cat << EOF
 ========================== Config ==========================
-Version '$PACKAGE_VERSION' build $bon gcc '$gccver' astyle '$astyle'
+Version '$PACKAGE_VERSION' build $bon
+compilers $CXX $CXX_VERSION, $CC $CC_VERSION
 Jsonc '$jsonc' Fjson '$fjson'
-Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck'
+Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Criterion test '$crtest'
 swig '$swig' Python '$python' Ruby '$ruby' PHP '$php'
 Perl '$perl' go '$go' tcl '$tcl' Lua '$lua'

@@ -141,7 +141,7 @@ Test(SigTest, OrgTwoManagmentTlvs)
 
 // Tests loop two managment TLV
 struct cookie_t { size_t cnt; };
-static bool loopCheck(void *cookie, const_ptpmgmt_msg,
+static bool loopCheck(void *cookie, const_ptpmgmt_msg m,
     enum ptpmgmt_tlvType_e tlvType, const void *tlv)
 {
     /**

@@ -11,7 +11,7 @@
 perl_SFLAGS+=-perl5
 PERL_D:=wrappers/perl
 $(PERL_D)/$(SWIG_NAME).o: $(PERL_D)/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(call LLC,-Iwrappers/perl -I$(PERL5EXT))
+	$Q$(call LLC,$(CXXFLAGS_PERL) -Iwrappers/perl -I$(PERL5EXT))
 	$(call D_INC,PERL5EXT)
 	$(SWIG_DEP)
 PERL_SO_DIR:=$(PERL_D)/auto/$(SWIG_NAME)

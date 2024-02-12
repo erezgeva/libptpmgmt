@@ -1679,7 +1679,7 @@ Test(MessageTest, MethodGetMngType)
 // bool ptpmgmt_msg_sig_callback(void *cookie, const_ptpmgmt_msg m,
 //     enum ptpmgmt_tlvType_e tlvType, const void *tlv)
 struct cookie_t { int val; };
-static bool verifyPr1(void *cookie, const_ptpmgmt_msg,
+static bool verifyPr1(void *cookie, const_ptpmgmt_msg m,
     enum ptpmgmt_tlvType_e tlvType, const void *tlv)
 {
     // Verify cookie value

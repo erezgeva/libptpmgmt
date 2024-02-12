@@ -116,7 +116,7 @@ TEST_F(ProcTest, FAULT_LOG)
     const FAULT_LOG_t *r = (const FAULT_LOG_t *)getData();
     EXPECT_EQ(r->numberOfFaultRecords, 2);
     EXPECT_EQ(r->faultRecords[0].faultRecordLength, 50);
-    EXPECT_EQ(r->faultRecords[0].faultTime, 9.000709);
+    EXPECT_EQ(r->faultRecords[0].faultTime, (float_seconds)9.000709);
     EXPECT_EQ(r->faultRecords[0].severityCode, F_Critical);
     EXPECT_EQ(r->faultRecords[0].faultName.lengthField, 7);
     EXPECT_STREQ(r->faultRecords[0].faultName.string(), "error 1");
@@ -126,7 +126,7 @@ TEST_F(ProcTest, FAULT_LOG)
     EXPECT_STREQ(r->faultRecords[0].faultDescription.string(),
         "This is first record");
     EXPECT_EQ(r->faultRecords[1].faultRecordLength, 55);
-    EXPECT_EQ(r->faultRecords[1].faultTime, 1791.003019);
+    EXPECT_EQ(r->faultRecords[1].faultTime, (float_seconds)1791.003019);
     EXPECT_EQ(r->faultRecords[1].severityCode, F_Warning);
     EXPECT_EQ(r->faultRecords[1].faultName.lengthField, 7);
     EXPECT_STREQ(r->faultRecords[1].faultName.string(), "error 2");
@@ -381,7 +381,8 @@ TEST_F(ProcTest, TIME)
     EXPECT_EQ(memcmp(buf + tlvLoc, m, sizeof m), 0);
     ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
     const TIME_t *r = (const TIME_t *)getData();
-    EXPECT_EQ(r->currentTime, 13.15);
+    ASSERT_NE(r, nullptr);
+    EXPECT_EQ(r->currentTime, (float_seconds)13.15);
 }
 
 // Tests CLOCK_ACCURACY structure

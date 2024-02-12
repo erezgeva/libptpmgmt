@@ -40,6 +40,17 @@
 #include <linux/ptp_clock.h>
 #include <linux/ethtool.h>
 /*****************************************************************************/
+/* Some clang functions attributes */
+#ifdef __clang__
+// Functions marked with throw specifier
+#define CL_THROW throw()
+// Functions with non null attribute. Parameters can not be null!
+#define CL_NULL(a) (false)
+#else
+#define CL_THROW
+#define CL_NULL(a) ((a) == nullptr)
+#endif
+/*****************************************************************************/
 static bool didInit = false;
 static bool testMode = false;
 static bool rootMode;
@@ -65,7 +76,7 @@ void useRoot(bool n) {rootMode = n;}
 /*****************************************************************************/
 #define sysFuncDec(ret, name, ...)\
     ret (*_##name)(__VA_ARGS__);\
-    extern "C" ret name(__VA_ARGS__);
+    extern "C" ret name(__VA_ARGS__)
 #define sysFuncAgn(ret, name, ...)\
     _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);\
     if(_##name == nullptr) {\
@@ -73,35 +84,36 @@ void useRoot(bool n) {rootMode = n;}
         fail = true;}
 /* Allocation can fail, calling need verify! */
 #define sysFuncAgZ(ret, name, ...)\
-    _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);
-sysFuncDec(int, close, int)
-sysFuncDec(int, select, int, fd_set *, fd_set *, fd_set *, timeval *)
-sysFuncDec(int, socket, int, int, int)
-sysFuncDec(int, bind, int, const sockaddr *, socklen_t)
-sysFuncDec(int, setsockopt, int, int, int, const void *, socklen_t)
-sysFuncDec(ssize_t, recv, int, void *, size_t, int)
-sysFuncDec(ssize_t, recvfrom, int, void *, size_t, int, sockaddr *, socklen_t *)
+    _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name)
+sysFuncDec(int, socket, int, int, int) CL_THROW;
+sysFuncDec(int, close, int);
+sysFuncDec(int, select, int, fd_set *, fd_set *, fd_set *, timeval *);
+sysFuncDec(int, bind, int, const sockaddr *, socklen_t) CL_THROW;
+sysFuncDec(int, setsockopt, int, int, int, const void *, socklen_t) CL_THROW;
+sysFuncDec(ssize_t, recv, int, void *, size_t, int);
+sysFuncDec(ssize_t, recvfrom, int, void *, size_t, int, sockaddr *,
+    socklen_t *);
 sysFuncDec(ssize_t, sendto, int, const void *buf, size_t len, int flags,
-    const sockaddr *, socklen_t)
-sysFuncDec(ssize_t, recvmsg, int, msghdr *, int)
-sysFuncDec(ssize_t, sendmsg, int, const msghdr *, int)
-sysFuncDec(uid_t, getuid, void)
-sysFuncDec(pid_t, getpid, void)
-sysFuncDec(int, unlink, const char *)
-sysFuncDec(passwd *, getpwuid, uid_t)
-sysFuncDec(int, clock_gettime, clockid_t, timespec *)
-sysFuncDec(int, clock_settime, clockid_t, const timespec *)
-sysFuncDec(int, clock_adjtime, clockid_t, timex *)
-sysFuncDec(long, sysconf, int)
-sysFuncDec(int, open, const char *, int, ...)
-sysFuncDec(ssize_t, read, int, void *, size_t)
+    const sockaddr *, socklen_t);
+sysFuncDec(ssize_t, recvmsg, int, msghdr *, int);
+sysFuncDec(ssize_t, sendmsg, int, const msghdr *, int);
+sysFuncDec(uid_t, getuid, void) CL_THROW;
+sysFuncDec(pid_t, getpid, void) CL_THROW;
+sysFuncDec(int, unlink, const char *) CL_THROW;
+sysFuncDec(passwd *, getpwuid, uid_t);
+sysFuncDec(int, clock_gettime, clockid_t, timespec *) CL_THROW;
+sysFuncDec(int, clock_settime, clockid_t, const timespec *) CL_THROW;
+sysFuncDec(int, clock_adjtime, clockid_t, timex *) CL_THROW;
+sysFuncDec(long, sysconf, int) CL_THROW;
+sysFuncDec(int, open, const char *, int, ...);
+sysFuncDec(ssize_t, read, int, void *, size_t);
 // glibc stat fucntions
-sysFuncDec(int, stat, const char *, struct stat *)
-sysFuncDec(int, stat64, const char *, struct stat64 *)
-sysFuncDec(int, __xstat, int, const char *, struct stat *)
-sysFuncDec(int, __xstat64, int, const char *, struct stat64 *)
-sysFuncDec(char *, realpath, const char *, char *)
-sysFuncDec(int, ioctl, int, unsigned long, ...)
+sysFuncDec(int, stat, const char *, struct stat *) CL_THROW;
+sysFuncDec(int, stat64, const char *, struct stat64 *) CL_THROW;
+sysFuncDec(int, __xstat, int, const char *, struct stat *);
+sysFuncDec(int, __xstat64, int, const char *, struct stat64 *);
+sysFuncDec(char *, realpath, const char *, char *) CL_THROW;
+sysFuncDec(int, ioctl, int, unsigned long, ...) CL_THROW;
 void initLibSys(void)
 {
     if(didInit) {
@@ -109,33 +121,34 @@ void initLibSys(void)
         return;
     }
     bool fail = false;
-    sysFuncAgn(int, close, int)
-    sysFuncAgn(int, select, int, fd_set *, fd_set *, fd_set *, timeval *)
-    sysFuncAgn(int, socket, int, int, int)
-    sysFuncAgn(int, bind, int, const sockaddr *, socklen_t)
-    sysFuncAgn(int, setsockopt, int, int, int, const void *, socklen_t)
-    sysFuncAgn(ssize_t, recv, int, void *, size_t, int)
-    sysFuncAgn(ssize_t, recvfrom, int, void *, size_t, int, sockaddr *, socklen_t *)
+    sysFuncAgn(int, socket, int, int, int);
+    sysFuncAgn(int, close, int);
+    sysFuncAgn(int, select, int, fd_set *, fd_set *, fd_set *, timeval *);
+    sysFuncAgn(int, bind, int, const sockaddr *, socklen_t);
+    sysFuncAgn(int, setsockopt, int, int, int, const void *, socklen_t);
+    sysFuncAgn(ssize_t, recv, int, void *, size_t, int);
+    sysFuncAgn(ssize_t, recvfrom, int, void *, size_t, int, sockaddr *,
+        socklen_t *);
     sysFuncAgn(ssize_t, sendto, int, const void *buf, size_t len, int flags,
-        const sockaddr *, socklen_t)
-    sysFuncAgn(ssize_t, recvmsg, int, msghdr *, int)
-    sysFuncAgn(ssize_t, sendmsg, int, const msghdr *, int)
-    sysFuncAgn(uid_t, getuid, void)
-    sysFuncAgn(pid_t, getpid, void)
-    sysFuncAgn(int, unlink, const char *)
-    sysFuncAgn(passwd *, getpwuid, uid_t)
-    sysFuncAgn(int, clock_gettime, clockid_t, timespec *)
-    sysFuncAgn(int, clock_settime, clockid_t, const timespec *)
-    sysFuncAgn(int, clock_adjtime, clockid_t, timex *)
-    sysFuncAgn(long, sysconf, int)
-    sysFuncAgn(int, open, const char *, int, ...)
-    sysFuncAgn(ssize_t, read, int, void *, size_t)
-    sysFuncAgZ(int, stat, const char *, struct stat *)
-    sysFuncAgZ(int, stat64, const char *, struct stat64 *)
-    sysFuncAgn(int, __xstat, int, const char *, struct stat *)
-    sysFuncAgn(int, __xstat64, int, const char *, struct stat64 *)
-    sysFuncAgn(char *, realpath, const char *, char *)
-    sysFuncAgn(int, ioctl, int, unsigned long, ...)
+        const sockaddr *, socklen_t);
+    sysFuncAgn(ssize_t, recvmsg, int, msghdr *, int);
+    sysFuncAgn(ssize_t, sendmsg, int, const msghdr *, int);
+    sysFuncAgn(uid_t, getuid, void);
+    sysFuncAgn(pid_t, getpid, void);
+    sysFuncAgn(int, unlink, const char *);
+    sysFuncAgn(passwd *, getpwuid, uid_t);
+    sysFuncAgn(int, clock_gettime, clockid_t, timespec *);
+    sysFuncAgn(int, clock_settime, clockid_t, const timespec *);
+    sysFuncAgn(int, clock_adjtime, clockid_t, timex *);
+    sysFuncAgn(long, sysconf, int);
+    sysFuncAgn(int, open, const char *, int, ...);
+    sysFuncAgn(ssize_t, read, int, void *, size_t);
+    sysFuncAgZ(int, stat, const char *, struct stat *);
+    sysFuncAgZ(int, stat64, const char *, struct stat64 *);
+    sysFuncAgn(int, __xstat, int, const char *, struct stat *);
+    sysFuncAgn(int, __xstat64, int, const char *, struct stat64 *);
+    sysFuncAgn(char *, realpath, const char *, char *);
+    sysFuncAgn(int, ioctl, int, unsigned long, ...);
     if(fail)
         fprintf(stderr, "Fail obtain address of functions\n");
     didInit = true;
@@ -144,11 +157,6 @@ void initLibSys(void)
 // Make sure we initialize the library functions call back
 __attribute__((constructor)) static void staticInit(void) { initLibSys(); }
 /*****************************************************************************/
-static inline int retErr(int err)
-{
-    errno = err;
-    return -1;
-}
 #define retSock(name, ...)\
     if(!testMode || fdesc.count(fd) == 0)\
         return _##name(fd, __VA_ARGS__)
@@ -161,6 +169,36 @@ static inline int retErr(int err)
 #define retTest(name, ...)\
     if(!testMode)\
         return _##name(__VA_ARGS__)
+#define cmp_addr(n) if(addrlen == sizeof n && addr != nullptr &&\
+    memcmp(addr, n, sizeof n) == 0){break;}
+#define cmp_paddr(n) if(addrlen == sizeof n && memcmp(addr, n, sizeof n) == 0)\
+        return 0
+#define cmp_opt(n) if(optlen != sizeof n || optval == nullptr ||\
+    memcmp(optval, n, sizeof n) != 0)\
+    return retErr(EINVAL);break
+#define cmp_int(v) if(optlen != sizeof(int) ||\
+    *(int *)optval != v)\
+    return retErr(EINVAL); break
+#define STAT_RET(nm)\
+    if(!testMode) {\
+        if(_##nm != nullptr)\
+            _##nm(name, sp);\
+        else\
+            ___x##nm(3, name, sp);\
+    }
+#define STAT_BODY\
+    if(sp == nullptr)\
+        return retErr(EINVAL);\
+    if(strcmp("/dev/ptp0", name) != 0 &&\
+        strcmp("/dev/ptp1", name) != 0)\
+        return retErr(EINVAL);\
+    sp->st_mode = S_IFCHR;\
+    return 0
+static inline int retErr(int err)
+{
+    errno = err;
+    return -1;
+}
 static inline bool isDir(const char *name)
 {
     DIR *dir = opendir(name);
@@ -191,22 +229,55 @@ static inline clockid_t fd_to_clockid(int fd)
 {
     return (~(clockid_t)(fd) << 3) | 3;
 }
-#define cmp_addr(n) if(addrlen == sizeof n && addr != nullptr &&\
-    memcmp(addr, n, sizeof n) == 0){break;}
-#define cmp_paddr(n) if(addrlen == sizeof n && memcmp(addr, n, sizeof n) == 0)\
-        return 0
-#define cmp_opt(n) if(optlen != sizeof n || optval == nullptr ||\
-    memcmp(optval, n, sizeof n) != 0)\
-    return retErr(EINVAL);break
-#define cmp_int(v) if(optlen != sizeof(int) ||\
-    *(int *)optval != v)\
-    return retErr(EINVAL); break
-/*****************************************************************************/
-int socket(int domain, int type, int protocol)
+static inline ssize_t recvFill(void *buf, size_t len, int flags)
 {
+    uint8_t *b = (uint8_t *)buf;
+    if(flags & MSG_DONTWAIT)
+        b[0] = 2;
+    else
+        b[0] = 1;
+    size_t l = std::min((size_t)5, len);
+    if(l > 1)
+        memcpy(b + 1, "\x4\x5\x6\x7", l - 1);
+    return l;
+}
+/*****************************************************************************/
+const uint8_t ua_addr_b[110] = { 1, 0, 47, 109, 101 };
+const uint8_t ua_addr_b0[110] = {1, 0, 47, 104, 111, 109, 101, 47, 117, 115,
+        114, 47, 46, 112, 109, 99, 46, 49, 49, 49
+    };
+const uint8_t ip_addr_b[16] = { 2, 0, 1, 64 };
+const uint8_t ip6_addr_b[28] = { 10, 0, 1, 64 };
+const uint8_t raw_addr_b[20] = { 17, 0, 0, 3, 7 };
+const uint8_t bpf_filter[4] = {40};
+const uint8_t so_bindtodevice[4] = { 'e', 't', 'h', '0' };
+const uint8_t ip_add_membership[12] = { 224, 0, 1, 129, 0, 0, 0, 0, 7 };
+const uint8_t ip_multicast_if[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 7 };
+const uint8_t ipv6_add_membership[20] = { 255, 15, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 1, 129, 7
+    };
+const uint8_t ipv6_multicast_if[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 7
+    };
+const uint8_t packet_add_membership[16] = { 7, 0, 0, 0, 0, 0, 6,
+        0, 1, 27, 23, 15, 12
+    };
+const uint8_t ua_addr_s[110] = { 1, 0, 47, 112, 101, 101, 114 };
+const uint8_t ua_addr_s2[110] = { 1, 0, 0, 112, 101, 101, 114 };
+const uint8_t ip_addr_s[16] = { 2, 0, 1, 64, 224, 0, 1, 129 };
+const uint8_t ip6_addr_s[28] = { 10, 0, 1, 64, 0, 0, 0, 0, 255, 15, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 129
+    };
+const uint8_t msg_name[20] = { 17, 0, 0, 3, 7, 0, 0, 0, 0,
+        0, 0, 6, 1, 27, 23, 15, 12
+    };
+const uint8_t msg_iov_0[14] = {1, 27, 23, 15, 12, 0, 1, 2, 3, 4, 5, 6, 136, 247 };
+/*****************************************************************************/
+int socket(int domain, int type, int protocol) CL_THROW {
     retTest(socket, domain, type, protocol);
     bool add = false;
-    switch(domain) {
+    switch(domain)
+    {
         case AF_UNIX:
         case AF_INET:
         case AF_INET6:
@@ -221,7 +292,8 @@ int socket(int domain, int type, int protocol)
     if(!add)
         return _socket(domain, type, protocol);
     int fd = _socket(AF_INET, SOCK_DGRAM, 0);
-    if(fd >= 0) {
+    if(fd >= 0)
+    {
         fdesc[fd].domain = domain;
         fdesc[fd].clkID = 0;
     }
@@ -255,19 +327,12 @@ int select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, timeval *to)
     }
     return _select(nfds, rfds, wfds, efds, to);
 }
-const uint8_t ua_addr_b[110] = { 1, 0, 47, 109, 101 };
-const uint8_t ua_addr_b0[110] = {1, 0, 47, 104, 111, 109, 101, 47, 117, 115,
-        114, 47, 46, 112, 109, 99, 46, 49, 49, 49
-    };
-const uint8_t ip_addr_b[16] = { 2, 0, 1, 64 };
-const uint8_t ip6_addr_b[28] = { 10, 0, 1, 64 };
-const uint8_t raw_addr_b[20] = { 17, 0, 0, 3, 7 };
-int bind(int fd, const sockaddr *addr, socklen_t addrlen)
-{
+int bind(int fd, const sockaddr *addr, socklen_t addrlen) CL_THROW {
     retSock(bind, addr, addrlen);
     if(addr == nullptr || addrlen <= 0)
         return retErr(EINVAL);
-    switch(fdesc[fd].domain) {
+    switch(fdesc[fd].domain)
+    {
         case AF_UNIX:
             cmp_paddr(ua_addr_b);
             cmp_paddr(ua_addr_b0);
@@ -286,27 +351,14 @@ int bind(int fd, const sockaddr *addr, socklen_t addrlen)
     }
     return retErr(EINVAL);
 }
-const uint8_t bpf_filter[4] = {40};
-const uint8_t so_bindtodevice[4] = { 'e', 't', 'h', '0' };
-const uint8_t ip_add_membership[12] = { 224, 0, 1, 129, 0, 0, 0, 0, 7 };
-const uint8_t ip_multicast_if[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 7 };
-const uint8_t ipv6_add_membership[20] = { 255, 15, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 1, 129, 7
-    };
-const uint8_t ipv6_multicast_if[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 7
-    };
-const uint8_t packet_add_membership[16] = { 7, 0, 0, 0, 0, 0, 6,
-        0, 1, 27, 23, 15, 12
-    };
 int setsockopt(int fd, int level, int optname, const void *optval,
-    socklen_t optlen)
-{
+    socklen_t optlen) CL_THROW {
     retSock(setsockopt, level, optname, optval, optlen);
     if(optval == nullptr || optlen <= 0)
         return retErr(EINVAL);
     int *ival = (int *)optval;
-    switch(level) {
+    switch(level)
+    {
         case SOL_SOCKET:
             switch(optname) {
                 case SO_REUSEADDR:
@@ -368,18 +420,6 @@ int setsockopt(int fd, int level, int optname, const void *optval,
     }
     return 0;
 }
-ssize_t recvFill(void *buf, size_t len, int flags)
-{
-    uint8_t *b = (uint8_t *)buf;
-    if(flags & MSG_DONTWAIT)
-        b[0] = 2;
-    else
-        b[0] = 1;
-    size_t l = std::min((size_t)5, len);
-    if(l > 1)
-        memcpy(b + 1, "\x4\x5\x6\x7", l - 1);
-    return l;
-}
 ssize_t recv(int fd, void *buf, size_t len, int flags)
 {
     retSock(recv, buf, len, flags);
@@ -393,7 +433,7 @@ ssize_t recv(int fd, void *buf, size_t len, int flags)
         case AF_PACKET:
             return retErr(EINVAL);
     }
-    if(flags & MSG_DONTWAIT != MSG_DONTWAIT)
+    if(flags & ~MSG_DONTWAIT)
         return retErr(ECONNRESET);
     return recvFill(buf, len, flags);
 }
@@ -403,10 +443,10 @@ ssize_t recvfrom(int fd, void *buf, size_t len, int flags, sockaddr *src_addr,
     retSock(recvfrom, buf, len, flags, src_addr, addrlen);
     if(buf == nullptr || len == 0)
         return retErr(ENOMEM);
+    if(flags & ~MSG_DONTWAIT)
+        return retErr(ECONNRESET);
     switch(fdesc[fd].domain) {
         case AF_UNIX:
-            if(flags & MSG_DONTWAIT != MSG_DONTWAIT)
-                return retErr(ECONNRESET);
             if(addrlen == nullptr || *addrlen < sizeof(sockaddr_un) ||
                 src_addr == nullptr)
                 return retErr(EINVAL);
@@ -424,12 +464,6 @@ ssize_t recvfrom(int fd, void *buf, size_t len, int flags, sockaddr *src_addr,
     }
     return recvFill(buf, len, flags);
 }
-const uint8_t ua_addr_s[110] = { 1, 0, 47, 112, 101, 101, 114 };
-const uint8_t ua_addr_s2[110] = { 1, 0, 0, 112, 101, 101, 114 };
-const uint8_t ip_addr_s[16] = { 2, 0, 1, 64, 224, 0, 1, 129 };
-const uint8_t ip6_addr_s[28] = { 10, 0, 1, 64, 0, 0, 0, 0, 255, 15, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 129
-    };
 ssize_t sendto(int fd, const void *buf, size_t len, int flags,
     const sockaddr *addr, socklen_t addrlen)
 {
@@ -463,7 +497,7 @@ ssize_t recvmsg(int fd, msghdr *msg, int flags)
         return retErr(ENOMEM);
     if(fdesc[fd].domain != AF_PACKET)
         return retErr(EINVAL);
-    if(flags & MSG_DONTWAIT != MSG_DONTWAIT)
+    if(flags & ~MSG_DONTWAIT)
         return retErr(ECONNRESET);
     if(msg == nullptr || msg->msg_control != nullptr || msg->msg_controllen != 0 ||
         msg->msg_flags != 0 || msg->msg_iovlen != 2)
@@ -476,10 +510,6 @@ ssize_t recvmsg(int fd, msghdr *msg, int flags)
         return retErr(EINVAL);
     return recvFill(msg->msg_iov[1].iov_base, msg->msg_iov[1].iov_len, flags) + 14;
 }
-const uint8_t msg_name[20] = { 17, 0, 0, 3, 7, 0, 0, 0, 0,
-        0, 0, 6, 1, 27, 23, 15, 12
-    };
-const uint8_t msg_iov_0[14] = {1, 27, 23, 15, 12, 0, 1, 2, 3, 4, 5, 6, 136, 247 };
 ssize_t sendmsg(int fd, const msghdr *msg, int flags)
 {
     retSock(sendmsg, msg, flags);
@@ -504,29 +534,27 @@ ssize_t sendmsg(int fd, const msghdr *msg, int flags)
         return retErr(ECONNRESET);
     return 5 + sizeof msg_iov_0;
 }
-uid_t getuid(void)
-{
+uid_t getuid(void) CL_THROW {
     retTest0(getuid);
     if(rootMode)
         return 0;
     uid_t cur = 100;
     std::string curDir;
-    do {
+    do
+    {
         cur++;
         curDir = "/var/run/user/";
         curDir += std::to_string(cur);
     } while(isDir(curDir.c_str()));
     return cur;
 }
-pid_t getpid(void)
-{
+pid_t getpid(void) CL_THROW {
     retTest0(getpid);
     return 111;
 }
-int unlink(const char *name)
-{
+int unlink(const char *name) CL_THROW {
     retTest(unlink, name);
-    if(name == nullptr || *name == 0)
+    if(CL_NULL(name) || *name == 0)
         return retErr(EFAULT);
     return 0;
 }
@@ -537,32 +565,34 @@ passwd *getpwuid(uid_t uid)
         return &rootPass;
     return &usePass;
 }
-int clock_gettime(clockid_t clk_id, timespec *tp)
-{
+int clock_gettime(clockid_t clk_id, timespec *tp) CL_THROW {
     retClk(clock_gettime, tp);
-    if(tp == nullptr)
+    if(CL_NULL(tp))
         return retErr(EFAULT);
-    if(clk_id == CLOCK_REALTIME) {
+    if(clk_id == CLOCK_REALTIME)
+    {
         // Every call passed 1 second since the last one :-)
         tp->tv_sec = ++cur_sec;
         tp->tv_nsec = 0;
-    } else {
+    } else
+    {
         tp->tv_sec = 17;
         tp->tv_nsec = 567;
     }
     return 0;
 }
-int clock_settime(clockid_t clk_id, const timespec *tp)
-{
+int clock_settime(clockid_t clk_id, const timespec *tp) CL_THROW {
     retClk(clock_settime, tp);
-    if(tp == nullptr)
+    if(CL_NULL(tp))
         return retErr(EFAULT);
-    if(clk_id == CLOCK_REALTIME) {
+    if(clk_id == CLOCK_REALTIME)
+    {
         if(tp->tv_sec == 12 && tp->tv_nsec == 147)
             return 0;
         if(tp->tv_sec == 17 && tp->tv_nsec == 567)
             return 0;
-    } else {
+    } else
+    {
         if(tp->tv_sec == 19 && tp->tv_nsec == 351)
             return 0;
         if(tp->tv_sec == 1 && tp->tv_nsec == 0)
@@ -570,10 +600,9 @@ int clock_settime(clockid_t clk_id, const timespec *tp)
     }
     return retErr(EINVAL);
 }
-int clock_adjtime(clockid_t clk_id, timex *tmx)
-{
+int clock_adjtime(clockid_t clk_id, timex *tmx) CL_THROW {
     retClk(clock_adjtime, tmx);
-    if(tmx == nullptr)
+    if(CL_NULL(tmx))
         return retErr(EFAULT);
     if(tmx->maxerror != 0 || tmx->esterror != 0 ||
         tmx->status != 0 || tmx->constant != 0 || tmx->precision != 0 ||
@@ -581,7 +610,8 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
         tmx->shift != 0 || tmx->stabil != 0 || tmx->jitcnt != 0 ||
         tmx->calcnt != 0 || tmx->errcnt != 0 || tmx->stbcnt != 0 || tmx->tai != 0)
         return retErr(EINVAL);
-    if(clk_id == CLOCK_REALTIME) {
+    if(clk_id == CLOCK_REALTIME)
+    {
         switch(tmx->modes) {
             case ADJ_SETOFFSET | ADJ_NANO:
                 if(tmx->tick != 0 || tmx->freq != 0 || tmx->offset != 0)
@@ -612,7 +642,8 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
             default:
                 return retErr(EINVAL);
         }
-    } else {
+    } else
+    {
         switch(tmx->modes) {
             case ADJ_SETOFFSET | ADJ_NANO:
                 if(tmx->tick != 0 || tmx->freq != 0 || tmx->offset != 0)
@@ -646,8 +677,7 @@ int clock_adjtime(clockid_t clk_id, timex *tmx)
     }
     return TIME_OK;
 }
-long sysconf(int name)
-{
+long sysconf(int name) CL_THROW {
     if(!didInit) // Somehow this function may be called before the init
         initLibSys();
     if(testMode && name == _SC_CLK_TCK)
@@ -704,28 +734,11 @@ ssize_t read(int fd, void *buf, size_t count)
     return retErr(EINVAL);
 }
 // glibc stat fucntions
-#define STAT_RET(nm)\
-    if(!testMode) {\
-        if(_##nm != nullptr)\
-            _##nm(name, sp);\
-        else\
-            ___x##nm(3, name, sp);\
-    }
-#define STAT_BODY\
-    if(sp == nullptr)\
-        return retErr(EINVAL);\
-    if(strcmp("/dev/ptp0", name) != 0 &&\
-        strcmp("/dev/ptp1", name) != 0)\
-        return retErr(EINVAL);\
-    sp->st_mode = S_IFCHR;\
-    return 0
-int stat(const char *name, struct stat *sp)
-{
+int stat(const char *name, struct stat *sp) CL_THROW {
     STAT_RET(stat);
     STAT_BODY;
 }
-int stat64(const char *name, struct stat64 *sp)
-{
+int stat64(const char *name, struct stat64 *sp) CL_THROW {
     STAT_RET(stat64);
     STAT_BODY;
 }
@@ -739,12 +752,12 @@ int __xstat64(int ver, const char *name, struct stat64 *sp)
     retTest(__xstat64, ver, name, sp);
     STAT_BODY;
 }
-char *realpath(const char *path, char *resolved_path)
-{
+char *realpath(const char *path, char *resolved_path) CL_THROW {
     retTest(realpath, path, resolved_path);
     if(path == nullptr || resolved_path == nullptr || *path == 0)
         return nullptr;
-    if(strchr(path, '/') == nullptr) {
+    if(strchr(path, '/') == nullptr)
+    {
         std::string ret = "/dev/";
         ret += path;
         strcpy(resolved_path, ret.c_str());
@@ -752,8 +765,7 @@ char *realpath(const char *path, char *resolved_path)
         strcpy(resolved_path, path);
     return resolved_path;
 }
-int ioctl(int fd, unsigned long request, ...)
-{
+int ioctl(int fd, unsigned long request, ...) CL_THROW {
     va_list ap;
     va_start(ap, request);
     void *arg = va_arg(ap, void *);
@@ -762,7 +774,8 @@ int ioctl(int fd, unsigned long request, ...)
     if(arg == nullptr)
         return retErr(EFAULT);
     ifreq *ifr = (ifreq *)arg;
-    switch(request) {
+    switch(request)
+    {
         case SIOCGIFHWADDR:
             if(strcmp("eth0", ifr->ifr_name) != 0 || ifr->ifr_ifindex != 7)
                 return retErr(EINVAL);
@@ -862,7 +875,7 @@ int ioctl(int fd, unsigned long request, ...)
             ptp_extts_request *req = (ptp_extts_request *)arg;
             // Enable
             if(req->index == 7 &&
-                req->flags == PTP_ENABLE_FEATURE | PTP_RISING_EDGE)
+                req->flags == (PTP_ENABLE_FEATURE | PTP_RISING_EDGE))
                 return 0;
             // Disable
             if(req->index == 9 && req->flags == 0)

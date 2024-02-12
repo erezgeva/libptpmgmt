@@ -19,8 +19,6 @@ AC_CONFIG_SRCDIR([src/mngIds.m4])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_LANG([C++])
-AC_PROG_CC
-AC_PROG_CXX
 AC_PROG_GREP
 AC_PROG_EGREP
 AC_PROG_FGREP
@@ -102,8 +100,41 @@ AC_SUBST([DOXYGENMINVER])
 # compilation
 #----------------------------------------------------------------
 AS_UNSET([USE_CROSS_COMPILE])
+AS_UNSET([USE_CLANG_CPP_COMPILE])
+AS_UNSET([USE_CLANG_C_COMPILE])
+AS_UNSET([CC_VERSION])
+AS_UNSET([CXX_VERSION])
 AS_UNSET([CXX_COLOR_USE])
 AS_UNSET([CXX_COLOR_NONE])
+
+# Clang require additional warning supression flags
+AC_ARG_WITH([clang_cpp],
+            [AS_HELP_STRING([--with-clang-cpp=path], [Set clang C++ compiler])],
+            [AS_VAR_SET([clang_cpp_path], ["$withval"])],
+            [AS_VAR_SET([clang_cpp_path], ["no"])])
+AS_IF([test "x$clang_cpp_path" = xno],
+      [AC_PROG_CXX],
+      [AS_IF([test "x$clang_cpp_path" = xyes],
+             [ac_objext=o # TODO the objext should be probed!
+              AC_PROG_CXX([clang++])],
+             [ac_objext=o
+              AC_PROG_CXX([$clang_cpp_path])])
+       AS_VAR_SET([USE_CLANG_CPP_COMPILE], ["use_clang"])])
+AC_ARG_WITH([clang_c],
+            [AS_HELP_STRING([--with-clang-c=path], [Set clang C compiler])],
+            [AS_VAR_SET([clang_c_path], ["$withval"])],
+            [AS_VAR_SET([clang_c_path], ["no"])])
+AS_IF([test "x$clang_c_path" = xno],
+      [AC_PROG_CC],
+      [AS_IF([test "x$clang_c_path" = xyes],
+             [ac_objext=o
+              AC_PROG_CC([clang])],
+             [ac_objext=o
+              AC_PROG_CC([$clang_c_path])])
+       AS_VAR_SET([USE_CLANG_C_COMPILE], ["use_clang"])])
+
+AS_VAR_SET([CC_VERSION], [`$CC -dumpversion`])
+AS_VAR_SET([CXX_VERSION], [`$CXX -dumpversion`])
 
 AC_MSG_CHECKING([for cross compilation])
 AS_IF([test "x$cross_compiling" = xyes],
@@ -141,6 +172,10 @@ ptpm_result([CXX_COLOR_USE])
 AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags"])
 
 AC_SUBST([USE_CROSS_COMPILE])
+AC_SUBST([USE_CLANG_CPP_COMPILE])
+AC_SUBST([USE_CLANG_C_COMPILE])
+AC_SUBST([CC_VERSION])
+AC_SUBST([CXX_VERSION])
 AC_SUBST([CXX_COLOR_USE])
 AC_SUBST([CXX_COLOR_NONE])
 
@@ -158,14 +193,19 @@ AS_UNSET([CXXFLAGS_PMC])
 AC_ARG_WITH([pmc-flags],
             [AS_HELP_STRING([--with-pmc-flags=flags],
                             [compilation flags for pmc tool])],
-            [AS_VAR_SET([CXXFLAGS_PMC], ["$withval"])])
+            [AS_VAR_SET([CXXFLAGS_PMC], ["$withval"])],
+            [AS_UNSET([CXXFLAGS_PMC])])
 AC_SUBST([CXXFLAGS_PMC])
 
 AS_UNSET([USE_FULL_PATH_LINK])
 AC_ARG_ENABLE([full-link],
               [AS_HELP_STRING([--enable-full-link],
                               [Use full path in symbolic link])],
-              [AS_VAR_SET([USE_FULL_PATH_LINK], ["true"])])
+              [AS_VAR_SET([use_full_path_link], ["$enableval"])],
+              [AS_UNSET([use_full_path_link])])
+  AS_IF([test "x$use_full_path_link" = "xyes"],
+        [AS_VAR_SET([USE_FULL_PATH_LINK], ["true"])],
+        [AS_UNSET([USE_FULL_PATH_LINK])])
 AC_SUBST([USE_FULL_PATH_LINK])
 
 #----------------------------------------------------------------
@@ -214,12 +254,15 @@ AS_IF([test -n "$HAVE_CRITERION_HEADER" && test -n "$PKG_CONFIG" &&\
                     [AS_UNSET([CRITERION_LIB_FLAGS])],
                     ["$CRITERION_LIB_FLAGS"])])
 
-AC_ARG_WITH([libsys],
-            [AS_HELP_STRING([--without-libsys],
-                            [Skip unit tests using libsys.so])],
-            [AS_VAR_SET([skip_libsys], ["$withval"])])
+AC_ARG_ENABLE([libsys],
+              [AS_HELP_STRING([--disable-libsys],
+                              [Skip unit tests using libsys.so])],
+              [AS_VAR_SET([skip_libsys], ["$enableval"])],
+              [AS_UNSET([skip_libsys])])
+# libsys is design after GNU libc, it breaks with clang
 AS_IF([test "x$skip_libsys" == xno],
-      [AS_VAR_SET([SKIP_LIBSYS], ["skip_libsys"])])
+      [AS_VAR_SET([SKIP_LIBSYS], ["skip_libsys"])],
+      [AS_UNSET([SKIP_LIBSYS])])
 
 AC_SUBST([HAVE_GTEST_HEADER])
 AC_SUBST([GTEST_INC_FLAGS])
@@ -265,17 +308,20 @@ AS_UNSET([JSONC_LIB_FLAGS])
 AS_UNSET([HAVE_FJSON_LIB])
 AS_UNSET([FJSON_LIB_FLAGS])
 
-AC_ARG_WITH([json],
-            [AS_HELP_STRING([--without-json],
-                            [Skip using all json libraries])],
-            [AS_VAR_SET([skip_json], ["$withval"])])
-AC_ARG_WITH([jsonc],
-            [AS_HELP_STRING([--without-jsonc], [Skip using jsonc library])],
-            [AS_VAR_SET([skip_jsonc], ["$withval"])])
-AC_ARG_WITH([fjson],
-            [AS_HELP_STRING([--without-fjson],
-                            [Skip using libfastjson library])],
-            [AS_VAR_SET([skip_fsonc], ["$withval"])])
+AC_ARG_ENABLE([json],
+              [AS_HELP_STRING([--disable-json],
+                              [Skip using all json libraries])],
+              [AS_VAR_SET([skip_json], ["$enableval"])],
+              [AS_UNSET([skip_json])])
+AC_ARG_ENABLE([jsonc],
+              [AS_HELP_STRING([--disable-jsonc], [Skip using jsonc library])],
+              [AS_VAR_SET([skip_jsonc], ["$enableval"])],
+              [AS_UNSET([skip_jsonc])])
+AC_ARG_ENABLE([fjson],
+              [AS_HELP_STRING([--disable-fjson],
+                              [Skip using libfastjson library])],
+              [AS_VAR_SET([skip_fsonc], ["$enableval"])],
+              [AS_UNSET([skip_fsonc])])
 
 AS_IF([test "x$skip_json" = xno],
       [AS_VAR_SET([skip_jsonc], ["no"])
@@ -323,14 +369,34 @@ AC_SUBST([PACKAGE_VERSION_MIN])
 AC_SUBST([PACKAGE_VERSION_VAL])
 
 #----------------------------------------------------------------
-# Ignore automake flags passed by Debian
+# Automake flags
 #----------------------------------------------------------------
+
+AS_UNSET([USE_DEPS])
+AS_UNSET([DO_VERBOSE])
+
 AC_ARG_ENABLE([dependency-tracking],
-              [AS_HELP_STRING([--disable-dependency-tracking], [ignored])])
+              [AS_HELP_STRING([--disable-dependency-tracking],
+                              [Skip dependencies durig build])],
+              [AS_VAR_SET([use_deps], ["$enableval"])],
+              [AS_UNSET([use_deps])])
+  AS_IF([test "x$use_deps" = "xno"],
+        [AS_UNSET([USE_DEPS])],
+        [AS_VAR_SET([USE_DEPS], ["use_deps"])])
+
+AC_ARG_ENABLE([silent-rules],
+              [AS_HELP_STRING([--disable-silent-rules], [use verbose output])],
+              [AS_VAR_SET([disable_silent], ["$enableval"])],
+              [AS_UNSET([disable_silent])])
+  AS_IF([test "x$disable_silent" = "xno"],
+        [AS_VAR_SET([DO_VERBOSE], ["true"])],
+        [AS_UNSET([DO_VERBOSE])])
+
 AC_ARG_ENABLE([maintainer-mode],
               [AS_HELP_STRING([--enable-maintainer-mode], [ignored])])
-AC_ARG_ENABLE([silent-rules],
-              [AS_HELP_STRING([--disable-silent-rules], [ignored])])
+
+AC_SUBST([USE_DEPS])
+AC_SUBST([DO_VERBOSE])
 
 #----------------------------------------------------------------
 # Look for swig
@@ -389,9 +455,10 @@ if test -z "$SWIGMINVER"; then
   AS_VAR_SET([alllang_default], ["no"])
   AC_MSG_RESULT([no proper swig])
 else
-  AC_ARG_WITH([alllang],
-              [AS_HELP_STRING([--without-alllang], [Disable all languages])],
-              [AS_VAR_SET([with_alllang], ["$withval"])])
+  AC_ARG_ENABLE([alllang],
+              [AS_HELP_STRING([--disable-alllang], [Disable all languages])],
+              [AS_VAR_SET([with_alllang], ["$enableval"])],
+              [AS_UNSET([with_alllang])])
   AS_IF([test "x$with_alllang" = "xno"],
         [AS_VAR_SET([alllang_default], ["no"])],
         [AS_VAR_SET([alllang_default], ["yes"])])
@@ -423,11 +490,13 @@ AC_ARG_WITH([tcl],
 AC_ARG_WITH([tclincl],
             [AS_HELP_STRING([--with-tclincl=path],
                             [Set location of Tcl include directory])],
-            [AS_VAR_SET([TCLINCDIR], ["$withval"])])
+            [AS_VAR_SET([TCLINCDIR], ["$withval"])],
+            [AS_UNSET([TCLINCDIR])])
 AC_ARG_WITH([tcllib],
             [AS_HELP_STRING([--with-tcllib=path],
                             [Set location of Tcl library directory])],
-            [AS_VAR_SET([TCLLIB], ["-L$withval"])])
+            [AS_VAR_SET([TCLLIB], ["-L$withval"])],
+            [AS_UNSET([TCLLIB])])
 
 # First, check for "--without-tcl" or "--with-tcl=no".
 if test "x$TCLPACKAGE" = xno; then
@@ -962,11 +1031,13 @@ AC_ARG_WITH([lua],
 AC_ARG_WITH([luaincl],
             [AS_HELP_STRING([--with-luaincl=path],
                             [Set location of Lua include directory])],
-            [AS_VAR_SET([LUAINCLUDE], ["$withval"])])
+            [AS_VAR_SET([LUAINCLUDE], ["$withval"])],
+            [AS_UNSET([LUAINCLUDE])])
 AC_ARG_WITH([lualib],
             [AS_HELP_STRING([--with-lualib=path],
                             [Set location of Lua library directory])],
-            [AS_VAR_SET([LUALIB], ["$withval"])])
+            [AS_VAR_SET([LUALIB], ["$withval"])],
+            [AS_UNSET([LUALIB])])
 
 # First, check for "--without-lua" or "--with-lua=no".
 if test "x$LUABIN" = xno; then

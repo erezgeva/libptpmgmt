@@ -14,7 +14,7 @@ TCL_LNAME:=$(TCL_D)/$(SWIG_LNAME)
 tcl_SFLAGS+=-tcl8 -namespace -pkgversion $(PACKAGE_VERSION)
 $(TCL_NAME): $(TCL_D)/msgCall.i
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
-	$Q$(call LLC,$(TCLINCLUDE))
+	$Q$(call LLC,$(CXXFLAGS_TCL) $(TCLINCLUDE))
 	$(call D_INC,TCLINCDIR)
 	$(SWIG_DEP)
 $(TCL_LNAME).so_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME)$(SONAME)

@@ -182,14 +182,7 @@ PHP_NO_COL?=--colors=auto
 endif
 
 ifneq ($(V),1)
-Q:=@
 COLOR_WARNING:=$(COLOR_RED)
-COLOR_BUILD:=$(COLOR_MAGENTA)
-Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
-Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
-Q_TAR=$Q$(info $(COLOR_BUILD)[TAR] $@$(COLOR_NORM))
-MAKE_NO_DIRS:=--no-print-directory
-Q_ERR:=2>/dev/null
 endif
 
 ###############################################################################
@@ -298,7 +291,20 @@ all: configure
 else # wildcard defs.mk
 include defs.mk
 
+ifndef V
+ifeq ($(DO_VERBOSE),true)
+V:=1
+undefine COLOR_WARNING
+endif
+endif # V
 ifneq ($(V),1)
+Q:=@
+MAKE_NO_DIRS:=--no-print-directory
+COLOR_BUILD:=$(COLOR_MAGENTA)
+Q_ERR:=2>/dev/null
+Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
+Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
+Q_TAR=$Q$(info $(COLOR_BUILD)[TAR] $@$(COLOR_NORM))
 Q_DOXY=$Q$(info $(COLOR_BUILD)Doxygen$(COLOR_NORM))
 Q_FRMT=$Q$(info $(COLOR_BUILD)Format$(COLOR_NORM))
 Q_TAGS=$Q$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
@@ -319,7 +325,13 @@ override CXXFLAGS+=-Og
 endif # find '-O'
 override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -I$(SRC) -I$(PUB)
 CXXFLAGS_GO:=$(filter-out -I%,$(CXXFLAGS))
+ifdef USE_DEPS
+# Add dependencies during compilation
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
+endif # USE_DEPS
+ifdef USE_CLANG_CPP_COMPILE
+override CXXFLAGS+=-Wno-c99-designator
+endif
 ifneq ($(USE_ASAN),)
 # Use https://github.com/google/sanitizers/wiki/AddressSanitizer
 ASAN_FLAGS:=$(addprefix -fsanitize=,address pointer-compare pointer-subtract\
@@ -336,7 +348,9 @@ PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
 $(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
+ifdef USE_DEPS
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
+endif # USE_DEPS
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@
 
@@ -445,18 +459,22 @@ CXXFLAGS_GO+=-Wno-uninitialized
 CXXFLAGS_RUBY+=-Wno-deprecated-declarations
 # comparison integer of different signedness
 CXXFLAGS_RUBY+=-Wno-sign-compare
-# suppress swig compilation warnings for old swig versions
-#ifneq ($(call verCheck,$(SWIGVER),4.1),)
-#endif # ! swig 4.1
+ifdef USE_CLANG_CPP_COMPILE
+CXXFLAGS_SWIG+=-Wno-sometimes-uninitialized
+CXXFLAGS_PERL+=-Wno-implicit-const-int-float-conversion
+CXXFLAGS_TCL+=-Wno-missing-braces
+endif # USE_CLANG_CPP_COMPILE
 
 wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS) wrappers/%/warn.i
 	$(Q_SWIG)$(SWIG) -c++ -I$(SRC) -I$(PUB) -I$(@D) -outdir $(@D) -Wextra\
 	  $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
+ifdef USE_DEPS
 # As SWIG does not create a dependencies file
 # We create it during compilation from the compilation dependencies file
 SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(PUB)/mngIds.h \\'\
   $(foreach n,$(wildcard $(<D)/*.i),-e '1 a\ $n \\')\
   -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
+endif # USE_DEPS
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 
@@ -658,7 +676,7 @@ configure: configure.ac
 ifneq ($(call which,dh_auto_configure),)
 HAVE_CONFIG_GAOL:=1
 config: configure
-	$(Q)dh_auto_configure
+	$(Q)dh_auto_configure -- --enable-silent-rules --enable-dependency-tracking
 endif # which,dh_auto_configure
 ifeq ($(HAVE_CONFIG_GAOL),)
 ifneq ($(call which,rpm),)
@@ -667,7 +685,7 @@ ifneq ($(rpm_list),)
 # Default configuration on RPM based distributions
 HAVE_CONFIG_GAOL:=1
 config: FCFG!=rpm --eval %configure | sed -ne '/^\s*.\/configure/,$$ p' |\
-	  sed 's@\\$$@@'
+	  sed 's@\\$$@@' | sed 's/disable-dependency/enable-dependency/'
 config: configure
 	$(Q)$(FCFG)
 endif # rpm_list

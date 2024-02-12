@@ -831,14 +831,14 @@ TEST(Json2msgTest, FAULT_LOG)
     ASSERT_NE(t, nullptr);
     EXPECT_EQ(t->numberOfFaultRecords, 2);
     EXPECT_EQ(t->faultRecords[0].faultRecordLength, 50);
-    EXPECT_EQ(t->faultRecords[0].faultTime, 9.000709);
+    EXPECT_EQ(t->faultRecords[0].faultTime, (float_seconds)9.000709);
     EXPECT_EQ(t->faultRecords[0].severityCode, F_Critical);
     EXPECT_EQ(t->faultRecords[0].faultName.textField, "error 1");
     EXPECT_EQ(t->faultRecords[0].faultValue.textField, "test123");
     EXPECT_EQ(t->faultRecords[0].faultDescription.textField,
         "This is first record");
     EXPECT_EQ(t->faultRecords[1].faultRecordLength, 55);
-    EXPECT_EQ(t->faultRecords[1].faultTime, 1791.003019);
+    EXPECT_EQ(t->faultRecords[1].faultTime, (float_seconds)1791.003019);
     EXPECT_EQ(t->faultRecords[1].severityCode, F_Warning);
     EXPECT_EQ(t->faultRecords[1].faultName.textField, "error 2");
     EXPECT_EQ(t->faultRecords[1].faultValue.textField, "test321");
@@ -1185,7 +1185,7 @@ TEST(Json2msgTest, TIME)
     ASSERT_NE(d, nullptr);
     const TIME_t *t = dynamic_cast<const TIME_t *>(d);
     ASSERT_NE(t, nullptr);
-    EXPECT_EQ(t->currentTime, 13.15);
+    EXPECT_EQ(t->currentTime, (float_seconds)13.15);
     Message msg;
     EXPECT_TRUE(m.setAction(msg));
 }

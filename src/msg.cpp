@@ -174,6 +174,7 @@ bool Message::allowedAction(mng_vals_e id, actionField_e action)
         return false;
     return mng_all_vals[id].allowed & (1 << action);
 }
+#define m_init(n) n{{0}}
 Message::Message() :
     m_sendAction(GET),
     m_msgLen(0),
@@ -183,8 +184,8 @@ Message::Message() :
     m_isUnicast(true),
     m_replyAction(RESPONSE),
     m_replayTlv_id(NULL_PTP_MANAGEMENT),
-    m_peer{0},
-    m_target{0}
+    m_init(m_peer),
+    m_init(m_target)
 {
 }
 Message::Message(const MsgParams &prms) :
@@ -197,8 +198,8 @@ Message::Message(const MsgParams &prms) :
     m_replyAction(RESPONSE),
     m_replayTlv_id(NULL_PTP_MANAGEMENT),
     m_prms(prms),
-    m_peer{0},
-    m_target{0}
+    m_init(m_peer),
+    m_init(m_target)
 {
     if(m_prms.transportSpecific > 0xf)
         m_prms.transportSpecific = 0;
@@ -1230,7 +1231,7 @@ MsgParams::MsgParams() :
     isUnicast(true),
     implementSpecific(linuxptp),
     target{allClocks, allPorts},
-    self_id{0},
+    m_init(self_id),
     useZeroGet(true),
     rcvSignaling(false),
     filterSignaling(true),

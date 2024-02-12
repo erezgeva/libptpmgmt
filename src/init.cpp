@@ -78,8 +78,8 @@ int Init::proccess(const Options &opt)
                 !sku->setPeerAddress(uds_address))
                 return -1;
             pid_t pid = getpid();
-            prms.self_id.clockIdentity.v[6] = (pid >> 24) && 0xff;
-            prms.self_id.clockIdentity.v[7] = (pid >> 16) && 0xff;
+            prms.self_id.clockIdentity.v[6] = (pid >> 24) & 0xff;
+            prms.self_id.clockIdentity.v[7] = (pid >> 16) & 0xff;
             prms.self_id.portNumber = pid & 0xffff;
             m_use_uds = true;
             break;

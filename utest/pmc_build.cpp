@@ -257,7 +257,7 @@ void handle_TIME(const BaseMngTlv *d)
     ASSERT_NE(d, nullptr);
     const TIME_t *t = dynamic_cast<const TIME_t *>(d);
     ASSERT_NE(t, nullptr);
-    EXPECT_EQ(t->currentTime, 13.0015);
+    EXPECT_EQ(t->currentTime, (float_seconds)13.0015);
 }
 
 // Tests build CLOCK_ACCURACY tlv

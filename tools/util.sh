@@ -26,7 +26,7 @@ distribution()
 # [out] -A R
 read_defs()
 {
- [[ -f defs.mk ]] || retrurn
+ [[ -f defs.mk ]] || return
  local l="$@"
  local var val
  mapfile < defs.mk
