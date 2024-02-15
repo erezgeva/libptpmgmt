@@ -165,13 +165,14 @@ main()
  ### Configure ###
  echo " * Configure"
  autoconf
+ # Were is Gentoo defualt configure setting?
+ # This is after the build flags, we use 64 bits container.
+ local -r gentoo_cfg='--prefix=/usr --sysconfdir=/etc --localstatedir=/var/lib
+   --libdir=/usr/lib64'
  if $not_gentoo; then
    ecmd make config $mk_noc
  else
-   # Were is Gentoo defualt configure setting?
-   # This is after the build flags, we use 64 bits container.
-   ecmd ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var/lib\
-     --libdir=/usr/lib64 --disable-libsys
+   ecmd ./configure $gentoo_cfg
  fi
  equit "Configuratation fails"
  tools/config_report.sh
@@ -183,23 +184,29 @@ main()
  echo " * Build"
  e_mk -j$jobs $mk_noc
  equit "Build fails"
+
+ test_clean clean
+ ### Configure clang ###
+ echo " * Configure with clang"
+ autoconf
+ # Use clang
  if $not_gentoo; then
-   test_clean clean
-   ### Configure clang ###
-   echo " * Configure with clang"
-   autoconf
-   # Use clang
-   ecmd ./configure --with-clang-cpp --with-clang-c
-   equit "Configuratation with clang fails"
-   tools/config_report.sh
-   ### unit test clang ###
-   echo " * Run unit test with clang"
-   ea_mk utest -j$jobs $mk_noc
-   equit "Unit test with clang fails"
-   echo " * Build with clang"
-   e_mk -j$jobs $mk_noc
-   equit "Build with clang fails"
+   ecmd make config $mk_noc with-clang-cpp with-clang-c
+ else
+   # Add clang to path
+   local -r lvm_p="$(ls -d /usr/lib/llvm/*/bin 2> /dev/null | sort -n | tail -1)"
+   export PATH+=":$lvm_p"
+   ecmd ./configure $gentoo_cfg --with-clang-cpp --with-clang-c
  fi
+ equit "Configuratation with clang fails"
+ tools/config_report.sh
+ ### unit test clang ###
+ echo " * Run unit test with clang"
+ ea_mk utest -j$jobs $mk_noc
+ equit "Unit test with clang fails"
+ echo " * Build with clang"
+ e_mk -j$jobs $mk_noc
+ equit "Build with clang fails"
  test_clean
  ### make packages ###
  case $dist in

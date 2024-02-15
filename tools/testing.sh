@@ -103,7 +103,7 @@ main()
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
        ldPathPhp ldPathTcl ldPathJson needCmpl oneLua skip_php skip_json\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54\
-       ldPath luaVersions luaPosixVersions
+       ldPath luaVersions
  local -r pyVersions='3'
  local -r libptpm='/libptpmgmt.so'
  probeBuild
@@ -340,7 +340,7 @@ do_lua()
    time eval "$useSudo$ldPathLua lua wrappers/lua/test.lua $runOptions" |\
      diff - <(printf "$perlOut\n")
  else
-   for i in $luaPosixVersions; do
+   for i in $luaVersions; do
      printf "\n lua $i ----\n"
      local -n need="ldPathLua${i/./}"
      time eval "$useSudo$need lua$i wrappers/lua/test.lua $runOptions" |\
@@ -506,17 +506,17 @@ getFirstFile()
 }
 probeBuild()
 {
+ local LUAVERSIONS
  if [[ -f defs.mk ]]; then
    local -A R
    local list='prefix exec_prefix libdir libexecdir includedir sysconfdir
-     localstatedir datarootdir mandir infodir sbindir bindir LUAVERSIONS
+     localstatedir datarootdir mandir infodir sbindir bindir
      HAVE_JSONC_LIB HAVE_FJSON_LIB PERL5DIR RUBYSITE LUA_VERSION SKIP_PHP
      PHPEXT TCL_PKG_DIR GOROOT'
    local $list
-   read_defs $list
+   read_defs $list LUAVERSIONS
    if [[ -n "$LUAVERSIONS" ]]; then
      oneLua=false
-     luaVersions="$LUAVERSIONS"
    else
      oneLua=true
    fi
@@ -525,7 +525,6 @@ probeBuild()
      probeLibs
    else
      [[ -z "$no_build" ]] || echo "Build as: no libptpmgmt.so"
-     luaPosixVersions="$luaVersions"
      allBuild
    fi
  else
@@ -535,10 +534,10 @@ probeBuild()
    # TODO Debian bookworm uses lua-posix version 33.4
    #      which do not support lua 5.4
    #      trixie does support lua 5.4!
-   luaVersions='5.1 5.2 5.3'
-   luaPosixVersions="$luaVersions"
+   LUAVERSIONS='5.1 5.2 5.3'
    getFirstFile "/usr/lib$fmach$libptpm*"
    if [[ -f "$file" ]] && [[ -n "$probeSystem" ]]; then
+     luaVersions="$LUAVERSIONS"
      probeLibsDebian
    else
      allBuild
@@ -555,8 +554,17 @@ allBuild()
  if $oneLua; then
    ldPathLua="$ldPath LUA_CPATH='wrappers/lua/?.so;;'"
  else
-   for i in $luaPosixVersions; do
-     eval "ldPathLua${i/./}='$ldPath LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+   for i in $LUAVERSIONS; do
+     # Test for lua posix
+     # can be a static library or a folder with static libraries
+     getFirstFile "$libdir/lua/$i/posix.so"
+     if ! [[ -f "$file" ]]; then
+       getFirstFile "$libdir/lua/$i/posix/*.so"
+     fi
+     if [[ -f "$file" ]]; then
+       luaVersions+=" $i"
+       eval "ldPathLua${i/./}='$ldPath LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+     fi
    done
  fi
  for i in $pyVersions; do
@@ -595,7 +603,7 @@ probeLibsDebian()
    needCmpl=y
    ldPathRuby="RUBYLIB=wrappers/ruby"
  fi
- for i in $luaVersions; do
+ for i in $LUAVERSIONS; do
    getFirstFile "/usr/lib$fmach/lua/$i/ptpmgmt.so"
    if ! [[ -f "$file" ]]; then
      # Lua comes in a single package for all versions,
@@ -667,7 +675,7 @@ probeLibs()
      ldPathLua='LUA_CPATH=\"wrappers/lua/?.so;;\"'
    fi
  else
-   for i in $luaVersions; do
+   for i in $LUAVERSIONS; do
      # Test for lua posix
      # can be a static library or a folder with static libraries
      getFirstFile "$libdir/lua/$i/posix.so"
@@ -675,7 +683,7 @@ probeLibs()
        getFirstFile "$libdir/lua/$i/posix/*.so"
      fi
      if [[ -f "$file" ]]; then
-       luaPosixVersions+=" $i"
+       luaVersions+=" $i"
        getFirstFile "$libdir/lua/$i/ptpmgmt.so"
        if ! [[ -f "$file" ]]; then
            # Our Lua wrapper comes in a single package for all versions,
@@ -687,7 +695,7 @@ probeLibs()
    done
    if [[ -n "$no_build" ]]; then
      [[ -z "$needCmpl" ]] || "Build as: no lua"
-     if [[ -z "$luaPosixVersions" ]]; then
+     if [[ -z "$luaVersions" ]]; then
        echo "Error: no lua to test with"
        exit -1
      fi

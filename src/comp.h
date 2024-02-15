@@ -97,7 +97,7 @@
 /**
  * Clear stored error
  */
-#define PTPMGMT_ERROR_CLR { Error::clear(); } while(0)
+#define PTPMGMT_ERROR_CLR do{ Error::clear(); } while(0)
 
 __PTPMGMT_NAMESPACE_BEGIN
 

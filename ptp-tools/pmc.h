@@ -29,7 +29,7 @@ using namespace ptpmgmt;
 /** dump end of line */
 #define DUMPNL puts("");
 /** print library error */
-#define PMCLERR {\
+#define PMCLERR do{\
     if(Error::isError())\
         fprintf(stderr, "%s\n", Error::getError().c_str());}while(0)
 

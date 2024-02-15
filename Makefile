@@ -208,7 +208,7 @@ PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
-D_FILES:=$(wildcard */*.d */*/*.d)
+D_FILES:=$(wildcard *.d */*.d */*/*.d)
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
 HDR_BTH:=mngIds types proc sig callDef
 HEADERS_GEN_PUB:=$(foreach n,ver $(HDR_BTH),$(PUB)/$n.h)
@@ -243,7 +243,8 @@ PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\
   $(UTEST_TGT) $(INS_TGT) utest_lua_a uctest
 .PHONY: $(PHONY_TGT)
-NONPHONY_TGT:=$(firstword $(filter-out $(PHONY_TGT),$(MAKECMDGOALS)))
+NONPHONY_TGT_ALL:=$(filter-out $(PHONY_TGT),$(MAKECMDGOALS))
+NONPHONY_TGT:=$(firstword $(NONPHONY_TGT_ALL))
 
 ####### Source tar file #######
 TAR:=tar cfJ
@@ -617,8 +618,8 @@ ifneq ($(filter deb_arc,$(MAKECMDGOALS)),)
 ifeq ($(DEB_ARC),)
 ifneq ($(NONPHONY_TGT),)
 ifneq ($(shell dpkg-architecture -qDEB_TARGET_ARCH -a$(NONPHONY_TGT) 2>/dev/null),)
+$(eval $(call phony,$(NONPHONY_TGT)))
 DEB_ARC:=$(NONPHONY_TGT)
-$(eval $(call phony,$(DEB_ARC)))
 endif # dpkg-architecture -qDEB_TARGET_ARCH
 endif # $(NONPHONY_TGT)
 endif # $(DEB_ARC)
@@ -672,11 +673,18 @@ endif # which ebuild
 ifeq ($(filter distclean,$(MAKECMDGOALS)),)
 configure: configure.ac
 	$(Q)autoconf
+ifneq ($(filter config,$(MAKECMDGOALS)),)
+ifneq ($(NONPHONY_TGT_ALL),)
+$(eval $(call phony,$(NONPHONY_TGT_ALL)))
+MORE_CONFIG:=$(foreach n,$(NONPHONY_TGT_ALL),--$n)
+endif # $(NONPHONY_TGT_ALL)
+endif # filter config,$(MAKECMDGOALS)
 # Debian default configuration
 ifneq ($(call which,dh_auto_configure),)
 HAVE_CONFIG_GAOL:=1
 config: configure
-	$(Q)dh_auto_configure -- --enable-silent-rules --enable-dependency-tracking
+	$(Q)dh_auto_configure -- --enable-silent-rules\
+	  --enable-dependency-tracking $(MORE_CONFIG)
 endif # which,dh_auto_configure
 ifeq ($(HAVE_CONFIG_GAOL),)
 ifneq ($(call which,rpm),)
@@ -687,7 +695,7 @@ HAVE_CONFIG_GAOL:=1
 config: FCFG!=rpm --eval %configure | sed -ne '/^\s*.\/configure/,$$ p' |\
 	  sed 's@\\$$@@' | sed 's/disable-dependency/enable-dependency/'
 config: configure
-	$(Q)$(FCFG)
+	$(Q)$(FCFG) $(MORE_CONFIG)
 endif # rpm_list
 endif # which rpm
 endif # HAVE_CONFIG_GAOL
@@ -696,7 +704,7 @@ ifneq ($(wildcard /usr/share/pacman/PKGBUILD.proto),)
 # Default configuration on Arch Linux
 HAVE_CONFIG_GAOL:=1
 config: configure
-	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto`
+	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto` $(MORE_CONFIG)
 endif # wildcard pacman/PKGBUILD.proto
 endif # HAVE_CONFIG_GAOL
 endif # filter distclean,MAKECMDGOALS

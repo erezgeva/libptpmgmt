@@ -116,9 +116,11 @@ AS_IF([test "x$clang_cpp_path" = xno],
       [AC_PROG_CXX],
       [AS_IF([test "x$clang_cpp_path" = xyes],
              [ac_objext=o # TODO the objext should be probed!
-              AC_PROG_CXX([clang++])],
+              AS_VAR_SET([OBJEXT],["$ac_objext"])
+              AC_PROG_CXX(["clang++"])],
              [ac_objext=o
-              AC_PROG_CXX([$clang_cpp_path])])
+              AS_VAR_SET([OBJEXT],["$ac_objext"])
+              AC_PROG_CXX(["$clang_cpp_path"])])
        AS_VAR_SET([USE_CLANG_CPP_COMPILE], ["use_clang"])])
 AC_ARG_WITH([clang_c],
             [AS_HELP_STRING([--with-clang-c=path], [Set clang C compiler])],
@@ -128,9 +130,11 @@ AS_IF([test "x$clang_c_path" = xno],
       [AC_PROG_CC],
       [AS_IF([test "x$clang_c_path" = xyes],
              [ac_objext=o
-              AC_PROG_CC([clang])],
+              AS_VAR_SET([OBJEXT],["$ac_objext"])
+              AC_PROG_CC(["clang"])],
              [ac_objext=o
-              AC_PROG_CC([$clang_c_path])])
+              AS_VAR_SET([OBJEXT],["$ac_objext"])
+              AC_PROG_CC(["$clang_c_path"])])
        AS_VAR_SET([USE_CLANG_C_COMPILE], ["use_clang"])])
 
 AS_VAR_SET([CC_VERSION], [`$CC -dumpversion`])

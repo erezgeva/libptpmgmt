@@ -30,7 +30,6 @@
 #include <linux/net_tstamp.h>
 #include <linux/sockios.h>
 #include <linux/ethtool.h>
-
 /*****************************************************************************/
 static bool did_init = false;
 static const char ptp_dev[] = "/dev/ptp";
@@ -38,7 +37,7 @@ static timespec start_ts = {1600000000, 0};
 /*****************************************************************************/
 #define sysFuncDec(ret, name, ...)\
     ret (*_##name)(__VA_ARGS__);\
-    extern "C" ret name(__VA_ARGS__);
+    extern "C" ret name(__VA_ARGS__)
 #define sysFuncAgn(ret, name, ...)\
     _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);\
     if(_##name == nullptr) {\
@@ -46,36 +45,42 @@ static timespec start_ts = {1600000000, 0};
         fail = true;}
 /* Allocation can fail, calling need verify! */
 #define sysFuncAgZ(ret, name, ...)\
-    _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name);
+    _##name = (ret(*)(__VA_ARGS__))dlsym(RTLD_NEXT, #name)
 #define orgFunc(name, ...) _##name(__VA_ARGS__)
-sysFuncDec(int, clock_gettime, clockid_t, timespec *)
-sysFuncDec(int, clock_settime, clockid_t, const timespec *)
-sysFuncDec(int, clock_adjtime, clockid_t, timex *)
-sysFuncDec(int, open, const char *, int, ...)
-sysFuncDec(int, ioctl, int, unsigned long, ...)
+sysFuncDec(int, clock_gettime, clockid_t, timespec *);
+sysFuncDec(int, clock_settime, clockid_t, const timespec *);
+sysFuncDec(int, clock_adjtime, clockid_t, timex *);
+sysFuncDec(int, open, const char *, int, ...);
+sysFuncDec(int, __open_2, const char *, int);
+sysFuncDec(int, ioctl, int, unsigned long, ...) throw();
 // glibc 'stat' fucntion
-sysFuncDec(int, stat, const char *, struct stat *)
-sysFuncDec(int, stat64, const char *, struct stat64 *)
-sysFuncDec(int, __xstat, int, const char *, struct stat *)
-sysFuncDec(int, __xstat64, int, const char *, struct stat64 *)
+sysFuncDec(int, stat, const char *, struct stat *) throw();
+sysFuncDec(int, stat64, const char *, struct stat64 *) throw();
+sysFuncDec(int, __xstat, int, const char *, struct stat *);
+sysFuncDec(int, __xstat64, int, const char *, struct stat64 *);
 __attribute__((constructor))
 static void initPtpSim(void)
 {
     if(did_init)
         return;
     bool fail = false;
-    sysFuncAgn(int, clock_gettime, clockid_t, timespec *)
-    sysFuncAgn(int, clock_settime, clockid_t, const timespec *)
-    sysFuncAgn(int, clock_adjtime, clockid_t, timex *)
-    sysFuncAgn(int, open, const char *, int, ...)
-    sysFuncAgn(int, ioctl, int, unsigned long, ...)
-    sysFuncAgZ(int, stat, const char *, struct stat *)
-    sysFuncAgZ(int, stat64, const char *, struct stat64 *)
-    sysFuncAgn(int, __xstat, int, const char *, struct stat *)
-    sysFuncAgn(int, __xstat64, int, const char *, struct stat64 *)
+    sysFuncAgn(int, clock_gettime, clockid_t, timespec *);
+    sysFuncAgn(int, clock_settime, clockid_t, const timespec *);
+    sysFuncAgn(int, clock_adjtime, clockid_t, timex *);
+    sysFuncAgn(int, open, const char *, int, ...);
+    sysFuncAgn(int, __open_2, const char *, int);
+    sysFuncAgn(int, ioctl, int, unsigned long, ...);
+    sysFuncAgZ(int, stat, const char *, struct stat *);
+    sysFuncAgZ(int, stat64, const char *, struct stat64 *);
+    sysFuncAgn(int, __xstat, int, const char *, struct stat *);
+    sysFuncAgn(int, __xstat64, int, const char *, struct stat64 *);
     if(fail)
         fprintf(stderr, "Fail obtain address of functions\n");
-    did_init = false;
+    did_init = true;
+}
+static inline bool isPhc(const char *name)
+{
+    return name != nullptr && strncmp(ptp_dev, name, sizeof(ptp_dev) - 1) == 0;
 }
 /*****************************************************************************/
 int clock_gettime(clockid_t id, timespec *ts)
@@ -100,7 +105,7 @@ int clock_adjtime(clockid_t, timex *)
 int open(const char *name, int flags, ...)
 {
     // Skip PHC clocks
-    if(strncmp(ptp_dev, name, sizeof(ptp_dev) - 1) == 0)
+    if(isPhc(name))
         return 0;
     mode_t mode = 0;
     if((flags & O_CREAT) == O_CREAT || (flags & O_TMPFILE) == O_TMPFILE) {
@@ -111,7 +116,14 @@ int open(const char *name, int flags, ...)
     }
     return orgFunc(open, name, flags, mode);
 }
-int ioctl(int fd, unsigned long rq, ...)
+int __open_2(const char *name, int flags)
+{
+    // Skip PHC clocks
+    if(isPhc(name))
+        return 0;
+    return orgFunc(__open_2, name, flags);
+}
+int ioctl(int fd, unsigned long rq, ...) throw()
 {
     va_list ap;
     va_start(ap, rq);
@@ -154,15 +166,13 @@ int ioctl(int fd, unsigned long rq, ...)
         return _##nm(name, sp);\
     return ___x##nm(3, name, sp)
 #define STAT_BODY\
-    if(sp != nullptr && name != nullptr &&\
-        strncmp(ptp_dev, name, sizeof(ptp_dev) - 1) == 0) {\
-        sp->st_mode = S_IFCHR; return 0; }
-int stat(const char *name, struct stat *sp)
+    if(sp != nullptr && isPhc(name)) {sp->st_mode = S_IFCHR; return 0;}
+int stat(const char *name, struct stat *sp) throw()
 {
     STAT_BODY;
     STAT_RET(stat);
 }
-int stat64(const char *name, struct stat64 *sp)
+int stat64(const char *name, struct stat64 *sp) throw()
 {
     STAT_BODY;
     STAT_RET(stat64);

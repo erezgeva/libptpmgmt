@@ -361,7 +361,7 @@ Test(PtpClockTest, MethodFetchCaps)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_clock_caps caps;
+    struct ptp_clock_caps caps = {0};
     bool r2 = c->fetchCaps(c, &caps);
     useTestMode(false);
     cr_expect(r1);
@@ -384,7 +384,7 @@ Test(PtpClockTest, MethodReadPin)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_pin_desc pin;
+    struct ptp_pin_desc pin = {0};
     bool r2 = c->readPin(c, 1, &pin);
     useTestMode(false);
     cr_expect(r1);
@@ -450,7 +450,7 @@ Test(PtpClockTest, MethodSetPinPeriod)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_perout_request times;
+    struct ptp_perout_request times = {0};
     times.period.sec = 76;
     times.period.nsec = 154;
     bool r2 = c->setPinPeriod(c, 11, &times);
@@ -481,7 +481,7 @@ Test(PtpClockTest, MethodSamplePtpSys)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_sys_offset samples;
+    struct ptp_sys_offset samples = {0};
     bool r2 = c->samplePtpSys(c, 5, &samples);
     useTestMode(false);
     cr_expect(r1);
@@ -505,7 +505,7 @@ Test(PtpClockTest, MethodExtSamplePtpSys)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_sys_offset_extended samples;
+    struct ptp_sys_offset_extended samples = {0};
     bool ret = c->extSamplePtpSys(c, 7, &samples);
     if(!ret) {
         cr_expect(eq(str, (char *)ptpmgmt_err_getMsg(),
@@ -537,7 +537,7 @@ Test(PtpClockTest, MethodPreciseSamplePtpSys)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_sys_offset_precise sample;
+    struct ptp_sys_offset_precise sample = {0};
     bool r2 = c->preciseSamplePtpSys(c, &sample);
     useTestMode(false);
     cr_expect(r1);
@@ -558,7 +558,7 @@ Test(PtpClockTest, MethodReadEvent)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_extts_event event;
+    struct ptp_extts_event event = {0};
     bool r2 = c->readEvent(c, &event);
     useTestMode(false);
     cr_expect(r1);
@@ -576,7 +576,7 @@ Test(PtpClockTest, MethodReadEvents)
     ptpmgmt_clock c = ptpmgmt_clock_alloc();
     useTestMode(true);
     bool r1 = c->initUsingIndex(c, 0, false);
-    struct ptp_extts_event events[10];
+    struct ptp_extts_event events[10] = {0};
     size_t s = 10;
     bool r2 = c->readEvents(c, events, &s);
     useTestMode(false);
