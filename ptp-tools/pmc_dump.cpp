@@ -670,8 +670,6 @@ class MsgBuild : public MessageBuilder
     }
     static bool parseKeysFunc(std::map<std::string, val_key_t> &keys,
         char *orgSave) {
-        if(keys.size() < 0) // Protect against not keys
-            return false;
         char *save = orgSave;
         // Update unrequired keys with default value.
         for(auto &it : keys) {

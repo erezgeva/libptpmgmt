@@ -592,7 +592,7 @@ bool SockIp6::setScope(uint8_t udp6_scope)
         PTPMGMT_ERROR("Socket is already initialized");
         return false;
     }
-    if(udp6_scope < 0 || udp6_scope > 0xf) {
+    if(udp6_scope > 0xf) {
         PTPMGMT_ERROR("scope out of range 0x%x", udp6_scope);
         return false;
     }
@@ -675,7 +675,7 @@ bool SockRaw::setSocketPriority(uint8_t socket_priority)
         PTPMGMT_ERROR("Socket is already initialized");
         return false;
     }
-    if(socket_priority < 0 || socket_priority > 15) {
+    if(socket_priority > 15) {
         PTPMGMT_ERROR("Socket priority out of range 0x%x", socket_priority);
         return false;
     }

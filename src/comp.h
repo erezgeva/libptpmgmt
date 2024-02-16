@@ -42,7 +42,9 @@
 #define PURE __attribute__((pure))
 #define MAYBE_UNUSED __attribute__((unused))
 #define PRINT_FORMAT(a, b) __attribute__((format(printf,a,b)))
-#if __GNUC__ > 6
+#ifdef __clang__
+#define FALLTHROUGH [[clang::fallthrough]]
+#elif __GNUC__ > 6
 #define FALLTHROUGH __attribute__((fallthrough))
 #endif
 #elif defined _MSC_VER

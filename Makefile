@@ -325,6 +325,10 @@ ifeq ($(findstring -O,$(CXXFLAGS)),)
 override CXXFLAGS+=-Og
 endif # find '-O'
 override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -I$(SRC) -I$(PUB)
+# Add warnings from -Wextra
+override CXXFLAGS+=-Wtype-limits -Wdeprecated-copy
+CXXFLAGS_SWIG+=-Wno-tautological-type-limit-compare
+CXXFLAGS_RUBY+=-Wno-deprecated-copy
 CXXFLAGS_GO:=$(filter-out -I%,$(CXXFLAGS))
 ifdef USE_DEPS
 # Add dependencies during compilation

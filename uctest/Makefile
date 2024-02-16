@@ -14,15 +14,13 @@ UCTEST_SRCS:=cfg ver err setErr opt msg mngIds types proc sig msg2json msgCall
 UCTEST_SYS_SRCS:=sock ptp init
 UCTEST_OBJS:=$(foreach n,$(UCTEST_SRCS),uctest/$n.o)
 UCTEST_SYS_OBJS:=$(foreach n,$(UCTEST_SYS_SRCS),uctest/$n.o)
-CFLAGS_UCTEST=$(filter-out -std=%,$(CXXFLAGS)) -std=c11
+CFLAGS_UCTEST=$(filter-out -std=% -Wdeprecated-copy,$(CXXFLAGS)) -std=c11
 CFLAGS_UCTEST+=$(addprefix -include ,$(HAVE_CRITERION_HEADER))
-CXXFLAGS_UCTEST=$(filter-out -std=%,$(CXXFLAGS)) -std=c++14
-CXXFLAGS_UCTEST+=$(addprefix -include ,$(HAVE_CRITERION_HEADER))
 $(UCTEST_SYS_OBJS): CFLAGS_UCTEST+=-include utest/libsys.h
 uctest/%.o: uctest/%.c | $(COMP_DEPS)
 	$(Q_CC)$(CC) $(CFLAGS_UCTEST) $(CRITERION_INC_FLAGS) -c -o $@ $<
 uctest/%.o: uctest/%.cpp | $(COMP_DEPS)
-	$(Q_CC)$(CXX) $(CXXFLAGS_UCTEST) $(CRITERION_INC_FLAGS) -c -o $@ $<
+	$(Q_CC)$(CXX) $(CXXFLAGS) $(CRITERION_INC_FLAGS) -c -o $@ $<
 $(UCTEST): $(UCTEST_OBJS) $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(CRITERION_LIB_FLAGS) -o $@

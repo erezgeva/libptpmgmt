@@ -426,12 +426,6 @@ cpp_cod(`     * Default constructor')dnl
 cpp_cod(`     */')dnl
 cpp_cod(`    Timestamp_t() : secondsField(0), nanosecondsField(0) {}')dnl
 cpp_cod(`    /**')dnl
-cpp_cod(`     * Copy constructor')dnl
-cpp_cod(`     * @param[in] ts another Timestamp_t')dnl
-cpp_cod(`     * @note Ensure compiler create a copy contructor')dnl
-cpp_cod(`     */')dnl
-cpp_cod(`    Timestamp_t(const Timestamp_t &ts) = default;')dnl
-cpp_cod(`    /**')dnl
 cpp_cod(`     * Constructor')dnl
 cpp_cod(`     * @param[in] secs Seconds')dnl
 cpp_cod(`     * @param[in] nsecs Nanoseconds')dnl
