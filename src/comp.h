@@ -44,6 +44,9 @@
 #define PRINT_FORMAT(a, b) __attribute__((format(printf,a,b)))
 #ifdef __clang__
 #define FALLTHROUGH [[clang::fallthrough]]
+#ifndef __FLOAT_WORD_ORDER__
+#define __FLOAT_WORD_ORDER__ __BYTE_ORDER__
+#endif /* __FLOAT_WORD_ORDER__ */
 #elif __GNUC__ > 6
 #define FALLTHROUGH __attribute__((fallthrough))
 #endif
