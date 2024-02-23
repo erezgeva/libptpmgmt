@@ -2075,7 +2075,8 @@ Test(Json2msgTest, SUBSCRIBE_EVENTS_NP)
             "\"duration\":4660,"
             "\"NOTIFY_PORT_STATE\":true,"
             "\"NOTIFY_TIME_SYNC\":true,"
-            "\"NOTIFY_PARENT_DATA_SET\":true"
+            "\"NOTIFY_PARENT_DATA_SET\":true,"
+            "\"NOTIFY_CMLDS\":true"
             "}}"));
     cr_expect(eq(int, m->actionField(m), PTPMGMT_SET));
     cr_expect(eq(int, m->managementId(m), PTPMGMT_SUBSCRIBE_EVENTS_NP));
@@ -2088,6 +2089,7 @@ Test(Json2msgTest, SUBSCRIBE_EVENTS_NP)
     cr_expect(ptpmgmt_getEvent_lnp(t, PTPMGMT_NOTIFY_PORT_STATE));
     cr_expect(ptpmgmt_getEvent_lnp(t, PTPMGMT_NOTIFY_TIME_SYNC));
     cr_expect(ptpmgmt_getEvent_lnp(t, PTPMGMT_NOTIFY_PARENT_DATA_SET));
+    cr_expect(ptpmgmt_getEvent_lnp(t, PTPMGMT_NOTIFY_CMLDS));
     ptpmgmt_msg msg = ptpmgmt_msg_alloc();
     cr_expect(m->setAction(m, msg));
     msg->free(msg);
@@ -2383,4 +2385,24 @@ Test(Json2msgTest, POWER_PROFILE_SETTINGS_NP)
     m->free(m);
 }
 
-// #endif
+// Tests CMLDS_INFO_NP managment ID
+Test(Json2msgTest, CMLDS_INFO_NP)
+{
+    ptpmgmt_json m = ptpmgmt_json_alloc();
+    cr_assert(m->fromJson(m, "{\"actionField\":\"SET\","
+            "\"managementId\":\"CMLDS_INFO_NP\",\"dataField\":{"
+            "\"meanLinkDelay\":201548321,"
+            "\"scaledNeighborRateRatio\":1842,"
+            "\"as_capable\":1"
+            "}}"));
+    cr_expect(eq(int, m->actionField(m), PTPMGMT_SET));
+    cr_expect(eq(int, m->managementId(m), PTPMGMT_CMLDS_INFO_NP));
+    const void *d = m->dataField(m);
+    cr_assert(not(zero(ptr, (void *)d)));
+    const struct ptpmgmt_CMLDS_INFO_NP_t *t =
+        (struct ptpmgmt_CMLDS_INFO_NP_t *)d;
+    cr_assert(not(zero(ptr, (void *)t)));
+    cr_expect(eq(i64, t->meanLinkDelay.scaledNanoseconds, 201548321LL));
+    cr_expect(eq(i32, t->scaledNeighborRateRatio, 1842));
+    cr_expect(eq(i32, t->as_capable, 1));
+}

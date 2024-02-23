@@ -192,15 +192,15 @@ Test(OptionsTest, MethodMore)
 }
 
 // Tests get first argument not consumed
-// int procces_next(ptpmgmt_opt _this)
+// int process_next(ptpmgmt_opt _this)
 Test(OptionsTest, MethodNext)
 {
     ptpmgmt_opt o = ptpmgmt_opt_alloc();
     cr_expect(eq(i32, o->parse_options(o, argc, argv), PTPMGMT_OPT_DONE));
     cr_expect(not(o->have_more(o)));
-    cr_expect(eq(i32, o->procces_next(o), 6));
+    cr_expect(eq(i32, o->process_next(o), 6));
     cr_expect(eq(i32, o->parse_options(o, argc_more, argv_more), PTPMGMT_OPT_DONE));
     cr_expect(o->have_more(o));
-    cr_expect(eq(i32, o->procces_next(o), 6));
+    cr_expect(eq(i32, o->process_next(o), 6));
     o->free(o);
 }

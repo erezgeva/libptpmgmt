@@ -287,7 +287,7 @@ static inline void help(const std::string &app, const char *hmsg)
 
 static int init(Options &opt)
 {
-    int ret = obj.proccess(opt);
+    int ret = obj.process(opt);
     if(ret)
         return ret;
     sk = obj.sk();

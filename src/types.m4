@@ -770,7 +770,7 @@ strc(PortAddress_t) {
      * address length
      * @note User can ignore the parameter.
      *  The user should use the length of addressField.
-     *  The parameter is used during proccess.
+     *  The parameter is used during process.
      */
     UInteger16_t addressLength;
     bintyp()addressField; /**< binary from address */
@@ -835,7 +835,7 @@ strc(PTPText_t) {
      * string length
      * @note User can ignore the parameter.
      *  The user should use the length of textField.
-     *  The parameter is used during proccess.
+     *  The parameter is used during process.
      */
     uint8_t lengthField;
     strtyp()textField; /**< string value */

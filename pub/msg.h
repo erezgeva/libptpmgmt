@@ -56,7 +56,7 @@ class MessageSigTlvCallback
 class Message
 {
     /** @cond internal
-     * Doxygen does not know how to proccess.
+     * Doxygen does not know how to process.
      * This is a private section any way.
      */
   private:

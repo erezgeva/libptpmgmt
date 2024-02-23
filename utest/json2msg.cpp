@@ -1929,7 +1929,8 @@ TEST(Json2msgTest, SUBSCRIBE_EVENTS_NP)
             "\"duration\":4660,"
             "\"NOTIFY_PORT_STATE\":true,"
             "\"NOTIFY_TIME_SYNC\":true,"
-            "\"NOTIFY_PARENT_DATA_SET\":true"
+            "\"NOTIFY_PARENT_DATA_SET\":true,"
+            "\"NOTIFY_CMLDS\":true"
             "}}"));
     EXPECT_EQ(m.actionField(), SET);
     EXPECT_EQ(m.managementId(), SUBSCRIBE_EVENTS_NP);
@@ -1941,6 +1942,7 @@ TEST(Json2msgTest, SUBSCRIBE_EVENTS_NP)
     EXPECT_TRUE(t->getEvent(NOTIFY_PORT_STATE));
     EXPECT_TRUE(t->getEvent(NOTIFY_TIME_SYNC));
     EXPECT_TRUE(t->getEvent(NOTIFY_PARENT_DATA_SET));
+    EXPECT_TRUE(t->getEvent(NOTIFY_CMLDS));
     Message msg;
     EXPECT_TRUE(m.setAction(msg));
 }
@@ -2208,4 +2210,25 @@ TEST(Json2msgTest, POWER_PROFILE_SETTINGS_NP)
     EXPECT_EQ(t->grandmasterTimeInaccuracy, 4124796349);
     EXPECT_EQ(t->networkTimeInaccuracy, 3655058877);
     EXPECT_EQ(t->totalTimeInaccuracy, 4223530875);
+}
+
+// Tests CMLDS_INFO_NP managment ID
+TEST(Json2msgTest, CMLDS_INFO_NP)
+{
+    Json2msg m;
+    ASSERT_TRUE(m.fromJson("{\"actionField\":\"SET\","
+            "\"managementId\":\"CMLDS_INFO_NP\",\"dataField\":{"
+            "\"meanLinkDelay\":201548321,"
+            "\"scaledNeighborRateRatio\":1842,"
+            "\"as_capable\":1"
+            "}}"));
+    EXPECT_EQ(m.actionField(), SET);
+    EXPECT_EQ(m.managementId(), CMLDS_INFO_NP);
+    const BaseMngTlv *d = m.dataField();
+    ASSERT_NE(d, nullptr);
+    const CMLDS_INFO_NP_t *t = dynamic_cast<const CMLDS_INFO_NP_t *>(d);
+    ASSERT_NE(t, nullptr);
+    EXPECT_EQ(t->meanLinkDelay.scaledNanoseconds, 201548321LL);
+    EXPECT_EQ(t->scaledNeighborRateRatio, 1842);
+    EXPECT_EQ(t->as_capable, 1);
 }

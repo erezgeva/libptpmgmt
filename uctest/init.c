@@ -26,21 +26,21 @@ char *argv_2[] = {"me", "-2", "-i", "eth0", "--socket_priority", "7",
     };
 const size_t argc_2 = 8;
 
-// Tests proccess with unix socket
-// int proccess(ptpmgmt_init i, ptpmgmt_opt o)
+// Tests process with unix socket
+// int process(ptpmgmt_init i, ptpmgmt_opt o)
 // ptpmgmt_cfg cfg(ptpmgmt_init i)
 // bool use_uds(ptpmgmt_init i)
 // ptpmgmt_msg msg(ptpmgmt_init i)
 // ptpmgmt_sk sk(ptpmgmt_init i)
 // char getNetSelect(ptpmgmt_init i)
 // void close(ptpmgmt_init i)
-Test(InitTest, MethodProccessUnix)
+Test(InitTest, MethodProcessUnix)
 {
     ptpmgmt_opt o = ptpmgmt_opt_alloc();
     cr_expect(eq(i32, o->parse_options(o, argc_u, argv_u), PTPMGMT_OPT_DONE));
     ptpmgmt_init i = ptpmgmt_init_alloc();
     useTestMode(true);
-    int r1 = i->proccess(i, o);
+    int r1 = i->process(i, o);
     bool r2 = i->use_uds(i);
     ptpmgmt_cfg c = i->cfg(i);
     uint8_t r3 = c->udp6_scope(c, NULL);
@@ -61,14 +61,14 @@ Test(InitTest, MethodProccessUnix)
     o->free(o);
 }
 
-// Tests proccess with ipv4 socket
-Test(InitTest, MethodProccessIPv4)
+// Tests process with ipv4 socket
+Test(InitTest, MethodProcessIPv4)
 {
     ptpmgmt_opt o = ptpmgmt_opt_alloc();
     cr_expect(eq(i32, o->parse_options(o, argc_4, argv_4), PTPMGMT_OPT_DONE));
     ptpmgmt_init i = ptpmgmt_init_alloc();
     useTestMode(true);
-    int r1 = i->proccess(i, o);
+    int r1 = i->process(i, o);
     bool r2 = i->use_uds(i);
     ptpmgmt_cfg c = i->cfg(i);
     uint8_t r3 = c->udp6_scope(c, NULL);
@@ -89,14 +89,14 @@ Test(InitTest, MethodProccessIPv4)
     o->free(o);
 }
 
-// Tests proccess with ipv6 socket
-Test(InitTest, MethodProccessIPv6)
+// Tests process with ipv6 socket
+Test(InitTest, MethodProcessIPv6)
 {
     ptpmgmt_opt o = ptpmgmt_opt_alloc();
     cr_expect(eq(i32, o->parse_options(o, argc_6, argv_6), PTPMGMT_OPT_DONE));
     ptpmgmt_init i = ptpmgmt_init_alloc();
     useTestMode(true);
-    int r1 = i->proccess(i, o);
+    int r1 = i->process(i, o);
     bool r2 = i->use_uds(i);
     ptpmgmt_cfg c = i->cfg(i);
     uint8_t r3 = c->udp6_scope(c, NULL);
@@ -117,14 +117,14 @@ Test(InitTest, MethodProccessIPv6)
     o->free(o);
 }
 
-// Tests proccess with raw socket
-Test(InitTest, MethodProccessRaw)
+// Tests process with raw socket
+Test(InitTest, MethodProcessRaw)
 {
     ptpmgmt_opt o = ptpmgmt_opt_alloc();
     cr_expect(eq(i32, o->parse_options(o, argc_2, argv_2), PTPMGMT_OPT_DONE));
     ptpmgmt_init i = ptpmgmt_init_alloc();
     useTestMode(true);
-    int r1 = i->proccess(i, o);
+    int r1 = i->process(i, o);
     bool r2 = i->use_uds(i);
     ptpmgmt_cfg c = i->cfg(i);
     uint8_t r3 = c->udp6_scope(c, NULL);

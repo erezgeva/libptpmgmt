@@ -477,6 +477,8 @@ Test(MessageTest, MethodMng2str)
     cr_expect(eq(str,
             (char *)ptpmgmt_msg_mng2str(PTPMGMT_POWER_PROFILE_SETTINGS_NP),
             "POWER_PROFILE_SETTINGS_NP"));
+    cr_expect(eq(str, (char *)ptpmgmt_msg_mng2str(PTPMGMT_CMLDS_INFO_NP),
+            "CMLDS_INFO_NP"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     cr_expect(eq(str, (char *)m->mng2str(PTPMGMT_INITIALIZE), "INITIALIZE"));
     m->free(m);
@@ -1143,6 +1145,7 @@ Test(MessageTest, MethodIsEmpty)
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_UNICAST_MASTER_TABLE_NP)));
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_PORT_HWCLOCK_NP)));
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_POWER_PROFILE_SETTINGS_NP)));
+    cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_CMLDS_INFO_NP)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     cr_expect(not(m->isEmpty(PTPMGMT_PORT_HWCLOCK_NP)));
     m->free(m);

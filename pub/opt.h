@@ -38,7 +38,7 @@ struct Pmc_option {
 };
 
 /**
- * @brief Hold and proccess options
+ * @brief Hold and process options
  */
 class Options
 {
@@ -172,15 +172,20 @@ class Options
      */
     char get_net_transport() const { return net_select; }
     /**
-     * Do we have more argumends on the command line, left unproccessed
-     * @return true if we have more to proccess
+     * Do we have more argumends on the command line, left unprocessed
+     * @return true if we have more to process
      */
     bool have_more() const { return m_end_optind < m_argc; }
     /**
-     * First argumend on the command line, left unproccessed
+     * First argumend on the command line, left unprocessed
      * @return index of argument
      */
-    int procces_next() const { return m_end_optind; }
+    int process_next() const { return m_end_optind; }
+    /** @cond internal
+     * obsolete function: misspelled
+     */
+    __PTPMGMT_DEPRECATED(int procces_next() const) { return process_next(); }
+    /**< @endcond */
 };
 
 __PTPMGMT_NAMESPACE_END

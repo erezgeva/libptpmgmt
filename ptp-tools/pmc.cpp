@@ -199,7 +199,7 @@ int main(int argc, char *const argv[])
         case Options::OPT_DONE:
             break;
     }
-    int ret = obj.proccess(opt);
+    int ret = obj.process(opt);
     if(ret) {
         PMCLERR;
         return ret;
@@ -231,7 +231,7 @@ int main(int argc, char *const argv[])
         // batch mode
         int pkts = 0;
         // First we send all the commands, then we receive them all
-        for(int index = opt.procces_next(); index < argc; index++) {
+        for(int index = opt.process_next(); index < argc; index++) {
             if(run_line(argv[index]))
                 pkts++;
         }

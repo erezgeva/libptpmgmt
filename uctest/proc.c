@@ -1230,10 +1230,11 @@ Test(ProcTest, SUBSCRIBE_EVENTS_NP)
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_PORT_STATE);
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_TIME_SYNC);
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_PARENT_DATA_SET);
+    ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_CMLDS);
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_SUBSCRIBE_EVENTS_NP, &t));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_SUBSCRIBE_EVENTS_NP));
     cr_expect(eq(int, m->build(m, buf, sizeof buf, 1), PTPMGMT_MNG_PARSE_ERROR_OK));
-    uint8_t mb[66] = {18, 52, 7};
+    uint8_t mb[66] = {18, 52, 15};
     cr_expect(eq(sz, m->getMsgLen(m), tlvLoc + sizeof mb));
     cr_expect(zero(memcmp(buf + tlvLoc, mb, sizeof mb)));
     cr_assert(eq(int, m->parse(m, buf, sizeMsg(buf, sizeof mb)),
@@ -1244,6 +1245,7 @@ Test(ProcTest, SUBSCRIBE_EVENTS_NP)
     cr_expect(ptpmgmt_getEvent_lnp(r, PTPMGMT_NOTIFY_PORT_STATE));
     cr_expect(ptpmgmt_getEvent_lnp(r, PTPMGMT_NOTIFY_TIME_SYNC));
     cr_expect(ptpmgmt_getEvent_lnp(r, PTPMGMT_NOTIFY_PARENT_DATA_SET));
+    cr_expect(ptpmgmt_getEvent_lnp(r, PTPMGMT_NOTIFY_CMLDS));
     m->free(m);
 }
 
@@ -1448,5 +1450,26 @@ Test(ProcTest, POWER_PROFILE_SETTINGS_NP)
     cr_expect(eq(int, r->grandmasterTimeInaccuracy, 4124796349));
     cr_expect(eq(int, r->networkTimeInaccuracy, 3655058877));
     cr_expect(eq(int, r->totalTimeInaccuracy, 4223530875));
+    m->free(m);
+}
+
+// Tests CMLDS_INFO_NP structure
+Test(ProcTest, CMLDS_INFO_NP)
+{
+    uint8_t buf[400];
+    ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_expect(eq(int, m->build(m, buf, sizeof buf, 1), PTPMGMT_MNG_PARSE_ERROR_OK));
+    cr_expect(eq(sz, m->getMsgLen(m), tlvLoc));
+    uint8_t mb[18] = {0xdc, 0xf8, 0x72, 0x40, 0xdc, 0xd1, 0x23, 1, 0x41, 0x17,
+            0x34, 0x45, 0, 0, 0, 1
+        };
+    cr_assert(eq(int, m->parse(m, buf, rsp(buf, 0xc00b, mb, sizeof mb)),
+            PTPMGMT_MNG_PARSE_ERROR_OK));
+    cr_expect(eq(int, m->getTlvId(m), PTPMGMT_CMLDS_INFO_NP));
+    const struct ptpmgmt_CMLDS_INFO_NP_t *r =
+        (const struct ptpmgmt_CMLDS_INFO_NP_t *)m->getData(m);
+    cr_expect(eq(i64, r->meanLinkDelay.scaledNanoseconds, 0xdcf87240dcd12301LL));
+    cr_expect(eq(i32, r->scaledNeighborRateRatio, 0x41173445));
+    cr_expect(eq(i32, r->as_capable, 1));
     m->free(m);
 }

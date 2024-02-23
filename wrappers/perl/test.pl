@@ -11,6 +11,7 @@
 
 use PtpMgmtLib;
 
+{
 package myDisp;
 use base 'PtpMgmtLib::MessageDispatcher';
 sub PRIORITY1_h
@@ -26,7 +27,9 @@ sub USER_DESCRIPTION_h
   print "get user desc: " .
         $tlv->swig_userDescription_get()->swig_textField_get() . "\n";
 }
+} # package myDisp
 
+{
 package myBuild;
 use base 'PtpMgmtLib::MessageBuilder';
 sub PRIORITY1_b
@@ -35,8 +38,7 @@ sub PRIORITY1_b
   $tlv->swig_priority1_set($self->{pr});
   1;
 }
-
-package main;
+} # package myBuild
 
 use constant DEF_CFG_FILE => '/etc/linuxptp/ptp4l.conf';
 

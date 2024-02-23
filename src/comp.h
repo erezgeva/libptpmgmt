@@ -31,6 +31,10 @@
 
 #define DO_PRAGMA(x) _Pragma (#x)
 
+#if __cplusplus >= 201603L
+#define FALLTHROUGH [[fallthrough]]
+#define MAYBE_UNUSED(_expr) [[maybe_unused]] _expr
+#endif /* __cplusplus >= 201603L */
 #ifdef __GNUC__
 /* GNU GCC
  * gcc.gnu.org/onlinedocs/gcc-11.3.0/gcc/Type-Attributes.html
@@ -40,16 +44,22 @@
  */
 #define PACK(__definition__) __definition__ __attribute__((packed))
 #define PURE __attribute__((pure))
-#define MAYBE_UNUSED __attribute__((unused))
-#define PRINT_FORMAT(a, b) __attribute__((format(printf,a,b)))
+#ifndef MAYBE_UNUSED
+#define MAYBE_UNUSED(_expr) _expr __attribute__((unused))
+#endif
+#define PRINT_FORMAT(_a, _b) __attribute__((format(printf,_a,_b)))
 #ifdef __clang__
+#ifndef FALLTHROUGH
 #define FALLTHROUGH [[clang::fallthrough]]
+#endif
 #ifndef __FLOAT_WORD_ORDER__
 #define __FLOAT_WORD_ORDER__ __BYTE_ORDER__
 #endif /* __FLOAT_WORD_ORDER__ */
 #elif __GNUC__ > 6
+#ifndef FALLTHROUGH
 #define FALLTHROUGH __attribute__((fallthrough))
 #endif
+#endif /* __clang__ */
 #elif defined _MSC_VER
 /* For MSVC:
  * http://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros
@@ -65,10 +75,10 @@
 #define PURE
 #endif
 #ifndef MAYBE_UNUSED
-#define MAYBE_UNUSED
+#define MAYBE_UNUSED(_expr) _expr
 #endif
 #ifndef PRINT_FORMAT
-#define PRINT_FORMAT(a, b)
+#define PRINT_FORMAT(_a, _b)
 #endif
 #ifndef FALLTHROUGH
 #define FALLTHROUGH
@@ -295,9 +305,9 @@ struct MsgProc {
     bool procFlags(uint8_t &flags, const uint8_t flagsMask);
     /* linuxptp PORT_STATS_NP statistics use little endian */
     bool procLe(uint64_t &val);
-    /* list proccess with count */
+    /* list process with count */
     template <typename T> bool vector_f(uint32_t count, std::vector<T> &vec);
-    /* countless list proccess */
+    /* countless list process */
     template <typename T> bool vector_o(std::vector<T> &vec);
 };
 

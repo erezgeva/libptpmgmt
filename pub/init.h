@@ -39,12 +39,17 @@ class Init
     void close();
 
     /**
-     * Proccess PMC options
+     * Process PMC options
      * @param[in] opt PMC options
      * @return 0 on scuccess
      * @note function return proper value to return from main()
      */
-    int proccess(const Options &opt);
+    int process(const Options &opt);
+    /** @cond internal
+     * obsolete function: misspelled
+     */
+    __PTPMGMT_DEPRECATED(int proccess(const Options &opt)) { return process(opt); }
+    /**< @endcond */
 
     /**
      * Get configuration file object

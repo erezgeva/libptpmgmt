@@ -408,11 +408,13 @@ class MsgDump : public MessageDispatcher
             IDENT "duration               %u"
             IDENT "NOTIFY_PORT_STATE      %s"
             IDENT "NOTIFY_TIME_SYNC       %s"
-            IDENT "NOTIFY_PARENT_DATA_SET %s",
+            IDENT "NOTIFY_PARENT_DATA_SET %s"
+            IDENT "NOTIFY_CMLDS           %s",
             d.duration,
             d.getEvent(NOTIFY_PORT_STATE) ? "on" : "off",
             d.getEvent(NOTIFY_TIME_SYNC) ? "on" : "off",
-            d.getEvent(NOTIFY_PARENT_DATA_SET) ? "on" : "off");
+            d.getEvent(NOTIFY_PARENT_DATA_SET) ? "on" : "off",
+            d.getEvent(NOTIFY_CMLDS) ? "on" : "off");
     }
     dump(PORT_PROPERTIES_NP) {
         DUMPS(
@@ -540,6 +542,15 @@ class MsgDump : public MessageDispatcher
             d.networkTimeInaccuracy,
             d.totalTimeInaccuracy);
     }
+    dump(CMLDS_INFO_NP) {
+        DUMPS(
+            IDENT "meanLinkDelay           %jd"
+            IDENT "scaledNeighborRateRatio %d"
+            IDENT "as_capable              %u",
+            d.meanLinkDelay.getIntervalInt(),
+            d.scaledNeighborRateRatio,
+            d.as_capable);
+    }
 }; // class MsgDump
 void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *data)
 {
@@ -557,9 +568,10 @@ class MsgBuild : public MessageBuilder
     char *save;
     MsgBuild(Message &msg, char *s) : MessageBuilder(msg), save(s) {}
 
+#define build_fail return false
 #define build(n) bool n##_b(const Message &, n##_t &d) override
 #define defKeys std::map<std::string, val_key_t> keys
-#define parseKeys if(parseKeysFunc(keys, save)) return false
+#define parseKeys if(parseKeysFunc(keys, save)) build_fail
 #define build_end return true
 #define defFlags uint8_t flags = 0
 #define useFlag(n) keys[#n].flag = true;
@@ -1163,6 +1175,7 @@ class MsgBuild : public MessageBuilder
         keys["NOTIFY_PORT_STATE"].flag = true;
         keys["NOTIFY_TIME_SYNC"].flag = true;
         keys["NOTIFY_PARENT_DATA_SET"].flag = true;
+        keys["NOTIFY_CMLDS"].flag = true;
         parseKeys;
         memset(d.bitmask, 0, sizeof d.bitmask);
         if(keys["NOTIFY_PORT_STATE"].num)
@@ -1171,7 +1184,11 @@ class MsgBuild : public MessageBuilder
             d.setEvent(NOTIFY_TIME_SYNC);
         if(keys["NOTIFY_PARENT_DATA_SET"].num)
             d.setEvent(NOTIFY_PARENT_DATA_SET);
+        if(keys["NOTIFY_CMLDS"].num)
+            d.setEvent(NOTIFY_CMLDS);
         d.duration = keys["duration"].num;
+        if(keys.size() < 2)
+            build_fail;
         build_end;
     }
     build(SYNCHRONIZATION_UNCERTAIN_NP) {

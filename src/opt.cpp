@@ -306,10 +306,10 @@ extern "C" {
             return ((Options *)me->_this)->have_more();
         return false;
     }
-    static int ptpmgmt_opt_procces_next(ptpmgmt_opt me)
+    static int ptpmgmt_opt_process_next(ptpmgmt_opt me)
     {
         if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->procces_next();
+            return ((Options *)me->_this)->process_next();
         return 0;
     }
     static inline ptpmgmt_opt alloc_opt(bool useDef)
@@ -333,7 +333,7 @@ extern "C" {
         me->val_i = ptpmgmt_opt_val_i;
         me->get_net_transport = ptpmgmt_opt_get_net_transport;
         me->have_more = ptpmgmt_opt_have_more;
-        me->procces_next = ptpmgmt_opt_procces_next;
+        me->process_next = ptpmgmt_opt_process_next;
         return me;
     }
     ptpmgmt_opt ptpmgmt_opt_alloc()

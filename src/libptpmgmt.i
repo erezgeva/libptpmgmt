@@ -34,6 +34,8 @@
 /* prevent C++ namespace in swig */
 #define __PTPMGMT_NAMESPACE_BEGIN
 #define __PTPMGMT_NAMESPACE_END
+/* Handle obsolete functions */
+#define __PTPMGMT_DEPRECATED(func) func
 /* Handle multithreads support. */
 #ifdef SWIG_USE_MULTITHREADS
 %nothread;

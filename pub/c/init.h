@@ -45,13 +45,13 @@ struct ptpmgmt_init_t {
      */
     void (*close)(ptpmgmt_init i);
     /**
-     * Proccess PMC options
+     * Process PMC options
      * @param[in, out] i init object
      * @param[in] opt PMC options
      * @return 0 on scuccess
      * @note function return proper value to return from main()
      */
-    int (*proccess)(ptpmgmt_init i, const_ptpmgmt_opt opt);
+    int (*process)(ptpmgmt_init i, const_ptpmgmt_opt opt);
     /**
      * Get configuration file object
      * @param[in, out] i init object

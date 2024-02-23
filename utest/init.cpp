@@ -26,21 +26,21 @@ const char *argv_2[] = {"me", "-2", "-i", "eth0", "--socket_priority", "7",
     };
 const size_t argc_2 = 8;
 
-// Tests proccess with unix socket
-// int proccess(const Options &opt)
+// Tests process with unix socket
+// int process(const Options &opt)
 // const ConfigFile &cfg() const
 // bool use_uds() const
 // Message &msg()
 // SockBase *sk()
 // char getNetSelect()
 // void close()
-TEST(InitTest, MethodProccessUnix)
+TEST(InitTest, MethodProcessUnix)
 {
     Options o;
     EXPECT_EQ(o.parse_options(argc_u, (char *const *)argv_u), Options::OPT_DONE);
     Init i;
     useTestMode(true);
-    EXPECT_EQ(i.proccess(o), 0);
+    EXPECT_EQ(i.process(o), 0);
     EXPECT_TRUE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
@@ -52,14 +52,14 @@ TEST(InitTest, MethodProccessUnix)
     useTestMode(false);
 }
 
-// Tests proccess with ipv4 socket
-TEST(InitTest, MethodProccessIPv4)
+// Tests process with ipv4 socket
+TEST(InitTest, MethodProcessIPv4)
 {
     Options o;
     EXPECT_EQ(o.parse_options(argc_4, (char *const *)argv_4), Options::OPT_DONE);
     Init i;
     useTestMode(true);
-    EXPECT_EQ(i.proccess(o), 0);
+    EXPECT_EQ(i.process(o), 0);
     EXPECT_FALSE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
@@ -71,14 +71,14 @@ TEST(InitTest, MethodProccessIPv4)
     useTestMode(false);
 }
 
-// Tests proccess with ipv6 socket
-TEST(InitTest, MethodProccessIPv6)
+// Tests process with ipv6 socket
+TEST(InitTest, MethodProcessIPv6)
 {
     Options o;
     EXPECT_EQ(o.parse_options(argc_6, (char *const *)argv_6), Options::OPT_DONE);
     Init i;
     useTestMode(true);
-    EXPECT_EQ(i.proccess(o), 0);
+    EXPECT_EQ(i.process(o), 0);
     EXPECT_FALSE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
@@ -90,14 +90,14 @@ TEST(InitTest, MethodProccessIPv6)
     useTestMode(false);
 }
 
-// Tests proccess with raw socket
-TEST(InitTest, MethodProccessRaw)
+// Tests process with raw socket
+TEST(InitTest, MethodProcessRaw)
 {
     Options o;
     EXPECT_EQ(o.parse_options(argc_2, (char *const *)argv_2), Options::OPT_DONE);
     Init i;
     useTestMode(true);
-    EXPECT_EQ(i.proccess(o), 0);
+    EXPECT_EQ(i.process(o), 0);
     EXPECT_FALSE(i.use_uds());
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);

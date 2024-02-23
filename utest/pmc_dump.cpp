@@ -827,13 +827,15 @@ TEST(PmcDumpTest, SUBSCRIBE_EVENTS_NP)
     t.setEvent(NOTIFY_PORT_STATE);
     t.setEvent(NOTIFY_TIME_SYNC);
     t.setEvent(NOTIFY_PARENT_DATA_SET);
+    t.setEvent(NOTIFY_CMLDS);
     useTestMode(true);
     call_dump(m, SUBSCRIBE_EVENTS_NP, &t);
     EXPECT_STREQ(getPmcOut(),
         IDENT "duration               4660"
         IDENT "NOTIFY_PORT_STATE      on"
         IDENT "NOTIFY_TIME_SYNC       on"
-        IDENT "NOTIFY_PARENT_DATA_SET on");
+        IDENT "NOTIFY_PARENT_DATA_SET on"
+        IDENT "NOTIFY_CMLDS           on");
 }
 
 // Tests dump PORT_PROPERTIES_NP tlv
@@ -1023,6 +1025,22 @@ TEST(PmcDumpTest, POWER_PROFILE_SETTINGS_NP)
         IDENT "grandmasterTimeInaccuracy 4124796349"
         IDENT "networkTimeInaccuracy     3655058877"
         IDENT "totalTimeInaccuracy       4223530875");
+}
+
+// Tests dump CMLDS_INFO_NP tlv
+TEST(PmcDumpTest, CMLDS_INFO_NP)
+{
+    Message m;
+    CMLDS_INFO_NP_t t;
+    t.meanLinkDelay.scaledNanoseconds = 1267 * 0x10000;
+    t.scaledNeighborRateRatio = 15;
+    t.as_capable = 1;
+    useTestMode(true);
+    call_dump(m, CMLDS_INFO_NP, &t);
+    EXPECT_STREQ(getPmcOut(),
+        IDENT "meanLinkDelay           1267"
+        IDENT "scaledNeighborRateRatio 15"
+        IDENT "as_capable              1");
 }
 
 // Tests dump SLAVE_RX_SYNC_TIMING_DATA signalling

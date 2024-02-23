@@ -673,7 +673,8 @@ TEST(PmcBuildTest, SUBSCRIBE_EVENTS_NP)
         "duration 4660 "
         "NOTIFY_PORT_STATE true "
         "NOTIFY_TIME_SYNC true "
-        "NOTIFY_PARENT_DATA_SET true");
+        "NOTIFY_PARENT_DATA_SET true "
+        "NOTIFY_CMLDS true");
     bool ret = call_data(m, SET, SUBSCRIBE_EVENTS_NP, str);
     useTestMode(false);
     EXPECT_TRUE(ret);
@@ -687,6 +688,7 @@ void handle_SUBSCRIBE_EVENTS_NP(const BaseMngTlv *d)
     EXPECT_TRUE(t->getEvent(NOTIFY_PORT_STATE));
     EXPECT_TRUE(t->getEvent(NOTIFY_TIME_SYNC));
     EXPECT_TRUE(t->getEvent(NOTIFY_PARENT_DATA_SET));
+    EXPECT_TRUE(t->getEvent(NOTIFY_CMLDS));
 }
 
 // Tests build SYNCHRONIZATION_UNCERTAIN_NP tlv

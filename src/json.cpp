@@ -35,6 +35,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 DIV_EVENT(NOTIFY_PORT_STATE);
 DIV_EVENT(NOTIFY_TIME_SYNC);
 DIV_EVENT(NOTIFY_PARENT_DATA_SET);
+DIV_EVENT(NOTIFY_CMLDS);
 #define PROC_EVENT_FLG(name)\
     proc.procFlag(#name, d.bitmask[name##_L.quot], name##_L.rem)
 
@@ -386,7 +387,8 @@ JS(SUBSCRIBE_EVENTS_NP)
         PROC_VAL(duration) &&
         PROC_EVENT_FLG(NOTIFY_PORT_STATE) &&
         PROC_EVENT_FLG(NOTIFY_TIME_SYNC) &&
-        PROC_EVENT_FLG(NOTIFY_PARENT_DATA_SET);
+        PROC_EVENT_FLG(NOTIFY_PARENT_DATA_SET) &&
+        PROC_EVENT_FLG(NOTIFY_CMLDS);
 }
 JS(PORT_PROPERTIES_NP)
 {
@@ -463,8 +465,15 @@ JS(POWER_PROFILE_SETTINGS_NP)
         PROC_VAL(networkTimeInaccuracy) &&
         PROC_VAL(totalTimeInaccuracy);
 }
+JS(CMLDS_INFO_NP)
+{
+    return
+        PROC_VAL(meanLinkDelay) &&
+        PROC_VAL(scaledNeighborRateRatio) &&
+        PROC_VAL(as_capable);
+}
 
-/* Finish Proccess functions of JsonProc */
+/* Finish Process functions of JsonProc */
 #undef JS
 
 #define procProperty(name)\

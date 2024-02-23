@@ -954,10 +954,11 @@ TEST_F(ProcTest, SUBSCRIBE_EVENTS_NP)
     t.setEvent(NOTIFY_PORT_STATE);
     t.setEvent(NOTIFY_TIME_SYNC);
     t.setEvent(NOTIFY_PARENT_DATA_SET);
+    t.setEvent(NOTIFY_CMLDS);
     EXPECT_TRUE(setAction(SET, SUBSCRIBE_EVENTS_NP, &t));
     EXPECT_EQ(getBuildTlvId(), SUBSCRIBE_EVENTS_NP);
     EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
-    uint8_t m[66] = {18, 52, 7};
+    uint8_t m[66] = {18, 52, 15};
     EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
     EXPECT_EQ(memcmp(buf + tlvLoc, m, sizeof m), 0);
     ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
@@ -966,6 +967,7 @@ TEST_F(ProcTest, SUBSCRIBE_EVENTS_NP)
     EXPECT_TRUE(r->getEvent(NOTIFY_PORT_STATE));
     EXPECT_TRUE(r->getEvent(NOTIFY_TIME_SYNC));
     EXPECT_TRUE(r->getEvent(NOTIFY_PARENT_DATA_SET));
+    EXPECT_TRUE(r->getEvent(NOTIFY_CMLDS));
 }
 
 // Tests PORT_PROPERTIES_NP structure
@@ -1131,4 +1133,20 @@ TEST_F(ProcTest, POWER_PROFILE_SETTINGS_NP)
     EXPECT_EQ(r->grandmasterTimeInaccuracy, 4124796349);
     EXPECT_EQ(r->networkTimeInaccuracy, 3655058877);
     EXPECT_EQ(r->totalTimeInaccuracy, 4223530875);
+}
+
+// Tests CMLDS_INFO_NP structure
+TEST_F(ProcTest, CMLDS_INFO_NP)
+{
+    EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
+    EXPECT_EQ(getMsgLen(), tlvLoc);
+    uint8_t m[18] = {0xdc, 0xf8, 0x72, 0x40, 0xdc, 0xd1, 0x23, 1, 0x41, 0x17,
+            0x34, 0x45, 0, 0, 0, 1
+        };
+    ASSERT_EQ(parse(buf, rsp(0xc00b, m, sizeof m)), MNG_PARSE_ERROR_OK);
+    EXPECT_EQ(getTlvId(), CMLDS_INFO_NP);
+    const CMLDS_INFO_NP_t *r = (const CMLDS_INFO_NP_t *)getData();
+    EXPECT_EQ(r->meanLinkDelay.scaledNanoseconds, 0xdcf87240dcd12301LL);
+    EXPECT_EQ(r->scaledNeighborRateRatio, 0x41173445);
+    EXPECT_EQ(r->as_capable, 1);
 }

@@ -330,6 +330,9 @@ override CXXFLAGS+=-Wtype-limits -Wdeprecated-copy -Wundef
 CXXFLAGS_SWIG+=-Wno-tautological-type-limit-compare -Wno-undef
 CXXFLAGS_RUBY+=-Wno-deprecated-copy
 CXXFLAGS_GO:=$(filter-out -I%,$(CXXFLAGS))
+# Ignore deprecated functions in pub/opt.h and pub/init.h
+CXXFLAGS_SWIG+=-Wno-deprecated-declarations
+CXXFLAGS_GO+=-Wno-deprecated-declarations
 ifdef USE_DEPS
 # Add dependencies during compilation
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d

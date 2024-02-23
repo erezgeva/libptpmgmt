@@ -569,3 +569,16 @@ TEST_F(MngIDsTest, POWER_PROFILE_SETTINGS_NP)
     EXPECT_FALSE(setAction(SET, POWER_PROFILE_SETTINGS_NP, &t));
     EXPECT_FALSE(setAction(COMMAND, POWER_PROFILE_SETTINGS_NP));
 }
+
+TEST_F(MngIDsTest, CMLDS_INFO_NP)
+{
+    EXPECT_TRUE(setAction(GET, CMLDS_INFO_NP));
+    CMLDS_INFO_NP_t t;
+    EXPECT_FALSE(setAction(SET, CMLDS_INFO_NP, &t));
+    EXPECT_FALSE(setAction(COMMAND, CMLDS_INFO_NP));
+    p.implementSpecific = noImplementSpecific;
+    updateParams(p);
+    EXPECT_FALSE(setAction(GET, CMLDS_INFO_NP));
+    EXPECT_FALSE(setAction(SET, CMLDS_INFO_NP, &t));
+    EXPECT_FALSE(setAction(COMMAND, CMLDS_INFO_NP));
+}

@@ -21,7 +21,7 @@ void Init::close()
         s->close();
 }
 
-int Init::proccess(const Options &opt)
+int Init::process(const Options &opt)
 {
     char net_select = opt.get_net_transport();
     /* handle configuration file */
@@ -192,10 +192,10 @@ extern "C" {
         if(me != nullptr && me->_this != nullptr)
             ((Init *)me->_this)->close();
     }
-    static int ptpmgmt_init_proccess(ptpmgmt_init me, const_ptpmgmt_opt opt)
+    static int ptpmgmt_init_process(ptpmgmt_init me, const_ptpmgmt_opt opt)
     {
         if(me != nullptr && me->_this != nullptr && opt != nullptr)
-            return ((Init *)me->_this)->proccess(*(const Options *)opt->_this);
+            return ((Init *)me->_this)->process(*(const Options *)opt->_this);
         return -1;
     }
     static ptpmgmt_cfg ptpmgmt_init_cfg(ptpmgmt_init me)
@@ -273,7 +273,7 @@ extern "C" {
         }
         me->free = ptpmgmt_init_free;
         me->close = ptpmgmt_init_close;
-        me->proccess = ptpmgmt_init_proccess;
+        me->process = ptpmgmt_init_process;
         me->cfg = ptpmgmt_init_cfg;
         me->msg = ptpmgmt_init_msg;
         me->sk = ptpmgmt_init_sk;

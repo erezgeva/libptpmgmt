@@ -477,6 +477,8 @@ cnst_st() int NM(NOTIFY_PORT_STATE) = 0;
 cnst_st() int NM(NOTIFY_TIME_SYNC) = 1;
 /** Notify parent data in SUBSCRIBE_EVENTS_NP.bitmask */
 cnst_st() int NM(NOTIFY_PARENT_DATA_SET) = 2;
+/** Notify Common Mean Link Delay Information in SUBSCRIBE_EVENTS_NP.bitmask */
+cnst_st() int NM(NOTIFY_CMLDS) = 3;
 /** Subscribe events TLV
  * @note linuxptp implementation specific
  */
@@ -642,6 +644,15 @@ strc(POWER_PROFILE_SETTINGS_NP_t) sz(: public BaseMngTlv) {
     UInteger32_t grandmasterTimeInaccuracy; /**< grand master time inaccuracy */
     UInteger32_t networkTimeInaccuracy; /**< network time inaccuracy */
     UInteger32_t totalTimeInaccuracy; /**< total time inaccuracy */
+};
+/** Common Mean Link Delay Information TLV
+ * @note linuxptp implementation specific
+ */
+strc(CMLDS_INFO_NP_t) sz(: public BaseMngTlv) {
+    strcc(TimeInterval_t) meanLinkDelay; /**< Mean link delay */
+    /** scaled neighbor rate ratio */
+    Integer32_t scaledNeighborRateRatio;
+    uint32_t as_capable; /**< Capable */
 };
 ns_e()dnl
 cpp_en(proc)dnl

@@ -11,6 +11,7 @@
 
 use PtpMgmtLib;
 
+{
 package myDisp;
 use base 'PtpMgmtLib::MessageDispatcher';
 use fields qw(priority1 func id);
@@ -39,7 +40,9 @@ sub noTlvCallBack
     $self->{func} |= 0x4;
     $self->{id} = $tlv_id;
 }
+} # package myDisp
 
+{
 package myBuild;
 use base 'PtpMgmtLib::MessageBuilder';
 use fields qw(run);
@@ -50,7 +53,9 @@ sub PRIORITY1_b
     $tlv->swig_priority1_set(117);
     1;
 }
+} # package myBuild
 
+{
 package Testing;
 
 use base qw(Test::Class);
@@ -135,8 +140,7 @@ sub test_buildTLVNoCallback : Test(2) {
        'test_buildTLVNoCallback no callback');
     is($build->{run}, 0, 'test_buildTLVNoCallback do not have callback');
 }
-
-package main;
+} # package Testing
 
 my $tests = Testing->new;
 Test::Class->runtests($tests);

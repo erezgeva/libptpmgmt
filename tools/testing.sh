@@ -189,7 +189,7 @@ compare_pmc()
    PORT_STATS_NP SUBSCRIBE_EVENTS_NP SYNCHRONIZATION_UNCERTAIN_NP MASTER_ONLY
    PORT_SERVICE_STATS_NP UNICAST_MASTER_TABLE_NP PORT_HWCLOCK_NP
    ALTERNATE_TIME_OFFSET_PROPERTIES ALTERNATE_TIME_OFFSET_NAME
-   ALTERNATE_TIME_OFFSET_ENABLE POWER_PROFILE_SETTINGS_NP'
+   ALTERNATE_TIME_OFFSET_ENABLE POWER_PROFILE_SETTINGS_NP CMLDS_INFO_NP'
  local -r setmsg="set PRIORITY2 137"
  local -r verify="get PRIORITY2"
  local -a acmds
@@ -427,7 +427,7 @@ test_phc_ctl()
  printf " * Create output with linuxptp phc_ctrl, wait 4 seconds ...\n"
  eecmd "$runCtrl $runPhc"
  if [[ $last_ret -ne 0 ]]; then
-   printf "\n @@@ linuxptp phc_ctrl return with error, no point to procced. @@@\n"
+   printf "\n @@@ linuxptp phc_ctrl return with error, no point to proceed. @@@\n"
    return
  fi
  parse_phc_out "$out"
@@ -439,7 +439,7 @@ test_phc_ctl()
  printf " * Create output with libptpmgmt, wait 4 seconds ...\n"
  eecmd "$pneed$need $phcctrllibtool $runPhc"
  if [[ $last_ret -ne 0 ]]; then
-   printf "\n @@@ libptpmgmt phc_ctrl return with error, no point to procced. @@@\n"
+   printf "\n @@@ libptpmgmt phc_ctrl return with error, no point to proceed. @@@\n"
    return
  fi
  parse_phc_out "$out"

@@ -122,17 +122,17 @@ struct ptpmgmt_opt_t {
      */
     char (*get_net_transport)(ptpmgmt_opt opt);
     /**
-     * Do we have more argumends on the command line, left unproccessed
+     * Do we have more argumends on the command line, left unprocessed
      * @param[in] opt options object
-     * @return true if we have more to proccess
+     * @return true if we have more to process
      */
     bool (*have_more)(ptpmgmt_opt opt);
     /**
-     * First argumend on the command line, left unproccessed
+     * First argumend on the command line, left unprocessed
      * @param[in] opt options object
      * @return index of argument
      */
-    int (*procces_next)(ptpmgmt_opt opt);
+    int (*process_next)(ptpmgmt_opt opt);
 };
 
 /**

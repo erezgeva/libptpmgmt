@@ -1380,12 +1380,14 @@ TEST(Tlv2JsonTest, SUBSCRIBE_EVENTS_NP)
     t.setEvent(NOTIFY_PORT_STATE);
     t.setEvent(NOTIFY_TIME_SYNC);
     t.setEvent(NOTIFY_PARENT_DATA_SET);
+    t.setEvent(NOTIFY_CMLDS);
     EXPECT_STREQ(tlv2json(SUBSCRIBE_EVENTS_NP, &t).c_str(),
         "{\n"
         "  \"duration\" : 4660,\n"
         "  \"NOTIFY_PORT_STATE\" : true,\n"
         "  \"NOTIFY_TIME_SYNC\" : true,\n"
-        "  \"NOTIFY_PARENT_DATA_SET\" : true\n"
+        "  \"NOTIFY_PARENT_DATA_SET\" : true,\n"
+        "  \"NOTIFY_CMLDS\" : true\n"
         "}");
 }
 
@@ -1605,5 +1607,20 @@ TEST(Tlv2JsonTest, POWER_PROFILE_SETTINGS_NP)
         "  \"grandmasterTimeInaccuracy\" : 4124796349,\n"
         "  \"networkTimeInaccuracy\" : 3655058877,\n"
         "  \"totalTimeInaccuracy\" : 4223530875\n"
+        "}");
+}
+
+// Tests CMLDS_INFO_NP structure
+TEST(Tlv2JsonTest, CMLDS_INFO_NP)
+{
+    CMLDS_INFO_NP_t t;
+    t.meanLinkDelay.scaledNanoseconds = 201548321LL;
+    t.scaledNeighborRateRatio = 1842;
+    t.as_capable = 1;
+    EXPECT_STREQ(tlv2json(CMLDS_INFO_NP, &t).c_str(),
+        "{\n"
+        "  \"meanLinkDelay\" : 201548321,\n"
+        "  \"scaledNeighborRateRatio\" : 1842,\n"
+        "  \"as_capable\" : 1\n"
         "}");
 }

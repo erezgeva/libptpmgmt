@@ -555,7 +555,7 @@ S(PORT_PROPERTIES_NP)
 S(UNICAST_MASTER_TABLE_NP)
 {
     return vector_l(2, d.unicastMasters);
-};
+}
 
 ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
 {
@@ -859,23 +859,28 @@ A(PORT_SERVICE_STATS_NP)
         procLe(d.master_announce_timeout) || procLe(d.master_sync_timeout) ||
         procLe(d.qualification_timeout) || procLe(d.sync_mismatch) ||
         procLe(d.followup_mismatch);
-};
+}
 A(UNICAST_MASTER_TABLE_NP)
 {
     d.actualTableSize = d.unicastMasters.size();
     if(proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.unicastMasters);
-};
+}
 A(PORT_HWCLOCK_NP)
 {
     return proc(d.portIdentity) || proc(d.phc_index) || proc(d.flags);
-};
+}
 A(POWER_PROFILE_SETTINGS_NP)
 {
     return proc(d.version) || proc(d.grandmasterID) ||
         proc(d.grandmasterTimeInaccuracy) || proc(d.networkTimeInaccuracy) ||
         proc(d.totalTimeInaccuracy);
+}
+A(CMLDS_INFO_NP)
+{
+    return proc(d.meanLinkDelay) || proc(d.scaledNeighborRateRatio) ||
+        proc(d.as_capable);
 }
 
 #undef A
@@ -1317,6 +1322,12 @@ C1(POWER_PROFILE_SETTINGS_NP)
     a.grandmasterTimeInaccuracy = d.grandmasterTimeInaccuracy;
     a.networkTimeInaccuracy = d.networkTimeInaccuracy;
     a.totalTimeInaccuracy = d.totalTimeInaccuracy;
+}
+C1(CMLDS_INFO_NP)
+{
+    a.meanLinkDelay.scaledNanoseconds = d.meanLinkDelay.scaledNanoseconds;
+    a.scaledNeighborRateRatio = d.scaledNeighborRateRatio;
+    a.as_capable = d.as_capable;
 }
 
 void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x)
@@ -1803,6 +1814,12 @@ C2(POWER_PROFILE_SETTINGS_NP)
     a.grandmasterTimeInaccuracy = d.grandmasterTimeInaccuracy;
     a.networkTimeInaccuracy = d.networkTimeInaccuracy;
     a.totalTimeInaccuracy = d.totalTimeInaccuracy;
+}
+C2(CMLDS_INFO_NP)
+{
+    a.meanLinkDelay.scaledNanoseconds = d.meanLinkDelay.scaledNanoseconds;
+    a.scaledNeighborRateRatio = d.scaledNeighborRateRatio;
+    a.as_capable = d.as_capable;
 }
 
 BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *data)

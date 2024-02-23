@@ -346,6 +346,7 @@ TEST(MessageTest, MethodMng2str)
     EXPECT_STREQ(Message::mng2str_c(PORT_HWCLOCK_NP), "PORT_HWCLOCK_NP");
     EXPECT_STREQ(Message::mng2str_c(POWER_PROFILE_SETTINGS_NP),
         "POWER_PROFILE_SETTINGS_NP");
+    EXPECT_STREQ(Message::mng2str_c(CMLDS_INFO_NP), "CMLDS_INFO_NP");
     EXPECT_STREQ(Message::mng2str_c(LAST_MNG_ID), "out of range");
     // Confirm compatability
     EXPECT_EQ(FIRST_MNG_ID, NULL_PTP_MANAGEMENT);
@@ -815,6 +816,7 @@ TEST(MessageTest, MethodIsEmpty)
     EXPECT_FALSE(Message::isEmpty(UNICAST_MASTER_TABLE_NP));
     EXPECT_FALSE(Message::isEmpty(PORT_HWCLOCK_NP));
     EXPECT_FALSE(Message::isEmpty(POWER_PROFILE_SETTINGS_NP));
+    EXPECT_FALSE(Message::isEmpty(CMLDS_INFO_NP));
 }
 
 // Test if management TLV is valid for use method

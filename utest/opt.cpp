@@ -200,15 +200,15 @@ TEST(OptionsTest, MethodMore)
 }
 
 // Tests get first argument not consumed
-// int procces_next() const
+// int process_next() const
 TEST(OptionsTest, MethodNext)
 {
     Options o;
     EXPECT_EQ(o.parse_options(argc, (char *const *)argv), Options::OPT_DONE);
     EXPECT_FALSE(o.have_more());
-    EXPECT_EQ(o.procces_next(), 6);
+    EXPECT_EQ(o.process_next(), 6);
     EXPECT_EQ(o.parse_options(argc_more, (char *const *)argv_more),
         Options::OPT_DONE);
     EXPECT_TRUE(o.have_more());
-    EXPECT_EQ(o.procces_next(), 6);
+    EXPECT_EQ(o.process_next(), 6);
 }

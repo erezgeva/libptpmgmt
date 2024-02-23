@@ -844,3 +844,20 @@ Test(MngIDsTest, POWER_PROFILE_SETTINGS_NP)
                 PTPMGMT_POWER_PROFILE_SETTINGS_NP, NULL)));
     m->free(m);
 }
+
+Test(MngIDsTest, CMLDS_INFO_NP)
+{
+    ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_CMLDS_INFO_NP, NULL));
+    struct ptpmgmt_CMLDS_INFO_NP_t t;
+    memset(&t, 0, sizeof(struct ptpmgmt_CMLDS_INFO_NP_t));
+    cr_expect(not(m->setAction(m, PTPMGMT_SET, PTPMGMT_CMLDS_INFO_NP, &t)));
+    cr_expect(not(m->setAction(m, PTPMGMT_COMMAND, PTPMGMT_CMLDS_INFO_NP, NULL)));
+    ptpmgmt_pMsgParams p = m->getParams(m);
+    p->implementSpecific = ptpmgmt_noImplementSpecific;
+    m->updateParams(m, p);
+    cr_expect(not(m->setAction(m, PTPMGMT_GET, PTPMGMT_CMLDS_INFO_NP, NULL)));
+    cr_expect(not(m->setAction(m, PTPMGMT_SET, PTPMGMT_CMLDS_INFO_NP, &t)));
+    cr_expect(not(m->setAction(m, PTPMGMT_COMMAND, PTPMGMT_CMLDS_INFO_NP, NULL)));
+    m->free(m);
+}

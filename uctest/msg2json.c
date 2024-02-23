@@ -1690,6 +1690,7 @@ Test(Tlv2JsonTest, SUBSCRIBE_EVENTS_NP)
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_PORT_STATE);
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_TIME_SYNC);
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_PARENT_DATA_SET);
+    ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_CMLDS);
     char *ret = ptpmgmt_json_tlv2json(PTPMGMT_SUBSCRIBE_EVENTS_NP, &t, 0);
     cr_assert(not(zero(ptr, ret)));
     cr_assert(eq(str, (char *)ret,
@@ -1697,7 +1698,8 @@ Test(Tlv2JsonTest, SUBSCRIBE_EVENTS_NP)
             "  \"duration\" : 4660,\n"
             "  \"NOTIFY_PORT_STATE\" : true,\n"
             "  \"NOTIFY_TIME_SYNC\" : true,\n"
-            "  \"NOTIFY_PARENT_DATA_SET\" : true\n"
+            "  \"NOTIFY_PARENT_DATA_SET\" : true,\n"
+            "  \"NOTIFY_CMLDS\" : true\n"
             "}"));
     free(ret);
 }
@@ -1973,6 +1975,24 @@ Test(Tlv2JsonTest, POWER_PROFILE_SETTINGS_NP)
             "  \"grandmasterTimeInaccuracy\" : 4124796349,\n"
             "  \"networkTimeInaccuracy\" : 3655058877,\n"
             "  \"totalTimeInaccuracy\" : 4223530875\n"
+            "}"));
+    free(ret);
+}
+
+// Tests CMLDS_INFO_NP structure
+Test(Tlv2JsonTest, CMLDS_INFO_NP)
+{
+    struct ptpmgmt_CMLDS_INFO_NP_t t;
+    t.meanLinkDelay.scaledNanoseconds = 201548321LL;
+    t.scaledNeighborRateRatio = 1842;
+    t.as_capable = 1;
+    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_CMLDS_INFO_NP, &t, 0);
+    cr_assert(not(zero(ptr, ret)));
+    cr_assert(eq(str, (char *)ret,
+            "{\n"
+            "  \"meanLinkDelay\" : 201548321,\n"
+            "  \"scaledNeighborRateRatio\" : 1842,\n"
+            "  \"as_capable\" : 1\n"
             "}"));
     free(ret);
 }
