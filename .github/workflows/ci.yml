@@ -92,8 +92,10 @@ jobs:
       with:
         path: libptpmgmt
 
-    - name: test with linuxptp
+    - name: build packages and install them
       run: |
         chown -R $USER:$USER .
         su $USER -c libptpmgmt/tools/github_build.sh
-        libptpmgmt/tools/github_pkgs.sh
+
+    - name: test with linuxptp
+      run: libptpmgmt/tools/github_pkgs.sh
