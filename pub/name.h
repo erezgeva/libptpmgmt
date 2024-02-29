@@ -30,7 +30,7 @@
 #endif /* __PTPMGMT_NAMESPACE_BEGIN */
 #if __cplusplus >= 201309L /* C++14 */
 /** Mark obsolete functions */
-#define __PTPMGMT_DEPRECATED(func) [[deprecated]] func
+#define __PTPMGMT_DEPRECATED(_func, _body) [[deprecated]] _func { _body; }
 #endif
 
 #else /* __cplusplus */
@@ -47,13 +47,14 @@
 #ifndef __PTPMGMT_DEPRECATED
 #ifdef __GNUC__
 /** Mark obsolete functions */
-#define __PTPMGMT_DEPRECATED(func) func __attribute__ ((deprecated))
+#define __PTPMGMT_DEPRECATED(_func, _body)\
+    _func __attribute__ ((deprecated)) { _body; }
 #elif defined(_MSC_VER)
 /** Mark obsolete functions */
-#define __PTPMGMT_DEPRECATED(func) __declspec(deprecated) func
+#define __PTPMGMT_DEPRECATED(_func, _body) __declspec(deprecated) _func { _body; }
 #else
 /** Mark obsolete functions */
-#define __PTPMGMT_DEPRECATED(func) func
+#define __PTPMGMT_DEPRECATED(_func, _body) _func { _body; }
 #endif
 #endif /* __PTPMGMT_DEPRECATED */
 

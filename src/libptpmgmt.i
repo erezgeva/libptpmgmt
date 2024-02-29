@@ -35,7 +35,12 @@
 #define __PTPMGMT_NAMESPACE_BEGIN
 #define __PTPMGMT_NAMESPACE_END
 /* Handle obsolete functions */
-#define __PTPMGMT_DEPRECATED(func) func
+#ifdef SWIGGO
+/* go is used for development only, no need for obsolete functions */
+#define __PTPMGMT_DEPRECATED(_func, _body)
+#else
+#define __PTPMGMT_DEPRECATED(_func, _body) _func { _body; }
+#endif
 /* Handle multithreads support. */
 #ifdef SWIG_USE_MULTITHREADS
 %nothread;

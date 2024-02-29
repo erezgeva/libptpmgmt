@@ -45,11 +45,6 @@ class Init
      * @note function return proper value to return from main()
      */
     int process(const Options &opt);
-    /** @cond internal
-     * obsolete function: misspelled
-     */
-    __PTPMGMT_DEPRECATED(int proccess(const Options &opt)) { return process(opt); }
-    /**< @endcond */
 
     /**
      * Get configuration file object
@@ -85,6 +80,12 @@ class Init
      * @return true if the socket is a UDS socket
      */
     bool use_uds() const { return m_use_uds; }
+
+    /** @cond internal
+     * obsolete function: misspelled
+     */
+    __PTPMGMT_DEPRECATED(int proccess(const Options &opt), return process(opt))
+    /**< @endcond */
 };
 
 __PTPMGMT_NAMESPACE_END

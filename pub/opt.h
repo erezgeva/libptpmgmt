@@ -184,7 +184,7 @@ class Options
     /** @cond internal
      * obsolete function: misspelled
      */
-    __PTPMGMT_DEPRECATED(int procces_next() const) { return process_next(); }
+    __PTPMGMT_DEPRECATED(int procces_next() const, return process_next())
     /**< @endcond */
 };
 

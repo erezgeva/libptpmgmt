@@ -97,5 +97,8 @@ jobs:
         chown -R $USER:$USER .
         su $USER -c libptpmgmt/tools/github_build.sh
 
+    - name: build linuxptp
+      run: su $USER -c "make -C linuxptp"
+
     - name: test with linuxptp
       run: libptpmgmt/tools/github_pkgs.sh
