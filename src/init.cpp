@@ -8,9 +8,12 @@
  * @copyright © 2021 Erez Geva
  *
  */
-#include <unistd.h>
-#include "init.h"
+
 #include "comp.h"
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#include "init.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 

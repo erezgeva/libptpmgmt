@@ -12,7 +12,10 @@
 #ifndef __PTPMGMT_COMPILATION_H
 #define __PTPMGMT_COMPILATION_H
 
+#include "config.h"
+#ifdef HAVE_ENDIAN_H
 #include <endian.h>
+#endif
 #include "name.h"
 #include "err.h"
 #include "proc.h" /* Structures for management TLVs */

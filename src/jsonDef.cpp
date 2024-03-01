@@ -9,11 +9,13 @@
  *
  */
 
+#include "comp.h"
 #include <stack>
 #include <cmath>
 #include <mutex>
+#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
-#include "comp.h"
+#endif
 
 using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN

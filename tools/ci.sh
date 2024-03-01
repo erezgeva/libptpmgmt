@@ -131,7 +131,7 @@ main()
    printf "$color_norm"
  fi
  local clean_list="autom4te.cache/ config.log config.status"
- clean_list+=" configure defs.mk"
+ clean_list+=" configure defs.mk src/config.h src/config.h.in"
  for n in archlinux debian gentoo rpm; do
    distclean_list+=" $n/.upgrade_cockie"
  done
@@ -164,6 +164,7 @@ main()
  fi
  ### Configure ###
  echo " * Configure"
+ autoheader
  autoconf
  # Were is Gentoo defualt configure setting?
  # This is after the build flags, we use 64 bits container.
@@ -188,6 +189,7 @@ main()
  test_clean clean
  ### Configure clang ###
  echo " * Configure with clang"
+ autoheader
  autoconf
  # Use clang
  if $not_gentoo; then

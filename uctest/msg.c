@@ -9,7 +9,10 @@
  *
  */
 
+#include "config.h"
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 #include "msg.h"
 
 // Tests creating message object

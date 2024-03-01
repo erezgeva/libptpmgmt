@@ -10,7 +10,7 @@
 
 EAPI=8
 
-# For eautoconf
+# For eautoreconf
 inherit autotools
 
 DESCRIPTION="PTP management library, to communicate with ptp4l"
@@ -34,7 +34,7 @@ BDEPEND="sys-devel/gcc dev-build/libtool sys-apps/which dev-build/make
 RDEPEND="${DEPEND}"
 src_prepare() {
 	default
-	eautoconf
+	eautoreconf
 }
 src_configure() {
 	local opts

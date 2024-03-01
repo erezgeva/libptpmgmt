@@ -12,7 +12,6 @@
 #include <stack>
 #include <cmath>
 #include <mutex>
-#include <dlfcn.h>
 #include "comp.h"
 
 using namespace std;

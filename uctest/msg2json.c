@@ -9,7 +9,10 @@
  *
  */
 
+#include "config.h"
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 #include "json.h"
 
 #define ip_v ((uint8_t *)"\x12\x34\x56\x78")

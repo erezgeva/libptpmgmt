@@ -199,6 +199,7 @@ PMC_DIR:=ptp-tools
 JSON_SRC:=json
 OBJ_DIR:=objs
 
+CONF_FILES:=configure src/config.h.in
 SONAME:=.$(ver_maj)
 LIB_NAME:=libptpmgmt
 LIB_NAME_SO:=$(LIB_NAME).so
@@ -252,11 +253,11 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* *.md *.in */*.in t*/*.pl */*/*.m4 .reuse/*\
+SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/*\
   */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
-  */*/*test*/*.go LICENSES/*)\
+  */*/*test*/*.go LICENSES/* *.in src/ver.h.in tools/*.in)\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
@@ -284,7 +285,7 @@ ifeq ($(wildcard defs.mk),)
 ifeq ($(MAKECMDGOALS),)
 $(info defs.mk is missing, please run ./configure)
 endif
-all: configure
+all: $(CONF_FILES)
 	$(NOP)
 
 ###############################################################################
@@ -678,6 +679,8 @@ endif # which ebuild
 ####### Generic rules #######
 
 ifeq ($(filter distclean,$(MAKECMDGOALS)),)
+src/config.h.in: configure.ac
+	$(Q)autoheader
 configure: configure.ac
 	$(Q)autoconf
 ifneq ($(filter config,$(MAKECMDGOALS)),)
@@ -689,7 +692,7 @@ endif # filter config,$(MAKECMDGOALS)
 # Debian default configuration
 ifneq ($(call which,dh_auto_configure),)
 HAVE_CONFIG_GAOL:=1
-config: configure
+config: $(CONF_FILES)
 	$(Q)dh_auto_configure -- --enable-silent-rules\
 	  --enable-dependency-tracking $(MORE_CONFIG)
 endif # which,dh_auto_configure
@@ -701,7 +704,7 @@ ifneq ($(rpm_list),)
 HAVE_CONFIG_GAOL:=1
 config: FCFG!=rpm --eval %configure | sed -ne '/^\s*.\/configure/,$$ p' |\
 	  sed 's@\\$$@@' | sed 's/disable-dependency/enable-dependency/'
-config: configure
+config: $(CONF_FILES)
 	$(Q)$(FCFG) $(MORE_CONFIG)
 endif # rpm_list
 endif # which rpm
@@ -710,7 +713,7 @@ ifeq ($(HAVE_CONFIG_GAOL),)
 ifneq ($(wildcard /usr/share/pacman/PKGBUILD.proto),)
 # Default configuration on Arch Linux
 HAVE_CONFIG_GAOL:=1
-config: configure
+config: $(CONF_FILES)
 	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto` $(MORE_CONFIG)
 endif # wildcard pacman/PKGBUILD.proto
 endif # HAVE_CONFIG_GAOL
@@ -718,7 +721,7 @@ endif # filter distclean,MAKECMDGOALS
 
 ifeq ($(filter help distclean clean,$(MAKECMDGOALS)),)
 ifneq ($(wildcard config.status),)
-config.status: configure
+config.status: $(CONF_FILES)
 	$(Q)./config.status --recheck
 
 defs.mk: defs.mk.in config.status
@@ -739,7 +742,8 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
   archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) wrappers/perl/auto\
   wrappers/go/$(SWIG_LNAME)
-DISTCLEAN:=$(addprefix config.,log status) configure configure~ defs.mk
+DISTCLEAN:=$(addprefix config.,log status) configure configure~ defs.mk\
+  $(wildcard src/config.h*)
 DISTCLEAN_DIRS:=autom4te.cache
 
 clean: deb_clean

@@ -9,16 +9,26 @@
  *
  */
 
+#include "comp.h"
 #include <cmath>
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
+#ifdef __linux__
 #include <linux/sockios.h>
 #include <linux/ptp_clock.h>
 #include <linux/version.h>
+#endif
 #include "ptp.h"
-#include "comp.h"
 #include "timeCvrt.h"
 
 using namespace std;

@@ -25,6 +25,7 @@ libdir='usr/lib'
 verdep="$pkgver-$pkgrel"
 build() {
   cd $pkgname-$pkgver
+  autoheader
   autoconf
   ./configure --prefix=/usr --sbindir=\${prefix}/bin
   make PMC_USE_LIB=so --no-print-directory all doxygen

@@ -106,6 +106,7 @@ AS_UNSET([CC_VERSION])
 AS_UNSET([CXX_VERSION])
 AS_UNSET([CXX_COLOR_USE])
 AS_UNSET([CXX_COLOR_NONE])
+AS_UNSET([ENDIAN])
 
 # Clang require additional warning supression flags
 AC_ARG_WITH([clang_cpp],
@@ -175,6 +176,15 @@ AS_IF([test -z "$CXX_COLOR_USE"],
 ptpm_result([CXX_COLOR_USE])
 AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags"])
 
+AC_CHECK_HEADERS(byteswap.h dirent.h dlfcn.h endian.h fcntl.h pwd.h
+   sys/ioctl.h sys/select.h sys/socket.h sys/time.h sys/timex.h arpa/inet.h)
+AC_CONFIG_HEADERS([src/config.h])
+
+AC_C_BIGENDIAN([AS_VAR_SET([ENDIAN], ["big"])],
+               [AS_VAR_SET([ENDIAN], ["little"])],
+               [AS_VAR_SET([ENDIAN], ["unknown"])],
+               [AS_VAR_SET([ENDIAN], ["universal"])])
+
 AC_SUBST([USE_CROSS_COMPILE])
 AC_SUBST([USE_CLANG_CPP_COMPILE])
 AC_SUBST([USE_CLANG_C_COMPILE])
@@ -182,6 +192,7 @@ AC_SUBST([CC_VERSION])
 AC_SUBST([CXX_VERSION])
 AC_SUBST([CXX_COLOR_USE])
 AC_SUBST([CXX_COLOR_NONE])
+AC_SUBST([ENDIAN])
 
 #----------------------------------------------------------------
 # Miscellaneous

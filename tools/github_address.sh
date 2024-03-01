@@ -24,7 +24,7 @@
 github_address()
 {
  sudo apt-get install -y --no-install-recommends libtool libtool-bin
- autoconf
+ autoreconf
  ./configure
  sim_ptp4l -at
 }
@@ -33,7 +33,7 @@ github_address()
 github_pages()
 {
  sudo apt-get install -y --no-install-recommends doxygen graphviz
- autoconf
+ autoreconf
  ./configure
  make doxygen
  mv doc/html _site

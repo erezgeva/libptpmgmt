@@ -9,10 +9,12 @@
  *
  */
 
+#include "comp.h"
 #include <cmath>
 #include <limits>
+#ifdef HAVE_BYTESWAP_H
 #include <byteswap.h>
-#include "comp.h"
+#endif
 #include "msg.h"
 
 extern "C" {

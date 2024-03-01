@@ -9,7 +9,10 @@
  *
  */
 
+#include "config.h"
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 #include "proc.h"
 #include "msg.h" // We use message to test the managment TLV
 

@@ -9,7 +9,10 @@
  *
  */
 
+#include "config.h"
+#ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
+#endif
 #include "json.h"
 
 using namespace ptpmgmt;

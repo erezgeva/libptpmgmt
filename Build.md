@@ -7,6 +7,7 @@ How we build the library, and what we can do with the make file.
 We use GNU build:
 
 ```
+autoheader
 autoconf
 ./configure
 make

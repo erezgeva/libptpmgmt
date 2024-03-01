@@ -141,6 +141,7 @@ Requires:       python3-%{bname} = %{version}-%{release}
 %setup -q
 
 %build
+autoheader
 autoconf
 %configure --with-pmc-flags='-fPIE'
 %make_build PMC_USE_LIB=so --no-print-directory all doxygen
