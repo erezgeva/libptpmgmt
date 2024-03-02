@@ -185,7 +185,6 @@ main()
  echo " * Build"
  e_mk -j$jobs $mk_noc
  equit "Build fails"
-
  test_clean clean
  ### Configure clang ###
  echo " * Configure with clang"
@@ -216,6 +215,11 @@ main()
  e_mk -j$jobs $mk_noc
  equit "Build with clang fails"
  test_clean
+ # mk_packages() # We test packaging in another test, we can skip here.
+ echo "$color_blue * CI test done$color_norm"
+}
+mk_packages()
+{
  ### make packages ###
  case $dist in
    debian)
@@ -251,6 +255,5 @@ main()
      ;;
  esac
  test_clean
- echo "$color_blue * CI test done$color_norm"
 }
 main "$@"
