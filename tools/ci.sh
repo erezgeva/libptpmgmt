@@ -193,12 +193,18 @@ main()
  autoconf
  # Use clang
  if $not_gentoo; then
-   ecmd make config $mk_noc with-clang-cpp with-clang-c
+   ecmd make config $mk_noc CC=clang CXX=clang++
  else
    # Add clang to path
    local -r lvm_p="$(ls -d /usr/lib/llvm/*/bin 2> /dev/null | sort -n | tail -1)"
    export PATH+=":$lvm_p"
-   ecmd ./configure $gentoo_cfg --with-clang-cpp --with-clang-c
+   ecmd ./configure $gentoo_cfg CC=clang CXX=clang++
+ fi
+ if [[ "`grep CC: defs.mk`" != "CC:=clang" ]]; then
+   mquit "Compiler $CC is not 'clang'"
+ fi
+ if [[ "`grep ^CXX: defs.mk`" != "CXX:=clang++" ]]; then
+   mquit "Compiler $CXX is not 'clang++'"
  fi
  equit "Configuratation with clang fails"
  tools/config_report.sh

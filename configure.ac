@@ -19,6 +19,8 @@ AC_CONFIG_SRCDIR([src/mngIds.m4])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_LANG([C++])
+AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_GREP
 AC_PROG_EGREP
 AC_PROG_FGREP
@@ -108,35 +110,11 @@ AS_UNSET([CXX_COLOR_USE])
 AS_UNSET([CXX_COLOR_NONE])
 AS_UNSET([ENDIAN])
 
-# Clang require additional warning supression flags
-AC_ARG_WITH([clang_cpp],
-            [AS_HELP_STRING([--with-clang-cpp=path], [Set clang C++ compiler])],
-            [AS_VAR_SET([clang_cpp_path], ["$withval"])],
-            [AS_VAR_SET([clang_cpp_path], ["no"])])
-AS_IF([test "x$clang_cpp_path" = xno],
-      [AC_PROG_CXX],
-      [AS_IF([test "x$clang_cpp_path" = xyes],
-             [ac_objext=o # TODO the objext should be probed!
-              AS_VAR_SET([OBJEXT],["$ac_objext"])
-              AC_PROG_CXX(["clang++"])],
-             [ac_objext=o
-              AS_VAR_SET([OBJEXT],["$ac_objext"])
-              AC_PROG_CXX(["$clang_cpp_path"])])
-       AS_VAR_SET([USE_CLANG_CPP_COMPILE], ["use_clang"])])
-AC_ARG_WITH([clang_c],
-            [AS_HELP_STRING([--with-clang-c=path], [Set clang C compiler])],
-            [AS_VAR_SET([clang_c_path], ["$withval"])],
-            [AS_VAR_SET([clang_c_path], ["no"])])
-AS_IF([test "x$clang_c_path" = xno],
-      [AC_PROG_CC],
-      [AS_IF([test "x$clang_c_path" = xyes],
-             [ac_objext=o
-              AS_VAR_SET([OBJEXT],["$ac_objext"])
-              AC_PROG_CC(["clang"])],
-             [ac_objext=o
-              AS_VAR_SET([OBJEXT],["$ac_objext"])
-              AC_PROG_CC(["$clang_c_path"])])
-       AS_VAR_SET([USE_CLANG_C_COMPILE], ["use_clang"])])
+# Probe clang as it requires additional warning supression flags
+AS_IF([echo $CXX | $GREP "clang" >/dev/null],
+      [AS_VAR_SET([USE_CLANG_CPP_COMPILE], ["use_clang"])])
+AS_IF([echo $CC | $GREP "clang" >/dev/null],
+      [AS_VAR_SET([USE_CLANG_C_COMPILE], ["use_clang"])])
 
 AS_VAR_SET([CC_VERSION], [`$CC -dumpversion`])
 AS_VAR_SET([CXX_VERSION], [`$CXX -dumpversion`])
