@@ -13,7 +13,9 @@
 #define __PTPMGMT_C_IF_H
 
 #include <time.h>
+#ifdef __linux__
 #include <linux/ptp_clock.h>
+#endif
 
 /** pointer to ptpmgmt network interface structure */
 typedef struct ptpmgmt_ifInfo_t *ptpmgmt_ifInfo;

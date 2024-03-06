@@ -10,14 +10,14 @@
  */
 
 #include <string>
+#include <cstdarg>
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
 #include <cerrno>
 #include <climits>
+#include <ctime>
 #include <map>
-#include <stdarg.h>
-#include <time.h>
 #include <pwd.h>
 #include <dlfcn.h>
 #include <unistd.h>

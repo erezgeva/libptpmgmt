@@ -10,7 +10,7 @@
  */
 
 #include "comp.h"
-#include <stdarg.h>
+#include <cstdarg>
 
 using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN

@@ -22,7 +22,9 @@
 #ifdef __cplusplus
 #include <netinet/in.h>
 #include <sys/un.h>
+#ifdef __linux__
 #include <linux/if_packet.h>
+#endif
 #include "cfg.h"
 #include "ptp.h"
 #include "buf.h"

@@ -17,9 +17,11 @@
 
 #ifdef __cplusplus
 #include <vector>
-#include <time.h>
+#include <ctime>
 #include <net/if.h>
+#ifdef __linux__
 #include <linux/ethtool.h>
+#endif
 #include "types.h"
 
 __PTPMGMT_NAMESPACE_BEGIN

@@ -34,7 +34,7 @@
 
 #define DO_PRAGMA(x) _Pragma (#x)
 
-#if __cplusplus >= 201603L
+#if __cplusplus >= 201603L /* C++17 */
 #define FALLTHROUGH [[fallthrough]]
 #define MAYBE_UNUSED(_expr) [[maybe_unused]] _expr
 #endif /* __cplusplus >= 201603L */
@@ -74,6 +74,9 @@
 #error Unknown compiler
 #endif
 
+#ifndef PACK
+#define PACK
+#endif
 #ifndef PURE
 #define PURE
 #endif

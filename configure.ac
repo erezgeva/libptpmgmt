@@ -154,7 +154,7 @@ AS_IF([test -z "$CXX_COLOR_USE"],
 ptpm_result([CXX_COLOR_USE])
 AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags"])
 
-AC_CHECK_HEADERS(byteswap.h dirent.h dlfcn.h endian.h fcntl.h pwd.h
+AC_CHECK_HEADERS(byteswap.h dirent.h dlfcn.h endian.h fcntl.h pwd.h poll.h
    sys/ioctl.h sys/select.h sys/socket.h sys/time.h sys/timex.h arpa/inet.h)
 AC_CONFIG_HEADERS([src/config.h])
 

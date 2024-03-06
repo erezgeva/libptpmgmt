@@ -15,9 +15,9 @@
  */
 
 #include <string>
+#include <cstdarg>
 #include <cstring>
 #include <dlfcn.h>
-#include <stdarg.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>

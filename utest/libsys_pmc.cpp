@@ -10,7 +10,7 @@
  */
 
 #include <string>
-#include <stdarg.h>
+#include <cstdarg>
 #include <dlfcn.h>
 /*****************************************************************************/
 static bool testMode = false;

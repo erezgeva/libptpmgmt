@@ -9,7 +9,7 @@
  *
  */
 
-#include <locale.h>
+#include <clocale>
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_USE;

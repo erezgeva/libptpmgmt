@@ -12,9 +12,14 @@
 #ifndef __PTPMGMT_PMC_TOOL_H
 #define __PTPMGMT_PMC_TOOL_H
 
-#include <signal.h>
+#include "config.h"
+#include <csignal>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_POLL_H
 #include <poll.h>
+#endif
 #include "init.h"
 #include "msg.h"
 #include "msgCall.h"
