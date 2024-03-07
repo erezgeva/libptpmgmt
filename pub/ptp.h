@@ -18,11 +18,13 @@
 #ifdef __cplusplus
 #include <vector>
 #include <ctime>
+#include "types.h"
+#ifdef __PTPMGMT_HAVE_NET_IF_H
 #include <net/if.h>
+#endif
 #ifdef __linux__
 #include <linux/ethtool.h>
 #endif
-#include "types.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 

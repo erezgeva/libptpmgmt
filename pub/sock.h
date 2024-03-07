@@ -20,14 +20,18 @@
 #define __PTPMGMT_SOCK_H
 
 #ifdef __cplusplus
+#include "buf.h"
+#ifdef __PTPMGMT_HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef __PTPMGMT_HAVE_SYS_UN_H
 #include <sys/un.h>
+#endif
 #ifdef __linux__
 #include <linux/if_packet.h>
 #endif
 #include "cfg.h"
 #include "ptp.h"
-#include "buf.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 

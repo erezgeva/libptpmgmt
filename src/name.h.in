@@ -58,6 +58,49 @@
 #endif
 #endif /* __PTPMGMT_DEPRECATED */
 
+/*
+ * POSIX and GNU probed headers and features
+ *
+ * The Open Group Base Specifications Issue 6
+ * IEEE Std 1003.1, 2004 Edition
+ * based url: https://pubs.opengroup.org/onlinepubs/009695399/basedefs/
+ */
+
+/* Defined if we have the POSIX <unistd.h> header.
+ * Standard symbolic constants and types.
+ * url: <base>/unistd.h.html
+ */
+#undef __PTPMGMT_HAVE_UNISTD_H
+
+/* Defined if we have the POSIX <net/if.h> header.
+ * Sockets local interfaces.
+ * url: <base>/net/if.h.html
+ */
+#undef __PTPMGMT_HAVE_NET_IF_H
+
+/* Defined if we have the POSIX <netinet/in.h> header.
+ * Internet address family.
+ * url: <base>/netinet/in.h.html
+ */
+#undef __PTPMGMT_HAVE_NETINET_IN_H
+
+/* Defined if we have the POSIX <sys/types.h> header.
+ * Data types.
+ * url: <base>/sys/types.h.html
+ */
+#undef __PTPMGMT_HAVE_SYS_TYPES_H
+
+/* Defined if we have the POSIX <sys/un.h> header.
+ * Definitions for UNIX domain sockets.
+ * url: <base>/sys/un.h.html
+ */
+#undef __PTPMGMT_HAVE_SYS_UN_H
+
+/* Defined if we have the GNU <getopt.h> header.
+ * GNU-style long options getopt.
+ */
+#undef __PTPMGMT_HAVE_GETOPT_H
+
 /**< @endcond */
 
 #endif /* __PTPMGMT_NAME_H */

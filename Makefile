@@ -212,7 +212,7 @@ SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard *.d */*.d */*/*.d)
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
 HDR_BTH:=mngIds types proc sig callDef
-HEADERS_GEN_PUB:=$(foreach n,ver $(HDR_BTH),$(PUB)/$n.h)
+HEADERS_GEN_PUB:=$(foreach n,ver name $(HDR_BTH),$(PUB)/$n.h)
 HEADERS_PUB:=$(filter-out $(HEADERS_GEN_PUB),$(wildcard $(PUB)/*.h))
 HEADERS_GEN_PUB_C:=$(foreach n,$(HDR_BTH),$(PUB_C)/$n.h)
 HEADERS_PUB_C:=$(filter-out $(HEADERS_GEN_PUB_C),$(wildcard $(PUB_C)/*.h))
@@ -257,7 +257,7 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/*\
   */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
-  */*/*test*/*.go LICENSES/* *.in src/ver.h.in tools/*.in)\
+  */*/*test*/*.go LICENSES/* *.in tools/*.in) src/ver.h.in src/name.h.in\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
@@ -429,6 +429,12 @@ $(PUB_C)/%.h: $(SRC)/%.m4 $(SRC)/c.m4
 $(PUB)/ver.h: $(SRC)/ver.h.in
 	$(Q_GEN)$(SED) $(foreach n,PACKAGE_VERSION_MAJ PACKAGE_VERSION_MIN\
 	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
+
+HAVE_LIST:=$(foreach n,NET_IF_H NETINET_IN_H SYS_UN_H GETOPT_H SYS_TYPES_H\
+	  UNISTD_H,$(if $(HAVE_$(n)), HAVE_$n))
+$(PUB)/name.h: $(SRC)/name.h.in
+	$(Q_GEN)$(SED) $(foreach n,$(HAVE_LIST),\
+	  -e 's/undef __PTPMGMT_$(n)$$/define __PTPMGMT_$(n) 1/') $< > $@
 
 ifneq ($(and $(ASTYLEMINVER),$(PERL5TOUCH)),)
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)

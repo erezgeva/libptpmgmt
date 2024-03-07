@@ -13,10 +13,12 @@
 #define __PTPMGMT_OPT_H
 
 #ifdef __cplusplus
-#include <getopt.h>
-#include <vector>
 #include <map>
+#include <vector>
 #include "name.h"
+#ifdef __PTPMGMT_HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 __PTPMGMT_NAMESPACE_BEGIN
 

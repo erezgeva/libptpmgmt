@@ -132,8 +132,8 @@ main()
  fi
  local clean_list="autom4te.cache/ config.log config.status"
  clean_list+=" configure defs.mk src/config.h src/config.h.in"
- for n in archlinux debian gentoo rpm; do
-   distclean_list+=" $n/.upgrade_cockie"
+ for n in */.upgrade_cockie; do
+   ! [[ -f "$n" ]] || distclean_list2+=" $n"
  done
  ##########################################################
  ######                 Test start                   ######
