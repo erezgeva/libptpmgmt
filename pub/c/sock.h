@@ -136,7 +136,7 @@ struct ptpmgmt_sk_t {
      * @note add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool (*setPeerAddressA)(ptpmgmt_sk sk, const char *string);
+    bool (*setPeerAddressAbstract)(ptpmgmt_sk sk, const char *string);
     /**
      * Set peer address using configuration file
      * @param[in, out] sk socket
@@ -180,7 +180,7 @@ struct ptpmgmt_sk_t {
      * @note add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool (*setSelfAddressA)(ptpmgmt_sk sk, const char *string);
+    bool (*setSelfAddressAbstract)(ptpmgmt_sk sk, const char *string);
     /**
      * Set self address using predefined algorithm
      * @param[in, out] sk socket

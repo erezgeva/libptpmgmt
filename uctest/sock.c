@@ -63,7 +63,7 @@ Test(SockUnixTest, MethodSetDefSelfAddress)
 
 // Tests setSelfAddress method
 // bool setSelfAddress(ptpmgmt_sk sk, const char *string)
-// bool setSelfAddressA(ptpmgmt_sk sk, const char *string)
+// bool setSelfAddressAbstract(ptpmgmt_sk sk, const char *string)
 // bool isSelfAddressAbstract(const_ptpmgmt_sk sk)
 Test(SockUnixTest, MethodSetSelfAddress)
 {
@@ -72,7 +72,7 @@ Test(SockUnixTest, MethodSetSelfAddress)
     cr_expect(eq(str, (char *)sk->getSelfAddress(sk), "/tes1"));
     cr_expect(not(sk->isSelfAddressAbstract(sk)));
     // Using abstract socket address
-    cr_expect(sk->setSelfAddressA(sk, "tes1"));
+    cr_expect(sk->setSelfAddressAbstract(sk, "tes1"));
     cr_expect(eq(str, (char *)sk->getSelfAddress(sk) + 1, "tes1"));
     cr_expect(eq(str, (char *)sk->getSelfAddress(sk), "")); // First char is 0
     cr_expect(sk->isSelfAddressAbstract(sk));
@@ -180,7 +180,7 @@ Test(SockUnixTest, MethodTpoll)
 
 // Tests setPeerAddress method
 // bool setPeerAddress(ptpmgmt_sk sk, const char *string)
-// bool setPeerAddressA(ptpmgmt_sk sk, const char *string)
+// bool setPeerAddressAbstract(ptpmgmt_sk sk, const char *string)
 // const char *getPeerAddress(ptpmgmt_sk sk)
 // bool isPeerAddressAbstract(const_ptpmgmt_sk sk)
 Test(SockUnixTest, MethodSetPeerAddress)
@@ -190,7 +190,7 @@ Test(SockUnixTest, MethodSetPeerAddress)
     cr_expect(zero(strcmp(sk->getPeerAddress(sk), "/tes1")));
     cr_expect(not(sk->isPeerAddressAbstract(sk)));
     // Using abstract socket address
-    cr_expect(sk->setPeerAddressA(sk, "tes1"));
+    cr_expect(sk->setPeerAddressAbstract(sk, "tes1"));
     cr_expect(eq(str, (char *)sk->getPeerAddress(sk) + 1, "tes1"));
     cr_expect(eq(str, (char *)sk->getPeerAddress(sk), "")); // First char is 0
     cr_expect(sk->isPeerAddressAbstract(sk));

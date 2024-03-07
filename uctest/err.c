@@ -52,9 +52,10 @@ Test(ErrorTest, MethodGetFile)
 // int ptpmgmt_err_getFileLine()
 Test(ErrorTest, MethodGetFileLine)
 {
+    uint32_t line = __LINE__;
     uctest_error(__FILE__, __LINE__, __func__);
     cr_expect(ptpmgmt_err_isError());
-    cr_expect(eq(i32, ptpmgmt_err_getFileLine(), 55));
+    cr_expect(eq(i32, ptpmgmt_err_getFileLine(), line + 1));
 }
 
 // Tests get error in function name

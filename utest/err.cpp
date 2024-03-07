@@ -79,9 +79,10 @@ TEST(ErrorTest, MethodGetFile)
 // static int getFileLine()
 TEST(ErrorTest, MethodGetFileLine)
 {
+    uint32_t line = __LINE__;
     PTPMGMT_ERROR("test %s", "macro");
     EXPECT_TRUE(Error::isError());
-    EXPECT_EQ(Error::getFileLine(), 82);
+    EXPECT_EQ(Error::getFileLine(), line + 1);
 }
 
 // Tests get error in function name
