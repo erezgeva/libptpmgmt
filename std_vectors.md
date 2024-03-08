@@ -86,4 +86,4 @@ The container in Python acts as list, and in Ruby as array.
   * [Ruby array](https://ruby-doc.org/core/Array.html)
 
 Perl, Lua, PHP, Tcl, and Go use only the methods declared in `vecDef.h`.  
-See doxygen documentation of `vecDef.h` for more details on the container methods.
+See doxygen documentation of [vecDef.h](https://erezgeva.github.io/libptpmgmt/vecDef_8h.html) for more details on the container methods.

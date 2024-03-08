@@ -116,6 +116,9 @@ AS_UNSET([HAVE_GETOPT_H])
 AS_UNSET([HAVE_SYS_TYPES_H])
 AS_UNSET([HAVE_UNISTD_H])
 
+# Used when compile with includes
+AS_VAR_SET([ptpm_c_include], ["#include"])
+
 # Probe clang as it requires additional warning supression flags
 AS_IF([echo $CXX | $GREP "clang" >/dev/null],
       [AS_VAR_SET([USE_CLANG_CPP_COMPILE], ["use_clang"])])
@@ -249,7 +252,6 @@ AS_IF([test -n "$HAVE_GTEST_HEADER" && test -n "$PKG_CONFIG" &&\
 
 AC_CHECK_HEADER([criterion/criterion.h],
                 [AS_VAR_SET([HAVE_CRITERION_HEADER], ["criterion/criterion.h"])])
-AS_VAR_SET([ptpm_c_include], ["#include"])
 AC_COMPILE_IFELSE(
    [AC_LANG_PROGRAM([$ptpm_c_include <$HAVE_CRITERION_HEADER>
                      $ptpm_c_include <criterion/new/assert.h>

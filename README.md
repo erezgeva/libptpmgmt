@@ -50,8 +50,8 @@ For now, we support:
   * Perl version 5
   * Python version 3
   * Lua versions 5.1, 5.2, 5.3, 5.4
-  * Ruby version 2
-  * PHP version 7
+  * Ruby version 2, 3
+  * PHP version 7, 8
   * Tcl version 8
   * Go version 1.14 and above
 
@@ -74,28 +74,28 @@ Lua uses subst of C++ standard vector methods.
 Perl, PHP, and Go use class methods. See PtpMgmtLib.pm for Perl, ptpmgmt.php for php,
  and ptpmgmt.go for Go, for these methods.
 
-std_vectors.md provides more information on vectors mapping and the Doxygen documentation provides information per class.
+[std_vectors.md](./std_vectors.md) provides more information on vectors mapping and the Doxygen documentation provides information per class.
 
 # <u>Go wrapper</u>
 
 Since Go is a compile language,  
 and not a "pure" script, the wrapper is used a bit differently.  
 The wrapper is only required during development,  
- as the resulting application is a binary that does not require the Go wrapper, only the main library.  
-During development, you need the Go wrapper and the main library development headers,  
- as the Go build checks compilation of the Go wrapper.  
+ as the resulting application is a binary that does not require the Go wrapper, only the C++ library.  
+During development, you need the Go wrapper and the C++ library development headers,  
+ as the Go build compile the Go wrapper.  
 In addition add the '-lm -lptpmgmt' flags to the linking using the `CGO_LDFLAGS` environment,  
- so Go will link your application with the main library.  
+ so Go will link your application with the C++ library.  
 Pay attention that although Go uses static typing and checks the types in compilation,
 some C++ methods uses variable arguments or share name for different methods. In this case, swig will use the `... interface{}` parameter
-and perform the type check in runtime; if types are wrong, the Go swig wrapper will issue an exception to your application.  
-For example, `Binary.SetBin(position, value)` requires `position` to be `int64` and `value` to be `byte`.
-Go uses methods for interface are using Pascal notation, so all class functions in the main library are converted to use first letter capital.  
+and perform the type check in runtime; if types are wrong, the Go swig wrapper will issue an exception to your application in run-time.  
+For example, `Binary.SetBin(position, value)` requires `position` to be `int64` and `value` to be `byte`.  
+Go uses methods for interface which use Pascal notation, so all class functions in the C++ library are converted to use first letter capital.  
 Go does not use constructors and destructors.  
 You need to use the New'Class' functions and release with Delete'Class'.  
-You can use the `defer` statment for the releasing, if the release is due to the same function.  
+You can use the `defer` statment for the releasing, if the release is due in the same function.  
 As Go does not provide destructors, MessageBuilder is not a class and it does not call `message.clearData()` once it is removed.  
-You are advised to call `message.clearData()` once you build the message, and do not plan to further use the send TLV.
+You are advised to call `message.clearData()` once you build the message, and do not plan any further use with the send TLV.
 
 # <u>Library content</u>
   * Binary in bin.h - Class that holds a binary

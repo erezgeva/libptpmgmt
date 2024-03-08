@@ -421,7 +421,7 @@ $(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/cpp.m4
 	$(Q_GEN)$(M4) -I $(SRC) -D lang=cpp $< > $@
 $(PUB)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/cpp.m4
 	$(Q_GEN)$(M4) -I $(SRC) -D lang=cpp $< > $@
-$(PUB_C)/%.h: $(SRC)/%.m4 $(SRC)/c.m4
+$(PUB_C)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/c.m4
 	$(Q_GEN)$(M4) -I $(SRC) -D lang=c $< > $@
 # This is basically what configure does.
 # Yet, I prefer configure create only the def.mk,

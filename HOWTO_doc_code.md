@@ -25,10 +25,11 @@ This document guides how to do it properly.
     ```
 
  1. Each header file starts with:
-    * The licence using SPDX ID; our project uses LGPL 3 or later for all library source code
+    * The licence and copyright using SPDX IDs; our project uses LGPL 3 or later for all library source code.
     *  empty `@file` that starts the block
     *  `@brief` - one line sentence describing this header
     *  `@author` - you may add yourself
+    *  `@copyright` - The copyright. The main library is copyright to Erez Geva. The copyright apear twice, the SPDX ID is for SBOM and this tag is for Doxygen.
     *  following these commands, you may add a more substantial description, if needed
  1. Before each class, structure, or enumerator, add a block with description. You may use `@brief`, and `@detail`. We usually use both of them or none.
  1. Before function and methods we use a multiple lines block. We start with descriptions, and then we list parameters with the `@param`, and the return value with `@return`, if any. You may add `@note` and `@attention` if you wish to add clarifications. Use `@attention` for more important issues.
@@ -38,7 +39,7 @@ This document guides how to do it properly.
     /**< @cond internal
      * description why we block
      */
-    ...
+    …
     /**< @endcond */
     ```
 

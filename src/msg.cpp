@@ -125,6 +125,7 @@ size_t MsgParams::countSigTlvs() const
 #define use_GS  A_GET | A_SET
 #define use_GL  A_GET | A_USE_LINUXPTP
 #define use_GSL A_GET | A_SET | A_USE_LINUXPTP
+#define use_CL A_COMMAND | A_USE_LINUXPTP
 const ManagementId_t Message::mng_all_vals[] = {
 #define A(n, v, sc, a, sz, f)\
     [n] = {.value = 0x##v, .scope = s_##sc, .allowed = a, .size = sz},

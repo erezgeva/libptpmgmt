@@ -43,7 +43,8 @@ main()
   local -r dpkgs_trixie=''
   local dpkgs_arch='libstdc++6
     libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
-    libfastjson-dev libgtest-dev lua-posix libjson-c-dev'
+    libfastjson-dev libgtest-dev lua-posix libjson-c-dev
+    libssl-dev libgnutls28-dev nettle-dev'
   for n in 1-0 {2..4};do dpkgs_arch+=" liblua5.$n-dev";done
   local no_cache use_github gh_ns args
   tool_docker_get_opts "$@"

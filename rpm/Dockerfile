@@ -16,8 +16,9 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sudo automake autoconf yum-utils rpm-build dnf-utils fedora-packager\
     rpmdevtools doxygen graphviz perl php-devel ruby ruby-devel swig astyle\
     lua lua-devel python3-devel php python3 which gtest-devel gtest golang\
-    perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel libfastjson clang\
-    libfastjson-devel json-c-devel m4 rubygem-test-unit perl-Test-Class\
+    perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel clang openssl-libs\
+    openssl-devel gnutls-devel nettle-devel libfastjson libfastjson-devel\
+    json-c-devel m4 rubygem-test-unit perl-Test-Class\
     texlive-epstopdf ghostscript php-phpunit-PHPUnit perl-File-Touch jq &&\
     dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
