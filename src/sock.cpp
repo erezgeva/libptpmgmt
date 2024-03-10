@@ -34,7 +34,6 @@
 #include "sock.h"
 #include "timeCvrt.h"
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 // Values from IEEE 1588 standard

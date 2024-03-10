@@ -22,6 +22,7 @@
 #include "sig.h" /* Structures for signalling TLVs */
 #include "json.h"
 
+using namespace std;
 /* ************************************************************************** */
 /* compilation macroes */
 

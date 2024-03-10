@@ -31,7 +31,6 @@
 #include "ptp.h"
 #include "timeCvrt.h"
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 // These are system/hardware based parameters

@@ -22,7 +22,6 @@ extern "C" {
 #include "c/proc.h"
 }
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 /**

@@ -12,7 +12,6 @@
 #include "cfg.h"
 #include "comp.h"
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 #define get_func(n)\

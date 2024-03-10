@@ -17,7 +17,6 @@
 #include <dlfcn.h>
 #endif
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 // From JSON part

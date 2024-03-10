@@ -105,7 +105,7 @@ struct JsonVal {
             case JT_DOUBLE:
                 switch(to) {
                     case JT_INT:
-                        if(!std::isnormal(fltV) || fmod(fltV, 1) != 0)
+                        if(!isnormal(fltV) || fmod(fltV, 1) != 0)
                             return false;
                         intV = trunc(fltV);
                         break;
@@ -605,7 +605,7 @@ struct JsonProcFromJson : public JsonProcFrom {
     void procZeroFlag(uint8_t &flags) override {
         flags = 0;
     }
-    bool procArray(const char *key, std::vector<ClockIdentity_t> &d) override {
+    bool procArray(const char *key, vector<ClockIdentity_t> &d) override {
         if(!isType(key, JT_ARRAY))
             return false;
         JSON_POBJ arr = valsMap[key].objV;
@@ -628,7 +628,7 @@ struct JsonProcFromJson : public JsonProcFrom {
         return ret;
     }
 #define procVector(type)\
-    bool procArray(const char *key, std::vector<type> &d) override {\
+    bool procArray(const char *key, vector<type> &d) override {\
         if(!isType(key, JT_ARRAY))\
             return false;\
         JSON_POBJ arr = valsMap[key].objV;\

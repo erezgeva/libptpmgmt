@@ -14,7 +14,6 @@
 #include "ver.h"
 #include "comp.h"
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 #define _tf true, false  // with argument

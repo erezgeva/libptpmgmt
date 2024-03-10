@@ -14,7 +14,6 @@
 #include <mutex>
 #include "comp.h"
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 #define JS(n) static inline bool proc_##n(JsonProc &proc, n##_t &d)

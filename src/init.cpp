@@ -32,7 +32,7 @@ int Init::process(const Options &opt)
         return -1;
     if(net_select == 0)
         net_select = m_cfg.network_transport();
-    std::string interface;
+    string interface;
     if(opt.have('i') && !opt.val('i').empty())
         interface = opt.val('i');
     IfInfo ifObj;
@@ -72,7 +72,7 @@ int Init::process(const Options &opt)
                 return -1;
             }
             m_sk.reset(sku);
-            std::string uds_address;
+            string uds_address;
             if(opt.have('s'))
                 uds_address = opt.val('s');
             else

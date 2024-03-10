@@ -15,7 +15,6 @@
 #include "timeCvrt.h"
 #include "comp.h"
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 struct floor_t {

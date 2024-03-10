@@ -12,7 +12,6 @@
 #include "comp.h"
 #include <cstdarg>
 
-using namespace std;
 __PTPMGMT_NAMESPACE_BEGIN
 
 void Error::doError(bool use_errno, const char *file, int line,

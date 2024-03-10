@@ -16,12 +16,12 @@ __PTPMGMT_NAMESPACE_USE;
 extern "C" {
     void uctest_error(const char *file, int line, const char *func)
     {
-        std::string m = Error::doFormat("test %s", "macro");
+        string m = Error::doFormat("test %s", "macro");
         Error::error(file, line, func, m);
     }
     void uctest_perror(const char *file, int line, const char *func)
     {
-        std::string m = Error::doFormat("test %s", "macro");
+        string m = Error::doFormat("test %s", "macro");
         Error::perror(file, line, func, m);
     }
 }
