@@ -546,7 +546,7 @@ probeBuild()
 }
 allBuild()
 {
- ldPath="LD_PRELOAD=.$libptpm"
+ ldPath="LD_LIBRARY_PATH=. LD_PRELOAD=.$libptpm"
  needCmpl=y
  # We need all!
  ldPathPerl="$ldPath PERL5LIB=wrappers/perl"
@@ -573,10 +573,33 @@ allBuild()
  done
  ldPathPhp="$ldPath PHPRC=wrappers/php"
  ldPathTcl="$ldPath TCLLIBPATH=wrappers/tcl"
- ldPathJson="$ldPath LD_LIBRARY_PATH=. PERL5LIB=wrappers/perl"
+ ldPathJson="$ldPath PERL5LIB=wrappers/perl"
 }
 probeLibsDebian()
 {
+ local -i hmacCount=0
+ getFirstFile "/usr/lib$fmach/libptpmgmt_gcrypt.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ getFirstFile "/usr/lib$fmach/libptpmgmt_gnutls.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ getFirstFile "/usr/lib$fmach/libptpmgmt_nettle.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ getFirstFile "/usr/lib$fmach/libptpmgmt_openssl.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ # One HMAC plugin is sufficient
+ if [[ $hmacCount -eq 0 ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no hmac plugs"
+   needCmpl=y
+   ldPath="LD_LIBRARY_PATH=."
+ fi
  local -i jsonCount=0
  getFirstFile "/usr/lib$fmach/libptpmgmt_fastjson.so.*"
  if [[ -f "$file" ]]; then
@@ -589,7 +612,7 @@ probeLibsDebian()
  # One from JSON plugin is sufficient
  if [[ $jsonCount -eq 0 ]]; then
    needCmpl=y
-   ldPathJson="LD_LIBRARY_PATH=."
+   [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=."
  fi
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
@@ -609,7 +632,7 @@ probeLibsDebian()
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
      needCmpl=y
-     eval "ldPathLua${i/./}=\"LUA_CPATH='wrappers/lua/$i/?.so;;'\""
+     eval "ldPathLua${i/./}=\"$ldPath LUA_CPATH='wrappers/lua/$i/?.so;;'\""
    fi
  done
  for i in $pyVersions; do
@@ -617,6 +640,7 @@ probeLibsDebian()
    if ! [[ -f "$file" ]]; then
      eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
    fi
+   [[ -z "$ldPath" ]] || eval "ldPrePathPython$i='$ldPath '"
  done
  [[ -z "$ldPathPython3" ]] || needCmpl=y
  if ! [[ -f "$(php-config --extension-dir)/ptpmgmt.so" ]]; then
@@ -632,9 +656,36 @@ probeLibsDebian()
  if ! [[ -f "$file" ]]; then
    needCmpl=y
  fi
+ if [[ -n "$ldPath" ]]; then
+   for n in Perl Ruby Php Tcl Json
+   do eval "ldPath$n='$ldPath ${ldPath$n}'";done
+ fi
 }
 probeLibs()
 {
+ local -i hmacCount=0
+ getFirstFile "$libdir/libptpmgmt_gcrypt.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ getFirstFile "$libdir/libptpmgmt_gnutls.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ getFirstFile "$libdir/libptpmgmt_nettle.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ getFirstFile "$libdir/libptpmgmt_openssl.so.*"
+ if [[ -f "$file" ]]; then
+   hmacCount='hmacCount + 1'
+ fi
+ # One HMAC plugin is sufficient
+ if [[ $hmacCount -eq 0 ]]; then
+   [[ -z "$no_build" ]] || echo "Build as: no hmac plugs"
+   needCmpl=y
+   ldPath="LD_LIBRARY_PATH=."
+ fi
  if [[ -z "$HAVE_JSONC_LIB" ]] && [[ -z "$HAVE_FJSON_LIB" ]]; then
    skip_json=true
  else
@@ -651,7 +702,7 @@ probeLibs()
    if [[ $jsonCount -eq 0 ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no json plugs"
      needCmpl=y
-     ldPathJson="LD_LIBRARY_PATH=."
+     [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=."
    fi
  fi
  getFirstFile "$PERL5DIR/auto/PtpMgmtLib/PtpMgmtLib.so"
@@ -672,7 +723,7 @@ probeLibs()
    if ! [[ -f "$file" ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no lua"
      needCmpl=y
-     ldPathLua="LUA_CPATH='wrappers/lua/?.so;;'"
+     ldPathLua="$ldPath LUA_CPATH='wrappers/lua/?.so;;'"
    fi
  else
    for i in $LUAVERSIONS; do
@@ -689,7 +740,7 @@ probeLibs()
            # Our Lua wrapper comes in a single package for all versions,
            # so a single probing flag is sufficient.
            needCmpl=y
-           eval "ldPathLua${i/./}=\"LUA_CPATH='wrappers/lua/$i/?.so;;'\""
+           eval "ldPathLua${i/./}=\"$ldPath LUA_CPATH='wrappers/lua/$i/?.so;;'\""
        fi
      fi
    done
@@ -709,6 +760,7 @@ probeLibs()
    if ! [[ -f "$file" ]]; then
      eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
    fi
+   [[ -z "$ldPath" ]] || eval "ldPrePathPython$i='$ldPath '"
  done
  # restore extglob to previous state
  $shopt_extglob
@@ -735,6 +787,10 @@ probeLibs()
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no go"
    needCmpl=y
+ fi
+ if [[ -n "$ldPath" ]]; then
+   for n in Perl Ruby Php Tcl Json
+   do eval "ldPath$n='$ldPath ${ldPath$n}'";done
  fi
 }
 ###############################################################################

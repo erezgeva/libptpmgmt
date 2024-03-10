@@ -35,13 +35,39 @@ int Init::process(const Options &opt)
     // handle configuration file
     if(opt.have('f') && !m_cfg.read_cfg(opt.val('f')))
         return -1;
+    // Authentication parameters
+    int spp = -1;
+    uint32_t key_id = 0;
+    m_allow_unauth = 0;
+    if(opt.have('B')) {
+        spp = opt.val_i('B');
+        if(spp < 0 || spp > UINT8_MAX)
+            return -1;
+    } else if(m_cfg.haveSpp())
+        spp = m_cfg.spp();
+    MsgParams prms = m_msg.getParams();
+    if(spp >= 0) {
+        key_id = opt.have('A') ? opt.val_i('A') : m_cfg.active_key_id();
+        if(key_id < 1 ||
+            (opt.have('F') && !m_sa.read_sa(opt.val('F'))) ||
+            !m_sa.read_sa(m_cfg) ||
+            !m_msg.useAuth(m_sa, spp, key_id))
+            return -1;
+        m_allow_unauth = opt.have('U') ? opt.val_i('U') : m_cfg.allow_unauth();
+        // mode 1 and 2 allow receiving with authentication errors
+        // RCV_AUTH_ALL is the default
+        if(m_allow_unauth > 0)
+            prms.rcvAuth |= RCV_AUTH_IGNORE;
+        // Authentication requires IEEE 1588-2019 which uses PTP minor version 1
+        if(prms.minorVersion < 1)
+            prms.minorVersion = 1;
+    }
     if(net_select == 0)
         net_select = m_cfg.network_transport();
     string interface;
     if(opt.have('i') && !opt.val('i').empty())
         interface = opt.val('i');
     IfInfo ifObj;
-    MsgParams prms = m_msg.getParams();
     if(net_select != 'u') {
         if(interface.empty()) {
             PTPMGMT_ERROR("missing interface");
@@ -167,6 +193,7 @@ extern "C" {
 #include "c/init.h"
 
     extern ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg);
+    extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
     extern ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg);
     extern ptpmgmt_sk ptpmgmt_sk_alloc_wrap(ptpmgmt_socket_class type,
         SockBase *sko);
@@ -178,6 +205,11 @@ extern "C" {
                 me->sCfg->free(me->sCfg);
                 free(me->sCfg);
                 me->sCfg = nullptr;
+            }
+            if(me->sSaFile != nullptr) {
+                me->sSaFile->free(me->sSaFile);
+                free(me->sSaFile);
+                me->sSaFile = nullptr;
             }
             if(me->sMsg != nullptr) {
                 me->sMsg->free(me->sMsg);
@@ -213,6 +245,15 @@ extern "C" {
             if(me->sCfg == nullptr)
                 me->sCfg = ptpmgmt_cfg_alloc_wrap(((Init *)me->_this)->cfg());
             return me->sCfg;
+        }
+        return nullptr;
+    }
+    static ptpmgmt_safile ptpmgmt_init_sa(ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr) {
+            if(me->sSaFile == nullptr)
+                me->sSaFile = ptpmgmt_safile_alloc_wrap(((Init *)me->_this)->sa());
+            return me->sSaFile;
         }
         return nullptr;
     }
@@ -266,6 +307,12 @@ extern "C" {
             return ((Init *)me->_this)->use_uds();
         return false;
     }
+    static uint8_t ptpmgmt_init_allow_unauth(const_ptpmgmt_init me)
+    {
+        if(me != nullptr && me->_this != nullptr)
+            return ((Init *)me->_this)->allow_unauth();
+        return 0;
+    }
     ptpmgmt_init ptpmgmt_init_alloc()
     {
         ptpmgmt_init me = (ptpmgmt_init)malloc(sizeof(ptpmgmt_init_t));
@@ -281,11 +328,14 @@ extern "C" {
         C_ASGN(close);
         C_ASGN(process);
         C_ASGN(cfg);
+        C_ASGN(sa);
         C_ASGN(msg);
         C_ASGN(sk);
         C_ASGN(getNetSelect);
         C_ASGN(use_uds);
+        C_ASGN(allow_unauth);
         me->sCfg = nullptr;
+        me->sSaFile = nullptr;
         me->sMsg = nullptr;
         me->sSk = nullptr;
         return me;

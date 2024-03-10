@@ -161,6 +161,12 @@ function main()
     return printError("fail init socket")
   end
   local prms = msg:getParams()
+  if(cfg:haveSpp()) then
+    if(not msg:useAuth(cfg)) then
+      return printError("fail using Authentication");
+    end
+    prms.sendAuth = true
+  end
   -- When using Lua 5.3, you can use "and" bitwise operator.
   -- Lua 5.1 does not support bitwise operators.
   local pid = unistd.getpid()

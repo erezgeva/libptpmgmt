@@ -379,9 +379,11 @@ sim_ptp4l()
  make ptp4l_sim
  if [[ $(id -u) -eq 0 ]]; then
    local -r cfg=/tmp/ptp4l.conf
+   local -r sa_file=/tmp/sa_file.cfg
  else
    local tmp=`mktemp -d`
    local -r cfg=$tmp/ptp4l.conf
+   local -r sa_file=$tmp/sa_file.cfg
    local -r uds=$tmp/ptp4l
  fi
  cat << EOF > $cfg
@@ -389,6 +391,14 @@ sim_ptp4l()
 clientOnly 1
 use_syslog 0
 userDescription testing with ptp4l
+spp 1
+active_key_id 1
+sa_file $sa_file
+EOF
+ cat << EOF > $sa_file
+[security_association]
+spp 1
+1 AES128 16 B64:IWnCCVk5+TcRExXy7OI7Sw
 EOF
  if [[ -n "$uds" ]]; then
    printf "uds_address $uds\nuds_ro_address $uds.ro\n" >> $cfg

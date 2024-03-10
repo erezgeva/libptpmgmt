@@ -95,6 +95,7 @@ static inline int rcv()
         return -1;
     }
     MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
+    uint8_t unauth_trsh = 1;
     switch(err) {
         case MNG_PARSE_ERROR_MSG:
             dump_err();
@@ -112,6 +113,41 @@ static inline int rcv()
             if(!use_uds)
                 // We got the wrong message, wait for the next one
                 return 1;
+        // 1: accept without Authentication TLV
+        case MNG_PARSE_ERROR_AUTH_NONE:
+            unauth_trsh = 0;
+            FALLTHROUGH;
+        // 2: accept any Authentication error
+        case MNG_PARSE_ERROR_AUTH:
+            FALLTHROUGH;
+        case MNG_PARSE_ERROR_AUTH_NOKEY:
+            FALLTHROUGH;
+        case MNG_PARSE_ERROR_AUTH_WRONG:
+            if(obj.allow_unauth() > unauth_trsh) {
+                DUMPS("Authentication ignore %s\n", msg.err2str_c(err));
+                switch(msg.getType()) {
+                    case Signaling:
+                        dump_sig();
+                        msg.traversSigTlvs(call_dumpSig);
+                        return 1; // Do not count signalling messages
+                    case Management:
+                        switch(msg.getMngType()) {
+                            case MANAGEMENT:
+                                dump_head(msg.getReplyAction());
+                                call_dump(msg);
+                                return 0;
+                            case MANAGEMENT_ERROR_STATUS:
+                                dump_err();
+                                break;
+                            default:
+                                break;
+                        }
+                    default:
+                        break;
+                }
+                break;
+            }
+            FALLTHROUGH;
         default:
             DUMPS("Parse error %s\n", msg.err2str_c(err));
             break;

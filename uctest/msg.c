@@ -60,6 +60,8 @@ Test(MessageTest, MethodGetParams)
     p1->domainNumber = 17;
     p1->boundaryHops = 13;
     p1->isUnicast = false;
+    p1->sendAuth = true;
+    p1->rcvAuth = PTPMGMT_RCV_AUTH_SIG_LAST;
     ptpmgmt_msg m = ptpmgmt_msg_alloc_prms(p1);
     cr_assert(not(zero(ptr, m)));
     ptpmgmt_cpMsgParams p = m->getParams(m);
@@ -78,6 +80,8 @@ Test(MessageTest, MethodGetParams)
     cr_expect(eq(int, p->rcvSignaling, p1->rcvSignaling));
     cr_expect(eq(int, p->filterSignaling, p1->filterSignaling));
     cr_expect(eq(int, p->rcvSMPTEOrg, p1->rcvSMPTEOrg));
+    cr_expect(eq(i8, p->sendAuth, p1->sendAuth));
+    cr_expect(eq(i8, p->rcvAuth, p1->rcvAuth));
     m->free(m);
     p1->free(p1);
 }
@@ -92,6 +96,8 @@ Test(MessageTest, MethodUpdateParams)
     p1->domainNumber = 17;
     p1->boundaryHops = 13;
     p1->isUnicast = false;;
+    p1->sendAuth = true;
+    p1->rcvAuth = PTPMGMT_RCV_AUTH_SIG_ALL;
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     cr_assert(not(zero(ptr, m)));
     cr_expect(m->updateParams(m, p1));
@@ -111,6 +117,8 @@ Test(MessageTest, MethodUpdateParams)
     cr_expect(eq(int, p->rcvSignaling, p1->rcvSignaling));
     cr_expect(eq(int, p->filterSignaling, p1->filterSignaling));
     cr_expect(eq(int, p->rcvSMPTEOrg, p1->rcvSMPTEOrg));
+    cr_expect(eq(i8, p->sendAuth, p1->sendAuth));
+    cr_expect(eq(i8, p->rcvAuth, p1->rcvAuth));
     m->free(m);
     p1->free(p1);
 }
@@ -235,6 +243,14 @@ Test(MessageTest, MethodErr2str)
             "MNG_PARSE_ERROR_UNSUPPORT"));
     cr_expect(eq(str, (char *)ptpmgmt_msg_err2str(PTPMGMT_MNG_PARSE_ERROR_MEM),
             "MNG_PARSE_ERROR_MEM"));
+    cr_expect(eq(str, (char *)ptpmgmt_msg_err2str(PTPMGMT_MNG_PARSE_ERROR_AUTH),
+            "MNG_PARSE_ERROR_AUTH"));
+    cr_expect(eq(str, (char *)ptpmgmt_msg_err2str(
+                PTPMGMT_MNG_PARSE_ERROR_AUTH_NONE), "MNG_PARSE_ERROR_AUTH_NONE"));
+    cr_expect(eq(str, (char *)ptpmgmt_msg_err2str(
+                PTPMGMT_MNG_PARSE_ERROR_AUTH_WRONG), "MNG_PARSE_ERROR_AUTH_WRONG"));
+    cr_expect(eq(str, (char *)ptpmgmt_msg_err2str(
+                PTPMGMT_MNG_PARSE_ERROR_AUTH_NOKEY), "MNG_PARSE_ERROR_AUTH_NOKEY"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->err2str(PTPMGMT_MNG_PARSE_ERROR_OK),

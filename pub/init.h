@@ -27,10 +27,12 @@ class Init
 {
   private:
     ConfigFile m_cfg;
+    SaFile m_sa;
     Message m_msg;
     std::unique_ptr<SockBase> m_sk;
     char m_net_select;
     bool m_use_uds;
+    uint8_t m_allow_unauth;
 
   public:
     /**
@@ -51,6 +53,12 @@ class Init
      * @return object
      */
     const ConfigFile &cfg() const { return m_cfg; }
+
+    /**
+     * Get authentication security association file object
+     * @return object
+     */
+    const SaFile &sa() const { return m_sa; }
 
     /**
      * Get Message object
@@ -80,6 +88,12 @@ class Init
      * @return true if the socket is a UDS socket
      */
     bool use_uds() const { return m_use_uds; }
+
+    /**
+     * Allow unauthnticated parameter
+     * @return Allow unauthnticated value
+     */
+    uint8_t allow_unauth() const { return m_allow_unauth; }
 
     /** @cond internal
      * obsolete function: misspelled

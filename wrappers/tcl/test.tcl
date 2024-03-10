@@ -147,6 +147,12 @@ proc main {cfg_file} {
     return printError "fail init socket"
   }
   set prms [ msg getParams ]
+  if { [ $cfg haveSpp ] } {
+    if { ! [ msg useAuth $cfg ] } {
+      return printError "fail using Authentication";
+    }
+    $prms configure -sendAuth true
+  }
   [ $prms cget -self_id] configure -portNumber [ expr [ pid ] & 0xffff ]
   # Verify we can use implementSpecific_e
   $prms configure -implementSpecific $ptpmgmt::linuxptp

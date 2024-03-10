@@ -8,8 +8,8 @@
  * @copyright © 2023 Erez Geva
  */
 
-/* TODO is working with SWIG director more simply? */
-/* TODO Is it possible to have the callback with the TLV type? */
+/* TODO is working with SWIG director more simply?
+        Is it possible to have the callback with the TLV type? */
 
 %include "allocTlv.i"
 

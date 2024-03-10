@@ -119,6 +119,14 @@ enm(MNG_PARSE_ERROR_e) {
     NM(MNG_PARSE_ERROR_UNSUPPORT),
     /** Fail to allocate TLV data */
     NM(MNG_PARSE_ERROR_MEM),
+    /** Authentication error */
+    NM(MNG_PARSE_ERROR_AUTH),
+    /** Received without any Authentication */
+    NM(MNG_PARSE_ERROR_AUTH_NONE),
+    /** Received Authentication with wrong ICV */
+    NM(MNG_PARSE_ERROR_AUTH_WRONG),
+    /** Received Authentication with unkown key */
+    NM(MNG_PARSE_ERROR_AUTH_NOKEY),
 };
 /** PTP messages type
  * @note: 4 bits
@@ -902,6 +910,20 @@ strc(ManagementId_t) {
     ssize_t size;
 };
 
+/** Receive Authentication modes */
+enm(MsgParams_RcvAuth_e) sz(: uint8_t) {
+    NM(RCV_AUTH_NONE) = 0, /**< Ignore all Authentication TLVs */
+    /** Proccess Authentication TLVs of All Managment packts */
+    NM(RCV_AUTH_MNG) = (1 << 0),
+    /** Proccess last Authentication TLVs of Signaling */
+    NM(RCV_AUTH_SIG_LAST) = (1 << 1),
+    /** Proccess all Authentication TLVs of Signaling */
+    NM(RCV_AUTH_SIG_ALL) = (1 << 2),
+    NM(RCV_AUTH_ALL) = 0x7, /**< Proccess all Authentication TLVs */
+    /** Continure proccess, with Authentication errors */
+    NM(RCV_AUTH_IGNORE) = (1 << 3),
+};
+
 c_cod(`/** pointer to ptpmgmt_MsgParams structure */')dnl
 c_cod(`typedef struct ptpmgmt_MsgParams *ptpmgmt_pMsgParams;')dnl
 c_cod(`/** pointer to constant ptpmgmt_MsgParams structure */')dnl
@@ -922,6 +944,7 @@ c_cod(`    /**< @endcond */')dnl
     uint8_t transportSpecific; /**< transport specific */
     uint8_t domainNumber; /**< domain number */
     uint8_t boundaryHops; /**< boundary hops */
+    uint8_t minorVersion; /**< PTP minor version (We support 2.x) */
     bool isUnicast; /**< Mark message as unicast */
     /** Implementation-specific to use */
     enmc(implementSpecific_e) implementSpecific;
@@ -931,6 +954,17 @@ c_cod(`    /**< @endcond */')dnl
     bool rcvSignaling; /**< parse signalling messages */
     bool filterSignaling; /**< use filter for signalling messages TLVs */
     bool rcvSMPTEOrg; /**< parse SMPTE Organization Extension TLV */
+    /**
+     * Send with Authentication TLV
+     * User must call Message::useAuth() to setup the key for send
+     */
+    bool sendAuth;
+    /**
+     * Receive Authentication mode
+     * Use values from MsgParams_RcvAuth_e
+     * User must call Message::useAuth() to setup the spp pool
+     */
+    uint8_t rcvAuth;
 cpp_cod(`    /** empty constructor */')dnl
 cpp_cod(`    MsgParams();')dnl
     /**

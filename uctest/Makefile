@@ -10,6 +10,7 @@
 
 UCTEST:=$(OBJ_DIR)/uctest
 UCTEST_SYS:=$(OBJ_DIR)/uctest_sys
+UCTEST_AUTH:=$(OBJ_DIR)/uctest_auth
 UCTEST_SRCS:=cfg ver err setErr opt msg mngIds types proc sig msg2json msgCall
 UCTEST_SYS_SRCS:=sock ptp init
 UCTEST_OBJS:=$(foreach n,$(UCTEST_SRCS),uctest/$n.o)
@@ -33,5 +34,12 @@ ifndef SKIP_LIBSYS
 uctest_sys: $(HEADERS_GEN_COMP) $(UCTEST_SYS)
 	$(call Q_UTEST,C-SYS)LD_PRELOAD=./$(TEST_LIBSYS) $(UVGD)$(UCTEST_SYS)\
 	  -j1 $(CRTEST_FILTERS)
+endif
+ifneq ($(HMAC_ALIB),)
+$(UCTEST_AUTH): uctest/auth.o $(LIB_NAME_A) $(HMAC_ALIB)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(HMAC_LIBA_FLAGS)\
+	  $(HMAC_ALIB_FLAGS) $(CRITERION_LIB_FLAGS) -o $@
+uctest_auth: $(HEADERS_GEN_COMP) $(UCTEST_AUTH)
+	$(call Q_UTEST,C-AUTH)$(UVGD)$(UCTEST_AUTH) $(CRTEST_FILTERS)
 endif
 utest_c: $(UTEST_C_TGT)

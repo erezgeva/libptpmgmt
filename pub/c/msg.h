@@ -46,6 +46,7 @@ struct ptpmgmt_msg_t {
     struct ptpmgmt_PortIdentity_t _peer;
     struct ptpmgmt_PortIdentity_t _target;
     struct ptpmgmt_MsgParams _prms;
+    ptpmgmt_safile _sa;
     /** The last user dataSend ysed in calling setAction */
     const void *dataSend;
     void *sendTlv; /**< The BaseMngTlv object used to send on C++ */
@@ -74,6 +75,69 @@ struct ptpmgmt_msg_t {
      * @return true if parameters are valid and updated
      */
     bool (*updateParams)(ptpmgmt_msg msg, ptpmgmt_cpMsgParams prms);
+    /**
+     * Use the AUTHENTICATION TLV on send and receive
+     *  read parameters from configuration file.
+     * @param[in, out] msg object
+     * @param[in] cfg reference to configuration file object
+     * @param[in] section in configuration file
+     * @return true if find valid authentication parameters and hmac library
+     */
+    bool (*useAuth_cfg)(ptpmgmt_msg msg, const_ptpmgmt_cfg cfg,
+        const char *section);
+    /**
+     * Use the AUTHENTICATION TLV on send and receive, read SA file.
+     * @param[in, out] msg object
+     * @param[in] sa reference to SA file object
+     * @param[in] spp ID to use to send
+     * @param[in] key ID to use to send
+     * @return true if find valid authentication parameters and hmac library
+     */
+    bool (*useAuth)(ptpmgmt_msg msg, const_ptpmgmt_safile sa, uint8_t spp,
+        uint32_t key);
+    /**
+     * Change the spp and send key used in the AUTHENTICATION TLVs
+     * @param[in, out] msg object
+     * @param[in] spp ID to use to send
+     * @param[in] key ID to use to send
+     * @return true if change success
+     */
+    bool (*changeAuth)(ptpmgmt_msg msg, uint8_t spp, uint32_t key);
+    /**
+     * Change the send key used in the AUTHENTICATION TLVs.
+     * @param[in, out] msg object
+     * @param[in] key ID to use to send
+     * @return true if change success
+     */
+    bool (*changeAuthKey)(ptpmgmt_msg msg, uint32_t key);
+    /**
+     * Disable the use of AUTHENTICATION TLV.
+     * @param[in, out] msg object
+     * @return true if disabled
+     */
+    bool (*disableAuth)(ptpmgmt_msg msg);
+    /**
+     * Get used AUTHENTICATION TLV Spp ID used for send
+     * @return Spp ID or -1
+     */
+    int (*usedAuthSppID)(const_ptpmgmt_msg msg);
+    /**
+     * Get used AUTHENTICATION TLV key ID used for send.
+     * @param[in] msg object
+     * @return key ID or 0
+     */
+    uint32_t (*usedAuthKeyID)(const_ptpmgmt_msg msg);
+    /**
+     * Get authentication security association pool
+     * @return authentication parameters
+     */
+    const_ptpmgmt_safile(*getSa)(ptpmgmt_msg msg);
+    /**
+     * Get if AUTHENTICATION TLV with authentication parameters are used
+     * @param[in] msg object
+     * @return true if AUTHENTICATION TLV is used
+     */
+    bool (*haveAuth)(const_ptpmgmt_msg msg);
     /**
      * Get the current parsed TLV id
      * @param[in] msg object
@@ -348,6 +412,7 @@ struct ptpmgmt_msg_t {
      * @note the planned message size is based on the management TLV id,
      *  action and the dataSend set by the user.
      * You can use the size to allocate proper buffer for sending.
+     * Add Authentication TLV size if used.
      */
     ssize_t (*getMsgPlanedLen)(const_ptpmgmt_msg msg);
     /* Parsed message functions */

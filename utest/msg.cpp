@@ -50,6 +50,8 @@ TEST(MessageTest, MethodGetParams)
     p1.domainNumber = 17;
     p1.boundaryHops = 13;
     p1.isUnicast = false;;
+    p1.sendAuth = true;
+    p1.rcvAuth = RCV_AUTH_SIG_LAST;
     Message m(p1);
     const MsgParams &p = m.getParams();
     EXPECT_EQ(p.transportSpecific, p1.transportSpecific);
@@ -63,6 +65,8 @@ TEST(MessageTest, MethodGetParams)
     EXPECT_EQ(p.rcvSignaling, p1.rcvSignaling);
     EXPECT_EQ(p.filterSignaling, p1.filterSignaling);
     EXPECT_EQ(p.rcvSMPTEOrg, p1.rcvSMPTEOrg);
+    EXPECT_EQ(p.sendAuth, p1.sendAuth);
+    EXPECT_EQ(p.rcvAuth, p1.rcvAuth);
 }
 
 // Tests set parameters method
@@ -74,6 +78,8 @@ TEST(MessageTest, MethodUpdateParams)
     p1.domainNumber = 17;
     p1.boundaryHops = 13;
     p1.isUnicast = false;;
+    p1.sendAuth = true;
+    p1.rcvAuth = RCV_AUTH_SIG_ALL;
     Message m;
     EXPECT_TRUE(m.updateParams(p1));
     const MsgParams &p = m.getParams();
@@ -88,6 +94,8 @@ TEST(MessageTest, MethodUpdateParams)
     EXPECT_EQ(p.rcvSignaling, p1.rcvSignaling);
     EXPECT_EQ(p.filterSignaling, p1.filterSignaling);
     EXPECT_EQ(p.rcvSMPTEOrg, p1.rcvSMPTEOrg);
+    EXPECT_EQ(p.sendAuth, p1.sendAuth);
+    EXPECT_EQ(p.rcvAuth, p1.rcvAuth);
 }
 
 // Tests get parsed TLV ID method
@@ -177,6 +185,13 @@ TEST(MessageTest, MethodErr2str)
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_UNSUPPORT),
         "MNG_PARSE_ERROR_UNSUPPORT");
     EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_MEM), "MNG_PARSE_ERROR_MEM");
+    EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_AUTH), "MNG_PARSE_ERROR_AUTH");
+    EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_AUTH_NONE),
+        "MNG_PARSE_ERROR_AUTH_NONE");
+    EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_AUTH_WRONG),
+        "MNG_PARSE_ERROR_AUTH_WRONG");
+    EXPECT_STREQ(Message::err2str_c(MNG_PARSE_ERROR_AUTH_NOKEY),
+        "MNG_PARSE_ERROR_AUTH_NOKEY");
 }
 
 // tests convert message type to string method

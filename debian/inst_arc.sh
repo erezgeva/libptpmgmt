@@ -16,6 +16,7 @@ main()
   local -a l
   for n in libgcrypt20-dev
   do l+=($n:$a);done
+  apt-get update
   apt-get install -y --no-install-recommends ${l[@]}
  fi
 }

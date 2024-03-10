@@ -25,6 +25,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 struct MsgProc;
 class Message;
+struct HMAC_Key;
 
 /**
  * @brief Abstract class used for callback for Signalling TLVs traverse
@@ -91,6 +92,13 @@ class Message
     /* Generic */
     MsgParams         m_prms;
 
+    /* Authentication TLV */
+    uint32_t          m_keyID; /**< Key id used for sending */
+    uint8_t           m_sppID; /**< authentication security parameters ID */
+    SaFile            m_sa; /**< authentication security association pool */
+    bool              m_haveAuth;  /**< Have Authentication */
+    HMAC_Key         *m_hmac; /**< sending key HMAC library instance */
+
     /* parsing parameters */
     PortIdentity_t    m_peer; /* parsed message peer port id */
     PortIdentity_t    m_target; /* parsed message target port id */
@@ -106,7 +114,11 @@ class Message
     /* val in network order */
     static bool findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec);
     bool checkReplyAction(uint8_t actionField);
-    MNG_PARSE_ERROR_e parseSig(MsgProc *); /* parse signalling message */
+    /* parse signalling message */
+    MNG_PARSE_ERROR_e parseSig(const void *buf, MsgProc *);
+    /* parse authentication message */
+    MNG_PARSE_ERROR_e parseAuth(const void *buf, const void *auth, ssize_t left,
+        bool check = false);
     /*
      * dataFieldSize() for sending SET/COMMAND
      * Get dataField of current build managment ID
@@ -125,6 +137,7 @@ class Message
 
   public:
     Message();
+    ~Message();
     /**
      * Construct a new object using the user MsgParams parameters
      * @param[in] prms MsgParams parameters
@@ -142,6 +155,60 @@ class Message
      * @return true if parameters are valid and updated
      */
     bool updateParams(const MsgParams &prms);
+    /**
+     * Use the AUTHENTICATION TLV on send and receive
+     *  read parameters from configuration file.
+     * @param[in] cfg reference to configuration file object
+     * @param[in] section in configuration file
+     * @return true if find valid authentication parameters and hmac library
+     */
+    bool useAuth(const ConfigFile &cfg, const std::string &section = "");
+    /**
+     * Use the AUTHENTICATION TLV on send and receive, read SA file.
+     * @param[in] sa reference to SA file object
+     * @param[in] spp ID to use to send
+     * @param[in] key ID to use to send
+     * @return true if find valid authentication parameters and hmac library
+     */
+    bool useAuth(const SaFile &sa, uint8_t spp, uint32_t key);
+    /**
+     * Change the spp and send key used in the AUTHENTICATION TLVs
+     * @param[in] spp ID to use to send
+     * @param[in] key ID to use to send
+     * @return true if change success
+     */
+    bool changeAuth(uint8_t spp, uint32_t key);
+    /**
+     * Change the send key used in the AUTHENTICATION TLVs
+     * @param[in] key ID to use to send
+     * @return true if change success
+     */
+    bool changeAuth(uint32_t key);
+    /**
+     * Disable the use of AUTHENTICATION TLV
+     * @return true if disabled
+     */
+    bool disableAuth() { m_haveAuth = false; return true; }
+    /**
+     * Get used AUTHENTICATION TLV Spp ID used for send
+     * @return Spp ID or -1
+     */
+    int usedAuthSppID() const { return m_haveAuth ? m_sppID : -1; }
+    /**
+     * Get used AUTHENTICATION TLV key ID used for send
+     * @return key ID or 0
+     */
+    uint32_t usedAuthKeyID() const { return m_haveAuth ? m_keyID : 0; }
+    /**
+     * Get authentication security association pool
+     * @return authentication parameters
+     */
+    const SaFile &getSa() const { return m_sa; }
+    /**
+     * Get if AUTHENTICATION TLV with authentication parameters are used
+     * @return true if AUTHENTICATION TLV is used
+     */
+    bool haveAuth() const { return m_haveAuth; }
     /**
      * Get the current parsed TLV id
      * @return current parsed TLV id
@@ -419,6 +486,7 @@ class Message
      * @note the planned message size is based on the management TLV id,
      *  action and the dataSend set by the user.
      * You can use the size to allocate proper buffer for sending.
+     * Add Authentication TLV size if used.
      */
     ssize_t getMsgPlanedLen() const;
     /* Parsed message functions */

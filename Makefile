@@ -251,8 +251,8 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl go
-UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys json json_load pmc hmac)
-UTEST_C_TGT:=$(addprefix uctest_,no_sys sys json)
+UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth json json_load pmc hmac)
+UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth json)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
   $(UTEST_C_TGT)
@@ -435,8 +435,14 @@ endif
 # pmc tool
 $(PMC_OBJS): $(OBJ_DIR)/%.o: $(PMC_DIR)/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_PMC) -c -o $@ $<
-$(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB)
-	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
+PMC_LIBS:=
+PMC_LDLIBS:=
+ifneq ($(and $(HMAC_ALIB), $(filter a,$(PMC_USE_LIB))),)
+PMC_LIBS+=$(HMAC_ALIB)
+PMC_LDLIBS+=$(HMAC_ALIB_FLAGS) $(HMAC_LIBA_FLAGS)
+endif
+$(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB) $(PMC_LIBS)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(PMC_LDLIBS) -o $@
 
 $(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/cpp.m4
 	$(Q_GEN)$(M4) -I $(SRC) -D lang=cpp $< > $@

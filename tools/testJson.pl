@@ -68,6 +68,10 @@ sub creatJsonTest
 
     die "useConfig" unless $msg->useConfig($cfg);
     my $prms = $msg->getParams();
+    if($cfg->haveSpp()) {
+        die "fail using Authentication" unless $msg->useAuth($cfg);
+        $prms->swig_sendAuth_set(1); # true
+    }
     my $self_id = $prms->swig_self_id_get();
     $self_id->swig_portNumber_set($$ & 0xffff); # getpid()
     $prms->swig_self_id_set($self_id);

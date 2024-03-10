@@ -29,7 +29,9 @@ const size_t argc_2 = 8;
 // Tests process with unix socket
 // int process(const Options &opt)
 // const ConfigFile &cfg() const
+// const SaFile &sa() const
 // bool use_uds() const
+// uint8_t allow_unauth() const
 // Message &msg()
 // SockBase *sk()
 // char getNetSelect()
@@ -42,7 +44,9 @@ TEST(InitTest, MethodProcessUnix)
     useTestMode(true);
     EXPECT_EQ(i.process(o), 0);
     EXPECT_TRUE(i.use_uds());
+    EXPECT_EQ(i.allow_unauth(), 0);
     EXPECT_EQ(i.cfg().udp6_scope(), 14);
+    EXPECT_FALSE(i.sa().have(1));
     EXPECT_EQ(i.msg().getTlvId(), NULL_PTP_MANAGEMENT);
     EXPECT_EQ(i.msg().getBuildTlvId(), NULL_PTP_MANAGEMENT);
     ASSERT_NE(i.sk(), nullptr);

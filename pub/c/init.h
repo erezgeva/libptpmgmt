@@ -30,6 +30,7 @@ struct ptpmgmt_init_t {
     /**< @cond internal */
     void *_this; /**< pointer to actual C++ initialization object */
     ptpmgmt_cfg sCfg; /**< pointer to configuration structure */
+    ptpmgmt_safile sSaFile; /**< pointer to SA file */
     ptpmgmt_msg sMsg; /**< pointer to message structure */
     ptpmgmt_sk sSk; /**< pointer to socket sturcture */
     /**< @endcond */
@@ -58,6 +59,12 @@ struct ptpmgmt_init_t {
      * @return configuration object
      */
     ptpmgmt_cfg(*cfg)(ptpmgmt_init i);
+    /**
+     * Get authentication security association file object
+     * @param[in, out] i init object
+     * @return object
+     */
+    ptpmgmt_safile(*sa)(ptpmgmt_init i);
     /**
      * Get Message object
      * @param[in, out] i init object
@@ -90,6 +97,13 @@ struct ptpmgmt_init_t {
      * @return true if the socket is a UDS socket
      */
     bool (*use_uds)(ptpmgmt_init i);
+
+    /**
+     * Allow unauthnticated parameter
+     * @param[in] i init object
+     * @return Allow unauthnticated value
+     */
+    uint8_t (*allow_unauth)(const_ptpmgmt_init i);
 };
 
 /**

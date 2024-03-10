@@ -146,6 +146,12 @@ def main
     return printError("fail init socket")
   end
   prms = $msg.getParams()
+  if cfg.haveSpp() then
+    if !$msg.useAuth(cfg) then
+      return printError("fail using Authentication");
+    end
+    prms.sendAuth = true
+  end
   prms.self_id.portNumber = $$ & 0xffff # getpid()
   # Verify we can use implementSpecific_e
   # Notice Ruby capitalize first letter

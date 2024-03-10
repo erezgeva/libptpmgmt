@@ -30,8 +30,7 @@ static inline floor_t _floor(float_seconds val)
 }
 
 const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
-const uint8_t ptp_minor_ver = 0x0; // IEEE 1588-2019 uses 0x1
-const uint8_t ptp_version = (ptp_minor_ver << 4) | ptp_major_ver;
+// IEEE 1588-2019 uses PTP minor version 1
 const uint8_t controlFieldMng = 0x04; // For Management
 // For Delay_Req, Signalling, Management, Pdelay_Resp, Pdelay_Resp_Follow_Up
 const uint8_t logMessageIntervalDef = 0x7f;
@@ -82,6 +81,22 @@ PACK(struct managementMessage_p {
     uint8_t        actionField; // low Nibble
     uint8_t        res5;
 });
+// The AUTHENTICATION TLV may be appended to all
+//  PTP messages according to the security policy.
+// Definition of the AUTHENTICATION TLV
+PACK(struct authenticationTlv_p {
+    uint16_t       tlvType;     // tlvType_e.AUTHENTICATION
+    uint16_t       lengthField; //
+    UInteger8_t    spp;         // Security Parameter Pointe
+    Octet_t        secParamIndicator; // Security Parameter Indicator
+    UInteger32_t   keyID;       // Key Identifier or Current Key
+    // The follow are uint16_t based
+    // disclosedKey (optional) Disclosed key from previous interval
+    // sequenceNo   (optional) Sequence number
+    // Reserved     (optional)
+    // ICV                      Integrity Check Value
+});
+const size_t authTlvSize = sizeof(authenticationTlv_p);
 const ssize_t sigBaseSize = 34 + sizeof(PortIdentity_p);
 const uint16_t tlvSizeHdr = 4;
 PACK(struct managementTLV_t {
@@ -184,6 +199,8 @@ Message::Message() :
     m_isUnicast(true),
     m_replyAction(RESPONSE),
     m_replayTlv_id(NULL_PTP_MANAGEMENT),
+    m_haveAuth(false),
+    m_hmac(nullptr),
     m_init(m_peer),
     m_init(m_target)
 {
@@ -198,11 +215,19 @@ Message::Message(const MsgParams &prms) :
     m_replyAction(RESPONSE),
     m_replayTlv_id(NULL_PTP_MANAGEMENT),
     m_prms(prms),
+    m_haveAuth(false),
+    m_hmac(nullptr),
     m_init(m_peer),
     m_init(m_target)
 {
     if(m_prms.transportSpecific > 0xf)
         m_prms.transportSpecific = 0;
+}
+Message::~Message()
+{
+    if(m_hmac != nullptr)
+        delete m_hmac;
+    hmac_freeLib();
 }
 ssize_t Message::getMsgPlanedLen() const
 {
@@ -210,10 +235,12 @@ ssize_t Message::getMsgPlanedLen() const
     if(m_tlv_id < FIRST_MNG_ID || m_tlv_id >= LAST_MNG_ID)
         return -1; // Not supported
     const BaseMngTlv *data = nullptr;
+    size_t addAuth = (m_haveAuth && m_prms.sendAuth) ? authTlvSize +
+        m_sa.spp(m_sppID).mac_size(m_keyID) : 0;
     if(m_sendAction != GET)
         data = m_dataSend;
     else if(m_prms.useZeroGet)
-        return mngMsgBaseSize; // GET with zero dataField!
+        return mngMsgBaseSize + addAuth; // GET with zero dataField!
     ssize_t ret = mng_all_vals[m_tlv_id].size;
     if(ret == -2) { // variable length TLV
         if(data == nullptr && m_sendAction != GET)
@@ -227,7 +254,7 @@ ssize_t Message::getMsgPlanedLen() const
     //  -2  tlv (m_tlv_id) can not be calculate
     if(ret & 1) // Ensure even size for calculated size
         ret++;
-    return ret + mngMsgBaseSize;
+    return ret + mngMsgBaseSize + addAuth;
     // return total length of to the message to be send
 }
 bool Message::updateParams(const MsgParams &prms)
@@ -236,6 +263,59 @@ bool Message::updateParams(const MsgParams &prms)
         return false;
     m_prms = prms;
     return true;
+}
+bool Message::useAuth(const ConfigFile &cfg, const std::string &section)
+{
+    uint32_t keyID = cfg.active_key_id(section);
+    if(cfg.haveSpp(section) && keyID > 0) {
+        SaFile sa;
+        if(sa.read_sa(cfg, section))
+            return useAuth(sa, cfg.spp(section), keyID);
+    }
+    return false;
+}
+bool Message::useAuth(const SaFile &sa, uint8_t sppID, uint32_t keyID)
+{
+    if(sa.have(sppID, keyID)) {
+        const Spp &s = sa.spp(sppID);
+        HMAC_Key *hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
+        if(hmac == nullptr)
+            return false;
+        m_hmac = hmac;
+        m_sa = sa;
+        m_sppID = sppID;
+        m_keyID = keyID;
+        m_haveAuth = true;
+        return true;
+    }
+    return false;
+}
+bool Message::changeAuth(uint8_t sppID, uint32_t keyID)
+{
+    if(m_haveAuth && m_sa.have(sppID, keyID)) {
+        const Spp &s = m_sa.spp(sppID);
+        HMAC_Key *hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
+        if(hmac == nullptr)
+            return false;
+        m_hmac = hmac;
+        m_sppID = sppID;
+        m_keyID = keyID;
+        return true;
+    }
+    return false;
+}
+bool Message::changeAuth(uint32_t keyID)
+{
+    if(m_haveAuth && m_sa.have(m_sppID, keyID)) {
+        const Spp &s = m_sa.spp(m_sppID);
+        HMAC_Key *hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
+        if(hmac == nullptr)
+            return false;
+        m_hmac = hmac;
+        m_keyID = keyID;
+        return true;
+    }
+    return false;
 }
 bool Message::isEmpty(mng_vals_e id)
 {
@@ -300,7 +380,7 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     *msg = {0};
     msg->messageType_majorSdoId = (Management |
             (m_prms.transportSpecific << 4)) & UINT8_MAX;
-    msg->versionPTP = ptp_version;
+    msg->versionPTP = (m_prms.minorVersion << 4) | ptp_major_ver;
     msg->domainNumber = m_prms.domainNumber;
     if(m_prms.isUnicast)
         msg->flagField[0] |= unicastFlag;
@@ -354,7 +434,30 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     if(size & 1) // length need to be even
         return MNG_PARSE_ERROR_SIZE;
     tlv->lengthField = cpu_to_net16(lengthFieldMngBase + mp.m_size);
-    msg->messageLength = cpu_to_net16(size);
+    if(m_haveAuth && m_prms.sendAuth) {
+        const Spp &s = m_sa.spp(m_sppID);
+        size_t mac_size = s.mac_size(m_keyID);
+        size_t sz_wo_icv = authTlvSize;
+        // Add authentication optional length here!
+        if((ssize_t)(sz_wo_icv + mac_size) > mp.m_left)
+            return MNG_PARSE_ERROR_TOO_SMALL;
+        authenticationTlv_p *atlv = (authenticationTlv_p *)mp.m_cur;
+        atlv->tlvType = cpu_to_net16(AUTHENTICATION);
+        atlv->lengthField = cpu_to_net16(sz_wo_icv + mac_size - tlvSizeHdr);
+        atlv->spp = m_sppID;
+        atlv->secParamIndicator = 0;
+        atlv->keyID = cpu_to_net32(m_keyID);
+        // Assign authentication optional fields here
+        mp.move(sz_wo_icv);
+        size += sz_wo_icv + mac_size;
+        // We must update the length before calculate the ICV
+        msg->messageLength = cpu_to_net16(size);
+        Binary mac(mac_size);
+        if(!m_hmac->digest(buf, size - mac_size, mac))
+            return MNG_PARSE_ERROR_AUTH;
+        mac.copy(mp.m_cur); // Copy the ICV to location
+    } else
+        msg->messageLength = cpu_to_net16(size);
     m_msgLen = size;
     return MNG_PARSE_ERROR_OK;
 }
@@ -406,7 +509,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
         // Real initializing
         mp.m_cur = (uint8_t *)buf + sigBaseSize;
         mp.m_size = msgSize - sigBaseSize; // pass left to parseSig()
-        return parseSig(&mp);
+        return parseSig(buf, &mp);
     }
     // Management message part
     uint8_t actionField = 0xf & msg->actionField;
@@ -420,6 +523,13 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
     msgSize -= mngMsgMinSize;
     if(msgSize < (ssize_t)tlvSize || (tlvSize & 1) > 0)
         return MNG_PARSE_ERROR_TOO_SMALL;
+    msgSize -= tlvSize;
+    MNG_PARSE_ERROR_e errAuth = MNG_PARSE_ERROR_OK;
+    if(m_haveAuth && (m_prms.rcvAuth & RCV_AUTH_MNG) > 0) {
+        errAuth = parseAuth(buf, (uint8_t *)cur + tlvSize, msgSize, true);
+        if(errAuth != MNG_PARSE_ERROR_OK && (m_prms.rcvAuth & RCV_AUTH_IGNORE) == 0)
+            return errAuth;
+    }
     BaseMngTlv *tlv;
     mp.m_left = tlvSize;
     MNG_PARSE_ERROR_e err;
@@ -445,6 +555,8 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
             // Check displayData size
             if(mp.m_left > 1 && mp.proc(m_errorDisplay))
                 return MNG_PARSE_ERROR_TOO_SMALL;
+            if(errAuth != MNG_PARSE_ERROR_OK)
+                return errAuth;
             return MNG_PARSE_ERROR_MSG;
         case MANAGEMENT:
             if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
@@ -460,13 +572,13 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
                 return MNG_PARSE_ERROR_ACTION;
             mp.m_left -= lengthFieldMngBase;
             if(mp.m_left == 0)
-                return MNG_PARSE_ERROR_OK;
+                return errAuth;
             mp.m_cur = (uint8_t *)cur;
             err = mp.call_tlv_data(m_replayTlv_id, tlv);
             if(err != MNG_PARSE_ERROR_OK)
                 return err;
             m_dataGet.reset(tlv);
-            return MNG_PARSE_ERROR_OK;
+            return errAuth;
         case ORGANIZATION_EXTENSION:
             if(m_prms.rcvSMPTEOrg) {
                 // rcvSMPTEOrg uses the COMMAND message
@@ -482,6 +594,8 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
                     return mp.m_err;
                 m_dataGet.reset(tlvOrg);
                 m_replayTlv_id = SMPTE_MNG_ID;
+                if(errAuth != MNG_PARSE_ERROR_OK)
+                    return errAuth;
                 return MNG_PARSE_ERROR_SMPTE;
             }
             FALLTHROUGH;
@@ -498,6 +612,62 @@ MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t bufSize)
     return (ssize_t)buf.size() < bufSize ? MNG_PARSE_ERROR_TOO_SMALL :
         parse(buf.get(), bufSize);
 }
+MNG_PARSE_ERROR_e Message::parseAuth(const void *buf, const void *auth,
+    ssize_t left, bool check)
+{
+    if(left < (ssize_t)authTlvSize)
+        return MNG_PARSE_ERROR_AUTH_NONE;
+    authenticationTlv_p *atlv = (authenticationTlv_p *)auth;
+    if(check && net_to_cpu16(atlv->tlvType) != AUTHENTICATION)
+        return MNG_PARSE_ERROR_AUTH_NONE;
+    uint8_t spp = atlv->spp;
+    uint32_t keyID = net_to_cpu32(atlv->keyID);
+    if(!m_sa.have(spp, keyID))
+        return MNG_PARSE_ERROR_AUTH_NOKEY;
+    size_t len;
+    if(check) {
+        len = (ssize_t)net_to_cpu16(atlv->lengthField) + tlvSizeHdr;
+        if((ssize_t)len > left)
+            return MNG_PARSE_ERROR_AUTH;
+        if(len < authTlvSize)
+            return MNG_PARSE_ERROR_AUTH;
+    } else
+        len = left;
+    len -= authTlvSize;
+    // Reduce authentication optional length here!
+    if(atlv->secParamIndicator != 0)
+        return MNG_PARSE_ERROR_AUTH; // We do not support optional
+    if((len & 1) > 0 || len < 2)
+        return MNG_PARSE_ERROR_AUTH;
+    // Delete hmac once the function exit :-)
+    std::unique_ptr<HMAC_Key> hmac_alloc;
+    HMAC_Key *hmac;
+    const Spp &s = m_sa.spp(spp);
+    if(len > s.mac_size(m_keyID))
+        return MNG_PARSE_ERROR_AUTH_WRONG;
+    if(m_sppID == spp && m_keyID == keyID)
+        // Using the same key for sending
+        hmac = m_hmac;
+    else {
+        hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
+        if(hmac == nullptr)
+            return MNG_PARSE_ERROR_AUTH;
+        // We allocate, we will delete on exit
+        hmac_alloc.reset(hmac);
+    }
+    // Add authentication optional length here
+    uint8_t *icv = (uint8_t *)(atlv + 1);
+    size_t size = icv - (uint8_t *)buf;
+    Binary mac(icv, len);
+    // Verify the ICV
+    if(!hmac->verify(buf, size, mac)) {
+        // Calculate for unit test
+        //if(hmac->digest(buf, size, mac))
+        //    printf("Should be ICV: 0x%s\n", mac.toId(", 0x").c_str());
+        return MNG_PARSE_ERROR_AUTH_WRONG;
+    }
+    return MNG_PARSE_ERROR_OK;
+}
 #define caseBuildAct(n) {\
         n##_t *t = new n##_t;\
         if(t == nullptr)\
@@ -510,21 +680,39 @@ MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t bufSize)
         break;\
     }
 #define caseBuild(n) n: caseBuildAct(n)
-MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
+MNG_PARSE_ERROR_e Message::parseSig(const void *buf, MsgProc *pMp)
 {
     MsgProc &mp = *pMp;
     ssize_t leftAll = mp.m_size;
     m_sigTlvs.clear(); // remove old TLVs
     m_sigTlvsType.clear();
+    tlvType_e lastTlv = (tlvType_e)0;
+    void *lastAuth = nullptr;
+    uint16_t lastAuthLen = 0;
+    MNG_PARSE_ERROR_e errAuth = MNG_PARSE_ERROR_OK;
     while(leftAll >= tlvSizeHdr) {
         uint16_t *cur = (uint16_t *)mp.m_cur;
         tlvType_e tlvType = (tlvType_e)net_to_cpu16(*cur++);
         uint16_t lengthField = net_to_cpu16(*cur);
+        lastTlv = tlvType;
         mp.m_cur += tlvSizeHdr;
         leftAll -= tlvSizeHdr;
         if(lengthField > leftAll)
             return MNG_PARSE_ERROR_TOO_SMALL;
         leftAll -= lengthField;
+        if(tlvType == AUTHENTICATION) {
+            if(m_haveAuth) {
+                lastAuthLen = lengthField + tlvSizeHdr;
+                lastAuth = cur - 1;
+                if((m_prms.rcvAuth & RCV_AUTH_SIG_ALL) > 0) {
+                    errAuth = parseAuth(buf, lastAuth, lastAuthLen);
+                    if(errAuth != MNG_PARSE_ERROR_OK &&
+                        (m_prms.rcvAuth & RCV_AUTH_IGNORE) == 0)
+                        return errAuth;
+                }
+            }
+            continue;
+        }
         // Check signalling filter
         if(m_prms.filterSignaling && !m_prms.isSigTlv(tlvType)) {
             // TLV not in filter is skiped
@@ -611,6 +799,15 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
             // pass the tlv to the vector
             m_sigTlvs.back().reset(tlv);
         };
+    }
+    if(m_haveAuth &&
+        (m_prms.rcvAuth & (RCV_AUTH_SIG_ALL | RCV_AUTH_SIG_LAST)) > 0) {
+        if(lastTlv != AUTHENTICATION)
+            return MNG_PARSE_ERROR_AUTH_NONE;
+        if((m_prms.rcvAuth & RCV_AUTH_SIG_ALL) == 0)
+            errAuth = parseAuth(buf, lastAuth, lastAuthLen);
+        if(errAuth != MNG_PARSE_ERROR_OK)
+            return errAuth;
     }
     return MNG_PARSE_ERROR_SIG; // We have signalling message
 }
@@ -703,6 +900,10 @@ const char *Message::err2str_c(MNG_PARSE_ERROR_e err)
         case caseItem(MNG_PARSE_ERROR_ACTION);
         case caseItem(MNG_PARSE_ERROR_UNSUPPORT);
         case caseItem(MNG_PARSE_ERROR_MEM);
+        case caseItem(MNG_PARSE_ERROR_AUTH);
+        case caseItem(MNG_PARSE_ERROR_AUTH_NONE);
+        case caseItem(MNG_PARSE_ERROR_AUTH_WRONG);
+        case caseItem(MNG_PARSE_ERROR_AUTH_NOKEY);
     }
     return "unknown";
 }
@@ -1220,6 +1421,7 @@ MsgParams::MsgParams() :
     transportSpecific(0),
     domainNumber(0),
     boundaryHops(1),
+    minorVersion(0),
     isUnicast(true),
     implementSpecific(linuxptp),
     target{allClocks, allPorts},
@@ -1227,7 +1429,9 @@ MsgParams::MsgParams() :
     useZeroGet(true),
     rcvSignaling(false),
     filterSignaling(true),
-    rcvSMPTEOrg(true)
+    rcvSMPTEOrg(true),
+    sendAuth(true),
+    rcvAuth(RCV_AUTH_ALL)
 {
 }
 
@@ -1238,6 +1442,8 @@ __PTPMGMT_NAMESPACE_USE;
 extern "C" {
 
 #include "c/msg.h"
+
+    extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
 
     // C interfaces
     static void ptpmgmt_MsgParams_free(ptpmgmt_pMsgParams m)
@@ -1259,11 +1465,14 @@ extern "C" {
         r.transportSpecific = p->transportSpecific;
         r.domainNumber = p->domainNumber;
         r.boundaryHops = p->boundaryHops;
+        r.minorVersion = p->minorVersion;
         r.isUnicast = p->isUnicast;
         r.useZeroGet = p->useZeroGet;
         r.rcvSignaling = p->rcvSignaling;
         r.filterSignaling = p->filterSignaling;
         r.rcvSMPTEOrg = p->rcvSMPTEOrg;
+        r.sendAuth = p->sendAuth;
+        r.rcvAuth = (MsgParams_RcvAuth_e)p->rcvAuth;
         r.implementSpecific = (implementSpecific_e)p->implementSpecific;
         memcpy(r.target.clockIdentity.v, p->target.clockIdentity.v,
             ClockIdentity_t::size());
@@ -1279,11 +1488,14 @@ extern "C" {
         p->transportSpecific = r.transportSpecific;
         p->domainNumber = r.domainNumber;
         p->boundaryHops = r.boundaryHops;
+        p->minorVersion = r.minorVersion;
         p->isUnicast = r.isUnicast;
         p->useZeroGet = r.useZeroGet;
         p->rcvSignaling = r.rcvSignaling;
         p->filterSignaling = r.filterSignaling;
         p->rcvSMPTEOrg = r.rcvSMPTEOrg;
+        p->sendAuth = r.sendAuth;
+        p->rcvAuth = (ptpmgmt_MsgParams_RcvAuth_e)r.rcvAuth;
         p->implementSpecific = (ptpmgmt_implementSpecific_e)r.implementSpecific;
         memcpy(p->target.clockIdentity.v, r.target.clockIdentity.v,
             ClockIdentity_t::size());
@@ -1354,6 +1566,11 @@ extern "C" {
             m->dataSig1 = nullptr;
             m->dataSig2 = nullptr;
             m->dataSig3 = nullptr;
+            if(m->_sa != nullptr) {
+                m->_sa->free(m->_sa);
+                free(m->_sa);
+                m->_sa = nullptr;
+            }
         }
     }
     static void ptpmgmt_msg_free(ptpmgmt_msg m)
@@ -1422,6 +1639,58 @@ extern "C" {
         }
         return false;
     }
+    static bool ptpmgmt_msg_useAuth_cfg(ptpmgmt_msg m, const_ptpmgmt_cfg cfg,
+        const char *section)
+    {
+        if(m != nullptr && m->_this != nullptr && cfg != nullptr &&
+            cfg->_this != nullptr) {
+            Message *me = (Message *)m->_this;
+            ConfigFile &c = *(ConfigFile *)cfg->_this;
+            if(section != nullptr)
+                return me->useAuth(c, section);
+            return me->useAuth(c);
+        }
+        return false;
+    }
+    static bool ptpmgmt_msg_useAuth(ptpmgmt_msg m, const_ptpmgmt_safile sa,
+        uint8_t spp, uint32_t key)
+    {
+        if(m != nullptr && m->_this != nullptr && sa != nullptr &&
+            sa->_this != nullptr)
+            return ((Message *)m->_this)->useAuth(*(const SaFile *)sa->_this, spp,
+                    key);
+        return false;
+    }
+    static bool ptpmgmt_msg_changeAuth(ptpmgmt_msg m, uint8_t spp, uint32_t key)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            return ((Message *)m->_this)->changeAuth(spp, key);
+        return false;
+    }
+    static bool ptpmgmt_msg_changeAuthKey(ptpmgmt_msg m, uint32_t key)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            return ((Message *)m->_this)->changeAuth(key);
+        return false;
+    }
+    static bool ptpmgmt_msg_disableAuth(ptpmgmt_msg m)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            return ((Message *)m->_this)->disableAuth();
+        return false;
+    }
+    C2CPP_ret(int, usedAuthSppID, -1)
+    C2CPP_ret(uint32_t, usedAuthKeyID, 0)
+    static const_ptpmgmt_safile ptpmgmt_msg_getSa(ptpmgmt_msg m)
+    {
+        if(m != nullptr) {
+            if(m->_sa == nullptr && m->_this != nullptr)
+                m->_sa = ptpmgmt_safile_alloc_wrap(((Message *)m->_this)->getSa());
+            return m->_sa;
+        }
+        return nullptr;
+    }
+    C2CPP_ret(bool, haveAuth, false)
     C2CPP_cret(getTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
     C2CPP_cret(getBuildTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
     C2CPP_void(setAllClocks)
@@ -1636,6 +1905,7 @@ extern "C" {
     }
     static inline void ptpmgmt_msg_asign_cb(ptpmgmt_msg m)
     {
+        m->_sa = nullptr;
         m->sendTlv = nullptr;
         m->dataSend = nullptr;
         m->data = nullptr;
@@ -1646,6 +1916,15 @@ extern "C" {
 #define C_ASGN(n) m->n = ptpmgmt_msg_##n
         C_ASGN(getParams);
         C_ASGN(updateParams);
+        C_ASGN(useAuth_cfg);
+        C_ASGN(useAuth);
+        C_ASGN(changeAuth);
+        C_ASGN(changeAuthKey);
+        C_ASGN(disableAuth);
+        C_ASGN(usedAuthSppID);
+        C_ASGN(usedAuthKeyID);
+        C_ASGN(getSa);
+        C_ASGN(haveAuth);
         C_ASGN(getTlvId);
         C_ASGN(getBuildTlvId);
         C_ASGN(setAllClocks);

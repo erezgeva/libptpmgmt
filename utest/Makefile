@@ -31,6 +31,7 @@ $(TEST_LIBSYS): utest/libsys.cpp | $(OBJ_DIR)
 ifneq ($(GTEST_LIB_FLAGS),)
 UTEST:=$(OBJ_DIR)/utest
 UTEST_SYS:=$(OBJ_DIR)/utest_sys
+UTEST_AUTH:=$(OBJ_DIR)/utest_auth
 UTEST_JSON_LOAD:=$(OBJ_DIR)/utest_json_load
 UTEST_SRCS:=bin buf cfg err mngIds msg2json msgCall msg opt proc sig types ver
 TEST_OBJS:=$(foreach n,$(UTEST_SRCS),utest/$n.o)
@@ -73,6 +74,13 @@ ifndef SKIP_LIBSYS
 utest_sys: $(HEADERS_GEN_COMP) $(UTEST_SYS)
 	$(call Q_UTEST,C++-SYS)LD_PRELOAD=./$(TEST_LIBSYS) $(UTEST_SYS)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
+endif
+ifneq ($(HMAC_ALIB),)
+$(UTEST_AUTH): $(OBJ_DIR)/utest_m.o utest/auth.o $(LIB_NAME_A) $(HMAC_ALIB)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(HMAC_LIBA_FLAGS)\
+	  $(HMAC_ALIB_FLAGS) $(GTEST_LIB_FLAGS) -o $@
+utest_auth: $(HEADERS_GEN_COMP) $(UTEST_AUTH)
+	$(call Q_UTEST,C++AUTH)$(UVGD)$(UTEST_AUTH) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif
 $(UTEST_JSON_LOAD): $(OBJ_DIR)/utest_m.o utest/jsonLoad.o $(LIB_NAME_SO) |\
   $(JSON_FLIBS)

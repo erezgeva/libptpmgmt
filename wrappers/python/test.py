@@ -127,6 +127,10 @@ def main():
     return printError("fail init peer address")
 
   prms = msg.getParams()
+  if cfg.haveSpp():
+    if not msg.useAuth(cfg):
+      return printError("fail using Authentication");
+    prms.sendAuth = True
   prms.self_id.portNumber = os.getpid() & 0xffff
   prms.domainNumber = cfg.domainNumber()
   msg.updateParams(prms)

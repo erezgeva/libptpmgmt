@@ -29,7 +29,9 @@ const size_t argc_2 = 8;
 // Tests process with unix socket
 // int process(ptpmgmt_init i, ptpmgmt_opt o)
 // ptpmgmt_cfg cfg(ptpmgmt_init i)
+// ptpmgmt_safile sa(ptpmgmt_init i)
 // bool use_uds(ptpmgmt_init i)
+// uint8_t allow_unauth(const_ptpmgmt_init i)
 // ptpmgmt_msg msg(ptpmgmt_init i)
 // ptpmgmt_sk sk(ptpmgmt_init i)
 // char getNetSelect(ptpmgmt_init i)
@@ -42,8 +44,11 @@ Test(InitTest, MethodProcessUnix)
     useTestMode(true);
     int r1 = i->process(i, o);
     bool r2 = i->use_uds(i);
+    uint8_t a1 = i->allow_unauth(i);
     ptpmgmt_cfg c = i->cfg(i);
     uint8_t r3 = c->udp6_scope(c, NULL);
+    ptpmgmt_safile s0 = i->sa(i);
+    bool h1 = s0->have(s0, 1);
     ptpmgmt_msg msg = i->msg(i);
     enum ptpmgmt_mng_vals_e r4 = msg->getTlvId(msg);
     ptpmgmt_sk s = i->sk(i);
@@ -51,8 +56,10 @@ Test(InitTest, MethodProcessUnix)
     useTestMode(false);
     cr_expect(zero(i32, r1));
     cr_expect(r2);
+    cr_expect(eq(i8, a1, 0));
     cr_expect(not(zero(ptr, c)));
     cr_expect(eq(i8, r3, 14));
+    cr_expect(not(h1));
     cr_expect(eq(i32, r4, PTPMGMT_NULL_PTP_MANAGEMENT));
     cr_expect(not(zero(ptr, s)));
     cr_expect(eq(chr, r5, 'u'));

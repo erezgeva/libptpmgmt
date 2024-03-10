@@ -174,6 +174,13 @@ func main() {
     return
   }
   prms := msg.GetParams()
+  if cfg.HaveSpp() {
+    if !msg.UseAuth(cfg) {
+      printError("fail using Authentication");
+      return
+    }
+    prms.SetSendAuth(true)
+  }
   self_id := prms.GetSelf_id()
   self_id.SetPortNumber(uint16(os.Getpid() & 0xffff))
   prms.SetSelf_id(self_id)

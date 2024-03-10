@@ -44,6 +44,10 @@ Pmc_option Options::startOptions[] = {
     { 'S', "udp6_scope", true, true },
     { 'T', "udp_ttl", true, true },
     { 'P', "socket_priority", true, true },
+    { 'A', "active_key_id", true, true },
+    { 'B', "spp", true, true },
+    { 'U', "allow_unauth", true, true },
+    { 'F', "sa_file", true, true },
     { 0 },
 };
 

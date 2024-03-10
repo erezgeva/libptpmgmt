@@ -138,6 +138,12 @@ function main($cfg_file)
     return printError("fail init socket");
   }
   $prms = $msg->getParams();
+  if($cfg->haveSpp()) {
+    if(!$msg->useAuth($cfg)) {
+      return printError("fail using Authentication");
+    }
+    $prms->sendAuth = true;
+  }
   $prms->self_id->portNumber = posix_getpid() & 0xffff;
   # Verify we can use implementSpecific_e;
   $prms->implementSpecific = ptpmgmt::linuxptp;
