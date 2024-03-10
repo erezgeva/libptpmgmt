@@ -316,6 +316,75 @@ AS_VAR_SET([LDFLAGS], ["$ptpm_keep_ldflags"])
 AC_SUBST([ASAN_LIBS])
 
 #----------------------------------------------------------------
+# HMAC libraries
+#----------------------------------------------------------------
+AS_UNSET([HAVE_SSL_HEADER])
+AS_UNSET([SSL_INC_FLAGS])
+AS_UNSET([SSL_LIB_FLAGS])
+AS_UNSET([HAVE_GCRYPT_HEADER])
+AS_UNSET([GCRYPT_INC_FLAGS])
+AS_UNSET([GCRYPT_LIB_FLAGS])
+AS_UNSET([HAVE_GNUTLS_HEADER])
+AS_UNSET([GNUTLS_INC_FLAGS])
+AS_UNSET([GNUTLS_LIB_FLAGS])
+AS_UNSET([HAVE_NETTLE_HEADER])
+AS_UNSET([NETTLE_INC_FLAGS])
+AS_UNSET([NETTLE_LIB_FLAGS])
+
+AC_CHECK_HEADER([openssl/crypto.h], [AS_VAR_SET([HAVE_SSL_HEADER], [openssl])])
+AS_IF([test -n "$HAVE_SSL_HEADER"],
+      [AS_IF([test -n "$PKG_CONFIG"],
+             [AS_VAR_SET([SSL_INC_FLAGS], ["`$PKG_CONFIG --cflags libcrypto`"])
+              AS_VAR_SET([SSL_LIB_FLAGS], ["`$PKG_CONFIG --libs libcrypto`"])])
+       AC_CHECK_LIB([crypto], [main],
+                    [AS_IF([test -z "$SSL_LIB_FLAGS"],
+                           [AS_VAR_SET([SSL_LIB_FLAGS], ['-lcrypto'])])],
+                    [AS_UNSET([HAVE_SSL_HEADER])])])
+
+AC_CHECK_HEADER([gcrypt.h], [AS_VAR_SET([HAVE_GCRYPT_HEADER], [1])])
+AS_IF([test -n "$HAVE_GCRYPT_HEADER"],
+      [AS_IF([test -n "$PKG_CONFIG"],
+             [AS_VAR_SET([GCRYPT_INC_FLAGS], ["`$PKG_CONFIG --cflags libgcrypt`"])
+              AS_VAR_SET([GCRYPT_LIB_FLAGS], ["`$PKG_CONFIG --libs libgcrypt`"])])
+       AC_CHECK_LIB([crypto], [main],
+                    [AS_IF([test -z "$GCRYPT_LIB_FLAGS"],
+                           [AS_VAR_SET([GCRYPT_LIB_FLAGS], ['-lgcrypt'])])],
+                    [AS_UNSET([HAVE_GCRYPT_HEADER])])])
+
+AC_CHECK_HEADER([gnutls/crypto.h], [AS_VAR_SET([HAVE_GNUTLS_HEADER], [1])])
+AS_IF([test -n "$HAVE_GNUTLS_HEADER"],
+      [AS_IF([test -n "$PKG_CONFIG"],
+             [AS_VAR_SET([GNUTLS_INC_FLAGS], ["`$PKG_CONFIG --cflags gnutls`"])
+              AS_VAR_SET([GNUTLS_LIB_FLAGS], ["`$PKG_CONFIG --libs gnutls`"])])
+       AC_CHECK_LIB([gnutls], [gnutls_global_init],
+                    [AS_IF([test -z "$GNUTLS_LIB_FLAGS"],
+                           [AS_VAR_SET([GNUTLS_LIB_FLAGS], ['-lgnutls'])])],
+                    [AS_UNSET([HAVE_GNUTLS_HEADER])])])
+
+AC_CHECK_HEADER([nettle/hmac.h], [AS_VAR_SET([HAVE_NETTLE_HEADER], [1])])
+AS_IF([test -n "$HAVE_NETTLE_HEADER"],
+      [AS_IF([test -n "$PKG_CONFIG"],
+             [AS_VAR_SET([NETTLE_INC_FLAGS], ["`$PKG_CONFIG --cflags nettle`"])
+              AS_VAR_SET([NETTLE_LIB_FLAGS], ["`$PKG_CONFIG --libs nettle`"])])
+       AC_CHECK_LIB([nettle], [main],
+                    [AS_IF([test -z "$NETTLE_LIB_FLAGS"],
+                           [AS_VAR_SET([NETTLE_LIB_FLAGS], ['-lnettle'])])],
+                    [AS_UNSET([HAVE_NETTLE_HEADER])])])
+
+AC_SUBST([HAVE_SSL_HEADER])
+AC_SUBST([SSL_INC_FLAGS])
+AC_SUBST([SSL_LIB_FLAGS])
+AC_SUBST([HAVE_GCRYPT_HEADER])
+AC_SUBST([GCRYPT_INC_FLAGS])
+AC_SUBST([GCRYPT_LIB_FLAGS])
+AC_SUBST([HAVE_GNUTLS_HEADER])
+AC_SUBST([GNUTLS_INC_FLAGS])
+AC_SUBST([GNUTLS_LIB_FLAGS])
+AC_SUBST([HAVE_NETTLE_HEADER])
+AC_SUBST([NETTLE_INC_FLAGS])
+AC_SUBST([NETTLE_LIB_FLAGS])
+
+#----------------------------------------------------------------
 # JSON libraries
 #----------------------------------------------------------------
 

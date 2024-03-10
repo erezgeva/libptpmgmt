@@ -274,7 +274,8 @@ config_report()
  local list='TCLVER PERL PY3VERSION RUBYVER PHPVER LUAVERSIONS LUA_VERSION
    GOVER DOTTOOL ASTYLEMINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
    CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIGMINVER DOXYGENMINVER
-   PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC'
+   PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC
+   HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl python ruby php lua go'
  local $list $langs
  read_defs $list
@@ -304,6 +305,10 @@ config_report()
  fi
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
  [[ -n "$ASTYLEMINVER" ]] && local -r astyle="$ASTYLEMINVER" || local -r astyle='x'
+ [[ -n "$HAVE_SSL_HEADER" ]] && local -r ssl='v' || local -r ssl='x'
+ [[ -n "$HAVE_GCRYPT_HEADER" ]] && local -r gcrypt='v' || local -r gcrypt='x'
+ [[ -n "$HAVE_GNUTLS_HEADER" ]] && local -r gnutls='v' || local -r gnutls='x'
+ [[ -n "$HAVE_NETTLE_HEADER" ]] && local -r nettle='v' || local -r nettle='x'
  [[ -n "$HAVE_GTEST_HEADER" ]] && local -r gtest='v' || local -r gtest='x'
  [[ -n "$HAVE_CRITERION_HEADER" ]] && local -r crtest='v' || local -r crtest='x'
  [[ -n "$CPPCHECK" ]] && local -r cppcheck='v' || local -r cppcheck='x'
@@ -315,6 +320,7 @@ config_report()
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
+ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
 Jsonc '$jsonc' Fjson '$fjson'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Criterion test '$crtest'
