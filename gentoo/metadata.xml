@@ -39,5 +39,8 @@
     <flag name="skip_swig">
       Do not use any wrapper.
     </flag>
+    <flag name="skip_doxygen">
+      Do not use doxygen.
+    </flag>
   </use>
 </pkgmetadata>

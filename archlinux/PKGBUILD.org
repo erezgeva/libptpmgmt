@@ -32,7 +32,7 @@ build() {
   # Place here as make do not use packages!
   make DESTDIR=../install install --no-print-directory
 }
-makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53\
+makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
   python3 json-c go gcc libtool autoconf make texlive-fontutils which)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
@@ -43,7 +43,7 @@ package_libptpmgmt-jsonc() {
   pkgdesc='PTP management library JSON plugin using the json-c library'
   depends=("$pkgbase=$verdep" json-c)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/${pkgname/-/_}.so* $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/${pkgname/-/_}.so.* $pkgdir/$libdir
 }
 package_libptpmgmt-dev() {
   # development package can use static library
@@ -55,7 +55,7 @@ package_libptpmgmt-dev() {
   mv $srcdir/install/usr/share/$pkgname $pkgdir/usr/share
   mv $srcdir/install/usr/include $pkgdir/usr
   mv $srcdir/install/usr/lib/$pkgbase*.a $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/$pkgbase.so $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/$pkgbase*.so $pkgdir/$libdir
 }
 package_libptpmgmt-doc() {
   arch=(any)

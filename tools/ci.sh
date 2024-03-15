@@ -91,7 +91,7 @@ test_clean()
 }
 main()
 {
- cd "$(dirname "$(realpath "$0")")/.."
+ cd "$(realpath "$(dirname "$0")/..")"
  source tools/util.sh
  local -i jobs=1 # Number of Make parallel jobs
  local nocolor

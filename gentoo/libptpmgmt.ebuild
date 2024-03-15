@@ -22,7 +22,7 @@ SRC_URI="${P}.txz"
 LICENSE="LGPL-3+"
 SLOT="0"
 IUSE="skip_perl skip_python skip_ruby skip_lua skip_php skip_tcl skip_go
-	skip_swig"
+	skip_swig skip_doxygen"
 REQUIRED_USE="skip_swig? ( skip_perl skip_python skip_ruby skip_lua skip_php
 	skip_tcl skip_go )"
 DEPEND="!skip_perl? ( dev-lang/perl ) !skip_python? ( dev-lang/python )
@@ -30,7 +30,7 @@ DEPEND="!skip_perl? ( dev-lang/perl ) !skip_python? ( dev-lang/python )
 	!skip_php? ( dev-lang/php ) !skip_tcl? ( dev-lang/tcl )
 	!skip_go? ( dev-lang/go )"
 BDEPEND="sys-devel/gcc dev-build/libtool sys-apps/which dev-build/make
-	app-text/doxygen !skip_swig? ( dev-lang/swig )"
+	!skip_doxygen? ( app-text/doxygen ) !skip_swig? ( dev-lang/swig )"
 RDEPEND="${DEPEND}"
 src_prepare() {
 	default
@@ -52,7 +52,11 @@ src_configure() {
 	econf $opts
 }
 src_compile() {
-	emake PMC_USE_LIB=so all doxygen
+	if use skip_doxygen; then
+		emake PMC_USE_LIB=so all
+	else
+		emake PMC_USE_LIB=so all doxygen
+	fi
 }
 src_install() {
 	emake DESTDIR="${D}" install

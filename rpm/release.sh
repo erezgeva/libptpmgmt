@@ -21,6 +21,7 @@ main()
   sed '/^Source0:/ d;  /#Source0:/ { s/%%/%/g;s/^#// }' libptpmgmt.spec >\
     libptpmgmt-${version}.spec
 }
+cd "$(dirname "$(realpath "$0")")"
 if [[ -f libptpmgmt.spec ]] && [[ -f ../tools/version ]]; then
   main
 fi

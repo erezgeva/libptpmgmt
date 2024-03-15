@@ -19,4 +19,7 @@ ext()
 {
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/rpm rpmbuild
+
+# See package content
+rpm -qpil xxx.rpm
 }

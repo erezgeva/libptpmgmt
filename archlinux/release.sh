@@ -14,6 +14,7 @@ main()
   echo "makepkg -g"
   makepkg -g >> PKGBUILD
 }
+cd "$(dirname "$(realpath "$0")")"
 if [[ -f PKGBUILD.org ]] && [[ -x "$(which makepkg 2> /dev/null)" ]]; then
   main
 fi

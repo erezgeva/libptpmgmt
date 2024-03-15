@@ -16,8 +16,8 @@ cmd()
 }
 main()
 {
-  local -r me="$(realpath $0)"
-  local -r base="$(realpath $(dirname $0)/..)"
+  local -r me="$(realpath "$0")"
+  local -r base="$(realpath "$(dirname "$0")/..")"
   if ! [[ -d /var/db/repos/gentoo/net-libs/libptpmgmt ]]; then
     return
   fi

@@ -15,6 +15,7 @@ main()
   sed '/^RESTRICT/ d;/^SRC_URI/ d;s/^#!#!#//' libptpmgmt.ebuild\
     > libptpmgmt-${version}.ebuild
 }
+cd "$(dirname "$(realpath "$0")")"
 if [[ -f libptpmgmt.ebuild ]] && [[ -f ../tools/version ]]; then
   main
 fi

@@ -53,8 +53,7 @@ override_dh_install:
 	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
 	$Q$(MV) $(DSRC)share/libptpmgmt-dev debian/libptpmgmt-dev/usr/share
 	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
-	$Q$(MV) $(DSRC)share/man/man8/phc*\
-	  debian/phc-ctl-ptpmgmt/usr/share/man/man8
+	$Q$(MV) $(DSRC)share/man/man8/phc* debian/phc-ctl-ptpmgmt/usr/share/man/man8
 	$Q$(MV) $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
 	$Q$(MV) $(DSRC)sbin/phc* debian/phc-ctl-ptpmgmt/usr/sbin
 	$Q$(MV) $(DSRC)sbin debian/pmc-ptpmgmt/usr
@@ -67,13 +66,12 @@ ifneq ($(wildcard $(DSRC)lib/php),)
 endif
 	$Q$(MV) $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
 	$Q$(MV) $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
 ifneq ($(wildcard $(DSRC)lib/go*),)
 	$Q$(MV) $(DSRC)lib/go* debian/golang-ptpmgmt/usr/lib
 endif
 ifneq ($(wildcard $(SLIBDIR)/libptpmgmt_jsonc.*),)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_jsonc.* debian/libptpmgmt-jsonc$(LIBDIR)
 endif
-	$Q$(MV) $(SLIBDIR)/libptpmgmt_fastjson*\
-	  debian/libptpmgmt-fastjson$(LIBDIR)
-	$Q$(MV) $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libptpmgmt_fastjson* debian/libptpmgmt-fastjson$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/* debian/libptpmgmt$(LIBDIR)

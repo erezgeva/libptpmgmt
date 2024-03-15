@@ -150,13 +150,13 @@ autoconf
 %make_install DEV_PKG=%{name}-devel --no-print-directory
 
 %files
-%{_libdir}/%{name}.so.1{,.*}
+%{_libdir}/%{name}.so.*
 
 %files jsonc
-%{_libdir}/%{name}_jsonc.so.1{,.*}
+%{_libdir}/%{name}_jsonc.so.*
 
 %files fastjson
-%{_libdir}/%{name}_fastjson.so.1{,.*}
+%{_libdir}/%{name}_fastjson.so.*
 
 %files devel
 %{_includedir}/*

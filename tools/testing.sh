@@ -11,7 +11,7 @@
 ###############################################################################
 main()
 {
- cd "$(dirname "$(realpath "$0")")/.."
+ cd "$(realpath "$(dirname "$0")/..")"
  source tools/util.sh
  local file i opt n use_asan
  # Default values
