@@ -1376,37 +1376,43 @@ extern "C" {
         }
     }
 #define C2CPP_void(func)\
-    if(m != nullptr && m->_this != nullptr)\
-        ((Message*)m->_this)->func()
-#define C2CPP_ret(func, def)\
-    if(m != nullptr && m->_this != nullptr)\
-        return ((Message*)m->_this)->func();\
-    return def
+    static void ptpmgmt_msg_##func(const_ptpmgmt_msg m) {\
+        if(m != nullptr && m->_this != nullptr)\
+            ((Message*)m->_this)->func(); }
+#define C2CPP_ret(ret, func, def)\
+    static ret ptpmgmt_msg_##func(const_ptpmgmt_msg m) {\
+        if(m != nullptr && m->_this != nullptr)\
+            return ((Message*)m->_this)->func();\
+        return def; }
 #define C2CPP_cret(func, cast, def)\
-    if(m != nullptr && m->_this != nullptr)\
-        return (ptpmgmt_##cast)((Message*)m->_this)->func();\
-    return def
-#define C2CPP_ret_1(func, arg1) return Message::func(arg1)
-#define C2CPP_cret_1(func, cast, arg1, def)\
-    if(m != nullptr && m->_this != nullptr)\
-        return (ptpmgmt_##cast)((Message*)m->_this)->func(arg1);\
-    return def
-#define C2CPP_ret_c1(func, cast1, arg1) return Message::func((cast1)arg1)
-#define C2CPP_find(func, _typ, arg1, arg2)\
-    if(str != nullptr && arg1 != nullptr) {\
-        _typ x;\
-        if(Message::func(str, x, arg2)) {\
-            *arg1 = (ptpmgmt_##_typ)x;\
-            return true; }\
-    } return false
+    static ptpmgmt_##cast ptpmgmt_msg_##func(const_ptpmgmt_msg m) {\
+        if(m != nullptr && m->_this != nullptr)\
+            return (ptpmgmt_##cast)((Message*)m->_this)->func();\
+        return def; }
+#define C2CPP_ret_1(func) \
+    bool ptpmgmt_msg_##func(uint8_t arg) { return Message::func(arg); }
+#define C2CPP_cret_1(func, cast, arg, def)\
+    static ptpmgmt_##cast ptpmgmt_msg_##func(const_ptpmgmt_msg m, size_t arg) {\
+        if(m != nullptr && m->_this != nullptr)\
+            return (ptpmgmt_##cast)((Message*)m->_this)->func(arg);\
+        return def; }
+#define C2CPP_ret_c1(func, typ)\
+    const char *ptpmgmt_msg_##func(ptpmgmt_##typ##_e arg) {\
+        return Message::func##_c((typ##_e)arg); }
+#define C2CPP_find(func, _typ)\
+    bool ptpmgmt_msg_##func(const char *str, ptpmgmt_##_typ *arg, bool arg2) {\
+        if(str != nullptr && arg != nullptr) { _typ x;\
+            if(Message::func(str, x, arg2)) {\
+                *arg = (ptpmgmt_##_typ)x;\
+                return true; } } return false; }
 #define C2CPP_port(func, prm)\
-    if(m != nullptr && m->_this != nullptr) {\
-        const PortIdentity_t &p = ((Message *)m->_this)->func();\
-        ptpmgmt_PortIdentity_t *l = &(m->prm);\
-        memcpy(l->clockIdentity.v, p.clockIdentity.v, ClockIdentity_t::size());\
-        l->portNumber = p.portNumber;return l;\
-    } return nullptr
-
+    static const ptpmgmt_PortIdentity_t *ptpmgmt_msg_##func(ptpmgmt_msg m) {\
+        if(m != nullptr && m->_this != nullptr) {\
+            const PortIdentity_t &p = ((Message *)m->_this)->func();\
+            ptpmgmt_PortIdentity_t *l = &(m->prm);\
+            memcpy(l->clockIdentity.v, p.clockIdentity.v, ClockIdentity_t::size());\
+            l->portNumber = p.portNumber;return l;\
+        } return nullptr; }
     ptpmgmt_pMsgParams ptpmgmt_msg_getParams(ptpmgmt_msg m)
     {
         if(m != nullptr) {
@@ -1424,22 +1430,10 @@ extern "C" {
         }
         return false;
     }
-    static ptpmgmt_mng_vals_e ptpmgmt_msg_getTlvId(const_ptpmgmt_msg m)
-    {
-        C2CPP_cret(getTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT);
-    }
-    static ptpmgmt_mng_vals_e ptpmgmt_msg_getBuildTlvId(const_ptpmgmt_msg m)
-    {
-        C2CPP_cret(getBuildTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT);
-    }
-    static void ptpmgmt_msg_setAllClocks(const_ptpmgmt_msg m)
-    {
-        C2CPP_void(setAllClocks);
-    }
-    static bool ptpmgmt_msg_isAllClocks(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(isAllClocks, false);
-    }
+    C2CPP_cret(getTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
+    C2CPP_cret(getBuildTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
+    C2CPP_void(setAllClocks)
+    C2CPP_ret(bool, isAllClocks, false)
     static bool ptpmgmt_msg_useConfig(ptpmgmt_msg m, const_ptpmgmt_cfg cfg,
         const char *section)
     {
@@ -1453,120 +1447,36 @@ extern "C" {
         }
         return false;
     }
-    const char *ptpmgmt_msg_err2str(ptpmgmt_MNG_PARSE_ERROR_e err)
-    {
-        C2CPP_ret_c1(err2str_c, MNG_PARSE_ERROR_e, err);
-    }
-    const char *ptpmgmt_msg_type2str(ptpmgmt_msgType_e type)
-    {
-        C2CPP_ret_c1(type2str_c, msgType_e, type);
-    }
-    const char *ptpmgmt_msg_tlv2str(ptpmgmt_tlvType_e type)
-    {
-        C2CPP_ret_c1(tlv2str_c, tlvType_e, type);
-    }
-    const char *ptpmgmt_msg_act2str(ptpmgmt_actionField_e action)
-    {
-        C2CPP_ret_c1(act2str_c, actionField_e, action);
-    }
-    const char *ptpmgmt_msg_mng2str(ptpmgmt_mng_vals_e id)
-    {
-        C2CPP_ret_c1(mng2str_c, mng_vals_e, id);
-    }
-    bool ptpmgmt_msg_findMngID(const char *str, ptpmgmt_mng_vals_e *id, bool exact)
-    {
-        C2CPP_find(findMngID, mng_vals_e, id, exact);
-    }
-    const char *ptpmgmt_msg_errId2str(ptpmgmt_managementErrorId_e err)
-    {
-        C2CPP_ret_c1(errId2str_c, managementErrorId_e, err);
-    }
-    const char *ptpmgmt_msg_clkType2str(ptpmgmt_clockType_e type)
-    {
-        C2CPP_ret_c1(clkType2str_c, clockType_e, type);
-    }
-    const char *ptpmgmt_msg_netProt2str(ptpmgmt_networkProtocol_e protocol)
-    {
-        C2CPP_ret_c1(netProt2str_c, networkProtocol_e, protocol);
-    }
-    const char *ptpmgmt_msg_clockAcc2str(ptpmgmt_clockAccuracy_e value)
-    {
-        C2CPP_ret_c1(clockAcc2str_c, clockAccuracy_e, value);
-    }
-    const char *ptpmgmt_msg_faultRec2str(ptpmgmt_faultRecord_e code)
-    {
-        C2CPP_ret_c1(faultRec2str_c, faultRecord_e, code);
-    }
-    const char *ptpmgmt_msg_timeSrc2str(ptpmgmt_timeSource_e type)
-    {
-        C2CPP_ret_c1(timeSrc2str_c, timeSource_e, type);
-    }
-    bool ptpmgmt_msg_findTimeSrc(const char *str, ptpmgmt_timeSource_e *type,
-        bool exact)
-    {
-        C2CPP_find(findTimeSrc, timeSource_e, type, exact);
-    }
-    const char *ptpmgmt_msg_portState2str(ptpmgmt_portState_e state)
-    {
-        C2CPP_ret_c1(portState2str_c, portState_e, state);
-    }
-    bool ptpmgmt_msg_findPortState(const char *str, ptpmgmt_portState_e *state,
-        bool caseSens)
-    {
-        C2CPP_find(findPortState, portState_e, state, caseSens);
-    }
-    const char *ptpmgmt_msg_delayMech2str(ptpmgmt_delayMechanism_e type)
-    {
-        C2CPP_ret_c1(delayMech2str_c, delayMechanism_e, type);
-    }
-    bool ptpmgmt_msg_findDelayMech(const char *str, ptpmgmt_delayMechanism_e *type,
-        bool exact)
-    {
-        C2CPP_find(findDelayMech, delayMechanism_e, type, exact);
-    }
-    const char *ptpmgmt_msg_smpteLck2str(ptpmgmt_SMPTEmasterLockingStatus_e state)
-    {
-        C2CPP_ret_c1(smpteLck2str_c, SMPTEmasterLockingStatus_e, state);
-    }
-    const char *ptpmgmt_msg_ts2str(ptpmgmt_linuxptpTimeStamp_e type)
-    {
-        C2CPP_ret_c1(ts2str_c, linuxptpTimeStamp_e, type);
-    }
-    const char *ptpmgmt_msg_pwr2str(ptpmgmt_linuxptpPowerProfileVersion_e ver)
-    {
-        C2CPP_ret_c1(pwr2str_c, linuxptpPowerProfileVersion_e, ver);
-    }
-    const char *ptpmgmt_msg_us2str(ptpmgmt_linuxptpUnicastState_e state)
-    {
-        C2CPP_ret_c1(us2str_c, linuxptpUnicastState_e, state);
-    }
-    bool ptpmgmt_msg_is_LI_61(uint8_t flags)
-    {
-        C2CPP_ret_1(is_LI_61, flags);
-    }
-    bool ptpmgmt_msg_is_LI_59(uint8_t flags)
-    {
-        C2CPP_ret_1(is_LI_59, flags);
-    }
-    bool ptpmgmt_msg_is_UTCV(uint8_t flags)
-    {
-        C2CPP_ret_1(is_UTCV, flags);
-    }
-    bool ptpmgmt_msg_is_PTP(uint8_t flags)
-    {
-        C2CPP_ret_1(is_PTP, flags);
-    }
-    bool ptpmgmt_msg_is_TTRA(uint8_t flags)
-    {
-        C2CPP_ret_1(is_TTRA, flags);
-    }
-    bool ptpmgmt_msg_is_FTRA(uint8_t flags)
-    {
-        C2CPP_ret_1(is_FTRA, flags);
-    }
+    C2CPP_ret_c1(err2str, MNG_PARSE_ERROR)
+    C2CPP_ret_c1(type2str, msgType)
+    C2CPP_ret_c1(tlv2str, tlvType)
+    C2CPP_ret_c1(act2str, actionField)
+    C2CPP_ret_c1(mng2str, mng_vals)
+    C2CPP_find(findMngID, mng_vals_e)
+    C2CPP_ret_c1(errId2str, managementErrorId)
+    C2CPP_ret_c1(clkType2str, clockType)
+    C2CPP_ret_c1(netProt2str, networkProtocol)
+    C2CPP_ret_c1(clockAcc2str, clockAccuracy)
+    C2CPP_ret_c1(faultRec2str, faultRecord)
+    C2CPP_ret_c1(timeSrc2str, timeSource)
+    C2CPP_find(findTimeSrc, timeSource_e)
+    C2CPP_ret_c1(portState2str, portState)
+    C2CPP_find(findPortState, portState_e)
+    C2CPP_ret_c1(delayMech2str, delayMechanism)
+    C2CPP_find(findDelayMech, delayMechanism_e)
+    C2CPP_ret_c1(smpteLck2str, SMPTEmasterLockingStatus)
+    C2CPP_ret_c1(ts2str, linuxptpTimeStamp)
+    C2CPP_ret_c1(pwr2str, linuxptpPowerProfileVersion)
+    C2CPP_ret_c1(us2str, linuxptpUnicastState)
+    C2CPP_ret_1(is_LI_61)
+    C2CPP_ret_1(is_LI_59)
+    C2CPP_ret_1(is_UTCV)
+    C2CPP_ret_1(is_PTP)
+    C2CPP_ret_1(is_TTRA)
+    C2CPP_ret_1(is_FTRA)
     bool ptpmgmt_msg_isEmpty(ptpmgmt_mng_vals_e id)
     {
-        C2CPP_ret_c1(isEmpty, mng_vals_e, id);
+        return Message::isEmpty((mng_vals_e)id);
     }
     static bool ptpmgmt_msg_isValidId(const_ptpmgmt_msg m, ptpmgmt_mng_vals_e id)
     {
@@ -1594,10 +1504,7 @@ extern "C" {
         }
         return false;
     }
-    static void ptpmgmt_msg_clearData(const_ptpmgmt_msg m)
-    {
-        C2CPP_void(clearData);
-    }
+    C2CPP_void(clearData)
     static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_build(const_ptpmgmt_msg m,
         void *buf, size_t bufSize, uint16_t sequence)
     {
@@ -1606,18 +1513,9 @@ extern "C" {
                 ((Message *)m->_this)->build(buf, bufSize, sequence);
         return PTPMGMT_MNG_PARSE_ERROR_TOO_SMALL;
     }
-    static ptpmgmt_actionField_e ptpmgmt_msg_getSendAction(const_ptpmgmt_msg m)
-    {
-        C2CPP_cret(getSendAction, actionField_e, PTPMGMT_GET);
-    }
-    static size_t ptpmgmt_msg_getMsgLen(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getMsgLen, 0);
-    }
-    static ssize_t ptpmgmt_msg_getMsgPlanedLen(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getMsgPlanedLen, 0);
-    }
+    C2CPP_cret(getSendAction, actionField_e, PTPMGMT_GET)
+    C2CPP_ret(size_t, getMsgLen, 0)
+    C2CPP_ret(ssize_t, getMsgPlanedLen, 0)
     static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_parse(const_ptpmgmt_msg m,
         const void *buf, ssize_t msgSize)
     {
@@ -1626,46 +1524,16 @@ extern "C" {
                 ((Message *)m->_this)->parse(buf, msgSize);
         return PTPMGMT_MNG_PARSE_ERROR_UNSUPPORT;
     }
-    static ptpmgmt_actionField_e ptpmgmt_msg_getReplyAction(const_ptpmgmt_msg m)
-    {
-        C2CPP_cret(getReplyAction, actionField_e, PTPMGMT_GET);
-    }
-    static bool ptpmgmt_msg_isUnicast(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(isUnicast, false);
-    }
-    static uint8_t ptpmgmt_msg_getPTPProfileSpecific(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getPTPProfileSpecific, 0);
-    }
-    static uint16_t ptpmgmt_msg_getSequence(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getSequence, 0);
-    }
-    static const ptpmgmt_PortIdentity_t *ptpmgmt_msg_getPeer(ptpmgmt_msg m)
-    {
-        C2CPP_port(getPeer, _peer);
-    }
-    static const ptpmgmt_PortIdentity_t *ptpmgmt_msg_getTarget(ptpmgmt_msg m)
-    {
-        C2CPP_port(getTarget, _target);
-    }
-    static uint32_t ptpmgmt_msg_getSdoId(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getSdoId, 0);
-    }
-    static uint8_t ptpmgmt_msg_getDomainNumber(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getDomainNumber, 0);
-    }
-    static uint8_t ptpmgmt_msg_getVersionPTP(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getVersionPTP, 0);
-    }
-    static uint8_t ptpmgmt_msg_getMinorVersionPTP(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getMinorVersionPTP, 0);
-    }
+    C2CPP_cret(getReplyAction, actionField_e, PTPMGMT_GET)
+    C2CPP_ret(bool, isUnicast, false)
+    C2CPP_ret(uint8_t, getPTPProfileSpecific, 0)
+    C2CPP_ret(uint16_t, getSequence, 0)
+    C2CPP_port(getPeer, _peer)
+    C2CPP_port(getTarget, _target)
+    C2CPP_ret(uint32_t, getSdoId, 0)
+    C2CPP_ret(uint8_t, getDomainNumber, 0)
+    C2CPP_ret(uint8_t, getVersionPTP, 0)
+    C2CPP_ret(uint8_t, getMinorVersionPTP, 0)
     static const void *ptpmgmt_msg_getData(ptpmgmt_msg m)
     {
         if(m != nullptr && m->_this != nullptr) {
@@ -1691,26 +1559,16 @@ extern "C" {
             return m->dataSend;
         return nullptr;
     }
-    static ptpmgmt_managementErrorId_e ptpmgmt_msg_getErrId(const_ptpmgmt_msg m)
-    {
-        C2CPP_cret(getErrId, managementErrorId_e, PTPMGMT_GENERAL_ERROR);
-    }
+    C2CPP_cret(getErrId, managementErrorId_e, PTPMGMT_GENERAL_ERROR)
     static const char *ptpmgmt_msg_getErrDisplay(const_ptpmgmt_msg m)
     {
-        C2CPP_ret(getErrDisplay_c, nullptr);
+        if(m != nullptr && m->_this != nullptr)
+            return ((Message *)m->_this)->getErrDisplay_c();
+        return nullptr;
     }
-    static bool ptpmgmt_msg_isLastMsgSig(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(isLastMsgSig, false);
-    }
-    static ptpmgmt_msgType_e ptpmgmt_msg_getType(const_ptpmgmt_msg m)
-    {
-        C2CPP_cret(getType, msgType_e, ptpmgmt_Management);
-    }
-    static ptpmgmt_tlvType_e ptpmgmt_msg_getMngType(const_ptpmgmt_msg m)
-    {
-        C2CPP_cret(getMngType, tlvType_e, PTPMGMT_MANAGEMENT);
-    }
+    C2CPP_ret(bool, isLastMsgSig, false)
+    C2CPP_cret(getType, msgType_e, ptpmgmt_Management)
+    C2CPP_cret(getMngType, tlvType_e, PTPMGMT_MANAGEMENT)
     static bool ptpmgmt_msg_traversSigTlvs(ptpmgmt_msg m, void *cookie,
         ptpmgmt_msg_sig_callback callback)
     {
@@ -1736,10 +1594,7 @@ extern "C" {
         }
         return false;
     }
-    static size_t ptpmgmt_msg_getSigTlvsCount(const_ptpmgmt_msg m)
-    {
-        C2CPP_ret(getSigTlvsCount, 0);
-    }
+    C2CPP_ret(size_t, getSigTlvsCount, 0)
     static const void *ptpmgmt_msg_getSigTlv(ptpmgmt_msg m, size_t position)
     {
         if(m != nullptr && m->_this != nullptr) {
@@ -1762,17 +1617,9 @@ extern "C" {
         }
         return nullptr;
     }
-    static ptpmgmt_tlvType_e ptpmgmt_msg_getSigTlvType(const_ptpmgmt_msg m,
-        size_t position)
-    {
-        C2CPP_cret_1(getSigTlvType, tlvType_e, position, PTPMGMT_MANAGEMENT);
-    }
-    static ptpmgmt_mng_vals_e ptpmgmt_msg_getSigMngTlvType(const_ptpmgmt_msg m,
-        size_t position)
-    {
-        C2CPP_cret_1(getSigMngTlvType, mng_vals_e, position,
-            PTPMGMT_NULL_PTP_MANAGEMENT);
-    }
+    C2CPP_cret_1(getSigTlvType, tlvType_e, position, PTPMGMT_MANAGEMENT)
+    C2CPP_cret_1(getSigMngTlvType, mng_vals_e, position,
+        PTPMGMT_NULL_PTP_MANAGEMENT)
     static const void *ptpmgmt_msg_getSigMngTlv(ptpmgmt_msg m, size_t position)
     {
         if(m != nullptr && m->_this != nullptr) {
@@ -1803,72 +1650,73 @@ extern "C" {
         m->dataSig1 = nullptr;
         m->dataSig2 = nullptr;
         m->dataSig3 = nullptr;
-        m->getParams = ptpmgmt_msg_getParams;
-        m->updateParams = ptpmgmt_msg_updateParams;
-        m->getTlvId = ptpmgmt_msg_getTlvId;
-        m->getBuildTlvId = ptpmgmt_msg_getBuildTlvId;
-        m->setAllClocks = ptpmgmt_msg_setAllClocks;
-        m->isAllClocks = ptpmgmt_msg_isAllClocks;
-        m->useConfig = ptpmgmt_msg_useConfig;
-        m->err2str = ptpmgmt_msg_err2str;
-        m->type2str = ptpmgmt_msg_type2str;
-        m->tlv2str = ptpmgmt_msg_tlv2str;
-        m->act2str = ptpmgmt_msg_act2str;
-        m->mng2str = ptpmgmt_msg_mng2str;
-        m->findMngID = ptpmgmt_msg_findMngID;
-        m->errId2str = ptpmgmt_msg_errId2str;
-        m->clkType2str = ptpmgmt_msg_clkType2str;
-        m->netProt2str = ptpmgmt_msg_netProt2str;
-        m->clockAcc2str = ptpmgmt_msg_clockAcc2str;
-        m->faultRec2str = ptpmgmt_msg_faultRec2str;
-        m->timeSrc2str = ptpmgmt_msg_timeSrc2str;
-        m->findTimeSrc = ptpmgmt_msg_findTimeSrc;
-        m->portState2str = ptpmgmt_msg_portState2str;
-        m->findPortState = ptpmgmt_msg_findPortState;
-        m->delayMech2str = ptpmgmt_msg_delayMech2str;
-        m->findDelayMech = ptpmgmt_msg_findDelayMech;
-        m->smpteLck2str = ptpmgmt_msg_smpteLck2str;
-        m->ts2str = ptpmgmt_msg_ts2str;
-        m->pwr2str = ptpmgmt_msg_pwr2str;
-        m->us2str = ptpmgmt_msg_us2str;
-        m->is_LI_61 = ptpmgmt_msg_is_LI_61;
-        m->is_LI_59 = ptpmgmt_msg_is_LI_59;
-        m->is_UTCV = ptpmgmt_msg_is_UTCV;
-        m->is_PTP = ptpmgmt_msg_is_PTP;
-        m->is_TTRA = ptpmgmt_msg_is_TTRA;
-        m->is_FTRA = ptpmgmt_msg_is_FTRA;
-        m->isEmpty = ptpmgmt_msg_isEmpty;
-        m->isValidId = ptpmgmt_msg_isValidId;
-        m->setAction = ptpmgmt_msg_setAction;
-        m->clearData = ptpmgmt_msg_clearData;
-        m->build = ptpmgmt_msg_build;
-        m->getSendAction = ptpmgmt_msg_getSendAction;
-        m->getMsgLen = ptpmgmt_msg_getMsgLen;
-        m->getMsgPlanedLen = ptpmgmt_msg_getMsgPlanedLen;
-        m->parse = ptpmgmt_msg_parse;
-        m->getReplyAction = ptpmgmt_msg_getReplyAction;
-        m->isUnicast = ptpmgmt_msg_isUnicast;
-        m->getPTPProfileSpecific = ptpmgmt_msg_getPTPProfileSpecific;
-        m->getSequence = ptpmgmt_msg_getSequence;
-        m->getPeer = ptpmgmt_msg_getPeer;
-        m->getTarget = ptpmgmt_msg_getTarget;
-        m->getSdoId = ptpmgmt_msg_getSdoId;
-        m->getDomainNumber = ptpmgmt_msg_getDomainNumber;
-        m->getVersionPTP = ptpmgmt_msg_getVersionPTP;
-        m->getMinorVersionPTP = ptpmgmt_msg_getMinorVersionPTP;
-        m->getData = ptpmgmt_msg_getData;
-        m->getSendData = ptpmgmt_msg_getSendData;
-        m->getErrId = ptpmgmt_msg_getErrId;
-        m->getErrDisplay = ptpmgmt_msg_getErrDisplay;
-        m->isLastMsgSig = ptpmgmt_msg_isLastMsgSig;
-        m->getType = ptpmgmt_msg_getType;
-        m->getMngType = ptpmgmt_msg_getMngType;
-        m->traversSigTlvs = ptpmgmt_msg_traversSigTlvs;
-        m->getSigTlvsCount = ptpmgmt_msg_getSigTlvsCount;
-        m->getSigTlv = ptpmgmt_msg_getSigTlv;
-        m->getSigTlvType = ptpmgmt_msg_getSigTlvType;
-        m->getSigMngTlvType = ptpmgmt_msg_getSigMngTlvType;
-        m->getSigMngTlv = ptpmgmt_msg_getSigMngTlv;
+#define C_ASGN(n) m->n = ptpmgmt_msg_##n
+        C_ASGN(getParams);
+        C_ASGN(updateParams);
+        C_ASGN(getTlvId);
+        C_ASGN(getBuildTlvId);
+        C_ASGN(setAllClocks);
+        C_ASGN(isAllClocks);
+        C_ASGN(useConfig);
+        C_ASGN(err2str);
+        C_ASGN(type2str);
+        C_ASGN(tlv2str);
+        C_ASGN(act2str);
+        C_ASGN(mng2str);
+        C_ASGN(findMngID);
+        C_ASGN(errId2str);
+        C_ASGN(clkType2str);
+        C_ASGN(netProt2str);
+        C_ASGN(clockAcc2str);
+        C_ASGN(faultRec2str);
+        C_ASGN(timeSrc2str);
+        C_ASGN(findTimeSrc);
+        C_ASGN(portState2str);
+        C_ASGN(findPortState);
+        C_ASGN(delayMech2str);
+        C_ASGN(findDelayMech);
+        C_ASGN(smpteLck2str);
+        C_ASGN(ts2str);
+        C_ASGN(pwr2str);
+        C_ASGN(us2str);
+        C_ASGN(is_LI_61);
+        C_ASGN(is_LI_59);
+        C_ASGN(is_UTCV);
+        C_ASGN(is_PTP);
+        C_ASGN(is_TTRA);
+        C_ASGN(is_FTRA);
+        C_ASGN(isEmpty);
+        C_ASGN(isValidId);
+        C_ASGN(setAction);
+        C_ASGN(clearData);
+        C_ASGN(build);
+        C_ASGN(getSendAction);
+        C_ASGN(getMsgLen);
+        C_ASGN(getMsgPlanedLen);
+        C_ASGN(parse);
+        C_ASGN(getReplyAction);
+        C_ASGN(isUnicast);
+        C_ASGN(getPTPProfileSpecific);
+        C_ASGN(getSequence);
+        C_ASGN(getPeer);
+        C_ASGN(getTarget);
+        C_ASGN(getSdoId);
+        C_ASGN(getDomainNumber);
+        C_ASGN(getVersionPTP);
+        C_ASGN(getMinorVersionPTP);
+        C_ASGN(getData);
+        C_ASGN(getSendData);
+        C_ASGN(getErrId);
+        C_ASGN(getErrDisplay);
+        C_ASGN(isLastMsgSig);
+        C_ASGN(getType);
+        C_ASGN(getMngType);
+        C_ASGN(traversSigTlvs);
+        C_ASGN(getSigTlvsCount);
+        C_ASGN(getSigTlv);
+        C_ASGN(getSigTlvType);
+        C_ASGN(getSigMngTlvType);
+        C_ASGN(getSigMngTlv);
         // set MsgParams
         const MsgParams &pm = ((Message *)m->_this)->getParams();
         m->_prms._this = (void *)&pm; // point to actual message parameters

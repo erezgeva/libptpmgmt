@@ -1244,13 +1244,14 @@ extern "C" {
     }
     static inline void ptpmgmt_clock_cb(ptpmgmt_clock clk)
     {
-        clk->getTime = ptpmgmt_clock_getTime;
-        clk->setTime = ptpmgmt_clock_setTime;
-        clk->offsetClock = ptpmgmt_clock_offsetClock;
-        clk->getFreq = ptpmgmt_clock_getFreq;
-        clk->setFreq = ptpmgmt_clock_setFreq;
-        clk->setPhase = ptpmgmt_clock_setPhase;
-        clk->isCharFile = ptpmgmt_clock_isCharFile;
+#define C_ASGN(n) clk->n = ptpmgmt_clock_##n
+        C_ASGN(getTime);
+        C_ASGN(setTime);
+        C_ASGN(offsetClock);
+        C_ASGN(getFreq);
+        C_ASGN(setFreq);
+        C_ASGN(setPhase);
+        C_ASGN(isCharFile);
     }
     ptpmgmt_clock ptpmgmt_clock_alloc()
     {
@@ -1263,29 +1264,29 @@ extern "C" {
             return nullptr;
         }
         ptpmgmt_clock_cb(clk);
-        clk->free = ptpmgmt_clock_free;
-        clk->initUsingDevice = ptpmgmt_clock_initUsingDevice;
-        clk->initUsingIndex = ptpmgmt_clock_initUsingIndex;
-        clk->isInit = ptpmgmt_clock_isInit;
-        clk->clkId = ptpmgmt_clock_clkId;
-        clk->getFd = ptpmgmt_clock_getFd;
+        C_ASGN(free);
+        C_ASGN(initUsingDevice);
+        C_ASGN(initUsingIndex);
+        C_ASGN(isInit);
+        C_ASGN(clkId);
+        C_ASGN(getFd);
         clk->fileno = ptpmgmt_clock_getFd;
-        clk->ptpIndex = ptpmgmt_clock_ptpIndex;
-        clk->device = ptpmgmt_clock_device;
-        clk->setTimeFromSys = ptpmgmt_clock_setTimeFromSys;
-        clk->setTimeToSys = ptpmgmt_clock_setTimeToSys;
-        clk->fetchCaps = ptpmgmt_clock_fetchCaps;
-        clk->readPin = ptpmgmt_clock_readPin;
-        clk->writePin = ptpmgmt_clock_writePin;
-        clk->ExternTSEbable = ptpmgmt_clock_ExternTSEbable;
-        clk->ExternTSDisable = ptpmgmt_clock_ExternTSDisable;
-        clk->readEvent = ptpmgmt_clock_readEvent;
-        clk->readEvents = ptpmgmt_clock_readEvents;
-        clk->setPinPeriod = ptpmgmt_clock_setPinPeriod;
-        clk->setPtpPpsEvent = ptpmgmt_clock_setPtpPpsEvent;
-        clk->samplePtpSys = ptpmgmt_clock_samplePtpSys;
-        clk->extSamplePtpSys = ptpmgmt_clock_extSamplePtpSys;
-        clk->preciseSamplePtpSys = ptpmgmt_clock_preciseSamplePtpSys;
+        C_ASGN(ptpIndex);
+        C_ASGN(device);
+        C_ASGN(setTimeFromSys);
+        C_ASGN(setTimeToSys);
+        C_ASGN(fetchCaps);
+        C_ASGN(readPin);
+        C_ASGN(writePin);
+        C_ASGN(ExternTSEbable);
+        C_ASGN(ExternTSDisable);
+        C_ASGN(readEvent);
+        C_ASGN(readEvents);
+        C_ASGN(setPinPeriod);
+        C_ASGN(setPtpPpsEvent);
+        C_ASGN(samplePtpSys);
+        C_ASGN(extSamplePtpSys);
+        C_ASGN(preciseSamplePtpSys);
         return clk;
     }
     ptpmgmt_clock ptpmgmt_clock_alloc_sys()
@@ -1300,28 +1301,29 @@ extern "C" {
         }
         ptpmgmt_clock_cb(clk);
         clk->free = ptpmgmt_clock_free_sys;
-        clk->initUsingDevice = non_ptpmgmt_clock_initUsingDevice;
-        clk->initUsingIndex = non_ptpmgmt_clock_initUsingIndex;
-        clk->isInit = non_ptpmgmt_clock_isInit;
-        clk->clkId = non_ptpmgmt_clock_clkId;
-        clk->getFd = non_ptpmgmt_clock_getFd;
+#define C_NO_ASGN(n) clk->n = non_ptpmgmt_clock_##n
+        C_NO_ASGN(initUsingDevice);
+        C_NO_ASGN(initUsingIndex);
+        C_NO_ASGN(isInit);
+        C_NO_ASGN(clkId);
+        C_NO_ASGN(getFd);
         clk->fileno = non_ptpmgmt_clock_getFd;
-        clk->ptpIndex = non_ptpmgmt_clock_ptpIndex;
-        clk->device = non_ptpmgmt_clock_device;
-        clk->setTimeFromSys = non_ptpmgmt_clock_setTimeFromSys;
-        clk->setTimeToSys = non_ptpmgmt_clock_setTimeToSys;
-        clk->fetchCaps = non_ptpmgmt_clock_fetchCaps;
-        clk->readPin = non_ptpmgmt_clock_readPin;
-        clk->writePin = non_ptpmgmt_clock_writePin;
-        clk->ExternTSEbable = non_ptpmgmt_clock_ExternTSEbable;
-        clk->ExternTSDisable = non_ptpmgmt_clock_ExternTSDisable;
-        clk->readEvent = non_ptpmgmt_clock_readEvent;
-        clk->readEvents = non_ptpmgmt_clock_readEvents;
-        clk->setPinPeriod = non_ptpmgmt_clock_setPinPeriod;
-        clk->setPtpPpsEvent = non_ptpmgmt_clock_setPtpPpsEvent;
-        clk->samplePtpSys = non_ptpmgmt_clock_samplePtpSys;
-        clk->extSamplePtpSys = non_ptpmgmt_clock_extSamplePtpSys;
-        clk->preciseSamplePtpSys = non_ptpmgmt_clock_preciseSamplePtpSys;
+        C_NO_ASGN(ptpIndex);
+        C_NO_ASGN(device);
+        C_NO_ASGN(setTimeFromSys);
+        C_NO_ASGN(setTimeToSys);
+        C_NO_ASGN(fetchCaps);
+        C_NO_ASGN(readPin);
+        C_NO_ASGN(writePin);
+        C_NO_ASGN(ExternTSEbable);
+        C_NO_ASGN(ExternTSDisable);
+        C_NO_ASGN(readEvent);
+        C_NO_ASGN(readEvents);
+        C_NO_ASGN(setPinPeriod);
+        C_NO_ASGN(setPtpPpsEvent);
+        C_NO_ASGN(samplePtpSys);
+        C_NO_ASGN(extSamplePtpSys);
+        C_NO_ASGN(preciseSamplePtpSys);
         return clk;
     }
 }

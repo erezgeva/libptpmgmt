@@ -274,14 +274,15 @@ extern "C" {
             free(me);
             return nullptr;
         }
-        me->free = ptpmgmt_init_free;
-        me->close = ptpmgmt_init_close;
-        me->process = ptpmgmt_init_process;
-        me->cfg = ptpmgmt_init_cfg;
-        me->msg = ptpmgmt_init_msg;
-        me->sk = ptpmgmt_init_sk;
-        me->getNetSelect = ptpmgmt_init_getNetSelect;
-        me->use_uds = ptpmgmt_init_use_uds;
+#define C_ASGN(n) me->n = ptpmgmt_init_##n
+        C_ASGN(free);
+        C_ASGN(close);
+        C_ASGN(process);
+        C_ASGN(cfg);
+        C_ASGN(msg);
+        C_ASGN(sk);
+        C_ASGN(getNetSelect);
+        C_ASGN(use_uds);
         me->sCfg = nullptr;
         me->sMsg = nullptr;
         me->sSk = nullptr;

@@ -442,6 +442,7 @@ EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	$(Q_FRMT)
+	$(SED) -i 's@^// #error@#error@' $(PUB)/*.h
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r";./tools/format.pl $^
 	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi

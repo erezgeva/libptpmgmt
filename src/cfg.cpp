@@ -16,19 +16,13 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 #define get_func(n)\
     uint8_t ConfigFile::n(const string &section) const\
-    {\
-        return get_num(ConfigSection::n##_val, section);\
-    }
+    { return get_num(ConfigSection::n##_val, section); }
 #define get_str_func(n)\
     const string &ConfigFile:: n(const string &section) const\
-    {\
-        return get_str(ConfigSection::n##_val, section);\
-    }
+    { return get_str(ConfigSection::n##_val, section); }
 #define get_bin_func(n)\
     const Binary &ConfigFile:: n(const string &section) const\
-    {\
-        return get_bin(ConfigSection::n##_val, section);\
-    }
+    { return get_bin(ConfigSection::n##_val, section); }
 
 // Holds all values from enumerator
 #define rang_val(n, dVal, minVal, maxVal)\
@@ -39,9 +33,9 @@ const ConfigSection::range_t ConfigSection::ranges[] = {
     rang_val(transportSpecific, 0, 0, 0xf),
     // IEEE 1588-2019 permit upto 239 based on sdoId value
     //  (transportSpecific == majorSdoId)
-    rang_val(domainNumber, 0, 0, 0xff),
+    rang_val(domainNumber, 0, 0, UINT8_MAX),
     rang_val(udp6_scope, 0xe, 0, 0xf),
-    rang_val(udp_ttl, 1, 1, 255),
+    rang_val(udp_ttl, 1, 1, UINT8_MAX),
     rang_val(socket_priority, 0, 0, 15),
     rang_val(network_transport, '4', '2', '6'),
     rang_str(uds_address, "/var/run/ptp4l"),
@@ -120,7 +114,7 @@ bool ConfigSection::set_val(char *line)
             else
                 return false;
             break;
-        // integer values in the range 0-255
+        // integer values
         default: {
             char *endptr;
             long ret = strtol(val, &endptr, 0);
@@ -238,87 +232,60 @@ extern "C" {
             return ((ConfigFile *)me->_this)->read_cfg(file);
         return false;
     }
-#define C2CPP_func(func)\
-    if(me != nullptr && me->_this != nullptr) {\
-        if (section == nullptr)\
-            return (( ConfigFile*)me->_this)->func();\
-        return (( ConfigFile*)me->_this)->func(section);\
-    }\
-    return 0
-    static uint8_t ptpmgmt_cfg_transportSpecific(const_ptpmgmt_cfg me,
-        const char *section)
-    {
-        C2CPP_func(transportSpecific);
-    }
-    static uint8_t ptpmgmt_cfg_domainNumber(const_ptpmgmt_cfg me,
-        const char *section)
-    {
-        C2CPP_func(domainNumber);
-    }
-    static uint8_t ptpmgmt_cfg_udp6_scope(const_ptpmgmt_cfg me, const char *section)
-    {
-        C2CPP_func(udp6_scope);
-    }
-    static uint8_t ptpmgmt_cfg_udp_ttl(const_ptpmgmt_cfg me, const char *section)
-    {
-        C2CPP_func(udp_ttl);
-    }
-    static uint8_t ptpmgmt_cfg_socket_priority(const_ptpmgmt_cfg me,
-        const char *section)
-    {
-        C2CPP_func(socket_priority);
-    }
-    static uint8_t ptpmgmt_cfg_network_transport(const_ptpmgmt_cfg me,
-        const char *section)
-    {
-        C2CPP_func(network_transport);
-    }
-    static const char *ptpmgmt_cfg_uds_address(const_ptpmgmt_cfg me,
-        const char *section)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            const char *a = section != nullptr ? section : ptpm_empty_str;
-            const string &s = ((ConfigFile *)me->_this)->uds_address(a);
-            if(!s.empty())
-                return s.c_str();
-        }
-        return nullptr;
-    }
+#define C2CPP_funcN(n, func)\
+    static uint##n##_t ptpmgmt_cfg_##func(const_ptpmgmt_cfg me,\
+        const char *section) {\
+        if(me != nullptr && me->_this != nullptr) {\
+            if (section == nullptr)\
+                return (( ConfigFile*)me->_this)->func();\
+            return (( ConfigFile*)me->_this)->func(section);\
+        } return 0; }
+#define C2CPP_func(func) C2CPP_funcN(8, func)
+    C2CPP_func(transportSpecific)
+    C2CPP_func(domainNumber)
+    C2CPP_func(udp6_scope)
+    C2CPP_func(udp_ttl)
+    C2CPP_func(socket_priority)
+    C2CPP_func(network_transport)
+#define C2CPP_str(func)\
+    static const char *ptpmgmt_cfg_##func(const_ptpmgmt_cfg me,\
+        const char *section) {\
+        if(me != nullptr && me->_this != nullptr) {\
+            const char *a = section != nullptr ? section : ptpm_empty_str;\
+            const string &s = ((ConfigFile *)me->_this)->func(a);\
+            if(!s.empty()) return s.c_str();\
+        }   return nullptr; }
+    C2CPP_str(uds_address)
 #define C2CPP_bfunc(func)\
-    if(me != nullptr && me->_this != nullptr) {\
-        const char *a = section != nullptr ? section : ptpm_empty_str;\
-        const Binary &b = ((ConfigFile*)me->_this)->func(a);\
-        if(b.length() > 0) {\
-            if (len != nullptr)\
-                *len = b.length();\
-            return b.get();\
+    static const void *ptpmgmt_cfg_##func(const_ptpmgmt_cfg me, size_t *len,\
+        const char *section) {\
+        if(me != nullptr && me->_this != nullptr) {\
+            const char *a = section != nullptr ? section : ptpm_empty_str;\
+            const Binary &b = ((ConfigFile*)me->_this)->func(a);\
+            if(b.length() > 0) {\
+                if (len != nullptr)\
+                    *len = b.length();\
+                return b.get();\
+            }\
         }\
-    }\
-    if (len != nullptr)\
-        *len = 0;\
-    return nullptr
-    static const void *ptpmgmt_cfg_ptp_dst_mac(const_ptpmgmt_cfg me, size_t *len,
-        const char *section)
-    {
-        C2CPP_bfunc(ptp_dst_mac);
-    }
-    static const void *ptpmgmt_cfg_p2p_dst_mac(const_ptpmgmt_cfg me, size_t *len,
-        const char *section)
-    {
-        C2CPP_bfunc(p2p_dst_mac);
-    }
+        if (len != nullptr)\
+            *len = 0;\
+        return nullptr; }
+    C2CPP_bfunc(ptp_dst_mac)
+    C2CPP_bfunc(p2p_dst_mac)
     static inline void ptpmgmt_cfg_asign_cb(ptpmgmt_cfg me)
     {
-        me->read_cfg = ptpmgmt_cfg_read_cfg;
-        me->transportSpecific = ptpmgmt_cfg_transportSpecific;
-        me->domainNumber = ptpmgmt_cfg_domainNumber;
-        me->udp6_scope = ptpmgmt_cfg_udp6_scope;
-        me->udp_ttl = ptpmgmt_cfg_udp_ttl;
-        me->socket_priority = ptpmgmt_cfg_socket_priority;
-        me->network_transport = ptpmgmt_cfg_network_transport;
-        me->uds_address = ptpmgmt_cfg_uds_address;
-        me->ptp_dst_mac = ptpmgmt_cfg_ptp_dst_mac;
-        me->p2p_dst_mac = ptpmgmt_cfg_p2p_dst_mac;
+#define C_ASGN(n) me->n = ptpmgmt_cfg_##n
+        C_ASGN(read_cfg);
+        C_ASGN(transportSpecific);
+        C_ASGN(domainNumber);
+        C_ASGN(udp6_scope);
+        C_ASGN(udp_ttl);
+        C_ASGN(socket_priority);
+        C_ASGN(network_transport);
+        C_ASGN(uds_address);
+        C_ASGN(ptp_dst_mac);
+        C_ASGN(p2p_dst_mac);
     }
     ptpmgmt_cfg ptpmgmt_cfg_alloc()
     {

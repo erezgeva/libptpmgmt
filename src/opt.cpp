@@ -321,18 +321,19 @@ extern "C" {
             free(me);
             return nullptr;
         }
-        me->free = ptpmgmt_opt_free;
-        me->useDefOption = ptpmgmt_opt_useDefOption;
-        me->insert = ptpmgmt_opt_insert;
-        me->get_help = ptpmgmt_opt_get_help;
-        me->get_msg = ptpmgmt_opt_get_msg;
-        me->parse_options = ptpmgmt_opt_parse_options;
-        me->have = ptpmgmt_opt_have;
-        me->val = ptpmgmt_opt_val;
-        me->val_i = ptpmgmt_opt_val_i;
-        me->get_net_transport = ptpmgmt_opt_get_net_transport;
-        me->have_more = ptpmgmt_opt_have_more;
-        me->process_next = ptpmgmt_opt_process_next;
+#define C_ASGN(n) me->n = ptpmgmt_opt_##n
+        C_ASGN(free);
+        C_ASGN(useDefOption);
+        C_ASGN(insert);
+        C_ASGN(get_help);
+        C_ASGN(get_msg);
+        C_ASGN(parse_options);
+        C_ASGN(have);
+        C_ASGN(val);
+        C_ASGN(val_i);
+        C_ASGN(get_net_transport);
+        C_ASGN(have_more);
+        C_ASGN(process_next);
         return me;
     }
     ptpmgmt_opt ptpmgmt_opt_alloc()
