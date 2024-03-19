@@ -57,11 +57,11 @@ int Init::process(const Options &opt)
     if(opt.have('d'))
         prms.domainNumber = opt.val_i('d');
     else
-        prms.domainNumber = m_cfg.domainNumber(interface);
+        prms.domainNumber = m_cfg.domainNumber();
     if(opt.have('t'))
         prms.transportSpecific = strtol(opt.val_c('t'), nullptr, 16);
     else
-        prms.transportSpecific = m_cfg.transportSpecific(interface);
+        prms.transportSpecific = m_cfg.transportSpecific();
     prms.useZeroGet = opt.val('z') == "1";
     m_net_select = net_select;
     switch(net_select) {
@@ -76,7 +76,7 @@ int Init::process(const Options &opt)
             if(opt.have('s'))
                 uds_address = opt.val('s');
             else
-                uds_address = m_cfg.uds_address(interface);
+                uds_address = m_cfg.uds_address();
             if(!sku->setDefSelfAddress() || !sku->init() ||
                 !sku->setPeerAddress(uds_address))
                 return -1;
@@ -97,7 +97,7 @@ int Init::process(const Options &opt)
                 return -1;
             }
             m_sk.reset(sk4);
-            if(!sk4->setAll(ifObj, m_cfg, interface))
+            if(!sk4->setAll(ifObj, m_cfg))
                 return -1;
             if(opt.have('T') && !sk4->setUdpTtl(opt.val_i('T')))
                 return -1;
@@ -112,7 +112,7 @@ int Init::process(const Options &opt)
                 return -1;
             }
             m_sk.reset(sk6);
-            if(!sk6->setAll(ifObj, m_cfg, interface))
+            if(!sk6->setAll(ifObj, m_cfg))
                 return -1;
             if(opt.have('T') && !sk6->setUdpTtl(opt.val_i('T')))
                 return -1;
@@ -129,7 +129,7 @@ int Init::process(const Options &opt)
                 return -1;
             }
             m_sk.reset(skr);
-            if(!skr->setAll(ifObj, m_cfg, interface))
+            if(!skr->setAll(ifObj, m_cfg))
                 return -1;
             if(opt.have('P') &&
                 !skr->setSocketPriority(opt.val_i('P')))
