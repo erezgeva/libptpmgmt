@@ -46,29 +46,28 @@ class Options
 {
   private:
     static Pmc_option startOptions[];
-    size_t max_arg_name;
-    std::vector<option> long_options_list;
+    size_t m_max_arg_name;
+    std::vector<option> m_long_opts_list;
     /* We need to store the string used in option */
-    std::vector<std::string> long_options_list_string;
-    std::map<int, std::string> options;
-    std::string net_options, all_options, all_short_options, with_options, msg;
-    char net_select;
-    int m_argc;
-    int m_end_optind;
+    std::vector<std::string> m_long_opts_list_str;
+    std::map<int, std::string> m_opts;
+    std::string m_net_opts, m_all_opts, m_all_short_opts, m_with_opts, m_msg;
+    char m_net_select;
+    int m_argc, m_end_optind;
     bool m_useDef;
 
     class helpStore
     {
       private:
-        std::string start, end;
+        std::string m_start, m_end;
       public:
-        helpStore(const char *s, const char *e = nullptr): start(s) {
+        helpStore(const char *s, const char *e = nullptr): m_start(s) {
             if(e != nullptr)
-                end = e;
+                m_end = e;
         }
-        helpStore &addStart(const std::string &s) {start += s; return *this;}
-        helpStore &addStart(const char s) {start += s; return *this;}
-        helpStore &addEnd(const std::string &e) {end += e; return *this;}
+        helpStore &addStart(const std::string &s) {m_start += s; return *this;}
+        helpStore &addStart(const char s) {m_start += s; return *this;}
+        helpStore &addEnd(const std::string &e) {m_end += e; return *this;}
         std::string get(size_t length) const;
     };
     std::string help;
@@ -108,12 +107,12 @@ class Options
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const std::string &get_msg() const { return msg; }
+    const std::string &get_msg() const { return m_msg; }
     /**
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const char *get_msg_c() const { return msg.c_str(); }
+    const char *get_msg_c() const { return m_msg.c_str(); }
     /**
      * Parse command line
      * @param[in] argc number of arguments
@@ -143,7 +142,7 @@ class Options
      * @param[in] opt short option character
      * @return true if option on command line
      */
-    bool have(char opt) const { return options.count(opt) > 0; }
+    bool have(char opt) const { return m_opts.count(opt) > 0; }
     /**
      * get option value
      * @param[in] opt short option character
@@ -158,7 +157,7 @@ class Options
      * @note relevant for option with argument
      */
     const char *val_c(char opt) const
-    { return have(opt) ? options.at(opt).c_str() : ""; }
+    { return have(opt) ? m_opts.at(opt).c_str() : ""; }
     /**
      * get option integer value
      * @param[in] opt short option character
@@ -166,13 +165,13 @@ class Options
      * @note relevant for option with argument of integer value
      */
     int val_i(char opt) const
-    { return have(opt) ? atoi(options.at(opt).c_str()) : 0; }
+    { return have(opt) ? atoi(m_opts.at(opt).c_str()) : 0; }
     /**
      * get Network Transport value
      * @return Network Transport
      * @note return 0 if not select on command line
      */
-    char get_net_transport() const { return net_select; }
+    char get_net_transport() const { return m_net_select; }
     /**
      * Do we have more argumends on the command line, left unprocessed
      * @return true if we have more to process

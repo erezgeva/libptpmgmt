@@ -49,17 +49,17 @@ Pmc_option Options::startOptions[] = {
 
 string Options::helpStore::get(size_t length) const
 {
-    string ret = start;
-    if(!end.empty()) {
-        ret += string(length - start.length(), ' ');
-        ret += end;
+    string ret = m_start;
+    if(!m_end.empty()) {
+        ret += string(length - m_start.length(), ' ');
+        ret += m_end;
     }
     ret += "\n";
     return ret;
 }
 
-Options::Options(bool useDef) : max_arg_name(0), net_select(0), m_useDef(false),
-    helpUpdate(false)
+Options::Options(bool useDef) : m_max_arg_name(0), m_net_select(0),
+    m_useDef(false), helpUpdate(false)
 {
     if(useDef)
         useDefOption();
@@ -69,9 +69,9 @@ void Options::useDefOption()
 {
     if(m_useDef)
         return;
-    net_options = "u246";
-    all_options += net_options;
-    all_short_options += net_options;
+    m_net_opts = "u246";
+    m_all_opts += m_net_opts;
+    m_all_short_opts += m_net_opts;
     helpVec.push_back(helpStore(" Network Transport\n"));
     helpVec.push_back(helpStore(" -2", "IEEE 802.3"));
     helpVec.push_back(helpStore(" -4", "UDP IPV4 (default)"));
@@ -90,7 +90,7 @@ bool Options::insert(const Pmc_option &opt)
     if(opt.short_name == 0 || strchr(":+-W", opt.short_name) != nullptr)
         return false;
     // short_name must be uniq
-    if(all_options.find(opt.short_name) != string::npos)
+    if(m_all_opts.find(opt.short_name) != string::npos)
         return false;
     bool have_long_name = !opt.long_name.empty();
     if(opt.long_only) {
@@ -99,13 +99,13 @@ bool Options::insert(const Pmc_option &opt)
     } else {
         if((opt.have_arg && opt.arg_help.empty()) || opt.help_msg.empty())
             return false;
-        all_short_options += opt.short_name;
+        m_all_short_opts += opt.short_name;
         helpStore h(" -");
         h.addStart(opt.short_name);
         if(opt.have_arg) {
-            all_short_options += ':';
+            m_all_short_opts += ':';
             h.addStart(" [").addStart(opt.arg_help).addStart("]");
-            max_arg_name = max(max_arg_name, opt.arg_help.length());
+            m_max_arg_name = max(m_max_arg_name, opt.arg_help.length());
         }
         h.addEnd(opt.help_msg);
         if(opt.have_arg && !opt.def_val.empty())
@@ -114,17 +114,17 @@ bool Options::insert(const Pmc_option &opt)
         helpUpdate = true;
     }
     if(opt.have_arg)
-        with_options += opt.short_name;
-    all_options += opt.short_name;
+        m_with_opts += opt.short_name;
+    m_all_opts += opt.short_name;
     if(have_long_name) {
         option nopt;
-        auto iter = long_options_list_string.insert(long_options_list_string.end(),
+        auto iter = m_long_opts_list_str.insert(m_long_opts_list_str.end(),
                 opt.long_name);
         nopt.name = iter->c_str();
         nopt.has_arg = opt.have_arg ? required_argument : no_argument;
         nopt.flag = nullptr;
         nopt.val = opt.short_name;
-        long_options_list.push_back(nopt);
+        m_long_opts_list.push_back(nopt);
     }
     return true;
 }
@@ -134,7 +134,7 @@ const char *Options::get_help()
     if(helpUpdate) {
         help = "";
         for(const helpStore &a : helpVec)
-            help += a.get(max_arg_name + 7);
+            help += a.get(m_max_arg_name + 7);
         helpUpdate = false;
     }
     return help.c_str();
@@ -147,32 +147,32 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
     // Handle errors with '?'
     opterr = 0;
     optind = 1; // ensure we start from first argument!
-    while((c = getopt_long(argc, argv, all_short_options.c_str(),
-                    long_options_list.data(), nullptr)) != -1) {
+    while((c = getopt_long(argc, argv, m_all_short_opts.c_str(),
+                    m_long_opts_list.data(), nullptr)) != -1) {
         if(c == '?') { // Error handling
-            msg = "invalid option -- '";
-            msg += argv[optind - 1];
-            msg += "'";
+            m_msg = "invalid option -- '";
+            m_msg += argv[optind - 1];
+            m_msg += "'";
             return OPT_ERR;
         }
         if(m_useDef) {
             switch(c) {
                 case 'v':
-                    msg = getVersion();
+                    m_msg = getVersion();
                     return OPT_MSG;
                 case 'h':
                     return OPT_HELP;
                 case 'n':
                     if(strcasecmp(optarg, "UDPv4") == 0)
-                        net_select = '4';
+                        m_net_select = '4';
                     else if(strcasecmp(optarg, "UDPv6") == 0)
-                        net_select = '6';
+                        m_net_select = '6';
                     else if(strcasecmp(optarg, "L2") == 0)
-                        net_select = '2';
+                        m_net_select = '2';
                     else {
-                        msg = "Wrong network transport -- '";
-                        msg += optarg;
-                        msg += "'";
+                        m_msg = "Wrong network transport -- '";
+                        m_msg += optarg;
+                        m_msg += "'";
                         return OPT_ERR;
                     }
                     continue; // To next option
@@ -180,14 +180,14 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
                     break;
             }
         }
-        if(net_options.find(c) != string::npos)
-            net_select = c; // Network Transport value
-        else if(with_options.find(c) != string::npos)
-            options[c] = optarg;
-        else if(all_options.find(c) != string::npos)
-            options[c] = "1";
+        if(m_net_opts.find(c) != string::npos)
+            m_net_select = c; // Network Transport value
+        else if(m_with_opts.find(c) != string::npos)
+            m_opts[c] = optarg;
+        else if(m_all_opts.find(c) != string::npos)
+            m_opts[c] = "1";
         else {
-            msg = "error";
+            m_msg = "error";
             return OPT_ERR;
         }
     }
@@ -198,7 +198,7 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
 const string &Options::val(char opt) const
 {
     static const string empty;
-    return have(opt) ? options.at(opt) : empty;
+    return have(opt) ? m_opts.at(opt) : empty;
 }
 
 __PTPMGMT_NAMESPACE_END
