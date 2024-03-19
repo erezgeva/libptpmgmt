@@ -18,11 +18,29 @@ namespace JClkLibProxy
 	protected:
 		ProxyConnectMessage() : MESSAGE_CONNECT() {};
 	public:
+		/**
+		 * @brief process the connect msg from client-runtime
+		 * @param LxContext proxy transport listener context
+		 * @param TxContext proxy transport transmitter context
+		 * @return true
+		 */
 		virtual PROCESS_MESSAGE_TYPE(processMessage);
+
 		bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
 				      const ClockStatus &status)
 		{ return false; }
-                static MAKE_RXBUFFER_TYPE(buildMessage);
+
+		/**
+		 * @brief Create the ProxyConnectMessage object
+		 * @param msg msg structure to be fill up
+		 * @param LxContext proxy transport listener context
+		 * @return true
+		 */
+		static MAKE_RXBUFFER_TYPE(buildMessage);
+
+		/** @brief Add proxy's CONNECT_MSG type and its builder to transport layer.
+		 * @return true
+		 */
 		static bool initMessage();
 	};
 }

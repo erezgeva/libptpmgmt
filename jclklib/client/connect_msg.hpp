@@ -18,8 +18,26 @@ namespace JClkLibClient
 	{
 	public:
 		ClientConnectMessage() : MESSAGE_CONNECT() {};
+		/**
+		 * @brief process the reply for connect msg from proxy.
+		 * @param LxContext client run-time transport listener context
+		 * @param TxContext client run-time transport transmitter context
+		 * @return true
+		 */
 		virtual PROCESS_MESSAGE_TYPE(processMessage);
+
+		/**
+		 * @brief Create the ClientConnectMessage object
+		 * @param msg msg structure to be fill up
+		 * @param LxContext client run-time transport listener context
+		 * @return true
+		 */
 		static MAKE_RXBUFFER_TYPE(buildMessage);
+
+		/**
+		 * @brief Add client's CONNECT_MSG type and its builder to transport layer.
+		 * @return true
+		 */
 		static bool initMessage();
 	};
 }

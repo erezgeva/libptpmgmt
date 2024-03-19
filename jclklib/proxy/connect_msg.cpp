@@ -13,19 +13,45 @@ using namespace std;
 using namespace JClkLibProxy;
 using namespace JClkLibCommon;
 
+/** @brief Create the ProxyConnectMessage object
+ *
+ * @param msg msg structure to be fill up
+ * @param LxContext proxy transport listener context
+ * @return true
+ */
 MAKE_RXBUFFER_TYPE(ProxyConnectMessage::buildMessage)
 {
 	msg = new ProxyConnectMessage();
-
 	return true;
 }
 
+/** @brief Add proxy's CONNECT_MSG type and its builder to transport layer.
+ *
+ * This function will be called during init to add a map of CONNECT_MSG
+ * type and its corresponding buildMessage function.
+ *
+ * @return true
+ */
 bool ProxyConnectMessage::initMessage()
 {
-        addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
-        return true;
+	addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
+	return true;
 }
 
+/** @brief process the connect msg from client-runtime
+ *
+ * This function will be called when the transport layer
+ * in proxy receive a CONNECT_MSG type from client-runtime.
+ * In this case, proxy transport layer will rx a buffer in the
+ * message queue and call this function when
+ * the enum ID corresponding to the CONNECT_MSG is received.
+ * A new ClientSession object and a corresponding TxContext
+ * (with the transmit msq) is created in the proxy.
+ *
+ * @param LxContext proxy transport listener context
+ * @param TxContext proxy transport transmitter context
+ * @return true
+ */
 PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 {
 	sessionId_t newSessionId;
