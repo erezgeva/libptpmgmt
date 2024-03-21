@@ -13,6 +13,7 @@
 #define __PTPMGMT_COMPILATION_H
 
 #include "config.h"
+#include <functional>
 #ifdef HAVE_ENDIAN_H
 #include <endian.h>
 #endif
@@ -512,6 +513,14 @@ struct JsonProcFrom : public JsonProc {
     virtual bool haveData() = 0;
     virtual bool parseData() = 0;
     virtual ~JsonProcFrom() {}
+};
+
+/* structure for linking of From Json library */
+struct Json_lib {
+    std::function<void *(const char *json)> m_parse;
+    std::function<void(void *jobj)> m_free;
+    std::function<JsonProcFrom *()> m_alloc_proc;
+    const char *m_name; /**< Used in static only */
 };
 
 __PTPMGMT_NAMESPACE_END

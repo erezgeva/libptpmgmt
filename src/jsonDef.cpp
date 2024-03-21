@@ -25,29 +25,11 @@ static int Json2msgCount = 0; // Count how many objects exist
 static void *jsonLib = nullptr;
 static const char *useLib = nullptr;
 static mutex jsonLoadLock; // Lock loading and unloading
-#define funcName(fname) ptpm_json_##fname##_p
-#define funcDeclare0(fret, fname, fargs)\
-    typedef fret(*fname##_t)(fargs);\
-    fname##_t fname##_p = nullptr
-#define funcAssign0(fname)\
-    fname##_p = (fname##_t)dlsym(jsonLib, #fname);\
-    if(fname##_p == nullptr)\
-        return false
-#define funcAssign(fname) funcAssign0(ptpm_json_##fname)
-#else // PIC
-#define funcName(fname) ptpm_json_##fname
-#define funcDeclare0(fret, fname, fargs) fret fname(fargs)
-#endif // PIC
-
-#define funcDeclare(fret, fname, fargs) funcDeclare0(fret, ptpm_json_##fname, fargs)
+Json_lib *ptpm_json = nullptr;
 extern "C" {
-    funcDeclare(void *, parse, const char *json);
-    funcDeclare(void, free, void *jobj);
-    funcDeclare(JsonProcFrom *, alloc_proc,);
-    funcDeclare(const char *, name,); // Used in static only
+    typedef Json_lib *(*ptpm_json_fech_t)();
+    ptpm_json_fech_t ptpm_json_fech_p;
 }
-
-#ifdef PIC
 static void doLibRm()
 {
     if(dlclose(jsonLib) != 0)
@@ -58,15 +40,14 @@ static void doLibNull()
 {
     jsonLib = nullptr;
     useLib = nullptr;
-    funcName(parse) = nullptr;
-    funcName(free) = nullptr;
-    funcName(alloc_proc) = nullptr;
+    ptpm_json = nullptr;
 }
 static inline bool loadFuncs()
 {
-    funcAssign(parse);
-    funcAssign(free);
-    funcAssign(alloc_proc);
+    ptpm_json_fech_p = (ptpm_json_fech_t)dlsym(jsonLib, "ptpm_json_fech");
+    if(ptpm_json_fech_p == nullptr)
+        return false;
+    ptpm_json = ptpm_json_fech_p();
     return true;
 }
 static bool tryLib(const char *name)
@@ -149,9 +130,10 @@ static inline void libFree()
 #define LIB_NAME useLib
 #define LIB_SHARED true
 #else // PIC
+extern "C" { extern Json_lib *ptpm_json; }
 #define LIB_LOAD(a)
 #define LIB_FREE
-#define LIB_NAME funcName(name)()
+#define LIB_NAME ptpm_json->m_name
 #define LIB_SHARED false
 #endif // PIC
 
@@ -183,20 +165,20 @@ bool Json2msg::isLibShared()
 bool Json2msg::fromJson(const string &json)
 {
     LIB_LOAD();
-    void *jobj = funcName(parse)(json.c_str());
+    void *jobj = ptpm_json->m_parse(json.c_str());
     if(jobj == nullptr) {
         PTPMGMT_ERROR("JSON parse fail");
         return false;
     }
     bool ret = fromJsonObj(jobj);
-    funcName(free)(jobj);
+    ptpm_json->m_free(jobj);
     return ret;
 }
 bool Json2msg::fromJsonObj(const void *jobj)
 {
     LIB_LOAD();
     unique_ptr<JsonProcFrom> hold;
-    JsonProcFrom *pproc = funcName(alloc_proc)();
+    JsonProcFrom *pproc = ptpm_json->m_alloc_proc();
     if(pproc == nullptr) {
         PTPMGMT_ERROR("fromJsonObj fail allocation of JsonProcFrom");
         return false;

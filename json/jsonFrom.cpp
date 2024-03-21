@@ -692,10 +692,11 @@ struct JsonProcFromJson : public JsonProcFrom {
 };
 
 // Library binding functions use C, so we can find them easily with dlsym()
+Json_lib me = { [](const char *json) { return JSON_PARSE(json); },
+[](void *jobj) { JSON_OBJ_FREE((JSON_POBJ)jobj); },
+[]() { return new JsonProcFromJson; }, JLIB_NAME
+         };
 extern "C" {
-#define _n(n) ptpm_json_##n
-    void *_n(parse)(const char *json) { return JSON_PARSE(json); }
-    void _n(free)(void *jobj) { JSON_OBJ_FREE((JSON_POBJ)jobj); }
-    JsonProcFrom *_n(alloc_proc)() { return new JsonProcFromJson; }
-    const char *_n(name)() { return JLIB_NAME; }
+    Json_lib *ptpm_json = &me; // For static library link
+    Json_lib *ptpm_json_fech() { return &me; } // For shread library link
 }
