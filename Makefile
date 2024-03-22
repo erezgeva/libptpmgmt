@@ -437,20 +437,20 @@ $(PUB)/name.h: $(SRC)/name.h.in
 	  -e 's/undef __PTPMGMT_$(n)$$/define __PTPMGMT_$(n) 1/') $< > $@
 
 ifneq ($(and $(ASTYLEMINVER),$(PERL5TOUCH)),)
+CPPCHECK_OPT:=--quiet --force --error-exitcode=-1
+# Ignore '#error'
+CPPCHECK_OPT+=--suppress=preprocessorErrorDirective
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
 	$(Q_FRMT)
-	$(SED) -i 's@^// #error@#error@' $(PUB)/*.h
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r";./tools/format.pl $^
 	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
 ifneq ($(CPPCHECK),)
-	$(SED) -i 's@^#error@// #error@' $(PUB)/*.h
-	$(CPPCHECK) --quiet --force --language=c++ --error-exitcode=-1\
-	  $(filter-out $(EXTRA_C_SRCS) $(addprefix $(SRC)/,ids.h proc.cpp),$^)
-	$(SED) -i 's@^// #error@#error@' $(PUB)/*.h
+	$(CPPCHECK) $(CPPCHECK_OPT) --language=c++\
+	  $(filter-out $(EXTRA_C_SRCS) $(addprefix $(SRC)/,ids.h),$^)
 endif
 endif # ASTYLEMINVER && PERL5TOUCH
 
