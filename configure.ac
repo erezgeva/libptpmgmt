@@ -166,6 +166,8 @@ AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags"])
 # POSIX/GNU headers included by inner source code
 AC_CHECK_HEADERS(byteswap.h dirent.h dlfcn.h endian.h fcntl.h pwd.h poll.h
    sys/ioctl.h sys/select.h sys/socket.h sys/time.h sys/timex.h arpa/inet.h)
+AC_FUNC_STRERROR_R
+AC_CHECK_FUNCS([strtok_r strtok_s strnlen_s strerror_s strerrorlen_s])
 AC_CONFIG_HEADERS([src/config.h])
 
 # POSIX/GNU headers included by library public headers

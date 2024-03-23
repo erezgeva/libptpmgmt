@@ -121,6 +121,16 @@ TEST(BinaryTest, MethodSet)
     EXPECT_EQ(f.getBinString(), "\x1\x2\x3\x4");
 }
 
+// Test set binary from binary
+// Binary &setBin(const Binary &rhs);
+TEST(BinaryTest, MethodSetBinBin)
+{
+    Binary g("\x1\x2\x3\x4");
+    Binary f;
+    f.setBin(g);
+    EXPECT_EQ(f.getBinString(), "\x1\x2\x3\x4");
+}
+
 // Test set binary based string
 // Binary &setBin(const std::string &string)
 TEST(BinaryTest, MethodSetBinString)

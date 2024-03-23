@@ -565,13 +565,13 @@ void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *data)
 class MsgBuild : public MessageBuilder
 {
   public:
-    char *save;
-    MsgBuild(Message &msg, char *s) : MessageBuilder(msg), save(s) {}
+    char *m_save;
+    MsgBuild(Message &msg, char *save) : MessageBuilder(msg), m_save(save) {}
 
 #define build_fail return false
 #define build(n) bool n##_b(const Message &, n##_t &d) override
 #define defKeys std::map<std::string, val_key_t> keys
-#define parseKeys if(parseKeysFunc(keys, save)) build_fail
+#define parseKeys if(parseKeysFunc(keys, m_save)) build_fail
 #define build_end return true
 #define defFlags uint8_t flags = 0
 #define useFlag(n) keys[#n].flag = true;
@@ -680,9 +680,8 @@ class MsgBuild : public MessageBuilder
         *wcur = 0; // close string
         return 2; // Found token
     }
-    static bool parseKeysFunc(std::map<std::string, val_key_t> &keys,
-        char *orgSave) {
-        char *save = orgSave;
+    static bool parseKeysFunc(std::map<std::string, val_key_t> &keys, char *save) {
+        char *l_save = save;
         // Update unrequired keys with default value.
         for(auto &it : keys) {
             if(!it.second.req) {
@@ -699,7 +698,7 @@ class MsgBuild : public MessageBuilder
         while(ret > 0) {
             ret = 1; // take token using strtok_r
             if(singleKey && firstKey.can_str) {
-                ret = parse_quote(save, lastStr, tkn);
+                ret = parse_quote(l_save, lastStr, tkn);
                 if(ret == -1)
                     return true; // parse error
                 if(ret == 0) // No more tokens we can continue to last part
@@ -708,7 +707,7 @@ class MsgBuild : public MessageBuilder
                 // ret == 2  we have quoted token
             }
             if(ret == 1) { // take normal token
-                tkn = strtok_r(lastStr, toksep, &save);
+                tkn = strtok_r(lastStr, toksep, &l_save);
                 // No more tokens, we can continue to last part
                 if(tkn == nullptr || *tkn == 0)
                     break; // No more tokens we can continue to last part
@@ -727,7 +726,7 @@ class MsgBuild : public MessageBuilder
             val_key_t &key = it->second;
             ret = 1; // take token using strtok_r
             if(key.can_str) {
-                ret = parse_quote(save, lastStr, tkn);
+                ret = parse_quote(l_save, lastStr, tkn);
                 if(ret == -1)
                     return true; // pass error
                 if(ret == 0 && !singleKey)
@@ -737,7 +736,7 @@ class MsgBuild : public MessageBuilder
                 // ret == 2  we have quoted token
             }
             if(ret == 1) { // No quote string, take normal token
-                char *ntkn = strtok_r(lastStr, toksep, &save);
+                char *ntkn = strtok_r(lastStr, toksep, &l_save);
                 if(ntkn == nullptr || *ntkn == 0) {
                     // No more tokens
                     if(!singleKey)

@@ -894,6 +894,8 @@ A(CMLDS_INFO_NP)
         e = true;\
         return;\
     }\
+    if(d.nm == 0)\
+        return;\
     x = malloc(sizeof(ptpmgmt_##n##_t) * d.nm);\
     if(x == nullptr) {\
         e = true;\

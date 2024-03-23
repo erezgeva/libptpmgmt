@@ -128,11 +128,13 @@ bool MsgProc::proc(SLAVE_DELAY_TIMING_DATA_NP_rec_t &d)
     static inline void n##_c1(const n##_t &d, ptpmgmt_##n##_t &a,\
         void *&x, void *&x2, bool &e)
 #define C1_tbl(n, sz)\
-    size_t _s = sizeof(ptpmgmt_##n##_t) * (sz);\
+    size_t _s = sizeof(ptpmgmt_##n##_t) * ((sz) + 1);\
     x = malloc(_s);\
     if(x == nullptr) {e = true;return;}\
     memset(x, 0, _s);\
-    ptpmgmt_##n##_t *m = (ptpmgmt_##n##_t *)x
+    ptpmgmt_##n##_t *m = (ptpmgmt_##n##_t *)x;\
+    size_t i = 0;\
+    for(; i < (sz); i++)
 
 C1(ORGANIZATION_EXTENSION)
 {
@@ -142,10 +144,10 @@ C1(ORGANIZATION_EXTENSION)
 }
 C1(PATH_TRACE)
 {
-    C1_tbl(ClockIdentity, d.pathSequence.size() + 1);
-    size_t i = 0;
-    for(; i < d.pathSequence.size(); i++)
+    C1_tbl(ClockIdentity, d.pathSequence.size()) {
         memcpy(m[i].v, d.pathSequence[i].v, ClockIdentity_t::size());
+        ;
+    }
     a.pathSequence = m;
 }
 C1(ALTERNATE_TIME_OFFSET_INDICATOR)
@@ -199,9 +201,7 @@ C1(SLAVE_RX_SYNC_TIMING_DATA)
     memcpy(a.syncSourcePortIdentity.clockIdentity.v,
         d.syncSourcePortIdentity.clockIdentity.v, ClockIdentity_t::size());
     a.syncSourcePortIdentity.portNumber = d.syncSourcePortIdentity.portNumber;
-    C1_tbl(SLAVE_RX_SYNC_TIMING_DATA_rec, d.list.size() + 1);
-    size_t i = 0;
-    for(; i < d.list.size(); i++) {
+    C1_tbl(SLAVE_RX_SYNC_TIMING_DATA_rec, d.list.size()) {
         const SLAVE_RX_SYNC_TIMING_DATA_rec_t &f = d.list[i];
         m[i].sequenceId = f.sequenceId;
         m[i].syncOriginTimestamp.secondsField = f.syncOriginTimestamp.secondsField;
@@ -223,9 +223,7 @@ C1(SLAVE_RX_SYNC_COMPUTED_DATA)
         d.sourcePortIdentity.clockIdentity.v, ClockIdentity_t::size());
     a.sourcePortIdentity.portNumber = d.sourcePortIdentity.portNumber;
     a.computedFlags = d.computedFlags;
-    C1_tbl(SLAVE_RX_SYNC_COMPUTED_DATA_rec, d.list.size() + 1);
-    size_t i = 0;
-    for(; i < d.list.size(); i++) {
+    C1_tbl(SLAVE_RX_SYNC_COMPUTED_DATA_rec, d.list.size()) {
         const SLAVE_RX_SYNC_COMPUTED_DATA_rec_t &f = d.list[i];
         m[i].sequenceId = f.sequenceId;
         m[i].offsetFromMaster.scaledNanoseconds =
@@ -241,9 +239,7 @@ C1(SLAVE_TX_EVENT_TIMESTAMPS)
         d.sourcePortIdentity.clockIdentity.v, ClockIdentity_t::size());
     a.sourcePortIdentity.portNumber = d.sourcePortIdentity.portNumber;
     a.eventMessageType = (ptpmgmt_msgType_e)d.eventMessageType;
-    C1_tbl(SLAVE_TX_EVENT_TIMESTAMPS_rec, d.list.size() + 1);
-    size_t i = 0;
-    for(; i < d.list.size(); i++) {
+    C1_tbl(SLAVE_TX_EVENT_TIMESTAMPS_rec, d.list.size()) {
         const SLAVE_TX_EVENT_TIMESTAMPS_rec_t &f = d.list[i];
         m[i].sequenceId = f.sequenceId;
         m[i].eventEgressTimestamp.secondsField =
@@ -279,9 +275,7 @@ C1(SLAVE_DELAY_TIMING_DATA_NP)
     memcpy(a.sourcePortIdentity.clockIdentity.v,
         d.sourcePortIdentity.clockIdentity.v, ClockIdentity_t::size());
     a.sourcePortIdentity.portNumber = d.sourcePortIdentity.portNumber;
-    C1_tbl(SLAVE_DELAY_TIMING_DATA_NP_rec, d.list.size() + 1);
-    size_t i = 0;
-    for(; i < d.list.size(); i++) {
+    C1_tbl(SLAVE_DELAY_TIMING_DATA_NP_rec, d.list.size()) {
         const SLAVE_DELAY_TIMING_DATA_NP_rec_t &f = d.list[i];
         m[i].sequenceId = f.sequenceId;
         m[i].delayOriginTimestamp.secondsField =

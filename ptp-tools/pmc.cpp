@@ -130,8 +130,8 @@ static inline void rcv_timeout()
 }
 static bool run_line(char *line)
 {
-    char *save;
-    char *cur = strtok_r(line, toksep, &save);
+    Token tkn(toksep, line);
+    char *cur = tkn.first();
     if(cur == nullptr)
         return false;
     actionField_e action;
@@ -142,7 +142,7 @@ static bool run_line(char *line)
     else if(strcasecmp(cur, "cmd") == 0 || strcasecmp(cur, "command") == 0)
         action = COMMAND;
     else if(strcasecmp(cur, "target") == 0) {
-        cur = strtok_r(nullptr, toksep, &save);
+        cur = tkn.next();
         if(cur == nullptr || *cur == 0)
             return false;
         if(*cur == '*')
@@ -157,13 +157,13 @@ static bool run_line(char *line)
         return false;
     } else
         return false;
-    cur = strtok_r(nullptr, toksep, &save);
+    cur = tkn.next();
     if(cur == nullptr)
         return false;
     mng_vals_e id;
     if(!msg.findMngID(cur, id, false))
         return false;
-    return call_data(msg, action, id, save);
+    return call_data(msg, action, id, tkn.save());
 }
 void help(const std::string &app, const char *hmsg)
 {

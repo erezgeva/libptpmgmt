@@ -99,6 +99,14 @@ class Binary
     Binary &setBin(const void *buf, const size_t length);
     /**
      * Set new value from binary based string
+     * @param[in] rhs Binary to assign
+     * @return reference to itself
+     * @note for scripts, to use packing assignment
+     *       and create a string from array or list of octets
+     */
+    Binary &setBin(const Binary &rhs);
+    /**
+     * Set new value from binary based string
      * @param[in] string string with octets content
      * @return reference to itself
      * @note for scripts, to use packing assignment

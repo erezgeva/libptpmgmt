@@ -13,6 +13,7 @@
 #define __PTPMGMT_PMC_TOOL_H
 
 #include "config.h"
+#include "comp.h"
 #include <csignal>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

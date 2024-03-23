@@ -1333,7 +1333,7 @@ extern "C" {
     ptpmgmt_pMsgParams ptpmgmt_MsgParams_alloc()
     {
         ptpmgmt_pMsgParams m =
-            (ptpmgmt_pMsgParams)malloc(sizeof(struct ptpmgmt_MsgParams));
+            (ptpmgmt_pMsgParams)malloc(sizeof(ptpmgmt_MsgParams));
         if(m == nullptr)
             return nullptr;
         m->_this = (void *)(new MsgParams);

@@ -13,6 +13,7 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
+#include "comp.h"
 #include "bin.h"
 
 using namespace std;
@@ -20,23 +21,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 static const size_t min_alloc_size = 1 << 5; // 32 bytes
 static const char *idsep = ":.-";
-class Token
-{
-  private:
-    char *buf;
-    char *save;
-  public:
-    ~Token() {
-        if(buf != nullptr)
-            free(buf);
-    }
-    Token(const string &str) : buf(strdup(str.c_str())) {}
-    bool fail() {return buf == nullptr;}
-    const char *first() {return strtok_r(buf, idsep, &save);}
-    const char *next() {return strtok_r(nullptr, idsep, &save);}
-};
-
-static inline bool parseByte(const char *cur, string &id)
+static inline bool parseByte(const char *cur, Binary &id)
 {
     char *end;
     long a = strtol(cur, &end, 16);
@@ -122,6 +107,10 @@ Binary &Binary::setBin(const void *buf, const size_t length)
             memcpy(m_buf, buf, m_size);
     }
     return *this;
+}
+Binary &Binary::setBin(const Binary &rhs)
+{
+    return setBin(rhs.m_buf, rhs.m_size);
 }
 Binary &Binary::setBin(const string &string)
 {
@@ -247,10 +236,10 @@ bool Binary::fromId(const string &string)
 {
     if(string.length() < 2)
         return false;
-    Token tkn(string);
-    if(tkn.fail())
+    Token tkn(idsep);
+    if(tkn.dup(string))
         return false;
-    std::string id;
+    Binary id;
     for(const char *cur = tkn.first();
         cur != nullptr && *cur != 0; cur = tkn.next()) {
         if(parseByte(cur, id))
@@ -277,10 +266,10 @@ bool Binary::fromHex(const string &hex)
 {
     if(hex.empty())
         return false;
-    Token tkn(hex);
-    if(tkn.fail())
+    Token tkn(idsep);
+    if(tkn.dup(hex))
         return false;
-    string id;
+    Binary id;
     char nibbles[3];
     nibbles[2] = 0;
     const char *cur = tkn.first();

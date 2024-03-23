@@ -217,6 +217,35 @@ inline uint64_t cpu_to_le64(uint64_t value) {return htole64(value);}
 inline uint64_t le_to_cpu64(uint64_t value) {return le64toh(value);}
 
 /* ************************************************************************** */
+/* A tokener class
+ * Internal use, assign buffer once!
+ */
+
+class Token
+{
+  private:
+    char *m_buf;
+    char *m_save;
+    const char *m_sep;
+    bool m_alloc;
+  public:
+    ~Token() {
+        if(m_alloc)
+            free(m_buf);
+    }
+    Token(const char *sep, char *buf = nullptr) : m_buf(buf), m_sep(sep),
+        m_alloc(false) {}
+    bool dup(const string &str) {
+        m_buf = strdup(str.c_str());
+        m_alloc = (m_buf == nullptr);
+        return m_alloc;
+    }
+    char *save() {return m_save;}
+    char *first() {return strtok_r(m_buf, m_sep, &m_save);}
+    char *next() {return strtok_r(nullptr, m_sep, &m_save);}
+};
+
+/* ************************************************************************** */
 /* Parse and build PTP management TLVs */
 
 /**
