@@ -14,6 +14,8 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
+const size_t lineSize = 512;
+
 #define get_func(n)\
     uint8_t ConfigFile::n(const string &section) const\
     { return get_num(ConfigSection::n##_val, section); }
@@ -50,6 +52,14 @@ static inline char *skip_spaces(char *cur)
         cur++;
     return cur;
 }
+static inline char *next_space_token(char *cur)
+{
+    while(!isspace(*cur))
+        cur++;
+    *cur = 0;
+    cur++;
+    return skip_spaces(cur); // skip spaces at start of value
+}
 static inline void strip_end_spaces(char *end)
 {
     while(isspace(*--end))
@@ -70,10 +80,7 @@ void ConfigSection::setGlobal()
 }
 bool ConfigSection::set_val(char *line)
 {
-    char *val = line;
-    while(!isspace(*val))
-        val++; // find value
-    *val = 0;  // leave key in line
+    char *val = next_space_token(line); // find value
     int idx = val_base_val - 1;
     for(size_t i = val_base_val; i < last_val; i++) {
         if(strcmp(line, ranges[i].name) == 0) {
@@ -83,8 +90,6 @@ bool ConfigSection::set_val(char *line)
     }
     if(idx < val_base_val)
         return true;
-    val++;
-    val = skip_spaces(val); // skip spaces at start of value
     strip_end_spaces(val + strlen(val));
     if(*val == 0) // empty value after chomp
         return false;
@@ -146,23 +151,25 @@ bool ConfigFile::read_cfg(const string &_file)
         PTPMGMT_ERROR("fail to open %s: %m", file);
         return false;
     }
-    char buf[512];
+    char buf[lineSize];
     clear_sections(); // remove old configuration
     string curSection = globalSection;
-    while(fgets(buf, sizeof buf, f) != nullptr) {
+    size_t lineNum = 0;
+    while(fgets(buf, lineSize, f) != nullptr) {
         char *cur = skip_spaces(buf);
+        lineNum++;
         if(*cur == '[') {
             cur = skip_spaces(cur + 1);
             char *end = strchr(cur, ']');
             if(end == nullptr) {
-                PTPMGMT_ERROR("wrong line in %s: '%s'", file, buf);
+                PTPMGMT_ERROR("wrong line %s(%d): '%s'", file, lineNum, buf);
                 return false;
             }
             strip_end_spaces(end);
             curSection = cur;
         } else if(*cur != 0 && *cur != '#' &&
             !cfgSec[curSection].set_val(cur)) {
-            PTPMGMT_ERROR("wrong line in %s: '%s'", file, buf);
+            PTPMGMT_ERROR("wrong line %s(%d): '%s'", file, lineNum, buf);
             return false;
         }
     }

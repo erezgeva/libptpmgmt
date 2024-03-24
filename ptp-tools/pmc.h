@@ -39,8 +39,6 @@ using namespace ptpmgmt;
     if(Error::isError())\
         fprintf(stderr, "%s\n", Error::getError().c_str());}while(0)
 
-static const char toksep[] = " \t\n\r"; /* while spaces */
-
 /**
  * Dump message management TLV
  * @param[in] msg object
