@@ -140,6 +140,10 @@ class Binary
      */
     Binary &resize(const size_t length);
     /**
+     * Resize to size 0
+     */
+    Binary &clear() { m_size = 0; return *this; }
+    /**
      * Copy Binary to target memory block
      * @param[in, out] target memory block
      */
@@ -250,6 +254,18 @@ class Binary
      * @return hex string
      */
     static std::string bufToHex(const uint8_t *bin, size_t length);
+    /**
+     * Convert from Base64 string
+     * @param[in] bin64 Base64 string
+     * @param[in] pad is mandatory
+     * @return true if conversion pass
+     * @note support RFC 4648, with or without padding.
+     *       And standard and "URL and filename safe".
+     *       The function probe the characters for value 62, 63 to match
+     *       to one of the standards.
+     *       And IMAP mailbox names from RFC 3501
+     */
+    bool fromBase64(const std::string &bin64, bool pad = false);
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare

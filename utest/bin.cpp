@@ -179,6 +179,16 @@ TEST(BinaryTest, MethodResize)
     EXPECT_EQ(memcmp(f.get(), "\x1\x2\x3\0\0", 6), 0);
 }
 
+// Test clear
+// Binary &clear()
+TEST(BinaryTest, MethodClear)
+{
+    Binary f("\x1\x2\x3\x4");
+    EXPECT_FALSE(f.empty());
+    f.clear();
+    EXPECT_TRUE(f.empty());
+}
+
 // Test copy buffer
 // void copy(uint8_t *target) const
 TEST(BinaryTest, MethodCopyBuffer)
@@ -362,6 +372,59 @@ TEST(BinaryTest, MethodBufToHex)
 {
     const uint8_t input[] = "\x1\x2\x3\x4\x5";
     EXPECT_EQ(Binary::bufToHex(input, sizeof input - 1), "0102030405");
+}
+
+// Convert from Base64 string
+// bool fromBase64(const std::string &bin64, bool)
+TEST(BinaryTest, MethodFromBase64)
+{
+    // 68 characters represent 51 bytes (ration of 3/4)
+#define S_STD "wbwkYB4SuPQjmNaxj/Iq03u5152XBjI019v+GDU1MjPssH/lAi5+5Exoe/mShhm+oro9"
+    // 68 characters with URL and filename safe standard ( with '-', '_' )
+#define S_SAF "wbwkYB4SuPQjmNaxj_Iq03u5152XBjI019v-GDU1MjPssH_lAi5-5Exoe_mShhm-oro9"
+    // 68 characters with IMAP ( with ',')
+#define S_IMP "wbwkYB4SuPQjmNaxj,Iq03u5152XBjI019v+GDU1MjPssH,lAi5+5Exoe,mShhm+oro9"
+    uint8_t b[54] = {0xc1, 0xbc, 0x24, 0x60, 0x1e, 0x12, 0xb8, 0xf4, 0x23, 0x98,
+            0xd6, 0xb1, 0x8f, 0xf2, 0x2a, 0xd3, 0x7b, 0xb9, 0xd7, 0x9d, 0x97, 0x06,
+            0x32, 0x34, 0xd7, 0xdb, 0xfe, 0x18, 0x35, 0x35, 0x32, 0x33, 0xec, 0xb0,
+            0x7f, 0xe5, 0x02, 0x2e, 0x7e, 0xe4, 0x4c, 0x68, 0x7b, 0xf9, 0x92, 0x86,
+            0x19, 0xbe, 0xa2, 0xba, 0x3d, 0x32, 0x0e, 0x41
+        };
+    // Empty
+    Binary e(10);
+    EXPECT_FALSE(e.empty());
+    EXPECT_TRUE(e.fromBase64(""));
+    EXPECT_TRUE(e.empty());
+    // 54 bytes do not need any pad
+    Binary b0t1, b0t2, b0t3, b0t4, b0t5, b0t6, bt(b, sizeof b);
+    EXPECT_TRUE(b0t1.fromBase64(S_STD "Mg5B"));
+    EXPECT_EQ(bt, b0t1);
+    EXPECT_TRUE(b0t2.fromBase64(S_SAF "Mg5B"));
+    EXPECT_EQ(bt, b0t2);
+    EXPECT_TRUE(b0t3.fromBase64(S_IMP "Mg5B"));
+    EXPECT_EQ(bt, b0t3);
+    EXPECT_TRUE(b0t4.fromBase64(S_STD "Mg5B", true));
+    EXPECT_EQ(bt, b0t4);
+    EXPECT_TRUE(b0t5.fromBase64(S_SAF "Mg5B", true));
+    EXPECT_EQ(bt, b0t5);
+    EXPECT_TRUE(b0t6.fromBase64(S_IMP "Mg5B", true));
+    EXPECT_EQ(bt, b0t6);
+    // 53 bytes with a single pad (or none)
+    Binary m1t1, m1t2, m1t3, m1(b, sizeof b - 1);
+    EXPECT_TRUE(m1t1.fromBase64(S_STD "Mg5"));
+    EXPECT_EQ(m1, m1t1);
+    EXPECT_TRUE(m1t2.fromBase64(S_STD "Mg5=", true));
+    EXPECT_EQ(m1, m1t2);
+    EXPECT_TRUE(m1t3.fromBase64(S_STD "Mg5="));
+    EXPECT_EQ(m1, m1t3);
+    // 52 bytes with 2 pads (or none)
+    Binary m2t1, m2t2, m2t3, m2(b, sizeof b - 2);
+    EXPECT_TRUE(m2t1.fromBase64(S_STD "Mg"));
+    EXPECT_EQ(m2, m2t1);
+    EXPECT_TRUE(m2t2.fromBase64(S_STD "Mg==", true));
+    EXPECT_EQ(m2, m2t2);
+    EXPECT_TRUE(m2t3.fromBase64(S_STD "Mg=="));
+    EXPECT_EQ(m2, m2t3);
 }
 
 // Test operator equal to other object
