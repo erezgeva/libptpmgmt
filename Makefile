@@ -197,6 +197,7 @@ SRC:=src
 PUB:=pub
 PUB_C:=$(PUB)/c
 PMC_DIR:=ptp-tools
+HMAC_SRC:=hmac
 JSON_SRC:=json
 OBJ_DIR:=objs
 
@@ -224,8 +225,23 @@ HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
 HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
 HEADERS_INST_C:=$(HEADERS_PUB_C) $(HEADERS_GEN_PUB_C)
 SRCS:=$(wildcard $(SRC)/*.cpp)
+SRCS_HMAC:=$(wildcard $(HMAC_SRC)/*.cpp)
 SRCS_JSON:=$(wildcard $(JSON_SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
+# hmac
+SSL_LIB:=$(LIB_NAME)_openssl.so
+SSL_LIBA:=$(LIB_NAME)_openssl.a
+SSL_FLIB:=$(SSL_LIB)$(SONAME)
+GCRYPT_LIB:=$(LIB_NAME)_gcrypt.so
+GCRYPT_LIBA:=$(LIB_NAME)_gcrypt.a
+GCRYPT_FLIB:=$(GCRYPT_LIB)$(SONAME)
+GNUTLS_LIB:=$(LIB_NAME)_gnutls.so
+GNUTLS_LIBA:=$(LIB_NAME)_gnutls.a
+GNUTLS_FLIB:=$(GNUTLS_LIB)$(SONAME)
+NETTLE_LIB:=$(LIB_NAME)_nettle.so
+NETTLE_LIBA:=$(LIB_NAME)_nettle.a
+NETTLE_FLIB:=$(NETTLE_LIB)$(SONAME)
+HMAC_FLIBS:=$(SSL_FLIB) $(GNUTLS_FLIB) $(NETTLE_FLIB) $(GCRYPT_FLIB)
 # json-c
 JSONC_LIB:=$(LIB_NAME)_jsonc.so
 JSONC_LIBA:=$(LIB_NAME)_jsonc.a
@@ -235,7 +251,7 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl go
-UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys json json_load pmc)
+UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys json json_load pmc hmac)
 UTEST_C_TGT:=$(addprefix uctest_,no_sys sys json)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
@@ -258,8 +274,9 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
-  */*/*test*/*.go LICENSES/* *.in tools/*.in) src/ver.h.in src/name.h.in\
-  $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
+  */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
+  src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
+  $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[ch]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\
@@ -390,6 +407,9 @@ PYUVGD:=PYTHONMALLOC=malloc $(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(S
 endif # VGD_PY
 endif # VALGRIND
 
+# HMAC libraries
+include $(HMAC_SRC)/Makefile
+
 # JSON libraries
 include $(JSON_SRC)/Makefile
 
@@ -444,7 +464,8 @@ CPPCHECK_OPT+=--suppress=preprocessorErrorDirective
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)
-format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)
+format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)\
+	$(SRCS_HMAC)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r";./tools/format.pl $^

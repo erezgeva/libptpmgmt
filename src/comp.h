@@ -18,6 +18,7 @@
 #include <endian.h>
 #endif
 #include "name.h"
+#include "cfg.h"
 #include "err.h"
 #include "proc.h" /* Structures for management TLVs */
 #include "sig.h" /* Structures for signalling TLVs */
@@ -56,6 +57,7 @@ using namespace std;
  */
 #define PACK(__definition__) __definition__ __attribute__((packed))
 #define PURE __attribute__((pure))
+#define WEAK __attribute__((weak))
 #ifndef MAYBE_UNUSED
 #define MAYBE_UNUSED(_expr) _expr __attribute__((unused))
 #endif
@@ -93,6 +95,9 @@ using namespace std;
 #endif
 #ifndef PURE
 #define PURE
+#endif
+#ifndef WEAK
+#define WEAK
 #endif
 #ifndef MAYBE_UNUSED
 #define MAYBE_UNUSED(_expr) _expr
@@ -568,6 +573,43 @@ struct Json_lib {
     std::function<JsonProcFrom *()> m_alloc_proc;
     const char *m_name; /**< Used in static only */
 };
+
+/* ************************************************************************** */
+/* HMAC structure used by wraper libraries
+ * https://en.wikipedia.org/wiki/HMAC
+ * https://en.wikipedia.org/wiki/One-key_MAC
+ * CMAC a variation of CBC-MAC
+ */
+
+/* Used by HMAC libraries */
+struct HMAC_Key {
+    HMAC_t m_type;
+    Binary m_key;
+    virtual ~HMAC_Key();
+    virtual bool init(HMAC_t _type) = 0;
+    virtual bool digest(const void *data, size_t len, Binary &mac) = 0;
+    virtual bool verify(const void *data, size_t len, Binary &mac) = 0;
+};
+
+/* structure for linking */
+struct HMAC_lib {
+    std::function<HMAC_Key *()> m_alloc_key;
+    const char *m_name; /**< Used in static only */
+};
+
+/**
+ * Library binding use C, find it easily with dlsym()
+ *  and '-uptpm_hmac' for static link.
+ */
+#define HMAC_DECL(cls) \
+    HMAC_lib me = { [](){return new cls;}, HLIB_NAME }; \
+    extern "C" { HMAC_lib *ptpm_hmac() { return &me; } }
+
+const char *hmac_loadLibrary();
+bool hmac_selectLib(const std::string &libMatch);
+bool hmac_isLibShared();
+void hmac_freeLib();
+HMAC_Key *hmac_allocHMAC(HMAC_t type, const Binary &key);
 
 __PTPMGMT_NAMESPACE_END
 

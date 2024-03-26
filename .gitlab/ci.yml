@@ -40,13 +40,13 @@ cross.deb.bookworm:
   image: $CI_REGISTRY_IMAGE/deb.bookworm
   script:
     - chown -R $USER:$USER ..
-    - su $USER -c "make deb_arc arm64"
+    - su $USER -c tools/ci_cross.sh
 
 cross.deb.trixie:
   image: $CI_REGISTRY_IMAGE/deb.trixie
   script:
     - chown -R $USER:$USER ..
-    - su $USER -c "make deb_arc arm64"
+    - su $USER -c tools/ci_cross.sh
 
 # docker:
 #   image: docker

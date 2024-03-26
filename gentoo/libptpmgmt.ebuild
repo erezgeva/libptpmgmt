@@ -28,7 +28,8 @@ REQUIRED_USE="skip_swig? ( skip_perl skip_python skip_ruby skip_lua skip_php
 DEPEND="!skip_perl? ( dev-lang/perl ) !skip_python? ( dev-lang/python )
 	!skip_ruby? ( dev-lang/ruby ) !skip_lua? ( dev-lang/lua )
 	!skip_php? ( dev-lang/php ) !skip_tcl? ( dev-lang/tcl )
-	!skip_go? ( dev-lang/go )"
+	!skip_go? ( dev-lang/go )
+	|| ( dev-libs/openssl dev-libs/libgcrypt net-libs/gnutls dev-libs/nettle )"
 BDEPEND="sys-devel/gcc dev-build/libtool sys-apps/which dev-build/make
 	!skip_doxygen? ( app-text/doxygen ) !skip_swig? ( dev-lang/swig )"
 RDEPEND="${DEPEND}"

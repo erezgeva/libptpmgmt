@@ -13,6 +13,7 @@
 # - ci_build:       Build and install packages
 # - ci_pkgs:        Test with linuxptp
 # - ci_abi:         Compart ABI of current library with last version
+# - ci_cross:       CI cross compilation
 # - utest_address:  Run unit tests with Address Sanitizer
 # - utest_valgrid:  Run unit tests with valgrind tool
 # - cp_license:     Follow FSF RESUSE Specification
@@ -142,6 +143,13 @@ ci_abi()
  if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
    echo "== Found errors =="
  fi
+}
+###############################################################################
+# CI cross compilation
+ci_cross()
+{
+ sudo debian/inst_arc.sh arm64
+ make deb_arc arm64
 }
 ###############################################################################
 # Run unit tests with Address Sanitizer
@@ -413,6 +421,7 @@ main()
   ci_build.sh)       ci_build "$@";;
   ci_pkgs.sh)        ci_pkgs "$@";;
   ci_abi.sh)         ci_abi "$@";;
+  ci_cross.sh)       ci_cross "$@";;
   utest_address.sh)  utest_address "$@";;
   utest_valgrid.sh)  utest_valgrid "$@";;
   cp_license.sh)     cp_license "$@";;

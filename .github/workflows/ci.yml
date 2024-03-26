@@ -67,7 +67,7 @@ jobs:
     - name: cross build
       run: |
         chown -R $USER:$USER ..
-        su $USER -c "make deb_arc arm64"
+        su $USER -c tools/ci_cross.sh
 
   pkgs:
     runs-on: ubuntu-latest
