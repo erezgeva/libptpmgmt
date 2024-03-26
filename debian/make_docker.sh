@@ -46,14 +46,14 @@ main()
     libfastjson-dev libgtest-dev lua-posix libjson-c-dev
     libssl-dev libgcrypt20 libgnutls28-dev nettle-dev'
   for n in 1-0 {2..4};do dpkgs_arch+=" liblua5.$n-dev";done
-  local no_cache use_github gh_ns args
+  local no_cache use_srv srv_ns args
   tool_docker_get_opts "$@"
-  if [[ -z "$use_github" ]]; then
+  if [[ -z "$use_srv" ]]; then
     for n in $names; do clean_cont $bname$n; done
     local -r bname=deb.
     local -r ename=
   else
-    local -r bname=$gh_ns/deb.
+    local -r bname=$srv_ns/deb.
     local -r ename=:latest
   fi
   local a n m p
@@ -77,7 +77,7 @@ main()
         --build-arg ARCHS="$archs"\
         --build-arg SRC_CFG="$SRC_CFG"\
         --build-arg DPKGS="$dpkgs" -t $bname$dist$ename .
-    if [[ -n "$use_github" ]]; then
+    if [[ -n "$use_srv" ]]; then
       cmd docker push $bname$dist$ename
     fi
   done

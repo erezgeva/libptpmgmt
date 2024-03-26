@@ -253,7 +253,7 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/*\
+SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
@@ -261,8 +261,8 @@ SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/*\
   $(SRCS) $(HEADERS_SRCS) LICENSE $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[ch]* uctest/*.[ch]* .github/workflows/*,':!/:$n') ':!:*.gitignore'\
-  ':!*/*/test.*' ':!*/*/utest.*'
+  utest/*.[ch]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\
+  ':!:*.gitignore' ':!*/*/test.*' ':!*/*/utest.*'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))
 # compare manual source list to git based:

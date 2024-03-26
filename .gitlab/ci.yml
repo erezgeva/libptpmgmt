@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2024 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2024 Erez Geva
+#
+# https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+#
+# GitLab Continuous Integration script
+###############################################################################
+
+stages:
+  - ci
+
+variables:
+  USER: builder
+
+deb.bookworm:
+  image: $CI_REGISTRY_IMAGE/deb.bookworm
+  stage: ci
+  script:
+    - chown -R $USER:$USER ..
+    - su $USER -c tools/ci.sh
+
+deb.trixie:
+  image: $CI_REGISTRY_IMAGE/deb.trixie
+  stage: ci
+  script:
+    - chown -R $USER:$USER ..
+    - su $USER -c tools/ci.sh
+
+rpmbuild:
+  image: $CI_REGISTRY_IMAGE/rpmbuild
+  stage: ci
+  script:
+    - chown -R $USER:$USER .
+    - su $USER -c tools/ci.sh
+
+pacmanbuild:
+  image: $CI_REGISTRY_IMAGE/pacmanbuild
+  stage: ci
+  script:
+    - chown -R $USER:$USER .
+    - su $USER -c tools/ci.sh
+
+# docker:
+#   image: docker
+#   services:
+#     - docker:dind
+#   stage: login
+#   script:
+#     - echo $CI_REGISTRY_PASSWORD | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin

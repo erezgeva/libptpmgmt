@@ -30,9 +30,9 @@ make_args()
 }
 tool_docker_get_opts()
 {
-  local use_d
+  local use_d use_github use_gitlab server namespace
   local -r uid=$(id -u)
-  while getopts 'nugd' opt; do
+  while getopts 'nugld' opt; do
     case $opt in
       n)
         no_cache=--no-cache
@@ -43,12 +43,24 @@ tool_docker_get_opts()
       g)
         use_github=yes
         ;;
+      l)
+        use_gitlab=yes
+        ;;
       d)
         use_d=yes
         ;;
     esac
   done
-  if [[ -n "$use_d" ]] && [[ -z "$use_github" ]] &&\
+  if [[ -n "$use_github" ]]; then
+    . tools/github_params
+    use_srv=yes
+    srv_ns=$server/$namespace
+  elif [[ -n "$use_gitlab" ]]; then
+    . tools/gitlab_params
+    use_srv=yes
+    srv_ns=$server/$namespace/libptpmgmt
+  fi
+  if [[ -n "$use_d" ]] && [[ -z "$use_srv" ]] &&\
      [[ -n "$d_user" ]] && [[ -n "$d_dock_file" ]]; then
     local -r user=$d_user
     dock_file=$d_dock_file
@@ -56,16 +68,13 @@ tool_docker_get_opts()
     local -r user=builder
     dock_file=Dockerfile
   fi
-  if [[ -z "$use_github" ]]; then
-    local -r src=.
-    local -r dst=/home/$user/libptpmgmt
-  else
-    local server namespace
-    . tools/github_params
+  if [[ -n "$use_srv" ]]; then
     touch .null
     local -r src=.null
     local -r dst=/tmp
-    gh_ns=$server/$namespace
+  else
+    local -r src=.
+    local -r dst=/home/$user/libptpmgmt
   fi
   local -r cfile="$base_dir/.upgrade_cockie"
   if [[ -n "$upgrade" ]] || ! [[ -f $cfile ]]; then
@@ -80,16 +89,16 @@ make_docker()
 {
   local -r name="$1"
   shift
-  local no_cache use_github gh_ns args dock_file
+  local no_cache use_srv srv_ns args dock_file
   tool_docker_get_opts "$@"
-  if [[ -z "$use_github" ]]; then
+  if [[ -z "$use_srv" ]]; then
     clean_cont $name
     local -r fname=$name
   else
-    local -r fname=$gh_ns/$name:latest
+    local -r fname=$srv_ns/$name:latest
   fi
   cmd docker build $no_cache -f "$base_dir/$dock_file" $args -t $fname .
-  if [[ -n "$use_github" ]]; then
+  if [[ -n "$use_srv" ]]; then
     cmd docker push $fname
   fi
   clean_unused_images

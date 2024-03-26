@@ -9,6 +9,7 @@
 # - ci_address:     Run AddressSanitizer in GitHub
 # - ci_pages:       Build doxygen in GitHub
 # - github_docker:  Logging into GitHub Docker Server
+# - gitlab_docker:  Logging into GitLab Docker Server
 # - ci_build:       Build and install packages
 # - ci_pkgs:        Test with linuxptp
 # - utest_address:  Run unit tests with Address Sanitizer
@@ -42,24 +43,39 @@ ci_pages()
  rm -f _site/*.md5 _site/*.map
 }
 ###############################################################################
-dlog()
+docker_dlog()
 {
- echo $2 | docker login $server -u $1 --password-stdin
+ echo "$2" | docker login $server -u $1 --password-stdin
+}
+docker_server()
+{
+ if [[ -n "$1" ]] && [[ -n "$2" ]] && [[ -n "$3" ]]; then
+   local server="$1"
+   docker_dlog "$2" "$3"
+ else
+   echo "No token to login"
+ fi
+}
+docker_server_prm()
+{
+ if [[ -f "$1" ]] && [[ -f "$2" ]]; then
+   local server namespace
+   . "$2"
+   local -r a="$(cat "$1")"
+   docker_dlog "${a/:*/}" "${a/*:/}"
+ else
+   echo "No token to login"
+ fi
 }
 # Logging into GitHub Docker Server
 github_docker()
 {
- local -r f=~/.gh.token
- if [[ -f $f ]]; then
-   local server namespace
-   . tools/github_params
-   local -r a="$(cat $f)"
-   dlog "${a/:*/}" "${a/*:/}"
- elif [[ -n "$1" ]] && [[ -n "$2" ]]; then
-   dlog "$1" "$2"
- else
-   echo "No token for github"
- fi
+ docker_server_prm ~/.gh.token tools/github_params
+}
+# Logging into GitLab Docker Server
+gitlab_docker()
+{
+ docker_server_prm ~/.gl.token tools/gitlab_params
 }
 ###############################################################################
 # Build and install packages
@@ -359,6 +375,7 @@ main()
   ci_address.sh)     ci_address "$@";;
   ci_pages.sh)       ci_pages "$@";;
   github_docker.sh)  github_docker "$@";;
+  gitlab_docker.sh)  gitlab_docker "$@";;
   ci_build.sh)       ci_build "$@";;
   ci_pkgs.sh)        ci_pkgs "$@";;
   utest_address.sh)  utest_address "$@";;
