@@ -162,14 +162,14 @@ bool ConfigFile::read_cfg(const string &_file)
             cur = skip_spaces(cur + 1);
             char *end = strchr(cur, ']');
             if(end == nullptr) {
-                PTPMGMT_ERROR("wrong line %s(%d): '%s'", file, lineNum, buf);
+                PTPMGMT_ERROR("wrong line %s(%d)", file, lineNum);
                 return false;
             }
             strip_end_spaces(end);
             curSection = cur;
         } else if(*cur != 0 && *cur != '#' &&
             !cfgSec[curSection].set_val(cur)) {
-            PTPMGMT_ERROR("wrong line %s(%d): '%s'", file, lineNum, buf);
+            PTPMGMT_ERROR("wrong line %s(%d)", file, lineNum);
             return false;
         }
     }

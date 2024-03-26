@@ -609,7 +609,7 @@ class MsgBuild : public MessageBuilder
         else
             cur = save; // last call of strtok_r
         // skip separator characters
-        for(; strchr(toksep, *cur) != nullptr; cur++);
+        for(; strchr(spaceToken, *cur) != nullptr; cur++);
         if(*cur == 0) // No more tokens, error after a key
             return 0; // No more tokens
         // Do we have quoted string token?
@@ -707,7 +707,7 @@ class MsgBuild : public MessageBuilder
                 // ret == 2  we have quoted token
             }
             if(ret == 1) { // take normal token
-                tkn = strtok_r(lastStr, toksep, &l_save);
+                tkn = strtok_r(lastStr, spaceToken, &l_save);
                 // No more tokens, we can continue to last part
                 if(tkn == nullptr || *tkn == 0)
                     break; // No more tokens we can continue to last part
@@ -736,7 +736,7 @@ class MsgBuild : public MessageBuilder
                 // ret == 2  we have quoted token
             }
             if(ret == 1) { // No quote string, take normal token
-                char *ntkn = strtok_r(lastStr, toksep, &l_save);
+                char *ntkn = strtok_r(lastStr, spaceToken, &l_save);
                 if(ntkn == nullptr || *ntkn == 0) {
                     // No more tokens
                     if(!singleKey)

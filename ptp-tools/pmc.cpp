@@ -130,7 +130,7 @@ static inline void rcv_timeout()
 }
 static bool run_line(char *line)
 {
-    Token tkn(toksep, line);
+    Token tkn(spaceToken, line);
     char *cur = tkn.first();
     if(cur == nullptr)
         return false;

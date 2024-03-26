@@ -220,7 +220,7 @@ inline uint64_t le_to_cpu64(uint64_t value) {return le64toh(value);}
 /* A tokener class
  * Internal use, assign buffer once!
  */
-static const char toksep[] = " \t\n\r"; /* while spaces */
+static const char spaceToken[] = " \t\n\r"; /* while spaces */
 
 class Token
 {
