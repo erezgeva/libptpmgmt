@@ -12,6 +12,7 @@
 # - gitlab_docker:  Logging into GitLab Docker Server
 # - ci_build:       Build and install packages
 # - ci_pkgs:        Test with linuxptp
+# - ci_cross:       CI cross compilation
 # - utest_address:  Run unit tests with Address Sanitizer
 # - utest_valgrid:  Run unit tests with valgrind tool
 # - cp_license:     Follow FSF RESUSE Specification
@@ -114,6 +115,13 @@ ci_pkgs()
  # Check development package
  gcc -Wall sample/check_ver.c -o check_ver -lptpmgmt
  ./check_ver
+}
+###############################################################################
+# CI cross compilation
+ci_cross()
+{
+ sudo debian/inst_arc.sh arm64
+ make deb_arc arm64
 }
 ###############################################################################
 # Run unit tests with Address Sanitizer
@@ -384,6 +392,7 @@ main()
   gitlab_docker.sh)  gitlab_docker "$@";;
   ci_build.sh)       ci_build "$@";;
   ci_pkgs.sh)        ci_pkgs "$@";;
+  ci_cross.sh)       ci_cross "$@";;
   utest_address.sh)  utest_address "$@";;
   utest_valgrid.sh)  utest_valgrid "$@";;
   cp_license.sh)     cp_license "$@";;

@@ -9,7 +9,8 @@
 ###############################################################################
 pkgver=1.2
 pkgrel=1
-pkgname=(libptpmgmt libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
+pkgname=(libptpmgmt libptpmgmt-openssl libptpmgmt-gcrypt libptpmgmt-gnutls
+  libptpmgmt-nettle libptpmgmt-jsonc libptpmgmt-dev libptpmgmt-doc
   libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt go-ptpmgmt
   python3-ptpmgmt pmc-ptpmgmt phc-ctl-ptpmgmt)
 # Source code can be build on any architecture
@@ -33,11 +34,36 @@ build() {
   make DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
-  python3 json-c go gcc libtool autoconf make texlive-fontutils which)
+  python3 json-c go gcc libtool autoconf make texlive-fontutils which
+  openssl libgcrypt gnutls nettle)
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/$pkgbase.so.* $pkgdir/$libdir
+}
+package_libptpmgmt-openssl() {
+  pkgdesc='PTP management library HMAC plugin using the openssl library'
+  depends=("$pkgbase=$verdep" openssl)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/${pkgname/-/_}.so.* $pkgdir/$libdir
+}
+package_libptpmgmt-gcrypt() {
+  pkgdesc='PTP management library HMAC plugin using the gcrypt library'
+  depends=("$pkgbase=$verdep" libgcrypt)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/${pkgname/-/_}.so.* $pkgdir/$libdir
+}
+package_libptpmgmt-gnutls() {
+  pkgdesc='PTP management library HMAC plugin using the gnutls library'
+  depends=("$pkgbase=$verdep" gnutls)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/${pkgname/-/_}.so.* $pkgdir/$libdir
+}
+package_libptpmgmt-nettle() {
+  pkgdesc='PTP management library HMAC plugin using the nettle library'
+  depends=("$pkgbase=$verdep" nettle)
+  mkdir -p $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/${pkgname/-/_}.so.* $pkgdir/$libdir
 }
 package_libptpmgmt-jsonc() {
   pkgdesc='PTP management library JSON plugin using the json-c library'

@@ -12,6 +12,7 @@ Release:        1%{?dist}
 URL:            https://%{name}.nwtime.org
 BuildRequires:  gcc-c++ libtool pkgconfig autoconf m4 which swig
 BuildRequires:  doxygen graphviz texlive-epstopdf
+BuildRequires:  openssl-devel libgcrypt-devel gnutls-devel nettle-devel
 BuildRequires:  json-c json-c-devel
 BuildRequires:  libfastjson libfastjson-devel
 BuildRequires:  perl perl-devel
@@ -30,6 +31,38 @@ License:        LGPLv3+
 Summary:        PTP management library, to communicate with ptp4l
 %description
 PTP management library, to communicate with ptp4l
+
+%package        openssl
+Summary:        PTP management library HMAC plugin using the openssl library
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       openssl-libs
+%description    openssl
+PTP management library HMAC plugin using the openssl library
+
+%package        gcrypt
+Summary:        PTP management library HMAC plugin using the gcrypt library
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       libgcrypt
+%description    gcrypt
+PTP management library HMAC plugin using the gcrypt library
+
+%package        gnutls
+Summary:        PTP management library HMAC plugin using the gnutls library
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       gnutls
+%description    gnutls
+PTP management library HMAC plugin using the gnutls library
+
+%package        nettle
+Summary:        PTP management library HMAC plugin using the nettle library
+License:        LGPLv3+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       nettle
+%description    nettle
+PTP management library HMAC plugin using the nettle library
 
 %package        jsonc
 Summary:        PTP management library JSON plugin using the json-c library
@@ -151,6 +184,18 @@ autoconf
 
 %files
 %{_libdir}/%{name}.so.*
+
+%files openssl
+%{_libdir}/%{name}_openssl.so.*
+
+%files gcrypt
+%{_libdir}/%{name}_gcrypt.so.*
+
+%files gnutls
+%{_libdir}/%{name}_gnutls.so.*
+
+%files nettle
+%{_libdir}/%{name}_nettle.so.*
 
 %files jsonc
 %{_libdir}/%{name}_jsonc.so.*
