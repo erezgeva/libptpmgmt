@@ -1,1 +1,1 @@
-github_address.sh
+ci_address.sh

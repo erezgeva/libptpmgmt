@@ -6,22 +6,24 @@
 # @copyright © 2024 Erez Geva
 #
 # Multiple scripts:
-# - Run AddressSanitizer in GitHub
-# - Build doxygen in GitHub
-# - Log into github docker
-# - Test with linuxptp and installed packages
-# - Run unit tests with Address Sanitizer
-# - Run unit tests with valgrind tool
-# - Follow FSF RESUSE Specification https://reuse.software/spec/
-#   Provide folders with all licenses
-# - Update to a new version
-#   Increase the minor version.
-#   Updating major version is done with the '-m' flag.
-# - Show configuration summary
-# - Run ptp4l with a dummy clock and call the testing
+# - ci_address:     Run AddressSanitizer in GitHub
+# - ci_pages:       Build doxygen in GitHub
+# - github_docker:  Logging into GitHub Docker Server
+# - ci_build:       Build and install packages
+# - ci_pkgs:        Test with linuxptp
+# - utest_address:  Run unit tests with Address Sanitizer
+# - utest_valgrid:  Run unit tests with valgrind tool
+# - cp_license:     Follow FSF RESUSE Specification
+#                   https://reuse.software/spec/
+#                   Provide folders with all licenses
+# - new_version:    Update to a new version
+#                   Increase the minor version.
+#                   Updating major version is done with the '-m' flag.
+# - config_report:  Show configuration summary
+# - sim_ptp4l:      Run ptp4l with a dummy clock and call the testing
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
-github_address()
+ci_address()
 {
  sudo apt-get install -y --no-install-recommends libtool libtool-bin
  autoreconf
@@ -30,7 +32,7 @@ github_address()
 }
 ###############################################################################
 # Script to build doxygen in GitHub
-github_pages()
+ci_pages()
 {
  sudo apt-get install -y --no-install-recommends doxygen graphviz
  autoreconf
@@ -40,11 +42,11 @@ github_pages()
  rm -f _site/*.md5 _site/*.map
 }
 ###############################################################################
-# Log into github docker
 dlog()
 {
  echo $2 | docker login $server -u $1 --password-stdin
 }
+# Logging into GitHub Docker Server
 github_docker()
 {
  local -r f=~/.gh.token
@@ -60,8 +62,8 @@ github_docker()
  fi
 }
 ###############################################################################
-# Test with linuxptp and installed packages
-github_build()
+# Build and install packages
+ci_build()
 {
  local dist
  distribution
@@ -88,9 +90,11 @@ github_build()
  esac
  make clean
 }
-github_pkgs()
+###############################################################################
+# Test with linuxptp
+ci_pkgs()
 {
- tools/sim_ptp4l.sh -snt
+ sim_ptp4l -snt
  # Check development package
  gcc -Wall sample/check_ver.c -o check_ver -lptpmgmt
  ./check_ver
@@ -352,11 +356,11 @@ main()
  local -r me="${me1//$dr1\//}"
  local n
  case "$me" in
-  github_address.sh) github_address "$@";;
-  github_pages.sh)   github_pages "$@";;
+  ci_address.sh)     ci_address "$@";;
+  ci_pages.sh)       ci_pages "$@";;
   github_docker.sh)  github_docker "$@";;
-  github_build.sh)   github_build "$@";;
-  github_pkgs.sh)    github_pkgs "$@";;
+  ci_build.sh)       ci_build "$@";;
+  ci_pkgs.sh)        ci_pkgs "$@";;
   utest_address.sh)  utest_address "$@";;
   utest_valgrid.sh)  utest_valgrid "$@";;
   cp_license.sh)     cp_license "$@";;

@@ -95,10 +95,10 @@ jobs:
     - name: build packages and install them
       run: |
         chown -R $USER:$USER .
-        su $USER -c libptpmgmt/tools/github_build.sh
+        su $USER -c libptpmgmt/tools/ci_build.sh
 
     - name: build linuxptp
       run: su $USER -c "make -C linuxptp"
 
     - name: test with linuxptp
-      run: libptpmgmt/tools/github_pkgs.sh
+      run: libptpmgmt/tools/ci_pkgs.sh

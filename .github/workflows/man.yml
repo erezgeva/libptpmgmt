@@ -54,7 +54,7 @@ jobs:
         path: libptpmgmt
 
     - name: test with linuxptp
-      run: libptpmgmt/tools/github_address.sh
+      run: libptpmgmt/tools/ci_address.sh
 
   mem:
     runs-on: ubuntu-latest

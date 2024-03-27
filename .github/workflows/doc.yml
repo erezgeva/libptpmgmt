@@ -38,7 +38,7 @@ jobs:
       uses: actions/configure-pages@v3
 
     - name: build documents
-      run: tools/github_pages.sh
+      run: tools/ci_pages.sh
 
     - name: upload artifact
       uses: actions/upload-pages-artifact@v1
