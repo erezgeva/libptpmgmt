@@ -28,7 +28,7 @@ RUN apt-get update;\
     tree lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck exuberant-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
-    python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3\
+    python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\
     texlive-font-utils libcriterion-dev jq clang $DPKGS;\
     apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
