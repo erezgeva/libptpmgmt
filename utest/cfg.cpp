@@ -27,6 +27,7 @@ TEST(ConfigFileTest, MethodEmptyConstructor)
     EXPECT_EQ(f.network_transport(), '4');
     EXPECT_EQ(f.active_key_id(), 0);
     EXPECT_EQ(f.spp(), 0);
+    EXPECT_EQ(f.allow_unauth(), 0);
     EXPECT_FALSE(f.haveSpp());
     EXPECT_STREQ(f.uds_address().c_str(), "/var/run/ptp4l");
     EXPECT_TRUE(f.sa_file().empty());
@@ -52,6 +53,7 @@ TEST(ConfigFileTest, MethodReadConfiguration)
     EXPECT_EQ(f.network_transport(), '6');
     EXPECT_EQ(f.active_key_id(), 0x4321);
     EXPECT_EQ(f.spp(), 9);
+    EXPECT_EQ(f.allow_unauth(), 2);
     EXPECT_TRUE(f.haveSpp());
     EXPECT_STREQ(f.uds_address().c_str(), "/var/run/dummy");
     EXPECT_STREQ(f.sa_file().c_str(), "utest/sa_file.cfg");
@@ -140,6 +142,16 @@ TEST(ConfigFileTest, MethoAuthSPP)
     EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
     EXPECT_EQ(f.spp("dumm"), 37);
     EXPECT_EQ(f.spp("non"), 9);
+}
+
+// Tests accept unauthenticated response messages parameter
+// uint8_t allow_unauth(const std::string &section = "") const
+TEST(ConfigFileTest, MethoAllowUnauth)
+{
+    ConfigFile f;
+    EXPECT_TRUE(f.read_cfg("utest/testing.cfg"));
+    EXPECT_EQ(f.allow_unauth("dumm"), 1);
+    EXPECT_EQ(f.allow_unauth("non"), 2);
 }
 
 // Tests whether the authentication security parameter available

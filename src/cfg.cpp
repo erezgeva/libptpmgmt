@@ -45,6 +45,7 @@ const ConfigSection::range_t ConfigSection::ranges[] = {
     rang_val(network_transport, '4', '2', '6'),
     rang_val(active_key_id, 0, 0, UINT32_MAX),
     rang_val(spp, 0, 0, UINT8_MAX),
+    rang_val(allow_unauth, 0, 0, 2),
     rang_str(uds_address, "/var/run/ptp4l"),
     rang_str(sa_file, ""),
     rang_str(ptp_dst_mac, "1:1b:19:0:0:0"),
@@ -218,6 +219,7 @@ get_func(socket_priority)
 get_func(network_transport)
 get_func32(active_key_id)
 get_func(spp)
+get_func(allow_unauth)
 bool ConfigFile::haveSpp(const std::string &section) const
 {
     if(cfgGlobal->m_set[ConfigSection::spp_val])
@@ -534,6 +536,7 @@ extern "C" {
     C2CPP_func(network_transport)
     C2CPP_funcN(16, active_key_id)
     C2CPP_func(spp)
+    C2CPP_func(allow_unauth)
     bool ptpmgmt_cfg_haveSpp(const_ptpmgmt_cfg me, const char *section)
     {
         if(me != nullptr && me->_this != nullptr) {
@@ -582,6 +585,7 @@ extern "C" {
         C_ASGN(network_transport);
         C_ASGN(active_key_id);
         C_ASGN(spp);
+        C_ASGN(allow_unauth);
         C_ASGN(haveSpp);
         C_ASGN(uds_address);
         C_ASGN(sa_file);

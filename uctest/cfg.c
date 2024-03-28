@@ -26,6 +26,7 @@ Test(ConfigFileTest, MethodEmptyConstructor)
     cr_expect(eq(i8, f->network_transport(f, NULL), '4'));
     cr_expect(eq(i32, f->active_key_id(f, NULL), 0));
     cr_expect(eq(i8, f->spp(f, NULL), 0));
+    cr_expect(eq(i8, f->allow_unauth(f, NULL), 0));
     cr_expect(not(f->haveSpp(f, NULL)));
     cr_expect(eq(str, (char *)f->uds_address(f, NULL), "/var/run/ptp4l"));
     cr_expect(zero(ptr, (void *)f->sa_file(f, NULL)));
@@ -63,6 +64,7 @@ Test(ConfigFileTest, MethodReadConfiguration)
     cr_expect(eq(i8, f->network_transport(f, NULL), '6'));
     cr_expect(eq(i32, f->active_key_id(f, NULL), 0x4321));
     cr_expect(eq(i8, f->spp(f, NULL), 9));
+    cr_expect(eq(i8, f->allow_unauth(f, NULL), 2));
     cr_expect(f->haveSpp(f, NULL));
     cr_expect(eq(str, (char *)f->uds_address(f, NULL), "/var/run/dummy"));
     cr_expect(eq(str, (char *)f->sa_file(f, NULL), "utest/sa_file.cfg"));
@@ -176,6 +178,17 @@ Test(ConfigFileTest, MethoAuthSPP)
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(i8, f->spp(f, "dumm"), 37));
     cr_expect(eq(i8, f->spp(f, "non"), 9));
+}
+
+// Tests accept unauthenticated response messages parameter
+// uint8_t allow_unauth(const_ptpmgmt_cfg cfg, const char *section)
+Test(ConfigFileTest, MethoAllowUnauth)
+{
+    ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
+    cr_assert(not(zero(ptr, f)));
+    cr_expect(f->read_cfg(f, "utest/testing.cfg"));
+    cr_expect(eq(i8, f->allow_unauth(f, "dumm"), 1));
+    cr_expect(eq(i8, f->allow_unauth(f, "non"), 2));
 }
 
 // Tests whether the authentication security parameter available

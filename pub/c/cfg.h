@@ -121,6 +121,14 @@ struct ptpmgmt_cfg_t {
      */
     uint8_t (*spp)(const_ptpmgmt_cfg cfg, const char *section);
     /**
+     * Get accept unauthenticated response messages value
+     * @param[in] cfg configuration object
+     * @param[in] section (optional)
+     * @return the allow unauthenticated messages value
+     * @note calling without section will fetch value from @"global@" section
+     */
+    uint8_t (*allow_unauth)(const_ptpmgmt_cfg cfg, const char *section);
+    /**
      * Query whether the authentication security parameter pointer is set
      * @param[in] cfg configuration object
      * @param[in] section (optional)

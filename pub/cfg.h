@@ -43,6 +43,7 @@ class ConfigSection
         network_transport_val,
         active_key_id_val,
         spp_val,
+        allow_unauth_val,
         str_base_val,
         uds_address_val = str_base_val,
         sa_file_val,
@@ -163,6 +164,13 @@ class ConfigFile
      * @note calling without section will fetch value from @"global@" section
      */
     uint8_t spp(const std::string &section = "") const;
+    /**
+     * Get accept unauthenticated response messages value
+     * @param[in] section (optional)
+     * @return the allow unauthenticated messages value
+     * @note calling without section will fetch value from @"global@" section
+     */
+    uint8_t allow_unauth(const std::string &section = "") const;
     /**
      * Query whether the authentication security parameter pointer is set
      * @param[in] section (optional)
