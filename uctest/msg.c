@@ -56,7 +56,7 @@ Test(MessageTest, MethodGetParams)
     p1->transportSpecific = 0xf;
     p1->domainNumber = 17;
     p1->boundaryHops = 13;
-    p1->isUnicast = false;;
+    p1->isUnicast = false;
     ptpmgmt_msg m = ptpmgmt_msg_alloc_prms(p1);
     ptpmgmt_cpMsgParams p = m->getParams(m);
     cr_expect(eq(u8, p->transportSpecific, p1->transportSpecific));

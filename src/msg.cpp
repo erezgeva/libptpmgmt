@@ -1413,7 +1413,7 @@ extern "C" {
             memcpy(l->clockIdentity.v, p.clockIdentity.v, ClockIdentity_t::size());\
             l->portNumber = p.portNumber;return l;\
         } return nullptr; }
-    ptpmgmt_pMsgParams ptpmgmt_msg_getParams(ptpmgmt_msg m)
+    static ptpmgmt_pMsgParams ptpmgmt_msg_getParams(ptpmgmt_msg m)
     {
         if(m != nullptr) {
             ptpmgmt_pMsgParams p = &(m->_prms);
@@ -1422,7 +1422,7 @@ extern "C" {
         }
         return nullptr;
     }
-    bool ptpmgmt_msg_updateParams(ptpmgmt_msg m, ptpmgmt_cpMsgParams prms)
+    static bool ptpmgmt_msg_updateParams(ptpmgmt_msg m, ptpmgmt_cpMsgParams prms)
     {
         if(m != nullptr && m->_this != nullptr) {
             MsgParams &p = getMsgParams(prms);

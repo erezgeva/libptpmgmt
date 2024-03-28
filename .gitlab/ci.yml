@@ -9,44 +9,48 @@
 # GitLab Continuous Integration script
 ###############################################################################
 
-stages:
-  - ci
-
 variables:
   USER: builder
 
 deb.bookworm:
   image: $CI_REGISTRY_IMAGE/deb.bookworm
-  stage: ci
   script:
     - chown -R $USER:$USER ..
     - su $USER -c tools/ci.sh
 
 deb.trixie:
   image: $CI_REGISTRY_IMAGE/deb.trixie
-  stage: ci
   script:
     - chown -R $USER:$USER ..
     - su $USER -c tools/ci.sh
 
 rpmbuild:
   image: $CI_REGISTRY_IMAGE/rpmbuild
-  stage: ci
   script:
     - chown -R $USER:$USER .
     - su $USER -c tools/ci.sh
 
 pacmanbuild:
   image: $CI_REGISTRY_IMAGE/pacmanbuild
-  stage: ci
   script:
     - chown -R $USER:$USER .
     - su $USER -c tools/ci.sh
+
+cross.deb.bookworm:
+  image: $CI_REGISTRY_IMAGE/deb.bookworm
+  script:
+    - chown -R $USER:$USER ..
+    - su $USER -c "make deb_arc arm64"
+
+cross.deb.trixie:
+  image: $CI_REGISTRY_IMAGE/deb.trixie
+  script:
+    - chown -R $USER:$USER ..
+    - su $USER -c "make deb_arc arm64"
 
 # docker:
 #   image: docker
 #   services:
 #     - docker:dind
-#   stage: login
 #   script:
 #     - echo $CI_REGISTRY_PASSWORD | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin

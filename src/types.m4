@@ -82,7 +82,7 @@ typedef long double float_nanoseconds;
 
 /** Parsing and building errors */
 enm(MNG_PARSE_ERROR_e) {
-    /** no error */
+    /** No error */
     NM(MNG_PARSE_ERROR_OK),
     /** Error message */
     NM(MNG_PARSE_ERROR_MSG),
@@ -96,11 +96,11 @@ enm(MNG_PARSE_ERROR_e) {
     NM(MNG_PARSE_ERROR_INVALID_TLV),
     /** Mismatch TLV */
     NM(MNG_PARSE_ERROR_MISMATCH_TLV),
-    /** size mismatch of field with length */
+    /** Size mismatch of field with length */
     NM(MNG_PARSE_ERROR_SIZE_MISS),
-    /** buffer is too small */
+    /** Buffer is too small */
     NM(MNG_PARSE_ERROR_TOO_SMALL),
-    /** size is even */
+    /** Size is even */
     NM(MNG_PARSE_ERROR_SIZE),
     /** Value is out of range or invalid */
     NM(MNG_PARSE_ERROR_VAL),
@@ -110,7 +110,7 @@ enm(MNG_PARSE_ERROR_e) {
     NM(MNG_PARSE_ERROR_ACTION),
     /** Do not know how to parse the TLV data */
     NM(MNG_PARSE_ERROR_UNSUPPORT),
-    /** fail to allocate TLV data */
+    /** Fail to allocate TLV data */
     NM(MNG_PARSE_ERROR_MEM),
 };
 /** PTP messages type
