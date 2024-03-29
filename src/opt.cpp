@@ -58,8 +58,8 @@ string Options::helpStore::get(size_t length) const
     return ret;
 }
 
-Options::Options(bool useDef) : m_max_arg_name(0), m_net_select(0),
-    m_useDef(false), helpUpdate(false)
+Options::Options(bool useDef) : m_max_arg_name(0), m_last_strings(0),
+    m_net_select(0), m_useDef(false), helpUpdate(false)
 {
     if(useDef)
         useDefOption();
@@ -118,9 +118,15 @@ bool Options::insert(const Pmc_option &opt)
     m_all_opts += opt.short_name;
     if(have_long_name) {
         option nopt;
-        auto iter = m_long_opts_list_str.insert(m_long_opts_list_str.end(),
-                opt.long_name);
-        nopt.name = iter->c_str();
+        size_t len = opt.long_name.size();
+        size_t size = m_last_strings + len + 1;
+        if(size > m_strings.size() && !m_strings.alloc(size + 250))
+            return false;
+        char *cur =  m_last_strings + (char *)m_strings.get();
+        memcpy(cur, opt.long_name.c_str(), len);
+        m_last_strings = size;
+        cur[len] = 0;
+        nopt.name = cur;
         nopt.has_arg = opt.have_arg ? required_argument : no_argument;
         nopt.flag = nullptr;
         nopt.val = opt.short_name;

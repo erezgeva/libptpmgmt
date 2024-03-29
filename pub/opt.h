@@ -16,6 +16,7 @@
 #include <map>
 #include <vector>
 #include "name.h"
+#include "buf.h"
 #ifdef __PTPMGMT_HAVE_GETOPT_H
 #include <getopt.h>
 #endif
@@ -48,8 +49,8 @@ class Options
     static Pmc_option startOptions[];
     size_t m_max_arg_name;
     std::vector<option> m_long_opts_list;
-    /* We need to store the string used in option */
-    std::vector<std::string> m_long_opts_list_str;
+    Buf m_strings; /**< store the string used in option */
+    size_t m_last_strings; /**< next string location in m_strings */
     std::map<int, std::string> m_opts;
     std::string m_net_opts, m_all_opts, m_all_short_opts, m_with_opts, m_msg;
     char m_net_select;
