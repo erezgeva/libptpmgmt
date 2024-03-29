@@ -58,18 +58,18 @@ struct ptpmgmt_msg_t {
 
     /**
      * Free msg object
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      */
     void (*free)(ptpmgmt_msg m);
     /**
      * Get the current msgparams parameters
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @return msgparams parameters
      */
     ptpmgmt_pMsgParams(*getParams)(ptpmgmt_msg m);
     /**
      * Set and use a user MsgParams parameters
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @param[in] prms MsgParams parameters
      * @return true if parameters are valid and updated
      */
@@ -99,7 +99,7 @@ struct ptpmgmt_msg_t {
     bool (*isAllClocks)(const_ptpmgmt_msg m);
     /**
      * Fetch MsgParams parameters from configuration file
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @param[in] cfg reference to configuration file object
      * @param[in] section in configuration file
      * @return true on success
@@ -295,7 +295,7 @@ struct ptpmgmt_msg_t {
     bool (*isValidId)(const_ptpmgmt_msg m, enum ptpmgmt_mng_vals_e id);
     /**
      * Set message object management TLV id, action and data for dataField
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @param[in] actionField for sending
      * @param[in] tlv_id management TLV id
      * @param[in] dataSend pointer to TLV object
@@ -388,13 +388,13 @@ struct ptpmgmt_msg_t {
     uint16_t (*getSequence)(const_ptpmgmt_msg m);
     /**
      * Get last parsed message peer port ID
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @return parsed message peer port ID
      */
     const struct ptpmgmt_PortIdentity_t *(*getPeer)(ptpmgmt_msg m);
     /**
      * Get last parsed message target port ID
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @return parsed message target port ID
      */
     const struct ptpmgmt_PortIdentity_t *(*getTarget)(ptpmgmt_msg m);
@@ -425,7 +425,7 @@ struct ptpmgmt_msg_t {
     uint8_t (*getMinorVersionPTP)(const_ptpmgmt_msg m);
     /**
      * Get last parsed message dataField
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @return pointer to last parsed message dataField or null
      * @note You need to cast to proper structure depends on
      *  management TLV ID, get with.
@@ -478,7 +478,7 @@ struct ptpmgmt_msg_t {
     enum ptpmgmt_tlvType_e(*getMngType)(const_ptpmgmt_msg m);
     /**
      * Traverse all last signalling message TLVs
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @param[in] cookie pointer to a user cookie
      * @param[in] callback function to call with each TLV
      * @return true if any of the calling to call-back return true
@@ -494,7 +494,7 @@ struct ptpmgmt_msg_t {
     size_t (*getSigTlvsCount)(const_ptpmgmt_msg m);
     /**
      * Get a TLV from the last signalling message TLVs by position
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @param[in] position of TLV
      * @return TLV or null
      */
@@ -518,7 +518,7 @@ struct ptpmgmt_msg_t {
         size_t position);
     /**
      * Get a management TLV from the last signalling message TLVs by position
-     * @param[in] m msg object
+     * @param[in, out] m msg object
      * @param[in] position of TLV
      * @return management TLV or null
      * @note return null if TLV is not management

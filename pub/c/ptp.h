@@ -33,7 +33,7 @@ struct ptpmgmt_ifInfo_t {
     /**< @endcond */
     /**
      * Free a network interface object
-     * @param[in] i network interface object
+     * @param[in, out] i network interface object
      */
     void (*free)(ptpmgmt_ifInfo i);
     /**
@@ -114,7 +114,7 @@ struct ptpmgmt_clock_t {
 
     /**
      * Free a clock object
-     * @param[in] clk pointer to clock structure
+     * @param[in, out] clk pointer to clock structure
      */
     void (*free)(ptpmgmt_clock clk);
 

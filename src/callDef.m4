@@ -60,8 +60,9 @@ cpp_cod(`    BaseMngDispatchCallback() = default;')dnl
 cpp_cod(`    virtual ~BaseMngDispatchCallback() = default;')dnl
 define(D,`    /**
      * Handle $1 management TLV
-c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
-     * @param[in] msg ref_s() to the Message object
+c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
+c_cod(`     * @param[in, out] msg ref_s() to the Message object')dnl
+cpp_cod(`     * @param[in] msg ref_s() to the Message object')dnl
      * @param[in] tlv ref_s() to the management tlv
      * @param[in] idStr ID string of the management tlv
      */
@@ -77,14 +78,14 @@ undefine(`A')dnl
 c_cod(`    /**')dnl
 c_cod(`     * Handler called if there is no TLV data')dnl
 c_cod(`     * It could be an empty TLV or unkown')dnl
-c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
-c_cod(`     * @param[in] msg pointer to the Message object')dnl
+c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
+c_cod(`     * @param[in, out] msg pointer to the Message object')dnl
 c_cod(`     */')dnl
 c_cod(`    void (*noTlv)(void *cookie, ptpmgmt_msg msg);')dnl
 c_cod(`    /**')dnl
 c_cod(`     * Handler called if TLV does not have a callback.')dnl
-c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
-c_cod(`     * @param[in] msg pointer to the Message object')dnl
+c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
+c_cod(`     * @param[in, out] msg pointer to the Message object')dnl
 c_cod(`     * @param[in] idStr string of the tlv_id')dnl
 c_cod(`     */')dnl
 c_cod(`    void (*noTlvCallBack)(void *cookie, ptpmgmt_msg msg, const char *idStr);')dnl
@@ -112,8 +113,9 @@ cpp_cod(`    virtual ~BaseMngBuildCallback() = default;')dnl
 define(B,`    /**
      * Handle $1 management TLV
      * Set values in the new TLV
-c_cod(`     * @param[in] cookie pointer to a user cookie')dnl
-     * @param[in] msg ref_s() to the Message object
+c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
+c_cod(`     * @param[in, out] msg ref_s() to the Message object')dnl
+cpp_cod(`     * @param[in] msg ref_s() to the Message object')dnl
      * @param[in, out] tlv ref_s() to the new management tlv
      * @return true if set success
      * @note MessageBuilder::buildTlv call setAction with new TLV

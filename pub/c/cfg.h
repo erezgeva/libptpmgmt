@@ -34,12 +34,12 @@ struct ptpmgmt_cfg_t {
 
     /**
      * Free a configuration object
-     * @param[in] cfg configuration object to free
+     * @param[in, out] cfg configuration object to free
      */
     void (*free)(ptpmgmt_cfg cfg);
     /**
      * Read a configuration file and parse it
-     * @param[in] cfg configuration object
+     * @param[in, out] cfg configuration object
      * @param[in] file name with path
      * @return true if parse success
      */

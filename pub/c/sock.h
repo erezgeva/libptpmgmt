@@ -33,7 +33,7 @@ struct ptpmgmt_sk_t {
 
     /**
      * Free a socket object
-     * @param[in] sk socket
+     * @param[in, out] sk socket
      */
     void (*free)(ptpmgmt_sk sk);
 
@@ -89,7 +89,7 @@ struct ptpmgmt_sk_t {
     int (*fileno)(const_ptpmgmt_sk sk);
     /**
      * Single socket polling
-     * @param[in] sk socket
+     * @param[in, out] sk socket
      * @param[in] timeout_ms timeout in milliseconds,
      *  until receive a packet. use 0 for blocking.
      * @return true if a packet is ready for receive
@@ -100,7 +100,7 @@ struct ptpmgmt_sk_t {
     bool (*poll)(ptpmgmt_sk sk, uint64_t timeout_ms);
     /**
      * Single socket polling and update timeout
-     * @param[in] sk socket
+     * @param[in, out] sk socket
      * @param[in, out] timeout_ms timeout in milliseconds
      *  until receive a packet. use 0 for blocking.
      * @return true if a packet is ready for receive
@@ -201,7 +201,7 @@ struct ptpmgmt_sk_t {
     const char *(*getHomeDir)(ptpmgmt_sk sk);
     /**
      * Send the message using the socket to a specific address
-     * @param[in] sk socket
+     * @param[in, out] sk socket
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix socket address (socket file)
@@ -213,7 +213,7 @@ struct ptpmgmt_sk_t {
         const char *addrStr);
     /**
      * Send the message using the socket to a specific abstract soket address
-     * @param[in] sk socket
+     * @param[in, out] sk socket
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix abstract socket address
@@ -227,7 +227,7 @@ struct ptpmgmt_sk_t {
         const char *addrStr);
     /**
      * Receive a message using the socket from any address
-     * @param[in] sk socket
+     * @param[in, out] sk socket
      * @param[in, out] buf pointer to a memory buffer
      * @param[in] bufSize memory buffer size
      * @param[out] from Unix socket address (socket file)

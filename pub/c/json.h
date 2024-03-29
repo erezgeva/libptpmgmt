@@ -55,7 +55,7 @@ struct ptpmgmt_json_t {
 
     /**
      * Free json object
-     * @param[in] j json object
+     * @param[in, out] j json object
      */
     void (*free)(ptpmgmt_json j);
     /**
@@ -84,13 +84,13 @@ struct ptpmgmt_json_t {
     bool (*isLibShared)();
     /**
      * Convert JSON string to message
-     * @param[in] json string
+     * @param[in, out] json string
      * @return true if parsing success
      */
     bool (*fromJson)(ptpmgmt_json j, const char *json);
     /**
      * Convert JSON object to message
-     * @param[in] jobj pointer of JSON object
+     * @param[in, out] jobj pointer of JSON object
      * @return true if parsing success
      * @note jobj must be json_object pointer
      * @attention You must use the same JSON library used by this library!
@@ -100,112 +100,134 @@ struct ptpmgmt_json_t {
     bool (*fromJsonObj)(ptpmgmt_json j, const void *jobj);
     /**
      * Get management ID
+     * @param[in] j json object
      * @return management ID
      */
     enum ptpmgmt_mng_vals_e(*managementId)(const_ptpmgmt_json j);
     /**
      * Get dataField
+     * @param[in, out] jobj pointer of JSON object
      * @return dataField pointer or null
      * @note User @b should not try to free this TLV object
      */
     const void *(*dataField)(ptpmgmt_json j);
     /**
      * Get action field
+     * @param[in] jobj pointer of JSON object
      * @return action field
      */
     enum ptpmgmt_actionField_e(*actionField)(const_ptpmgmt_json j);
     /**
      * Get Unicast flag
+     * @param[in] jobj pointer of JSON object
      * @return Unicast flag
      */
     bool (*isUnicast)(const_ptpmgmt_json j);
     /**
      * Is Unicast flag in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if Unicast flag in JSON
      */
     bool (*haveIsUnicast)(const_ptpmgmt_json j);
     /**
      * Get PTP profile specific
+     * @param[in] jobj pointer of JSON object
      * @return PTP profile specific
      */
     uint8_t (*PTPProfileSpecific)(const_ptpmgmt_json j);
     /**
      * Is PTP profile specific in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if PTP profile specific in JSON
      */
     bool (*havePTPProfileSpecific)(const_ptpmgmt_json j);
     /**
      * Get domain number
+     * @param[in] jobj pointer of JSON object
      * @return domain number
      */
     uint8_t (*domainNumber)(const_ptpmgmt_json j);
     /**
      * Is domain number in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if domain number in JSON
      */
     bool (*haveDomainNumber)(const_ptpmgmt_json j);
     /**
      * Get PTP major version
+     * @param[in] jobj pointer of JSON object
      * @return PTP major version
      */
     uint8_t (*versionPTP)(const_ptpmgmt_json j);
     /**
      * Is PTP major version in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if PTP major version in JSON
      */
     bool (*haveVersionPTP)(const_ptpmgmt_json j);
     /**
      * Get PTP minor version
+     * @param[in] jobj pointer of JSON object
      * @return PTP minor version
      */
     uint8_t (*minorVersionPTP)(const_ptpmgmt_json j);
     /**
      * Is PTP minor version in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if PTP minor version in JSON
      */
     bool (*haveMinorVersionPTP)(const_ptpmgmt_json j);
     /**
      * Get sequence ID
+     * @param[in] jobj pointer of JSON object
      * @return sequence ID
      */
     uint16_t (*sequenceId)(const_ptpmgmt_json j);
     /**
      * Is sequence ID in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if sequence ID in JSON
      */
     bool (*haveSequenceId)(const_ptpmgmt_json j);
     /**
      * Get sdoId
+     * @param[in] jobj pointer of JSON object
      * @return sdoId
      */
     uint32_t (*sdoId)(const_ptpmgmt_json j);
     /**
      * Is sdoId in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if sdoId in JSON
      */
     bool (*haveSdoId)(const_ptpmgmt_json j);
     /**
      * Get source port ID
+     * @param[in, out] jobj pointer of JSON object
      * @return source port ID
      */
     const struct ptpmgmt_PortIdentity_t *(*srcPort)(ptpmgmt_json j);
     /**
      * Is source port ID in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if source port ID in JSON
      */
     bool (*haveSrcPort)(const_ptpmgmt_json j);
     /**
      * Get target port ID
+     * @param[in, out] jobj pointer of JSON object
      * @return target port ID
      */
     const struct ptpmgmt_PortIdentity_t *(*dstPort)(ptpmgmt_json j);
     /**
      * Is target port ID in JSON?
+     * @param[in] jobj pointer of JSON object
      * @return true if target port ID in JSON
      */
     bool (*haveDstPort)(const_ptpmgmt_json j);
     /**
      * Call message setAction with parsed JSON
+     * @param[in] jobj pointer of JSON object
      * @return message setAction result
      */
     bool (*setAction)(const_ptpmgmt_json j, ptpmgmt_msg message);

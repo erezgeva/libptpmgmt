@@ -50,7 +50,7 @@ struct ptpmgmt_opt_t {
 
     /**
      * Free an options object
-     * @param[in] opt options object to free
+     * @param[in, out] opt options object to free
      */
     void (*free)(ptpmgmt_opt opt);
     /**
@@ -74,7 +74,7 @@ struct ptpmgmt_opt_t {
     const char *(*get_help)(ptpmgmt_opt opt);
     /**
      * Get parse_options() message
-     * @param[in] opt options object
+     * @param[in, out] opt options object
      * @return message from last parse_options()
      */
     const char *(*get_msg)(ptpmgmt_opt opt);
@@ -93,14 +93,14 @@ struct ptpmgmt_opt_t {
         char *argv[]);
     /**
      * Is option on command line
-     * @param[in] opt options object
+     * @param[in, out] opt options object
      * @param[in] askOpt short option character
      * @return true if option on command line
      */
     bool (*have)(ptpmgmt_opt opt, char askOpt);
     /**
      * get option value
-     * @param[in] opt options object
+     * @param[in, out] opt options object
      * @param[in] valOpt short option character
      * @return option char pointer of value string (C style)
      * @note relevant for option with argument
@@ -108,7 +108,7 @@ struct ptpmgmt_opt_t {
     const char *(*val)(ptpmgmt_opt opt, char valOpt);
     /**
      * get option integer value
-     * @param[in] opt options object
+     * @param[in, out] opt options object
      * @param[in] valOpt short option character
      * @return option integer value
      * @note relevant for option with argument of integer value
@@ -116,20 +116,20 @@ struct ptpmgmt_opt_t {
     int (*val_i)(ptpmgmt_opt opt, char valOpt);
     /**
      * get Network Transport value
-     * @param[in] opt options object
+     * @param[in, out] opt options object
      * @return Network Transport
      * @note return 0 if not select on command line
      */
     char (*get_net_transport)(ptpmgmt_opt opt);
     /**
      * Do we have more argumends on the command line, left unprocessed
-     * @param[in] opt options object
+     * @param[in, out] opt options object
      * @return true if we have more to process
      */
     bool (*have_more)(ptpmgmt_opt opt);
     /**
      * First argumend on the command line, left unprocessed
-     * @param[in] opt options object
+     * @param[in, out] opt options object
      * @return index of argument
      */
     int (*process_next)(ptpmgmt_opt opt);

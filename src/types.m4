@@ -925,20 +925,40 @@ c_cod(`    /**< @endcond */')dnl
     bool filterSignaling; /**< use filter for signalling messages TLVs */
     bool rcvSMPTEOrg; /**< parse SMPTE Organization Extension TLV */
 cpp_cod(`    MsgParams();')dnl
-    /** Add TLV type to allowed signalling filter */
+    /**
+     * Add TLV type to allowed signalling filter
+c_cod(`     * @param[in, out] mp pointer to MsgParams wrapper structure')dnl
+     * @param[in] type of TLV to allowed
+     */
 cpp_cod(`    void allowSigTlv(tlvType_e type);')dnl
-c_cod(`    void (*allowSigTlv)(ptpmgmt_pMsgParams m, enum ptpmgmt_tlvType_e type);')dnl
-    /** Remove TLV type from allowed signalling filter */
+c_cod(`    void (*allowSigTlv)(ptpmgmt_pMsgParams mp, enum ptpmgmt_tlvType_e type);')dnl
+    /**
+     * Remove TLV type from allowed signalling filter
+c_cod(`     * @param[in, out] mp pointer to MsgParams wrapper structure')dnl
+     * @param[in] type of TLV to remove
+     */
 cpp_cod(`    void removeSigTlv(tlvType_e type);')dnl
-c_cod(`    void (*removeSigTlv)(ptpmgmt_pMsgParams m, enum ptpmgmt_tlvType_e type);')dnl
-    /** Query if TLV type is allowed signalling filter */
+c_cod(`    void (*removeSigTlv)(ptpmgmt_pMsgParams mp, enum ptpmgmt_tlvType_e type);')dnl
+    /**
+     * Query if TLV type is allowed signalling filter
+c_cod(`     * @param[in] mp pointer to MsgParams wrapper structure')dnl
+     * @param[in] type of TLV to query
+     * @return true if TLV is allowed
+     */
 cpp_cod(`    bool isSigTlv(tlvType_e type) const;')dnl
 c_cod(`    bool (*isSigTlv)(ptpmgmt_cpMsgParams m, enum ptpmgmt_tlvType_e type);')dnl
-    /** Query how many signalling TLVs are allowd in filter */
+    /**
+     * Query how many signalling TLVs are allowd in filter
+c_cod(`     * @param[in] mp pointer to MsgParams wrapper structure')dnl
+     * @return number of allowed TLVs
+     */
 cpp_cod(`    size_t countSigTlvs() const;')dnl
 c_cod(`    size_t (*countSigTlvs)(ptpmgmt_cpMsgParams m);')dnl
-c_cod(`    /** Free structure object */')dnl
-c_cod(`    void (*free)(ptpmgmt_pMsgParams m);')dnl
+c_cod(`    /**')dnl
+c_cod(`     * Free structure object')dnl
+c_cod(`     * @param[in, out] mp pointer to MsgParams wrapper structure')dnl
+c_cod(`     */')dnl
+c_cod(`    void (*free)(ptpmgmt_pMsgParams mp);')dnl
 cpp_cod(`  private:')dnl
 cpp_cod(`    /** when filter TLVs in signalling messages')dnl
 cpp_cod(`     * allow TLVs that are in the map, the bool value is ignored */')dnl

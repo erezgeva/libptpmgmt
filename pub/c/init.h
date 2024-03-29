@@ -36,7 +36,7 @@ struct ptpmgmt_init_t {
 
     /**
      * Free init object
-     * @param[in] i init object
+     * @param[in, out] i init object
      */
     void (*free)(ptpmgmt_init i);
     /**
@@ -60,6 +60,7 @@ struct ptpmgmt_init_t {
     ptpmgmt_cfg(*cfg)(ptpmgmt_init i);
     /**
      * Get Message object
+     * @param[in, out] i init object
      * @return object
      */
     ptpmgmt_msg(*msg)(ptpmgmt_init i);
@@ -85,7 +86,7 @@ struct ptpmgmt_init_t {
 
     /**
      * Is the socket provide by this object, a Unix socket?
-     * @param[in] i init object
+     * @param[in, out] i init object
      * @return true if the socket is a UDS socket
      */
     bool (*use_uds)(ptpmgmt_init i);

@@ -489,27 +489,44 @@ c_cod(`};')dnl
 cpp_cod(`    /**< Default constructor */')dnl
 cpp_cod(`    /**< We need to zero the bitmask, as we do not set it explicity! */')dnl
 cpp_cod(`    SUBSCRIBE_EVENTS_NP_t() : bitmask{0} {}')dnl
-idf()/** Set event bit in bitmask */
-c_cod(`void ptpmgmt_setEvent_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event);')dnl
+idf()/**
+idf() * Set event bit in bitmask
+c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
+idf() * @param[in] event to set
+idf() */
+c_cod(`void ptpmgmt_setEvent_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv, int event);')dnl
 cpp_cod(`    void setEvent(int event) {')dnl
 cpp_cod(`        std::div_t d;')dnl
 cpp_cod(`        if(div_event(event, d))')dnl
 cpp_cod(`            bitmask[d.quot] |= d.rem;')dnl
 cpp_cod(`    }')dnl
-idf()/** Clear event bit in bitmask */
-c_cod(`void ptpmgmt_clearEvent_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event);')dnl
+idf()/**
+idf() * Clear event bit in bitmask
+c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
+idf() * @param[in] event to clear
+idf() */
+c_cod(`void ptpmgmt_clearEvent_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv,')dnl
+c_cod(`    int event);')dnl
 cpp_cod(`    void clearEvent(int event) {')dnl
 cpp_cod(`        std::div_t d;')dnl
 cpp_cod(`        if(div_event(event, d))')dnl
 cpp_cod(`            bitmask[d.quot] &= ~d.rem;')dnl
 cpp_cod(`    }')dnl
-idf()/** Clear all events in bitmask */
-c_cod(`void ptpmgmt_clearAll_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e);')dnl
+idf()/**
+idf() * Clear all events in bitmask
+c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
+idf() */
+c_cod(`void ptpmgmt_clearAll_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv);')dnl
 cpp_cod(`    void clearAll() {')dnl
 cpp_cod(`        memset(bitmask, 0, EVENT_BITMASK_CNT);')dnl
 cpp_cod(`    }')dnl
-idf()/** Get bit value in bitmask */
-c_cod(`bool ptpmgmt_getEvent_lnp(const struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e,')dnl
+idf()/**
+idf() * Get bit value in bitmask
+c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
+idf() * @param[in] event to query
+idf() * @return true if event set
+idf() */
+c_cod(`bool ptpmgmt_getEvent_lnp(const struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv,')dnl
 c_cod(`    int event);')dnl
 cpp_cod(`    bool getEvent(int event) const {')dnl
 cpp_cod(`        std::div_t d;')dnl
