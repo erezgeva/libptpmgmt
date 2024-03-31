@@ -238,8 +238,8 @@ class Token
         m_alloc(false) {}
     bool dup(const string &str) {
         m_buf = strdup(str.c_str());
-        m_alloc = (m_buf == nullptr);
-        return m_alloc;
+        m_alloc = (m_buf != nullptr);
+        return !m_alloc;
     }
     char *save() {return m_save;}
     char *first() {return strtok_r(m_buf, m_sep, &m_save);}
