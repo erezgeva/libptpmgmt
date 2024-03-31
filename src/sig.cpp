@@ -255,8 +255,8 @@ C1(CUMULATIVE_RATE_RATIO)
 }
 C1(MANAGEMENT_ERROR_STATUS)
 {
-    a.managementId = (enum ptpmgmt_mng_vals_e)d.managementId;
-    a.managementErrorId = (enum ptpmgmt_managementErrorId_e)d.managementErrorId;
+    a.managementId = (ptpmgmt_mng_vals_e)d.managementId;
+    a.managementErrorId = (ptpmgmt_managementErrorId_e)d.managementErrorId;
     a.displayData.lengthField = d.displayData.lengthField;
     a.displayData.textField = d.displayData.textField.c_str();
 }
@@ -267,7 +267,7 @@ C1(MANAGEMENT)
         e = true;
         return;
     }
-    a.managementId = (enum ptpmgmt_mng_vals_e)d.managementId;
+    a.managementId = (ptpmgmt_mng_vals_e)d.managementId;
     a.tlvData = x;
 }
 C1(SLAVE_DELAY_TIMING_DATA_NP)

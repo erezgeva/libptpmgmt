@@ -27,13 +27,13 @@ typedef const struct ptpmgmt_msg_t *const_ptpmgmt_msg;
 /**
  * pointer to callback traverse sig TLVs
  * @param[in] cookie pointer to a user cookie
- * @param[in] m msg object
+ * @param[in] msg object
  * @param[in] tlvType Signalling TLV type
  * @param[in] tlv Signalling TLV
  * @return true to stop traverse
  * @note user should cast the tlv to the proper Signalling TLV type structure
  */
-typedef bool (*ptpmgmt_msg_sig_callback)(void *cookie, const_ptpmgmt_msg m,
+typedef bool (*ptpmgmt_msg_sig_callback)(void *cookie, const_ptpmgmt_msg msg,
     enum ptpmgmt_tlvType_e tlvType, const void *tlv);
 
 /**
@@ -58,54 +58,54 @@ struct ptpmgmt_msg_t {
 
     /**
      * Free msg object
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      */
-    void (*free)(ptpmgmt_msg m);
+    void (*free)(ptpmgmt_msg msg);
     /**
      * Get the current msgparams parameters
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @return msgparams parameters
      */
-    ptpmgmt_pMsgParams(*getParams)(ptpmgmt_msg m);
+    ptpmgmt_pMsgParams(*getParams)(ptpmgmt_msg msg);
     /**
      * Set and use a user MsgParams parameters
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @param[in] prms MsgParams parameters
      * @return true if parameters are valid and updated
      */
-    bool (*updateParams)(ptpmgmt_msg m, ptpmgmt_cpMsgParams prms);
+    bool (*updateParams)(ptpmgmt_msg msg, ptpmgmt_cpMsgParams prms);
     /**
      * Get the current parsed TLV id
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return current parsed TLV id
      */
-    enum ptpmgmt_mng_vals_e(*getTlvId)(const_ptpmgmt_msg m);
+    enum ptpmgmt_mng_vals_e(*getTlvId)(const_ptpmgmt_msg msg);
     /**
      * Get the current build TLV id
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return current TLV id
      */
-    enum ptpmgmt_mng_vals_e(*getBuildTlvId)(const_ptpmgmt_msg m);
+    enum ptpmgmt_mng_vals_e(*getBuildTlvId)(const_ptpmgmt_msg msg);
     /**
      * Set target clock ID to use all clocks.
-     * @param[in] m msg object
+     * @param[in] msg object
      */
-    void (*setAllClocks)(const_ptpmgmt_msg m);
+    void (*setAllClocks)(const_ptpmgmt_msg msg);
     /**
      * Query if target clock ID is using all clocks.
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return true if target use all clocks
      */
-    bool (*isAllClocks)(const_ptpmgmt_msg m);
+    bool (*isAllClocks)(const_ptpmgmt_msg msg);
     /**
      * Fetch MsgParams parameters from configuration file
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @param[in] cfg reference to configuration file object
      * @param[in] section in configuration file
      * @return true on success
      * @note calling with null section will fetch value from @"global@" section
      */
-    bool (*useConfig)(ptpmgmt_msg m, const_ptpmgmt_cfg cfg, const char *section);
+    bool (*useConfig)(ptpmgmt_msg msg, const_ptpmgmt_cfg cfg, const char *section);
     /**
      * Convert parse error code to string
      * @param[in] err parse code
@@ -287,15 +287,15 @@ struct ptpmgmt_msg_t {
     bool (*isEmpty)(enum ptpmgmt_mng_vals_e id);
     /**
      * Check if management TLV is valid for use
-     * @param[in] m msg object
+     * @param[in] msg object
      * @param[in] id management TLV id
      * @return true if management TLV is valid
      * @note function also check implement specific TLVs!
      */
-    bool (*isValidId)(const_ptpmgmt_msg m, enum ptpmgmt_mng_vals_e id);
+    bool (*isValidId)(const_ptpmgmt_msg msg, enum ptpmgmt_mng_vals_e id);
     /**
      * Set message object management TLV id, action and data for dataField
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @param[in] actionField for sending
      * @param[in] tlv_id management TLV id
      * @param[in] dataSend pointer to TLV object
@@ -306,16 +306,16 @@ struct ptpmgmt_msg_t {
      *  Mismatch will probably cause a crash to your application.
      *  The library does @b NOT perform any error catchig of any kind!
      */
-    bool (*setAction)(ptpmgmt_msg m, enum ptpmgmt_actionField_e actionField,
+    bool (*setAction)(ptpmgmt_msg msg, enum ptpmgmt_actionField_e actionField,
         enum ptpmgmt_mng_vals_e tlv_id, const void *dataSend);
     /**
      * Clear data for send, prevent accidentally use, in case it is freed
-     * @param[in] m msg object
+     * @param[in] msg object
      */
-    void (*clearData)(const_ptpmgmt_msg m);
+    void (*clearData)(const_ptpmgmt_msg msg);
     /**
      * Build a raw message for send using setAction setting
-     * @param[in] m msg object
+     * @param[in] msg object
      * @param[in, out] buf memory buffer to fill with raw PTP Message
      * @param[in] bufSize buffer size
      * @param[in] sequence message sequence
@@ -327,114 +327,114 @@ struct ptpmgmt_msg_t {
      * @note if raw message is larger than buffer size the function
      *   return MNG_PARSE_ERROR_TOO_SMALL
      */
-    enum ptpmgmt_MNG_PARSE_ERROR_e(*build)(const_ptpmgmt_msg m, void *buf,
+    enum ptpmgmt_MNG_PARSE_ERROR_e(*build)(const_ptpmgmt_msg msg, void *buf,
         size_t bufSize, uint16_t sequence);
     /**
      * Get build management action
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return build management action
      */
-    enum ptpmgmt_actionField_e(*getSendAction)(const_ptpmgmt_msg m);
+    enum ptpmgmt_actionField_e(*getSendAction)(const_ptpmgmt_msg msg);
     /**
      * Get last build message size
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return message size
      */
-    size_t (*getMsgLen)(const_ptpmgmt_msg m);
+    size_t (*getMsgLen)(const_ptpmgmt_msg msg);
     /**
      * Get planned message to build size
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return planned message size or negative for error
      * @note the planned message size is based on the management TLV id,
      *  action and the dataSend set by the user.
      * You can use the size to allocate proper buffer for sending
      */
-    ssize_t (*getMsgPlanedLen)(const_ptpmgmt_msg m);
+    ssize_t (*getMsgPlanedLen)(const_ptpmgmt_msg msg);
     /* Parsed message functions */
     /**
      * Parse a received raw socket
-     * @param[in] m msg object
+     * @param[in] msg object
      * @param[in] buf memory buffer containing the raw PTP Message
      * @param[in] msgSize received size of PTP Message
      * @return parse error state
      */
-    enum ptpmgmt_MNG_PARSE_ERROR_e(*parse)(const_ptpmgmt_msg m, const void *buf,
+    enum ptpmgmt_MNG_PARSE_ERROR_e(*parse)(const_ptpmgmt_msg msg, const void *buf,
         ssize_t msgSize);
     /**
      * Get last reply management action
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return reply management action
      * @note set on parse
      */
-    enum ptpmgmt_actionField_e(*getReplyAction)(const_ptpmgmt_msg m);
+    enum ptpmgmt_actionField_e(*getReplyAction)(const_ptpmgmt_msg msg);
     /**
      * Is last parsed message a unicast or not
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return true if parsed message is unicast
      */
-    bool (*isUnicast)(const_ptpmgmt_msg m);
+    bool (*isUnicast)(const_ptpmgmt_msg msg);
     /**
      * Get last reply PTP Profile Specific
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return reply management action
      * @note set on parse
      */
-    uint8_t (*getPTPProfileSpecific)(const_ptpmgmt_msg m);
+    uint8_t (*getPTPProfileSpecific)(const_ptpmgmt_msg msg);
     /**
      * Get last parsed message sequence number
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return parsed sequence number
      */
-    uint16_t (*getSequence)(const_ptpmgmt_msg m);
+    uint16_t (*getSequence)(const_ptpmgmt_msg msg);
     /**
      * Get last parsed message peer port ID
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @return parsed message peer port ID
      */
-    const struct ptpmgmt_PortIdentity_t *(*getPeer)(ptpmgmt_msg m);
+    const struct ptpmgmt_PortIdentity_t *(*getPeer)(ptpmgmt_msg msg);
     /**
      * Get last parsed message target port ID
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @return parsed message target port ID
      */
-    const struct ptpmgmt_PortIdentity_t *(*getTarget)(ptpmgmt_msg m);
+    const struct ptpmgmt_PortIdentity_t *(*getTarget)(ptpmgmt_msg msg);
     /**
      * Get last parsed message sdoId
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return parsed message sdoId
      * @note upper byte is was transportSpecific
      */
-    uint32_t (*getSdoId)(const_ptpmgmt_msg m);
+    uint32_t (*getSdoId)(const_ptpmgmt_msg msg);
     /**
      * Get last parsed message domainNumber
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return parsed message domainNumber
      */
-    uint8_t (*getDomainNumber)(const_ptpmgmt_msg m);
+    uint8_t (*getDomainNumber)(const_ptpmgmt_msg msg);
     /**
      * Get last parsed message PTP version
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return parsed message versionPTP
      */
-    uint8_t (*getVersionPTP)(const_ptpmgmt_msg m);
+    uint8_t (*getVersionPTP)(const_ptpmgmt_msg msg);
     /**
      * Get last parsed message minor PTP version
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return parsed message versionPTP
      */
-    uint8_t (*getMinorVersionPTP)(const_ptpmgmt_msg m);
+    uint8_t (*getMinorVersionPTP)(const_ptpmgmt_msg msg);
     /**
      * Get last parsed message dataField
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @return pointer to last parsed message dataField or null
      * @note You need to cast to proper structure depends on
      *  management TLV ID, get with.
      * @note You @b should not try to free or change this TLV object
      */
-    const void *(*getData)(ptpmgmt_msg m);
+    const void *(*getData)(ptpmgmt_msg msg);
     /**
      * Get send message dataField
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return pointer to send message dataField or null
      *         a pointer to the last setAction dataSend parameter.
      * @note You need to cast to proper structure depends on
@@ -442,89 +442,89 @@ struct ptpmgmt_msg_t {
      * @note In case you release this memory,
      *  you should call @code clearData() @endcode
      */
-    const void *(*getSendData)(const_ptpmgmt_msg m);
+    const void *(*getSendData)(const_ptpmgmt_msg msg);
     /**
      * Get management error code ID
-     * @param[in] m msg object
+     * @param[in] msg object
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error code
      */
-    enum ptpmgmt_managementErrorId_e(*getErrId)(const_ptpmgmt_msg m);
+    enum ptpmgmt_managementErrorId_e(*getErrId)(const_ptpmgmt_msg msg);
     /**
      * Get management error message
-     * @param[in] m msg object
+     * @param[in] msg object
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error message
      */
-    const char *(*getErrDisplay)(const_ptpmgmt_msg m);
+    const char *(*getErrDisplay)(const_ptpmgmt_msg msg);
     /**
      * query if last message is a signalling message
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return true if last message is a signalling message
      */
-    bool (*isLastMsgSig)(const_ptpmgmt_msg m);
+    bool (*isLastMsgSig)(const_ptpmgmt_msg msg);
     /**
      * Get message type
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return message type
      */
-    enum ptpmgmt_msgType_e(*getType)(const_ptpmgmt_msg m);
+    enum ptpmgmt_msgType_e(*getType)(const_ptpmgmt_msg msg);
     /**
      * Get management message type
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return management message type
      * @note return MANAGEMENT or MANAGEMENT_ERROR_STATUS
      */
-    enum ptpmgmt_tlvType_e(*getMngType)(const_ptpmgmt_msg m);
+    enum ptpmgmt_tlvType_e(*getMngType)(const_ptpmgmt_msg msg);
     /**
      * Traverse all last signalling message TLVs
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @param[in] cookie pointer to a user cookie
      * @param[in] callback function to call with each TLV
      * @return true if any of the calling to call-back return true
      * @note stop once a call-back return true
      */
-    bool (*traversSigTlvs)(ptpmgmt_msg m, void *cookie,
+    bool (*traversSigTlvs)(ptpmgmt_msg msg, void *cookie,
         ptpmgmt_msg_sig_callback callback);
     /**
      * Get number of the last signalling message TLVs
-     * @param[in] m msg object
+     * @param[in] msg object
      * @return number of TLVs or zero
      */
-    size_t (*getSigTlvsCount)(const_ptpmgmt_msg m);
+    size_t (*getSigTlvsCount)(const_ptpmgmt_msg msg);
     /**
      * Get a TLV from the last signalling message TLVs by position
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @param[in] position of TLV
      * @return TLV or null
      */
-    const void *(*getSigTlv)(ptpmgmt_msg m, size_t position);
+    const void *(*getSigTlv)(ptpmgmt_msg msg, size_t position);
     /**
      * Get a type of TLV from the last signalling message TLVs by position
-     * @param[in] m msg object
+     * @param[in] msg object
      * @param[in] position of TLV
      * @return type of TLV or unknown
      */
-    enum ptpmgmt_tlvType_e(*getSigTlvType)(const_ptpmgmt_msg m, size_t position);
+    enum ptpmgmt_tlvType_e(*getSigTlvType)(const_ptpmgmt_msg msg, size_t position);
     /**
      * Get the management TLV ID of a management TLV
      * from the last signalling message TLVs by position
-     * @param[in] m msg object
+     * @param[in] msg object
      * @param[in] position of TLV
      * @return management TLV ID or NULL_PTP_MANAGEMENT
      * @note return NULL_PTP_MANAGEMENT if TLV is not management
      */
-    enum ptpmgmt_mng_vals_e(*getSigMngTlvType)(const_ptpmgmt_msg m,
+    enum ptpmgmt_mng_vals_e(*getSigMngTlvType)(const_ptpmgmt_msg msg,
         size_t position);
     /**
      * Get a management TLV from the last signalling message TLVs by position
-     * @param[in, out] m msg object
+     * @param[in, out] msg object
      * @param[in] position of TLV
      * @return management TLV or null
      * @note return null if TLV is not management
      * @note You @b should not try to free this TLV object
      */
-    const void *(*getSigMngTlv)(ptpmgmt_msg m, size_t position);
+    const void *(*getSigMngTlv)(ptpmgmt_msg msg, size_t position);
 };
 
 /**

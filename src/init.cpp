@@ -27,7 +27,7 @@ void Init::close()
 int Init::process(const Options &opt)
 {
     char net_select = opt.get_net_transport();
-    /* handle configuration file */
+    // handle configuration file
     if(opt.have('f') && !m_cfg.read_cfg(opt.val('f')))
         return -1;
     if(net_select == 0)
@@ -161,9 +161,10 @@ extern "C" {
 
 #include "c/init.h"
 
-    extern ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(void *cfg);
-    extern ptpmgmt_msg ptpmgmt_msg_alloc_wrap(void *msg);
-    extern ptpmgmt_sk ptpmgmt_sk_alloc_wrap(ptpmgmt_socket_class type, void *sk);
+    extern ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg);
+    extern ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg);
+    extern ptpmgmt_sk ptpmgmt_sk_alloc_wrap(ptpmgmt_socket_class type,
+        SockBase *sko);
 
     static void ptpmgmt_init_free(ptpmgmt_init me)
     {
@@ -204,10 +205,8 @@ extern "C" {
     static ptpmgmt_cfg ptpmgmt_init_cfg(ptpmgmt_init me)
     {
         if(me != nullptr && me->_this != nullptr) {
-            if(me->sCfg == nullptr) {
-                const ConfigFile &c = ((Init *)me->_this)->cfg();
-                me->sCfg = ptpmgmt_cfg_alloc_wrap((void *)&c);
-            }
+            if(me->sCfg == nullptr)
+                me->sCfg = ptpmgmt_cfg_alloc_wrap(((Init *)me->_this)->cfg());
             return me->sCfg;
         }
         return nullptr;
@@ -215,10 +214,8 @@ extern "C" {
     static ptpmgmt_msg ptpmgmt_init_msg(ptpmgmt_init me)
     {
         if(me != nullptr && me->_this != nullptr) {
-            if(me->sMsg == nullptr) {
-                const Message &m = ((Init *)me->_this)->msg();
-                me->sMsg = ptpmgmt_msg_alloc_wrap((void *)&m);
-            }
+            if(me->sMsg == nullptr)
+                me->sMsg = ptpmgmt_msg_alloc_wrap(((Init *)me->_this)->msg());
             return me->sMsg;
         }
         return nullptr;
@@ -246,7 +243,7 @@ extern "C" {
                         return nullptr;
                 }
                 SockBase *s = pi->sk();
-                me->sSk = ptpmgmt_sk_alloc_wrap(type, (void *)s);
+                me->sSk = ptpmgmt_sk_alloc_wrap(type, s);
             }
             return me->sSk;
         }

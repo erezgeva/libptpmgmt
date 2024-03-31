@@ -75,7 +75,7 @@ case PTPMGMT_##n:if(d->n##_h != nullptr){\
         if(d->noTlvCallBack != nullptr){d->noTlvCallBack(cookie, msg, #n);}}break;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
     void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d,
-        ptpmgmt_msg msg, enum ptpmgmt_mng_vals_e tlv_id, const void *tlv)
+        ptpmgmt_msg msg, ptpmgmt_mng_vals_e tlv_id, const void *tlv)
     {
         if(tlv == nullptr) {
             if(d->noTlv != nullptr)

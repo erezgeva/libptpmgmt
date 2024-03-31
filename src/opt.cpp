@@ -228,22 +228,21 @@ extern "C" {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->useDefOption();
     }
-    static bool ptpmgmt_opt_insert(ptpmgmt_opt me, struct ptpmgmt_opt_option *opt)
+    static bool ptpmgmt_opt_insert(ptpmgmt_opt me, ptpmgmt_opt_option *opt)
     {
         if(me != nullptr && me->_this != nullptr && opt != nullptr) {
+#define _asn(a) .a = opt->a
+#define _asn_s(a) .a = (opt->a == nullptr) ? n : opt->a
+            const char *n = "";
             Pmc_option o = {
-                .short_name = opt->short_name,
-                .have_arg = opt->have_arg,
-                .long_only = opt->long_only
+                _asn(short_name),
+                _asn_s(long_name),
+                _asn(have_arg),
+                _asn(long_only),
+                _asn_s(help_msg),
+                _asn_s(arg_help),
+                _asn_s(def_val),
             };
-            if(opt->long_name != nullptr)
-                o.long_name = opt->long_name;
-            if(opt->help_msg != nullptr)
-                o.help_msg = opt->help_msg;
-            if(opt->arg_help != nullptr)
-                o.arg_help = opt->arg_help;
-            if(opt->def_val != nullptr)
-                o.def_val = opt->def_val;
             return ((Options *)me->_this)->insert(o);
         }
         return false;
@@ -260,7 +259,7 @@ extern "C" {
             return ((Options *)me->_this)->get_msg().c_str();
         return nullptr;
     }
-    static enum ptpmgmt_opt_loop_val ptpmgmt_opt_parse_options(ptpmgmt_opt me,
+    static ptpmgmt_opt_loop_val ptpmgmt_opt_parse_options(ptpmgmt_opt me,
         int argc, char *argv[])
     {
         if(me != nullptr && me->_this != nullptr && argc > 0 && argv != nullptr) {

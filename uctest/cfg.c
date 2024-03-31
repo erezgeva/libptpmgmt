@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief ConfigFile class unit tests
+ * @brief ConfigFile class wrapper unit tests
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2024 Erez Geva
@@ -16,7 +16,7 @@
 Test(ConfigFileTest, MethodEmptyConstructor)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     // Check default values
     cr_expect(eq(i8, f->transportSpecific(f, NULL), 0));
     cr_expect(eq(i8, f->domainNumber(f, NULL), 0));
@@ -48,7 +48,7 @@ Test(ConfigFileTest, MethodEmptyConstructor)
 Test(ConfigFileTest, MethodReadConfiguration)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     // Check file configuration
     cr_expect(eq(i8, f->transportSpecific(f, NULL), 7));
@@ -81,7 +81,7 @@ Test(ConfigFileTest, MethodReadConfiguration)
 Test(ConfigFileTest, MethodTransportSpecific)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(i8, f->transportSpecific(f, "dumm"), 9));
     cr_expect(eq(i8, f->transportSpecific(f, "non"), 7));
@@ -93,7 +93,7 @@ Test(ConfigFileTest, MethodTransportSpecific)
 Test(ConfigFileTest, MethodDomainNumber)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(i8, f->domainNumber(f, "dumm"), 3));
     cr_expect(eq(i8, f->domainNumber(f, "non"), 5));
@@ -105,7 +105,7 @@ Test(ConfigFileTest, MethodDomainNumber)
 Test(ConfigFileTest, MethodUdp6_scope)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(i8, f->udp6_scope(f, "dumm"), 0xf));
     cr_expect(eq(i8, f->udp6_scope(f, "non"), 0xd));
@@ -117,7 +117,7 @@ Test(ConfigFileTest, MethodUdp6_scope)
 Test(ConfigFileTest, MethodUdp_ttl)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(i8, f->udp_ttl(f, "dumm"), 7));
     cr_expect(eq(i8, f->udp_ttl(f, "non"), 3));
@@ -129,7 +129,7 @@ Test(ConfigFileTest, MethodUdp_ttl)
 Test(ConfigFileTest, MethodSocketPriority)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(i8, f->socket_priority(f, "dumm"), 7));
     cr_expect(eq(i8, f->socket_priority(f, "non"), 11));
@@ -141,7 +141,7 @@ Test(ConfigFileTest, MethodSocketPriority)
 Test(ConfigFileTest, MethodNetworkTransport)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(i8, f->network_transport(f, "dumm"), '4'));
     cr_expect(eq(i8, f->network_transport(f, "non"), '6'));
@@ -153,7 +153,7 @@ Test(ConfigFileTest, MethodNetworkTransport)
 Test(ConfigFileTest, MethodUDSAddress)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     cr_expect(eq(str, (char *)f->uds_address(f, "dumm"), "/var/run/dummy2"));
     cr_expect(eq(str, (char *)f->uds_address(f, "non"), "/var/run/dummy"));
@@ -165,7 +165,7 @@ Test(ConfigFileTest, MethodUDSAddress)
 Test(ConfigFileTest, MethodPTPDstMac)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     {
         size_t l;
@@ -190,7 +190,7 @@ Test(ConfigFileTest, MethodPTPDstMac)
 Test(ConfigFileTest, MethodP2pDstMac)
 {
     ptpmgmt_cfg f = ptpmgmt_cfg_alloc();
-    cr_expect(not(zero(ptr, f)));
+    cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     {
         size_t l;

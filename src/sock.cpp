@@ -1287,8 +1287,7 @@ extern "C" {
         SockRaw *s = valid_rsk(sk);
         C2CPP_func(setSocketPriority);
     }
-    static ptpmgmt_sk ptpmgmt_sk_alloc_all(enum ptpmgmt_socket_class type,
-        void *sko)
+    static ptpmgmt_sk ptpmgmt_sk_alloc_all(ptpmgmt_socket_class type, SockBase *sko)
     {
         ptpmgmt_sk sk = (ptpmgmt_sk)malloc(sizeof(ptpmgmt_sk_t));
         if(sk == nullptr)
@@ -1400,15 +1399,15 @@ extern "C" {
                 return nullptr;
         }
         if(sko != nullptr) {
-            sk->_this = sko;
+            s = sko;
             sk->free = ptpmgmt_sk_free_wrap;
-        } else if(s != nullptr) {
-            sk->_this = (void *)s;
+        } else if(s != nullptr)
             C_ASGN(free);
-        } else {
+        else {
             free(sk);
             return nullptr;
         }
+        sk->_this = (void *)s;
         // Used by all sockets
         C_ASGN(close);
         C_ASGN(init);
@@ -1420,11 +1419,11 @@ extern "C" {
         C_ASGN(tpoll);
         return sk;
     }
-    ptpmgmt_sk ptpmgmt_sk_alloc(enum ptpmgmt_socket_class type)
+    ptpmgmt_sk ptpmgmt_sk_alloc(ptpmgmt_socket_class type)
     {
         return ptpmgmt_sk_alloc_all(type, nullptr);
     }
-    ptpmgmt_sk ptpmgmt_sk_alloc_wrap(enum ptpmgmt_socket_class type, void *sko)
+    ptpmgmt_sk ptpmgmt_sk_alloc_wrap(ptpmgmt_socket_class type, SockBase *sko)
     {
         if(sko == nullptr)
             return nullptr;

@@ -1755,14 +1755,12 @@ extern "C" {
         ptpmgmt_msg_asign_cb(m);
         return m;
     }
-    ptpmgmt_msg ptpmgmt_msg_alloc_wrap(void *msg)
+    ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg)
     {
-        if(msg == nullptr)
-            return nullptr;
         ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
         if(m == nullptr)
             return nullptr;
-        m->_this = msg;
+        m->_this = (void *)&msg;
         m->free = ptpmgmt_msg_free_wrap;
         ptpmgmt_msg_asign_cb(m);
         return m;
