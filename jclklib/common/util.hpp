@@ -26,7 +26,8 @@ bool isFutureSet(std::future<type> &f)
 #define DECLARE_ACCESSOR(varname)					\
 	const decltype(varname) &getc_##varname() { return varname; }		\
 	decltype(varname) &get_##varname() { return varname; }		\
-	void set_##varname (const decltype(varname) &varname) { this->varname = varname; }
+	void set_##varname (const decltype(varname) &varname) { this->varname = varname; }		\
+	decltype(varname) c_get_val_##varname () const { return varname; }
 
 #define PTHREAD_CALL(func,err_msg,retval)				\
 	{								\

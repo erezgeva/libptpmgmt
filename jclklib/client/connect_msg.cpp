@@ -68,5 +68,8 @@ PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
         /*[TODO] client runtime shd return client ID to application - return client ID at least */
         /*[Question] ACK_NONE is necessary ?*/
 	this->set_msgAck(ACK_NONE);
+
+        cv.notify_one();
+
         return true;
 }

@@ -10,13 +10,22 @@
 #include <client/connect_msg.hpp>
 #include <common/sighandler.hpp>
 #include <common/print.hpp>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+
+#define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
 using namespace std;
 
+std::mutex ClientConnectMessage::cv_mtx;
+std::condition_variable ClientConnectMessage::cv;
+
 bool JClkLibClient::connect()
 {
+	unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
 	Message0 connectMsg(new ClientConnectMessage());
 
 	BlockStopSignal();
@@ -33,7 +42,21 @@ bool JClkLibClient::connect()
 	ClientMessageQueue::sendMessage(connectMsg.get());
 
 	// Wait for connection result
-	
+	auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
+	std::unique_lock<std::mutex> lck(ClientConnectMessage::cv_mtx);
+	while (state.get_connected() == false )
+	{
+		auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
+		if (res == std::cv_status::timeout) {
+			if (state.get_connected() == false) {
+				PrintDebug("[CONNECT] Connect reply from proxy - timeout failure!!");
+				return false;
+				}
+		}
+		else {
+			PrintDebug("[CONNECT] Connect reply received.");
+		}
+	}
 
 	return true;
 }

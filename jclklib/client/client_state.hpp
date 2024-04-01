@@ -3,15 +3,17 @@
 
 #include <common/jcltypes.hpp>
 #include <common/util.hpp>
+#include <atomic>
 
 namespace JClkLibClient {
 	class ClientState {
 	private:
-		bool connected;
+		std::atomic_bool connected;
 		JClkLibCommon::sessionId_t sessionId;
 	public:
 		ClientState();
-		DECLARE_ACCESSOR(connected);
+		bool get_connected();
+		void set_connected(bool state);
 		DECLARE_ACCESSOR(sessionId);
 	};
 

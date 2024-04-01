@@ -10,6 +10,8 @@
 
 #include <common/connect_msg.hpp>
 #include <client/message.hpp>
+#include <mutex>
+#include <condition_variable>
 
 namespace JClkLibClient
 {
@@ -17,7 +19,12 @@ namespace JClkLibClient
 				     virtual public ClientMessage
 	{
 	public:
+
 		ClientConnectMessage() : MESSAGE_CONNECT() {};
+
+		static std::mutex cv_mtx;
+		static std::condition_variable cv;
+
 		/**
 		 * @brief process the reply for connect msg from proxy.
 		 * @param LxContext client run-time transport listener context
