@@ -20,6 +20,7 @@
 Test(MessageTest, MethodEmptyConstructor)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_pMsgParams p = m->getParams(m);
     cr_expect(eq(u16, p->target.portNumber, 0xffff));
     cr_expect(zero(memcmp(p->target.clockIdentity.v,
@@ -39,6 +40,7 @@ Test(MessageTest, MethodConstructor)
     p1->boundaryHops = 13;
     p1->isUnicast = false;;
     ptpmgmt_msg m = ptpmgmt_msg_alloc_prms(p1);
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_cpMsgParams p = m->getParams(m);
     cr_expect(eq(u8, p->transportSpecific, 0xf));
     cr_expect(eq(u8, p->domainNumber, 17));
@@ -53,11 +55,13 @@ Test(MessageTest, MethodConstructor)
 Test(MessageTest, MethodGetParams)
 {
     ptpmgmt_pMsgParams p1 = ptpmgmt_MsgParams_alloc();
+    cr_assert(not(zero(ptr, p1)));
     p1->transportSpecific = 0xf;
     p1->domainNumber = 17;
     p1->boundaryHops = 13;
     p1->isUnicast = false;
     ptpmgmt_msg m = ptpmgmt_msg_alloc_prms(p1);
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_cpMsgParams p = m->getParams(m);
     cr_expect(eq(u8, p->transportSpecific, p1->transportSpecific));
     cr_expect(eq(u8, p->domainNumber, p1->domainNumber));
@@ -83,11 +87,13 @@ Test(MessageTest, MethodGetParams)
 Test(MessageTest, MethodUpdateParams)
 {
     ptpmgmt_pMsgParams p1 = ptpmgmt_MsgParams_alloc();
+    cr_assert(not(zero(ptr, p1)));
     p1->transportSpecific = 0xf;
     p1->domainNumber = 17;
     p1->boundaryHops = 13;
     p1->isUnicast = false;;
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->updateParams(m, p1));
     ptpmgmt_cpMsgParams p = m->getParams(m);
     cr_expect(eq(u8, p->transportSpecific, p1->transportSpecific));
@@ -114,6 +120,7 @@ Test(MessageTest, MethodUpdateParams)
 Test(MessageTest, MethodGetTlvId)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(int, m->getTlvId(m), PTPMGMT_NULL_PTP_MANAGEMENT));
     m->free(m);
 }
@@ -123,6 +130,7 @@ Test(MessageTest, MethodGetTlvId)
 Test(MessageTest, MethodBuildGetTlvId)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_NULL_PTP_MANAGEMENT));
     m->free(m);
 }
@@ -132,10 +140,12 @@ Test(MessageTest, MethodBuildGetTlvId)
 Test(MessageTest, MethodSetAllClocks)
 {
     ptpmgmt_pMsgParams p1 = ptpmgmt_MsgParams_alloc();
+    cr_assert(not(zero(ptr, p1)));
     p1->target.portNumber = 0x1f1f;
     memcpy(p1->target.clockIdentity.v, "\x1\x2\x3\x4\x5\x6\x7\x8",
         sizeof(struct ptpmgmt_ClockIdentity_t));
     ptpmgmt_msg m = ptpmgmt_msg_alloc_prms(p1);
+    cr_assert(not(zero(ptr, m)));
     m->setAllClocks(m);
     ptpmgmt_cpMsgParams p = m->getParams(m);
     cr_expect(eq(u16, p->target.portNumber, 0xffff));
@@ -151,10 +161,12 @@ Test(MessageTest, MethodSetAllClocks)
 Test(MessageTest, MethodIsAllClocks)
 {
     ptpmgmt_pMsgParams p1 = ptpmgmt_MsgParams_alloc();
+    cr_assert(not(zero(ptr, p1)));
     p1->target.portNumber = 0x1f1f;
     memcpy(p1->target.clockIdentity.v, "\x1\x2\x3\x4\x5\x6\x7\x8",
         sizeof(struct ptpmgmt_ClockIdentity_t));
     ptpmgmt_msg m = ptpmgmt_msg_alloc_prms(p1);
+    cr_assert(not(zero(ptr, m)));
     cr_expect(not(m->isAllClocks(m)));
     m->setAllClocks(m);
     cr_expect(m->isAllClocks(m));
@@ -170,6 +182,7 @@ Test(MessageTest, MethodUseConfig)
     cr_assert(not(zero(ptr, f)));
     cr_expect(f->read_cfg(f, "utest/testing.cfg"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->useConfig(m, f, "dumm"));
     ptpmgmt_cpMsgParams p = m->getParams(m);
     cr_expect(eq(u8, p->transportSpecific, 9));
@@ -223,6 +236,7 @@ Test(MessageTest, MethodErr2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_err2str(PTPMGMT_MNG_PARSE_ERROR_MEM),
             "MNG_PARSE_ERROR_MEM"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->err2str(PTPMGMT_MNG_PARSE_ERROR_OK),
             "MNG_PARSE_ERROR_OK"));
     m->free(m);
@@ -252,6 +266,7 @@ Test(MessageTest, MethodType2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_type2str(ptpmgmt_Management),
             "Management"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->type2str(ptpmgmt_Management), "Management"));
     m->free(m);
 }
@@ -317,6 +332,7 @@ Test(MessageTest, MethodTlv2str)
             (char *)ptpmgmt_msg_tlv2str(PTPMGMT_SLAVE_DELAY_TIMING_DATA_NP),
             "SLAVE_DELAY_TIMING_DATA_NP"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->tlv2str(PTPMGMT_MANAGEMENT), "MANAGEMENT"));
     m->free(m);
 }
@@ -333,6 +349,7 @@ Test(MessageTest, MethodAct2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_act2str(PTPMGMT_ACKNOWLEDGE),
             "ACKNOWLEDGE"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->act2str(PTPMGMT_GET), "GET"));
     m->free(m);
 }
@@ -483,6 +500,7 @@ Test(MessageTest, MethodMng2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_mng2str(PTPMGMT_CMLDS_INFO_NP),
             "CMLDS_INFO_NP"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->mng2str(PTPMGMT_INITIALIZE), "INITIALIZE"));
     m->free(m);
 }
@@ -498,6 +516,7 @@ Test(MessageTest, MethodFindMngID)
     cr_expect(ptpmgmt_msg_findMngID("Null", &i, false));
     cr_expect(eq(int, i, PTPMGMT_NULL_PTP_MANAGEMENT));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->findMngID("UTC_PROPERTIES", &i, true));
     cr_expect(eq(int, i, PTPMGMT_UTC_PROPERTIES));
     m->free(m);
@@ -523,6 +542,7 @@ Test(MessageTest, MethodErrId2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_errId2str(PTPMGMT_GENERAL_ERROR),
             "GENERAL_ERROR"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->errId2str(PTPMGMT_GENERAL_ERROR),
             "GENERAL_ERROR"));
     m->free(m);
@@ -544,6 +564,7 @@ Test(MessageTest, MethodClkType2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_clkType2str(ptpmgmt_managementClock),
             "managementClock"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->clkType2str(ptpmgmt_ordinaryClock),
             "ordinaryClock"));
     m->free(m);
@@ -567,6 +588,7 @@ Test(MessageTest, MethodNetProt2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_netProt2str(ptpmgmt_PROFINET),
             "PROFINET"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->netProt2str(ptpmgmt_UDP_IPv4), "UDP_IPv4"));
     m->free(m);
 }
@@ -653,6 +675,7 @@ Test(MessageTest, MethodClockAcc2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_clockAcc2str(ptpmgmt_Accurate_Unknown),
             "Unknown"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->clockAcc2str(ptpmgmt_Accurate_Unknown),
             "Unknown"));
     m->free(m);
@@ -677,6 +700,7 @@ Test(MessageTest, MethodFaultRec2str)
             "Informational"));
     cr_expect(eq(str, (char *)ptpmgmt_msg_faultRec2str(ptpmgmt_F_Debug), "Debug"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->faultRec2str(ptpmgmt_F_Debug), "Debug"));
     m->free(m);
 }
@@ -702,6 +726,7 @@ Test(MessageTest, MethodTimeSrc2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_timeSrc2str(PTPMGMT_INTERNAL_OSCILLATOR),
             "INTERNAL_OSCILLATOR"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->timeSrc2str(PTPMGMT_GPS), "GNSS"));
     m->free(m);
 }
@@ -766,6 +791,7 @@ Test(MessageTest, MethodFindTimeSrc)
     cr_expect(ptpmgmt_msg_findTimeSrc("Intern", &t, false));
     cr_expect(eq(int, t, PTPMGMT_INTERNAL_OSCILLATOR));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->findTimeSrc("Other", &t, false));
     cr_expect(eq(int, t, PTPMGMT_OTHER));
     m->free(m);
@@ -803,6 +829,7 @@ Test(MessageTest, MethodPortState2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_portState2str(PTPMGMT_TIME_RECEIVER),
             "TIME_RECEIVER"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->portState2str(PTPMGMT_PASSIVE), "PASSIVE"));
     m->free(m);
 }
@@ -864,6 +891,7 @@ Test(MessageTest, MethodFindPortState)
     cr_expect(ptpmgmt_msg_findPortState("Time_Receiver", &s, false));
     cr_expect(eq(int, s, PTPMGMT_TIME_RECEIVER));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->findPortState("Slave", &s, false));
     m->free(m);
     // Confirm compatability
@@ -887,6 +915,7 @@ Test(MessageTest, MethodDelayMech2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_delayMech2str(PTPMGMT_SPECIAL),
             "SPECIAL"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->delayMech2str(PTPMGMT_E2E), "E2E"));
     m->free(m);
 }
@@ -924,6 +953,7 @@ Test(MessageTest, MethodFindDelayMech)
     cr_expect(ptpmgmt_msg_findDelayMech("Special", &t, false));
     cr_expect(eq(int, t, PTPMGMT_SPECIAL));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->findDelayMech("p2p", &t, false));
     cr_expect(eq(int, t, PTPMGMT_P2P));
     m->free(m);
@@ -946,6 +976,7 @@ Test(MessageTest, MethodSmpteLck2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_smpteLck2str(PTPMGMT_SMPTE_LOCKED),
             "LOCKED"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->smpteLck2str(PTPMGMT_SMPTE_LOCKED), "LOCKED"));
     m->free(m);
 }
@@ -962,6 +993,7 @@ Test(MessageTest, MethodTs2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_ts2str(PTPMGMT_TS_ONESTEP), "ONESTEP"));
     cr_expect(eq(str, (char *)ptpmgmt_msg_ts2str(PTPMGMT_TS_P2P1STEP), "P2P1STEP"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->ts2str(PTPMGMT_TS_ONESTEP), "ONESTEP"));
     m->free(m);
 }
@@ -981,6 +1013,7 @@ Test(MessageTest, MethodPwr2str)
             (char *)ptpmgmt_msg_pwr2str(PTPMGMT_IEEE_C37_238_VERSION_2017),
             "2017"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->pwr2str(PTPMGMT_IEEE_C37_238_VERSION_2017),
             "2017"));
     m->free(m);
@@ -998,6 +1031,7 @@ Test(MessageTest, MethodUs2str)
     cr_expect(eq(str, (char *)ptpmgmt_msg_us2str(PTPMGMT_UC_HAVE_SYDY),
             "HAVE_SYDY"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->us2str(PTPMGMT_UC_WAIT), "WAIT"));
     m->free(m);
 }
@@ -1011,6 +1045,7 @@ Test(MessageTest, MethodIs_LI_61)
     cr_expect(ptpmgmt_msg_is_LI_61(0xff));
     cr_expect(not(ptpmgmt_msg_is_LI_61(0)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->is_LI_61(0xff));
     m->free(m);
 }
@@ -1024,6 +1059,7 @@ Test(MessageTest, MethodIs_LI_59)
     cr_expect(ptpmgmt_msg_is_LI_59(0xff));
     cr_expect(not(ptpmgmt_msg_is_LI_59(0)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->is_LI_59(0xff));
     m->free(m);
 }
@@ -1037,6 +1073,7 @@ Test(MessageTest, MethodIs_UTCV)
     cr_expect(ptpmgmt_msg_is_UTCV(0xff));
     cr_expect(not(ptpmgmt_msg_is_UTCV(0)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->is_UTCV(0xff));
     m->free(m);
 }
@@ -1050,6 +1087,7 @@ Test(MessageTest, MethodIs_PTP)
     cr_expect(ptpmgmt_msg_is_PTP(0xff));
     cr_expect(not(ptpmgmt_msg_is_PTP(0)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->is_PTP(0xff));
     m->free(m);
 }
@@ -1063,6 +1101,7 @@ Test(MessageTest, MethodIs_TTRA)
     cr_expect(ptpmgmt_msg_is_TTRA(0xff));
     cr_expect(not(ptpmgmt_msg_is_TTRA(0)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->is_TTRA(0xff));
     m->free(m);
 }
@@ -1076,6 +1115,7 @@ Test(MessageTest, MethodIs_FTRA)
     cr_expect(ptpmgmt_msg_is_FTRA(0xff));
     cr_expect(not(ptpmgmt_msg_is_FTRA(0)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->is_FTRA(0xff));
     m->free(m);
 }
@@ -1150,6 +1190,7 @@ Test(MessageTest, MethodIsEmpty)
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_POWER_PROFILE_SETTINGS_NP)));
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_CMLDS_INFO_NP)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(not(m->isEmpty(PTPMGMT_PORT_HWCLOCK_NP)));
     m->free(m);
 }
@@ -1159,6 +1200,7 @@ Test(MessageTest, MethodIsEmpty)
 Test(MessageTest, MethodIsValidId)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->isValidId(m, PTPMGMT_PRIORITY1));
     cr_expect(m->isValidId(m, PTPMGMT_PRIORITY2));
     cr_expect(m->isValidId(m, PTPMGMT_DOMAIN));
@@ -1189,6 +1231,7 @@ Test(MessageTest, MethodIsValidId)
 Test(MessageTest, MethodSetAction)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     cr_expect(eq(int, m->getSendAction(m), PTPMGMT_GET));
@@ -1206,6 +1249,7 @@ Test(MessageTest, MethodSetAction)
 Test(MessageTest, MethodClearData)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 0x7f;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1222,6 +1266,7 @@ Test(MessageTest, MethodClearData)
 Test(MessageTest, MethodBuildVoid)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 0x7f;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1245,6 +1290,7 @@ Test(MessageTest, MethodBuildVoid)
 Test(MessageTest, MethodGetSendAction)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(eq(int, m->getSendAction(m), PTPMGMT_GET));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 0x7f;
@@ -1259,6 +1305,7 @@ Test(MessageTest, MethodGetSendAction)
 Test(MessageTest, MethodGetMsgLen)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 0x7f;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1275,6 +1322,7 @@ Test(MessageTest, MethodGetMsgLen)
 Test(MessageTest, MethodGetMsgPlanedLen)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 1;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1290,6 +1338,7 @@ Test(MessageTest, MethodGetMsgPlanedLen)
 Test(MessageTest, MethodParseVoid)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 0x7f;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1311,6 +1360,7 @@ Test(MessageTest, MethodParseVoid)
 Test(MessageTest, MethodGetReplyAction)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 1;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1331,6 +1381,7 @@ Test(MessageTest, MethodGetReplyAction)
 Test(MessageTest, MethodIsUnicast)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_pMsgParams p = m->getParams(m);
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
@@ -1357,6 +1408,7 @@ Test(MessageTest, MethodIsUnicast)
 Test(MessageTest, MethodGetPTPProfileSpecific)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[60];
@@ -1374,6 +1426,7 @@ Test(MessageTest, MethodGetPTPProfileSpecific)
 Test(MessageTest, MethodGetSequence)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[60];
@@ -1392,6 +1445,7 @@ Test(MessageTest, MethodGetSequence)
 Test(MessageTest, MethodGetPeer)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_pMsgParams p = m->getParams(m);
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
@@ -1417,6 +1471,7 @@ Test(MessageTest, MethodGetPeer)
 Test(MessageTest, MethodGetTarget)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_pMsgParams p = m->getParams(m);
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
@@ -1442,6 +1497,7 @@ Test(MessageTest, MethodGetTarget)
 Test(MessageTest, MethodGetSdoId)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_pMsgParams p = m->getParams(m);
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
@@ -1462,6 +1518,7 @@ Test(MessageTest, MethodGetSdoId)
 Test(MessageTest, MethodGetDomainNumber)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     ptpmgmt_pMsgParams p = m->getParams(m);
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
@@ -1482,6 +1539,7 @@ Test(MessageTest, MethodGetDomainNumber)
 Test(MessageTest, MethodGetVersionPTP)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[60];
@@ -1499,6 +1557,7 @@ Test(MessageTest, MethodGetVersionPTP)
 Test(MessageTest, MethodGetMinorVersionPTP)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[60];
@@ -1518,6 +1577,7 @@ Test(MessageTest, MethodGetMinorVersionPTP)
 Test(MessageTest, MethodGetData)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 137;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1540,6 +1600,7 @@ Test(MessageTest, MethodGetData)
 Test(MessageTest, MethodGetSendData)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
@@ -1552,6 +1613,7 @@ Test(MessageTest, MethodGetSendData)
 Test(MessageTest, MethodGetErrId)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[80];
@@ -1584,6 +1646,7 @@ Test(MessageTest, MethodGetErrId)
 Test(MessageTest, MethodGetErrDisplayC)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[70];
@@ -1616,6 +1679,7 @@ Test(MessageTest, MethodGetErrDisplayC)
 Test(MessageTest, MethodIsLastMsgSig)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 1;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1650,6 +1714,7 @@ Test(MessageTest, MethodIsLastMsgSig)
 Test(MessageTest, MethodGetType)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[60];
@@ -1667,6 +1732,7 @@ Test(MessageTest, MethodGetType)
 Test(MessageTest, MethodGetMngType)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PRIORITY1, NULL));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     uint8_t buf[60];
@@ -1700,6 +1766,7 @@ static bool verifyPr1(void *cookie, const_ptpmgmt_msg m,
 Test(MessageTest, MethodTraversSigTlvs)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 137;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1734,6 +1801,7 @@ Test(MessageTest, MethodTraversSigTlvs)
 Test(MessageTest, MethodGetSigTlvsCount)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 137;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1768,6 +1836,7 @@ Test(MessageTest, MethodGetSigTlvsCount)
 Test(MessageTest, MethodGetSigTlv)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 137;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
@@ -1813,6 +1882,7 @@ Test(MessageTest, MethodGetSigTlv)
 Test(MessageTest, MethodGetSigMngTlvType)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 137;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));

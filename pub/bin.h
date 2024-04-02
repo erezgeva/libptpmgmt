@@ -244,9 +244,7 @@ class Binary
      * Convert Binary to hex string
      * @return hex string
      */
-    std::string toHex() const {
-        return bufToHex(m_buf, m_size);
-    }
+    std::string toHex() const { return bufToHex(m_buf, m_size); }
     /**
      * Convert Binary to hex string
      * @param[in] bin pointer to memory buffer
@@ -260,12 +258,23 @@ class Binary
      * @param[in] pad is mandatory
      * @return true if conversion pass
      * @note support RFC 4648, with or without padding.
-     *       And standard and "URL and filename safe".
+     *       Both standard and "URL and filename safe".
+     *       And IMAP mailbox names from RFC 3501
      *       The function probe the characters for value 62, 63 to match
      *       to one of the standards.
-     *       And IMAP mailbox names from RFC 3501
      */
     bool fromBase64(const std::string &bin64, bool pad = false);
+    /**
+     * Convert to Base64 string
+     * @param[in] pad with or without
+     * @param[in] v62 character to use for value 62
+     * @param[in] v63 character to use for value 63
+     * @return base64 string
+     * @note default values for 62 and 63 follow the standard from RFC 4648.
+     * @attention The function do not verify proper characters
+     *            for values 62, 63. The caller should use proper characters.
+     */
+    std::string toBase64(bool pad = true, char v62 = '+', char v63 = '/');
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare

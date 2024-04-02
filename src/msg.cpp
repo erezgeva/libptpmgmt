@@ -1515,7 +1515,7 @@ extern "C" {
     }
     C2CPP_cret(getSendAction, actionField_e, PTPMGMT_GET)
     C2CPP_ret(size_t, getMsgLen, 0)
-    C2CPP_ret(ssize_t, getMsgPlanedLen, 0)
+    C2CPP_ret(ssize_t, getMsgPlanedLen, -1)
     static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_parse(const_ptpmgmt_msg m,
         const void *buf, ssize_t msgSize)
     {

@@ -411,11 +411,11 @@ TEST(BinaryTest, MethodFromBase64)
     EXPECT_EQ(bt, b0t6);
     // 53 bytes with a single pad (or none)
     Binary m1t1, m1t2, m1t3, m1(b, sizeof b - 1);
-    EXPECT_TRUE(m1t1.fromBase64(S_STD "Mg5"));
+    EXPECT_TRUE(m1t1.fromBase64(S_STD "Mg4"));
     EXPECT_EQ(m1, m1t1);
-    EXPECT_TRUE(m1t2.fromBase64(S_STD "Mg5=", true));
+    EXPECT_TRUE(m1t2.fromBase64(S_STD "Mg4=", true));
     EXPECT_EQ(m1, m1t2);
-    EXPECT_TRUE(m1t3.fromBase64(S_STD "Mg5="));
+    EXPECT_TRUE(m1t3.fromBase64(S_STD "Mg4="));
     EXPECT_EQ(m1, m1t3);
     // 52 bytes with 2 pads (or none)
     Binary m2t1, m2t2, m2t3, m2(b, sizeof b - 2);
@@ -425,6 +425,36 @@ TEST(BinaryTest, MethodFromBase64)
     EXPECT_EQ(m2, m2t2);
     EXPECT_TRUE(m2t3.fromBase64(S_STD "Mg=="));
     EXPECT_EQ(m2, m2t3);
+}
+
+// Convert to Base64 string
+// std::string Binary::toBase64(bool pad, char v62, char v63)
+TEST(BinaryTest, MethodToBase64)
+{
+    uint8_t bv[54] = {0xc1, 0xbc, 0x24, 0x60, 0x1e, 0x12, 0xb8, 0xf4, 0x23, 0x98,
+            0xd6, 0xb1, 0x8f, 0xf2, 0x2a, 0xd3, 0x7b, 0xb9, 0xd7, 0x9d, 0x97, 0x06,
+            0x32, 0x34, 0xd7, 0xdb, 0xfe, 0x18, 0x35, 0x35, 0x32, 0x33, 0xec, 0xb0,
+            0x7f, 0xe5, 0x02, 0x2e, 0x7e, 0xe4, 0x4c, 0x68, 0x7b, 0xf9, 0x92, 0x86,
+            0x19, 0xbe, 0xa2, 0xba, 0x3d, 0x32, 0x0e, 0x41
+        };
+    Binary b(bv, 54);
+    std::string ret = b.toBase64();
+    EXPECT_STREQ(ret.c_str(), S_STD "Mg5B");
+    ret = b.toBase64(true, '-', '_');
+    EXPECT_STREQ(ret.c_str(), S_SAF "Mg5B");
+    b.resize(53);
+    ret = b.toBase64();
+    EXPECT_STREQ(ret.c_str(), S_STD "Mg4=");
+    ret = b.toBase64(false);
+    EXPECT_STREQ(ret.c_str(), S_STD "Mg4");
+    b.resize(52);
+    ret = b.toBase64();
+    EXPECT_STREQ(ret.c_str(), S_STD "Mg==");
+    ret = b.toBase64(false);
+    EXPECT_STREQ(ret.c_str(), S_STD "Mg");
+    b.resize(51);
+    ret = b.toBase64();
+    EXPECT_STREQ(ret.c_str(), S_STD);
 }
 
 // Test operator equal to other object

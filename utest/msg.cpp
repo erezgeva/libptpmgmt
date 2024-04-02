@@ -949,7 +949,7 @@ TEST(MessageTest, MethodGetMsgLen)
     EXPECT_EQ(m.getMsgLen(), 56);
 }
 
-// Test build using buffer object
+// Test build get send buffer size
 // ssize_t getMsgPlanedLen() const
 TEST(MessageTest, MethodGetMsgPlanedLen)
 {

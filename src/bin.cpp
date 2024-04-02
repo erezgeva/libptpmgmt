@@ -30,6 +30,12 @@ static inline bool parseByte(const char *cur, Binary &id)
     id += a;
     return false;
 }
+const char toB64[62] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
+        'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+        'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    };
 const int B64[] = {62, 73, 82, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
         -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
         14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 83, -1,
@@ -408,6 +414,43 @@ bool Binary::fromBase64(const std::string &bin64, bool pad)
     }
     setBin(id);
     return true;
+}
+std::string Binary::toBase64(bool pad, char v62, char v63)
+{
+    if(m_size == 0) // Empty
+        return "";
+    char b64[64];
+    std::string ret;
+    size_t left = m_size;
+    uint8_t *cur = m_buf;
+    memcpy(b64, toB64, 62);
+    b64[62] = v62;
+    b64[63] = v63;
+    for(; left > 3; left -= 3) {
+        ret += b64[(cur[0] >> 2) & 0x3f];
+        ret += b64[(((cur[0] & 0x03) << 4) & 0x30) | ((cur[1] >> 4) & 0x0f)];
+        ret += b64[(((cur[1] & 0x0f) << 2) & 0x3c) | ((cur[2] >> 6) & 0x03)];
+        ret += b64[cur[2] & 0x3f];
+        cur += 3;
+    }
+    uint8_t v[3] = {0};
+    v[0] = cur[0];
+    if(left > 1) {
+        v[1] = cur[1];
+        if(left > 2)
+            v[2] = cur[2];
+    }
+    ret += b64[(v[0] >> 2) & 0x3f];
+    ret += b64[(((v[0] & 0x3) << 4) & 0x30) | ((v[1] >> 4) & 0xf)];
+    if(left > 1) {
+        ret += b64[(((v[1] & 0xf) << 2) & 0x3c) | ((v[2] >> 6) & 0x3)];
+        if(left > 2)
+            ret += b64[v[2] & 0x3f];
+        else if(pad)
+            ret += "=";
+    } else if(pad)
+        ret += "==";
+    return ret;
 }
 bool Binary::eq(const Binary &rhs) const
 {

@@ -347,7 +347,7 @@ struct ptpmgmt_msg_t {
      * @return planned message size or negative for error
      * @note the planned message size is based on the management TLV id,
      *  action and the dataSend set by the user.
-     * You can use the size to allocate proper buffer for sending
+     * You can use the size to allocate proper buffer for sending.
      */
     ssize_t (*getMsgPlanedLen)(const_ptpmgmt_msg msg);
     /* Parsed message functions */
