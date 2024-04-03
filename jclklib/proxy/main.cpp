@@ -7,6 +7,7 @@
 
 #include <proxy/transport.hpp>
 #include <proxy/message.hpp>
+#include <proxy/connect.hpp>
 #include <common/sighandler.hpp>
 #include <common/print.hpp>
 
@@ -19,6 +20,7 @@ using namespace std;
 int main()
 {
 	BlockStopSignal();
+	Connect::connect();
 	if(!ProxyTransport::init()) {
 		cout << "Transport init failed" << endl;
 		return -1;
