@@ -10,6 +10,7 @@
 #include <common/connect_msg.hpp>
 #include <common/serialize.hpp>
 #include <common/print.hpp>
+#include <common/subscribe_msg.hpp>
 
 using namespace JClkLibCommon;
 using namespace std;
@@ -51,6 +52,7 @@ string Message::toString()
 
 BUILD_TXBUFFER_TYPE(Message::makeBuffer) const
 {
+	PrintDebug("[AZU] Message::makeBuffer ");
 	if (!WRITE_TX(FIELD,msgId,TxContext))
 		return false;
 	if (!WRITE_TX(FIELD,msgAck,TxContext))
@@ -66,8 +68,9 @@ COMMON_PRESEND_MESSAGE_TYPE(Message::presendMessage)
 		PrintError("Failed to make buffer from message object");
 		return false;
 	}
-	DumpOctetArray("Sending message (length = " + to_string(ctx->getc_offset()) + "): ", ctx->getc_buffer().data(),
-		       ctx->getc_offset());
+	//DumpOctetArray("Sending message (length = " + to_string(ctx->getc_offset()) + "): ", ctx->getc_buffer().data(),
+	//	       ctx->getc_offset());  //AZU
+	PrintDebug("[AZU] Message::presendMessage successful ");
 
 	return true;
 }
@@ -87,6 +90,7 @@ bool Message::addMessageType(parseMsgMapElement_t mapping)
 
 PARSE_RXBUFFER_TYPE(Message::parseBuffer)
 {
+	PrintDebug("[AZU] Message::parseBuffer ");
 	if (!PARSE_RX(FIELD,msgId, LxContext))
 		return false;
 	if (!PARSE_RX(FIELD,msgAck, LxContext))

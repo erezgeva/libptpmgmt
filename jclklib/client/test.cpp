@@ -21,8 +21,7 @@ using namespace std;
 int main()
 {
     int ret = EXIT_SUCCESS;
-    // TODO
-    // JClkLibCommon::jcl_subscription sub;
+    JClkLibCommon::jcl_subscription sub;
 
     std::cout << "[CLIENT] Before connect : Session ID : " << state.get_sessionId() << "\n";
 
@@ -35,8 +34,7 @@ int main()
         std::cout << "[CLIENT] Connected. Session ID : " << state.get_sessionId() << "\n";
     }
     sleep(5);
-    // TODO
-    // subscribe(sub);
+    subscribe(sub);
 	sleep(5);
  do_exit:
 	disconnect();

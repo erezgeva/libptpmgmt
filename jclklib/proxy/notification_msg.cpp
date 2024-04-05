@@ -11,12 +11,23 @@
 
 using namespace JClkLibProxy;
 
+
+/*
+* [Azu] This is to send notification from Proxy to subscribed client upon state change
+* This shd be in the RX buffer - so this shd be inside the client to process
+* notification from proxy.
+*/
+/* REMOVE */
 bool ProxyNotificationMessage::processMessage(ClockConfiguration &config)
 {
 	//config.setWait( waitEnable );
 
 	return true;
 }
+
+/*
+TO BE REMOVED
+*/
 bool ProxyNotificationMessage::generateResponse(uint8_t *msgBuffer, size_t &length,
 					   const ClockStatus &status)
 {

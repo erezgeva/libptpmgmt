@@ -13,18 +13,26 @@
 
 namespace JClkLibCommon
 {
-	class SubscribeMessage : public Message
+	class CommonSubscribeMessage : virtual public Message
 	{
-	public:
-		static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
-		static MAKE_RXBUFFER_TYPE(buildMessage);
-
-		const jcl_subscription &getSubscription();
-	protected:
-#define MESSAGE_SUBSCRIBE() JClkLibCommon::Message(JClkLibCommon::SUBSCRIBE_MSG)
-		SubscribeMessage() : MESSAGE_SUBSCRIBE() {}
 	private:
 		jcl_subscription subscription;
+		TransportClientId clientId;
+	public:
+		static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
+		//static MAKE_RXBUFFER_TYPE(buildMessage);
+		//const jcl_subscription &getSubscription();
+		virtual PARSE_RXBUFFER_TYPE(parseBuffer);
+		virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
+		virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+		jcl_subscription &getSubscription()
+		{ return subscription; }
+		TransportClientId &getClientId()
+		{ return clientId; }
+		virtual std::string toString();
+	protected:
+#define MESSAGE_SUBSCRIBE() JClkLibCommon::Message(JClkLibCommon::SUBSCRIBE_MSG)
+		CommonSubscribeMessage() : MESSAGE_SUBSCRIBE() {}
 	};
 }
 

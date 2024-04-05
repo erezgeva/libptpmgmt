@@ -7,13 +7,14 @@
 
 #include <proxy/null_msg.hpp>
 #include <proxy/connect_msg.hpp>
+#include <proxy/subscribe_msg.hpp>
 
 using namespace JClkLibProxy;
 using namespace JClkLibCommon;
 
 bool ProxyMessage::init()
 {
-	return _initMessage<ProxyNullMessage,ProxyConnectMessage>();
+	return _initMessage<ProxyNullMessage,ProxyConnectMessage, ProxySubscribeMessage>();
 }
 		
 

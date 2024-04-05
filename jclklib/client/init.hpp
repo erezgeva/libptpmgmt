@@ -8,10 +8,12 @@
 #ifndef CLIENT_INIT_HPP
 #define CLIENT_INIT_HPP
 
+#include <common/jclklib_import.hpp>
+
 namespace JClkLibClient {
 	bool connect();
 	bool disconnect();
-	//bool subscribe();
+	bool subscribe(JClkLibCommon::jcl_subscription &subscription);
 };
 
 #endif/*CLIENT_INIT_HPP*/

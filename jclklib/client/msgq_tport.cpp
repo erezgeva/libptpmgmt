@@ -102,9 +102,12 @@ bool ClientMessageQueue::finalizeTransport()
 bool ClientMessageQueue::writeTransportClientId(Message *msg)
 {
 	ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
-	if (cmsg == NULL)
+	if (cmsg == NULL) {
+		PrintErrorCode("[ClientMessageQueue] cmsg is NULL !!\n");
 		return false;
+	}
 	strcpy((char *)cmsg->getClientId().data(), mqListenerName.c_str());
+	printf ("[ClientMessageQueue] cmsg->getClientId().data(): %s", (char *)cmsg->getClientId().data());
 	return true;
 }
 
@@ -117,6 +120,6 @@ SEND_CLIENT_MESSAGE(ClientMessageQueue::sendMessage)
 		PrintErrorCode("Failed to transmit client message");
 		return false;
 	}
-		
+	PrintDebug("[Azu] ClientMessageQueue::sendMessage successful ");
 	return true;
 }

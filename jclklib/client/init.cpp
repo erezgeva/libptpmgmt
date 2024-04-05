@@ -8,6 +8,7 @@
 #include <client/init.hpp>
 #include <client/msgq_tport.hpp>
 #include <client/connect_msg.hpp>
+#include <client/subscribe_msg.hpp>
 #include <common/sighandler.hpp>
 #include <common/print.hpp>
 #include <mutex>
@@ -58,6 +59,18 @@ bool JClkLibClient::connect()
 		}
 	}
 
+	return true;
+}
+
+
+bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &subscription)
+{
+	PrintDebug("[AZU] JClkLibClient::subscribe");
+	Message0 subscribeMsg(new ClientSubscribeMessage());
+
+	ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
+	ClientMessageQueue::sendMessage(subscribeMsg.get());
+	/* overwrite | merge  the current event to this event */
 	return true;
 }
 
