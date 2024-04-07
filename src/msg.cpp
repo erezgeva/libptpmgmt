@@ -69,7 +69,7 @@ PACK(struct managementMessage_p {
     UInteger8_t    domainNumber;
     UInteger8_t    minorSdoId;
     Octet_t        flagField[2]; // [1] is always 0 for management
-    Integer64_t    correctionField; // always 0 for management
+    Integer64_t    correctionField; // always 0 for management and Signaling
     Octet_t        messageTypeSpecific[4];
     PortIdentity_p sourcePortIdentity;
     UInteger16_t   sequenceId;
@@ -101,6 +101,7 @@ PACK(struct managementErrorTLV_p {
 });
 const size_t mngMsgBaseSize = sizeof(managementMessage_p) +
     sizeof(managementTLV_t);
+const ssize_t mngMsgMinSize = sizeof(managementMessage_p) + tlvSizeHdr;
 
 void MsgParams::allowSigTlv(tlvType_e type)
 {
@@ -174,7 +175,6 @@ bool Message::allowedAction(mng_vals_e id, actionField_e action)
         return false;
     return mng_all_vals[id].allowed & (1 << action);
 }
-#define m_init(n) n{{0}}
 Message::Message() :
     m_sendAction(GET),
     m_msgLen(0),
@@ -294,9 +294,7 @@ void Message::clearData()
 }
 MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
 {
-    if(buf == nullptr)
-        return MNG_PARSE_ERROR_TOO_SMALL;
-    if(bufSize < mngMsgBaseSize)
+    if(buf == nullptr || bufSize < mngMsgBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
     managementMessage_p *msg = (managementMessage_p *)buf;
     *msg = {0};
@@ -331,8 +329,6 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     ssize_t tlvSize = mng_all_vals[m_tlv_id].size;
     if(m_sendAction != GET && m_dataSend != nullptr) {
         mp.m_build = true;
-        // Ensure reserve fields are zero
-        mp.reserved = 0;
         // call_tlv_data() do not change data on build,
         // but does on parsing!
         BaseMngTlv *data = const_cast<BaseMngTlv *>(m_dataSend);
@@ -340,8 +336,7 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
         if(err != MNG_PARSE_ERROR_OK)
             return err;
         // Add 'reserve' at end of message
-        mp.reserved = 0;
-        if((mp.m_size & 1) && mp.proc(mp.reserved)) // length need to be even
+        if((mp.m_size & 1) && mp.procRes()) // length need to be even
             return MNG_PARSE_ERROR_TOO_SMALL;
     } else if(m_sendAction == GET && !m_prms.useZeroGet && tlvSize != 0) {
         if(tlvSize == -2)
@@ -352,23 +347,25 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
             tlvSize++;
         if(tlvSize > mp.m_left)
             return MNG_PARSE_ERROR_TOO_SMALL;
-        mp.m_size = tlvSize;
-        memset(mp.m_cur, 0, mp.m_size);
-        // mp.m_cur += mp.m_size; // As m_cur is not used anymore
+        memset(mp.m_cur, 0, tlvSize);
+        mp.move(tlvSize);
     }
     size += mp.m_size;
     if(size & 1) // length need to be even
         return MNG_PARSE_ERROR_SIZE;
     tlv->lengthField = cpu_to_net16(lengthFieldMngBase + mp.m_size);
-    m_msgLen = size;
     msg->messageLength = cpu_to_net16(size);
+    m_msgLen = size;
     return MNG_PARSE_ERROR_OK;
 }
-MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
+MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
 {
-    if(msgSize < sigBaseSize)
+    if(bufSize < sigBaseSize)
         return MNG_PARSE_ERROR_TOO_SMALL;
     managementMessage_p *msg = (managementMessage_p *)buf;
+    ssize_t msgSize = (ssize_t)net_to_cpu16(msg->messageLength);
+    if(msgSize > bufSize)
+        return MNG_PARSE_ERROR_HEADER;
     m_type = (msgType_e)(msg->messageType_majorSdoId & 0xf);
     switch(m_type) {
         case Signaling:
@@ -376,7 +373,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 return MNG_PARSE_ERROR_HEADER;
             break;
         case Management:
-            if(msgSize < (ssize_t)sizeof(*msg) + tlvSizeHdr)
+            if(msgSize < mngMsgMinSize)
                 return MNG_PARSE_ERROR_TOO_SMALL;
             break;
         default:
@@ -405,7 +402,6 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     if(m_type == Signaling) {
         // initialize values, only to make cppcheck happy
         mp.m_left = 0;
-        mp.reserved = 0;
         mp.m_err = MNG_PARSE_ERROR_TOO_SMALL;
         // Real initializing
         mp.m_cur = (uint8_t *)buf + sigBaseSize;
@@ -420,9 +416,12 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     uint16_t *cur = (uint16_t *)(msg + 1);
     uint16_t tlvType = net_to_cpu16(*cur++);
     m_mngType = (tlvType_e)tlvType;
-    mp.m_left = net_to_cpu16(*cur++); // lengthField
-    ssize_t size = msgSize - sizeof(*msg) - tlvSizeHdr;
+    uint16_t tlvSize = net_to_cpu16(*cur++); // lengthField
+    msgSize -= mngMsgMinSize;
+    if(msgSize < (ssize_t)tlvSize || (tlvSize & 1) > 0)
+        return MNG_PARSE_ERROR_TOO_SMALL;
     BaseMngTlv *tlv;
+    mp.m_left = tlvSize;
     MNG_PARSE_ERROR_e err;
     switch(tlvType) {
         case MANAGEMENT_ERROR_STATUS:
@@ -430,9 +429,9 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 return MNG_PARSE_ERROR_ACTION;
             m_replyAction = (actionField_e)actionField;
             managementErrorTLV_p *errTlv;
-            if(size < (ssize_t)sizeof(*errTlv))
+            // check minimum size and even
+            if(mp.m_left < (ssize_t)sizeof(*errTlv))
                 return MNG_PARSE_ERROR_TOO_SMALL;
-            size -= sizeof(*errTlv);
             errTlv = (managementErrorTLV_p *)cur;
             if(!findTlvId(errTlv->managementId, m_replayTlv_id,
                     m_prms.implementSpecific))
@@ -441,14 +440,9 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 return MNG_PARSE_ERROR_ACTION;
             m_errorId =
                 (managementErrorId_e)net_to_cpu16(errTlv->managementErrorId);
-            // check minimum size and even
-            if(mp.m_left < (ssize_t)sizeof(*errTlv) || mp.m_left & 1)
-                return MNG_PARSE_ERROR_TOO_SMALL;
             mp.m_left -= sizeof(*errTlv);
             mp.m_cur = (uint8_t *)(errTlv + 1);
             // Check displayData size
-            if(size < mp.m_left)
-                return MNG_PARSE_ERROR_TOO_SMALL;
             if(mp.m_left > 1 && mp.proc(m_errorDisplay))
                 return MNG_PARSE_ERROR_TOO_SMALL;
             return MNG_PARSE_ERROR_MSG;
@@ -456,23 +450,18 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
             if(actionField != RESPONSE && actionField != ACKNOWLEDGE)
                 return MNG_PARSE_ERROR_ACTION;
             m_replyAction = (actionField_e)actionField;
-            if(size < (ssize_t)sizeof tlvType)
+            // Check minimum size and even
+            if(mp.m_left < lengthFieldMngBase)
                 return MNG_PARSE_ERROR_TOO_SMALL;
-            size -= sizeof tlvType;
             // managementId
             if(!findTlvId(*cur++, m_replayTlv_id, m_prms.implementSpecific))
                 return MNG_PARSE_ERROR_INVALID_ID;
             if(!checkReplyAction(actionField))
                 return MNG_PARSE_ERROR_ACTION;
-            // Check minimum size and even
-            if(mp.m_left < lengthFieldMngBase || mp.m_left & 1)
-                return MNG_PARSE_ERROR_TOO_SMALL;
             mp.m_left -= lengthFieldMngBase;
             if(mp.m_left == 0)
                 return MNG_PARSE_ERROR_OK;
             mp.m_cur = (uint8_t *)cur;
-            if(size < mp.m_left) // Check dataField size
-                return MNG_PARSE_ERROR_TOO_SMALL;
             err = mp.call_tlv_data(m_replayTlv_id, tlv);
             if(err != MNG_PARSE_ERROR_OK)
                 return err;
@@ -484,8 +473,6 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
                 if(actionField != COMMAND)
                     return MNG_PARSE_ERROR_ACTION;
                 m_replyAction = COMMAND;
-                if(size < mp.m_left)
-                    return MNG_PARSE_ERROR_TOO_SMALL;
                 mp.m_cur = (uint8_t *)cur;
                 SMPTE_ORGANIZATION_EXTENSION_t *tlvOrg;
                 tlvOrg = new SMPTE_ORGANIZATION_EXTENSION_t;
@@ -503,13 +490,13 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t msgSize)
     }
     return MNG_PARSE_ERROR_INVALID_TLV;
 }
-MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t msgSize)
+MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t bufSize)
 {
     // That should not happens!
     // As user used too big size in the recieve function
     // But if it does, we need protection!
-    return (ssize_t)buf.size() < msgSize ? MNG_PARSE_ERROR_TOO_SMALL :
-        parse(buf.get(), msgSize);
+    return (ssize_t)buf.size() < bufSize ? MNG_PARSE_ERROR_TOO_SMALL :
+        parse(buf.get(), bufSize);
 }
 #define caseBuildAct(n) {\
         n##_t *t = new n##_t;\

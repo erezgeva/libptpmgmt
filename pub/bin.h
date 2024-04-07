@@ -199,18 +199,23 @@ class Binary
     bool fromIp(const std::string &string, int domain);
     /**
      * Convert ID address to string
+     * @param[in] sep seperator to use
      * @return address
      * @note Support MAC addresses
      */
-    std::string toId() const { return bufToId(m_buf, m_size); }
+    std::string toId(const std::string &sep = ":") const {
+        return bufToId(m_buf, m_size, sep);
+    }
     /**
      * Convert Binary ID to string
      * @param[in] id pointer to memory buffer
      * @param[in] length of memory buffer
+     * @param[in] sep seperator to use
      * @return address
      * @note Support MAC addresses
      */
-    static std::string bufToId(const uint8_t *id, size_t length);
+    static std::string bufToId(const uint8_t *id, size_t length,
+        const std::string &sep = ":");
     /**
      * Convert ID address string to Binary
      * @param[in] string address

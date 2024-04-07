@@ -287,6 +287,7 @@ TEST(BinaryTest, MethodToID)
 {
     Binary f("\x1b\xba\x23");
     EXPECT_EQ(f.toId(), "1b:ba:23");
+    EXPECT_EQ(f.toId("-"), "1b-ba-23");
 }
 
 // Test convert ID from binary to text
@@ -295,6 +296,7 @@ TEST(BinaryTest, MethodBufToId)
 {
     const uint8_t input[] = "\x1b\xba\x23";
     EXPECT_EQ(Binary::bufToId(input, sizeof input - 1), "1b:ba:23");
+    EXPECT_EQ(Binary::bufToId(input, sizeof input - 1, "-"), "1b-ba-23");
 }
 
 // Test convert ID from text to binary

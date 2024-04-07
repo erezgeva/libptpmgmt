@@ -35,8 +35,8 @@ A(ALTERNATE_TIME_OFFSET_INDICATOR)
 }
 A(ENHANCED_ACCURACY_METRICS)
 {
-    return proc(d.bcHopCount) || proc(d.tcHopCount) || proc(reserved) ||
-        proc(reserved) || proc(d.maxGmInaccuracy) || proc(d.varGmInaccuracy) ||
+    return proc(d.bcHopCount) || proc(d.tcHopCount) || procRes() ||
+        procRes() || proc(d.maxGmInaccuracy) || proc(d.varGmInaccuracy) ||
         proc(d.maxTransientInaccuracy) || proc(d.varTransientInaccuracy) ||
         proc(d.maxDynamicInaccuracy) || proc(d.varDynamicInaccuracy) ||
         proc(d.maxStaticInstanceInaccuracy) ||
@@ -65,13 +65,13 @@ A(SLAVE_RX_SYNC_TIMING_DATA)
 A(SLAVE_RX_SYNC_COMPUTED_DATA)
 {
     if(proc(d.sourcePortIdentity) || procFlags(d.computedFlags, d.flagsMask) ||
-        proc(reserved))
+        procRes())
         return true;
     return vector_o(d.list);
 }
 A(SLAVE_TX_EVENT_TIMESTAMPS)
 {
-    if(proc(d.sourcePortIdentity) || proc(d.eventMessageType) || proc(reserved))
+    if(proc(d.sourcePortIdentity) || proc(d.eventMessageType) || procRes())
         return true;
     return vector_o(d.list);
 }

@@ -23,18 +23,26 @@ class ProcTest : public ::testing::Test, public Message
     const Binary physicalAddress = Binary("\xc4\x7d\x46\x20\xac\xae", 6);
     const ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
     size_t sizeMsg(size_t tlvLength, actionField_e act = RESPONSE) {
+        size_t len = tlvLoc + tlvLength;
+        // header.messageLength
+        buf[2] = len >> 8;
+        buf[3] = len & 0xff;
         buf[46] = act;
-        return tlvLoc + tlvLength;
+        return len;
     }
     size_t rsp(uint16_t mngId, uint8_t *tlv, size_t tlvLength,
         actionField_e act = RESPONSE) {
+        size_t len = tlvLoc + tlvLength;
+        // header.messageLength
+        buf[2] = len >> 8;
+        buf[3] = len & 0xff;
         buf[46] = act;
         uint16_t *ptr16 = (uint16_t *)(buf + 48);
         *ptr16++ = cpu_to_net16(MANAGEMENT);     // 48
         *ptr16++ = cpu_to_net16(tlvLength + 2);  // 50
         *ptr16++ = cpu_to_net16(mngId);          // 52
         memcpy(ptr16, tlv, tlvLength);           // 54
-        return tlvLoc + tlvLength;
+        return len;
     }
 };
 

@@ -133,7 +133,7 @@ main()
  local clean_list="autom4te.cache/ config.log config.status"
  clean_list+=" configure defs.mk src/config.h src/config.h.in"
  for n in */.upgrade_cockie; do
-   ! [[ -f "$n" ]] || distclean_list2+=" $n"
+   ! [[ -f "$n" ]] || distclean_list+=" $n"
  done
  ##########################################################
  ######                 Test start                   ######

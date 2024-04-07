@@ -308,14 +308,12 @@ extern "C" {
         ptpmgmt_cfg_asign_cb(me);
         return me;
     }
-    ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(void *cfg)
+    ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg)
     {
-        if(cfg == nullptr)
-            return nullptr;
         ptpmgmt_cfg me = (ptpmgmt_cfg)malloc(sizeof(ptpmgmt_cfg_t));
         if(me == nullptr)
             return nullptr;
-        me->_this = cfg;
+        me->_this = (void *)&cfg;
         me->free = ptpmgmt_cfg_free_wrap;
         ptpmgmt_cfg_asign_cb(me);
         return me;

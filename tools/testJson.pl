@@ -71,7 +71,6 @@ sub creatJsonTest
     my $self_id = $prms->swig_self_id_get();
     $self_id->swig_portNumber_set($$ & 0xffff); # getpid()
     $prms->swig_self_id_set($self_id);
-    $prms->swig_boundaryHops_set(1);
     $msg->updateParams($prms);
 
     print "[\n";

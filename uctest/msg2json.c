@@ -156,6 +156,7 @@ Test(Msg2JsonTest, MngErrTlv)
     mt[5] = 0; // reserved
     uint8_t *d = buf + 60; // displayData
     d[0] = 8; // displayData.lengthField
+    buf[3] = 70; // header.messageLength
     memcpy(d + 1, displayData, 8); // displayData.textField
     cr_expect(eq(int, msg->parse(msg, buf, 70), PTPMGMT_MNG_PARSE_ERROR_MSG));
     char *ret = ptpmgmt_json_msg2json(msg, 0);
@@ -286,6 +287,9 @@ Test(Msg2JsonTest, Signaling)
             0, 8, 0x42, 8, 0xa4, 0x37, 6, 0x2c, 0xe2
         };
     addTlv(&curLen, buf, PTPMGMT_SLAVE_DELAY_TIMING_DATA_NP, m16, sizeof m16);
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, msg->parse(msg, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     char *ret = ptpmgmt_json_msg2json(msg, 0);
     cr_assert(not(zero(ptr, ret)));

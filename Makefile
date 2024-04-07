@@ -8,7 +8,8 @@
 #
 ###############################################################################
 
-PMC_USE_LIB?=a # 'a' for static and 'so' for dynamic
+# 'a' for static and 'so' for dynamic
+PMC_USE_LIB?=a
 
 define help
 ################################################################################
@@ -125,7 +126,7 @@ A
 
 endef
 line=$(subst A,,$(lbase))
-space=$(subst A,,A A)
+space=$(subst A,,A )
 
 ###############################################################################
 ### output shaper
@@ -234,8 +235,8 @@ FJSON_LIB:=$(LIB_NAME)_fastjson.so
 FJSON_LIBA:=$(LIB_NAME)_fastjson.a
 FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
 TGT_LNG:=perl5 lua python3 ruby php tcl go
-UTEST_CPP_TGT:=$(addprefix utest_,no_sys json sys json_load pmc)
-UTEST_C_TGT:=$(addprefix uctest_,no_sys json sys)
+UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys json json_load pmc)
+UTEST_C_TGT:=$(addprefix uctest_,no_sys sys json)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
   $(UTEST_C_TGT)
@@ -390,7 +391,7 @@ endif # VGD_PY
 endif # VALGRIND
 
 # JSON libraries
-include json/Makefile
+include $(JSON_SRC)/Makefile
 
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.o: $(SRC)/%.cpp | $(COMP_DEPS)

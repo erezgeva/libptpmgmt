@@ -23,19 +23,27 @@
 
 static inline size_t sizeMsg(uint8_t *buf, size_t tlvLength)
 {
+    size_t len = tlvLoc + tlvLength;
+    // header.messageLength
+    buf[2] = len >> 8;
+    buf[3] = len & 0xff;
     buf[46] = PTPMGMT_RESPONSE;
-    return tlvLoc + tlvLength;
+    return len;
 }
 static inline size_t _rsp(uint8_t *buf, uint16_t mngId, uint8_t *tlv,
     size_t tlvLength, enum ptpmgmt_actionField_e act)
 {
+    size_t len = tlvLoc + tlvLength;
+    // header.messageLength
+    buf[2] = len >> 8;
+    buf[3] = len & 0xff;
     buf[46] = act;
     uint16_t *ptr16 = (uint16_t *)(buf + 48);
     *ptr16++ = htons(PTPMGMT_MANAGEMENT);     // 48
     *ptr16++ = htons(tlvLength + 2);  // 50
     *ptr16++ = htons(mngId);          // 52
     memcpy(ptr16, tlv, tlvLength);           // 54
-    return tlvLoc + tlvLength;
+    return len;
 }
 static inline size_t rsp(uint8_t *buf, uint16_t mngId, uint8_t *tlv,
     size_t tlvLength)

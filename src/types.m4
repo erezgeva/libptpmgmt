@@ -924,6 +924,7 @@ c_cod(`    /**< @endcond */')dnl
     bool rcvSignaling; /**< parse signalling messages */
     bool filterSignaling; /**< use filter for signalling messages TLVs */
     bool rcvSMPTEOrg; /**< parse SMPTE Organization Extension TLV */
+cpp_cod(`    /** empty constructor */')dnl
 cpp_cod(`    MsgParams();')dnl
     /**
      * Add TLV type to allowed signalling filter

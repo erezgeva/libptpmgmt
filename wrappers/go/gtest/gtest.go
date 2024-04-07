@@ -177,7 +177,6 @@ func main() {
   self_id := prms.GetSelf_id()
   self_id.SetPortNumber(uint16(os.Getpid() & 0xffff))
   prms.SetSelf_id(self_id)
-  prms.SetBoundaryHops(1)
   prms.SetDomainNumber(cfg.DomainNumber())
   msg.UpdateParams(prms)
   if !msg.UseConfig(cfg) {
@@ -236,7 +235,7 @@ func main() {
   fmt.Println("clk.physicalAddress:", clk_physicalAddress.ToHex())
   manufacturerIdentity := clk_dec.GetManufacturerIdentity()
   fmt.Println("manufacturerIdentity:",
-              ptpmgmt.BinaryBufToId(manufacturerIdentity, 3))
+              ptpmgmt.BinaryBufToId(manufacturerIdentity, int64(3)))
   clk_dec.GetRevisionData().SetTextField("This is a test")
   fmt.Println("revisionData:", clk_dec.GetRevisionData().GetTextField())
 

@@ -136,6 +136,7 @@ TEST(Msg2JsonTest, MngErrTlv)
     mt[5] = 0; // reserved
     uint8_t *d = buf + 60; // displayData
     d[0] = 8; // displayData.lengthField
+    buf[3] = 70; // header.messageLength
     memcpy(d + 1, displayData, 8); // displayData.textField
     EXPECT_EQ(m.parse(buf, 70), MNG_PARSE_ERROR_MSG);
     EXPECT_STREQ(msg2json(m).c_str(),
@@ -260,6 +261,9 @@ TEST(Msg2JsonTest, Signaling)
             0, 8, 0x42, 8, 0xa4, 0x37, 6, 0x2c, 0xe2
         };
     addTlv(curLen, buf, SLAVE_DELAY_TIMING_DATA_NP, m16, sizeof m16);
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     ASSERT_EQ(msg.parse(buf, curLen), MNG_PARSE_ERROR_SIG);
     EXPECT_STREQ(msg2json(msg).c_str(),
         "{\n"

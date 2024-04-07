@@ -598,7 +598,7 @@ A(CLOCK_DESCRIPTION)
         proc(d.physicalAddressLength) ||
         proc(d.physicalAddress, d.physicalAddressLength) ||
         proc(d.protocolAddress) || oproc(d.manufacturerIdentity) ||
-        proc(reserved) || proc(d.productDescription) ||
+        procRes() || proc(d.productDescription) ||
         proc(d.revisionData) || proc(d.userDescription) ||
         oproc(d.profileIdentity);
 }
@@ -618,7 +618,7 @@ A(FAULT_LOG)
 }
 A(DEFAULT_DATA_SET)
 {
-    return fproc || proc(reserved) || proc(d.numberPorts) ||
+    return fproc || procRes() || proc(d.numberPorts) ||
         proc(d.priority1) || proc(d.clockQuality) || proc(d.priority2) ||
         proc(d.clockIdentity) || proc(d.domainNumber);
 }
@@ -629,7 +629,7 @@ A(CURRENT_DATA_SET)
 }
 A(PARENT_DATA_SET)
 {
-    return proc(d.parentPortIdentity) || fproc || proc(reserved) ||
+    return proc(d.parentPortIdentity) || fproc || procRes() ||
         proc(d.observedParentOffsetScaledLogVariance) ||
         proc(d.observedParentClockPhaseChangeRate) ||
         proc(d.grandmasterPriority1) || proc(d.grandmasterClockQuality) ||

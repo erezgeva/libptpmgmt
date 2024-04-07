@@ -279,7 +279,7 @@ bool Binary::fromIp(const string &string)
         return false;
     return fromIp(string, domain);
 }
-string Binary::bufToId(const uint8_t *id, size_t len)
+string Binary::bufToId(const uint8_t *id, size_t len, const std::string &sep)
 {
     if(len < 1)
         return "";
@@ -287,7 +287,8 @@ string Binary::bufToId(const uint8_t *id, size_t len)
     snprintf(buf, sizeof buf, "%02x", *id);
     string ret = buf;
     for(len--; len > 0; len--) {
-        snprintf(buf, sizeof buf, ":%02x", *++id);
+        snprintf(buf, sizeof buf, "%02x", *++id);
+        ret += sep;
         ret += buf;
     }
     return ret;

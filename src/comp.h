@@ -36,6 +36,8 @@ using namespace std;
 
 #define DO_PRAGMA(x) _Pragma (#x)
 
+#define m_init(n) n{{0}}
+
 #if __cplusplus >= 201603L /* C++17 */
 #define FALLTHROUGH [[fallthrough]]
 #define MAYBE_UNUSED(_expr) [[maybe_unused]] _expr
@@ -261,7 +263,6 @@ struct MsgProc {
     ssize_t           m_left;
     size_t            m_size;   /* TLV data size on build */
     MNG_PARSE_ERROR_e m_err;    /* Last TLV err */
-    uint8_t           reserved; /* Used for reserved values */
 
     MNG_PARSE_ERROR_e call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv);
     MNG_PARSE_ERROR_e parseSig();
@@ -298,6 +299,7 @@ struct MsgProc {
     template <typename T> bool procB8(T &val);
     bool proc(int8_t &val) { return procB8(val); }
     bool proc(uint8_t &val) { return procB8(val); }
+    bool procRes() {uint8_t v = 0; return proc(v); }
     template <typename T, typename U> bool procBN(T &val);
     bool proc(int16_t &val) { return procBN<int16_t, uint16_t>(val); }
     bool proc(uint16_t &val) { return procBN<uint16_t, uint16_t>(val); }

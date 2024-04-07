@@ -1278,6 +1278,14 @@ Test(MessageTest, MethodBuildVoid)
     cr_expect(eq(int, m->build(m, buf, sizeof buf, 137),
             PTPMGMT_MNG_PARSE_ERROR_OK));
     cr_expect(eq(int, m->getMsgLen(m), plen));
+    // byte 4 is message length
+    // Second byte is the PTP version
+    uint8_t ret[56] = { 13, buf[1], 0, 56, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x89, 4, 0x7f, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 1, 1, 1, 0, 0, 1, 0, 4, 0x20,
+            5, 0x7f
+        };
+    cr_expect(zero(memcmp(buf, ret, sizeof ret)));
     // actionField location IEEE "PTP management message"
     // Change to response action of get/set message
     buf[46] = PTPMGMT_RESPONSE;
@@ -1635,6 +1643,7 @@ Test(MessageTest, MethodGetErrId)
     mt[5] = 0; // reserved
     uint8_t *d = buf + 48 + 12; // displayData
     d[0] = l; // displayData->lengthField
+    buf[3] = 48 + 12 + n; // header.messageLength
     memcpy(d + 1, displayData, l); // displayData->textField
     cr_expect(eq(int, m->parse(m, buf, 48 + 12 + n), PTPMGMT_MNG_PARSE_ERROR_MSG));
     cr_expect(eq(int, m->getErrId(m), PTPMGMT_WRONG_VALUE));
@@ -1668,6 +1677,7 @@ Test(MessageTest, MethodGetErrDisplayC)
     mt[5] = 0; // reserved
     uint8_t *d = buf + 48 + 12; // displayData
     d[0] = l; // displayData->lengthField
+    buf[3] = 48 + 12 + n; // header.messageLength
     memcpy(d + 1, displayData, l); // displayData->textField
     cr_expect(eq(int, m->parse(m, buf, 48 + 12 + n), PTPMGMT_MNG_PARSE_ERROR_MSG));
     cr_expect(eq(str, (char *)m->getErrDisplay(m), displayData));
@@ -1696,6 +1706,7 @@ Test(MessageTest, MethodIsLastMsgSig)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PTPMGMT_PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | ptpmgmt_Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1781,6 +1792,7 @@ Test(MessageTest, MethodTraversSigTlvs)
     // signalling = 36 header + 10 targetPortIdentity = 44
     // signalling MSG 44 + 6 Mng TLV + 2 PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | ptpmgmt_Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1816,6 +1828,7 @@ Test(MessageTest, MethodGetSigTlvsCount)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PTPMGMT_PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | ptpmgmt_Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1851,6 +1864,7 @@ Test(MessageTest, MethodGetSigTlv)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PTPMGMT_PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | ptpmgmt_Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1897,6 +1911,7 @@ Test(MessageTest, MethodGetSigMngTlvType)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PTPMGMT_PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | ptpmgmt_Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)

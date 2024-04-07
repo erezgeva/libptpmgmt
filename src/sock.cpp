@@ -632,7 +632,7 @@ SockRaw::SockRaw() :
     m_addr{0},
     m_msg_tx{0},
     m_msg_rx{0},
-    m_hdr{{0}}
+    m_init(m_hdr)
 {
 }
 bool SockRaw::setPtpDstMacStr(const string &str)

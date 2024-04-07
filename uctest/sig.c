@@ -55,6 +55,9 @@ Test(SigTest, OneManagmentTlvs)
     addTlv(buf, &curLen, PTPMGMT_MANAGEMENT, mb, sizeof mb);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 1));
@@ -81,6 +84,9 @@ Test(SigTest, TwoManagmentTlvs)
     addTlv(buf, &curLen, PTPMGMT_MANAGEMENT, m2, sizeof m2);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 2));
@@ -116,6 +122,9 @@ Test(SigTest, OrgTwoManagmentTlvs)
     addTlv(buf, &curLen, PTPMGMT_MANAGEMENT, m3, sizeof m3);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 3));
@@ -184,6 +193,9 @@ Test(SigTest, LoopTwoManagmentTlvs)
     addTlv(buf, &curLen, PTPMGMT_MANAGEMENT, m2, sizeof m2);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 2));
@@ -220,6 +232,9 @@ Test(SigTest, AllOrgTlvs)
         sizeof m3);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 3));
@@ -279,6 +294,9 @@ Test(SigTest, FilterWithOrgTlvs)
     cr_expect(a->isSigTlv(a, PTPMGMT_ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE));
     cr_expect(eq(int, a->countSigTlvs(a), 2));
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 2));
@@ -327,6 +345,9 @@ Test(SigTest, MngErrMoreTlvs)
     addTlv(buf, &curLen, PTPMGMT_CUMULATIVE_RATE_RATIO, m5, sizeof m5);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 6));
@@ -417,6 +438,9 @@ Test(SigTest, VectorTlvs)
     addTlv(buf, &curLen, PTPMGMT_SLAVE_TX_EVENT_TIMESTAMPS, m3, sizeof m3);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 4));
@@ -516,6 +540,9 @@ Test(SigTest, AccuracyTlv)
     addTlv(buf, &curLen, PTPMGMT_ENHANCED_ACCURACY_METRICS, mb, sizeof mb);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 1));
@@ -562,11 +589,17 @@ Test(SigTest, LinuxptpTlvs)
     a->filterSignaling = false;
     a->implementSpecific = ptpmgmt_noImplementSpecific;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 0));
     a->implementSpecific = ptpmgmt_linuxptp;
     cr_expect(m->updateParams(m, a));
+    // header.messageLength
+    buf[2] = curLen >> 8;
+    buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
     cr_expect(eq(int, m->getSigTlvsCount(m), 1));
@@ -610,7 +643,7 @@ Test(SMPTETest, SMPTE_Org)
 {
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     ptpmgmt_pMsgParams a = m->getParams(m);
-    uint8_t b[100] = {0xd, 2, 0, 0x64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    uint8_t b[100] = {0xd, 2, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0x74, 0xda, 0x38, 0xff, 0xfe, 0xf6, 0x98, 0x5e, 0, 1, 0, 0, 4,
             0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 3,
             3, 3, 0, 0, 3, 0, 0x30, 0x68, 0x97, 0xe8, 0, 0, 1, 0, 0, 0, 0x1e, 0,

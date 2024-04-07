@@ -40,6 +40,9 @@ class SigTest : public ::testing::Test, public Message
         curLen += len + 4;
     }
     MNG_PARSE_ERROR_e doParse() {
+        // header.messageLength
+        buf[2] = curLen >> 8;
+        buf[3] = curLen & 0xff;
         return parse(buf, curLen);
     }
 };
@@ -502,7 +505,7 @@ TEST_F(SigTest, LinuxptpTlvs)
 TEST(SMPTETest, SMPTE_Org)
 {
     Message m;
-    uint8_t b[100] = {0xd, 2, 0, 0x64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    uint8_t b[100] = {0xd, 2, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0x74, 0xda, 0x38, 0xff, 0xfe, 0xf6, 0x98, 0x5e, 0, 1, 0, 0, 4,
             0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 3,
             3, 3, 0, 0, 3, 0, 0x30, 0x68, 0x97, 0xe8, 0, 0, 1, 0, 0, 0, 0x1e, 0,

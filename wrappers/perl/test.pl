@@ -148,7 +148,6 @@ sub main
   my $self_id = $prms->swig_self_id_get();
   $self_id->swig_portNumber_set($$ & 0xffff); # getpid()
   $prms->swig_self_id_set($self_id);
-  $prms->swig_boundaryHops_set(1);
   $prms->swig_domainNumber_set($cfg->domainNumber());
   $msg->updateParams($prms);
   $msg->useConfig($cfg);

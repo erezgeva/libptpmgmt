@@ -563,7 +563,7 @@ allBuild()
      fi
      if [[ -f "$file" ]]; then
        luaVersions+=" $i"
-       eval "ldPathLua${i/./}='$ldPath LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+       eval "ldPathLua${i/./}=\"$ldPath LUA_CPATH='wrappers/lua/$i/?.so;;'\""
      fi
    done
  fi
@@ -609,7 +609,7 @@ probeLibsDebian()
      # Lua comes in a single package for all versions,
      # so a single probing flag is sufficient.
      needCmpl=y
-     eval "ldPathLua${i/./}='LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+     eval "ldPathLua${i/./}=\"LUA_CPATH='wrappers/lua/$i/?.so;;'\""
    fi
  done
  for i in $pyVersions; do
@@ -672,7 +672,7 @@ probeLibs()
    if ! [[ -f "$file" ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no lua"
      needCmpl=y
-     ldPathLua='LUA_CPATH=\"wrappers/lua/?.so;;\"'
+     ldPathLua="LUA_CPATH='wrappers/lua/?.so;;'"
    fi
  else
    for i in $LUAVERSIONS; do
@@ -689,7 +689,7 @@ probeLibs()
            # Our Lua wrapper comes in a single package for all versions,
            # so a single probing flag is sufficient.
            needCmpl=y
-           eval "ldPathLua${i/./}='LUA_CPATH=\"wrappers/lua/$i/?.so;;\"'"
+           eval "ldPathLua${i/./}=\"LUA_CPATH='wrappers/lua/$i/?.so;;'\""
        fi
      fi
    done

@@ -893,6 +893,14 @@ TEST(MessageTest, MethodBuildVoid)
     uint8_t buf[70];
     EXPECT_EQ(m.build(buf, sizeof buf, 137), MNG_PARSE_ERROR_OK);
     EXPECT_EQ(m.getMsgLen(), plen);
+    // byte 4 is message length
+    // Second byte is the PTP version
+    uint8_t ret[56] = { 13, buf[1], 0, 56, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x89, 4, 0x7f, 0xff, 0xff, 0xff,
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 1, 1, 1, 0, 0, 1, 0, 4, 0x20,
+            5, 0x7f
+        };
+    EXPECT_EQ(memcmp(buf, ret, sizeof ret), 0);
     // actionField location IEEE "PTP management message"
     // Change to response action of get/set message
     buf[46] = RESPONSE;
@@ -1245,6 +1253,7 @@ TEST(MessageTest, MethodGetErrId)
     mt[5] = 0; // reserved
     uint8_t *d = buf + 48 + 12; // displayData
     d[0] = l; // displayData.lengthField
+    buf[3] = 48 + 12 + n; // header.messageLength
     memcpy(d + 1, displayData, l); // displayData.textField
     EXPECT_EQ(m.parse(buf, 48 + 12 + n), MNG_PARSE_ERROR_MSG);
     EXPECT_EQ(m.getErrId(), WRONG_VALUE);
@@ -1276,6 +1285,7 @@ TEST(MessageTest, MethodGetErrDisplay)
     mt[5] = 0; // reserved
     uint8_t *d = buf + 48 + 12; // displayData
     d[0] = l; // displayData.lengthField
+    buf[3] = 48 + 12 + n; // header.messageLength
     memcpy(d + 1, displayData, l); // displayData.textField
     EXPECT_EQ(m.parse(buf, 48 + 12 + n), MNG_PARSE_ERROR_MSG);
     EXPECT_STREQ(m.getErrDisplay().c_str(), displayData);
@@ -1307,6 +1317,7 @@ TEST(MessageTest, MethodGetErrDisplayC)
     mt[5] = 0; // reserved
     uint8_t *d = buf + 48 + 12; // displayData
     d[0] = l; // displayData.lengthField
+    buf[3] = 48 + 12 + n; // header.messageLength
     memcpy(d + 1, displayData, l); // displayData.textField
     EXPECT_EQ(m.parse(buf, 48 + 12 + n), MNG_PARSE_ERROR_MSG);
     EXPECT_STREQ(m.getErrDisplay_c(), displayData);
@@ -1333,6 +1344,7 @@ TEST(MessageTest, MethodIsLastMsgSig)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1413,6 +1425,7 @@ TEST(MessageTest, MethodTraversSigTlvs)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1450,6 +1463,7 @@ TEST(MessageTest, MethodGetSigTlvsCount)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1483,6 +1497,7 @@ TEST(MessageTest, MethodGetSigTlv)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
@@ -1525,6 +1540,7 @@ TEST(MessageTest, MethodGetSigMngTlvType)
     // signaling = 36 header + 10 targetPortIdentity = 44
     // signaling MSG 44 + 6 Mng TLV + 2 PRIORITY1 TLV = 52
     buf[0] = (buf[0] & 0xf0) | Signaling; // messageType
+    buf[3] = 52; // header.messageLength
     buf[32] = 5; // controlField
     // Move the 8 bytes of Mng TLV
     for(int i = 0; i < 8; i++)
