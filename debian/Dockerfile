@@ -29,7 +29,7 @@ RUN apt-get update;\
     astyle cppcheck exuberant-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
     python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\
-    texlive-font-utils libcriterion-dev jq clang $DPKGS;\
+    texlive-font-utils libcriterion-dev jq clang gdb $DPKGS;\
     apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
