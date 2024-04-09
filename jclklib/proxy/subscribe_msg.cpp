@@ -43,7 +43,6 @@ bool ProxySubscribeMessage::initMessage()
 This is to process the subscription from the jclklib client runtime via POSIX msg queue
 [Question] The client list of real-time subscription is hold inside jcklib_proxy?
 */
-//bool ProxySubscribeMessage::processMessage(ClockConfiguration &config)
 PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
 {
 	//config.setEvent(subscription.getEvent());
@@ -51,13 +50,11 @@ PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
 
 	sessionId_t sID;
 	sID = this->getc_sessionId();
-	PrintDebug("[AZU] ProxySubscribeMessage::processMessage - Use current client session ID: " + to_string(sID));
+	PrintDebug("[ProxySubscribeMessage]::processMessage - Use current client session ID: " + to_string(sID));
 	
 	if(sID == InvalidSessionId) {
 		PrintError("Session ID *should be* invalid for received proxy connect message");
-		PrintDebug("[AZU] overwrite the sID to 0");
-		sID = 0;
-		//return false;   //azu hack
+		return false;
 	}
 	TxContext = Client::GetClientSession(sID).get()->get_transmitContext();
 	set_msgAck(ACK_SUCCESS);

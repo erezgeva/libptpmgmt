@@ -14,6 +14,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+#include <iostream>
+#include <cstring>
 
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
 
@@ -23,6 +25,7 @@ using namespace std;
 
 std::mutex ClientConnectMessage::cv_mtx;
 std::condition_variable ClientConnectMessage::cv;
+TransportClientId globalClientID;
 
 bool JClkLibClient::connect()
 {
@@ -59,18 +62,34 @@ bool JClkLibClient::connect()
 		}
 	}
 
+	ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
+	strcpy((char *)globalClientID.data(), (char *)cmsg->getClientId().data());
+	state.set_clientID(globalClientID);
+
 	return true;
 }
 
 
-bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &subscription)
+bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub)
 {
-	PrintDebug("[AZU] JClkLibClient::subscribe");
-	Message0 subscribeMsg(new ClientSubscribeMessage());
+
+	PrintDebug("[JClkLibClient]::subscribe");
+	MessageX subscribeMsg(new ClientSubscribeMessage());
+
+	ClientSubscribeMessage *cmsg = dynamic_cast<decltype(cmsg)>(subscribeMsg.get());
+	if (cmsg == NULL) {
+		PrintErrorCode("[JClkLibClient::subscribe] subscribeMsg is NULL !!\n");
+		return false;
+	}
+	else
+		PrintDebug("[JClkLibClient::subscribe] subscribeMsgcreation is OK !!\n");
+
+	/* Write the current event subscription */
+	cmsg->getSubscription().get_event().copyEventMask(newSub.get_event());
 
 	ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
 	ClientMessageQueue::sendMessage(subscribeMsg.get());
-	/* overwrite | merge  the current event to this event */
+
 	return true;
 }
 

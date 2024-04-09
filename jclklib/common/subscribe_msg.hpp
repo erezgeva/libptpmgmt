@@ -29,6 +29,8 @@ namespace JClkLibCommon
 		{ return subscription; }
 		TransportClientId &getClientId()
 		{ return clientId; }
+		void setSubscription(jcl_subscription newsub);
+
 		virtual std::string toString();
 	protected:
 #define MESSAGE_SUBSCRIBE() JClkLibCommon::Message(JClkLibCommon::SUBSCRIBE_MSG)

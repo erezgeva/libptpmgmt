@@ -7,6 +7,7 @@
 
 #include <client/msgq_tport.hpp>
 #include <client/connect_msg.hpp>
+#include <client/subscribe_msg.hpp>
 
 #include <common/sighandler.hpp>
 #include <common/util.hpp>
@@ -101,13 +102,42 @@ bool ClientMessageQueue::finalizeTransport()
 
 bool ClientMessageQueue::writeTransportClientId(Message *msg)
 {
-	ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
-	if (cmsg == NULL) {
-		PrintErrorCode("[ClientMessageQueue] cmsg is NULL !!\n");
-		return false;
+	msgId_t msgId = msg->get_msgId();
+
+	switch (msgId) {
+
+		case CONNECT_MSG :
+			{
+				ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
+				if (cmsg == NULL) {
+					PrintErrorCode("[ClientMessageQueue] ClientConnectMessage cmsg is NULL !!\n");
+					return false;
+				}
+				strcpy((char *)cmsg->getClientId().data(), mqListenerName.c_str());
+				printf ("[ClientMessageQueue][CONNECT] cmsg->getClientId().data(): %s\n", (char *)cmsg->getClientId().data());
+				break;
+			}
+		case SUBSCRIBE_MSG :
+			{
+				ClientSubscribeMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
+				if (cmsg == NULL) {
+					PrintErrorCode("[ClientMessageQueue] ClientSubscribeMessage cmsg is NULL !!\n");
+					return false;
+				}
+
+				strcpy((char *)cmsg->getClientId().data(), (char *)state.get_clientID().data());
+
+				cmsg->set_sessionId(state.get_sessionId()); // this is where it turns to 0 
+				printf ("[ClientMessageQueue] [SUBSCRIBE] cmsg->set_sessionId() : %d\n", cmsg->get_sessionId());
+				PrintDebug("[ClientMessageQueue] [SUBSCRIBE] : subscription->event Mask : " + cmsg->getSubscription().get_event().toString());
+				break;
+			}
+		default:
+			{
+				PrintErrorCode("Unknown msgID type");
+				return false;
+			}
 	}
-	strcpy((char *)cmsg->getClientId().data(), mqListenerName.c_str());
-	printf ("[ClientMessageQueue] cmsg->getClientId().data(): %s", (char *)cmsg->getClientId().data());
 	return true;
 }
 
@@ -116,10 +146,11 @@ SEND_CLIENT_MESSAGE(ClientMessageQueue::sendMessage)
 	auto context = txContext.get();
 
 	msg->presendMessage(context);
+
 	if (mq_send(mqNativeClientTransmitterDesc, (char *)context->getc_buffer().data(), context->getc_offset(), 0) == -1) {
 		PrintErrorCode("Failed to transmit client message");
 		return false;
 	}
-	PrintDebug("[Azu] ClientMessageQueue::sendMessage successful ");
+	PrintDebug("[ClientMessageQueue]::sendMessage successful ");
 	return true;
 }

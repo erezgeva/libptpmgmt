@@ -40,11 +40,13 @@ namespace JClkLibCommon
 		bool equal( const jcl_value &c);
 		bool operator== (const jcl_value &value) { return this->equal(value); }
 		bool operator!= (const jcl_value &value) { return !this->equal(value); }
+		std::string toString();
 	};
 
 	typedef enum : std::uint8_t
-		{ peerPresentEvent, gmPresentEvent, gmOffsetEvent, servoLockedEvent,
+		{ peerPresentEvent, gmPresentUUIDEvent, gmOffsetEvent, servoLockedEvent, asCapableEvent,
 		  eventLast } eventType;
+
 #define BITS_PER_BYTE (8)
 #define MAX_EVENT_COUNT (128)
 
@@ -62,6 +64,11 @@ namespace JClkLibCommon
 		bool equal( const jcl_event &c);
 		bool operator== (const jcl_event &event) { return this->equal(event); }
 		bool operator!= (const jcl_event &event) { return !this->equal(event); }
+		std::string toString();
+		int8_t writeEvent(uint32_t *newEvent, std::size_t length);
+		int8_t readEvent(uint32_t *readEvnt, std::size_t length);
+		int8_t copyEventMask(jcl_event &newEvent);
+		std::uint32_t *getEventMask() { return event_mask; }
 	};
 
 

@@ -7,10 +7,13 @@
 
 #include <common/jclklib_import.hpp>
 #include <common/serialize.hpp>
+#include <common/print.hpp>
 
 #include <cstring>
 
 using namespace JClkLibCommon;
+using namespace std;
+
 
 jcl_value::value_t::value_t()
 {
@@ -78,6 +81,40 @@ uint8_t *jcl_subscription::write(uint8_t *buf, std::size_t &length)
 		buf = value.write(buf, length);
 
 	return buf;
+}
+
+int8_t jcl_event::writeEvent(uint32_t *newEvent, std::size_t newEventlength)
+{
+	if (newEvent == NULL || sizeof(event_mask) < newEventlength) {
+		PrintDebug("jcl_event::writeEvent failure");
+		return -1;
+	}
+
+	memcpy(this->event_mask, newEvent , newEventlength);
+
+	return 0;
+}
+
+int8_t jcl_event::readEvent(uint32_t *readEvnt, std::size_t eventLength)
+{
+	if (readEvnt == NULL || sizeof(event_mask) > eventLength) {
+		PrintDebug("jcl_event::readEvent failure");
+		return -1;
+	}
+
+	memcpy(readEvnt, this->event_mask, eventLength);
+
+	return 0;
+}
+
+int8_t jcl_event::copyEventMask(jcl_event &newEvent)
+{
+	std::size_t newEventLength = sizeof(newEvent.getEventMask());
+
+	memcpy(event_mask, newEvent.event_mask , newEventLength);
+	printf ("[jcl_event]::copyEventMask - newEventLength = %ld , incoming event mask = 0x%x\n", newEventLength, newEvent.getEventMask()[0]);
+
+	return 0;
 }
 
 uint8_t *jcl_event::parse(uint8_t *buf, std::size_t &length)
@@ -150,4 +187,16 @@ bool jcl_eventcount::equal( const jcl_eventcount &ec)
 	if (memcmp(this->count, ec.count, sizeof(this->count)) == 0)
 		return true;
 	return false;
+}
+
+std::string jcl_value::toString()
+{
+    std::string name = "jcl_value : upper " + to_string (this->value->upper) + " lower : " +  to_string (this->value->lower) + "\n";
+	return name;
+}
+
+std::string jcl_event::toString()
+{
+    std::string name = "jcl_event : event[0] = " + to_string (this->event_mask[0]) + "\n";
+	return name;
 }

@@ -13,7 +13,7 @@
 namespace JClkLibClient {
 	bool connect();
 	bool disconnect();
-	bool subscribe(JClkLibCommon::jcl_subscription &subscription);
+	bool subscribe(JClkLibCommon::jcl_subscription &newSub);
 };
 
 #endif/*CLIENT_INIT_HPP*/

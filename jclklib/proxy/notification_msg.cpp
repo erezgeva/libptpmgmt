@@ -17,7 +17,7 @@ using namespace JClkLibProxy;
 * This shd be in the RX buffer - so this shd be inside the client to process
 * notification from proxy.
 */
-/* REMOVE */
+/* TO BE REMOVED */
 bool ProxyNotificationMessage::processMessage(ClockConfiguration &config)
 {
 	//config.setWait( waitEnable );

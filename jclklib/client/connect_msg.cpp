@@ -64,9 +64,8 @@ PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
 	state.set_sessionId(this->get_sessionId());
 
         PrintDebug("Connected with session ID: " + to_string(this->get_sessionId()));
+        PrintDebug("Current state.sessionId: " + to_string(state.get_sessionId()));
 
-        /*[TODO] client runtime shd return client ID to application - return client ID at least */
-        /*[Question] ACK_NONE is necessary ?*/
 	this->set_msgAck(ACK_NONE);
 
         cv.notify_one();

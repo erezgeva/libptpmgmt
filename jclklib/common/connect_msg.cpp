@@ -53,6 +53,7 @@ BUILD_TXBUFFER_TYPE(CommonConnectMessage::makeBuffer) const
 
 TRANSMIT_MESSAGE_TYPE(CommonConnectMessage::transmitMessage)
 {
+	PrintDebug("[CommonConnectMessage]::transmitMessage ");
 	if (!presendMessage(&TxContext))
 		return false;
 

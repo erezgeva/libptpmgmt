@@ -52,7 +52,7 @@ string Message::toString()
 
 BUILD_TXBUFFER_TYPE(Message::makeBuffer) const
 {
-	PrintDebug("[AZU] Message::makeBuffer ");
+	PrintDebug("[Message]::makeBuffer");
 	if (!WRITE_TX(FIELD,msgId,TxContext))
 		return false;
 	if (!WRITE_TX(FIELD,msgAck,TxContext))
@@ -63,14 +63,15 @@ BUILD_TXBUFFER_TYPE(Message::makeBuffer) const
 
 COMMON_PRESEND_MESSAGE_TYPE(Message::presendMessage)
 {
+	PrintDebug("[Message]::presendMessage starts");
 	ctx->resetOffset();
 	if (!makeBuffer(*ctx)) {
 		PrintError("Failed to make buffer from message object");
 		return false;
 	}
-	//DumpOctetArray("Sending message (length = " + to_string(ctx->getc_offset()) + "): ", ctx->getc_buffer().data(),
-	//	       ctx->getc_offset());  //AZU
-	PrintDebug("[AZU] Message::presendMessage successful ");
+	DumpOctetArray("Sending message (length = " + to_string(ctx->getc_offset()) + "): ", ctx->getc_buffer().data(),
+		       ctx->getc_offset());
+	PrintDebug("[Message]::presendMessage successful");
 
 	return true;
 }
@@ -90,7 +91,7 @@ bool Message::addMessageType(parseMsgMapElement_t mapping)
 
 PARSE_RXBUFFER_TYPE(Message::parseBuffer)
 {
-	PrintDebug("[AZU] Message::parseBuffer ");
+	PrintDebug("[Message]::parseBuffer ");
 	if (!PARSE_RX(FIELD,msgId, LxContext))
 		return false;
 	if (!PARSE_RX(FIELD,msgAck, LxContext))
