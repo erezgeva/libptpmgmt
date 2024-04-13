@@ -140,6 +140,12 @@ extern "C" {
 }
 #define ptp_perout_request next_ptp_perout_request
 #endif
+#ifndef PTP_MASK_CLEAR_ALL
+#define PTP_MASK_CLEAR_ALL _IO(PTP_CLK_MAGIC, 19)
+#endif
+#ifndef PTP_MASK_EN_SINGLE
+#define PTP_MASK_EN_SINGLE _IOW(PTP_CLK_MAGIC, 20, unsigned int)
+#endif
 
 //==========================================================================//
 static inline const Timestamp_t toTs(const ptp_clock_time &pct)
@@ -611,6 +617,32 @@ bool PtpClock::ExternTSDisable(unsigned int index) const
     ptp_extts_request req = { .index = index };
     if(ioctl(m_fd, PTP_EXTTS_REQUEST, &req) == -1) {
         PTPMGMT_ERROR_P("PTP_EXTTS_REQUEST");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
+}
+bool PtpClock::MaskClearAll() const
+{
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return false;
+    }
+    if(ioctl(m_fd, PTP_MASK_CLEAR_ALL) == -1) {
+        PTPMGMT_ERROR_P("PTP_MASK_CLEAR_ALL");
+        return false;
+    }
+    PTPMGMT_ERROR_CLR;
+    return true;
+}
+bool PtpClock::MaskEnable(unsigned int index) const
+{
+    if(!m_isInit) {
+        PTPMGMT_ERROR("not initialized yet");
+        return false;
+    }
+    if(ioctl(m_fd, PTP_MASK_EN_SINGLE, &index) == -1) {
+        PTPMGMT_ERROR_P("PTP_MASK_EN_SINGLE");
         return false;
     }
     PTPMGMT_ERROR_CLR;
@@ -1129,6 +1161,27 @@ extern "C" {
             return ((PtpClock *)clk->_this)->ExternTSDisable(index);
         return false;
     }
+    static bool non_ptpmgmt_clock_MaskClearAll(const_ptpmgmt_clock)
+    {
+        return false;
+    }
+    static bool ptpmgmt_clock_MaskClearAll(const_ptpmgmt_clock clk)
+    {
+        if(clk != nullptr && clk->_this != nullptr)
+            return ((PtpClock *)clk->_this)->MaskClearAll();
+        return false;
+    }
+    static bool non_ptpmgmt_clock_MaskEnable(const_ptpmgmt_clock, unsigned int)
+    {
+        return false;
+    }
+    static bool ptpmgmt_clock_MaskEnable(const_ptpmgmt_clock clk,
+        unsigned int index)
+    {
+        if(clk != nullptr && clk->_this != nullptr)
+            return ((PtpClock *)clk->_this)->MaskEnable(index);
+        return false;
+    }
     static bool non_ptpmgmt_clock_readEvent(const_ptpmgmt_clock, ptp_extts_event *)
     {
         return false;
@@ -1280,6 +1333,8 @@ extern "C" {
         C_ASGN(writePin);
         C_ASGN(ExternTSEbable);
         C_ASGN(ExternTSDisable);
+        C_ASGN(MaskClearAll);
+        C_ASGN(MaskEnable);
         C_ASGN(readEvent);
         C_ASGN(readEvents);
         C_ASGN(setPinPeriod);
@@ -1317,6 +1372,8 @@ extern "C" {
         C_NO_ASGN(writePin);
         C_NO_ASGN(ExternTSEbable);
         C_NO_ASGN(ExternTSDisable);
+        C_NO_ASGN(MaskClearAll);
+        C_NO_ASGN(MaskEnable);
         C_NO_ASGN(readEvent);
         C_NO_ASGN(readEvents);
         C_NO_ASGN(setPinPeriod);

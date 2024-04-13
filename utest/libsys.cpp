@@ -876,8 +876,9 @@ int ioctl(int fd, unsigned long request, ...) throw()
             break;
         }
         #ifdef PTP_EXTTS_REQUEST2
-        case PTP_EXTTS_REQUEST2:
-            #endif
+        case PTP_EXTTS_REQUEST2: {
+        }
+        #endif
         case PTP_EXTTS_REQUEST: {
             ptp_extts_request *req = (ptp_extts_request *)arg;
             // Enable
@@ -890,8 +891,9 @@ int ioctl(int fd, unsigned long request, ...) throw()
             return retErr(EINVAL);
         }
         #ifdef PTP_PEROUT_REQUEST2
-        case PTP_PEROUT_REQUEST2:
-            #endif
+        case PTP_PEROUT_REQUEST2: {
+        }
+        #endif
         case PTP_PEROUT_REQUEST: {
             ptp_perout_request *req = (ptp_perout_request *)arg;
             if(req->index != 11 || req->start.nsec != 0 || req->period.sec != 76 ||
@@ -901,6 +903,19 @@ int ioctl(int fd, unsigned long request, ...) throw()
                 return retErr(EINVAL);
             break;
         }
+        #ifdef PTP_MASK_CLEAR_ALL
+        case PTP_MASK_CLEAR_ALL: {
+            break;
+        }
+        #endif
+        #ifdef PTP_MASK_EN_SINGLE
+        case PTP_MASK_EN_SINGLE: {
+            unsigned int *index = (unsigned int *)arg;
+            if(*index != 7)
+                return retErr(EINVAL);
+            break;
+        }
+        #endif // PTP_MASK_EN_SINGLE
         default:
             return retErr(EINVAL);
     }

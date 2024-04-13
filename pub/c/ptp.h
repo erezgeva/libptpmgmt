@@ -276,6 +276,20 @@ struct ptpmgmt_clock_t {
      */
     bool (*ExternTSDisable)(const_ptpmgmt_clock clk, unsigned int index);
     /**
+     * PHC clear all mask
+     * @param[in] clk pointer to clock structure
+     * @return true for success
+     */
+    bool (*MaskClearAll)(const_ptpmgmt_clock clk);
+    /**
+     * PHC ebable single pin mask
+     * @param[in] clk pointer to clock structure
+     * @param[in] index pin index in mask to enable
+     * @return true for success
+     * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
+     */
+    bool (*MaskEnable)(const_ptpmgmt_clock clk, unsigned int index);
+    /**
      * Read single external event
      * @param[in] clk pointer to clock structure
      * @param[out] event retrieved event

@@ -443,6 +443,28 @@ Test(PtpClockTest, MethodExternTSDisable)
     c->free(c);
 }
 
+// Tests new pins masking methods
+// bool MaskClearAll(const_ptpmgmt_clock clk)
+// bool MaskEnable(const_ptpmgmt_clock clk, unsigned int index)
+Test(PtpClockTest, MethodMask)
+{
+    ptpmgmt_clock c = ptpmgmt_clock_alloc();
+    useTestMode(true);
+    bool r1 = c->initUsingIndex(c, 0, false);
+    bool ret = c->MaskClearAll(c);
+    bool r3 = false;
+    if(ret)
+        r3 = c->MaskEnable(c, 7);
+    else
+        // Old kernel, PTP_MASK_CLEAR_ALL ioctl is not supported
+        cr_expect(eq(str, (char *)ptpmgmt_err_getMsg(), "PTP_MASK_CLEAR_ALL"));
+    useTestMode(false);
+    cr_expect(r1);
+    if(ret)
+        cr_expect(r3);
+    c->free(c);
+}
+
 // Tests setPinPeriod method
 // bool setPinPeriod(unsigned int index, PtpPinPeriodDef_t times, uint8_t flags)
 Test(PtpClockTest, MethodSetPinPeriod)
@@ -507,26 +529,26 @@ Test(PtpClockTest, MethodExtSamplePtpSys)
     bool r1 = c->initUsingIndex(c, 0, false);
     struct ptp_sys_offset_extended samples = {0};
     bool ret = c->extSamplePtpSys(c, 7, &samples);
-    if(!ret) {
-        cr_expect(eq(str, (char *)ptpmgmt_err_getMsg(),
-                "Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported"));
-        return;
-    }
+    if(!ret)
+        // Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported
+        cr_expect(eq(str, (char *)ptpmgmt_err_getMsg(), "PTP_SYS_OFFSET_EXTENDED"));
     useTestMode(false);
-    cr_expect(r1);
-    cr_expect(eq(int, samples.n_samples, 2));
-    cr_expect(eq(long, samples.ts[0][0].sec, 11));
-    cr_expect(eq(ulong, samples.ts[0][0].nsec, 33));
-    cr_expect(eq(long, samples.ts[0][1].sec, 22));
-    cr_expect(eq(ulong, samples.ts[0][1].nsec, 44));
-    cr_expect(eq(long, samples.ts[0][2].sec, 84));
-    cr_expect(eq(ulong, samples.ts[0][2].nsec, 91));
-    cr_expect(eq(long, samples.ts[1][0].sec, 71));
-    cr_expect(eq(ulong, samples.ts[1][0].nsec, 63));
-    cr_expect(eq(long, samples.ts[1][1].sec, 62));
-    cr_expect(eq(ulong, samples.ts[1][1].nsec, 84));
-    cr_expect(eq(long, samples.ts[1][2].sec, 45));
-    cr_expect(eq(ulong, samples.ts[1][2].nsec, 753));
+    if(ret) {
+        cr_expect(r1);
+        cr_expect(eq(int, samples.n_samples, 2));
+        cr_expect(eq(long, samples.ts[0][0].sec, 11));
+        cr_expect(eq(ulong, samples.ts[0][0].nsec, 33));
+        cr_expect(eq(long, samples.ts[0][1].sec, 22));
+        cr_expect(eq(ulong, samples.ts[0][1].nsec, 44));
+        cr_expect(eq(long, samples.ts[0][2].sec, 84));
+        cr_expect(eq(ulong, samples.ts[0][2].nsec, 91));
+        cr_expect(eq(long, samples.ts[1][0].sec, 71));
+        cr_expect(eq(ulong, samples.ts[1][0].nsec, 63));
+        cr_expect(eq(long, samples.ts[1][1].sec, 62));
+        cr_expect(eq(ulong, samples.ts[1][1].nsec, 84));
+        cr_expect(eq(long, samples.ts[1][2].sec, 45));
+        cr_expect(eq(ulong, samples.ts[1][2].nsec, 753));
+    }
     c->free(c);
 }
 

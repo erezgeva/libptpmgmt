@@ -316,6 +316,21 @@ TEST_F(PtpClockTest, MethodExternTSDisable)
     EXPECT_TRUE(ExternTSDisable(9));
 }
 
+// Tests new pins masking methods
+// bool MaskClearAll() const
+// bool MaskEnable(unsigned int index) const
+TEST_F(PtpClockTest, MethodMask)
+{
+    EXPECT_TRUE(initUsingIndex(0));
+    bool ret = MaskClearAll();
+    if(!ret) {
+        // Old kernel, PTP_MASK_CLEAR_ALL ioctl is not supported
+        EXPECT_STREQ(Error::getMsg().c_str(), "PTP_MASK_CLEAR_ALL");
+        return;
+    }
+    EXPECT_TRUE(MaskEnable(7));
+}
+
 // Tests setPinPeriod method
 // bool setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
 //     uint8_t flags = 0) const
@@ -357,8 +372,8 @@ TEST_F(PtpClockTest, MethodExtSamplePtpSys)
     std::vector<PtpSampleExt_t> samples;
     bool ret = extSamplePtpSys(7, samples);
     if(!ret) {
-        EXPECT_STREQ(Error::getMsg().c_str(),
-            "Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported");
+        // Old kernel, PTP_SYS_OFFSET_EXTENDED ioctl is not supported
+        EXPECT_STREQ(Error::getMsg().c_str(), "PTP_SYS_OFFSET_EXTENDED");
         return;
     }
     EXPECT_EQ(samples.size(), 2);

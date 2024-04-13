@@ -412,6 +412,18 @@ class PtpClock : public BaseClock
      */
     bool ExternTSDisable(unsigned int index) const;
     /**
+     * PHC clear all mask
+     * @return true for success
+     */
+    bool MaskClearAll() const;
+    /**
+     * PHC ebable single pin mask
+     * @param[in] index pin index in mask to enable
+     * @return true for success
+     * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
+     */
+    bool MaskEnable(unsigned int index) const;
+    /**
      * Read single external event
      * @param[out] event retrieved event
      * @return true for success
