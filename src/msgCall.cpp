@@ -42,24 +42,35 @@ bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
         return false;
     if(actionField == GET || m_msg.isEmpty(tlv_id))
         return m_msg.setAction(actionField, tlv_id);
-    if(actionField != SET && actionField != COMMAND)
-        return false;
+    switch(actionField) {
+        case SET:
+            FALLTHROUGH;
+        case COMMAND:
+            break;
+        default:
+            return false;
+    }
     BaseMngTlv *tlv = nullptr;
 #define _ptpmCaseUFB(n) case n: {\
             n##_t *d = new n##_t;\
-            if (d == nullptr) return false;\
-            if (n##_b(m_msg, *d)) tlv = d; else delete d;\
-            break; }
+            if (d == nullptr) { return false; }\
+            if (!n##_b(m_msg, *d)) { delete d; return false; }\
+            tlv = d; } break;
     switch(tlv_id) {
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         default:
             return false;
     }
-    if(tlv == nullptr)
-        return false;
-    m_tlv.reset(tlv);
-    return m_msg.setAction(actionField, tlv_id, tlv);
+    if UNLIKELY_COND(tlv == nullptr)
+        return false; // Should not happen
+    if LIKELY_COND(m_msg.setAction(actionField, tlv_id, tlv)) {
+        m_tlv.reset(tlv);
+        return true;
+    }
+    // Should not happen
+    delete tlv;
+    return false;
 }
 
 __PTPMGMT_NAMESPACE_END

@@ -42,6 +42,11 @@ using namespace std;
 #define FALLTHROUGH [[fallthrough]]
 #define MAYBE_UNUSED(_expr) [[maybe_unused]] _expr
 #endif /* __cplusplus >= 201603L */
+#if __cplusplus >= 202002L /* C++20 */
+/* branch prediction */
+#define LIKELY_COND(_expr) (_expr) [[likely]]
+#define UNLIKELY_COND(_expr) (_expr) [[unlikely]]
+#endif /* __cplusplus >= 202002L */
 #ifdef __GNUC__
 /* GNU GCC
  * gcc.gnu.org/onlinedocs/gcc-11.3.0/gcc/Type-Attributes.html
@@ -55,6 +60,11 @@ using namespace std;
 #define MAYBE_UNUSED(_expr) _expr __attribute__((unused))
 #endif
 #define PRINT_FORMAT(_a, _b) __attribute__((format(printf,_a,_b)))
+#ifndef LIKELY_COND
+/* branch prediction */
+#define LIKELY_COND(_expr) (__builtin_expect((_expr), true))
+#define UNLIKELY_COND(_expr) (__builtin_expect((_expr), false))
+#endif
 #ifdef __clang__
 #ifndef FALLTHROUGH
 #define FALLTHROUGH [[clang::fallthrough]]
@@ -92,6 +102,10 @@ using namespace std;
 #endif
 #ifndef FALLTHROUGH
 #define FALLTHROUGH
+#endif
+#ifndef LIKELY_COND
+#define LIKELY_COND(_expr) (_expr)
+#define UNLIKELY_COND(_expr) (_expr)
 #endif
 
 /* Use namespace */
