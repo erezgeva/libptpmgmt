@@ -338,7 +338,7 @@ CXXFLAGS_GO+=-Wno-deprecated-declarations
 ifdef USE_DEPS
 # Add dependencies during compilation
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
-endif # USE_DEPS
+endif
 ifdef USE_CLANG_CPP_COMPILE
 override CXXFLAGS+=-Wno-c99-designator
 endif
@@ -360,7 +360,7 @@ $(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
 ifdef USE_DEPS
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
-endif # USE_DEPS
+endif
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@
 
@@ -481,17 +481,14 @@ CXXFLAGS_SWIG+=-Wno-sometimes-uninitialized
 CXXFLAGS_PERL+=-Wno-implicit-const-int-float-conversion
 CXXFLAGS_TCL+=-Wno-missing-braces
 endif # USE_CLANG_CPP_COMPILE
+ifdef USE_DEPS
+# Add dependencies for swig files during swig compilation
+SWIG_DEPS=-MT $@ -MMD -MP -MF $(basename $@)_i.d
+endif
 
 wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS) wrappers/%/warn.i
 	$(Q_SWIG)$(SWIG) -c++ -I$(SRC) -I$(PUB) -I$(@D) -outdir $(@D) -Wextra\
-	  $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
-ifdef USE_DEPS
-# As SWIG does not create a dependencies file
-# We create it during compilation from the compilation dependencies file
-SWIG_DEP=$(SED) -e '1 a\ $(SRC)/$(LIB_NAME).i $(PUB)/mngIds.h \\'\
-  $(foreach n,$(wildcard $(<D)/*.i),-e '1 a\ $n \\')\
-  -e 's@.*\.o:\s*@@;s@\.cpp\s*@.cpp: @' $*.d > $*_i.d
-endif # USE_DEPS
+	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 

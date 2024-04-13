@@ -14,7 +14,6 @@ php_SFLAGS+=-php7
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$Q$(call LLC,$(CXXFLAGS_PHP) -Iwrappers/php $(PHPINC_FLAGS))
 	$(call D_INC,PHPINC)
-	$(SWIG_DEP)
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so

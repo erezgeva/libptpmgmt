@@ -26,7 +26,6 @@ $(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
 ifneq ($(PY3INCDIR),$(PY3PLATINCDIR))
 	$(call D_INC,PY3PLATINCDIR)
 endif
-	$(SWIG_DEP)
 $(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_SO_3)
