@@ -13,10 +13,8 @@ The library supports the three PTP network layers:
  1. UDP over IP version 6
  1. PTP over Ethernet &mdash; *we do not support VLAN tags*
 
-In addition, we support using the Unix network and communicate with LinuxPTP ptp4l.
-
-We also support parsing incoming signalling messages.
-
+In addition, we support using the Unix network and communicate with LinuxPTP ptp4l.  
+We also support parsing incoming signalling messages.  
 Users can use Linux VLAN with all sockets.
 
 # <u>libptpmgmt Library</u>
@@ -35,13 +33,18 @@ parameters that are relevant to the pmc tool.
 
 # <u>Using C</u>
 The library is written in C++ and provides a C wrapper.  
-Regarding memory:  
-The classes wrappers, provide a `free` callback which free any memory allocation by the wrpper itself.  
-The user needs to release any memory allocated by itself,
+A notice regarding memory:  
+The classes wrappers, provide a `free` callback which free any memory allocated by the wrapper itself.  
+With one exception: the functions `ptpmgmt_json_msg2json` and `ptpmgmt_json_tlv2json` allocate string,
+ which you need to free, in your application!  
+You need to release any memory allocated on your application,
  as the library and the wrappers do **not** free them!  
-The functions `ptpmgmt_json_msg2json` and `ptpmgmt_json_tlv2json` allocate string,
- which the user need to free!  
-As C do not provides namespace, the globals are prefix with `ptpmgmt_` or `PTPMGMT_`.
+As C do not provides namespaces, all global functions and global structures are prefix with `ptpmgmt_` or `PTPMGMT_`.
+
+# <u>C++ and C standards</u>
+The libptpmgmt Library uses `C++11` with [POSIX](https://posix.opengroup.org/), [GNU](https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html) extensions and [Linux kernel headers](https://kernel.org/).  
+The C wrapper use `C99`.  
+We try our best to avoid conflict with newer versions of C++ and C. But if you do please notify us.
 
 # <u>Scripting</u>
 This project uses [SWIG](http://www.swig.org/) to generate wrapper to script languages.  
@@ -70,7 +73,7 @@ SWIG maps C++ standard vector to a class.
 See libptpmgmt.i for the full list of the mapping classes.  
 All languages create the vector as a class object.  
 In Python, Ruby, and Tcl the vector has the properties of a native list.  
-Lua uses subst of C++ standard vector methods.  
+Lua uses subset of C++ standard vector methods.  
 Perl, PHP, and Go use class methods. See PtpMgmtLib.pm for Perl, ptpmgmt.php for php,
  and ptpmgmt.go for Go, for these methods.
 
@@ -95,7 +98,9 @@ Go does not use constructors and destructors.
 You need to use the New'Class' functions and release with Delete'Class'.  
 You can use the `defer` statment for the releasing, if the release is due in the same function.  
 As Go does not provide destructors, MessageBuilder is not a class and it does not call `message.clearData()` once it is removed.  
-You are advised to call `message.clearData()` once you build the message, and do not plan any further use with the send TLV.
+You are advised to call `message.clearData()` once you build the message, and do not plan any further use with the send TLV.  
+Note: as Go syntax is stricter, you may need to update your code with small fixes, when you build with a newer version of the Go wrapper of the library.  
+The C++ library does sustain backward compatible, yet Go wrapper does not and may breaks!
 
 # <u>Library content</u>
   * Binary in bin.h - Class that holds a binary
