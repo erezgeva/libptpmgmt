@@ -23,8 +23,8 @@ $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so
 utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
-	$(call Q_UTEST,Ruby)LD_PRELOAD=./$< RUBYLIB=$(RUBY_D) $(RUBY_D)/utest.rb\
-	  $(RUBY_NO_COL) $(RUBY_FILTERS)
+	$(call Q_UTEST,Ruby)LD_PRELOAD=$(ASAN_PRE)./$< RUBYLIB=$(RUBY_D)\
+	  $(RUBY_D)/utest.rb $(RUBY_NO_COL) $(RUBY_FILTERS)
 
 install_ruby:
 	$Q$(INSTALL_LIB) -D $(RUBY_LNAME).so -t $(DESTDIR)$(RUBYSITE)

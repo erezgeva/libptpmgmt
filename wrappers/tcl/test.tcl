@@ -86,9 +86,7 @@ proc setPriority1 {newPriority1} {
   if { ! [ sk send buf [ msg getMsgLen ] ] } {
     return printError "send fail"
   }
-  if { !$useBuild } then {
-    msg clearData
-  }
+  msg clearData
   if { ! [ sk poll 500 ] } {
     return printError "timeout"
   }

@@ -8,45 +8,6 @@
  * @copyright © 2022 Erez Geva
  */
 
-%{
-/* The class full code.
-   As Lua native clases do not use destructor, we use a C++ class.
-   The class store a reference to a Message object.
-   Once MessageBuilder is deleted,
-    this object will clear the send TLV from the Message object,
-    preventing using a deleted TLV by mistake :-)
-   Beware, Lua garbage collection can not be controlled,
-    the send TLV may be deleted before calling clearData(),
-    this class only gurantee, they will be called
-    on the same garbage collection cycle.
-   In case of using threads, it is better not to rely on this protection,
-    and explicitly call clearData().
- */
-namespace ptpmgmt {
-class MessageBuilderBase
-{
-  private:
-    Message &m_msg;
-  public:
-    /* used by buildTlv() to fetch reference to the Message object */
-    Message &getMsg() { return m_msg; }
-    /* Used by MessageBuilder constructor to store a Message object reference */
-    MessageBuilderBase(Message &msg) : m_msg(msg) {}
-    /* Clear the send TLV from the Message object */
-    ~MessageBuilderBase() { m_msg.clearData(); }
-};
-};
-%}
-/* API to wrap */
-class MessageBuilderBase
-{
-  public:
-    Message &getMsg();
-    MessageBuilderBase(Message &msg);
-    /* No need for explicit destructor wrapper,
-       Lua will delete the object once MessageBuilder object is. */
-};
-
 %luacode %{
 ptpmgmt.MessageDispatcher = {}
 function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
@@ -94,22 +55,22 @@ function ptpmgmt.MessageDispatcher:new()
     return obj
 end
 
-ptpmgmt.MessageBuilder = { m_buildBase = 0, m_tlv = 0 }
+ptpmgmt.MessageBuilder = { m_msg = 0, m_tlv = 0 }
 function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
     if(type(actionField) ~= 'number') then
         error('MessageBuilder::buildTlv() actionField must be a number', 2)
     elseif(type(tlv_id) ~= 'number') then
         error('MessageBuilder::buildTlv() tlv_id must be a number', 2)
     end
-    local msg = self.m_buildBase:getMsg()
+    local msg = self.m_msg
     if(not msg:isValidId(tlv_id)) then
-        return false;
+        return false
     end
     if(actionField == ptpmgmt.GET or ptpmgmt.Message.isEmpty(tlv_id)) then
         return msg:setAction(actionField, tlv_id)
     end
     if(actionField ~= ptpmgmt.SET and actionField ~= ptpmgmt.COMMAND) then
-        return false;
+        return false
     end
     local idstr = ptpmgmt.Message.mng2str_c(tlv_id)
     local tlv_pkg = idstr .. '_t'
@@ -126,8 +87,15 @@ function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
     end
     return false
 end
+function ptpmgmt.MessageBuilder:getMsg()
+    return self.m_msg
+end
+function ptpmgmt.MessageBuilder:clear()
+    self.m_msg:clearData()
+    self.m_tlv = 0
+end
 function ptpmgmt.MessageBuilder:new(msg)
-    local obj = { m_buildBase = ptpmgmt.MessageBuilderBase(msg) }
+    local obj = { m_msg = msg }
     setmetatable(obj, self)
     self.__index = self
     return obj

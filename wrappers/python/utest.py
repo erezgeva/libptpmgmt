@@ -71,16 +71,19 @@ class TestPtpmgmtMessageDispBuild(unittest.TestCase):
     """ Tests build empty TLV"""
     assert self.build.buildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT), 'should pass'
     assert self.build.run == 0, "shouldn't call PRIORITY1 callback"
+    self.build.clear()
 
   def test_buildTLV(self):
     """ Tests build TLV"""
     assert self.build.buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1), 'should pass'
     assert self.build.run == 1, 'should call PRIORITY1 callback'
+    self.build.clear()
 
   def test_buildTLVNoCallback(self):
     """ Tests build TLV that lack callback"""
     assert not self.build.buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2), 'should no pass'
     assert self.build.run == 0, "shouldn't call PRIORITY1 callback"
+    self.build.clear()
 
 if __name__ == "__main__":
   unittest.main() # run all tests

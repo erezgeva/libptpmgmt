@@ -51,7 +51,7 @@ class MyBuild < Ptpmgmt::MessageBuilder
   end
   def PRIORITY1_b(msg, tlv)
     @run = 1
-    tlv.priority1 = 117;
+    tlv.priority1 = 117
     return true
   end
 end
@@ -96,17 +96,20 @@ class TestPtpmgmtMessageDispBuild < Test::Unit::TestCase
   def test_buildEmptyTLV
     assert_true(@build.buildTlv(Ptpmgmt::COMMAND, Ptpmgmt::ENABLE_PORT), 'should pass')
     assert_equal(0, @build.run(), "shouldn't call PRIORITY1 callback")
+    @build.clear()
   end
 
   # Tests build TLV
   def test_buildTLV
     assert_true(@build.buildTlv(Ptpmgmt::SET, Ptpmgmt::PRIORITY1), 'should pass')
     assert_equal(1, @build.run(), 'should call PRIORITY1 callback')
+    @build.clear()
   end
 
   # Tests build TLV that lack callback
   def test_buildTLVNoCallback
     assert_false(@build.buildTlv(Ptpmgmt::SET, Ptpmgmt::PRIORITY2), 'should no pass')
     assert_equal(0, @build.run(), "shouldn't call PRIORITY1 callback")
+    @build.clear()
   end
 end

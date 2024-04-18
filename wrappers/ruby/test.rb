@@ -78,9 +78,7 @@ def setPriority1(newPriority1)
   if !$sk.send($buf, $msg.getMsgLen()) then
     return printError("send fail")
   end
-  if !useBuild then
-    $msg.clearData()
-  end
+  $msg.clearData()
   if !$sk.poll(500) then
     return printError("timeout")
   end

@@ -46,7 +46,7 @@ function myBuild:new(msg)
 end
 function myBuild:PRIORITY1_b(msg, tlv)
   self.run = 1
-  tlv.priority1 = 117;
+  tlv.priority1 = 117
   return true
 end
 
@@ -94,18 +94,21 @@ TestMsgBuild = {}
   function TestMsgBuild:testEmptyTLV()
     luaunit.assertTrue(self.build:buildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT), 'should pass')
     luaunit.assertEquals(self.build.run, 0, "shouldn't call PRIORITY1 callback")
+    self.build:clear()
   end
 
   -- Tests build TLV
   function TestMsgBuild:testTLV()
     luaunit.assertTrue(self.build:buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1), 'should pass')
     luaunit.assertEquals(self.build.run, 1, 'should call PRIORITY1 callback')
+    self.build:clear()
   end
 
   -- Tests build TLV that lack callback
   function TestMsgBuild:testTLVNoCallback()
     luaunit.assertFalse(self.build:buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2), 'should no pass')
     luaunit.assertEquals(self.build.run, 0, "shouldn't call PRIORITY1 callback")
+    self.build:clear()
   end
 
 os.exit(luaunit.LuaUnit.run())

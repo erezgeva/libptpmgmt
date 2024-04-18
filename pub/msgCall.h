@@ -88,7 +88,10 @@ class MessageBuilder : public BaseMngBuildCallback
      * @return reference to the msg Message object
      */
     Message &getMsg() { return m_msg; }
-    virtual ~MessageBuilder() { m_msg.clearData(); }
+    /**
+     * Clear the tlv in the Message object
+     */
+    void clear() { m_msg.clearData(); m_tlv.reset(); }
     /**
      * Allocate a management TLV, use a call-back to set its values and
      *  assign it with the Message object ready for sending

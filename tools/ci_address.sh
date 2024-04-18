@@ -135,7 +135,7 @@ utest_address()
  ASAN_OPTIONS+=':check_initialization_order=1:strict_init_order=1'
  ASAN_OPTIONS+=':detect_invalid_pointer_pairs=2'
  export ASAN_OPTIONS
- make utest_no_sys utest_lua utest_tcl USE_ASAN=1
+ make utest_no_sys uctest_no_sys utest_lua utest_tcl USE_ASAN=1
 }
 ###############################################################################
 # Run unit tests with valgrind tool

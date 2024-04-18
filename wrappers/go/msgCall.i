@@ -103,8 +103,9 @@ func MessageBuilderBuildTlv(self MessageBuilderIf, msg Message,
       inputs[0] = reflect.ValueOf(msg)
       inputs[1] = reflect.ValueOf(tlv)
       ret := mthd.Call(inputs)
-      if val, ok := ret[0].Interface().(bool); ok && val {
-        return msg.SetAction(actionField, tlv_id, tlv)
+      if val, ok := ret[0].Interface().(bool); ok && val &&
+        msg.SetAction(actionField, tlv_id, tlv) {
+          return true;
       }
     }
     /* Resource comes from C++, we should release unless we use it */

@@ -115,7 +115,9 @@ tcltest::test test_buildEmptyTLV {Tests build empty TLV
     set build [ myBuild new $msg ]
 } -body {
     set ret [ $build buildTlv $ptpmgmt::COMMAND $ptpmgmt::ENABLE_PORT ]
-    return [list $ret [ $build run ]]
+    set ret2 [ $build run ]
+    $build clear
+    return [list $ret $ret2]
     # Call setAction without a TLV
     # SWIG convert C++ 'true' to TCL '1'
 } -result {1 0}
@@ -128,7 +130,9 @@ tcltest::test test_buildTLV {Tests build TLV
     set build [ myBuild new $msg ]
 } -body {
     set ret [ $build buildTlv $ptpmgmt::SET $ptpmgmt::PRIORITY1 ]
-    return [list $ret [ $build run ]]
+    set ret2 [ $build run ]
+    $build clear
+    return [list $ret $ret2]
     # Call setAction with a TLV success
     # ptpmgmt::MessageBuilder return TCL 'true'
 } -result {true 1}
@@ -141,7 +145,9 @@ tcltest::test test_buildTLVNoCallback {Tests build TLV that lack callback
     set build [ myBuild new $msg ]
 } -body {
     set ret [ $build buildTlv $ptpmgmt::SET $ptpmgmt::PRIORITY2 ]
-    return [list $ret [ $build run ]]
+    set ret2 [ $build run ]
+    $build clear
+    return [list $ret $ret2]
     # No callback, function fails
     # ptpmgmt::MessageBuilder return TCL 'false'
 } -result {false 0}

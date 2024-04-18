@@ -180,6 +180,7 @@ TEST_F(MessageBuilderTest, BuildEmptyTLV)
 {
     EXPECT_TRUE(buildTlv(COMMAND, ENABLE_PORT));
     EXPECT_FALSE(have_priority1);
+    clear();
 }
 
 // Tests build TLV that lack callback
@@ -188,6 +189,7 @@ TEST_F(MessageBuilderTest, BuildNOCallback)
 {
     EXPECT_FALSE(buildTlv(SET, PRIORITY2));
     EXPECT_FALSE(have_priority1);
+    clear();
 }
 
 // Tests build TLV that have callback
@@ -196,4 +198,5 @@ TEST_F(MessageBuilderTest, BuildWithCallback)
 {
     EXPECT_TRUE(buildTlv(SET, PRIORITY1));
     EXPECT_TRUE(have_priority1);
+    clear();
 }

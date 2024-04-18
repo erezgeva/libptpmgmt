@@ -87,7 +87,7 @@ sub setPriority1
   my $txt = PtpMgmtLib::Message::err2str_c($err);
   die "build error $txt\n" if $err != $PtpMgmtLib::MNG_PARSE_ERROR_OK;
   die "send" unless $sk->send($buf, $msg->getMsgLen());
-  $msg->clearData() unless $useBuild;
+  $msg->clearData();
 
   return printError("timeout") unless $sk->poll(500);
 

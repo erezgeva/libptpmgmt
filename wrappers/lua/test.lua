@@ -91,9 +91,7 @@ function setPriority1(newPriority1)
   if(not sk:send(buf, msg:getMsgLen())) then
     return printError("send fail")
   end
-  if(not useBuild) then
-    msg:clearData()
-  end
+  msg:clearData()
   if(not sk:poll(500)) then
     return printError("timeout")
   end
@@ -165,7 +163,7 @@ function main()
   local prms = msg:getParams()
   -- When using Lua 5.3, you can use "and" bitwise operator.
   -- Lua 5.1 does not support bitwise operators.
-  local pid = unistd.getpid();
+  local pid = unistd.getpid()
   while pid > 0xffff do
     pid = pid - 0xffff
   end
@@ -252,7 +250,7 @@ function main()
   e.eventEgressTimestamp:fromFloat(4.5)
   evnts:push_back(e)
   print(string.format("Events size %d, seq[0]=%d, ts[0]=%s", evnts:size(),
-      evnts[0].sequenceId, evnts[0].eventEgressTimestamp:string()));
+      evnts[0].sequenceId, evnts[0].eventEgressTimestamp:string()))
   return 0
 end
 

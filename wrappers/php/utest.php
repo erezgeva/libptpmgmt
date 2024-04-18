@@ -91,18 +91,21 @@ final class utest extends TestCase
     public function test_buildEmptyTlv(): void {
       $this->assertTrue($this->build->buildTlv(ptpmgmt::COMMAND, ptpmgmt::ENABLE_PORT), 'should pass');
       $this->assertEquals(0, $this->build->run, "shouldn't call PRIORITY1 callback");
+      $this->build->clear();
     }
 
     # Tests build TLV
     public function test_buildTlv(): void {
       $this->assertTrue($this->build->buildTlv(ptpmgmt::SET, ptpmgmt::PRIORITY1), 'should pass');
       $this->assertEquals(1, $this->build->run, 'should call PRIORITY1 callback');
+      $this->build->clear();
     }
 
     # Tests build TLV that lack callback
     public function test_buildTlvWithoutCallback(): void {
       $this->assertFalse($this->build->buildTlv(ptpmgmt::SET, ptpmgmt::PRIORITY2), 'should no pass');
       $this->assertEquals(0, $this->build->run, "shouldn't call PRIORITY1 callback");
+      $this->build->clear();
     }
 }
 # LD_PRELOAD=../../libptpmgmt.so PHPRC=. phpunit ./utest.php

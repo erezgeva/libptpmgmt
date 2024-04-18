@@ -69,8 +69,7 @@ def setPriority1(newPriority1):
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
     return printError("send fail")
-  if not useBuild:
-    msg.clearData()
+  msg.clearData()
   if not sk.poll(500):
     return printError("timeout")
   cnt = sk.rcv(buf)

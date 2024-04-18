@@ -21,8 +21,8 @@ $(PHP_D)/php.ini:
 	$(Q)$(PHP_D)/php_ini.sh
 ifneq ($(PHPUNIT),)
 utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so $(PHP_D)/php.ini
-	$(call Q_UTEST,PHP)LD_PRELOAD=./$< PHPRC=$(PHP_D) phpunit $(PHP_D)/utest.php\
-	  $(PHP_NO_COL) $(PHP_FILTERS)
+	$(call Q_UTEST,PHP)LD_PRELOAD=$(ASAN_PRE)./$< PHPRC=$(PHP_D) phpunit\
+	  $(PHP_D)/utest.php $(PHP_NO_COL) $(PHP_FILTERS)
 endif
 
 install_php:

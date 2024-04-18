@@ -243,7 +243,7 @@ _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
 
-#if defined SWIGLUA || defined SWIGTCL || defined SWIGGO || defined SWIGRUBY
+#if defined SWIGLUA || defined SWIGTCL || defined SWIGGO
 /* MessageDispatcher and MessageBuilder classes per language */
 %include "msgCall.i"
 #else

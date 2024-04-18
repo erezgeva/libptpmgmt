@@ -20,7 +20,7 @@ dnl
  */
 
 %{
-BaseMngTlv *allocTlv(mng_vals_e id) {
+BaseMngTlv *AllocTlv(mng_vals_e id) {
   switch(id) {
 define(D,`case $1: return new $1_t;')dnl
 define(A, `ifelse(regexp($6, `^UF', `0'),`0',`D($1)',`dnl')')dnl
@@ -30,11 +30,11 @@ include(ids_base.m4)dnl
   }
   return nullptr;
 }
-void freeTlv(BaseMngTlv *tlv) {
+void FreeTlv(BaseMngTlv *tlv) {
   if (tlv != nullptr)
     delete tlv;
 }
 %}
 
-BaseMngTlv *allocTlv(mng_vals_e);
-void freeTlv(BaseMngTlv *tlv);
+BaseMngTlv *AllocTlv(mng_vals_e);
+void FreeTlv(BaseMngTlv *tlv);

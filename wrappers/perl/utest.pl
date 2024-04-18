@@ -119,6 +119,7 @@ sub test_buildEmptyTLV : Test(2) {
     ok($build->buildTlv($PtpMgmtLib::COMMAND, $PtpMgmtLib::ENABLE_PORT),
        'test_buildEmptyTLV pass');
     is($build->{run}, 0, 'test_buildEmptyTLV do not need PRIORITY1 callback');
+    $build->clear();
 }
 
 # Tests build TLV
@@ -129,6 +130,7 @@ sub test_buildTLV : Test(2) {
     ok($build->buildTlv($PtpMgmtLib::SET, $PtpMgmtLib::PRIORITY1),
        'test_buildTLV pass');
     is($build->{run}, 1, 'test_buildTLV call PRIORITY1 callback');
+    $build->clear();
 }
 
 # Tests build TLV that lack callback
@@ -139,6 +141,7 @@ sub test_buildTLVNoCallback : Test(2) {
     ok(!$build->buildTlv($PtpMgmtLib::SET, $PtpMgmtLib::PRIORITY2),
        'test_buildTLVNoCallback no callback');
     is($build->{run}, 0, 'test_buildTLVNoCallback do not have callback');
+    $build->clear();
 }
 } # package Testing
 
