@@ -431,8 +431,8 @@ $(PUB)/ver.h: $(SRC)/ver.h.in
 	$(Q_GEN)$(SED) $(foreach n,PACKAGE_VERSION_MAJ PACKAGE_VERSION_MIN\
 	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
-HAVE_LIST:=$(foreach n,NET_IF_H NETINET_IN_H SYS_UN_H GETOPT_H SYS_TYPES_H\
-	  UNISTD_H,$(if $(HAVE_$(n)), HAVE_$n))
+HAVE_LIST:=$(foreach n,UNISTD_H SYS_TYPES_H SYS_UN_H NETINET_IN_H\
+	  GETOPT_H,$(if $(HAVE_$(n)), HAVE_$n))
 $(PUB)/name.h: $(SRC)/name.h.in
 	$(Q_GEN)$(SED) $(foreach n,$(HAVE_LIST),\
 	  -e 's/undef __PTPMGMT_$(n)$$/define __PTPMGMT_$(n) 1/') $< > $@

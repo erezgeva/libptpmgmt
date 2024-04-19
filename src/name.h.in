@@ -69,18 +69,6 @@
  */
 #undef __PTPMGMT_HAVE_UNISTD_H
 
-/* Defined if we have the POSIX <net/if.h> header.
- * Sockets local interfaces.
- * url: <base>/net/if.h.html
- */
-#undef __PTPMGMT_HAVE_NET_IF_H
-
-/* Defined if we have the POSIX <netinet/in.h> header.
- * Internet address family.
- * url: <base>/netinet/in.h.html
- */
-#undef __PTPMGMT_HAVE_NETINET_IN_H
-
 /* Defined if we have the POSIX <sys/types.h> header.
  * Data types.
  * url: <base>/sys/types.h.html
@@ -92,6 +80,12 @@
  * url: <base>/sys/un.h.html
  */
 #undef __PTPMGMT_HAVE_SYS_UN_H
+
+/* Defined if we have the POSIX <netinet/in.h> header.
+ * Internet address family.
+ * url: <base>/netinet/in.h.html
+ */
+#undef __PTPMGMT_HAVE_NETINET_IN_H
 
 /* Defined if we have the GNU <getopt.h> header.
  * GNU-style long options getopt.

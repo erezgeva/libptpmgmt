@@ -28,7 +28,14 @@ ics(TYPES)
 cpp_st()dnl
 incpp(<map>)dnl
 incpp("bin.h")dnl
+inc("name.h")dnl
+c_cod(`#ifdef __PTPMGMT_HAVE_SYS_TYPES_H')dnl
 inc(<sys/types.h>)dnl
+c_cod(`#else')dnl
+c_cod(`/**< @cond internal */')dnl
+c_cod(`typedef long ssize_t;')dnl
+c_cod(`/**< @endcond */')dnl
+c_cod(`#endif /* __PTPMGMT_HAVE_SYS_TYPES_H */')dnl
 incb(mngIds)
 
 ns_s()dnl

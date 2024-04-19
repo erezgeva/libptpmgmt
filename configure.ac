@@ -109,7 +109,6 @@ AS_UNSET([CXX_VERSION])
 AS_UNSET([CXX_COLOR_USE])
 AS_UNSET([CXX_COLOR_NONE])
 AS_UNSET([ENDIAN])
-AS_UNSET([HAVE_NET_IF_H])
 AS_UNSET([HAVE_NETINET_IN_H])
 AS_UNSET([HAVE_SYS_UN_H])
 AS_UNSET([HAVE_GETOPT_H])
@@ -165,18 +164,18 @@ AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags"])
 
 # POSIX/GNU headers included by inner source code
 AC_CHECK_HEADERS(byteswap.h dirent.h dlfcn.h endian.h fcntl.h pwd.h poll.h
-   sys/ioctl.h sys/select.h sys/socket.h sys/time.h sys/timex.h arpa/inet.h)
+   sys/ioctl.h sys/select.h sys/socket.h sys/time.h sys/timex.h
+   net/if.h arpa/inet.h)
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([strtok_r strtok_s strnlen_s strerror_s strerrorlen_s])
 AC_CONFIG_HEADERS([src/config.h])
 
 # POSIX/GNU headers included by library public headers
-AC_CHECK_HEADER([net/if.h], [AS_VAR_SET([HAVE_NET_IF_H], [1])])
-AC_CHECK_HEADER([netinet/in.h], [AS_VAR_SET([HAVE_NETINET_IN_H], [1])])
-AC_CHECK_HEADER([sys/un.h], [AS_VAR_SET([HAVE_SYS_UN_H], [1])])
-AC_CHECK_HEADER([getopt.h], [AS_VAR_SET([HAVE_GETOPT_H], [1])])
-AC_CHECK_HEADER([sys/types.h], [AS_VAR_SET([HAVE_SYS_TYPES_H], [1])])
 AC_CHECK_HEADER([unistd.h], [AS_VAR_SET([HAVE_UNISTD_H], [1])])
+AC_CHECK_HEADER([sys/types.h], [AS_VAR_SET([HAVE_SYS_TYPES_H], [1])])
+AC_CHECK_HEADER([sys/un.h], [AS_VAR_SET([HAVE_SYS_UN_H], [1])])
+AC_CHECK_HEADER([netinet/in.h], [AS_VAR_SET([HAVE_NETINET_IN_H], [1])])
+AC_CHECK_HEADER([getopt.h], [AS_VAR_SET([HAVE_GETOPT_H], [1])])
 
 AC_C_BIGENDIAN([AS_VAR_SET([ENDIAN], ['big'])],
                [AS_VAR_SET([ENDIAN], ['little'])],
@@ -191,7 +190,6 @@ AC_SUBST([CXX_VERSION])
 AC_SUBST([CXX_COLOR_USE])
 AC_SUBST([CXX_COLOR_NONE])
 AC_SUBST([ENDIAN])
-AC_SUBST([HAVE_NET_IF_H])
 AC_SUBST([HAVE_NETINET_IN_H])
 AC_SUBST([HAVE_SYS_UN_H])
 AC_SUBST([HAVE_GETOPT_H])
