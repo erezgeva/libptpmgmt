@@ -12,6 +12,7 @@
 # - gitlab_docker:  Logging into GitLab Docker Server
 # - ci_build:       Build and install packages
 # - ci_pkgs:        Test with linuxptp
+# - ci_abi:         Compart ABI of current library with last version
 # - utest_address:  Run unit tests with Address Sanitizer
 # - utest_valgrid:  Run unit tests with valgrind tool
 # - cp_license:     Follow FSF RESUSE Specification
@@ -22,6 +23,11 @@
 #                   Updating major version is done with the '-m' flag.
 # - config_report:  Show configuration summary
 # - sim_ptp4l:      Run ptp4l with a dummy clock and call the testing
+###############################################################################
+emk()
+{
+ make $* > /dev/null
+}
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
 ci_address()
@@ -114,6 +120,28 @@ ci_pkgs()
  # Check development package
  gcc -Wall sample/check_ver.c -o check_ver -lptpmgmt
  ./check_ver
+}
+###############################################################################
+# Compart ABI of current library with last version
+ci_abi()
+{
+ echo "== Build current version =="
+ emk config
+ emk libptpmgmt.so
+ echo "== Dump current version =="
+ abi-dumper libptpmgmt.so -o cur.dump -lver 1 -public-headers pub
+ local -r l="$(git tag | grep '^[0-9.]*$' | sort -n | tail -1)"
+ echo "== Build last tag $l =="
+ git checkout $l
+ make clean
+ emk config
+ emk libptpmgmt.so
+ echo "== Dump last tag version =="
+ abi-dumper libptpmgmt.so -o old.dump -lver 0 -public-headers pub
+ echo "== Compare ABI =="
+ if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
+   echo "== Found errors =="
+ fi
 }
 ###############################################################################
 # Run unit tests with Address Sanitizer
@@ -378,6 +406,7 @@ main()
   gitlab_docker.sh)  gitlab_docker "$@";;
   ci_build.sh)       ci_build "$@";;
   ci_pkgs.sh)        ci_pkgs "$@";;
+  ci_abi.sh)         ci_abi "$@";;
   utest_address.sh)  utest_address "$@";;
   utest_valgrid.sh)  utest_valgrid "$@";;
   cp_license.sh)     cp_license "$@";;

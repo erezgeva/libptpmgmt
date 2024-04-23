@@ -16,6 +16,7 @@ name: continuous integration
 
 # On evry push and Pull Request (PR)
 on: [push, pull_request]
+
 env:
   USER: builder
 
