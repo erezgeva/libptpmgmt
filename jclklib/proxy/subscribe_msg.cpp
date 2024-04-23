@@ -9,10 +9,14 @@
 #include <proxy/clock_config.hpp>
 #include <proxy/client.hpp>
 #include <common/print.hpp>
+#include <common/serialize.hpp>
+#include <common/message.hpp>
 
 using namespace std;
 using namespace JClkLibProxy;
 using namespace JClkLibCommon;
+
+extern JClkLibCommon::ptp_event pe;
 
 /** @brief Create the ProxySubscribeMessage object
  *
@@ -36,6 +40,19 @@ MAKE_RXBUFFER_TYPE(ProxySubscribeMessage::buildMessage)
 bool ProxySubscribeMessage::initMessage()
 {
 	addMessageType(parseMsgMapElement_t(SUBSCRIBE_MSG, buildMessage));
+	return true;
+}
+
+BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
+{
+	PrintDebug("[ProxySubscribeMessage]::makeBuffer");
+	if(!Message::makeBuffer(TxContext))
+		return false;
+
+	/* Add ptp data here */
+	if (!WRITE_TX(FIELD, pe, TxContext))
+		return false;
+
 	return true;
 }
 

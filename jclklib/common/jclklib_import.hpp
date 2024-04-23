@@ -97,6 +97,13 @@ namespace JClkLibCommon
 		DECLARE_ACCESSOR(event);
 		DECLARE_ACCESSOR(value);
 	};
+
+	struct ptp_event {
+		int64_t master_offset;
+		uint8_t gmIdentity[8]; /* Grandmaster clock ID */
+		int32_t asCapable; /* 802@.1AS Capable */
+		uint8_t servo_state;
+	};
 }
 
 #endif/*JCLKLIB_IMPORT_HPP*/

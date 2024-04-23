@@ -41,24 +41,17 @@ struct port_info {
     bool local;
 };
 
-struct ptp_event {
-    int64_t master_offset;
-    ClockIdentity_t gmIdentity; /**< Grandmaster clock ID */
-    Integer32_t asCapable; /**< Flag for 802@.1AS Capable */
-    int64_t servo_state;
-};
-
 int epd;
 struct epoll_event epd_event;
 SUBSCRIBE_EVENTS_NP_t d;
-ptp_event pe;
+JClkLibCommon::ptp_event pe;
 
 void event_handle()
 {
     const BaseMngTlv *data = msg.getData();
     int64_t offset;
     ClockIdentity_t gm_uuid;
-    int64_t servo;
+    uint8_t servo;
     switch(msg.getTlvId()) {
         case TIME_STATUS_NP:
             offset = ((TIME_STATUS_NP_t *)data)->master_offset;
@@ -67,10 +60,14 @@ void event_handle()
 
             pe.master_offset = offset;
             pe.servo_state = servo;
-            pe.gmIdentity = gm_uuid;
+            memcpy(pe.gmIdentity, gm_uuid.v, sizeof(pe.gmIdentity));
 
             //TODO: Add debug flag checking, only print if the flag is set
-            printf("master_offset = %ld, servo_state = %ld, gmIdentity = %lx\n\n", pe.master_offset, pe.servo_state, pe.gmIdentity);
+            printf("master_offset = %ld, servo_state = %d ", pe.master_offset, pe.servo_state);
+            printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
+                   pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
+                   pe.gmIdentity[3], pe.gmIdentity[4],
+                   pe.gmIdentity[5], pe.gmIdentity[6],pe.gmIdentity[7]);
             return;
         case PORT_DATA_SET_NP:
             pe.asCapable = ((PORT_DATA_SET_NP_t *)data)->asCapable;

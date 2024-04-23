@@ -39,6 +39,8 @@ namespace JClkLibClient
 		 * @return true
 		 */
 		static bool initMessage();
+
+		virtual PARSE_RXBUFFER_TYPE(parseBuffer);
 	};
 }
 

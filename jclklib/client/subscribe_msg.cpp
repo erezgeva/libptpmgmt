@@ -6,6 +6,7 @@
 */
 
 #include <client/subscribe_msg.hpp>
+#include <common/serialize.hpp>
 #include <common/print.hpp>
 
 using namespace JClkLibClient;
@@ -38,6 +39,26 @@ bool ClientSubscribeMessage::initMessage()
         PrintDebug("[ClientSubscribeMessage]::initMessage()");
         addMessageType(parseMsgMapElement_t(SUBSCRIBE_MSG, buildMessage));
         return true;
+}
+
+PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
+	JClkLibCommon::ptp_event data;
+
+	PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
+	if(!Message::parseBuffer(LxContext))
+		return false;
+
+	if (!PARSE_RX(FIELD, data, LxContext))
+		return false;
+
+	printf("master_offset = %ld, servo_state = %d ", data.master_offset, data.servo_state);
+	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x ",
+		data.gmIdentity[0], data.gmIdentity[1],data.gmIdentity[2],
+		data.gmIdentity[3], data.gmIdentity[4],
+		data.gmIdentity[5], data.gmIdentity[6],data.gmIdentity[7]);
+	printf("asCapable = %d\n\n", data.asCapable);
+
+	return true;
 }
 
 /** @brief process the reply for notification msg from proxy.
