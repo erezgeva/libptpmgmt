@@ -614,6 +614,11 @@ MNG_PARSE_ERROR_e Message::parseSig(MsgProc *pMp)
     }
     return MNG_PARSE_ERROR_SIG; // We have signalling message
 }
+bool Message::isLastMsgSMPTE() const
+{
+    return m_type == Management && m_mngType == ORGANIZATION_EXTENSION &&
+        m_replayTlv_id == SMPTE_MNG_ID;
+}
 bool Message::traversSigTlvs(function<bool (const Message &msg,
         tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const
 {
@@ -1554,6 +1559,7 @@ extern "C" {
         return nullptr;
     }
     C2CPP_ret(bool, isLastMsgSig, false)
+    C2CPP_ret(bool, isLastMsgSMPTE, false)
     C2CPP_cret(getType, msgType_e, ptpmgmt_Management)
     C2CPP_cret(getMngType, tlvType_e, PTPMGMT_MANAGEMENT)
     static bool ptpmgmt_msg_traversSigTlvs(ptpmgmt_msg m, void *cookie,
@@ -1696,6 +1702,7 @@ extern "C" {
         C_ASGN(getErrId);
         C_ASGN(getErrDisplay);
         C_ASGN(isLastMsgSig);
+        C_ASGN(isLastMsgSMPTE);
         C_ASGN(getType);
         C_ASGN(getMngType);
         C_ASGN(traversSigTlvs);

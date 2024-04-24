@@ -515,7 +515,7 @@ TEST(SMPTETest, SMPTE_Org)
     a.rcvSMPTEOrg = 1;
     EXPECT_TRUE(m.updateParams(a));
     ASSERT_EQ(m.parse(b, sizeof b), MNG_PARSE_ERROR_SMPTE);
-    ASSERT_EQ(m.getTlvId(), SMPTE_MNG_ID);
+    ASSERT_TRUE(m.isLastMsgSMPTE());
     ASSERT_EQ(m.getReplyAction(), COMMAND);
     const BaseMngTlv *t = m.getData();
     ASSERT_NE(t, nullptr);

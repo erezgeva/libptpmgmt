@@ -210,12 +210,20 @@ class Binary
      * Convert Binary ID to string
      * @param[in] id pointer to memory buffer
      * @param[in] length of memory buffer
+     * @return address
+     * @note Support MAC addresses
+     */
+    static std::string bufToId(const uint8_t *id, size_t length);
+    /**
+     * Convert Binary ID to string with a selected seperator
+     * @param[in] id pointer to memory buffer
+     * @param[in] length of memory buffer
      * @param[in] sep seperator to use
      * @return address
      * @note Support MAC addresses
      */
     static std::string bufToId(const uint8_t *id, size_t length,
-        const std::string &sep = ":");
+        const std::string &sep);
     /**
      * Convert ID address string to Binary
      * @param[in] string address

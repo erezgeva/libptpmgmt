@@ -282,7 +282,7 @@ TEST(BinaryTest, MethodFromIPDomain)
 }
 
 // Test convert ID from binary to text
-// std::string toId() const
+// std::string toId(const std::string &sep = ":") const
 TEST(BinaryTest, MethodToID)
 {
     Binary f("\x1b\xba\x23");
@@ -292,6 +292,8 @@ TEST(BinaryTest, MethodToID)
 
 // Test convert ID from binary to text
 // static std::string bufToId(const uint8_t *id, size_t length)
+// static std::string bufToId(const uint8_t *id, size_t length,
+//     const std::string &sep)
 TEST(BinaryTest, MethodBufToId)
 {
     const uint8_t input[] = "\x1b\xba\x23";

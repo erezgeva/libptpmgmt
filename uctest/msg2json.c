@@ -1557,7 +1557,7 @@ Test(Tlv2JsonTest, SMPTE_ORGANIZATION_EXTENSION)
     a->rcvSMPTEOrg = 1;
     cr_expect(msg->updateParams(msg, a));
     cr_assert(eq(int, msg->parse(msg, b, sizeof b), PTPMGMT_MNG_PARSE_ERROR_SMPTE));
-    cr_assert(eq(int, msg->getTlvId(msg), PTPMGMT_SMPTE_MNG_ID));
+    cr_assert(msg->isLastMsgSMPTE(msg));
     char *ret = ptpmgmt_json_msg2json(msg, 0);
     cr_assert(not(zero(ptr, ret)));
     cr_assert(eq(str, (char *)ret,

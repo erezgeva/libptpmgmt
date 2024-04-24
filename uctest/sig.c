@@ -652,7 +652,7 @@ Test(SMPTETest, SMPTE_Org)
     a->rcvSMPTEOrg = 1;
     cr_expect(m->updateParams(m, a));
     cr_assert(eq(int, m->parse(m, b, sizeof b), PTPMGMT_MNG_PARSE_ERROR_SMPTE));
-    cr_assert(eq(int, m->getTlvId(m), PTPMGMT_SMPTE_MNG_ID));
+    cr_assert(m->isLastMsgSMPTE(m));
     cr_assert(eq(int, m->getReplyAction(m), PTPMGMT_COMMAND));
     const void *t = m->getData(m);
     cr_assert(not(zero(ptr, (void *)t)));

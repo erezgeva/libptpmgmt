@@ -279,6 +279,10 @@ bool Binary::fromIp(const string &string)
         return false;
     return fromIp(string, domain);
 }
+string Binary::bufToId(const uint8_t *id, size_t len)
+{
+    return bufToId(id, len, ":");
+}
 string Binary::bufToId(const uint8_t *id, size_t len, const std::string &sep)
 {
     if(len < 1)

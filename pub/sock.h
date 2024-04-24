@@ -265,6 +265,15 @@ class SockUnix : public SockBase
     /**
      * Set self address
      * @param[in] string object with self address
+     * @return true if self address is updated
+     * @note address can not be changed after initializing.
+     *  User can close the socket, change this value, and
+     *  initialize a new socket.
+     */
+    bool setSelfAddress(const std::string &string);
+    /**
+     * Set self address
+     * @param[in] string object with self address
      * @param[in] useAbstract use Abstract socket address
      * @return true if self address is updated
      * @note address can not be changed after initializing.
@@ -273,7 +282,7 @@ class SockUnix : public SockBase
      * @note useAbstract add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool setSelfAddress(const std::string &string, bool useAbstract = false);
+    bool setSelfAddress(const std::string &string, bool useAbstract);
     /**
      * Set self address using predefined algorithm
      * @param[in] rootBase base used for root user
@@ -300,6 +309,16 @@ class SockUnix : public SockBase
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix socket address (socket file)
+     * @return true if message is sent
+     * @note true does @b NOT guarantee the frame was successfully
+     *  arrives its target. Only the network layer sends it.
+     */
+    bool sendTo(const void *msg, size_t len, const std::string &addrStr) const;
+    /**
+     * Send the message using the socket to a specific address
+     * @param[in] msg pointer to message memory buffer
+     * @param[in] len message length
+     * @param[in] addrStr Unix socket address (socket file)
      * @param[in] useAbstract use Abstract socket address
      * @return true if message is sent
      * @note true does @b NOT guarantee the frame was successfully
@@ -308,7 +327,7 @@ class SockUnix : public SockBase
      *       to mark it as abstract socket address
      */
     bool sendTo(const void *msg, size_t len, const std::string &addrStr,
-        bool useAbstract = false) const;
+        bool useAbstract) const;
     /**
      * Send the message using the socket to a specific address
      * @param[in] buf object with message memory buffer

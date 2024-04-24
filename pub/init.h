@@ -84,7 +84,7 @@ class Init
     /** @cond internal
      * obsolete function: misspelled
      */
-    __PTPMGMT_DEPRECATED(int proccess(const Options &opt), return process(opt))
+    __PTPMGMT_DEPRECATED_DEC(int proccess(const Options &opt))
     /**< @endcond */
 };
 

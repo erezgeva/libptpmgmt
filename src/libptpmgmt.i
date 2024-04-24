@@ -37,8 +37,10 @@
 #ifdef SWIGGO
 /* go is used for development only, no need for obsolete functions */
 #define __PTPMGMT_DEPRECATED(_func, _body)
+#define __PTPMGMT_DEPRECATED_DEC(_func)
 #else
 #define __PTPMGMT_DEPRECATED(_func, _body) _func { _body; }
+#define __PTPMGMT_DEPRECATED_DEC(_func) _func;
 #endif
 /* Handle multithreads support. */
 #ifdef SWIG_USE_MULTITHREADS

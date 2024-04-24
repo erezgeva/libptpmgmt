@@ -464,6 +464,12 @@ struct ptpmgmt_msg_t {
      */
     bool (*isLastMsgSig)(const_ptpmgmt_msg msg);
     /**
+     * query if last message is a SMPTE message
+     * @param[in] msg object
+     * @return true if last message is a SMPTE message
+     */
+    bool (*isLastMsgSMPTE)(const_ptpmgmt_msg msg);
+    /**
      * Get message type
      * @param[in] msg object
      * @return message type

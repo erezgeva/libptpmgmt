@@ -24,6 +24,11 @@ void Init::close()
         s->close();
 }
 
+// obsolete function: misspelled
+int Init::proccess(const Options &opt)
+{
+    return process(opt);
+}
 int Init::process(const Options &opt)
 {
     char net_select = opt.get_net_transport();

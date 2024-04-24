@@ -226,6 +226,10 @@ bool SockUnix::setPeerInternal(const string &str, bool useAbstract)
     PTPMGMT_ERROR_CLR;
     return true;
 }
+bool SockUnix::setSelfAddress(const string &str)
+{
+    return setSelfAddress(str, false);
+}
 bool SockUnix::setSelfAddress(const string &str, bool useAbstract)
 {
     if(m_isInit) {
@@ -277,7 +281,7 @@ bool SockUnix::setDefSelfAddress(const string &rootBase, const string &useDef)
             new_me = rootBase;
     }
     new_me += to_string(getpid());
-    return setSelfAddress(new_me);
+    return setSelfAddress(new_me, false);
 }
 const string &SockUnix::getHomeDir()
 {
@@ -306,6 +310,10 @@ bool SockUnix::sendBase(const void *msg, size_t len)
     if(!testUnix(m_peer))
         return false;
     return sendAny(msg, len, m_peerAddr);
+}
+bool SockUnix::sendTo(const void *msg, size_t len, const string &addrStr) const
+{
+    return sendTo(msg, len, addrStr, false);
 }
 bool SockUnix::sendTo(const void *msg, size_t len, const string &addrStr,
     bool useAbstract) const
@@ -1018,7 +1026,7 @@ extern "C" {
     {
         SockUnix *s = valid_usk(sk);
         if(s != nullptr && str != nullptr)
-            return s->setSelfAddress(str);
+            return s->setSelfAddress(str, false);
         return false;
     }
     static bool non_ptpmgmt_sk_setSelfAddressAbstract(ptpmgmt_sk, const char *)
@@ -1069,7 +1077,7 @@ extern "C" {
     {
         SockUnix *s = valid_usk(sk);
         if(s != nullptr && msg != nullptr && addrStr != nullptr && len > 0)
-            return s->sendTo(msg, len, addrStr);
+            return s->sendTo(msg, len, addrStr, false);
         return false;
     }
     static bool non_ptpmgmt_sk_sendToA(ptpmgmt_sk, const void *, size_t,

@@ -530,6 +530,11 @@ class Message
      */
     bool isLastMsgSig() const { return m_type == Signaling; }
     /**
+     * query if last message is a SMPTE message
+     * @return true if last message is a SMPTE message
+     */
+    bool isLastMsgSMPTE() const;
+    /**
      * Get message type
      * @return message type
      */

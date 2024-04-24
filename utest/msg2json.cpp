@@ -1263,7 +1263,7 @@ TEST(Tlv2JsonTest, SMPTE_ORGANIZATION_EXTENSION)
     a.rcvSMPTEOrg = 1;
     EXPECT_TRUE(msg.updateParams(a));
     ASSERT_EQ(msg.parse(b, sizeof b), MNG_PARSE_ERROR_SMPTE);
-    ASSERT_EQ(msg.getTlvId(), SMPTE_MNG_ID);
+    ASSERT_TRUE(msg.isLastMsgSMPTE());
     EXPECT_STREQ(msg2json(msg).c_str(),
         "{\n"
         "  \"sequenceId\" : 0,\n"

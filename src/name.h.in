@@ -30,6 +30,7 @@
 #endif /* __PTPMGMT_NAMESPACE_BEGIN */
 #if __cplusplus >= 201309L /* C++14 */
 #define __PTPMGMT_DEPRECATED(_func, _body) [[deprecated]] _func { _body; }
+#define __PTPMGMT_DEPRECATED_DEC(_func) [[deprecated]] _func;
 #endif
 
 #else /* __cplusplus */
@@ -48,10 +49,13 @@
 #ifdef __GNUC__
 #define __PTPMGMT_DEPRECATED(_func, _body)\
     _func __attribute__ ((deprecated)) { _body; }
+#define __PTPMGMT_DEPRECATED_DEC(_func) _func __attribute__ ((deprecated));
 #elif defined(_MSC_VER)
 #define __PTPMGMT_DEPRECATED(_func, _body) __declspec(deprecated) _func { _body; }
+#define __PTPMGMT_DEPRECATED_DEC(_func) __declspec(deprecated) _func;
 #else
 #define __PTPMGMT_DEPRECATED(_func, _body) _func { _body; }
+#define __PTPMGMT_DEPRECATED_DEC(_func) _func;
 #endif
 #endif /* __PTPMGMT_DEPRECATED */
 

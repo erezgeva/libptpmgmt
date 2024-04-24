@@ -39,9 +39,11 @@ cpp_cod(`')dnl
 enm(mng_vals_e) {
 define(A, `    NM($1),')dnl
 include(ids_base.m4)dnl
+    /**< @cond internal */
     NM(LAST_MNG_ID), /**< Last management ID excluded */
     NM(SMPTE_MNG_ID), /**< SMPTE Organization Extension TLV */
 cpp_cod(`    FIRST_MNG_ID = NULL_PTP_MANAGEMENT, /**< First management ID */')dnl
+    /**< @endcond */
 cpp_cod(`    NULL_MANAGEMENT = NULL_PTP_MANAGEMENT /**< old name in IEEE 1588-2008 */')dnl
 };
 ns_e()dnl
