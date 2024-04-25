@@ -103,6 +103,7 @@ namespace JClkLibCommon
 		uint8_t gmIdentity[8]; /* Grandmaster clock ID */
 		int32_t asCapable; /* 802@.1AS Capable */
 		uint8_t servo_state;
+		uint8_t ptp4l_id;
 	};
 }
 

@@ -7,6 +7,8 @@
 
 #include <client/connect_msg.hpp>
 #include <common/print.hpp>
+#include <common/serialize.hpp>
+#include <common/jclklib_import.hpp>
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
@@ -36,6 +38,21 @@ bool ClientConnectMessage::initMessage()
 {
         addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
         return true;
+}
+
+PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer) {
+	JClkLibCommon::ptp_event data;
+
+	PrintDebug("[ClientConnectMessage]::parseBuffer ");
+	if(!CommonConnectMessage::parseBuffer(LxContext))
+		return false;
+
+	if (!PARSE_RX(FIELD, data.ptp4l_id, LxContext))
+		return false;
+
+	printf("ptp4l_id = %d\n\n", data.ptp4l_id);
+
+	return true;
 }
 
 /** @brief process the reply for connect msg from proxy.

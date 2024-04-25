@@ -32,6 +32,7 @@ namespace JClkLibClient
 		 * @return true
 		 */
 		virtual PROCESS_MESSAGE_TYPE(processMessage);
+		virtual PARSE_RXBUFFER_TYPE(parseBuffer);
 
 		/**
 		 * @brief Create the ClientConnectMessage object

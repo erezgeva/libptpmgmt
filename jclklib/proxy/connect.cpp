@@ -36,7 +36,6 @@ static std::unique_ptr<SockBase> m_sk;
 
 struct port_info {
     PortIdentity_t portid;
-    std::string interface;
     int64_t master_offset;
     bool local;
 };
@@ -44,7 +43,7 @@ struct port_info {
 int epd;
 struct epoll_event epd_event;
 SUBSCRIBE_EVENTS_NP_t d;
-JClkLibCommon::ptp_event pe;
+JClkLibCommon::ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0 , 0 , 0};
 
 void event_handle()
 {
@@ -216,17 +215,20 @@ int Connect::connect()
     MsgParams prms = msg.getParams();
     prms.boundaryHops = 0;
 
-    std::string interface;
     std::unique_ptr<SockBase> m_sk;
     std::string uds_address;
 
-    //TODO: hard-coded the interface
-    interface = "enp1s0";
     SockUnix *sku = new SockUnix;
     if(sku == nullptr) {
         return -1;
     }
     m_sk.reset(sku);
+
+    while (system("ls /var/run/ptp4l*") != 0) {
+        //sleep for 2 seconds and keep looping until there is ptp4l available
+        sleep(2);
+    }
+    pe.ptp4l_id = 1;
 
     //TODO: hard-coded uds_socket
     uds_address = "/var/run/ptp4l";

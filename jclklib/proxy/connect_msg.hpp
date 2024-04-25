@@ -25,6 +25,7 @@ namespace JClkLibProxy
 		 * @return true
 		 */
 		virtual PROCESS_MESSAGE_TYPE(processMessage);
+		virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
 		bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
 				      const ClockStatus &status)

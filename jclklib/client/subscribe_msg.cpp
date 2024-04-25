@@ -56,7 +56,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 		data.gmIdentity[0], data.gmIdentity[1],data.gmIdentity[2],
 		data.gmIdentity[3], data.gmIdentity[4],
 		data.gmIdentity[5], data.gmIdentity[6],data.gmIdentity[7]);
-	printf("asCapable = %d\n\n", data.asCapable);
+	printf("asCapable = %d, ptp4l_id = %d\n\n", data.asCapable, data.ptp4l_id);
 
 	return true;
 }

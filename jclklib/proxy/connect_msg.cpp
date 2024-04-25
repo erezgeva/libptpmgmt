@@ -8,10 +8,15 @@
 #include <proxy/connect_msg.hpp>
 #include <proxy/client.hpp>
 #include <common/print.hpp>
+#include <common/serialize.hpp>
+#include <common/message.hpp>
+#include <proxy/subscribe_msg.hpp>
 
 using namespace std;
 using namespace JClkLibProxy;
 using namespace JClkLibCommon;
+
+extern JClkLibCommon::ptp_event pe;
 
 /** @brief Create the ProxyConnectMessage object
  *
@@ -63,6 +68,11 @@ PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 		return false;
 	}
 
+	/* check whether there is ptp4l available */
+	if (!pe.ptp4l_id) {
+		return false;
+	}
+
 	newSessionId = Client::CreateClientSession();
 	PrintDebug("Created new client session ID: " + to_string(newSessionId));
 	this->set_sessionId(newSessionId);
@@ -73,3 +83,15 @@ PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 	return true;
 }
 
+BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
+{
+	PrintDebug("[ProxyConnectMessage]::makeBuffer");
+	if(!CommonConnectMessage::makeBuffer(TxContext))
+		return false;
+
+	/* Add ptp4l_id here */
+	if (!WRITE_TX(FIELD, pe.ptp4l_id, TxContext))
+		return false;
+
+	return true;
+}

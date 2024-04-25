@@ -182,7 +182,8 @@ int connect_ptp4l( struct ptp4l_handle **phandle, struct epoll_event epd_event, 
 {
 	struct ptp4l_handle *handle;
 	int ret;
-	char *path;
+	//TODO: hard-coded for now
+	char path[] = "/var/run/ptp4l";
 
 	handle = (typeof( handle)) malloc(( size_t) sizeof(*handle));
 	if( handle == NULL) {
@@ -193,8 +194,6 @@ int connect_ptp4l( struct ptp4l_handle **phandle, struct epoll_event epd_event, 
 	memset( &handle->server_addr, 0, sizeof( handle->server_addr));
 	handle->server_addr.sun_family = AF_LOCAL;
 
-	//TODO: hard-coded for now
-	path = "/var/run/ptp4l";
 	strncpy( handle->server_addr.sun_path, path,
 		 sizeof( handle->server_addr.sun_path ) - 1);
 
