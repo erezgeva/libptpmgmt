@@ -269,6 +269,7 @@ class SockUnix : public SockBase
      * @note address can not be changed after initializing.
      *  User can close the socket, change this value, and
      *  initialize a new socket.
+     * @remark keep for ABI backward compatibility.
      */
     bool setSelfAddress(const std::string &string);
     /**
@@ -312,6 +313,7 @@ class SockUnix : public SockBase
      * @return true if message is sent
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
+     * @remark keep for ABI backward compatibility.
      */
     bool sendTo(const void *msg, size_t len, const std::string &addrStr) const;
     /**
@@ -678,6 +680,17 @@ class SockRaw : public SockBaseIf
      *  initialize a new socket.
      */
     bool setPtpDstMac(const void *ptp_dst_mac, size_t len);
+    /**
+     * Set PTP multicast address using binary from
+     * @param[in] ptp_dst_mac address in binary form
+     * @param[in] len address length
+     * @return true if PTP multicast address is updated
+     * @note PTP multicast address can not be changed after initializing.
+     *  User can close the socket, change this value, and
+     *  initialize a new socket.
+     * @remark keep for ABI backward compatibility.
+     */
+    bool setPtpDstMac(const uint8_t *ptp_dst_mac, size_t len);
     /**
      * Set PTP multicast address using configuration file
      * @param[in] cfg reference to configuration file object

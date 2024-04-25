@@ -212,6 +212,7 @@ class Binary
      * @param[in] length of memory buffer
      * @return address
      * @note Support MAC addresses
+     * @remark keep for ABI backward compatibility.
      */
     static std::string bufToId(const uint8_t *id, size_t length);
     /**

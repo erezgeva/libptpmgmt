@@ -680,6 +680,10 @@ bool SockRaw::setPtpDstMac(const void *mac, size_t len)
 {
     return setPtpDstMac(Binary(mac, len));
 }
+bool SockRaw::setPtpDstMac(const uint8_t *mac, size_t len)
+{
+    return setPtpDstMac(Binary(mac, len));
+}
 bool SockRaw::setPtpDstMac(const ConfigFile &cfg, const string &section)
 {
     if(m_isInit) {
