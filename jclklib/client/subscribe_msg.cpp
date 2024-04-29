@@ -13,6 +13,8 @@ using namespace JClkLibClient;
 using namespace JClkLibCommon;
 using namespace std;
 
+JClkLibCommon::client_ptp_event client_data;
+
 /** @brief Create the ClientSubscribeMessage object
  *
  * @param msg msg structure to be fill up
@@ -57,6 +59,36 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 		data.gmIdentity[3], data.gmIdentity[4],
 		data.gmIdentity[5], data.gmIdentity[6],data.gmIdentity[7]);
 	printf("asCapable = %d, ptp4l_id = %d\n\n", data.asCapable, data.ptp4l_id);
+
+	if (data.master_offset != client_data.master_offset) {
+		client_data.master_offset = data.master_offset;
+		if ((client_data.master_offset > client_data.master_offset_low) && (client_data.master_offset < client_data.master_offset_high)) {
+			client_data.master_offset_within_boundary = true;
+			client_data.offset_event_count.fetch_add(1, std::memory_order_relaxed) + 1; // Atomic increment
+		}
+	}
+
+	if (data.servo_state != client_data.servo_state) {
+		client_data.servo_state = data.servo_state;
+		client_data.servo_state_event_count.fetch_add(1, std::memory_order_relaxed); // Atomic increment
+	}
+
+	if (memcmp(client_data.gmIdentity, data.gmIdentity, sizeof(data.gmIdentity)) != 0) {
+		memcpy(client_data.gmIdentity, data.gmIdentity, sizeof(data.gmIdentity));
+		client_data.gmIdentity_event_count.fetch_add(1, std::memory_order_relaxed); // Atomic increment
+	}
+
+	if (data.asCapable != client_data.asCapable) {
+		client_data.asCapable = data.asCapable;
+		client_data.asCapable_event_count.fetch_add(1, std::memory_order_relaxed); // Atomic increment
+	}
+
+	printf("CLIENT master_offset = %ld, servo_state = %d ", data.master_offset, data.servo_state);
+	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x ",
+		client_data.gmIdentity[0], client_data.gmIdentity[1],client_data.gmIdentity[2],
+		client_data.gmIdentity[3], client_data.gmIdentity[4],
+		client_data.gmIdentity[5], client_data.gmIdentity[6],client_data.gmIdentity[7]);
+	printf("asCapable = %d\n\n", data.asCapable);
 
 	return true;
 }
