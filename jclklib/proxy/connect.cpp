@@ -15,6 +15,9 @@
 #include <map>
 #include <ptpmgmt/init.h>
 #include <sys/epoll.h>
+#include <common/print.hpp>
+#include <proxy/notification_msg.hpp>
+#include <proxy/client.hpp>
 
 //TODO: subsription part
 #include "thread.hpp"
@@ -45,6 +48,32 @@ struct epoll_event epd_event;
 SUBSCRIBE_EVENTS_NP_t d;
 JClkLibCommon::ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0 , 0 , 0};
 
+void notify_client()
+{
+    PrintDebug("[JClkLibProxy]::notify_client");
+    JClkLibCommon::sessionId_t SessionId;
+    std::unique_ptr<ProxyMessage> notifyMsg(new ProxyNotificationMessage());
+
+    ProxyNotificationMessage *pmsg = dynamic_cast<decltype(pmsg)>(notifyMsg.get());
+    if (pmsg == NULL) {
+        PrintErrorCode("[JClkLibProxy::notify_client] notifyMsg is NULL !!\n");
+        return;
+    }
+
+    PrintDebug("[JClkLibProxy::notify_client] notifyMsg creation is OK !!\n");
+
+    /* ToDo: loop for multiple sessions */
+    SessionId = Client::GetSessionIdAt(0);
+    if (SessionId != JClkLibCommon::InvalidSessionId) {
+        PrintDebug("Get client session ID: " + to_string(SessionId));
+
+        auto TxContext = Client::GetClientSession(SessionId).get()->get_transmitContext();
+        pmsg->transmitMessage(*TxContext);
+    } else {
+        PrintDebug("Unable to get Session ID");
+    }
+}
+
 void event_handle()
 {
     const BaseMngTlv *data = msg.getData();
@@ -67,14 +96,16 @@ void event_handle()
                    pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
                    pe.gmIdentity[3], pe.gmIdentity[4],
                    pe.gmIdentity[5], pe.gmIdentity[6],pe.gmIdentity[7]);
-            return;
+            break;
         case PORT_DATA_SET_NP:
             pe.asCapable = ((PORT_DATA_SET_NP_t *)data)->asCapable;
             printf("asCapable = %d\n\n", pe.asCapable);
-            return;
+            break;
         default:
-            return;
+            break;
     }
+
+    notify_client();
 }
 
 static inline bool msg_send(bool local)

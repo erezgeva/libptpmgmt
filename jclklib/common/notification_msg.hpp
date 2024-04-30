@@ -12,14 +12,15 @@
 
 #include <common/message.hpp>
 #include <common/jclklib_import.hpp>
+#include <common/transport.hpp>
 
 namespace JClkLibCommon
 {
-	class NotificationMessage : public Message
+	class NotificationMessage : virtual public Message
 	{
 	public:
+		virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
 		static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
-		static MAKE_RXBUFFER_TYPE(buildMessage);
 
 		const jcl_eventcount	&getEventCount();
 		const jcl_event		&getEvent();

@@ -7,13 +7,16 @@
 
 #include <common/serialize.hpp>
 #include <common/notification_msg.hpp>
+#include <common/print.hpp>
 
 using namespace JClkLibCommon;
 using namespace std;
 
-MAKE_RXBUFFER_TYPE(NotificationMessage::buildMessage)
+TRANSMIT_MESSAGE_TYPE(NotificationMessage::transmitMessage)
 {
-	// Fill in the fields
-	
-	return true;
+	PrintDebug("[NotificationMessage]::transmitMessage ");
+	if (!presendMessage(&TxContext))
+		return false;
+
+	return TxContext.sendBuffer();
 }

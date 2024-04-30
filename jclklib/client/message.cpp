@@ -9,6 +9,7 @@
 #include <client/null_msg.hpp>
 #include <client/connect_msg.hpp>
 #include <client/subscribe_msg.hpp>
+#include <client/notification_msg.hpp>
 #include <common/print.hpp>
 
 using namespace JClkLibClient;
@@ -16,5 +17,6 @@ using namespace JClkLibClient;
 bool ClientMessage::init()
 {
 	PrintDebug("Initializing Client Message");
-    return JClkLibCommon::_initMessage<ClientNullMessage,ClientConnectMessage, ClientSubscribeMessage>();
+    return JClkLibCommon::_initMessage<ClientNullMessage,ClientConnectMessage,
+        ClientSubscribeMessage,ClientNotificationMessage>();
 }

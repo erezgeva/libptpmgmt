@@ -16,6 +16,16 @@ sessionId_t Client::CreateClientSession()
 	return nextSession;
 }
 
+sessionId_t Client::GetSessionIdAt(size_t index)
+{
+    if (index < SessionMap.size()) {
+        auto iter = SessionMap.begin();
+        std::advance(iter, index);
+        return iter->first;
+    }
+    return InvalidSessionId;
+}
+
 ClientX Client::GetClientSession(sessionId_t sessionId)
 {
 	auto iter = SessionMap.find(sessionId);

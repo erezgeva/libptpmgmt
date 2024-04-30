@@ -13,16 +13,28 @@
 #include <common/jclklib_import.hpp>
 #include <client/client_state.hpp>
 #include <client/connect_msg.hpp>
+#include <signal.h>
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
 using namespace std;
+
+volatile sig_atomic_t signal_flag = 0;
+
+void signal_handler(int sig)
+{
+    signal_flag = 1;
+}
 
 int main()
 {
     int ret = EXIT_SUCCESS;
     JClkLibCommon::jcl_subscription sub;
     std::uint32_t event2Sub1[1] = {((1<<gmPresentUUIDEvent)|(1<<gmPresentUUIDEvent)|(1<<servoLockedEvent))};
+
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+    signal(SIGHUP, signal_handler);
 
     std::cout << "[CLIENT] Before connect : Session ID : " << state.get_sessionId() << "\n";
 
@@ -39,7 +51,12 @@ int main()
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
     std::cout << "[CLIENT] set subscribe event : " + sub.c_get_val_event().toString() << "\n";
     subscribe(sub);
-	sleep(5);
+
+    while (!signal_flag) {
+        /* ToDo: call wait API here */
+        sleep(1);
+    }
+
  do_exit:
 	disconnect();
 
