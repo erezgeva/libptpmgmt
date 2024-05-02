@@ -45,7 +45,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	JClkLibCommon::ptp_event data;
 
 	PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
-	if(!Message::parseBuffer(LxContext))
+	if(!CommonSubscribeMessage::parseBuffer(LxContext))
 		return false;
 
 	if (!PARSE_RX(FIELD, data, LxContext))

@@ -46,7 +46,7 @@ bool ProxySubscribeMessage::initMessage()
 BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
 {
 	PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-	if(!Message::makeBuffer(TxContext))
+	if(!CommonSubscribeMessage::makeBuffer(TxContext))
 		return false;
 
 	/* Add ptp data here */
