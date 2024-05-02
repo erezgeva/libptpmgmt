@@ -32,7 +32,7 @@ bool JClkLibClient::connect()
 	unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
 	Message0 connectMsg(new ClientConnectMessage());
 
-	BlockStopSignal();
+	//BlockStopSignal();
 	if(!ClientMessage::init()) {
 		PrintError("Client Message Init Failed");
 		return false;
