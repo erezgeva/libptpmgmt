@@ -13,7 +13,7 @@ using namespace JClkLibClient;
 using namespace JClkLibCommon;
 using namespace std;
 
-JClkLibCommon::client_ptp_event client_data;
+JClkLibCommon::client_ptp_event client_data = {};
 
 /** @brief Create the ClientSubscribeMessage object
  *
@@ -53,7 +53,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	if (!PARSE_RX(FIELD, data, LxContext))
 		return false;
 
-	printf("master_offset = %ld, servo_state = %d ", data.master_offset, data.servo_state);
+	printf("master_offset = %ld, servo_state = %d gmPresent = %d\n", data.master_offset, data.servo_state, data.gmPresent);
 	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x ",
 		data.gmIdentity[0], data.gmIdentity[1],data.gmIdentity[2],
 		data.gmIdentity[3], data.gmIdentity[4],
@@ -83,7 +83,12 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 		client_data.asCapable_event_count.fetch_add(1, std::memory_order_relaxed); // Atomic increment
 	}
 
-	printf("CLIENT master_offset = %ld, servo_state = %d ", data.master_offset, data.servo_state);
+	if (data.gmPresent != client_data.gmPresent) {
+		client_data.gmPresent = data.gmPresent;
+		client_data.gmPresent_event_count.fetch_add(1, std::memory_order_relaxed); // Atomic increment
+	}
+
+	printf("CLIENT master_offset = %ld, servo_state = %d gmPresent = %d\n", client_data.master_offset, client_data.servo_state, client_data.gmPresent);
 	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x ",
 		client_data.gmIdentity[0], client_data.gmIdentity[1],client_data.gmIdentity[2],
 		client_data.gmIdentity[3], client_data.gmIdentity[4],

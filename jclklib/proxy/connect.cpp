@@ -26,8 +26,6 @@ using namespace std;
 using namespace JClkLibProxy;
 using namespace ptpmgmt;
 
-const int SUBSCRIBE_DURATION = 180; /* 3 minutes */
-
 static const size_t bufSize = 2000;
 static char buf[bufSize];
 static Init obj;
@@ -85,13 +83,13 @@ void event_handle()
             offset = ((TIME_STATUS_NP_t *)data)->master_offset;
             servo = ((TIME_STATUS_NP_t *)data)->servo_state;
             gm_uuid = ((TIME_STATUS_NP_t *)data)->gmIdentity;
-
+            pe.gmPresent = ((TIME_STATUS_NP_t *)data)->gmPresent;
             pe.master_offset = offset;
             pe.servo_state = servo;
             memcpy(pe.gmIdentity, gm_uuid.v, sizeof(pe.gmIdentity));
 
             //TODO: Add debug flag checking, only print if the flag is set
-            printf("master_offset = %ld, servo_state = %d ", pe.master_offset, pe.servo_state);
+            printf("master_offset = %ld, servo_state = %d gmPresent = %d\n", pe.master_offset, pe.servo_state, pe.gmPresent);
             printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
                    pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
                    pe.gmIdentity[3], pe.gmIdentity[4],
@@ -163,7 +161,6 @@ static inline bool msg_set_action(bool local, mng_vals_e id)
 bool event_subscription(struct jcl_handle **handle)
 {
     memset(d.bitmask, 0, sizeof d.bitmask);
-    d.duration = SUBSCRIBE_DURATION;
     d.setEvent(NOTIFY_TIME_SYNC);
     d.setEvent(NOTIFY_PORT_STATE_NP);
 

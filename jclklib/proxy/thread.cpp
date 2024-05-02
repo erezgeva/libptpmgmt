@@ -20,6 +20,7 @@
 //#include "ptp4l_connect.hpp"
 
 using namespace ptpmgmt;
+using namespace JClkLibCommon;
 
 #define MSEC_PER_SEC	(1000)
 #define USEC_PER_SEC	(1000000)

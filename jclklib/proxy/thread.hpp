@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/epoll.h>
+#include <common/jclklib_import.hpp>
 
 typedef struct thread_signal *thread_signal_t;
 typedef struct ptp4l_handle *ptp4l_handle_t;
@@ -25,14 +26,6 @@ struct thread_signal {
 	pthread_mutex_t siglock;
 	pthread_cond_t signal;
 	bool signaled;
-};
-
-struct jcl_state
-{
-	bool     peer_present;
-	bool     gm_present;
-	unsigned offset;
-	bool servo_locked;
 };
 
 struct jcl_threshold
@@ -57,7 +50,7 @@ struct jcl_handle
 	pthread_mutex_t state_lock;
 	unsigned event_count[4]; //jcl_event_count
 	struct jcl_subscription subscription;
-	struct jcl_state state;
+	struct JClkLibCommon::jcl_state state;
 };
 
 typedef enum { jcl_peer_present, jcl_gm_present, jcl_offset_threshold, jcl_servo_locked,
