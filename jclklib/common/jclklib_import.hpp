@@ -45,8 +45,8 @@ enum servoState_e  {
 	{
 	private:
 		struct value_t {
-			std::uint32_t upper;
-			std::uint32_t lower;
+			std::int32_t upper;
+			std::int32_t lower;
 			value_t();
 			value_t(uint32_t limit);
 			bool equal(const value_t &v);
@@ -62,6 +62,26 @@ enum servoState_e  {
 		bool equal( const jcl_value &c);
 		bool operator== (const jcl_value &value) { return this->equal(value); }
 		bool operator!= (const jcl_value &value) { return !this->equal(value); }
+		// Add a method to set the upper and lower values of a specific value_t in the value array
+		void setValue(int index, std::int32_t upper, std::int32_t lower) {
+			if (index >= 0 && index < valueLast) {
+ 				value[index].upper = upper;
+				value[index].lower = lower;
+			}
+		}
+		std::int32_t getUpper(int index) {
+			if (index >= 0 && index < valueLast) {
+				return value[index].upper;
+			}
+			return 0;
+		}
+ 
+		std::int32_t getLower(int index) {
+			if (index >= 0 && index < valueLast) {
+				return value[index].lower;
+			}
+			return 0;
+		}
 		std::string toString();
 	};
 

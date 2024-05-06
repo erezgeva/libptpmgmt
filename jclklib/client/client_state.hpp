@@ -17,6 +17,7 @@ namespace JClkLibClient {
 		JClkLibCommon::TransportClientId clientID;
 		JClkLibCommon::jcl_state eventState;
 		JClkLibCommon::jcl_state_event_count eventStateCount;
+		JClkLibCommon::jcl_subscription eventSub;
 
 	public:
 		ClientState();
@@ -31,6 +32,7 @@ namespace JClkLibClient {
 		void set_eventStateCount(JClkLibCommon::jcl_state_event_count eCount);
 		void set_eventState(JClkLibCommon::jcl_state eState);
 		std::string toString();
+		JClkLibCommon::jcl_subscription &get_eventSub();
 		//void get_clientID_memcpy(JClkLibCommon::TransportClientId cID);
 		//void set_clientID_memcpy(JClkLibCommon::TransportClientId cID);
 		DECLARE_ACCESSOR(sessionId);

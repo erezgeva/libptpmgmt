@@ -31,6 +31,9 @@ int main()
     int ret = EXIT_SUCCESS;
     JClkLibCommon::jcl_subscription sub = {};
     JClkLibCommon::jcl_state currentState = {};
+    JClkLibCommon::jcl_state jcl_state = {};
+    JClkLibCommon::jcl_state_event_count eventCount = {};
+    unsigned timeout = 1;
 
     std::uint32_t event2Sub1[1] = {((1<<gmPresentEvent)|(1<<gmChangedEvent)|(1<<servoLockedEvent)|(1<<gmOffsetEvent))};
 
@@ -51,11 +54,20 @@ int main()
     sleep(5);
 
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
+    sub.get_value().setValue(0, 8888, -8888);
     std::cout << "[CLIENT] set subscribe event : " + sub.c_get_val_event().toString() << "\n";
     subscribe(sub, currentState);
     std::cout << "[CLIENT] " + state.toString();
+
     while (!signal_flag) {
         /* ToDo: call wait API here */
+        status_wait(timeout, jcl_state , eventCount);
+        printf ("APP PRINT jcl_state: offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
+               jcl_state.offset_in_range, jcl_state.servo_locked,\
+               jcl_state.gm_present, jcl_state.as_Capable, jcl_state.gm_changed);
+        printf ("APP PRINT eventCount: offset_in_range = %ld, servo_locked = %ld gmPresent = %ld as_Capable = %ld gm_Changed = %ld\n\n", \
+               eventCount.offset_in_range_event_count, eventCount.servo_locked_event_count,\
+               eventCount.gmPresent_event_count, eventCount.asCapable_event_count, eventCount.gm_changed_event_count);
         sleep(1);
     }
 

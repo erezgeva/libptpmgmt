@@ -61,4 +61,8 @@ string ClientState::toString() {
 	return name;
 }
 
+JClkLibCommon::jcl_subscription &ClientState::get_eventSub() {
+	return eventSub;
+}
+
 ClientState JClkLibClient::state{};

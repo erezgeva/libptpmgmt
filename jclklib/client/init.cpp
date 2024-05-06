@@ -29,6 +29,8 @@ std::condition_variable ClientConnectMessage::cv;
 std::mutex ClientSubscribeMessage::cv_mtx;
 std::condition_variable ClientSubscribeMessage::cv;
 
+extern JClkLibCommon::client_ptp_event client_ptp_data;
+
 TransportClientId globalClientID;
 
 bool JClkLibClient::connect()
@@ -90,6 +92,9 @@ bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub, JClkLibCo
 		PrintDebug("[JClkLibClient::subscribe] subscribeMsgcreation is OK !!\n");
 
 	/* Write the current event subscription */
+	state.get_eventSub().set_event(newSub.getc_event());
+	state.get_eventSub().set_value(newSub.getc_value());
+
 	cmsg->getSubscription().get_event().copyEventMask(newSub.get_event());
 
 	ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
@@ -140,4 +145,23 @@ bool JClkLibClient::disconnect()
 	if (!retVal)
 		PrintError("Client Error Occured");
 	return retVal;
+}
+
+int JClkLibClient::status_wait( unsigned timeout, JClkLibCommon::jcl_state &jcl_state , JClkLibCommon::jcl_state_event_count &eventCount)
+{
+
+	PrintDebug("[JClkLibClient]::status_wait");
+
+	/* Get the event state and event count*/
+	eventCount =  state.get_eventStateCount();
+	jcl_state = state.get_eventState();
+
+	/* Reset the atomic */
+	client_ptp_data.offset_event_count.fetch_sub(eventCount.offset_in_range_event_count, std::memory_order_relaxed);
+	client_ptp_data.asCapable_event_count.fetch_sub(eventCount.asCapable_event_count, std::memory_order_relaxed);
+	client_ptp_data.servo_state_event_count.fetch_sub(eventCount.servo_locked_event_count, std::memory_order_relaxed);
+	client_ptp_data.gmPresent_event_count.fetch_sub(eventCount.gmPresent_event_count, std::memory_order_relaxed);
+	client_ptp_data.gmChanged_event_count.fetch_sub(eventCount.gm_changed_event_count, std::memory_order_relaxed);
+
+	return true;
 }
