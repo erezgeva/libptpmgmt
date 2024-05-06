@@ -18,6 +18,7 @@ namespace JClkLibCommon
 	private:
 		jcl_subscription subscription;
 		TransportClientId clientId;
+
 	public:
 		static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
 		//static MAKE_RXBUFFER_TYPE(buildMessage);

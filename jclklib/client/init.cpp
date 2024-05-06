@@ -18,6 +18,7 @@
 #include <cstring>
 
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
+#define DEFAULT_SUBSCRIBE_TIME_OUT 5  //5 sec
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
@@ -25,6 +26,9 @@ using namespace std;
 
 std::mutex ClientConnectMessage::cv_mtx;
 std::condition_variable ClientConnectMessage::cv;
+std::mutex ClientSubscribeMessage::cv_mtx;
+std::condition_variable ClientSubscribeMessage::cv;
+
 TransportClientId globalClientID;
 
 bool JClkLibClient::connect()
@@ -70,8 +74,9 @@ bool JClkLibClient::connect()
 }
 
 
-bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub)
+bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub, JClkLibCommon::jcl_state &currentState)
 {
+	unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
 
 	PrintDebug("[JClkLibClient]::subscribe");
 	MessageX subscribeMsg(new ClientSubscribeMessage());
@@ -89,6 +94,29 @@ bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub)
 
 	ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
 	ClientMessageQueue::sendMessage(subscribeMsg.get());
+
+	// Wait for subscription result
+	auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
+	std::unique_lock<std::mutex> lck(ClientSubscribeMessage::cv_mtx);
+	while (state.get_subscribed() == false )
+	{
+		auto res = ClientSubscribeMessage::cv.wait_until(lck, endTime);
+		if (res == std::cv_status::timeout) {
+			if (state.get_subscribed() == false) {
+				PrintDebug("[SUBSCRIBE] No reply from proxy - timeout failure!!");
+				return false;
+				}
+		}
+		else {
+			PrintDebug("[SUBSCRIBE] SUBSCRIBE reply received.");
+		}
+	}
+
+	JClkLibCommon::jcl_state jclCurrentState = state.get_eventState();
+	printf("[JClkLibClient]::subscribe : state -  \n");
+	printf ("offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
+	jclCurrentState.offset_in_range, jclCurrentState.servo_locked,\
+	jclCurrentState.gm_present, jclCurrentState.as_Capable, jclCurrentState.gm_changed);
 
 	return true;
 }

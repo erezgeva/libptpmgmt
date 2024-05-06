@@ -16,8 +16,13 @@ namespace JClkLibClient
 	class ClientSubscribeMessage : virtual public JClkLibCommon::CommonSubscribeMessage,
 				     virtual public ClientMessage
 	{
+	private:
+		JClkLibCommon::jcl_state clientState = {};
 	public:
 		ClientSubscribeMessage() : MESSAGE_SUBSCRIBE() {};
+
+		static std::mutex cv_mtx;
+		static std::condition_variable cv;
 		/**
 		 * @brief process the reply for subscribe msg from proxy.
 		 * @param LxContext client run-time transport listener context
@@ -41,6 +46,13 @@ namespace JClkLibClient
 		static bool initMessage();
 
 		virtual PARSE_RXBUFFER_TYPE(parseBuffer);
+
+		void setClientState(JClkLibCommon::jcl_state newState) {
+			clientState = newState;
+		}
+
+		JClkLibCommon::jcl_state &getClientState()
+		{ return clientState; }
 	};
 }
 

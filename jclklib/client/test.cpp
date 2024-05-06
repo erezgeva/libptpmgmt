@@ -29,8 +29,10 @@ void signal_handler(int sig)
 int main()
 {
     int ret = EXIT_SUCCESS;
-    JClkLibCommon::jcl_subscription sub;
-    std::uint32_t event2Sub1[1] = {((1<<gmPresentUUIDEvent)|(1<<gmPresentUUIDEvent)|(1<<servoLockedEvent))};
+    JClkLibCommon::jcl_subscription sub = {};
+    JClkLibCommon::jcl_state currentState = {};
+
+    std::uint32_t event2Sub1[1] = {((1<<gmPresentEvent)|(1<<gmChangedEvent)|(1<<servoLockedEvent)|(1<<gmOffsetEvent))};
 
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
@@ -50,8 +52,8 @@ int main()
 
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
     std::cout << "[CLIENT] set subscribe event : " + sub.c_get_val_event().toString() << "\n";
-    subscribe(sub);
-
+    subscribe(sub, currentState);
+    std::cout << "[CLIENT] " + state.toString();
     while (!signal_flag) {
         /* ToDo: call wait API here */
         sleep(1);

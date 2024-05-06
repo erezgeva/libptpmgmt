@@ -354,8 +354,7 @@ int handle_connect( struct jcl_handle **phandle, struct epoll_event epd_event )
 		goto state_lock_fail;
 
     //handle_init start
-	handle->state.peer_present = false;
-	handle->state.offset = UINT_MAX;
+	handle->state = {};
 	handle->subscription.event = 0;
 	memset( handle->event_count, 0, sizeof( handle->event_count));
 

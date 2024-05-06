@@ -18,7 +18,29 @@ namespace JClkLibCommon
 		{ gmOffsetValue,
 		  valueLast } valueType;
 #define MAX_VALUE_COUNT 12
-		
+	
+	/** Servo State */
+enum servoState_e  {
+    /**
+     * The servo is not yet ready to track the master clock.
+     */
+    SERVO_UNLOCKED = 0,
+    /**
+     * The servo is ready to track and requests a clock jump to
+     * immediately correct the estimated offset.
+     */
+    SERVO_JUMP     = 1,
+    /**
+     * The servo is tracking the master clock.
+     */
+    SERVO_LOCKED   = 2,
+    /**
+     * The Servo has stabilized. The last 'servo_num_offset_values' values
+     * of the estimated threshold are less than servo_offset_threshold.
+     */
+    SERVO_LOCKED_STABLE  = 3,
+};
+
 	class jcl_value
 	{
 	private:
@@ -43,8 +65,9 @@ namespace JClkLibCommon
 		std::string toString();
 	};
 
+	/* Events clients can subscribe to */
 	typedef enum : std::uint8_t
-		{ peerPresentEvent, gmPresentUUIDEvent, gmOffsetEvent, servoLockedEvent, asCapableEvent,
+		{ gmPresentEvent, gmChangedEvent, gmOffsetEvent, servoLockedEvent, asCapableEvent,
 		  eventLast } eventType;
 
 #define BITS_PER_BYTE (8)
@@ -122,15 +145,28 @@ namespace JClkLibCommon
 		std::atomic<int> asCapable_event_count{};
 		std::atomic<int> servo_state_event_count{};
 		std::atomic<int> gmPresent_event_count{};
+		std::atomic<int> gmChanged_event_count{};
 	};
 
 	struct jcl_state
 	{
-		bool     peer_present;
+		bool     as_Capable;
 		bool     gm_present;
-		unsigned offset;
+		bool     offset_in_range;
 		bool     servo_locked;
+		bool     gm_changed;
 	};
+
+	struct jcl_state_event_count
+	{
+		uint64_t gmPresent_event_count;
+		uint64_t offset_in_range_event_count;
+		uint64_t gm_changed_event_count;
+		uint64_t asCapable_event_count;
+		uint64_t servo_locked_event_count;
+	};
+
+
 
 }
 
