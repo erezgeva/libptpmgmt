@@ -14,6 +14,9 @@
 using namespace std;
 using namespace JClkLibCommon;
 
+enum LogLevel { DEBUG, INFO, ERROR };
+static LogLevel currentLogLevel = ERROR;
+
 void JClkLibCommon::_PrintError(std::string msg, uint16_t line, std::string file, std::string func,
 			      errno_type errnum)
 {
@@ -24,14 +27,18 @@ void JClkLibCommon::_PrintError(std::string msg, uint16_t line, std::string file
 
 void JClkLibCommon::_PrintDebug(std::string msg, uint16_t line, std::string file, std::string func)
 {
-	cerr << "**  Debug: " + msg + " at line " + to_string(line) + " in " + file + ":" + func + "\n";
-	cerr.flush();
+	if (currentLogLevel <= DEBUG) {
+		cerr << "**  Debug: " + msg + " at line " + to_string(line) + " in " + file + ":" + func + "\n";
+		cerr.flush();
+	}
 }
 
 void JClkLibCommon::_PrintInfo(std::string msg, uint16_t line, std::string file, std::string func)
 {
-	cerr << "*   Info: " + msg + " at line " + to_string(line) + " in " + file + ":" + func + "\n";
-	cerr.flush();
+	if (currentLogLevel <= INFO) {
+		cerr << "*   Info: " + msg + " at line " + to_string(line) + " in " + file + ":" + func + "\n";
+		cerr.flush();
+	}
 }
 
 #define HEX_DIGITS_PER_LINE 16
@@ -41,6 +48,10 @@ void JClkLibCommon::_DumpOctetArray(string msg, const uint8_t *arr, size_t lengt
 	size_t offset;
 	stringstream output;
 	bool addspc = false, addcr;
+
+	if (currentLogLevel > DEBUG) {
+		return;
+	}
 
 	output << "*   Info: " << msg << " at line " << to_string(line) << " in " << file << ":" << func << "\n";
 	
