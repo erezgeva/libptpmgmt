@@ -57,7 +57,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 
 	if (proxy_data.master_offset != client_ptp_data.master_offset) {
 		client_ptp_data.master_offset = proxy_data.master_offset;
-		if ((client_ptp_data.master_offset > state.get_eventSub().get_value().getLower(0)) && (client_ptp_data.master_offset < state.get_eventSub().get_value().getUpper(0))) {
+		if ((client_ptp_data.master_offset > state.get_eventSub().get_value().getLower(gmOffsetValue)) &&
+		    (client_ptp_data.master_offset < state.get_eventSub().get_value().getUpper(gmOffsetValue))) {
 			if (!(client_ptp_data.master_offset_within_boundary))
 			{
 				client_ptp_data.master_offset_within_boundary = true;

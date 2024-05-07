@@ -64,7 +64,8 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	/* TODO : set the client_data per client instead of global */
 	if (data.master_offset != client_data.master_offset) {
 		client_data.master_offset = data.master_offset;
-		if ((client_data.master_offset > state.get_eventSub().get_value().getLower(0)) && (client_data.master_offset < state.get_eventSub().get_value().getUpper(0))) {
+		if ((client_data.master_offset > state.get_eventSub().get_value().getLower(gmOffsetValue)) &&
+		    (client_data.master_offset < state.get_eventSub().get_value().getUpper(gmOffsetValue))) {
 			client_data.master_offset_within_boundary = true;
 		}
 	}

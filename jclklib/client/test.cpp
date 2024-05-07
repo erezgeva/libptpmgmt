@@ -54,7 +54,7 @@ int main()
     sleep(5);
 
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
-    sub.get_value().setValue(0, 8888, -8888);
+    sub.get_value().setValue(gmOffsetValue, 8888, -8888);
     std::cout << "[CLIENT] set subscribe event : " + sub.c_get_val_event().toString() << "\n";
     subscribe(sub, currentState);
     std::cout << "[CLIENT] " + state.toString();
