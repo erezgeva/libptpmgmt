@@ -55,7 +55,10 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 {
 	PrintDebug("[ClientNotificationMessage]::processMessage ");
 
-	if (proxy_data.master_offset != client_ptp_data.master_offset) {
+	std::uint32_t eventSub[1];
+	state.get_eventSub().get_event().readEvent(eventSub, (std::size_t)sizeof(eventSub));
+
+	if ((eventSub[0] & 1<<gmOffsetEvent) && (proxy_data.master_offset != client_ptp_data.master_offset)) {
 		client_ptp_data.master_offset = proxy_data.master_offset;
 		if ((client_ptp_data.master_offset > state.get_eventSub().get_value().getLower(gmOffsetValue)) &&
 		    (client_ptp_data.master_offset < state.get_eventSub().get_value().getUpper(gmOffsetValue))) {
@@ -75,12 +78,12 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 		}
 	}
 
-	if (proxy_data.servo_state != client_ptp_data.servo_state) {
+	if ((eventSub[0] & 1<<servoLockedEvent) && (proxy_data.servo_state != client_ptp_data.servo_state)) {
 		client_ptp_data.servo_state = proxy_data.servo_state;
 		client_ptp_data.servo_state_event_count.fetch_add(1, std::memory_order_relaxed);
 	}
 
-	if (memcmp(client_ptp_data.gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity)) != 0) {
+	if ((eventSub[0] & 1<<gmChangedEvent) && (memcmp(client_ptp_data.gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity)) != 0)) {
 		memcpy(client_ptp_data.gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity));
 		client_ptp_data.gmChanged_event_count.fetch_add(1, std::memory_order_relaxed);
 		jclCurrentState.gm_changed = true;
@@ -89,12 +92,12 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 		jclCurrentState.gm_changed = false;
 	}
 
-	if (proxy_data.asCapable != client_ptp_data.asCapable) {
+	if ((eventSub[0] & 1<<asCapableEvent) && (proxy_data.asCapable != client_ptp_data.asCapable)) {
 		client_ptp_data.asCapable = proxy_data.asCapable;
 		client_ptp_data.asCapable_event_count.fetch_add(1, std::memory_order_relaxed);
 	}
 
-	if (proxy_data.gmPresent != client_ptp_data.gmPresent) {
+	if ((eventSub[0] & 1<<gmPresentEvent) && (proxy_data.gmPresent != client_ptp_data.gmPresent)) {
 		client_ptp_data.gmPresent = proxy_data.gmPresent;
 		client_ptp_data.gmPresent_event_count.fetch_add(1, std::memory_order_relaxed);
 	}

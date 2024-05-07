@@ -47,6 +47,9 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	JClkLibCommon::ptp_event data = {};
 	JClkLibCommon::jcl_state jclCurrentState = {};
 
+	std::uint32_t eventSub[1];
+	state.get_eventSub().get_event().readEvent(eventSub, (std::size_t)sizeof(eventSub));
+
 	PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
 	if(!CommonSubscribeMessage::parseBuffer(LxContext))
 		return false;
@@ -62,7 +65,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	printf("asCapable = %d, ptp4l_id = %d\n\n", data.asCapable, data.ptp4l_id);
 
 	/* TODO : set the client_data per client instead of global */
-	if (data.master_offset != client_data.master_offset) {
+	if ((eventSub[0] & 1<<gmOffsetEvent) && (data.master_offset != client_data.master_offset)) {
 		client_data.master_offset = data.master_offset;
 		if ((client_data.master_offset > state.get_eventSub().get_value().getLower(gmOffsetValue)) &&
 		    (client_data.master_offset < state.get_eventSub().get_value().getUpper(gmOffsetValue))) {
@@ -70,19 +73,20 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 		}
 	}
 
-	if (data.servo_state != client_data.servo_state) {
+	if ((eventSub[0] & 1<<servoLockedEvent) && (data.servo_state != client_data.servo_state)) {
 		client_data.servo_state = data.servo_state;
 	}
 
-	if (memcmp(client_data.gmIdentity, data.gmIdentity, sizeof(data.gmIdentity)) != 0) {
+	if ((eventSub[0] & 1<<gmChangedEvent) && (memcmp(client_data.gmIdentity, data.gmIdentity, sizeof(data.gmIdentity))) != 0) {
 		memcpy(client_data.gmIdentity, data.gmIdentity, sizeof(data.gmIdentity));
+		jclCurrentState.gm_changed = true;
 	}
 
-	if (data.asCapable != client_data.asCapable) {
+	if ((eventSub[0] & 1<<asCapableEvent) && (data.asCapable != client_data.asCapable)) {
 		client_data.asCapable = data.asCapable;
 	}
 
-	if (data.gmPresent != client_data.gmPresent) {
+	if ((eventSub[0] & 1<<gmPresentEvent) && (data.gmPresent != client_data.gmPresent)) {
 		client_data.gmPresent = data.gmPresent;
 	}
 
