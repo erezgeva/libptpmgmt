@@ -33,7 +33,7 @@ extern JClkLibCommon::client_ptp_event client_ptp_data;
 
 TransportClientId globalClientID;
 
-bool JClkLibClient::connect()
+bool JClkLibClient::jcl_connect()
 {
 	unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
 	Message0 connectMsg(new ClientConnectMessage());
@@ -76,7 +76,8 @@ bool JClkLibClient::connect()
 }
 
 
-bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub, JClkLibCommon::jcl_state &currentState)
+bool JClkLibClient::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
+				  JClkLibCommon::jcl_state &currentState)
 {
 	unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
 
@@ -129,7 +130,7 @@ bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub, JClkLibCo
 	return true;
 }
 
-bool JClkLibClient::disconnect()
+bool JClkLibClient::jcl_disconnect()
 {
 	bool retVal = false;
 
@@ -150,7 +151,8 @@ bool JClkLibClient::disconnect()
 	return retVal;
 }
 
-int JClkLibClient::status_wait( unsigned timeout, JClkLibCommon::jcl_state &jcl_state , JClkLibCommon::jcl_state_event_count &eventCount)
+int JClkLibClient::jcl_status_wait(unsigned timeout, JClkLibCommon::jcl_state &jcl_state,
+				   JClkLibCommon::jcl_state_event_count &eventCount)
 {
 
 	PrintDebug("[JClkLibClient]::status_wait");

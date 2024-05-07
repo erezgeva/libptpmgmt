@@ -11,10 +11,12 @@
 #include <common/jclklib_import.hpp>
 
 namespace JClkLibClient {
-	bool connect();
-	bool disconnect();
-	bool subscribe(JClkLibCommon::jcl_subscription &newSub, JClkLibCommon::jcl_state &currentState);
-    int status_wait( unsigned timeout, JClkLibCommon::jcl_state &jcl_state , JClkLibCommon::jcl_state_event_count &eventCount);
+	bool jcl_connect();
+	bool jcl_disconnect();
+	bool jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
+                       JClkLibCommon::jcl_state &currentState);
+    int jcl_status_wait(unsigned timeout, JClkLibCommon::jcl_state &jcl_state,
+                        JClkLibCommon::jcl_state_event_count &eventCount);
 
 };
 

@@ -43,7 +43,7 @@ int main()
 
     std::cout << "[CLIENT] Before connect : Session ID : " << state.get_sessionId() << "\n";
 
-    if (connect() == false) {
+    if (jcl_connect() == false) {
         std::cout << "[CLIENT] Failure in connecting !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
@@ -56,12 +56,12 @@ int main()
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
     sub.get_value().setValue(gmOffsetValue, 8888, -8888);
     std::cout << "[CLIENT] set subscribe event : " + sub.c_get_val_event().toString() << "\n";
-    subscribe(sub, currentState);
+    jcl_subscribe(sub, currentState);
     std::cout << "[CLIENT] " + state.toString();
 
     while (!signal_flag) {
         /* ToDo: call wait API here */
-        status_wait(timeout, jcl_state , eventCount);
+        jcl_status_wait(timeout, jcl_state , eventCount);
         printf ("APP PRINT jcl_state: offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
                jcl_state.offset_in_range, jcl_state.servo_locked,\
                jcl_state.gm_present, jcl_state.as_Capable, jcl_state.gm_changed);
@@ -76,7 +76,7 @@ int main()
     }
 
  do_exit:
-	disconnect();
+	jcl_disconnect();
 
     return ret;
 }
