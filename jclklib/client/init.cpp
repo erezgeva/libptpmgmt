@@ -151,22 +151,62 @@ bool JClkLibClient::jcl_disconnect()
 	return retVal;
 }
 
-int JClkLibClient::jcl_status_wait(unsigned timeout, JClkLibCommon::jcl_state &jcl_state,
+/**
+ * @brief This function waits for a specified timeout period for any event changes.
+ *
+ * @param timeout The timeout period in seconds. If timeout is 0, the function
+ *                will check event changes once. If timeout is -1, the function
+ *                wait until there is event changes occurs.
+ * @param jcl_state A reference to a jcl_state object where the current state
+ *                  will be stored.
+ * @param eventCount A reference to a jcl_state_event_count object where the
+ *                   event counts will be stored.
+ *
+ * @return Returns true if there is event changes within the timeout period,
+ *         and false otherwise.
+ */
+int JClkLibClient::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_state,
 				   JClkLibCommon::jcl_state_event_count &eventCount)
 {
+	auto start = std::chrono::high_resolution_clock::now();
+	auto end = (timeout == -1) ?
+		   std::chrono::time_point<std::chrono::high_resolution_clock>::max() :
+		   start + std::chrono::seconds(timeout);
+	bool event_changes_detected = false;
 
-	PrintDebug("[JClkLibClient]::status_wait");
+	do {
+		/* Get the event state and event count*/
+		eventCount = state.get_eventStateCount();
+		jcl_state = state.get_eventState();
 
-	/* Get the event state and event count*/
-	eventCount =  state.get_eventStateCount();
-	jcl_state = state.get_eventState();
+		/* Check if any member of eventCount is non-zero */
+		if (eventCount.offset_in_range_event_count ||
+		    eventCount.asCapable_event_count ||
+		    eventCount.servo_locked_event_count ||
+		    eventCount.gmPresent_event_count ||
+		    eventCount.gm_changed_event_count) {
+			event_changes_detected = true;
+			break;
+		}
+
+		/* Sleep for a short duration before the next iteration */
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	} while (std::chrono::high_resolution_clock::now() < end);
+
+	if (!event_changes_detected)
+		return false;
 
 	/* Reset the atomic */
-	client_ptp_data.offset_event_count.fetch_sub(eventCount.offset_in_range_event_count, std::memory_order_relaxed);
-	client_ptp_data.asCapable_event_count.fetch_sub(eventCount.asCapable_event_count, std::memory_order_relaxed);
-	client_ptp_data.servo_state_event_count.fetch_sub(eventCount.servo_locked_event_count, std::memory_order_relaxed);
-	client_ptp_data.gmPresent_event_count.fetch_sub(eventCount.gmPresent_event_count, std::memory_order_relaxed);
-	client_ptp_data.gmChanged_event_count.fetch_sub(eventCount.gm_changed_event_count, std::memory_order_relaxed);
+	client_ptp_data.offset_event_count.fetch_sub(eventCount.offset_in_range_event_count,
+						     std::memory_order_relaxed);
+	client_ptp_data.asCapable_event_count.fetch_sub(eventCount.asCapable_event_count,
+							std::memory_order_relaxed);
+	client_ptp_data.servo_state_event_count.fetch_sub(eventCount.servo_locked_event_count,
+							  std::memory_order_relaxed);
+	client_ptp_data.gmPresent_event_count.fetch_sub(eventCount.gmPresent_event_count,
+							std::memory_order_relaxed);
+	client_ptp_data.gmChanged_event_count.fetch_sub(eventCount.gm_changed_event_count,
+							std::memory_order_relaxed);
 
 	return true;
 }

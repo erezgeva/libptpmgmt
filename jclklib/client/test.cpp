@@ -33,7 +33,7 @@ int main()
     JClkLibCommon::jcl_state currentState = {};
     JClkLibCommon::jcl_state jcl_state = {};
     JClkLibCommon::jcl_state_event_count eventCount = {};
-    unsigned timeout = 1;
+    int timeout = 10;
 
     std::uint32_t event2Sub1[1] = {((1<<gmPresentEvent)|(1<<gmChangedEvent)|(1<<servoLockedEvent)|(1<<gmOffsetEvent))};
 
@@ -54,24 +54,37 @@ int main()
     sleep(5);
 
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
-    sub.get_value().setValue(gmOffsetValue, 8888, -8888);
+    sub.get_value().setValue(gmOffsetValue, 100000, -100000);
     std::cout << "[CLIENT] set subscribe event : " + sub.c_get_val_event().toString() << "\n";
     jcl_subscribe(sub, currentState);
     std::cout << "[CLIENT] " + state.toString();
 
     while (!signal_flag) {
-        /* ToDo: call wait API here */
-        jcl_status_wait(timeout, jcl_state , eventCount);
-        printf ("APP PRINT jcl_state: offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
-               jcl_state.offset_in_range, jcl_state.servo_locked,\
-               jcl_state.gm_present, jcl_state.as_Capable, jcl_state.gm_changed);
-        printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x \n",
-		    jcl_state.gmIdentity[0], jcl_state.gmIdentity[1],jcl_state.gmIdentity[2],
-		    jcl_state.gmIdentity[3], jcl_state.gmIdentity[4],
-		    jcl_state.gmIdentity[5], jcl_state.gmIdentity[6],jcl_state.gmIdentity[7]);
-        printf ("APP PRINT eventCount: offset_in_range = %ld, servo_locked = %ld gmPresent = %ld as_Capable = %ld gm_Changed = %ld\n\n", \
-               eventCount.offset_in_range_event_count, eventCount.servo_locked_event_count,\
-               eventCount.gmPresent_event_count, eventCount.asCapable_event_count, eventCount.gm_changed_event_count);
+        if (!jcl_status_wait(timeout, jcl_state , eventCount)) {
+            printf("No event status changes identified in %d seconds.\n\n", timeout);
+            sleep(1);
+            continue;
+        }
+
+        printf("+------------------+--------------+-------------+\n");
+        printf("| %-16s | %-12s | %-11s |\n", "Event", "Event Status", "Event Count");
+        printf("+------------------+--------------+-------------+\n");
+        printf("| %-16s | %-12d | %-11ld |\n", "offset_in_range",
+            jcl_state.offset_in_range, eventCount.offset_in_range_event_count);
+        printf("| %-16s | %-12d | %-11ld |\n", "servo_locked",
+            jcl_state.servo_locked, eventCount.servo_locked_event_count);
+        printf("| %-16s | %-12d | %-11ld |\n", "gmPresent",
+            jcl_state.gm_present, eventCount.gmPresent_event_count);
+        printf("| %-16s | %-12d | %-11ld |\n", "as_Capable",
+            jcl_state.as_Capable, eventCount.asCapable_event_count);
+        printf("| %-16s | %-12d | %-11ld |\n", "gm_Changed",
+            jcl_state.gm_changed, eventCount.gm_changed_event_count);
+        printf("+------------------+--------------+-------------+\n");
+        printf("| %-16s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n", "UUID",
+            jcl_state.gmIdentity[0], jcl_state.gmIdentity[1], jcl_state.gmIdentity[2],
+            jcl_state.gmIdentity[3], jcl_state.gmIdentity[4],
+            jcl_state.gmIdentity[5], jcl_state.gmIdentity[6], jcl_state.gmIdentity[7]);
+        printf("+------------------+----------------------------+\n\n");
         sleep(1);
     }
 

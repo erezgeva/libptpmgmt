@@ -15,7 +15,7 @@ namespace JClkLibClient {
 	bool jcl_disconnect();
 	bool jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
                        JClkLibCommon::jcl_state &currentState);
-    int jcl_status_wait(unsigned timeout, JClkLibCommon::jcl_state &jcl_state,
+    int jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_state,
                         JClkLibCommon::jcl_state_event_count &eventCount);
 
 };
