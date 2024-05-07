@@ -96,6 +96,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	jclCurrentState.as_Capable = client_data.asCapable > 0 ? true:false;
 	jclCurrentState.offset_in_range = client_data.master_offset_within_boundary;
 	jclCurrentState.servo_locked = client_data.servo_state >= SERVO_LOCKED ? true:false;
+	memcpy(jclCurrentState.gmIdentity, client_data.gmIdentity, sizeof(client_data.gmIdentity));
 	/* TODO : checked for jclCurrentState.gm_changed based on GM_identity previously stored */
 
 	this->setClientState (jclCurrentState);

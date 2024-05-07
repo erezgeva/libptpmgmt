@@ -122,7 +122,10 @@ bool JClkLibClient::subscribe(JClkLibCommon::jcl_subscription &newSub, JClkLibCo
 	printf ("offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
 	jclCurrentState.offset_in_range, jclCurrentState.servo_locked,\
 	jclCurrentState.gm_present, jclCurrentState.as_Capable, jclCurrentState.gm_changed);
-
+	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x \n",
+		jclCurrentState.gmIdentity[0], jclCurrentState.gmIdentity[1],jclCurrentState.gmIdentity[2],
+		jclCurrentState.gmIdentity[3], jclCurrentState.gmIdentity[4],
+		jclCurrentState.gmIdentity[5], jclCurrentState.gmIdentity[6],jclCurrentState.gmIdentity[7]);
 	return true;
 }
 

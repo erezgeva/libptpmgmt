@@ -65,6 +65,10 @@ int main()
         printf ("APP PRINT jcl_state: offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
                jcl_state.offset_in_range, jcl_state.servo_locked,\
                jcl_state.gm_present, jcl_state.as_Capable, jcl_state.gm_changed);
+        printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x \n",
+		    jcl_state.gmIdentity[0], jcl_state.gmIdentity[1],jcl_state.gmIdentity[2],
+		    jcl_state.gmIdentity[3], jcl_state.gmIdentity[4],
+		    jcl_state.gmIdentity[5], jcl_state.gmIdentity[6],jcl_state.gmIdentity[7]);
         printf ("APP PRINT eventCount: offset_in_range = %ld, servo_locked = %ld gmPresent = %ld as_Capable = %ld gm_Changed = %ld\n\n", \
                eventCount.offset_in_range_event_count, eventCount.servo_locked_event_count,\
                eventCount.gmPresent_event_count, eventCount.asCapable_event_count, eventCount.gm_changed_event_count);

@@ -81,7 +81,11 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 
 	if (memcmp(client_ptp_data.gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity)) != 0) {
 		memcpy(client_ptp_data.gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity));
-		client_ptp_data.gmIdentity_event_count.fetch_add(1, std::memory_order_relaxed);
+		client_ptp_data.gmChanged_event_count.fetch_add(1, std::memory_order_relaxed);
+		jclCurrentState.gm_changed = true;
+	}
+	else {
+		jclCurrentState.gm_changed = false;
 	}
 
 	if (proxy_data.asCapable != client_ptp_data.asCapable) {
@@ -98,12 +102,15 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 	jclCurrentState.as_Capable = client_ptp_data.asCapable > 0 ? true:false;
 	jclCurrentState.offset_in_range = client_ptp_data.master_offset_within_boundary;
 	jclCurrentState.servo_locked = client_ptp_data.servo_state >= SERVO_LOCKED ? true:false;
+	memcpy(jclCurrentState.gmIdentity, client_ptp_data.gmIdentity, sizeof(client_ptp_data.gmIdentity));
+
 	/* TODO : checked for jclCurrentState.gm_changed based on GM_identity previously stored */
 
 	jclCurrentEventCount.gmPresent_event_count = client_ptp_data.gmPresent_event_count;
 	jclCurrentEventCount.offset_in_range_event_count = client_ptp_data.offset_event_count;
 	jclCurrentEventCount.asCapable_event_count = client_ptp_data.asCapable_event_count;
 	jclCurrentEventCount.servo_locked_event_count = client_ptp_data.servo_state_event_count;
+	jclCurrentEventCount.gm_changed_event_count = client_ptp_data.gmChanged_event_count;
 
 	state.set_eventState (jclCurrentState);
 	state.set_eventStateCount (jclCurrentEventCount);

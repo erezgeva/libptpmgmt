@@ -161,7 +161,6 @@ enum servoState_e  {
 		uint8_t servo_state;
 		uint8_t ptp4l_id;
 		std::atomic<int> offset_event_count{};
-		std::atomic<int> gmIdentity_event_count{};
 		std::atomic<int> asCapable_event_count{};
 		std::atomic<int> servo_state_event_count{};
 		std::atomic<int> gmPresent_event_count{};
@@ -175,6 +174,7 @@ enum servoState_e  {
 		bool     offset_in_range;
 		bool     servo_locked;
 		bool     gm_changed;
+		uint8_t  gmIdentity[8];
 	};
 
 	struct jcl_state_event_count
