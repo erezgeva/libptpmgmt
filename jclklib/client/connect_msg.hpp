@@ -1,9 +1,16 @@
-/*! \file connect_msg.hpp
-    \brief Client connect message class. Implements client specific functionality.
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+ */
 
-    (C) Copyright Intel Corporation 2023. All rights reserved. Intel Confidential.
-    Author: Christopher Hall <christopher.s.hall@intel.com>
-*/
+/** @file connect_msg.hpp
+ * @brief Client connect message class. Implements client specific functionality.
+ *
+ * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @copyright © 2024 Intel Corporation. All rights reserved.
+ * @license LGPL-3.0-or-later
+ *
+ */
 
 #ifndef CLIENT_CONNECT_MSG_HPP
 #define CLIENT_CONNECT_MSG_HPP

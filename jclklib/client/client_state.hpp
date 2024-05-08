@@ -1,3 +1,17 @@
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+ */
+
+/** @file client_state.hpp
+ * @brief Set and get the client subscribe event state
+ *
+ * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
+ * @copyright © 2024 Intel Corporation. All rights reserved.
+ * @license LGPL-3.0-or-later
+ *
+ */
+
 #ifndef PROXY_CLIENT_STATE
 #define PROXY_CLIENT_STATE
 

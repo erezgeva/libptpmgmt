@@ -1,9 +1,14 @@
-##! \file Makefile
-#   \brief Client makefile
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
 #
-#   (C) Copyright Intel Corporation 2023. All rights reserved. Intel Confidential.
-#   Author: Christopher Hall <christopher.s.hall@intel.com>
+# Makefile for jclklib client
 #
+# @author Christopher Hall <christopher.s.hall@intel.com>
+# @copyright © 2024 Intel Corporation. All rights reserved.
+# @license LGPL-3.0-or-later
+#
+###############################################################################
+
 
 JCLKLIB_CLIENT_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR = $(JCLKLIB_CLIENT_DIR)/..
