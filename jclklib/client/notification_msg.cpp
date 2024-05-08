@@ -22,6 +22,7 @@ using namespace JClkLibCommon;
 using namespace JClkLibClient;
 
 JClkLibCommon::client_ptp_event client_ptp_data;
+JClkLibCommon::client_ptp_event composite_client_ptp_data;
 JClkLibCommon::ptp_event proxy_data = {};
 JClkLibCommon::jcl_state jclCurrentState = {};
 JClkLibCommon::jcl_state_event_count jclCurrentEventCount = {};
@@ -64,6 +65,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 
 	std::uint32_t eventSub[1];
 	state.get_eventSub().get_event().readEvent(eventSub, (std::size_t)sizeof(eventSub));
+	std::uint32_t composite_eventSub[1];
+	state.get_eventSub().get_composite_event().readEvent(composite_eventSub, (std::size_t)sizeof(composite_eventSub));
+	bool old_composite_event;
 
 	if ((eventSub[0] & 1<<gmOffsetEvent) && (proxy_data.master_offset != client_ptp_data.master_offset)) {
 		client_ptp_data.master_offset = proxy_data.master_offset;
@@ -109,10 +113,39 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 		client_ptp_data.gmPresent_event_count.fetch_add(1, std::memory_order_relaxed);
 	}
 
+	if (composite_eventSub[0]) {
+		old_composite_event = composite_client_ptp_data.composite_event;
+		composite_client_ptp_data.composite_event = true;
+	}
+
+	if ((composite_eventSub[0] & 1<<gmOffsetEvent) && (proxy_data.master_offset != composite_client_ptp_data.master_offset)) {
+		composite_client_ptp_data.master_offset = proxy_data.master_offset;
+		if ((composite_client_ptp_data.master_offset > state.get_eventSub().get_value().getLower(gmOffsetValue)) &&
+		    (composite_client_ptp_data.master_offset < state.get_eventSub().get_value().getUpper(gmOffsetValue))) {
+			composite_client_ptp_data.composite_event = true;
+		}
+		else {
+			composite_client_ptp_data.composite_event = false;
+		}
+	}
+
+	if (composite_eventSub[0] & 1<<servoLockedEvent) {
+		composite_client_ptp_data.composite_event &= proxy_data.servo_state >= SERVO_LOCKED ? true:false;
+	}
+
+	if (composite_eventSub[0] & 1<<asCapableEvent) {
+		composite_client_ptp_data.composite_event &= proxy_data.asCapable > 0 ? true:false;
+	}
+
+	if (composite_eventSub[0] && (old_composite_event != composite_client_ptp_data.composite_event)) {
+		client_ptp_data.composite_event_count.fetch_add(1, std::memory_order_relaxed);
+	}
+
 	jclCurrentState.gm_present = client_ptp_data.gmPresent > 0 ? true:false;
 	jclCurrentState.as_Capable = client_ptp_data.asCapable > 0 ? true:false;
 	jclCurrentState.offset_in_range = client_ptp_data.master_offset_within_boundary;
 	jclCurrentState.servo_locked = client_ptp_data.servo_state >= SERVO_LOCKED ? true:false;
+	jclCurrentState.composite_event = composite_client_ptp_data.composite_event;
 	memcpy(jclCurrentState.gmIdentity, client_ptp_data.gmIdentity, sizeof(client_ptp_data.gmIdentity));
 
 	/* TODO : checked for jclCurrentState.gm_changed based on GM_identity previously stored */
@@ -122,6 +155,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 	jclCurrentEventCount.asCapable_event_count = client_ptp_data.asCapable_event_count;
 	jclCurrentEventCount.servo_locked_event_count = client_ptp_data.servo_state_event_count;
 	jclCurrentEventCount.gm_changed_event_count = client_ptp_data.gmChanged_event_count;
+	jclCurrentEventCount.composite_event_count = client_ptp_data.composite_event_count;
 
 	state.set_eventState (jclCurrentState);
 	state.set_eventStateCount (jclCurrentEventCount);

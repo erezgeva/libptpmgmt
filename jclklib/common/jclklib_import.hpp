@@ -140,12 +140,14 @@ enum servoState_e  {
 	private:
 		jcl_event        event;
 		jcl_value        value;
+		jcl_event        composite_event;
 	public:
 		std::uint8_t *parse(std::uint8_t *buf, std::size_t &length);
 		std::uint8_t *write(std::uint8_t *buf, std::size_t &length);
 
 		DECLARE_ACCESSOR(event);
 		DECLARE_ACCESSOR(value);
+		DECLARE_ACCESSOR(composite_event);
 	};
 
 	struct ptp_event {
@@ -167,11 +169,13 @@ enum servoState_e  {
 		int32_t gmPresent;
 		uint8_t servo_state;
 		uint8_t ptp4l_id;
+		bool composite_event;
 		std::atomic<int> offset_event_count{};
 		std::atomic<int> asCapable_event_count{};
 		std::atomic<int> servo_state_event_count{};
 		std::atomic<int> gmPresent_event_count{};
 		std::atomic<int> gmChanged_event_count{};
+		std::atomic<int> composite_event_count{};
 	};
 
 	struct jcl_state
@@ -181,6 +185,7 @@ enum servoState_e  {
 		bool     offset_in_range;
 		bool     servo_locked;
 		bool     gm_changed;
+		bool     composite_event;
 		uint8_t  gmIdentity[8];
 	};
 
@@ -191,6 +196,7 @@ enum servoState_e  {
 		uint64_t gm_changed_event_count;
 		uint64_t asCapable_event_count;
 		uint64_t servo_locked_event_count;
+		uint64_t composite_event_count;
 	};
 
 

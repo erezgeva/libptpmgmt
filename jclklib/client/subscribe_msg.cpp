@@ -21,6 +21,7 @@ using namespace JClkLibCommon;
 using namespace std;
 
 JClkLibCommon::client_ptp_event client_data = {};
+JClkLibCommon::client_ptp_event composite_client_data = {};
 
 /** @brief Create the ClientSubscribeMessage object
  *
@@ -56,6 +57,9 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 
 	std::uint32_t eventSub[1];
 	state.get_eventSub().get_event().readEvent(eventSub, (std::size_t)sizeof(eventSub));
+
+	std::uint32_t composite_eventSub[1];
+	state.get_eventSub().get_composite_event().readEvent(composite_eventSub, (std::size_t)sizeof(composite_eventSub));
 
 	PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
 	if(!CommonSubscribeMessage::parseBuffer(LxContext))
@@ -97,6 +101,28 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 		client_data.gmPresent = data.gmPresent;
 	}
 
+	if (composite_eventSub[0]) {
+		composite_client_data.composite_event = true;
+	}
+
+	if ((composite_eventSub[0] & 1<<gmOffsetEvent) && (data.master_offset != composite_client_data.master_offset)) {
+		composite_client_data.master_offset = data.master_offset;
+		if ((composite_client_data.master_offset > state.get_eventSub().get_value().getLower(gmOffsetValue)) &&
+		    (composite_client_data.master_offset < state.get_eventSub().get_value().getUpper(gmOffsetValue))) {
+			composite_client_data.composite_event = true;
+		} else {
+			composite_client_data.composite_event = false;
+		}
+	}
+
+	if (composite_eventSub[0] & 1<<servoLockedEvent) {
+		composite_client_data.composite_event &= data.servo_state >= SERVO_LOCKED ? true:false;
+	}
+
+	if (composite_eventSub[0] & 1<<asCapableEvent) {
+		composite_client_data.composite_event &= data.asCapable > 0 ? true:false;
+	}
+
 	printf("CLIENT master_offset = %ld, servo_state = %d gmPresent = %d\n", client_data.master_offset, client_data.servo_state, client_data.gmPresent);
 	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x ",
 		client_data.gmIdentity[0], client_data.gmIdentity[1],client_data.gmIdentity[2],
@@ -108,6 +134,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	jclCurrentState.as_Capable = client_data.asCapable > 0 ? true:false;
 	jclCurrentState.offset_in_range = client_data.master_offset_within_boundary;
 	jclCurrentState.servo_locked = client_data.servo_state >= SERVO_LOCKED ? true:false;
+	jclCurrentState.composite_event = composite_client_data.composite_event;
 	memcpy(jclCurrentState.gmIdentity, client_data.gmIdentity, sizeof(client_data.gmIdentity));
 	/* TODO : checked for jclCurrentState.gm_changed based on GM_identity previously stored */
 

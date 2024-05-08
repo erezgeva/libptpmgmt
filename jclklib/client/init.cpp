@@ -102,6 +102,7 @@ bool JClkLibClient::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
 	/* Write the current event subscription */
 	state.get_eventSub().set_event(newSub.getc_event());
 	state.get_eventSub().set_value(newSub.getc_value());
+	state.get_eventSub().set_composite_event(newSub.getc_composite_event());
 
 	cmsg->getSubscription().get_event().copyEventMask(newSub.get_event());
 
@@ -191,6 +192,7 @@ int JClkLibClient::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_st
 		    eventCount.asCapable_event_count ||
 		    eventCount.servo_locked_event_count ||
 		    eventCount.gmPresent_event_count ||
+		    eventCount.composite_event_count ||
 		    eventCount.gm_changed_event_count) {
 			event_changes_detected = true;
 			break;
@@ -213,6 +215,8 @@ int JClkLibClient::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_st
 	client_ptp_data.gmPresent_event_count.fetch_sub(eventCount.gmPresent_event_count,
 							std::memory_order_relaxed);
 	client_ptp_data.gmChanged_event_count.fetch_sub(eventCount.gm_changed_event_count,
+							std::memory_order_relaxed);
+	client_ptp_data.composite_event_count.fetch_sub(eventCount.composite_event_count,
 							std::memory_order_relaxed);
 
 	return true;
