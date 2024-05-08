@@ -1,9 +1,16 @@
-/*! \file thread.cpp
-    \brief Proxy message thread class.
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+ */
 
-    (C) Copyright Intel Corporation 2023. All rights reserved. Intel Confidential.
-    Author: Lai Peter Jun Ann <peter.jun.ann.lai@intel.com>
-*/
+/** @file thread.cpp
+ * @brief Proxy message thread class.
+ *
+ * @author Lai Peter Jun Ann <peter.jun.ann.lai@intel.com>
+ * @copyright © 2024 Intel Corporation. All rights reserved.
+ * @license LGPL-3.0-or-later
+ *
+ */
 
 #include <cstdio>
 #include <ptpmgmt/init.h>

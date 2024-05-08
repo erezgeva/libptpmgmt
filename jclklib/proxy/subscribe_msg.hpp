@@ -1,9 +1,16 @@
-/*! \file subscribe_msg.hpp
-    \brief Proxy subscribe message class. Implements proxy specific subscribe message function.
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+ */
 
-    (C) Copyright Intel Corporation 2023. All rights reserved. Intel Confidential.
-    Author: Christopher Hall <christopher.s.hall@intel.com>
-*/
+/** @file subscribe_msg.hpp
+ * @brief Proxy subscribe message class. Implements proxy specific subscribe message function.
+ *
+ * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @copyright © 2024 Intel Corporation. All rights reserved.
+ * @license LGPL-3.0-or-later
+ *
+ */
 
 #ifndef PROXY_SUBSCRIBE_MSG_HPP
 #define PROXY_SUBSCRIBE_MSG_HPP
