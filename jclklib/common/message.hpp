@@ -1,9 +1,16 @@
-/*! \file message.hpp
-    \brief Common message base class. Extended for specific messages such as connect and subscribe.
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+ */
 
-    (C) Copyright Intel Corporation 2023. All rights reserved. Intel Confidential.
-    Author: Christopher Hall <christopher.s.hall@intel.com>
-*/
+/** @file message.hpp
+ * @brief Common message base class. Extended for specific messages such as connect and subscribe.
+ *
+ * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @copyright © 2024 Intel Corporation. All rights reserved.
+ * @license LGPL-3.0-or-later
+ *
+ */
 
 #include <map>
 #include <memory>
