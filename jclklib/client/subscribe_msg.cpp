@@ -68,13 +68,6 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 	if (!PARSE_RX(FIELD, data, LxContext))
 		return false;
 
-	printf("master_offset = %ld, servo_state = %d gmPresent = %d\n", data.master_offset, data.servo_state, data.gmPresent);
-	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x ",
-		data.gmIdentity[0], data.gmIdentity[1],data.gmIdentity[2],
-		data.gmIdentity[3], data.gmIdentity[4],
-		data.gmIdentity[5], data.gmIdentity[6],data.gmIdentity[7]);
-	printf("asCapable = %d, ptp4l_id = %d\n\n", data.asCapable, data.ptp4l_id);
-
 	/* TODO : set the client_data per client instead of global */
 	if ((eventSub[0] & 1<<gmOffsetEvent) && (data.master_offset != client_data.master_offset)) {
 		client_data.master_offset = data.master_offset;
@@ -123,13 +116,6 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer) {
 		composite_client_data.composite_event &= data.asCapable > 0 ? true:false;
 	}
 
-	printf("CLIENT master_offset = %ld, servo_state = %d gmPresent = %d\n", client_data.master_offset, client_data.servo_state, client_data.gmPresent);
-	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x ",
-		client_data.gmIdentity[0], client_data.gmIdentity[1],client_data.gmIdentity[2],
-		client_data.gmIdentity[3], client_data.gmIdentity[4],
-		client_data.gmIdentity[5], client_data.gmIdentity[6],client_data.gmIdentity[7]);
-	printf("asCapable = %d\n\n", client_data.asCapable);
-
 	jclCurrentState.gm_present = client_data.gmPresent > 0 ? true:false;
 	jclCurrentState.as_Capable = client_data.asCapable > 0 ? true:false;
 	jclCurrentState.offset_in_range = client_data.master_offset_within_boundary;
@@ -165,10 +151,6 @@ PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
 		state.set_subscribed(true);
 
 		this->set_msgAck(ACK_NONE);
-
-		JClkLibCommon::jcl_state jclCurrentState = state.get_eventState();
-		printf("[ClientSubscribeMessage]::processMessage : state -  offset in range = %d, servo_locked = %d gmPresent = %d as_Capable = %d\n", \
-	 	jclCurrentState.offset_in_range, jclCurrentState.servo_locked, jclCurrentState.gm_present, jclCurrentState.as_Capable);
 	
 		cv.notify_one();
         return true;

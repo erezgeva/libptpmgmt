@@ -119,7 +119,6 @@ int8_t jcl_event::copyEventMask(jcl_event &newEvent)
 	std::size_t newEventLength = sizeof(newEvent.getEventMask());
 
 	memcpy(event_mask, newEvent.event_mask , newEventLength);
-	printf ("[jcl_event]::copyEventMask - newEventLength = %ld , incoming event mask = 0x%x\n", newEventLength, newEvent.getEventMask()[0]);
 
 	return 0;
 }
