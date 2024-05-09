@@ -94,7 +94,7 @@ enum servoState_e  {
 
 	/* Events clients can subscribe to */
 	typedef enum : std::uint8_t
-		{ gmPresentEvent, gmChangedEvent, gmOffsetEvent, servoLockedEvent, asCapableEvent,
+		{ gmOffsetEvent, servoLockedEvent, asCapableEvent, gmPresentEvent, gmChangedEvent,
 		  eventLast } eventType;
 
 #define BITS_PER_BYTE (8)
