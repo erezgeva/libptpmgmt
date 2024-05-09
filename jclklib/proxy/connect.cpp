@@ -49,6 +49,7 @@ struct port_info {
 };
 
 int epd;
+portState_e portState;
 struct epoll_event epd_event;
 SUBSCRIBE_EVENTS_NP_t d;
 JClkLibCommon::ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0 , 0 , 0};
@@ -85,8 +86,15 @@ void event_handle()
     int64_t offset;
     ClockIdentity_t gm_uuid;
     uint8_t servo;
+    PORT_DATA_SET_t *pd;
+
     switch(msg.getTlvId()) {
         case TIME_STATUS_NP:
+            //workaround for ptp4l continue to send even gm is not present
+            if(portState < UNCALIBRATED) {
+                return;
+            }
+
             offset = ((TIME_STATUS_NP_t *)data)->master_offset;
             servo = ((TIME_STATUS_NP_t *)data)->servo_state;
             gm_uuid = ((TIME_STATUS_NP_t *)data)->gmIdentity;
@@ -106,8 +114,23 @@ void event_handle()
             pe.asCapable = ((PORT_DATA_SET_NP_t *)data)->asCapable;
             printf("asCapable = %d\n\n", pe.asCapable);
             break;
-        default:
+        case PORT_DATA_SET:
+            pd = (PORT_DATA_SET_t *)data;
+            portState = pd->portState;
+
+            //Reset proxy ptp4l event data if port_state <= PASSIVE
+            if (portState <= PASSIVE) {
+                pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0 , 0 , 0};
+            }
+
             break;
+        case PORT_PROPERTIES_NP:
+            //Retrieve current port state when proxy is started
+            pd = (PORT_DATA_SET_t *)data;
+            portState = pd->portState;
+            break;
+        default:
+            return;
     }
 
     notify_client();
@@ -170,6 +193,7 @@ bool event_subscription(struct jcl_handle **handle)
     memset(d.bitmask, 0, sizeof d.bitmask);
     d.setEvent(NOTIFY_TIME_SYNC);
     d.setEvent(NOTIFY_PORT_STATE_NP);
+    d.setEvent(NOTIFY_PORT_STATE);
 
     if(!msg.setAction(SET, SUBSCRIBE_EVENTS_NP, &d)) {
         fprintf(stderr, "Fail set SUBSCRIBE_EVENTS_NP\n");
