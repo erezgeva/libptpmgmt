@@ -25,10 +25,12 @@ namespace JClkLibClient
 	class ClientConnectMessage : virtual public JClkLibCommon::CommonConnectMessage,
 				     virtual public ClientMessage
 	{
+	private:
+		inline static ClientState *currentClientState;
 	public:
 
 		ClientConnectMessage() : MESSAGE_CONNECT() {};
-
+		//ClientConnectMessage(ClientState &newState);
 		static std::mutex cv_mtx;
 		static std::condition_variable cv;
 
@@ -54,6 +56,8 @@ namespace JClkLibClient
 		 * @return true
 		 */
 		static bool initMessage();
+
+		void setClientState(ClientState *newClientState);
 	};
 }
 

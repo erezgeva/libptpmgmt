@@ -46,8 +46,18 @@ namespace JClkLibClient
 
 		virtual PARSE_RXBUFFER_TYPE(parseBuffer);
 
+		static void addClientState(ClientState *newClientState);
+		static void deleteClientState(ClientState *newClientState);
+
 	protected:
 		ClientNotificationMessage() : MESSAGE_NOTIFY() {}
+
+	private:
+		inline static std::vector<ClientState *> ClientStateArray;
+
+		// proxy_data can be 1 only. it is ok.
+		JClkLibCommon::ptp_event proxy_data = {};
+
 	};
 }
 

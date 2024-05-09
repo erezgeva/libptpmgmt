@@ -77,8 +77,8 @@ PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 
 	/* check whether there is ptp4l available */
 	if (!pe.ptp4l_id) {
-		//return false;
-		PrintDebug("[AZU_HACK] ptp4l is not available !!! , we continue anyway");
+		PrintError("ptp4l_id is not available.");
+		return false;
 	}
 
 	newSessionId = Client::CreateClientSession();

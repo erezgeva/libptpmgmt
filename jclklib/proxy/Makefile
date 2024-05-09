@@ -66,5 +66,5 @@ jclklib_proxy: $(OBJ_FILES) $(COMMON_OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -g -I $(JCLKLIB_TOPLEVEL_DIR) -fdiagnostics-color=always
+	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -fdiagnostics-color=always
 

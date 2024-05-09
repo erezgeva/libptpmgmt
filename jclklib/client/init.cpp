@@ -16,6 +16,7 @@
 #include <client/msgq_tport.hpp>
 #include <client/connect_msg.hpp>
 #include <client/subscribe_msg.hpp>
+#include <client/notification_msg.hpp>
 #include <common/sighandler.hpp>
 #include <common/print.hpp>
 #include <mutex>
@@ -36,14 +37,19 @@ std::condition_variable ClientConnectMessage::cv;
 std::mutex ClientSubscribeMessage::cv_mtx;
 std::condition_variable ClientSubscribeMessage::cv;
 
-extern JClkLibCommon::client_ptp_event client_ptp_data;
+//extern JClkLibCommon::client_ptp_event client_ptp_data;
 
-TransportClientId globalClientID;
+//TransportClientId globalClientID;
 
-bool JClkLibClient::jcl_connect()
+bool JClkLibClientApi::jcl_connect()
 {
 	unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
 	Message0 connectMsg(new ClientConnectMessage());
+	TransportClientId newClientID;
+
+	ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
+
+	cmsg->setClientState(&appClientState);
 
 	//BlockStopSignal();
 	if(!ClientMessage::init()) {
@@ -61,11 +67,11 @@ bool JClkLibClient::jcl_connect()
 	// Wait for connection result
 	auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
 	std::unique_lock<std::mutex> lck(ClientConnectMessage::cv_mtx);
-	while (state.get_connected() == false )
+	while (appClientState.get_connected() == false )
 	{
 		auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
 		if (res == std::cv_status::timeout) {
-			if (state.get_connected() == false) {
+			if (appClientState.get_connected() == false) {
 				PrintDebug("[CONNECT] Connect reply from proxy - timeout failure!!");
 				return false;
 				}
@@ -75,15 +81,16 @@ bool JClkLibClient::jcl_connect()
 		}
 	}
 
-	ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
-	strcpy((char *)globalClientID.data(), (char *)cmsg->getClientId().data());
-	state.set_clientID(globalClientID);
+	//ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
+	strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
+
+	appClientState.set_clientID(newClientID);
 
 	return true;
 }
 
 
-bool JClkLibClient::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
+bool JClkLibClientApi::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
 				  JClkLibCommon::jcl_state &currentState)
 {
 	unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
@@ -99,12 +106,20 @@ bool JClkLibClient::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
 	else
 		PrintDebug("[JClkLibClient::subscribe] subscribeMsgcreation is OK !!\n");
 
-	/* Write the current event subscription */
-	state.get_eventSub().set_event(newSub.getc_event());
-	state.get_eventSub().set_value(newSub.getc_value());
-	state.get_eventSub().set_composite_event(newSub.getc_composite_event());
+	//cmsg->setClientState(JClkLibCommon::jcl_state *newState);
+	cmsg->setClientState(&appClientState);
 
+	/* Write the current event subscription */
+	appClientState.get_eventSub().set_event(newSub.getc_event());
+	appClientState.get_eventSub().set_value(newSub.getc_value());
+	appClientState.get_eventSub().set_composite_event(newSub.getc_composite_event());
+
+	// This is to copy the event Mask ( same as master_offset_low ?? )
 	cmsg->getSubscription().get_event().copyEventMask(newSub.get_event());
+
+	// Wri
+	strcpy((char *)cmsg->getClientId().data(), (char *)appClientState.get_clientID().data());
+	cmsg->set_sessionId(appClientState.get_sessionId()); // this is where it turns to 0 
 
 	ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
 	ClientMessageQueue::sendMessage(subscribeMsg.get());
@@ -112,11 +127,11 @@ bool JClkLibClient::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
 	// Wait for subscription result
 	auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
 	std::unique_lock<std::mutex> lck(ClientSubscribeMessage::cv_mtx);
-	while (state.get_subscribed() == false )
+	while (appClientState.get_subscribed() == false )
 	{
 		auto res = ClientSubscribeMessage::cv.wait_until(lck, endTime);
 		if (res == std::cv_status::timeout) {
-			if (state.get_subscribed() == false) {
+			if (appClientState.get_subscribed() == false) {
 				PrintDebug("[SUBSCRIBE] No reply from proxy - timeout failure!!");
 				return false;
 				}
@@ -126,12 +141,22 @@ bool JClkLibClient::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
 		}
 	}
 
-	currentState = state.get_eventState();
+	JClkLibCommon::jcl_state jclCurrentState = appClientState.get_eventState();
+	printf("[JClkLibClient]::subscribe : state -  \n");
+	printf ("offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
+	jclCurrentState.offset_in_range, jclCurrentState.servo_locked,\
+	jclCurrentState.gm_present, jclCurrentState.as_Capable, jclCurrentState.gm_changed);
+	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x \n",
+		jclCurrentState.gmIdentity[0], jclCurrentState.gmIdentity[1],jclCurrentState.gmIdentity[2],
+		jclCurrentState.gmIdentity[3], jclCurrentState.gmIdentity[4],
+		jclCurrentState.gmIdentity[5], jclCurrentState.gmIdentity[6],jclCurrentState.gmIdentity[7]);
+
+	currentState = jclCurrentState;
 
 	return true;
 }
 
-bool JClkLibClient::jcl_disconnect()
+bool JClkLibClientApi::jcl_disconnect()
 {
 	bool retVal = false;
 
@@ -144,6 +169,12 @@ bool JClkLibClient::jcl_disconnect()
 		PrintDebug("Client Finalize Failed");
 		goto done;
 	}
+
+	/* delete the ClientPtpEvent inside Subscription  */
+	ClientSubscribeMessage::deleteClientPtpEventStruct(appClientState.get_sessionId());
+	/* delete the ClientState reference inside ClientNotificationMessage class */
+	ClientNotificationMessage::deleteClientState(&appClientState);
+
 	retVal = true;
 
  done:
@@ -166,20 +197,20 @@ bool JClkLibClient::jcl_disconnect()
  * @return Returns true if there is event changes within the timeout period,
  *         and false otherwise.
  */
-int JClkLibClient::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_state,
-				   JClkLibCommon::jcl_state_event_count &eventCount)
+int JClkLibClientApi::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_state_ref,
+				   JClkLibCommon::jcl_state_event_count &eventCountRef)
 {
 	auto start = std::chrono::high_resolution_clock::now();
 	auto end = (timeout == -1) ?
 		   std::chrono::time_point<std::chrono::high_resolution_clock>::max() :
 		   start + std::chrono::seconds(timeout);
 	bool event_changes_detected = false;
+	
+	/* Get the event state and event count from the API*/
+	JClkLibCommon::jcl_state_event_count eventCount = appClientState.get_eventStateCount();
+	JClkLibCommon::jcl_state jcl_state = appClientState.get_eventState();
 
 	do {
-		/* Get the event state and event count*/
-		eventCount = state.get_eventStateCount();
-		jcl_state = state.get_eventState();
-
 		/* Check if any member of eventCount is non-zero */
 		if (eventCount.offset_in_range_event_count ||
 		    eventCount.asCapable_event_count ||
@@ -198,30 +229,12 @@ int JClkLibClient::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_st
 	if (!event_changes_detected)
 		return false;
 
-	/* Reset the atomic */
-	client_ptp_data.offset_event_count.fetch_sub(eventCount.offset_in_range_event_count,
-						     std::memory_order_relaxed);
-	client_ptp_data.asCapable_event_count.fetch_sub(eventCount.asCapable_event_count,
-							std::memory_order_relaxed);
-	client_ptp_data.servo_state_event_count.fetch_sub(eventCount.servo_locked_event_count,
-							  std::memory_order_relaxed);
-	client_ptp_data.gmPresent_event_count.fetch_sub(eventCount.gmPresent_event_count,
-							std::memory_order_relaxed);
-	client_ptp_data.gmChanged_event_count.fetch_sub(eventCount.gm_changed_event_count,
-							std::memory_order_relaxed);
-	client_ptp_data.composite_event_count.fetch_sub(eventCount.composite_event_count,
-							std::memory_order_relaxed);
+	/* copy out the current state */
+	eventCountRef = eventCount;
+	jcl_state_ref = jcl_state;
 
-	JClkLibCommon::jcl_state_event_count jclCurrentEventCount = {};
-
-	jclCurrentEventCount.gmPresent_event_count = client_ptp_data.gmPresent_event_count;
-	jclCurrentEventCount.offset_in_range_event_count = client_ptp_data.offset_event_count;
-	jclCurrentEventCount.asCapable_event_count = client_ptp_data.asCapable_event_count;
-	jclCurrentEventCount.servo_locked_event_count = client_ptp_data.servo_state_event_count;
-	jclCurrentEventCount.gm_changed_event_count = client_ptp_data.gmChanged_event_count;
-	jclCurrentEventCount.composite_event_count = client_ptp_data.composite_event_count;
-
-	state.set_eventStateCount (jclCurrentEventCount);
+	/* Reset the atomic count by reducing the corresponding eventCount */
+	ClientSubscribeMessage::resetClientPtpEventStruct(appClientState.get_sessionId(), eventCount);
 
 	return true;
 }

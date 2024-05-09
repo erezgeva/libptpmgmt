@@ -25,16 +25,19 @@
 namespace JClkLibClient {
 	class ClientState {
 	private:
-		std::atomic_bool connected;
-		std::atomic_bool subscribed;
-		JClkLibCommon::sessionId_t sessionId;
-		JClkLibCommon::TransportClientId clientID;
-		JClkLibCommon::jcl_state eventState;
-		JClkLibCommon::jcl_state_event_count eventStateCount;
-		JClkLibCommon::jcl_subscription eventSub;
+		std::atomic_bool connected = false;
+		std::atomic_bool subscribed = false;
+		JClkLibCommon::sessionId_t sessionId = JClkLibCommon::InvalidSessionId;
+		JClkLibCommon::TransportClientId clientID = {};
+		uint8_t ptp4l_id = 0;
+		JClkLibCommon::jcl_state eventState = {};
+		JClkLibCommon::jcl_state_event_count eventStateCount ={};
+		JClkLibCommon::jcl_subscription eventSub ={};
 
 	public:
 		ClientState();
+		ClientState (ClientState &newState);
+		void set_clientState(ClientState &newState);
 		bool get_connected();
 		void set_connected(bool state);
 		bool get_subscribed();
@@ -47,12 +50,11 @@ namespace JClkLibClient {
 		void set_eventState(JClkLibCommon::jcl_state eState);
 		std::string toString();
 		JClkLibCommon::jcl_subscription &get_eventSub();
-		//void get_clientID_memcpy(JClkLibCommon::TransportClientId cID);
-		//void set_clientID_memcpy(JClkLibCommon::TransportClientId cID);
 		DECLARE_ACCESSOR(sessionId);
+		DECLARE_ACCESSOR(ptp4l_id);
 	};
 
-	extern JClkLibClient::ClientState state;
+	//extern JClkLibClient::ClientState state;
 }
 
 #endif/*PROXY_CLIENT_STATE*/

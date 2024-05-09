@@ -77,7 +77,7 @@ COMMON_PRESEND_MESSAGE_TYPE(Message::presendMessage)
 		return false;
 	}
 	DumpOctetArray("Sending message (length = " + to_string(ctx->getc_offset()) + "): ", ctx->getc_buffer().data(),
-		       ctx->getc_offset());
+	       ctx->getc_offset());
 	PrintDebug("[Message]::presendMessage successful");
 
 	return true;

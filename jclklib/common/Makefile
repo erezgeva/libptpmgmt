@@ -62,5 +62,5 @@ common-obj: $(OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -g -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -Werror -Wall -Wextra -Wno-unused-parameter -fdiagnostics-color=always
+	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -Werror -Wall -Wextra -Wno-unused-parameter -fdiagnostics-color=always
 

@@ -57,9 +57,14 @@ PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer) {
 	if (!PARSE_RX(FIELD, data.ptp4l_id, LxContext))
 		return false;
 
-	printf("ptp4l_id = %d\n\n", data.ptp4l_id);
+	currentClientState->set_ptp4l_id(data.ptp4l_id);
 
 	return true;
+}
+
+void ClientConnectMessage::setClientState(ClientState *newClientState){
+	//currentClientState.set_clientState(newClientState);
+	currentClientState = newClientState;
 }
 
 /** @brief process the reply for connect msg from proxy.
@@ -84,11 +89,11 @@ PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
 
         PrintDebug("Processing client connect message (reply)");
 
-	state.set_connected(true);
-	state.set_sessionId(this->get_sessionId());
+	currentClientState->set_connected(true);
+	currentClientState->set_sessionId(this->get_sessionId());
 
         PrintDebug("Connected with session ID: " + to_string(this->get_sessionId()));
-        PrintDebug("Current state.sessionId: " + to_string(state.get_sessionId()));
+        PrintDebug("Current state.sessionId: " + to_string(currentClientState->get_sessionId()));
 
 	this->set_msgAck(ACK_NONE);
 

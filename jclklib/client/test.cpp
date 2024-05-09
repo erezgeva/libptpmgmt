@@ -38,6 +38,10 @@ int main(int argc, char *argv[])
     int timeout = 10;
     int upper_master_offset = 100000;
     int lower_master_offset = -100000;
+    int ret = 0;
+    JClkLibCommon::jcl_subscription sub = {};
+    JClkLibCommon::jcl_state jcl_state = {};
+    JClkLibCommon::jcl_state_event_count eventCount = {};
 
     std::uint32_t event2Sub1[1] = {
         ((1<<gmOffsetEvent)|(1<<servoLockedEvent)|(1<<asCapableEvent)|
@@ -117,14 +121,28 @@ int main(int argc, char *argv[])
     signal(SIGTERM, signal_handler);
     signal(SIGHUP, signal_handler);
 
-    if (jcl_connect() == false) {
-        std::cerr << "[jclklib] Failure in connecting to jclklib Proxy !!!\n";
-        return EXIT_FAILURE;
+    JClkLibClientApi *cmAPI = new JClkLibClientApi();
+
+    cmAPI->init();
+
+    ClientState &myState = cmAPI->getClientState();
+
+    std::cout << "[CLIENT] Before connect : Session ID : " <<
+        myState.get_sessionId() << "\n";
+
+    if (cmAPI->jcl_connect() == false) {
+        std::cout << "[CLIENT] Failure in connecting !!!\n";
+        ret = EXIT_FAILURE;
+        goto do_exit;
+    }
+    else {
+        std::cout << "[CLIENT] Connected. Session ID : " <<
+            myState.get_sessionId() << "\n";
     }
 
     sleep(1);
 
-    JClkLibCommon::jcl_subscription sub = {};
+
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
     sub.get_value().setValue(gmOffsetValue, upper_master_offset,
         lower_master_offset);
@@ -137,10 +155,9 @@ int main(int argc, char *argv[])
     std::cout << "Upper Master Offset: " << upper_master_offset << "\n";
     std::cout << "Lower Master Offset: " << lower_master_offset << "\n\n";
 
-    JClkLibCommon::jcl_state jcl_state = {};
-    if (jcl_subscribe(sub, jcl_state) == false) {
+    if (cmAPI->jcl_subscribe(sub, jcl_state) == false) {
         std::cerr << "[jclklib] Failure in subscribing to jclklib Proxy !!!\n";
-        jcl_disconnect();
+        cmAPI->jcl_disconnect();
         return EXIT_FAILURE;
     }
 
@@ -194,10 +211,9 @@ int main(int argc, char *argv[])
 
     sleep(1);
 
-    JClkLibCommon::jcl_state_event_count eventCount = {};
     while (!signal_flag) {
-        if (!jcl_status_wait(timeout, jcl_state , eventCount)) {
-            printf("[jclklib] No event changes identified in %d seconds.\n\n",
+        if (!cmAPI->jcl_status_wait(timeout, jcl_state , eventCount)) {
+            printf("No event status changes identified in %d seconds.\n\n",
                 timeout);
             sleep(1);
             continue;
@@ -258,7 +274,8 @@ int main(int argc, char *argv[])
         sleep(1);
     }
 
-    jcl_disconnect();
+do_exit:
+    cmAPI->jcl_disconnect();
 
     return EXIT_SUCCESS;
 }

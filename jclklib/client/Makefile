@@ -70,4 +70,4 @@ test: test.o jclklib.so
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -g -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -fdiagnostics-color=always
+	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -fdiagnostics-color=always
