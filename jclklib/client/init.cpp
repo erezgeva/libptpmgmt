@@ -219,5 +219,16 @@ int JClkLibClient::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_st
 	client_ptp_data.composite_event_count.fetch_sub(eventCount.composite_event_count,
 							std::memory_order_relaxed);
 
+	JClkLibCommon::jcl_state_event_count jclCurrentEventCount = {};
+
+	jclCurrentEventCount.gmPresent_event_count = client_ptp_data.gmPresent_event_count;
+	jclCurrentEventCount.offset_in_range_event_count = client_ptp_data.offset_event_count;
+	jclCurrentEventCount.asCapable_event_count = client_ptp_data.asCapable_event_count;
+	jclCurrentEventCount.servo_locked_event_count = client_ptp_data.servo_state_event_count;
+	jclCurrentEventCount.gm_changed_event_count = client_ptp_data.gmChanged_event_count;
+	jclCurrentEventCount.composite_event_count = client_ptp_data.composite_event_count;
+
+	state.set_eventStateCount (jclCurrentEventCount);
+
 	return true;
 }
