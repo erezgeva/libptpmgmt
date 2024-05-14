@@ -52,10 +52,10 @@ int main(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "s:c:t:u:l:h")) != -1) {
         switch (opt) {
         case 's':
-            event2Sub1[0] = std::stoul(optarg);
+            event2Sub1[0] = std::stoul(optarg, nullptr, 0);
             break;
         case 'c':
-            composite_event[0] = std::stoul(optarg);
+            composite_event[0] = std::stoul(optarg, nullptr, 0);
             break;
         case 't':
             timeout = std::stoi(optarg);
@@ -70,45 +70,45 @@ int main(int argc, char *argv[])
             std::cout << "Usage of " << argv[0] << " :\n"
                 "Options:\n"
                 "  -s subscribe_event_mask\n"
-                "     Default: " << event2Sub1[0] << "\n"
+                "     Default: 0x" << std::hex << event2Sub1[0] << "\n"
                 "     Bit 0: gmOffsetEvent\n"
                 "     Bit 1: servoLockedEvent\n"
                 "     Bit 2: asCapableEvent\n"
                 "     Bit 3: gmPresentEvent\n"
                 "     Bit 4: gmChangedEvent\n"
                 "  -c composite_event_mask\n"
-                "     Default: " << composite_event[0] << "\n"
+                "     Default: 0x" << composite_event[0] << "\n"
                 "     Bit 0: gmOffsetEvent\n"
                 "     Bit 1: servoLockedEvent\n"
                 "     Bit 2: asCapableEvent\n"
-                "  -t timeout in waiting notification event\n"
-                "     Default: " << timeout << "\n"
-                "  -u upper master offset\n"
-                "     Default: " << upper_master_offset << "\n"
-                "  -l lower master offset\n"
-                "     Default: " << lower_master_offset << "\n";
+                "  -u upper master offset (ns)\n"
+                "     Default: " << std::dec << upper_master_offset << " ns\n"
+                "  -l lower master offset (ns)\n"
+                "     Default: " << lower_master_offset << " ns\n"
+                "  -t timeout in waiting notification event (s)\n"
+                "     Default: " << timeout << " s\n";
             return EXIT_SUCCESS;
         default:
             std::cerr << "Usage of " << argv[0] << " :\n"
                 "Options:\n"
                 "  -s subscribe_event_mask\n"
-                "     Default: " << event2Sub1[0] << "\n"
+                "     Default: 0x" << std::hex << event2Sub1[0] << "\n"
                 "     Bit 0: gmOffsetEvent\n"
                 "     Bit 1: servoLockedEvent\n"
                 "     Bit 2: asCapableEvent\n"
                 "     Bit 3: gmPresentEvent\n"
                 "     Bit 4: gmChangedEvent\n"
                 "  -c composite_event_mask\n"
-                "     Default: " << composite_event[0] << "\n"
+                "     Default: 0x" << composite_event[0] << "\n"
                 "     Bit 0: gmOffsetEvent\n"
                 "     Bit 1: servoLockedEvent\n"
                 "     Bit 2: asCapableEvent\n"
-                "  -t timeout in waiting notification event\n"
-                "     Default: " << timeout << "\n"
-                "  -u upper master offset\n"
-                "     Default: " << upper_master_offset << "\n"
-                "  -l lower master offset\n"
-                "     Default: " << lower_master_offset << "\n";
+                "  -u upper master offset (ns)\n"
+                "     Default: " << std::dec << upper_master_offset << " ns\n"
+                "  -l lower master offset (ns)\n"
+                "     Default: " << lower_master_offset << " ns\n"
+                "  -t timeout in waiting notification event (s)\n"
+                "     Default: " << timeout << " s\n";
             return EXIT_FAILURE;
         }
     }
