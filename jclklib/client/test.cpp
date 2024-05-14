@@ -36,6 +36,8 @@ void signal_handler(int sig)
 int main(int argc, char *argv[])
 {
     int timeout = 10;
+    int upper_master_offset = 100000;
+    int lower_master_offset = -100000;
 
     std::uint32_t event2Sub1[1] = {
         ((1<<gmOffsetEvent)|(1<<servoLockedEvent)|(1<<asCapableEvent)|
@@ -47,7 +49,7 @@ int main(int argc, char *argv[])
     };
 
     int opt;
-    while ((opt = getopt(argc, argv, "s:c:t:")) != -1) {
+    while ((opt = getopt(argc, argv, "s:c:t:u:l:h")) != -1) {
         switch (opt) {
         case 's':
             event2Sub1[0] = std::stoul(optarg);
@@ -58,10 +60,55 @@ int main(int argc, char *argv[])
         case 't':
             timeout = std::stoi(optarg);
             break;
+        case 'u':
+            upper_master_offset = std::stoi(optarg);
+            break;
+        case 'l':
+            lower_master_offset = std::stoi(optarg);
+            break;
+        case 'h':
+            std::cout << "Usage of " << argv[0] << " :\n"
+                "Options:\n"
+                "  -s subscribe_event_mask\n"
+                "     Default: " << event2Sub1[0] << "\n"
+                "     Bit 0: gmOffsetEvent\n"
+                "     Bit 1: servoLockedEvent\n"
+                "     Bit 2: asCapableEvent\n"
+                "     Bit 3: gmPresentEvent\n"
+                "     Bit 4: gmChangedEvent\n"
+                "  -c composite_event_mask\n"
+                "     Default: " << composite_event[0] << "\n"
+                "     Bit 0: gmOffsetEvent\n"
+                "     Bit 1: servoLockedEvent\n"
+                "     Bit 2: asCapableEvent\n"
+                "  -t timeout in waiting notification event\n"
+                "     Default: " << timeout << "\n"
+                "  -u upper master offset\n"
+                "     Default: " << upper_master_offset << "\n"
+                "  -l lower master offset\n"
+                "     Default: " << lower_master_offset << "\n";
+            return EXIT_SUCCESS;
         default:
-            std::cerr << "Usage: " << argv[0] << "[-s subscribe_event_mask] "
-                "[-c composite_event_mask] "
-                "[-t timeout in waiting notification event]\n";
+            std::cerr << "Usage of " << argv[0] << " :\n"
+                "Options:\n"
+                "  -s subscribe_event_mask\n"
+                "     Default: " << event2Sub1[0] << "\n"
+                "     Bit 0: gmOffsetEvent\n"
+                "     Bit 1: servoLockedEvent\n"
+                "     Bit 2: asCapableEvent\n"
+                "     Bit 3: gmPresentEvent\n"
+                "     Bit 4: gmChangedEvent\n"
+                "  -c composite_event_mask\n"
+                "     Default: " << composite_event[0] << "\n"
+                "     Bit 0: gmOffsetEvent\n"
+                "     Bit 1: servoLockedEvent\n"
+                "     Bit 2: asCapableEvent\n"
+                "  -t timeout in waiting notification event\n"
+                "     Default: " << timeout << "\n"
+                "  -u upper master offset\n"
+                "     Default: " << upper_master_offset << "\n"
+                "  -l lower master offset\n"
+                "     Default: " << lower_master_offset << "\n";
             return EXIT_FAILURE;
         }
     }
@@ -79,13 +126,16 @@ int main(int argc, char *argv[])
 
     JClkLibCommon::jcl_subscription sub = {};
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
-    sub.get_value().setValue(gmOffsetValue, 100000, -100000);
+    sub.get_value().setValue(gmOffsetValue, upper_master_offset,
+        lower_master_offset);
     sub.get_composite_event().writeEvent(composite_event,
         (std::size_t)sizeof(composite_event));
     std::cout << "[jclklib] set subscribe event : " +
         sub.c_get_val_event().toString() << "\n";
     std::cout << "[jclklib] set composite event : " +
         sub.c_get_val_composite_event().toString() << "\n";
+    std::cout << "Upper Master Offset: " << upper_master_offset << "\n";
+    std::cout << "Lower Master Offset: " << lower_master_offset << "\n\n";
 
     JClkLibCommon::jcl_state jcl_state = {};
     if (jcl_subscribe(sub, jcl_state) == false) {
