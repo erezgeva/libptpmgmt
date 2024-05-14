@@ -94,6 +94,7 @@ SEND_BUFFER_TYPE(MessageQueueTransmitterContext::sendBuffer)
 {
 	if (mq_send(mqTransmitterDesc, (char *)get_buffer().data(), get_offset(), 0) == -1) {
 		PrintErrorCode("Failed to send buffer");
+		mq_close(mqTransmitterDesc);
 		return false;
 	}
 

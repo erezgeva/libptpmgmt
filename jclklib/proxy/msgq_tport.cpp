@@ -51,7 +51,7 @@ LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(ProxyMessageQueueListenerContext::processM
 
 CREATE_TRANSMIT_CONTEXT_TYPE(ProxyMessageQueueListenerContext::CreateTransmitterContext)
 {
-	mqd_t txd = mq_open((char *)clientId.data(), TX_QUEUE_FLAGS);
+	mqd_t txd = mq_open((char *)clientId.data(), TX_QUEUE_FLAGS | O_NONBLOCK);
 	if (txd == -1) {
 		PrintErrorCode("Failed to open message queue " + string((const char*)clientId.data()));
 		return NULL;
