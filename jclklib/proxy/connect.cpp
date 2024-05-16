@@ -114,9 +114,12 @@ void event_handle()
             pd = (PORT_DATA_SET_t *)data;
             portState = pd->portState;
 
-            //Reset proxy ptp4l event data if port_state <= PASSIVE
+            //Reset TIME_STATUS_NP data if port_state <= PASSIVE
             if (portState <= PASSIVE) {
-                pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0 , 0 , 0};
+                pe.master_offset = 0;
+                memset(pe.gmIdentity, 0, sizeof(pe.gmIdentity));
+                pe.servo_state = 0;
+                pe.gmPresent = 0;
             }
 
             break;
