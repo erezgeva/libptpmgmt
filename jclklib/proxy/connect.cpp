@@ -110,10 +110,6 @@ void event_handle()
                    pe.gmIdentity[3], pe.gmIdentity[4],
                    pe.gmIdentity[5], pe.gmIdentity[6],pe.gmIdentity[7]);
             break;
-        case PORT_DATA_SET_NP:
-            pe.asCapable = ((PORT_DATA_SET_NP_t *)data)->asCapable;
-            printf("asCapable = %d\n\n", pe.asCapable);
-            break;
         case PORT_DATA_SET:
             pd = (PORT_DATA_SET_t *)data;
             portState = pd->portState;
@@ -128,6 +124,10 @@ void event_handle()
             //Retrieve current port state when proxy is started
             pd = (PORT_DATA_SET_t *)data;
             portState = pd->portState;
+            break;
+        case CMLDS_INFO_NP:
+            pe.asCapable = ((CMLDS_INFO_NP_t *)data)->as_capable;
+            printf("asCapable = %d\n\n", pe.asCapable);
             break;
         default:
             return;
@@ -192,8 +192,8 @@ bool event_subscription(struct jcl_handle **handle)
 {
     memset(d.bitmask, 0, sizeof d.bitmask);
     d.setEvent(NOTIFY_TIME_SYNC);
-    d.setEvent(NOTIFY_PORT_STATE_NP);
     d.setEvent(NOTIFY_PORT_STATE);
+    d.setEvent(NOTIFY_CMLDS);
 
     if(!msg.setAction(SET, SUBSCRIBE_EVENTS_NP, &d)) {
         fprintf(stderr, "Fail set SUBSCRIBE_EVENTS_NP\n");
