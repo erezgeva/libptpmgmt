@@ -206,11 +206,13 @@ int JClkLibClientApi::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl
 		   start + std::chrono::seconds(timeout);
 	bool event_changes_detected = false;
 	
-	/* Get the event state and event count from the API*/
-	JClkLibCommon::jcl_state_event_count eventCount = appClientState.get_eventStateCount();
-	JClkLibCommon::jcl_state jcl_state = appClientState.get_eventState();
-
+	JClkLibCommon::jcl_state_event_count eventCount;
+	JClkLibCommon::jcl_state jcl_state;
 	do {
+		/* Get the event state and event count from the API*/
+		eventCount = appClientState.get_eventStateCount();
+		jcl_state = appClientState.get_eventState();
+
 		/* Check if any member of eventCount is non-zero */
 		if (eventCount.offset_in_range_event_count ||
 		    eventCount.asCapable_event_count ||

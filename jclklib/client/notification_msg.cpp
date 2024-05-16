@@ -159,7 +159,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 		composite_client_ptp_data->composite_event = true;
 	}
 
-	if ((composite_eventSub[0] & 1<<gmOffsetEvent) && (proxy_data.master_offset != composite_client_ptp_data->master_offset)) {
+	if (composite_eventSub[0] & 1<<gmOffsetEvent) {
 		composite_client_ptp_data->master_offset = proxy_data.master_offset;
 		if ((composite_client_ptp_data->master_offset > currentClientState->get_eventSub().get_value().getLower(gmOffsetValue)) &&
 		    (composite_client_ptp_data->master_offset < currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue))) {
