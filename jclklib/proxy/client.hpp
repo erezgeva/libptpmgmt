@@ -32,6 +32,7 @@ namespace JClkLibProxy {
 		static std::map<SessionMapping_t::first_type,SessionMapping_t::second_type> SessionMap;
 	public:
 		static JClkLibCommon::sessionId_t CreateClientSession();
+		static size_t GetSessionCount() { return SessionMap.size(); }
 		static JClkLibCommon::sessionId_t GetSessionIdAt(size_t index);
 		static ClientX GetClientSession(JClkLibCommon::sessionId_t sessionId);
 	private:

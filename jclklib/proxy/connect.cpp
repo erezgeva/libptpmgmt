@@ -68,15 +68,17 @@ void notify_client()
 
     PrintDebug("[JClkLibProxy::notify_client] notifyMsg creation is OK !!\n");
 
-    /* ToDo: loop for multiple sessions */
-    SessionId = Client::GetSessionIdAt(0);
-    if (SessionId != JClkLibCommon::InvalidSessionId) {
-        PrintDebug("Get client session ID: " + to_string(SessionId));
+    /* Send data for multiple sessions */
+    for(size_t i = 0; i < Client::GetSessionCount(); i++) {
+        SessionId = Client::GetSessionIdAt(i);
+        if (SessionId != JClkLibCommon::InvalidSessionId) {
+            PrintDebug("Get client session ID: " + to_string(SessionId));
 
-        auto TxContext = Client::GetClientSession(SessionId).get()->get_transmitContext();
-        pmsg->transmitMessage(*TxContext);
-    } else {
-        PrintDebug("Unable to get Session ID");
+            auto TxContext = Client::GetClientSession(SessionId).get()->get_transmitContext();
+            pmsg->transmitMessage(*TxContext);
+        } else {
+            PrintError("Unable to get Session ID\n");
+        }
     }
 }
 
