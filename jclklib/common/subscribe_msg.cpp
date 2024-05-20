@@ -71,6 +71,6 @@ TRANSMIT_MESSAGE_TYPE(CommonSubscribeMessage::transmitMessage)
 	return TxContext.sendBuffer();
 }
 
-void setSubscription(jcl_subscription newsub) {
+void setSubscription(jcl_subscription &newsub) {
 	PrintDebug("[CommonSubscribeMessage]::setSubscription ");
 }

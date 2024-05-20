@@ -42,7 +42,6 @@ struct thread_signal {
 struct jcl_handle
 {
 	ptp4l_handle_t ptp4l_handle;
-	bool ptp4l_state_initialized;
 	thread_signal_t status_signal;
 	pthread_mutex_t state_lock;
 	struct JClkLibCommon::jcl_state state;
@@ -64,8 +63,8 @@ struct ptp4l_state {
 	bool			servo_locked;
 };
 
-int handle_connect( jcl_handle_t *handle, struct epoll_event epd_event );
-int connect_ptp4l( ptp4l_handle_t *phandle, struct epoll_event epd_event, state_update_t update, void *ctx);
+int handle_connect(struct epoll_event epd_event );
+int connect_ptp4l(ptp4l_handle_t *phandle, struct epoll_event epd_event, state_update_t update, void *ctx);
 
 void *ptp4l_event_loop(void *arg);
 bool event_subscription(struct jcl_handle **handle);

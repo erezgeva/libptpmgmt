@@ -34,7 +34,7 @@ namespace JClkLibCommon
 		bool			 isEnable() { return waitEnable == 0x1; }
 	protected:
 #define MESSAGE_NOTIFY() JClkLibCommon::Message(JClkLibCommon::NOTIFY_MESSAGE)
-		NotificationMessage() : MESSAGE_NOTIFY() {}
+		NotificationMessage() : MESSAGE_NOTIFY() , waitEnable(0) {}
 	private:
 		std::uint32_t	waitEnable :1;
 		//jcl_event	event;

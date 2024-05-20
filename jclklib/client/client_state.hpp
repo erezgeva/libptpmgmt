@@ -43,7 +43,7 @@ namespace JClkLibClient {
 		bool get_subscribed();
 		void set_subscribed(bool subscriptionState);
 		JClkLibCommon::TransportClientId get_clientID();
-		void set_clientID(JClkLibCommon::TransportClientId cID);
+		void set_clientID(JClkLibCommon::TransportClientId &cID);
 		JClkLibCommon::jcl_state_event_count &get_eventStateCount();
 		JClkLibCommon::jcl_state &get_eventState();
 		void set_eventStateCount(JClkLibCommon::jcl_state_event_count eCount);

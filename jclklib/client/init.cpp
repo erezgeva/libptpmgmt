@@ -81,10 +81,12 @@ bool JClkLibClientApi::jcl_connect()
 		}
 	}
 
-	//ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
-	strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
+	if ((cmsg != nullptr) && !(cmsg->getClientId().empty())) {
+		//ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
+		strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
 
-	appClientState.set_clientID(newClientID);
+		appClientState.set_clientID(newClientID);
+	}
 
 	return true;
 }

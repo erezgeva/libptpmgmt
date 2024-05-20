@@ -31,6 +31,9 @@ ClientState::ClientState()
 	subscribed = false;
 	sessionId = JClkLibCommon::InvalidSessionId;
 	fill(begin(clientID ), end( clientID ), 0 );
+	eventState = {};
+	eventStateCount = {};
+	eventSub = {};
 }
 
 ClientState::ClientState(ClientState &newState)
@@ -67,7 +70,7 @@ TransportClientId ClientState::get_clientID() {
 	return clientID;
 }
 
-void ClientState::set_clientID(TransportClientId new_cID) {
+void ClientState::set_clientID(TransportClientId &new_cID) {
 	strcpy((char *)clientID.data(), (char *)new_cID.data());
 }
 

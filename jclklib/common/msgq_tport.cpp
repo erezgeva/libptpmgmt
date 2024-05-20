@@ -69,6 +69,7 @@ bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
 
 	if(!context) {
 		PrintError("Internal Error: Received inappropriate context");
+		return false; // Return early since context is null and cannot be used.
 	}
 	if (context->init() && !EnableSyscallInterruptSignal()) {
 		PrintError("Unable to enable interrupts in work process context");

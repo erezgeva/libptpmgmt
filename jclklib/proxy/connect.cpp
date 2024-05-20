@@ -273,11 +273,6 @@ void *ptp4l_event_loop( void *arg)
  */
 int Connect::connect()
 {
-    // Ensure we recieve reply from local ptp daemon
-    MsgParams prms = msg.getParams();
-    prms.boundaryHops = 0;
-
-    std::unique_ptr<SockBase> m_sk;
     std::string uds_address;
 
     SockUnix *sku = new SockUnix;
@@ -297,14 +292,8 @@ int Connect::connect()
     if(!sku->setDefSelfAddress() || !sku->init() ||
             !sku->setPeerAddress(uds_address))
         return -1;
-    pid_t pid = getpid();
-    prms.self_id.clockIdentity.v[6] = (pid >> 24) && 0xff;
-    prms.self_id.clockIdentity.v[7] = (pid >> 16) && 0xff;
-    prms.self_id.portNumber = pid & 0xffff;
 
     sk = m_sk.get();
-
-    msgu.updateParams(prms);
 
     int ret;
     epd = epoll_create1( 0);
@@ -316,8 +305,7 @@ int Connect::connect()
     if( epoll_ctl( epd, EPOLL_CTL_ADD, sk->fileno(), &epd_event) == 1)
         ret = -errno;
 
-    //TODO: subscription part
-    handle_connect( NULL, epd_event);
+    handle_connect(epd_event);
     while (1) {
         sleep(1);
     }

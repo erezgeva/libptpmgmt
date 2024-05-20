@@ -67,20 +67,13 @@ int set_thread_signal( struct thread_signal *signal)
 static bool state_update_callback( struct ptp4l_state *state, void * ctx)
 {
 	struct jcl_handle *handle = (typeof(handle)) ctx;
-	bool generate_signal = false;
 	int ret;
 
 	if(( ret = -pthread_mutex_lock( &handle->state_lock)) < 0)
 		goto lock_failed;
 
-	generate_signal = handle->ptp4l_state_initialized ? generate_signal : false;
-	handle->ptp4l_state_initialized = state->initialized;
-
 	if(( ret = -pthread_mutex_unlock( &handle->state_lock)) < 0)
 		goto unlock_failed;
-
-	if( generate_signal)
-		set_thread_signal( handle->status_signal);
 
  unlock_failed:
  lock_failed:
@@ -101,7 +94,7 @@ static bool state_update_callback( struct ptp4l_state *state, void * ctx)
  *         Returns 0 on success, or a negative error code on failure.
  *
  */
-int handle_connect( struct jcl_handle **phandle, struct epoll_event epd_event )
+int handle_connect(struct epoll_event epd_event )
 {
 	struct jcl_handle *handle;
 	int ret;
@@ -114,9 +107,14 @@ int handle_connect( struct jcl_handle **phandle, struct epoll_event epd_event )
 
 	event_subscription( &handle );
 
-	connect_ptp4l( &handle->ptp4l_handle,
+	ret = connect_ptp4l( &handle->ptp4l_handle,
 				  epd_event, state_update_callback, handle);
+	if (ret != 0) {
+		free(handle); // Free the memory if connect_ptp4l fails
+		goto alloc_fail;
+	}
 
+	free(handle);
 	return 0;
 
  alloc_fail:

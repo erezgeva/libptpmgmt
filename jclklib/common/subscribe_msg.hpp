@@ -37,7 +37,7 @@ namespace JClkLibCommon
 		{ return subscription; }
 		TransportClientId &getClientId()
 		{ return clientId; }
-		void setSubscription(jcl_subscription newsub);
+		void setSubscription(jcl_subscription &newsub);
 
 		virtual std::string toString();
 	protected:

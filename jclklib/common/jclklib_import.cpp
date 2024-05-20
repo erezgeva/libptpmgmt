@@ -118,6 +118,11 @@ int8_t jcl_event::copyEventMask(jcl_event &newEvent)
 {
 	std::size_t newEventLength = sizeof(newEvent.getEventMask());
 
+	if (sizeof(event_mask) < newEventLength) {
+		PrintDebug("jcl_event::copyEventMask failure");
+		return -1;
+	}
+
 	memcpy(event_mask, newEvent.event_mask , newEventLength);
 
 	return 0;

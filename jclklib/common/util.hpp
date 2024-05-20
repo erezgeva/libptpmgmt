@@ -18,8 +18,6 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
-#include <common/mutex_signal.hpp>
-
 #define UNIQUE_TYPEOF(x) remove_reference<decltype(*(x).get())>::type
 #define FUTURE_TYPEOF(x) decltype((x).get())
 #define DECLARE_STATIC(x,...) decltype(x) x __VA_OPT__({) __VA_ARGS__ __VA_OPT__(})

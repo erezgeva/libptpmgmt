@@ -39,7 +39,7 @@ namespace JClkLibCommon
 		TransportBuffer buffer;
 	public:
 		bool init() { return _init; }
-		TransportContext() { _init = true; }
+		TransportContext() : _init(true), offset(0) {}
 		virtual ~TransportContext() = default;
 		DECLARE_ACCESSOR(offset);
 		DECLARE_ACCESSOR(buffer);

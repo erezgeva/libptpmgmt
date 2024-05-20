@@ -48,7 +48,7 @@ bool ClientConnectMessage::initMessage()
 }
 
 PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer) {
-	JClkLibCommon::ptp_event data;
+	JClkLibCommon::ptp_event data = {};
 
 	PrintDebug("[ClientConnectMessage]::parseBuffer ");
 	if(!CommonConnectMessage::parseBuffer(LxContext))

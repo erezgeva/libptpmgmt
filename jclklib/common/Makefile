@@ -13,8 +13,7 @@ JCLKLIB_COMMON_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR := $(JCLKLIB_COMMON_DIR)/..
 LIBS = pthread rt
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
-OBJ = jclklib_import message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport\
-	mutex_signal
+OBJ = jclklib_import message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 OBJ_DIR = $(JCLKLIB_COMMON_DIR)/obj
