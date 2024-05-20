@@ -133,7 +133,7 @@ bool ClientMessageQueue::writeTransportClientId(Message *msg)
 
 				//strcpy((char *)cmsg->getClientId().data(), (char *)state.get_clientID().data());
 				//cmsg->set_sessionId(state.get_sessionId()); // this is where it turns to 0 
-				printf ("[ClientMessageQueue] [SUBSCRIBE] cmsg->set_sessionId() : %d\n", cmsg->get_sessionId());
+				//printf ("[ClientMessageQueue] [SUBSCRIBE] cmsg->set_sessionId() : %d\n", cmsg->get_sessionId());
 				PrintDebug("[ClientMessageQueue] [SUBSCRIBE] : subscription->event Mask : " + cmsg->getSubscription().get_event().toString());
 				break;
 			}

@@ -125,16 +125,13 @@ int main(int argc, char *argv[])
 
     ClientState &myState = cmAPI->getClientState();
 
-    std::cout << "[CLIENT] Before connect : Session ID : " <<
-        myState.get_sessionId() << "\n";
-
     if (cmAPI->jcl_connect() == false) {
-        std::cout << "[CLIENT] Failure in connecting !!!\n";
+        std::cout << "[jclklib] Failure in connecting !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
     }
     else {
-        std::cout << "[CLIENT] Connected. Session ID : " <<
+        std::cout << "[jclklib] Connected. Session ID : " <<
             myState.get_sessionId() << "\n";
     }
 
@@ -147,11 +144,11 @@ int main(int argc, char *argv[])
     sub.get_composite_event().writeEvent(composite_event,
         (std::size_t)sizeof(composite_event));
     std::cout << "[jclklib] set subscribe event : " +
-        sub.c_get_val_event().toString() << "\n";
+        sub.c_get_val_event().toString();
     std::cout << "[jclklib] set composite event : " +
         sub.c_get_val_composite_event().toString() << "\n";
-    std::cout << "Upper Master Offset: " << upper_master_offset << "\n";
-    std::cout << "Lower Master Offset: " << lower_master_offset << "\n\n";
+    std::cout << "Upper Master Offset: " << upper_master_offset << " ns\n";
+    std::cout << "Lower Master Offset: " << lower_master_offset << " ns\n\n";
 
     if (cmAPI->jcl_subscribe(sub, jcl_state) == false) {
         std::cerr << "[jclklib] Failure in subscribing to jclklib Proxy !!!\n";

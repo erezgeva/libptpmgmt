@@ -104,12 +104,12 @@ void event_handle()
             pe.servo_state = servo;
             memcpy(pe.gmIdentity, gm_uuid.v, sizeof(pe.gmIdentity));
 
-            //TODO: Add debug flag checking, only print if the flag is set
-            printf("master_offset = %ld, servo_state = %d\n", pe.master_offset, pe.servo_state);
-            printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
-                   pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
-                   pe.gmIdentity[3], pe.gmIdentity[4],
-                   pe.gmIdentity[5], pe.gmIdentity[6],pe.gmIdentity[7]);
+            //Uncomment for debug data printing
+            //printf("master_offset = %ld, servo_state = %d\n", pe.master_offset, pe.servo_state);
+            //printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
+            //       pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
+            //       pe.gmIdentity[3], pe.gmIdentity[4],
+            //       pe.gmIdentity[5], pe.gmIdentity[6],pe.gmIdentity[7]);
             break;
         case PORT_DATA_SET:
             pd = (PORT_DATA_SET_t *)data;
@@ -130,7 +130,7 @@ void event_handle()
             break;
         case CMLDS_INFO_NP:
             pe.asCapable = ((CMLDS_INFO_NP_t *)data)->as_capable;
-            printf("asCapable = %d\n\n", pe.asCapable);
+            //printf("asCapable = %d\n\n", pe.asCapable);
             break;
         default:
             return;
