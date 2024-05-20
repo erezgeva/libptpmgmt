@@ -94,7 +94,7 @@ enum servoState_e  {
 
 	/* Events clients can subscribe to */
 	typedef enum : std::uint8_t
-		{ gmOffsetEvent, servoLockedEvent, asCapableEvent, gmPresentEvent, gmChangedEvent,
+		{ gmOffsetEvent, servoLockedEvent, asCapableEvent, gmChangedEvent,
 		  eventLast } eventType;
 
 #define BITS_PER_BYTE (8)
@@ -155,7 +155,6 @@ enum servoState_e  {
 		uint8_t gmIdentity[8]; /* Grandmaster clock ID */
 		int32_t asCapable; /* 802@.1AS Capable */
 		uint8_t servo_state;
-		int32_t gmPresent;
 		uint8_t ptp4l_id;
 	};
 
@@ -166,14 +165,12 @@ enum servoState_e  {
 		bool master_offset_within_boundary;
 		uint8_t gmIdentity[8]; /* Grandmaster clock ID */
 		int32_t asCapable; /* 802@.1AS Capable */
-		int32_t gmPresent;
 		uint8_t servo_state;
 		uint8_t ptp4l_id;
 		bool composite_event;
 		std::atomic<int> offset_event_count{};
 		std::atomic<int> asCapable_event_count{};
 		std::atomic<int> servo_state_event_count{};
-		std::atomic<int> gmPresent_event_count{};
 		std::atomic<int> gmChanged_event_count{};
 		std::atomic<int> composite_event_count{};
 	};
@@ -181,7 +178,6 @@ enum servoState_e  {
 	struct jcl_state
 	{
 		bool     as_Capable;
-		bool     gm_present;
 		bool     offset_in_range;
 		bool     servo_locked;
 		bool     gm_changed;
@@ -191,7 +187,6 @@ enum servoState_e  {
 
 	struct jcl_state_event_count
 	{
-		uint64_t gmPresent_event_count;
 		uint64_t offset_in_range_event_count;
 		uint64_t gm_changed_event_count;
 		uint64_t asCapable_event_count;

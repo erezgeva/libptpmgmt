@@ -145,9 +145,9 @@ bool JClkLibClientApi::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
 
 	JClkLibCommon::jcl_state jclCurrentState = appClientState.get_eventState();
 	printf("[JClkLibClient]::subscribe : state -  \n");
-	printf ("offset_in_range = %d, servo_locked = %d gmPresent = %d as_Capable = %d gm_Changed = %d\n", \
+	printf ("offset_in_range = %d, servo_locked = %d, as_Capable = %d gm_Changed = %d\n", \
 	jclCurrentState.offset_in_range, jclCurrentState.servo_locked,\
-	jclCurrentState.gm_present, jclCurrentState.as_Capable, jclCurrentState.gm_changed);
+	jclCurrentState.as_Capable, jclCurrentState.gm_changed);
 	printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x \n",
 		jclCurrentState.gmIdentity[0], jclCurrentState.gmIdentity[1],jclCurrentState.gmIdentity[2],
 		jclCurrentState.gmIdentity[3], jclCurrentState.gmIdentity[4],
@@ -219,7 +219,6 @@ int JClkLibClientApi::jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl
 		if (eventCount.offset_in_range_event_count ||
 		    eventCount.asCapable_event_count ||
 		    eventCount.servo_locked_event_count ||
-		    eventCount.gmPresent_event_count ||
 		    eventCount.composite_event_count ||
 		    eventCount.gm_changed_event_count) {
 			event_changes_detected = true;

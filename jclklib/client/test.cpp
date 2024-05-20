@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 
     std::uint32_t event2Sub1[1] = {
         ((1<<gmOffsetEvent)|(1<<servoLockedEvent)|(1<<asCapableEvent)|
-        (1<<gmPresentEvent)|(1<<gmChangedEvent))
+        (1<<gmChangedEvent))
     };
 
     std::uint32_t composite_event[1] = {
@@ -78,8 +78,7 @@ int main(int argc, char *argv[])
                 "     Bit 0: gmOffsetEvent\n"
                 "     Bit 1: servoLockedEvent\n"
                 "     Bit 2: asCapableEvent\n"
-                "     Bit 3: gmPresentEvent\n"
-                "     Bit 4: gmChangedEvent\n"
+                "     Bit 3: gmChangedEvent\n"
                 "  -c composite_event_mask\n"
                 "     Default: 0x" << composite_event[0] << "\n"
                 "     Bit 0: gmOffsetEvent\n"
@@ -100,8 +99,7 @@ int main(int argc, char *argv[])
                 "     Bit 0: gmOffsetEvent\n"
                 "     Bit 1: servoLockedEvent\n"
                 "     Bit 2: asCapableEvent\n"
-                "     Bit 3: gmPresentEvent\n"
-                "     Bit 4: gmChangedEvent\n"
+                "     Bit 3: gmChangedEvent\n"
                 "  -c composite_event_mask\n"
                 "     Default: 0x" << composite_event[0] << "\n"
                 "     Bit 0: gmOffsetEvent\n"
@@ -177,9 +175,6 @@ int main(int argc, char *argv[])
     if (event2Sub1[0] & (1<<asCapableEvent)) {
         printf("| %-17s | %-18d |\n", "as_Capable", jcl_state.as_Capable);
     }
-    if (event2Sub1[0] & (1<<gmPresentEvent)) {
-        printf("| %-17s | %-18d |\n", "gmPresent", jcl_state.gm_present);
-    }
     if (event2Sub1[0] & (1<<gmChangedEvent)) {
         printf("| %-17s | %-18d |\n", "gm_Changed", jcl_state.gm_changed);
         printf("+-------------------+--------------------+\n");
@@ -237,10 +232,6 @@ int main(int argc, char *argv[])
         if (event2Sub1[0] & (1<<asCapableEvent)) {
             printf("| %-17s | %-12d | %-11ld |\n", "as_Capable",
                 jcl_state.as_Capable, eventCount.asCapable_event_count);
-        }
-        if (event2Sub1[0] & (1<<gmPresentEvent)) {
-            printf("| %-17s | %-12d | %-11ld |\n", "gmPresent",
-                jcl_state.gm_present, eventCount.gmPresent_event_count);
         }
         if (event2Sub1[0] & (1<<gmChangedEvent)) {
             printf("| %-17s | %-12d | %-11ld |\n", "gm_Changed",

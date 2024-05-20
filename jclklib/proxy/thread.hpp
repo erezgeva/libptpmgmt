@@ -59,7 +59,6 @@ struct ptp4l_state {
 	unsigned		  valid_mask;
 	bool			peer_present;
 	unsigned		      offset;
-	bool			  gm_present;
 	bool			servo_locked;
 };
 

@@ -149,11 +149,6 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 		client_ptp_data->asCapable_event_count.fetch_add(1, std::memory_order_relaxed);
 	}
 
-	if ((eventSub[0] & 1<<gmPresentEvent) && (proxy_data.gmPresent != client_ptp_data->gmPresent)) {
-		client_ptp_data->gmPresent = proxy_data.gmPresent;
-		client_ptp_data->gmPresent_event_count.fetch_add(1, std::memory_order_relaxed);
-	}
-
 	if (composite_eventSub[0]) {
 		old_composite_event = composite_client_ptp_data->composite_event;
 		composite_client_ptp_data->composite_event = true;
@@ -183,7 +178,6 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 	}
 
 /*
-	jclCurrentState.gm_present = client_ptp_data.gmPresent > 0 ? true:false;
 	jclCurrentState.as_Capable = client_ptp_data.asCapable > 0 ? true:false;
 	jclCurrentState.offset_in_range = client_ptp_data.master_offset_within_boundary;
 	jclCurrentState.servo_locked = client_ptp_data.servo_state >= SERVO_LOCKED ? true:false;
@@ -193,7 +187,6 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 	/* TODO : checked for jclCurrentState.gm_changed based on GM_identity previously stored */
 
 /*
-	jclCurrentEventCount.gmPresent_event_count = client_ptp_data.gmPresent_event_count;
 	jclCurrentEventCount.offset_in_range_event_count = client_ptp_data.offset_event_count;
 	jclCurrentEventCount.asCapable_event_count = client_ptp_data.asCapable_event_count;
 	jclCurrentEventCount.servo_locked_event_count = client_ptp_data.servo_state_event_count;
@@ -204,7 +197,6 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 	//state.set_eventState (jclCurrentState);
 	//state.set_eventStateCount (jclCurrentEventCount);
 
-	jclCurrentState.gm_present = client_ptp_data->gmPresent > 0 ? true:false;
 	jclCurrentState.as_Capable = client_ptp_data->asCapable > 0 ? true:false;
 	jclCurrentState.offset_in_range = client_ptp_data->master_offset_within_boundary;
 	jclCurrentState.servo_locked = client_ptp_data->servo_state >= SERVO_LOCKED ? true:false;
@@ -213,7 +205,6 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 
 	/* TODO : checked for jclCurrentState.gm_changed based on GM_identity previously stored */
 
-	jclCurrentEventCount.gmPresent_event_count = client_ptp_data->gmPresent_event_count;
 	jclCurrentEventCount.offset_in_range_event_count = client_ptp_data->offset_event_count;
 	jclCurrentEventCount.asCapable_event_count = client_ptp_data->asCapable_event_count;
 	jclCurrentEventCount.servo_locked_event_count = client_ptp_data->servo_state_event_count;

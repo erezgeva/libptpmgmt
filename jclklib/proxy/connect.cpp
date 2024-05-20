@@ -98,13 +98,12 @@ void event_handle()
             offset = ((TIME_STATUS_NP_t *)data)->master_offset;
             servo = ((TIME_STATUS_NP_t *)data)->servo_state;
             gm_uuid = ((TIME_STATUS_NP_t *)data)->gmIdentity;
-            pe.gmPresent = ((TIME_STATUS_NP_t *)data)->gmPresent;
             pe.master_offset = offset;
             pe.servo_state = servo;
             memcpy(pe.gmIdentity, gm_uuid.v, sizeof(pe.gmIdentity));
 
             //TODO: Add debug flag checking, only print if the flag is set
-            printf("master_offset = %ld, servo_state = %d gmPresent = %d\n", pe.master_offset, pe.servo_state, pe.gmPresent);
+            printf("master_offset = %ld, servo_state = %d\n", pe.master_offset, pe.servo_state);
             printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
                    pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
                    pe.gmIdentity[3], pe.gmIdentity[4],
@@ -119,7 +118,6 @@ void event_handle()
                 pe.master_offset = 0;
                 memset(pe.gmIdentity, 0, sizeof(pe.gmIdentity));
                 pe.servo_state = 0;
-                pe.gmPresent = 0;
             }
 
             break;
