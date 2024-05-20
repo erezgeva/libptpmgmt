@@ -17,11 +17,8 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <client/client_state.hpp>
-#include <client/connect_msg.hpp>
-#include <common/jclklib_import.hpp>
 
-#include "init.hpp"
+#include "jclk_init.hpp"
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
@@ -38,7 +35,7 @@ int main(int argc, char *argv[])
     int timeout = 10;
     int upper_master_offset = 100000;
     int lower_master_offset = -100000;
-    int ret = 0;
+    int ret = EXIT_SUCCESS;
     JClkLibCommon::jcl_subscription sub = {};
     JClkLibCommon::jcl_state jcl_state = {};
     JClkLibCommon::jcl_state_event_count eventCount = {};
@@ -265,5 +262,5 @@ int main(int argc, char *argv[])
 do_exit:
     cmAPI->jcl_disconnect();
 
-    return EXIT_SUCCESS;
+    return ret;
 }

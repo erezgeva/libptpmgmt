@@ -12,7 +12,7 @@
  *
  */
 
-#include <client/init.hpp>
+#include <client/jclk_init.hpp>
 #include <client/msgq_tport.hpp>
 #include <client/connect_msg.hpp>
 #include <client/subscribe_msg.hpp>

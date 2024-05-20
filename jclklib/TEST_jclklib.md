@@ -55,7 +55,7 @@ NOTE :  make will traverse the client, common and proxy folder one by one. You n
 
 # How to test :
 
-We are currently using a "test.cpp" file to act as an application. This test.cpp is using the API provided in the init.hpp.
+We are currently using a "test.cpp" file to act as an application. This test.cpp is using the API provided in the jclk_init.hpp.
 
 We are dividing the test plan according to message type :
 	A. Connect message
