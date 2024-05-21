@@ -129,6 +129,10 @@ void event_handle()
             portState = pd->portState;
             break;
         case CMLDS_INFO_NP:
+            if (pe.asCapable == ((CMLDS_INFO_NP_t *)data)->as_capable) {
+                PrintDebug("Ignore unchanged asCapable");
+                return;
+            }
             pe.asCapable = ((CMLDS_INFO_NP_t *)data)->as_capable;
             //printf("asCapable = %d\n\n", pe.asCapable);
             break;
