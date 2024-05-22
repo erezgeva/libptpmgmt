@@ -8,8 +8,7 @@
 #
 ###############################################################################
 
-TEST_PATH=/home/ubuntu20/siemens/libptpmgmt_iaclocklib_org/jclklib/client/
+SCRIPT_PATH="$(dirname "$0")"
+TEST_PATH="${SCRIPT_PATH}/../client"
 
-LD_LIBRARY_PATH=$TEST_PATH $TEST_PATH/test
-
-
+LD_LIBRARY_PATH=$TEST_PATH chrt -f 99 $SCRIPT_PATH/jclk_test "$@"
