@@ -3,12 +3,16 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
  */
 
-/** @file test.cpp
- * @brief Test client code
+/** @file jclk_test.cpp
+ * @brief Test jclk client code
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation. All rights reserved.
  * @license LGPL-3.0-or-later
+ *
+ * @note This is a sample code, not a product! You should use it as a reference.
+ *  You can compile it with: g++ -Wall jclk_test.cpp -o jclk_test -ljclk
+ *  or use the CMakeLists.txt file.
  *
  */
 
@@ -18,7 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "jclk_init.hpp"
+#include <client/jclk_init.hpp>
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
