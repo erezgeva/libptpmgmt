@@ -61,7 +61,7 @@ Transport::TransportWorkDesc Transport::registerWork(TransportWork work)
 {
 	promise<FUTURE_TYPEOF(TransportWorkerState::retVal)> promise;
 
-	workerList.push_back(TransportWorkerState(move(promise.get_future()),false));
+	workerList.push_back(TransportWorkerState(promise.get_future(),false));
 	workerList.back().thread = make_unique<thread>
 		(MessageQueue::dispatchLoop, move(promise),
 		 workerList.back().exitVal, TransportWork(work.first,move(work.second)));
