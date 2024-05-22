@@ -21,7 +21,7 @@ OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 COMMON_OBJ_DIR = $(JCLKLIB_COMMON_DIR)/obj
 COMMON_OBJ_FILES = $(foreach obj,$(COMMON_OBJ),$(COMMON_OBJ_DIR)/$(obj).o)
-REAL_TARGETS = jclklib.so test
+REAL_TARGETS = libjclk.so test
 
 .PHONY: default
 default:
@@ -61,12 +61,12 @@ build-all: build-prep
 	echo "Running" $@
 	$(MAKE) -C $(JCLKLIB_CLIENT_DIR) $(REAL_TARGETS)
 
-jclklib.so: $(OBJ_FILES) $(COMMON_OBJ_FILES)
+libjclk.so: $(OBJ_FILES) $(COMMON_OBJ_FILES)
 	echo "[LINK]" $@ "{" $(call pathof_relative_to,$^,$(JCLKLIB_TOPLEVEL_DIR)) "}" | fold -s
 	g++ -shared -o $@ $^ $(LIBS_FLAGS) -fdiagnostics-color=always
 
-test: test.o jclklib.so
-	g++ -o test test.o -L $(JCLKLIB_CLIENT_DIR) -l:jclklib.so
+test: test.o libjclk.so
+	g++ -o test test.o -L $(JCLKLIB_CLIENT_DIR) -l:libjclk.so
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
