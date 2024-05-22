@@ -20,14 +20,13 @@
 #include <libgen.h>
 #include <string>
 #include <map>
-#include <ptpmgmt/init.h>
 #include <sys/epoll.h>
 #include <common/print.hpp>
 #include <proxy/notification_msg.hpp>
 #include <proxy/client.hpp>
 
-//TODO: subsription part
 #include "thread.hpp"
+#include "../../pub/init.h"
 
 using namespace std;
 using namespace JClkLibProxy;
