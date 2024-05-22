@@ -14,6 +14,7 @@
 
 #include <string>
 #include <errno.h>
+#include <cstdint>
 
 #ifndef PRINT_HPP
 #define PRINT_HPP
