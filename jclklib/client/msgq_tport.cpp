@@ -59,7 +59,7 @@ bool ClientMessageQueue::initTransport()
 	mq_attr.mq_maxmsg = 2; // Two outstanding messages per client
 	mq_attr.mq_msgsize = (decltype(mq_attr.mq_msgsize)) std::tuple_size<TransportBuffer>::value;
 
-	PrintInfo("Initializing Message Queue Client Transport...");
+	PrintDebug("Initializing Message Queue Client Transport...");
 	mqListenerName += mqProxyName + ".";
 	mqListenerName += to_string(getpid());
 	mqNativeListenerDesc = mq_open(mqListenerName.c_str(), RX_QUEUE_FLAGS, RX_QUEUE_MODE, &mq_attr);
@@ -90,7 +90,7 @@ bool ClientMessageQueue::initTransport()
 
 bool ClientMessageQueue::stopTransport()
 {
-	PrintInfo("Stopping Message Queue Client Transport");
+	PrintDebug("Stopping Message Queue Client Transport");
 	PrintDebug("mqListenerName = " + mqListenerName);
 	if (mq_unlink(mqListenerName.c_str()) == -1)
 		PrintErrorCode("unlink failed");

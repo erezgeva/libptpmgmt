@@ -22,7 +22,7 @@ using namespace std;
 using namespace JClkLibCommon;
 
 enum LogLevel { DEBUG, INFO, ERROR };
-static LogLevel currentLogLevel = ERROR;
+static LogLevel currentLogLevel = INFO;
 
 void JClkLibCommon::_PrintError(std::string msg, uint16_t line, std::string file, std::string func,
 			      errno_type errnum)

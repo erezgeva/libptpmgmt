@@ -78,7 +78,7 @@ bool ProxyMessageQueue::initTransport()
 	mq_attr.mq_maxmsg = MAX_CLIENT_COUNT;
 	mq_attr.mq_msgsize = (decltype(mq_attr.mq_msgsize)) std::tuple_size<TransportBuffer>::value;
 
-	PrintInfo("Initializing Message Queue Proxy Transport...");
+	PrintDebug("Initializing Message Queue Proxy Transport...");
 	mqNativeListenerDesc = mq_open(mqProxyName.c_str(), RX_QUEUE_FLAGS, RX_QUEUE_MODE, &mq_attr);
 	if (mqNativeListenerDesc == -1) {
 		cout << "mq_open failed " << strerror(errno) << endl;
@@ -98,7 +98,7 @@ bool ProxyMessageQueue::initTransport()
 
 bool ProxyMessageQueue::stopTransport()
 {
-	PrintInfo("Stopping Message Queue Proxy Transport");
+	PrintDebug("Stopping Message Queue Proxy Transport");
 	mq_unlink(mqProxyName.c_str());
 	if (mqListenerDesc != InvalidTransportWorkDesc && !InterruptWorker(mqListenerDesc))
 		PrintError("Interrupt worker failed");
