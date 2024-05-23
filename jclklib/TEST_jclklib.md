@@ -124,6 +124,8 @@ Options:
     Default: 100000 ns
 -l lower master offset (ns)
     Default: -100000 ns
+-i idle time (s)
+    Default: 1 s
 -t timeout in waiting notification event (s)
     Default: 10 s
 ```

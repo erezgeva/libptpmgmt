@@ -36,25 +36,26 @@ void signal_handler(int sig)
 
 int main(int argc, char *argv[])
 {
-    int timeout = 10;
-    int upper_master_offset = 100000;
-    int lower_master_offset = -100000;
-    int ret = EXIT_SUCCESS;
+    JClkLibCommon::jcl_state_event_count eventCount = {};
     JClkLibCommon::jcl_subscription sub = {};
     JClkLibCommon::jcl_state jcl_state = {};
-    JClkLibCommon::jcl_state_event_count eventCount = {};
+    int lower_master_offset = -100000;
+    int upper_master_offset = 100000;
+    int ret = EXIT_SUCCESS;
+    int idle_time = 1;
+    int timeout = 10;
+    int opt;
 
     std::uint32_t event2Sub1[1] = {
-        ((1<<gmOffsetEvent)|(1<<servoLockedEvent)|(1<<asCapableEvent)|
+        ((1<<gmOffsetEvent) | (1<<servoLockedEvent) | (1<<asCapableEvent) |
         (1<<gmChangedEvent))
     };
 
     std::uint32_t composite_event[1] = {
-        ((1<<gmOffsetEvent)|(1<<servoLockedEvent)|(1<<asCapableEvent))
+        ((1<<gmOffsetEvent) | (1<<servoLockedEvent) | (1<<asCapableEvent))
     };
 
-    int opt;
-    while ((opt = getopt(argc, argv, "s:c:t:u:l:h")) != -1) {
+    while ((opt = getopt(argc, argv, "s:c:u:l:i:t:h")) != -1) {
         switch (opt) {
         case 's':
             event2Sub1[0] = std::stoul(optarg, nullptr, 0);
@@ -62,14 +63,17 @@ int main(int argc, char *argv[])
         case 'c':
             composite_event[0] = std::stoul(optarg, nullptr, 0);
             break;
-        case 't':
-            timeout = std::stoi(optarg);
-            break;
         case 'u':
             upper_master_offset = std::stoi(optarg);
             break;
         case 'l':
             lower_master_offset = std::stoi(optarg);
+            break;
+        case 'i':
+            idle_time = std::stoi(optarg);
+            break;
+        case 't':
+            timeout = std::stoi(optarg);
             break;
         case 'h':
             std::cout << "Usage of " << argv[0] << " :\n"
@@ -89,6 +93,8 @@ int main(int argc, char *argv[])
                 "     Default: " << std::dec << upper_master_offset << " ns\n"
                 "  -l lower master offset (ns)\n"
                 "     Default: " << lower_master_offset << " ns\n"
+                "  -i idle time (s)\n"
+                "     Default: " << idle_time << " s\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_SUCCESS;
@@ -110,6 +116,8 @@ int main(int argc, char *argv[])
                 "     Default: " << std::dec << upper_master_offset << " ns\n"
                 "  -l lower master offset (ns)\n"
                 "     Default: " << lower_master_offset << " ns\n"
+                "  -i idle time (s)\n"
+                "     Default: " << idle_time << " s\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_FAILURE;
@@ -130,14 +138,12 @@ int main(int argc, char *argv[])
         std::cout << "[jclklib] Failure in connecting !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
-    }
-    else {
+    } else {
         std::cout << "[jclklib] Connected. Session ID : " <<
             myState.get_sessionId() << "\n";
     }
 
     sleep(1);
-
 
     sub.get_event().writeEvent(event2Sub1, (std::size_t)sizeof(event2Sub1));
     sub.get_value().setValue(gmOffsetValue, upper_master_offset,
@@ -205,10 +211,12 @@ int main(int argc, char *argv[])
     sleep(1);
 
     while (!signal_flag) {
+        printf("[jclklib] Waiting for Notification Event...\n");
         if (!cmAPI->jcl_status_wait(timeout, jcl_state , eventCount)) {
             printf("No event status changes identified in %d seconds.\n\n",
                 timeout);
-            sleep(1);
+            printf("[jclklib] sleep for %d seconds...\n\n", idle_time);
+            sleep(idle_time);
             continue;
         }
         printf("[jclklib] Obtained data from Notification Event:\n");
@@ -260,7 +268,9 @@ int main(int argc, char *argv[])
         } else {
             printf("\n");
         }
-        sleep(1);
+
+        printf("[jclklib] sleep for %d seconds...\n\n", idle_time);
+        sleep(idle_time);
     }
 
 do_exit:
