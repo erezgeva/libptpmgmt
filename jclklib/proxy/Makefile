@@ -12,8 +12,9 @@
 JCLKLIB_PROXY_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR = $(JCLKLIB_PROXY_DIR)/..
 JCLKLIB_COMMON_DIR = $(JCLKLIB_TOPLEVEL_DIR)/common
+PTPMGMT_DIR := $(JCLKLIB_TOPLEVEL_DIR)/..
 LIBS = pthread rt ptpmgmt
-LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
+LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib)) -L$(PTPMGMT_DIR)
 OBJ = client main message msgq_tport notification_msg null_tport connect_msg subscribe_msg transport connect thread
 COMMON_OBJ = print sighandler transport msgq_tport jclklib_import message connect_msg subscribe_msg notification_msg
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
