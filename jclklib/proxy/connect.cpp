@@ -210,6 +210,16 @@ bool event_subscription(struct jcl_handle **handle)
     return ret;
 }
 
+bool is_ptp4l_running() {
+    FILE *fp;
+    char result[8];
+    fp = popen("pgrep ptp4l", "r");
+
+    bool resultExists = fgets(result, sizeof(result) - 1, fp) != NULL;
+    pclose(fp);
+    return resultExists;
+}
+
 /**
  * @brief Runs the main event loop for handling PTP (Precision Time Protocol) events.
  *
@@ -253,12 +263,44 @@ void *ptp4l_event_loop( void *arg)
     event_subscription(NULL);
 
     while (1) {
-        if (epoll_wait( epd, &epd_event, 1, 100) != -1) {
-        //if ( sk->poll(timeout_ms)) {
-            const auto cnt = sk->rcv(buf, bufSize);
-            MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
-            if(err == MNG_PARSE_ERROR_OK)
-                event_handle();
+        if(is_ptp4l_running()) {
+            if (epoll_wait( epd, &epd_event, 1, 100) != -1) {
+                const auto cnt = sk->rcv(buf, bufSize);
+                MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
+                if(err == MNG_PARSE_ERROR_OK)
+                    event_handle();
+            }
+        }
+        else {
+            PrintError("Failed to connect to ptp4l. Retrying...");
+            SockUnix *sku = new SockUnix;
+            sk->close();
+            sku->close();
+            msg.clearData();
+
+            //Reset TIME_STATUS_NP data when ptp4l is disconnected
+            pe.master_offset = 0;
+            memset(pe.gmIdentity, 0, sizeof(pe.gmIdentity));
+            pe.servo_state = 0;
+            pe.asCapable = 0;
+            notify_client();
+
+            while (1) {
+                if(is_ptp4l_running()) {
+                    PrintInfo("Connected to ptp4l via /var/run/ptp4l.");
+                    std::string uds_address;
+                    m_sk.reset(sku);
+                    uds_address = "/var/run/ptp4l";
+                    if(!sku->setDefSelfAddress() || !sku->init() ||
+                            !sku->setPeerAddress(uds_address))
+                        fprintf(stderr, "Fail to connect to ptp4l\n");
+
+                    sk = m_sk.get();
+                    event_subscription(NULL);
+                    break;
+                }
+                sleep(2);
+            }
         }
     }
 }
@@ -284,10 +326,12 @@ int Connect::connect()
     }
     m_sk.reset(sku);
 
-    while (system("ls /var/run/ptp4l*") != 0) {
+    while (is_ptp4l_running() != 1) {
         //sleep for 2 seconds and keep looping until there is ptp4l available
+        PrintError("Failed to connect to ptp4l. Retrying...");
         sleep(2);
     }
+    PrintInfo("Connected to ptp4l via /var/run/ptp4l.");
     pe.ptp4l_id = 1;
 
     //TODO: hard-coded uds_socket
