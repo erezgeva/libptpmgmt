@@ -16,7 +16,7 @@
 
 #include <common/print.hpp>
 #include <common/sighandler.hpp>
-#include <proxy/connect.hpp>
+#include <proxy/connect_ptp4l.hpp>
 #include <proxy/message.hpp>
 #include <proxy/transport.hpp>
 

@@ -23,7 +23,7 @@
 
 #include <common/print.hpp>
 #include <proxy/client.hpp>
-#include <proxy/connect.hpp>
+#include <proxy/connect_ptp4l.hpp>
 #include <proxy/notification_msg.hpp>
 #include "thread.hpp"
 #include "../../pub/init.h"
