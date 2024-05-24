@@ -26,6 +26,7 @@
 #include <common/print.hpp>
 #include <common/sighandler.hpp>
 
+#define DEFAULT_LIVENESS_TIME_OUT 1  //1 sec
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
 #define DEFAULT_SUBSCRIBE_TIME_OUT 5  //5 sec
 
@@ -168,6 +169,41 @@ bool JClkLibClientApi::jcl_disconnect()
     return retVal;
 }
 
+bool check_proxy_liveness(ClientState &appClientState)
+{
+    unsigned int timeout_sec = (unsigned int) DEFAULT_LIVENESS_TIME_OUT;
+    Message0 connectMsg(new ClientConnectMessage());
+    ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
+
+    if (cmsg == nullptr) {
+        PrintDebug("[CONNECT] Failed to cast to ClientConnectMessage");
+        return false;
+    }
+
+    appClientState.set_connected(false);
+    cmsg->setClientState(&appClientState);
+    cmsg->set_sessionId(appClientState.get_sessionId());
+    ClientMessageQueue::writeTransportClientId(connectMsg.get());
+    ClientMessageQueue::sendMessage(connectMsg.get());
+
+    /* Wait for connection result */
+    auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
+    std::unique_lock<std::mutex> lck(ClientConnectMessage::cv_mtx);
+    while (appClientState.get_connected() == false) {
+        auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
+        if (res == std::cv_status::timeout) {
+            if (appClientState.get_connected() == false) {
+                PrintDebug("[CONNECT] Connect reply timeout!!");
+                return false;
+            }
+        } else {
+            PrintDebug("[CONNECT] Connect reply received.");
+        }
+    }
+
+    return true;
+}
+
 /**
  * @brief This function waits for a specified timeout period for any event changes.
  *
@@ -191,7 +227,11 @@ int JClkLibClientApi::jcl_status_wait(int timeout,
         std::chrono::time_point<std::chrono::high_resolution_clock>::max() :
         start + std::chrono::seconds(timeout);
     bool event_changes_detected = false;
-	
+
+    /* Check the liveness of the Proxy's message queue */
+    if (!check_proxy_liveness(appClientState))
+        return -1;
+
     JClkLibCommon::jcl_state_event_count eventCount;
     JClkLibCommon::jcl_state jcl_state;
     do {

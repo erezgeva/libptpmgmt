@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
     int ret = EXIT_SUCCESS;
     int idle_time = 1;
     int timeout = 10;
+    int retval;
     int opt;
 
     std::uint32_t event2Sub1[1] = {
@@ -212,13 +213,18 @@ int main(int argc, char *argv[])
 
     while (!signal_flag) {
         printf("[jclklib] Waiting for Notification Event...\n");
-        if (!cmAPI->jcl_status_wait(timeout, jcl_state , eventCount)) {
+        retval = cmAPI->jcl_status_wait(timeout, jcl_state , eventCount);
+        if (!retval) {
             printf("No event status changes identified in %d seconds.\n\n",
                 timeout);
             printf("[jclklib] sleep for %d seconds...\n\n", idle_time);
             sleep(idle_time);
             continue;
+        } else if (retval < 0) {
+            printf("[jclklib] Terminating: lost connection to jclklib Proxy\n");
+            return EXIT_SUCCESS;
         }
+
         printf("[jclklib] Obtained data from Notification Event:\n");
         printf("+-------------------+--------------+-------------+\n");
         printf("| %-17s | %-12s | %-11s |\n", "Event", "Event Status",

@@ -66,18 +66,28 @@ bool ProxyConnectMessage::initMessage()
  */
 PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 {
-    sessionId_t newSessionId;
+    sessionId_t newSessionId = this->getc_sessionId();
 
     PrintDebug("Processing proxy connect message");
-
-    if (this->getc_sessionId() != InvalidSessionId) {
-        PrintError("Session ID *should be* invalid for received proxy connect message");
-        return false;
-    }
 
     /* Check whether there is ptp4l available */
     if (!pe.ptp4l_id) {
         PrintError("ptp4l_id is not available.");
+        return false;
+    }
+
+    if (newSessionId != InvalidSessionId) {
+        auto clientSession = Client::GetClientSession(newSessionId);
+        if (clientSession)
+                TxContext = clientSession.get()->get_transmitContext();
+
+        if (TxContext) {
+            PrintDebug("Receive Connect msg as liveness check.");
+            set_msgAck(ACK_SUCCESS);
+            return true;
+        }
+
+        PrintError("Session ID not exists: " + to_string(newSessionId));
         return false;
     }
 
