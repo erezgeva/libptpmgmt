@@ -12,12 +12,12 @@
  *
  */
 
-#include <proxy/transport.hpp>
-#include <proxy/null_tport.hpp>
-#include <proxy/msgq_tport.hpp>
 #include <common/print.hpp>
 #include <common/sighandler.hpp>
 #include <common/util.hpp>
+#include <proxy/msgq_tport.hpp>
+#include <proxy/null_tport.hpp>
+#include <proxy/transport.hpp>
 
 #define EXIT_TIMEOUT	(200 /*ms*/)
 #define START_TIMEOUT	(20 /*ms*/)
@@ -28,27 +28,26 @@ using namespace std;
 
 bool ProxyTransport::init()
 {
-	if (!Transport::init())
-		return false;
-	PrintDebug("Finished common init");
+    if (!Transport::init())
+        return false;
+    PrintDebug("Finished common init");
 	
-	return JClkLibCommon::_initTransport<NullProxyTransport,ProxyMessageQueue>();
+    return JClkLibCommon::_initTransport<NullProxyTransport,ProxyMessageQueue>();
 }
 
 bool ProxyTransport::stop()
 {
-	if (!Transport::stop())
-		return false;
+    if (!Transport::stop())
+        return false;
 
-	/* Do any transport specific stop */
-	return JClkLibCommon::_stopTransport<NullProxyTransport,ProxyMessageQueue>();
+    /* Do any transport specific stop */
+    return JClkLibCommon::_stopTransport<NullProxyTransport,ProxyMessageQueue>();
 }
 
 bool ProxyTransport::finalize()
 {
-	if (!Transport::finalize())
-		return false;
+    if (!Transport::finalize())
+        return false;
 
-	return JClkLibCommon::_finalizeTransport<NullProxyTransport,ProxyMessageQueue>();
+    return JClkLibCommon::_finalizeTransport<NullProxyTransport,ProxyMessageQueue>();
 }
-

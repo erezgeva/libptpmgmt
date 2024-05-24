@@ -12,18 +12,16 @@
  *
  */
 
-#include <proxy/null_msg.hpp>
 #include <proxy/connect_msg.hpp>
-#include <proxy/subscribe_msg.hpp>
 #include <proxy/notification_msg.hpp>
+#include <proxy/null_msg.hpp>
+#include <proxy/subscribe_msg.hpp>
 
-using namespace JClkLibProxy;
 using namespace JClkLibCommon;
+using namespace JClkLibProxy;
 
 bool ProxyMessage::init()
 {
-	return _initMessage<ProxyNullMessage, ProxyConnectMessage, ProxySubscribeMessage, ProxyNotificationMessage>();
+    return _initMessage<ProxyNullMessage, ProxyConnectMessage,
+        ProxySubscribeMessage, ProxyNotificationMessage>();
 }
-		
-
-

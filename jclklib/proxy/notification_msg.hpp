@@ -12,41 +12,41 @@
  *
  */
 
-#include <cstdint>
-
 #ifndef PROXY_NOTIFICATION_MSG_HPP
 #define PROXY_NOTIFICATION_MSG_HPP
 
-#include <proxy/message.hpp>
-#include <common/notification_msg.hpp>
+#include <cstdint>
+
 #include <common/jclklib_import.hpp>
+#include <common/notification_msg.hpp>
+#include <proxy/message.hpp>
 
 namespace JClkLibProxy
 {
-	class ProxyNotificationMessage : virtual public ProxyMessage,
-					 virtual public JClkLibCommon::NotificationMessage
-	{
-	public:
-		ProxyNotificationMessage() : MESSAGE_NOTIFY() {}
-		virtual PROCESS_MESSAGE_TYPE(processMessage);
-		bool generateResponse(std::uint8_t *msgBuffer, std::size_t &length,
-				      const ClockStatus &status);
-		virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+    class ProxyNotificationMessage : virtual public ProxyMessage,
+        virtual public JClkLibCommon::NotificationMessage
+    {
+    public:
+        ProxyNotificationMessage() : MESSAGE_NOTIFY() {}
+        virtual PROCESS_MESSAGE_TYPE(processMessage);
+        bool generateResponse(std::uint8_t *msgBuffer, std::size_t &length,
+            const ClockStatus &status);
+        virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
-		/**
-		 * @brief Create the ProxyNotificationMessage object
-		 * @param msg msg structure to be fill up
-		 * @param LxContext proxy transport listener context
-		 * @return true
-		 */
-		static MAKE_RXBUFFER_TYPE(buildMessage);
+        /**
+         * @brief Create the ProxyNotificationMessage object
+         * @param msg msg structure to be fill up
+         * @param LxContext proxy transport listener context
+         * @return true
+         */
+        static MAKE_RXBUFFER_TYPE(buildMessage);
 
-		/**
-		 * @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
-		 * @return true
-		 */
-		static bool initMessage();
-	};
+        /**
+         * @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
+         * @return true
+         */
+        static bool initMessage();
+    };
 }
 
-#endif/*PROXY_NOTIFICATION_MSG_HPP*/
+#endif /* PROXY_NOTIFICATION_MSG_HPP */

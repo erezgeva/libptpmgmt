@@ -12,16 +12,16 @@
  *
  */
 
-#include <proxy/subscribe_msg.hpp>
-#include <proxy/clock_config.hpp>
-#include <proxy/client.hpp>
+#include <common/message.hpp>
 #include <common/print.hpp>
 #include <common/serialize.hpp>
-#include <common/message.hpp>
+#include <proxy/client.hpp>
+#include <proxy/clock_config.hpp>
+#include <proxy/subscribe_msg.hpp>
 
-using namespace std;
-using namespace JClkLibProxy;
 using namespace JClkLibCommon;
+using namespace JClkLibProxy;
+using namespace std;
 
 extern JClkLibCommon::ptp_event pe;
 
@@ -33,8 +33,8 @@ extern JClkLibCommon::ptp_event pe;
  */
 MAKE_RXBUFFER_TYPE(ProxySubscribeMessage::buildMessage)
 {
-	msg = new ProxySubscribeMessage();
-	return true;
+    msg = new ProxySubscribeMessage();
+    return true;
 }
 
 /** @brief Add proxy's SUBSCRIBE_MSG type and its builder to transport layer.
@@ -46,21 +46,21 @@ MAKE_RXBUFFER_TYPE(ProxySubscribeMessage::buildMessage)
  */
 bool ProxySubscribeMessage::initMessage()
 {
-	addMessageType(parseMsgMapElement_t(SUBSCRIBE_MSG, buildMessage));
-	return true;
+    addMessageType(parseMsgMapElement_t(SUBSCRIBE_MSG, buildMessage));
+    return true;
 }
 
 BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
 {
-	PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-	if(!CommonSubscribeMessage::makeBuffer(TxContext))
-		return false;
+    PrintDebug("[ProxySubscribeMessage]::makeBuffer");
+    if(!CommonSubscribeMessage::makeBuffer(TxContext))
+        return false;
 
-	/* Add ptp data here */
-	if (!WRITE_TX(FIELD, pe, TxContext))
-		return false;
+    /* Add ptp data here */
+    if (!WRITE_TX(FIELD, pe, TxContext))
+        return false;
 
-	return true;
+    return true;
 }
 
 /*
@@ -69,29 +69,26 @@ This is to process the subscription from the jclklib client runtime via POSIX ms
 */
 PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
 {
-	//config.setEvent(subscription.getEvent());
-	//config.setValue(subscription.getValue());
-
-	sessionId_t sID;
-	sID = this->getc_sessionId();
-	PrintDebug("[ProxySubscribeMessage]::processMessage - Use current client session ID: " + to_string(sID));
+    sessionId_t sID;
+    sID = this->getc_sessionId();
+    PrintDebug("[ProxySubscribeMessage]::processMessage - Use current client session ID: " + to_string(sID));
 	
-	if(sID == InvalidSessionId) {
-		PrintError("Session ID *should be* invalid for received proxy connect message");
-		return false;
-	}
-	TxContext = Client::GetClientSession(sID).get()->get_transmitContext();
-	set_msgAck(ACK_SUCCESS);
-	return true;
+    if(sID == InvalidSessionId) {
+        PrintError("Session ID *should be* invalid for received proxy connect message");
+        return false;
+    }
+    TxContext = Client::GetClientSession(sID).get()->get_transmitContext();
+    set_msgAck(ACK_SUCCESS);
+    return true;
 }
 
 /*
 [NOTE] This is to response towards ProxySubscribeMessage - wont be using this for the time being.
 */
 bool ProxySubscribeMessage::generateResponse(uint8_t *msgBuffer, size_t &length,
-					const ClockStatus &status)
+    const ClockStatus &status)
 {
-	return false;
+    return false;
 }
 
 

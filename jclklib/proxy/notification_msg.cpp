@@ -12,15 +12,15 @@
  *
  */
 
-#include <proxy/notification_msg.hpp>
+#include <common/message.hpp>
+#include <common/print.hpp>
 #include <common/serialize.hpp>
 #include <proxy/clock_config.hpp>
-#include <common/print.hpp>
-#include <common/message.hpp>
+#include <proxy/notification_msg.hpp>
 
-using namespace std;
 using namespace JClkLibCommon;
 using namespace JClkLibProxy;
+using namespace std;
 
 extern JClkLibCommon::ptp_event pe;
 
@@ -32,8 +32,8 @@ extern JClkLibCommon::ptp_event pe;
  */
 MAKE_RXBUFFER_TYPE(ProxyNotificationMessage::buildMessage)
 {
-	msg = new ProxyNotificationMessage();
-	return true;
+    msg = new ProxyNotificationMessage();
+    return true;
 }
 
 /** @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
@@ -45,33 +45,33 @@ MAKE_RXBUFFER_TYPE(ProxyNotificationMessage::buildMessage)
  */
 bool ProxyNotificationMessage::initMessage()
 {
-	addMessageType(parseMsgMapElement_t(NOTIFY_MESSAGE, buildMessage));
-	return true;
+    addMessageType(parseMsgMapElement_t(NOTIFY_MESSAGE, buildMessage));
+    return true;
 }
 
 BUILD_TXBUFFER_TYPE(ProxyNotificationMessage::makeBuffer) const
 {
-	PrintDebug("[ProxyNotificationMessage]::makeBuffer");
-	if(!Message::makeBuffer(TxContext))
-		return false;
+    PrintDebug("[ProxyNotificationMessage]::makeBuffer");
+    if(!Message::makeBuffer(TxContext))
+        return false;
 
-	/* Add ptp data here */
-	if (!WRITE_TX(FIELD, pe, TxContext))
-		return false;
+    /* Add ptp data here */
+    if (!WRITE_TX(FIELD, pe, TxContext))
+        return false;
 
-	return true;
+    return true;
 }
 
 PROCESS_MESSAGE_TYPE(ProxyNotificationMessage::processMessage)
 {
-	return true;
+    return true;
 }
 
 /*
 TO BE REMOVED
 */
 bool ProxyNotificationMessage::generateResponse(uint8_t *msgBuffer, size_t &length,
-					   const ClockStatus &status)
+    const ClockStatus &status)
 {
-	return false;
+    return false;
 }

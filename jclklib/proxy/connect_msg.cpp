@@ -12,16 +12,16 @@
  *
  */
 
-#include <proxy/connect_msg.hpp>
-#include <proxy/client.hpp>
+#include <common/message.hpp>
 #include <common/print.hpp>
 #include <common/serialize.hpp>
-#include <common/message.hpp>
+#include <proxy/connect_msg.hpp>
+#include <proxy/client.hpp>
 #include <proxy/subscribe_msg.hpp>
 
-using namespace std;
-using namespace JClkLibProxy;
 using namespace JClkLibCommon;
+using namespace JClkLibProxy;
+using namespace std;
 
 extern JClkLibCommon::ptp_event pe;
 
@@ -33,8 +33,8 @@ extern JClkLibCommon::ptp_event pe;
  */
 MAKE_RXBUFFER_TYPE(ProxyConnectMessage::buildMessage)
 {
-	msg = new ProxyConnectMessage();
-	return true;
+    msg = new ProxyConnectMessage();
+    return true;
 }
 
 /** @brief Add proxy's CONNECT_MSG type and its builder to transport layer.
@@ -46,8 +46,8 @@ MAKE_RXBUFFER_TYPE(ProxyConnectMessage::buildMessage)
  */
 bool ProxyConnectMessage::initMessage()
 {
-	addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
-	return true;
+    addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
+    return true;
 }
 
 /** @brief process the connect msg from client-runtime
@@ -66,40 +66,40 @@ bool ProxyConnectMessage::initMessage()
  */
 PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 {
-	sessionId_t newSessionId;
+    sessionId_t newSessionId;
 
-	PrintDebug("Processing proxy connect message");
+    PrintDebug("Processing proxy connect message");
 
-	if (this->getc_sessionId() != InvalidSessionId) {
-		PrintError("Session ID *should be* invalid for received proxy connect message");
-		return false;
-	}
+    if (this->getc_sessionId() != InvalidSessionId) {
+        PrintError("Session ID *should be* invalid for received proxy connect message");
+        return false;
+    }
 
-	/* check whether there is ptp4l available */
-	if (!pe.ptp4l_id) {
-		PrintError("ptp4l_id is not available.");
-		return false;
-	}
+    /* Check whether there is ptp4l available */
+    if (!pe.ptp4l_id) {
+        PrintError("ptp4l_id is not available.");
+        return false;
+    }
 
-	newSessionId = Client::CreateClientSession();
-	PrintDebug("Created new client session ID: " + to_string(newSessionId));
-	this->set_sessionId(newSessionId);
-	TxContext = LxContext.CreateTransmitterContext(getClientId());
-	Client::GetClientSession(newSessionId).get()->set_transmitContext(TxContext);
-	set_msgAck(ACK_SUCCESS);
+    newSessionId = Client::CreateClientSession();
+    PrintDebug("Created new client session ID: " + to_string(newSessionId));
+    this->set_sessionId(newSessionId);
+    TxContext = LxContext.CreateTransmitterContext(getClientId());
+    Client::GetClientSession(newSessionId).get()->set_transmitContext(TxContext);
+    set_msgAck(ACK_SUCCESS);
 
-	return true;
+    return true;
 }
 
 BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
 {
-	PrintDebug("[ProxyConnectMessage]::makeBuffer");
-	if(!CommonConnectMessage::makeBuffer(TxContext))
-		return false;
+    PrintDebug("[ProxyConnectMessage]::makeBuffer");
+    if(!CommonConnectMessage::makeBuffer(TxContext))
+        return false;
 
-	/* Add ptp4l_id here */
-	if (!WRITE_TX(FIELD, pe.ptp4l_id, TxContext))
-		return false;
+    /* Add ptp4l_id here */
+    if (!WRITE_TX(FIELD, pe.ptp4l_id, TxContext))
+        return false;
 
-	return true;
+    return true;
 }

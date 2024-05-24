@@ -14,58 +14,58 @@
 
 #include <proxy/clock_config.hpp>
 
-using namespace JClkLibProxy;
 using namespace JClkLibCommon;
+using namespace JClkLibProxy;
 using namespace std;
 
 bool ClockConfiguration::readConsume()
 {
-	lock_guard<decltype(update_lock)> update_guard(update_lock);
-	if (update)
-		readShadow = config;
-	update = false;
+    lock_guard<decltype(update_lock)> update_guard(update_lock);
+    if (update)
+        readShadow = config;
+    update = false;
 
-	return update;
+    return update;
 }
 
 ClockConfiguration::ClockConfiguration()
 {
-	// Initialize configuration
+    /* Initialize configuration */
 }
 
 void ClockConfiguration::speculateWrite()
 {
-	lock_guard<decltype(update_lock)> update_guard(update_lock);
-	writeShadow = config;
+    lock_guard<decltype(update_lock)> update_guard(update_lock);
+    writeShadow = config;
 }
 
 void ClockConfiguration::setEvent( const jcl_event &sEvent )
 {
-	if (writeShadow.event != sEvent) {
-		writeShadow.event = sEvent;
-		writeUpdate = true;
-	}
+    if (writeShadow.event != sEvent) {
+        writeShadow.event = sEvent;
+        writeUpdate = true;
+    }
 }
 
 void ClockConfiguration::setValue( const jcl_value &sValue )
 {
-	if (writeShadow.value != sValue) {
-		writeShadow.value = sValue;
-		writeUpdate = true;
-	}
+    if (writeShadow.value != sValue) {
+        writeShadow.value = sValue;
+        writeUpdate = true;
+    }
 }
 
 void ClockConfiguration::commitWrite()
 {
-	lock_guard<decltype(update_lock)> update_guard(update_lock);
-	if (writeUpdate) {
-		config = writeShadow;
-		update = writeUpdate;
-	}
-	writeUpdate = false;
+    lock_guard<decltype(update_lock)> update_guard(update_lock);
+    if (writeUpdate) {
+        config = writeShadow;
+        update = writeUpdate;
+    }
+    writeUpdate = false;
 }
 
 sessionId_t ClockConfiguration::getSessionId()
 {
-	return InvalidSessionId;
+    return InvalidSessionId;
 }

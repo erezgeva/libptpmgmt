@@ -12,19 +12,19 @@
  *
  */
 
-#include <proxy/connect.hpp>
-#include <stdio.h>
-#include <signal.h>
-#include <unistd.h>
-#include <poll.h>
 #include <libgen.h>
-#include <string>
 #include <map>
+#include <poll.h>
+#include <signal.h>
+#include <stdio.h>
+#include <string>
 #include <sys/epoll.h>
-#include <common/print.hpp>
-#include <proxy/notification_msg.hpp>
-#include <proxy/client.hpp>
+#include <unistd.h>
 
+#include <common/print.hpp>
+#include <proxy/client.hpp>
+#include <proxy/connect.hpp>
+#include <proxy/notification_msg.hpp>
 #include "thread.hpp"
 #include "../../pub/init.h"
 
@@ -36,7 +36,7 @@ static const size_t bufSize = 2000;
 static char buf[bufSize];
 static Init obj;
 static Message &msg = obj.msg();
-static Message msgu; // TODO: to be removed
+static Message msgu;
 static SockBase *sk;
 
 static std::unique_ptr<SockBase> m_sk;
@@ -91,7 +91,7 @@ void event_handle()
 
     switch(msg.getTlvId()) {
         case TIME_STATUS_NP:
-            //workaround for ptp4l continue to send even gm is not present
+            /* Workaround for ptp4l continue to send even gm is not present */
             if(portState < UNCALIBRATED) {
                 return;
             }
@@ -103,7 +103,7 @@ void event_handle()
             pe.servo_state = servo;
             memcpy(pe.gmIdentity, gm_uuid.v, sizeof(pe.gmIdentity));
 
-            //Uncomment for debug data printing
+            /* Uncomment for debug data printing */
             //printf("master_offset = %ld, servo_state = %d\n", pe.master_offset, pe.servo_state);
             //printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
             //       pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
@@ -114,7 +114,7 @@ void event_handle()
             pd = (PORT_DATA_SET_t *)data;
             portState = pd->portState;
 
-            //Reset TIME_STATUS_NP data if port_state <= PASSIVE
+            /* Reset TIME_STATUS_NP data if port_state <= PASSIVE */
             if (portState <= PASSIVE) {
                 pe.master_offset = 0;
                 memset(pe.gmIdentity, 0, sizeof(pe.gmIdentity));
@@ -123,7 +123,7 @@ void event_handle()
 
             break;
         case PORT_PROPERTIES_NP:
-            //Retrieve current port state when proxy is started
+            /* Retrieve current port state when proxy is started */
             pd = (PORT_DATA_SET_t *)data;
             portState = pd->portState;
             break;
@@ -165,6 +165,7 @@ static inline bool msg_send(bool local)
     seq++;
     return true;
 }
+
 static inline bool msg_set_action(bool local, mng_vals_e id)
 {
     bool ret;
@@ -206,7 +207,9 @@ bool event_subscription(struct jcl_handle **handle)
         return false;
     }
     bool ret = msg_send(false);
-    msg.clearData(); // Remove referance to local SUBSCRIBE_EVENTS_NP_t
+
+    /* Remove referance to local SUBSCRIBE_EVENTS_NP_t */
+    msg.clearData();
     return ret;
 }
 
@@ -239,7 +242,7 @@ bool is_ptp4l_running() {
  */
 void *ptp4l_event_loop( void *arg)
 {
-    const uint64_t timeout_ms = 1000; // 1 second
+    const uint64_t timeout_ms = 1000;
 
     for(;;) {
         if(!msg_set_action(true, PORT_PROPERTIES_NP))
@@ -258,7 +261,6 @@ void *ptp4l_event_loop( void *arg)
         }
     }
 
-    // Send to all
     msg_set_action(false, PORT_PROPERTIES_NP);
     event_subscription(NULL);
 
@@ -278,7 +280,7 @@ void *ptp4l_event_loop( void *arg)
             sku->close();
             msg.clearData();
 
-            //Reset TIME_STATUS_NP data when ptp4l is disconnected
+            /* Reset TIME_STATUS_NP data when ptp4l is disconnected */
             pe.master_offset = 0;
             memset(pe.gmIdentity, 0, sizeof(pe.gmIdentity));
             pe.servo_state = 0;
@@ -327,14 +329,13 @@ int Connect::connect()
     m_sk.reset(sku);
 
     while (is_ptp4l_running() != 1) {
-        //sleep for 2 seconds and keep looping until there is ptp4l available
+        /* sleep for 2 seconds and keep looping until there is ptp4l available */
         PrintError("Failed to connect to ptp4l. Retrying...");
         sleep(2);
     }
     PrintInfo("Connected to ptp4l via /var/run/ptp4l.");
     pe.ptp4l_id = 1;
 
-    //TODO: hard-coded uds_socket
     uds_address = "/var/run/ptp4l";
     if(!sku->setDefSelfAddress() || !sku->init() ||
             !sku->setPeerAddress(uds_address))

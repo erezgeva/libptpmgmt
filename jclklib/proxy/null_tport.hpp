@@ -15,18 +15,18 @@
 #ifndef PROXY_NULL_TPORT_HPP
 #define PROXY_NULL_TPORT_HPP
 
-#include <proxy/transport.hpp>
-#include <common/null_tport.hpp>
-
 #include <cstdint>
+
+#include <common/null_tport.hpp>
+#include <proxy/transport.hpp>
 
 namespace JClkLibProxy
 {
-	class NullProxyTransport : public JClkLibCommon::NullTransport
-	{
-	public:
-		static SEND_PROXY_MESSAGE(sendMessage);
-	};
+    class NullProxyTransport : public JClkLibCommon::NullTransport
+    {
+    public:
+        static SEND_PROXY_MESSAGE(sendMessage);
+    };
 }
 
-#endif/*PROXY_NULL_TPORT_HPP*/
+#endif /* PROXY_NULL_TPORT_HPP */

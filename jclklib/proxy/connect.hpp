@@ -12,8 +12,8 @@
  *
  */
 
-#include <proxy/message.hpp>
 #include <common/connect_msg.hpp>
+#include <proxy/message.hpp>
 
 namespace JClkLibProxy
 {

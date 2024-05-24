@@ -12,17 +12,16 @@
  *
  */
 
+#include <cstdint>
+
 #include <proxy/null_tport.hpp>
 #include <common/print.hpp>
-
-#include <cstdint>
 
 using namespace JClkLibProxy;
 using namespace std;
 
 SEND_PROXY_MESSAGE(NullProxyTransport::sendMessage)
 {
-	PrintError("NullTransport should not be used");
-	return false;
+    PrintError("NullTransport should not be used");
+    return false;
 }
-

@@ -16,68 +16,70 @@
 
 static int start_work_thread( struct ptp4l_handle *handle )
 {
-	int ret;
+    int ret;
 
-	if(( ret = -pthread_create( &handle->work_thread, NULL, ptp4l_event_loop, (void *) handle)) < 0)
-			return ret;
+    if(( ret = -pthread_create( &handle->work_thread, NULL, ptp4l_event_loop,
+        (void *) handle)) < 0)
+        return ret;
 
-	return 0;
+    return 0;
 }
 
-int connect_ptp4l( struct ptp4l_handle **phandle, struct epoll_event epd_event, state_update_t update_cb, void *ctx)
+int connect_ptp4l( struct ptp4l_handle **phandle, struct epoll_event epd_event,
+    state_update_t update_cb, void *ctx)
 {
-	struct ptp4l_handle *handle;
-	int ret;
+    struct ptp4l_handle *handle;
+    int ret;
 
-	handle = (typeof( handle)) malloc(( size_t) sizeof(*handle));
-	if( handle == NULL) {
-		ret = -errno;
-		goto alloc_handle_fail;
-	}
+    handle = (typeof( handle)) malloc(( size_t) sizeof(*handle));
+    if( handle == NULL) {
+        ret = -errno;
+        goto alloc_handle_fail;
+    }
 
-	if(( ret = start_work_thread( handle)) < 0)
-		goto thread_failed;
+    if(( ret = start_work_thread( handle)) < 0)
+        goto thread_failed;
 
-	*phandle = handle;
-	return 0;
+    *phandle = handle;
+    return 0;
 
  thread_failed:
  alloc_handle_fail:
-	return ret;
+    return ret;
 }
 
 int set_thread_signal( struct thread_signal *signal)
 {
-	int err, ret;
+    int err, ret;
 
-	if(( ret = pthread_mutex_lock( &signal->siglock)) != 0)
-		goto lock_fail;
-	signal->signaled = true;
-	if(( ret = pthread_cond_signal( &signal->signal )) != 0)
-		goto signal_fail;
+    if(( ret = pthread_mutex_lock( &signal->siglock)) != 0)
+        goto lock_fail;
+    signal->signaled = true;
+    if(( ret = pthread_cond_signal( &signal->signal )) != 0)
+        goto signal_fail;
 
  signal_fail:
-	if(( err = pthread_mutex_unlock( &signal->siglock)) != 0)
-		ret = ret == 0 ? err : ret; // Report first error only
+    if(( err = pthread_mutex_unlock( &signal->siglock)) != 0)
+        ret = ret == 0 ? err : ret;
 
  lock_fail:
-	return -ret;
+    return -ret;
 }
 
 static bool state_update_callback( struct ptp4l_state *state, void * ctx)
 {
-	struct jcl_handle *handle = (typeof(handle)) ctx;
-	int ret;
+    struct jcl_handle *handle = (typeof(handle)) ctx;
+    int ret;
 
-	if(( ret = -pthread_mutex_lock( &handle->state_lock)) < 0)
-		goto lock_failed;
+    if(( ret = -pthread_mutex_lock( &handle->state_lock)) < 0)
+        goto lock_failed;
 
-	if(( ret = -pthread_mutex_unlock( &handle->state_lock)) < 0)
-		goto unlock_failed;
+    if(( ret = -pthread_mutex_unlock( &handle->state_lock)) < 0)
+        goto unlock_failed;
 
  unlock_failed:
  lock_failed:
-	return ret >= 0 ? true : false;
+    return ret >= 0 ? true : false;
 }
 
 /**
@@ -96,28 +98,28 @@ static bool state_update_callback( struct ptp4l_state *state, void * ctx)
  */
 int handle_connect(struct epoll_event epd_event )
 {
-	struct jcl_handle *handle;
-	int ret;
+    struct jcl_handle *handle;
+    int ret;
 
-	handle = ( typeof( handle)) malloc(( size_t) sizeof( *handle));
-	if( handle == NULL) {
-		ret = -errno;
-		goto alloc_fail;
-	}
+    handle = ( typeof( handle)) malloc(( size_t) sizeof( *handle));
+    if( handle == NULL) {
+        ret = -errno;
+        goto alloc_fail;
+    }
 
-	event_subscription( &handle );
+    event_subscription( &handle );
 
-	ret = connect_ptp4l( &handle->ptp4l_handle,
-				  epd_event, state_update_callback, handle);
-	if (ret != 0) {
-		free(handle); // Free the memory if connect_ptp4l fails
-		goto alloc_fail;
-	}
+    ret = connect_ptp4l( &handle->ptp4l_handle,
+        epd_event, state_update_callback, handle);
+    if (ret != 0) {
+        free(handle);
+        goto alloc_fail;
+    }
 
-	free(handle);
-	return 0;
+    free(handle);
+    return 0;
 
  alloc_fail:
-	return ret;
+    return ret;
 }
 
