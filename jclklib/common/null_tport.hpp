@@ -21,13 +21,13 @@
 
 namespace JClkLibCommon
 {
-	class NullTransport : public Transport
-	{
-	public:
-		static bool initTransport() { return true; }
-		static bool stopTransport()	{ return true; }
-		static bool finalizeTransport()	{ return true; }
-	};
+    class NullTransport : public Transport
+    {
+    public:
+        static bool initTransport() { return true; }
+        static bool stopTransport()	{ return true; }
+        static bool finalizeTransport()	{ return true; }
+    };
 }
 
-#endif/*NULL_TPORT_HPP*/
+#endif /* NULL_TPORT_HPP */

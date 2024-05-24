@@ -12,22 +12,19 @@
  *
  */
 
-#include <common/msgq_tport.hpp>
-#include <common/message.hpp>
-
-#include <common/sighandler.hpp>
-#include <common/util.hpp>
-#include <common/print.hpp>
-
+#include <errno.h>
+#include <fcntl.h>
 #include <iostream>
+#include <mqueue.h>
+#include <string.h>
+#include <sys/stat.h>
 #include <thread>
 
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <mqueue.h>
-
-#include <string.h>
-#include <errno.h>
+#include <common/msgq_tport.hpp>
+#include <common/message.hpp>
+#include <common/print.hpp>
+#include <common/sighandler.hpp>
+#include <common/util.hpp>
 
 using namespace JClkLibCommon;
 using namespace std;
@@ -44,60 +41,62 @@ DECLARE_STATIC(MessageQueue::mqNativeListenerDesc,-1);
 
 MessageQueueListenerContext::MessageQueueListenerContext(mqd_t mqListenerDesc)
 {
-	this->mqListenerDesc = mqListenerDesc;
+    this->mqListenerDesc = mqListenerDesc;
 }
 
 MessageQueueTransmitterContext::MessageQueueTransmitterContext(mqd_t mqTransmitterDesc)
 {
-	this->mqTransmitterDesc = mqTransmitterDesc;
+    this->mqTransmitterDesc = mqTransmitterDesc;
 }
 
 int mqRecvWrapper(mqd_t mqDesc, uint8_t *data, size_t length)
 {
-	int ret;
+    int ret;
 	
-	ret = mq_receive(mqDesc, (char *)data, length, NULL);
-	if (ret == -1)
-		return -errno;
+    ret = mq_receive(mqDesc, (char *)data, length, NULL);
+    if (ret == -1)
+        return -errno;
 
-	return ret;
+    return ret;
 }
 
 bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
 {
-	MessageQueueListenerContext *context = dynamic_cast<decltype(context)>(mqListenerContext);
+    MessageQueueListenerContext *context = dynamic_cast<decltype(context)>(mqListenerContext);
 
-	if(!context) {
-		PrintError("Internal Error: Received inappropriate context");
-		return false; // Return early since context is null and cannot be used.
-	}
-	if (context->init() && !EnableSyscallInterruptSignal()) {
-		PrintError("Unable to enable interrupts in work process context");
-		return false;
-	}
+    if(!context) {
+        PrintError("Internal Error: Received inappropriate context");
+        return false; // Return early since context is null and cannot be used.
+    }
+    if (context->init() && !EnableSyscallInterruptSignal()) {
+        PrintError("Unable to enable interrupts in work process context");
+        return false;
+    }
 
-	int ret = mqRecvWrapper(context->mqListenerDesc, context->get_buffer().data(), context->getc_buffer().max_size());
-	if (ret < 0) {
-		if (ret != -EINTR)
-			PrintError("MQ Receive Failed",-ret);
-		return ret != -EINTR ? false : true;
-	}
-	PrintDebug("Receive complete");
+    int ret = mqRecvWrapper(context->mqListenerDesc, context->get_buffer().data(),
+        context->getc_buffer().max_size());
+    if (ret < 0) {
+        if (ret != -EINTR)
+            PrintError("MQ Receive Failed",-ret);
+        return ret != -EINTR ? false : true;
+    }
+    PrintDebug("Receive complete");
 
-	DumpOctetArray("Received Message", context->getc_buffer().data(), context->getc_buffer().max_size());
+    DumpOctetArray("Received Message", context->getc_buffer().data(),
+        context->getc_buffer().max_size());
 
-	Transport::processMessage(*context);
+    Transport::processMessage(*context);
 	
-	return true;
+    return true;
 }
 
 SEND_BUFFER_TYPE(MessageQueueTransmitterContext::sendBuffer)
 {
-	if (mq_send(mqTransmitterDesc, (char *)get_buffer().data(), get_offset(), 0) == -1) {
-		PrintErrorCode("Failed to send buffer");
-		mq_close(mqTransmitterDesc);
-		return false;
-	}
+    if (mq_send(mqTransmitterDesc, (char *)get_buffer().data(), get_offset(), 0) == -1) {
+        PrintErrorCode("Failed to send buffer");
+        mq_close(mqTransmitterDesc);
+        return false;
+    }
 
-	return true;
+    return true;
 }

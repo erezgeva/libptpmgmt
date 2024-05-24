@@ -15,35 +15,34 @@
 #ifndef COMMON_SUBSCRIBE_MSG_HPP
 #define COMMON_SUBSCRIBE_MSG_HPP
 
-#include <common/message.hpp>
 #include <common/jclklib_import.hpp>
+#include <common/message.hpp>
 
 namespace JClkLibCommon
 {
-	class CommonSubscribeMessage : virtual public Message
-	{
-	private:
-		jcl_subscription subscription;
-		TransportClientId clientId;
+    class CommonSubscribeMessage : virtual public Message
+    {
+    private:
+        jcl_subscription subscription;
+        TransportClientId clientId;
 
-	public:
-		static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
-		//static MAKE_RXBUFFER_TYPE(buildMessage);
-		//const jcl_subscription &getSubscription();
-		virtual PARSE_RXBUFFER_TYPE(parseBuffer);
-		virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
-		virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
-		jcl_subscription &getSubscription()
-		{ return subscription; }
-		TransportClientId &getClientId()
-		{ return clientId; }
-		void setSubscription(jcl_subscription &newsub);
+    public:
+        static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
+        //static MAKE_RXBUFFER_TYPE(buildMessage);
+        virtual PARSE_RXBUFFER_TYPE(parseBuffer);
+        virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
+        virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+        jcl_subscription &getSubscription()
+            { return subscription; }
+        TransportClientId &getClientId()
+            { return clientId; }
+        void setSubscription(jcl_subscription &newsub);
 
-		virtual std::string toString();
-	protected:
+        virtual std::string toString();
+    protected:
 #define MESSAGE_SUBSCRIBE() JClkLibCommon::Message(JClkLibCommon::SUBSCRIBE_MSG)
-		CommonSubscribeMessage() : MESSAGE_SUBSCRIBE() {}
-	};
+        CommonSubscribeMessage() : MESSAGE_SUBSCRIBE() {}
+    };
 }
 
-#endif/*COMMON_SUBSCRIBE_MSG_HPP*/
+#endif /* COMMON_SUBSCRIBE_MSG_HPP */

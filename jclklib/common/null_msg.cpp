@@ -19,10 +19,10 @@ using namespace std;
 
 MAKE_RXBUFFER_TYPE(CommonNullMessage::buildMessage)
 {
-	return true;
+    return true;
 }
 
 bool CommonNullMessage::initMessage()
 {
-	return true;
+    return true;
 }

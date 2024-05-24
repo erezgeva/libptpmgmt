@@ -12,18 +12,18 @@
  *
  */
 
-#include <common/serialize.hpp>
 #include <common/notification_msg.hpp>
 #include <common/print.hpp>
+#include <common/serialize.hpp>
 
 using namespace JClkLibCommon;
 using namespace std;
 
 TRANSMIT_MESSAGE_TYPE(NotificationMessage::transmitMessage)
 {
-	PrintDebug("[NotificationMessage]::transmitMessage ");
-	if (!presendMessage(&TxContext))
-		return false;
+    PrintDebug("[NotificationMessage]::transmitMessage ");
+    if (!presendMessage(&TxContext))
+        return false;
 
-	return TxContext.sendBuffer();
+    return TxContext.sendBuffer();
 }

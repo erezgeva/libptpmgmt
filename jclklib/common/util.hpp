@@ -12,8 +12,8 @@
  *
  */
 
-#include <future>
 #include <chrono>
+#include <future>
 
 #ifndef UTIL_HPP
 #define UTIL_HPP
@@ -25,24 +25,22 @@
 template <typename type>
 bool isFutureSet(std::future<type> &f)
 {
-	return f.valid() && f.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready;
+    return f.valid() && f.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready;
 }
 
 #define DECLARE_ACCESSOR(varname)					\
-	const decltype(varname) &getc_##varname() { return varname; }		\
-	decltype(varname) &get_##varname() { return varname; }		\
-	void set_##varname (const decltype(varname) &varname) { this->varname = varname; }		\
-	decltype(varname) c_get_val_##varname () const { return varname; }
+    const decltype(varname) &getc_##varname() { return varname; }		\
+    decltype(varname) &get_##varname() { return varname; }		\
+    void set_##varname (const decltype(varname) &varname) { this->varname = varname; }		\
+    decltype(varname) c_get_val_##varname () const { return varname; }
 
 #define PTHREAD_CALL(func,err_msg,retval)				\
-	{								\
-		int err;						\
-		if ((err = (func)) != 0) {				\
-			PrintError(err_msg, err);			\
-			return retval;					\
-		}							\
-	}
-	
+    {								\
+        int err;						\
+        if ((err = (func)) != 0) {				\
+            PrintError(err_msg, err);			\
+            return retval;					\
+        }							\
+    }
 
-#endif/*UTIL_HPP*/
-
+#endif /* UTIL_HPP */

@@ -19,16 +19,16 @@
 
 namespace JClkLibCommon
 {
-	class CommonNullMessage : virtual public Message
-	{
-	protected:
-	public:
-		static msgId_t getMsgId() { return NULL_MSG; }
-		static MAKE_RXBUFFER_TYPE(buildMessage);
+    class CommonNullMessage : virtual public Message
+    {
+    protected:
+    public:
+        static msgId_t getMsgId() { return NULL_MSG; }
+        static MAKE_RXBUFFER_TYPE(buildMessage);
 #define MESSAGE_NULL() JClkLibCommon::Message(JClkLibCommon::NULL_MSG)
-		CommonNullMessage() : MESSAGE_NULL() {};
-		static bool initMessage();
-	};
+        CommonNullMessage() : MESSAGE_NULL() {};
+        static bool initMessage();
+    };
 }
 
-#endif/*COMMON_NULL_MSG_HPP*/
+#endif /* COMMON_NULL_MSG_HPP */

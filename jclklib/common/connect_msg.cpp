@@ -13,56 +13,57 @@
  */
 
 #include <common/connect_msg.hpp>
-#include <common/serialize.hpp>
 #include <common/print.hpp>
+#include <common/serialize.hpp>
 
 using namespace JClkLibCommon;
 using namespace std;
 
 string CommonConnectMessage::toString()
 {
-	string name = ExtractClassName(string(__PRETTY_FUNCTION__),string(__FUNCTION__));
-	name += "\n";
-	name += Message::toString();
-	name += "Client ID: " + string((char *)clientId.data()) + "\n";
+    string name = ExtractClassName(string(__PRETTY_FUNCTION__),string(__FUNCTION__));
+    name += "\n";
+    name += Message::toString();
+    name += "Client ID: " + string((char *)clientId.data()) + "\n";
 
-	return name;
+    return name;
 }
 
-PARSE_RXBUFFER_TYPE(CommonConnectMessage::parseBuffer) {
-	if(!Message::parseBuffer(LxContext))
-		return false;
+PARSE_RXBUFFER_TYPE(CommonConnectMessage::parseBuffer)
+{
+    if(!Message::parseBuffer(LxContext))
+        return false;
 
-	if (!PARSE_RX(FIELD, get_sessionId(), LxContext))
-		return false;
+    if (!PARSE_RX(FIELD, get_sessionId(), LxContext))
+        return false;
 
-	if (!PARSE_RX(ARRAY,clientId, LxContext))
-		return false;
+    if (!PARSE_RX(ARRAY,clientId, LxContext))
+        return false;
 
-	return true;
+    return true;
 }
 
 
 BUILD_TXBUFFER_TYPE(CommonConnectMessage::makeBuffer) const
 {
-	auto ret = Message::makeBuffer(TxContext); 
-	if (!ret)
-		return ret;
+    auto ret = Message::makeBuffer(TxContext); 
+    if (!ret)
+        return ret;
 
-	if (!WRITE_TX(FIELD, c_get_val_sessionId(), TxContext))
-		return false;
+    if (!WRITE_TX(FIELD, c_get_val_sessionId(), TxContext))
+        return false;
 
-	if (!WRITE_TX(ARRAY,clientId,TxContext))
-		return false;
+    if (!WRITE_TX(ARRAY,clientId,TxContext))
+        return false;
 
-	return true;
+    return true;
 }
 
 TRANSMIT_MESSAGE_TYPE(CommonConnectMessage::transmitMessage)
 {
-	PrintDebug("[CommonConnectMessage]::transmitMessage ");
-	if (!presendMessage(&TxContext))
-		return false;
+    PrintDebug("[CommonConnectMessage]::transmitMessage ");
+    if (!presendMessage(&TxContext))
+        return false;
 
-	return TxContext.sendBuffer();
+    return TxContext.sendBuffer();
 }
