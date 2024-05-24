@@ -129,3 +129,31 @@ Options:
 -t timeout in waiting notification event (s)
     Default: 10 s
 ```
+
+Example output of sample application (jclk_test) :
+```bash
+[jclklib] Connected. Session ID : 1
+[jclklib] set subscribe event : jcl_event : event[0] = 15
+[jclklib] set composite event : jcl_event : event[0] = 7
+
+Upper Master Offset: 100000 ns
+Lower Master Offset: -100000 ns
+
+[jclklib] Obtained data from Subscription Event:
++-------------------+--------------------+
+| Event             | Event Status       |
++-------------------+--------------------+
+| offset_in_range   | 1                  |
+| servo_locked      | 1                  |
+| as_Capable        | 1                  |
+| gm_Changed        | 1                  |
++-------------------+--------------------+
+| UUID              | 00a1c1.fffe.000000 |
++-------------------+--------------------+
+| composite_event   | 1                  |
+| - offset_in_range |                    |
+| - servo_locked    |                    |
+| - as_Capable      |                    |
++-------------------+--------------------+
+
+```
