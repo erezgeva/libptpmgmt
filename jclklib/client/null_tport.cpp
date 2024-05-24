@@ -12,17 +12,16 @@
  *
  */
 
+#include <cstdint>
+
 #include <client/null_tport.hpp>
 #include <common/print.hpp>
-
-#include <cstdint>
 
 using namespace JClkLibClient;
 using namespace std;
 
 bool NullClientTransport::sendMessage(uint8_t *buffer, size_t length)
 {
-	PrintError("NullTransport should not be used");
-	return false;
+    PrintError("NullTransport should not be used");
+    return false;
 }
-

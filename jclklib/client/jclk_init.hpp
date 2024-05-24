@@ -26,12 +26,12 @@ namespace JClkLibClient {
         ClientState appClientState;
     public:
         JClkLibClientApi() {}
-        /* In case we need to init something for API. */
+        /* In case we need to init something for API */
         static int init() { return 0; }
         ClientState &getClientState() { return appClientState; }
-	    bool jcl_connect();
-	    bool jcl_disconnect();
-	    bool jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
+        bool jcl_connect();
+        bool jcl_disconnect();
+        bool jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
                            JClkLibCommon::jcl_state &currentState);
         int jcl_status_wait(int timeout, JClkLibCommon::jcl_state &jcl_state,
                             JClkLibCommon::jcl_state_event_count &eventCount);

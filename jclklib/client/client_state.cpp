@@ -12,95 +12,115 @@
  *
  */
 
-#include <client/msgq_tport.hpp>
-#include <client/client_state.hpp>
-#include <common/jcltypes.hpp>
-#include <common/transport.hpp>
-#include <common/message.hpp>
-#include <iostream>
 #include <cstring>
+#include <iostream>
 #include <string>
 
-using namespace std;
+#include <client/client_state.hpp>
+#include <client/msgq_tport.hpp>
+#include <common/jcltypes.hpp>
+#include <common/message.hpp>
+#include <common/transport.hpp>
+
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
+using namespace std;
 
 ClientState::ClientState()
 {
-	connected = false;
-	subscribed = false;
-	sessionId = JClkLibCommon::InvalidSessionId;
-	fill(begin(clientID ), end( clientID ), 0 );
-	eventState = {};
-	eventStateCount = {};
-	eventSub = {};
+    connected = false;
+    subscribed = false;
+    sessionId = JClkLibCommon::InvalidSessionId;
+    fill(begin(clientID ), end( clientID ), 0 );
+    eventState = {};
+    eventStateCount = {};
+    eventSub = {};
 }
 
 ClientState::ClientState(ClientState &newState)
 {
-	connected = newState.get_connected();
-	subscribed = newState.get_subscribed();
-	sessionId = newState.get_sessionId();
-	strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
-	eventState = newState.get_eventState();
-	eventStateCount = newState.get_eventStateCount();
-	eventSub = newState.get_eventSub();
+    connected = newState.get_connected();
+    subscribed = newState.get_subscribed();
+    sessionId = newState.get_sessionId();
+    strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
+    eventState = newState.get_eventState();
+    eventStateCount = newState.get_eventStateCount();
+    eventSub = newState.get_eventSub();
 }
 
 void ClientState::set_clientState(ClientState &newState)
 {
-	connected = newState.get_connected();
-	subscribed = newState.get_subscribed();
-	sessionId = newState.get_sessionId();
-	strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
-	eventState = newState.get_eventState();
-	eventStateCount = newState.get_eventStateCount();
-	eventSub = newState.get_eventSub();
+    connected = newState.get_connected();
+    subscribed = newState.get_subscribed();
+    sessionId = newState.get_sessionId();
+    strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
+    eventState = newState.get_eventState();
+    eventStateCount = newState.get_eventStateCount();
+    eventSub = newState.get_eventSub();
 }
 
-bool ClientState::get_connected() {return connected;}
-
-void ClientState::set_connected(bool new_state) {connected = new_state;}
-
-bool ClientState::get_subscribed() {return subscribed;}
-
-void ClientState::set_subscribed(bool subscriptionState) {subscribed = subscriptionState;}
-
-TransportClientId ClientState::get_clientID() {
-	return clientID;
+bool ClientState::get_connected()
+{
+    return connected;
 }
 
-void ClientState::set_clientID(TransportClientId &new_cID) {
-	strcpy((char *)clientID.data(), (char *)new_cID.data());
+void ClientState::set_connected(bool new_state)
+{
+    connected = new_state;
 }
 
-JClkLibCommon::jcl_state_event_count &ClientState::get_eventStateCount() {
-	return eventStateCount;
-}
-JClkLibCommon::jcl_state &ClientState::get_eventState() {
-	return eventState;
+bool ClientState::get_subscribed()
+{
+    return subscribed;
 }
 
-void ClientState::set_eventStateCount(JClkLibCommon::jcl_state_event_count newCount) {
-	eventStateCount = newCount;
+void ClientState::set_subscribed(bool subscriptionState)
+{
+    subscribed = subscriptionState;
 }
 
-void ClientState::set_eventState(JClkLibCommon::jcl_state newState) {
-	eventState = newState;
+TransportClientId ClientState::get_clientID()
+{
+    return clientID;
 }
 
-string ClientState::toString() {
+void ClientState::set_clientID(TransportClientId &new_cID)
+{
+    strcpy((char *)clientID.data(), (char *)new_cID.data());
+}
+
+JClkLibCommon::jcl_state_event_count &ClientState::get_eventStateCount()
+{
+    return eventStateCount;
+}
+
+JClkLibCommon::jcl_state &ClientState::get_eventState()
+{
+    return eventState;
+}
+
+void ClientState::set_eventStateCount(JClkLibCommon::jcl_state_event_count newCount)
+{
+    eventStateCount = newCount;
+}
+
+void ClientState::set_eventState(JClkLibCommon::jcl_state newState)
+{
+    eventState = newState;
+}
+
+string ClientState::toString()
+{
     string name = "[ClientState::eventState]";
-	name += " as_Capable = " + to_string(this->get_eventState().as_Capable);
-	name += " gm_changed = " + to_string(this->get_eventState().gm_changed);
-	name += " offset_in_range = " + to_string(this->get_eventState().offset_in_range);
-	name += " servo_locked = " + to_string(this->get_eventState().servo_locked);
-	name += "\n";
-	return name;
+    name += " as_Capable = " + to_string(this->get_eventState().as_Capable);
+    name += " gm_changed = " + to_string(this->get_eventState().gm_changed);
+    name += " offset_in_range = " + to_string(this->get_eventState().offset_in_range);
+    name += " servo_locked = " + to_string(this->get_eventState().servo_locked);
+    name += "\n";
+    return name;
 }
 
-JClkLibCommon::jcl_subscription &ClientState::get_eventSub() {
-	return eventSub;
+JClkLibCommon::jcl_subscription &ClientState::get_eventSub()
+{
+    return eventSub;
 }
-
-//ClientState JClkLibClient::state{};

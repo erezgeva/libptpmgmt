@@ -15,18 +15,18 @@
 #ifndef CLIENT_NULL_TPORT_HPP
 #define CLIENT_NULL_TPORT_HPP
 
+#include <cstdint>
+
 #include <client/transport.hpp>
 #include <common/null_tport.hpp>
 
-#include <cstdint>
-
 namespace JClkLibClient
 {
-	class NullClientTransport : public JClkLibCommon::NullTransport
-	{
-	public:
-		static bool sendMessage(std::uint8_t *buffer, std::size_t length);
-	};
+    class NullClientTransport : public JClkLibCommon::NullTransport
+    {
+    public:
+        static bool sendMessage(std::uint8_t *buffer, std::size_t length);
+    };
 }
 
-#endif/*CLIENT_NULL_TPORT_HPP*/
+#endif /* CLIENT_NULL_TPORT_HPP */

@@ -13,9 +13,9 @@
  */
 
 #include <client/connect_msg.hpp>
+#include <common/jclklib_import.hpp>
 #include <common/print.hpp>
 #include <common/serialize.hpp>
-#include <common/jclklib_import.hpp>
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;
@@ -29,9 +29,9 @@ using namespace std;
  */
 MAKE_RXBUFFER_TYPE(ClientConnectMessage::buildMessage)
 {
-        msg = new ClientConnectMessage();
+    msg = new ClientConnectMessage();
 
-        return true;
+    return true;
 }
 
 /** @brief Add client's CONNECT_MSG type and its builder to transport layer.
@@ -43,28 +43,30 @@ MAKE_RXBUFFER_TYPE(ClientConnectMessage::buildMessage)
  */
 bool ClientConnectMessage::initMessage()
 {
-        addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
-        return true;
+    addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
+
+    return true;
 }
 
-PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer) {
-	JClkLibCommon::ptp_event data = {};
+PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
+{
+    JClkLibCommon::ptp_event data = {};
 
-	PrintDebug("[ClientConnectMessage]::parseBuffer ");
-	if(!CommonConnectMessage::parseBuffer(LxContext))
-		return false;
+    PrintDebug("[ClientConnectMessage]::parseBuffer ");
+    if(!CommonConnectMessage::parseBuffer(LxContext))
+        return false;
 
-	if (!PARSE_RX(FIELD, data.ptp4l_id, LxContext))
-		return false;
+    if (!PARSE_RX(FIELD, data.ptp4l_id, LxContext))
+        return false;
 
-	currentClientState->set_ptp4l_id(data.ptp4l_id);
+    currentClientState->set_ptp4l_id(data.ptp4l_id);
 
-	return true;
+    return true;
 }
 
-void ClientConnectMessage::setClientState(ClientState *newClientState){
-	//currentClientState.set_clientState(newClientState);
-	currentClientState = newClientState;
+void ClientConnectMessage::setClientState(ClientState *newClientState)
+{
+    currentClientState = newClientState;
 }
 
 /** @brief process the reply for connect msg from proxy.
@@ -85,19 +87,21 @@ void ClientConnectMessage::setClientState(ClientState *newClientState){
  */
 PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
 {
-        sessionId_t newSessionId;
+    sessionId_t newSessionId;
 
-        PrintDebug("Processing client connect message (reply)");
+    PrintDebug("Processing client connect message (reply)");
 
-	currentClientState->set_connected(true);
-	currentClientState->set_sessionId(this->get_sessionId());
+    currentClientState->set_connected(true);
+    currentClientState->set_sessionId(this->get_sessionId());
 
-        PrintDebug("Connected with session ID: " + to_string(this->get_sessionId()));
-        PrintDebug("Current state.sessionId: " + to_string(currentClientState->get_sessionId()));
+    PrintDebug("Connected with session ID: " +
+        to_string(this->get_sessionId()));
+    PrintDebug("Current state.sessionId: " +
+        to_string(currentClientState->get_sessionId()));
 
-	this->set_msgAck(ACK_NONE);
+    this->set_msgAck(ACK_NONE);
 
-        cv.notify_one();
+    cv.notify_one();
 
-        return true;
+    return true;
 }

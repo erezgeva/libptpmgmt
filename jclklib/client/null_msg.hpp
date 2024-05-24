@@ -12,22 +12,22 @@
  *
  */
 
-#include <client/message.hpp>
-#include <common/null_msg.hpp>
-
 #ifndef CLIENT_NULL_MSG_HPP
 #define CLIENT_NULL_MSG_HPP
 
+#include <client/message.hpp>
+#include <common/null_msg.hpp>
+
 namespace JClkLibClient
 {
-	class ClientNullMessage : public JClkLibClient::ClientMessage,
+    class ClientNullMessage : public JClkLibClient::ClientMessage,
 				  public JClkLibCommon::CommonNullMessage
-	{
-	protected:
-	public:
-		static bool initMessage() { return true; }
-		ClientNullMessage() {}
-	};
+    {
+    protected:
+    public:
+        static bool initMessage() { return true; }
+        ClientNullMessage() {}
+    };
 }
 
-#endif/*CLIENT_NULL_MSG_HPP*/
+#endif /* CLIENT_NULL_MSG_HPP */
