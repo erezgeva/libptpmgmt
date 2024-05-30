@@ -34,6 +34,20 @@ void signal_handler(int sig)
     signal_flag = 1;
 }
 
+double getMonotonicTime() {
+    struct timespec timeSpec;
+
+    if (clock_gettime(CLOCK_MONOTONIC, &timeSpec) == -1) {
+        perror("clock_gettime failed");
+        return -1;
+    }
+
+    double seconds = timeSpec.tv_sec;
+    double nanoseconds = timeSpec.tv_nsec / 1e9;
+
+    return seconds + nanoseconds;
+}
+
 int main(int argc, char *argv[])
 {
     JClkLibCommon::jcl_state_event_count eventCount = {};
@@ -164,7 +178,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    printf("[jclklib] Obtained data from Subscription Event:\n");
+    printf("[jclklib][%.3f] Obtained data from Subscription Event:\n",
+        getMonotonicTime());
     printf("+-------------------+--------------------+\n");
     printf("| %-17s | %-18s |\n", "Event", "Event Status");
     if (event2Sub1[0]) {
@@ -212,20 +227,24 @@ int main(int argc, char *argv[])
     sleep(1);
 
     while (!signal_flag) {
-        printf("[jclklib] Waiting for Notification Event...\n");
+        printf("[jclklib][%.3f] Waiting for Notification Event...\n",
+            getMonotonicTime());
         retval = cmAPI->jcl_status_wait(timeout, jcl_state , eventCount);
         if (!retval) {
-            printf("No event status changes identified in %d seconds.\n\n",
-                timeout);
-            printf("[jclklib] sleep for %d seconds...\n\n", idle_time);
+            printf("[jclklib][%.3f] No event status changes identified in %d seconds.\n\n",
+                getMonotonicTime(), timeout);
+            printf("[jclklib][%.3f] sleep for %d seconds...\n\n",
+                getMonotonicTime(), idle_time);
             sleep(idle_time);
             continue;
         } else if (retval < 0) {
-            printf("[jclklib] Terminating: lost connection to jclklib Proxy\n");
+            printf("[jclklib][%.3f] Terminating: lost connection to jclklib Proxy\n",
+                getMonotonicTime());
             return EXIT_SUCCESS;
         }
 
-        printf("[jclklib] Obtained data from Notification Event:\n");
+        printf("[jclklib][%.3f] Obtained data from Notification Event:\n",
+            getMonotonicTime());
         printf("+-------------------+--------------+-------------+\n");
         printf("| %-17s | %-12s | %-11s |\n", "Event", "Event Status",
             "Event Count");
@@ -275,7 +294,8 @@ int main(int argc, char *argv[])
             printf("\n");
         }
 
-        printf("[jclklib] sleep for %d seconds...\n\n", idle_time);
+        printf("[jclklib][%.3f] sleep for %d seconds...\n\n",
+            getMonotonicTime(), idle_time);
         sleep(idle_time);
     }
 
