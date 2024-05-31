@@ -100,7 +100,7 @@ void event_handle()
             servo = ((TIME_STATUS_NP_t *)data)->servo_state;
             gm_uuid = ((TIME_STATUS_NP_t *)data)->gmIdentity;
             pe.master_offset = offset;
-            pe.servo_state = servo;
+            pe.servo_state = servo >= SERVO_LOCKED ? true:false;
             memcpy(pe.gmIdentity, gm_uuid.v, sizeof(pe.gmIdentity));
 
             /* Uncomment for debug data printing */
@@ -132,7 +132,7 @@ void event_handle()
                 PrintDebug("Ignore unchanged asCapable");
                 return;
             }
-            pe.asCapable = ((CMLDS_INFO_NP_t *)data)->as_capable;
+            pe.asCapable = ((CMLDS_INFO_NP_t *)data)->as_capable > 0 ? true:false;
             //printf("asCapable = %d\n\n", pe.asCapable);
             break;
         default:

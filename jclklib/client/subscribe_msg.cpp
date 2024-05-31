@@ -131,14 +131,14 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     }
 
     if (composite_eventSub[0] & 1<<servoLockedEvent)
-        composite_client_data->composite_event &= data.servo_state >= SERVO_LOCKED ? true:false;
+        composite_client_data->composite_event &= data.servo_state;
 
     if (composite_eventSub[0] & 1<<asCapableEvent)
-        composite_client_data->composite_event &= data.asCapable > 0 ? true:false;
+        composite_client_data->composite_event &= data.asCapable;
 
-    jclCurrentState->as_Capable = client_data->asCapable > 0 ? true:false;
+    jclCurrentState->as_Capable = client_data->asCapable;
     jclCurrentState->offset_in_range = client_data->master_offset_within_boundary;
-    jclCurrentState->servo_locked = client_data->servo_state >= SERVO_LOCKED ? true:false;
+    jclCurrentState->servo_locked = client_data->servo_state;
     jclCurrentState->composite_event = composite_client_data->composite_event;
     memcpy(jclCurrentState->gmIdentity, client_data->gmIdentity, sizeof(client_data->gmIdentity));
 	

@@ -150,8 +150,8 @@ namespace JClkLibCommon
     struct ptp_event {
         int64_t master_offset;
         uint8_t gmIdentity[8]; /* Grandmaster clock ID */
-        int32_t asCapable; /* 802@.1AS Capable */
-        uint8_t servo_state;
+        bool asCapable; /* 802@.1AS Capable */
+        bool servo_state;
         uint8_t ptp4l_id;
     };
 
@@ -161,8 +161,8 @@ namespace JClkLibCommon
         int64_t master_offset_high;
         bool master_offset_within_boundary;
         uint8_t gmIdentity[8]; /* Grandmaster clock ID */
-        int32_t asCapable; /* 802@.1AS Capable */
-        uint8_t servo_state;
+        bool asCapable; /* 802@.1AS Capable */
+        bool servo_state;
         uint8_t ptp4l_id;
         bool composite_event;
         std::atomic<int> offset_event_count{};

@@ -153,17 +153,17 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         }
 
         if (composite_eventSub[0] & 1<<servoLockedEvent)
-            composite_client_ptp_data->composite_event &= proxy_data.servo_state >= SERVO_LOCKED ? true:false;
+            composite_client_ptp_data->composite_event &= proxy_data.servo_state;
 
         if (composite_eventSub[0] & 1<<asCapableEvent)
-            composite_client_ptp_data->composite_event &= proxy_data.asCapable > 0 ? true:false;
+            composite_client_ptp_data->composite_event &= proxy_data.asCapable;
 
         if (composite_eventSub[0] && (old_composite_event != composite_client_ptp_data->composite_event))
             client_ptp_data->composite_event_count.fetch_add(1, std::memory_order_relaxed);
 
-        jclCurrentState.as_Capable = client_ptp_data->asCapable > 0 ? true:false;
+        jclCurrentState.as_Capable = client_ptp_data->asCapable;
         jclCurrentState.offset_in_range = client_ptp_data->master_offset_within_boundary;
-        jclCurrentState.servo_locked = client_ptp_data->servo_state >= SERVO_LOCKED ? true:false;
+        jclCurrentState.servo_locked = client_ptp_data->servo_state;
         jclCurrentState.composite_event = composite_client_ptp_data->composite_event;
         memcpy(jclCurrentState.gmIdentity, client_ptp_data->gmIdentity, sizeof(client_ptp_data->gmIdentity));
 
