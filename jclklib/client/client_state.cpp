@@ -112,7 +112,7 @@ void ClientState::set_eventState(JClkLibCommon::jcl_state newState)
 string ClientState::toString()
 {
     string name = "[ClientState::eventState]";
-    name += " as_Capable = " + to_string(this->get_eventState().as_Capable);
+    name += " as_capable = " + to_string(this->get_eventState().as_capable);
     name += " gm_changed = " + to_string(this->get_eventState().gm_changed);
     name += " offset_in_range = " + to_string(this->get_eventState().offset_in_range);
     name += " servo_locked = " + to_string(this->get_eventState().servo_locked);

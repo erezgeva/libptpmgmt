@@ -241,7 +241,7 @@ int JClkLibClientApi::jcl_status_wait(int timeout,
 
         /* Check if any member of eventCount is non-zero */
         if (eventCount.offset_in_range_event_count ||
-            eventCount.asCapable_event_count ||
+            eventCount.as_capable_event_count ||
             eventCount.servo_locked_event_count ||
             eventCount.composite_event_count ||
             eventCount.gm_changed_event_count) {

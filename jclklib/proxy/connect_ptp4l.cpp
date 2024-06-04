@@ -100,15 +100,15 @@ void event_handle()
             servo = ((TIME_STATUS_NP_t *)data)->servo_state;
             gm_uuid = ((TIME_STATUS_NP_t *)data)->gmIdentity;
             pe.master_offset = offset;
-            pe.servo_state = servo >= SERVO_LOCKED ? true:false;
-            memcpy(pe.gmIdentity, gm_uuid.v, sizeof(pe.gmIdentity));
+            pe.servo_locked = servo >= SERVO_LOCKED ? true:false;
+            memcpy(pe.gm_identity, gm_uuid.v, sizeof(pe.gm_identity));
 
             /* Uncomment for debug data printing */
-            //printf("master_offset = %ld, servo_state = %d\n", pe.master_offset, pe.servo_state);
-            //printf("gmIdentity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
-            //       pe.gmIdentity[0], pe.gmIdentity[1],pe.gmIdentity[2],
-            //       pe.gmIdentity[3], pe.gmIdentity[4],
-            //       pe.gmIdentity[5], pe.gmIdentity[6],pe.gmIdentity[7]);
+            //printf("master_offset = %ld, servo_locked = %d\n", pe.master_offset, pe.servo_locked);
+            //printf("gm_identity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
+            //       pe.gm_identity[0], pe.gm_identity[1],pe.gm_identity[2],
+            //       pe.gm_identity[3], pe.gm_identity[4],
+            //       pe.gm_identity[5], pe.gm_identity[6],pe.gm_identity[7]);
             break;
         case PORT_DATA_SET:
             pd = (PORT_DATA_SET_t *)data;
@@ -117,8 +117,8 @@ void event_handle()
             /* Reset TIME_STATUS_NP data if port_state <= PASSIVE */
             if (portState <= PASSIVE) {
                 pe.master_offset = 0;
-                memset(pe.gmIdentity, 0, sizeof(pe.gmIdentity));
-                pe.servo_state = 0;
+                memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
+                pe.servo_locked = 0;
             }
 
             break;
@@ -128,12 +128,12 @@ void event_handle()
             portState = pd->portState;
             break;
         case CMLDS_INFO_NP:
-            if (pe.asCapable == ((CMLDS_INFO_NP_t *)data)->as_capable) {
-                PrintDebug("Ignore unchanged asCapable");
+            if (pe.as_capable == ((CMLDS_INFO_NP_t *)data)->as_capable) {
+                PrintDebug("Ignore unchanged as_capable");
                 return;
             }
-            pe.asCapable = ((CMLDS_INFO_NP_t *)data)->as_capable > 0 ? true:false;
-            //printf("asCapable = %d\n\n", pe.asCapable);
+            pe.as_capable = ((CMLDS_INFO_NP_t *)data)->as_capable > 0 ? true:false;
+            //printf("as_capable = %d\n\n", pe.as_capable);
             break;
         default:
             return;
@@ -282,9 +282,9 @@ void *ptp4l_event_loop( void *arg)
 
             /* Reset TIME_STATUS_NP data when ptp4l is disconnected */
             pe.master_offset = 0;
-            memset(pe.gmIdentity, 0, sizeof(pe.gmIdentity));
-            pe.servo_state = 0;
-            pe.asCapable = 0;
+            memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
+            pe.servo_locked = 0;
+            pe.as_capable = 0;
             notify_client();
 
             while (1) {

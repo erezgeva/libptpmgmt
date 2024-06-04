@@ -149,9 +149,9 @@ namespace JClkLibCommon
 
     struct ptp_event {
         int64_t master_offset;
-        uint8_t gmIdentity[8]; /* Grandmaster clock ID */
-        bool asCapable; /* 802@.1AS Capable */
-        bool servo_state;
+        uint8_t gm_identity[8]; /* Grandmaster clock ID */
+        bool as_capable; /* 802@.1AS Capable */
+        bool servo_locked;
         uint8_t ptp4l_id;
     };
 
@@ -159,34 +159,34 @@ namespace JClkLibCommon
         int64_t master_offset;
         int64_t master_offset_low;
         int64_t master_offset_high;
-        bool master_offset_within_boundary;
-        uint8_t gmIdentity[8]; /* Grandmaster clock ID */
-        bool asCapable; /* 802@.1AS Capable */
-        bool servo_state;
+        uint8_t gm_identity[8]; /* Grandmaster clock ID */
         uint8_t ptp4l_id;
+        bool as_capable; /* 802@.1AS Capable */
+        bool servo_locked;
+        bool master_offset_in_range;
         bool composite_event;
-        std::atomic<int> offset_event_count{};
-        std::atomic<int> asCapable_event_count{};
-        std::atomic<int> servo_state_event_count{};
-        std::atomic<int> gmChanged_event_count{};
+        std::atomic<int> offset_in_range_event_count{};
+        std::atomic<int> as_capable_event_count{};
+        std::atomic<int> servo_locked_event_count{};
+        std::atomic<int> gm_changed_event_count{};
         std::atomic<int> composite_event_count{};
     };
 
     struct jcl_state
     {
-        bool     as_Capable;
+        uint8_t  gm_identity[8];
+        bool     as_capable;
         bool     offset_in_range;
         bool     servo_locked;
         bool     gm_changed;
         bool     composite_event;
-        uint8_t  gmIdentity[8];
     };
 
     struct jcl_state_event_count
     {
         uint64_t offset_in_range_event_count;
         uint64_t gm_changed_event_count;
-        uint64_t asCapable_event_count;
+        uint64_t as_capable_event_count;
         uint64_t servo_locked_event_count;
         uint64_t composite_event_count;
     };

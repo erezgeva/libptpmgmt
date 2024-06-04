@@ -193,16 +193,16 @@ int main(int argc, char *argv[])
         printf("| %-17s | %-18d |\n", "servo_locked", jcl_state.servo_locked);
     }
     if (event2Sub1[0] & (1<<asCapableEvent)) {
-        printf("| %-17s | %-18d |\n", "as_Capable", jcl_state.as_Capable);
+        printf("| %-17s | %-18d |\n", "as_capable", jcl_state.as_capable);
     }
     if (event2Sub1[0] & (1<<gmChangedEvent)) {
         printf("| %-17s | %-18d |\n", "gm_Changed", jcl_state.gm_changed);
         printf("+-------------------+--------------------+\n");
         printf("| %-17s | %02x%02x%02x.%02x%02x.%02x%02x%02x |\n", "UUID",
-            jcl_state.gmIdentity[0], jcl_state.gmIdentity[1],
-            jcl_state.gmIdentity[2], jcl_state.gmIdentity[3],
-            jcl_state.gmIdentity[4], jcl_state.gmIdentity[5],
-            jcl_state.gmIdentity[6], jcl_state.gmIdentity[7]);
+            jcl_state.gm_identity[0], jcl_state.gm_identity[1],
+            jcl_state.gm_identity[2], jcl_state.gm_identity[3],
+            jcl_state.gm_identity[4], jcl_state.gm_identity[5],
+            jcl_state.gm_identity[6], jcl_state.gm_identity[7]);
     }
     printf("+-------------------+--------------------+\n");
     if (composite_event[0]) {
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
         printf("| - %-15s | %-18s |\n", "servo_locked", " ");
     }
     if (composite_event[0] & (1<<asCapableEvent)) {
-        printf("| - %-15s | %-18s |\n", "as_Capable", " ");
+        printf("| - %-15s | %-18s |\n", "as_capable", " ");
     }
     if (composite_event[0]) {
         printf("+-------------------+--------------------+\n\n");
@@ -261,18 +261,18 @@ int main(int argc, char *argv[])
                jcl_state.servo_locked, eventCount.servo_locked_event_count);
         }
         if (event2Sub1[0] & (1<<asCapableEvent)) {
-            printf("| %-17s | %-12d | %-11ld |\n", "as_Capable",
-                jcl_state.as_Capable, eventCount.asCapable_event_count);
+            printf("| %-17s | %-12d | %-11ld |\n", "as_capable",
+                jcl_state.as_capable, eventCount.as_capable_event_count);
         }
         if (event2Sub1[0] & (1<<gmChangedEvent)) {
             printf("| %-17s | %-12d | %-11ld |\n", "gm_Changed",
                 jcl_state.gm_changed, eventCount.gm_changed_event_count);
             printf("+-------------------+--------------+-------------+\n");
             printf("| %-17s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-                "UUID", jcl_state.gmIdentity[0], jcl_state.gmIdentity[1],
-                jcl_state.gmIdentity[2], jcl_state.gmIdentity[3],
-                jcl_state.gmIdentity[4], jcl_state.gmIdentity[5],
-                jcl_state.gmIdentity[6], jcl_state.gmIdentity[7]);
+                "UUID", jcl_state.gm_identity[0], jcl_state.gm_identity[1],
+                jcl_state.gm_identity[2], jcl_state.gm_identity[3],
+                jcl_state.gm_identity[4], jcl_state.gm_identity[5],
+                jcl_state.gm_identity[6], jcl_state.gm_identity[7]);
         }
         printf("+-------------------+--------------+-------------+\n");
         if (composite_event[0]) {
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
             printf("| - %-15s | %-12s | %-11s |\n", "servo_locked", "", "");
         }
         if (composite_event[0] & (1<<asCapableEvent)) {
-            printf("| - %-15s | %-12s | %-11s |\n", "as_Capable", "", "");
+            printf("| - %-15s | %-12s | %-11s |\n", "as_capable", "", "");
         }
         if (composite_event[0]) {
             printf("+-------------------+--------------+-------------+\n\n");

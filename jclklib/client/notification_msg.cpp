@@ -129,9 +129,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         }
 
         if ((eventSub[0] & 1<<gmChangedEvent) &&
-            (memcmp(client_ptp_data->gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity)) != 0)) {
-            memcpy(client_ptp_data->gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity));
-            client_ptp_data->gmChanged_event_count.fetch_add(1, std::memory_order_relaxed);
+            (memcmp(client_ptp_data->gm_identity, proxy_data.gm_identity, sizeof(proxy_data.gm_identity)) != 0)) {
+            memcpy(client_ptp_data->gm_identity, proxy_data.gm_identity, sizeof(proxy_data.gm_identity));
+            client_ptp_data->gm_changed_event_count.fetch_add(1, std::memory_order_relaxed);
             jclCurrentState.gm_changed = true;
         } else {
             jclCurrentState.gm_changed = false;
@@ -142,25 +142,33 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             composite_client_ptp_data->composite_event = true;
         }
 
-        handleEventUpdate(eventSub[0], servoLockedEvent, client_ptp_data->servo_state, proxy_data.servo_state,          client_ptp_data->servo_state_event_count, composite_client_ptp_data->composite_event);
-        handleEventUpdate(eventSub[0], asCapableEvent, client_ptp_data->asCapable, proxy_data.asCapable, client_ptp_data->asCapable_event_count,    composite_client_ptp_data->composite_event);
+        handleEventUpdate(eventSub[0], servoLockedEvent, client_ptp_data->servo_locked,
+            proxy_data.servo_locked, client_ptp_data->servo_locked_event_count,
+            composite_client_ptp_data->composite_event);
+        handleEventUpdate(eventSub[0], asCapableEvent, client_ptp_data->as_capable,
+            proxy_data.as_capable, client_ptp_data->as_capable_event_count,
+            composite_client_ptp_data->composite_event);
 
-        handleGmOffsetEvent(eventSub[0], gmOffsetEvent, client_ptp_data->master_offset, proxy_data.master_offset, client_ptp_data->offset_event_count, client_ptp_data->master_offset_within_boundary, lower_master_offset, upper_master_offset);
-        handleGmOffsetEvent(composite_eventSub[0], gmOffsetEvent, composite_client_ptp_data->master_offset, proxy_data.master_offset, composite_client_ptp_data->offset_event_count, composite_client_ptp_data->composite_event, lower_master_offset, upper_master_offset);
+        handleGmOffsetEvent(eventSub[0], gmOffsetEvent, client_ptp_data->master_offset,
+            proxy_data.master_offset, client_ptp_data->offset_in_range_event_count,
+            client_ptp_data->master_offset_in_range, lower_master_offset, upper_master_offset);
+        handleGmOffsetEvent(composite_eventSub[0], gmOffsetEvent, composite_client_ptp_data->master_offset,
+            proxy_data.master_offset, composite_client_ptp_data->offset_in_range_event_count,
+            composite_client_ptp_data->composite_event, lower_master_offset, upper_master_offset);
 
         if (composite_eventSub[0] && (old_composite_event != composite_client_ptp_data->composite_event))
             client_ptp_data->composite_event_count.fetch_add(1, std::memory_order_relaxed);
 
-        jclCurrentState.as_Capable = client_ptp_data->asCapable;
-        jclCurrentState.offset_in_range = client_ptp_data->master_offset_within_boundary;
-        jclCurrentState.servo_locked = client_ptp_data->servo_state;
+        jclCurrentState.as_capable = client_ptp_data->as_capable;
+        jclCurrentState.offset_in_range = client_ptp_data->master_offset_in_range;
+        jclCurrentState.servo_locked = client_ptp_data->servo_locked;
         jclCurrentState.composite_event = composite_client_ptp_data->composite_event;
-        memcpy(jclCurrentState.gmIdentity, client_ptp_data->gmIdentity, sizeof(client_ptp_data->gmIdentity));
+        memcpy(jclCurrentState.gm_identity, client_ptp_data->gm_identity, sizeof(client_ptp_data->gm_identity));
 
-        jclCurrentEventCount.offset_in_range_event_count = client_ptp_data->offset_event_count;
-        jclCurrentEventCount.asCapable_event_count = client_ptp_data->asCapable_event_count;
-        jclCurrentEventCount.servo_locked_event_count = client_ptp_data->servo_state_event_count;
-        jclCurrentEventCount.gm_changed_event_count = client_ptp_data->gmChanged_event_count;
+        jclCurrentEventCount.offset_in_range_event_count = client_ptp_data->offset_in_range_event_count;
+        jclCurrentEventCount.as_capable_event_count = client_ptp_data->as_capable_event_count;
+        jclCurrentEventCount.servo_locked_event_count = client_ptp_data->servo_locked_event_count;
+        jclCurrentEventCount.gm_changed_event_count = client_ptp_data->gm_changed_event_count;
         jclCurrentEventCount.composite_event_count = client_ptp_data->composite_event_count;
     }
 
