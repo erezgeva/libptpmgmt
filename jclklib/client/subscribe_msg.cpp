@@ -82,6 +82,8 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     JClkLibCommon::sessionId_t currentSessionID = currentClientState->get_sessionId();
     std::map <JClkLibCommon::sessionId_t, std::array<JClkLibCommon::client_ptp_event*,2>>::iterator it ;
     JClkLibCommon::client_ptp_event* client_data , *composite_client_data;
+    int64_t lower_master_offset = currentClientState->get_eventSub().get_value().getLower(gmOffsetValue);
+    int64_t upper_master_offset = currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue);
 
     it = client_ptp_event_map.find(currentSessionID);
 
@@ -101,15 +103,16 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 
     if ((eventSub[0] & 1<<gmOffsetEvent) && (data.master_offset != client_data->master_offset)) {
         client_data->master_offset = data.master_offset;
-        if ((client_data->master_offset > currentClientState->get_eventSub().get_value().getLower(gmOffsetValue)) &&
-            (client_data->master_offset < currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue)))
+        if ((client_data->master_offset > lower_master_offset) &&
+            (client_data->master_offset < upper_master_offset))
             client_data->master_offset_within_boundary = true;
     }
 
     if ((eventSub[0] & 1<<servoLockedEvent) && (data.servo_state != client_data->servo_state))
         client_data->servo_state = data.servo_state;
 
-    if ((eventSub[0] & 1<<gmChangedEvent) && (memcmp(client_data->gmIdentity, data.gmIdentity, sizeof(data.gmIdentity))) != 0) {
+    if ((eventSub[0] & 1<<gmChangedEvent) &&
+        (memcmp(client_data->gmIdentity, data.gmIdentity, sizeof(data.gmIdentity))) != 0) {
         memcpy(client_data->gmIdentity, data.gmIdentity, sizeof(data.gmIdentity));
         jclCurrentState->gm_changed = true;
     }
@@ -120,14 +123,14 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     if (composite_eventSub[0])
         composite_client_data->composite_event = true;
 
-    if ((composite_eventSub[0] & 1<<gmOffsetEvent) && (data.master_offset != composite_client_data->master_offset)) {
-        	composite_client_data->master_offset = data.master_offset;
-            if ((composite_client_data->master_offset > currentClientState->get_eventSub().get_value().getLower(gmOffsetValue)) &&
-                (composite_client_data->master_offset < currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue))) {
-                composite_client_data->composite_event = true;
-            } else {
-                composite_client_data->composite_event = false;
-            }
+    if ((composite_eventSub[0] & 1<<gmOffsetEvent) &&
+        (data.master_offset != composite_client_data->master_offset)) {
+        composite_client_data->master_offset = data.master_offset;
+        if ((composite_client_data->master_offset > lower_master_offset) &&
+            (composite_client_data->master_offset < upper_master_offset))
+            composite_client_data->composite_event = true;
+        else
+            composite_client_data->composite_event = false;
     }
 
     if (composite_eventSub[0] & 1<<servoLockedEvent)

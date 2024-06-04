@@ -65,6 +65,29 @@ void ClientNotificationMessage::deleteClientState(ClientState *newClientState)
         ClientStateArray.end(), newClientState), ClientStateArray.end());
 }
 
+void ClientNotificationMessage::handleEventUpdate(uint32_t eventSub, uint32_t eventFlag, bool& currentState, const bool& newState, std::atomic<int>& eventCount, bool& compositeEvent) {
+    if (eventSub & (1 << eventFlag)) {
+        if (currentState != newState) {
+            currentState = newState;
+            eventCount.fetch_add(1, std::memory_order_relaxed);
+        }
+        compositeEvent &= newState;
+    }
+}
+
+void ClientNotificationMessage::handleGmOffsetEvent(uint32_t eventSub, uint32_t eventFlag, int64_t& masterOffset, const uint32_t& newMasterOffset, std::atomic<int>& eventCount, bool& withinBoundary, uint32_t lowerBound, uint32_t upperBound) {
+    if (eventSub & (1 << eventFlag)) {
+        if (masterOffset != newMasterOffset) {
+            masterOffset = newMasterOffset;
+            bool isWithinBoundary = (masterOffset > lowerBound) && (masterOffset < upperBound);
+            if (withinBoundary != isWithinBoundary) {
+                withinBoundary = isWithinBoundary;
+                eventCount.fetch_add(1, std::memory_order_relaxed);
+            }
+        }
+    }
+}
+
 PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 {
     PrintDebug("[ClientNotificationMessage]::processMessage ");
@@ -97,34 +120,16 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         JClkLibCommon::client_ptp_event* composite_client_ptp_data = NULL;
         composite_client_ptp_data = ClientSubscribeMessage::getClientPtpEventCompositeStruct(currentClientState->get_sessionId());
 
+        int64_t lower_master_offset = currentClientState->get_eventSub().get_value().getLower(gmOffsetValue);
+        int64_t upper_master_offset = currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue);
+
         if ( client_ptp_data == NULL ) {
             PrintDebug("ClientNotificationMessage::processMessage ERROR in obtaining client_ptp_data.\n");
             return false;
         }
 
-        if ((eventSub[0] & 1<<gmOffsetEvent) &&
-            (proxy_data.master_offset != client_ptp_data->master_offset)) {
-            client_ptp_data->master_offset = proxy_data.master_offset;
-            if ((client_ptp_data->master_offset > currentClientState->get_eventSub().get_value().getLower(gmOffsetValue)) &&
-                (client_ptp_data->master_offset < currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue))) {
-                if (!(client_ptp_data->master_offset_within_boundary)) {
-                    client_ptp_data->master_offset_within_boundary = true;
-                    client_ptp_data->offset_event_count.fetch_add(1, std::memory_order_relaxed);
-                }
-            } else {
-                if ((client_ptp_data->master_offset_within_boundary)) {
-                    client_ptp_data->master_offset_within_boundary = false;
-                    client_ptp_data->offset_event_count.fetch_add(1, std::memory_order_relaxed);
-                }
-            }
-        }
-
-        if ((eventSub[0] & 1<<servoLockedEvent) && (proxy_data.servo_state != client_ptp_data->servo_state)) {
-            client_ptp_data->servo_state = proxy_data.servo_state;
-            client_ptp_data->servo_state_event_count.fetch_add(1, std::memory_order_relaxed);
-        }
-
-        if ((eventSub[0] & 1<<gmChangedEvent) && (memcmp(client_ptp_data->gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity)) != 0)) {
+        if ((eventSub[0] & 1<<gmChangedEvent) &&
+            (memcmp(client_ptp_data->gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity)) != 0)) {
             memcpy(client_ptp_data->gmIdentity, proxy_data.gmIdentity, sizeof(proxy_data.gmIdentity));
             client_ptp_data->gmChanged_event_count.fetch_add(1, std::memory_order_relaxed);
             jclCurrentState.gm_changed = true;
@@ -132,31 +137,16 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             jclCurrentState.gm_changed = false;
         }
 
-        if ((eventSub[0] & 1<<asCapableEvent) && (proxy_data.asCapable != client_ptp_data->asCapable)) {
-            client_ptp_data->asCapable = proxy_data.asCapable;
-            client_ptp_data->asCapable_event_count.fetch_add(1, std::memory_order_relaxed);
-        }
-
         if (composite_eventSub[0]) {
             old_composite_event = composite_client_ptp_data->composite_event;
             composite_client_ptp_data->composite_event = true;
         }
 
-        if (composite_eventSub[0] & 1<<gmOffsetEvent) {
-            composite_client_ptp_data->master_offset = proxy_data.master_offset;
-            if ((composite_client_ptp_data->master_offset > currentClientState->get_eventSub().get_value().getLower(gmOffsetValue)) &&
-                (composite_client_ptp_data->master_offset < currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue))) {
-                composite_client_ptp_data->composite_event = true;
-            } else {
-                composite_client_ptp_data->composite_event = false;
-            }
-        }
+        handleEventUpdate(eventSub[0], servoLockedEvent, client_ptp_data->servo_state, proxy_data.servo_state,          client_ptp_data->servo_state_event_count, composite_client_ptp_data->composite_event);
+        handleEventUpdate(eventSub[0], asCapableEvent, client_ptp_data->asCapable, proxy_data.asCapable, client_ptp_data->asCapable_event_count,    composite_client_ptp_data->composite_event);
 
-        if (composite_eventSub[0] & 1<<servoLockedEvent)
-            composite_client_ptp_data->composite_event &= proxy_data.servo_state;
-
-        if (composite_eventSub[0] & 1<<asCapableEvent)
-            composite_client_ptp_data->composite_event &= proxy_data.asCapable;
+        handleGmOffsetEvent(eventSub[0], gmOffsetEvent, client_ptp_data->master_offset, proxy_data.master_offset, client_ptp_data->offset_event_count, client_ptp_data->master_offset_within_boundary, lower_master_offset, upper_master_offset);
+        handleGmOffsetEvent(composite_eventSub[0], gmOffsetEvent, composite_client_ptp_data->master_offset, proxy_data.master_offset, composite_client_ptp_data->offset_event_count, composite_client_ptp_data->composite_event, lower_master_offset, upper_master_offset);
 
         if (composite_eventSub[0] && (old_composite_event != composite_client_ptp_data->composite_event))
             client_ptp_data->composite_event_count.fetch_add(1, std::memory_order_relaxed);

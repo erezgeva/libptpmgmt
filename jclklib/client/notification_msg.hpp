@@ -48,6 +48,8 @@ namespace JClkLibClient
 
         static void addClientState(ClientState *newClientState);
         static void deleteClientState(ClientState *newClientState);
+        void handleEventUpdate(uint32_t eventSub, uint32_t eventFlag, bool& currentState, const bool& newState, std::atomic<int>& eventCount, bool& compositeEvent);
+        void handleGmOffsetEvent(uint32_t eventSub, uint32_t eventFlag, int64_t& masterOffset, const uint32_t& newMasterOffset, std::atomic<int>& eventCount, bool& withinBoundary, uint32_t lowerBound, uint32_t upperBound);
 
     protected:
         ClientNotificationMessage() : MESSAGE_NOTIFY() {}
