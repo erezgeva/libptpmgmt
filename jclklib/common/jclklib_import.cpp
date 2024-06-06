@@ -62,25 +62,6 @@ bool jcl_value::equal( const jcl_value &c)
     return false;
 }
 
-
-uint8_t *jcl_subscription::parse(uint8_t *buf, std::size_t &length)
-{
-    buf = event.parse(buf, length);
-    if (buf != NULL)
-        buf = value.parse(buf, length);
-
-    return buf;
-}
-
-uint8_t *jcl_subscription::write(uint8_t *buf, std::size_t &length)
-{
-    buf = event.write(buf, length);
-    if (buf != NULL)
-        buf = value.write(buf, length);
-
-    return buf;
-}
-
 int8_t jcl_event::writeEvent(uint32_t *newEvent, std::size_t newEventlength)
 {
     if (newEvent == NULL || sizeof(event_mask) < newEventlength) {

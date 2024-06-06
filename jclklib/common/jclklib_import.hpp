@@ -26,28 +26,6 @@ namespace JClkLibCommon
           valueLast } valueType;
 #define MAX_VALUE_COUNT 12
 
-    /** Servo State */
-    enum servoState_e  {
-        /**
-         * The servo is not yet ready to track the master clock.
-         */
-        SERVO_UNLOCKED = 0,
-        /**
-         * The servo is ready to track and requests a clock jump to
-         * immediately correct the estimated offset.
-         */
-        SERVO_JUMP     = 1,
-        /**
-         * The servo is tracking the master clock.
-         */
-        SERVO_LOCKED   = 2,
-        /**
-         * The Servo has stabilized. The last 'servo_num_offset_values' values
-         * of the estimated threshold are less than servo_offset_threshold.
-         */
-        SERVO_LOCKED_STABLE  = 3,
-    };
-
     class jcl_value
     {
     private:
@@ -139,9 +117,6 @@ namespace JClkLibCommon
         jcl_value        value;
         jcl_event        composite_event;
     public:
-        std::uint8_t *parse(std::uint8_t *buf, std::size_t &length);
-        std::uint8_t *write(std::uint8_t *buf, std::size_t &length);
-
         DECLARE_ACCESSOR(event);
         DECLARE_ACCESSOR(value);
         DECLARE_ACCESSOR(composite_event);

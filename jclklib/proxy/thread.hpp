@@ -45,7 +45,6 @@ struct jcl_handle
     ptp4l_handle_t ptp4l_handle;
     thread_signal_t status_signal;
     pthread_mutex_t state_lock;
-    struct JClkLibCommon::jcl_state state;
 };
 
 struct ptp4l_handle {
