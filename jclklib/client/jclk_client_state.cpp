@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
  */
 
-/** @file client_state.cpp
+/** @file jclk_client_state.cpp
  * @brief Set and get the client subscribe event state
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 
-#include <client/client_state.hpp>
+#include <client/jclk_client_state.hpp>
 #include <client/msgq_tport.hpp>
 #include <common/jcltypes.hpp>
 #include <common/message.hpp>

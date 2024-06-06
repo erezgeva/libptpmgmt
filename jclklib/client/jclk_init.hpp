@@ -15,7 +15,7 @@
 #ifndef JCLK_INIT_HPP
 #define JCLK_INIT_HPP
 
-#include <client/client_state.hpp>
+#include <client/jclk_client_state.hpp>
 #include <common/jclklib_import.hpp>
 #include <map>
 
