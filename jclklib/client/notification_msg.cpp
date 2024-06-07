@@ -153,9 +153,16 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         handleGmOffsetEvent(eventSub[0], gmOffsetEvent, client_ptp_data->master_offset,
             proxy_data.master_offset, client_ptp_data->offset_in_range_event_count,
             client_ptp_data->master_offset_in_range, lower_master_offset, upper_master_offset);
-        handleGmOffsetEvent(composite_eventSub[0], gmOffsetEvent, composite_client_ptp_data->master_offset,
-            proxy_data.master_offset, composite_client_ptp_data->offset_in_range_event_count,
-            composite_client_ptp_data->composite_event, lower_master_offset, upper_master_offset);
+
+        if (composite_eventSub[0] & 1<<gmOffsetEvent) {
+            composite_client_ptp_data->master_offset = proxy_data.master_offset;
+            if ((composite_client_ptp_data->master_offset > lower_master_offset) &&
+                (composite_client_ptp_data->master_offset < upper_master_offset)) {
+                composite_client_ptp_data->composite_event = true;
+            } else {
+                composite_client_ptp_data->composite_event = false;
+            }
+        }
 
         if (composite_eventSub[0] && (old_composite_event != composite_client_ptp_data->composite_event))
             client_ptp_data->composite_event_count.fetch_add(1, std::memory_order_relaxed);
