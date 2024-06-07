@@ -27,24 +27,14 @@
 
 #include <common/jclklib_import.hpp>
 
-typedef struct thread_signal *thread_signal_t;
 typedef struct ptp4l_handle *ptp4l_handle_t;
 typedef struct jcl_handle *jcl_handle_t;
 
 typedef bool ( *state_update_t)( struct ptp4l_state *, void *);
-typedef struct thread_signal *thread_signal_t;
-
-struct thread_signal {
-    pthread_mutex_t siglock;
-    pthread_cond_t signal;
-    bool signaled;
-};
 
 struct jcl_handle
 {
     ptp4l_handle_t ptp4l_handle;
-    thread_signal_t status_signal;
-    pthread_mutex_t state_lock;
 };
 
 struct ptp4l_handle {

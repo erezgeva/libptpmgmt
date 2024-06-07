@@ -164,7 +164,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
 {
     PrintDebug("[ClientSubscribeMessage]::processMessage (reply)");
-
+    std::unique_lock<rtpi::mutex> lock(cv_mtx);
     currentClientState->set_subscribed(true);
 
     /* Add the current ClientState to the notification class */
@@ -173,7 +173,7 @@ PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
 
     jcl_state jclCurrentState = currentClientState->get_eventState();
 
-    cv.notify_one();
+    cv.notify_one(lock);
     return true;
 }
 

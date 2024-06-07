@@ -88,7 +88,7 @@ void ClientConnectMessage::setClientState(ClientState *newClientState)
 PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
 {
     sessionId_t newSessionId;
-
+    std::unique_lock<rtpi::mutex> lock(cv_mtx);
     PrintDebug("Processing client connect message (reply)");
 
     currentClientState->set_connected(true);
@@ -101,7 +101,7 @@ PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
 
     this->set_msgAck(ACK_NONE);
 
-    cv.notify_one();
+    cv.notify_one(lock);
 
     return true;
 }

@@ -13,10 +13,8 @@
  */
 
 #include <chrono>
-#include <condition_variable>
 #include <cstring>
 #include <iostream>
-#include <mutex>
 
 #include <client/connect_msg.hpp>
 #include <client/jclk_init.hpp>
@@ -25,6 +23,8 @@
 #include <client/subscribe_msg.hpp>
 #include <common/print.hpp>
 #include <common/sighandler.hpp>
+#include <rtpi/condition_variable.hpp>
+#include <rtpi/mutex.hpp>
 
 #define DEFAULT_LIVENESS_TIME_OUT 1  //1 sec
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
@@ -34,10 +34,10 @@ using namespace JClkLibClient;
 using namespace JClkLibCommon;
 using namespace std;
 
-std::mutex ClientConnectMessage::cv_mtx;
-std::condition_variable ClientConnectMessage::cv;
-std::mutex ClientSubscribeMessage::cv_mtx;
-std::condition_variable ClientSubscribeMessage::cv;
+rtpi::mutex ClientConnectMessage::cv_mtx;
+rtpi::condition_variable ClientConnectMessage::cv;
+rtpi::mutex ClientSubscribeMessage::cv_mtx;
+rtpi::condition_variable ClientSubscribeMessage::cv;
 
 bool JClkLibClientApi::jcl_connect()
 {
@@ -64,7 +64,7 @@ bool JClkLibClientApi::jcl_connect()
     /* Wait for connection result */
     auto endTime = std::chrono::system_clock::now() +
         std::chrono::seconds(timeout_sec);
-    std::unique_lock<std::mutex> lck(ClientConnectMessage::cv_mtx);
+    std::unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
     while (appClientState.get_connected() == false )
     {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
@@ -121,7 +121,7 @@ bool JClkLibClientApi::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
 
     /* Wait for subscription result */
     auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
-    std::unique_lock<std::mutex> lck(ClientSubscribeMessage::cv_mtx);
+    std::unique_lock<rtpi::mutex> lck(ClientSubscribeMessage::cv_mtx);
     while (appClientState.get_subscribed() == false )
     {
         auto res = ClientSubscribeMessage::cv.wait_until(lck, endTime);
@@ -188,7 +188,7 @@ bool check_proxy_liveness(ClientState &appClientState)
 
     /* Wait for connection result */
     auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
-    std::unique_lock<std::mutex> lck(ClientConnectMessage::cv_mtx);
+    std::unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
     while (appClientState.get_connected() == false) {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
         if (res == std::cv_status::timeout) {

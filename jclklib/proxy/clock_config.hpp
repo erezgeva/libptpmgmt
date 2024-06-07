@@ -16,10 +16,10 @@
 #define CLOCK_CONFIG_HPP
 
 #include <cstdint>
-#include <mutex>
 
 #include <common/jclklib_import.hpp>
 #include <proxy/message.hpp>
+#include <rtpi/mutex.hpp>
 
 namespace JClkLibProxy
 {
@@ -28,7 +28,7 @@ namespace JClkLibProxy
     private:
         enum { event = 0, value };
         bool update, writeUpdate;
-        std::mutex update_lock;
+        rtpi::mutex update_lock;
         struct Config {
             JClkLibCommon::jcl_event event;
             JClkLibCommon::jcl_value value;

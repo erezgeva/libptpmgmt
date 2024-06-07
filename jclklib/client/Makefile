@@ -13,7 +13,7 @@
 JCLKLIB_CLIENT_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR = $(JCLKLIB_CLIENT_DIR)/..
 JCLKLIB_COMMON_DIR = $(JCLKLIB_TOPLEVEL_DIR)/common
-LIBS = pthread rt
+LIBS = pthread rt rtpi
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
 OBJ = jclk_init msgq_tport message null_tport transport msgq_tport notification_msg connect_msg jclk_client_state subscribe_msg
 COMMON_OBJ = print sighandler transport msgq_tport message connect_msg subscribe_msg notification_msg jclklib_import

@@ -15,11 +15,10 @@
 #ifndef CLIENT_CONNECT_MSG_HPP
 #define CLIENT_CONNECT_MSG_HPP
 
-#include <condition_variable>
-#include <mutex>
-
 #include <client/message.hpp>
 #include <common/connect_msg.hpp>
+#include <rtpi/condition_variable.hpp>
+#include <rtpi/mutex.hpp>
 
 namespace JClkLibClient
 {
@@ -30,8 +29,8 @@ namespace JClkLibClient
         inline static ClientState *currentClientState;
     public:
         ClientConnectMessage() : MESSAGE_CONNECT() {};
-        static std::mutex cv_mtx;
-        static std::condition_variable cv;
+        static rtpi::mutex cv_mtx;
+        static rtpi::condition_variable cv;
 
         /**
          * @brief process the reply for connect msg from proxy.

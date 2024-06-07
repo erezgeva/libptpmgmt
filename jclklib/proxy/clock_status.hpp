@@ -15,9 +15,8 @@
 #ifndef CLOCK_STATUS_HPP
 #define CLOCK_STATUS_HPP
 
-#include <mutex>
-
 #include <common/jclklib_import.hpp>
+#include <rtpi/mutex.hpp>
 
 namespace JClkLibProxy
 {
@@ -30,7 +29,7 @@ namespace JClkLibProxy
             JClkLibCommon::jcl_eventcount	count;
         };
         bool update, writeUpdate;
-        std::mutex update_lock;
+        rtpi::mutex update_lock;
         Status status;
         Status writeShadow, readShadow;
     public:

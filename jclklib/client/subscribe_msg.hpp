@@ -18,6 +18,7 @@
 #include <client/jclk_client_state.hpp>
 #include <client/message.hpp>
 #include <common/subscribe_msg.hpp>
+#include <rtpi/condition_variable.hpp>
 
 namespace JClkLibClient
 {
@@ -33,8 +34,8 @@ namespace JClkLibClient
     public:
         ClientSubscribeMessage() : MESSAGE_SUBSCRIBE() {};
 
-        static std::mutex cv_mtx;
-        static std::condition_variable cv;
+        static rtpi::mutex cv_mtx;
+        static rtpi::condition_variable cv;
         /**
          * @brief process the reply for subscribe msg from proxy.
          * @param LxContext client run-time transport listener context
