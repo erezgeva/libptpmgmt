@@ -8,4 +8,5 @@
 ###############################################################################
 
 sample/jclk_test
+sample/jclk_c_test
 proxy/jclklib_proxy

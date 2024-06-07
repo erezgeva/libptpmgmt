@@ -11,4 +11,4 @@
 SCRIPT_PATH="$(dirname "$0")"
 TEST_PATH="${SCRIPT_PATH}/../client:/usr/local/lib/"
 
-LD_LIBRARY_PATH=$TEST_PATH chrt -f 99 $SCRIPT_PATH/jclk_test "$@"
+LD_LIBRARY_PATH=$TEST_PATH chrt -f 99 $SCRIPT_PATH/jclk_c_test "$@"

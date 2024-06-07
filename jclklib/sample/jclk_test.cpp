@@ -12,7 +12,7 @@
  *
  * @note This is a sample code, not a product! You should use it as a reference.
  *  You can compile it with: g++ -Wall jclk_test.cpp -o jclk_test -ljclk
- *  or use the CMakeLists.txt file.
+ *  or use the Makefile file.
  *
  */
 

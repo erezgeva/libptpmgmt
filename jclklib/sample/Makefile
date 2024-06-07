@@ -10,26 +10,35 @@
 ###############################################################################
 
 # Variables
+CC = gcc
+CFLAGS = -Wall
 CXX = g++
 CXXFLAGS = -Wall
 INCLUDES = -I$(shell pwd)/..
 LDFLAGS = -L$(shell pwd)/../client
 LDLIBS = -ljclk
 TARGET = jclk_test
+CTARGET = jclk_c_test
 
 # Default target
-all: $(TARGET)
+all: $(TARGET) $(CTARGET)
 
 # Linking
 $(TARGET): $(TARGET).o
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
+$(CTARGET): $(CTARGET).o
+	$(CC) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
 # Compiling
 $(TARGET).o: $(TARGET).cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
+$(CTARGET).o: $(CTARGET).c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
 # Cleaning
 clean:
-	rm -f $(TARGET) $(TARGET).o
+	rm -f $(TARGET) $(TARGET).o $(CTARGET) $(CTARGET).o
 
 .PHONY: all clean

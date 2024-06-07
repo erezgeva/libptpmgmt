@@ -8,14 +8,7 @@ ptp4l events via pub/sub method using a library api call.
 It provides a library libjclk.so (aka client-runtime library) and a daemon
 jclklib_proxy.
 
-In short we have :
-          FRONT-END           MIDDLE-PIPE               BACK-END
-c/c++ app<-------->libjclk.so<---------->jclklib_proxy<-------->ptp4l
-        (library call)       (using msq)      |        (via UDS)
-                                              |
-                                        libptpmgmt.so
-
-**if the diagram is not lisible, please change to text mode.**
+![High Level Design of Clock Manager Library](./image/hld_clock_mgr.png)
 
 * **c++ app** - Customer application that will be linking to libjclk.so library. Header file and sample test cpp file will be provided.
 

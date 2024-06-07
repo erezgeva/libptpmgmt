@@ -90,9 +90,10 @@ reference.
     make
     ```
 
-3. Outcome : you must have 1 binary created:
+3. Outcome : you must have 2 binary created:
     ```bash
     jclk_test
+    jclk_c_test
     ```
 
 # How to test :
@@ -109,10 +110,16 @@ reference.
     sudo ./run_proxy.sh
     ```
 
-3. Run the sample application
+3. Run the cpp sample application
     ```bash
     cd libptpmgmt_iaclocklib/jclklib/client
     sudo ./run_jclk_test.sh <optional arguments>
+
+    ```
+4. Run the c sample application
+    ```bash
+    cd libptpmgmt_iaclocklib/jclklib/client
+    sudo ./run_jclk_c_test.sh <optional arguments>
     ```
 
 Usage of sample application (jclk_test) :
@@ -165,4 +172,13 @@ Lower Master Offset: -100000 ns
 | - as_Capable      |                    |
 +-------------------+--------------------+
 
+```
+
+Note :
+```bash
+In the absence of a Grandmaster (GM), the master offset defaults to 0, which
+it's anticipated that the offset_in_range event will be TRUE. Consequently,
+the servo_locked event is used to ensure that the offset_in_range event
+indicates either a high-quality clock synchronization (in-sync) or that the
+master has been terminated (out-of-sync).
 ```
