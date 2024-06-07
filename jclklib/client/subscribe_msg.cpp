@@ -171,7 +171,7 @@ PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
     ClientNotificationMessage::addClientState(currentClientState);
     this->set_msgAck(ACK_NONE);
 
-    JClkLibCommon::jcl_state jclCurrentState = currentClientState->get_eventState();
+    jcl_state jclCurrentState = currentClientState->get_eventState();
 
     cv.notify_one();
     return true;
@@ -230,7 +230,7 @@ JClkLibCommon::client_ptp_event* ClientSubscribeMessage::getClientPtpEventCompos
 
 /* reduce the corresponding eventCount */
 void ClientSubscribeMessage::resetClientPtpEventStruct(JClkLibCommon::sessionId_t sID,
-    JClkLibCommon::jcl_state_event_count &eventCount)
+    jcl_state_event_count &eventCount)
 {
 
     std::map <JClkLibCommon::sessionId_t, std::array<JClkLibCommon::client_ptp_event*, 2>>::iterator it ;

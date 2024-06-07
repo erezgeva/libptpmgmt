@@ -15,6 +15,7 @@
 #ifndef CLIENT_SUBSCRIBE_MSG_HPP
 #define CLIENT_SUBSCRIBE_MSG_HPP
 
+#include <client/jclk_client_state.hpp>
 #include <client/message.hpp>
 #include <common/subscribe_msg.hpp>
 
@@ -24,7 +25,7 @@ namespace JClkLibClient
         virtual public ClientMessage
     {
     private:
-        inline static JClkLibCommon::jcl_state *jclCurrentState;
+        inline static jcl_state *jclCurrentState;
         inline static ClientState *currentClientState;
         inline static std::map <JClkLibCommon::sessionId_t, 
             std::array<JClkLibCommon::client_ptp_event*, 2>> client_ptp_event_map;
@@ -69,7 +70,7 @@ namespace JClkLibClient
         static JClkLibCommon::client_ptp_event* getClientPtpEventCompositeStruct(JClkLibCommon::sessionId_t sID);
 
         /* Reduce the corresponding eventCount */
-        static void resetClientPtpEventStruct(JClkLibCommon::sessionId_t sID, JClkLibCommon::jcl_state_event_count &eventCount);
+        static void resetClientPtpEventStruct(JClkLibCommon::sessionId_t sID, jcl_state_event_count &eventCount);
     };
 }
 

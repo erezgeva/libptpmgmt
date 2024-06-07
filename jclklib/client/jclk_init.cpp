@@ -88,7 +88,7 @@ bool JClkLibClientApi::jcl_connect()
 
 
 bool JClkLibClientApi::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
-    JClkLibCommon::jcl_state &currentState)
+    jcl_state &currentState)
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
 
@@ -135,7 +135,7 @@ bool JClkLibClientApi::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
         }
     }
 
-    JClkLibCommon::jcl_state jclCurrentState = appClientState.get_eventState();
+    jcl_state jclCurrentState = appClientState.get_eventState();
 
     currentState = jclCurrentState;
 
@@ -218,9 +218,8 @@ bool check_proxy_liveness(ClientState &appClientState)
  * @return Returns true if there is event changes within the timeout period,
  *         and false otherwise.
  */
-int JClkLibClientApi::jcl_status_wait(int timeout,
-    JClkLibCommon::jcl_state &jcl_state_ref,
-    JClkLibCommon::jcl_state_event_count &eventCountRef)
+int JClkLibClientApi::jcl_status_wait(int timeout, jcl_state &jcl_state_ref,
+    jcl_state_event_count &eventCountRef)
 {
     auto start = std::chrono::high_resolution_clock::now();
     auto end = (timeout == -1) ?
@@ -232,8 +231,8 @@ int JClkLibClientApi::jcl_status_wait(int timeout,
     if (!check_proxy_liveness(appClientState))
         return -1;
 
-    JClkLibCommon::jcl_state_event_count eventCount;
-    JClkLibCommon::jcl_state jcl_state;
+    jcl_state_event_count eventCount;
+    jcl_state jcl_state;
     do {
         /* Get the event state and event count from the API */
         eventCount = appClientState.get_eventStateCount();

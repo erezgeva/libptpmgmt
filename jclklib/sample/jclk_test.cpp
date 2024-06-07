@@ -50,9 +50,9 @@ double getMonotonicTime() {
 
 int main(int argc, char *argv[])
 {
-    JClkLibCommon::jcl_state_event_count eventCount = {};
+    jcl_state_event_count eventCount = {};
     JClkLibCommon::jcl_subscription sub = {};
-    JClkLibCommon::jcl_state jcl_state = {};
+    jcl_state state = {};
     int lower_master_offset = -100000;
     int upper_master_offset = 100000;
     int ret = EXIT_SUCCESS;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
     std::cout << "Upper Master Offset: " << upper_master_offset << " ns\n";
     std::cout << "Lower Master Offset: " << lower_master_offset << " ns\n\n";
 
-    if (cmAPI->jcl_subscribe(sub, jcl_state) == false) {
+    if (cmAPI->jcl_subscribe(sub, state) == false) {
         std::cerr << "[jclklib] Failure in subscribing to jclklib Proxy !!!\n";
         cmAPI->jcl_disconnect();
         return EXIT_FAILURE;
@@ -187,27 +187,27 @@ int main(int argc, char *argv[])
     }
     if (event2Sub1[0] & (1<<gmOffsetEvent)) {
         printf("| %-17s | %-18d |\n", "offset_in_range",
-            jcl_state.offset_in_range);
+            state.offset_in_range);
     }
     if (event2Sub1[0] & (1<<servoLockedEvent)) {
-        printf("| %-17s | %-18d |\n", "servo_locked", jcl_state.servo_locked);
+        printf("| %-17s | %-18d |\n", "servo_locked", state.servo_locked);
     }
     if (event2Sub1[0] & (1<<asCapableEvent)) {
-        printf("| %-17s | %-18d |\n", "as_capable", jcl_state.as_capable);
+        printf("| %-17s | %-18d |\n", "as_capable", state.as_capable);
     }
     if (event2Sub1[0] & (1<<gmChangedEvent)) {
-        printf("| %-17s | %-18d |\n", "gm_Changed", jcl_state.gm_changed);
+        printf("| %-17s | %-18d |\n", "gm_Changed", state.gm_changed);
         printf("+-------------------+--------------------+\n");
         printf("| %-17s | %02x%02x%02x.%02x%02x.%02x%02x%02x |\n", "UUID",
-            jcl_state.gm_identity[0], jcl_state.gm_identity[1],
-            jcl_state.gm_identity[2], jcl_state.gm_identity[3],
-            jcl_state.gm_identity[4], jcl_state.gm_identity[5],
-            jcl_state.gm_identity[6], jcl_state.gm_identity[7]);
+            state.gm_identity[0], state.gm_identity[1],
+            state.gm_identity[2], state.gm_identity[3],
+            state.gm_identity[4], state.gm_identity[5],
+            state.gm_identity[6], state.gm_identity[7]);
     }
     printf("+-------------------+--------------------+\n");
     if (composite_event[0]) {
         printf("| %-17s | %-18d |\n", "composite_event",
-            jcl_state.composite_event);
+            state.composite_event);
     }
     if (composite_event[0] & (1<<gmOffsetEvent)) {
         printf("| - %-15s | %-18s |\n", "offset_in_range", " ");
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
     while (!signal_flag) {
         printf("[jclklib][%.3f] Waiting for Notification Event...\n",
             getMonotonicTime());
-        retval = cmAPI->jcl_status_wait(timeout, jcl_state , eventCount);
+        retval = cmAPI->jcl_status_wait(timeout, state , eventCount);
         if (!retval) {
             printf("[jclklib][%.3f] No event status changes identified in %d seconds.\n\n",
                 getMonotonicTime(), timeout);
@@ -253,31 +253,31 @@ int main(int argc, char *argv[])
         }
         if (event2Sub1[0] & (1<<gmOffsetEvent)) {
             printf("| %-17s | %-12d | %-11ld |\n", "offset_in_range",
-                jcl_state.offset_in_range,
+                state.offset_in_range,
                 eventCount.offset_in_range_event_count);
         }
         if (event2Sub1[0] & (1<<servoLockedEvent)) {
             printf("| %-17s | %-12d | %-11ld |\n", "servo_locked",
-               jcl_state.servo_locked, eventCount.servo_locked_event_count);
+               state.servo_locked, eventCount.servo_locked_event_count);
         }
         if (event2Sub1[0] & (1<<asCapableEvent)) {
             printf("| %-17s | %-12d | %-11ld |\n", "as_capable",
-                jcl_state.as_capable, eventCount.as_capable_event_count);
+                state.as_capable, eventCount.as_capable_event_count);
         }
         if (event2Sub1[0] & (1<<gmChangedEvent)) {
             printf("| %-17s | %-12d | %-11ld |\n", "gm_Changed",
-                jcl_state.gm_changed, eventCount.gm_changed_event_count);
+                state.gm_changed, eventCount.gm_changed_event_count);
             printf("+-------------------+--------------+-------------+\n");
             printf("| %-17s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-                "UUID", jcl_state.gm_identity[0], jcl_state.gm_identity[1],
-                jcl_state.gm_identity[2], jcl_state.gm_identity[3],
-                jcl_state.gm_identity[4], jcl_state.gm_identity[5],
-                jcl_state.gm_identity[6], jcl_state.gm_identity[7]);
+                "UUID", state.gm_identity[0], state.gm_identity[1],
+                state.gm_identity[2], state.gm_identity[3],
+                state.gm_identity[4], state.gm_identity[5],
+                state.gm_identity[6], state.gm_identity[7]);
         }
         printf("+-------------------+--------------+-------------+\n");
         if (composite_event[0]) {
             printf("| %-17s | %-12d | %-11ld |\n", "composite_event",
-                   jcl_state.composite_event, eventCount.composite_event_count);
+                   state.composite_event, eventCount.composite_event_count);
         }
         if (composite_event[0] & (1<<gmOffsetEvent)) {
             printf("| - %-15s | %-12s | %-11s |\n", "offset_in_range", "", "");

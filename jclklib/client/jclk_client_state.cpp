@@ -89,22 +89,22 @@ void ClientState::set_clientID(TransportClientId &new_cID)
     strcpy((char *)clientID.data(), (char *)new_cID.data());
 }
 
-JClkLibCommon::jcl_state_event_count &ClientState::get_eventStateCount()
+jcl_state_event_count &ClientState::get_eventStateCount()
 {
     return eventStateCount;
 }
 
-JClkLibCommon::jcl_state &ClientState::get_eventState()
+jcl_state &ClientState::get_eventState()
 {
     return eventState;
 }
 
-void ClientState::set_eventStateCount(JClkLibCommon::jcl_state_event_count newCount)
+void ClientState::set_eventStateCount(jcl_state_event_count newCount)
 {
     eventStateCount = newCount;
 }
 
-void ClientState::set_eventState(JClkLibCommon::jcl_state newState)
+void ClientState::set_eventState(jcl_state newState)
 {
     eventState = newState;
 }

@@ -17,7 +17,7 @@
 
 #include <map>
 
-#include <client/message.hpp>
+#include <common/message.hpp>
 
 namespace JClkLibProxy {
     class Client;

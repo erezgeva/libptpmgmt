@@ -24,6 +24,23 @@
 #include <common/util.hpp>
 
 namespace JClkLibClient {
+    struct jcl_state {
+        uint8_t  gm_identity[8];
+        bool     as_capable;
+        bool     offset_in_range;
+        bool     servo_locked;
+        bool     gm_changed;
+        bool     composite_event;
+    };
+
+    struct jcl_state_event_count {
+        uint64_t offset_in_range_event_count;
+        uint64_t gm_changed_event_count;
+        uint64_t as_capable_event_count;
+        uint64_t servo_locked_event_count;
+        uint64_t composite_event_count;
+    };
+
     class ClientState {
     private:
         std::atomic_bool connected = false;
@@ -31,8 +48,8 @@ namespace JClkLibClient {
         JClkLibCommon::sessionId_t sessionId = JClkLibCommon::InvalidSessionId;
         JClkLibCommon::TransportClientId clientID = {};
         uint8_t ptp4l_id = 0;
-        JClkLibCommon::jcl_state eventState = {};
-        JClkLibCommon::jcl_state_event_count eventStateCount ={};
+        jcl_state eventState = {};
+        jcl_state_event_count eventStateCount ={};
         JClkLibCommon::jcl_subscription eventSub ={};
 
     public:
@@ -45,10 +62,10 @@ namespace JClkLibClient {
         void set_subscribed(bool subscriptionState);
         JClkLibCommon::TransportClientId get_clientID();
         void set_clientID(JClkLibCommon::TransportClientId &cID);
-        JClkLibCommon::jcl_state_event_count &get_eventStateCount();
-        JClkLibCommon::jcl_state &get_eventState();
-        void set_eventStateCount(JClkLibCommon::jcl_state_event_count eCount);
-        void set_eventState(JClkLibCommon::jcl_state eState);
+        jcl_state_event_count &get_eventStateCount();
+        jcl_state &get_eventState();
+        void set_eventStateCount(jcl_state_event_count eCount);
+        void set_eventState(jcl_state eState);
         std::string toString();
         JClkLibCommon::jcl_subscription &get_eventSub();
         DECLARE_ACCESSOR(sessionId);

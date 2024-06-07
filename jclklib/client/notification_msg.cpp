@@ -12,6 +12,7 @@
  *
  */
 
+#include <client/jclk_client_state.hpp>
 #include <client/notification_msg.hpp>
 #include <client/subscribe_msg.hpp>
 #include <common/message.hpp>
@@ -103,9 +104,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 
         ClientState *currentClientState = *it;
 
-        JClkLibCommon::jcl_state &jclCurrentState =
+        jcl_state &jclCurrentState =
             currentClientState->get_eventState();
-        JClkLibCommon::jcl_state_event_count &jclCurrentEventCount =
+        jcl_state_event_count &jclCurrentEventCount =
             currentClientState->get_eventStateCount();
 
         currentClientState->get_eventSub().get_event().readEvent(eventSub,
