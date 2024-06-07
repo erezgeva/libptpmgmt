@@ -183,25 +183,43 @@ utest_valgrid()
    esac
  done
  if [[ -n "$do_config" ]]; then
-   make config
+   emk config
  elif ! [[ -f defs.mk ]]; then
    echo "You must configure before you can compile!"
    return
  fi
- make utest
+ emk utest
  echo "======= Run utest with valgrind ======="
  readarray <<< `make utest VGD=1 2>&1`
  local -r es='ERROR SUMMARY:'
  local -r e0="$es 0 errors from 0 contexts (suppressed: 0 from 0)"
+ local -i ret=0
+ local lines
  for n in "${MAPFILE[@]}"; do
    if [[ "$n" =~ "$es" ]]; then
-     echo -En "$n"
      # test fails
-     [[ "$n" =~ "$e0" ]] || exit 1
+     if [[ "$n" =~ "$e0" ]]; then
+       echo -E "$n"
+     else
+       echo -E "$lines$n"
+       ret=1
+     fi
+     lines=''
    elif [[ "$n" =~ ^\[UTEST ]]; then
      echo -En "$n"
+     lines=''
+   elif [[ "$n" =~ ^==[0-9]+== ]]; then
+     lines+="$n"
    fi
  done
+ if [[ $ret -gt 0 ]]; then
+   # TODO When calling 'inet_pton6'
+   # Valgrind confuse 'memmove' with 'memcpy' and
+   # yield a wrong "Source and destination overlap" error.
+   # See: https://bugs.kde.org/show_bug.cgi?id=402833
+   # Once the error is fixed, we can exit with error
+   echo "exit $ret"
+ fi
 }
 ###############################################################################
 # Follow FSF RESUSE Specification https://reuse.software/spec/

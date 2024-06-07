@@ -57,6 +57,7 @@ AS_UNSET([ASTYLEVER])
 AS_UNSET([ASTYLEMINVER])
 AS_UNSET([DOXYGENVER])
 AS_UNSET([DOXYGENMINVER])
+AS_UNSET([CPPCHECK_OPT_BASE])
 
 AC_CHECK_TOOLS([M4], [m4 autom4te])
 AC_CHECK_TOOLS([CTAGS], [ctags ctags-exuberant])
@@ -79,6 +80,13 @@ AS_VERSION_COMPARE([3.2], [$ASTYLEVER],
                    [AS_UNSET([ASTYLEMINVER])]) # above 3.2
 ptpm_result([ASTYLEMINVER])
 AC_CHECK_TOOL([CPPCHECK], [cppcheck])
+AS_IF([test -n "$CPPCHECK"],
+      [AS_VAR_SET([CPPCHECK_OPT_BASE],
+                  ["--suppress=preprocessorErrorDirective"]) # Ignore '#error'
+       AC_LANG_CONFTEST([AC_LANG_SOURCE([])])
+       AS_IF([$CPPCHECK --check-level=exhaustive conftest.cpp >/dev/null],
+	     [AS_VAR_SET([CPPCHECK_OPT_BASE],
+		             ["$CPPCHECK_OPT_BASE --check-level=exhaustive"])])])
 AC_CHECK_TOOL([DOXYGEN], [doxygen])
 AC_MSG_CHECKING([for doxygen version])
 AS_IF([test -n "$DOXYGEN"],
@@ -97,6 +105,7 @@ AC_SUBST([ASTYLEVER])
 AC_SUBST([ASTYLEMINVER])
 AC_SUBST([DOXYGENVER])
 AC_SUBST([DOXYGENMINVER])
+AC_SUBST([CPPCHECK_OPT_BASE])
 
 #----------------------------------------------------------------
 # compilation

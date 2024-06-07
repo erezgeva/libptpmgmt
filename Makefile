@@ -465,8 +465,7 @@ $(PUB)/name.h: $(SRC)/name.h.in
 
 ifneq ($(and $(ASTYLEMINVER),$(PERL5TOUCH)),)
 CPPCHECK_OPT:=--quiet --force --error-exitcode=-1
-# Ignore '#error'
-CPPCHECK_OPT+=--suppress=preprocessorErrorDirective
+CPPCHECK_OPT+=$(CPPCHECK_OPT_BASE)
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)

@@ -7,7 +7,7 @@
 # RPM specification file for libptpmgmt rpm packages
 ###############################################################################
 Name:           libptpmgmt
-Version:        1.2
+Version:        1.3
 Release:        1%{?dist}
 URL:            https://%{name}.nwtime.org
 BuildRequires:  gcc-c++ libtool pkgconfig autoconf m4 which swig
@@ -251,9 +251,129 @@ autoconf
 # The changelog is under GFDL-1.3-no-invariants-or-later license.
 ###############################################################################
 %changelog
+* Fri Jun 07 2024 ErezGeva2@gmail.com 1.3-1
+- Add support for AUTHENTICATION.
+  - Add HMAC wrapper libraries.
+  - Probe the HMAC libraries.
+  - Add HMAC libraries to containers.
+    We need them for the new authentication TLV.
+- Improve ABI compatible with version 1.1 and version 1.2.
+  - Add ABI compare workflow.
+- Improve header detection.
+- MessageBuilder: move calling of clearData() to a new function, clear().
+  The problem, we can not guarantee that the message object was
+  not deleted before we call MessageBuilder destructor.
+- Fix go MessageBuilderBuildTlv(): free the TLV in case SetAction fails.
+- Add explanation on C++/C standards.
+- Add note on GO wrapper.
+- Improve Message Builder build TLV method.
+- Add support for new Linux kernel IOCTL.
+- Change kernel PTP mask for external pins.
+- Swig can create dependencies by itself.
+- New version of Arch Linux package manager need the debugedit tool.
+- Add GNU debugger to containers.
+- Message handle message size properly.
+- Add separator to Binary to ID function.
+- Add BASE64 encoding and decoding functions in Binary class.
+- Use Ruby SWIG director.
+- Fix internal Token class.
+- Improve unit test assertions.
+- Fix allocation of long option strings in Options class.
+- Fix and improve Doxygen documentation.
+- Fix parsing and building errors text.
+- Add GitLab:
+  - docker.
+  - CI.
+  - Add cross compilation to GitLab CI.
+- Improve naming of scripts.
+- Add GnuPG Libgcrypt to containers.
+- Small improvements in configuration parser.
+- Move internal Token class to comp.
+  So we can reuse it in configuration parsing and use it in the PMC tool.
+- Fix types in C configuration unit test.
+- Improve cppcheck.
+- Improve JSON from linking code.
+- Improve class option properties.
+- The PMC tool do not use interface name in configuration file.
+- Improve C wrapper code.
+- Improve JSON libraries probing.
+- Place shared library links in proper packages.
+- Add skip Doxygen flag in Gentoo ebuild.
+- Move using 'std' to internal header.
+- Add missing depending in make file.
+- Update the how to document code document.
+- Update and improve text in read-me.
+- Improve socket C API naming.
+- Use line variable instead of a specific number in error unit test.
+- Add probing headers and features to public headers.
+- Improve including headers and probing.
+- As we test packaging and install them on system.
+  We can remove the packaging from the main CI.
+- Clang
+  - Add support for clang.
+  - Use the CC and CXX variables directly to select Clang.
+  - Clang miss '__FLOAT_WORD_ORDER__'.
+  - Use Clang with Gentoo CI.
+  - Update ptp4l_sim for compilation with clang.
+  - Fix warnings found by clang.
+  - Add test with clang.
+- Add configuration header to probe headers.
+- Fix deprecated functions macros.
+- Remove deprecated functions from GO.
+  As GO wrapper is used during building/development.
+- Split pkgs test to 2 stages.
+- Add new Linuxptp Common Mean Link Delay TLV and notify.
+- Add compiler warn if an undefined identifier is evaluated.
+- Fix type range limits and deprecated copy constructor warnings.
+- Add missing system functions to libsys sources.
+- Fix PTP_PEROUT_REQUEST IOCTL.
+- Fix of Lua probing in testing scripts.
+- github_pages: remove unused files from site.
+- Update build dependencies in Debian packaging.
+- Improve read_defs() function.
+- Update build dependencies in RPM packaging.
+- Improve Arch Linux PKGBUILD.
+- Fix adding SPDX to generated HTMLs.
+- Add Lua POSIX to Arch Linux.
+- Fix Manual full test.
+- Gentoo add USE flags to skip wrappers.
+- Fix github_address.sh dispatcher.
+- Add SPDX IDs to source installed in system.
+- Use MIT to GO language source as there are linked in the executable.
+- Fix GO message builder dependency.
+- The other are used as libraries so LGPL is fine.
+- Replace 'auto' with actual type in unit test code.
+- Add SPDX IDs to markdown using HTML comment.
+  and to generated Doxygen HTML and JavaScripts.
+- Add traversSigTlvs to C and traversSigTlvsCl for script languages.
+- Fix signalling LoopTwoManagmentTlvs unit test to loop over the 2 TLVs.
+- Spell signalling in text, leave American spelling in code.
+- Add Gentoo to packages CI.
+- Use "using" standard name space in C++ source code.
+- Collect small tool scripts into a single one.
+- Move testing with Linuxptp and a dummy clock to the test with
+  the packaging to ensure the packing contain all the files needed.
+- Fix Gentoo build QA warnings.
+- Improve Gentoo support.
+- Add filters for C unit tests.
+- Skip pre-compile '#error' when using cppcheck.
+- Use swig director for message dispatcher and builder.
+- Improve Unix socket abstract address support.
+- Add C wrapper
+- Update Build.md and Improve grammar.
+- Small improvements.
+  - Improve git ignore.
+  - Add external C to libsys.
+- Improve release scripts.
+- Update credits.
+- Update pmc.8
+- Fix grammar in MANAGEMENT IDS section and remove trailing line
+  which looks like a cut error.
+- Add the new phase command to 'phc_ctl' tool.
+
 * Wed Dec 06 2023 ErezGeva2@gmail.com 1.2-1
 - Support Linuxptp version 4.2
-- Improve linuxptp subscribe events TLV.
+- Improve Linuxptp subscribe events TLV.
 - Use a separate flag for Python unit test with Valgrid
   as it breaks on Ubuntu.
 - Add Doxygen bug workaround.
@@ -262,13 +382,13 @@ autoconf
 - Split m4 rule for creating headers as some make file differ.
 - Add documentation for build.
 - Support reuse version 2.1
-- Add NOTIFY_PARENT_DATA_SET event after linuxptp.
-- Follow linuxptp pmc, avoid conflicting port IDs over UDS.
-- Use separate management TLV ID to build and parse in managment class.
+- Add NOTIFY_PARENT_DATA_SET event after Linuxptp.
+- Follow Linuxptp pmc, avoid conflicting port IDs over UDS.
+- Use separate management TLV ID to build and parse in management class.
 - Add credits for contributors of project.
-- Fix examle make files for development package.
+- Fix example make files for development package.
 - Support abstract Unix Socket Address.
-  Skip deleting abstract unix socket as they do not use real files.
+  Skip deleting abstract Unix socket as they do not use real files.
 - Add copyright sign in copyright files.
 - Add criterion unit testing framework to docker files.
 - Init class: add getNetSelect() method to specify which socket is created.
@@ -292,14 +412,14 @@ autoconf
   as it is multi-architecture on all used Debian versions.
 - Use proper macros for time conversions in socket poll function.
 - Resolve warnings found with clang.
-- Remove Debian bullseye and support for old versions of swig and go.
+- Remove Debian bullseye and support for old versions of swig and GO.
 - Parse SMPTE Organization Extension TLV.
 - Fix GO cross compilation.
-- Add Github action for cross compilation.
+- Add GitHub action for cross compilation.
 - Update Doxygen configuration file to Doxygen version 1.9.4.
 - Fix grammar in Doxygen configuration file and documents.
 - Improve unit test configuration probing.
-- Improve Github actions script.
+- Improve GitHub actions script.
 - Improve and fix grammar in README.md.
 - Add new Debian trixie version.
 - Replace automatic type with defined type for short types.
@@ -311,13 +431,13 @@ autoconf
 * Sat Jun 10 2023 ErezGeva2@gmail.com 1.1-1
 - Support Linuxptp version 4.0
 - GitHub workflow
-  - Pages: Install doxygen and generate documents on Ubuntu.
+  - Pages: Install Doxygen and generate documents on Ubuntu.
   - Continuous Integration
   - Add docker label.
   - Upload Docker containers.
-  - Unit tests with valgrind and Address Sanitizer.
-  - Run testing with a Dummy clock for linuxptp daemon.
-    With valgrind and Address Sanitizer.
+  - Unit tests with Valgrind and Address Sanitizer.
+  - Run testing with a Dummy clock for Linuxptp daemon.
+    With Valgrind and Address Sanitizer.
 - Add setPhase() that call clock_adjtime() with ADJ_OFFSET.
 - Improve Linux kernel support for PTP clases
 - Fix wrong alignment assignment in MsgProc::proc.
@@ -356,7 +476,7 @@ autoconf
 - Add support for Linuxptp power profile TLV.
 - Remove restriction on domain number.
 - Add maintainer tag to the Gentoo docker file.
-- Follow linuxptp.
+- Follow Linuxptp.
   Alphabetise configuration options and bump date in the pmc man page.
 - Add support to Gentoo.
 - Add release scripts to Arc Linux and for RPM.
@@ -398,7 +518,7 @@ autoconf
   - Probe astyle change and exit with error.
     So we can use the make format goal in
     a continuous integration checking container.
-  - Check for dot application to use with doxygen.
+  - Check for dot application to use with Doxygen.
   - Fix clean.
   - Update source files list for archive.
   - Fix installed man pages file mode.
@@ -435,7 +555,7 @@ autoconf
 - Improve error in: socket, PTP and clock classes.
 - Rebase binary class to support operator [] with reference.
 - Add support for Debian bookworm.
-- Add docker for Debian to use on github CI.
+- Add docker for Debian to use on GitHub CI.
 - Create the version header by the make file.
   So we have only one configuration file created by configure.
   All the reset is created by the make file.
@@ -450,7 +570,7 @@ autoconf
   - Clean compilation warnings of swig generated code.
   - Define swig vector classes for new PTP structure.
   - Add vector class for LinuxptpUnicastMaster_t.
-  - Remove python2, it is discontinue for 2 years.
+  - Remove Python2, it is discontinue for 2 years.
   - Use proper typemap to initialise variables in argcargv.
 - Swig project files
   - Add readme for swig files.
@@ -470,11 +590,11 @@ autoconf
 - Remove ids.h header from public headers, use generated headers instead.
 - Move process functions of the message class to a private class.
 - Testing
-  - Use python and lua environment to load the wrapper library.
+  - Use Python and Lua environment to load the wrapper library.
   - Add support to test with AddressSanitizer.
   - Add simple test for std::vector<> class in scripts.
-  - Add testing with phc_ctl and valgrind with phc_ctl.
-  - And valgrind test of testJson.pl.
+  - Add testing with phc_ctl and Valgrind with phc_ctl.
+  - And Valgrind test of testJson.pl.
 - Improve Debian build.
 - List source files with git when possible.
 - JSON
@@ -494,7 +614,7 @@ autoconf
   - Add PTP clock frequency and offset functions.
   - Add PHC pins functionality.
   - Add header with time conversion constants.
-  - Clone the PHC control tool using the python wrapper library,
+  - Clone the PHC control tool using the Python wrapper library,
     and add new package for it.
 - Add pure attribute for proper functions.
 - Make file
@@ -505,18 +625,18 @@ autoconf
   - Improve Doxygen filter of warnings.
 - Follow IEEE 1558 alternative terms for "master" and "slave".
   Source and client are not confirming to IEEE 1558 amendment.
-- Perform valgrind test on pmc.
-  - valgrind found an issue in the ConfigFile
+- Perform Valgrind test on pmc.
+  - Valgrind found an issue in the ConfigFile
     Change cfgGlobal type from a reference to a pointer.
 - Documentation.
   - Update documentation.
-  - Add pmc.8 from linuxptp with updates.
-  - Add phc_ctl.8 from linuxptp with updates.
+  - Add pmc.8 from Linuxptp with updates.
+  - Add phc_ctl.8 from Linuxptp with updates.
   - Update vecDef.cc and
     add documentation on std::vector<> mapping.
   - Add Frequently Asked Questions.
   - Doxygen configuration: remark all default setting.
-  - New doxygen on Arch Linux have:
+  - New Doxygen on Arch Linux have:
       https://github.com/doxygen/doxygen/issues/9319
       The bug needs a fix in Arch Linux, it is out of scope of this project.
 
@@ -620,7 +740,7 @@ autoconf
   - Remove wrong calling to move
   - Improve function syntax
   - Add macro for rare hardware which does not use IEEE 754.
-- Add new linuxptp linuxptpPowerProfileVersion_e enumerator
+- Add new Linuxptp linuxptpPowerProfileVersion_e enumerator
 - Fix wrong process of linuxptpTimeStamp_e enumerator in json module.
 - Use short string form of clockAccuracy_e enumerator.
 - cast characters in Binary::eui48ToEui64().
@@ -634,7 +754,7 @@ autoconf
 - Add sample code after Vladimir Oltean checksync application.
 - Add constant modifier to methods that do not modify the object.
 - Comply to format and improve Doxygen comments.
-- Remove python 2 from mandatory list of testing.
+- Remove Python 2 from mandatory list of testing.
 - Improve includes in source code.
 - Fix make file help errors.
 - Add init class for the PMC application.
@@ -642,11 +762,11 @@ autoconf
   So, users can use it for other applications.
 - Fix cross compilation errors.
 - Add tcl wrapper.
-- Remove Debian depends on python2, as it will be removed in the future.
+- Remove Debian depends on Python2, as it will be removed in the future.
 - Ensure port number is 16 bits,
   as Linux process ID can be larger than 16 bits.
 - Ignore deprecated ruby functions created by swig.
-- Use python 3 configuration application to set the library extension.
+- Use Python 3 configuration application to set the library extension.
 - Add rule for Debian cross target build.
 - Fix proper capitalization in RPM specification.
 
@@ -667,12 +787,12 @@ autoconf
   - Add function for next sequence with range check.
   - return -1 on error and 0 on success.
   - Fix indentation to 2 spaces.
-  - Add global statement in python.
+  - Add global statement in Python.
 - Move Debian rules to Debian make
 - Adding Arch Linux packages build.
 - Adding RPM build with Fedora container.
 - Make:
-  - Support single python version.
+  - Support single Python version.
   - improve verCheck to support 3 version numbers.
   - PHP 7 need Swig 3.0.12
 
@@ -684,7 +804,7 @@ autoconf
   - JSON to message require C JSON library or the fast C JSON library.
   - Parse signalling messages.
   - Handle TLVs with array.
-  - Handle linuxptp Events and statistics TLVs.
+  - Handle Linuxptp Events and statistics TLVs.
   - Add testing for JSON module.
   - Add macros for JSON library function and types,
     In case we need to change then in future.
@@ -720,17 +840,17 @@ autoconf
 * Mon Apr 05 2021 ErezGeva2@gmail.com 0.2-1
 - Add Ruby to read-me.
 - Add long options to the pmc tool.
-- Add pmc tool help after linuxptp.
+- Add pmc tool help after Linuxptp.
 - Add support for padding get action management TLVs.
 - Fix Debian cross compilation.
-- Support Debian Stretch rename python2 to python.
+- Support Debian Stretch rename Python2 to Python.
 - Designated initializers are not supported in old compilers.
 - Old math.h header uses DOMAIN macro, as we do not use math macro,
 -  just remove it.
 - Add help for make file.
 - Add macros in make file to prevent Swig targets.
-- testing script support linuxptp location with spaces.
-- Fix python3 by adding a new class for allocating the buffer.
+- testing script support Linuxptp location with spaces.
+- Fix Python3 by adding a new class for allocating the buffer.
 - Remove convert to buffer. All scripts use the buffer class.
 - pmc tool: add mode for PTP network layer in run mode.
 - Add check in Ruby for capitalizing first letter.
