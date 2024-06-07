@@ -5,44 +5,41 @@
 Jclklib is a 2-part implementation for C/C++ application to obtain
 ptp4l events via pub/sub method using a library api call.
 
-It provides a library jcklib.so (aka client-runtime library) and a daemon
+It provides a library libjclk.so (aka client-runtime library) and a daemon
 jclklib_proxy.
 
 In short we have :
           FRONT-END           MIDDLE-PIPE               BACK-END
-c/c++ app<-------->jclklib.so<---------->jclklib_proxy<-------->ptp4l
+c/c++ app<-------->libjclk.so<---------->jclklib_proxy<-------->ptp4l
         (library call)       (using msq)      |        (via UDS)
                                               |
                                         libptpmgmt.so
 
 **if the diagram is not lisible, please change to text mode.**
 
-* **c++ app** - Customer application that will be linking to jclklib.so library. Header file and sample test cpp file will be provided.
+* **c++ app** - Customer application that will be linking to libjclk.so library. Header file and sample test cpp file will be provided.
 
-* **jclklib.so** - A dynamic library that provides a set of APIs to customer application : connect/disconnect, subscribe to proxy which in turn connect to ptp4l service.
-This library is written in C++. It will have a permissive licence. It communicates with jclkib_proxy using message queues.
+* **libjclk.so** - A dynamic library that provides a set of APIs to customer application : connect/disconnect, subscribe to proxy which in turn connect to ptp4l service.
+This library is written in C++. It will have a permissive licence. It communicates with jclklib_proxy using message queues.
 This library is also referred to as client-runtime library.
 
 * **jclklib_proxy** - A daemon that is using libptpmgmt api to establish connection and subscribe towards ptp4l events. The communication is established using ptp4l UDS (/var/run/ptp4l as we now assumed it is always installed in the same local machine as the ptp4l)
 
-## Compilation
-Currently, we need to run 'make' in client, proxy folder.
-It will definitely change in the future. Stay tuned.
+## Compilation and test step
+* [Build project documentation](./TEST_jclklib.md)
 
 ## Connect message info
 
-### Code Example : client/test.cpp , client/run_test.sh
-Please adjust the LD_LIBRARY_PATH accordingly to include the correct jclklib.so
-The placement will be changed in the future.
+### Code Example : sample/jclk_test.cpp , sample/run_jclk_test.sh
 
 ### Connect message flow (simplified code walkthrough)
 
-Scenario : client application uses the jcklkib.so API to call `connect()`.
+Scenario : client application uses the jcklkib.so API to call `jcl_connect()`.
 This will establish connection to the proxy.
 
 ** Client point of view **
 
-1. **client/init.cpp/JClkLibClient::connect()**
+1. **client/jclk_init.cpp/JClkLibClientApi::jcl_connect()**
         - Creation of new ClientConnectMessage object for CONNECT_MSG
 
 1.1. **client/message.cpp/ClientMessage::init()**
@@ -56,7 +53,7 @@ This will establish connection to the proxy.
           by the client transporter layer, it will know how to translate the object
           to messagequeue buffer.
 
-1.2. **client/init.cpp/ClientTransport::init()**
+1.2. **client/jclk_init.cpp/ClientTransport::init()**
         - Same concept as above but using initTransport recursive template.
         This will execute the `ClientMessageQueue::initTransport()`
 
@@ -90,7 +87,7 @@ Currently we only printout the sessionID given by the proxy.
 Jclklib_proxy runs like a service daemon waiting for messages from potential client app.
 The main loop function is in main.cpp.
 
-How to run : LD_CONFIG_PATH=<path to libptpmgmt.so> jcklib_proxy -lptpmgmt &
+How to run : ./jclklib/proxy/run_proxy.sh
 
 1. **proxy/transport.cpp/ProxyTransport::init()**
 - Same as for Client, the ProxyTransport layer is initialized.

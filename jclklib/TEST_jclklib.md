@@ -40,17 +40,26 @@ Jclkib.so is communicating with jclklib_proxy using message queue.
     sudo apt-get install -y swig libtool-bin cppcheck doxygen ctags astyle dot epstopdf valgrind
     ```
 
-2. Clone the repository:
+2. Install Real-Time Priority Inheritance Library (librtpi):
+    ```bash
+    git clone https://github.com/dvhart/librtpi.git
+    cd librtpi
+    autoreconf --install
+    ./configure
+    sudo make install
+   ```
+
+3. Clone the repository:
     ```bash
     git clone https://github.com/intel-staging/libptpmgmt_iaclocklib
     ```
 
-3. Navigate to the cloned directory:
+4. Navigate to the cloned directory:
     ```bash
     cd libptpmgmt_iaclocklib
     ```
 
-4. Build the application:
+5. Build the application:
     ```bash
     autoheader
     autoconf
@@ -58,7 +67,7 @@ Jclkib.so is communicating with jclklib_proxy using message queue.
     make
     ```
 
-5. Outcome : you must have 3 binaries created:
+6. Outcome : you must have 3 binaries created:
     ```bash
     libptpmgmt.so
     jclklib/client/libjclk.so
@@ -139,7 +148,7 @@ Example output of sample application (jclk_test) :
 Upper Master Offset: 100000 ns
 Lower Master Offset: -100000 ns
 
-[jclklib] Obtained data from Subscription Event:
+[jclklib][5754097.973] Obtained data from Subscription Event:
 +-------------------+--------------------+
 | Event             | Event Status       |
 +-------------------+--------------------+
