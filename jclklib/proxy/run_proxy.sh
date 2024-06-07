@@ -1,10 +1,10 @@
 #!/bin/bash
-# SPDX-License-Identifier: LGPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
 #
 # @author Christopher Hall <christopher.s.hall@intel.com>
-# @copyright © 2024 Intel Corporation. All rights reserved.
-# @license LGPL-3.0-or-later
+# @copyright © 2024 Intel Corporation.
+# @license BSD-3-Clause
 #
 ###############################################################################
 

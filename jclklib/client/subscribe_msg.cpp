@@ -1,14 +1,14 @@
 /*
- * SPDX-License-Identifier: LGPL-3.0-or-later
- * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
 /** @file subscribe_msg.cpp
  * @brief Client subscribe message class. Implements client specific functionality.
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
- * @copyright © 2024 Intel Corporation. All rights reserved.
- * @license LGPL-3.0-or-later
+ * @copyright © 2024 Intel Corporation.
+ * @license BSD-3-Clause
  *
  */
 

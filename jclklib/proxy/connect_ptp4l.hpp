@@ -1,14 +1,14 @@
 /*
- * SPDX-License-Identifier: LGPL-3.0-or-later
- * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
 /** @file connect.hpp
  * @brief Proxy connect ptp4l message class.
  *
  * @author Lai Peter Jun Ann <peter.jun.ann.lai@intel.com>
- * @copyright © 2024 Intel Corporation. All rights reserved.
- * @license LGPL-3.0-or-later
+ * @copyright © 2024 Intel Corporation.
+ * @license BSD-3-Clause
  *
  */
 
