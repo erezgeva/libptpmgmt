@@ -74,7 +74,9 @@ void notify_client()
             PrintDebug("Get client session ID: " + to_string(SessionId));
 
             auto TxContext = Client::GetClientSession(SessionId).get()->get_transmitContext();
-            pmsg->transmitMessage(*TxContext);
+            if (!pmsg->transmitMessage(*TxContext))
+                Client::RemoveClientSession(SessionId);
+
         } else {
             PrintError("Unable to get Session ID\n");
         }

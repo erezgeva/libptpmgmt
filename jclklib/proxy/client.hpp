@@ -33,6 +33,8 @@ namespace JClkLibProxy {
     public:
         static JClkLibCommon::sessionId_t CreateClientSession();
         static size_t GetSessionCount() { return SessionMap.size(); }
+        static void RemoveClientSession(JClkLibCommon::sessionId_t sessionId) {
+            SessionMap.erase(sessionId);}
         static JClkLibCommon::sessionId_t GetSessionIdAt(size_t index);
         static ClientX GetClientSession(JClkLibCommon::sessionId_t sessionId);
     private:
