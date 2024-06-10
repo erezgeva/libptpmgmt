@@ -44,7 +44,7 @@ As C do not provides namespaces, all global functions and global structures are 
 # <u>C++ and C standards</u>
 The libptpmgmt Library uses `C++11` with [POSIX](https://posix.opengroup.org/), [GNU](https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html) extensions and [Linux kernel headers](https://kernel.org/).  
 The C wrapper use `C99`.  
-We try our best to avoid conflict with newer versions of C++ and C. But if you do please notify us.
+We try our best to avoid conflicts with newer versions of C++ and C. But if you find a conflict, please notify us.
 
 # <u>Scripting</u>
 This project uses [SWIG](http://www.swig.org/) to generate wrapper to script languages.  
@@ -86,7 +86,7 @@ and not a "pure" script, the wrapper is used a bit differently.
 The wrapper is only required during development,  
  as the resulting application is a binary that does not require the Go wrapper, only the C++ library.  
 During development, you need the Go wrapper and the C++ library development headers,  
- as the Go build compile the Go wrapper.  
+ as the Go build compiles the Go wrapper.  
 In addition add the '-lm -lptpmgmt' flags to the linking using the `CGO_LDFLAGS` environment,  
  so Go will link your application with the C++ library.  
 Pay attention that although Go uses static typing and checks the types in compilation,
@@ -100,7 +100,7 @@ You can use the `defer` statment for the releasing, if the release is due in the
 As Go does not provide destructors, MessageBuilder is not a class and it does not call `message.clearData()` once it is removed.  
 You are advised to call `message.clearData()` once you build the message, and do not plan any further use with the send TLV.  
 Note: as Go syntax is stricter, you may need to update your code with small fixes, when you build with a newer version of the Go wrapper of the library.  
-The C++ library does sustain backward compatible, yet Go wrapper does not and may breaks!
+The C++ library does sustain backward compatible, yet Go wrapper does not and may break!
 
 # <u>Library content</u>
   * Binary in bin.h - Class that holds a binary
