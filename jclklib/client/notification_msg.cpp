@@ -129,6 +129,28 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             return false;
         }
 
+        if ((eventSub[0] & 1<<gmOffsetEvent) &&
+            (proxy_data.master_offset != client_ptp_data->master_offset)) {
+            client_ptp_data->master_offset = proxy_data.master_offset;
+            if ((client_ptp_data->master_offset > lower_master_offset) &&
+                (client_ptp_data->master_offset < upper_master_offset)) {
+                if (!(client_ptp_data->master_offset_in_range)) {
+                    client_ptp_data->master_offset_in_range = true;
+                    client_ptp_data->offset_in_range_event_count.fetch_add(1, std::memory_order_relaxed);
+                }
+            } else {
+                if ((client_ptp_data->master_offset_in_range)) {
+                    client_ptp_data->master_offset_in_range = false;
+                    client_ptp_data->offset_in_range_event_count.fetch_add(1, std::memory_order_relaxed);
+                }
+            }
+        }
+
+        if ((eventSub[0] & 1<<servoLockedEvent) && (proxy_data.servo_locked != client_ptp_data->servo_locked)) {
+            client_ptp_data->servo_locked = proxy_data.servo_locked;
+            client_ptp_data->servo_locked_event_count.fetch_add(1, std::memory_order_relaxed);
+        }
+
         if ((eventSub[0] & 1<<gmChangedEvent) &&
             (memcmp(client_ptp_data->gm_identity, proxy_data.gm_identity, sizeof(proxy_data.gm_identity)) != 0)) {
             memcpy(client_ptp_data->gm_identity, proxy_data.gm_identity, sizeof(proxy_data.gm_identity));
@@ -138,21 +160,15 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             jclCurrentState.gm_changed = false;
         }
 
+        if ((eventSub[0] & 1<<asCapableEvent) && (proxy_data.as_capable != client_ptp_data->as_capable)) {
+            client_ptp_data->as_capable = proxy_data.as_capable;
+            client_ptp_data->as_capable_event_count.fetch_add(1, std::memory_order_relaxed);
+        }
+
         if (composite_eventSub[0]) {
             old_composite_event = composite_client_ptp_data->composite_event;
             composite_client_ptp_data->composite_event = true;
         }
-
-        handleEventUpdate(eventSub[0], servoLockedEvent, client_ptp_data->servo_locked,
-            proxy_data.servo_locked, client_ptp_data->servo_locked_event_count,
-            composite_client_ptp_data->composite_event);
-        handleEventUpdate(eventSub[0], asCapableEvent, client_ptp_data->as_capable,
-            proxy_data.as_capable, client_ptp_data->as_capable_event_count,
-            composite_client_ptp_data->composite_event);
-
-        handleGmOffsetEvent(eventSub[0], gmOffsetEvent, client_ptp_data->master_offset,
-            proxy_data.master_offset, client_ptp_data->offset_in_range_event_count,
-            client_ptp_data->master_offset_in_range, lower_master_offset, upper_master_offset);
 
         if (composite_eventSub[0] & 1<<gmOffsetEvent) {
             composite_client_ptp_data->master_offset = proxy_data.master_offset;
@@ -163,6 +179,12 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 composite_client_ptp_data->composite_event = false;
             }
         }
+
+        if (composite_eventSub[0] & 1<<servoLockedEvent)
+            composite_client_ptp_data->composite_event &= proxy_data.servo_locked;
+
+        if (composite_eventSub[0] & 1<<asCapableEvent)
+            composite_client_ptp_data->composite_event &= proxy_data.as_capable;
 
         if (composite_eventSub[0] && (old_composite_event != composite_client_ptp_data->composite_event))
             client_ptp_data->composite_event_count.fetch_add(1, std::memory_order_relaxed);
