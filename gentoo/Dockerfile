@@ -4,7 +4,7 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# Docker file for Gentoo contianer for building and create packages
+# Docker file for Gentoo contianer for building and installing
 # Search packages at: https://portagefilelist.de/
 ###############################################################################
 FROM gentoo/stage3

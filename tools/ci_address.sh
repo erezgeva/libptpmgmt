@@ -88,7 +88,7 @@ gitlab_docker()
 # Build and install packages
 ci_build()
 {
- local dist
+ local dist dname
  distribution
  case $dist in
    debian)
@@ -96,7 +96,7 @@ ci_build()
      sudo dpkg -i ../*.deb
      make config
      ;;
-   fedora)
+   fedora|redhat)
      make rpm
      sudo dnf install -y rpm/RPMS/*/*.rpm
      make config

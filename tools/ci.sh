@@ -111,7 +111,7 @@ main()
  if [[ $jobs -le 0 ]]; then
    jobs=1
  fi
- local n m out distclean_list dist dist_clean_more
+ local n m out distclean_list dist dname dist_clean_more
  local -i last_ret
  distribution
  if [[ "$dist" != "gentoo" ]]; then
@@ -224,12 +224,12 @@ mk_packages()
  case $dist in
    debian)
      if [[ -n "$(which dpkg-buildpackage 2> /dev/null)" ]]; then
-       echo " * Build Debian packages"
+       echo " * Build $dname packages"
        ea_mk deb -j$jobs $mk_noc
-       equit "Build Debian packages fails"
+       equit "Build $dname packages fails"
      fi
      ;;
-   fedora)
+   fedora|redhat)
      if [[ -n "$(which rpmbuild 2> /dev/null)" ]]; then
        echo " * Build Fedora RPM packages"
        eacmd make rpm -j$jobs $mk_noc

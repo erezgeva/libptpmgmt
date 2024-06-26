@@ -8,16 +8,28 @@
 # Utils for scripts
 ###############################################################################
 # Find distrubution
-# [out] dist
+# [out] dist dname
 distribution()
 {
+ if [[ -f '/etc/os-release' ]]; then
+   dname="$(grep ^NAME /etc/os-release | sed 's/^NAME=//;s/"//g')"
+ fi
  if [[ -f /etc/debian_version ]]; then
+   # Also Ubuntu and other Debian based distributions
    dist=debian
  else
    for n in /etc/*-release; do
-     m="${n%-release}"
-     dist="${m#/etc/}"
-     break
+     if [[ -f "$n" ]]; then
+       case $n in
+         /etc/os-release) ;;
+         /etc/system-release) ;;
+         *)
+            m="${n%-release}"
+            dist="${m#/etc/}"
+            break
+            ;;
+       esac
+     fi
    done
  fi
 }

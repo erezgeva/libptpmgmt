@@ -4,7 +4,7 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2021 Erez Geva
 #
-# Docker file for Fedora contianer for building and create rpm packages
+# Docker file for Debian contianers for building and create deb packages
 # Search packages at: https://packages.debian.org
 ###############################################################################
 ARG DIST
