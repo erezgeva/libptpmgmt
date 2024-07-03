@@ -104,6 +104,13 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
 
         ClientState *currentClientState = *it;
 
+        struct timespec last_notification_time;
+
+        if (clock_gettime(CLOCK_MONOTONIC, &last_notification_time) == -1)
+            PrintDebug("ClientNotificationMessage::processMessage clock_gettime failed.\n");
+        else
+            currentClientState->set_last_notification_time(last_notification_time);
+
         jcl_state &jclCurrentState =
             currentClientState->get_eventState();
         jcl_state_event_count &jclCurrentEventCount =

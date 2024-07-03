@@ -124,3 +124,13 @@ JClkLibCommon::jcl_subscription &ClientState::get_eventSub()
 {
     return eventSub;
 }
+
+void ClientState::set_last_notification_time(struct timespec newTime)
+{
+    last_notification_time = newTime;
+}
+
+struct timespec ClientState::get_last_notification_time()
+{
+    return last_notification_time;
+}

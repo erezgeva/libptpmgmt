@@ -26,7 +26,7 @@
 #include <rtpi/condition_variable.hpp>
 #include <rtpi/mutex.hpp>
 
-#define DEFAULT_LIVENESS_TIME_OUT 1  //1 sec
+#define DEFAULT_LIVENESS_TIMEOUT_IN_MS 50  //50 ms
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
 #define DEFAULT_SUBSCRIBE_TIME_OUT 5  //5 sec
 
@@ -169,9 +169,27 @@ bool JClkLibClientApi::jcl_disconnect()
     return retVal;
 }
 
+int64_t timespec_delta(const timespec& last_notification_time, const timespec& current_time) {
+    int64_t delta_in_sec = current_time.tv_sec - last_notification_time.tv_sec;
+    int64_t delta_in_nsec = current_time.tv_nsec - last_notification_time.tv_nsec;
+    int64_t delta_in_ms = delta_in_sec * 1000LL + delta_in_nsec / 1000000LL;
+
+    return delta_in_ms;
+}
+
 bool check_proxy_liveness(ClientState &appClientState)
 {
-    unsigned int timeout_sec = (unsigned int) DEFAULT_LIVENESS_TIME_OUT;
+    struct timespec current_time;
+
+    if (clock_gettime(CLOCK_MONOTONIC, &current_time) == -1) {
+        PrintDebug("[CONNECT] Failed to get current time.\n");
+    } else {
+        int64_t timeout = timespec_delta(appClientState.get_last_notification_time(), current_time);
+
+        if (timeout < DEFAULT_LIVENESS_TIMEOUT_IN_MS)
+            return true;
+    }
+
     Message0 connectMsg(new ClientConnectMessage());
     ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
 
@@ -187,7 +205,7 @@ bool check_proxy_liveness(ClientState &appClientState)
     ClientMessageQueue::sendMessage(connectMsg.get());
 
     /* Wait for connection result */
-    auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec);
+    auto endTime = std::chrono::system_clock::now() + std::chrono::milliseconds(DEFAULT_LIVENESS_TIMEOUT_IN_MS);
     std::unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
     while (appClientState.get_connected() == false) {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
@@ -227,13 +245,13 @@ int JClkLibClientApi::jcl_status_wait(int timeout, jcl_state &jcl_state_ref,
         start + std::chrono::seconds(timeout);
     bool event_changes_detected = false;
 
-    /* Check the liveness of the Proxy's message queue */
-    if (!check_proxy_liveness(appClientState))
-        return -1;
-
     jcl_state_event_count eventCount;
     jcl_state jcl_state;
     do {
+        /* Check the liveness of the Proxy's message queue */
+        if (!check_proxy_liveness(appClientState))
+            return -1;
+
         /* Get the event state and event count from the API */
         eventCount = appClientState.get_eventStateCount();
         jcl_state = appClientState.get_eventState();

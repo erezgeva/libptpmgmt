@@ -51,6 +51,7 @@ namespace JClkLibClient {
         jcl_state eventState = {};
         jcl_state_event_count eventStateCount ={};
         JClkLibCommon::jcl_subscription eventSub ={};
+        struct timespec last_notification_time;
 
     public:
         ClientState();
@@ -66,6 +67,8 @@ namespace JClkLibClient {
         jcl_state &get_eventState();
         void set_eventStateCount(jcl_state_event_count eCount);
         void set_eventState(jcl_state eState);
+        void set_last_notification_time(struct timespec last_notification_time);
+        struct timespec get_last_notification_time();
         std::string toString();
         JClkLibCommon::jcl_subscription &get_eventSub();
         DECLARE_ACCESSOR(sessionId);
