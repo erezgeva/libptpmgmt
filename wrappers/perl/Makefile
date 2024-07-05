@@ -8,7 +8,7 @@
 #
 ###############################################################################
 
-perl_SFLAGS+=-perl5
+perl_SFLAGS+=-perl5 -module PtpMgmtLib
 PERL_D:=wrappers/perl
 $(PERL_D)/$(SWIG_NAME).o: $(PERL_D)/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(call LLC,$(CXXFLAGS_PERL) -Iwrappers/perl -I$(PERL5EXT))

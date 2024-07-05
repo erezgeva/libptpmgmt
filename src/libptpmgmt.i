@@ -8,14 +8,11 @@
  *
  */
 
-/* Module name */
-#ifdef SWIGPERL
-%module(directors="1") PtpMgmtLib  /* Perl only */
-#elif SWIGGO
+#ifdef SWIGGO
 %module ptpmgmt
 #else
 %module(directors="1") ptpmgmt
-#endif /* SWIGPERL */
+#endif
 
 /* Headers and namespace for moudle source code */
 %{
@@ -57,7 +54,7 @@
    From /usr/share/swig./ */
 %include <stdint.i>
 %include <cpointer.i>
-/* From /usr/share/swig././  */
+/* From /usr/share/swig././ */
 %include <std_string.i>
 %include <std_vector.i>
 %include <argcargv.i>
@@ -70,9 +67,8 @@
 %apply double { float_seconds };
 %apply double { float_nanoseconds };
 %apply double { float_freq };
-/* initialize variables for argcargv
- * Bug fix in SWIG 4.1.0 */
-%typemap(arginit) (int ARGC, char **ARGV){$1 = 0; $2 = nullptr;}
+/* TODO: initialize variables for argcargv, fixed in SWIG 4.2 */
+%typemap(arginit) (int ARGC, char **ARGV) "$1 = 0; $2 = nullptr;"
 /* Support Options::parse_options in scripts */
 %apply (int ARGC, char **ARGV) {(int argc, char *const argv[])}
 
@@ -182,7 +178,7 @@
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Message::sigTlv::operator=;
 #endif /* SWIG_OPERS_IGNORE_OPERATOR */
 
-/* Support  Message::traversSigTlvsCl() */
+/* Support Message::traversSigTlvsCl() */
 %feature("director") MessageSigTlvCallback;
 
 /* library code */
