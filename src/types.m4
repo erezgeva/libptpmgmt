@@ -38,7 +38,8 @@ c_cod(`/**< @endcond */')dnl
 c_cod(`#endif /* __PTPMGMT_HAVE_SYS_TYPES_H */')dnl
 incb(mngIds)
 
-ns_s()dnl
+ns_s()
+
 #ifndef INT48_MIN
 /** Minimum value for signed integer 48 bits */
 cnst_st() int64_t INT48_MIN = -INT64_C(0x7fffffffffff) - 1;
@@ -1034,7 +1035,8 @@ cpp_cod(`            sizeof selected + sizeof portState + sizeof priority1 +')dn
 cpp_cod(`            sizeof priority2 + portAddress.size();')dnl
 cpp_cod(`    }')dnl
 };
-ns_e()dnl
+
+ns_e()
 cpp_en(types)dnl
 
 ice(TYPES)

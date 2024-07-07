@@ -29,7 +29,8 @@ incpp(<vector>)dnl
 incpp(<memory>)dnl
 incb(types)
 
-ns_s()dnl
+ns_s()
+
 #ifndef SWIG
 /** MANAGEMENT TLV
  * @note: used for management TLV in a signalling message
@@ -321,7 +322,8 @@ strc(SLAVE_DELAY_TIMING_DATA_NP_t) sz(: public BaseSigTlv) {
     /** records of messages */
     vec(SLAVE_DELAY_TIMING_DATA_NP_rec_t)list;
 };
-ns_e()dnl
+
+ns_e()
 cpp_en(sig)dnl
 
 ice(SIG)

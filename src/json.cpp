@@ -13,6 +13,7 @@
 #include <cmath>
 #include <mutex>
 #include "comp.h"
+#include "c/json.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 
@@ -1064,9 +1065,6 @@ __PTPMGMT_NAMESPACE_END
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/json.h"
-
     // C interfaces
     char *ptpmgmt_json_msg2json(const_ptpmgmt_msg m, int indent)
     {

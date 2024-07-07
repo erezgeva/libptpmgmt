@@ -16,11 +16,8 @@
 #include <byteswap.h>
 #endif
 #include "msg.h"
-
-extern "C" {
 #include "c/types.h"
 #include "c/proc.h"
-}
 
 __PTPMGMT_NAMESPACE_BEGIN
 

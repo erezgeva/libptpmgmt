@@ -10,10 +10,7 @@
  */
 
 #include "comp.h"
-
-extern "C" {
 #include "c/sig.h"
-}
 
 __PTPMGMT_NAMESPACE_BEGIN
 

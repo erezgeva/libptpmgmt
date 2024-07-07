@@ -14,6 +14,10 @@
 
 #include "name.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Parsing return code. Identical to Options::loop_val */
 enum ptpmgmt_opt_loop_val {
     PTPMGMT_OPT_ERR, /**< Parsing error */
@@ -145,5 +149,9 @@ ptpmgmt_opt ptpmgmt_opt_alloc();
  * @return new options object or null on error
  */
 ptpmgmt_opt ptpmgmt_opt_alloc_empty();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_OPT_H */

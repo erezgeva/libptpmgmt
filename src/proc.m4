@@ -29,7 +29,8 @@ incpp(<vector>)dnl
 inc_c(stdlib)
 incb(types)
 
-ns_s()dnl
+ns_s()
+
 /** Clock description TLV */
 strc(CLOCK_DESCRIPTION_t) sz(: public BaseMngTlv) {
     uint16_t clockType; /**< Clock type bit mask */
@@ -671,7 +672,8 @@ strc(CMLDS_INFO_NP_t) sz(: public BaseMngTlv) {
     Integer32_t scaledNeighborRateRatio;
     uint32_t as_capable; /**< Capable */
 };
-ns_e()dnl
+
+ns_e()
 cpp_en(proc)dnl
 
 ice(PROC)

@@ -16,6 +16,7 @@
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #endif
+#include "c/json.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 
@@ -264,9 +265,6 @@ __PTPMGMT_NAMESPACE_END
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/json.h"
-
 #define C2CPP_ret(ret, func, def)\
     static ret ptpmgmt_json_##func(const_ptpmgmt_json j) {\
         if(j != nullptr && j->_this != nullptr)\

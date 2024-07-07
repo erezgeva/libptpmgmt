@@ -10,6 +10,7 @@
  */
 
 #include "cfg.h"
+#include "c/cfg.h"
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -498,9 +499,6 @@ static const char ptpm_empty_str[] = "";
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/cfg.h"
-
     // C interfaces
     static void ptpmgmt_cfg_free(ptpmgmt_cfg me)
     {

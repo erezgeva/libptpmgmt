@@ -14,6 +14,10 @@
 #ifndef __PTPMGMT_C_ERR_H
 #define __PTPMGMT_C_ERR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Query if we have error
  * @return last error string
@@ -56,5 +60,9 @@ const char *ptpmgmt_err_getMsg();
  * @note The error do not include the errno message!
  */
 const char *ptpmgmt_err_getErrnoMsg();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_ERR_H */

@@ -21,12 +21,8 @@ define(strc, `struct $1')dnl
 define(strcc, `$1')dnl
 define(nm, `$1')dnl
 define(NM, `$1')dnl
-define(ns_s, `__PTPMGMT_NAMESPACE_BEGIN
-
-')dnl
-define(ns_e, `
-__PTPMGMT_NAMESPACE_END
-')dnl
+define(ns_s, `__PTPMGMT_NAMESPACE_BEGIN')dnl
+define(ns_e, `__PTPMGMT_NAMESPACE_END')dnl
 define(sz, `$1')dnl
 define(cpp_cod, `$1
 ')dnl

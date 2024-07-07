@@ -16,6 +16,10 @@
 #include "c/sock.h"
 #include "c/msg.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** pointer to ptpmgmt initialization structure */
 typedef struct ptpmgmt_init_t *ptpmgmt_init;
 
@@ -111,5 +115,9 @@ struct ptpmgmt_init_t {
  * @return new allocated object or null in case of error
  */
 ptpmgmt_init ptpmgmt_init_alloc();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_INIT_H */

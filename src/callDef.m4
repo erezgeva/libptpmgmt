@@ -29,7 +29,8 @@ ics(CALL_DEFS)
 cpp_st()dnl
 incb(msg)
 
-ns_s()dnl
+ns_s()
+
 c_cod(`/** pointer to ptpmgmt dispatcher structure */')dnl
 c_cod(`typedef const struct ptpmgmt_dispatcher_t *const_ptpmgmt_dispatcher;')dnl
 c_cod(`/** pointer to ptpmgmt builder structure */')dnl
@@ -129,7 +130,8 @@ cpp_cod(`    {return false;}')dnl')dnl
 define(A, `ifelse(regexp($6, `^UFB', `0'),`0',`B($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 };
-ns_e()dnl
+
+ns_e()
 cpp_en(callDef)dnl
 
 ice(CALL_DEFS)

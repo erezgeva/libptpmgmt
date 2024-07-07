@@ -32,6 +32,7 @@
 #include <linux/version.h>
 #endif
 #include "ptp.h"
+#include "c/ptp.h"
 #include "timeCvrt.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -117,7 +118,8 @@ extern "C" {
         int rsv[11];
     };
 }
-#define ptp_clock_caps next_ptp_clock_caps
+#else
+#define next_ptp_clock_caps ptp_clock_caps
 #endif
 #ifndef PTP_EXTTS_REQUEST2
 #define PTP_EXTTS_REQUEST2 _IOW(PTP_CLK_MAGIC, 11, ptp_extts_request)
@@ -481,14 +483,14 @@ bool PtpClock::setTimeToSys() const
 {
     return setTimeFromTime(m_isInit, m_clkId, CLOCK_REALTIME);
 }
-static inline bool PtpClock_fetchCaps(bool isInit, int fd, ptp_clock_caps &cps)
+static inline bool PtpClock_fetchCaps(bool isInit, int fd, ptp_clock_caps *cps)
 {
     if(!isInit) {
         PTPMGMT_ERROR("not initialized yet");
         return false;
     }
-    cps = {0};
-    if(ioctl(fd, PTP_CLOCK_GETCAPS, &cps) == -1) {
+    *cps = {0};
+    if(ioctl(fd, PTP_CLOCK_GETCAPS, cps) == -1) {
         PTPMGMT_ERROR_P("PTP_CLOCK_GETCAPS");
         return false;
     }
@@ -497,8 +499,8 @@ static inline bool PtpClock_fetchCaps(bool isInit, int fd, ptp_clock_caps &cps)
 }
 bool PtpClock::fetchCaps(PtpCaps_t &caps) const
 {
-    ptp_clock_caps cps;
-    if(!PtpClock_fetchCaps(m_isInit, m_fd, cps))
+    next_ptp_clock_caps cps;
+    if(!PtpClock_fetchCaps(m_isInit, m_fd, (ptp_clock_caps *)&cps))
         return false;
     caps.max_ppb = cps.max_adj;
     caps.num_alarm = cps.n_alarm;
@@ -870,9 +872,6 @@ __PTPMGMT_NAMESPACE_END
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/ptp.h"
-
     static void ptpmgmt_ifInfo_free(ptpmgmt_ifInfo me)
     {
         if(me != nullptr) {
@@ -1109,7 +1108,7 @@ extern "C" {
     {
         if(clk != nullptr && clk->_this != nullptr && caps != nullptr) {
             PtpClock *p = (PtpClock *)clk->_this;
-            return PtpClock_fetchCaps(p->isInit(), p->getFd(), *caps);
+            return PtpClock_fetchCaps(p->isInit(), p->getFd(), caps);
         }
         return false;
     }

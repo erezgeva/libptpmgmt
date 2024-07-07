@@ -11,6 +11,7 @@
 
 #include <regex>
 #include "opt.h"
+#include "c/opt.h"
 #include "ver.h"
 #include "comp.h"
 
@@ -216,9 +217,6 @@ __PTPMGMT_NAMESPACE_END
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/opt.h"
-
     static void ptpmgmt_opt_free(ptpmgmt_opt me)
     {
         if(me != nullptr) {

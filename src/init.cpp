@@ -14,6 +14,7 @@
 #include <unistd.h>
 #endif
 #include "init.h"
+#include "c/init.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 
@@ -189,9 +190,6 @@ __PTPMGMT_NAMESPACE_END
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/init.h"
-
     extern ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg);
     extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
     extern ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg);

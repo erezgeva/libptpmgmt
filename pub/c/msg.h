@@ -18,6 +18,10 @@
 #include "c/proc.h"
 #include "c/sig.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** pointer to ptpmgmt message structure */
 typedef struct ptpmgmt_msg_t *ptpmgmt_msg;
 
@@ -792,5 +796,9 @@ ptpmgmt_msg ptpmgmt_msg_alloc();
  * @return new message structure or null in case of error
  */
 ptpmgmt_msg ptpmgmt_msg_alloc_prms(ptpmgmt_cpMsgParams prms);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_MSG_H */

@@ -28,7 +28,8 @@ ics(MNG_IDS)
 cpp_st()dnl
 #include "name.h"
 
-ns_s()dnl
+ns_s()
+
 cpp_cod(`#undef DOMAIN /* Old math.h header uses this macro */')dnl
 cpp_cod(`')dnl
 /**
@@ -46,7 +47,8 @@ cpp_cod(`    FIRST_MNG_ID = NULL_PTP_MANAGEMENT, /**< First management ID */')dn
     /**< @endcond */
 cpp_cod(`    NULL_MANAGEMENT = NULL_PTP_MANAGEMENT /**< old name in IEEE 1588-2008 */')dnl
 };
-ns_e()dnl
+
+ns_e()
 cpp_en(mngIds)dnl
 
 ice(MNG_IDS)

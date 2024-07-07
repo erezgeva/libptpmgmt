@@ -23,6 +23,10 @@ typedef long ssize_t;
 #include "c/cfg.h"
 #include "c/ptp.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** pointer to ptpmgmt socket structure */
 typedef struct ptpmgmt_sk_t *ptpmgmt_sk;
 
@@ -464,5 +468,9 @@ enum ptpmgmt_socket_class {
  *        or null on error
  */
 ptpmgmt_sk ptpmgmt_sk_alloc(enum ptpmgmt_socket_class type);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_SOCK_H */

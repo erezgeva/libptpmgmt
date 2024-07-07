@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include "msg.h"
+#include "c/msg.h"
 #include "timeCvrt.h"
 #include "comp.h"
 
@@ -1440,9 +1441,6 @@ __PTPMGMT_NAMESPACE_END
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/msg.h"
-
     extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
 
     // C interfaces

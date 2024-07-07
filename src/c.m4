@@ -21,8 +21,12 @@ define(strc, `struct ptpmgmt_$1')dnl
 define(strcc, `struct ptpmgmt_$1')dnl
 define(nm, `ptpmgmt_$1')dnl
 define(NM, `PTPMGMT_$1')dnl
-define(ns_s, `')dnl
-define(ns_e, `')dnl
+define(ns_s, `#ifdef __cplusplus
+extern "C" {
+#endif')dnl
+define(ns_e, `#ifdef __cplusplus
+}
+#endif')dnl
 define(sz, `')dnl
 define(cpp_cod, `')dnl
 define(c_cod, `$1

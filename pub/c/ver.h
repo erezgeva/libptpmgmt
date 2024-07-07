@@ -15,6 +15,10 @@
 #ifndef __PTPMGMT_C_VER_H
 #define __PTPMGMT_C_VER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Get this library version
  * @return this library version
@@ -36,5 +40,9 @@ int ptpmgmt_getVersionMinor();
  * @note version value use high byte for major and low byte for minor
  */
 unsigned ptpmgmt_getVersionValue();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_VER_H */

@@ -12,9 +12,11 @@
 #ifndef __PTPMGMT_C_CFG_H
 #define __PTPMGMT_C_CFG_H
 
-#ifndef __cplusplus
+#ifdef __cplusplus
+extern "C" {
+#else
 #include <stdbool.h>
-#endif /* __cplusplus */
+#endif
 #include "name.h"
 
 /** pointer to ptpmgmt configuration structure */
@@ -349,5 +351,9 @@ struct ptpmgmt_safile_t {
  * @return new SA file structure or null on error
  */
 ptpmgmt_safile ptpmgmt_safile_alloc();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_CFG_H */

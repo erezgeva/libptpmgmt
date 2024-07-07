@@ -14,6 +14,10 @@
 
 #include "c/msg.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** pointer to ptpmgmt json structure */
 typedef struct ptpmgmt_json_t *ptpmgmt_json;
 
@@ -262,5 +266,9 @@ bool ptpmgmt_json_isLibShared();
  * @return new json structure or null in case of error
  */
 ptpmgmt_json ptpmgmt_json_alloc();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_JSON_H */

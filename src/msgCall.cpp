@@ -9,6 +9,7 @@
  */
 
 #include "msgCall.h"
+#include "c/msgCall.h"
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -76,9 +77,6 @@ bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 __PTPMGMT_NAMESPACE_END
 
 extern "C" {
-
-#include "c/msgCall.h"
-
     // C interfaces
 #define _ptpmCaseUF(n)\
 case PTPMGMT_##n:if(d->n##_h != nullptr){\

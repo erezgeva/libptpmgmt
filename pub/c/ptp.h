@@ -17,6 +17,10 @@
 #include <linux/ptp_clock.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** pointer to ptpmgmt network interface structure */
 typedef struct ptpmgmt_ifInfo_t *ptpmgmt_ifInfo;
 
@@ -377,5 +381,9 @@ ptpmgmt_clock ptpmgmt_clock_alloc();
  * @return a pointer to a new ptpmgmt clock structure or null on error
  */
 ptpmgmt_clock ptpmgmt_clock_alloc_sys();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_IF_H */

@@ -32,6 +32,7 @@
 #include <linux/filter.h>
 #endif
 #include "sock.h"
+#include "c/sock.h"
 #include "timeCvrt.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
@@ -846,9 +847,6 @@ static const char ptpm_empty_str[] = "";
 __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
-
-#include "c/sock.h"
-
 #define C2CPP_valid(func, cls)\
     static inline cls *valid_##func(const_ptpmgmt_sk sk) {\
         if(sk == nullptr || sk->_this == nullptr)\

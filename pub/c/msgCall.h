@@ -13,6 +13,10 @@
 
 #include "c/callDef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Call handler based on Message last received message
  * @param[in] cookie user cookie passed to user callback
@@ -34,5 +38,9 @@ void ptpmgmt_callHadler(void *cookie, const_ptpmgmt_dispatcher d,
  */
 void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d,
     ptpmgmt_msg msg, enum ptpmgmt_mng_vals_e tlv_id, const void *tlv);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __PTPMGMT_C_MSG_CALL_H */
