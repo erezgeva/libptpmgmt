@@ -138,10 +138,7 @@ extern "C" { extern Json_lib *ptpm_json; }
 #define LIB_SHARED false
 #endif // PIC
 
-Json2msg::Json2msg():
-    m_managementId(NULL_PTP_MANAGEMENT),
-    m_action(GET),
-    m_have{0}
+Json2msg::Json2msg()
 {
     Json2msgCount++;
 }

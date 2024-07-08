@@ -70,14 +70,11 @@ class ConfigSection
     uint32_t m_vals[str_base_val - val_base_val];
     /* Determine if a value is set in the configuration file.
      * Relevant for non global sections. */
-    bool m_set[last_val];
+    bool m_set[last_val] = { false };
 
     friend class ConfigFile;
     void setGlobal();
     bool set_val(char *line);
-
-  public:
-    ConfigSection() : m_set{0} {} /* Must be public for map usage */
 };
 /**< @endcond */
 #endif /* SWIG */

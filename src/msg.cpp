@@ -192,32 +192,12 @@ bool Message::allowedAction(mng_vals_e id, actionField_e action)
     return mng_all_vals[id].allowed & (1 << action);
 }
 Message::Message() :
-    m_sendAction(GET),
-    m_msgLen(0),
-    m_dataSend(nullptr),
-    m_tlv_id(NULL_PTP_MANAGEMENT),
-    m_sequence(0),
-    m_isUnicast(true),
-    m_replyAction(RESPONSE),
-    m_replayTlv_id(NULL_PTP_MANAGEMENT),
-    m_haveAuth(false),
-    m_hmac(nullptr),
     m_init(m_peer),
     m_init(m_target)
 {
 }
 Message::Message(const MsgParams &prms) :
-    m_sendAction(GET),
-    m_msgLen(0),
-    m_dataSend(nullptr),
-    m_tlv_id(NULL_PTP_MANAGEMENT),
-    m_sequence(0),
-    m_isUnicast(true),
-    m_replyAction(RESPONSE),
-    m_replayTlv_id(NULL_PTP_MANAGEMENT),
     m_prms(prms),
-    m_haveAuth(false),
-    m_hmac(nullptr),
     m_init(m_peer),
     m_init(m_target)
 {

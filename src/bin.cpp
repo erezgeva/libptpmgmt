@@ -92,12 +92,6 @@ static inline bool parseB64(const char c, uint8_t &v, uint8_t &safe)
     v = r;
     return false; // pass
 }
-void Binary::init()
-{
-    m_buf = nullptr;
-    m_alloc = 0;
-    m_size = 0;
-}
 bool Binary::iResize(size_t l_alloc)
 {
     if(l_alloc <= m_alloc)
@@ -123,24 +117,20 @@ Binary::~Binary()
 }
 Binary::Binary()
 {
-    init();
     iResize(min_alloc_size);
 }
 Binary::Binary(const Binary &rhs)
 {
-    init();
     setBin(rhs.m_buf, rhs.m_size);
     iResize(min_alloc_size);
 }
 Binary::Binary(const void *buf, const size_t length)
 {
-    init();
     setBin(buf, length);
     iResize(min_alloc_size);
 }
 Binary::Binary(const size_t length, uint8_t set)
 {
-    init();
     if(iResize(length)) {
         m_size = length;
         if(m_size > 0)
@@ -149,7 +139,6 @@ Binary::Binary(const size_t length, uint8_t set)
 }
 Binary::Binary(const string &string)
 {
-    init();
     setBin(string);
     iResize(min_alloc_size);
 }

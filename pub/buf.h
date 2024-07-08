@@ -25,15 +25,15 @@ __PTPMGMT_NAMESPACE_BEGIN
 class Buf
 {
   private:
-    void *m_buf;
-    size_t m_size;
+    void *m_buf = nullptr;
+    size_t m_size = 0;
   public:
-    Buf(): m_buf(nullptr), m_size(0) {}
+    Buf() = default;
     /**
      * Create a new memory buffer
      * @param[in] size new buffer size
      */
-    Buf(size_t size): m_buf(nullptr), m_size(0) {alloc(size);}
+    Buf(size_t size) {alloc(size);}
     ~Buf();
     /**
      * Create a new memory buffer or resize existing one

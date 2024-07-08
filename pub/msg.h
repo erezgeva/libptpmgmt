@@ -65,17 +65,17 @@ class Message
     /**< @endcond */
 
     /* build parameters */
-    actionField_e     m_sendAction;
-    size_t            m_msgLen;
-    const BaseMngTlv *m_dataSend;
-    mng_vals_e        m_tlv_id; /* managementId */
+    actionField_e     m_sendAction = GET;
+    size_t            m_msgLen = 0;
+    const BaseMngTlv *m_dataSend = nullptr;
+    mng_vals_e        m_tlv_id = NULL_PTP_MANAGEMENT; /* managementId */
 
     /* parsing parameters */
-    uint16_t          m_sequence;
-    bool              m_isUnicast;
+    uint16_t          m_sequence = 0;
+    bool              m_isUnicast = true;
     uint8_t           m_PTPProfileSpecific;
-    actionField_e     m_replyAction;
-    mng_vals_e        m_replayTlv_id; /* managementId */
+    actionField_e     m_replyAction = RESPONSE;
+    mng_vals_e        m_replayTlv_id = NULL_PTP_MANAGEMENT; /* managementId */
     uint32_t          m_sdoId; /* parsed message sdoId (transportSpecific) */
     msgType_e         m_type; /* parsed message type */
     tlvType_e         m_mngType; /* parsed management message type */
@@ -96,8 +96,8 @@ class Message
     uint32_t          m_keyID; /**< Key id used for sending */
     uint8_t           m_sppID; /**< authentication security parameters ID */
     SaFile            m_sa; /**< authentication security association pool */
-    bool              m_haveAuth;  /**< Have Authentication */
-    HMAC_Key         *m_hmac; /**< sending key HMAC library instance */
+    bool              m_haveAuth = false;  /**< Have Authentication */
+    HMAC_Key         *m_hmac = nullptr; /**< sending key HMAC library instance */
 
     /* parsing parameters */
     PortIdentity_t    m_peer; /* parsed message peer port id */

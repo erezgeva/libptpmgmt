@@ -43,15 +43,14 @@ typedef long double float_freq;
 class IfInfo
 {
   private:
-    bool m_isInit;
-    int m_ifIndex, m_ptpIndex;
+    bool m_isInit = false;
+    int m_ifIndex = NO_SUCH_IF, m_ptpIndex = NO_SUCH_PTP;
     std::string m_ifName;
     Binary m_mac;
 
     bool initPtp(int fd, struct ifreq &m_ifr);
 
   public:
-    IfInfo() : m_isInit(false), m_ifIndex(NO_SUCH_IF), m_ptpIndex(NO_SUCH_PTP) {}
     /**
      * Find network interface information based on its name
      * @param[in] ifName network interface name

@@ -46,16 +46,17 @@ struct Pmc_option {
 class Options
 {
   private:
+
     static Pmc_option startOptions[];
-    size_t m_max_arg_name;
+    size_t m_max_arg_name = 0;
     std::vector<option> m_long_opts_list;
     Buf m_strings; /**< store the string used in option */
-    size_t m_last_strings; /**< next string location in m_strings */
+    size_t m_last_strings = 0; /**< next string location in m_strings */
     std::map<int, std::string> m_opts;
     std::string m_net_opts, m_all_opts, m_all_short_opts, m_with_opts, m_msg;
-    char m_net_select;
+    char m_net_select = 0;
     int m_argc, m_end_optind;
-    bool m_useDef;
+    bool m_useDef = false;
 
     class helpStore
     {
@@ -73,7 +74,7 @@ class Options
     };
     std::string help;
     std::vector<helpStore> helpVec;
-    bool helpUpdate;
+    bool helpUpdate = false;
 
   public:
     /** parsing return code */

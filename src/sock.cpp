@@ -419,7 +419,6 @@ bool SockBaseIf::setIf(const IfInfo &ifObj)
 }
 SockIp::SockIp(int domain, const char *mcast, sockaddr *addr, size_t len) :
     m_domain(domain),
-    m_udp_ttl(-1),
     m_addr(addr),
     m_addr_len(len),
     m_mcast_str(mcast)
@@ -563,7 +562,7 @@ bool SockIp4::setAllBase(const ConfigFile &cfg, const string &section)
     return setUdpTtl(cfg, section);
 }
 SockIp6::SockIp6() : SockIp(AF_INET6, ipv6_udp_mc, (sockaddr *) & m_addr6,
-        sizeof m_addr6), m_udp6_scope(-1)
+        sizeof m_addr6)
 {
     m_addr6 = {0};
     m_addr6.sin6_family = m_domain;
@@ -637,10 +636,6 @@ bool SockIp6::setAllBase(const ConfigFile &cfg, const string &section)
     return setUdpTtl(cfg, section) && setScope(cfg, section);
 }
 SockRaw::SockRaw() :
-    m_socket_priority(-1),
-    m_addr{0},
-    m_msg_tx{0},
-    m_msg_rx{0},
     m_init(m_hdr)
 {
 }

@@ -45,8 +45,8 @@ class Json2msg
   private:
     std::unique_ptr<BaseMngTlv> m_tlvData;
     /* Mandatory */
-    mng_vals_e m_managementId;
-    actionField_e m_action;
+    mng_vals_e m_managementId = NULL_PTP_MANAGEMENT;
+    actionField_e m_action = GET;
     /* optional */
     enum {
         have_unicastFlag,
@@ -60,7 +60,7 @@ class Json2msg
         have_dstPort,
         have_limit,
     };
-    bool m_have[have_limit];
+    bool m_have[have_limit] = { false };
     bool m_unicastFlag;
     uint8_t m_PTPProfileSpecific, m_domainNumber, m_versionPTP, m_minorVersionPTP;
     uint16_t m_sequenceId;

@@ -28,15 +28,14 @@ __PTPMGMT_NAMESPACE_BEGIN
 class Error
 {
   private:
-    int m_errno;
-    int m_line;
+    int m_errno = 0;
+    int m_line = 0;
     std::string m_file;
     std::string m_msg;
     std::string m_func;
     std::string m_fmsg;
     std::string m_emsg;
     void doClear();
-    Error() : m_line(0) {}
     void doError(bool use_errno, const char *file, int line, const char *func,
         const std::string &msg);
     const std::string &fetch();

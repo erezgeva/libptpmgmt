@@ -44,9 +44,9 @@ class SockBase
 {
   protected:
     /**< @cond internal */
-    int m_fd;
-    bool m_isInit;
-    SockBase() : m_fd(-1), m_isInit(false) {}
+    int m_fd = -1;
+    bool m_isInit = false;
+    SockBase() = default;
     bool sendReply(ssize_t cnt, size_t len) const;
     virtual bool sendBase(const void *msg, size_t len) = 0;
     virtual ssize_t rcvBase(void *buf, size_t bufSize, bool block) = 0;
@@ -448,9 +448,9 @@ class SockBaseIf : public SockBase
     std::string m_ifName; /* interface to use */
     Binary m_mac;
     int m_ifIndex;
-    bool m_have_if;
+    bool m_have_if = false;
     bool setInt(const IfInfo &ifObj);
-    SockBaseIf() : m_have_if(false) {}
+    SockBaseIf() = default;
     virtual bool setAllBase(const ConfigFile &cfg, const std::string &section) = 0;
     /**< @endcond */
 
@@ -526,7 +526,7 @@ class SockIp : public SockBaseIf
 {
   protected:
     /**< @cond internal */
-    int m_domain, m_udp_ttl;
+    int m_domain, m_udp_ttl = -1;
     /* First for bind then for send */
     sockaddr *m_addr;
     size_t m_addr_len;
@@ -590,7 +590,7 @@ class SockIp6 : public SockIp
 {
   private:
     sockaddr_in6 m_addr6;
-    int m_udp6_scope;
+    int m_udp6_scope = -1;
 
   protected:
     /**< @cond internal */
@@ -632,10 +632,10 @@ class SockRaw : public SockBaseIf
 {
   private:
     Binary m_ptp_dst_mac;
-    int m_socket_priority;
-    sockaddr_ll m_addr;
+    int m_socket_priority = -1;
+    sockaddr_ll m_addr = {0};
     iovec m_iov_tx[2], m_iov_rx[2];
-    msghdr m_msg_tx, m_msg_rx;
+    msghdr m_msg_tx = {0}, m_msg_rx = {0};
     ethhdr m_hdr;
     uint8_t m_rx_buf[sizeof(ethhdr)];
 
