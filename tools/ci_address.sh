@@ -30,6 +30,12 @@ emk()
 {
  make $* > /dev/null
 }
+s_mv()
+{
+ if [[ -f "$1" ]]; then
+   mv -f "$1" $2
+ fi
+}
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
 ci_address()
@@ -132,20 +138,29 @@ ci_abi()
  emk libptpmgmt.so
  echo "== Dump current version =="
  abi-dumper libptpmgmt.so -o cur.dump -lver 1 -public-headers pub
- local -r l="$(git tag | grep '^[0-9.]*$' | sort -n | tail -1)"
- local -r last_ci="$(git rev-parse HEAD)"
- echo "== Build last tag $l =="
- git checkout $l
+ local -r cur_hash="$(git rev-parse HEAD)"
+ local -r version="$ver_maj.$ver_min"
+ echo "== Build last tag $version =="
+ git checkout $version
  make clean
  emk config
  emk libptpmgmt.so
- git checkout "$last_ci"
+ git checkout "$cur_hash"
  echo "== Dump last tag version =="
  abi-dumper libptpmgmt.so -o old.dump -lver 0 -public-headers pub
  echo "== Compare ABI =="
  if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
    echo "== Found errors =="
    echo "1" > abi_error
+ fi
+ if [[ -d compat_reports ]]; then
+   cd compat_reports
+   for n in */*/*.htm* */*.htm*; do
+     s_mv "$n" .
+   done
+   s_mv "../old.dump" $version.dump
+   rmdir -p */* || true
+   cd ..
  fi
 }
 ci_abi_err()
@@ -448,7 +463,9 @@ main()
 {
  local -r me1="$(realpath -s "$0")"
  cd "$(realpath "$(dirname "$0")/..")"
+ local ver_maj ver_min
  source tools/util.sh
+ source tools/version
  local -r dr1="$(dirname "$me1")"
  local -r me="${me1//$dr1\//}"
  local n

@@ -15,6 +15,7 @@ AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],
         [libptpmgmt-]m4_defn([ptpm_VER]),
         [https://libptpmgmt.nwtime.org])
 AC_CONFIG_FILES([defs.mk])
+dnl Unique file to verify we use the proper folder for source
 AC_CONFIG_SRCDIR([src/mngIds.m4])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -44,10 +45,10 @@ AS_VAR_SET([ptpm_include_dirs],
 #----------------------------------------------------------------
 # Macroes
 #----------------------------------------------------------------
-m4_define([ptpm_result],
+AC_DEFUN([PTPM_RESULT],
           [AS_IF([test -z "${$1}"], [AC_MSG_RESULT([not found])],
           [AC_MSG_RESULT([${$1}])])])
-m4_define([ptpm_basename],
+AC_DEFUN([PTPM_BASENAME],
           [AS_VAR_SET([$1], [`expr "X$2" : 'X.*/\(.*\)'`])])
 
 #----------------------------------------------------------------
@@ -70,7 +71,7 @@ AS_IF([test -n "$ASTYLE"],
       [AS_VAR_SET([astylever], ["`$ASTYLE -V`"])
        for d in `$ASTYLE -V`; do :;done
        AS_VAR_SET([ASTYLEVER], ["$d"])])
-ptpm_result([ASTYLEVER])
+PTPM_RESULT([ASTYLEVER])
 AC_MSG_CHECKING([for astyle minimum version])
 AS_VERSION_COMPARE([3.1], [$ASTYLEVER],
                    [AS_VAR_SET([ASTYLEMINVER], ["$ASTYLEVER"])], # above 3.1
@@ -78,25 +79,25 @@ AS_VERSION_COMPARE([3.1], [$ASTYLEVER],
 # version 3.3 add some changes, we will use in the future
 AS_VERSION_COMPARE([3.2], [$ASTYLEVER],
                    [AS_UNSET([ASTYLEMINVER])]) # above 3.2
-ptpm_result([ASTYLEMINVER])
+PTPM_RESULT([ASTYLEMINVER])
 AC_CHECK_TOOL([CPPCHECK], [cppcheck])
 AS_IF([test -n "$CPPCHECK"],
       [AS_VAR_SET([CPPCHECK_OPT_BASE],
                   ["--suppress=preprocessorErrorDirective"]) # Ignore '#error'
        AC_LANG_CONFTEST([AC_LANG_SOURCE([])])
        AS_IF([$CPPCHECK --check-level=exhaustive conftest.cpp >/dev/null],
-	     [AS_VAR_SET([CPPCHECK_OPT_BASE],
-		             ["$CPPCHECK_OPT_BASE --check-level=exhaustive"])])])
+             [AS_VAR_SET([CPPCHECK_OPT_BASE],
+                         ["$CPPCHECK_OPT_BASE --check-level=exhaustive"])])])
 AC_CHECK_TOOL([DOXYGEN], [doxygen])
 AC_MSG_CHECKING([for doxygen version])
 AS_IF([test -n "$DOXYGEN"],
       [AS_VAR_SET([DOXYGENVER], ["`$DOXYGEN -v`"])])
-ptpm_result([DOXYGENVER])
+PTPM_RESULT([DOXYGENVER])
 AC_MSG_CHECKING([for doxygen minimum version])
 AS_VERSION_COMPARE([1.8], [$DOXYGENVER],
                    [AS_VAR_SET([DOXYGENMINVER], ["$DOXYGENVER"])], # above 1.8
                    [AS_VAR_SET([DOXYGENMINVER], ["$DOXYGENVER"])]) # equal 1.8
-ptpm_result([DOXYGENMINVER])
+PTPM_RESULT([DOXYGENMINVER])
 AC_CHECK_TOOL([DOTTOOL], [dot])
 AC_CHECK_TOOL([EPSTOPDF_TOOL], [epstopdf])
 AC_CHECK_TOOL([VALGRIND], [valgrind])
@@ -128,24 +129,24 @@ AS_UNSET([HAVE_UNISTD_H])
 AS_VAR_SET([ptpm_c_include], ['#include'])
 
 # Probe clang as it requires additional warning supression flags
-AS_IF([echo $CXX | $GREP 'clang' >/dev/null],
+AS_IF([echo "$CXX" | $GREP 'clang' >/dev/null],
       [AS_VAR_SET([USE_CLANG_CPP_COMPILE], ['use_clang'])])
-AS_IF([echo $CC | $GREP 'clang' >/dev/null],
+AS_IF([echo "$CC" | $GREP 'clang' >/dev/null],
       [AS_VAR_SET([USE_CLANG_C_COMPILE], ['use_clang'])])
 
 AS_VAR_SET([CC_VERSION], [`$CC -dumpversion`])
 AS_VAR_SET([CXX_VERSION], [`$CXX -dumpversion`])
 
 AC_MSG_CHECKING([for cross compilation])
-AS_IF([test "x$cross_compiling" = xyes],
+AS_IF([test "x$cross_compiling" = 'xyes'],
       [AS_VAR_SET([USE_CROSS_COMPILE], ['true'])])
-ptpm_result([USE_CROSS_COMPILE])
+PTPM_RESULT([USE_CROSS_COMPILE])
 
-m4_define([ptpm_cross],
+AC_DEFUN([PTPM_CROSS],
           [AS_IF([test -n "$USE_CROSS_COMPILE" &&\
-                  (echo ${$1} | $GREP "$build_cpu" >/dev/null)],
+                  (echo "${$1}" | $GREP "$build_cpu" >/dev/null)],
           [AS_VAR_SET([$1],
-                      [`echo ${$1} | $SED "s%$build_cpu%$host_cpu%"`])])])
+                      [`echo "${$1}" | $SED "s%$build_cpu%$host_cpu%"`])])])
 
 AC_MSG_CHECKING([compiler support colors])
 # https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.html
@@ -168,7 +169,7 @@ AS_IF([test -z "$CXX_COLOR_USE"],
           [AS_VAR_SET([CXX_COLOR_USE], ["$ptpm_color"])
            AS_VAR_SET([CXX_COLOR_NONE], ["$ptpm_color_none"])])])
 
-ptpm_result([CXX_COLOR_USE])
+PTPM_RESULT([CXX_COLOR_USE])
 AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags"])
 
 # POSIX/GNU headers included by inner source code
@@ -212,7 +213,7 @@ AC_SUBST([HAVE_UNISTD_H])
 # Root directory
 AC_MSG_CHECKING([for project root folder])
 AS_VAR_SET([ROOT_DIR], ["`pwd`"])
-ptpm_result([ROOT_DIR])
+PTPM_RESULT([ROOT_DIR])
 AC_SUBST([ROOT_DIR])
 
 AS_UNSET([CXXFLAGS_PMC])
@@ -285,7 +286,7 @@ AC_ARG_ENABLE([libsys],
               [AS_VAR_SET([skip_libsys], ["$enableval"])],
               [AS_UNSET([skip_libsys])])
 # libsys is design after GNU libc, it breaks with clang
-AS_IF([test "x$skip_libsys" == xno],
+AS_IF([test "x$skip_libsys" == 'xno'],
       [AS_VAR_SET([SKIP_LIBSYS], ['skip_libsys'])],
       [AS_UNSET([SKIP_LIBSYS])])
 
@@ -304,11 +305,12 @@ AS_UNSET([ASAN_LIBS])
 
 AS_VAR_SET([ptpm_keep_cppflags], ["$CPPFLAGS"])
 AS_VAR_SET([ptpm_keep_ldflags], ["$LDFLAGS"])
+AS_VAR_SET([san], [m4_map_args_w([address pointer-compare pointer-subtract
+                                  undefined leak],
+                                 ['-fsanitize='], [], [' '])])
 
-for n in address pointer-compare pointer-subtract undefined leak; do
-   AS_VAR_SET([CPPFLAGS], ["$CPPFLAGS -fsanitize=$n"])
-   AS_VAR_SET([LDFLAGS], ["$LDFLAGS -fsanitize=$n"])
-done
+AS_VAR_SET([CPPFLAGS], ["$CPPFLAGS $san"])
+AS_VAR_SET([LDFLAGS], ["$LDFLAGS $san"])
 
 AC_MSG_CHECKING([for Address Sanitizer libraries])
 AC_LINK_IFELSE(
@@ -419,11 +421,11 @@ AC_ARG_ENABLE([fjson],
               [AS_VAR_SET([skip_fsonc], ["$enableval"])],
               [AS_UNSET([skip_fsonc])])
 
-AS_IF([test "x$skip_json" = xno],
+AS_IF([test "x$skip_json" = 'xno'],
       [AS_VAR_SET([skip_jsonc], ['no'])
        AS_VAR_SET([skip_fsonc], ['no'])])
 
-AS_IF([test "x$skip_jsonc" != xno],
+AS_IF([test "x$skip_jsonc" != 'xno'],
       [AC_CHECK_HEADER([json-c/json.h],
                        [AS_VAR_SET([HAVE_JSONC_LIB], ['json-c/json.h'])])
        AS_IF([test -n "$PKG_CONFIG"],
@@ -434,7 +436,7 @@ AS_IF([test "x$skip_jsonc" != xno],
                            [AS_VAR_SET([JSONC_LIB_FLAGS], ['-ljson-c'])])],
                     [AS_UNSET([HAVE_JSONC_LIB])])])
 
-AS_IF([test "x$skip_fsonc" != xno],
+AS_IF([test "x$skip_fsonc" != 'xno'],
       [AC_CHECK_HEADER([libfastjson/json.h],
                        [AS_VAR_SET([HAVE_FJSON_LIB], ['libfastjson/json.h'])])
        AS_IF([test -n "$PKG_CONFIG"],
@@ -461,16 +463,16 @@ AS_UNSET([PACKAGE_VERSION_VAL])
 
 . ./tools/version
 AC_MSG_CHECKING([for package version string])
-ptpm_result([PACKAGE_VERSION])
+PTPM_RESULT([PACKAGE_VERSION])
 AC_MSG_CHECKING([for package version major])
 AS_VAR_SET([PACKAGE_VERSION_MAJ], ["$ver_maj"])
-ptpm_result([PACKAGE_VERSION_MAJ])
+PTPM_RESULT([PACKAGE_VERSION_MAJ])
 AC_MSG_CHECKING([for package version minor])
 AS_VAR_SET([PACKAGE_VERSION_MIN], ["$ver_min"])
-ptpm_result([PACKAGE_VERSION_MIN])
+PTPM_RESULT([PACKAGE_VERSION_MIN])
 AC_MSG_CHECKING([for package version value])
 AS_VAR_SET([PACKAGE_VERSION_VAL], ["`printf '0x%.2x%.2x' $ver_maj $ver_min`"])
-ptpm_result([PACKAGE_VERSION_VAL])
+PTPM_RESULT([PACKAGE_VERSION_VAL])
 AC_SUBST([PACKAGE_VERSION_MAJ])
 AC_SUBST([PACKAGE_VERSION_MIN])
 AC_SUBST([PACKAGE_VERSION_VAL])
@@ -521,31 +523,29 @@ AC_ARG_WITH([swig],
             [AS_VAR_SET([SWIGBIN], ["$withval"])],
             [AS_VAR_SET([SWIGBIN], ['yes'])])
 
-if test "x$SWIGBIN" = xno; then
-  AC_MSG_NOTICE([Disabling swig])
-else
-  AS_IF([test "x$SWIGBIN" = xyes],
-        [AC_CHECK_TOOL([SWIG], [swig])],
-        [AS_VAR_SET([SWIG], ["$SWIGBIN"])])
-  AC_MSG_CHECKING([for swig version])
-  AS_VAR_SET([SWIGVER], ["`$SWIG -version | $GREP Version | $SED 's%.* %%'`"])
-  ptpm_result([SWIGVER])
-  AC_MSG_CHECKING([for swig minimum version])
-  AS_VERSION_COMPARE([4.1], [$SWIGVER],
-                     [AS_VAR_SET([SWIGMINVER], ["$SWIGVER"])], # above 4.1
-                     [AS_VAR_SET([SWIGMINVER], ["$SWIGVER"])]) # equal 4.1
+AS_IF([test "x$SWIGBIN" = 'xno'],
+  [AC_MSG_NOTICE([Disabling swig])],
+  [AS_IF([test "x$SWIGBIN" = 'xyes'],
+         [AC_CHECK_TOOL([SWIG], [swig])],
+         [AS_VAR_SET([SWIG], ["$SWIGBIN"])])
+   AC_MSG_CHECKING([for swig version])
+   AS_VAR_SET([SWIGVER], ["`$SWIG -version | $GREP Version | $SED 's%.* %%'`"])
+   PTPM_RESULT([SWIGVER])
+   AC_MSG_CHECKING([for swig minimum version])
+   AS_VERSION_COMPARE([4.1], [$SWIGVER],
+                      [AS_VAR_SET([SWIGMINVER], ["$SWIGVER"])], # above 4.1
+                      [AS_VAR_SET([SWIGMINVER], ["$SWIGVER"])]) # equal 4.1
 
-  ptpm_result([SWIGMINVER])
-  AC_MSG_CHECKING([for swig library])
-  AS_VAR_SET([SWIGLIB], ["`$SWIG -swiglib`"])
-  ptpm_result([SWIGLIB])
+   PTPM_RESULT([SWIGMINVER])
+   AC_MSG_CHECKING([for swig library])
+   AS_VAR_SET([SWIGLIB], ["`$SWIG -swiglib`"])
+   PTPM_RESULT([SWIGLIB])
 
-  AS_IF([test -n "$SWIGLIB"],
-        [AC_MSG_CHECKING([for swig argcargv])
-         AS_IF([test ! -r $SWIGLIB/go/argcargv.i],
-               [AS_VAR_SET([SWIGARGCARGV_GO], ['true'])])
-         ptpm_result([SWIGARGCARGV_GO])])
-fi
+   AS_IF([test -n "$SWIGLIB"],
+         [AC_MSG_CHECKING([for swig argcargv])
+          AS_IF([test ! -r "$SWIGLIB/go/argcargv.i"],
+                [AS_VAR_SET([SWIGARGCARGV_GO], ['true'])])
+          PTPM_RESULT([SWIGARGCARGV_GO])])])
 
 AC_SUBST([SWIG])
 AC_SUBST([SWIGBIN])
@@ -558,19 +558,17 @@ AC_SUBST([SWIGARGCARGV_GO])
 # Target languages
 #--------------------------------------------------------------------
 AC_MSG_CHECKING([for build wrapper])
-if test -z "$SWIGMINVER"; then
-  AS_VAR_SET([alllang_default], ['no'])
-  AC_MSG_RESULT([no proper swig])
-else
-  AC_ARG_ENABLE([alllang],
-              [AS_HELP_STRING([--disable-alllang], [Disable all languages])],
-              [AS_VAR_SET([with_alllang], ["$enableval"])],
-              [AS_UNSET([with_alllang])])
-  AS_IF([test "x$with_alllang" = 'xno'],
-        [AS_VAR_SET([alllang_default], ['no'])],
-        [AS_VAR_SET([alllang_default], ['yes'])])
-  ptpm_result([alllang_default])
-fi
+AS_IF([test -z "$SWIGMINVER"],
+  [AS_VAR_SET([alllang_default], ['no'])
+   AC_MSG_RESULT([no proper swig])],
+  [AC_ARG_ENABLE([alllang],
+               [AS_HELP_STRING([--disable-alllang], [Disable all languages])],
+               [AS_VAR_SET([with_alllang], ["$enableval"])],
+               [AS_UNSET([with_alllang])])
+   AS_IF([test "x$with_alllang" = 'xno'],
+         [AS_VAR_SET([alllang_default], ['no'])],
+         [AS_VAR_SET([alllang_default], ['yes'])])
+   PTPM_RESULT([alllang_default])])
 
 #--------------------------------------------------------------------
 # Look for Tcl
@@ -606,72 +604,68 @@ AC_ARG_WITH([tcllib],
             [AS_UNSET([TCLLIB])])
 
 # First, check for '--without-tcl' or '--with-tcl=no'.
-if test "x$TCLPACKAGE" = xno; then
+if test "x$TCLPACKAGE" = 'xno'; then
   AC_MSG_NOTICE([Disabling Tcl])
   AS_UNSET([TCLLIB])
 else
   AC_MSG_CHECKING([for Tcl configuration])
 
   # First check to see if --with-tclconfig was specified.
-  if test "x$with_tclconfig" != x; then
-    AS_IF([test -f "$with_tclconfig/tclConfig.sh"],
-          [AS_VAR_SET([TCLCONFIG], ["`(cd $with_tclconfig; pwd)`"])],
-          [AC_MSG_ERROR([$with_tcl directory does not contain tclConfig.sh])])
-  fi
+  AS_IF([test "x$with_tclconfig" != 'x'],
+    [AS_IF([test -f "$with_tclconfig/tclConfig.sh"],
+           [AS_VAR_SET([TCLCONFIG], ["`(cd $with_tclconfig; pwd)`"])],
+           [AC_MSG_ERROR([$with_tcl directory does not contain tclConfig.sh])])])
   # check in a few common install locations
   AS_VAR_SET([dirs], ["/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/"])
   AS_VAR_SET([dirs], ["$dirs /usr/local/lib*/tcl*/"])
-  AS_IF([test "x$TCLCONFIG" = x],
+  AS_IF([test "x$TCLCONFIG" = 'x'],
         [for d in $dirs; do
            for i in `ls -d -r $d 2>/dev/null`; do
-             AS_IF([test -f $i'tclConfig.sh'],
+             AS_IF([test -f "${i}tclConfig.sh"],
                    [AS_VAR_SET([TCLCONFIG], ["`(cd $i; pwd)`"])
                     break])
            done
          done])
 
-  if test "x$TCLCONFIG" = x; then
-    AC_MSG_RESULT([no])
-  else
-    AC_MSG_RESULT([found $TCLCONFIG/tclConfig.sh])
-    . $TCLCONFIG/tclConfig.sh
-    AS_IF([test -z "$TCLINCDIR"],
-          [AS_VAR_SET([TCLINCDIR],
-                      [`echo $TCL_INCLUDE_SPEC | $SED 's%^-I%%'`])])
-    AS_IF([test -z "$TCLLIB"], [AS_VAR_SET([TCLLIB], ["$TCL_LIB_SPEC"])])
-    if test -n "$TCL_VERSION"; then
-      AC_MSG_CHECKING([for Tcl version])
-      AS_VAR_SET([TCLVER], ["$TCL_VERSION"])
-      AS_VERSION_COMPARE([8.0], [$TCL_VERSION],
-                         [AS_VAR_SET([TCLMINVER], ["$TCLVER"])], # above 8.0
-                         [AS_VAR_SET([TCLMINVER], ["$TCLVER"])]) # equal 8.0
-      ptpm_result([TCLMINVER])
-    fi
-    if test -n "$TCL_PACKAGE_PATH"; then
-      AC_MSG_CHECKING([for Tcl package path])
-      for d in $TCL_PACKAGE_PATH; do
-        AS_IF([echo $d | $GREP "$host_cpu" >/dev/null],
-              [AS_VAR_SET([TCL_PKG_DIR], ["$d"])
-               break])
-      done
-      AS_IF([test -z "$TCL_PKG_DIR"],
-            [for d in $TCL_PACKAGE_PATH; do
-               AS_IF([test "x$d" = "x$TCLCONFIG"],
-                     [AS_VAR_SET([TCL_PKG_DIR], ["$d"])
-                      break])
-             done])
-      AS_IF([test -z "$TCL_PKG_DIR"],
-            [AS_VAR_SET([i], [0])
-             for d in $TCL_PACKAGE_PATH; do
-               AS_VAR_ARITH([i], [$i + 1])
-             done
-             AS_IF([test $i -eq 1],
-                   [AS_VAR_SET([TCL_PKG_DIR],
-                               [$TCL_PACKAGE_PATH])])])
-      ptpm_result([TCL_PKG_DIR])
-    fi
-  fi
-  AS_IF([test "x$TCLPACKAGE" != xyes],
+  AS_IF([test "x$TCLCONFIG" = 'x'],
+    [AC_MSG_RESULT([no])],
+    [AC_MSG_RESULT([found $TCLCONFIG/tclConfig.sh])
+     . $TCLCONFIG/tclConfig.sh
+     AS_IF([test -z "$TCLINCDIR"],
+           [AS_VAR_SET([TCLINCDIR],
+                       [`echo "$TCL_INCLUDE_SPEC" | $SED 's%^-I%%'`])])
+     AS_IF([test -z "$TCLLIB"], [AS_VAR_SET([TCLLIB], ["$TCL_LIB_SPEC"])])
+     AS_IF([test -n "$TCL_VERSION"],
+           [AC_MSG_CHECKING([for Tcl version])
+            AS_VAR_SET([TCLVER], ["$TCL_VERSION"])
+            AS_VERSION_COMPARE([8.0], [$TCL_VERSION],
+                               [AS_VAR_SET([TCLMINVER], ["$TCLVER"])], # above 8.0
+                               [AS_VAR_SET([TCLMINVER], ["$TCLVER"])]) # equal 8.0
+            PTPM_RESULT([TCLMINVER])])
+     AS_IF([test -n "$TCL_PACKAGE_PATH"],
+       [AC_MSG_CHECKING([for Tcl package path])
+        for d in $TCL_PACKAGE_PATH; do
+          AS_IF([echo "$d" | $GREP "$host_cpu" >/dev/null],
+                [AS_VAR_SET([TCL_PKG_DIR], ["$d"])
+                 break])
+        done
+        AS_IF([test -z "$TCL_PKG_DIR"],
+              [for d in $TCL_PACKAGE_PATH; do
+                 AS_IF([test "x$d" = "x$TCLCONFIG"],
+                       [AS_VAR_SET([TCL_PKG_DIR], ["$d"])
+                        break])
+               done])
+        AS_IF([test -z "$TCL_PKG_DIR"],
+              [AS_VAR_SET([i], [0])
+               for d in $TCL_PACKAGE_PATH; do
+                 AS_VAR_ARITH([i], [$i + 1])
+               done
+               AS_IF([test $i -eq 1],
+                     [AS_VAR_SET([TCL_PKG_DIR],
+                                 [$TCL_PACKAGE_PATH])])])
+        PTPM_RESULT([TCL_PKG_DIR])])])
+
+  AS_IF([test "x$TCLPACKAGE" != 'xyes'],
         [AS_IF([test -z "$TCLINCDIR"],
                [AS_VAR_SET([TCLINCDIR], ["$TCLPACKAGE/include"])])
          AS_IF([test -z "$TCLLIB"],
@@ -679,25 +673,25 @@ else
   AC_MSG_CHECKING([for Tcl header files])
   AS_IF([test -z "$TCLINCDIR"],
         [for i in $ptpm_include_dirs; do
-           AS_IF([test -r $i/tcl.h],
+           AS_IF([test -r "$i/tcl.h"],
                  [AC_MSG_RESULT([$i])
                   AS_VAR_SET([TCLINCDIR], ["$i"])
                   break])
          done])
   AS_IF([test -n "$TCLINCDIR"],
         [AS_VAR_SET([TCLINCLUDE], ["-I$TCLINCDIR"])])
-  ptpm_result([TCLINCLUDE])
+  PTPM_RESULT([TCLINCLUDE])
 
   AC_MSG_CHECKING([for Tcl library])
   AS_IF([test -z "$TCLLIB"],
         [AS_VAR_SET([dirs],
          ['/usr/local/lib /usr/lib /opt/local/lib /opt/freeware/lib'])
          for i in $dirs; do
-           AS_IF([test -r $i/libtcl.a],
+           AS_IF([test -r "$i/libtcl.a"],
                  [AS_VAR_SET([TCLLIB], ["-L$i -ltcl"])
                   break])
          done])
-  ptpm_result([TCLLIB])
+  PTPM_RESULT([TCLLIB])
 fi
 
 AC_SUBST([TCLCONFIG])
@@ -731,21 +725,19 @@ dnl '
             [AS_VAR_SET([PY3BIN], ["$alllang_default"])])
 
 # First, check for '--without-python3' or '--with-python3=no'.
-if test "x$PY3BIN" = xno; then
+if test "x$PY3BIN" = 'xno'; then
   AC_MSG_NOTICE([Disabling Python 3.x probe])
   AS_UNSET([PY3LINK])
 else
-  if test "x$PY3BIN" = xyes; then
-    for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
-      AC_CHECK_PROGS([PYTHON3], [python$py_ver])
-      AS_IF([test -n "$PYTHON3"],
-            [AC_CHECK_PROGS([PY3CONFIG], [$PYTHON3-config])
-             AS_IF([test -n "$PY3CONFIG"], [break])])
-    done
-  else
-    AS_VAR_SET([PYTHON3], ["$PY3BIN"])
-    AC_CHECK_PROGS([PY3CONFIG], [$PYTHON3-config])
-  fi
+  AS_IF([test "x$PY3BIN" = 'xyes'],
+    [for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
+       AC_CHECK_PROGS([PYTHON3], [python$py_ver])
+       AS_IF([test -n "$PYTHON3"],
+             [AC_CHECK_PROGS([PY3CONFIG], [$PYTHON3-config])
+              AS_IF([test -n "$PY3CONFIG"], [break])])
+     done],
+    [AS_VAR_SET([PYTHON3], ["$PY3BIN"])
+     AC_CHECK_PROGS([PY3CONFIG], [$PYTHON3-config])])
 
   AS_IF([test -n "$PYTHON3"],
         [AC_MSG_CHECKING([for $PYTHON3 major version number])
@@ -767,12 +759,12 @@ else
                  print(operator.getitem(os.path.split(\
                  operator.getitem(os.path.split(string.__@&t@file__),\
                  0)),1))") 2>/dev/null`])
-    ptpm_result([PY3VERSION])
+    PTPM_RESULT([PY3VERSION])
 
     # Set the include directory
     AC_MSG_CHECKING([for Python 3.x header files])
     AS_VAR_SET([PY3INCLUDE], ["`($PY3CONFIG --includes) 2>/dev/null`"])
-    ptpm_result([PY3INCLUDE])
+    PTPM_RESULT([PY3INCLUDE])
 
     AS_IF([test -n "$PY3INCLUDE"],
           [AS_VAR_SET([var], ['PY3INCDIR'])
@@ -788,7 +780,7 @@ else
     for d in $dirs; do
       AS_VAR_SET([have_lib], ["`echo $d | $GREP '^$libdir'`"])
       AS_VAR_SET([have_ver], ["`echo $d | $GREP $PY3VERSION`"])
-      AS_IF([test "x$have_lib" != x && test "x$have_ver" != x],
+      AS_IF([test "x$have_lib" != 'x' && test "x$have_ver" != 'x'],
             [AS_VAR_SET([PY3SITE_DIR], ["$d"])
              break])
     done
@@ -796,30 +788,30 @@ else
           [for d in $dirs; do
              AS_VAR_SET([not_local], ["`echo $d | $GREP '/local/'`"])
              AS_VAR_SET([have_ver], ["`echo $d | $GREP $PY3VERSION`"])
-             AS_IF([test "x$not_local" = x && test "x$have_ver" != x],
+             AS_IF([test "x$not_local" = 'x' && test "x$have_ver" != 'x'],
                    [AS_VAR_SET([PY3SITE_DIR], ["$d"])
                     break])
            done])
     AS_IF([test -z "$PY3SITE_DIR"],
           [for d in $dirs; do
-             AS_IF([echo $d | $GREP "^$libdir" >/dev/null],
+             AS_IF([echo "$d" | $GREP "^$libdir" >/dev/null],
                    [AS_VAR_SET([PY3SITE_DIR], ["$d"])
                     break])
            done])
-    ptpm_result([PY3SITE_DIR])
+    PTPM_RESULT([PY3SITE_DIR])
 
     AC_MSG_CHECKING([for Python 3.x library])
     AS_VAR_SET([PY3LINK], ["-l$PY3VERSION"])
-    ptpm_result([PY3LINK])
+    PTPM_RESULT([PY3LINK])
 
     AC_MSG_CHECKING([for Python 3.x extension suffix])
     AS_VAR_SET([PY3EXT], ["`($PY3CONFIG --extension-suffix) 2>/dev/null`"])
-    ptpm_cross([PY3EXT])
-    ptpm_result([PY3EXT])
+    PTPM_CROSS([PY3EXT])
+    PTPM_RESULT([PY3EXT])
 
     AC_MSG_CHECKING([for Python 3.x linking])
     AS_VAR_SET([PY3LDLIBS], ["`($PY3CONFIG --libs) 2>/dev/null`"])
-    ptpm_result([PY3LDLIBS])
+    PTPM_RESULT([PY3LDLIBS])
   fi
 fi
 
@@ -852,46 +844,43 @@ AC_ARG_WITH([perl5],
             [AS_VAR_SET([PERLBIN], ['yes'])])
 
 # First, check for '--without-perl5' or '--with-perl5=no'.
-if test "x$PERLBIN" = xno; then
-  AC_MSG_NOTICE([Disabling Perl5])
-else
-  # First figure out what the name of Perl5 is
-  AS_IF([test "x$PERLBIN" = xyes],
-        [AC_CHECK_PROGS([PERL], [perl perl5])],
-        [AS_VAR_SET([PERL], ["$PERLBIN"])])
-  # This could probably be simplified as for all platforms and
-  # all versions of Perl the following apparently
-  # should be run to get the compilation options:
-  # perl -MExtUtils::Embed -e ccopts
-  AC_MSG_CHECKING([for Perl5 confiuration])
-  if test -n "$PERL"; then
-    AS_VAR_SET([ptpm_perl_dir],
-               [`($PERL -MConfig -le 'print $Config{archlibexp}')\
-                  2>/dev/null`])
-    AS_IF([test -h "$ptpm_perl_dir" && test "x$READLINK" != x ],
-          [AS_VAR_SET([PERL5DIR],[`$READLINK -f $ptpm_perl_dir 2>/dev/null`])],
-          [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
-    AS_IF([test "x$PERL5DIR" = x],
-          [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
-    ptpm_cross([PERL5DIR])
-    AS_IF([test -n "$PERL5DIR"],
-          [AC_MSG_RESULT([$PERL5DIR])
-           AC_MSG_CHECKING([for Perl5 header files])
-           for i in $PERL5DIR $PERL5DIR/CORE; do
-             AS_IF([test -r $i/perl.h],
-                   [AS_VAR_SET([PERL5EXT], ["$i"])
-                    break])
-           done
-           ptpm_result(PERL5EXT)],
-          [AC_MSG_RESULT([unable to determine perl5 configuration])])
-    AS_IF([$PERL -e 'use Test::Class;Test::More;' 2>/dev/null],
-          [AS_VAR_SET([PERL5TEST], ['have'])])
-    AS_IF([$PERL -e 'use File::Touch;' 2>/dev/null],
-          [AS_VAR_SET([PERL5TOUCH], ['have'])])
-  else
-    AC_MSG_RESULT([could not figure out how to run perl5])
-  fi
-fi
+AS_IF([test "x$PERLBIN" = 'xno'],
+  [AC_MSG_NOTICE([Disabling Perl5])],
+   # First figure out what the name of Perl5 is
+  [AS_IF([test "x$PERLBIN" = 'xyes'],
+         [AC_CHECK_PROGS([PERL], [perl perl5])],
+         [AS_VAR_SET([PERL], ["$PERLBIN"])])
+   # This could probably be simplified as for all platforms and
+   # all versions of Perl the following apparently
+   # should be run to get the compilation options:
+   # perl -MExtUtils::Embed -e ccopts
+   AC_MSG_CHECKING([for Perl5 confiuration])
+   AS_IF([test -n "$PERL"],
+     [AS_VAR_SET([ptpm_perl_dir],
+                 [`($PERL -MConfig -le 'print $Config{archlibexp}')\
+                    2>/dev/null`])
+      AS_IF([test -h "$ptpm_perl_dir" && test "x$READLINK" != 'x' ],
+            [AS_VAR_SET([PERL5DIR],[`$READLINK -f $ptpm_perl_dir 2>/dev/null`])],
+            [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
+      AS_IF([test "x$PERL5DIR" = 'x'],
+            [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
+      PTPM_CROSS([PERL5DIR])
+      AS_IF([test -n "$PERL5DIR"],
+            [AC_MSG_RESULT([$PERL5DIR])
+             AC_MSG_CHECKING([for Perl5 header files])
+             for i in $PERL5DIR $PERL5DIR/CORE; do
+               AS_IF([test -r "$i/perl.h"],
+                     [AS_VAR_SET([PERL5EXT], ["$i"])
+                      break])
+             done
+             PTPM_RESULT(PERL5EXT)],
+            [AC_MSG_RESULT([unable to determine perl5 configuration])])
+      AS_IF([$PERL -e 'use Test::Class;Test::More;' 2>/dev/null],
+            [AS_VAR_SET([PERL5TEST], ['have'])])
+      AS_IF([$PERL -e 'use File::Touch;' 2>/dev/null],
+            [AS_VAR_SET([PERL5TOUCH], ['have'])])],
+     [AC_MSG_RESULT([could not figure out how to run perl5])])])
+
 AC_SUBST([PERL])
 AC_SUBST([PERL5DIR])
 AC_SUBST([PERL5EXT])
@@ -918,12 +907,12 @@ AC_ARG_WITH([ruby],
             [AS_VAR_SET([RUBYBIN], ["$alllang_default"])])
 
 # First, check for '--without-ruby' or '--with-ruby=no'.
-if test "x$RUBYBIN" = xno; then
+if test "x$RUBYBIN" = 'xno'; then
   AC_MSG_NOTICE([Disabling Ruby])
 else
   # configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
   # First figure out what the name of Ruby is
-  AS_IF([test "x$RUBYBIN" = xyes],
+  AS_IF([test "x$RUBYBIN" = 'xyes'],
         [AC_CHECK_PROGS([RUBY], [ruby])],
         [AS_VAR_SET([RUBY], ["$RUBYBIN"])])
   AC_MSG_CHECKING([for Ruby header files])
@@ -935,64 +924,63 @@ else
     AS_VAR_SET([RUBYARCHHDRDIR],
                [`($RUBY -rrbconfig -e\
                   'print RbConfig::CONFIG[["rubyarchhdrdir"]]') 2>/dev/null`])
-    ptpm_cross([RUBYARCHHDRDIR])
-    if test "x$RUBYHDRDIR" != x; then
-      AS_IF([test -r $RUBYHDRDIR/ruby.h && test -n "$RUBYARCHHDRDIR"],
-            [AS_VAR_SET([RUBYINCLUDE], ["-I$RUBYHDRDIR -I$RUBYARCHHDRDIR"])])
-      ptpm_result([RUBYINCLUDE])
+    PTPM_CROSS([RUBYARCHHDRDIR])
+    AS_IF([test "x$RUBYHDRDIR" != 'x'],
+      [AS_IF([test -r "$RUBYHDRDIR/ruby.h" && test -n "$RUBYARCHHDRDIR"],
+             [AS_VAR_SET([RUBYINCLUDE], ["-I$RUBYHDRDIR -I$RUBYARCHHDRDIR"])])
+       PTPM_RESULT([RUBYINCLUDE])
 
-      AC_MSG_CHECKING([for Ruby header folder])
-      ptpm_result([RUBYHDRDIR])
-      AC_MSG_CHECKING([for Ruby header architecture folder])
-      ptpm_result([RUBYARCHHDRDIR])
+       AC_MSG_CHECKING([for Ruby header folder])
+       PTPM_RESULT([RUBYHDRDIR])
+       AC_MSG_CHECKING([for Ruby header architecture folder])
+       PTPM_RESULT([RUBYARCHHDRDIR])
 
-      AC_MSG_CHECKING([for Ruby version])
-      AS_VAR_SET([RUBYVER],
-                 [`$RUBY -e 'print "#{RUBY_VERSION}"'`])
-      ptpm_result([RUBYVER])
-      AS_VAR_SET([RUBYLINK],
-                 [`($RUBY -rrbconfig -e\
-                  'n=RbConfig::CONFIG[["RUBY_SO_NAME"]];print "-l#{n}"')
-                  2>/dev/null`])
+       AC_MSG_CHECKING([for Ruby version])
+       AS_VAR_SET([RUBYVER],
+                  [`$RUBY -e 'print "#{RUBY_VERSION}"'`])
+       PTPM_RESULT([RUBYVER])
+       AS_VAR_SET([RUBYLINK],
+                  [`($RUBY -rrbconfig -e\
+                   'n=RbConfig::CONFIG[["RUBY_SO_NAME"]];print "-l#{n}"')
+                   2>/dev/null`])
 
-      # Find library and path for linking.
-      AC_MSG_CHECKING([for Ruby library])
-      AS_VAR_SET([rb_archlibdir],
-                 [`($RUBY -rrbconfig -e\
-                    'print RbConfig::CONFIG[["archlibdir"]]') 2>/dev/null`])
-      AS_VAR_SET([rb_libdir],
-                 [`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["libdir"]]')\
-                    2>/dev/null`])
-      AS_VAR_SET([rb_bindir],
-                 [`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["bindir"]]')\
-                    2>/dev/null`])
-      AS_VAR_SET([dirs], ["$rb_archlibdir $rb_libdir $rb_bindir"])
-      AS_VAR_SET([rb_libruby],
-                 [`($RUBY -rrbconfig -e\
-                    'print RbConfig::CONFIG[["LIBRUBY_SO"]]') 2>/dev/null`])
-      AS_IF([test "x$rb_libruby" != x],
-            [for i in $dirs; do
-               AS_IF([test -r $i/$rb_libruby],
-                     [AS_VAR_SET([RUBYLIB], ["$i"])
-                      break])
-             done])
-      ptpm_cross([RUBYLIB])
-      ptpm_result([RUBYLIB])
-    else
-      AC_MSG_RESULT([unable to determine ruby configuration])
-    fi
+       # Find library and path for linking.
+       AC_MSG_CHECKING([for Ruby library])
+       AS_VAR_SET([rb_archlibdir],
+                  [`($RUBY -rrbconfig -e\
+                     'print RbConfig::CONFIG[["archlibdir"]]') 2>/dev/null`])
+       AS_VAR_SET([rb_libdir],
+                  [`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["libdir"]]')\
+                     2>/dev/null`])
+       AS_VAR_SET([rb_bindir],
+                  [`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["bindir"]]')\
+                     2>/dev/null`])
+       AS_VAR_SET([dirs], ["$rb_archlibdir $rb_libdir $rb_bindir"])
+       AS_VAR_SET([rb_libruby],
+                  [`($RUBY -rrbconfig -e\
+                     'print RbConfig::CONFIG[["LIBRUBY_SO"]]') 2>/dev/null`])
+       AS_IF([test "x$rb_libruby" != 'x'],
+             [for i in $dirs; do
+                AS_IF([test -r "$i/$rb_libruby"],
+                      [AS_VAR_SET([RUBYLIB], ["$i"])
+                       break])
+              done])
+       PTPM_CROSS([RUBYLIB])
+       PTPM_RESULT([RUBYLIB])],
+      [AC_MSG_RESULT([unable to determine ruby configuration])])
+
     AC_MSG_CHECKING([for Ruby link flags])
     AS_VAR_SET([RUBYLINK],
                ["$RUBYLINK `($RUBY -rrbconfig -e\
                  'print RbConfig::CONFIG[["LIBS"]]') 2>/dev/null`"])
-    ptpm_result([RUBYLINK])
+    PTPM_RESULT([RUBYLINK])
 
     AC_MSG_CHECKING([for Ruby site])
     AS_VAR_SET([RUBYSITE],
                [`($RUBY -rrbconfig -e\
                   'print RbConfig::CONFIG[["vendorarchdir"]]') 2>/dev/null`])
-    ptpm_cross([RUBYSITE])
-    ptpm_result([RUBYSITE])
+    PTPM_CROSS([RUBYSITE])
+    PTPM_RESULT([RUBYSITE])
   else
     AC_MSG_RESULT([could not figure out how to run ruby])
   fi
@@ -1027,10 +1015,10 @@ AS_HELP_STRING([--with-php=path], [Set location of PHP executable])],
             [AS_VAR_SET([PHPBIN], ["$alllang_default"])])
 
 # First, check for '--without-php' or '--with-php=no'.
-if test "x$PHPBIN" = xno; then
+if test "x$PHPBIN" = 'xno'; then
   AC_MSG_NOTICE([Disabling PHP])
 else
-  AS_IF([test "x$PHPBIN" = xyes],
+  AS_IF([test "x$PHPBIN" = 'xyes'],
         [AC_CHECK_PROGS([PHP],
                         [php8.1 php8.0 php7.4 php7.3 php7.2\
                          php7.1 php7.0 php])],
@@ -1056,39 +1044,38 @@ else
             [AS_VAR_SET([PHPINCDIR], ["$d"])
              break])
     done
-    ptpm_result([PHPINCDIR])
+    PTPM_RESULT([PHPINCDIR])
 
-    if test -n "$PHPCONFIG"; then
-      AC_MSG_CHECKING([for PHP version])
-      AS_VAR_SET([PHPVER], ["`$PHPCONFIG --version 2>/dev/null`"])
-      ptpm_result([PHPVER])
+    AS_IF([test -n "$PHPCONFIG"],
+      [AC_MSG_CHECKING([for PHP version])
+       AS_VAR_SET([PHPVER], ["`$PHPCONFIG --version 2>/dev/null`"])
+       PTPM_RESULT([PHPVER])
 
-      AC_MSG_CHECKING([for PHP extensions])
-      AS_VAR_SET([PHPEXT], ["`$PHPCONFIG --extension-dir 2>/dev/null`"])
-      ptpm_result([PHPEXT])
+       AC_MSG_CHECKING([for PHP extensions])
+       AS_VAR_SET([PHPEXT], ["`$PHPCONFIG --extension-dir 2>/dev/null`"])
+       PTPM_RESULT([PHPEXT])
 
-      AC_MSG_CHECKING([for PHP headers base folder])
-      AS_VAR_SET([PHPINC], ["`$PHPCONFIG --include-dir 2>/dev/null`"])
-      ptpm_result([PHPINC])
+       AC_MSG_CHECKING([for PHP headers base folder])
+       AS_VAR_SET([PHPINC], ["`$PHPCONFIG --include-dir 2>/dev/null`"])
+       PTPM_RESULT([PHPINC])
 
-      AC_MSG_CHECKING([for PHP header files])
+       AC_MSG_CHECKING([for PHP header files])
 
-      AS_CASE([$PHPVER],
-              [7.*|8.*],
-              [AS_VAR_SET([phpinc_flags],
-                          [`$PHPCONFIG --includes 2>/dev/null`])
-               AS_VAR_SET([sub], ['${PHPINC}'])
-               AS_IF([test -n "$phpinc_flags"],
-                     [AS_VAR_SET([PHPINC_FLAGS],
-                                 [`echo "$phpinc_flags" |\
-                                  $SED "s%$PHPINC%$sub%g"`])])
-               ptpm_result([PHPINC_FLAGS])],
-              [""],
-              [AS_VAR_SET([msg], ["could not find $PHPCONFIG or obtain"])
-               AC_MSG_RESULT([$msg PHP version from it])],
-              [AC_MSG_RESULT([found PHP $PHPVER - not PHP 7 or 8])])
+       AS_CASE([$PHPVER],
+               [7.*|8.*],
+               [AS_VAR_SET([phpinc_flags],
+                           [`$PHPCONFIG --includes 2>/dev/null`])
+                AS_VAR_SET([sub], ['${PHPINC}'])
+                AS_IF([test -n "$phpinc_flags"],
+                      [AS_VAR_SET([PHPINC_FLAGS],
+                                  [`echo "$phpinc_flags" |\
+                                   $SED "s%$PHPINC%$sub%g"`])])
+                PTPM_RESULT([PHPINC_FLAGS])],
+               [""],
+               [AS_VAR_SET([msg], ["could not find $PHPCONFIG or obtain"])
+                AC_MSG_RESULT([$msg PHP version from it])],
+               [AC_MSG_RESULT([found PHP $PHPVER - not PHP 7 or 8])])])
 
-    fi
     AC_CHECK_PROGS([PHPUNIT], [phpunit])
   fi
 fi
@@ -1147,24 +1134,24 @@ AC_ARG_WITH([lualib],
             [AS_UNSET([LUALIB])])
 
 # First, check for '--without-lua' or '--with-lua=no'.
-if test "x$LUABIN" = xno; then
+if test "x$LUABIN" = 'xno'; then
   AC_MSG_NOTICE([Disabling Lua])
   AS_UNSET([LUABIN])
 else
   # can we find lua?
-  AS_IF([test "x$LUABIN" = xyes],
+  AS_IF([test "x$LUABIN" = 'xyes'],
     # We look for a versioned Lua binary first, as there can be
     # multiple versions of Lua installed on some systems (like Debian).
         [AC_PATH_PROGS([LUABIN],
          [lua5.7 lua5.6 lua5.5 lua5.4 lua5.3 lua5.2 lua5.1 lua])])
 
   # Try to probe all Lua version on Debian and similar
-  AS_IF([test -z "$LUAINCLUDE" && test "x$LUABIN" != xno &&\
+  AS_IF([test -z "$LUAINCLUDE" && test "x$LUABIN" != 'xno' &&\
          test -z "$LUALIB"],
         [for i in $ptpm_include_dirs; do
            for v in $i/lua5.*; do
-             AS_IF([test -r $v/lua.h],
-                   [AS_VAR_SET([name], [`echo $v | $SED "s%$i/lua%%"`])
+             AS_IF([test -r "$v/lua.h"],
+                   [AS_VAR_SET([name], [`echo "$v" | $SED "s%$i/lua%%"`])
                     AS_VAR_SET([tag], ["`echo $name | $SED 's%\.%_%'`"])
                     AS_VAR_SET([LUA_${tag}_INC], ["$v"])
                     AS_VAR_SET([LUA_${tag}_LINK], ["-llua$name"])
@@ -1175,13 +1162,13 @@ else
            done
          done])
 
-  if test "$LUABIN" != xno; then
+  if test "x$LUABIN" != 'xno'; then
     AS_VAR_SET([lua_version],
                [`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`])
     if test -n "$LUAVERSIONS"; then
-      AS_IF([! (echo $LUAVERSIONS | $GREP "$lua_version" >/dev/null)],
+      AS_IF([! (echo "$LUAVERSIONS" | $GREP "$lua_version" >/dev/null)],
             [for i in $ptpm_include_dirs; do
-             AS_IF([test -r $i/lua.h],
+             AS_IF([test -r "$i/lua.h"],
                    [AS_VAR_SET([tag], ["`echo $lua_version | $SED 's%\.%_%'`"])
                     AS_VAR_SET([LUA_${tag}_INC], ["$i"])
                     AS_VAR_SET([LUA_${tag}_LINK], ['-llua'])
@@ -1192,7 +1179,7 @@ else
       # check version: we need Lua 5.x
       AC_MSG_CHECKING([Lua version])
       AS_VAR_SET([LUA_VERSION],["$lua_version"])
-      ptpm_result([LUA_VERSION])
+      PTPM_RESULT([LUA_VERSION])
 
       AS_CASE([$LUA_VERSION],
               [5.*], [],
@@ -1200,57 +1187,52 @@ else
                AC_MSG_WARN([$msg this version of Lua])
                AS_UNSET([LUABIN])])
 
-      if test -n "$LUABIN"; then
-        # look for the header files & set LUA_INC accordingly
-        # will clear LUABIN if not present
-        if test -n "$LUAINCLUDE"; then
-          AC_CHECK_FILE([$LUAINCLUDE/lua.h],
-                        [AS_VAR_SET([LUA_INC], ["$LUAINCLUDE"])],
-                        [AS_UNSET([LUABIN])])
-        else
-          AS_UNSET([found_lua_h])
-          # Use empty CFLAGS to avoid failure: 'present but cannot be compiled'
-          AS_VAR_SET([cflags_saved], ["$CFLAGS"])
-          AS_UNSET([CFLAGS])
-          AC_CHECK_HEADER([lua.h], [AS_VAR_SET([found_lua_h], [1])])
-          AS_VAR_SET([CFLAGS], ["$cflags_saved"])
-          # if we didn't get it, going to have to look elsewhere (the hard way)
-          if test -z "$found_lua_h"; then
-            AC_MSG_CHECKING([for lua.h in other locations])
-            # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
-            # The ordering of the include directories to search should match
-            # the ordering of libraries to search in the library test below.
-            AS_UNSET([dirs])
-            for d in $ptpm_include_dirs; do
-              AS_VAR_SET([dirs], ["$dirs $d $d/lua$LUA_VERSION"])
-            done
-            for i in $dirs; do
-              AS_IF([test -r $i/lua.h],
-                    [AC_MSG_RESULT([$i/lua.h])
-                     AS_VAR_SET([LUA_INC], ["$i"])
-                     break])
-            done
-            AS_IF([test -z "$LUA_INC"],
-                  [AC_MSG_RESULT([not found])
-                   AS_UNSET([LUABIN])]) # clear the bin
-          fi
-        fi
-        # Does Lua use versions for libraries on this system?
-        if test -n "$LUABIN"; then
-          ptpm_basename([bin], ["$LUABIN"])
-          AS_IF([test "x$bin" != 'xlua'],
-                [AS_VAR_SET([LUABIN_VERSION], ["$LUA_VERSION"])])
+      AS_IF([test -n "$LUABIN"],
+         # look for the header files & set LUA_INC accordingly
+         # will clear LUABIN if not present
+        [AS_IF([test -n "$LUAINCLUDE"],
+           [AC_CHECK_FILE([$LUAINCLUDE/lua.h],
+                          [AS_VAR_SET([LUA_INC], ["$LUAINCLUDE"])],
+                          [AS_UNSET([LUABIN])])],
+           [AS_UNSET([found_lua_h])
+            # Use empty CFLAGS to avoid failure: 'present but cannot be compiled'
+            AS_VAR_SET([cflags_saved], ["$CFLAGS"])
+            AS_UNSET([CFLAGS])
+            AC_CHECK_HEADER([lua.h], [AS_VAR_SET([found_lua_h], [1])])
+            AS_VAR_SET([CFLAGS], ["$cflags_saved"])
+            # if we didn't get it, going to have to look elsewhere (the hard way)
+            AS_IF([test -z "$found_lua_h"],
+              [AC_MSG_CHECKING([for lua.h in other locations])
+               # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+               # The ordering of the include directories to search should match
+               # the ordering of libraries to search in the library test below.
+               AS_UNSET([dirs])
+               for d in $ptpm_include_dirs; do
+                 AS_VAR_SET([dirs], ["$dirs $d $d/lua$LUA_VERSION"])
+               done
+               for i in $dirs; do
+                 AS_IF([test -r "$i/lua.h"],
+                       [AC_MSG_RESULT([$i/lua.h])
+                        AS_VAR_SET([LUA_INC], ["$i"])
+                        break])
+               done
+               AS_IF([test -z "$LUA_INC"],
+                     [AC_MSG_RESULT([not found])
+                      AS_UNSET([LUABIN])])])]) # clear the bin
+         # Does Lua use versions for libraries on this system?
+         AS_IF([test -n "$LUABIN"],
+           [PTPM_BASENAME([bin], ["$LUABIN"])
+            AS_IF([test "x$bin" != 'xlua'],
+                  [AS_VAR_SET([LUABIN_VERSION], ["$LUA_VERSION"])])
 
-          AS_IF([test -n "$LUALIB"],
-                [AC_CHECK_FILE([$LUALIB/liblua.so],
-                               [LUALINK="-L$LUALIB -llua"],
-                               [AS_UNSET([LUABIN])])],
-                [AC_SEARCH_LIBS([lua_close],
-                                [lua lua$LUA_VERSION],
-                                [LUALINK="-l$ac_lib"],
-                                [AS_UNSET([LUABIN])])])
-        fi
-      fi
+            AS_IF([test -n "$LUALIB"],
+                  [AC_CHECK_FILE([$LUALIB/liblua.so],
+                                 [LUALINK="-L$LUALIB -llua"],
+                                 [AS_UNSET([LUABIN])])],
+                  [AC_SEARCH_LIBS([lua_close],
+                                  [lua lua$LUA_VERSION],
+                                  [LUALINK="-l$ac_lib"],
+                                  [AS_UNSET([LUABIN])])])])])
       AS_IF([test -n "$LUABIN" && $LUABIN -e "require 'luaunit'" 2>/dev/null],
             [AS_VAR_SET([LUAUNIT], ['have'])])
     fi # test -n "$LUAVERSIONS"
@@ -1297,25 +1279,22 @@ AC_ARG_WITH([go],
             [AS_VAR_SET([GO], ["$alllang_default"])])
 
 # First, check for '--without-go' or '--with-go=no'.
-if test "x$GO" = xno; then
-  AC_MSG_NOTICE([Disabling Go])
-else
-  # figure out what is the name of Go application
-  AS_IF([test "x$GO" = xyes],
-        [AC_CHECK_TOOL([GOBIN], [go])],
-        [AS_VAR_SET([GOBIN], ["$GO"])])
-  if test -n "$GOBIN"; then
-    AS_VAR_SET([GOROOT],
-               [`$GOBIN env GOROOT`])
-    AS_VAR_SET([GOVER],
-               [`$GOBIN version | $SED 's/^go version go//;s/ .*//'`])
-    AS_VERSION_COMPARE([1.18], [$GOVER],
-                       [AS_VAR_SET([GOMINVER], ["$GOVER"])], # above 1.18
-                       [AS_VAR_SET([GOMINVER], ["$GOVER"])]) # equal 1.18
-    AS_IF([test -n "$USE_CROSS_COMPILE"],
-          [AS_VAR_SET([GOARCH], [`./tools/goarch.sh "$host_cpu"`])])
-  fi # GOBIN
-fi # if not disabled
+AS_IF([test "x$GO" = 'xno'],
+  [AC_MSG_NOTICE([Disabling Go])],
+   # figure out what is the name of Go application
+  [AS_IF([test "x$GO" = 'xyes'],
+         [AC_CHECK_TOOL([GOBIN], [go])],
+         [AS_VAR_SET([GOBIN], ["$GO"])])
+   AS_IF([test -n "$GOBIN"],
+     [AS_VAR_SET([GOROOT],
+                 [`$GOBIN env GOROOT`])
+      AS_VAR_SET([GOVER],
+                 [`$GOBIN version | $SED 's/^go version go//;s/ .*//'`])
+      AS_VERSION_COMPARE([1.18], [$GOVER],
+                         [AS_VAR_SET([GOMINVER], ["$GOVER"])], # above 1.18
+                         [AS_VAR_SET([GOMINVER], ["$GOVER"])]) # equal 1.18
+      AS_IF([test -n "$USE_CROSS_COMPILE"],
+            [AS_VAR_SET([GOARCH], [`./tools/goarch.sh "$host_cpu"`])])])])
 
 AC_SUBST([GO])
 AC_SUBST([GOBIN])
@@ -1328,36 +1307,34 @@ AC_SUBST([GOARCH])
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
-if test -n "$SWIGMINVER"; then
-  AS_UNSET([SKIP_TCL])
-  AS_UNSET([SKIP_PYTHON3])
-  AS_UNSET([SKIP_PERL5])
-  AS_UNSET([SKIP_RUBY])
-  AS_UNSET([SKIP_PHP])
-  AS_UNSET([SKIP_LUA])
-  AS_UNSET([SKIP_GO])
+AS_IF([test -n "$SWIGMINVER"],
+  [AS_UNSET([SKIP_TCL])
+   AS_UNSET([SKIP_PYTHON3])
+   AS_UNSET([SKIP_PERL5])
+   AS_UNSET([SKIP_RUBY])
+   AS_UNSET([SKIP_PHP])
+   AS_UNSET([SKIP_LUA])
+   AS_UNSET([SKIP_GO])
 
-  AS_IF([test -z "$TCLLIB" || test -z "$TCLINCDIR" || test -z "$TCLMINVER"],
-        [AS_VAR_SET([SKIP_TCL], [1])])
-  AS_IF([test -z "$PY3LINK" || test -z "$PY3INCLUDE"],
-        [AS_VAR_SET([SKIP_PYTHON3], [1])])
-  AS_IF([test -z "$PERL5EXT"], [AS_VAR_SET([SKIP_PERL5], [1])])
-  AS_IF([test -z "$RUBYLINK" || test -z "$RUBYINCLUDE" || test -z "$RUBYLIB"],
-        [AS_VAR_SET([SKIP_RUBY], [1])])
-  AS_IF([test -z "$PHPINC" || test -z "$PHPINC_FLAGS" || test -z "$PHPINCDIR"],
-        [AS_VAR_SET([SKIP_PHP], [1])])
-  AS_IF([test -z "$LUABIN"], [AS_VAR_SET([SKIP_LUA], [1])])
-  AS_IF([test -z "$GOBIN" || test -z "$GOMINVER"],
-        [AS_VAR_SET([SKIP_GO], [1])])
-else
-  AS_VAR_SET([SKIP_TCL], [1])
-  AS_VAR_SET([SKIP_PYTHON3], [1])
-  AS_VAR_SET([SKIP_PERL5], [1])
-  AS_VAR_SET([SKIP_RUBY], [1])
-  AS_VAR_SET([SKIP_PHP], [1])
-  AS_VAR_SET([SKIP_LUA], [1])
-  AS_VAR_SET([SKIP_GO], [1])
-fi
+   AS_IF([test -z "$TCLLIB" || test -z "$TCLINCDIR" || test -z "$TCLMINVER"],
+         [AS_VAR_SET([SKIP_TCL], [1])])
+   AS_IF([test -z "$PY3LINK" || test -z "$PY3INCLUDE"],
+         [AS_VAR_SET([SKIP_PYTHON3], [1])])
+   AS_IF([test -z "$PERL5EXT"], [AS_VAR_SET([SKIP_PERL5], [1])])
+   AS_IF([test -z "$RUBYLINK" || test -z "$RUBYINCLUDE" || test -z "$RUBYLIB"],
+         [AS_VAR_SET([SKIP_RUBY], [1])])
+   AS_IF([test -z "$PHPINC" || test -z "$PHPINC_FLAGS" || test -z "$PHPINCDIR"],
+         [AS_VAR_SET([SKIP_PHP], [1])])
+   AS_IF([test -z "$LUABIN"], [AS_VAR_SET([SKIP_LUA], [1])])
+   AS_IF([test -z "$GOBIN" || test -z "$GOMINVER"],
+         [AS_VAR_SET([SKIP_GO], [1])])],
+  [AS_VAR_SET([SKIP_TCL], [1])
+   AS_VAR_SET([SKIP_PYTHON3], [1])
+   AS_VAR_SET([SKIP_PERL5], [1])
+   AS_VAR_SET([SKIP_RUBY], [1])
+   AS_VAR_SET([SKIP_PHP], [1])
+   AS_VAR_SET([SKIP_LUA], [1])
+   AS_VAR_SET([SKIP_GO], [1])])
 
 AC_SUBST([SKIP_TCL])
 AC_SUBST([SKIP_PYTHON3])
