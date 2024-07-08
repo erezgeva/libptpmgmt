@@ -10,6 +10,7 @@
 # - Build packages install them in system and
 #   test with linuxptp and clock simulated network
 #   to verify proper installation
+# - compare ABI
 ###############################################################################
 
 name: continuous integration
@@ -103,3 +104,32 @@ jobs:
 
     - name: test with linuxptp
       run: libptpmgmt/tools/ci_pkgs.sh
+
+  abi:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
+
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: compare ABI
+      run: |
+        chown -R $USER:$USER .
+        su $USER -c tools/ci_abi.sh
+
+    - name: save ABI compare report
+      uses: actions/upload-artifact@v4
+      with:
+        name: abi_report
+        retention-days: 90
+        path: compat_reports/
+
+    - name: Report ABI error
+      run: |
+        su $USER -c tools/ci_abi_err.sh

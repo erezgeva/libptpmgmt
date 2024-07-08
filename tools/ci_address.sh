@@ -13,6 +13,7 @@
 # - ci_build:       Build and install packages
 # - ci_pkgs:        Test with linuxptp
 # - ci_abi:         Compart ABI of current library with last version
+# - ci_abi_err:     Report ABI error
 # - ci_cross:       CI cross compilation
 # - utest_address:  Run unit tests with Address Sanitizer
 # - utest_valgrid:  Run unit tests with valgrind tool
@@ -132,16 +133,26 @@ ci_abi()
  echo "== Dump current version =="
  abi-dumper libptpmgmt.so -o cur.dump -lver 1 -public-headers pub
  local -r l="$(git tag | grep '^[0-9.]*$' | sort -n | tail -1)"
+ local -r last_ci="$(git rev-parse HEAD)"
  echo "== Build last tag $l =="
  git checkout $l
  make clean
  emk config
  emk libptpmgmt.so
+ git checkout "$last_ci"
  echo "== Dump last tag version =="
  abi-dumper libptpmgmt.so -o old.dump -lver 0 -public-headers pub
  echo "== Compare ABI =="
  if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
    echo "== Found errors =="
+   echo "1" > abi_error
+ fi
+}
+ci_abi_err()
+{
+ if [[ -f abi_error ]]; then
+   echo "== Report ABI error =="
+   exit $(cat abi_error)
  fi
 }
 ###############################################################################
@@ -449,6 +460,7 @@ main()
   ci_build.sh)       ci_build "$@";;
   ci_pkgs.sh)        ci_pkgs "$@";;
   ci_abi.sh)         ci_abi "$@";;
+  ci_abi_err.sh)     ci_abi_err "$@";;
   ci_cross.sh)       ci_cross "$@";;
   utest_address.sh)  utest_address "$@";;
   utest_valgrid.sh)  utest_valgrid "$@";;
