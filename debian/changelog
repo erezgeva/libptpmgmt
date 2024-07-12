@@ -1,5 +1,6 @@
 libptpmgmt (1.3) bookworm; urgency=medium
 
+  * Support Linuxptp version 4.3
   * Add support for AUTHENTICATION.
     - Add HMAC wrapper libraries.
     - Probe the HMAC libraries.

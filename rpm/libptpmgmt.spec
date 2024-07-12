@@ -252,6 +252,7 @@ autoconf
 ###############################################################################
 %changelog
 * Fri Jun 07 2024 ErezGeva2@gmail.com 1.3-1
+- Support Linuxptp version 4.3
 - Add support for AUTHENTICATION.
   - Add HMAC wrapper libraries.
   - Probe the HMAC libraries.
