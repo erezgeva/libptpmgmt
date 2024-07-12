@@ -148,6 +148,7 @@ The project more documents
   * [C++ std::vector<> map in Scripts Languages](./std_vectors.md)
   * [Frequently asked questions](./FAQs.md)
   * [Developer Guide for using Doxygen in our project](./HOWTO_doc_code.md)
+  * [Compatibility with Linuxptp](./Compatibility.md)
   * Library API doxygen, can be generated using the make file. [Or on github](https://erezgeva.github.io/libptpmgmt/)
 
 # <u>Licence</u>
