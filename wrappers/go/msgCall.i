@@ -17,7 +17,11 @@
 
 %insert(go_wrapper) %{
 type MessageDispatcherIf interface {
-  /* Call MessageDispatcherCallHadler() with proper struct using the interface */
+  /* Call MessageDispatcherCallHadler() with proper struct using the interface
+   * 2 variants of calling:
+   * - CallHadler(msg Message)
+   * - CallHadler(msg Message, tlv_id Mng_vals_e, tlv BaseMngTlv)
+   */
   CallHadler(msg Message, a ...interface{})
 }
 type MessageDispatcherNoTlvCallBack interface {

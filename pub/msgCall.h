@@ -20,7 +20,7 @@ __PTPMGMT_NAMESPACE_BEGIN
  * @brief Dispatch received PTP management message TLV
  * @note Do not handle signalling messages!
  * @note You must inherit this class to use it!
- * @note callHadler() has an implementation in lua, tcl, go and ruby languages,
+ * @note callHadler() has an implementation in lua, tcl and go languages,
  *       other languages uses swig to translate this class.
  */
 class MessageDispatcher : public BaseMngDispatchCallback
@@ -63,7 +63,7 @@ class MessageDispatcher : public BaseMngDispatchCallback
  * @brief Build TLV to send a PTP management message
  * @note You must inherit this class to use it!
  * @note Class allocate TLV object and store it,
- * @note buildTlv() has an implementation in lua, tcl, go and ruby languages,
+ * @note buildTlv() has an implementation in lua, tcl and go languages,
  *       other languages uses swig to translate this class.
  */
 class MessageBuilder : public BaseMngBuildCallback
