@@ -62,11 +62,6 @@ class MessageDispatcher : public BaseMngDispatchCallback
 /**
  * @brief Build TLV to send a PTP management message
  * @note You must inherit this class to use it!
- * @note As this class allocate a new TLV, and store it.
- *       It call Message.clearData() on destructor,
- *       to ensure Message does not use the TLV.
- *       Do not call Message.build() after deleting this object,
- *       without setting a new TLV.
  * @note Class allocate TLV object and store it,
  * @note buildTlv() has an implementation in lua, tcl, go and ruby languages,
  *       other languages uses swig to translate this class.

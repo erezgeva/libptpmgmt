@@ -15,7 +15,10 @@ The library supports the three PTP network layers:
 
 In addition, we support using the Unix network and communicate with LinuxPTP ptp4l.  
 We also support parsing incoming signalling messages.  
-Users can use Linux VLAN with all sockets.
+Users can use Linux VLAN with all sockets.  
+<br>
+Project home page [https://libptpmgmt.nwtime.org/](https://libptpmgmt.nwtime.org/)  
+Reporting bugs and issues at [https://github.com/erezgeva/libptpmgmt/issues](https://github.com/erezgeva/libptpmgmt/issues)
 
 # <u>libptpmgmt Library</u>
 The library is written in C++ using a data-oriented model.  
@@ -97,10 +100,8 @@ Go uses methods for interface which use Pascal notation, so all class functions 
 Go does not use constructors and destructors.  
 You need to use the New'Class' functions and release with Delete'Class'.  
 You can use the `defer` statment for the releasing, if the release is due in the same function.  
-As Go does not provide destructors, MessageBuilder is not a class and it does not call `message.clearData()` once it is removed.  
-You are advised to call `message.clearData()` once you build the message, and do not plan any further use with the send TLV.  
 Note: as Go syntax is stricter, you may need to update your code with small fixes, when you build with a newer version of the Go wrapper of the library.  
-The C++ library does sustain backward compatible, yet Go wrapper does not and may break!
+We do our best to retain backward compatible with the C++ library, but **NOT** with the Go wrapper, which may break!
 
 # <u>Library content</u>
   * Binary in bin.h - Class that holds a binary
