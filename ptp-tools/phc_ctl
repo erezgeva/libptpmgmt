@@ -149,14 +149,14 @@ usage: {name} [options] <device> -- [command]
  specify commands with arguments. Can specify multiple
  commands to be executed in order. Seconds are read as
  double precision floating point values.
-  set  [seconds]   set PHC time (defaults to time on CLOCK_REALTIME)
+  set   [seconds]  set PHC time (defaults to time on CLOCK_REALTIME)
   get              get PHC time
-  adj  <seconds>   adjust PHC time by offset
-  freq [ppb]       adjust PHC frequency (default returns current offset)
+  adj   <seconds>  adjust PHC time by offset
+  freq  [ppb]      adjust PHC frequency (default returns current offset)
   phase <seconds>  pass offset to PHC phase control keyword
   cmp              compare PHC offset to CLOCK_REALTIME
   caps             display device capabilities (default if no command given)
-  wait <seconds>   pause between commands
+  wait  <seconds>  pause between commands
     ''', file=file)
 
 def main():
