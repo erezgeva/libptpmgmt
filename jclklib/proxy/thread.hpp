@@ -49,7 +49,7 @@ struct ptp4l_state {
     unsigned valid_mask;
     bool peer_present;
     unsigned offset;
-    bool servo_locked;
+    bool synced_to_primary_clock;
 };
 
 int handle_connect(struct epoll_event epd_event );

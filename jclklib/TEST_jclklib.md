@@ -128,13 +128,13 @@ Options:
 -s subscribe_event_mask
     Default: 0xf
     Bit 0: gmOffsetEvent
-    Bit 1: servoLockedEvent
+    Bit 1: syncedToPrimaryClockEvent
     Bit 2: asCapableEvent
     Bit 3: gmChangedEvent
 -c composite_event_mask
     Default: 0x7
     Bit 0: gmOffsetEvent
-    Bit 1: servoLockedEvent
+    Bit 1: syncedToPrimaryClockEvent
     Bit 2: asCapableEvent
 -u upper master offset (ns)
     Default: 100000 ns
@@ -156,21 +156,21 @@ Upper Master Offset: 100000 ns
 Lower Master Offset: -100000 ns
 
 [jclklib][5754097.973] Obtained data from Subscription Event:
-+-------------------+--------------------+
-| Event             | Event Status       |
-+-------------------+--------------------+
-| offset_in_range   | 1                  |
-| servo_locked      | 1                  |
-| as_Capable        | 1                  |
-| gm_Changed        | 1                  |
-+-------------------+--------------------+
-| UUID              | 00a1c1.fffe.000000 |
-+-------------------+--------------------+
-| composite_event   | 1                  |
-| - offset_in_range |                    |
-| - servo_locked    |                    |
-| - as_Capable      |                    |
-+-------------------+--------------------+
++---------------------------+--------------------+
+| Event                     | Event Status       |
++---------------------------+--------------------+
+| offset_in_range           | 1                  |
+| synced_to_primary_clock   | 1                  |
+| as_capable                | 1                  |
+| gm_Changed                | 1                  |
++---------------------------+--------------------+
+| UUID                      | 00a1c1.fffe.000000 |
++---------------------------+--------------------+
+| composite_event           | 1                  |
+| - offset_in_range         |                    |
+| - synced_to_primary_clock |                    |
+| - as_capable              |                    |
++---------------------------+--------------------+
 
 ```
 

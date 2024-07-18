@@ -115,7 +115,7 @@ string ClientState::toString()
     name += " as_capable = " + to_string(this->get_eventState().as_capable);
     name += " gm_changed = " + to_string(this->get_eventState().gm_changed);
     name += " offset_in_range = " + to_string(this->get_eventState().offset_in_range);
-    name += " servo_locked = " + to_string(this->get_eventState().servo_locked);
+    name += " synced_to_primary_clock = " + to_string(this->get_eventState().synced_to_primary_clock);
     name += "\n";
     return name;
 }

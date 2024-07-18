@@ -70,7 +70,7 @@ namespace JClkLibCommon
 
     /* Events clients can subscribe to */
     typedef enum : std::uint8_t
-        { gmOffsetEvent, servoLockedEvent, asCapableEvent, gmChangedEvent,
+        { gmOffsetEvent, syncedToPrimaryClockEvent, asCapableEvent, gmChangedEvent,
             eventLast } eventType;
 
 #define BITS_PER_BYTE (8)
@@ -126,7 +126,7 @@ namespace JClkLibCommon
         int64_t master_offset;
         uint8_t gm_identity[8]; /* Grandmaster clock ID */
         bool as_capable; /* 802@.1AS Capable */
-        bool servo_locked;
+        bool synced_to_primary_clock;
         uint8_t ptp4l_id;
     };
 
@@ -137,12 +137,12 @@ namespace JClkLibCommon
         uint8_t gm_identity[8]; /* Grandmaster clock ID */
         uint8_t ptp4l_id;
         bool as_capable; /* 802@.1AS Capable */
-        bool servo_locked;
+        bool synced_to_primary_clock;
         bool master_offset_in_range;
         bool composite_event;
         std::atomic<int> offset_in_range_event_count{};
         std::atomic<int> as_capable_event_count{};
-        std::atomic<int> servo_locked_event_count{};
+        std::atomic<int> synced_to_primary_clock_event_count{};
         std::atomic<int> gm_changed_event_count{};
         std::atomic<int> composite_event_count{};
     };

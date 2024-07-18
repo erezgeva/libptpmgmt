@@ -50,7 +50,7 @@ bool jcl_c_subscribe(jcl_c_client_ptr client_ptr,
 
     current_state->as_capable = state.as_capable;
     current_state->offset_in_range = state.offset_in_range;
-    current_state->servo_locked = state.servo_locked;
+    current_state->synced_to_primary_clock = state.synced_to_primary_clock;
     current_state->gm_changed = state.gm_changed;
     current_state->composite_event = state.composite_event;
 
@@ -73,7 +73,7 @@ int jcl_c_status_wait(jcl_c_client_ptr client_ptr, int timeout,
 
     current_state->as_capable = state.as_capable;
     current_state->offset_in_range = state.offset_in_range;
-    current_state->servo_locked = state.servo_locked;
+    current_state->synced_to_primary_clock = state.synced_to_primary_clock;
     current_state->gm_changed = state.gm_changed;
     current_state->composite_event = state.composite_event;
 
@@ -84,7 +84,7 @@ int jcl_c_status_wait(jcl_c_client_ptr client_ptr, int timeout,
     event_count->composite_event_count = eventCount.composite_event_count;
     event_count->gm_changed_event_count = eventCount.gm_changed_event_count;
     event_count->offset_in_range_event_count = eventCount.offset_in_range_event_count;
-    event_count->servo_locked_event_count = eventCount.servo_locked_event_count;
+    event_count->synced_to_primary_clock_event_count = eventCount.synced_to_primary_clock_event_count;
 
     return ret;
 }

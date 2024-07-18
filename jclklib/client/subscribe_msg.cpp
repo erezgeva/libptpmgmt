@@ -108,8 +108,8 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
             client_data->master_offset_in_range = true;
     }
 
-    if ((eventSub[0] & 1<<servoLockedEvent) && (data.servo_locked != client_data->servo_locked))
-        client_data->servo_locked = data.servo_locked;
+    if ((eventSub[0] & 1<<syncedToPrimaryClockEvent) && (data.synced_to_primary_clock != client_data->synced_to_primary_clock))
+        client_data->synced_to_primary_clock = data.synced_to_primary_clock;
 
     if ((eventSub[0] & 1<<gmChangedEvent) &&
         (memcmp(client_data->gm_identity, data.gm_identity, sizeof(data.gm_identity))) != 0) {
@@ -133,15 +133,15 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
             composite_client_data->composite_event = false;
     }
 
-    if (composite_eventSub[0] & 1<<servoLockedEvent)
-        composite_client_data->composite_event &= data.servo_locked;
+    if (composite_eventSub[0] & 1<<syncedToPrimaryClockEvent)
+        composite_client_data->composite_event &= data.synced_to_primary_clock;
 
     if (composite_eventSub[0] & 1<<asCapableEvent)
         composite_client_data->composite_event &= data.as_capable;
 
     jclCurrentState->as_capable = client_data->as_capable;
     jclCurrentState->offset_in_range = client_data->master_offset_in_range;
-    jclCurrentState->servo_locked = client_data->servo_locked;
+    jclCurrentState->synced_to_primary_clock = client_data->synced_to_primary_clock;
     jclCurrentState->composite_event = composite_client_data->composite_event;
     memcpy(jclCurrentState->gm_identity, client_data->gm_identity, sizeof(client_data->gm_identity));
 	
@@ -245,7 +245,7 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(JClkLibCommon::sessionId_
         std::memory_order_relaxed);
     client_ptp_data->as_capable_event_count.fetch_sub(eventCount.as_capable_event_count,
         std::memory_order_relaxed);
-    client_ptp_data->servo_locked_event_count.fetch_sub(eventCount.servo_locked_event_count,
+    client_ptp_data->synced_to_primary_clock_event_count.fetch_sub(eventCount.synced_to_primary_clock_event_count,
         std::memory_order_relaxed);
     client_ptp_data->gm_changed_event_count.fetch_sub(eventCount.gm_changed_event_count,
         std::memory_order_relaxed);
@@ -254,7 +254,7 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(JClkLibCommon::sessionId_
 
     eventCount.offset_in_range_event_count = client_ptp_data->offset_in_range_event_count;
     eventCount.as_capable_event_count = client_ptp_data->as_capable_event_count;
-    eventCount.servo_locked_event_count = client_ptp_data->servo_locked_event_count;
+    eventCount.synced_to_primary_clock_event_count = client_ptp_data->synced_to_primary_clock_event_count;
     eventCount.gm_changed_event_count = client_ptp_data->gm_changed_event_count;
     eventCount.composite_event_count = client_ptp_data->composite_event_count;
 }

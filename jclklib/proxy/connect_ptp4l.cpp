@@ -99,14 +99,12 @@ void event_handle()
             }
 
             offset = ((TIME_STATUS_NP_t *)data)->master_offset;
-            servo = ((TIME_STATUS_NP_t *)data)->servo_state;
             gm_uuid = ((TIME_STATUS_NP_t *)data)->gmIdentity;
             pe.master_offset = offset;
-            pe.servo_locked = servo >= SERVO_LOCKED ? true:false;
             memcpy(pe.gm_identity, gm_uuid.v, sizeof(pe.gm_identity));
 
             /* Uncomment for debug data printing */
-            //printf("master_offset = %ld, servo_locked = %d\n", pe.master_offset, pe.servo_locked);
+            //printf("master_offset = %ld, synced_to_primary_clock = %d\n", pe.master_offset, pe.synced_to_primary_clock);
             //printf("gm_identity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
             //       pe.gm_identity[0], pe.gm_identity[1],pe.gm_identity[2],
             //       pe.gm_identity[3], pe.gm_identity[4],
@@ -117,17 +115,19 @@ void event_handle()
             portState = pd->portState;
 
             /* Reset TIME_STATUS_NP data if port_state <= PASSIVE */
-            if (portState <= PASSIVE) {
+            if (portState < SLAVE) {
                 pe.master_offset = 0;
                 memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
-                pe.servo_locked = 0;
+                pe.synced_to_primary_clock = false;
+            } else {
+                pe.synced_to_primary_clock = true;
             }
-
             break;
         case PORT_PROPERTIES_NP:
             /* Retrieve current port state when proxy is started */
             pd = (PORT_DATA_SET_t *)data;
             portState = pd->portState;
+            pe.synced_to_primary_clock = portState >= SLAVE ? true:false;
             break;
         case CMLDS_INFO_NP:
             if (pe.as_capable == ((CMLDS_INFO_NP_t *)data)->as_capable) {
@@ -285,7 +285,7 @@ void *ptp4l_event_loop( void *arg)
             /* Reset TIME_STATUS_NP data when ptp4l is disconnected */
             pe.master_offset = 0;
             memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
-            pe.servo_locked = 0;
+            pe.synced_to_primary_clock = false;
             pe.as_capable = 0;
             notify_client();
 

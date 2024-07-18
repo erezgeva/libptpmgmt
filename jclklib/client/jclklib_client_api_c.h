@@ -21,7 +21,7 @@ extern "C" {
 
 enum event_type {
     gmOffsetEvent,
-    servoLockedEvent,
+    syncedToPrimaryClockEvent,
     asCapableEvent,
     gmChangedEvent,
     eventLast
@@ -47,7 +47,7 @@ struct jcl_c_state {
     uint8_t gm_identity[8];
     bool    as_capable;
     bool    offset_in_range;
-    bool    servo_locked;
+    bool    synced_to_primary_clock;
     bool    gm_changed;
     bool    composite_event;
 };
@@ -56,7 +56,7 @@ struct jcl_c_event_count {
     uint64_t offset_in_range_event_count;
     uint64_t gm_changed_event_count;
     uint64_t as_capable_event_count;
-    uint64_t servo_locked_event_count;
+    uint64_t synced_to_primary_clock_event_count;
     uint64_t composite_event_count;
 };
 
