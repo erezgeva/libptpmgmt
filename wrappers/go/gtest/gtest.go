@@ -290,4 +290,4 @@ func main() {
   ptpmgmt.DeleteOptions(opt)
 }
 
-// LD_PRELOAD=../../libptpmgmt.so gtest/gtest
+// LD_PRELOAD=../../.libs/libptpmgmt.so gtest/gtest

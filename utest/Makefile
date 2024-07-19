@@ -53,11 +53,11 @@ CXXFLAGS_UTEST=$(filter-out -std=%,$(CXXFLAGS)) -std=c++14
 $(TEST_SYS_OBJS): CXXFLAGS_UTEST+=-include utest/libsys.h
 ifneq ($(HAVE_JSONC_LIB),)
 utest/jsonLoad.o: CXXFLAGS_UTEST+=-DHAVE_JSONC_LIB
-JSON_FLIBS+=$(JSONC_FLIB)
+JSON_FLIBS+=$(JSONC_LIB)
 endif
 ifneq ($(HAVE_FJSON_LIB),)
 utest/jsonLoad.o: CXXFLAGS_UTEST+=-DHAVE_FJSON_LIB
-JSON_FLIBS+=$(FJSON_FLIB)
+JSON_FLIBS+=$(FJSON_LIB)
 endif
 utest/%.o: utest/%.cpp | $(COMP_DEPS)
 	$(Q_CC)$(CXX) $(CXXFLAGS_UTEST) $(GTEST_INC_FLAGS)\
@@ -87,7 +87,7 @@ $(UTEST_JSON_LOAD): $(OBJ_DIR)/utest_m.o utest/jsonLoad.o $(LIB_NAME_SO) |\
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@ -ldl
 utest_json_load: $(HEADERS_GEN_COMP) $(UTEST_JSON_LOAD)
-	$(call Q_UTEST,JSON_LOAD)LD_PRELOAD=./$(LIB_NAME_SO) LD_LIBRARY_PATH=.\
+	$(call Q_UTEST,JSON_LOAD)LD_PRELOAD=./$(LIB_NAME_SO) LD_LIBRARY_PATH=$(LIB_D)\
 	  $(UVGD)$(UTEST_JSON_LOAD) $(GTEST_NO_COL) $(GTEST_FILTERS)
 TEST_LIBSYS_PMC:=$(OBJ_DIR)/libsys_pmc.so
 UTEST_PMC:=$(OBJ_DIR)/utest_pmc

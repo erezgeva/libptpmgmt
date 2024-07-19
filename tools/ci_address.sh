@@ -41,7 +41,7 @@ s_mv()
 ci_address()
 {
  sudo apt-get install -y --no-install-recommends libtool libtool-bin
- autoreconf
+ autoreconf -i
  ./configure
  sim_ptp4l -at
 }
@@ -50,7 +50,7 @@ ci_address()
 ci_pages()
 {
  sudo apt-get install -y --no-install-recommends doxygen graphviz
- autoreconf
+ autoreconf -i
  ./configure
  make doxygen
  mv doc/html _site
@@ -135,19 +135,25 @@ ci_abi()
 {
  echo "== Build current version =="
  emk config
- emk libptpmgmt.so
+ emk libptpmgmt.la
  echo "== Dump current version =="
- abi-dumper libptpmgmt.so -o cur.dump -lver 1 -public-headers pub
+ abi-dumper .libs/libptpmgmt.so -o cur.dump -lver 1 -public-headers pub
  local -r cur_hash="$(git rev-parse HEAD)"
  local -r version="$ver_maj.$ver_min"
+ make distclean
  echo "== Build last tag $version =="
  git checkout $version
- make clean
  emk config
- emk libptpmgmt.so
+ emk
+ # TODO Use new make: emk libptpmgmt.la
  git checkout "$cur_hash"
  echo "== Dump last tag version =="
- abi-dumper libptpmgmt.so -o old.dump -lver 0 -public-headers pub
+ local file=".libs/libptpmgmt.so"
+ if ! [[ -f "$file" ]]; then
+   # TODO Use new location
+   file="libptpmgmt.so"
+ fi
+ abi-dumper "$file" -o old.dump -lver 0 -public-headers pub
  echo "== Compare ABI =="
  if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
    echo "== Found errors =="
@@ -326,7 +332,7 @@ config_report()
  local list='TCLVER PERL PY3VERSION RUBYVER PHPVER LUAVERSIONS LUA_VERSION
    GOVER DOTTOOL ASTYLEMINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
    CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIGMINVER DOXYGENMINVER
-   PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC
+   PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl python ruby php lua go'
  local $list $langs
@@ -357,6 +363,13 @@ config_report()
  fi
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
  [[ -n "$ASTYLEMINVER" ]] && local -r astyle="$ASTYLEMINVER" || local -r astyle='x'
+ if [[ -n "$CHRPATH" ]]; then
+   local -r rpath="$CHRPATH"
+ elif [[ -n "$PATCHELF" ]]; then
+   local -r rpath="$PATCHELF"
+ else
+   local -r rpath='x'
+ fi
  [[ -n "$HAVE_SSL_HEADER" ]] && local -r ssl='v' || local -r ssl='x'
  [[ -n "$HAVE_GCRYPT_HEADER" ]] && local -r gcrypt='v' || local -r gcrypt='x'
  [[ -n "$HAVE_GNUTLS_HEADER" ]] && local -r gnutls='v' || local -r gnutls='x'
@@ -372,8 +385,8 @@ config_report()
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
+rpath '$rpath' Jsonc '$jsonc' Fjson '$fjson'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
-Jsonc '$jsonc' Fjson '$fjson'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Criterion test '$crtest'
 swig '$swig' Python '$python' Ruby '$ruby' PHP '$php'

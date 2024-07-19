@@ -10,7 +10,9 @@ Name:           libptpmgmt
 Version:        1.3
 Release:        1%{?dist}
 URL:            https://%{name}.nwtime.org
-BuildRequires:  gcc-c++ libtool pkgconfig autoconf m4 which swig
+BuildRequires:  gcc-c++ pkgconfig which swig
+BuildRequires:  autoconf m4 automake libtool chrpath
+# You may use 'patchelf' as alternative of `chrpath`
 BuildRequires:  doxygen graphviz texlive-epstopdf
 BuildRequires:  openssl-devel libgcrypt-devel gnutls-devel nettle-devel
 BuildRequires:  json-c json-c-devel
@@ -174,8 +176,7 @@ Requires:       python3-%{bname} = %{version}-%{release}
 %setup -q
 
 %build
-autoheader
-autoconf
+autoreconf -i
 %configure --with-pmc-flags='-fPIE'
 %make_build PMC_USE_LIB=so --no-print-directory all doxygen
 

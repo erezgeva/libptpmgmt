@@ -16,19 +16,18 @@ UTEST_FJSON:=$(OBJ_DIR)/utest_json_f
 UCTEST_JSONC:=$(OBJ_DIR)/uctest_json_c
 UCTEST_FJSON:=$(OBJ_DIR)/uctest_json_f
 # Using json-c
-JSON_C+=\"$(JSONC_FLIB)\",
+JSON_C+=\"$(notdir $(JSONC_LIB))\",
 ifneq ($(HAVE_JSONC_LIB),)
-JSONC_CFLAGS:=-include $(HAVE_JSONC_LIB) -DJLIB_NAME=\"$(JSONC_LIBA)\"
-$(OBJ_DIR)/jsonFromJc.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
+JSONC_CFLAGS:=-include $(HAVE_JSONC_LIB) -DJLIB_NAME=\"$(notdir $(JSONC_LIBA))\"
+$(OBJ_DIR)/jsonFromJc.lo: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(JSONC_CFLAGS) $< -o $@
-$(OBJ_DIR)/.libs/jsonFromJc.o: $(OBJ_DIR)/jsonFromJc.o
-$(JSONC_LIB)_LDLIBS:=$(JSONC_LIB_FLAGS)
-$(JSONC_FLIB): $(JSONC_LIB)
-	$Q$(LN) $^ $@
-$(JSONC_LIB): $(OBJ_DIR)/.libs/jsonFromJc.o $(LIB_NAME).so
-$(JSONC_LIBA): $(OBJ_DIR)/jsonFromJc.o
-	$(LLA)
-ALL+=$(JSONC_FLIB) $(JSONC_LIBA)
+$(JSONC_LA)_LDLIBS:=$(JSONC_LIB_FLAGS)
+$(JSONC_LA): $(OBJ_DIR)/jsonFromJc.lo $(LIB_NAME_LA)
+$(JSONC_LIBA): $(JSONC_LA)
+	@:
+$(JSONC_LIB): $(JSONC_LA)
+	@:
+ALL+=$(JSONC_LA)
 ifneq ($(GTEST_LIB_FLAGS),)
 $(UTEST_JSONC): $(OBJ_DIR)/utest_m.o utest/json2msg.o $(LIB_NAME_A) $(JSONC_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(JSONC_LIB_FLAGS)\
@@ -46,19 +45,18 @@ endif # CRITERION_LIB_FLAGS
 endif # HAVE_JSONC_LIB
 
 # Using fastjson
-JSON_C+=\"$(FJSON_FLIB)\",
+JSON_C+=\"$(notdir $(FJSON_LIB))\",
 ifneq ($(HAVE_FJSON_LIB),)
-FJSON_CFLAGS:=-include $(HAVE_FJSON_LIB) -DJLIB_NAME=\"$(FJSON_LIBA)\"
-$(OBJ_DIR)/jsonFromFj.o: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
+FJSON_CFLAGS:=-include $(HAVE_FJSON_LIB) -DJLIB_NAME=\"$(notdir $(FJSON_LIBA))\"
+$(OBJ_DIR)/jsonFromFj.lo: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(FJSON_CFLAGS) $< -o $@
-$(OBJ_DIR)/.libs/jsonFromFj.o: $(OBJ_DIR)/jsonFromFj.o
-$(FJSON_LIB)_LDLIBS:=$(FJSON_LIB_FLAGS)
-$(FJSON_FLIB): $(FJSON_LIB)
-	$Q$(LN) $^ $@
-$(FJSON_LIB): $(OBJ_DIR)/.libs/jsonFromFj.o $(LIB_NAME).so
-$(FJSON_LIBA): $(OBJ_DIR)/jsonFromFj.o
-	$(LLA)
-ALL+=$(FJSON_FLIB) $(FJSON_LIBA)
+$(FJSON_LA)_LDLIBS:=$(FJSON_LIB_FLAGS)
+$(FJSON_LA): $(OBJ_DIR)/jsonFromFj.lo $(LIB_NAME_LA)
+$(FJSON_LIBA): $(FJSON_LA)
+	 @:
+$(FJSON_LIB): $(FJSON_LA)
+	 @:
+ALL+=$(FJSON_LA)
 ifneq ($(GTEST_LIB_FLAGS),)
 $(UTEST_FJSON): $(OBJ_DIR)/utest_m.o utest/json2msg.o $(LIB_NAME_A) $(FJSON_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(FJSON_LIB_FLAGS)\
@@ -79,4 +77,4 @@ endif # HAVE_FJSON_LIB
 utest_json: utest_jsonc utest_fjson
 uctest_json: uctest_jsonc uctest_fjson
 # Add jsonFrom libraries to search
-$(OBJ_DIR)/jsonDef.o: override CXXFLAGS+=-DJSON_C="$(JSON_C)"
+$(OBJ_DIR)/jsonDef.lo: override CXXFLAGS+=-DJSON_C="$(JSON_C)"

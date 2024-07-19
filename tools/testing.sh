@@ -414,7 +414,7 @@ test_phc_ctl()
  if [[ -n "$use_sim_phc" ]]; then
    local -r ldPhcPath='LD_PRELOAD=./objs/ptp4l_sim.so'
    if [[ -n "$pneed" ]]; then
-     pneed="$ldPhcPath:.$libptpm "
+     pneed="$ldPhcPath:./.libs/$libptpm "
    else
      pneed="$ldPhcPath "
    fi
@@ -546,7 +546,7 @@ probeBuild()
 }
 allBuild()
 {
- ldPath="LD_LIBRARY_PATH=. LD_PRELOAD=.$libptpm"
+ ldPath="LD_LIBRARY_PATH=.libs LD_PRELOAD=./.libs/$libptpm"
  needCmpl=y
  # We need all!
  ldPathPerl="$ldPath PERL5LIB=wrappers/perl"
@@ -598,7 +598,7 @@ probeLibsDebian()
  if [[ $hmacCount -eq 0 ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no hmac plugs"
    needCmpl=y
-   ldPath="LD_LIBRARY_PATH=."
+   ldPath="LD_LIBRARY_PATH=.libs"
  fi
  local -i jsonCount=0
  getFirstFile "/usr/lib$fmach/libptpmgmt_fastjson.so.*"
@@ -612,7 +612,7 @@ probeLibsDebian()
  # One from JSON plugin is sufficient
  if [[ $jsonCount -eq 0 ]]; then
    needCmpl=y
-   [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=."
+   [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=.libs"
  fi
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
@@ -684,7 +684,7 @@ probeLibs()
  if [[ $hmacCount -eq 0 ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no hmac plugs"
    needCmpl=y
-   ldPath="LD_LIBRARY_PATH=."
+   ldPath="LD_LIBRARY_PATH=.libs"
  fi
  if [[ -z "$HAVE_JSONC_LIB" ]] && [[ -z "$HAVE_FJSON_LIB" ]]; then
    skip_json=true
@@ -702,7 +702,7 @@ probeLibs()
    if [[ $jsonCount -eq 0 ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no json plugs"
      needCmpl=y
-     [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=."
+     [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=.libs"
    fi
  fi
  getFirstFile "$PERL5DIR/auto/PtpMgmtLib/PtpMgmtLib.so"

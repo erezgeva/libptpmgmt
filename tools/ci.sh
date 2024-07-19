@@ -130,8 +130,9 @@ main()
    local -r color_norm=${esc}00m
    printf "$color_norm"
  fi
- local clean_list="autom4te.cache/ config.log config.status"
- clean_list+=" configure defs.mk src/config.h src/config.h.in"
+ local clean_list="autom4te.cache/ m4/ config.log config.status"
+ clean_list+=" config.guess config.sub ltmain.sh configure defs.mk"
+ clean_list+=" src/config.h src/config.h.in install-sh aclocal.m4 libtool"
  for n in */.upgrade_cockie; do
    ! [[ -f "$n" ]] || distclean_list+=" $n"
  done
@@ -164,8 +165,7 @@ main()
  fi
  ### Configure ###
  echo " * Configure"
- autoheader
- autoconf
+ autoreconf -i
  # Were is Gentoo defualt configure setting?
  # This is after the build flags, we use 64 bits container.
  local -r gentoo_cfg='--prefix=/usr --sysconfdir=/etc --localstatedir=/var/lib
@@ -188,8 +188,7 @@ main()
  test_clean clean
  ### Configure clang ###
  echo " * Configure with clang"
- autoheader
- autoconf
+ autoreconf -i
  # Use clang
  if $not_gentoo; then
    ecmd make config $mk_noc CC=clang CXX=clang++

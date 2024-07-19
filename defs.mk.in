@@ -31,7 +31,6 @@ host_cpu:=@host_cpu@
 host_os:=@host_os@
 
 # paths in system
-ROOT_DIR:=@ROOT_DIR@
 prefix:=@prefix@
 exec_prefix:=@exec_prefix@
 libdir:=@libdir@
@@ -51,7 +50,6 @@ OBJEXT:=@OBJEXT@
 # Compiler
 CC:=@CC@
 CXX:=@CXX@
-RANLIB:=@RANLIB@
 CXXFLAGS_PMC:=@CXXFLAGS_PMC@
 USE_FULL_PATH_LINK:=@USE_FULL_PATH_LINK@
 USE_CROSS_COMPILE:=@USE_CROSS_COMPILE@
@@ -79,6 +77,8 @@ SED:=@SED@
 MKDIR_P:=@MKDIR_P@
 LN_S:=@LN_S@
 M4:=@M4@
+CHRPATH:=@CHRPATH@
+PATCHELF:=@PATCHELF@
 CTAGS:=@CTAGS@
 READLINK:=@READLINK@
 PKG_CONFIG:=@PKG_CONFIG@

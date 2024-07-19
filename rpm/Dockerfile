@@ -19,13 +19,13 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel clang openssl-libs\
     openssl-devel libgcrypt-devel gnutls-devel nettle-devel perl-Test-Class\
     libfastjson libfastjson-devel json-c-devel m4 rubygem-test-unit gdb\
-    texlive-epstopdf ghostscript php-phpunit-PHPUnit perl-File-Touch jq &&\
-    dnf clean all &&\
+    texlive-epstopdf ghostscript php-phpunit-PHPUnit perl-File-Touch jq\
+    chrpath patchelf && dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers;\
     mkdir -p /tmp/1;cd /tmp/1;git clone https://github.com/linux-rt/librtpi;\
-    cd librtpi;autoreconf --install;\
+    cd librtpi;autoreconf --i;\
     ./configure --prefix=/usr --includedir=/usr/include --libdir=/usr/lib64;\
     make install;cd /tmp;rm -Rf 1
 ARG COOKIE

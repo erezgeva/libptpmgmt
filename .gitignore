@@ -21,11 +21,19 @@
 /configure~
 /defs.mk
 /libptpmgmt-*.txz
-/libptpmgmt*.a
-/libptpmgmt*.so.*
+/libptpmgmt*.la
+/.libs/libptpmgmt*.a
+/.libs/libptpmgmt*.la*
+/.libs/libptpmgmt*.so.*
 /.null
+/libtool
+/*.m4
+/*.sh
+/config.*
+/install-sh
 # In folders
-/doc
+/doc/
+/m4/
 /objs/
 /ptp-tools/pmc
 /autom4te.cache/

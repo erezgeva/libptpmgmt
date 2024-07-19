@@ -25,16 +25,23 @@ AC_PROG_CXX
 AC_PROG_GREP
 AC_PROG_EGREP
 AC_PROG_FGREP
-AC_PROG_RANLIB
 AC_PROG_SED
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
+AC_CHECK_TOOL([CHRPATH], [chrpath])
+AC_CHECK_TOOL([PATCHELF], [patchelf])
 AC_CHECK_TOOL([DATE], [date])
 AS_IF([test -n "$DATE"],
       AS_VAR_SET([ptpm_date], [`$DATE "+%s"`])
       AS_IF([test "x$ptpm_date" = 'x%s' ],
             AS_UNSET([DATE])))
+
+#----------------------------------------------------------------
+# libtool
+#----------------------------------------------------------------
+LT_INIT
+AC_CONFIG_MACRO_DIRS([m4])
 
 #----------------------------------------------------------------
 # globals
@@ -214,12 +221,6 @@ AC_SUBST([HAVE_UNISTD_H])
 #----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
-
-# Root directory
-AC_MSG_CHECKING([for project root folder])
-AS_VAR_SET([ROOT_DIR], ["`pwd`"])
-PTPM_RESULT([ROOT_DIR])
-AC_SUBST([ROOT_DIR])
 
 AS_UNSET([CXXFLAGS_PMC])
 AC_ARG_WITH([pmc-flags],

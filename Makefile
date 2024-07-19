@@ -195,6 +195,7 @@ include tools/version
 
 SRC:=src
 PUB:=pub
+LIB_D:=.libs
 PUB_C:=$(PUB)/c
 PMC_DIR:=ptp-tools
 HMAC_SRC:=hmac
@@ -204,9 +205,9 @@ OBJ_DIR:=objs
 CONF_FILES:=configure src/config.h.in
 SONAME:=.$(ver_maj)
 LIB_NAME:=libptpmgmt
-LIB_NAME_SO:=$(LIB_NAME).so
-LIB_NAME_A:=$(LIB_NAME).a
-LIB_NAME_FSO:=$(LIB_NAME_SO)$(SONAME)
+LIB_NAME_SO:=$(LIB_D)/$(LIB_NAME).so
+LIB_NAME_A:=$(LIB_D)/$(LIB_NAME).a
+LIB_NAME_LA:=$(LIB_NAME).la
 PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
@@ -229,27 +230,34 @@ SRCS_HMAC:=$(wildcard $(HMAC_SRC)/*.cpp)
 SRCS_JSON:=$(wildcard $(JSON_SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 # hmac
-SSL_LIB:=$(LIB_NAME)_openssl.so
-SSL_LIBA:=$(LIB_NAME)_openssl.a
-SSL_FLIB:=$(SSL_LIB)$(SONAME)
-GCRYPT_LIB:=$(LIB_NAME)_gcrypt.so
-GCRYPT_LIBA:=$(LIB_NAME)_gcrypt.a
-GCRYPT_FLIB:=$(GCRYPT_LIB)$(SONAME)
-GNUTLS_LIB:=$(LIB_NAME)_gnutls.so
-GNUTLS_LIBA:=$(LIB_NAME)_gnutls.a
-GNUTLS_FLIB:=$(GNUTLS_LIB)$(SONAME)
-NETTLE_LIB:=$(LIB_NAME)_nettle.so
-NETTLE_LIBA:=$(LIB_NAME)_nettle.a
-NETTLE_FLIB:=$(NETTLE_LIB)$(SONAME)
-HMAC_FLIBS:=$(SSL_FLIB) $(GNUTLS_FLIB) $(NETTLE_FLIB) $(GCRYPT_FLIB)
+SSL_NAME:=$(LIB_NAME)_openssl
+SSL_LIB:=$(LIB_D)/$(SSL_NAME).so
+SSL_LIBA:=$(LIB_D)/$(SSL_NAME).a
+SSL_LA:=$(SSL_NAME).la
+GCRYPT_NAME:=$(LIB_NAME)_gcrypt
+GCRYPT_LIB:=$(LIB_D)/$(GCRYPT_NAME).so
+GCRYPT_LIBA:=$(LIB_D)/$(GCRYPT_NAME).a
+GCRYPT_LA:=$(GCRYPT_NAME).la
+GNUTLS_NAME:=$(LIB_NAME)_gnutls
+GNUTLS_LIB:=$(LIB_D)/$(GNUTLS_NAME).so
+GNUTLS_LIBA:=$(LIB_D)/$(GNUTLS_NAME).a
+GNUTLS_LA:=$(GNUTLS_NAME).la
+NETTLE_NAME:=$(LIB_NAME)_nettle
+NETTLE_LIB:=$(LIB_D)/$(NETTLE_NAME).so
+NETTLE_LIBA:=$(LIB_D)/$(NETTLE_NAME).a
+NETTLE_LA:=$(NETTLE_NAME).la
+
+HMAC_FLIBS:=$(SSL_LIB) $(GNUTLS_LIB) $(NETTLE_LIB) $(GCRYPT_LIB)
 # json-c
-JSONC_LIB:=$(LIB_NAME)_jsonc.so
-JSONC_LIBA:=$(LIB_NAME)_jsonc.a
-JSONC_FLIB:=$(JSONC_LIB)$(SONAME)
+JSONC_NAME:=$(LIB_NAME)_jsonc
+JSONC_LIBA:=$(LIB_D)/$(JSONC_NAME).a
+JSONC_LIB:=$(LIB_D)/$(JSONC_NAME).so
+JSONC_LA:=$(JSONC_NAME).la
 # fastjson
-FJSON_LIB:=$(LIB_NAME)_fastjson.so
-FJSON_LIBA:=$(LIB_NAME)_fastjson.a
-FJSON_FLIB:=$(FJSON_LIB)$(SONAME)
+FJSON_NAME:=$(LIB_NAME)_fastjson
+FJSON_LIBA:=$(LIB_D)/$(FJSON_NAME).a
+FJSON_LIB:=$(LIB_D)/$(FJSON_NAME).so
+FJSON_LA:=$(FJSON_NAME).la
 TGT_LNG:=perl5 lua python3 ruby php tcl go
 UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth json json_load pmc hmac)
 UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth json)
@@ -271,7 +279,7 @@ ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
 SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
-  */github* */*.opt config.guess config.sub configure.ac install-sh */*.m4\
+  */github* */*.opt configure.ac src/*.m4\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
@@ -331,7 +339,6 @@ Q_TAGS=$Q$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
 Q_GEN=$Q$(info $(COLOR_BUILD)[GEN] $@$(COLOR_NORM))
 Q_SWIG=$Q$(info $(COLOR_BUILD)[SWIG] $@$(COLOR_NORM))
 Q_LD=$Q$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
-Q_AR=$Q$(info $(COLOR_BUILD)[AR] $@$(COLOR_NORM))
 Q_LCC=$(info $(COLOR_BUILD)[LCC] $<$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 Q_UTEST=$Q$(info $(COLOR_BUILD)[UTEST $1]$(COLOR_NORM))
@@ -367,21 +374,21 @@ override CXXFLAGS+=$(ASAN_FLAGS) -fno-omit-frame-pointer
 override LDFLAGS+=$(ASAN_FLAGS)
 ASAN_PRE:=$(subst $(SP),,$(foreach n,$(ASAN_LIBS),$n:))
 endif # USE_ASAN
-LIBTOOL_CC=$Q$(Q_LCC)libtool --mode=compile --tag=CXX $(LIBTOOL_QUIET)
-LDFLAGS_NM=-Wl,--version-script,scripts/lib.ver -Wl,-soname,$@$(SONAME)
-$(LIB_NAME_SO)_LDLIBS:=-lm -ldl
-LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(SRCS:.cpp=.o))
+LIBTOOL=./libtool
+LIBTOOL_CC=$Q$(Q_LCC)$(LIBTOOL) --mode=compile --tag=CXX $(LIBTOOL_QUIET)
+LIBTOOL_LD=$Q$(Q_LD)$(LIBTOOL) --mode=link --tag=CXX $(LIBTOOL_QUIET)
+$(LIB_NAME_LA)_LDLIBS:=-lm -ldl
+LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(SRCS:.cpp=.lo))
 PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
-$(OBJ_DIR)/ver.o: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
+$(OBJ_DIR)/ver.lo: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
 ifdef USE_DEPS
 D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
 endif
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
-LLA=$(Q_AR)$(AR) rcs $@ $^;$(RANLIB) $@
 
-ifneq ($(CXX_COLOR_USE),)
+ifdef CXX_COLOR_USE
 # GCC output colours
 ifndef NO_COL
 override CXXFLAGS+=$(CXX_COLOR_USE)
@@ -390,14 +397,19 @@ override CXXFLAGS+=$(CXX_COLOR_NONE)
 endif
 endif # CXX_COLOR_USE
 
-ALL:=$(PMC_NAME) $(LIB_NAME_FSO) $(LIB_NAME_A)
+ALL:=$(PMC_NAME) $(LIB_NAME_LA)
 
 %.so:
-	$(Q_LD)$(CXX) $(LDFLAGS) $(LDFLAGS_NM) -shared $^ $(LOADLIBES)\
+	$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES)\
 	  $($@_LDLIBS) $(LDLIBS) -o $@
 
+%.la:
+	$(LIBTOOL_LD) $(CXX) -version-number $(ver_maj):$(ver_min):0 -Og -g\
+	  -o $@ -rpath "$(libdir)" $(LDFLAGS) $^ $(LOADLIBES)\
+	  $($@_LDLIBS) $(LDLIBS)
+
 UVGD:=$(SP)
-ifneq ($(VALGRIND),)
+ifdef VALGRIND
 ifdef VGD
 UVGD+=$(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(SP)
 # failing: utest_ruby utest_go utest_sys
@@ -414,21 +426,16 @@ include $(HMAC_SRC)/Makefile
 include $(JSON_SRC)/Makefile
 
 # Compile library source code
-$(LIB_OBJS): $(OBJ_DIR)/%.o: $(SRC)/%.cpp | $(COMP_DEPS)
+$(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
-
-# Depened shared library objects on the static library to ensure build
-$(eval $(foreach obj,$(notdir $(LIB_OBJS)),\
-  $(call depend,$(OBJ_DIR)/.libs/$(obj),$(OBJ_DIR)/$(obj))))
-
-$(LIB_NAME_A): $(LIB_OBJS)
-	$(LLA)
-$(LIB_NAME_FSO): $(LIB_NAME_SO)
-	$Q$(LN) $^ $@
-$(LIB_NAME_SO): $(addprefix $(OBJ_DIR)/.libs/,$(notdir $(LIB_OBJS)))
+$(LIB_NAME_LA): $(LIB_OBJS)
+$(LIB_NAME_SO): $(LIB_NAME_LA)
+	@:
+$(LIB_NAME_A): $(LIB_NAME_LA)
+	@:
 
 include utest/Makefile
-ifneq ($(CRITERION_LIB_FLAGS),)
+ifdef CRITERION_LIB_FLAGS
 include uctest/Makefile
 endif
 
@@ -441,7 +448,7 @@ ifneq ($(and $(HMAC_ALIB), $(filter a,$(PMC_USE_LIB))),)
 PMC_LIBS+=$(HMAC_ALIB)
 PMC_LDLIBS+=$(HMAC_ALIB_FLAGS) $(HMAC_LIBA_FLAGS)
 endif
-$(PMC_NAME): $(PMC_OBJS) $(LIB_NAME).$(PMC_USE_LIB) $(PMC_LIBS)
+$(PMC_NAME): $(PMC_OBJS) $(LIB_D)/$(LIB_NAME).$(PMC_USE_LIB) $(PMC_LIBS)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(PMC_LDLIBS) -o $@
 
 $(SRC)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/cpp.m4
@@ -475,15 +482,15 @@ format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)\
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r";./tools/format.pl $^
 	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
-ifneq ($(CPPCHECK),)
+ifdef CPPCHECK
 	$(CPPCHECK) $(CPPCHECK_OPT) --language=c++\
 	  $(filter-out $(EXTRA_C_SRCS) $(addprefix $(SRC)/,ids.h),$^)
 endif
 endif # ASTYLEMINVER && PERL5TOUCH
 
-ifneq ($(SWIGMINVER),)
+ifdef SWIGMINVER
 SWIG_ALL:=
-ifneq ($(SWIGARGCARGV_GO),)
+ifdef SWIGARGCARGV_GO
 go_SFLAGS+=-Iswig/go
 endif #SWIGARGCARGV_GO
 
@@ -529,25 +536,25 @@ SPDXCY+=Copyright © $(CYEAR) Erez Geva <ErezGeva2@gmail.com>
 SPDXGFDL:=GFDL-1.3-no-invariants-or-later
 SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
 
-ifeq ($(SKIP_PERL5),)
+ifndef SKIP_PERL5
 include wrappers/perl/Makefile
 endif
-ifeq ($(SKIP_LUA),)
+ifndef SKIP_LUA
 include wrappers/lua/Makefile
 endif
-ifeq ($(SKIP_PYTHON3),)
+ifndef SKIP_PYTHON3
 include wrappers/python/Makefile
 endif
-ifeq ($(SKIP_RUBY),)
+ifndef SKIP_RUBY
 include wrappers/ruby/Makefile
 endif
-ifeq ($(SKIP_PHP),)
+ifndef SKIP_PHP
 include wrappers/php/Makefile
 endif
-ifeq ($(SKIP_TCL),)
+ifndef SKIP_TCL
 include wrappers/tcl/Makefile
 endif
-ifeq ($(SKIP_GO),)
+ifndef SKIP_GO
 include wrappers/go/Makefile
 endif
 
@@ -557,9 +564,9 @@ endif # SWIGMINVER
 tools/doxygen.cfg: tools/doxygen.cfg.in
 	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
-ifneq ($(DOXYGENMINVER),)
+ifdef DOXYGENMINVER
 doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
-ifeq ($(DOTTOOL),)
+ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
 	$Q$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' tools/doxygen.cfg
 endif
@@ -571,14 +578,14 @@ ifdef Q_DOXY
 else
 	$(DOXYGEN) tools/doxygen.cfg
 endif
-ifeq ($(DOTTOOL),)
+ifndef DOTTOOL
 	$Q$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' tools/doxygen.cfg
 endif
 endif # DOXYGENMINVER
 
 checkall: format doxygen
 
-ifneq ($(CTAGS),)
+ifdef CTAGS
 tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
 	$(SRCS_JSON)
 	$(Q_TAGS)$(CTAGS) -R $^
@@ -601,7 +608,7 @@ DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(LIB_NAME)-doc
 MANDIR:=$(DESTDIR)$(mandir)/man8
 # 1=Dir 2=file 3=link
-ifeq ($(USE_FULL_PATH_LINK),)
+ifndef USE_FULL_PATH_LINK
 mkln=$(LN) $2 $(DESTDIR)$1/$3
 else
 mkln=$(LN) $1/$2 $(DESTDIR)$1/$3
@@ -609,11 +616,18 @@ endif
 
 install: $(INS_TGT)
 install_main:
-	$(Q)for lib in $(LIB_NAME)*.so
-	  do $(INSTALL_LIB) -D $$lib $(DLIBDIR)/$$lib.$(PACKAGE_VERSION)
-	  $(call mkln,$(libdir),$$lib.$(PACKAGE_VERSION),$$lib$(SONAME))
-	  $(call mkln,$(libdir),$$lib$(SONAME),$$lib);done
-	$(INSTALL_LIB) $(LIB_NAME)*.a $(DLIBDIR)
+	$(Q)$(INSTALL_FOLDER) $(DLIBDIR)
+	cp -a $(LIB_D)/$(LIB_NAME)*.so* $(DLIBDIR)
+	$(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.so.*.*.* $(DLIBDIR)
+ifdef CHRPATH
+	$(CHRPATH) -d $(DLIBDIR)/*.so.*.*.*
+else
+ifdef PATCHELF
+	$(PATCHELF) --remove-rpath $(DLIBDIR)/*.so.*.*.*
+endif
+endif
+	if test -f "$(LIB_NAME_A)"
+	then $(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.a $(DLIBDIR); fi
 	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
 	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
@@ -630,7 +644,7 @@ install_main:
 	$(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
 	$(INSTALL_FOLDER) $(DOCDIR)
 	cp *.md $(DOCDIR)
-ifneq ($(DOXYGENMINVER),)
+ifdef DOXYGENMINVER
 	$(MKDIR_P) "doc/html"
 	$(RM) doc/html/*.md5 doc/html/*.map
 	cp -a doc/html $(DOCDIR)
@@ -713,10 +727,12 @@ endif # which ebuild
 ####### Generic rules #######
 
 ifeq ($(filter distclean,$(MAKECMDGOALS)),)
+ifneq ($(wildcard configure),)
 src/config.h.in: configure.ac
 	$(Q)autoheader
+endif
 configure: configure.ac
-	$(Q)autoconf
+	$(Q)autoreconf -i
 ifneq ($(filter config,$(MAKECMDGOALS)),)
 ifneq ($(NONPHONY_TGT_ALL),)
 $(eval $(call phony,$(NONPHONY_TGT_ALL)))
@@ -764,7 +780,7 @@ endif # config.status
 endif # MAKECMDGOALS
 
 CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
-  $(LIB_NAME)*.so $(LIB_NAME)*.a $(LIB_NAME)*.so.$(ver_maj) */*.so */*/*.so\
+  *.la wrappers/*/*.so\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.mod */$(LIB_SRC) wrappers/*/$(SWIG_NAME).cpp\
   wrappers/*/$(SWIG_NAME).h\
@@ -774,11 +790,11 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   .phpunit.result.cache wrappers/go/allocTlv.i\
   wrappers/go/$(SWIG_LNAME).go $(HEADERS_GEN) wrappers/go/gtest/gtest .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
-  archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) wrappers/perl/auto\
+  archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) $(LIB_D) wrappers/perl/auto\
   wrappers/go/$(SWIG_LNAME)
-DISTCLEAN:=$(addprefix config.,log status) configure configure~ defs.mk\
-  $(wildcard src/config.h*)
-DISTCLEAN_DIRS:=autom4te.cache
+DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
+  ltmain.sh $(wildcard src/config.h* config.*)
+DISTCLEAN_DIRS:=autom4te.cache m4
 
 clean: deb_clean
 	$(Q_CLEAN)$(RM) $(CLEAN)

@@ -26,16 +26,16 @@ libdir='usr/lib'
 verdep="$pkgver-$pkgrel"
 build() {
   cd $pkgname-$pkgver
-  autoheader
-  autoconf
+  autoreconf -i
   ./configure --prefix=/usr --sbindir=\${prefix}/bin
   make PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
   make DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
-  python3 json-c go gcc libtool autoconf make texlive-fontutils which
-  openssl libgcrypt gnutls nettle)
+  python3 json-c go gcc libtool autoconf make chrpath
+  texlive-fontutils which openssl libgcrypt gnutls nettle)
+# You may use 'patchelf' as alternative of `chrpath`
 package_libptpmgmt() {
   pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/$libdir

@@ -10,8 +10,9 @@ Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),
 		    ruby:native, ruby-dev, libfastjson-dev, libjson-c-dev,
 		    libssl-dev, libgcrypt20-dev, libgnutls28-dev, nettle-dev
-Build-Depends-Indep: graphviz, doxygen (>=1.8), libtool-bin, dh-exec (>=0.3),
-		     swig (>=4.1), coreutils, m4
+Build-Depends-Indep: graphviz, doxygen (>=1.8), dh-exec (>=0.3),
+		     swig (>=4.1), coreutils, m4, gawk, autoconf, automake,
+		     chrpath | patchelf
 Homepage: https://libptpmgmt.nwtime.org
 
 Package: libptpmgmt

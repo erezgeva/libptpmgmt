@@ -108,4 +108,4 @@ final class utest extends TestCase
       $this->build->clear();
     }
 }
-# LD_PRELOAD=../../libptpmgmt.so PHPRC=. phpunit ./utest.php
+# LD_PRELOAD=../../.libs/libptpmgmt.so PHPRC=. phpunit ./utest.php

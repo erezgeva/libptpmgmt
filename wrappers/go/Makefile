@@ -30,7 +30,7 @@ GO_SRC:=$(GO_D)/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 $(GO_D)/allocTlv.i: $(GO_D)/allocTlv.i.m4
 	$(Q_GEN)$(M4) -I $(SRC) $< > $@
 $(GO_D)/$(SWIG_NAME).cpp: $(GO_D)/allocTlv.i
-$(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp $(LIB_NAME_FSO)
+$(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp $(LIB_NAME_LA)
 	$Q$(MKDIR_P) $(@D)
 	cp $^ $(GO_D)/$(SWIG_LNAME).go $(@D)
 $(GO_D)/$(SWIG_LNAME)/go.mod:
