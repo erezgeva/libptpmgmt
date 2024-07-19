@@ -635,10 +635,13 @@ ifneq ($(DOXYGENMINVER),)
 	$(RM) doc/html/*.md5 doc/html/*.map
 	cp -a doc/html $(DOCDIR)
 	printf '$(REDIR)' > $(DOCDIR)/index.html
-	$(SED) -i '1 i$(SPDXHTML)' $(DOCDIR)/html/*.html\
-	  $(subst doc/html/,$(DOCDIR)/html/,$(wildcard doc/html/*/*.html))
-	$(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
-	  $(DOCDIR)/html/search/*_*.js $(DOCDIR)/html/search/searchdata.js
+	for dh in doc/html/*.html doc/html/*/*.html;do if test -f "$$dh"
+	then $(SED) -i '1 i$(SPDXHTML)' $(subst doc/html/,$(DOCDIR)/html/,$$dh)
+	fi;done
+	for dh in doc/html/search/*_*.js doc/html/search/searchdata.js
+	do if test -f "$$dh"
+	then $(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
+	  $(subst doc/html/,$(DOCDIR)/html/,$$dh);fi;done
 endif # DOXYGENMINVER
 
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
