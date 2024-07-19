@@ -23,7 +23,11 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
-    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers;\
+    mkdir -p /tmp/1;cd /tmp/1;git clone https://github.com/linux-rt/librtpi;\
+    cd librtpi;autoreconf --install;\
+    ./configure --prefix=/usr --includedir=/usr/include --libdir=/usr/lib64;\
+    make install;cd /tmp;rm -Rf 1
 ARG COOKIE
 RUN dnf upgrade -y
 ARG SRC

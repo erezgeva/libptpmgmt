@@ -13,6 +13,7 @@ MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
 ARG UID
 ARG USER
+ARG DIST
 ARG ARCHS
 ARG SRC_CFG
 ARG DPKGS
@@ -34,7 +35,12 @@ RUN apt-get update;\
     apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
-    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers
+    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers;\
+    if test "$DIST" = "bookworm";then mkdir -p /tmp/1;\
+    cd /tmp/1;git clone https://salsa.debian.org/fmoessbauer/librtpi.git;\
+    cd librtpi;dpkg-buildpackage -b --no-sign;for a in $ARCHS;\
+    do DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage -B --no-sign -a$a;done;\
+    cd ..;dpkg -i librtpi-dev_*.deb librtpi1_*.deb;cd ..;rm -Rf 1;fi
 ARG COOKIE
 RUN apt-get update; apt-get upgrade -y --no-install-recommends
 ARG SRC

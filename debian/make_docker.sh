@@ -40,7 +40,7 @@ main()
   local -r main_arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
   local -r dpkgs_bookworm=''
-  local -r dpkgs_trixie=''
+  local -r dpkgs_trixie='librtpi-dev@'
   local dpkgs_arch='libstdc++6
     libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
     libfastjson-dev libgtest-dev lua-posix libjson-c-dev

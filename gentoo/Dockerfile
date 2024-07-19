@@ -23,7 +23,11 @@ RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\
     sys-devel/clang dev-debug/gdb &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel,portage &&\
-    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers;\
+    mkdir -p /tmp/1;cd /tmp/1;git clone https://github.com/linux-rt/librtpi;\
+    cd librtpi;autoreconf --install;\
+    ./configure --prefix=/usr --includedir=/usr/include --libdir=/usr/lib64;\
+    make install;cd /tmp;rm -Rf 1
 ARG COOKIE
 RUN emerge --oneshot -tv sys-apps/portage
 ARG SRC
