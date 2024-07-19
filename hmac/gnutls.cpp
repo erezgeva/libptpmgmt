@@ -67,7 +67,11 @@ bool Gnutls::init(HMAC_t type)
 bool Gnutls::digest(const void *data, size_t len, Binary &mac)
 {
     size_t size = max(mac.size(), (size_t)gnutls_hmac_get_len(m_algorithm));
-    uint8_t buf[size];
+    if(size > HMAC_MAX_MAC_SIZE) {
+        PTPMGMT_ERROR("MAC size too big");
+        return false;
+    }
+    uint8_t buf[HMAC_MAX_MAC_SIZE];
     PTPMGMT_ERROR_CLR;
     if(gnutls_hmac(m_dig, data, len) < 0) {
         // Clean for next digest

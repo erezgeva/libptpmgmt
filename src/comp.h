@@ -601,6 +601,7 @@ struct HMAC_lib {
  * Library binding use C, find it easily with dlsym()
  *  and '-uptpm_hmac' for static link.
  */
+static const size_t HMAC_MAX_MAC_SIZE = 64;
 #define HMAC_DECL(cls) \
     HMAC_lib me = { [](){return new cls;}, HLIB_NAME }; \
     extern "C" { HMAC_lib *ptpm_hmac() { return &me; } }

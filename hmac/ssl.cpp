@@ -85,7 +85,11 @@ bool HMAC_SSL::digest(const void *data, size_t len, Binary &mac)
         !EVP_MAC_update(m_ctx, (const uint8_t *)data, len))
         return false;
     size_t size = max(mac.size(), m_min_digest);
-    uint8_t buf[size];
+    if(size > HMAC_MAX_MAC_SIZE) {
+        PTPMGMT_ERROR("MAC size too big");
+        return false;
+    }
+    uint8_t buf[HMAC_MAX_MAC_SIZE];
     if(!EVP_MAC_final(m_ctx, buf, &size, size)) {
         PTPMGMT_ERROR("EVP_MAC_final %s", ssl_err());
         return false;

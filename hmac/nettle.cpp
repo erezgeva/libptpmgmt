@@ -62,7 +62,11 @@ bool Nettle::init(HMAC_t type)
 bool Nettle::digest(const void *data, size_t len, Binary &mac)
 {
     size_t size = mac.size();
-    uint8_t buf[size];
+    if(size > HMAC_MAX_MAC_SIZE) {
+        PTPMGMT_ERROR("MAC size too big");
+        return false;
+    }
+    uint8_t buf[HMAC_MAX_MAC_SIZE];
     m_mac->update(m_ctx, len, (const uint8_t *)data);
     m_mac->digest(m_ctx, size, buf);
     mac.setBin(buf, size);

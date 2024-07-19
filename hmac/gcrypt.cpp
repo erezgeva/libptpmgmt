@@ -68,7 +68,11 @@ bool HMAC_gcrypt::digest(const void *data, size_t len, Binary &mac)
     if(!update(data, len))
         return false;
     size_t size = mac.size();
-    uint8_t buf[size];
+    if(size > HMAC_MAX_MAC_SIZE) {
+        PTPMGMT_ERROR("MAC size too big");
+        return false;
+    }
+    uint8_t buf[HMAC_MAX_MAC_SIZE];
     gcry_error_t err = gcry_mac_read(hd, buf, &size);
     if(err != GPG_ERR_NO_ERROR) {
         PTPMGMT_ERROR("gcry_mac_read fail %d", err);

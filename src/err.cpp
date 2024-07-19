@@ -49,10 +49,16 @@ string Error::doFormat(const char *format, ...)
     va_copy(va2, va);
     int len = vsnprintf(nullptr, 0, format, va2) + 1;
     va_end(va2);
-    char buf[len];
+    char *buf = (char *)malloc(len);
+    if(buf == nullptr) {
+        va_end(va);
+        return "";
+    }
     vsnprintf(buf, len, format, va);
+    string str(buf);
+    free(buf);
     va_end(va);
-    return buf;
+    return str;
 }
 const string &Error::getErrnoMsg()
 {

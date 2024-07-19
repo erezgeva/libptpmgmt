@@ -709,7 +709,7 @@ bool PtpClock::readEvents(vector<PtpEvent_t> &events, size_t max) const
         max = PTP_BUF_TIMESTAMPS;
     else
         max = min(max, PTP_BUF_TIMESTAMPS);
-    ptp_extts_event ents[max];
+    ptp_extts_event ents[PTP_BUF_TIMESTAMPS + 1];
     size_t num = PtpClock_readEvents(m_fd, ents, max);
     if(num == 0)
         return false;
