@@ -12,6 +12,7 @@
 # - gitlab_docker:  Logging into GitLab Docker Server
 # - ci_build:       Build and install packages
 # - ci_pkgs:        Test with linuxptp
+# - ci_pkgs_no_dev: Test with linuxptp without the development package
 # - ci_abi:         Compart ABI of current library with last version
 # - ci_abi_err:     Report ABI error
 # - ci_cross:       CI cross compilation
@@ -125,9 +126,32 @@ ci_build()
 ci_pkgs()
 {
  sim_ptp4l -snt
- # Check development package
+ # Check C development using the development package
  gcc -Wall sample/check_ver.c -o check_ver -lptpmgmt
  ./check_ver
+}
+# Test with linuxptp without the development package
+ci_pkgs_no_dev()
+{
+ local dist dname
+ distribution
+ case $dist in
+   debian)
+     sudo apt-get remove -y --no-install-recommends libptpmgmt-dev
+     ;;
+   fedora|redhat)
+     sudo dnf remove -y libptpmgmt-devel
+     ;;
+   arch)
+     sudo pacman -R --noconfirm libptpmgmt-dev
+     ;;
+   gentoo)
+     # Gentoo do not use packages :-)
+     return
+     ;;
+ esac
+ # Run test without the development package
+ sim_ptp4l -snt
 }
 ###############################################################################
 # Compart ABI of current library with last version
@@ -489,6 +513,7 @@ main()
   gitlab_docker.sh)  gitlab_docker "$@";;
   ci_build.sh)       ci_build "$@";;
   ci_pkgs.sh)        ci_pkgs "$@";;
+  ci_pkgs_no_dev.sh) ci_pkgs_no_dev "$@";;
   ci_abi.sh)         ci_abi "$@";;
   ci_abi_err.sh)     ci_abi_err "$@";;
   ci_cross.sh)       ci_cross "$@";;

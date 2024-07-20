@@ -105,6 +105,10 @@ jobs:
     - name: test with linuxptp
       run: libptpmgmt/tools/ci_pkgs.sh
 
+    - name: test with linuxptp without the development package
+      if: ${{ matrix.names != 'portage' }}
+      run: libptpmgmt/tools/ci_pkgs_no_dev.sh
+
   abi:
     runs-on: ubuntu-latest
     container:

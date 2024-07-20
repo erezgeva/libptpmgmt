@@ -104,6 +104,7 @@ main()
        ldPathPhp ldPathTcl ldPathJson needCmpl oneLua skip_php skip_json\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54\
        ldPath luaVersions
+ local -r gtest='wrappers/go/gtest/gtest'
  local -r pyVersions='3'
  local -r libptpm='/libptpmgmt.so'
  probeBuild
@@ -370,9 +371,8 @@ do_python()
 }
 do_go()
 {
- local -r gtest=wrappers/go/gtest/gtest
- if ! [[ -x $gtest ]]; then
-   CGO_LDFLAGS="-lm -lptpmgmt" go build -o $gtest $gtest.go
+ if ! [[ -x "$gtest" ]]; then
+   CGO_LDFLAGS="-lm -lptpmgmt" go build -o "$gtest" "$gtest.go"
  fi
  time eval "$useSudo$ldPath $gtest $runOptions" |\
    diff - <(printf "$perlOut\n")
@@ -785,8 +785,16 @@ probeLibs()
  fi
  getFirstFile "$GOROOT/src/ptpmgmt/PtpMgmtLib.cpp"
  if ! [[ -f "$file" ]]; then
-   [[ -z "$no_build" ]] || echo "Build as: no go"
-   needCmpl=y
+   if [[ -n "$no_build" ]]; then
+     # If we ask not to build and we have gtest build, just skip go
+     # As build go require the development package
+     if ! [[ -x "$gtest" ]]; then
+       echo "Build as: no go"
+       needCmpl=y
+     fi
+   else
+     needCmpl=y
+   fi
  fi
  if [[ -n "$ldPath" ]]; then
    for n in Perl Ruby Php Tcl Json
