@@ -771,7 +771,7 @@ class MsgBuild : public MessageBuilder
                 } else if(!key.can_str)
                     // wrong number, if we can't use the string, we have an error.
                     return true;
-            } else if(key.handle(key))
+            } else if(tkn == nullptr || *tkn == 0 || key.handle(key))
                 return true;
             // We have the value mark it
             key.req = false;
@@ -786,8 +786,6 @@ class MsgBuild : public MessageBuilder
     static bool getTimeSource(val_key_t &key) {
         timeSource_e type;
         const char *tkn = key.str_val;
-        if(tkn == nullptr || *tkn == 0)
-            return true;
         if(Message::findTimeSrc(tkn, type, false)) {
             key.num = type;
             return false; // No errors!
@@ -804,8 +802,6 @@ class MsgBuild : public MessageBuilder
     static bool getPortState(val_key_t &key) {
         portState_e state;
         const char *tkn = key.str_val;
-        if(tkn == nullptr || *tkn == 0)
-            return true;
         if(Message::findPortState(tkn, state, false)) {
             key.num = state;
             return false; // No errors!
@@ -822,7 +818,7 @@ class MsgBuild : public MessageBuilder
     static bool getDelayMech(val_key_t &key) {
         delayMechanism_e type;
         const char *tkn = key.str_val;
-        if(tkn != nullptr && Message::findDelayMech(tkn, type, false)) {
+        if(Message::findDelayMech(tkn, type, false)) {
             key.num = type;
             return false; // No errors!
         }

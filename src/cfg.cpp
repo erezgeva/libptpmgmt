@@ -171,21 +171,21 @@ bool ConfigFile::read_cfg(const string &_file)
         if(*cur == '[') {
             cur = skip_spaces(cur + 1);
             char *end = strchr(cur, ']');
-            if(end == nullptr) {
-                PTPMGMT_ERROR("wrong line %s(%d)", file, lineNum);
-                return false;
-            }
+            if(end == nullptr)
+                goto lineErr;
             strip_end_spaces(end);
             curSection = cur;
         } else if(*cur != 0 && *cur != '#' &&
-            !cfgSec[curSection].set_val(cur)) {
-            PTPMGMT_ERROR("wrong line %s(%d)", file, lineNum);
-            return false;
-        }
+            !cfgSec[curSection].set_val(cur))
+            goto lineErr;
     }
     fclose(f);
     PTPMGMT_ERROR_CLR;
     return true;
+lineErr:
+    fclose(f);
+    PTPMGMT_ERROR("wrong line %s(%zu)", file, lineNum);
+    return false;
 }
 bool ConfigFile::is_global(int idx, const string &section) const
 {

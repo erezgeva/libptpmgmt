@@ -571,8 +571,10 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
                 tlvOrg = new SMPTE_ORGANIZATION_EXTENSION_t;
                 if(tlvOrg == nullptr)
                     return MNG_PARSE_ERROR_MEM;
-                if(mp.SMPTE_ORGANIZATION_EXTENSION_f(*tlvOrg))
+                if(mp.SMPTE_ORGANIZATION_EXTENSION_f(*tlvOrg)) {
+                    delete tlvOrg;
                     return mp.m_err;
+                }
                 m_dataGet.reset(tlvOrg);
                 m_replayTlv_id = SMPTE_MNG_ID;
                 if(errAuth != MNG_PARSE_ERROR_OK)

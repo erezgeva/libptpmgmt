@@ -85,11 +85,13 @@ struct JsonVal {
         if(type == to)
             return true;
         char *end, strBuf[100];
+        double dTmp;
         switch(type) {
             case JT_INT:
                 switch(to) {
                     case JT_DOUBLE:
-                        fltV = intV;
+                        dTmp = intV;
+                        fltV = dTmp;
                         break;
                     case JT_BOOL:
                         intV = intV != 0;
@@ -125,7 +127,8 @@ struct JsonVal {
                     case JT_INT:
                         break;
                     case JT_DOUBLE:
-                        fltV = intV;
+                        dTmp = intV;
+                        fltV = dTmp;
                         break;
                     case JT_STR:
                         if(intV == 0)
