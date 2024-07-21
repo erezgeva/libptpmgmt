@@ -22,7 +22,7 @@ UTEST_DYN_HMAC:=$(OBJ_DIR)/utest_dyn_hmac
 HMAC_LIBA_FLAGS:=-uptpm_hmac
 
 # Using ssl
-HMAC_LIBS+=\"$(notdir $(SSL_LIB))\",
+HMAC_LIBS+=\"$(SSL_DL)\",
 ifneq ($(HAVE_SSL_HEADER),)
 SSL_CFLAGS:=-DHLIB_NAME=\"$(notdir $(SSL_LIBA))\"
 HMAC_ALIB:=$(SSL_LIBA)
@@ -46,7 +46,7 @@ endif # GTEST_LIB_FLAGS
 endif # HAVE_SSL_HEADER
 
 # Using LGPL Crypto library
-HMAC_LIBS+=\"$(notdir $(GCRYPT_LIB))\",
+HMAC_LIBS+=\"$(GCRYPT_DL)\",
 ifneq ($(HAVE_GCRYPT_HEADER),)
 GCRYPT_CFLAGS:=-DHLIB_NAME=\"$(notdir $(GCRYPT_LIBA))\"
 ifeq ($(HMAC_ALIB),)
@@ -72,7 +72,7 @@ endif # GTEST_LIB_FLAGS
 endif # HAVE_GCRYPT_HEADER
 
 # Using gnutls
-HMAC_LIBS+=\"$(notdir $(GNUTLS_LIB))\",
+HMAC_LIBS+=\"$(GNUTLS_DL)\",
 ifneq ($(HAVE_GNUTLS_HEADER),)
 GNUTLS_CFLAGS:=-DHLIB_NAME=\"$(notdir $(GNUTLS_LIBA))\"
 ifeq ($(HMAC_ALIB),)
@@ -99,7 +99,7 @@ endif # GTEST_LIB_FLAGS
 endif # HAVE_GNUTLS_HEADER
 
 # Using nettle
-HMAC_LIBS+=\"$(notdir $(NETTLE_LIB))\",
+HMAC_LIBS+=\"$(NETTLE_DL)\",
 ifneq ($(HAVE_NETTLE_HEADER),)
 NETTLE_CFLAGS:=-DHLIB_NAME=\"$(notdir $(NETTLE_LIBA))\"
 ifeq ($(HMAC_ALIB),)

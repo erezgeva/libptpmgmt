@@ -16,7 +16,7 @@ UTEST_FJSON:=$(OBJ_DIR)/utest_json_f
 UCTEST_JSONC:=$(OBJ_DIR)/uctest_json_c
 UCTEST_FJSON:=$(OBJ_DIR)/uctest_json_f
 # Using json-c
-JSON_C+=\"$(notdir $(JSONC_LIB))\",
+JSON_C+=\"$(JSONC_DL)\",
 ifneq ($(HAVE_JSONC_LIB),)
 JSONC_CFLAGS:=-include $(HAVE_JSONC_LIB) -DJLIB_NAME=\"$(notdir $(JSONC_LIBA))\"
 $(OBJ_DIR)/jsonFromJc.lo: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
@@ -45,7 +45,7 @@ endif # CRITERION_LIB_FLAGS
 endif # HAVE_JSONC_LIB
 
 # Using fastjson
-JSON_C+=\"$(notdir $(FJSON_LIB))\",
+JSON_C+=\"$(FJSON_DL)\",
 ifneq ($(HAVE_FJSON_LIB),)
 FJSON_CFLAGS:=-include $(HAVE_FJSON_LIB) -DJLIB_NAME=\"$(notdir $(FJSON_LIBA))\"
 $(OBJ_DIR)/jsonFromFj.lo: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
