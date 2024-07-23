@@ -32,9 +32,9 @@ AC_PROG_LN_S
 AC_CHECK_TOOL([CHRPATH], [chrpath])
 AC_CHECK_TOOL([PATCHELF], [patchelf])
 AC_CHECK_TOOL([DATE], [date])
-AS_IF([test "x$DATE" != 'x'],
+AS_VAR_SET_IF([DATE],
       AS_VAR_SET([ptpm_date], [`$DATE "+%s"`])
-      AS_IF([test "x$ptpm_date" = 'x%s' ],
+      AS_VAR_IF([ptpm_date], ['%s'],
             AS_UNSET([DATE])))
 
 #----------------------------------------------------------------
@@ -68,9 +68,18 @@ AC_DEFUN([PTPM_FOR],
           $3
           done])
 AC_DEFUN([PTPM_FOR_BREAK], [break $1])
+AC_DEFUN([PTPM_LOOP_RANGE],
+         [AS_VAR_SET([$1], [$2])
+          while :
+          do AS_VAR_ARITH([$1], [${$1} + $3])
+          $5
+          if test "x${$1}" = 'x$4'
+          then break
+          fi
+          done])
 AC_DEFUN([PTPM_COUNT_WORDS],
          [AS_VAR_SET([$1], [0])
-          PTPM_FOR([d], [$2],
+          PTPM_FOR([$2], [$3],
                    [AS_VAR_ARITH([$1], [${$1} + 1])])])
 
 #----------------------------------------------------------------
@@ -89,7 +98,7 @@ AC_CHECK_TOOL([LDD], [ldd])
 AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
 AC_CHECK_TOOL([ASTYLE], [astyle])
 AC_MSG_CHECKING([for astyle version])
-AS_IF([test "x$ASTYLE" != 'x'],
+AS_VAR_SET_IF([ASTYLE],
       [AS_VAR_SET([astylever], ["`$ASTYLE -V`"])
        PTPM_FOR([d], [`$ASTYLE -V`])
        AS_VAR_COPY([ASTYLEVER], [d])])
@@ -103,7 +112,7 @@ AS_VERSION_COMPARE([3.2], [$ASTYLEVER],
                    [AS_UNSET([ASTYLEMINVER])]) # above 3.2
 PTPM_RESULT([ASTYLEMINVER])
 AC_CHECK_TOOL([CPPCHECK], [cppcheck])
-AS_IF([test "x$CPPCHECK" != 'x'],
+AS_VAR_SET_IF([CPPCHECK],
       [AS_VAR_SET([CPPCHECK_OPT_BASE],
                   ["--suppress=preprocessorErrorDirective"]) # Ignore '#error'
        AC_LANG_CONFTEST([AC_LANG_SOURCE])
@@ -112,7 +121,7 @@ AS_IF([test "x$CPPCHECK" != 'x'],
                          ["$CPPCHECK_OPT_BASE --check-level=exhaustive"])])])
 AC_CHECK_TOOL([DOXYGEN], [doxygen])
 AC_MSG_CHECKING([for doxygen version])
-AS_IF([test "x$DOXYGEN" != 'x'],
+AS_VAR_SET_IF([DOXYGEN],
       [AS_VAR_SET([DOXYGENVER], ["`$DOXYGEN -v`"])])
 PTPM_RESULT([DOXYGENVER])
 AC_MSG_CHECKING([for doxygen minimum version])
@@ -160,7 +169,7 @@ AS_VAR_SET([CC_VERSION], [`$CC -dumpversion`])
 AS_VAR_SET([CXX_VERSION], [`$CXX -dumpversion`])
 
 AC_MSG_CHECKING([for cross compilation])
-AS_IF([test "x$cross_compiling" = 'xyes'],
+AS_VAR_IF([cross_compiling], ['yes'],
       [AS_VAR_SET([USE_CROSS_COMPILE], ['true'])])
 PTPM_RESULT([USE_CROSS_COMPILE])
 
@@ -240,7 +249,7 @@ AC_ARG_ENABLE([full-link],
                               [Use full path in symbolic link])],
               [AS_VAR_COPY([use_full_path_link], [enableval])],
               [AS_UNSET([use_full_path_link])])
-  AS_IF([test "x$use_full_path_link" = 'xyes'],
+  AS_VAR_IF([use_full_path_link], ['yes'],
         [AS_VAR_SET([USE_FULL_PATH_LINK], ['true'])],
         [AS_UNSET([USE_FULL_PATH_LINK])])
 AC_SUBST([USE_FULL_PATH_LINK])
@@ -260,7 +269,7 @@ AC_CHECK_HEADER([gtest/gtest.h],
                 [AS_VAR_SET([HAVE_GTEST_HEADER], ['gtest/gtest.h'])])
 # We do not use unit tests with cross compilation
 AS_IF([test "x$HAVE_GTEST_HEADER" != 'x' && test "x$PKG_CONFIG" != 'x' &&\
-       test "x$USE_CROSS_COMPILE" = 'x' ],
+       test "x$USE_CROSS_COMPILE" = 'x'],
       [AS_VAR_SET([GTEST_INC_FLAGS], ["`$PKG_CONFIG --cflags gtest`"])
        AS_VAR_SET([GTEST_LIB_FLAGS], ["`$PKG_CONFIG --libs gtest`"])
        AC_CHECK_LIB([gtest], [main],
@@ -280,7 +289,7 @@ AC_COMPILE_IFELSE(
                ["$HAVE_CRITERION_HEADER criterion/new/assert.h criterion/new/memory.h"])])
 # We do not use unit test with cross compilation
 AS_IF([test "x$HAVE_CRITERION_HEADER" != 'x' && test "x$PKG_CONFIG" != 'x' &&\
-       test "x$USE_CROSS_COMPILE" = 'x' ],
+       test "x$USE_CROSS_COMPILE" = 'x'],
       [AS_VAR_SET([CRITERION_INC_FLAGS], ["`$PKG_CONFIG --cflags criterion`"])
        AS_VAR_SET([CRITERION_LIB_FLAGS], ["`$PKG_CONFIG --libs criterion`"])
        AC_CHECK_LIB([criterion], [main],
@@ -353,8 +362,8 @@ AS_UNSET([NETTLE_INC_FLAGS])
 AS_UNSET([NETTLE_LIB_FLAGS])
 
 AC_CHECK_HEADER([openssl/crypto.h], [AS_VAR_SET([HAVE_SSL_HEADER], [openssl])])
-AS_IF([test "x$HAVE_SSL_HEADER" != 'x'],
-      [AS_IF([test "x$PKG_CONFIG" != 'x'],
+AS_VAR_SET_IF([HAVE_SSL_HEADER],
+      [AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([SSL_INC_FLAGS], ["`$PKG_CONFIG --cflags libcrypto`"])
               AS_VAR_SET([SSL_LIB_FLAGS], ["`$PKG_CONFIG --libs libcrypto`"])])
        AC_CHECK_LIB([crypto], [main],
@@ -363,8 +372,8 @@ AS_IF([test "x$HAVE_SSL_HEADER" != 'x'],
                     [AS_UNSET([HAVE_SSL_HEADER])])])
 
 AC_CHECK_HEADER([gcrypt.h], [AS_VAR_SET([HAVE_GCRYPT_HEADER], [1])])
-AS_IF([test "x$HAVE_GCRYPT_HEADER" != 'x'],
-      [AS_IF([test "x$PKG_CONFIG" != 'x'],
+AS_VAR_SET_IF([HAVE_GCRYPT_HEADER],
+      [AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([GCRYPT_INC_FLAGS], ["`$PKG_CONFIG --cflags libgcrypt`"])
               AS_VAR_SET([GCRYPT_LIB_FLAGS], ["`$PKG_CONFIG --libs libgcrypt`"])])
        AC_CHECK_LIB([crypto], [main],
@@ -373,8 +382,8 @@ AS_IF([test "x$HAVE_GCRYPT_HEADER" != 'x'],
                     [AS_UNSET([HAVE_GCRYPT_HEADER])])])
 
 AC_CHECK_HEADER([gnutls/crypto.h], [AS_VAR_SET([HAVE_GNUTLS_HEADER], [1])])
-AS_IF([test "x$HAVE_GNUTLS_HEADER" != 'x'],
-      [AS_IF([test "x$PKG_CONFIG" != 'x'],
+AS_VAR_SET_IF([HAVE_GNUTLS_HEADER],
+      [AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([GNUTLS_INC_FLAGS], ["`$PKG_CONFIG --cflags gnutls`"])
               AS_VAR_SET([GNUTLS_LIB_FLAGS], ["`$PKG_CONFIG --libs gnutls`"])])
        AC_CHECK_LIB([gnutls], [gnutls_global_init],
@@ -383,8 +392,8 @@ AS_IF([test "x$HAVE_GNUTLS_HEADER" != 'x'],
                     [AS_UNSET([HAVE_GNUTLS_HEADER])])])
 
 AC_CHECK_HEADER([nettle/hmac.h], [AS_VAR_SET([HAVE_NETTLE_HEADER], [1])])
-AS_IF([test "x$HAVE_NETTLE_HEADER" != 'x'],
-      [AS_IF([test "x$PKG_CONFIG" != 'x'],
+AS_VAR_SET_IF([HAVE_NETTLE_HEADER],
+      [AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([NETTLE_INC_FLAGS], ["`$PKG_CONFIG --cflags nettle`"])
               AS_VAR_SET([NETTLE_LIB_FLAGS], ["`$PKG_CONFIG --libs nettle`"])])
        AC_CHECK_LIB([nettle], [main],
@@ -431,14 +440,14 @@ AC_ARG_ENABLE([fjson],
               [AS_VAR_COPY([skip_fsonc], [enableval])],
               [AS_UNSET([skip_fsonc])])
 
-AS_IF([test "x$skip_json" = 'xno'],
+AS_VAR_IF([skip_json], ['no'],
       [AS_VAR_SET([skip_jsonc], ['no'])
        AS_VAR_SET([skip_fsonc], ['no'])])
 
 AS_IF([test "x$skip_jsonc" != 'xno'],
       [AC_CHECK_HEADER([json-c/json.h],
                        [AS_VAR_SET([HAVE_JSONC_LIB], ['json-c/json.h'])])
-       AS_IF([test "x$PKG_CONFIG" != 'x'],
+       AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([JSONC_INC_FLAGS], ["`$PKG_CONFIG --cflags json-c`"])
               AS_VAR_SET([JSONC_LIB_FLAGS], ["`$PKG_CONFIG --libs json-c`"])])
        AC_CHECK_LIB([json-c], [json_c_version_num],
@@ -449,7 +458,7 @@ AS_IF([test "x$skip_jsonc" != 'xno'],
 AS_IF([test "x$skip_fsonc" != 'xno'],
       [AC_CHECK_HEADER([libfastjson/json.h],
                        [AS_VAR_SET([HAVE_FJSON_LIB], ['libfastjson/json.h'])])
-       AS_IF([test "x$PKG_CONFIG" != 'x'],
+       AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([FJSON_INC_FLAGS], ["`$PKG_CONFIG --cflags libfastjson`"])
               AS_VAR_SET([FJSON_LIB_FLAGS], ["`$PKG_CONFIG --libs libfastjson`"])])
        AC_CHECK_LIB([fastjson], [fjson_version],
@@ -499,7 +508,7 @@ AC_ARG_ENABLE([dependency-tracking],
                               [Skip dependencies durig build])],
               [AS_VAR_COPY([use_deps], [enableval])],
               [AS_UNSET([use_deps])])
-  AS_IF([test "x$use_deps" = 'xno'],
+  AS_VAR_IF([use_deps], ['no'],
         [AS_UNSET([USE_DEPS])],
         [AS_VAR_SET([USE_DEPS], ['use_deps'])])
 
@@ -507,7 +516,7 @@ AC_ARG_ENABLE([silent-rules],
               [AS_HELP_STRING([--disable-silent-rules], [use verbose output])],
               [AS_VAR_COPY([disable_silent], [enableval])],
               [AS_UNSET([disable_silent])])
-  AS_IF([test "x$disable_silent" = 'xno'],
+  AS_VAR_IF([disable_silent], ['no'],
         [AS_VAR_SET([DO_VERBOSE], ['true'])],
         [AS_UNSET([DO_VERBOSE])])
 
@@ -533,9 +542,9 @@ AC_ARG_WITH([swig],
             [AS_VAR_COPY([SWIGBIN], [withval])],
             [AS_VAR_SET([SWIGBIN], ['yes'])])
 
-AS_IF([test "x$SWIGBIN" = 'xno'],
+AS_VAR_IF([SWIGBIN], ['no'],
   [AC_MSG_NOTICE([Disabling swig])],
-  [AS_IF([test "x$SWIGBIN" = 'xyes'],
+  [AS_VAR_IF([SWIGBIN], ['yes'],
          [AC_CHECK_TOOL([SWIG], [swig])],
          [AS_VAR_COPY([SWIG], [SWIGBIN])])
    AC_MSG_CHECKING([for swig version])
@@ -551,7 +560,7 @@ AS_IF([test "x$SWIGBIN" = 'xno'],
    AS_VAR_SET([SWIGLIB], ["`$SWIG -swiglib`"])
    PTPM_RESULT([SWIGLIB])
 
-   AS_IF([test "x$SWIGLIB" != 'x'],
+   AS_VAR_SET_IF([SWIGLIB],
          [AC_MSG_CHECKING([for swig argcargv])
           AS_IF([test ! -r "$SWIGLIB/go/argcargv.i"],
                 [AS_VAR_SET([SWIGARGCARGV_GO], ['true'])])
@@ -575,7 +584,7 @@ AS_IF([test "x$SWIGMINVER" = 'x'],
                [AS_HELP_STRING([--disable-alllang], [Disable all languages])],
                [AS_VAR_COPY([with_alllang], [enableval])],
                [AS_UNSET([with_alllang])])
-   AS_IF([test "x$with_alllang" = 'xno'],
+   AS_VAR_IF([with_alllang], ['no'],
          [AS_VAR_SET([alllang_default], ['no'])],
          [AS_VAR_SET([alllang_default], ['yes'])])
    PTPM_RESULT([alllang_default])])
@@ -614,13 +623,13 @@ AC_ARG_WITH([tcllib],
             [AS_UNSET([TCLLIB])])
 
 # First, check for '--without-tcl' or '--with-tcl=no'.
-AS_IF([test "x$TCLPACKAGE" = 'xno'],
+AS_VAR_IF([TCLPACKAGE], ['no'],
   [AC_MSG_NOTICE([Disabling Tcl])
    AS_UNSET([TCLLIB])],
   [AC_MSG_CHECKING([for Tcl configuration])
 
    # First check to see if --with-tclconfig was specified.
-   AS_IF([test "x$with_tclconfig" != 'x'],
+   AS_VAR_SET_IF([with_tclconfig],
      [AS_IF([test -r "$with_tclconfig/tclConfig.sh"],
             [AS_VAR_SET([TCLCONFIG], ["`(cd $with_tclconfig; pwd)`"])],
             [AC_MSG_ERROR([$with_tcl directory does not contain tclConfig.sh])])])
@@ -641,14 +650,14 @@ AS_IF([test "x$TCLPACKAGE" = 'xno'],
             [AS_VAR_SET([TCLINCDIR],
                         [`echo "$TCL_INCLUDE_SPEC" | $SED 's%^-I%%'`])])
       AS_IF([test "x$TCLLIB" = 'x'], [AS_VAR_COPY([TCLLIB], [TCL_LIB_SPEC])])
-      AS_IF([test "x$TCL_VERSION" != 'x'],
+      AS_VAR_SET_IF([TCL_VERSION],
             [AC_MSG_CHECKING([for Tcl version])
              AS_VAR_COPY([TCLVER], [TCL_VERSION])
              AS_VERSION_COMPARE([8.0], [$TCL_VERSION],
                                 [AS_VAR_COPY([TCLMINVER], [TCLVER])], # above 8.0
                                 [AS_VAR_COPY([TCLMINVER], [TCLVER])]) # equal 8.0
              PTPM_RESULT([TCLMINVER])])
-      AS_IF([test "x$TCL_PACKAGE_PATH" != 'x'],
+      AS_VAR_SET_IF([TCL_PACKAGE_PATH],
         [AC_MSG_CHECKING([for Tcl package path])
          PTPM_FOR([d], [$TCL_PACKAGE_PATH],
            [AS_IF([echo "$d" | $GREP "$host_cpu" >/dev/null],
@@ -660,8 +669,8 @@ AS_IF([test "x$TCLPACKAGE" = 'xno'],
                          [AS_VAR_COPY([TCL_PKG_DIR], [d])
                          PTPM_FOR_BREAK])])])
          AS_IF([test "x$TCL_PKG_DIR" = 'x'],
-               [PTPM_COUNT_WORDS([i], [$TCL_PACKAGE_PATH])
-                AS_IF([test "x$i" = 'x1'],
+               [PTPM_COUNT_WORDS([i], [d], [$TCL_PACKAGE_PATH])
+                AS_VAR_IF([i], [1],
                       [AS_VAR_SET([TCL_PKG_DIR],
                                   [$TCL_PACKAGE_PATH])])])
          PTPM_RESULT([TCL_PKG_DIR])])])
@@ -678,7 +687,7 @@ AS_IF([test "x$TCLPACKAGE" = 'xno'],
                    [AC_MSG_RESULT([$d])
                     AS_VAR_COPY([TCLINCDIR], [d])
                     PTPM_FOR_BREAK])])])
-   AS_IF([test "x$TCLINCDIR" != 'x'],
+   AS_VAR_SET_IF([TCLINCDIR],
          [AS_VAR_SET([TCLINCLUDE], ["-I$TCLINCDIR"])])
    PTPM_RESULT([TCLINCLUDE])
 
@@ -723,19 +732,22 @@ dnl '
             [AS_VAR_COPY([PY3BIN], [alllang_default])])
 
 # First, check for '--without-python3' or '--with-python3=no'.
-AS_IF([test "x$PY3BIN" = 'xno'],
+AS_VAR_IF([PY3BIN], ['no'],
   [AC_MSG_NOTICE([Disabling Python 3.x probe])
    AS_UNSET([PY3LINK])],
-  [AS_IF([test "x$PY3BIN" = 'xyes'],
-     [PTPM_FOR([d], [3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""],
+  [AS_VAR_IF([PY3BIN], ['yes'],
+     [AS_VAR_SET([ptpm_py_vers], [3])
+      PTPM_LOOP_RANGE([d], [15], [-1], [2],
+                      [AS_VAR_APPEND([ptpm_py_vers], [" 3.$d"])])
+      PTPM_FOR([d], [$ptpm_py_vers ''],
         [AC_CHECK_PROGS([PYTHON3], [python$d])
-         AS_IF([test "x$PYTHON3" != 'x'],
+         AS_VAR_SET_IF([PYTHON3],
                [AC_CHECK_PROGS([PY3CONFIG], [$PYTHON3-config])
-                AS_IF([test "x$PY3CONFIG" != 'x'], [PTPM_FOR_BREAK])])])],
+                AS_VAR_SET_IF([PY3CONFIG], [PTPM_FOR_BREAK])])])],
      [AS_VAR_COPY([PYTHON3], [PY3BIN])
       AC_CHECK_PROGS([PY3CONFIG], [$PYTHON3-config])])
 
-   AS_IF([test "x$PYTHON3" != 'x'],
+   AS_VAR_SET_IF([PYTHON3],
          [AC_MSG_CHECKING([for $PYTHON3 major version number])
           AS_VAR_SET([PY3VER],
                      [`($PYTHON3 -c "import sys;\
@@ -761,7 +773,7 @@ AS_IF([test "x$PY3BIN" = 'xno'],
       AS_VAR_SET([PY3INCLUDE], ["`($PY3CONFIG --includes) 2>/dev/null`"])
       PTPM_RESULT([PY3INCLUDE])
 
-      AS_IF([test "x$PY3INCLUDE" != 'x'],
+      AS_VAR_SET_IF([PY3INCLUDE],
             [AS_VAR_SET([var], ['PY3INCDIR'])
              PTPM_FOR([d], [$PY3INCLUDE],
                [AS_VAR_SET([${var}], ["`echo $d | $SED 's/^-I//'`"])
@@ -833,10 +845,10 @@ AC_ARG_WITH([perl5],
             [AS_VAR_SET([PERLBIN], ['yes'])])
 
 # First, check for '--without-perl5' or '--with-perl5=no'.
-AS_IF([test "x$PERLBIN" = 'xno'],
+AS_VAR_IF([PERLBIN], ['no'],
   [AC_MSG_NOTICE([Disabling Perl5])],
    # First figure out what the name of Perl5 is
-  [AS_IF([test "x$PERLBIN" = 'xyes'],
+  [AS_VAR_IF([PERLBIN], ['yes'],
          [AC_CHECK_PROGS([PERL], [perl perl5])],
          [AS_VAR_COPY([PERL], [PERLBIN])])
    # This could probably be simplified as for all platforms and
@@ -844,17 +856,17 @@ AS_IF([test "x$PERLBIN" = 'xno'],
    # should be run to get the compilation options:
    # perl -MExtUtils::Embed -e ccopts
    AC_MSG_CHECKING([for Perl5 confiuration])
-   AS_IF([test "x$PERL" != 'x'],
+   AS_VAR_SET_IF([PERL],
      [AS_VAR_SET([ptpm_perl_dir],
                  [`($PERL -MConfig -le 'print $Config{archlibexp}')\
                     2>/dev/null`])
-      AS_IF([test -h "$ptpm_perl_dir" && test "x$READLINK" != 'x' ],
+      AS_IF([test -h "$ptpm_perl_dir" && test "x$READLINK" != 'x'],
             [AS_VAR_SET([PERL5DIR],[`$READLINK -f $ptpm_perl_dir 2>/dev/null`])],
             [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
       AS_IF([test "x$PERL5DIR" = 'x'],
             [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
       PTPM_CROSS([PERL5DIR])
-      AS_IF([test "x$PERL5DIR" != 'x'],
+      AS_VAR_SET_IF([PERL5DIR],
             [AC_MSG_RESULT([$PERL5DIR])
              AC_MSG_CHECKING([for Perl5 header files])
              PTPM_FOR([d], [$PERL5DIR $PERL5DIR/CORE],
@@ -895,15 +907,15 @@ AC_ARG_WITH([ruby],
             [AS_VAR_COPY([RUBYBIN], [alllang_default])])
 
 # First, check for '--without-ruby' or '--with-ruby=no'.
-AS_IF([test "x$RUBYBIN" = 'xno'],
+AS_VAR_IF([RUBYBIN], ['no'],
   [AC_MSG_NOTICE([Disabling Ruby])],
   # configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
   # First figure out what the name of Ruby is
-  [AS_IF([test "x$RUBYBIN" = 'xyes'],
+  [AS_VAR_IF([RUBYBIN], ['yes'],
          [AC_CHECK_PROGS([RUBY], [ruby])],
          [AS_VAR_COPY([RUBY], [RUBYBIN])])
    AC_MSG_CHECKING([for Ruby header files])
-   AS_IF([test "x$RUBY" != 'x'],
+   AS_VAR_SET_IF([RUBY],
      # Try Ruby1.9+ first
      [AS_VAR_SET([RUBYHDRDIR],
                  [`($RUBY -rrbconfig -e\
@@ -912,7 +924,7 @@ AS_IF([test "x$RUBYBIN" = 'xno'],
                  [`($RUBY -rrbconfig -e\
                     'print RbConfig::CONFIG[["rubyarchhdrdir"]]') 2>/dev/null`])
       PTPM_CROSS([RUBYARCHHDRDIR])
-      AS_IF([test "x$RUBYHDRDIR" != 'x'],
+      AS_VAR_SET_IF([RUBYHDRDIR],
         [AS_IF([test -r "$RUBYHDRDIR/ruby.h" && test "x$RUBYARCHHDRDIR" != 'x'],
                [AS_VAR_SET([RUBYINCLUDE], ["-I$RUBYHDRDIR -I$RUBYARCHHDRDIR"])])
          PTPM_RESULT([RUBYINCLUDE])
@@ -946,7 +958,7 @@ AS_IF([test "x$RUBYBIN" = 'xno'],
          AS_VAR_SET([rb_libruby],
                     [`($RUBY -rrbconfig -e\
                        'print RbConfig::CONFIG[["LIBRUBY_SO"]]') 2>/dev/null`])
-         AS_IF([test "x$rb_libruby" != 'x'],
+         AS_VAR_SET_IF([rb_libruby],
                [PTPM_FOR([d], [$dirs],
                   [AS_IF([test -r "$d/$rb_libruby"],
                          [AS_VAR_COPY([RUBYLIB], [d])
@@ -998,14 +1010,14 @@ AS_HELP_STRING([--with-php=path], [Set location of PHP executable])],
             [AS_VAR_COPY([PHPBIN], [alllang_default])])
 
 # First, check for '--without-php' or '--with-php=no'.
-AS_IF([test "x$PHPBIN" = 'xno'],
+AS_VAR_IF([PHPBIN], ['no'],
   [AC_MSG_NOTICE([Disabling PHP])],
-  [AS_IF([test "x$PHPBIN" = 'xyes'],
+  [AS_VAR_IF([PHPBIN], ['yes'],
          [AC_CHECK_PROGS([PHP],
                          [php8.1 php8.0 php7.4 php7.3 php7.2\
                           php7.1 php7.0 php])],
          [AS_VAR_COPY([PHP], [PHPBIN])])
-   AS_IF([test "x$PHP" != 'x'],
+   AS_VAR_SET_IF([PHP],
      # /usr/bin/php7.0 -> /usr/bin/php-config7.0
      [AS_CASE([$PHP],
               [*7.*],
@@ -1027,7 +1039,7 @@ AS_IF([test "x$PHPBIN" = 'xno'],
                 PTPM_FOR_BREAK])])
       PTPM_RESULT([PHPINCDIR])
 
-      AS_IF([test "x$PHPCONFIG" != 'x'],
+      AS_VAR_SET_IF([PHPCONFIG],
         [AC_MSG_CHECKING([for PHP version])
          AS_VAR_SET([PHPVER], ["`$PHPCONFIG --version 2>/dev/null`"])
          PTPM_RESULT([PHPVER])
@@ -1047,7 +1059,7 @@ AS_IF([test "x$PHPBIN" = 'xno'],
                  [AS_VAR_SET([phpinc_flags],
                              [`$PHPCONFIG --includes 2>/dev/null`])
                   AS_VAR_SET([sub], ['${PHPINC}'])
-                  AS_IF([test "x$phpinc_flags" != 'x'],
+                  AS_VAR_SET_IF([phpinc_flags],
                         [AS_VAR_SET([PHPINC_FLAGS],
                                     [`echo "$phpinc_flags" |\
                                      $SED "s%$PHPINC%$sub%g"`])])
@@ -1113,11 +1125,11 @@ AC_ARG_WITH([lualib],
             [AS_UNSET([LUALIB])])
 
 # First, check for '--without-lua' or '--with-lua=no'.
-AS_IF([test "x$LUABIN" = 'xno'],
+AS_VAR_IF([LUABIN], ['no'],
   [AC_MSG_NOTICE([Disabling Lua])
    AS_UNSET([LUABIN])],
   # can we find lua?
-  [AS_IF([test "x$LUABIN" = 'xyes'],
+  [AS_VAR_IF([LUABIN], ['yes'],
      # We look for a versioned Lua binary first, as there can be
      # multiple versions of Lua installed on some systems (like Debian).
      [AC_PATH_PROGS([LUABIN],
@@ -1140,7 +1152,7 @@ AS_IF([test "x$LUABIN" = 'xno'],
    AS_IF([test "x$LUABIN" != 'xno'],
      [AS_VAR_SET([lua_version],
                  [`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`])
-      AS_IF([test "x$LUAVERSIONS" != 'x'],
+      AS_VAR_SET_IF([LUAVERSIONS],
         [AS_IF([! (echo "$LUAVERSIONS" | $GREP "$lua_version" >/dev/null)],
                [PTPM_FOR([d], [$ptpm_include_dirs],
                 [AS_IF([test -r "$d/lua.h"],
@@ -1160,10 +1172,10 @@ AS_IF([test "x$LUABIN" = 'xno'],
                   AC_MSG_WARN([$msg this version of Lua])
                   AS_UNSET([LUABIN])])
 
-         AS_IF([test "x$LUABIN" != 'x'],
+         AS_VAR_SET_IF([LUABIN],
             # look for the header files & set LUA_INC accordingly
             # will clear LUABIN if not present
-           [AS_IF([test "x$LUAINCLUDE" != 'x'],
+           [AS_VAR_SET_IF([LUAINCLUDE],
               [AC_CHECK_FILE([$LUAINCLUDE/lua.h],
                              [AS_VAR_COPY([LUA_INC], [LUAINCLUDE])],
                              [AS_UNSET([LUABIN])])],
@@ -1191,12 +1203,12 @@ AS_IF([test "x$LUABIN" = 'xno'],
                         [AC_MSG_RESULT([not found])
                          AS_UNSET([LUABIN])])])]) # clear the bin
             # Does Lua use versions for libraries on this system?
-            AS_IF([test "x$LUABIN" != 'x'],
+            AS_VAR_SET_IF([LUABIN],
               [PTPM_BASENAME([bin], ["$LUABIN"])
                AS_IF([test "x$bin" != 'xlua'],
                      [AS_VAR_COPY([LUABIN_VERSION], [LUA_VERSION])])
 
-               AS_IF([test "x$LUALIB" != 'x'],
+               AS_VAR_SET_IF([LUALIB],
                      [AC_CHECK_FILE([$LUALIB/liblua.so],
                                     [LUALINK="-L$LUALIB -llua"],
                                     [AS_UNSET([LUABIN])])],
@@ -1247,13 +1259,13 @@ AC_ARG_WITH([go],
             [AS_VAR_COPY([GO], [alllang_default])])
 
 # First, check for '--without-go' or '--with-go=no'.
-AS_IF([test "x$GO" = 'xno'],
+AS_VAR_IF([GO], ['no'],
   [AC_MSG_NOTICE([Disabling Go])],
    # figure out what is the name of Go application
-  [AS_IF([test "x$GO" = 'xyes'],
+  [AS_VAR_IF([GO], ['yes'],
          [AC_CHECK_TOOL([GOBIN], [go])],
          [AS_VAR_COPY([GOBIN], [GO])])
-   AS_IF([test "x$GOBIN" != 'x'],
+   AS_VAR_SET_IF([GOBIN],
      [AS_VAR_SET([GOROOT],
                  [`$GOBIN env GOROOT`])
       AS_VAR_SET([GOVER],
@@ -1261,7 +1273,7 @@ AS_IF([test "x$GO" = 'xno'],
       AS_VERSION_COMPARE([1.18], [$GOVER],
                          [AS_VAR_COPY([GOMINVER], [GOVER])], # above 1.18
                          [AS_VAR_COPY([GOMINVER], [GOVER])]) # equal 1.18
-      AS_IF([test "x$USE_CROSS_COMPILE" != 'x'],
+      AS_VAR_SET_IF([USE_CROSS_COMPILE],
             [AS_VAR_SET([GOARCH], [`./tools/goarch.sh "$host_cpu"`])])])])
 
 AC_SUBST([GO])
@@ -1275,7 +1287,7 @@ AC_SUBST([GOARCH])
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
-AS_IF([test "x$SWIGMINVER" != 'x'],
+AS_VAR_SET_IF([SWIGMINVER],
   [AS_UNSET([SKIP_TCL])
    AS_UNSET([SKIP_PYTHON3])
    AS_UNSET([SKIP_PERL5])
