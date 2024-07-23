@@ -41,6 +41,7 @@ s_mv()
 # Script to run AddressSanitizer in GitHub
 ci_address()
 {
+ export DEBIAN_FRONTEND=noninteractive
  sudo apt-get install -y --no-install-recommends libtool libtool-bin
  autoreconf -i
  ./configure
@@ -50,6 +51,7 @@ ci_address()
 # Script to build doxygen in GitHub
 ci_pages()
 {
+ export DEBIAN_FRONTEND=noninteractive
  sudo apt-get install -y --no-install-recommends doxygen graphviz
  autoreconf -i
  ./configure
@@ -137,6 +139,7 @@ ci_pkgs_no_dev()
  distribution
  case $dist in
    debian)
+     export DEBIAN_FRONTEND=noninteractive
      sudo apt-get remove -y --no-install-recommends libptpmgmt-dev
      ;;
    fedora|redhat)
@@ -206,6 +209,7 @@ ci_cross()
 {
  sudo debian/inst_arc.sh arm64
  make deb_arc arm64
+ tools/config_report.sh
 }
 ###############################################################################
 # Run unit tests with Address Sanitizer
