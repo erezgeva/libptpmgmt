@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
+# SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com>
 #
 # @file
 # @brief configuration
@@ -14,6 +14,10 @@ m4_define([ptpm_VER], m4_esyscmd_s([. ./tools/version && echo "$ver_maj.$ver_min
 AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],
         [libptpmgmt-]m4_defn([ptpm_VER]),
         [https://libptpmgmt.nwtime.org])
+
+#----------------------------------------------------------------
+# Start
+#----------------------------------------------------------------
 AC_CONFIG_FILES([defs.mk])
 dnl Unique file to verify we use the proper folder for source
 AC_CONFIG_SRCDIR([src/mngIds.m4])
@@ -107,7 +111,7 @@ AC_MSG_CHECKING([for astyle minimum version])
 AS_VERSION_COMPARE([3.1], [$ASTYLEVER],
                    [AS_VAR_COPY([ASTYLEMINVER], [ASTYLEVER])], # above 3.1
                    [AS_VAR_COPY([ASTYLEMINVER], [ASTYLEVER])]) # equal 3.1
-# version 3.3 add some changes, we will use in the future
+dnl version 3.3 add some changes, we will use in the future
 AS_VERSION_COMPARE([3.2], [$ASTYLEVER],
                    [AS_UNSET([ASTYLEMINVER])]) # above 3.2
 PTPM_RESULT([ASTYLEMINVER])
@@ -156,10 +160,10 @@ AS_UNSET([HAVE_GETOPT_H])
 AS_UNSET([HAVE_SYS_TYPES_H])
 AS_UNSET([HAVE_UNISTD_H])
 
-# Used when compile with includes
+dnl Used when compile with includes
 AS_VAR_SET([ptpm_c_include], ['#include'])
 
-# Probe clang as it requires additional warning supression flags
+dnl Probe clang as it requires additional warning supression flags
 AS_IF([echo "$CXX" | $GREP 'clang' >/dev/null],
       [AS_VAR_SET([USE_CLANG_CPP_COMPILE], ['use_clang'])])
 AS_IF([echo "$CC" | $GREP 'clang' >/dev/null],
@@ -174,7 +178,7 @@ AS_VAR_IF([cross_compiling], ['yes'],
 PTPM_RESULT([USE_CROSS_COMPILE])
 
 AC_MSG_CHECKING([compiler support colors])
-# https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.html
+dnl https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.html
 AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 AS_VAR_SET([ptpm_color], ['-fdiagnostics-color=always'])
 AS_VAR_SET([ptpm_color_none], ['-fno-diagnostics-color'])
@@ -184,7 +188,7 @@ AC_COMPILE_IFELSE(
    [AC_LANG_PROGRAM],
    [AS_VAR_COPY([CXX_COLOR_USE], [ptpm_color])
     AS_VAR_COPY([CXX_COLOR_NONE], [ptpm_color_none])])
-# https://clang.llvm.org/docs/UsersManual.html
+dnl https://clang.llvm.org/docs/UsersManual.html
 AS_IF([test "x$CXX_COLOR_USE" = 'x'],
       [AS_VAR_SET([ptpm_color], ['-fcolor-diagnostics'])
        AS_VAR_SET([ptpm_color_none], ['-fno-color-diagnostics'])
@@ -197,7 +201,7 @@ AS_IF([test "x$CXX_COLOR_USE" = 'x'],
 PTPM_RESULT([CXX_COLOR_USE])
 AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
 
-# POSIX/GNU headers included by inner source code
+dnl POSIX/GNU headers included by inner source code
 AC_CHECK_HEADERS(byteswap.h dirent.h dlfcn.h endian.h fcntl.h pwd.h poll.h
    sys/ioctl.h sys/select.h sys/socket.h sys/time.h sys/timex.h
    net/if.h arpa/inet.h)
@@ -205,7 +209,7 @@ AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([strtok_r strtok_s strnlen_s strerror_s strerrorlen_s])
 AC_CONFIG_HEADERS([src/config.h])
 
-# POSIX/GNU headers included by library public headers
+dnl POSIX/GNU headers included by library public headers
 AC_CHECK_HEADER([unistd.h], [AS_VAR_SET([HAVE_UNISTD_H], [1])])
 AC_CHECK_HEADER([sys/types.h], [AS_VAR_SET([HAVE_SYS_TYPES_H], [1])])
 AC_CHECK_HEADER([sys/un.h], [AS_VAR_SET([HAVE_SYS_UN_H], [1])])
@@ -234,7 +238,6 @@ AC_SUBST([HAVE_UNISTD_H])
 #----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
-
 AS_UNSET([CXXFLAGS_PMC])
 AC_ARG_WITH([pmc-flags],
             [AS_HELP_STRING([--with-pmc-flags=flags],
@@ -267,7 +270,7 @@ AS_UNSET([SKIP_LIBSYS])
 
 AC_CHECK_HEADER([gtest/gtest.h],
                 [AS_VAR_SET([HAVE_GTEST_HEADER], ['gtest/gtest.h'])])
-# We do not use unit tests with cross compilation
+dnl We do not use unit tests with cross compilation
 AS_IF([test "x$HAVE_GTEST_HEADER" != 'x' && test "x$PKG_CONFIG" != 'x' &&\
        test "x$USE_CROSS_COMPILE" = 'x'],
       [AS_VAR_SET([GTEST_INC_FLAGS], ["`$PKG_CONFIG --cflags gtest`"])
@@ -287,7 +290,7 @@ AC_COMPILE_IFELSE(
                      $ptpm_c_include <criterion/new/memory.h>])],
    [AS_VAR_SET([HAVE_CRITERION_HEADER],
                ["$HAVE_CRITERION_HEADER criterion/new/assert.h criterion/new/memory.h"])])
-# We do not use unit test with cross compilation
+dnl We do not use unit test with cross compilation
 AS_IF([test "x$HAVE_CRITERION_HEADER" != 'x' && test "x$PKG_CONFIG" != 'x' &&\
        test "x$USE_CROSS_COMPILE" = 'x'],
       [AS_VAR_SET([CRITERION_INC_FLAGS], ["`$PKG_CONFIG --cflags criterion`"])
@@ -304,7 +307,7 @@ AC_ARG_ENABLE([libsys],
                               [Skip unit tests using libsys.so])],
               [AS_VAR_COPY([skip_libsys], [enableval])],
               [AS_UNSET([skip_libsys])])
-# libsys is design after GNU libc, it breaks with clang
+dnl libsys is design after GNU libc, it breaks with clang
 AS_IF([test "x$skip_libsys" == 'xno'],
       [AS_VAR_SET([SKIP_LIBSYS], ['skip_libsys'])],
       [AS_UNSET([SKIP_LIBSYS])])
@@ -318,7 +321,7 @@ AC_SUBST([CRITERION_LIB_FLAGS])
 AC_SUBST([SKIP_LIBSYS])
 
 #----------------------------------------------------------------
-# Find Address Sanitizer libraries
+# Address Sanitizer libraries
 #----------------------------------------------------------------
 AS_UNSET([ASAN_LIBS])
 
@@ -417,7 +420,6 @@ AC_SUBST([NETTLE_LIB_FLAGS])
 #----------------------------------------------------------------
 # JSON libraries
 #----------------------------------------------------------------
-
 AS_UNSET([HAVE_JSONC_LIB])
 AS_UNSET([JSONC_LIB_FLAGS])
 AS_UNSET([JSONC_INC_FLAGS])
@@ -499,7 +501,6 @@ AC_SUBST([PACKAGE_VERSION_VAL])
 #----------------------------------------------------------------
 # Automake flags
 #----------------------------------------------------------------
-
 AS_UNSET([USE_DEPS])
 AS_UNSET([DO_VERBOSE])
 
@@ -527,7 +528,7 @@ AC_SUBST([USE_DEPS])
 AC_SUBST([DO_VERBOSE])
 
 #----------------------------------------------------------------
-# Look for swig
+# SWIG
 #----------------------------------------------------------------
 AS_UNSET([SWIG])
 AS_UNSET([SWIGBIN])
@@ -573,9 +574,9 @@ AC_SUBST([SWIGMINVER])
 AC_SUBST([SWIGLIB])
 AC_SUBST([SWIGARGCARGV_GO])
 
-#--------------------------------------------------------------------
-# Target languages
-#--------------------------------------------------------------------
+#----------------------------------------------------------------
+# Wrapper Languages
+#----------------------------------------------------------------
 AC_MSG_CHECKING([for build wrapper])
 AS_IF([test "x$SWIGMINVER" = 'x'],
   [AS_VAR_SET([alllang_default], ['no'])
@@ -589,9 +590,9 @@ AS_IF([test "x$SWIGMINVER" = 'x'],
          [AS_VAR_SET([alllang_default], ['yes'])])
    PTPM_RESULT([alllang_default])])
 
-#--------------------------------------------------------------------
-# Look for Tcl
-#--------------------------------------------------------------------
+#----------------------------------------------------------------
+# Tcl
+#----------------------------------------------------------------
 AS_UNSET([TCLPACKAGE])
 AS_UNSET([TCLCONFIG])
 AS_UNSET([TCLINCDIR])
@@ -622,18 +623,18 @@ AC_ARG_WITH([tcllib],
             [AS_VAR_SET([TCLLIB], ["-L$withval"])],
             [AS_UNSET([TCLLIB])])
 
-# First, check for '--without-tcl' or '--with-tcl=no'.
+dnl First, check for '--without-tcl' or '--with-tcl=no'.
 AS_VAR_IF([TCLPACKAGE], ['no'],
   [AC_MSG_NOTICE([Disabling Tcl])
    AS_UNSET([TCLLIB])],
   [AC_MSG_CHECKING([for Tcl configuration])
 
-   # First check to see if --with-tclconfig was specified.
+   dnl First check to see if --with-tclconfig was specified.
    AS_VAR_SET_IF([with_tclconfig],
      [AS_IF([test -r "$with_tclconfig/tclConfig.sh"],
             [AS_VAR_SET([TCLCONFIG], ["`(cd $with_tclconfig; pwd)`"])],
             [AC_MSG_ERROR([$with_tcl directory does not contain tclConfig.sh])])])
-   # check in a few common install locations
+   dnl check in a few common install locations
    AS_VAR_SET([dirs], ["/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/"])
    AS_VAR_APPEND([dirs], [" /usr/local/lib*/tcl*/"])
    AS_IF([test "x$TCLCONFIG" = 'x'],
@@ -710,7 +711,7 @@ AC_SUBST([TCLMINVER])
 AC_SUBST([TCL_PKG_DIR])
 
 #----------------------------------------------------------------
-# Look for Python 3.x
+# Python 3
 #----------------------------------------------------------------
 AS_UNSET([PY3VER])
 AS_UNSET([PY3VERSION])
@@ -731,7 +732,7 @@ dnl '
             [AS_VAR_COPY([PY3BIN], [withval])],
             [AS_VAR_COPY([PY3BIN], [alllang_default])])
 
-# First, check for '--without-python3' or '--with-python3=no'.
+dnl First, check for '--without-python3' or '--with-python3=no'.
 AS_VAR_IF([PY3BIN], ['no'],
   [AC_MSG_NOTICE([Disabling Python 3.x probe])
    AS_UNSET([PY3LINK])],
@@ -758,8 +759,7 @@ AS_VAR_IF([PY3BIN], ['no'],
    AS_IF([test $PY3VER -ge 3 && test "x$PY3CONFIG" != 'x'],
      # Note: I could not think of a standard way to get the version string
      # from different versions.
-     # This trick pulls it out of the file location
-     # for a standard library file.
+     # This trick pulls it out of the file location for a standard library file.
      [AC_MSG_CHECKING([for Python 3.x version])
       AS_VAR_SET([PY3VERSION],
                  [`($PYTHON3 -c "import string,operator,os.path;\
@@ -827,7 +827,7 @@ AC_SUBST([PY3EXT])
 AC_SUBST([PY3LDLIBS])
 
 #----------------------------------------------------------------
-# Look for Perl5
+# Perl5
 #----------------------------------------------------------------
 AS_UNSET([PERL])
 AS_UNSET([PERLBIN])
@@ -844,7 +844,7 @@ AC_ARG_WITH([perl5],
             [AS_VAR_COPY([PERLBIN], [withval])],
             [AS_VAR_SET([PERLBIN], ['yes'])])
 
-# First, check for '--without-perl5' or '--with-perl5=no'.
+dnl First, check for '--without-perl5' or '--with-perl5=no'.
 AS_VAR_IF([PERLBIN], ['no'],
   [AC_MSG_NOTICE([Disabling Perl5])],
    # First figure out what the name of Perl5 is
@@ -888,7 +888,7 @@ AC_SUBST([PERL5TEST])
 AC_SUBST([PERL5TOUCH])
 
 #----------------------------------------------------------------
-# Look for Ruby
+# Ruby
 #----------------------------------------------------------------
 AS_UNSET([RUBY])
 AS_UNSET([RUBYBIN])
@@ -906,7 +906,7 @@ AC_ARG_WITH([ruby],
             [AS_VAR_COPY([RUBYBIN], [withval])],
             [AS_VAR_COPY([RUBYBIN], [alllang_default])])
 
-# First, check for '--without-ruby' or '--with-ruby=no'.
+dnl First, check for '--without-ruby' or '--with-ruby=no'.
 AS_VAR_IF([RUBYBIN], ['no'],
   [AC_MSG_NOTICE([Disabling Ruby])],
   # configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
@@ -990,9 +990,9 @@ AC_SUBST([RUBYLIB])
 AC_SUBST([RUBYLINK])
 AC_SUBST([RUBYSITE])
 
-#-------------------------------------------------------------------------
-# Look for PHP
-#-------------------------------------------------------------------------
+#----------------------------------------------------------------
+# PHP
+#----------------------------------------------------------------
 AS_UNSET([PHPBIN])
 AS_UNSET([PHP])
 AS_UNSET([PHPCONFIG])
@@ -1009,7 +1009,7 @@ AS_HELP_STRING([--with-php=path], [Set location of PHP executable])],
             [AS_VAR_COPY([PHPBIN], [withval])],
             [AS_VAR_COPY([PHPBIN], [alllang_default])])
 
-# First, check for '--without-php' or '--with-php=no'.
+dnl First, check for '--without-php' or '--with-php=no'.
 AS_VAR_IF([PHPBIN], ['no'],
   [AC_MSG_NOTICE([Disabling PHP])],
   [AS_VAR_IF([PHPBIN], ['yes'],
@@ -1081,7 +1081,7 @@ AC_SUBST([PHPINC_FLAGS])
 AC_SUBST([PHPUNIT])
 
 #----------------------------------------------------------------
-# Look for Lua
+# Lua
 #----------------------------------------------------------------
 AS_UNSET([LUABIN])
 AS_UNSET([LUA_VERSION])
@@ -1175,7 +1175,7 @@ AS_VAR_IF([LUABIN], ['no'],
          AS_VAR_SET_IF([LUABIN],
             # look for the header files & set LUA_INC accordingly
             # will clear LUABIN if not present
-           [AS_VAR_SET_IF([LUAINCLUDE],
+            [AS_VAR_SET_IF([LUAINCLUDE],
               [AC_CHECK_FILE([$LUAINCLUDE/lua.h],
                              [AS_VAR_COPY([LUA_INC], [LUAINCLUDE])],
                              [AS_UNSET([LUABIN])])],
@@ -1243,7 +1243,7 @@ AC_SUBST([LUA_5_6_LINK])
 AC_SUBST([LUA_5_7_LINK])
 
 #----------------------------------------------------------------
-# Look for go
+# golang
 #----------------------------------------------------------------
 AS_UNSET([GO])
 AS_UNSET([GOBIN])
@@ -1258,10 +1258,10 @@ AC_ARG_WITH([go],
             [AS_VAR_COPY([GO], [withval])],
             [AS_VAR_COPY([GO], [alllang_default])])
 
-# First, check for '--without-go' or '--with-go=no'.
+dnl First, check for '--without-go' or '--with-go=no'.
 AS_VAR_IF([GO], ['no'],
   [AC_MSG_NOTICE([Disabling Go])],
-   # figure out what is the name of Go application
+  # figure out what is the name of Go application
   [AS_VAR_IF([GO], ['yes'],
          [AC_CHECK_TOOL([GOBIN], [go])],
          [AS_VAR_COPY([GOBIN], [GO])])
@@ -1284,9 +1284,8 @@ AC_SUBST([GOROOT])
 AC_SUBST([GOARCH])
 
 #----------------------------------------------------------------
-# Determine which languages to use for examples/test-suite
+# Wrapper languages Exist
 #----------------------------------------------------------------
-
 AS_VAR_SET_IF([SWIGMINVER],
   [AS_UNSET([SKIP_TCL])
    AS_UNSET([SKIP_PYTHON3])
