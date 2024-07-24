@@ -77,15 +77,21 @@ AC_DEFUN([PTPM_LOOP_RANGE],
           while :
           do AS_VAR_ARITH([$1], [${$1} + $3])
           $5
-          if test "x${$1}" = 'x$4'
-          then break
-          fi
+          AS_IF([test "x${$1}" = 'x$4'], [break])
           done])
 AC_DEFUN([PTPM_COUNT_WORDS],
          [AS_VAR_SET([$1], [0])
           PTPM_FOR([$2], [$3],
                    [AS_VAR_ARITH([$1], [${$1} + 1])])])
-
+dnl Not AS_VAR_SET_IF, Variable is empty
+AC_DEFUN([PTPM_VAR_EMPTY_IF],
+         [AS_IF([test "x${$1}" = 'x'], [$2], [$3])])
+dnl Not AS_VAR_IF, Variable value is different
+AC_DEFUN([PTPM_VAR_ELSE_IF],
+         [AS_IF([test "x${$1}" != x$2], [$3], [$4])])
+dnl Test for file exist
+AC_DEFUN([PTPM_FILE_IF],
+         [AS_IF([test -r $1], [$2], [$3])])
 #----------------------------------------------------------------
 # Tools
 #----------------------------------------------------------------
@@ -189,7 +195,7 @@ AC_COMPILE_IFELSE(
    [AS_VAR_COPY([CXX_COLOR_USE], [ptpm_color])
     AS_VAR_COPY([CXX_COLOR_NONE], [ptpm_color_none])])
 dnl https://clang.llvm.org/docs/UsersManual.html
-AS_IF([test "x$CXX_COLOR_USE" = 'x'],
+PTPM_VAR_EMPTY_IF([CXX_COLOR_USE],
       [AS_VAR_SET([ptpm_color], ['-fcolor-diagnostics'])
        AS_VAR_SET([ptpm_color_none], ['-fno-color-diagnostics'])
        AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags $ptpm_color"])
@@ -276,7 +282,7 @@ AS_IF([test "x$HAVE_GTEST_HEADER" != 'x' && test "x$PKG_CONFIG" != 'x' &&\
       [AS_VAR_SET([GTEST_INC_FLAGS], ["`$PKG_CONFIG --cflags gtest`"])
        AS_VAR_SET([GTEST_LIB_FLAGS], ["`$PKG_CONFIG --libs gtest`"])
        AC_CHECK_LIB([gtest], [main],
-                    [AS_IF([test "x$GTEST_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([GTEST_LIB_FLAGS],
                            [AS_VAR_SET([GTEST_LIB_FLAGS],
                                        ['-lgtest -lpthread'])])],
                     [AS_UNSET([GTEST_LIB_FLAGS])],
@@ -296,7 +302,7 @@ AS_IF([test "x$HAVE_CRITERION_HEADER" != 'x' && test "x$PKG_CONFIG" != 'x' &&\
       [AS_VAR_SET([CRITERION_INC_FLAGS], ["`$PKG_CONFIG --cflags criterion`"])
        AS_VAR_SET([CRITERION_LIB_FLAGS], ["`$PKG_CONFIG --libs criterion`"])
        AC_CHECK_LIB([criterion], [main],
-                    [AS_IF([test "x$CRITERION_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([CRITERION_LIB_FLAGS],
                            [AS_VAR_SET([CRITERION_LIB_FLAGS],
                                        ['-lcriterion'])])],
                     [AS_UNSET([CRITERION_LIB_FLAGS])],
@@ -308,7 +314,7 @@ AC_ARG_ENABLE([libsys],
               [AS_VAR_COPY([skip_libsys], [enableval])],
               [AS_UNSET([skip_libsys])])
 dnl libsys is design after GNU libc, it breaks with clang
-AS_IF([test "x$skip_libsys" == 'xno'],
+AS_VAR_IF([skip_libsys], ['no'],
       [AS_VAR_SET([SKIP_LIBSYS], ['skip_libsys'])],
       [AS_UNSET([SKIP_LIBSYS])])
 
@@ -370,7 +376,7 @@ AS_VAR_SET_IF([HAVE_SSL_HEADER],
              [AS_VAR_SET([SSL_INC_FLAGS], ["`$PKG_CONFIG --cflags libcrypto`"])
               AS_VAR_SET([SSL_LIB_FLAGS], ["`$PKG_CONFIG --libs libcrypto`"])])
        AC_CHECK_LIB([crypto], [main],
-                    [AS_IF([test "x$SSL_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([SSL_LIB_FLAGS],
                            [AS_VAR_SET([SSL_LIB_FLAGS], ['-lcrypto'])])],
                     [AS_UNSET([HAVE_SSL_HEADER])])])
 
@@ -380,7 +386,7 @@ AS_VAR_SET_IF([HAVE_GCRYPT_HEADER],
              [AS_VAR_SET([GCRYPT_INC_FLAGS], ["`$PKG_CONFIG --cflags libgcrypt`"])
               AS_VAR_SET([GCRYPT_LIB_FLAGS], ["`$PKG_CONFIG --libs libgcrypt`"])])
        AC_CHECK_LIB([crypto], [main],
-                    [AS_IF([test "x$GCRYPT_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([GCRYPT_LIB_FLAGS],
                            [AS_VAR_SET([GCRYPT_LIB_FLAGS], ['-lgcrypt'])])],
                     [AS_UNSET([HAVE_GCRYPT_HEADER])])])
 
@@ -390,7 +396,7 @@ AS_VAR_SET_IF([HAVE_GNUTLS_HEADER],
              [AS_VAR_SET([GNUTLS_INC_FLAGS], ["`$PKG_CONFIG --cflags gnutls`"])
               AS_VAR_SET([GNUTLS_LIB_FLAGS], ["`$PKG_CONFIG --libs gnutls`"])])
        AC_CHECK_LIB([gnutls], [gnutls_global_init],
-                    [AS_IF([test "x$GNUTLS_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([GNUTLS_LIB_FLAGS],
                            [AS_VAR_SET([GNUTLS_LIB_FLAGS], ['-lgnutls'])])],
                     [AS_UNSET([HAVE_GNUTLS_HEADER])])])
 
@@ -400,7 +406,7 @@ AS_VAR_SET_IF([HAVE_NETTLE_HEADER],
              [AS_VAR_SET([NETTLE_INC_FLAGS], ["`$PKG_CONFIG --cflags nettle`"])
               AS_VAR_SET([NETTLE_LIB_FLAGS], ["`$PKG_CONFIG --libs nettle`"])])
        AC_CHECK_LIB([nettle], [main],
-                    [AS_IF([test "x$NETTLE_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([NETTLE_LIB_FLAGS],
                            [AS_VAR_SET([NETTLE_LIB_FLAGS], ['-lnettle'])])],
                     [AS_UNSET([HAVE_NETTLE_HEADER])])])
 
@@ -446,25 +452,25 @@ AS_VAR_IF([skip_json], ['no'],
       [AS_VAR_SET([skip_jsonc], ['no'])
        AS_VAR_SET([skip_fsonc], ['no'])])
 
-AS_IF([test "x$skip_jsonc" != 'xno'],
+PTPM_VAR_ELSE_IF([skip_jsonc], ['no'],
       [AC_CHECK_HEADER([json-c/json.h],
                        [AS_VAR_SET([HAVE_JSONC_LIB], ['json-c/json.h'])])
        AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([JSONC_INC_FLAGS], ["`$PKG_CONFIG --cflags json-c`"])
               AS_VAR_SET([JSONC_LIB_FLAGS], ["`$PKG_CONFIG --libs json-c`"])])
        AC_CHECK_LIB([json-c], [json_c_version_num],
-                    [AS_IF([test "x$JSONC_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([JSONC_LIB_FLAGS],
                            [AS_VAR_SET([JSONC_LIB_FLAGS], ['-ljson-c'])])],
                     [AS_UNSET([HAVE_JSONC_LIB])])])
 
-AS_IF([test "x$skip_fsonc" != 'xno'],
+PTPM_VAR_ELSE_IF([skip_fsonc], ['no'],
       [AC_CHECK_HEADER([libfastjson/json.h],
                        [AS_VAR_SET([HAVE_FJSON_LIB], ['libfastjson/json.h'])])
        AS_VAR_SET_IF([PKG_CONFIG],
              [AS_VAR_SET([FJSON_INC_FLAGS], ["`$PKG_CONFIG --cflags libfastjson`"])
               AS_VAR_SET([FJSON_LIB_FLAGS], ["`$PKG_CONFIG --libs libfastjson`"])])
        AC_CHECK_LIB([fastjson], [fjson_version],
-                    [AS_IF([test "x$FJSON_LIB_FLAGS" = 'x'],
+                    [PTPM_VAR_EMPTY_IF([FJSON_LIB_FLAGS],
                            [AS_VAR_SET([FJSON_LIB_FLAGS], ['-lfastjson'])])],
                     [AS_UNSET([HAVE_FJSON_LIB])])])
 
@@ -578,7 +584,7 @@ AC_SUBST([SWIGARGCARGV_GO])
 # Wrapper Languages
 #----------------------------------------------------------------
 AC_MSG_CHECKING([for build wrapper])
-AS_IF([test "x$SWIGMINVER" = 'x'],
+PTPM_VAR_EMPTY_IF([SWIGMINVER],
   [AS_VAR_SET([alllang_default], ['no'])
    AC_MSG_RESULT([no proper swig])],
   [AC_ARG_ENABLE([alllang],
@@ -631,26 +637,26 @@ AS_VAR_IF([TCLPACKAGE], ['no'],
 
    dnl First check to see if --with-tclconfig was specified.
    AS_VAR_SET_IF([with_tclconfig],
-     [AS_IF([test -r "$with_tclconfig/tclConfig.sh"],
+     [PTPM_FILE_IF(["$with_tclconfig/tclConfig.sh"],
             [AS_VAR_SET([TCLCONFIG], ["`(cd $with_tclconfig; pwd)`"])],
             [AC_MSG_ERROR([$with_tcl directory does not contain tclConfig.sh])])])
    dnl check in a few common install locations
    AS_VAR_SET([dirs], ["/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/"])
    AS_VAR_APPEND([dirs], [" /usr/local/lib*/tcl*/"])
-   AS_IF([test "x$TCLCONFIG" = 'x'],
+   PTPM_VAR_EMPTY_IF([TCLCONFIG],
          [PTPM_FOR([d], [$dirs],
             [PTPM_FOR([i], [`ls -d -r $d 2>/dev/null`],
-               [AS_IF([test -r "${i}tclConfig.sh"],
+               [PTPM_FILE_IF(["${i}tclConfig.sh"],
                       [AS_VAR_SET([TCLCONFIG], ["`(cd $i; pwd)`"])
                        PTPM_FOR_BREAK])])])])
-   AS_IF([test "x$TCLCONFIG" = 'x'],
+   PTPM_VAR_EMPTY_IF([TCLCONFIG],
      [AC_MSG_RESULT([no])],
      [AC_MSG_RESULT([found $TCLCONFIG/tclConfig.sh])
-      . $TCLCONFIG/tclConfig.sh
-      AS_IF([test "x$TCLINCDIR" = 'x'],
+      . "$TCLCONFIG/tclConfig.sh"
+      PTPM_VAR_EMPTY_IF([TCLINCDIR],
             [AS_VAR_SET([TCLINCDIR],
                         [`echo "$TCL_INCLUDE_SPEC" | $SED 's%^-I%%'`])])
-      AS_IF([test "x$TCLLIB" = 'x'], [AS_VAR_COPY([TCLLIB], [TCL_LIB_SPEC])])
+      PTPM_VAR_EMPTY_IF([TCLLIB], [AS_VAR_COPY([TCLLIB], [TCL_LIB_SPEC])])
       AS_VAR_SET_IF([TCL_VERSION],
             [AC_MSG_CHECKING([for Tcl version])
              AS_VAR_COPY([TCLVER], [TCL_VERSION])
@@ -664,27 +670,27 @@ AS_VAR_IF([TCLPACKAGE], ['no'],
            [AS_IF([echo "$d" | $GREP "$host_cpu" >/dev/null],
                   [AS_VAR_COPY([TCL_PKG_DIR], [d])
                    PTPM_FOR_BREAK])])
-         AS_IF([test "x$TCL_PKG_DIR" = 'x'],
+         PTPM_VAR_EMPTY_IF([TCL_PKG_DIR],
                [PTPM_FOR([d], [$TCL_PACKAGE_PATH],
-                  [AS_IF([test "x$d" = "x$TCLCONFIG"],
+                  [AS_VAR_IF([d], ["$TCLCONFIG"],
                          [AS_VAR_COPY([TCL_PKG_DIR], [d])
                          PTPM_FOR_BREAK])])])
-         AS_IF([test "x$TCL_PKG_DIR" = 'x'],
+         PTPM_VAR_EMPTY_IF([TCL_PKG_DIR],
                [PTPM_COUNT_WORDS([i], [d], [$TCL_PACKAGE_PATH])
                 AS_VAR_IF([i], [1],
                       [AS_VAR_SET([TCL_PKG_DIR],
                                   [$TCL_PACKAGE_PATH])])])
          PTPM_RESULT([TCL_PKG_DIR])])])
 
-   AS_IF([test "x$TCLPACKAGE" != 'xyes'],
-         [AS_IF([test "x$TCLINCDIR" = 'x'],
+   PTPM_VAR_ELSE_IF([TCLPACKAGE], ['yes'],
+         [PTPM_VAR_EMPTY_IF([TCLINCDIR],
                 [AS_VAR_SET([TCLINCDIR], ["$TCLPACKAGE/include"])])
-          AS_IF([test "x$TCLLIB" = 'x'],
+          PTPM_VAR_EMPTY_IF([TCLLIB],
                 [AS_VAR_SET([TCLLIB], ["-L$TCLPACKAGE/lib -ltcl"])])])
    AC_MSG_CHECKING([for Tcl header files])
-   AS_IF([test "x$TCLINCDIR" = 'x'],
+   PTPM_VAR_EMPTY_IF([TCLINCDIR],
          [PTPM_FOR([d], [$ptpm_include_dirs],
-            [AS_IF([test -r "$d/tcl.h"],
+            [PTPM_FILE_IF(["$d/tcl.h"],
                    [AC_MSG_RESULT([$d])
                     AS_VAR_COPY([TCLINCDIR], [d])
                     PTPM_FOR_BREAK])])])
@@ -693,11 +699,11 @@ AS_VAR_IF([TCLPACKAGE], ['no'],
    PTPM_RESULT([TCLINCLUDE])
 
    AC_MSG_CHECKING([for Tcl library])
-   AS_IF([test "x$TCLLIB" = 'x'],
+   PTPM_VAR_EMPTY_IF([TCLLIB],
          [AS_VAR_SET([dirs],
           ['/usr/local/lib /usr/lib /opt/local/lib /opt/freeware/lib'])
           PTPM_FOR([d], [$dirs],
-            [AS_IF([test -r "$d/libtcl.a"],
+            [PTPM_FILE_IF(["$d/libtcl.a"],
                    [AS_VAR_SET([TCLLIB], ["-L$d -ltcl"])
                     PTPM_FOR_BREAK])])])
    PTPM_RESULT([TCLLIB])])
@@ -754,7 +760,7 @@ AS_VAR_IF([PY3BIN], ['no'],
                      [`($PYTHON3 -c "import sys;\
                         sys.stdout.write(sys.version[[0]])") 2>/dev/null`])
           AC_MSG_RESULT([$PY3VER])])
-   AS_IF([test "x$PY3VER" = 'x'], [AS_VAR_SET([PY3VER], [0])])
+   PTPM_VAR_EMPTY_IF([PY3VER], [AS_VAR_SET([PY3VER], [0])])
 
    AS_IF([test $PY3VER -ge 3 && test "x$PY3CONFIG" != 'x'],
      # Note: I could not think of a standard way to get the version string
@@ -789,14 +795,14 @@ AS_VAR_IF([PY3BIN], ['no'],
          AS_IF([test "x$have_lib" != 'x' && test "x$have_ver" != 'x'],
                [AS_VAR_COPY([PY3SITE_DIR], [d])
                 PTPM_FOR_BREAK])])
-      AS_IF([test "x$PY3SITE_DIR" = 'x'],
+      PTPM_VAR_EMPTY_IF([PY3SITE_DIR],
             [PTPM_FOR([d], [$dirs],
                [AS_VAR_SET([not_local], ["`echo $d | $GREP '/local/'`"])
                 AS_VAR_SET([have_ver], ["`echo $d | $GREP $PY3VERSION`"])
                 AS_IF([test "x$not_local" = 'x' && test "x$have_ver" != 'x'],
                       [AS_VAR_COPY([PY3SITE_DIR], [d])
                        PTPM_FOR_BREAK])])])
-      AS_IF([test "x$PY3SITE_DIR" = 'x'],
+      PTPM_VAR_EMPTY_IF([PY3SITE_DIR],
             [PTPM_FOR([d], [$dirs],
                [AS_IF([echo "$d" | $GREP "^$libdir" >/dev/null],
                       [AS_VAR_COPY([PY3SITE_DIR], [d])
@@ -863,14 +869,14 @@ AS_VAR_IF([PERLBIN], ['no'],
       AS_IF([test -h "$ptpm_perl_dir" && test "x$READLINK" != 'x'],
             [AS_VAR_SET([PERL5DIR],[`$READLINK -f $ptpm_perl_dir 2>/dev/null`])],
             [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
-      AS_IF([test "x$PERL5DIR" = 'x'],
+      PTPM_VAR_EMPTY_IF([PERL5DIR],
             [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
       PTPM_CROSS([PERL5DIR])
       AS_VAR_SET_IF([PERL5DIR],
             [AC_MSG_RESULT([$PERL5DIR])
              AC_MSG_CHECKING([for Perl5 header files])
              PTPM_FOR([d], [$PERL5DIR $PERL5DIR/CORE],
-               [AS_IF([test -r "$d/perl.h"],
+               [PTPM_FILE_IF(["$d/perl.h"],
                       [AS_VAR_COPY([PERL5EXT], [d])
                        PTPM_FOR_BREAK])])
              PTPM_RESULT(PERL5EXT)],
@@ -960,7 +966,7 @@ AS_VAR_IF([RUBYBIN], ['no'],
                        'print RbConfig::CONFIG[["LIBRUBY_SO"]]') 2>/dev/null`])
          AS_VAR_SET_IF([rb_libruby],
                [PTPM_FOR([d], [$dirs],
-                  [AS_IF([test -r "$d/$rb_libruby"],
+                  [PTPM_FILE_IF(["$d/$rb_libruby"],
                          [AS_VAR_COPY([RUBYLIB], [d])
                           PTPM_FOR_BREAK])])])
          PTPM_CROSS([RUBYLIB])
@@ -1034,7 +1040,7 @@ AS_VAR_IF([PHPBIN], ['no'],
       AS_VAR_SET([dirs],
                  [`$PHP -r 'echo get_include_path();' | $SED 's%:% %g'`])
       PTPM_FOR([d], [$dirs],
-        [AS_IF([test "x$d" != 'x.'],
+        [PTPM_VAR_ELSE_IF([d], ['.'],
                [AS_VAR_COPY([PHPINCDIR], [d])
                 PTPM_FOR_BREAK])])
       PTPM_RESULT([PHPINCDIR])
@@ -1140,7 +1146,7 @@ AS_VAR_IF([LUABIN], ['no'],
           test "x$LUALIB" = 'x'],
          [PTPM_FOR([d], [$ptpm_include_dirs],
             [PTPM_FOR([i], [$d/lua5.*],
-               [AS_IF([test -r "$i/lua.h"],
+               [PTPM_FILE_IF(["$i/lua.h"],
                       [AS_VAR_SET([name], [`echo "$i" | $SED "s%$d/lua%%"`])
                        AS_VAR_SET([tag], ["`echo $name | $SED 's%\.%_%'`"])
                        AS_VAR_COPY([LUA_${tag}_INC], [i])
@@ -1149,13 +1155,13 @@ AS_VAR_IF([LUABIN], ['no'],
                        AS_IF([lua$name -e "require 'luaunit'" 2>/dev/null],
                              [AS_VAR_SET([LUAVERSIONS_UNIT],
                                          ["$LUAVERSIONS_UNIT $name"])])])])])])
-   AS_IF([test "x$LUABIN" != 'xno'],
+   PTPM_VAR_ELSE_IF([LUABIN], ['no'],
      [AS_VAR_SET([lua_version],
                  [`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`])
       AS_VAR_SET_IF([LUAVERSIONS],
         [AS_IF([! (echo "$LUAVERSIONS" | $GREP "$lua_version" >/dev/null)],
                [PTPM_FOR([d], [$ptpm_include_dirs],
-                [AS_IF([test -r "$d/lua.h"],
+                [PTPM_FILE_IF(["$d/lua.h"],
                        [AS_VAR_SET([tag], ["`echo $lua_version | $SED 's%\.%_%'`"])
                         AS_VAR_COPY([LUA_${tag}_INC], [d])
                         AS_VAR_SET([LUA_${tag}_LINK], ['-llua'])
@@ -1186,7 +1192,7 @@ AS_VAR_IF([LUABIN], ['no'],
                AC_CHECK_HEADER([lua.h], [AS_VAR_SET([found_lua_h], [1])])
                AS_VAR_COPY([CFLAGS], [cflags_saved])
                # if we didn't get it, going to have to look elsewhere (the hard way)
-               AS_IF([test "x$found_lua_h" = 'x'],
+               PTPM_VAR_EMPTY_IF([found_lua_h],
                  [AC_MSG_CHECKING([for lua.h in other locations])
                   # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
                   # The ordering of the include directories to search should match
@@ -1195,17 +1201,17 @@ AS_VAR_IF([LUABIN], ['no'],
                   PTPM_FOR([d], [$ptpm_include_dirs],
                     [AS_VAR_APPEND([dirs], [" $d $d/lua$LUA_VERSION"])])
                   PTPM_FOR([d], [$dirs],
-                    [AS_IF([test -r "$d/lua.h"],
+                    [PTPM_FILE_IF(["$d/lua.h"],
                            [AC_MSG_RESULT([$d/lua.h])
                             AS_VAR_COPY([LUA_INC], [d])
                             PTPM_FOR_BREAK])])
-                  AS_IF([test "x$LUA_INC" = 'x'],
+                  PTPM_VAR_EMPTY_IF([LUA_INC],
                         [AC_MSG_RESULT([not found])
                          AS_UNSET([LUABIN])])])]) # clear the bin
             # Does Lua use versions for libraries on this system?
             AS_VAR_SET_IF([LUABIN],
               [PTPM_BASENAME([bin], ["$LUABIN"])
-               AS_IF([test "x$bin" != 'xlua'],
+               PTPM_VAR_ELSE_IF([bin], ['lua'],
                      [AS_VAR_COPY([LUABIN_VERSION], [LUA_VERSION])])
 
                AS_VAR_SET_IF([LUALIB],
@@ -1299,12 +1305,12 @@ AS_VAR_SET_IF([SWIGMINVER],
          [AS_VAR_SET([SKIP_TCL], [1])])
    AS_IF([test "x$PY3LINK" = 'x' || test "x$PY3INCLUDE" = 'x'],
          [AS_VAR_SET([SKIP_PYTHON3], [1])])
-   AS_IF([test "x$PERL5EXT" = 'x'], [AS_VAR_SET([SKIP_PERL5], [1])])
+   PTPM_VAR_EMPTY_IF([PERL5EXT], [AS_VAR_SET([SKIP_PERL5], [1])])
    AS_IF([test "x$RUBYLINK" = 'x' || test "x$RUBYINCLUDE" = 'x' || test "x$RUBYLIB" = 'x'],
          [AS_VAR_SET([SKIP_RUBY], [1])])
    AS_IF([test "x$PHPINC" = 'x' || test "x$PHPINC_FLAGS" = 'x' || test "x$PHPINCDIR" = 'x'],
          [AS_VAR_SET([SKIP_PHP], [1])])
-   AS_IF([test "x$LUABIN" = 'x'], [AS_VAR_SET([SKIP_LUA], [1])])
+   PTPM_VAR_EMPTY_IF([LUABIN], [AS_VAR_SET([SKIP_LUA], [1])])
    AS_IF([test "x$GOBIN" = 'x' || test "x$GOMINVER" = 'x'],
          [AS_VAR_SET([SKIP_GO], [1])])],
   [AS_VAR_SET([SKIP_TCL], [1])
