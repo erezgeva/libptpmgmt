@@ -5,7 +5,7 @@
  * @brief HMAC wrapper Library using gnutls library
  *
  * The library depends on gnutls library
- * And uses the libptpm library!
+ * And uses the libptpmgmt library!
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2024 Erez Geva

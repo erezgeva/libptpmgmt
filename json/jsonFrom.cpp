@@ -5,7 +5,7 @@
  * @brief Library to parse JSON
  *
  * The library depends on c-json or fastjason libraries
- * And uses the libptpm library!
+ * And uses the libptpmgmt library!
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2021 Erez Geva

@@ -5,7 +5,7 @@
  * @brief HMAC wrapper Library using nettle
  *
  * The library depends on nettle library
- * And uses the libptpm library!
+ * And uses the libptpmgmt library!
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2024 Erez Geva
