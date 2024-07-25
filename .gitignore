@@ -32,7 +32,6 @@
 /config.*
 /install-sh
 # In folders
-/doc/
 /m4/
 /objs/
 /ptp-tools/pmc

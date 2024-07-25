@@ -16,11 +16,3 @@ License: GPL-3.0-or-later
 Files: swig/*/*.i
 Copyright: 2022 © The SWIG Developers
 License: GPL-3.0-or-later
-
-Files: man/phc_ctl.8
-Copyright: 2014 © Jacob Keller, linuxptp developers
-License: GPL-2.0-or-later
-
-Files: man/pmc.8
-Copyright: 2012 © Richard Cochran, Miroslav Lichvar, linuxptp developers
-License: GPL-2.0-or-later

@@ -4,7 +4,8 @@
 
 # <u>Preface</u>
 
-The library for PTP management client uses IEEE 1558 management messages to communicate with PTP entities over the network.  
+The library for PTP management client uses IEEE 1558 management messages
+to communicate with PTP entities over the network.  
 We support get, set and command of all management TLVs that are described in IEEE 1588-2019.  
 In addition, we support LinuxPTP specific implementation management TLVs.  
 The library supports the three PTP network layers:
@@ -18,7 +19,8 @@ We also support parsing incoming signalling messages.
 Users can use Linux VLAN with all sockets.  
 <br>
 Project home page [https://libptpmgmt.nwtime.org/](https://libptpmgmt.nwtime.org/)  
-Reporting bugs and issues at [https://github.com/erezgeva/libptpmgmt/issues](https://github.com/erezgeva/libptpmgmt/issues)
+Reporting bugs and issues at
+[https://github.com/erezgeva/libptpmgmt/issues](https://github.com/erezgeva/libptpmgmt/issues)
 
 # <u>libptpmgmt Library</u>
 The library is written in C++ using a data-oriented model.  
@@ -42,12 +44,16 @@ With one exception: the functions `ptpmgmt_json_msg2json` and `ptpmgmt_json_tlv2
  which you need to free, in your application!  
 You need to release any memory allocated on your application,
  as the library and the wrappers do **not** free them!  
-As C do not provides namespaces, all global functions and global structures are prefix with `ptpmgmt_` or `PTPMGMT_`.
+As C do not provides namespaces, all global functions and global structures
+are prefix with `ptpmgmt_` or `PTPMGMT_`.
 
 # <u>C++ and C standards</u>
-The libptpmgmt Library uses `C++11` with [POSIX](https://posix.opengroup.org/), [GNU](https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html) extensions and [Linux kernel headers](https://kernel.org/).  
+The libptpmgmt Library uses `C++11` with [POSIX](https://posix.opengroup.org/),
+[GNU](https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html) extensions
+and [Linux kernel headers](https://kernel.org/).  
 The C wrapper use `C99`.  
-We try our best to avoid conflicts with newer versions of C++ and C. But if you find a conflict, please notify us.
+We try our best to avoid conflicts with newer versions of C++ and C.
+But if you find a conflict, please notify us.
 
 # <u>Scripting</u>
 This project uses [SWIG](http://www.swig.org/) to generate wrapper to script languages.  
@@ -80,7 +86,8 @@ Lua uses subset of C++ standard vector methods.
 Perl, PHP, and Go use class methods. See PtpMgmtLib.pm for Perl, ptpmgmt.php for php,
  and ptpmgmt.go for Go, for these methods.
 
-[std_vectors.md](./std_vectors.md) provides more information on vectors mapping and the Doxygen documentation provides information per class.
+[std_vectors.md](./doc/std_vectors.md) provides more information on vectors mapping and
+the Doxygen documentation provides information per class.
 
 # <u>Go wrapper</u>
 
@@ -93,15 +100,20 @@ During development, you need the Go wrapper and the C++ library development head
 In addition add the '-lm -lptpmgmt' flags to the linking using the `CGO_LDFLAGS` environment,  
  so Go will link your application with the C++ library.  
 Pay attention that although Go uses static typing and checks the types in compilation,
-some C++ methods uses variable arguments or share name for different methods. In this case, swig will use the `... interface{}` parameter
-and perform the type check in runtime; if types are wrong, the Go swig wrapper will issue an exception to your application in run-time.  
+some C++ methods uses variable arguments or share name for different methods.
+In this case, swig will use the `... interface{}` parameter
+and perform the type check in runtime; if types are wrong, the Go swig wrapper
+will issue an exception to your application in run-time.  
 For example, `Binary.SetBin(position, value)` requires `position` to be `int64` and `value` to be `byte`.  
-Go uses methods for interface which use Pascal notation, so all class functions in the C++ library are converted to use first letter capital.  
+Go uses methods for interface which use Pascal notation,
+so all class functions in the C++ library are converted to use first letter capital.  
 Go does not use constructors and destructors.  
 You need to use the New'Class' functions and release with Delete'Class'.  
 You can use the `defer` statment for the releasing, if the release is due in the same function.  
-Note: as Go syntax is stricter, you may need to update your code with small fixes, when you build with a newer version of the Go wrapper of the library.  
-We do our best to retain backward compatible with the C++ library, but **NOT** with the Go wrapper, which may break!
+Note: as Go syntax is stricter, you may need to update your code with small fixes,
+when you build with a newer version of the Go wrapper of the library.  
+We do our best to retain backward compatible with the C++ library,
+but **NOT** with the Go wrapper, which may break!
 
 # <u>Library content</u>
   * Binary in bin.h - Class that holds a binary
@@ -145,12 +157,13 @@ The project comes with packaging:
 # <u>More Documentation</u>
 The project more documents
 
-  * [Build project documentation](./Build.md)
-  * [C++ std::vector<> map in Scripts Languages](./std_vectors.md)
-  * [Frequently asked questions](./FAQs.md)
-  * [Developer Guide for using Doxygen in our project](./HOWTO_doc_code.md)
-  * [Compatibility with Linuxptp](./Compatibility.md)
-  * Library API doxygen, can be generated using the make file. [Or on github](https://erezgeva.github.io/libptpmgmt/)
+  * [Build project documentation](./doc/Build.md)
+  * [C++ std::vector<> map in Scripts Languages](./doc/std_vectors.md)
+  * [Frequently asked questions](./doc/FAQs.md)
+  * [Developer Guide for using Doxygen in our project](./doc/HOWTO_doc_code.md)
+  * [Compatibility with Linuxptp](./doc/Compatibility.md)
+  * Library API doxygen, can be generated using the make file.
+    [Or on github](https://erezgeva.github.io/libptpmgmt/)
 
 # <u>Licence</u>
 The Licence of this project is

@@ -284,8 +284,8 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* *.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
-  */github* */*.opt configure.ac src/*.m4\
+SRC_FILES_DIR:=$(wildcard scripts/* README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
+  */github* */*.opt configure.ac src/*.m4 doc/*.md\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
@@ -649,7 +649,8 @@ endif
 	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
 	$(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
 	$(INSTALL_FOLDER) $(DOCDIR)
-	cp *.md $(DOCDIR)
+	cp README.md doc/*.md $(DOCDIR)
+	$(SED) -i  's!\./doc/!./!' $(DOCDIR)/README.md
 ifdef DOXYGENMINVER
 	$(MKDIR_P) "doc/html"
 	$(RM) doc/html/*.md5 doc/html/*.map
@@ -796,8 +797,8 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   .phpunit.result.cache wrappers/go/allocTlv.i\
   wrappers/go/$(SWIG_LNAME).go $(HEADERS_GEN) wrappers/go/gtest/gtest .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
-  archlinux/*/ obj-*/)) doc _site $(OBJ_DIR) $(LIB_D) wrappers/perl/auto\
-  wrappers/go/$(SWIG_LNAME)
+  archlinux/*/ obj-*/)) _site $(OBJ_DIR) $(LIB_D) wrappers/perl/auto\
+  wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
   ltmain.sh $(wildcard src/config.h* config.*)
 DISTCLEAN_DIRS:=autom4te.cache m4

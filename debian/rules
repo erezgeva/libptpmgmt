@@ -54,7 +54,6 @@ override_dh_install:
 	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
 	$Q$(MV) $(DSRC)share/libptpmgmt-dev debian/libptpmgmt-dev/usr/share
 	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
-	$(Q)gzip -9 debian/libptpmgmt-doc/usr/share/doc/libptpmgmt-doc/*.md
 	$Q$(MV) $(DSRC)share/man/man8/phc* debian/phc-ctl-ptpmgmt/usr/share/man/man8
 	$Q$(MV) $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
 	$Q$(MV) $(DSRC)sbin/phc* debian/phc-ctl-ptpmgmt/usr/sbin
