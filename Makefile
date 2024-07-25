@@ -389,9 +389,6 @@ PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
   $(wildcard $(PMC_DIR)/*.cpp)))
 $(OBJ_DIR)/ver.lo: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
-ifdef USE_DEPS
-D_INC=$(if $($1),$(SED) -i 's@$($1)@\$$($1)@g' $(basename $@).d)
-endif
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 
 ifdef CXX_COLOR_USE

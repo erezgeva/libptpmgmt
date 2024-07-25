@@ -22,10 +22,6 @@ PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3INCLUDE)))
 $(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
 	$Q$(MKDIR_P) $(PY_D)/3
 	$(call LLC,$(CXXFLAGS_PY) -I$(PY_D) $(PY3INCLUDE))
-	$(call D_INC,PY3INCDIR)
-ifneq ($(PY3INCDIR),$(PY3PLATINCDIR))
-	$(call D_INC,PY3PLATINCDIR)
-endif
 $(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_SO_3)

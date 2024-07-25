@@ -18,7 +18,6 @@ $$(LUA_LIB_$1)_LDLIBS:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)\
 $(LUA_D)/$1/$(SWIG_NAME).o: $(LUA_D)/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(MKDIR_P) $(LUA_D)/$1
 	$$(call LLC,$$(CXXFLAGS_LUA) -I$$(LUA_$$(subst .,_,$1)_INC))
-	$$(call D_INC,LUA_$$(subst .,_,$1)_INC)
 $$(LUA_LIB_$1): $(LUA_D)/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_LIB_$1)
@@ -41,7 +40,6 @@ $(LUA_LIB)_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME) $(LUALINK)
 
 $(LUA_D)/$(SWIG_NAME).o: $(LUA_D)/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(call LLC,$(CXXFLAGS_LUA))
-	$(call D_INC,LUA_INC)
 $(LUA_LIB): $(LUA_D)/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
