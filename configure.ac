@@ -35,6 +35,7 @@ AC_PROG_MKDIR_P
 AC_PROG_LN_S
 AC_CHECK_TOOL([CHRPATH], [chrpath])
 AC_CHECK_TOOL([PATCHELF], [patchelf])
+AC_CHECK_TOOL([MARKDOWN], [markdown])
 AC_CHECK_TOOL([DATE], [date])
 AS_VAR_SET_IF([DATE],
       AS_VAR_SET([ptpm_date], [`$DATE "+%s"`])
@@ -52,6 +53,8 @@ AC_CONFIG_MACRO_DIRS([m4])
 #----------------------------------------------------------------
 AS_VAR_SET([ptpm_include_dirs],
            ["$includedir /usr/local/include /usr/include /opt/local/include"])
+dnl Used when compile with includes
+AS_VAR_SET([ptpm_c_include], ['#include'])
 
 #----------------------------------------------------------------
 # Macroes
@@ -166,9 +169,6 @@ AS_UNSET([HAVE_GETOPT_H])
 AS_UNSET([HAVE_SYS_TYPES_H])
 AS_UNSET([HAVE_UNISTD_H])
 
-dnl Used when compile with includes
-AS_VAR_SET([ptpm_c_include], ['#include'])
-
 dnl Probe clang as it requires additional warning supression flags
 AS_IF([echo "$CXX" | $GREP 'clang' >/dev/null],
       [AS_VAR_SET([USE_CLANG_CPP_COMPILE], ['use_clang'])])
@@ -188,7 +188,7 @@ dnl https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Message-Formatting-Options.htm
 AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 AS_VAR_SET([ptpm_color], ['-fdiagnostics-color=always'])
 AS_VAR_SET([ptpm_color_none], ['-fno-diagnostics-color'])
-AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags $ptpm_color"])
+AS_VAR_APPEND([CPPFLAGS], [" $ptpm_color"])
 
 AC_COMPILE_IFELSE(
    [AC_LANG_PROGRAM],
@@ -205,6 +205,7 @@ PTPM_VAR_EMPTY_IF([CXX_COLOR_USE],
            AS_VAR_COPY([CXX_COLOR_NONE], [ptpm_color_none])])])
 
 PTPM_RESULT([CXX_COLOR_USE])
+dnl Restore C++ compiler flags
 AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
 
 dnl POSIX/GNU headers included by inner source code
@@ -331,6 +332,7 @@ AC_SUBST([SKIP_LIBSYS])
 #----------------------------------------------------------------
 AS_UNSET([ASAN_LIBS])
 
+dnl Store C++ compiler and linker flags
 AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 AS_VAR_COPY([ptpm_keep_ldflags], [LDFLAGS])
 AS_VAR_SET([ptpm_san], [m4_map_args_w([address pointer-compare
@@ -349,6 +351,7 @@ AC_LINK_IFELSE(
     AC_MSG_RESULT([$ASAN_LIBS])],
    [AC_MSG_RESULT([no])])
 
+dnl Restore C++ compiler and linker flags
 AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
 AS_VAR_COPY([LDFLAGS], [ptpm_keep_ldflags])
 
@@ -867,9 +870,9 @@ AS_VAR_IF([PERLBIN], ['no'],
                  [`($PERL -MConfig -le 'print $Config{archlibexp}')\
                     2>/dev/null`])
       AS_IF([test -h "$ptpm_perl_dir" && test "x$READLINK" != 'x'],
-            [AS_VAR_SET([PERL5DIR],[`$READLINK -f $ptpm_perl_dir 2>/dev/null`])],
-            [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
-      PTPM_VAR_EMPTY_IF([PERL5DIR],
+            [AS_VAR_SET([PERL5DIR],[`$READLINK -f $ptpm_perl_dir 2>/dev/null`])
+             PTPM_VAR_EMPTY_IF([PERL5DIR],
+                   [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])],
             [AS_VAR_SET([PERL5DIR],["$ptpm_perl_dir"])])
       PTPM_CROSS([PERL5DIR])
       AS_VAR_SET_IF([PERL5DIR],
@@ -1292,16 +1295,16 @@ AC_SUBST([GOARCH])
 #----------------------------------------------------------------
 # Wrapper languages Exist
 #----------------------------------------------------------------
-AS_VAR_SET_IF([SWIGMINVER],
-  [AS_UNSET([SKIP_TCL])
-   AS_UNSET([SKIP_PYTHON3])
-   AS_UNSET([SKIP_PERL5])
-   AS_UNSET([SKIP_RUBY])
-   AS_UNSET([SKIP_PHP])
-   AS_UNSET([SKIP_LUA])
-   AS_UNSET([SKIP_GO])
+AS_UNSET([SKIP_TCL])
+AS_UNSET([SKIP_PYTHON3])
+AS_UNSET([SKIP_PERL5])
+AS_UNSET([SKIP_RUBY])
+AS_UNSET([SKIP_PHP])
+AS_UNSET([SKIP_LUA])
+AS_UNSET([SKIP_GO])
 
-   AS_IF([test "x$TCLLIB" = 'x' || test "x$TCLINCDIR" = 'x' || test "x$TCLMINVER" = 'x'],
+AS_VAR_SET_IF([SWIGMINVER],
+  [AS_IF([test "x$TCLLIB" = 'x' || test "x$TCLINCDIR" = 'x' || test "x$TCLMINVER" = 'x'],
          [AS_VAR_SET([SKIP_TCL], [1])])
    AS_IF([test "x$PY3LINK" = 'x' || test "x$PY3INCLUDE" = 'x'],
          [AS_VAR_SET([SKIP_PYTHON3], [1])])
@@ -1311,8 +1314,7 @@ AS_VAR_SET_IF([SWIGMINVER],
    AS_IF([test "x$PHPINC" = 'x' || test "x$PHPINC_FLAGS" = 'x' || test "x$PHPINCDIR" = 'x'],
          [AS_VAR_SET([SKIP_PHP], [1])])
    PTPM_VAR_EMPTY_IF([LUABIN], [AS_VAR_SET([SKIP_LUA], [1])])
-   AS_IF([test "x$GOBIN" = 'x' || test "x$GOMINVER" = 'x'],
-         [AS_VAR_SET([SKIP_GO], [1])])],
+   PTPM_VAR_EMPTY_IF([GOMINVER], [AS_VAR_SET([SKIP_GO], [1])])],
   [AS_VAR_SET([SKIP_TCL], [1])
    AS_VAR_SET([SKIP_PYTHON3], [1])
    AS_VAR_SET([SKIP_PERL5], [1])

@@ -20,7 +20,8 @@ RUN emerge-webrsync && emerge -tv app-portage/portage-utils app-shells/bash\
     dev-lang/python dev-lang/lua dev-lang/php dev-lang/tcl app-misc/jq\
     dev-libs/criterion media-gfx/graphviz app-text/texlive-core\
     dev-texlive/texlive-fontutils dev-cpp/gtest dev-util/astyle\
-    sys-devel/clang dev-debug/gdb app-admin/chrpath dev-util/patchelf &&\
+    sys-devel/clang dev-debug/gdb app-admin/chrpath dev-util/patchelf\
+    app-text/discount &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel,portage &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers;\

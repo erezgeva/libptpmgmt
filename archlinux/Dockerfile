@@ -19,7 +19,8 @@ RUN pacman-key --init && pacman-key --populate &&\
     autoconf which make git sudo doxygen graphviz perl ruby swig python3\
     lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go jq\
     texlive-fontutils astyle lua-posix lua51-posix lua52-posix lua53-posix\
-    clang openssl gnutls nettle gdb debugedit base-devel chrpath patchelf &&\
+    clang openssl gnutls nettle gdb debugedit base-devel chrpath patchelf\
+    discount &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers;\
     mkdir -p /tmp/1;cd /tmp/1;git clone https://github.com/linux-rt/librtpi;\

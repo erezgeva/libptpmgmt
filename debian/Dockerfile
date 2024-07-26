@@ -14,9 +14,11 @@ LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
 ARG UID
 ARG USER
 ARG DIST
+ARG ARCH
 ARG ARCHS
 ARG SRC_CFG
 ARG DPKGS
+ARG REPO
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update;\
     apt-get install -y --no-install-recommends gnupg ca-certificates\
@@ -30,17 +32,20 @@ RUN apt-get update;\
     astyle cppcheck universal-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
     python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\
-    texlive-font-utils libcriterion-dev jq clang gdb abi-dumper gawk\
-    abi-compliance-checker $DPKGS;\
+    texlive-font-utils libcriterion-dev jq clang gdb abi-dumper gawk wget\
+    abi-compliance-checker discount $DPKGS;\
     apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
     sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers;\
-    if test "$DIST" = "bookworm";then mkdir -p /tmp/1;\
-    cd /tmp/1;git clone https://salsa.debian.org/fmoessbauer/librtpi.git;\
-    cd librtpi;dpkg-buildpackage -b --no-sign;for a in $ARCHS;\
-    do DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage -B --no-sign -a$a;done;\
-    cd ..;dpkg -i librtpi-dev_*.deb librtpi1_*.deb;cd ..;rm -Rf 1;fi
+    if test "$DIST" = "bookworm";then mkdir -p /tmp/1;cd /tmp/1;\
+    rtpi_ver=1.0.0-1+b1;\
+    wget -c $REPO/pool/main/libr/librtpi/librtpi1_${rtpi_ver}_$ARCH.deb;\
+    wget -c $REPO/pool/main/libr/librtpi/librtpi-dev_${rtpi_ver}_$ARCH.deb;\
+    for a in $ARCHS;\
+    do wget -c $REPO/pool/main/libr/librtpi/librtpi1_${rtpi_ver}_$a.deb;\
+    wget -c $REPO/pool/main/libr/librtpi/librtpi-dev_${rtpi_ver}_$a.deb;\
+    done;dpkg -i *.deb;cd ..;rm -Rf 1;fi
 ARG COOKIE
 RUN apt-get update; apt-get upgrade -y --no-install-recommends
 ARG SRC

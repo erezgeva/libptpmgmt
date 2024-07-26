@@ -21,7 +21,7 @@ set_dist_args()
     if [[ $m =~ @$ ]]; then
       # Package per architecture
       p=${m%@}
-      dpkgs+=" $p:$main_arch"
+      dpkgs+=" $p:$arch"
       for a in $archs; do
         dpkgs+=" $p:$a"
       done
@@ -37,7 +37,7 @@ main()
   source tools/make_docker.sh
   local -r repo=http://ftp.de.debian.org/debian
   local -r names='bookworm trixie'
-  local -r main_arch=$(dpkg --print-architecture) # amd64
+  local -r arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
   local -r dpkgs_bookworm=''
   local -r dpkgs_trixie='librtpi-dev@'
@@ -60,7 +60,7 @@ main()
   # Packages per architecture
   for n in $dpkgs_arch; do
     # Main architecture
-    dpkgs_all+=" $n:$main_arch"
+    dpkgs_all+=" $n:$arch"
     for a in $archs; do
       dpkgs_all+=" $n:$a"
     done
@@ -70,6 +70,8 @@ main()
     dpkgs_all+=" g++-$n"
   done
   local SRC_CFG dpkgs all_args="$args"
+  make_args repo arch
+  all_args+="$args"
   for dist in $names; do
     make_args dist
     set_dist_args $dist
