@@ -200,6 +200,7 @@ static inline bool msg_set_action(bool local, mng_vals_e id)
 bool event_subscription(struct jcl_handle **handle)
 {
     memset(d.bitmask, 0, sizeof d.bitmask);
+    d.duration = UINT16_MAX;
     d.setEvent(NOTIFY_TIME_SYNC);
     d.setEvent(NOTIFY_PORT_STATE);
     d.setEvent(NOTIFY_CMLDS);
