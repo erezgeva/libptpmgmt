@@ -127,6 +127,7 @@ A
 endef
 line=$(subst A,,$(lbase))
 space=$(subst A,,A )
+hash=$(subst A,,A#)
 
 ###############################################################################
 ### output shaper
@@ -284,7 +285,7 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard scripts/* README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
+SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */github* */*.opt configure.ac src/*.m4 doc/*.md\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
@@ -607,6 +608,7 @@ INSTALL_FOLDER:=$(INSTALL) -d
 INSTALL_LIB:=$(INSTALL_DATA)
 TOOLS_EXT:=-$(SWIG_LNAME)
 DEV_PKG?=$(LIB_NAME)-dev
+DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(LIB_NAME)-doc
 MANDIR:=$(DESTDIR)$(mandir)/man8
@@ -639,7 +641,11 @@ endif
 	$(foreach f,$(notdir $(HEADERS_INST_C)),$(SED) -i\
 	  's!#include\s*\"\([^"]\+\)\"!#include <$(SWIG_LNAME)/\1>!'\
 	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
-	$(INSTALL_DATA) -D scripts/*.mk -t $(DESTDIR)$(datarootdir)/$(DEV_PKG)
+	$(INSTALL_FOLDER) $(DEVDOCDIR)
+	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
+	  'LDLIBS+=-lptpmgmt' > $(DEVDOCDIR)/default.mk
+	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
+	  'LDLIBS+= -Wl,-static -lptpmgmt -Wl,-Bdynamic' > $(DEVDOCDIR)/static.mk
 	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
 	$(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8
 	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\

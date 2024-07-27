@@ -208,7 +208,7 @@ autoreconf -i
 %{_includedir}/*
 %{_libdir}/%{name}*.a
 %{_libdir}/%{name}*.so
-%{_datadir}/%{name}-devel/*.mk
+%{_datadir}/doc/%{name}-devel/*
 
 %files doc
 %{_datadir}/doc/%{name}-doc/*

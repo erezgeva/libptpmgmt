@@ -30,7 +30,7 @@ GO_SRC:=$(GO_D)/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 $(GO_D)/allocTlv.i: $(GO_D)/allocTlv.i.m4
 	$(Q_GEN)$(M4) -I $(SRC) $< > $@
 $(GO_D)/$(SWIG_NAME).cpp: $(GO_D)/allocTlv.i
-$(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp $(LIB_NAME_LA)
+$(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp | $(LIB_NAME_LA)
 	$Q$(MKDIR_P) $(@D)
 	cp $^ $(GO_D)/$(SWIG_LNAME).go $(@D)
 $(GO_D)/$(SWIG_LNAME)/go.mod:
@@ -55,6 +55,5 @@ install_go:
 	cp -a $(GO_D)/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
 	$(SED) -i 's@^\s*#include "\([^.]\+\.h\)"@#include <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
-	rm $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(LIB_NAME_SO)*
 	$(SED) -i '1 i/* $(SPDXLI) MIT\n   $(SPDXCY) */\n'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/*

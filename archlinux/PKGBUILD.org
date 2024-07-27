@@ -77,8 +77,8 @@ package_libptpmgmt-dev() {
   options=(staticlibs)
   pkgdesc='PTP management library development, provides header files and static library.'
   depends=("$pkgbase=$verdep")
-  mkdir -p $pkgdir/$libdir $pkgdir/usr/share
-  mv $srcdir/install/usr/share/$pkgname $pkgdir/usr/share
+  mkdir -p $pkgdir/$libdir $pkgdir/usr/share/doc
+  mv $srcdir/install/usr/share/doc/$pkgname $pkgdir/usr/share/doc
   mv $srcdir/install/usr/include $pkgdir/usr
   mv $srcdir/install/usr/lib/$pkgbase*.a $pkgdir/$libdir
   mv $srcdir/install/usr/lib/$pkgbase*.so $pkgdir/$libdir
@@ -87,8 +87,8 @@ package_libptpmgmt-doc() {
   arch=(any)
   pkgdesc='PTP management library documentation, to communicate with ptp4l'
   license=(FDL1.3) # Know also as GFDL
-  mkdir -p $pkgdir/usr/share
-  mv $srcdir/install/usr/share/doc/* $pkgdir/usr/share
+  mkdir -p $pkgdir/usr/share/doc
+  mv $srcdir/install/usr/share/doc/$pkgname $pkgdir/usr/share/doc
 }
 package_libptpmgmt-perl() {
   pkgdesc='PTP management library Perl wrapper'
