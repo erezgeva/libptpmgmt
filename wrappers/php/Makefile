@@ -12,17 +12,17 @@ PHP_D:=wrappers/php
 PHP_NAME:=$(PHP_D)/$(SWIG_NAME).cpp
 php_SFLAGS+=-php7
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
-	$Q$(call LLC,$(CXXFLAGS_PHP) -Iwrappers/php $(PHPINC_FLAGS))
+	$Q$(call LLC,$(CXXFLAGS_PHP) -Iwrappers/php $(PHP_INC_FLAGS))
 $(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PHP_LNAME).so
 $(PHP_D)/php.ini:
 	$(Q)$(PHP_D)/php_ini.sh
-ifdef PHPUNIT
+ifdef PHP_UNIT
 utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so $(PHP_D)/php.ini
-	$(call Q_UTEST,PHP)LD_PRELOAD=$(ASAN_PRE)./$< PHPRC=$(PHP_D) phpunit\
+	$(call Q_UTEST,PHP)LD_PRELOAD=$(ASAN_PRE)./$< PHPRC=$(PHP_D) $(PHP_UNIT)\
 	  $(PHP_D)/utest.php $(PHP_NO_COL) $(PHP_FILTERS)
 endif
 
 install_php:
-	$Q$(INSTALL_LIB) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHPEXT)
+	$Q$(INSTALL_LIB) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHP_SITE)

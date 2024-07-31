@@ -17,11 +17,11 @@ python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
 endif
 PY_BASE_3:=$(PY_D)/3/$(SWIG_NAME)
 PY_SO_3:=$(PY_D)/3/$(PY_LIB_NAME).so
-$(PY_SO_3)_LDLIBS:=$(PY3LDLIBS)
-PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3INCLUDE)))
+$(PY_SO_3)_LDLIBS:=$(PY3_LIB_FLAGS)
+PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3_INC_FLAGS)))
 $(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
 	$Q$(MKDIR_P) $(PY_D)/3
-	$(call LLC,$(CXXFLAGS_PY) -I$(PY_D) $(PY3INCLUDE))
+	$(call LLC,$(CXXFLAGS_PY) -I$(PY_D) $(PY3_INC_FLAGS))
 $(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_SO_3)
@@ -31,7 +31,7 @@ utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
 
 install_python3:
 	$Q$(INSTALL_LIB) -D $(PY_D)/3/$(PY_LIB_NAME).so\
-	  $(DESTDIR)$(PY3SITE_DIR)/$(PY_LIB_NAME)$(PY3EXT)
-	$(INSTALL_LIB) $(PY_D)/$(SWIG_LNAME).py $(DESTDIR)$(PY3SITE_DIR)
+	  $(DESTDIR)$(PY3_SITE)/$(PY_LIB_NAME)$(PY3_EXT)
+	$(INSTALL_LIB) $(PY_D)/$(SWIG_LNAME).py $(DESTDIR)$(PY3_SITE)
 	$(SED) -i "1 i# $(SPDXLI) LGPL-3.0-or-later\n# $(SPDXCY)\n"\
-	  $(DESTDIR)$(PY3SITE_DIR)/*.py
+	  $(DESTDIR)$(PY3_SITE)/*.py

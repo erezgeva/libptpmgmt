@@ -23,4 +23,4 @@ utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
 	  $(RUBY_D)/utest.rb $(RUBY_NO_COL) $(RUBY_FILTERS)
 
 install_ruby:
-	$Q$(INSTALL_LIB) -D $(RUBY_LNAME).so -t $(DESTDIR)$(RUBYSITE)
+	$Q$(INSTALL_LIB) -D $(RUBY_LNAME).so -t $(DESTDIR)$(RUBY_SITE)

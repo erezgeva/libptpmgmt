@@ -209,7 +209,7 @@ ci_cross()
 {
  sudo debian/inst_arc.sh arm64
  make deb_arc arm64
- tools/config_report.sh
+ config_report
 }
 ###############################################################################
 # Run unit tests with Address Sanitizer
@@ -357,28 +357,27 @@ new_version()
 config_report()
 {
  local -A R
- local list='build host TCLVER PERL PY3VERSION RUBY_VER PHPVER
-   LUAVERSIONS LUA_VERSION
-   GOVER DOTTOOL ASTYLEMINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
-   CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIGMINVER DOXYGENMINVER
+ local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER
+   LUA_VERS LUA_VER USE_ENDIAN PERL5_VER
+   GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
+   CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIG_MINVER DOXYGEN_MINVER
    PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl python ruby php lua go'
  local $list $langs
  read_defs $list
  local -A setLang
- setLang[tcl]="@'$TCLVER'"
- local -r p2=';@"${perl#v}"'
- setLang[perl]="@'$($PERL -e 'print "$^V"')'$p2"
- setLang[python]="@'${PY3VERSION#python}'"
+ setLang[tcl]="@'$TCL_MINVER'"
+ setLang[perl]="@'$PERL5_VER'"
+ setLang[python]="@'$PY3_VER'"
  setLang[ruby]="@'$RUBY_VER'"
- setLang[php]="@'$PHPVER'"
- if [[ -n "$LUAVERSIONS" ]]; then
-   setLang[lua]="@'$LUAVERSIONS'"
+ setLang[php]="@'$PHP_VER'"
+ if [[ -n "$LUA_VERS" ]]; then
+   setLang[lua]="@'$LUA_VERS'"
  else
-   setLang[lua]="@'$LUA_VERSION'"
+   setLang[lua]="@'$LUA_VER'"
  fi
- setLang[go]="@'$GOVER'"
+ setLang[go]="@'$GO_MINVER'"
  for n in $langs; do
    [[ -n "${R["SKIP_${n^^}"]}" ]] && local $n='x' ||\
      eval "${setLang[$n]//@/local $n=}"
@@ -391,7 +390,8 @@ config_report()
    local -r dver='x'
  fi
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
- [[ -n "$ASTYLEMINVER" ]] && local -r astyle="$ASTYLEMINVER" || local -r astyle='x'
+ [[ -n "$ASTYLE_MINVER" ]] && local -r astyle="$ASTYLE_MINVER" ||\
+   local -r astyle='x'
  if [[ -n "$CHRPATH" ]]; then
    local -r rpath="$CHRPATH"
  elif [[ -n "$PATCHELF" ]]; then
@@ -408,11 +408,11 @@ config_report()
  [[ -n "$CPPCHECK" ]] && local -r cppcheck='v' || local -r cppcheck='x'
  [[ -n "$HAVE_JSONC_LIB" ]] && local -r jsonc='v' || local -r jsonc='x'
  [[ -n "$HAVE_FJSON_LIB" ]] && local -r fjson='v' || local -r fjson='x'
- [[ -n "$SWIGMINVER" ]] && local -r swig="$SWIGMINVER" || local -r swig='x'
- [[ -n "$DOXYGENMINVER" ]] && local -r doxy="$DOXYGENMINVER" || local -r doxy='x'
+ [[ -n "$SWIG_MINVER" ]] && local -r swig="$SWIG_MINVER" || local -r swig='x'
+ [[ -n "$DOXYGEN_MINVER" ]] && local -r doxy="$DOXYGEN_MINVER" || local -r doxy='x'
  cat << EOF
 ========================== Config ==========================
-Version '$PACKAGE_VERSION' build $bon
+Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
 rpath '$rpath' Jsonc '$jsonc' Fjson '$fjson'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'

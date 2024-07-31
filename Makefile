@@ -474,7 +474,7 @@ $(PUB)/name.h: $(SRC)/name.h.in
 	$(Q_GEN)$(SED) $(foreach n,$(HAVE_LIST),\
 	  -e 's/undef __PTPMGMT_$(n)$$/define __PTPMGMT_$(n) 1/') $< > $@
 
-ifneq ($(and $(ASTYLEMINVER),$(PERL5TOUCH)),)
+ifneq ($(and $(ASTYLE_MINVER),$(PERL5_HAVE_TOUCH)),)
 CPPCHECK_OPT:=--quiet --force --error-exitcode=-1
 CPPCHECK_OPT+=$(CPPCHECK_OPT_BASE)
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)
@@ -490,13 +490,13 @@ ifdef CPPCHECK
 	$(CPPCHECK) $(CPPCHECK_OPT) --language=c++\
 	  $(filter-out $(EXTRA_C_SRCS) $(addprefix $(SRC)/,ids.h),$^)
 endif
-endif # ASTYLEMINVER && PERL5TOUCH
+endif # ASTYLE_MINVER && PERL5_HAVE_TOUCH
 
-ifdef SWIGMINVER
+ifdef SWIG_MINVER
 SWIG_ALL:=
-ifdef SWIGARGCARGV_GO
+ifdef SWIG_ARGCARGV_GO
 go_SFLAGS+=-Iswig/go
-endif #SWIGARGCARGV_GO
+endif #SWIG_ARGCARGV_GO
 
 # SWIG warnings
 # a label defined but not used
@@ -563,12 +563,12 @@ include wrappers/go/Makefile
 endif
 
 ALL+=$(SWIG_ALL)
-endif # SWIGMINVER
+endif # SWIG_MINVER
 
 tools/doxygen.cfg: tools/doxygen.cfg.in
 	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
 
-ifdef DOXYGENMINVER
+ifdef DOXYGEN_MINVER
 doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
 ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
@@ -585,7 +585,7 @@ endif
 ifndef DOTTOOL
 	$Q$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' tools/doxygen.cfg
 endif
-endif # DOXYGENMINVER
+endif # DOXYGEN_MINVER
 
 checkall: format doxygen
 
@@ -612,12 +612,6 @@ DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(LIB_NAME)-doc
 MANDIR:=$(DESTDIR)$(mandir)/man8
-# 1=Dir 2=file 3=link
-ifndef USE_FULL_PATH_LINK
-mkln=$(LN) $2 $(DESTDIR)$1/$3
-else
-mkln=$(LN) $1/$2 $(DESTDIR)$1/$3
-endif
 
 install: $(INS_TGT)
 install_main:
@@ -654,7 +648,7 @@ endif
 	$(INSTALL_FOLDER) $(DOCDIR)
 	cp README.md doc/*.md $(DOCDIR)
 	$(SED) -i  's!\./doc/!./!' $(DOCDIR)/README.md
-ifdef DOXYGENMINVER
+ifdef DOXYGEN_MINVER
 	$(MKDIR_P) "doc/html"
 	$(RM) doc/html/*.md5 doc/html/*.map
 	cp -a doc/html $(DOCDIR)
@@ -666,7 +660,7 @@ ifdef DOXYGENMINVER
 	do if test -f "$$dh"
 	then $(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
 	  $(subst doc/html/,$(DOCDIR)/html/,$$dh);fi;done
-endif # DOXYGENMINVER
+endif # DOXYGEN_MINVER
 
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
 include $(D_FILES)

@@ -13,13 +13,13 @@ TCL_NAME:=$(TCL_D)/$(SWIG_NAME).cpp
 TCL_LNAME:=$(TCL_D)/$(SWIG_LNAME)
 tcl_SFLAGS+=-tcl8 -namespace -pkgversion $(PACKAGE_VERSION)
 $(TCL_LNAME).o: $(TCL_NAME) $(HEADERS)
-	$Q$(call LLC,$(CXXFLAGS_TCL) $(TCLINCLUDE))
+	$Q$(call LLC,$(CXXFLAGS_TCL) $(TCL_INC_FLAGS))
 $(TCL_LNAME).so_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME)$(SONAME)
 $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(TCL_LNAME).so
-TCLDIR:=$(DESTDIR)$(TCL_PKG_DIR)/$(SWIG_LNAME)
-pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCLVER)]} {return}\n
+TCLDIR:=$(DESTDIR)$(TCL_SITE)/$(SWIG_LNAME)
+pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCL_MINVER)]} {return}\n
 pkgIndex+=package ifneeded $(SWIG_LNAME) $(PACKAGE_VERSION)
 pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
 $(TCL_D)/pkgIndex.tcl:

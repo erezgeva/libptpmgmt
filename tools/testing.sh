@@ -506,16 +506,16 @@ getFirstFile()
 }
 probeBuild()
 {
- local LUAVERSIONS
+ local LUA_VERS
  if [[ -f defs.mk ]]; then
    local -A R
    local list='prefix exec_prefix libdir libexecdir includedir sysconfdir
      localstatedir datarootdir mandir infodir sbindir bindir
-     HAVE_JSONC_LIB HAVE_FJSON_LIB PERL5DIR RUBYSITE LUA_VERSION SKIP_PHP
-     PHPEXT TCL_PKG_DIR GOROOT'
+     HAVE_JSONC_LIB HAVE_FJSON_LIB PERL5_SITE RUBY_SITE LUA_VER SKIP_PHP
+     PHP_SITE TCL_SITE GOROOT'
    local $list
-   read_defs $list LUAVERSIONS
-   if [[ -n "$LUAVERSIONS" ]]; then
+   read_defs $list LUA_VERS
+   if [[ -n "$LUA_VERS" ]]; then
      oneLua=false
    else
      oneLua=true
@@ -534,10 +534,10 @@ probeBuild()
    # TODO Debian bookworm uses lua-posix version 33.4
    #      which do not support lua 5.4
    #      trixie does support lua 5.4!
-   LUAVERSIONS='5.1 5.2 5.3'
+   LUA_VERS='5.1 5.2 5.3'
    getFirstFile "/usr/lib$fmach$libptpm*"
    if [[ -f "$file" ]] && [[ -n "$probeSystem" ]]; then
-     luaVersions="$LUAVERSIONS"
+     luaVersions="$LUA_VERS"
      probeLibsDebian
    else
      allBuild
@@ -554,7 +554,7 @@ allBuild()
  if $oneLua; then
    ldPathLua="$ldPath LUA_CPATH='wrappers/lua/?.so;;'"
  else
-   for i in $LUAVERSIONS; do
+   for i in $LUA_VERS; do
      # Test for lua posix
      # can be a static library or a folder with static libraries
      getFirstFile "$libdir/lua/$i/posix.so"
@@ -626,7 +626,7 @@ probeLibsDebian()
    needCmpl=y
    ldPathRuby="RUBYLIB=wrappers/ruby"
  fi
- for i in $LUAVERSIONS; do
+ for i in $LUA_VERS; do
    getFirstFile "/usr/lib$fmach/lua/$i/ptpmgmt.so"
    if ! [[ -f "$file" ]]; then
      # Lua comes in a single package for all versions,
@@ -705,28 +705,28 @@ probeLibs()
      [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=.libs"
    fi
  fi
- getFirstFile "$PERL5DIR/auto/PtpMgmtLib/PtpMgmtLib.so"
+ getFirstFile "$PERL5_SITE/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no perl"
    needCmpl=y
    ldPathPerl="PERL5LIB=wrappers/perl"
    ldPathJson+=" PERL5LIB=wrappers/perl"
  fi
- file="$RUBYSITE/ptpmgmt.so"
+ file="$RUBY_SITE/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no ruby"
    needCmpl=y
    ldPathRuby="RUBYLIB=wrappers/ruby"
  fi
  if $oneLua; then
-   getFirstFile "$libdir/lua/$LUA_VERSION/ptpmgmt.so"
+   getFirstFile "$libdir/lua/$LUA_VER/ptpmgmt.so"
    if ! [[ -f "$file" ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no lua"
      needCmpl=y
      ldPathLua="$ldPath LUA_CPATH='wrappers/lua/?.so;;'"
    fi
  else
-   for i in $LUAVERSIONS; do
+   for i in $LUA_VERS; do
      # Test for lua posix
      # can be a static library or a folder with static libraries
      getFirstFile "$libdir/lua/$i/posix.so"
@@ -755,8 +755,8 @@ probeLibs()
  local shopt_extglob=$(shopt -p extglob)
  shopt -s extglob
  for i in $pyVersions; do
-   local py_site_dir="${R["PY${i}SITE_DIR"]/python$i+([.0-9])/python$i*}"
-   getFirstFile "$py_site_dir/_ptpmgmt${R["PY${i}EXT"]}"
+   local py_site_dir="${R["PY${i}_SITE"]/python$i+([.0-9])/python$i*}"
+   getFirstFile "$py_site_dir/_ptpmgmt${R["PY${i}_EXT"]}"
    if ! [[ -f "$file" ]]; then
      eval "ldPathPython$i='PYTHONPATH=wrappers/python:wrappers/python/$i'"
    fi
@@ -771,13 +771,13 @@ probeLibs()
  if [[ -n "$SKIP_PHP" ]]; then
    skip_php=true
  else
-   if ! [[ -f "$PHPEXT/ptpmgmt.so" ]]; then
+   if ! [[ -f "$PHP_SITE/ptpmgmt.so" ]]; then
      [[ -z "$no_build" ]] || echo "Build as: no php"
      needCmpl=y
      ldPathPhp="PHPRC=wrappers/php"
    fi
  fi
- getFirstFile "$TCL_PKG_DIR/ptpmgmt/ptpmgmt.so"
+ getFirstFile "$TCL_SITE/ptpmgmt/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no tcl"
    needCmpl=y
