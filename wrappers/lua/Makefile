@@ -31,9 +31,9 @@ endef
 $(eval $(foreach n,$(LUAVERSIONS),$(call lua,$n)))
 
 # Build single Lua version
-ifneq ($(LUA_VERSION),)
+ifdef LUA_VERSION
 LUA_LIB:=$(LUA_D)/$(SWIG_LIB_NAME)
-ifneq ($(LUA_INC),)
+ifdef LUA_INC
 CXXFLAGS_LUA+=-I$(LUA_INC)
 endif
 $(LUA_LIB)_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME) $(LUALINK)
@@ -43,7 +43,7 @@ $(LUA_D)/$(SWIG_NAME).o: $(LUA_D)/$(SWIG_NAME).cpp $(HEADERS)
 $(LUA_LIB): $(LUA_D)/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
-ifneq ($(LUAUNIT),)
+ifdef LUAUNIT
 utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
 	$(call Q_UTEST,Lua)LD_PRELOAD=$(ASAN_PRE)./$< LUA_CPATH="$(LUA_D)/?.so;;"\
 	  $(LUABIN) $(UVGD)$(LUA_D)/utest.lua $(LUA_FILTERS)
@@ -60,7 +60,7 @@ install_lua:
 	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
 	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
 	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME);)
-ifneq ($(LUA_VERSION),)
+ifdef LUA_VERSION
 	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUA_VERSION)
 	$(INSTALL_LIB) -D $(LUA_LIB) $(DLIBDIR)/lua/$(LUA_VERSION)/$(SWIG_LIB_NAME)
 endif # LUA_VERSION

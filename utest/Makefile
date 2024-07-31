@@ -28,7 +28,7 @@ TEST_LIBSYS:=$(OBJ_DIR)/libsys.so
 $(TEST_LIBSYS): utest/libsys.cpp | $(OBJ_DIR)
 	$(Q_CC)$(CXX) -shared -fPIC -include utest/libsys.h -o $@ $^ -ldl
 
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 UTEST:=$(OBJ_DIR)/utest
 UTEST_SYS:=$(OBJ_DIR)/utest_sys
 UTEST_AUTH:=$(OBJ_DIR)/utest_auth
@@ -51,11 +51,11 @@ $(OBJ_DIR)/utest_sys.o: | $(OBJ_DIR)
 	  $(GTEST_INC_FLAGS) -c -x c++ - -o $@
 CXXFLAGS_UTEST=$(filter-out -std=%,$(CXXFLAGS)) -std=c++14
 $(TEST_SYS_OBJS): CXXFLAGS_UTEST+=-include utest/libsys.h
-ifneq ($(HAVE_JSONC_LIB),)
+ifdef HAVE_JSONC_LIB
 utest/jsonLoad.o: CXXFLAGS_UTEST+=-DHAVE_JSONC_LIB
 JSON_FLIBS+=$(JSONC_LIB)
 endif
-ifneq ($(HAVE_FJSON_LIB),)
+ifdef HAVE_FJSON_LIB
 utest/jsonLoad.o: CXXFLAGS_UTEST+=-DHAVE_FJSON_LIB
 JSON_FLIBS+=$(FJSON_LIB)
 endif
@@ -75,7 +75,7 @@ utest_sys: $(HEADERS_GEN_COMP) $(UTEST_SYS)
 	$(call Q_UTEST,C++-SYS)LD_PRELOAD=./$(TEST_LIBSYS) $(UTEST_SYS)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif
-ifneq ($(HMAC_ALIB),)
+ifdef HMAC_ALIB
 $(UTEST_AUTH): $(OBJ_DIR)/utest_m.o utest/auth.o $(LIB_NAME_A) $(HMAC_ALIB)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(HMAC_LIBA_FLAGS)\
 	  $(HMAC_ALIB_FLAGS) $(GTEST_LIB_FLAGS) -o $@

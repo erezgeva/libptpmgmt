@@ -12,9 +12,9 @@ RUBY_D:=wrappers/ruby
 RUBY_NAME:=$(RUBY_D)/$(SWIG_NAME).cpp
 RUBY_LNAME:=$(RUBY_D)/$(SWIG_LNAME)
 ruby_SFLAGS:=-ruby
-$(RUBY_LNAME).so_LDLIBS:=$(RUBYLINK)
+$(RUBY_LNAME).so_LDLIBS:=$(RUBY_LIB_FLAGS)
 $(RUBY_LNAME).o: $(RUBY_NAME) $(HEADERS)
-	$Q$(call LLC,$(CXXFLAGS_RUBY) -Iwrappers/ruby $(RUBYINCLUDE))
+	$Q$(call LLC,$(CXXFLAGS_RUBY) -Iwrappers/ruby $(RUBY_INC_FLAGS))
 $(RUBY_LNAME).so: $(RUBY_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(RUBY_LNAME).so

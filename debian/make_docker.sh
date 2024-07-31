@@ -41,7 +41,7 @@ main()
   local -r archs='arm64'
   local -r dpkgs_bookworm=''
   local -r dpkgs_trixie='librtpi-dev@'
-  local dpkgs_arch='libstdc++6
+  local dpkgs_arch='libstdc++6 pkgconf
     libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
     libfastjson-dev libgtest-dev lua-posix libjson-c-dev
     libssl-dev libgcrypt20 libgnutls28-dev nettle-dev'

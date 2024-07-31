@@ -19,7 +19,7 @@ $(PERL_SO_DIR)/$(SWIG_NAME).so: $(PERL_D)/$(SWIG_NAME).o $(LIB_NAME_SO) |\
 	  $(PERL_SO_DIR)
 	$(SWIG_LD)
 SWIG_ALL+=$(PERL_SO_DIR)/$(SWIG_NAME).so
-ifneq ($(PERL5TEST),)
+ifdef PERL5TEST
 utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
 	$(call Q_UTEST,Perl5)LD_PRELOAD=$(ASAN_PRE)./$< PERL5LIB=$(PERL_D)\
 	  $(PERL_D)/utest.pl

@@ -19,7 +19,7 @@ GOFLAGS!=$(GOBIN) env GOFLAGS
 GOFLAGS+=-buildvcs=false
 export GOFLAGS CGO_CXXFLAGS CGO_LDFLAGS
 export GO111MODULE=on
-ifneq ($(GOARCH),)
+ifdef GOARCH
 # Cross compilation
 export CXX CC GOARCH
 export CGO_ENABLED=1

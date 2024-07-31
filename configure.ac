@@ -389,13 +389,15 @@ AS_UNSET([HAVE_NETTLE_HEADER])
 AS_UNSET([NETTLE_INC_FLAGS])
 AS_UNSET([NETTLE_LIB_FLAGS])
 
-AC_CHECK_HEADER([openssl/crypto.h], [AS_VAR_SET([HAVE_SSL_HEADER], [openssl])])
+AC_CHECK_HEADER([openssl/crypto.h], [AS_VAR_SET([HAVE_SSL_HEADER], [1])])
 PTPM_VAR_SET_IF([HAVE_SSL_HEADER],
       [PTPM_LIB_PKG_CONFIG([SSL], [libcrypto])
        AC_CHECK_LIB([crypto], [main],
                     [PTPM_VAR_EMPTY_IF([SSL_LIB_FLAGS],
                            [AS_VAR_SET([SSL_LIB_FLAGS], ['-lcrypto'])])],
-                    [AS_UNSET([HAVE_SSL_HEADER])])])
+                    [AS_UNSET([HAVE_SSL_HEADER])])
+       PTPM_CROSS([SSL_INC_FLAGS])
+       PTPM_CROSS([SSL_LIB_FLAGS])])
 
 AC_CHECK_HEADER([gcrypt.h], [AS_VAR_SET([HAVE_GCRYPT_HEADER], [1])])
 PTPM_VAR_SET_IF([HAVE_GCRYPT_HEADER],
@@ -403,7 +405,9 @@ PTPM_VAR_SET_IF([HAVE_GCRYPT_HEADER],
        AC_CHECK_LIB([crypto], [main],
                     [PTPM_VAR_EMPTY_IF([GCRYPT_LIB_FLAGS],
                            [AS_VAR_SET([GCRYPT_LIB_FLAGS], ['-lgcrypt'])])],
-                    [AS_UNSET([HAVE_GCRYPT_HEADER])])])
+                    [AS_UNSET([HAVE_GCRYPT_HEADER])])
+       PTPM_CROSS([GCRYPT_INC_FLAGS])
+       PTPM_CROSS([GCRYPT_LIB_FLAGS])])
 
 AC_CHECK_HEADER([gnutls/crypto.h], [AS_VAR_SET([HAVE_GNUTLS_HEADER], [1])])
 PTPM_VAR_SET_IF([HAVE_GNUTLS_HEADER],
@@ -411,7 +415,9 @@ PTPM_VAR_SET_IF([HAVE_GNUTLS_HEADER],
        AC_CHECK_LIB([gnutls], [gnutls_global_init],
                     [PTPM_VAR_EMPTY_IF([GNUTLS_LIB_FLAGS],
                            [AS_VAR_SET([GNUTLS_LIB_FLAGS], ['-lgnutls'])])],
-                    [AS_UNSET([HAVE_GNUTLS_HEADER])])])
+                    [AS_UNSET([HAVE_GNUTLS_HEADER])])
+       PTPM_CROSS([GNUTLS_INC_FLAGS])
+       PTPM_CROSS([GNUTLS_LIB_FLAGS])])
 
 AC_CHECK_HEADER([nettle/hmac.h], [AS_VAR_SET([HAVE_NETTLE_HEADER], [1])])
 PTPM_VAR_SET_IF([HAVE_NETTLE_HEADER],
@@ -419,7 +425,9 @@ PTPM_VAR_SET_IF([HAVE_NETTLE_HEADER],
        AC_CHECK_LIB([nettle], [main],
                     [PTPM_VAR_EMPTY_IF([NETTLE_LIB_FLAGS],
                            [AS_VAR_SET([NETTLE_LIB_FLAGS], ['-lnettle'])])],
-                    [AS_UNSET([HAVE_NETTLE_HEADER])])])
+                    [AS_UNSET([HAVE_NETTLE_HEADER])])
+       PTPM_CROSS([NETTLE_INC_FLAGS])
+       PTPM_CROSS([NETTLE_LIB_FLAGS])])
 
 AC_SUBST([HAVE_SSL_HEADER])
 AC_SUBST([SSL_INC_FLAGS])
@@ -731,7 +739,7 @@ AC_SUBST([TCL_PKG_DIR])
 #----------------------------------------------------------------
 # Python 3
 #----------------------------------------------------------------
-AS_UNSET([PY3VER])
+AS_VAR_SET([PY3VER], [0])
 AS_UNSET([PY3VERSION])
 AS_UNSET([PY3INCLUDE])
 AS_UNSET([PY3INCDIR])
@@ -769,20 +777,16 @@ AS_VAR_IF([PY3BIN], ['no'],
          [AC_MSG_CHECKING([for $PYTHON3 major version number])
           AS_VAR_SET([PY3VER],
                      [`$PYTHON3 -c "import sys;\
-                       sys.stdout.write(sys.version[[0]])" PTPM_DUMP_ERR`])
+                      print(sys.version_info.major)" PTPM_DUMP_ERR`])
           AC_MSG_RESULT([$PY3VER])])
    PTPM_VAR_EMPTY_IF([PY3VER], [AS_VAR_SET([PY3VER], [0])])
 
    AS_IF([test $PY3VER -ge 3 && PTPM_VAR_SET_TEST([PY3CONFIG])],
-     # Note: I could not think of a standard way to get the version string
-     # from different versions.
-     # This trick pulls it out of the file location for a standard library file.
      [AC_MSG_CHECKING([for Python 3 version])
       AS_VAR_SET([PY3VERSION],
-                 [`$PYTHON3 -c "import string,operator,os.path;\
-                   print(operator.getitem(os.path.split(\
-                   operator.getitem(os.path.split(string.__@&t@file__),\
-                   0)),1))" PTPM_DUMP_ERR`])
+                 [`$PYTHON3 -c "import sys;print('python%d.%d' %\
+                  (sys.version_info.major, sys.version_info.minor))"\
+                  PTPM_DUMP_ERR`])
       PTPM_RESULT([PY3VERSION])
 
       # Set the include directory
@@ -909,12 +913,9 @@ AC_SUBST([PERL5TOUCH])
 #----------------------------------------------------------------
 AS_UNSET([RUBY])
 AS_UNSET([RUBYBIN])
-AS_UNSET([RUBYHDRDIR])
-AS_UNSET([RUBYARCHHDRDIR])
-AS_UNSET([RUBYINCLUDE])
-AS_UNSET([RUBYVER])
-AS_UNSET([RUBYLIB])
-AS_UNSET([RUBYLINK])
+AS_UNSET([RUBY_VER])
+AS_UNSET([RUBY_INC_FLAGS])
+AS_UNSET([RUBY_LIB_FLAGS])
 AS_UNSET([RUBYSITE])
 
 AC_ARG_WITH([ruby],
@@ -924,88 +925,58 @@ AC_ARG_WITH([ruby],
             [AS_VAR_COPY([RUBYBIN], [alllang_default])])
 
 dnl First, check for '--without-ruby' or '--with-ruby=no'.
+dnl configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
 AS_VAR_IF([RUBYBIN], ['no'],
   [AC_MSG_NOTICE([Disabling Ruby])],
-  # configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
-  # First figure out what the name of Ruby is
   [AS_VAR_IF([RUBYBIN], ['yes'],
          [AC_CHECK_PROGS([RUBY], [ruby])],
          [AS_VAR_COPY([RUBY], [RUBYBIN])])
-   AC_MSG_CHECKING([for Ruby header files])
+   AC_MSG_CHECKING([for Ruby version])
    PTPM_VAR_SET_IF([RUBY],
-     # Try Ruby1.9+ first
-     [AS_VAR_SET([RUBYHDRDIR],
-                 [`$RUBY -rrbconfig -e\
-                   'print RbConfig::CONFIG[["rubyhdrdir"]]' PTPM_DUMP_ERR`])
-      AS_VAR_SET([RUBYARCHHDRDIR],
-                 [`$RUBY -rrbconfig -e\
-                   'print RbConfig::CONFIG[["rubyarchhdrdir"]]' PTPM_DUMP_ERR`])
-      PTPM_CROSS([RUBYARCHHDRDIR])
-      PTPM_VAR_SET_IF([RUBYHDRDIR],
-        [AS_IF([test -r "$RUBYHDRDIR/ruby.h" &&\
-                PTPM_VAR_SET_TEST([RUBYARCHHDRDIR])],
-               [AS_VAR_SET([RUBYINCLUDE], ["-I$RUBYHDRDIR -I$RUBYARCHHDRDIR"])])
-         PTPM_RESULT([RUBYINCLUDE])
-
-         AC_MSG_CHECKING([for Ruby header folder])
-         PTPM_RESULT([RUBYHDRDIR])
-         AC_MSG_CHECKING([for Ruby header architecture folder])
-         PTPM_RESULT([RUBYARCHHDRDIR])
-
-         AC_MSG_CHECKING([for Ruby version])
-         AS_VAR_SET([RUBYVER],
-                    [`$RUBY -e 'print "#{RUBY_VERSION}"'`])
-         PTPM_RESULT([RUBYVER])
-         AS_VAR_SET([RUBYLINK],
-                    [`$RUBY -rrbconfig -e\
-                     'n=RbConfig::CONFIG[["RUBY_SO_NAME"]];print "-l#{n}"'
-                     PTPM_DUMP_ERR`])
-
-         # Find library and path for linking.
-         AC_MSG_CHECKING([for Ruby library])
-         AS_VAR_SET([rb_archlibdir],
-                    [`$RUBY -rrbconfig -e\
-                       'print RbConfig::CONFIG[["archlibdir"]]' PTPM_DUMP_ERR`])
-         AS_VAR_SET([rb_libdir],
-                    [`$RUBY -rrbconfig -e 'print RbConfig::CONFIG[["libdir"]]'\
-                       PTPM_DUMP_ERR`])
-         AS_VAR_SET([rb_bindir],
-                    [`$RUBY -rrbconfig -e 'print RbConfig::CONFIG[["bindir"]]'\
-                      PTPM_DUMP_ERR`])
-         AS_VAR_SET([dirs], ["$rb_archlibdir $rb_libdir $rb_bindir"])
-         AS_VAR_SET([rb_libruby],
-                    [`$RUBY -rrbconfig -e\
-                      'print RbConfig::CONFIG[["LIBRUBY_SO"]]' PTPM_DUMP_ERR`])
-         PTPM_VAR_SET_IF([rb_libruby],
-               [PTPM_FOR([d], [$dirs],
-                  [PTPM_FILE_IF(["$d/$rb_libruby"],
-                         [AS_VAR_COPY([RUBYLIB], [d])
-                          PTPM_FOR_BREAK])])])
-         PTPM_CROSS([RUBYLIB])
-         PTPM_RESULT([RUBYLIB])],
-        [AC_MSG_RESULT([unable to determine ruby configuration])])
-
-      AC_MSG_CHECKING([for Ruby link flags])
-      AS_VAR_APPEND([RUBYLINK],
-                 [" `$RUBY -rrbconfig -e\
-                    'print RbConfig::CONFIG[["LIBS"]]' PTPM_DUMP_ERR`"])
-      PTPM_RESULT([RUBYLINK])
-
+     [AS_VAR_SET([RUBY_VER], [`$RUBY -e 'print "#{RUBY_VERSION}"'`])
+      PTPM_RESULT([RUBY_VER])
       AC_MSG_CHECKING([for Ruby site])
       AS_VAR_SET([RUBYSITE],
                  [`$RUBY -rrbconfig -e\
                    'print RbConfig::CONFIG[["vendorarchdir"]]' PTPM_DUMP_ERR`])
       PTPM_CROSS([RUBYSITE])
-      PTPM_RESULT([RUBYSITE])],
-     [AC_MSG_RESULT([could not figure out how to run ruby])])])
+      PTPM_RESULT([RUBYSITE])
+      PTPM_LIB_PKG_CONFIG([RUBY], [ruby])
+      # If we do not have pkg config, fall back
+      AS_IF([PTPM_VAR_EMPTY_TEST([RUBY_INC_FLAGS]) &&\
+             PTPM_VAR_EMPTY_TEST([RUBY_LIB_FLAGS])],
+            [AS_VAR_SET([ptpm_rubyhdrdir],
+                        [`$RUBY -rrbconfig -e\
+                          'print RbConfig::CONFIG[["rubyhdrdir"]]' PTPM_DUMP_ERR`])
+             AS_VAR_SET([ptpm_rubyarchhdrdir],
+                        [`$RUBY -rrbconfig -e\
+                          'print RbConfig::CONFIG[["rubyarchhdrdir"]]'\
+                          PTPM_DUMP_ERR`])
+             PTPM_CROSS([ptpm_rubyarchhdrdir])
+             AS_IF([PTPM_VAR_SET_TEST([ptpm_rubyhdrdir]) &&\
+                    PTPM_VAR_SET_TEST([ptpm_rubyarchhdrdir]) &&\
+                    test -r "$ptpm_rubyhdrdir/ruby.h"],
+                   [AS_VAR_SET([RUBY_INC_FLAGS],
+                               ["-I$ptpm_rubyarchhdrdir -I$ptpm_rubyhdrdir"])])
+             AS_VAR_SET([RUBY_LIB_FLAGS],
+                        [`$RUBY -rrbconfig -e\
+                         'print RbConfig::CONFIG[["LIBRUBYARG_SHARED"]]'\
+                         PTPM_DUMP_ERR`])
+             AS_VAR_APPEND([RUBY_LIB_FLAGS],
+                        [" `$RUBY -rrbconfig -e\
+                           'print RbConfig::CONFIG[["LIBS"]]' PTPM_DUMP_ERR`"])])
+      PTPM_CROSS([RUBY_INC_FLAGS])
+      PTPM_CROSS([RUBY_LIB_FLAGS])
+      AC_MSG_CHECKING([for Ruby header files])
+      PTPM_RESULT([RUBY_INC_FLAGS])
+      AC_MSG_CHECKING([for Ruby link flags])
+      PTPM_RESULT([RUBY_LIB_FLAGS])],
+     [AC_MSG_RESULT([ruby is not installed])])])
 
 AC_SUBST([RUBY])
-AC_SUBST([RUBYHDRDIR])
-AC_SUBST([RUBYARCHHDRDIR])
-AC_SUBST([RUBYINCLUDE])
-AC_SUBST([RUBYVER])
-AC_SUBST([RUBYLIB])
-AC_SUBST([RUBYLINK])
+AC_SUBST([RUBY_VER])
+AC_SUBST([RUBY_INC_FLAGS])
+AC_SUBST([RUBY_LIB_FLAGS])
 AC_SUBST([RUBYSITE])
 
 #----------------------------------------------------------------
@@ -1321,8 +1292,8 @@ PTPM_VAR_SET_IF([SWIGMINVER],
    AS_IF([PTPM_VAR_EMPTY_TEST([PY3LINK]) || PTPM_VAR_EMPTY_TEST([PY3INCLUDE])],
          [AS_VAR_SET([SKIP_PYTHON3], [1])])
    PTPM_VAR_EMPTY_IF([PERL5EXT], [AS_VAR_SET([SKIP_PERL5], [1])])
-   AS_IF([PTPM_VAR_EMPTY_TEST([RUBYLINK]) || PTPM_VAR_EMPTY_TEST([RUBYINCLUDE]) ||\
-          PTPM_VAR_EMPTY_TEST([RUBYLIB])],
+   AS_IF([PTPM_VAR_EMPTY_TEST([RUBY_INC_FLAGS]) &&\
+          PTPM_VAR_EMPTY_TEST([RUBY_LIB_FLAGS])],
          [AS_VAR_SET([SKIP_RUBY], [1])])
    AS_IF([PTPM_VAR_EMPTY_TEST([PHPINC]) || PTPM_VAR_EMPTY_TEST([PHPINC_FLAGS]) ||\
           PTPM_VAR_EMPTY_TEST([PHPINCDIR])],

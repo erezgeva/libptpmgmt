@@ -17,7 +17,7 @@ UCTEST_JSONC:=$(OBJ_DIR)/uctest_json_c
 UCTEST_FJSON:=$(OBJ_DIR)/uctest_json_f
 # Using json-c
 JSON_C+=\"$(JSONC_DL)\",
-ifneq ($(HAVE_JSONC_LIB),)
+ifdef HAVE_JSONC_LIB
 JSONC_CFLAGS:=-include $(HAVE_JSONC_LIB) -DJLIB_NAME=\"$(notdir $(JSONC_LIBA))\"
 $(OBJ_DIR)/jsonFromJc.lo: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(JSONC_CFLAGS) $< -o $@
@@ -28,14 +28,14 @@ $(JSONC_LIBA): $(JSONC_LA)
 $(JSONC_LIB): $(JSONC_LA)
 	@:
 ALL+=$(JSONC_LA)
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 $(UTEST_JSONC): $(OBJ_DIR)/utest_m.o utest/json2msg.o $(LIB_NAME_A) $(JSONC_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(JSONC_LIB_FLAGS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 utest_jsonc: $(HEADERS_GEN_COMP) $(UTEST_JSONC)
 	$(call Q_UTEST,JSON-C)$(UVGD)$(UTEST_JSONC) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS
-ifneq ($(CRITERION_LIB_FLAGS),)
+ifdef CRITERION_LIB_FLAGS
 $(UCTEST_JSONC): uctest/json2msg.o $(LIB_NAME_A) $(JSONC_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(JSONC_LIB_FLAGS)\
 	  $(CRITERION_LIB_FLAGS) -o $@
@@ -46,7 +46,7 @@ endif # HAVE_JSONC_LIB
 
 # Using fastjson
 JSON_C+=\"$(FJSON_DL)\",
-ifneq ($(HAVE_FJSON_LIB),)
+ifdef HAVE_FJSON_LIB
 FJSON_CFLAGS:=-include $(HAVE_FJSON_LIB) -DJLIB_NAME=\"$(notdir $(FJSON_LIBA))\"
 $(OBJ_DIR)/jsonFromFj.lo: $(JSON_SRC)/jsonFrom.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $(FJSON_CFLAGS) $< -o $@
@@ -57,14 +57,14 @@ $(FJSON_LIBA): $(FJSON_LA)
 $(FJSON_LIB): $(FJSON_LA)
 	 @:
 ALL+=$(FJSON_LA)
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 $(UTEST_FJSON): $(OBJ_DIR)/utest_m.o utest/json2msg.o $(LIB_NAME_A) $(FJSON_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(FJSON_LIB_FLAGS)\
 	  $(GTEST_LIB_FLAGS) -o $@
 utest_fjson: $(HEADERS_GEN_COMP) $(UTEST_FJSON)
 	$(call Q_UTEST,JSON-F)$(UVGD)$(UTEST_FJSON) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS
-ifneq ($(CRITERION_LIB_FLAGS),)
+ifdef CRITERION_LIB_FLAGS
 $(UCTEST_FJSON): uctest/json2msg.o $(LIB_NAME_A) $(FJSON_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(FJSON_LIB_FLAGS)\
 	  $(CRITERION_LIB_FLAGS) -o $@

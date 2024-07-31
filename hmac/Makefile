@@ -23,7 +23,7 @@ HMAC_LIBA_FLAGS:=-uptpm_hmac
 
 # Using ssl
 HMAC_LIBS+=\"$(SSL_DL)\",
-ifneq ($(HAVE_SSL_HEADER),)
+ifdef HAVE_SSL_HEADER
 SSL_CFLAGS:=-DHLIB_NAME=\"$(notdir $(SSL_LIBA))\"
 HMAC_ALIB:=$(SSL_LIBA)
 HMAC_ALIB_FLAGS:=$(SSL_LIB_FLAGS)
@@ -36,7 +36,7 @@ $(SSL_LIBA): $(SSL_LA)
 $(SSL_LIB): $(SSL_LA)
 	@:
 ALL+=$(SSL_LA)
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 $(UTEST_SSL): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(SSL_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LIB_NAME_A) $(LOADLIBES) $(LDLIBS)\
 	  $(SSL_LIB_FLAGS) $(HMAC_LIBA_FLAGS) $(GTEST_LIB_FLAGS) -o $@
@@ -47,9 +47,9 @@ endif # HAVE_SSL_HEADER
 
 # Using LGPL Crypto library
 HMAC_LIBS+=\"$(GCRYPT_DL)\",
-ifneq ($(HAVE_GCRYPT_HEADER),)
+ifdef HAVE_GCRYPT_HEADER
 GCRYPT_CFLAGS:=-DHLIB_NAME=\"$(notdir $(GCRYPT_LIBA))\"
-ifeq ($(HMAC_ALIB),)
+ifndef HMAC_ALIB
 HMAC_ALIB:=$(GCRYPT_LIBA)
 HMAC_ALIB_FLAGS:=$(GCRYPT_LIB_FLAGS)
 endif
@@ -62,7 +62,7 @@ $(GCRYPT_LIBA): $(GCRYPT_LA)
 $(GCRYPT_LIB): $(GCRYPT_LA)
 	@:
 ALL+=$(GCRYPT_LA)
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 $(UTEST_GCRYPT): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(GCRYPT_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LIB_NAME_A) $(LOADLIBES) $(LDLIBS)\
 	  $(GCRYPT_LIB_FLAGS) $(HMAC_LIBA_FLAGS) $(GTEST_LIB_FLAGS) -o $@
@@ -73,9 +73,9 @@ endif # HAVE_GCRYPT_HEADER
 
 # Using gnutls
 HMAC_LIBS+=\"$(GNUTLS_DL)\",
-ifneq ($(HAVE_GNUTLS_HEADER),)
+ifdef HAVE_GNUTLS_HEADER
 GNUTLS_CFLAGS:=-DHLIB_NAME=\"$(notdir $(GNUTLS_LIBA))\"
-ifeq ($(HMAC_ALIB),)
+ifndef HMAC_ALIB
 HMAC_ALIB:=$(GNUTLS_LIBA)
 HMAC_ALIB_FLAGS:=$(GNUTLS_LIB_FLAGS)
 endif
@@ -89,7 +89,7 @@ $(GNUTLS_LIBA): $(GNUTLS_LA)
 $(GNUTLS_LIB): $(GNUTLS_LA)
 	@:
 ALL+=$(GNUTLS_LA)
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 $(UTEST_GNUTLS): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(GNUTLS_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LIB_NAME_A) $(LOADLIBES) $(LDLIBS)\
 	  $(GNUTLS_LIB_FLAGS) $(HMAC_LIBA_FLAGS) $(GTEST_LIB_FLAGS) -o $@
@@ -100,9 +100,9 @@ endif # HAVE_GNUTLS_HEADER
 
 # Using nettle
 HMAC_LIBS+=\"$(NETTLE_DL)\",
-ifneq ($(HAVE_NETTLE_HEADER),)
+ifdef HAVE_NETTLE_HEADER
 NETTLE_CFLAGS:=-DHLIB_NAME=\"$(notdir $(NETTLE_LIBA))\"
-ifeq ($(HMAC_ALIB),)
+ifndef HMAC_ALIB
 HMAC_ALIB:=$(NETTLE_LIBA)
 HMAC_ALIB_FLAGS:=$(NETTLE_LIB_FLAGS)
 endif
@@ -116,7 +116,7 @@ $(NETTLE_LIBA): $(NETTLE_LA)
 $(NETTLE_LIB): $(NETTLE_LA)
 	@:
 ALL+=$(NETTLE_LA)
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 $(UTEST_NETTLE): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(NETTLE_LIBA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LIB_NAME_A) $(LOADLIBES) $(LDLIBS)\
 	  $(NETTLE_LIB_FLAGS) $(HMAC_LIBA_FLAGS) $(GTEST_LIB_FLAGS) -o $@
@@ -126,7 +126,7 @@ endif # GTEST_LIB_FLAGS
 endif # HAVE_NETTLE_HEADER
 
 # Check calling hmac without using HMAC library
-ifneq ($(GTEST_LIB_FLAGS),)
+ifdef GTEST_LIB_FLAGS
 $(UTEST_NO_HMAC): $(OBJ_DIR)/utest_m.o utest/hmac_no.o $(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(GTEST_LIB_FLAGS) -o $@
 utest_no_hmac: $(HEADERS_GEN_COMP) $(UTEST_NO_HMAC)

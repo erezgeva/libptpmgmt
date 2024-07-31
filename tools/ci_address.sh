@@ -357,7 +357,7 @@ new_version()
 config_report()
 {
  local -A R
- local list='build host TCLVER PERL PY3VERSION RUBYVER PHPVER
+ local list='build host TCLVER PERL PY3VERSION RUBY_VER PHPVER
    LUAVERSIONS LUA_VERSION
    GOVER DOTTOOL ASTYLEMINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
    CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIGMINVER DOXYGENMINVER
@@ -371,7 +371,7 @@ config_report()
  local -r p2=';@"${perl#v}"'
  setLang[perl]="@'$($PERL -e 'print "$^V"')'$p2"
  setLang[python]="@'${PY3VERSION#python}'"
- setLang[ruby]="@'$RUBYVER'"
+ setLang[ruby]="@'$RUBY_VER'"
  setLang[php]="@'$PHPVER'"
  if [[ -n "$LUAVERSIONS" ]]; then
    setLang[lua]="@'$LUAVERSIONS'"
