@@ -17,11 +17,11 @@
 
 namespace JClkLibProxy
 {
-    class Connect
-    {
-    private:
-    public:
-        static int connect();
-        static void disconnect();
-    };
+class Connect
+{
+  private:
+  public:
+    static int connect();
+    static void disconnect();
+};
 }

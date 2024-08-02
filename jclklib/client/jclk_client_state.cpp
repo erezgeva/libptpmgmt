@@ -31,7 +31,7 @@ ClientState::ClientState()
     connected = false;
     subscribed = false;
     sessionId = JClkLibCommon::InvalidSessionId;
-    fill(begin(clientID ), end( clientID ), 0 );
+    fill(begin(clientID), end(clientID), 0);
     eventState = {};
     eventStateCount = {};
     eventSub = {};
@@ -114,8 +114,10 @@ string ClientState::toString()
     string name = "[ClientState::eventState]";
     name += " as_capable = " + to_string(this->get_eventState().as_capable);
     name += " gm_changed = " + to_string(this->get_eventState().gm_changed);
-    name += " offset_in_range = " + to_string(this->get_eventState().offset_in_range);
-    name += " synced_to_primary_clock = " + to_string(this->get_eventState().synced_to_primary_clock);
+    name += " offset_in_range = " + to_string(
+            this->get_eventState().offset_in_range);
+    name += " synced_to_primary_clock = " + to_string(
+            this->get_eventState().synced_to_primary_clock);
     name += "\n";
     return name;
 }

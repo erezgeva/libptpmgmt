@@ -4,7 +4,8 @@
  */
 
 /** @file connect_msg.cpp
- * @brief Proxy connect message implementation. Implements proxy specific connect message function.
+ * @brief Proxy connect message implementation.
+ * Implements proxy specific connect message function.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -67,37 +68,30 @@ bool ProxyConnectMessage::initMessage()
 PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 {
     sessionId_t newSessionId = this->getc_sessionId();
-
     PrintDebug("Processing proxy connect message");
-
     /* Check whether there is ptp4l available */
-    if (!pe.ptp4l_id) {
+    if(!pe.ptp4l_id) {
         PrintError("ptp4l_id is not available.");
         return false;
     }
-
-    if (newSessionId != InvalidSessionId) {
+    if(newSessionId != InvalidSessionId) {
         auto clientSession = Client::GetClientSession(newSessionId);
-        if (clientSession)
-                TxContext = clientSession.get()->get_transmitContext();
-
-        if (TxContext) {
+        if(clientSession)
+            TxContext = clientSession.get()->get_transmitContext();
+        if(TxContext) {
             PrintDebug("Receive Connect msg as liveness check.");
             set_msgAck(ACK_SUCCESS);
             return true;
         }
-
         PrintError("Session ID not exists: " + to_string(newSessionId));
         return false;
     }
-
     newSessionId = Client::CreateClientSession();
     PrintDebug("Created new client session ID: " + to_string(newSessionId));
     this->set_sessionId(newSessionId);
     TxContext = LxContext.CreateTransmitterContext(getClientId());
     Client::GetClientSession(newSessionId).get()->set_transmitContext(TxContext);
     set_msgAck(ACK_SUCCESS);
-
     return true;
 }
 
@@ -106,10 +100,8 @@ BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
     if(!CommonConnectMessage::makeBuffer(TxContext))
         return false;
-
     /* Add ptp4l_id here */
-    if (!WRITE_TX(FIELD, pe.ptp4l_id, TxContext))
+    if(!WRITE_TX(FIELD, pe.ptp4l_id, TxContext))
         return false;
-
     return true;
 }

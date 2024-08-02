@@ -30,7 +30,6 @@ using namespace std;
 MAKE_RXBUFFER_TYPE(ClientConnectMessage::buildMessage)
 {
     msg = new ClientConnectMessage();
-
     return true;
 }
 
@@ -44,23 +43,18 @@ MAKE_RXBUFFER_TYPE(ClientConnectMessage::buildMessage)
 bool ClientConnectMessage::initMessage()
 {
     addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
-
     return true;
 }
 
 PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
 {
     JClkLibCommon::ptp_event data = {};
-
     PrintDebug("[ClientConnectMessage]::parseBuffer ");
     if(!CommonConnectMessage::parseBuffer(LxContext))
         return false;
-
-    if (!PARSE_RX(FIELD, data.ptp4l_id, LxContext))
+    if(!PARSE_RX(FIELD, data.ptp4l_id, LxContext))
         return false;
-
     currentClientState->set_ptp4l_id(data.ptp4l_id);
-
     return true;
 }
 
@@ -90,18 +84,13 @@ PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
     sessionId_t newSessionId;
     std::unique_lock<rtpi::mutex> lock(cv_mtx);
     PrintDebug("Processing client connect message (reply)");
-
     currentClientState->set_connected(true);
     currentClientState->set_sessionId(this->get_sessionId());
-
     PrintDebug("Connected with session ID: " +
         to_string(this->get_sessionId()));
     PrintDebug("Current state.sessionId: " +
         to_string(currentClientState->get_sessionId()));
-
     this->set_msgAck(ACK_NONE);
-
     cv.notify_one(lock);
-
     return true;
 }

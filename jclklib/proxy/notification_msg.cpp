@@ -4,7 +4,8 @@
  */
 
 /** @file notification_msg.cpp
- * @brief Proxy notification message implementation. Implements proxy specific notification message function.
+ * @brief Proxy notification message implementation.
+ * Implements proxy specific notification message function.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -54,11 +55,9 @@ BUILD_TXBUFFER_TYPE(ProxyNotificationMessage::makeBuffer) const
     PrintDebug("[ProxyNotificationMessage]::makeBuffer");
     if(!Message::makeBuffer(TxContext))
         return false;
-
     /* Add ptp data here */
-    if (!WRITE_TX(FIELD, pe, TxContext))
+    if(!WRITE_TX(FIELD, pe, TxContext))
         return false;
-
     return true;
 }
 
@@ -70,7 +69,8 @@ PROCESS_MESSAGE_TYPE(ProxyNotificationMessage::processMessage)
 /*
 TO BE REMOVED
 */
-bool ProxyNotificationMessage::generateResponse(uint8_t *msgBuffer, size_t &length,
+bool ProxyNotificationMessage::generateResponse(uint8_t *msgBuffer,
+    size_t &length,
     const ClockStatus &status)
 {
     return false;

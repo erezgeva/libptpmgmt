@@ -22,11 +22,11 @@
 
 namespace JClkLibClient
 {
-    class NullClientTransport : public JClkLibCommon::NullTransport
-    {
-    public:
-        static bool sendMessage(std::uint8_t *buffer, std::size_t length);
-    };
+class NullClientTransport : public JClkLibCommon::NullTransport
+{
+  public:
+    static bool sendMessage(std::uint8_t *buffer, std::size_t length);
+};
 }
 
 #endif /* CLIENT_NULL_TPORT_HPP */

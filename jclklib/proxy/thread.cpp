@@ -14,78 +14,69 @@
 
 #include "thread.hpp"
 
-static int start_work_thread( struct ptp4l_handle *handle )
+static int start_work_thread(struct ptp4l_handle *handle)
 {
     int ret;
-
-    if(( ret = -pthread_create( &handle->work_thread, NULL, ptp4l_event_loop,
-        (void *) handle)) < 0)
+    if((ret = -pthread_create(&handle->work_thread, nullptr, ptp4l_event_loop,
+                    (void *) handle)) < 0)
         return ret;
-
     return 0;
 }
 
-int connect_ptp4l( struct ptp4l_handle **phandle, struct epoll_event epd_event,
+int connect_ptp4l(struct ptp4l_handle **phandle, struct epoll_event epd_event,
     void *ctx)
 {
     struct ptp4l_handle *handle;
     int ret;
-
-    handle = (typeof( handle)) malloc(( size_t) sizeof(*handle));
-    if( handle == NULL) {
+    handle = (typeof(handle)) malloc((size_t) sizeof(*handle));
+    if(handle == nullptr) {
         ret = -errno;
         goto alloc_handle_fail;
     }
-
-    if(( ret = start_work_thread( handle)) < 0)
+    if((ret = start_work_thread(handle)) < 0)
         goto thread_failed;
-
     *phandle = handle;
     return 0;
-
- thread_failed:
- alloc_handle_fail:
+thread_failed:
+alloc_handle_fail:
     return ret;
 }
 
 /**
- * @brief Initializes and connects a handle for PTP (Precision Time Protocol) event handling.
+ * @brief Initializes and connects a handle for PTP (Precision Time Protocol)
+ * event handling.
  *
- * This function allocates and initializes a jcl_handle structure, sets up thread signaling,
- * mutexes, and subscribes to PTP events. It also initiates a connection to ptp4l and enters
+ * This function allocates and initializes a jcl_handle structure,
+ * sets up thread signaling, mutexes, and subscribes to PTP events.
+ * It also initiates a connection to ptp4l and enters
  * a loop to wait for and handle status updates.
  *
- * @param phandle A double pointer to a jcl_handle structure where the initialized handle will
- *                be stored.
- * @param epd_event An epoll_event structure containing the event data used for the connection.
+ * @param phandle A double pointer to a jcl_handle structure
+ *                where the initialized handle will be stored.
+ * @param epd_event An epoll_event structure containing the
+ *                  event data used for the connection.
  * @return An integer indicating the status of the connection attempt.
  *         Returns 0 on success, or a negative error code on failure.
  *
  */
-int handle_connect(struct epoll_event epd_event )
+int handle_connect(struct epoll_event epd_event)
 {
     struct jcl_handle *handle;
     int ret;
-
-    handle = ( typeof( handle)) malloc(( size_t) sizeof( *handle));
-    if( handle == NULL) {
+    handle = (typeof(handle)) malloc((size_t) sizeof(*handle));
+    if(handle == nullptr) {
         ret = -errno;
         goto alloc_fail;
     }
-
-    event_subscription( &handle );
-
-    ret = connect_ptp4l( &handle->ptp4l_handle,
-        epd_event, handle);
-    if (ret != 0) {
+    event_subscription(&handle);
+    ret = connect_ptp4l(&handle->ptp4l_handle,
+            epd_event, handle);
+    if(ret != 0) {
         free(handle);
         goto alloc_fail;
     }
-
     free(handle);
     return 0;
-
- alloc_fail:
+alloc_fail:
     return ret;
 }
-

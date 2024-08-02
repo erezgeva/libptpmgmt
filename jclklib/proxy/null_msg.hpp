@@ -20,18 +20,18 @@
 
 namespace JClkLibProxy
 {
-    class ProxyNullMessage : virtual public ProxyMessage,
-        virtual public JClkLibCommon::CommonNullMessage
-    {
-    protected:
-        ProxyNullMessage() : MESSAGE_NULL() {};
-    public:
-        bool processMessage(ClockConfiguration &config) { return true; }
-        bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
-            const ClockStatus &status)
-        { return false; }
-        static bool initMessage() { return true; }
-    };
+class ProxyNullMessage : virtual public ProxyMessage,
+    virtual public JClkLibCommon::CommonNullMessage
+{
+  protected:
+    ProxyNullMessage() : MESSAGE_NULL() {};
+  public:
+    bool processMessage(ClockConfiguration &config) { return true; }
+    bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
+        const ClockStatus &status)
+    { return false; }
+    static bool initMessage() { return true; }
+};
 }
 
 #endif /* PROXY_NULL_MSG_HPP */

@@ -4,7 +4,8 @@
  */
 
 /** @file notification_msg.cpp
- * @brief Common notification message implementation. Implements common functions and (de-)serialization
+ * @brief Common notification message implementation.
+ * Implements common functions and (de-)serialization
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -22,8 +23,7 @@ using namespace std;
 TRANSMIT_MESSAGE_TYPE(NotificationMessage::transmitMessage)
 {
     PrintDebug("[NotificationMessage]::transmitMessage ");
-    if (!presendMessage(&TxContext))
+    if(!presendMessage(&TxContext))
         return false;
-
     return TxContext.sendBuffer();
 }

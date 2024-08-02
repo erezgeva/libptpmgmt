@@ -19,22 +19,24 @@
 #include <common/jclklib_import.hpp>
 #include <map>
 
-namespace JClkLibClient {
-    class JClkLibClientApi {
-    private:
-        static std::map <JClkLibCommon::sessionId_t, ClientState> clientStateMap;
-        ClientState appClientState;
-    public:
-        JClkLibClientApi() {}
-        /* In case we need to init something for API */
-        static int init() { return 0; }
-        ClientState &getClientState() { return appClientState; }
-        bool jcl_connect();
-        bool jcl_disconnect();
-        bool jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
-                           jcl_state &currentState);
-        int jcl_status_wait(int timeout, jcl_state &jcl_state,
-                            jcl_state_event_count &eventCount);
-    };
+namespace JClkLibClient
+{
+class JClkLibClientApi
+{
+  private:
+    static std::map <JClkLibCommon::sessionId_t, ClientState> clientStateMap;
+    ClientState appClientState;
+  public:
+    JClkLibClientApi() {}
+    /* In case we need to init something for API */
+    static int init() { return 0; }
+    ClientState &getClientState() { return appClientState; }
+    bool jcl_connect();
+    bool jcl_disconnect();
+    bool jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
+        jcl_state &currentState);
+    int jcl_status_wait(int timeout, jcl_state &jcl_state,
+        jcl_state_event_count &eventCount);
+};
 }
 #endif /* JCLK_INIT_HPP */

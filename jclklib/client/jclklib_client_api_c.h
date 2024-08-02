@@ -60,7 +60,7 @@ struct jcl_c_event_count {
     uint64_t composite_event_count;
 };
 
-typedef void* jcl_c_client_ptr;
+typedef void *jcl_c_client_ptr;
 
 jcl_c_client_ptr jcl_c_client_create();
 void jcl_c_client_destroy(jcl_c_client_ptr client_ptr);

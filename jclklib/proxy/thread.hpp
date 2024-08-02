@@ -30,10 +30,9 @@
 typedef struct ptp4l_handle *ptp4l_handle_t;
 typedef struct jcl_handle *jcl_handle_t;
 
-typedef bool ( *state_update_t)( struct ptp4l_state *, void *);
+typedef bool (*state_update_t)(struct ptp4l_state *, void *);
 
-struct jcl_handle
-{
+struct jcl_handle {
     ptp4l_handle_t ptp4l_handle;
 };
 
@@ -52,7 +51,7 @@ struct ptp4l_state {
     bool synced_to_primary_clock;
 };
 
-int handle_connect(struct epoll_event epd_event );
+int handle_connect(struct epoll_event epd_event);
 int connect_ptp4l(ptp4l_handle_t *phandle, struct epoll_event epd_event,
     state_update_t update, void *ctx);
 

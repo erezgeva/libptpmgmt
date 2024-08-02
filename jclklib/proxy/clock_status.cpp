@@ -21,10 +21,9 @@ using namespace std;
 bool ClockStatus::readConsume()
 {
     lock_guard<decltype(update_lock)> update_guard(update_lock);
-    if (update)
+    if(update)
         readShadow = status;
     update = false;
-
     return update;
 }
 
@@ -39,17 +38,17 @@ void ClockStatus::speculateWrite()
     writeShadow = status;
 }
 
-void ClockStatus::setEvent( const jcl_event &sEvent )
+void ClockStatus::setEvent(const jcl_event &sEvent)
 {
-    if (writeShadow.event != sEvent) {
+    if(writeShadow.event != sEvent) {
         writeShadow.event = sEvent;
-    writeUpdate = true;
+        writeUpdate = true;
     }
 }
 
-void ClockStatus::setCount( const jcl_eventcount &sCount )
+void ClockStatus::setCount(const jcl_eventcount &sCount)
 {
-    if (writeShadow.count != sCount) {
+    if(writeShadow.count != sCount) {
         writeShadow.count = sCount;
         writeUpdate = true;
     }
@@ -58,7 +57,7 @@ void ClockStatus::setCount( const jcl_eventcount &sCount )
 void ClockStatus::commitWrite()
 {
     lock_guard<decltype(update_lock)> update_guard(update_lock);
-    if (writeUpdate) {
+    if(writeUpdate) {
         status = writeShadow;
         update = writeUpdate;
     }

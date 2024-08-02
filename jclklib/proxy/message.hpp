@@ -4,7 +4,8 @@
  */
 
 /** @file message.hpp
- * @brief Proxy message base class. Extended for specific messages such as connect and subscribe.
+ * @brief Proxy message base class.
+ * Extended for specific messages such as connect and subscribe.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -25,22 +26,22 @@
 
 namespace JClkLibProxy
 {
-    class ProxyMessage : virtual public JClkLibCommon::Message
-    {
-    public:
-        /**
-         * Generate a response, if necessary, to the received message
-         * @brief generate response to received message
-         *
-         * @param msgBuffer (out) transport buffer to fill response
-         * @param length (in/out) length of transport buffer to fill (in) and send (out)
-         *
-         * @return true if a response is required, false otherwise
-         */
-        virtual bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
-             const ClockStatus &status) = 0;
-        static bool init();
-    };
+class ProxyMessage : virtual public JClkLibCommon::Message
+{
+  public:
+    /**
+     * Generate a response, if necessary, to the received message
+     * @brief generate response to received message
+     *
+     * @param msgBuffer (out) transport buffer to fill response
+     * @param length (in/out) length of transport buffer to fill (in) and send (out)
+     *
+     * @return true if a response is required, false otherwise
+     */
+    virtual bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
+        const ClockStatus &status) = 0;
+    static bool init();
+};
 }
 
 #endif /* PROXY_MESSAGE_HPP */

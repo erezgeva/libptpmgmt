@@ -4,7 +4,8 @@
  */
 
 /** @file message.cpp
- * @brief Client message base class. Extended for specific messages such as connect and subscribe.
+ * @brief Client message base class.
+ * Extended for specific messages such as connect and subscribe.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -24,6 +25,6 @@ using namespace JClkLibClient;
 bool ClientMessage::init()
 {
     PrintDebug("Initializing Client Message");
-    return JClkLibCommon::_initMessage<ClientNullMessage,ClientConnectMessage,
-        ClientSubscribeMessage,ClientNotificationMessage>();
+    return JClkLibCommon::_initMessage<ClientNullMessage, ClientConnectMessage,
+        ClientSubscribeMessage, ClientNotificationMessage>();
 }

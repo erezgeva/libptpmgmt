@@ -19,10 +19,9 @@
 
 namespace JClkLibCommon
 {
-    bool BlockStopSignal();
-    bool WaitForStopSignal();
-    bool EnableSyscallInterruptSignal();
-    bool SendSyscallInterruptSignal(std::thread &t);
+bool BlockStopSignal();
+bool WaitForStopSignal();
+bool EnableSyscallInterruptSignal();
+bool SendSyscallInterruptSignal(std::thread &t);
 }
 #endif /* SIGHANDLER_HPP */
-

@@ -20,14 +20,14 @@
 
 namespace JClkLibClient
 {
-    class ClientNullMessage : public JClkLibClient::ClientMessage,
-				  public JClkLibCommon::CommonNullMessage
-    {
-    protected:
-    public:
-        static bool initMessage() { return true; }
-        ClientNullMessage() {}
-    };
+class ClientNullMessage : public JClkLibClient::ClientMessage,
+    public JClkLibCommon::CommonNullMessage
+{
+  protected:
+  public:
+    static bool initMessage() { return true; }
+    ClientNullMessage() {}
+};
 }
 
 #endif /* CLIENT_NULL_MSG_HPP */

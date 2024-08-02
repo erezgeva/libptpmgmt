@@ -4,7 +4,8 @@
  */
 
 /** @file subscribe_msg.cpp
- * @brief Proxy subscribe message implementation. Implements proxy specific subscribe message function.
+ * @brief Proxy subscribe message implementation.
+ * Implements proxy specific subscribe message function.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -55,26 +56,26 @@ BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
     if(!CommonSubscribeMessage::makeBuffer(TxContext))
         return false;
-
     /* Add ptp data here */
-    if (!WRITE_TX(FIELD, pe, TxContext))
+    if(!WRITE_TX(FIELD, pe, TxContext))
         return false;
-
     return true;
 }
 
 /*
-This is to process the subscription from the jclklib client runtime via POSIX msg queue
-[Question] The client list of real-time subscription is hold inside jcklib_proxy?
+This is to process the subscription from the jclklib client runtime
+via POSIX msg queue.
 */
 PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
 {
     sessionId_t sID;
     sID = this->getc_sessionId();
-    PrintDebug("[ProxySubscribeMessage]::processMessage - Use current client session ID: " + to_string(sID));
-	
+    PrintDebug("[ProxySubscribeMessage]::processMessage - \
+        Use current client session ID: "
+        + to_string(sID));
     if(sID == InvalidSessionId) {
-        PrintError("Session ID *should be* invalid for received proxy connect message");
+        PrintError("Session ID *should be* invalid for received \
+            proxy connect message");
         return false;
     }
     TxContext = Client::GetClientSession(sID).get()->get_transmitContext();
@@ -83,12 +84,11 @@ PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
 }
 
 /*
-[NOTE] This is to response towards ProxySubscribeMessage - wont be using this for the time being.
+[NOTE] This is to response towards ProxySubscribeMessage -
+ wont be using this for the time being.
 */
 bool ProxySubscribeMessage::generateResponse(uint8_t *msgBuffer, size_t &length,
     const ClockStatus &status)
 {
     return false;
 }
-
-

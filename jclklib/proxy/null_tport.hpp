@@ -22,11 +22,11 @@
 
 namespace JClkLibProxy
 {
-    class NullProxyTransport : public JClkLibCommon::NullTransport
-    {
-    public:
-        static SEND_PROXY_MESSAGE(sendMessage);
-    };
+class NullProxyTransport : public JClkLibCommon::NullTransport
+{
+  public:
+    static SEND_PROXY_MESSAGE(sendMessage);
+};
 }
 
 #endif /* PROXY_NULL_TPORT_HPP */

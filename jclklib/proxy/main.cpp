@@ -47,6 +47,5 @@ int main()
         cout << "finalize failed" << endl;
         return -1;
     }
-	
     return 0;
 }
