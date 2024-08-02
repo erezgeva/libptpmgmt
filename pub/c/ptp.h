@@ -12,6 +12,14 @@
 #ifndef __PTPMGMT_C_IF_H
 #define __PTPMGMT_C_IF_H
 
+#include "name.h"
+#ifdef __PTPMGMT_HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#else
+/**< @cond internal */
+typedef int clockid_t;
+/**< @endcond */
+#endif /* __PTPMGMT_HAVE_SYS_TYPES_H */
 #include <time.h>
 #ifdef __linux__
 #include <linux/ptp_clock.h>

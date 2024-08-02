@@ -15,7 +15,7 @@ UCTEST_SRCS:=cfg ver err setErr opt msg mngIds types proc sig msg2json msgCall
 UCTEST_SYS_SRCS:=sock ptp init
 UCTEST_OBJS:=$(foreach n,$(UCTEST_SRCS),uctest/$n.o)
 UCTEST_SYS_OBJS:=$(foreach n,$(UCTEST_SYS_SRCS),uctest/$n.o)
-CFLAGS_UCTEST=$(filter-out -std=% -Wdeprecated-copy,$(CXXFLAGS)) -std=c99
+CFLAGS_UCTEST=$(filter-out -std=% -Wdeprecated-copy,$(CXXFLAGS)) -std=c11
 CFLAGS_UCTEST+=$(addprefix -include ,$(HAVE_CRITERION_HEADER))
 $(UCTEST_SYS_OBJS): CFLAGS_UCTEST+=-include utest/libsys.h
 uctest/%.o: uctest/%.c | $(COMP_DEPS)

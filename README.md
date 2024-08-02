@@ -51,7 +51,7 @@ are prefix with `ptpmgmt_` or `PTPMGMT_`.
 The libptpmgmt Library uses `C++11` with [POSIX](https://posix.opengroup.org/),
 [GNU](https://gcc.gnu.org/onlinedocs/gcc/C-Extensions.html) extensions
 and [Linux kernel headers](https://kernel.org/).  
-The C wrapper use `C99`.  
+The C wrapper use `C11`.  
 We try our best to avoid conflicts with newer versions of C++ and C.
 But if you find a conflict, please notify us.
 
