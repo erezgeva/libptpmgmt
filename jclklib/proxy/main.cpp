@@ -26,7 +26,7 @@ using namespace std;
 
 int main()
 {
-    //BlockStopSignal();
+    BlockStopSignal();
     if(!ProxyTransport::init()) {
         cout << "Transport init failed" << endl;
         return -1;
@@ -38,6 +38,7 @@ int main()
     Connect::connect();
     WaitForStopSignal();
     PrintDebug("Got stop signal");
+    Connect::disconnect();
     if(!ProxyTransport::stop()) {
         cout << "stop failed" << endl;
         return -1;

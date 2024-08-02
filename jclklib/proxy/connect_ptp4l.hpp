@@ -22,5 +22,6 @@ namespace JClkLibProxy
     private:
     public:
         static int connect();
+        static void disconnect();
     };
 }

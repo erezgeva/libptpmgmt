@@ -357,9 +357,12 @@ int Connect::connect()
         ret = -errno;
 
     handle_connect(epd_event);
-    while (1) {
-        sleep(1);
-    }
 
     return 0;
+}
+
+void Connect::disconnect()
+{
+    obj.close();
+    sk->close();
 }
