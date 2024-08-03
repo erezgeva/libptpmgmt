@@ -11,42 +11,11 @@ main()
   [[ -n "$1" ]] || return
   local GOARCH
   case "$1" in
-    i686)
-      GOARCH="386"
-      ;;
-    x86_64)
-      GOARCH="amd64"
-      ;;
-    arm)
-      GOARCH="arm"
-      ;;
-    aarch64)
-      GOARCH="arm64"
-      ;;
-    powerpc64)
-      GOARCH="ppc64"
-      ;;
-    mips)
-      GOARCH="mips"
-      ;;
-    mips64)
-      GOARCH="mips64"
-      ;;
-    riscv64)
-      GOARCH="riscv64"
-      ;;
-    s390)
-      GOARCH="s390"
-      ;;
-    s390x)
-      GOARCH="s390x"
-      ;;
-    sparc)
-      GOARCH="sparc"
-      ;;
-    sparc64)
-      GOARCH="sparc64"
-      ;;
+    i686) GOARCH='386';;
+    x86_64) GOARCH='amd64';;
+    aarch64) GOARCH='arm64';;
+    powerpc64) GOARCH='ppc64';;
+    arm|mips|mips64|riscv64|s390|s390x|sparc|sparc64) GOARCH="$1";;
     *)
       if [[ -n "`which dpkg-architecture 2> /dev/null`" ]]; then
         GOARCH="`dpkg-architecture -qDEB_TARGET_GNU_CPU -a$1 2> /dev/null`"

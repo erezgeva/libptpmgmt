@@ -16,15 +16,18 @@
 use File::Basename;
 use Cwd 'realpath';
 my $dpkg_arc;
+sub gnu
+{
+  my $deb_arch = shift;
+  local $_ = `$dpkg_arc -qDEB_TARGET_GNU_CPU -a$deb_arch 2> /dev/null`;
+  s/\n//;
+  $_;
+}
 sub case
 {
-  my ($goarch, $deb_arch) = @_;
-  my $gnu = `$dpkg_arc -qDEB_TARGET_GNU_CPU -a$deb_arch 2> /dev/null`;
-  $gnu =~ s/\n//;
+  my ($goarch, $gnu) = @_;
   return <<"EOF";
-    $gnu)
-      GOARCH="$goarch"
-      ;;
+    $gnu) GOARCH='$goarch';;
 EOF
 }
 sub main
@@ -51,13 +54,23 @@ main()
   local GOARCH
   case "$1" in
 EOF
-  print OUT case('386', 'i386');
+  print OUT case('386', gnu('i386')); # GO arch and Debian different
+  my $same, $s;
   for(qw(amd64 arm arm64 ppc64 mips mips64 riscv64 s390 s390x sparc sparc64)) {
-    print OUT case($_, $_);
+    my $gnu = gnu($_);
+    if($gnu eq $_) {
+      $same="$same$s$_";
+      $s = '|';
+    } else {
+      print OUT case($_, $gnu);
+    }
+
   }
   # Closing
   # For unkown architecture, return the GNU architecture, they might be equal.
+  print OUT "    $same)";
   print OUT <<'EOF';
+ GOARCH="$1";;
     *)
       if [[ -n "`which dpkg-architecture 2> /dev/null`" ]]; then
         GOARCH="`dpkg-architecture -qDEB_TARGET_GNU_CPU -a$1 2> /dev/null`"

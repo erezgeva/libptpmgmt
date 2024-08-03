@@ -141,7 +141,7 @@ function main()
     print "buffer allocation failed"
     return -1
   end
-  table.insert(arg, 1, "myname")
+  table.insert(arg, 1, debug.getinfo(1, 'S').short_src)
   local ret = opt:parse_options(arg)
   if(ret ~= ptpmgmt.Options.OPT_DONE) then
     print "fail parsing command line"

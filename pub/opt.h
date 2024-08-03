@@ -80,7 +80,7 @@ class Options
     /** parsing return code */
     enum loop_val {
         OPT_ERR, /**< Parsing error */
-        OPT_MSG, /**< Message from parsing */
+        OPT_MSG, /**< Pass a message from parsing like a version string */
         OPT_HELP, /**< Need to print help */
         OPT_DONE, /**< parsing success */
     };
@@ -121,22 +121,23 @@ class Options
      * @param[in] argv array of command line arguments
      * @return Parse state
      * @note Follow the command line.
-     *       Argument 0 is the application name,
-     *       as appear in the command line.
-     *       This class do not store it.
-     * @note regarding using scripts: @n
-     *  Python, Go and PHP uses full argument list.
-     *  For Ruby, Perl and Tcl user need to add argument 0.
-     *  Lua miss argument 0 completely,
-     *  so user should add argument 0 manually! @n
+     *       Argument 0 is the application name, @n
+     *       as appear in the command line. @n
+     *       The class do not store it.
+     * @note Regarding using scripts: @n
+     *  Python, Go and PHP uses full argument list. @n
+     *  With Ruby, Perl, Tcl and Lua, users need to add argument 0.
      * To call from scripts: @n
-     *  Python  obj.parse_options(sys.argv) @n
-     *  Go      obj.Parse_options(os.Args)
-     *  PHP     $obj->parse_options($argv) @n
-     *  Ruby    $obj.parse_options([$0] + ARGV) @n
-     *  Perl    obj->parse_options([$0, @@ARGV]); @n
-     *  Tcl     obj parse_options [list {*}$argv0 {*}$@::argv] @n
-     *  Lua     table.insert(arg, 1, "myname"); obj:parse_options(arg)
+     *  Python  @code{.py} obj.parse_options(sys.argv) @endcode @n
+     *  Go      @code{.go} obj.Parse_options(os.Args) @endcode @n
+     *  PHP     @code{.php} $obj->parse_options($argv) @endcode @n
+     *  Ruby    @code{.rb} $obj.parse_options([$0] + ARGV) @endcode @n
+     *  Perl    @code{.pl} obj->parse_options([$0, @@ARGV]); @endcode @n
+     *  Tcl     @code{.tcl}
+     *          obj parse_options [list {*}$argv0 {*}$@::argv] @endcode @n
+     *  Lua     @code{.lua}
+     *          table.insert(arg, 1, debug.getinfo(1, 'S').short_src);
+     *          obj:parse_options(arg) @endcode
      */
     loop_val parse_options(int argc, char *const argv[]);
     /**

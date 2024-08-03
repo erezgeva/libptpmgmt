@@ -21,7 +21,7 @@ extern "C" {
 /** Parsing return code. Identical to Options::loop_val */
 enum ptpmgmt_opt_loop_val {
     PTPMGMT_OPT_ERR, /**< Parsing error */
-    PTPMGMT_OPT_MSG, /**< Message from parsing */
+    PTPMGMT_OPT_MSG, /**< Pass a message from parsing like a version string */
     PTPMGMT_OPT_HELP, /**< Need to print help */
     PTPMGMT_OPT_DONE, /**< parsing success */
 };
@@ -89,9 +89,9 @@ struct ptpmgmt_opt_t {
      * @param[in] argv array of command line arguments
      * @return Parse state
      * @note Follow the command line.
-     *       Argument 0 is the application name,
-     *       as appear in the command line.
-     *       This class do not store it.
+     *       Argument 0 is the application name, @n
+     *       as appear in the command line. @n
+     *       The class do not store it.
      */
     enum ptpmgmt_opt_loop_val(*parse_options)(ptpmgmt_opt opt, int argc,
         char *argv[]);
