@@ -26,10 +26,9 @@ static gnutls_mac_algorithm_t vals[] = {
 };
 
 struct Gnutls : public HMAC_Key {
-    gnutls_mac_algorithm_t m_algorithm;
-    gnutls_hmac_hd_t m_dig;
-    bool m_keyInit;
-    Gnutls(): m_keyInit(false) {}
+    gnutls_mac_algorithm_t m_algorithm = GNUTLS_MAC_SHA256;
+    gnutls_hmac_hd_t m_dig = nullptr;
+    bool m_keyInit = false;
     ~Gnutls() override;
     bool init(HMAC_t type) override;
     bool digest(const void *data, size_t len, Binary &mac) override;

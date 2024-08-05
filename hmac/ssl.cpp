@@ -34,9 +34,9 @@ static triple vals[] = {
 
 struct HMAC_SSL : public HMAC_Key {
     char m_err_str[120]; // For error
-    EVP_MAC *m_mac;
-    EVP_MAC_CTX *m_ctx;
-    size_t m_min_digest;
+    EVP_MAC *m_mac = nullptr;
+    EVP_MAC_CTX *m_ctx = nullptr;
+    size_t m_min_digest = HMAC_MAC_SIZE_16;
     HMAC_SSL();
     ~HMAC_SSL() override;
     bool init(HMAC_t type) override;
@@ -44,7 +44,7 @@ struct HMAC_SSL : public HMAC_Key {
     bool verify(const void *data, size_t len, Binary &mac) override;
     const char *ssl_err();
 };
-HMAC_SSL::HMAC_SSL() : m_mac(nullptr), m_ctx(nullptr)
+HMAC_SSL::HMAC_SSL()
 {
     m_err_str[sizeof m_err_str - 1] = 0;
 }
@@ -72,7 +72,7 @@ bool HMAC_SSL::init(HMAC_t type)
         PTPMGMT_ERROR("EVP_MAC_CTX_set_params fail %s", ssl_err());
         return false;
     }
-    m_min_digest = (type == HMAC_SHA256) ? 32 : 16;
+    m_min_digest = (type == HMAC_SHA256) ? HMAC_MAC_SIZE_32 : HMAC_MAC_SIZE_16;
     if(!EVP_MAC_init(m_ctx, m_key.get(), m_key.size(), nullptr)) {
         PTPMGMT_ERROR("EVP_MAC_init fail %s", ssl_err());
         return false;

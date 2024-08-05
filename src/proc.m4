@@ -489,7 +489,7 @@ strc(SUBSCRIBE_EVENTS_NP_t) sz(: public BaseMngTlv) {
 c_cod(`};')dnl
 cpp_cod(`    /**< Default constructor */')dnl
 cpp_cod(`    /**< We need to zero the bitmask, as we do not set it explicity! */')dnl
-cpp_cod(`    SUBSCRIBE_EVENTS_NP_t() : bitmask{0} {}')dnl
+cpp_cod(`    SUBSCRIBE_EVENTS_NP_t() : duration(0), bitmask{0} {}')dnl
 idf()/**
 idf() * Set event bit in bitmask
 c_cod(idf()` * @param[in, out] tlv with the events storage')dnl

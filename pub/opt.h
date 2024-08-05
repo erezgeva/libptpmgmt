@@ -55,7 +55,7 @@ class Options
     std::map<int, std::string> m_opts;
     std::string m_net_opts, m_all_opts, m_all_short_opts, m_with_opts, m_msg;
     char m_net_select = 0;
-    int m_argc, m_end_optind;
+    int m_argc = 0, m_end_optind = 0;
     bool m_useDef = false;
 
     class helpStore

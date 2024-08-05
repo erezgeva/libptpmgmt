@@ -7,6 +7,7 @@
 #
 # Multiple scripts:
 # - ci_address:     Run AddressSanitizer in GitHub
+# - ci_coverity:    Configure for coverity scan
 # - ci_pages:       Build doxygen in GitHub
 # - github_docker:  Logging into GitHub Docker Server
 # - gitlab_docker:  Logging into GitLab Docker Server
@@ -37,24 +38,43 @@ s_mv()
    mv -f "$1" $2
  fi
 }
+apt_install()
+{
+ export DEBIAN_FRONTEND=noninteractive
+ sudo apt-get update
+ sudo apt-get install -y --no-install-recommends $*
+}
+config_ubuntu()
+{
+ autoreconf -i
+ ./configure
+}
+build_prepare_ubuntu()
+{
+ apt_install libtool libtool-bin autoconf automake nettle-dev libgnutls28-dev\
+   chrpath libfastjson-dev libjson-c-dev
+ config_ubuntu
+ config_report
+}
+###############################################################################
+# Configure for coverity scan
+ci_coverity()
+{
+ build_prepare_ubuntu
+}
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
 ci_address()
 {
- export DEBIAN_FRONTEND=noninteractive
- sudo apt-get install -y --no-install-recommends libtool libtool-bin
- autoreconf -i
- ./configure
+ build_prepare_ubuntu
  sim_ptp4l -at
 }
 ###############################################################################
 # Script to build doxygen in GitHub
 ci_pages()
 {
- export DEBIAN_FRONTEND=noninteractive
- sudo apt-get install -y --no-install-recommends doxygen graphviz
- autoreconf -i
- ./configure
+ apt_install doxygen graphviz
+ config_ubuntu
  make doxygen
  mv doc/html _site
  rm -f _site/*.md5 _site/*.map
@@ -222,6 +242,7 @@ utest_address()
  done
  if [[ -n "$do_config" ]]; then
    make config
+   config_report
  elif ! [[ -f defs.mk ]]; then
    echo "You must configure before you can compile!"
    return
@@ -244,6 +265,7 @@ utest_valgrid()
  done
  if [[ -n "$do_config" ]]; then
    emk config
+   config_report
  elif ! [[ -f defs.mk ]]; then
    echo "You must configure before you can compile!"
    return
@@ -363,13 +385,13 @@ config_report()
    CPPCHECK HAVE_JSONC_LIB HAVE_FJSON_LIB SWIG_MINVER DOXYGEN_MINVER
    PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
- local langs='tcl perl python ruby php lua go'
+ local langs='tcl perl5 python3 ruby php lua go'
  local $list $langs
  read_defs $list
  local -A setLang
  setLang[tcl]="@'$TCL_MINVER'"
- setLang[perl]="@'$PERL5_VER'"
- setLang[python]="@'$PY3_VER'"
+ setLang[perl5]="@'$PERL5_VER'"
+ setLang[python3]="@'$PY3_VER'"
  setLang[ruby]="@'$RUBY_VER'"
  setLang[php]="@'$PHP_VER'"
  if [[ -n "$LUA_VERS" ]]; then
@@ -418,8 +440,8 @@ rpath '$rpath' Jsonc '$jsonc' Fjson '$fjson'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Criterion test '$crtest'
-swig '$swig' Python '$python' Ruby '$ruby' PHP '$php'
-Perl '$perl' go '$go' tcl '$tcl' Lua '$lua'
+swig '$swig' Python '$python3' Ruby '$ruby' PHP '$php'
+Perl '$perl5' go '$go' tcl '$tcl' Lua '$lua'
 ============================================================
 EOF
 }
@@ -513,6 +535,7 @@ main()
  local n
  case "$me" in
   ci_address.sh)     ci_address "$@";;
+  ci_coverity.sh)    ci_coverity "$@";;
   ci_pages.sh)       ci_pages "$@";;
   github_docker.sh)  github_docker "$@";;
   gitlab_docker.sh)  gitlab_docker "$@";;

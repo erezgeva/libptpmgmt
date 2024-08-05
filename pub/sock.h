@@ -634,7 +634,7 @@ class SockRaw : public SockBaseIf
     Binary m_ptp_dst_mac;
     int m_socket_priority = -1;
     sockaddr_ll m_addr = {0};
-    iovec m_iov_tx[2], m_iov_rx[2];
+    iovec m_iov_tx[2] = {{0}, {0}}, m_iov_rx[2] = {{0}, {0}};
     msghdr m_msg_tx = {0}, m_msg_rx = {0};
     ethhdr m_hdr;
     uint8_t m_rx_buf[sizeof(ethhdr)];

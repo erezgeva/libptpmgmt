@@ -15,6 +15,9 @@ name: manual testing
 # Start manually
 on: workflow_dispatch
 
+env:
+  USER: builder
+
 jobs:
   full:
     runs-on: ubuntu-latest

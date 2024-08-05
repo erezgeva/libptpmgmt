@@ -383,7 +383,6 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
     tlv->tlvType = cpu_to_net16(MANAGEMENT);
     tlv->managementId = cpu_to_net16(mng_all_vals[m_tlv_id].value);
     MsgProc mp;
-    mp.m_size = 0;
     mp.m_cur = (uint8_t *)(tlv + 1); // point on dataField
     size_t size = mngMsgBaseSize;
     mp.m_left = bufSize - size;
@@ -482,11 +481,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
     memcpy(m_target.clockIdentity.v, msg->targetPortIdentity.clockIdentity.v,
         m_target.clockIdentity.size());
     MsgProc mp;
-    mp.m_build = false;
     if(m_type == Signaling) {
-        // initialize values, only to make cppcheck happy
-        mp.m_left = 0;
-        mp.m_err = MNG_PARSE_ERROR_TOO_SMALL;
         // Real initializing
         mp.m_cur = (uint8_t *)buf + sigBaseSize;
         mp.m_size = msgSize - sigBaseSize; // pass left to parseSig()
@@ -703,8 +698,6 @@ MNG_PARSE_ERROR_e Message::parseSig(const void *buf, MsgProc *pMp)
             continue;
         }
         mp.m_left = lengthField; // for build functions
-        // The default error on build or parsing
-        mp.m_err = MNG_PARSE_ERROR_TOO_SMALL;
         BaseSigTlv *tlv = nullptr;
         mng_vals_e managementId;
         managementErrorTLV_p *errTlv;
@@ -952,10 +945,9 @@ const char *Message::mng2str_c(mng_vals_e id)
 #define A(n, v, sc, a, sz, f) case n: return #n;
 #include "ids.h"
         default:
-            if(id < FIRST_MNG_ID || id >= LAST_MNG_ID)
-                return "out of range";
-            return "unknown";
+            break;
     }
+    return "unknown";
 }
 const bool Message::findMngID(const string &str, mng_vals_e &id, bool exact)
 {

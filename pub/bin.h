@@ -141,12 +141,12 @@ class Binary
     /**
      * Resize to size 0
      */
-    Binary &clear() { m_size = 0; return *this; }
+    Binary &clear();
     /**
      * Copy Binary to target memory block
      * @param[in, out] target memory block
      */
-    void copy(uint8_t *target) const { memcpy(target, m_buf, m_size); }
+    void copy(uint8_t *target) const;
     /**
      * Append single octet using operator +=
      * @param[in] octet to add

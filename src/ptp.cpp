@@ -220,7 +220,8 @@ bool IfInfo::initUsingName(const string &ifName)
         PTPMGMT_ERROR("Alreay initialized");
         return false;
     }
-    if(ifName.empty() || ifName.length() >= IFNAMSIZ) {
+    size_t len = ifName.length();
+    if(ifName.empty() || len >= IFNAMSIZ) {
         PTPMGMT_ERROR("missing interface");
         return false;
     }
@@ -232,7 +233,7 @@ bool IfInfo::initUsingName(const string &ifName)
     ifreq ifr;
     memset(&ifr, 0, sizeof ifr);
     // ifName is shorter than IFNAMSIZ
-    strcpy(ifr.ifr_name, ifName.c_str());
+    memcpy(ifr.ifr_name, ifName.c_str(), len + 1);
     if(ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
         PTPMGMT_ERROR_P("SIOCGIFINDEX");
         close(fd);
@@ -464,14 +465,12 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
         PTPMGMT_ERROR("Alreay initialized");
         return false;
     }
-    string dev = ptp_dev;
-    dev += to_string(ptpIndex);
-    if(!isCharFile(dev))
+    m_device = ptp_dev + to_string(ptpIndex);
+    if(!isCharFile(m_device))
         return false;
-    if(!init(dev.c_str(), readonly))
+    if(!init(m_device.c_str(), readonly))
         return false;
     m_ptpIndex = ptpIndex;
-    m_device = dev;
     PTPMGMT_ERROR_CLR;
     return true;
 }

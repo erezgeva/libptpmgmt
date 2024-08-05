@@ -247,20 +247,25 @@ class Token
 {
   private:
     char *m_buf;
-    char *m_save;
+    char *m_save = nullptr;
     const char *m_sep;
-    bool m_alloc;
+    bool m_alloc = false;
   public:
     ~Token() {
         if(m_alloc)
             free(m_buf);
     }
-    Token(const char *sep, char *buf = nullptr) : m_buf(buf), m_sep(sep),
-        m_alloc(false) {}
+    Token(const char *sep, char *buf = nullptr) : m_buf(buf), m_sep(sep) {}
     bool dup(const string &str) {
-        m_buf = strdup(str.c_str());
-        m_alloc = (m_buf != nullptr);
-        return !m_alloc;
+        char *buf = strdup(str.c_str());
+        if(buf != nullptr) {
+            if(m_alloc)
+                free(m_buf);
+            m_alloc = true;
+            m_buf = buf;
+            return false; /* For success */
+        }
+        return true; /* For failure */
     }
     char *save() {return m_save;}
     char *first() {return strtok_r(m_buf, m_sep, &m_save);}
@@ -277,11 +282,12 @@ class Token
  *  Handle TLV specific dataField by calling a specific call-back per TLV id
  */
 struct MsgProc {
-    bool              m_build;  /* true on build */
-    uint8_t          *m_cur;
-    ssize_t           m_left;
-    size_t            m_size;   /* TLV data size on build */
-    MNG_PARSE_ERROR_e m_err;    /* Last TLV err */
+    bool              m_build = false;  /* true on build */
+    uint8_t          *m_cur = nullptr;
+    ssize_t           m_left = 0;
+    size_t            m_size = 0;   /* TLV data size on build */
+    /* Use the common error on build and parsing */
+    MNG_PARSE_ERROR_e m_err = MNG_PARSE_ERROR_TOO_SMALL; /* Last TLV err */
 
     MNG_PARSE_ERROR_e call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv);
     MNG_PARSE_ERROR_e parseSig();
@@ -387,10 +393,8 @@ template <class T> class mapStackStr
       protected:
         char *m_key;
         T m_elem;
-        elem_t *m_hashNext, *m_topNext;
-        elem_t(const char *key) {
-            m_key = strdup(key);
-        }
+        elem_t *m_hashNext = nullptr, *m_topNext = nullptr;
+        elem_t(const char *key) : m_key(strdup(key)) {}
         ~elem_t() {
             free(m_key);
         }
@@ -400,12 +404,9 @@ template <class T> class mapStackStr
     class map_t
     {
       protected:
-        map_t *m_nextMap; /* For heap of maps */
-        elem_t *m_topElem; /* List of all elements, for cleanup */
-        elem_t *m_elemHash[UINT8_MAX]; /* Hash for finding */
-        map_t() : m_topElem(nullptr) {
-            memset(m_elemHash, 0, sizeof m_elemHash);
-        }
+        map_t *m_nextMap = nullptr; /* For heap of maps */
+        elem_t *m_topElem = nullptr; /* List of all elements, for cleanup */
+        elem_t *m_elemHash[UINT8_MAX] = { nullptr }; /* Hash for finding */
         void freeElems() {
             elem_t *n, *c = m_topElem;
             while(c != nullptr) {
@@ -602,6 +603,8 @@ struct HMAC_lib {
  *  and '-uptpm_hmac' for static link.
  */
 static const size_t HMAC_MAX_MAC_SIZE = 64;
+static const size_t HMAC_MAC_SIZE_16 = 16;
+static const size_t HMAC_MAC_SIZE_32 = 32;
 #define HMAC_DECL(cls) \
     HMAC_lib me = { [](){return new cls;}, HLIB_NAME }; \
     extern "C" { HMAC_lib *ptpm_hmac() { return &me; } }

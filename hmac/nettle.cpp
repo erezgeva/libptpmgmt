@@ -26,9 +26,8 @@ static const char *vals[] = {
 };
 
 struct Nettle : public HMAC_Key {
-    void *m_ctx;
-    const struct nettle_mac *m_mac;
-    Nettle() : m_ctx(nullptr) {}
+    void *m_ctx = nullptr;
+    const struct nettle_mac *m_mac = nullptr;
     ~Nettle() override {free(m_ctx);};
     bool init(HMAC_t type) override;
     bool digest(const void *data, size_t len, Binary &mac) override;
@@ -62,6 +61,10 @@ bool Nettle::init(HMAC_t type)
 bool Nettle::digest(const void *data, size_t len, Binary &mac)
 {
     size_t size = mac.size();
+    if(m_mac == nullptr || m_mac->update == nullptr || m_mac->digest == nullptr) {
+        PTPMGMT_ERROR("Nettle is not initialised");
+        return false;
+    }
     if(size > HMAC_MAX_MAC_SIZE) {
         PTPMGMT_ERROR("MAC size too big");
         return false;

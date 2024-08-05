@@ -73,15 +73,15 @@ class Message
     /* parsing parameters */
     uint16_t          m_sequence = 0;
     bool              m_isUnicast = true;
-    uint8_t           m_PTPProfileSpecific;
+    uint8_t           m_PTPProfileSpecific = 0;
     actionField_e     m_replyAction = RESPONSE;
     mng_vals_e        m_replayTlv_id = NULL_PTP_MANAGEMENT; /* managementId */
-    uint32_t          m_sdoId; /* parsed message sdoId (transportSpecific) */
-    msgType_e         m_type; /* parsed message type */
-    tlvType_e         m_mngType; /* parsed management message type */
-    uint8_t           m_domainNumber; /* parsed message domainNumber*/
-    uint8_t           m_versionPTP; /* parsed message ptp version */
-    uint8_t           m_minorVersionPTP; /* parsed message ptp version */
+    uint32_t          m_sdoId = 0; /* parsed message sdoId (transportSpecific) */
+    msgType_e         m_type = Management; /* parsed message type */
+    tlvType_e         m_mngType = MANAGEMENT; /* parsed management message type */
+    uint8_t           m_domainNumber = 0; /* parsed message domainNumber*/
+    uint8_t           m_versionPTP = 2; /* parsed message ptp version */
+    uint8_t           m_minorVersionPTP = 1; /* parsed message ptp version */
     /* hold signalling TLVs */
     std::vector<std::unique_ptr<BaseSigTlv>> m_sigTlvs;
     /* hold signalling TLVs type */
@@ -93,8 +93,8 @@ class Message
     MsgParams         m_prms;
 
     /* Authentication TLV */
-    uint32_t          m_keyID; /**< Key id used for sending */
-    uint8_t           m_sppID; /**< authentication security parameters ID */
+    uint32_t          m_keyID = 0; /**< Key id used for sending */
+    uint8_t           m_sppID = -1; /**< authentication security parameters ID */
     SaFile            m_sa; /**< authentication security association pool */
     bool              m_haveAuth = false;  /**< Have Authentication */
     HMAC_Key         *m_hmac = nullptr; /**< sending key HMAC library instance */
@@ -104,7 +104,7 @@ class Message
     PortIdentity_t    m_target; /* parsed message target port id */
 
     /* For error messages */
-    managementErrorId_e m_errorId;
+    managementErrorId_e m_errorId = (managementErrorId_e)0;
     PTPText_t m_errorDisplay;
 
     /* Map to all management IDs */

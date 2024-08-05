@@ -135,5 +135,4 @@ jobs:
         path: compat_reports/
 
     - name: Report ABI error
-      run: |
-        su $USER -c tools/ci_abi_err.sh
+      run: su $USER -c tools/ci_abi_err.sh

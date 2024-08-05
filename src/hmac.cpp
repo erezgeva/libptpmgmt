@@ -17,16 +17,14 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
+extern "C" { typedef HMAC_lib *(*ptpm_hmac_fech_t)(); }
 static int hmacCount = 0; // Count how many objects exist
 HMAC_lib *ptpm_hmac_p = nullptr;
 #ifdef PIC // Shared library code
 static void *hmacLib = nullptr;
 static const char *useLib = nullptr;
 static mutex hmacLoadLock; // Lock loading and unloading
-extern "C" {
-    typedef HMAC_lib *(*ptpm_hmac_fech_t)();
-    ptpm_hmac_fech_t ptpm_hmac_fech_p;
-}
+extern "C" { ptpm_hmac_fech_t ptpm_hmac_fech_p; }
 static void doLibRm()
 {
     if(dlclose(hmacLib) != 0)
@@ -42,7 +40,7 @@ static void doLibNull()
 static inline bool loadFuncs()
 {
     ptpm_hmac_fech_p = (ptpm_hmac_fech_t)dlsym(hmacLib, "ptpm_hmac");
-    if(ptpm_hmac_fech_p == nullptr)
+    if(ptpm_hmac_fech_p == (ptpm_hmac_fech_t)nullptr)
         return false;
     ptpm_hmac_p = ptpm_hmac_fech_p();
     return ptpm_hmac_p != nullptr;
@@ -129,7 +127,7 @@ extern "C" { extern HMAC_lib *ptpm_hmac() WEAK; }
 static bool staticLink()
 {
     if(ptpm_hmac_p == nullptr) {
-        if(ptpm_hmac == nullptr) {
+        if(ptpm_hmac == (ptpm_hmac_fech_t)nullptr) {
             PTPMGMT_ERROR("Link without any HMAC library");
             return true;
         }

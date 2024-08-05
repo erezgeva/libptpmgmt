@@ -59,16 +59,15 @@
         return false;
 
 struct JsonVal {
-    JSON_TYPE allow;
-    JSON_TYPE type;
-    bool found;
-    char *strV;
+    JSON_TYPE allow = JT_NULL;
+    JSON_TYPE type = JT_NULL;
+    bool found = false;
+    char *strV = nullptr;
     union {
         int64_t intV; // Also boolean
         double fltV;
         JSON_POBJ objV;
     };
-    JsonVal() : allow(JT_NULL), found(false), strV(nullptr) {}
     ~JsonVal() { free(strV); }
     bool isAllowed() { return allow != JT_NULL; }
     JSON_TYPE &operator()() { return allow; }

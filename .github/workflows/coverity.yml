@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2024 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2024 Erez Geva
+#
+# GitHub Coverity Scan
+###############################################################################
+
+name: coverity scan
+
+# Start manually
+on: workflow_dispatch
+
+jobs:
+  coverity:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v4
+
+    - name: configure
+      run: tools/ci_coverity.sh
+
+    - name: coverity scan
+      uses: vapier/coverity-scan-action@v1
+      with:
+        email: ${{ secrets.COVERITY_SCAN_EMAIL }}
+        token: ${{ secrets.COVERITY_SCAN_TOKEN }}

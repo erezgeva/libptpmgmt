@@ -362,7 +362,7 @@ TEST(MessageTest, MethodMng2str)
     EXPECT_STREQ(Message::mng2str_c(POWER_PROFILE_SETTINGS_NP),
         "POWER_PROFILE_SETTINGS_NP");
     EXPECT_STREQ(Message::mng2str_c(CMLDS_INFO_NP), "CMLDS_INFO_NP");
-    EXPECT_STREQ(Message::mng2str_c(LAST_MNG_ID), "out of range");
+    EXPECT_STREQ(Message::mng2str_c(LAST_MNG_ID), "unknown");
     // Confirm compatability
     EXPECT_EQ(FIRST_MNG_ID, NULL_PTP_MANAGEMENT);
     EXPECT_EQ(NULL_MANAGEMENT, NULL_PTP_MANAGEMENT);

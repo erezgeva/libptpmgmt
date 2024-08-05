@@ -131,9 +131,11 @@ bool ConfigSection::set_val(char *line)
             break;
         // integer values
         default: {
+            if UNLIKELY_COND(idx >= str_base_val)
+                return false; // Should not happen
             char *endptr;
             long ret = strtol(val, &endptr, 0);
-            if(*endptr != 0 || ret < ranges[idx].min || ret > ranges[idx].max)
+            if(ret < ranges[idx].min || ret > ranges[idx].max || *endptr != 0)
                 return false;
             m_vals[idx - val_base_val] = ret;
             break;
@@ -172,17 +174,17 @@ bool ConfigFile::read_cfg(const string &_file)
             cur = skip_spaces(cur + 1);
             char *end = strchr(cur, ']');
             if(end == nullptr)
-                goto lineErr;
+                goto lineErrWrLn1;
             strip_end_spaces(end);
             curSection = cur;
         } else if(*cur != 0 && *cur != '#' &&
             !cfgSec[curSection].set_val(cur))
-            goto lineErr;
+            goto lineErrWrLn1;
     }
     fclose(f);
     PTPMGMT_ERROR_CLR;
     return true;
-lineErr:
+lineErrWrLn1:
     fclose(f);
     PTPMGMT_ERROR("wrong line %s(%zu)", file, lineNum);
     return false;
@@ -403,6 +405,10 @@ bool SaFile::read_sa(const std::string &_file)
         return false;
     }
     const char *file = _file.c_str();
+    if(file == nullptr) {
+        PTPMGMT_ERROR("fail to duplicate string %s", _file.c_str());
+        return false;
+    }
     FILE *f = fopen(file, "r");
     if(f == nullptr) {
         PTPMGMT_ERROR("fail to open %s: %m", file);
@@ -419,15 +425,14 @@ bool SaFile::read_sa(const std::string &_file)
         if(*cur == '[') {
             cur = skip_spaces(cur + 1);
             char *end = strchr(cur, ']');
-            if(end == nullptr) {
-                PTPMGMT_ERROR("wrong line %s(%d)", file, lineNum);
-                return false;
-            }
+            if(end == nullptr)
+                goto lineErrWrLn2;
             strip_end_spaces(end);
             if(step == 2) {
                 if(cspp.keys() < 1) {
-                    PTPMGMT_ERROR("try to add spp %d without keys", cspp.ownID());
-                    return false;
+                    PTPMGMT_ERROR("try to add spp %d without keys in %s(%zu)",
+                        cspp.ownID(), file, lineNum);
+                    goto lineErr2;
                 }
                 spps[cspp.ownID()] = cspp;
             }
@@ -442,40 +447,42 @@ bool SaFile::read_sa(const std::string &_file)
                         char *endptr;
                         long ret = strtol(val, &endptr, 0);
                         if(*endptr != 0 || ret < 0 || ret > UINT8_MAX) {
-                            PTPMGMT_ERROR("wrong spp value %ld in %s(%d)",
+                            PTPMGMT_ERROR("wrong spp value %ld in %s(%zu)",
                                 ret, file, lineNum);
-                            return false;
+                            goto lineErr2;
                         }
                         step = 2;
                         cspp.set(ret);
-                    } else {
-                        PTPMGMT_ERROR("wrong line %s(%d):", file, lineNum);
-                        return false;
-                    }
+                    } else
+                        goto lineErrWrLn2;
                     break;
                 case 2:
                     if(cspp.set_val(cur))
                         break;
-                    PTPMGMT_ERROR("wrong line %s(%d)", file, lineNum);
-                    return false;
+                    goto lineErrWrLn2;
                 default:
-                    PTPMGMT_ERROR("wrong line %s(%d)", file, lineNum);
-                    return false;
+                    goto lineErrWrLn2;
             }
         }
     }
     fclose(f);
     if(step == 2) {
         if(cspp.keys() < 1) {
-            PTPMGMT_ERROR("Try to add SPP %d without keys", cspp.ownID());
+            PTPMGMT_ERROR("Try to add SPP %d without keys in %s(%zu)",
+                cspp.ownID(), file, lineNum);
             return false;
         }
         spps[cspp.ownID()] = cspp;
     }
     m_spps.clear(); // remove old configuration
-    m_spps = spps;
+    m_spps = std::move(spps);
     PTPMGMT_ERROR_CLR;
     return true;
+lineErrWrLn2:
+    PTPMGMT_ERROR("wrong line %s(%zu)", file, lineNum);
+lineErr2:
+    fclose(f);
+    return false;
 }
 bool SaFile::read_sa(const ConfigFile &cfg, const std::string &section)
 {
@@ -693,8 +700,10 @@ extern "C" {
     }
     ptpmgmt_spp ptpmgmt_spp_alloc_cp(const_ptpmgmt_spp spp)
     {
+        if(spp == nullptr || spp->_this == nullptr)
+            return nullptr;
         ptpmgmt_spp me = (ptpmgmt_spp)malloc(sizeof(ptpmgmt_spp_t));
-        if(me == nullptr || spp == nullptr || spp->_this == nullptr)
+        if(me == nullptr)
             return nullptr;
         me->_this = (void *)(new Spp(*(const Spp *)spp->_this));
         if(me->_this == nullptr) {

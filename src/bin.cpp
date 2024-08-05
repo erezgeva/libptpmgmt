@@ -94,11 +94,14 @@ static inline bool parseB64(const char c, uint8_t &v, uint8_t &safe)
 }
 bool Binary::iResize(size_t l_alloc)
 {
-    if(l_alloc <= m_alloc)
+    // As m_alloc and m_buf are always set together
+    // m_buf can be null only if m_alloc is zero!
+    if(l_alloc <= m_alloc && m_buf != nullptr)
         return true;
     if(l_alloc <= min_alloc_size)
         l_alloc = min_alloc_size;
     else
+        // multiple of min_alloc_size
         l_alloc += min_alloc_size - ((l_alloc - 1) & (min_alloc_size - 1)) - 1;
     uint8_t *l_buf = (uint8_t *)realloc(m_buf, l_alloc);
     if(l_buf == nullptr)
@@ -117,30 +120,31 @@ Binary::~Binary()
 }
 Binary::Binary()
 {
-    iResize(min_alloc_size);
+    iResize(1);
 }
 Binary::Binary(const Binary &rhs)
 {
     setBin(rhs.m_buf, rhs.m_size);
-    iResize(min_alloc_size);
+    iResize(1);
 }
 Binary::Binary(const void *buf, const size_t length)
 {
     setBin(buf, length);
-    iResize(min_alloc_size);
+    iResize(1);
 }
 Binary::Binary(const size_t length, uint8_t set)
 {
-    if(iResize(length)) {
+    if(length == 0)
+        m_size = 0;
+    else if(iResize(length)) {
         m_size = length;
-        if(m_size > 0)
-            memset(m_buf, set, m_size);
+        memset(m_buf, set, m_size);
     }
 }
 Binary::Binary(const string &string)
 {
     setBin(string);
-    iResize(min_alloc_size);
+    iResize(1);
 }
 Binary &Binary::operator=(const Binary &rhs)
 {
@@ -148,12 +152,11 @@ Binary &Binary::operator=(const Binary &rhs)
 }
 Binary &Binary::setBin(const void *buf, const size_t length)
 {
-    if(buf == nullptr)
+    if(buf == nullptr || length == 0)
         m_size = 0;
     else if(iResize(length)) {
         m_size = length;
-        if(m_size > 0)
-            memcpy(m_buf, buf, m_size);
+        memcpy(m_buf, buf, m_size);
     }
     return *this;
 }
@@ -163,6 +166,8 @@ Binary &Binary::setBin(const Binary &rhs)
 }
 Binary &Binary::setBin(const string &string)
 {
+    if(string.empty())
+        return clear();
     return setBin(string.c_str(), string.length());
 }
 Binary &Binary::setBin(const size_t position, const uint8_t value)
@@ -192,13 +197,27 @@ uint8_t &Binary::operator [](const size_t position)
 }
 Binary &Binary::resize(const size_t length)
 {
-    if(iResize(length)) {
+    if(length == 0)
+        return clear();
+    else if(iResize(length)) {
         // Clear in case of shrink, as we leave allocated memory
-        if(length > 0 && m_alloc > length)
+        if(m_alloc > length)
             memset(m_buf + length, 0, m_alloc - length);
         m_size = length;
     }
     return *this;
+}
+Binary &Binary::clear()
+{
+    if(m_alloc > 0)
+        memset(m_buf, 0, m_alloc);
+    m_size = 0;
+    return *this;
+}
+void Binary::copy(uint8_t *target) const
+{
+    if(target != nullptr && m_buf != nullptr && m_size > 0)
+        memcpy(target, m_buf, m_size);
 }
 Binary &Binary::append(const uint8_t octet)
 {

@@ -19,6 +19,16 @@
 #include "c/types.h"
 #include "c/proc.h"
 
+#if __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__
+#define ptpm_ordMod USE_BIG // Prefer network order
+#define ptpm_have_USE_BIG
+#elif __FLOAT_WORD_ORDER__ == __BYTE_ORDER__
+#define ptpm_ordMod USE_HOST; // Prefer host order!
+#elif __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define ptpm_ordMod USE_LT
+#define ptpm_have_USE_LT
+#endif
+
 __PTPMGMT_NAMESPACE_BEGIN
 
 /**
@@ -177,16 +187,16 @@ bool MsgProc::proc(Float64_t &val)
     enum {
         // when calculate always use host order
         USE_HOST, // use host order
+        #ifdef ptpm_have_USE_BIG
         USE_BIG, // float is big endian (network order)
+        #endif // ptpm_have_USE_BIG
+        #ifdef ptpm_have_USE_LT
         USE_LT, // float is little endian
+        #endif // ptpm_have_USE_LT
     } ordMod;
     if(use64) {
-        #if __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__
-        ordMod = USE_BIG; // Prefer network order
-        #elif __FLOAT_WORD_ORDER__ == __BYTE_ORDER__
-        ordMod = USE_HOST; // Prefer host order!
-        #elif __FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__
-        ordMod = USE_LT;
+        #ifdef ptpm_ordMod
+        ordMod = ptpm_ordMod;
         #else // float use unkown order, we must build it manually
         ordMod = USE_HOST;
         use64 = false;
@@ -263,6 +273,7 @@ bool MsgProc::proc(Float64_t &val)
         }
     }
     switch(ordMod) {
+            #ifdef ptpm_have_USE_BIG
         case USE_BIG:
             if(m_build)
                 *(uint64_t *)m_cur = num;
@@ -270,10 +281,12 @@ bool MsgProc::proc(Float64_t &val)
                 num = *(uint64_t *)m_cur;
             move(8);
             break;
+            #endif // ptpm_have_USE_BIG
         case USE_HOST:
             if(proc(num)) // host order to network order
                 return true;
             break;
+            #ifdef ptpm_have_USE_LT
         case USE_LT:
             if(m_build)
                 *(uint64_t *)m_cur = bswap_64(num);
@@ -281,6 +294,7 @@ bool MsgProc::proc(Float64_t &val)
                 num = bswap_64(*(uint64_t *)m_cur);
             move(8);
             break;
+            #endif // ptpm_have_USE_LT
     }
     if(!m_build) {
         if(use64) // Float64_t is 64 bits IEEE 754
@@ -347,9 +361,12 @@ bool MsgProc::proc(uint8_t *val, size_t len)
 }
 template <typename T> bool MsgProc::procE8(T &val)
 {
-    uint8_t v = val;
+    uint8_t v = 0;
+    if(m_build)
+        v = val;
     bool ret = proc(v);
-    val = (T)v;
+    if(!m_build)
+        val = (T)v;
     return ret;
 }
 #define E8(t) template bool MsgProc::procE8<t>(t &)
@@ -364,9 +381,12 @@ E8(linuxptpTimeStamp_e);
 E8(linuxptpUnicastState_e);
 template <typename T> bool MsgProc::procE16(T &val)
 {
-    uint16_t v = val;
+    uint16_t v = 0;
+    if(m_build)
+        v = val;
     bool ret = proc(v);
-    val = (T)v;
+    if(!m_build)
+        val = (T)v;
     return ret;
 }
 #define E16(t) template bool MsgProc::procE16<t>(t &)

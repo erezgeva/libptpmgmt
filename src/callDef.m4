@@ -54,6 +54,7 @@ cpp_cod(`    /** @cond internal */')dnl
 cpp_cod(`  private:')dnl
 cpp_cod(`    bool _nc; /**< flag indicating no inherite call back */')dnl
 cpp_cod(`  protected:')dnl
+cpp_cod(`    void _noTlvClear() { _nc = false; }')dnl
 cpp_cod(`    bool _noTlv() {bool r = _nc; _nc = false; return r;}')dnl
 cpp_cod(`    /**< @endcond */')dnl
 cpp_cod(`  public:')dnl

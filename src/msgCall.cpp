@@ -29,7 +29,7 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
         noTlv(msg);
         return;
     }
-    _noTlv(); /* Clear the flag */
+    _noTlvClear(); /* Clear the flag */
     switch(tlv_id) {
 #include "ids.h"
         default:
@@ -54,7 +54,7 @@ bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
     BaseMngTlv *tlv = nullptr;
 #define _ptpmCaseUFB(n) case n: {\
             n##_t *d = new n##_t;\
-            if (d == nullptr) { return false; }\
+            if (d == nullptr) return false;\
             if (!n##_b(m_msg, *d)) { delete d; return false; }\
             tlv = d; } break;
     switch(tlv_id) {
@@ -63,8 +63,6 @@ bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
         default:
             return false;
     }
-    if UNLIKELY_COND(tlv == nullptr)
-        return false; // Should not happen
     if LIKELY_COND(m_msg.setAction(actionField, tlv_id, tlv)) {
         m_tlv.reset(tlv);
         return true;
