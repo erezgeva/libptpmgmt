@@ -210,16 +210,6 @@ bool event_subscription(struct jcl_handle **handle)
     return ret;
 }
 
-bool is_ptp4l_running()
-{
-    FILE *fp;
-    char result[8];
-    fp = popen("pgrep ptp4l", "r");
-    bool resultExists = fgets(result, sizeof(result) - 1, fp) != nullptr;
-    pclose(fp);
-    return resultExists;
-}
-
 /**
  * @brief Runs the main event loop for handling PTP (Precision Time Protocol)
  *        events.
@@ -259,39 +249,30 @@ void *ptp4l_event_loop(void *arg)
     msg_set_action(false, PORT_PROPERTIES_NP);
     event_subscription(nullptr);
     while(1) {
-        if(is_ptp4l_running()) {
-            if(epoll_wait(epd, &epd_event, 1, 100) != -1) {
-                const auto cnt = sk->rcv(buf, bufSize);
+        if (epoll_wait( epd, &epd_event, 1, 1) != -1) {
+            const auto cnt = sk->rcv(buf, bufSize);
+
+            if(cnt > 0 || msg_send(false)) {
                 MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
                 if(err == MNG_PARSE_ERROR_OK)
                     event_handle();
-            }
-        } else {
-            PrintError("Failed to connect to ptp4l. Retrying...");
-            SockUnix *sku = new SockUnix;
-            sk->close();
-            sku->close();
-            msg.clearData();
-            /* Reset TIME_STATUS_NP data when ptp4l is disconnected */
-            pe.master_offset = 0;
-            memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
-            pe.synced_to_primary_clock = false;
-            pe.as_capable = 0;
-            notify_client();
-            while(1) {
-                if(is_ptp4l_running()) {
-                    PrintInfo("Connected to ptp4l via /var/run/ptp4l.");
-                    std::string uds_address;
-                    m_sk.reset(sku);
-                    uds_address = "/var/run/ptp4l";
-                    if(!sku->setDefSelfAddress() || !sku->init() ||
-                        !sku->setPeerAddress(uds_address))
-                        fprintf(stderr, "Fail to connect to ptp4l\n");
-                    sk = m_sk.get();
-                    event_subscription(nullptr);
-                    break;
+            } else {
+                PrintError("Connection to ptp4l has been lost");
+
+                /* Reset TIME_STATUS_NP data when ptp4l is disconnected */
+                PrintError("Resetting jclklib's ptp4l data");
+                pe.master_offset = 0;
+                memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
+                pe.synced_to_primary_clock = false;
+                pe.as_capable = 0;
+                notify_client();
+
+                while(1){
+                    if(event_subscription(nullptr))
+                        break;
+                    PrintError("Attempting to reconnect to ptp4l...");
+                    sleep(2);
                 }
-                sleep(2);
             }
         }
     }
@@ -317,12 +298,6 @@ int Connect::connect()
     if(sku == nullptr)
         return -1;
     m_sk.reset(sku);
-    while(is_ptp4l_running() != 1) {
-        /* sleep for 2 seconds and keep looping until there is ptp4l available */
-        PrintError("Failed to connect to ptp4l. Retrying...");
-        sleep(2);
-    }
-    PrintInfo("Connected to ptp4l via /var/run/ptp4l.");
     pe.ptp4l_id = 1;
     uds_address = "/var/run/ptp4l";
     if(!sku->setDefSelfAddress() || !sku->init() ||
