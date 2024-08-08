@@ -117,14 +117,14 @@ AC_DEFUN([PTPM_COUNT_WORDS],
                    [AS_VAR_ARITH([$1], [${$1} + 1])])])
 AC_DEFUN([PTPM_LIB_PKG_CONFIG],
          [AS_IF([PTPM_VAR_SET_TEST([PKG_CONFIG]) &&\
-                { $PKG_CONFIG $3 PTPM_DUMP_ALL ; } ],
+                { $PKG_CONFIG --version $3 PTPM_DUMP_ALL ; } ],
                 [AS_VAR_SET([$1_INC_FLAGS],
                             ["`$PKG_CONFIG --cflags $2 PTPM_DUMP_ERR`"])
                  AS_VAR_SET([$1_LIB_FLAGS],
                             ["`$PKG_CONFIG --libs $2 PTPM_DUMP_ERR`"])])])
 AC_DEFUN([PTPM_VAR_PKG_CONFIG],
          [AS_IF([PTPM_VAR_SET_TEST([PKG_CONFIG]) &&\
-                { $PKG_CONFIG $3 PTPM_DUMP_ALL ; } ],
+                { $PKG_CONFIG --version $3 PTPM_DUMP_ALL ; } ],
                 [AS_VAR_SET([$1],
                             ["`$PKG_CONFIG --variable=$2 $3 PTPM_DUMP_ERR`"])])])
 #----------------------------------------------------------------
@@ -951,6 +951,7 @@ AS_VAR_IF([ptpm_rubybin], ['no'],
       PTPM_CROSS([RUBY_SITE])
       PTPM_MSG_RESULT([RUBY_SITE])
 
+      dnl try using pkg-config,
       PTPM_LIB_PKG_CONFIG([RUBY], [ruby-$ptpm_ruby_mver])
       AS_IF([PTPM_VAR_EMPTY_TEST([RUBY_INC_FLAGS]) &&\
              PTPM_VAR_EMPTY_TEST([RUBY_LIB_FLAGS])],

@@ -328,7 +328,7 @@ include defs.mk
 
 ifndef V
 ifeq ($(DO_VERBOSE),true)
-V:=1
+override V:=1
 undefine COLOR_WARNING
 endif
 endif # V
@@ -336,6 +336,7 @@ ifneq ($(V),1)
 Q:=@
 MAKE_NO_DIRS:=--no-print-directory
 COLOR_BUILD:=$(COLOR_MAGENTA)
+Q_OUT:=>/dev/null
 Q_ERR:=2>/dev/null
 Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
 Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
@@ -350,7 +351,12 @@ Q_LCC=$(info $(COLOR_BUILD)[LCC] $<$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
 Q_UTEST=$Q$(info $(COLOR_BUILD)[UTEST $1]$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
+Q_CC_STR=\$$(info $(COLOR_BUILD)[CC] $1\$$<$(COLOR_NORM))
+Q_LD_STR=\$$(info $(COLOR_BUILD)[LD] $1\$$<$(COLOR_NORM))
+else
+V:=0
 endif
+export V
 
 LN:=$(LN_S) -f
 ifeq ($(findstring -O,$(CXXFLAGS)),)
@@ -391,6 +397,13 @@ PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
 $(OBJ_DIR)/ver.lo: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
+ifdef CHRPATH
+RMRPATH=$(CHRPATH) -d $1
+else
+ifdef PATCHELF
+RMRPATH=$(PATCHELF) --remove-rpath $1
+endif
+endif
 
 ifdef CXX_COLOR_USE
 # GCC output colours
@@ -572,18 +585,14 @@ ifdef DOXYGEN_MINVER
 doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
 ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
-	$Q$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' tools/doxygen.cfg
+	$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' tools/doxygen.cfg
 endif
-ifdef Q_DOXY
 # doxygen fails with cairo 1.17.6, use workaround
 # https://github.com/doxygen/doxygen/issues/9319
 # TODO The bug should be fixed in doxygen version 1.9.7
-	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg >/dev/null
-else
-	$(DOXYGEN) tools/doxygen.cfg
-endif
+	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
 ifndef DOTTOOL
-	$Q$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' tools/doxygen.cfg
+	$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' tools/doxygen.cfg
 endif
 endif # DOXYGEN_MINVER
 
@@ -591,7 +600,7 @@ checkall: format doxygen
 
 ifdef CTAGS
 tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
-	$(SRCS_JSON)
+	$(SRCS_JSON) $(SRCS_HMAC)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
 endif # CTAGS
@@ -618,13 +627,7 @@ install_main:
 	$(Q)$(INSTALL_FOLDER) $(DLIBDIR)
 	cp -a $(LIB_D)/$(LIB_NAME)*.so* $(DLIBDIR)
 	$(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.so.*.*.* $(DLIBDIR)
-ifdef CHRPATH
-	$(CHRPATH) -d $(DLIBDIR)/*.so.*.*.*
-else
-ifdef PATCHELF
-	$(PATCHELF) --remove-rpath $(DLIBDIR)/*.so.*.*.*
-endif
-endif
+	$(call RMRPATH,$(DLIBDIR)/$(LIB_NAME)*.so.*.*.*)
 	if test -f "$(LIB_NAME_A)"
 	then $(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.a $(DLIBDIR); fi
 	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
@@ -707,7 +710,7 @@ rpm/SOURCES:
 	$(Q)mkdir -p "$@"
 rpm: $(LIB_SRC) rpm/SOURCES
 	$(Q)cp $(LIB_SRC) rpm/SOURCES/
-	$(Q)rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/$(LIB_NAME).spec
+	rpmbuild --define "_topdir $(PWD)/rpm" -bb rpm/$(LIB_NAME).spec
 endif # which rpmbuild
 
 ####### Arch Linux build #######

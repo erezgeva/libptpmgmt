@@ -5,6 +5,8 @@
 # @copyright © 2024 Erez Geva
 #
 # GitHub Coverity Scan
+# Results: https://scan.coverity.com/projects/erezgeva-libptpmgmt
+# Defects: https://scan.coverity.com/projects/erezgeva-libptpmgmt/view_defects
 ###############################################################################
 
 name: coverity scan
