@@ -914,14 +914,14 @@ strc(ManagementId_t) {
 /** Receive Authentication modes */
 enm(MsgParams_RcvAuth_e) sz(: uint8_t) {
     NM(RCV_AUTH_NONE) = 0, /**< Ignore all Authentication TLVs */
-    /** Proccess Authentication TLVs of All Managment packts */
+    /** Process Authentication TLVs of All Managment packts */
     NM(RCV_AUTH_MNG) = (1 << 0),
-    /** Proccess last Authentication TLVs of Signaling */
+    /** Process last Authentication TLVs of Signaling */
     NM(RCV_AUTH_SIG_LAST) = (1 << 1),
-    /** Proccess all Authentication TLVs of Signaling */
+    /** Process all Authentication TLVs of Signaling */
     NM(RCV_AUTH_SIG_ALL) = (1 << 2),
-    NM(RCV_AUTH_ALL) = 0x7, /**< Proccess all Authentication TLVs */
-    /** Continure proccess, with Authentication errors */
+    NM(RCV_AUTH_ALL) = 0x7, /**< Process all Authentication TLVs */
+    /** Continue process, with Authentication errors */
     NM(RCV_AUTH_IGNORE) = (1 << 3),
 };
 

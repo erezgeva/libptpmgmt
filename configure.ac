@@ -10,11 +10,12 @@
 #----------------------------------------------------------------
 
 AC_COPYRIGHT([Copyright © 2022 Erez Geva])
-AC_PREREQ([2.69])
+AC_PREREQ([2.71])
 m4_define([ptpm_VER], m4_esyscmd_s([. ./tools/version && echo "$ver_maj.$ver_min"]))
 AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],
         [libptpmgmt-]m4_defn([ptpm_VER]),
         [https://libptpmgmt.nwtime.org])
+m4_define([ptpm_dquote], ["]) dnl "
 
 #----------------------------------------------------------------
 # Start
@@ -39,15 +40,9 @@ AC_CHECK_TOOL([MARKDOWN], [markdown])
 dnl libtool
 LT_INIT
 AC_CONFIG_MACRO_DIRS([m4])
-dnl globals
-AS_VAR_SET([ptpm_include_dirs],
-           ["$includedir /usr/local/include /usr/include /opt/local/include"])
-AS_VAR_SET([ptpm_c_include], ['#include'])
-AS_VAR_SET([ptpm_libdir], ["`eval "echo $libdir"`"])
-AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 
 #----------------------------------------------------------------
-# Macroes
+# Macroes and Globals
 dnl Pipes to clean output
 AC_DEFUN([PTPM_DUMP_OUT], [>/dev/null])
 AC_DEFUN([PTPM_DUMP_ERR], [2>/dev/null])
@@ -127,6 +122,20 @@ AC_DEFUN([PTPM_VAR_PKG_CONFIG],
                 { $PKG_CONFIG --version $3 PTPM_DUMP_ALL ; } ],
                 [AS_VAR_SET([$1],
                             ["`$PKG_CONFIG --variable=$2 $3 PTPM_DUMP_ERR`"])])])
+dnl globals
+AS_VAR_SET([ptpm_c_include], ['#include'])
+AS_VAR_SET([ptpm_includedir], ["`eval "echo $includedir"`"])
+AS_VAR_SET([ptpm_libdir], ["`eval "echo $libdir"`"])
+AS_VAR_SET([ptpm_libexecdir], ["`eval "echo $libexecdir"`"])
+dnl if ptpm_libexecdir == ptpm_libdir unset it
+AS_VAR_IF([ptpm_libexecdir], ["$ptpm_libdir"], [AS_UNSET([ptpm_libexecdir])])
+AS_VAR_COPY([ptpm_include_dirs], [ptpm_includedir])
+PTPM_FOR([d], [/usr/include /usr/local/include /opt/local/include],
+         [PTPM_VAR_ELSE_IF([ptpm_includedir], ["$d"],
+                           [AS_VAR_APPEND([ptpm_include_dirs],
+                                          [" $d"])])])
+AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
+
 #----------------------------------------------------------------
 # Tools
 AC_CHECK_TOOL([DATE], [date])
@@ -163,10 +172,12 @@ AS_VERSION_COMPARE([3.2], [$ptpm_astylever],
 PTPM_MSG_RESULT([ASTYLE_MINVER])
 AC_CHECK_TOOL([CPPCHECK], [cppcheck])
 AS_VAR_SET_IF([CPPCHECK],
+      dnl Ignore C error pre-compile
       [AS_VAR_SET([CPPCHECK_OPT_BASE],
-                  ["--suppress=preprocessorErrorDirective"]) dnl Ignore '#error'
-
+                  ["--suppress=preprocessorErrorDirective"])
+       dnl Save en empty conftest.cpp
        AC_LANG_CONFTEST([AC_LANG_SOURCE])
+       dnl Use exhaustive checking, support in new cppcheck version
        AS_IF([$CPPCHECK --check-level=exhaustive conftest.cpp PTPM_DUMP_ALL],
              [AS_VAR_SET([CPPCHECK_OPT_BASE],
                          ["$CPPCHECK_OPT_BASE --check-level=exhaustive"])])])
@@ -349,9 +360,9 @@ AC_SUBST([SKIP_LIBSYS])
 AS_UNSET([ASAN_LIBS])
 
 AS_VAR_COPY([ptpm_keep_ldflags], [LDFLAGS])
-AS_VAR_SET([ptpm_san], [m4_map_args_w([address pointer-compare
-                          pointer-subtract undefined leak],
-                          ['-fsanitize='], [], [' '])])
+AS_VAR_SET([ptpm_san], [m4_defn([ptpm_dquote])m4_map_args_w([address
+            pointer-compare pointer-subtract undefined leak],
+            [-fsanitize=], [], [ ])m4_defn([ptpm_dquote])])
 
 AS_VAR_APPEND([CPPFLAGS], [" $ptpm_san"])
 AS_VAR_APPEND([LDFLAGS], [" $ptpm_san"])
@@ -667,9 +678,9 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
 
    dnl check in a few common install locations, as last resort
    PTPM_VAR_EMPTY_IF([ptpm_tclconfig],
-     [AS_VAR_SET([ptpm_dirs],
-                 ["/usr/lib*/ /usr/lib*/tcl*/ /usr/local/lib*/"])
-      AS_VAR_APPEND([ptpm_dirs], [" /usr/local/lib*/tcl*/"])
+     [AS_UNSET([ptpm_dirs])
+      PTPM_FOR([d], [$ptpm_libdir $ptpm_libexecdir /usr/lib /usr/local/lib],
+               [AS_VAR_APPEND([ptpm_dirs], [" $d*/ $d*/tcl*/"])])
       PTPM_FOR([d], [$ptpm_dirs],
         [PTPM_FOR([i], [`ls -d -r $d PTPM_DUMP_ERR`],
            [PTPM_FILE_IF(["${i}tclConfig.sh"],
@@ -801,9 +812,6 @@ AS_VAR_IF([ptpm_py3bin], ['no'],
       PTPM_MSG_RESULT([PY3_VER])
       AS_VAR_SET([ptpm_py3verkey], ["python$PY3_VER"])
 
-      AC_MSG_CHECKING([for python3 header files])
-      AS_VAR_SET([PY3_INC_FLAGS], ["`$ptpm_py3config --includes PTPM_DUMP_ERR`"])
-      PTPM_MSG_RESULT([PY3_INC_FLAGS])
       AS_VAR_SET([ptpm_dirs],
                  ["`$ptpm_python3 -c "import site;print('\n'.join(\
                     site.getsitepackages()))" PTPM_DUMP_ERR`"])
@@ -826,14 +834,24 @@ AS_VAR_IF([ptpm_py3bin], ['no'],
                       [AS_VAR_COPY([PY3_SITE], [d])
                        PTPM_FOR_BREAK])])])
       PTPM_MSG_RESULT([PY3_SITE])
-      AC_MSG_CHECKING([for python3 extension suffix])
-      AS_VAR_SET([PY3_EXT], ["`$ptpm_py3config --extension-suffix PTPM_DUMP_ERR`"])
-      PTPM_CROSS([PY3_EXT])
-      PTPM_MSG_RESULT([PY3_EXT])
+
+      AC_MSG_CHECKING([for python3 header files])
+      PTPM_LIB_PKG_CONFIG([PY3], [python3])
+      PTPM_VAR_EMPTY_IF([RUBY_INC_FLAGS],
+            [AS_VAR_SET([PY3_INC_FLAGS],
+                        ["`$ptpm_py3config --includes PTPM_DUMP_ERR`"])])
+      PTPM_CROSS([PY3_INC_FLAGS])
+      PTPM_MSG_RESULT([PY3_INC_FLAGS])
 
       AC_MSG_CHECKING([for python3 linking])
       AS_VAR_SET([PY3_LIB_FLAGS], ["`$ptpm_py3config --libs PTPM_DUMP_ERR`"])
-      PTPM_MSG_RESULT([PY3_LIB_FLAGS])])])
+      PTPM_CROSS([PY3_LIB_FLAGS])
+      PTPM_MSG_RESULT([PY3_LIB_FLAGS])
+
+      AC_MSG_CHECKING([for python3 extension suffix])
+      AS_VAR_SET([PY3_EXT], ["`$ptpm_py3config --extension-suffix PTPM_DUMP_ERR`"])
+      PTPM_CROSS([PY3_EXT])
+      PTPM_MSG_RESULT([PY3_EXT])])])
 
 AC_SUBST([PY3_VER])
 AC_SUBST([PY3_SITE])
@@ -934,7 +952,7 @@ AS_VAR_IF([ptpm_rubybin], ['no'],
          [AS_VAR_COPY([RUBY], [ptpm_rubybin])])
    AC_MSG_CHECKING([for Ruby version])
    AS_VAR_SET_IF([RUBY],
-     [AS_VAR_SET([RUBY_VER], ["`$RUBY -e 'print "#{RUBY_VERSION}"' PTPM_DUMP_ERR`"])
+     [AS_VAR_SET([RUBY_VER], ["`$RUBY -e 'v=RUBY_VERSION;print v' PTPM_DUMP_ERR`"])
       PTPM_MSG_RESULT([RUBY_VER])
       AS_VAR_SET([ptpm_ruby_mver],
                  ["`$RUBY -e 'v=RUBY_VERSION.match %r%^(\d+\.\d+)%'\

@@ -7,6 +7,7 @@ Formatted: name (N), email (E), description (D), Files (F)
 N: Dru Lavigne
 D: Fix spelling and syntax
 F: *.md
+F: doc/*.md
 F: tools/doxygen.cfg.in
 F: man/pmc.8
 
