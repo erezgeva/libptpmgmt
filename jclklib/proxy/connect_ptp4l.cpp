@@ -41,12 +41,6 @@ static SockBase *sk;
 
 static std::unique_ptr<SockBase> m_sk;
 
-struct port_info {
-    PortIdentity_t portid;
-    int64_t master_offset;
-    bool local;
-};
-
 int epd;
 portState_e portState;
 struct epoll_event epd_event;

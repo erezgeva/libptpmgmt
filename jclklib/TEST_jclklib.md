@@ -7,7 +7,7 @@ Test app <----> client runtime(libjclk.so) <----> jclklib_proxy <----> libptpmgm
 # How to Clone and Build the Intel Customized Linux PTP:
 
 We have applied several patches to the latest version of Linux PTP project
-(https://git.code.sf.net/p/linuxptp/code), including servo state notify event.
+(https://git.code.sf.net/p/linuxptp/code), including permanent subscription.
 The repository with our custom changes can be found at
 https://github.com/intel-staging/linux-ptp_iaclocklib. It should be used
 together with this Clock Manager application.
@@ -61,15 +61,14 @@ Jclkib.so is communicating with jclklib_proxy using message queue.
 
 5. Build the application:
     ```bash
-    autoheader
-    autoconf
+    autoreconf -i
     ./configure
     make
     ```
 
 6. Outcome : you must have 3 binaries created:
     ```bash
-    libptpmgmt.so
+    .libs/libptpmgmt.so
     jclklib/client/libjclk.so
     jclklib/proxy/jclklib_proxy
     ```
@@ -101,7 +100,7 @@ reference.
 1. Run the Intel customized ptp4l application:
     ```bash
     cd linux-ptp_iaclocklib
-    sudo ./ptp4l -i <interface name>
+    sudo ./ptp4l -i <interface name> -f configs/igc.cfg
     ```
 
 2. Run the jclk_proxy application:
@@ -176,9 +175,9 @@ Lower Master Offset: -100000 ns
 
 Note :
 ```bash
-In the absence of a Grandmaster (GM), the master offset defaults to 0, which
+In the absence of a primary clock (GM), the clock offset defaults to 0, which
 it's anticipated that the offset_in_range event will be TRUE. Consequently,
-the servo_locked event is used to ensure that the offset_in_range event
-indicates either a high-quality clock synchronization (in-sync) or that the
-master has been terminated (out-of-sync).
+the synced_to_primary_clock event is used to ensure that the offset_in_range
+event indicates either a high-quality clock synchronization (in-sync) or that
+the primary clock is not present (out-of-sync).
 ```

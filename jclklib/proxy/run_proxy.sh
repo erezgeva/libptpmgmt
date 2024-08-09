@@ -9,6 +9,6 @@
 ###############################################################################
 
 SCRIPT_PATH="$(dirname "$0")"
-TEST_PATH="${SCRIPT_PATH}/../.."
+TEST_PATH="${SCRIPT_PATH}/../../.libs"
 
 LD_LIBRARY_PATH=$TEST_PATH $SCRIPT_PATH/jclklib_proxy
