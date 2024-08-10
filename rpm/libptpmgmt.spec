@@ -208,6 +208,7 @@ autoreconf -i
 %{_includedir}/*
 %{_libdir}/%{name}*.a
 %{_libdir}/%{name}*.so
+%{_libdir}/pkgconfig
 %{_datadir}/doc/%{name}-devel/*
 
 %files doc

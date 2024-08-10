@@ -11,11 +11,12 @@
 
 AC_COPYRIGHT([Copyright © 2022 Erez Geva])
 AC_PREREQ([2.71])
-m4_define([ptpm_VER], m4_esyscmd_s([. ./tools/version && echo "$ver_maj.$ver_min"]))
+m4_define([ptpm_VER],
+          m4_esyscmd_s([. ./tools/version && printf '%s' "$ver_maj.$ver_min"]))
 AC_INIT([libptpmgmt], m4_defn([ptpm_VER]), [],
         [libptpmgmt-]m4_defn([ptpm_VER]),
         [https://libptpmgmt.nwtime.org])
-m4_define([ptpm_dquote], ["]) dnl "
+m4_define([ptpm_dqt], m4_esyscmd_s([printf '"']))
 
 #----------------------------------------------------------------
 # Start
@@ -58,12 +59,14 @@ AC_DEFUN([PTPM_DIR_TEST], [test -d $1])
 AC_DEFUN([PTPM_SYMBOLIC_LINK_TEST], [test -h $1])
 AC_DEFUN([PTPM_GREATER_OR_EQUAL_TEST], [test ${$1} -ge $2])
 AC_DEFUN([PTPM_GREP_TEST],
-         [AS_ECHO(["${$1}"]) | $GREP $2 PTPM_DUMP_ALL])
+         [AS_ECHO_N(["${$1}"]) | $GREP $2 PTPM_DUMP_ALL])
 AC_DEFUN([PTPM_NOT_GREP_TEST],
-         [AS_ECHO(["${$1}"]) | $GREP -v $2 PTPM_DUMP_ALL])
+         [AS_ECHO_N(["${$1}"]) | $GREP -v $2 PTPM_DUMP_ALL])
 dnl Source shell script
 AC_DEFUN([PTPM_SOURCE], [. $1])
-dnl AS_VAR_SET_IF condition is PTPM_VAR_SET_TEST
+dnl Similar to AS_VAR_SET_IF except to set and empty
+AC_DEFUN([PTPM_VAR_SET_IF],
+         [AS_IF([PTPM_VAR_SET_TEST([$1])], [$2], [$3])])
 dnl Not AS_VAR_SET_IF, Variable is empty
 AC_DEFUN([PTPM_VAR_EMPTY_IF],
          [AS_IF([PTPM_VAR_EMPTY_TEST([$1])], [$2], [$3])])
@@ -83,7 +86,7 @@ AC_DEFUN([PTPM_DIR_IF],
 dnl general
 AC_DEFUN([PTPM_VAR_SED_COPY],
          [AS_VAR_SET([$1],
-                     ["`AS_ECHO(["${$2}"]) | $SED $3 PTPM_DUMP_ERR`"])])
+                     ["`AS_ECHO_N(["${$2}"]) | $SED $3 PTPM_DUMP_ERR`"])])
 AC_DEFUN([PTPM_MSG_RESULT],
          [AS_IF([PTPM_VAR_EMPTY_TEST([$1])], [AC_MSG_RESULT([not found])],
          [AC_MSG_RESULT([${$1}])])])
@@ -91,8 +94,8 @@ AC_DEFUN([PTPM_BASENAME],
          [AS_VAR_SET([$1], ["`expr "X$2" : 'X.*/\(.*\)'`"])])
 AC_DEFUN([PTPM_CROSS],
          [AS_IF([PTPM_VAR_TEST([cross_compiling], ['yes']) &&\
-                 { PTPM_GREP_TEST([$1], ["$build_cpu"]); }],
-         [PTPM_VAR_SED_COPY([$1], [$1], ["s%$build_cpu%$host_cpu%"])])])
+                 PTPM_GREP_TEST([$1], ["$build_cpu"])],
+         [PTPM_VAR_SED_COPY([$1], [$1], ["s%$build_cpu%$host_cpu%g"])])])
 AC_DEFUN([PTPM_FOR],
          [for $1 in $2
           do :
@@ -112,39 +115,59 @@ AC_DEFUN([PTPM_COUNT_WORDS],
                    [AS_VAR_ARITH([$1], [${$1} + 1])])])
 AC_DEFUN([PTPM_LIB_PKG_CONFIG],
          [AS_IF([PTPM_VAR_SET_TEST([PKG_CONFIG]) &&\
-                { $PKG_CONFIG --version $3 PTPM_DUMP_ALL ; } ],
+                $PKG_CONFIG --exists $2],
                 [AS_VAR_SET([$1_INC_FLAGS],
                             ["`$PKG_CONFIG --cflags $2 PTPM_DUMP_ERR`"])
                  AS_VAR_SET([$1_LIB_FLAGS],
                             ["`$PKG_CONFIG --libs $2 PTPM_DUMP_ERR`"])])])
 AC_DEFUN([PTPM_VAR_PKG_CONFIG],
          [AS_IF([PTPM_VAR_SET_TEST([PKG_CONFIG]) &&\
-                { $PKG_CONFIG --version $3 PTPM_DUMP_ALL ; } ],
+                $PKG_CONFIG --exists $3],
                 [AS_VAR_SET([$1],
                             ["`$PKG_CONFIG --variable=$2 $3 PTPM_DUMP_ERR`"])])])
 dnl globals
 AS_VAR_SET([ptpm_c_include], ['#include'])
-AS_VAR_SET([ptpm_includedir], ["`eval "echo $includedir"`"])
-AS_VAR_SET([ptpm_libdir], ["`eval "echo $libdir"`"])
-AS_VAR_SET([ptpm_libexecdir], ["`eval "echo $libexecdir"`"])
-dnl if ptpm_libexecdir == ptpm_libdir unset it
-AS_VAR_IF([ptpm_libexecdir], ["$ptpm_libdir"], [AS_UNSET([ptpm_libexecdir])])
+AS_VAR_IF([prefix], ['NONE'],
+          [AS_VAR_SET([ptpm_prefix], ['/usr'])],
+          [AS_VAR_COPY([ptpm_prefix], [prefix])])
+AS_IF([PTPM_VAR_TEST([exec_prefix], ['NONE']) ||\
+       PTPM_VAR_TEST([prefix], ['NONE'])],
+      [AS_VAR_SET([ptpm_n1], ['${exec_prefix}'])
+       AS_VAR_SET([ptpm_n2], ['${prefix}'])
+       PTPM_VAR_SED_COPY([ptpm_libdir], [libdir],
+                         ["s%$ptpm_n1%$ptpm_prefix%;s%$ptpm_n2%$ptpm_prefix%"])
+       PTPM_VAR_SED_COPY([ptpm_libexecdir], [libexecdir],
+                         ["s%$ptpm_n1%$ptpm_prefix%;s%$ptpm_n2%$ptpm_prefix%"])
+       PTPM_VAR_SED_COPY([ptpm_includedir], [includedir],
+                         ["s%$ptpm_n1%$ptpm_prefix%;s%$ptpm_n2%$ptpm_prefix%"])],
+      [AS_VAR_COPY([ptpm_libdir], [libdir])
+       AS_VAR_COPY([ptpm_libexecdir], [libexecdir])
+       AS_VAR_COPY([ptpm_includedir], [includedir])])
+AS_VAR_SET([ptpm_libdir], ["`eval "AS_ECHO_N([$ptpm_libdir])"`"])
+AS_VAR_SET([ptpm_libexecdir], ["`eval "AS_ECHO_N([$ptpm_libexecdir])"`"])
+AS_VAR_SET([ptpm_includedir], ["`eval "AS_ECHO_N([$ptpm_includedir])"`"])
+AS_VAR_COPY([ptpm_lib_dirs], [ptpm_libdir])
+dnl common locations for libraries
+PTPM_FOR([d], [$ptpm_libexecdir /usr/lib /usr/local/lib /opt/local/lib],
+         [PTPM_VAR_ELSE_IF([ptpm_libdir], ["$d"],
+                           [AS_VAR_APPEND([ptpm_lib_dirs], [" $d"])])])
 AS_VAR_COPY([ptpm_include_dirs], [ptpm_includedir])
+dnl common locations for headers
 PTPM_FOR([d], [/usr/include /usr/local/include /opt/local/include],
          [PTPM_VAR_ELSE_IF([ptpm_includedir], ["$d"],
-                           [AS_VAR_APPEND([ptpm_include_dirs],
-                                          [" $d"])])])
+                           [AS_VAR_APPEND([ptpm_include_dirs], [" $d"])])])
 AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 
 #----------------------------------------------------------------
 # Tools
 AC_CHECK_TOOL([DATE], [date])
-AS_VAR_SET_IF([DATE],
-              [AS_VAR_SET([ptpm_date], ["`$DATE "+%s"`"])
-               AS_VAR_IF([ptpm_date], ['%s'], [AS_UNSET([DATE])])])
+PTPM_VAR_SET_IF([DATE],
+                [AS_VAR_SET([ptpm_date], ["`$DATE "+%s"`"])
+                 AS_VAR_IF([ptpm_date], ['%s'], [AS_UNSET([DATE])])])
 
 AS_UNSET([ptpm_astylever])
 AS_UNSET([ptpm_doxygenver])
+AS_UNSET([PKG_CONFIG_DIR])
 AS_UNSET([ASTYLE_MINVER])
 AS_UNSET([DOXYGEN_MINVER])
 AS_UNSET([CPPCHECK_OPT_BASE])
@@ -154,9 +177,17 @@ AC_CHECK_TOOLS([CTAGS], [ctags ctags-exuberant])
 AC_CHECK_TOOLS([READLINK], [readlink])
 AC_CHECK_TOOL([LDD], [ldd])
 AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
+PTPM_VAR_SET_IF([PKG_CONFIG],
+    [PTPM_FOR([d],
+          [`$PKG_CONFIG --variable pc_path pkg-config |\
+            $SED 's%:% %g' PTPM_DUMP_ERR`],
+          [PTPM_CROSS([d])
+           AS_IF([PTPM_GREP_TEST([d], ["^$ptpm_libdir"])],
+                 [AS_VAR_COPY([PKG_CONFIG_DIR], [d])
+                  PTPM_FOR_BREAK])])])
 AC_CHECK_TOOL([ASTYLE], [astyle])
 AC_MSG_CHECKING([for astyle version])
-AS_VAR_SET_IF([ASTYLE],
+PTPM_VAR_SET_IF([ASTYLE],
       [PTPM_FOR([d], [`$ASTYLE -V PTPM_DUMP_ERR`])
        AS_VAR_COPY([ptpm_astylever], [d])])
 PTPM_MSG_RESULT([ptpm_astylever])
@@ -171,7 +202,7 @@ AS_VERSION_COMPARE([3.2], [$ptpm_astylever],
 
 PTPM_MSG_RESULT([ASTYLE_MINVER])
 AC_CHECK_TOOL([CPPCHECK], [cppcheck])
-AS_VAR_SET_IF([CPPCHECK],
+PTPM_VAR_SET_IF([CPPCHECK],
       dnl Ignore C error pre-compile
       [AS_VAR_SET([CPPCHECK_OPT_BASE],
                   ["--suppress=preprocessorErrorDirective"])
@@ -183,7 +214,7 @@ AS_VAR_SET_IF([CPPCHECK],
                          ["$CPPCHECK_OPT_BASE --check-level=exhaustive"])])])
 AC_CHECK_TOOL([DOXYGEN], [doxygen])
 AC_MSG_CHECKING([for doxygen version])
-AS_VAR_SET_IF([DOXYGEN],
+PTPM_VAR_SET_IF([DOXYGEN],
       [AS_VAR_SET([ptpm_doxygenver], ["`$DOXYGEN -v PTPM_DUMP_ERR`"])])
 PTPM_MSG_RESULT([ptpm_doxygenver])
 AC_MSG_CHECKING([for doxygen minimum version])
@@ -197,6 +228,7 @@ AC_CHECK_TOOL([DOTTOOL], [dot])
 AC_CHECK_TOOL([EPSTOPDF_TOOL], [epstopdf])
 AC_CHECK_TOOL([VALGRIND], [valgrind])
 
+AC_SUBST([PKG_CONFIG_DIR])
 AC_SUBST([ASTYLE_MINVER])
 AC_SUBST([DOXYGEN_MINVER])
 AC_SUBST([CPPCHECK_OPT_BASE])
@@ -360,9 +392,9 @@ AC_SUBST([SKIP_LIBSYS])
 AS_UNSET([ASAN_LIBS])
 
 AS_VAR_COPY([ptpm_keep_ldflags], [LDFLAGS])
-AS_VAR_SET([ptpm_san], [m4_defn([ptpm_dquote])m4_map_args_w([address
+AS_VAR_SET([ptpm_san], [m4_defn([ptpm_dqt])m4_map_args_w([address
             pointer-compare pointer-subtract undefined leak],
-            [-fsanitize=], [], [ ])m4_defn([ptpm_dquote])])
+            [-fsanitize=], [], [ ])m4_defn([ptpm_dqt])])
 
 AS_VAR_APPEND([CPPFLAGS], [" $ptpm_san"])
 AS_VAR_APPEND([LDFLAGS], [" $ptpm_san"])
@@ -371,8 +403,8 @@ AC_MSG_CHECKING([for Address Sanitizer libraries])
 AC_LINK_IFELSE(
    [AC_LANG_PROGRAM],
    [AS_VAR_SET([ASAN_LIBS],
-               ["`$LDD conftest$EXEEXT | $GREP 'san.so' | $SED 's%=>.*%%;s%\n%%' |\
-                  tr '\n' ' ' PTPM_DUMP_ERR`"])
+               ["`$LDD conftest$EXEEXT | $GREP 'san.so' |\
+                  $SED 's%=>.*%%;s%\n%%' | tr '\n' ' ' PTPM_DUMP_ERR`"])
     AC_MSG_RESULT([$ASAN_LIBS])],
    [AC_MSG_RESULT([no])])
 
@@ -398,7 +430,7 @@ AS_UNSET([NETTLE_INC_FLAGS])
 AS_UNSET([NETTLE_LIB_FLAGS])
 
 AC_CHECK_HEADER([openssl/crypto.h], [AS_VAR_SET([HAVE_SSL_HEADER], [1])])
-AS_VAR_SET_IF([HAVE_SSL_HEADER],
+PTPM_VAR_SET_IF([HAVE_SSL_HEADER],
       [PTPM_LIB_PKG_CONFIG([SSL], [libcrypto])
        AC_CHECK_LIB([crypto], [main],
                     [PTPM_VAR_EMPTY_IF([SSL_LIB_FLAGS],
@@ -408,7 +440,7 @@ AS_VAR_SET_IF([HAVE_SSL_HEADER],
        PTPM_CROSS([SSL_LIB_FLAGS])])
 
 AC_CHECK_HEADER([gcrypt.h], [AS_VAR_SET([HAVE_GCRYPT_HEADER], [1])])
-AS_VAR_SET_IF([HAVE_GCRYPT_HEADER],
+PTPM_VAR_SET_IF([HAVE_GCRYPT_HEADER],
       [PTPM_LIB_PKG_CONFIG([GCRYPT], [libgcrypt])
        AC_CHECK_LIB([crypto], [main],
                     [PTPM_VAR_EMPTY_IF([GCRYPT_LIB_FLAGS],
@@ -418,7 +450,7 @@ AS_VAR_SET_IF([HAVE_GCRYPT_HEADER],
        PTPM_CROSS([GCRYPT_LIB_FLAGS])])
 
 AC_CHECK_HEADER([gnutls/crypto.h], [AS_VAR_SET([HAVE_GNUTLS_HEADER], [1])])
-AS_VAR_SET_IF([HAVE_GNUTLS_HEADER],
+PTPM_VAR_SET_IF([HAVE_GNUTLS_HEADER],
       [PTPM_LIB_PKG_CONFIG([GNUTLS], [gnutls])
        AC_CHECK_LIB([gnutls], [gnutls_global_init],
                     [PTPM_VAR_EMPTY_IF([GNUTLS_LIB_FLAGS],
@@ -428,7 +460,7 @@ AS_VAR_SET_IF([HAVE_GNUTLS_HEADER],
        PTPM_CROSS([GNUTLS_LIB_FLAGS])])
 
 AC_CHECK_HEADER([nettle/hmac.h], [AS_VAR_SET([HAVE_NETTLE_HEADER], [1])])
-AS_VAR_SET_IF([HAVE_NETTLE_HEADER],
+PTPM_VAR_SET_IF([HAVE_NETTLE_HEADER],
       [PTPM_LIB_PKG_CONFIG([NETTLE], [nettle])
        AC_CHECK_LIB([nettle], [main],
                     [PTPM_VAR_EMPTY_IF([NETTLE_LIB_FLAGS],
@@ -509,9 +541,9 @@ AS_UNSET([PACKAGE_VERSION_MAJ])
 AS_UNSET([PACKAGE_VERSION_MIN])
 AS_UNSET([PACKAGE_VERSION_VAL])
 
-PTPM_SOURCE([./tools/version])
 AC_MSG_CHECKING([for package version string])
 PTPM_MSG_RESULT([PACKAGE_VERSION])
+PTPM_SOURCE([./tools/version])
 AC_MSG_CHECKING([for package version major])
 AS_VAR_COPY([PACKAGE_VERSION_MAJ], [ver_maj])
 PTPM_MSG_RESULT([PACKAGE_VERSION_MAJ])
@@ -591,7 +623,7 @@ AS_VAR_IF([ptpm_swigbin], ['no'],
    AS_VAR_SET([SWIGLIB], ["`$SWIG -swiglib PTPM_DUMP_ERR`"])
    PTPM_MSG_RESULT([SWIGLIB])
 
-   AS_VAR_SET_IF([SWIGLIB],
+   PTPM_VAR_SET_IF([SWIGLIB],
          [AC_MSG_CHECKING([for swig argcargv])
           PTPM_NOT_FILE_IF(["$SWIGLIB/go/argcargv.i"],
                 [AS_VAR_SET([SWIG_ARGCARGV_GO], ['true'])])
@@ -645,11 +677,11 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
    AC_MSG_CHECKING([for Tcl configuration])
 
    dnl First check to use --with-tclconfig value
-   AS_VAR_SET_IF([ptpm_with_tclconfig],
+   PTPM_VAR_SET_IF([ptpm_with_tclconfig],
      [PTPM_FILE_IF(["$ptpm_with_tclconfig/tclConfig.sh"],
             [AS_VAR_COPY([ptpm_tclconfig], [ptpm_with_tclconfig])],
             [AC_MSG_ERROR([$with_tcl folder does not contain tclConfig.sh])])])
-   AS_VAR_SET_IF([ptpm_tclincdir],
+   PTPM_VAR_SET_IF([ptpm_tclincdir],
      [PTPM_DIR_IF(["$ptpm_tclincdir"],
             [AS_VAR_SET([TCL_INC_FLAGS], ["-I$ptpm_tclincdir"])],
             [AC_MSG_ERROR([$ptpm_tclincdir folder for headers does not exist])])])
@@ -657,9 +689,9 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
    dnl Use pkg-config to fetch TCL_INC_FLAGS
    AS_IF([PTPM_VAR_EMPTY_TEST([ptpm_tclconfig]) &&\
           PTPM_VAR_EMPTY_TEST([TCL_INC_FLAGS])],
-         [AS_VAR_SET_IF([TCLSH],
+         [PTPM_VAR_SET_IF([TCLSH],
                         [AS_VAR_SET([ptpm_tclver],
-                                    [`printf 'puts $tcl_version' |\
+                                    [`AS_ECHO_N(['puts $tcl_version']) |\
                                       $TCLSH PTPM_DUMP_ERR`])])
           PTPM_LIB_PKG_CONFIG([TCL], [tcl$ptpm_tclver])
           AS_IF([PTPM_VAR_EMPTY_TEST([TCL_INC_FLAGS]) &&\
@@ -670,7 +702,7 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
    AS_IF([PTPM_VAR_EMPTY_TEST([ptpm_tclconfig]) &&\
           PTPM_VAR_SET_TEST([TCLSH])],
      [AS_VAR_SET([ptpm_tclconfig],
-                 ["`printf 'puts [[::tcl::pkgconfig get libdir,install]]' |\
+                 ["`AS_ECHO_N(['puts [[::tcl::pkgconfig get libdir,install]]']) |\
                     $TCLSH PTPM_DUMP_ERR`"])
       PTPM_CROSS([ptpm_tclconfig])
       PTPM_NOT_FILE_IF(["$ptpm_tclconfig/tclConfig.sh"],
@@ -679,7 +711,7 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
    dnl check in a few common install locations, as last resort
    PTPM_VAR_EMPTY_IF([ptpm_tclconfig],
      [AS_UNSET([ptpm_dirs])
-      PTPM_FOR([d], [$ptpm_libdir $ptpm_libexecdir /usr/lib /usr/local/lib],
+      PTPM_FOR([d], [$ptpm_lib_dirs],
                [AS_VAR_APPEND([ptpm_dirs], [" $d*/ $d*/tcl*/"])])
       PTPM_FOR([d], [$ptpm_dirs],
         [PTPM_FOR([i], [`ls -d -r $d PTPM_DUMP_ERR`],
@@ -720,7 +752,7 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
 
       PTPM_VAR_EMPTY_IF([ptpm_tclver],
             [AS_VAR_COPY([ptpm_tclver], [TCL_VERSION])])
-      AS_VAR_SET_IF([TCL_PACKAGE_PATH],
+      PTPM_VAR_SET_IF([TCL_PACKAGE_PATH],
         [AS_VAR_COPY([ptpm_tcl_package_path], [TCL_PACKAGE_PATH])
          PTPM_CROSS([ptpm_tcl_package_path])
          dnl Try first folder under main libdir
@@ -747,7 +779,7 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
                    PTPM_FOR_BREAK])])])])
 
    AC_MSG_CHECKING([for Tcl version])
-   AS_VAR_SET_IF([ptpm_tclver],
+   PTPM_VAR_SET_IF([ptpm_tclver],
          [AS_VERSION_COMPARE([8.0], [$ptpm_tclver],
                              dnl above 8.0
                              [AS_VAR_COPY([TCL_MINVER], [ptpm_tclver])],
@@ -767,6 +799,8 @@ AC_SUBST([TCL_SITE])
 #----------------------------------------------------------------
 # Python 3
 AS_VAR_SET([ptpm_py3majorver], [0])
+AS_UNSET([PY3_BIN])
+AS_UNSET([PY3_CFG])
 AS_UNSET([PY3_VER])
 AS_UNSET([PY3_SITE])
 AS_UNSET([PY3_INC_FLAGS])
@@ -787,45 +821,47 @@ AS_VAR_IF([ptpm_py3bin], ['no'],
       PTPM_LOOP_RANGE([d], [15], [-1], [2],
                       [AS_VAR_APPEND([ptpm_py_vers], [" 3.$d"])])
       PTPM_FOR([d], [$ptpm_py_vers ''],
-        [AC_CHECK_PROGS([ptpm_python3], [python$d])
-         AS_VAR_SET_IF([ptpm_python3],
-               [AC_CHECK_PROGS([ptpm_py3config], [$ptpm_python3-config])
-                AS_VAR_SET_IF([ptpm_py3config], [PTPM_FOR_BREAK])])])],
-     [AS_VAR_COPY([ptpm_python3], [ptpm_py3bin])
-      AC_CHECK_PROGS([ptpm_py3config], [$ptpm_python3-config])])
+        [AC_CHECK_TOOLS([PY3_BIN], [python$d])
+         PTPM_VAR_SET_IF([PY3_BIN],
+               [AC_CHECK_TOOLS([PY3_CFG], [$PY3_BIN-config])
+                PTPM_VAR_SET_IF([PY3_CFG], [PTPM_FOR_BREAK])])])],
+     [AS_IF([$ptpm_py3bin --version | $GREP -i Python PTPM_DUMP_ALL],
+            [AS_VAR_COPY([PY3_BIN], [ptpm_py3bin])
+             AC_CHECK_TOOLS([PY3_CFG], [$PY3_BIN-config])],
+            [AC_MSG_ERROR([$ptpm_py3bin python tool is unavailable])])])
 
-   AS_VAR_SET_IF([ptpm_python3],
-         [AC_MSG_CHECKING([for $ptpm_python3 major version number])
+   PTPM_VAR_SET_IF([PY3_BIN],
+         [AC_MSG_CHECKING([for $PY3_BIN major version number])
           AS_VAR_SET([ptpm_py3majorver],
-                     ["`$ptpm_python3 -c "import sys;\
+                     ["`$PY3_BIN -c "import sys;\
                         print(sys.version_info.major)" PTPM_DUMP_ERR`"])
           AC_MSG_RESULT([$ptpm_py3majorver])])
    PTPM_VAR_EMPTY_IF([ptpm_py3majorver], [AS_VAR_SET([ptpm_py3majorver], [0])])
 
    AS_IF([PTPM_GREATER_OR_EQUAL_TEST([ptpm_py3majorver], [3]) &&\
-          PTPM_VAR_SET_TEST([ptpm_py3config])],
+          PTPM_VAR_SET_TEST([PY3_CFG])],
      [AC_MSG_CHECKING([for python3 version])
       AS_VAR_SET([PY3_VER],
-                 ["`$ptpm_python3 -c "import sys;print('%d.%d' %\
+                 ["`$PY3_BIN -c "import sys;print('%d.%d' %\
                     (sys.version_info.major, sys.version_info.minor))"\
                     PTPM_DUMP_ERR`"])
       PTPM_MSG_RESULT([PY3_VER])
       AS_VAR_SET([ptpm_py3verkey], ["python$PY3_VER"])
 
       AS_VAR_SET([ptpm_dirs],
-                 ["`$ptpm_python3 -c "import site;print('\n'.join(\
+                 ["`$PY3_BIN -c "import site;print('\n'.join(\
                     site.getsitepackages()))" PTPM_DUMP_ERR`"])
       PTPM_CROSS([ptpm_dirs])
       AC_MSG_CHECKING([for python3 site folder])
       PTPM_FOR([d], [$ptpm_dirs],
-        [AS_IF([ { PTPM_GREP_TEST([d], ["^$ptpm_libdir"]) ; } &&\
-                 { PTPM_GREP_TEST([d], [$ptpm_py3verkey]) ; } ],
+        [AS_IF([PTPM_GREP_TEST([d], ["^$ptpm_libdir"]) &&\
+                PTPM_GREP_TEST([d], [$ptpm_py3verkey])],
                [AS_VAR_COPY([PY3_SITE], [d])
                 PTPM_FOR_BREAK])])
       PTPM_VAR_EMPTY_IF([PY3_SITE],
             [PTPM_FOR([d], [$ptpm_dirs],
-               [AS_IF([ { PTPM_NOT_GREP_TEST([d], ["/local/"]) ; } &&\
-                        { PTPM_GREP_TEST([d], [$ptpm_py3verkey]) ; } ],
+               [AS_IF([PTPM_NOT_GREP_TEST([d], ["/local/"]) &&\
+                       PTPM_GREP_TEST([d], [$ptpm_py3verkey])],
                       [AS_VAR_COPY([PY3_SITE], [d])
                        PTPM_FOR_BREAK])])])
       PTPM_VAR_EMPTY_IF([PY3_SITE],
@@ -839,20 +875,22 @@ AS_VAR_IF([ptpm_py3bin], ['no'],
       PTPM_LIB_PKG_CONFIG([PY3], [python3])
       PTPM_VAR_EMPTY_IF([RUBY_INC_FLAGS],
             [AS_VAR_SET([PY3_INC_FLAGS],
-                        ["`$ptpm_py3config --includes PTPM_DUMP_ERR`"])])
+                        ["`$PY3_CFG --includes PTPM_DUMP_ERR`"])])
       PTPM_CROSS([PY3_INC_FLAGS])
       PTPM_MSG_RESULT([PY3_INC_FLAGS])
 
       AC_MSG_CHECKING([for python3 linking])
-      AS_VAR_SET([PY3_LIB_FLAGS], ["`$ptpm_py3config --libs PTPM_DUMP_ERR`"])
+      AS_VAR_SET([PY3_LIB_FLAGS], ["`$PY3_CFG --libs PTPM_DUMP_ERR`"])
       PTPM_CROSS([PY3_LIB_FLAGS])
       PTPM_MSG_RESULT([PY3_LIB_FLAGS])
 
       AC_MSG_CHECKING([for python3 extension suffix])
-      AS_VAR_SET([PY3_EXT], ["`$ptpm_py3config --extension-suffix PTPM_DUMP_ERR`"])
+      AS_VAR_SET([PY3_EXT], ["`$PY3_CFG --extension-suffix PTPM_DUMP_ERR`"])
       PTPM_CROSS([PY3_EXT])
       PTPM_MSG_RESULT([PY3_EXT])])])
 
+AC_SUBST([PY3_BIN])
+AC_SUBST([PY3_CFG])
 AC_SUBST([PY3_VER])
 AC_SUBST([PY3_SITE])
 AC_SUBST([PY3_INC_FLAGS])
@@ -879,14 +917,15 @@ AC_ARG_WITH([perl5],
 AS_VAR_IF([ptpm_perlbin], ['no'],
   [AC_MSG_NOTICE([Disabling Perl5])],
   [AS_VAR_IF([ptpm_perlbin], ['yes'],
-         [AC_CHECK_PROGS([PERL], [perl perl5])],
+         [AC_CHECK_TOOLS([PERL], [perl perl5])],
          [AS_VAR_COPY([PERL], [ptpm_perlbin])])
    AC_MSG_CHECKING([for Perl5 confiuration])
-   AS_VAR_SET_IF([PERL],
+   PTPM_VAR_SET_IF([PERL],
      [AS_VAR_SET([PERL5_VER],
                  ["`$PERL -e 'print "$^V"' | $SED 's%^v%%' PTPM_DUMP_ERR`"])
       AS_VAR_SET([ptpm_perl_dir],
-                 ["`$PERL -MConfig -le 'print $Config{archlibexp}' PTPM_DUMP_ERR`"])
+                 ["`$PERL -MConfig -le 'print $Config{archlibexp}'\
+                    PTPM_DUMP_ERR`"])
       AS_IF([PTPM_SYMBOLIC_LINK_TEST(["$ptpm_perl_dir"]) &&\
              PTPM_VAR_SET_TEST([READLINK])],
             [AS_VAR_SET([PERL5_SITE],
@@ -944,15 +983,16 @@ AC_ARG_WITH([ruby],
             [AS_VAR_COPY([ptpm_rubybin], [withval])],
             [AS_VAR_COPY([ptpm_rubybin], [ptpm_alllang_default])])
 
-dnl configuration comes from /usr/lib/*/ruby/*/rbconfig.rb
+dnl configuration comes from rbconfig.rb
 AS_VAR_IF([ptpm_rubybin], ['no'],
   [AC_MSG_NOTICE([Disabling Ruby])],
   [AS_VAR_IF([ptpm_rubybin], ['yes'],
-         [AC_CHECK_PROGS([RUBY], [ruby])],
+         [AC_CHECK_TOOLS([RUBY], [ruby])],
          [AS_VAR_COPY([RUBY], [ptpm_rubybin])])
    AC_MSG_CHECKING([for Ruby version])
-   AS_VAR_SET_IF([RUBY],
-     [AS_VAR_SET([RUBY_VER], ["`$RUBY -e 'v=RUBY_VERSION;print v' PTPM_DUMP_ERR`"])
+   PTPM_VAR_SET_IF([RUBY],
+     [AS_VAR_SET([RUBY_VER],
+                 ["`$RUBY -e 'v=RUBY_VERSION;print v' PTPM_DUMP_ERR`"])
       PTPM_MSG_RESULT([RUBY_VER])
       AS_VAR_SET([ptpm_ruby_mver],
                  ["`$RUBY -e 'v=RUBY_VERSION.match %r%^(\d+\.\d+)%'\
@@ -980,7 +1020,8 @@ AS_VAR_IF([ptpm_rubybin], ['no'],
              PTPM_VAR_EMPTY_TEST([RUBY_LIB_FLAGS])],
             [AS_VAR_SET([ptpm_rubyhdrdir],
                         ["`$RUBY -rrbconfig -e\
-                          'print RbConfig::CONFIG[["rubyhdrdir"]]' PTPM_DUMP_ERR`"])
+                          'print RbConfig::CONFIG[["rubyhdrdir"]]'\
+                          PTPM_DUMP_ERR`"])
              AS_IF([PTPM_VAR_SET_TEST([ptpm_rubyhdrdir]) &&\
                     PTPM_FILE_TEST(["$ptpm_rubyhdrdir/ruby.h"])],
                    [AS_VAR_SET([RUBY_INC_FLAGS],
@@ -1021,6 +1062,7 @@ AC_SUBST([RUBY_LIB_FLAGS])
 AS_UNSET([ptpm_phpbin])
 AS_UNSET([ptpm_phpdir])
 AS_UNSET([PHP])
+AS_UNSET([PHP_CFG])
 AS_UNSET([PHP_VER])
 AS_UNSET([PHP_SITE])
 AS_UNSET([PHP_INCDIR])
@@ -1041,19 +1083,18 @@ AS_VAR_IF([ptpm_phpbin], ['no'],
                           [AS_VAR_APPEND([ptpm_php_vers], [" php8.$d"])])
           AS_VAR_APPEND([ptpm_php_vers],
                         [" php7.4 php7.3 php7.2 php7.1 php7.0 php"])
-          AC_CHECK_PROGS([PHP], [$ptpm_php_vers])],
+          AC_CHECK_TOOLS([PHP], [$ptpm_php_vers])],
          [AS_VAR_COPY([PHP], [ptpm_phpbin])])
-   AS_VAR_SET_IF([PHP],
+   PTPM_VAR_SET_IF([PHP],
      [AS_CASE([$PHP],
-              [*7.*],
-              [PTPM_VAR_SED_COPY([ptpm_phpconfig], [PHP], ['s%7\..*$%-config&%'])],
-              [*8.*],
-              [PTPM_VAR_SED_COPY([ptpm_phpconfig], [PHP], ['s%8\..*$%-config&%'])],
-              [AS_VAR_SET([ptpm_phpconfig], ["$PHP-config"])])
+              [php7.*|php8.*],
+              [PTPM_VAR_SED_COPY([ptpm_php_cfgver], [PHP],
+                                 ['s%[[78]]\..*$%-config&%'])],
+              [AS_VAR_SET([ptpm_php_cfgver], ["$PHP-config"])])
 
       AC_MSG_CHECKING([for PHP include folder])
       AS_VAR_SET([ptpm_dirs],
-                 ["`$PHP -r 'echo get_include_path();' | $SED 's%:% %g'\
+                 ["`$PHP -r 'print get_include_path();' | $SED 's%:% %g'\
                     PTPM_DUMP_ERR`"])
       PTPM_FOR([d], [$ptpm_dirs],
         [PTPM_VAR_ELSE_IF([d], ['.'],
@@ -1061,38 +1102,39 @@ AS_VAR_IF([ptpm_phpbin], ['no'],
                 PTPM_FOR_BREAK])])
       PTPM_MSG_RESULT([ptpm_phpdir])
 
-      AC_CHECK_PROGS([ptpm_phpconfig], [$ptpm_phpconfig php-config])
-      AS_VAR_SET_IF([ptpm_phpconfig],
+      AC_CHECK_TOOLS([PHP_CFG], [$ptpm_php_cfgver php-config])
+      PTPM_VAR_SET_IF([PHP_CFG],
         [AC_MSG_CHECKING([for PHP version])
-         AS_VAR_SET([PHP_VER], ["`$ptpm_phpconfig --version PTPM_DUMP_ERR`"])
+         AS_VAR_SET([PHP_VER], ["`$PHP_CFG --version PTPM_DUMP_ERR`"])
          PTPM_MSG_RESULT([PHP_VER])
 
          AC_MSG_CHECKING([for PHP extensions])
-         AS_VAR_SET([PHP_SITE], ["`$ptpm_phpconfig --extension-dir PTPM_DUMP_ERR`"])
+         AS_VAR_SET([PHP_SITE], ["`$PHP_CFG --extension-dir PTPM_DUMP_ERR`"])
          PTPM_MSG_RESULT([PHP_SITE])
 
          AC_MSG_CHECKING([for PHP headers base folder])
-         AS_VAR_SET([PHP_INCDIR], ["`$ptpm_phpconfig --include-dir PTPM_DUMP_ERR`"])
+         AS_VAR_SET([PHP_INCDIR], ["`$PHP_CFG --include-dir PTPM_DUMP_ERR`"])
          PTPM_MSG_RESULT([PHP_INCDIR])
 
          AC_MSG_CHECKING([for PHP header files])
          AS_CASE([$PHP_VER],
                  [7.*|8.*],
                  [AS_VAR_SET([ptpm_phpinc_flags],
-                             ["`$ptpm_phpconfig --includes PTPM_DUMP_ERR`"])
+                             ["`$PHP_CFG --includes PTPM_DUMP_ERR`"])
                   AS_VAR_SET([ptpm_sub], ['${PHP_INCDIR}'])
-                  AS_VAR_SET_IF([ptpm_phpinc_flags],
+                  PTPM_VAR_SET_IF([ptpm_phpinc_flags],
                         [PTPM_VAR_SED_COPY([PHP_INC_FLAGS], [ptpm_phpinc_flags],
                                            ["s%$PHP_INCDIR%$ptpm_sub%g"])])
                   PTPM_MSG_RESULT([PHP_INC_FLAGS])],
                  [''],
-                 [AS_VAR_SET([msg], ["could not find $ptpm_phpconfig or obtain"])
+                 [AS_VAR_SET([msg], ["could not find $PHP_CFG or obtain"])
                   AC_MSG_RESULT([$msg PHP version from it])],
                  [AC_MSG_RESULT([found PHP $PHP_VER - not PHP 7 or 8])])])
 
-      AC_CHECK_PROGS([PHP_UNIT], [phpunit])])])
+      AC_CHECK_TOOLS([PHP_UNIT], [phpunit])])])
 
 AC_SUBST([PHP])
+AC_SUBST([PHP_CFG])
 AC_SUBST([PHP_VER])
 AC_SUBST([PHP_SITE])
 AC_SUBST([PHP_INCDIR])
@@ -1101,6 +1143,7 @@ AC_SUBST([PHP_UNIT])
 
 #----------------------------------------------------------------
 # Lua
+AS_UNSET([ptpm_luabin])
 AS_UNSET([ptpm_luainclude])
 AS_UNSET([ptpm_lualib])
 AS_UNSET([LUA_BIN])
@@ -1125,8 +1168,8 @@ AC_ARG_WITH([lua],
             [AS_HELP_STRING([--without-lua], [Disable Lua])]
             [AS_HELP_STRING([--with-lua=path],
                             [Set location of Lua executable])],
-            [AS_VAR_COPY([LUA_BIN], [withval])],
-            [AS_VAR_COPY([LUA_BIN], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_luabin], [withval])],
+            [AS_VAR_COPY([ptpm_luabin], [ptpm_alllang_default])])
 AC_ARG_WITH([luaincl],
             [AS_HELP_STRING([--with-luaincl=path],
                             [Set location of Lua include directory])],
@@ -1136,20 +1179,22 @@ AC_ARG_WITH([lualib],
                             [Set location of Lua library directory])],
             [AS_VAR_COPY([ptpm_lualib], [withval])])
 
-AS_VAR_IF([LUA_BIN], ['no'],
-  [AC_MSG_NOTICE([Disabling Lua])
-   AS_UNSET([LUA_BIN])],
-  [AS_VAR_IF([LUA_BIN], ['yes'],
+AS_VAR_IF([ptpm_luabin], ['no'],
+  [AC_MSG_NOTICE([Disabling Lua])],
+  [AS_VAR_IF([ptpm_luabin], ['yes'],
      [AS_UNSET([ptpm_lua_vers])
       PTPM_LOOP_RANGE([d], [5], [-1], [1],
                       [AS_VAR_APPEND([ptpm_lua_vers], [" lua5.$d"])])
-      AC_PATH_PROGS([LUA_BIN], [$ptpm_lua_vers lua])])
-   AS_VAR_IF([LUA_BIN], ['yes'], [AS_UNSET([LUA_BIN])])
+      AC_CHECK_TOOLS([LUA_BIN], [$ptpm_lua_vers lua])],
+     [AS_IF([$ptpm_luabin -v | $GREP -i Lua PTPM_DUMP_ALL],
+            [AS_VAR_COPY([LUA_BIN], [ptpm_luabin])],
+            [AC_MSG_ERROR([$ptpm_luabin lua tool is unavailable])])])
 
    dnl Try to probe all Lua versions
    dnl Some systems like Debian have several
    AS_IF([PTPM_VAR_EMPTY_TEST([ptpm_luainclude]) &&\
           PTPM_VAR_EMPTY_TEST([ptpm_lualib])],
+         dnl TODO try: lua5.n.pc first
          [PTPM_FOR([d], [$ptpm_include_dirs],
             [PTPM_FOR([i], [$d/lua5.*],
                [PTPM_FILE_IF(["$i/lua.h"],
@@ -1162,11 +1207,11 @@ AS_VAR_IF([LUA_BIN], ['no'],
                              [AS_VAR_SET([LUA_UNIT_VERS],
                                          ["$LUA_UNIT_VERS $name"])])])])])])
 
-   AS_VAR_SET_IF([LUA_BIN],
+   PTPM_VAR_SET_IF([LUA_BIN],
      [AS_VAR_SET([lua_version],
                  ["`$LUA_BIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'\
                      PTPM_DUMP_ERR`"])
-      AS_VAR_SET_IF([LUA_VERS],
+      PTPM_VAR_SET_IF([LUA_VERS],
         [AS_IF([PTPM_NOT_GREP_TEST([LUA_VERS], ["$lua_version"])],
                [PTPM_FOR([d], [$ptpm_include_dirs],
                 [PTPM_FILE_IF(["$d/lua.h"],
@@ -1186,8 +1231,8 @@ AS_VAR_IF([LUA_BIN], ['no'],
                   AS_UNSET([LUA_BIN])])
 
          AC_MSG_CHECKING([for lua.h location])
-         AS_VAR_SET_IF([LUA_BIN],
-            [AS_VAR_SET_IF([ptpm_luainclude],
+         PTPM_VAR_SET_IF([LUA_BIN],
+            [PTPM_VAR_SET_IF([ptpm_luainclude],
               [AC_CHECK_FILE([$ptpm_luainclude/lua.h],
                  [AS_VAR_COPY([LUA_INC_FLAGS], [ptpm_luainclude])
                   AC_MSG_RESULT([$ptpm_luainclude/lua.h])],
@@ -1208,11 +1253,11 @@ AS_VAR_IF([LUA_BIN], ['no'],
                         [AC_MSG_RESULT([not found])
                          AS_UNSET([LUA_BIN])])])])])
 
-         AS_VAR_SET_IF([LUA_BIN],
-           [AS_VAR_SET_IF([LUA_INC_FLAGS],
+         PTPM_VAR_SET_IF([LUA_BIN],
+           [PTPM_VAR_SET_IF([LUA_INC_FLAGS],
                             [AS_VAR_SET([LUA_INC_FLAGS],
                                         ["-I$LUA_INC_FLAGS"])])
-            AS_VAR_SET_IF([ptpm_lualib],
+            PTPM_VAR_SET_IF([ptpm_lualib],
                   [AC_CHECK_FILE([$ptpm_lualib/liblua.so],
                                  [LUA_LIB_FLAGS="-L$ptpm_lualib -llua"],
                                  [AS_UNSET([LUA_BIN])])],
@@ -1266,7 +1311,7 @@ AS_VAR_IF([ptpm_go], ['no'],
   [AS_VAR_IF([ptpm_go], ['yes'],
          [AC_CHECK_TOOL([GO_BIN], [go])],
          [AS_VAR_COPY([GO_BIN], [ptpm_go])])
-   AS_VAR_SET_IF([GO_BIN],
+   PTPM_VAR_SET_IF([GO_BIN],
      [AS_VAR_SET([GOROOT],
                  ["`$GO_BIN env GOROOT`"])
       AS_VAR_SET([ptpm_gover],
@@ -1276,7 +1321,7 @@ AS_VAR_IF([ptpm_go], ['no'],
                          [AS_VAR_COPY([GO_MINVER], [ptpm_gover])], dnl above 1.18
                          [AS_VAR_COPY([GO_MINVER], [ptpm_gover])]) dnl equal 1.18
 
-      AS_VAR_SET_IF([USE_CROSS_COMPILE],
+      PTPM_VAR_SET_IF([USE_CROSS_COMPILE],
             [AS_VAR_SET([GOARCH], ["`./tools/goarch.sh "$host_cpu"`"])])])])
 
 AC_SUBST([GO_BIN])
@@ -1294,7 +1339,7 @@ AS_UNSET([SKIP_PHP])
 AS_UNSET([SKIP_LUA])
 AS_UNSET([SKIP_GO])
 
-AS_VAR_SET_IF([SWIG_MINVER],
+PTPM_VAR_SET_IF([SWIG_MINVER],
   [AS_IF([PTPM_VAR_EMPTY_TEST([TCL_INC_FLAGS]) ||\
           PTPM_VAR_EMPTY_TEST([TCL_MINVER]) ||\
           PTPM_VAR_EMPTY_TEST([TCL_SITE])],

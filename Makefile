@@ -621,15 +621,33 @@ DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(LIB_NAME)-doc
 MANDIR:=$(DESTDIR)$(mandir)/man8
+ifdef PKG_CONFIG_DIR
+PKGCFGDIR:=$(DESTDIR)$(PKG_CONFIG_DIR)
+endif
+
+define pkgconfig
+Name: $(LIB_NAME) library
+Description: $(LIB_NAME) library to communicate with IEEE 1558 PTP clocks
+URL: $(PACKAGE_URL)
+Version: $(PACKAGE_VERSION)
+Cflags:
+Libs: -l$(SWIG_LNAME)
+endef
 
 install: $(INS_TGT)
 install_main:
-	$(Q)$(INSTALL_FOLDER) $(DLIBDIR)
+	$(Q)$(INSTALL_FOLDER) $(DLIBDIR) $(PKGCFGDIR)
 	cp -a $(LIB_D)/$(LIB_NAME)*.so* $(DLIBDIR)
 	$(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.so.*.*.* $(DLIBDIR)
 	$(call RMRPATH,$(DLIBDIR)/$(LIB_NAME)*.so.*.*.*)
 	if test -f "$(LIB_NAME_A)"
 	then $(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.a $(DLIBDIR); fi
+ifdef PKG_CONFIG_DIR
+	echo "$(pkgconfig)" > $(PKGCFGDIR)/$(SWIG_LNAME).pc
+	for pf in $(SWIG_LNAME)$(PACKAGE_VERSION) $(LIB_NAME)\
+	  $(LIB_NAME)$(PACKAGE_VERSION)
+	do $(LN) $(SWIG_LNAME).pc $(PKGCFGDIR)/$$pf.pc;done
+endif
 	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
 	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\

@@ -82,6 +82,7 @@ package_libptpmgmt-dev() {
   mv $srcdir/install/usr/include $pkgdir/usr
   mv $srcdir/install/usr/lib/$pkgbase*.a $pkgdir/$libdir
   mv $srcdir/install/usr/lib/$pkgbase*.so $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/pkgconfig $pkgdir/$libdir
 }
 package_libptpmgmt-doc() {
   arch=(any)
