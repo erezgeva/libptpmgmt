@@ -613,6 +613,7 @@ all: $(COMP_DEPS) $(ALL)
 URL:=html/index.html
 REDIR:=$(SPDXHTML)\n<meta
 REDIR+=http-equiv="refresh" charset="utf-8" content="0; url=$(URL)"/>\n
+REDIR2:=!Library API doxygen!<a href="./html/index.html">Library API doxygen</a>!
 INSTALL_FOLDER:=$(INSTALL) -d
 INSTALL_LIB:=$(INSTALL_DATA)
 TOOLS_EXT:=-$(SWIG_LNAME)
@@ -682,6 +683,22 @@ ifdef DOXYGEN_MINVER
 	then $(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
 	  $(subst doc/html/,$(DOCDIR)/html/,$$dh);fi;done
 endif # DOXYGEN_MINVER
+ifdef MARKDOWN
+	for hf in doc/[CBHs]*.md
+	do tl=$$($(SED) -n '/^# /{s/^# //;p;q}' $$hf)
+	tf="$(DOCDIR)/$$(basename "$${hf%.md}.html")"
+	$(MARKDOWN) $$hf | sed "4 i <!doctype html><title>$$tl</title>" > $$tf
+	done
+	$(MARKDOWN) doc/FAQs.md |\
+	  $(SED) "4 i <!doctype html><title>Frequently asked questions</title>"\
+	  > $(DOCDIR)/FAQs.html
+	$(MARKDOWN) README.md |\
+	$(SED) -e "4 i <!doctype html><title>libptpmgmt library README</title>"\
+	  -e 's!"\./doc/!"./!;s!\.md"!.html"!' > $(DOCDIR)/index.html
+ifdef DOXYGEN_MINVER
+	$(SED) -i 's$(REDIR2)' $(DOCDIR)/index.html
+endif
+endif # MARKDOWN
 
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
 include $(D_FILES)

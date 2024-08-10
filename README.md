@@ -56,7 +56,7 @@ We try our best to avoid conflicts with newer versions of C++ and C.
 But if you find a conflict, please notify us.
 
 # <u>Scripting</u>
-This project uses [SWIG](http://www.swig.org/) to generate wrapper to script languages.  
+This project uses [SWIG](https://www.swig.org/) to generate wrapper to script languages.  
 For now, we support:
 
   * Perl version 5
@@ -86,7 +86,8 @@ Lua uses subset of C++ standard vector methods.
 Perl, PHP, and Go use class methods. See PtpMgmtLib.pm for Perl, ptpmgmt.php for php,
  and ptpmgmt.go for Go, for these methods.
 
-[std_vectors.md](./doc/std_vectors.md) provides more information on vectors mapping and
+[C++ std::vector<> map in Scripts Languages](./doc/std_vectors.md)
+provides more information on vectors mapping and
 the Doxygen documentation provides information per class.
 
 # <u>Go wrapper</u>

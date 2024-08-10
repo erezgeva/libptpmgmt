@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
      SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com> -->
-# Guide for using Doxygen
+# Developer Guide for using Doxygen in our project
 
 # <u>Preface</u>
 Our project uses Doxygen to document the library classes, functions, and constants.
