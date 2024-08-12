@@ -62,6 +62,8 @@ AC_DEFUN([PTPM_GREP_TEST],
          [AS_ECHO_N(["${$1}"]) | $GREP $2 PTPM_DUMP_ALL])
 AC_DEFUN([PTPM_NOT_GREP_TEST],
          [AS_ECHO_N(["${$1}"]) | $GREP -v $2 PTPM_DUMP_ALL])
+AC_DEFUN([PTPM_NOT_IN_LIST_TEST],
+         [AS_ECHO_N([" ${$2} "]) | $GREP -v " ${$1} " PTPM_DUMP_ALL])
 dnl Source shell script
 AC_DEFUN([PTPM_SOURCE], [. $1])
 dnl Similar to AS_VAR_SET_IF except to set and empty
@@ -152,10 +154,14 @@ PTPM_FOR([d], [$ptpm_libexecdir /usr/lib /usr/local/lib /opt/local/lib],
          [PTPM_VAR_ELSE_IF([ptpm_libdir], ["$d"],
                            [AS_VAR_APPEND([ptpm_lib_dirs], [" $d"])])])
 AS_VAR_COPY([ptpm_include_dirs], [ptpm_includedir])
+dnl compiler own headers folders
+AS_VAR_SET([ptpm_cc_include],
+           [`$CC -E -Wp,-v -xc /dev/null 2>&1 | $GREP '^\s*/'`])
 dnl common locations for headers
-PTPM_FOR([d], [/usr/include /usr/local/include /opt/local/include],
-         [PTPM_VAR_ELSE_IF([ptpm_includedir], ["$d"],
-                           [AS_VAR_APPEND([ptpm_include_dirs], [" $d"])])])
+PTPM_FOR([d],
+         [/usr/include /usr/local/include /opt/local/include $ptpm_cc_include],
+         [AS_IF([PTPM_NOT_IN_LIST_TEST([d], [ptpm_include_dirs])],
+                [AS_VAR_APPEND([ptpm_include_dirs], [" $d"])])])
 AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 
 #----------------------------------------------------------------
@@ -789,6 +795,7 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
    AC_MSG_CHECKING([for Tcl header files])
    PTPM_MSG_RESULT([TCL_INC_FLAGS])
    AC_MSG_CHECKING([for Tcl package path])
+   PTPM_CROSS([TCL_SITE])
    PTPM_MSG_RESULT([TCL_SITE])])
 
 AC_SUBST([TCLSH])
@@ -860,7 +867,7 @@ AS_VAR_IF([ptpm_py3bin], ['no'],
                 PTPM_FOR_BREAK])])
       PTPM_VAR_EMPTY_IF([PY3_SITE],
             [PTPM_FOR([d], [$ptpm_dirs],
-               [AS_IF([PTPM_NOT_GREP_TEST([d], ["/local/"]) &&\
+               [AS_IF([PTPM_NOT_GREP_TEST([d], ['/local/']) &&\
                        PTPM_GREP_TEST([d], [$ptpm_py3verkey])],
                       [AS_VAR_COPY([PY3_SITE], [d])
                        PTPM_FOR_BREAK])])])
@@ -1201,7 +1208,7 @@ AS_VAR_IF([ptpm_luabin], ['no'],
                 PTPM_LIB_PKG_CONFIG([ptpm_tmp], [lua5.$d])
                 AS_IF([PTPM_VAR_SET_TEST([ptpm_tmp_INC_FLAGS]) ||\
                        PTPM_VAR_SET_TEST([ptpm_tmp_LIB_FLAGS])],
-                      [AS_VAR_APPEND([LUA_VERSX], [" 5.$d"])
+                      [AS_VAR_APPEND([LUA_VERS], [" 5.$d"])
                        AS_VAR_COPY([LUA_5_${d}_INC_FLAGS],
                                    [ptpm_tmp_INC_FLAGS])
                        AS_VAR_COPY([LUA_5_${d}_LIB_FLAGS],
@@ -1211,8 +1218,7 @@ AS_VAR_IF([ptpm_luabin], ['no'],
             [PTPM_FOR([i], [$d/lua5.*],
                [PTPM_FILE_IF(["$i/lua.h"],
                   [PTPM_VAR_SED_COPY([n], [i], ["s%$d/lua%%"])
-                   AS_IF([PTPM_VAR_EMPTY_TEST([LUA_VERS]) ||\
-                          PTPM_NOT_GREP_TEST([LUA_VERS], ["$n"])],
+                   AS_IF([PTPM_NOT_IN_LIST_TEST([n], [LUA_VERS])],
                                   [PTPM_VAR_SED_COPY([j], [n], ['s%\.%_%'])
                                    AS_VAR_SET([LUA_${j}_INC_FLAGS], ["-I$i"])
                                    AS_VAR_SET([LUA_${j}_LIB_FLAGS], ["-llua$n"])
@@ -1220,22 +1226,40 @@ AS_VAR_IF([ptpm_luabin], ['no'],
           dnl Find luaunit for all lua found
           PTPM_FOR([d], [$LUA_VERS],
                    [AS_IF([lua$d -e "require 'luaunit'" PTPM_DUMP_ALL],
-                          [AS_VAR_SET([LUA_UNIT_VERS],
-                                      ["$LUA_UNIT_VERS $d"])])])])
+                          [AS_VAR_APPEND([LUA_UNIT_VERS], [" $d"])])])])
 
    PTPM_VAR_SET_IF([LUA_BIN],
      [AS_VAR_SET([lua_version],
                  ["`$LUA_BIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'\
                      PTPM_DUMP_ERR`"])
       PTPM_VAR_SET_IF([LUA_VERS],
-        [AS_IF([PTPM_NOT_GREP_TEST([LUA_VERS], ["$lua_version"])],
-               [PTPM_FOR([d], [$ptpm_include_dirs],
-                [PTPM_FILE_IF(["$d/lua.h"],
-                       [PTPM_VAR_SED_COPY([j], [lua_version], ['s%\.%_%'])
-                        AS_VAR_SET([LUA_${j}_INC_FLAGS], ["-I$d"])
-                        AS_VAR_SET([LUA_${j}_LIB_FLAGS], ['-llua'])
-                        AS_VAR_APPEND([LUA_VERS], [" $lua_version"])
-                        PTPM_FOR_BREAK])])])],
+        [AS_IF([PTPM_NOT_IN_LIST_TEST([lua_version], [LUA_VERS])],
+               [PTPM_VAR_SED_COPY([j], [lua_version], ['s%\.%_%'])
+                AS_UNSET([ptpm_tmp_INC_FLAGS])
+                AS_UNSET([ptpm_tmp_LIB_FLAGS])
+                AS_UNSET([ptpm_lua_found])
+                PTPM_LIB_PKG_CONFIG([ptpm_tmp], [lua])
+                dnl Search for headers, in case we do not have a package config
+                AS_IF([PTPM_VAR_SET_TEST([ptpm_tmp_INC_FLAGS]) ||\
+                       PTPM_VAR_SET_TEST([ptpm_tmp_LIB_FLAGS])],
+                      [AS_VAR_COPY([LUA_${j}_INC_FLAGS],
+                                   [ptpm_tmp_INC_FLAGS])
+                       AS_VAR_COPY([LUA_${j}_LIB_FLAGS],
+                                   [ptpm_tmp_LIB_FLAGS])
+                       AS_VAR_APPEND([LUA_VERS], [" $lua_version"])
+                       AS_VAR_SET([ptpm_lua_found], [1])],
+                      dnl Search for headers
+                      dnl  in case we do not have a package config
+                      [PTPM_FOR([d], [$ptpm_include_dirs],
+                                [PTPM_FILE_IF(["$d/lua.h"],
+                                   [AS_VAR_SET([LUA_${j}_INC_FLAGS], ["-I$d"])
+                                    AS_VAR_SET([LUA_${j}_LIB_FLAGS], ['-llua'])
+                                    AS_VAR_APPEND([LUA_VERS], [" $lua_version"])
+                                    AS_VAR_SET([ptpm_lua_found], [1])
+                                    PTPM_FOR_BREAK])])])
+                AS_IF([PTPM_VAR_SET_TEST([ptpm_lua_found]) &&\
+                       $LUA_BIN -e "require 'luaunit'" PTPM_DUMP_ALL],
+                      [AS_VAR_APPEND([LUA_UNIT_VERS], [" $lua_version"])])])],
         [AC_MSG_CHECKING([Lua version])
          AS_VAR_SET([LUA_VER],["$lua_version"])
          PTPM_MSG_RESULT([LUA_VER])
@@ -1246,47 +1270,57 @@ AS_VAR_IF([ptpm_luabin], ['no'],
                   AC_MSG_WARN([$msg this version of Lua])
                   AS_UNSET([LUA_BIN])])
 
-         AC_MSG_CHECKING([for lua.h location])
+         dnl Set Cflags
          PTPM_VAR_SET_IF([LUA_BIN],
-            [PTPM_VAR_SET_IF([ptpm_luainclude],
-              [AC_CHECK_FILE([$ptpm_luainclude/lua.h],
-                 [AS_VAR_COPY([LUA_INC_FLAGS], [ptpm_luainclude])
-                  AC_MSG_RESULT([$ptpm_luainclude/lua.h])],
-                 [AS_UNSET([LUA_BIN])
-                  AC_MSG_RESULT([configured 'luaincl' path does not exist])])],
-              [AC_CHECK_HEADER([lua.h],
-                 [AC_MSG_RESULT([on system])],
-                 dnl Some systems like Debian use /usr/include/lua5.n/lua.h
-                 [AS_UNSET([ptpm_dirs])
-                  PTPM_FOR([d], [$ptpm_include_dirs],
-                    [AS_VAR_APPEND([ptpm_dirs], [" $d $d/lua$LUA_VER"])])
-                  PTPM_FOR([d], [$ptpm_dirs],
-                    [PTPM_FILE_IF(["$d/lua.h"],
-                           [AC_MSG_RESULT([$d/lua.h])
-                            AS_VAR_COPY([LUA_INC_FLAGS], [d])
-                            PTPM_FOR_BREAK])])
-                  PTPM_VAR_EMPTY_IF([LUA_INC_FLAGS],
-                        [AC_MSG_RESULT([not found])
-                         AS_UNSET([LUA_BIN])])])])])
+            [PTPM_LIB_PKG_CONFIG([LUA], [lua])
+             AC_MSG_CHECKING([for lua.h location])
+             PTPM_VAR_SET_IF([ptpm_luainclude],
+                [AC_CHECK_FILE([$ptpm_luainclude/lua.h],
+                   [AS_VAR_SET([LUA_INC_FLAGS], ["-I$ptpm_luainclude"])
+                    AC_MSG_RESULT([$ptpm_luainclude/lua.h])],
+                   [AS_UNSET([LUA_BIN])
+                    AC_MSG_RESULT([configured 'luaincl' path does not exist])])],
+                [PTPM_VAR_EMPTY_IF([LUA_INC_FLAGS],
+                   [AC_MSG_RESULT([Search header on system])
+                    AC_CHECK_HEADER([lua.h],
+                      [AC_MSG_NOTICE([Header on system])],
+                      dnl Some systems like Debian
+                      dnl  use /usr/include/lua5.n/lua.h
+                      [AC_MSG_CHECKING([Search lua.h on all folsers])
+                       AS_UNSET([ptpm_dirs])
+                       PTPM_FOR([d], [$ptpm_include_dirs],
+                         [AS_VAR_APPEND([ptpm_dirs],
+                                        [" $d $d/lua$LUA_VER"])])
+                       PTPM_FOR([d], [$ptpm_dirs],
+                         [PTPM_FILE_IF(["$d/lua.h"],
+                                [AC_MSG_RESULT([$d/lua.h])
+                                 AS_VAR_SET([LUA_INC_FLAGS],
+                                            ["-I$d"])
+                                 PTPM_FOR_BREAK])])
+                       PTPM_VAR_EMPTY_IF([LUA_INC_FLAGS],
+                             [AC_MSG_RESULT([not found])
+                              AS_UNSET([LUA_BIN])])])])])])
 
+         dnl Set libs flags
          PTPM_VAR_SET_IF([LUA_BIN],
-           [PTPM_VAR_SET_IF([LUA_INC_FLAGS],
-                            [AS_VAR_SET([LUA_INC_FLAGS],
-                                        ["-I$LUA_INC_FLAGS"])])
-            PTPM_VAR_SET_IF([ptpm_lualib],
+           [PTPM_VAR_SET_IF([ptpm_lualib],
                   [AC_CHECK_FILE([$ptpm_lualib/liblua.so],
                                  [LUA_LIB_FLAGS="-L$ptpm_lualib -llua"],
                                  [AS_UNSET([LUA_BIN])])],
-                  [AC_SEARCH_LIBS([lua_close],
-                                  [lua lua$LUA_VER],
-                                  [LUA_LIB_FLAGS="-l$ac_lib"],
-                                  [AS_UNSET([LUA_BIN])])])],
-           [AS_UNSET([LUA_INC_FLAGS])])
+                  [PTPM_VAR_EMPTY_IF([LUA_LIB_FLAGS],
+                             [AC_SEARCH_LIBS([lua_close],
+                                             [lua lua$LUA_VER],
+                                             [LUA_LIB_FLAGS="-l$ac_lib"],
+                                             [AS_UNSET([LUA_BIN])])])])])
 
-         dnl Check if we have Lua unit test
-         AS_IF([PTPM_VAR_SET_TEST([LUA_BIN]) &&\
-                $LUA_BIN -e "require 'luaunit'" PTPM_DUMP_ALL],
-               [AS_VAR_SET([LUA_UNIT], [1])])])])])
+         PTPM_VAR_SET_IF([LUA_BIN],
+                         dnl Check if we have Lua unit test
+                         [AS_IF([$LUA_BIN -e "require 'luaunit'"\
+                                 PTPM_DUMP_ALL],
+                                [AS_VAR_SET([LUA_UNIT], [1])])],
+                         dnl Clear flags on any error
+                         [AS_UNSET([LUA_INC_FLAGS])
+                          AS_UNSET([LUA_LIB_FLAGS])])])])])
 
 AC_SUBST([LUA_BIN])
 AC_SUBST([LUA_VER])
