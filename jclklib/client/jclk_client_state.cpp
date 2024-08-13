@@ -35,6 +35,7 @@ ClientState::ClientState()
     eventState = {};
     eventStateCount = {};
     eventSub = {};
+    last_notification_time = {};
 }
 
 ClientState::ClientState(ClientState &newState)
@@ -46,6 +47,7 @@ ClientState::ClientState(ClientState &newState)
     eventState = newState.get_eventState();
     eventStateCount = newState.get_eventStateCount();
     eventSub = newState.get_eventSub();
+    last_notification_time = newState.get_last_notification_time();
 }
 
 void ClientState::set_clientState(ClientState &newState)
@@ -57,6 +59,7 @@ void ClientState::set_clientState(ClientState &newState)
     eventState = newState.get_eventState();
     eventStateCount = newState.get_eventStateCount();
     eventSub = newState.get_eventSub();
+    last_notification_time = newState.get_last_notification_time();
 }
 
 bool ClientState::get_connected()
