@@ -223,6 +223,10 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(
     it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end())
         client_ptp_data = it->second[0];
+    else {
+        PrintError("resetClientPtpEventStruct Failed.");
+        return;
+    }
     client_ptp_data->offset_in_range_event_count.fetch_sub(
         eventCount.offset_in_range_event_count,
         std::memory_order_relaxed);

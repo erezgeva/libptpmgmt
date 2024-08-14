@@ -243,16 +243,14 @@ void *ptp4l_event_loop(void *arg)
     msg_set_action(false, PORT_PROPERTIES_NP);
     event_subscription(nullptr);
     while(1) {
-        if (epoll_wait( epd, &epd_event, 1, 1) != -1) {
+        if(epoll_wait(epd, &epd_event, 1, 1) != -1) {
             const auto cnt = sk->rcv(buf, bufSize);
-
             if(cnt > 0 || msg_send(false)) {
                 MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
                 if(err == MNG_PARSE_ERROR_OK)
                     event_handle();
             } else {
                 PrintError("Connection to ptp4l has been lost");
-
                 /* Reset TIME_STATUS_NP data when ptp4l is disconnected */
                 PrintError("Resetting jclklib's ptp4l data");
                 pe.master_offset = 0;
@@ -260,8 +258,7 @@ void *ptp4l_event_loop(void *arg)
                 pe.synced_to_primary_clock = false;
                 pe.as_capable = 0;
                 notify_client();
-
-                while(1){
+                while(1) {
                     if(event_subscription(nullptr))
                         break;
                     PrintError("Attempting to reconnect to ptp4l...");

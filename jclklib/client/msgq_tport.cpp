@@ -53,8 +53,7 @@ bool ClientMessageQueue::initTransport()
     mq_attr.mq_flags = 0;
     /* Two outstanding messages per client */
     mq_attr.mq_maxmsg = 2;
-    mq_attr.mq_msgsize = (decltype(mq_attr.mq_msgsize))
-        std::tuple_size<TransportBuffer>::value;
+    mq_attr.mq_msgsize = sizeof(TransportBuffer);
     PrintDebug("Initializing Message Queue Client Transport...");
     mqListenerName += mqProxyName + ".";
     mqListenerName += to_string(getpid());

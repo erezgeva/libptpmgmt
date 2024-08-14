@@ -76,8 +76,7 @@ bool ProxyMessageQueue::initTransport()
     struct mq_attr mq_attr;
     mq_attr.mq_flags = 0;
     mq_attr.mq_maxmsg = MAX_CLIENT_COUNT;
-    mq_attr.mq_msgsize = (decltype(mq_attr.mq_msgsize))
-        std::tuple_size<TransportBuffer>::value;
+    mq_attr.mq_msgsize = sizeof(TransportBuffer);
     PrintDebug("Initializing Message Queue Proxy Transport...");
     mqNativeListenerDesc = mq_open(mqProxyName.c_str(), RX_QUEUE_FLAGS,
             RX_QUEUE_MODE, &mq_attr);
