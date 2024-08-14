@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
+     SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
 # JCLKLIB codeflow
 
 Jclklib is a 2-part implementation for C/C++ application to obtain

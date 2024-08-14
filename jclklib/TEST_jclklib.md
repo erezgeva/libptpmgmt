@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
+     SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
 # The diagram of clockmanager(CM)  usage in system : 
 
 Test app <------> CM runtime lib (jclklib.so) <----------> jclklib_proxy <-----> libptpmgmt.so <-----> ptp4l
