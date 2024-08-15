@@ -9,16 +9,16 @@
 #
 ###############################################################################
 
-CWD := $(shell pwd)
+CWD := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all
-all:
+.PHONY: jclklib
+jclklib:
 	$(MAKE) -C $(CWD)/common default
 	$(MAKE) -C $(CWD)/proxy default
 	$(MAKE) -C $(CWD)/client default
 
-.PHONY: clean
-clean:
+.PHONY: jclklib_clean
+jclklib_clean:
 	$(MAKE) -C $(CWD)/client clean
 	$(MAKE) -C $(CWD)/proxy clean
 	$(MAKE) -C $(CWD)/common clean
