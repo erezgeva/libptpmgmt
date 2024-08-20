@@ -221,7 +221,7 @@ HEADERS_PUB:=$(filter-out $(HEADERS_GEN_PUB),$(wildcard $(PUB)/*.h))
 HEADERS_GEN_PUB_C:=$(foreach n,$(HDR_BTH),$(PUB_C)/$n.h)
 HEADERS_PUB_C:=$(filter-out $(HEADERS_GEN_PUB_C),$(wildcard $(PUB_C)/*.h))
 HEADERS_GEN_COMP:=$(HEADERS_GEN_PUB) $(HEADERS_GEN_PUB_C) $(SRC)/ids.h
-HEADERS_SRCS:=$(HEADERS_PUB) $(HEADERS_PUB_C) $(SRC)/comp.h
+HEADERS_SRCS:=$(HEADERS_PUB) $(HEADERS_PUB_C) $(SRC)/comp.h $(SRC)/jsonParser.h
 HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
 HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
 HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
@@ -294,7 +294,7 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[ch]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\
+  utest/*.[chj]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\
   ':!:*.gitignore' ':!*/*/test.*' ':!*/*/utest.*'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))

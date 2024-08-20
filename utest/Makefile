@@ -33,7 +33,8 @@ UTEST:=$(OBJ_DIR)/utest
 UTEST_SYS:=$(OBJ_DIR)/utest_sys
 UTEST_AUTH:=$(OBJ_DIR)/utest_auth
 UTEST_JSON_LOAD:=$(OBJ_DIR)/utest_json_load
-UTEST_SRCS:=bin buf cfg err mngIds msg2json msgCall msg opt proc sig types ver
+UTEST_SRCS:=bin buf cfg err mngIds msg2json msgCall msg opt proc sig types ver\
+  jsonParser
 TEST_OBJS:=$(foreach n,$(UTEST_SRCS),utest/$n.o)
 UTEST_SYS_SRCS:=sock ptp init
 TEST_SYS_OBJS:=$(foreach n,$(UTEST_SYS_SRCS),utest/$n.o)

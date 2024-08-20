@@ -55,7 +55,7 @@ sub main
             if($file =~ /\.cpp$/ or $file =~ /\.h$/) {
                 if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]/) {
                     err 'for wrong char';
-                } elsif(/\\[^xntr0"'\\]/) {
+                } elsif(/\\[^xntrbf0"'\\]/) {
                     err 'wrong escape char';
                 }
                 if(/\*INDENT-ON\*/i || /\*INDENT-OFF\*/i || /\*NOPAD\*/i) {

@@ -980,6 +980,7 @@ FILE_PATTERNS          = *.h
 # exclude all test directories for example use the pattern */test/*
 
 EXCLUDE_PATTERNS       = */comp.h \
+                         */jsonParser.h \
                          */ids.h \
                          *test/* \
                          sample/* \
