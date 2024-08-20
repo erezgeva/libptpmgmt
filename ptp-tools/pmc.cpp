@@ -209,13 +209,13 @@ void help(const std::string &app, const char *hmsg)
 [[noreturn]] static void handle_sig(int)
 {
     obj.close();
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 [[noreturn]] static void handle_sig_ctrl(int)
 {
     obj.close();
     DUMPNL;
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 int main(int argc, char *const argv[])
 {
@@ -225,13 +225,13 @@ int main(int argc, char *const argv[])
         case Options::OPT_ERR:
             fprintf(stderr, "%s: %s\n", app.c_str(), opt.get_msg_c());
             help(app, opt.get_help());
-            return -1;
+            return EXIT_FAILURE;
         case Options::OPT_MSG:
             DUMPS("%s\n", opt.get_msg_c());
-            return 0;
+            return EXIT_SUCCESS;
         case Options::OPT_HELP:
             help(app, opt.get_help());
-            return 0;
+            return EXIT_SUCCESS;
         case Options::OPT_DONE:
             break;
     }
@@ -303,5 +303,5 @@ int main(int argc, char *const argv[])
         }
     }
     obj.close();
-    return 0;
+    return EXIT_SUCCESS;
 }

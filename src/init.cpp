@@ -35,7 +35,7 @@ int Init::process(const Options &opt)
     char net_select = opt.get_net_transport();
     // handle configuration file
     if(opt.have('f') && !m_cfg.read_cfg(opt.val('f')))
-        return -1;
+        return EXIT_FAILURE;
     // Authentication parameters
     int spp = -1;
     uint32_t key_id = 0;
@@ -43,7 +43,7 @@ int Init::process(const Options &opt)
     if(opt.have('B')) {
         spp = opt.val_i('B');
         if(spp < 0 || spp > UINT8_MAX)
-            return -1;
+            return EXIT_FAILURE;
     } else if(m_cfg.haveSpp())
         spp = m_cfg.spp();
     MsgParams prms = m_msg.getParams();
@@ -53,7 +53,7 @@ int Init::process(const Options &opt)
             (opt.have('F') && !m_sa.read_sa(opt.val('F'))) ||
             !m_sa.read_sa(m_cfg) ||
             !m_msg.useAuth(m_sa, spp, key_id))
-            return -1;
+            return EXIT_FAILURE;
         m_allow_unauth = opt.have('U') ? opt.val_i('U') : m_cfg.allow_unauth();
         // mode 1 and 2 allow receiving with authentication errors
         // RCV_AUTH_ALL is the default
@@ -72,10 +72,10 @@ int Init::process(const Options &opt)
     if(net_select != 'u') {
         if(interface.empty()) {
             PTPMGMT_ERROR("missing interface");
-            return -1;
+            return EXIT_FAILURE;
         }
         if(!ifObj.initUsingName(interface))
-            return -1;
+            return EXIT_FAILURE;
         Binary clockIdentity(ifObj.mac());
         clockIdentity.eui48ToEui64();
         clockIdentity.copy(prms.self_id.clockIdentity.v);
@@ -101,7 +101,7 @@ int Init::process(const Options &opt)
             SockUnix *sku = new SockUnix;
             if(sku == nullptr) {
                 PTPMGMT_ERROR("failed to allocate SockUnix");
-                return -1;
+                return EXIT_FAILURE;
             }
             m_sk.reset(sku);
             string uds_address;
@@ -111,7 +111,7 @@ int Init::process(const Options &opt)
                 uds_address = m_cfg.uds_address();
             if(!sku->setDefSelfAddress() || !sku->init() ||
                 !sku->setPeerAddress(uds_address))
-                return -1;
+                return EXIT_FAILURE;
             pid_t pid = getpid();
             prms.self_id.clockIdentity.v[6] = (pid >> 24) & 0xff;
             prms.self_id.clockIdentity.v[7] = (pid >> 16) & 0xff;
@@ -126,63 +126,63 @@ int Init::process(const Options &opt)
             SockIp4 *sk4 = new SockIp4;
             if(sk4 == nullptr) {
                 PTPMGMT_ERROR("failed to allocate SockIp4");
-                return -1;
+                return EXIT_FAILURE;
             }
             m_sk.reset(sk4);
             if(!sk4->setAll(ifObj, m_cfg))
-                return -1;
+                return EXIT_FAILURE;
             if(opt.have('T') && !sk4->setUdpTtl(opt.val_i('T')))
-                return -1;
+                return EXIT_FAILURE;
             if(!sk4->init())
-                return -1;
+                return EXIT_FAILURE;
             break;
         }
         case '6': {
             SockIp6 *sk6 = new SockIp6;
             if(sk6 == nullptr) {
                 PTPMGMT_ERROR("failed to allocate SockIp6");
-                return -1;
+                return EXIT_FAILURE;
             }
             m_sk.reset(sk6);
             if(!sk6->setAll(ifObj, m_cfg))
-                return -1;
+                return EXIT_FAILURE;
             if(opt.have('T') && !sk6->setUdpTtl(opt.val_i('T')))
-                return -1;
+                return EXIT_FAILURE;
             if(opt.have('S') && !sk6->setScope(opt.val_i('S')))
-                return -1;
+                return EXIT_FAILURE;
             if(!sk6->init())
-                return -1;
+                return EXIT_FAILURE;
             break;
         }
         case '2': {
             SockRaw *skr = new SockRaw;
             if(skr == nullptr) {
                 PTPMGMT_ERROR("failed to allocate SockRaw");
-                return -1;
+                return EXIT_FAILURE;
             }
             m_sk.reset(skr);
             if(!skr->setAll(ifObj, m_cfg))
-                return -1;
+                return EXIT_FAILURE;
             if(opt.have('P') &&
                 !skr->setSocketPriority(opt.val_i('P')))
-                return -1;
+                return EXIT_FAILURE;
             if(opt.have('M')) {
                 Binary mac;
                 if(!mac.fromMac(opt.val('M'))) {
                     PTPMGMT_ERROR("Wrong MAC address '%s'", opt.val('M').c_str());
-                    return -1;
+                    return EXIT_FAILURE;
                 }
                 if(!skr->setPtpDstMac(mac))
-                    return -1;
+                    return EXIT_FAILURE;
             }
             if(!skr->init())
-                return -1;
+                return EXIT_FAILURE;
             break;
         }
     }
     m_msg.updateParams(prms);
     PTPMGMT_ERROR_CLR;
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 __PTPMGMT_NAMESPACE_END
@@ -235,7 +235,7 @@ extern "C" {
     {
         if(me != nullptr && me->_this != nullptr && opt != nullptr)
             return ((Init *)me->_this)->process(*(const Options *)opt->_this);
-        return -1;
+        return EXIT_FAILURE;
     }
     static ptpmgmt_cfg ptpmgmt_init_cfg(ptpmgmt_init me)
     {

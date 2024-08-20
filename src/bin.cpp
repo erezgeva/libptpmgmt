@@ -109,7 +109,7 @@ bool Binary::iResize(size_t l_alloc)
     m_buf = l_buf;
     m_alloc = l_alloc;
     // Clear new allocated space
-    if(m_alloc > m_size)
+    if LIKELY_COND(m_alloc > m_size)
         memset(m_buf + m_size, 0, m_alloc - m_size);
     return true;
 }
