@@ -180,13 +180,17 @@ ci_pkgs_no_dev()
 # Compart ABI of current library with last version
 ci_abi()
 {
+ local -r cur_hash="$(git rev-parse HEAD)"
+ local -r version="$ver_maj.$ver_min"
+ if ! git rev-list $version > /dev/null 2>&1; then
+   echo "== Tag $version is missing we can not do the test! =="
+   return
+ fi
  echo "== Build current version =="
  emk config
  emk libptpmgmt.la
  echo "== Dump current version =="
  abi-dumper .libs/libptpmgmt.so -o cur.dump -lver 1 -public-headers pub
- local -r cur_hash="$(git rev-parse HEAD)"
- local -r version="$ver_maj.$ver_min"
  make distclean
  echo "== Build last tag $version =="
  git checkout $version
@@ -204,7 +208,7 @@ ci_abi()
  echo "== Compare ABI =="
  if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
    echo "== Found errors =="
-   echo "1" > abi_error
+   echo 1 > abi_error
  fi
  if [[ -d compat_reports ]]; then
    cd compat_reports
@@ -294,7 +298,7 @@ utest_valgrid()
      lines+="$n"
    fi
  done
- if [[ $ret -gt 0 ]]; then
+ if [[ $ret -ne 0 ]]; then
    # TODO When calling 'inet_pton6'
    # Valgrind confuse 'memmove' with 'memcpy' and
    # yield a wrong "Source and destination overlap" error.
