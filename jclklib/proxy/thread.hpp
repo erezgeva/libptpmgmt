@@ -51,9 +51,8 @@ struct ptp4l_state {
     bool synced_to_primary_clock;
 };
 
-int handle_connect(struct epoll_event epd_event);
-int connect_ptp4l(ptp4l_handle_t *phandle, struct epoll_event epd_event,
-    state_update_t update, void *ctx);
+int handle_connect();
+int connect_ptp4l(ptp4l_handle_t *phandle);
 
 void *ptp4l_event_loop(void *arg);
 bool event_subscription(struct jcl_handle **handle);

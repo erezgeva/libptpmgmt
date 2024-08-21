@@ -41,9 +41,7 @@ static SockBase *sk;
 
 static std::unique_ptr<SockBase> m_sk;
 
-int epd;
 portState_e portState;
-struct epoll_event epd_event;
 SUBSCRIBE_EVENTS_NP_t d;
 JClkLibCommon::ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0};
 
@@ -226,6 +224,7 @@ bool event_subscription(struct jcl_handle **handle)
 void *ptp4l_event_loop(void *arg)
 {
     const uint64_t timeout_ms = 1000;
+    bool lost_connection = false;
     for(;;) {
         if(!msg_set_action(true, PORT_PROPERTIES_NP))
             break;
@@ -243,27 +242,33 @@ void *ptp4l_event_loop(void *arg)
     msg_set_action(false, PORT_PROPERTIES_NP);
     event_subscription(nullptr);
     while(1) {
-        if(epoll_wait(epd, &epd_event, 1, 1) != -1) {
+        if(sk->poll(timeout_ms) > 0) {
             const auto cnt = sk->rcv(buf, bufSize);
-            if(cnt > 0 || msg_send(false)) {
+            if(cnt > 0) {
                 MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
                 if(err == MNG_PARSE_ERROR_OK)
                     event_handle();
-            } else {
-                PrintError("Connection to ptp4l has been lost");
-                /* Reset TIME_STATUS_NP data when ptp4l is disconnected */
-                PrintError("Resetting jclklib's ptp4l data");
-                pe.master_offset = 0;
-                memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
-                pe.synced_to_primary_clock = false;
-                pe.as_capable = 0;
-                notify_client();
-                while(1) {
-                    if(event_subscription(nullptr))
-                        break;
-                    PrintError("Attempting to reconnect to ptp4l...");
-                    sleep(2);
+            }
+        } else {
+            while(1) {
+                if(event_subscription(nullptr))
+                    break;
+                if(!lost_connection) {
+                    PrintError("Lost connection to ptp4l.");
+                    PrintInfo("Resetting jclklib's ptp4l data.");
+                    pe.master_offset = 0;
+                    memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
+                    pe.synced_to_primary_clock = false;
+                    pe.as_capable = 0;
+                    notify_client();
+                    lost_connection = true;
                 }
+                PrintInfo("Attempting to reconnect to ptp4l...");
+                sleep(2);
+            }
+            if(lost_connection) {
+                PrintInfo("Successful connected to ptp4l.");
+                lost_connection = false;
             }
         }
     }
@@ -295,15 +300,7 @@ int Connect::connect()
         !sku->setPeerAddress(uds_address))
         return -1;
     sk = m_sk.get();
-    int ret;
-    epd = epoll_create1(0);
-    if(epd == -1)
-        ret = -errno;
-    epd_event.data.fd = sk->fileno();
-    epd_event.events  = (EPOLLIN | EPOLLERR);
-    if(epoll_ctl(epd, EPOLL_CTL_ADD, sk->fileno(), &epd_event) == 1)
-        ret = -errno;
-    handle_connect(epd_event);
+    handle_connect();
     return 0;
 }
 

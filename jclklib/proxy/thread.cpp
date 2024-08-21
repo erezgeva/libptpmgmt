@@ -23,8 +23,7 @@ static int start_work_thread(struct ptp4l_handle *handle)
     return 0;
 }
 
-int connect_ptp4l(struct ptp4l_handle **phandle, struct epoll_event epd_event,
-    void *ctx)
+int connect_ptp4l(struct ptp4l_handle **phandle)
 {
     struct ptp4l_handle *handle;
     int ret;
@@ -59,7 +58,7 @@ alloc_handle_fail:
  *         Returns 0 on success, or a negative error code on failure.
  *
  */
-int handle_connect(struct epoll_event epd_event)
+int handle_connect()
 {
     struct jcl_handle *handle;
     int ret;
@@ -69,8 +68,7 @@ int handle_connect(struct epoll_event epd_event)
         goto alloc_fail;
     }
     event_subscription(&handle);
-    ret = connect_ptp4l(&handle->ptp4l_handle,
-            epd_event, handle);
+    ret = connect_ptp4l(&handle->ptp4l_handle);
     if(ret != 0) {
         free(handle);
         goto alloc_fail;
