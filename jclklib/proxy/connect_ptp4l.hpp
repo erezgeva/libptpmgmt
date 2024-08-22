@@ -21,7 +21,7 @@ class Connect
 {
   private:
   public:
-    static int connect();
+    static int connect(uint8_t transport_specific);
     static void disconnect();
 };
 }

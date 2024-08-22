@@ -106,7 +106,7 @@ reference.
 2. Run the jclk_proxy application:
     ```bash
     cd libptpmgmt_iaclocklib/jclklib/proxy
-    sudo ./run_proxy.sh
+    sudo ./run_proxy.sh <optional arguments>
     ```
 
 3. Run the cpp sample application
@@ -120,6 +120,13 @@ reference.
     cd libptpmgmt_iaclocklib/jclklib/client
     sudo ./run_jclk_c_test.sh <optional arguments>
     ```
+
+Usage of proxy daemon (jclklib_proxy) :
+```bash
+Options:
+  -t transport specific
+     Default: 0x0
+```
 
 Usage of sample application (jclk_test) :
 ```bash

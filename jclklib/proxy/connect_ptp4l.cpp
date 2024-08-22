@@ -287,7 +287,7 @@ void *ptp4l_event_loop(void *arg)
  *         Returns 0 on success, or -1 if an error occurs during socket
  *         initialization, address setting, or epoll configuration.
  */
-int Connect::connect()
+int Connect::connect(uint8_t transport_specific)
 {
     std::string uds_address;
     SockUnix *sku = new SockUnix;
@@ -299,6 +299,10 @@ int Connect::connect()
     if(!sku->setDefSelfAddress() || !sku->init() ||
         !sku->setPeerAddress(uds_address))
         return -1;
+    /* Set Transport Specific */
+    MsgParams prms = msg.getParams();
+    prms.transportSpecific = transport_specific;
+    msg.updateParams(prms);
     sk = m_sk.get();
     handle_connect();
     return 0;
