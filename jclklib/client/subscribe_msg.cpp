@@ -59,6 +59,14 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 {
     JClkLibCommon::ptp_event data = {};
     std::uint32_t eventSub[1];
+    struct timespec last_notification_time = {};
+    if(clock_gettime(CLOCK_MONOTONIC, &last_notification_time) == -1)
+        PrintDebug("ClientNotificationMessage::processMessage \
+            clock_gettime failed.\n");
+    else
+        currentClientState->set_last_notification_time(last_notification_time);
+    double seconds = last_notification_time.tv_sec;
+    double nanoseconds = last_notification_time.tv_nsec / 1e9;
     currentClientState->get_eventSub().get_event().readEvent(eventSub,
         (std::size_t)sizeof(eventSub));
     std::uint32_t composite_eventSub[1];
@@ -136,6 +144,8 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     jclCurrentState->offset_in_range = client_data->master_offset_in_range;
     jclCurrentState->synced_to_primary_clock = client_data->synced_to_primary_clock;
     jclCurrentState->composite_event = composite_client_data->composite_event;
+    jclCurrentState->clock_offset = client_data->master_offset;
+    jclCurrentState->notification_timestamp = seconds + nanoseconds;
     memcpy(jclCurrentState->gm_identity, client_data->gm_identity,
         sizeof(client_data->gm_identity));
     return true;

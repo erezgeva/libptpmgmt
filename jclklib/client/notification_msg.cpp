@@ -108,12 +108,14 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         std::uint32_t eventSub[1];
         std::uint32_t composite_eventSub[1];
         ClientState *currentClientState = *it;
-        struct timespec last_notification_time;
+        struct timespec last_notification_time = {};
         if(clock_gettime(CLOCK_MONOTONIC, &last_notification_time) == -1)
             PrintDebug("ClientNotificationMessage::processMessage \
                 clock_gettime failed.\n");
         else
             currentClientState->set_last_notification_time(last_notification_time);
+        double seconds = last_notification_time.tv_sec;
+        double nanoseconds = last_notification_time.tv_nsec / 1e9;
         jcl_state &jclCurrentState =
             currentClientState->get_eventState();
         jcl_state_event_count &jclCurrentEventCount =
@@ -205,6 +207,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 std::memory_order_relaxed);
         jclCurrentState.as_capable = client_ptp_data->as_capable;
         jclCurrentState.offset_in_range = client_ptp_data->master_offset_in_range;
+        jclCurrentState.clock_offset = client_ptp_data->master_offset;
+        jclCurrentState.notification_timestamp = seconds + nanoseconds;
         jclCurrentState.synced_to_primary_clock =
             client_ptp_data->synced_to_primary_clock;
         jclCurrentState.composite_event =

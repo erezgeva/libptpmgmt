@@ -18,6 +18,10 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+/* Some commonly used constants */
+#define NSEC_PER_MSEC   (1000000)
+#define NSEC_PER_SEC    (1000000000)
+
 #define UNIQUE_TYPEOF(x) remove_reference<decltype(*(x).get())>::type
 #define FUTURE_TYPEOF(x) decltype((x).get())
 #define DECLARE_STATIC(x,...) decltype(x) x __VA_OPT__({) __VA_ARGS__ __VA_OPT__(})

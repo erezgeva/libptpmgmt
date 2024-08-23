@@ -30,9 +30,6 @@ using namespace JClkLibCommon;
 using namespace JClkLibProxy;
 using namespace std;
 
-#define NSEC_PER_MSEC   (1000000 /*ns*/)
-#define NSEC_PER_SEC    (1000000000 /*ns*/)
-
 LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
     ProxyMessageQueueListenerContext::processMessage)
 {

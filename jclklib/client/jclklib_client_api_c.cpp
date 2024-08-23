@@ -58,6 +58,8 @@ bool jcl_c_subscribe(jcl_c_client_ptr client_ptr,
     current_state->synced_to_primary_clock = state.synced_to_primary_clock;
     current_state->gm_changed = state.gm_changed;
     current_state->composite_event = state.composite_event;
+    current_state->clock_offset = state.clock_offset;
+    current_state->notification_timestamp = state.notification_timestamp;
     std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
         std::begin(current_state->gm_identity));
     return ret;
@@ -79,6 +81,8 @@ int jcl_c_status_wait(jcl_c_client_ptr client_ptr, int timeout,
     current_state->synced_to_primary_clock = state.synced_to_primary_clock;
     current_state->gm_changed = state.gm_changed;
     current_state->composite_event = state.composite_event;
+    current_state->clock_offset = state.clock_offset;
+    current_state->notification_timestamp = state.notification_timestamp;
     std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
         std::begin(current_state->gm_identity));
     event_count->as_capable_event_count = eventCount.as_capable_event_count;

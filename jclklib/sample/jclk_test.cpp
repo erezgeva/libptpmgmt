@@ -203,6 +203,10 @@ int main(int argc, char *argv[])
             state.gm_identity[2], state.gm_identity[3],
             state.gm_identity[4], state.gm_identity[5],
             state.gm_identity[6], state.gm_identity[7]);
+        printf("| %-25s | %-15ld ns |\n",
+                "clock_offset", state.clock_offset);
+        printf("| %-25s | %-16f s |\n",
+                "notification_timestamp", state.notification_timestamp);
     }
     printf("+---------------------------+--------------------+\n");
     if (composite_event[0]) {
@@ -273,6 +277,10 @@ int main(int argc, char *argv[])
                 state.gm_identity[2], state.gm_identity[3],
                 state.gm_identity[4], state.gm_identity[5],
                 state.gm_identity[6], state.gm_identity[7]);
+            printf("| %-25s |     %-19ld ns |\n",
+                "clock_offset", state.clock_offset);
+            printf("| %-25s |     %-20f s |\n",
+                "notification_timestamp", state.notification_timestamp);
         }
         printf("+---------------------------+--------------+-------------+\n");
         if (composite_event[0]) {

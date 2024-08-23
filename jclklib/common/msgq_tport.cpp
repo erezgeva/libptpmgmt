@@ -32,9 +32,6 @@ using namespace std;
 #define QUEUE_FLAGS (O_RDONLY | O_CREAT)
 #define QUEUE_MODE  (S_IRUSR  | S_IWGRP)
 
-#define NSEC_PER_MSEC   (1000000 /*ns*/)
-#define NSEC_PER_SEC    (1000000000 /*ns*/)
-
 DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
 DECLARE_STATIC(MessageQueue::mqListenerDesc,
     Transport::InvalidTransportWorkDesc);

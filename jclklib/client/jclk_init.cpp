@@ -238,11 +238,11 @@ int JClkLibClientApi::jcl_status_wait(int timeout, jcl_state &jcl_state_ref,
         /* Sleep for a short duration before the next iteration */
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     } while(std::chrono::high_resolution_clock::now() < end);
-    if(!event_changes_detected)
-        return false;
     /* Copy out the current state */
     eventCountRef = eventCount;
     jcl_state_ref = jcl_state;
+    if(!event_changes_detected)
+        return false;
     /* Reset the atomic count by reducing the corresponding eventCount */
     ClientSubscribeMessage::resetClientPtpEventStruct(
         appClientState.get_sessionId(),

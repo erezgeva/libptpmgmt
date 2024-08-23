@@ -54,6 +54,8 @@ struct jcl_c_state {
     bool synced_to_primary_clock;         /**< Synced to primary clock */
     bool gm_changed;                      /**< Primary clock UUID changed */
     bool composite_event;                 /**< Composite event */
+    int64_t  clock_offset;                /**< Clock offset */
+    double notification_timestamp;        /**< Timestamp for last notification */
 };
 
 /** Event count for the events */
