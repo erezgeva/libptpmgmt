@@ -101,7 +101,7 @@ main()
  ##############################################################################
  # script languages source
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
-       ldPathPhp ldPathTcl ldPathJson needCmpl oneLua skip_php skip_json\
+       ldPathPhp ldPathTcl needCmpl oneLua skip_php\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54\
        ldPath luaVersions
  local -r gtest='wrappers/go/gtest/gtest'
@@ -319,15 +319,13 @@ do_perl()
 }
 test_json()
 { # Use perl
- if [[ -z "$skip_json" ]]; then
-   printf "\n =====  Test JSON  ===== \n\n"
-   eval "$useSudo$ldPathJson tools/testJson.pl $cfgFile | jq >& /dev/null"
-   if $use_valgrind; then
-     printf "\n * Valgrid test of testJson.pl"
-     eval "$useSudo$ldPathJson valgrind --read-inline-info=yes\
-       tools/testJson.pl $cfgFile " |&\
-       sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
-   fi
+ printf "\n =====  Test JSON  ===== \n\n"
+ eval "$useSudo$ldPathPerl tools/testJson.pl $cfgFile | jq >& /dev/null"
+ if $use_valgrind; then
+   printf "\n * Valgrid test of testJson.pl"
+   eval "$useSudo$ldPathPerl valgrind --read-inline-info=yes\
+     tools/testJson.pl $cfgFile " |&\
+     sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
 }
 do_ruby()
@@ -511,7 +509,7 @@ probeBuild()
    local -A R
    local list='prefix exec_prefix libdir libexecdir includedir sysconfdir
      localstatedir datarootdir mandir infodir sbindir bindir
-     HAVE_JSONC_LIB HAVE_FJSON_LIB PERL5_SITE RUBY_SITE LUA_VER SKIP_PHP
+     PERL5_SITE RUBY_SITE LUA_VER SKIP_PHP
      PHP_SITE TCL_SITE GOROOT'
    local $list
    read_defs $list LUA_VERS
@@ -573,7 +571,6 @@ allBuild()
  done
  ldPathPhp="$ldPath PHPRC=wrappers/php"
  ldPathTcl="$ldPath TCLLIBPATH=wrappers/tcl"
- ldPathJson="$ldPath PERL5LIB=wrappers/perl"
 }
 probeLibsDebian()
 {
@@ -600,25 +597,10 @@ probeLibsDebian()
    needCmpl=y
    ldPath="LD_LIBRARY_PATH=.libs"
  fi
- local -i jsonCount=0
- getFirstFile "/usr/lib$fmach/libptpmgmt_fastjson.so.*"
- if [[ -f "$file" ]]; then
-   jsonCount='jsonCount + 1'
- fi
- getFirstFile "/usr/lib$fmach/libptpmgmt_jsonc.so.*"
- if [[ -f "$file" ]]; then
-   jsonCount='jsonCount + 1'
- fi
- # One from JSON plugin is sufficient
- if [[ $jsonCount -eq 0 ]]; then
-   needCmpl=y
-   [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=.libs"
- fi
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
    needCmpl=y
    ldPathPerl="PERL5LIB=wrappers/perl"
-   ldPathJson+=" PERL5LIB=wrappers/perl"
  fi
  file="$(ruby -rrbconfig -e \
    'puts RbConfig::CONFIG["vendorarchdir"]')/ptpmgmt.so"
@@ -657,7 +639,7 @@ probeLibsDebian()
    needCmpl=y
  fi
  if [[ -n "$ldPath" ]]; then
-   for n in Perl Ruby Php Tcl Json
+   for n in Perl Ruby Php Tcl
    do eval "ldPath$n='$ldPath ${ldPath$n}'";done
  fi
 }
@@ -686,31 +668,11 @@ probeLibs()
    needCmpl=y
    ldPath="LD_LIBRARY_PATH=.libs"
  fi
- if [[ -z "$HAVE_JSONC_LIB" ]] && [[ -z "$HAVE_FJSON_LIB" ]]; then
-   skip_json=true
- else
-   local -i jsonCount=0
-   getFirstFile "$libdir/libptpmgmt_fastjson.so.*"
-   if [[ -f "$file" ]]; then
-     jsonCount='jsonCount + 1'
-   fi
-   getFirstFile "$libdir/libptpmgmt_jsonc.so.*"
-   if [[ -f "$file" ]]; then
-     jsonCount='jsonCount + 1'
-   fi
-   # One from JSON plugin is sufficient
-   if [[ $jsonCount -eq 0 ]]; then
-     [[ -z "$no_build" ]] || echo "Build as: no json plugs"
-     needCmpl=y
-     [[ -n "$ldPath" ]] || ldPathJson="LD_LIBRARY_PATH=.libs"
-   fi
- fi
  getFirstFile "$PERL5_SITE/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no perl"
    needCmpl=y
    ldPathPerl="PERL5LIB=wrappers/perl"
-   ldPathJson+=" PERL5LIB=wrappers/perl"
  fi
  file="$RUBY_SITE/ptpmgmt.so"
  if ! [[ -f "$file" ]]; then
@@ -797,7 +759,7 @@ probeLibs()
    fi
  fi
  if [[ -n "$ldPath" ]]; then
-   for n in Perl Ruby Php Tcl Json
+   for n in Perl Ruby Php Tcl
    do eval "ldPath$n='$ldPath ${ldPath$n}'";done
  fi
 }

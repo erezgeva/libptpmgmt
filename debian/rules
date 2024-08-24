@@ -49,7 +49,7 @@ override_dh_install:
 	  tcl-ptpmgmt/usr/lib golang-ptpmgmt/usr/lib\
 	  phc-ctl-ptpmgmt/usr/share/man/man8 phc-ctl-ptpmgmt/usr/sbin\
 	  $(addsuffix $(LIBDIR),lua-ptpmgmt ruby-ptpmgmt libptpmgmt\
-	  $(addprefix libptpmgmt-,perl dev jsonc fastjson openssl gcrypt gnutls\
+	  $(addprefix libptpmgmt-,perl dev openssl gcrypt gnutls\
 	  nettle)))
 	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
 	$Q$(MV) $(DSRC)share/doc/libptpmgmt-dev debian/libptpmgmt-dev/usr/share/doc
@@ -76,8 +76,4 @@ endif
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_gcrypt* debian/libptpmgmt-gcrypt$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_gnutls* debian/libptpmgmt-gnutls$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_nettle* debian/libptpmgmt-nettle$(LIBDIR)
-ifneq ($(wildcard $(SLIBDIR)/libptpmgmt_jsonc.*),)
-	$Q$(MV) $(SLIBDIR)/libptpmgmt_jsonc.* debian/libptpmgmt-jsonc$(LIBDIR)
-endif
-	$Q$(MV) $(SLIBDIR)/libptpmgmt_fastjson* debian/libptpmgmt-fastjson$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/* debian/libptpmgmt$(LIBDIR)

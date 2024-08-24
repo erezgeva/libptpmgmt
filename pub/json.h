@@ -68,48 +68,21 @@ class Json2msg
     uint32_t m_sdoId = 0;
     PortIdentity_t m_srcPort = {{0}, 0}, m_dstPort = {{0}, 0};
   public:
-    Json2msg();
+    /* keep for ABI backward compatibility. */
     ~Json2msg();
-    /**
-     * Try to load the a specific library
-     * @param[in] libName partial library name
-     * @return true if library found and load
-     * @note This function always return false when called from static library
-     * @note The libName can be partial and is case insensitive.
-     *       Library will load only if found exactly one match.
-     * @note If this function fails, fromJson() and fromJsonObj(),
-     *       will try to load any available library.
-     * @note if Library is already load, return true if it matchs
-     */
-    static bool selectLib(const std::string &libName);
-    /**
-     * Return shared library name
-     * @return shared library name or nullptr in not
-     * @note When using static link, function return the shared library name
-     *       of the same code!
-     */
-    static const char *loadLibrary();
-    /**
-     * Determine if library is shared or static
-     * @return true if library is shared library
-     */
-    static bool isLibShared();
+    /** @cond internal
+     * Use internal JSON parser */
+    __PTPMGMT_DEPRECATED_DEC(static bool selectLib(const std::string &));
+    __PTPMGMT_DEPRECATED_DEC(static const char *loadLibrary());
+    __PTPMGMT_DEPRECATED_DEC(static bool isLibShared());
+    __PTPMGMT_DEPRECATED_DEC(bool fromJsonObj(const void *));
+    /**< @endcond */
     /**
      * Convert JSON string to message
      * @param[in] json string
      * @return true if parsing success
      */
     bool fromJson(const std::string &json);
-    /**
-     * Convert JSON object to message
-     * @param[in] jobj pointer of JSON object
-     * @return true if parsing success
-     * @note jobj must be json_object pointer
-     * @attention You must use the same JSON library used by this library!
-     *  build with USE_CJSON use the json-c library
-     *  build with USE_FCJSON use the fast json library
-     */
-    bool fromJsonObj(const void *jobj);
     /**
      * Get management ID
      * @return management ID

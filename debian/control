@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 9), libtool, texlive-font-utils, dh-python,
 Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
 		    liblua5.2-dev, liblua5.3-dev, liblua5.4-dev, pkgconf,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),
-		    ruby:native, ruby-dev, libfastjson-dev, libjson-c-dev,
+		    ruby:native, ruby-dev,
 		    libssl-dev, libgcrypt20-dev, libgnutls28-dev, nettle-dev
 Build-Depends-Indep: graphviz, doxygen (>=1.8), dh-exec (>=0.3),
 		     swig (>=4.1), coreutils, m4, gawk, autoconf, automake,
@@ -59,24 +59,6 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
 Recommends: linuxptp
 Description: PTP management library HMAC plugin using the nettle library
-
-Package: libptpmgmt-jsonc
-Architecture: any
-Multi-Arch: same
-Section: libs
-Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
-Recommends: linuxptp
-Description: PTP management library JSON plugin using the json-c library
-
-Package: libptpmgmt-fastjson
-Architecture: any
-Multi-Arch: same
-Section: libs
-Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
-Recommends: linuxptp
-Description: PTP management library JSON plugin using the fastjson library
 
 Package: libptpmgmt-dev
 Architecture: any

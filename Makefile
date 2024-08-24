@@ -200,7 +200,6 @@ LIB_D:=.libs
 PUB_C:=$(PUB)/c
 PMC_DIR:=ptp-tools
 HMAC_SRC:=hmac
-JSON_SRC:=json
 OBJ_DIR:=objs
 
 CONF_FILES:=configure src/config.h.in
@@ -228,7 +227,6 @@ HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
 HEADERS_INST_C:=$(HEADERS_PUB_C) $(HEADERS_GEN_PUB_C)
 SRCS:=$(wildcard $(SRC)/*.cpp)
 SRCS_HMAC:=$(wildcard $(HMAC_SRC)/*.cpp)
-SRCS_JSON:=$(wildcard $(JSON_SRC)/*.cpp)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 # hmac
 SSL_NAME:=$(LIB_NAME)_openssl
@@ -253,21 +251,9 @@ NETTLE_DL:=$(NETTLE_NAME).so$(SONAME)
 NETTLE_LA:=$(NETTLE_NAME).la
 
 HMAC_FLIBS:=$(SSL_LIB) $(GNUTLS_LIB) $(NETTLE_LIB) $(GCRYPT_LIB)
-# json-c
-JSONC_NAME:=$(LIB_NAME)_jsonc
-JSONC_LIBA:=$(LIB_D)/$(JSONC_NAME).a
-JSONC_LIB:=$(LIB_D)/$(JSONC_NAME).so
-JSONC_DL:=$(JSONC_NAME).so$(SONAME)
-JSONC_LA:=$(JSONC_NAME).la
-# fastjson
-FJSON_NAME:=$(LIB_NAME)_fastjson
-FJSON_LIBA:=$(LIB_D)/$(FJSON_NAME).a
-FJSON_LIB:=$(LIB_D)/$(FJSON_NAME).so
-FJSON_DL:=$(FJSON_NAME).so$(SONAME)
-FJSON_LA:=$(FJSON_NAME).la
 TGT_LNG:=perl5 lua python3 ruby php tcl go
-UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth json json_load pmc hmac)
-UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth json)
+UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth pmc hmac)
+UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
   $(UTEST_C_TGT)
@@ -288,7 +274,7 @@ endif
 SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */github* */*.opt configure.ac src/*.m4 doc/*.md\
   t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* $(JSON_SRC)/* */Makefile w*/*/Makefile\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
   $(MAKEFILE_LIST) credits
@@ -366,12 +352,11 @@ endif # find '-O'
 override CXXFLAGS+=-Wdate-time -Wall -std=c++11 -g -I$(SRC) -I$(PUB)
 # Add warnings from -Wextra
 override CXXFLAGS+=-Wtype-limits -Wdeprecated-copy -Wundef
+# Ignore deprecated functions in pub/opt.h and pub/init.h pub/json.h pub/c/json.h
+override CXXFLAGS+=-Wno-deprecated-declarations
 CXXFLAGS_SWIG+=-Wno-tautological-type-limit-compare -Wno-undef
 CXXFLAGS_RUBY+=-Wno-deprecated-copy
 CXXFLAGS_GO:=$(filter-out -I%,$(CXXFLAGS))
-# Ignore deprecated functions in pub/opt.h and pub/init.h
-CXXFLAGS_SWIG+=-Wno-deprecated-declarations
-CXXFLAGS_GO+=-Wno-deprecated-declarations
 ifdef USE_DEPS
 # Add dependencies during compilation
 override CXXFLAGS+=-MT $@ -MMD -MP -MF $(basename $@).d
@@ -439,9 +424,6 @@ endif # VALGRIND
 # HMAC libraries
 include $(HMAC_SRC)/Makefile
 
-# JSON libraries
-include $(JSON_SRC)/Makefile
-
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
@@ -493,8 +475,7 @@ CPPCHECK_OPT+=$(CPPCHECK_OPT_BASE)
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)
-format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_JSON)\
-	$(SRCS_HMAC)
+format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_HMAC)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r";./tools/format.pl $^
@@ -600,7 +581,7 @@ checkall: format doxygen
 
 ifdef CTAGS
 tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
-	$(SRCS_JSON) $(SRCS_HMAC)
+	$(SRCS_HMAC)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
 endif # CTAGS

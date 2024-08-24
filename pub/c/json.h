@@ -62,46 +62,22 @@ struct ptpmgmt_json_t {
      * @param[in, out] j json object
      */
     void (*free)(ptpmgmt_json j);
-    /**
-     * Try to load the a specific library
-     * @param[in] libName partial library name
-     * @return true if library found and load
-     * @note This function always return false when called from static library
-     * @note The libName can be partial and is case insensitive.
-     *       Library will load only if found exactly one match.
-     * @note If this function fails, fromJson() and fromJsonObj(),
-     *       will try to load any available library.
-     * @note if Library is already load, return true if it matchs
-     */
-    bool (*selectLib)(const char *libName);
-    /**
-     * Return shared library name
-     * @return shared library name or nullptr in not
-     * @note When using static link, function return the shared library name
-     *       of the same code!
-     */
-    const char *(*loadLibrary)();
-    /**
-     * Determine if library is shared or static
-     * @return true if library is shared library
-     */
-    bool (*isLibShared)();
+    /** @cond internal
+     * Use internal JSON parser */
+    __PTPMGMT_DEPRECATED_DEC(bool (*selectLib)(const char *libName));
+    __PTPMGMT_DEPRECATED_DEC(const char *(*loadLibrary)());
+    __PTPMGMT_DEPRECATED_DEC(bool (*isLibShared)());
+    /**< @endcond */
     /**
      * Convert JSON string to message
      * @param[in, out] json string
      * @return true if parsing success
      */
     bool (*fromJson)(ptpmgmt_json j, const char *json);
-    /**
-     * Convert JSON object to message
-     * @param[in, out] jobj pointer of JSON object
-     * @return true if parsing success
-     * @note jobj must be json_object pointer
-     * @attention You must use the same JSON library used by this library!
-     *  build with USE_CJSON use the json-c library
-     *  build with USE_FCJSON use the fast json library
-     */
-    bool (*fromJsonObj)(ptpmgmt_json j, const void *jobj);
+    /** @cond internal
+     * Use internal JSON parser */
+    __PTPMGMT_DEPRECATED_DEC(bool (*fromJsonObj)(ptpmgmt_json j, const void *jobj));
+    /**< @endcond */
     /**
      * Get management ID
      * @param[in] j json object
@@ -236,31 +212,12 @@ struct ptpmgmt_json_t {
      */
     bool (*setAction)(const_ptpmgmt_json j, ptpmgmt_msg message);
 };
-
-/**
- * Try to load the a specific library
- * @param[in] libName partial library name
- * @return true if library found and load
- * @note This function always return false when called from static library
- * @note The libName can be partial and is case insensitive.
- *       Library will load only if found exactly one match.
- * @note If this function fails, fromJson() and fromJsonObj(),
- *       will try to load any available library.
- * @note if Library is already load, return true if it matchs
- */
-bool ptpmgmt_json_selectLib(const char *libName);
-/**
- * Return shared library name
- * @return shared library name or nullptr in not
- * @note When using static link, function return the shared library name
- *       of the same code!
- */
-const char *ptpmgmt_json_loadLibrary();
-/**
- * Determine if library is shared or static
- * @return true if library is shared library
- */
-bool ptpmgmt_json_isLibShared();
+/** @cond internal
+ * Use internal JSON parser */
+__PTPMGMT_DEPRECATED_DEC(bool ptpmgmt_json_selectLib(const char *libName));
+__PTPMGMT_DEPRECATED_DEC(const char *ptpmgmt_json_loadLibrary());
+__PTPMGMT_DEPRECATED_DEC(bool ptpmgmt_json_isLibShared());
+/**< @endcond */
 /**
  * Alocate new json structure
  * @return new json structure or null in case of error

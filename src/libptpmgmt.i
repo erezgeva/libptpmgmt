@@ -37,7 +37,7 @@
 #define __PTPMGMT_DEPRECATED_DEC(_func)
 #else
 #define __PTPMGMT_DEPRECATED(_func, _body) _func { _body; }
-#define __PTPMGMT_DEPRECATED_DEC(_func) _func;
+#define __PTPMGMT_DEPRECATED_DEC(_func) _func
 #endif
 /* Handle multithreads support. */
 #ifdef SWIG_USE_MULTITHREADS

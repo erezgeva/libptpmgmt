@@ -9,223 +9,471 @@
  *
  */
 
-#include "comp.h"
-#include <stack>
 #include <cmath>
-#include <mutex>
-#ifdef HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif
+#include "jsonParser.h"
+#include "comp.h"
+#include "timeCvrt.h"
 #include "c/json.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 
-// From JSON part
-static int Json2msgCount = 0; // Count how many objects exist
-#ifdef PIC // Shared library code
-static void *jsonLib = nullptr;
-static const char *useLib = nullptr;
-static mutex jsonLoadLock; // Lock loading and unloading
-Json_lib *ptpm_json = nullptr;
-extern "C" {
-    typedef Json_lib *(*ptpm_json_fech_t)();
-    ptpm_json_fech_t ptpm_json_fech_p;
-}
-static void doLibRm()
-{
-    if(dlclose(jsonLib) != 0)
-        PTPMGMT_ERROR("Fail to unload the libptpmngt from JSON library: %s",
-            dlerror());
-}
-static void doLibNull()
-{
-    jsonLib = nullptr;
-    useLib = nullptr;
-    ptpm_json = nullptr;
-}
-static inline bool loadFuncs()
-{
-    ptpm_json_fech_p = (ptpm_json_fech_t)dlsym(jsonLib, "ptpm_json_fech");
-    if(ptpm_json_fech_p == nullptr)
+#define PROC_VAL(key)   procValue(#key, d.key)
+#define EMPTY_KEY\
+    if(key == nullptr || *key == 0)\
         return false;
-    ptpm_json = ptpm_json_fech_p();
-    return true;
-}
-static bool tryLib(const char *name)
-{
-    jsonLib = dlopen(name, RTLD_LAZY);
-    if(jsonLib != nullptr) {
-        if(loadFuncs()) {
-            useLib = name;
-            return true;
-        }
-        doLibRm();
-    }
-    return false;
-}
-static inline bool loadMatchLibrary(const char *libMatch, const char *found)
-{
-    if(found == nullptr) {
-        PTPMGMT_ERROR("Fail to find any library to matche pattern '%s'", libMatch);
+#define GET_STR\
+    EMPTY_KEY;\
+    jsonValue *jval = m_obj->getVal(key);\
+    if(jval == nullptr || jval->getType() != t_string)\
+        return false;\
+    const string str = jval->getStr();
+#define GET_NUM(type, func)\
+    EMPTY_KEY;\
+    type num;\
+    jsonValue *jval = m_obj->getVal(key);\
+    if(jval == nullptr || !jval->func(num))\
         return false;
-    } else if(jsonLib == nullptr) {
-        // Try loading
-        if(!tryLib(found)) {
-            doLibNull(); // Ensure all pointers stay null
-            PTPMGMT_ERROR("Fail loading the matched fromJson library '%s' for "
-                "pattern '%s'", found, libMatch);
-            return false;
-        }
-    }
-    // Already load, just check if it is the library we want
-    else if(useLib != found) { // We compare pointers, not strings!
-        PTPMGMT_ERROR("Already load a different library '%s', not the "
-            "matched '%s' to pattern '%s'", useLib, found, libMatch);
+#define GET_NUM_CNV(type, func)\
+    EMPTY_KEY;\
+    type num;\
+    jsonValue *jval = m_obj->getVal(key);\
+    if(jval == nullptr || !jval->func(num, true))\
         return false;
+#define GET_OBJ(key)\
+    jsonObject *obj = m_obj->getObj(key);\
+    if(obj == nullptr)\
+        return false;\
+    jsonObject *keep = m_obj;\
+    m_obj = obj;
+#define RET_OBJ\
+    m_obj = keep;\
+    return ret;
+
+struct JsonProcFrom : public JsonProc {
+    jsonObject *m_obj = nullptr;
+#define procUint(type) \
+    bool procValue(const char *key, type &val) override {\
+        GET_NUM_CNV(uint64_t, getUint64);\
+        val = num;\
+        return true;\
     }
-    return true;
-}
-static bool doLoadLibrary(const char *libMatch = nullptr)
-{
-    unique_lock<mutex> lock(jsonLoadLock);
-    const char *list[] = { JSON_C nullptr };
-    if(libMatch != nullptr) {
-        const char *found = nullptr;
-        for(const char **cur = list; *cur != nullptr; cur++) {
-            if(strcasestr(*cur, libMatch) != nullptr) {
-                if(found != nullptr) {
-                    PTPMGMT_ERROR("Found multiple libraries match to pattern '%s'",
-                        libMatch);
-                    return false;
-                }
-                found = *cur;
+    procUint(uint8_t)
+    procUint(uint16_t)
+    procUint(uint32_t)
+    procUint(uint64_t)
+#define procInt(type) \
+    bool procValue(const char *key, type &val) override {\
+        GET_NUM(int64_t, getInt64);\
+        val = num;\
+        return true;\
+    }
+    procInt(int8_t)
+    procInt(int16_t)
+    procInt(int32_t)
+    procInt(int64_t)
+#define procFloat(type) \
+    bool procValue(const char *key, type &val) override {\
+        GET_NUM(long double, getFloat);\
+        val = num;\
+        return true;\
+    }
+    procFloat(float)
+    procFloat(double)
+    procFloat(long double)
+    bool procValue(const char *key, networkProtocol_e &d) override {
+        GET_STR;
+        for(int i = UDP_IPv4; i <= PROFINET; i++) {
+            networkProtocol_e v = (networkProtocol_e)i;
+            if(str == Message::netProt2str_c(v)) {
+                d = v;
+                return true;
             }
         }
-        return loadMatchLibrary(libMatch, found);
+        return false;
     }
-    if(jsonLib != nullptr)
-        return true;
-    for(const char **cur = list; *cur != nullptr; cur++) {
-        if(tryLib(*cur))
-            return true;
-    }
-    doLibNull(); // Ensure all pointers stay null
-    PTPMGMT_ERROR("fail loading a fromJson library");
-    return false;
-}
-static inline void libFree()
-{
-    unique_lock<mutex> lock(jsonLoadLock);
-    if(Json2msgCount <= 0) {
-        if(jsonLib != nullptr) {
-            doLibRm();
-            doLibNull(); // mark all pointers null
+    bool procValue(const char *key, clockAccuracy_e &d) override {
+        jsonValue *jval = m_obj->getVal(key);
+        if(jval == nullptr)
+            return false;
+        uint64_t u64;
+        const string str = jval->getStr();
+        switch(jval->getType()) {
+            case t_string:
+                if(str.empty())
+                    return false;
+                if(str == "Unknown") {
+                    d = Accurate_Unknown;
+                    return true;
+                }
+                // Check enumerator values
+                for(int i = Accurate_within_1ps; i <= Accurate_more_10s; i++) {
+                    clockAccuracy_e v = (clockAccuracy_e)i;
+                    if(str == Message::clockAcc2str_c(v)) {
+                        d = v;
+                        return true;
+                    }
+                }
+                FALLTHROUGH;
+            case t_number:
+                if(jval->getUint64(u64, true)) {
+                    if(u64 == Accurate_Unknown || u64 <= Accurate_more_10s) {
+                        d = (clockAccuracy_e)u64;
+                        return true;
+                    }
+                }
+                break;
+            default:
+                break;
         }
-        Json2msgCount = 0;
+        return false;
     }
-}
-#define LIB_LOAD(a) \
-    if(!doLoadLibrary(a)) \
-        return false
-#define LIB_FREE libFree()
-#define LIB_NAME useLib
-#define LIB_SHARED true
-#else // PIC
-extern "C" { extern Json_lib *ptpm_json; }
-#define LIB_LOAD(a)
-#define LIB_FREE
-#define LIB_NAME ptpm_json->m_name
-#define LIB_SHARED false
-#endif // PIC
+    bool procValue(const char *key, faultRecord_e &d) override {
+        GET_STR;
+        for(int i = F_Emergency; i <= F_Debug; i++) {
+            faultRecord_e v = (faultRecord_e)i;
+            if(str == Message::faultRec2str_c(v)) {
+                d = v;
+                return true;
+            }
+        }
+        return false;
+    }
+    bool procValue(const char *key, timeSource_e &d) override {
+        GET_STR;
+        return Message::findTimeSrc(str, d);
+    }
+    bool procValue(const char *key, portState_e &d) override {
+        GET_STR;
+        return Message::findPortState(str, d);
+    }
+    bool procValue(const char *key, delayMechanism_e &d) override {
+        GET_STR;
+        return Message::findDelayMech(str, d);
+    }
+    bool procValue(const char *key, linuxptpTimeStamp_e &d) override {
+        GET_STR;
+        for(int i = TS_SOFTWARE; i <= TS_P2P1STEP; i++) {
+            linuxptpTimeStamp_e v = (linuxptpTimeStamp_e)i;
+            if(str == Message::ts2str_c(v)) {
+                d = v;
+                return true;
+            }
+        }
+        return false;
+    }
+    bool procValue(const char *key,
+        linuxptpPowerProfileVersion_e &d) override {
+        GET_STR;
+        for(int i = IEEE_C37_238_VERSION_NONE;
+            i <= IEEE_C37_238_VERSION_2017; i++) {
+            linuxptpPowerProfileVersion_e v = (linuxptpPowerProfileVersion_e)i;
+            if(str == Message::pwr2str_c(v)) {
+                d = v;
+                return true;
+            }
+        }
+        return false;
+    }
+    bool procValue(const char *key, linuxptpUnicastState_e &d) override {
+        GET_STR;
+        for(int i = UC_WAIT; i <= UC_HAVE_SYDY; i++) {
+            linuxptpUnicastState_e v = (linuxptpUnicastState_e)i;
+            if(str == Message::us2str_c(v)) {
+                d = v;
+                return true;
+            }
+        }
+        return false;
+    }
+    bool procValue(const char *key, TimeInterval_t &d) override {
+        GET_NUM(int64_t, getInt64);
+        d.scaledNanoseconds = num;
+        return true;
+    }
+    bool procValue(const char *key, Timestamp_t &d) override {
+        EMPTY_KEY;
+        jsonValue *jval = m_obj->getVal(key);
+        if(jval == nullptr)
+            return false;
+        int64_t integer;
+        uint64_t fraction;
+        long double num;
+        if(jval->getFrac(integer, fraction, 9)) {
+            if(integer > 0) {
+                d.secondsField = integer;
+                d.nanosecondsField = fraction;
+                return true;
+            }
+        } else if(jval->getFloat(num)) {
+            d.secondsField = trunc(num);
+            num -= d.secondsField;
+            d.nanosecondsField = trunc(num * NSEC_PER_SEC);
+            return true;
+        }
+        return false;
+    }
+    bool procValue(const char *key, ClockIdentity_t &d) override {
+        GET_STR
+        Binary b;
+        if(!b.fromHex(str) || b.size() != d.size())
+            return false;
+        b.copy(d.v);
+        return true;
+    }
+    bool procValue(const char *key, PortIdentity_t &d) override {
+        GET_OBJ(key);
+        bool ret =
+            PROC_VAL(clockIdentity) &&
+            PROC_VAL(portNumber);
+        RET_OBJ;
+    }
 
-Json2msg::Json2msg()
-{
-    Json2msgCount++;
-}
-Json2msg::~Json2msg()
-{
-    Json2msgCount--;
-    LIB_FREE;
-}
-const char *Json2msg::loadLibrary()
-{
-    return LIB_NAME;
-}
-bool Json2msg::selectLib(const string &libMatch)
-{
-    LIB_LOAD(libMatch.c_str());
-    return LIB_SHARED;
-}
-bool Json2msg::isLibShared()
-{
-    return LIB_SHARED;
-}
+    bool procValue(PortAddress_t &d) {
+        return
+            PROC_VAL(networkProtocol) &&
+            procBinary("addressField", d.addressField, d.addressLength);
+    }
+    bool procValue(const char *key, PortAddress_t &d) override {
+        GET_OBJ(key);
+        bool ret = procValue(d);
+        RET_OBJ;
+    }
+    bool procValue(const char *key, ClockQuality_t &d) override {
+        GET_OBJ(key);
+        bool ret =
+            PROC_VAL(clockClass) &&
+            PROC_VAL(clockAccuracy) &&
+            PROC_VAL(offsetScaledLogVariance);
+        RET_OBJ;
+    }
+    bool procValue(const char *key, PTPText_t &d) override {
+        GET_STR;
+        d.textField = str;
+        return true;
+    }
+    bool procValue(FaultRecord_t &d) {
+        return
+            PROC_VAL(faultRecordLength) &&
+            PROC_VAL(faultTime) &&
+            PROC_VAL(severityCode) &&
+            PROC_VAL(faultName) &&
+            PROC_VAL(faultValue) &&
+            PROC_VAL(faultDescription);
+    }
+    bool procValue(const char *key, FaultRecord_t &d) override {
+        GET_OBJ(key);
+        bool ret = procValue(d);
+        RET_OBJ;
+    }
+    bool procValue(AcceptableMaster_t &d) {
+        return
+            PROC_VAL(alternatePriority1) &&
+            PROC_VAL(acceptablePortIdentity);
+    }
+    bool procValue(const char *key, AcceptableMaster_t &d) override {
+        GET_OBJ(key);
+        bool ret = procValue(d);
+        RET_OBJ;
+    }
+    bool procValue(LinuxptpUnicastMaster_t &d) {
+        return
+            PROC_VAL(portIdentity) &&
+            PROC_VAL(clockQuality) &&
+            PROC_VAL(selected) &&
+            PROC_VAL(portState) &&
+            PROC_VAL(priority1) &&
+            PROC_VAL(priority2) &&
+            PROC_VAL(portAddress);
+    }
+    bool procValue(const char *key, LinuxptpUnicastMaster_t &d) override {
+        GET_OBJ(key);
+        bool ret = procValue(d);
+        RET_OBJ;
+    }
+    bool procBinary(const char *key, Binary &d, uint16_t &len) override {
+        GET_STR;
+        if(!d.fromId(str) || d.size() == 0)
+            return false;
+        len = d.size();
+        return true;
+    }
+    bool procBinary(const char *key, uint8_t *d, size_t len) override {
+        GET_STR;
+        Binary b;
+        if(!b.fromId(str) || b.size() != len)
+            return false;
+        b.copy(d);
+        return true;
+    }
+
+    bool procFlag(const char *key, uint8_t &flags, int mask) override {
+        EMPTY_KEY;
+        jsonValue *jval = m_obj->getVal(key);
+        if(jval == nullptr || jval->getType() != t_boolean)
+            return false;
+        if(jval->getBool())
+            flags |= mask;
+        return true;
+    }
+    void procZeroFlag(uint8_t &flags) override {
+        flags = 0;
+    }
+    bool procArray(const char *key, vector<ClockIdentity_t> &d) override {
+        jsonArray *arr = m_obj->getArr(key);
+        if(arr == nullptr)
+            return false;
+        for(size_t i = 0; i < arr->size(); i++) {
+            jsonValue *jval = arr->getVal(i);
+            if(jval == nullptr || jval->getType() != t_string)
+                return false;
+            const string str = jval->getStr();
+            Binary b;
+            ClockIdentity_t rec;
+            if(!b.fromHex(str) || b.size() != rec.size())
+                return false;
+            b.copy(rec.v);
+            d.push_back(rec);
+        }
+        return true;
+    }
+#define procVector(type)\
+    bool procArray(const char *key, vector<type> &d) override {\
+        jsonArray *arr = m_obj->getArr(key);\
+        if(arr == nullptr)\
+            return false;\
+        jsonObject *keep = m_obj;\
+        bool ret = true;\
+        for(size_t i = 0; i < arr->size(); i++) {\
+            m_obj = arr->getObj(i);\
+            if(m_obj == nullptr) {\
+                ret = false;\
+                break;\
+            }\
+            type rec;\
+            if(!procValue(rec)) {\
+                ret = false;\
+                break;\
+            }\
+            d.push_back(rec);\
+        }\
+        m_obj = keep;\
+        return ret;\
+    }
+    procVector(PortAddress_t)
+    procVector(FaultRecord_t)
+    procVector(AcceptableMaster_t)
+    procVector(LinuxptpUnicastMaster_t)
+};
+// keep for ABI backward compatibility
+Json2msg::~Json2msg() {}
+// Obsolete as we use internal JSON parser
+bool Json2msg::selectLib(const string &) { return false; }
+const char *Json2msg::loadLibrary() { return nullptr; }
+bool Json2msg::isLibShared() { return false; }
+bool Json2msg::fromJsonObj(const void *) { return false; }
+/* ************************************ */
 bool Json2msg::fromJson(const string &json)
 {
-    LIB_LOAD();
-    void *jobj = ptpm_json->m_parse(json.c_str());
-    if(jobj == nullptr) {
-        PTPMGMT_ERROR("JSON parse fail");
+    jsonMain jmain;
+    if(!jmain.parseBuffer(json)) {
+        PTPMGMT_ERROR("Parsing failed");
         return false;
     }
-    bool ret = fromJsonObj(jobj);
-    ptpm_json->m_free(jobj);
-    return ret;
-}
-bool Json2msg::fromJsonObj(const void *jobj)
-{
-    LIB_LOAD();
-    unique_ptr<JsonProcFrom> hold;
-    JsonProcFrom *pproc = ptpm_json->m_alloc_proc();
-    if(pproc == nullptr) {
-        PTPMGMT_ERROR("fromJsonObj fail allocation of JsonProcFrom");
+    jsonObject *mobj = jmain.getObj();
+    if(mobj == nullptr) {
+        PTPMGMT_ERROR("Wrong JSON, must be an object not %s",
+            jsonType2str(jmain.getType()));
         return false;
     }
-    hold.reset(pproc); // delete the object once we return :-)
     PTPMGMT_ERROR_CLR;
-    if(!pproc->mainProc(jobj))
-        return false;
-    const char *str = pproc->getActionField();
-    if(str == nullptr || *str == 0) {
-        PTPMGMT_ERROR("Message do not have an action field");
-        return false;
-    } else if(strcmp(str, "GET") == 0)
+    jsonValue *val;
+#define testOpt(key, result, emsg)\
+    val = mobj->getVal(#key);\
+    if(mobj->count(#key) > 0 && (mobj->getType(#key) != t_string ||\
+            val->getStr() != #result)) {\
+        PTPMGMT_ERROR("Message must " emsg);\
+        return false; }
+    testOpt(messageType, Management, "be management");
+    testOpt(tlvType, MANAGEMENT, "use management tlv");
+    // Mandatory
+    string str;
+#define testMand(key, emsg)\
+    val = mobj->getVal(#key);\
+    if(val == nullptr || val->getType() != t_string) {\
+        PTPMGMT_ERROR("message must have " emsg);\
+        return false; }\
+    str = val->getStr();\
+    if(str.empty()) {\
+        PTPMGMT_ERROR("Message do not have " emsg);\
+        return false; }
+    testMand(actionField, "an action field");
+    if(str == "GET")
         m_action = GET;
-    else if(strcmp(str, "SET") == 0)
+    else if(str == "SET")
         m_action = SET;
-    else if(strcmp(str, "COMMAND") == 0)
+    else if(str == "COMMAND")
         m_action = COMMAND;
     else {
-        PTPMGMT_ERROR("Message have wrong action field '%s'", str);
+        PTPMGMT_ERROR("Message have wrong action field '%s'", str.c_str());
         return false;
     }
-    if(!pproc->procMng(m_managementId))
+    testMand(managementId, "management ID");
+    if(!Message::findMngID(str, m_managementId)) {
+        PTPMGMT_ERROR("No such managementId '%s'", str.c_str());
         return false;
+    }
     // Optional
-    int64_t val;
+    int64_t i64;
 #define optProc(key)\
-    if(pproc->getIntVal(#key, val)) {\
+    if(mobj->count(#key) > 0) {\
+        val = mobj->getVal(#key);\
+        if(val == nullptr || !val->getInt64(i64)) {\
+            PTPMGMT_ERROR("Wrong value for " #key);\
+            return false;\
+        }\
         m_have[have_##key] = true;\
-        m_##key = val;\
+        m_##key = i64;\
     }
-    optProc(sequenceId)
-    optProc(sdoId)
-    optProc(domainNumber)
-    optProc(versionPTP)
-    optProc(minorVersionPTP)
-    optProc(PTPProfileSpecific)
-    if(pproc->getUnicastFlag(m_unicastFlag))
+    optProc(sequenceId);
+    optProc(sdoId);
+    optProc(domainNumber);
+    optProc(versionPTP);
+    optProc(minorVersionPTP);
+    optProc(PTPProfileSpecific);
+    if(mobj->count("unicastFlag") > 0) {
+        val = mobj->getVal("unicastFlag");
+        if(val == nullptr || val->getType() != t_boolean) {
+            PTPMGMT_ERROR("Wrong value for unicastFlag");
+            return false;
+        }
         m_have[have_unicastFlag] = true;
-    bool have;
+        m_unicastFlag = val->getBool();
+    }
+    JsonProcFrom pproc;
+    pproc.m_obj = mobj;
 #define portProc(key, var)\
-    if(pproc->parsePort(#key, have, m_##var)) {\
-        if(have)\
+    if(mobj->count(#key) > 0) {\
+        if(pproc.procValue(#key, m_##var))\
             m_have[have_##var] = true;\
-    } else\
-        return false;
+        else {\
+            PTPMGMT_ERROR("Wrong value for " #key);\
+            return false;\
+        }\
+    }
     portProc(sourcePortIdentity, srcPort)
     portProc(targetPortIdentity, dstPort)
-    bool have_data = pproc->haveData();
+    bool have_data = false;
+    if(mobj->count("dataField") > 0) {
+        switch(mobj->getType("dataField")) {
+            case t_object:
+                have_data = true;
+            case t_null:
+                break;
+            default:
+                PTPMGMT_ERROR("Wrong value for dataField");
+                return false;
+        }
+    }
     if(m_action == GET) {
         if(have_data) {
             PTPMGMT_ERROR("GET use dataField with zero values only, "
@@ -244,12 +492,14 @@ bool Json2msg::fromJsonObj(const void *jobj)
                 Message::mng2str_c(m_managementId));
             return false;
         }
-        if(!pproc->parseData())
-            return false;
+        pproc.m_obj = mobj->getObj("dataField");
         const BaseMngTlv *data = nullptr;
-        if(!pproc->procData(m_managementId, data)) {
+        if(!pproc.procData(m_managementId, data)) {
             if(data != nullptr)
                 delete data;
+            if(!Error::isError())
+                PTPMGMT_ERROR("Parsing of %s dataField failed",
+                    Message::mng2str_c(m_managementId));
             return false;
         }
         m_tlvData.reset(const_cast<BaseMngTlv *>(data));
@@ -272,11 +522,6 @@ extern "C" {
         if(j != nullptr && j->_this != nullptr)\
             return (ptpmgmt_##cast)((Json2msg*)j->_this)->func();\
         return PTPMGMT_##def; }
-#define C2CPP_ptr(func, typ)\
-    static bool ptpmgmt_json_##func(ptpmgmt_json j, const typ *arg) {\
-        if(j != nullptr && j->_this != nullptr && arg != nullptr)\
-            return ((Json2msg*)j->_this)->func(arg);\
-        return false; }
 #define C2CPP_port(n)\
     static const ptpmgmt_PortIdentity_t *ptpmgmt_json_##n##Port(ptpmgmt_json j) {\
         if(j != nullptr && j->_this != nullptr) {\
@@ -305,22 +550,19 @@ extern "C" {
             C_SWP(dataTbl, nullptr);
         }
     }
-    bool ptpmgmt_json_selectLib(const char *libName)
+    // Obsolete as we use internal JSON parser
+    bool ptpmgmt_json_selectLib(const char *) { return false; }
+    const char *ptpmgmt_json_loadLibrary() { return nullptr; }
+    bool ptpmgmt_json_isLibShared() { return false; }
+    static bool ptpmgmt_json_fromJsonObj(ptpmgmt_json, const void *)
+    { return false; }
+    /* ************************************ */
+    static bool ptpmgmt_json_fromJson(ptpmgmt_json j, const char *arg)
     {
-        if(libName != nullptr)
-            return Json2msg::selectLib(libName);
+        if(j != nullptr && j->_this != nullptr && arg != nullptr)
+            return ((Json2msg *)j->_this)->fromJson(arg);
         return false;
     }
-    const char *ptpmgmt_json_loadLibrary()
-    {
-        return Json2msg::loadLibrary();
-    }
-    bool ptpmgmt_json_isLibShared()
-    {
-        return Json2msg::isLibShared();
-    }
-    C2CPP_ptr(fromJson, char)
-    C2CPP_ptr(fromJsonObj, void)
     C2CPP_cret(managementId, mng_vals_e, NULL_PTP_MANAGEMENT)
     static const void *ptpmgmt_json_dataField(ptpmgmt_json j)
     {
@@ -381,11 +623,13 @@ extern "C" {
         j->dataTbl = nullptr;
 #define C_ASGN(n) j->n = ptpmgmt_json_##n
         C_ASGN(free);
+        // Obsolete as we use internal JSON parser
         C_ASGN(selectLib);
         C_ASGN(loadLibrary);
         C_ASGN(isLibShared);
-        C_ASGN(fromJson);
         C_ASGN(fromJsonObj);
+        /* ************************************ */
+        C_ASGN(fromJson);
         C_ASGN(managementId);
         C_ASGN(dataField);
         C_ASGN(actionField);

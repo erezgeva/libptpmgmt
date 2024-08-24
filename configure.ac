@@ -489,59 +489,6 @@ AC_SUBST([NETTLE_INC_FLAGS])
 AC_SUBST([NETTLE_LIB_FLAGS])
 
 #----------------------------------------------------------------
-# JSON libraries
-AS_UNSET([ptpm_skip_json])
-AS_UNSET([ptpm_skip_jsonc])
-AS_UNSET([ptpm_skip_fsonc])
-AS_UNSET([HAVE_JSONC_LIB])
-AS_UNSET([JSONC_LIB_FLAGS])
-AS_UNSET([JSONC_INC_FLAGS])
-AS_UNSET([HAVE_FJSON_LIB])
-AS_UNSET([FJSON_LIB_FLAGS])
-AS_UNSET([FJSON_INC_FLAGS])
-
-AC_ARG_ENABLE([json],
-              [AS_HELP_STRING([--disable-json],
-                              [Skip using all json libraries])],
-              [AS_VAR_COPY([ptpm_skip_json], [enableval])])
-AC_ARG_ENABLE([jsonc],
-              [AS_HELP_STRING([--disable-jsonc], [Skip using jsonc library])],
-              [AS_VAR_COPY([ptpm_skip_jsonc], [enableval])])
-AC_ARG_ENABLE([fjson],
-              [AS_HELP_STRING([--disable-fjson],
-                              [Skip using libfastjson library])],
-              [AS_VAR_COPY([ptpm_skip_fsonc], [enableval])])
-
-AS_VAR_IF([ptpm_skip_json], ['no'],
-      [AS_VAR_SET([ptpm_skip_jsonc], ['no'])
-       AS_VAR_SET([ptpm_skip_fsonc], ['no'])])
-
-PTPM_VAR_ELSE_IF([ptpm_skip_jsonc], ['no'],
-      [AC_CHECK_HEADER([json-c/json.h],
-                       [AS_VAR_SET([HAVE_JSONC_LIB], ['json-c/json.h'])])
-       PTPM_LIB_PKG_CONFIG([JSONC], [json-c])
-       AC_CHECK_LIB([json-c], [json_c_version_num],
-                    [PTPM_VAR_EMPTY_IF([JSONC_LIB_FLAGS],
-                           [AS_VAR_SET([JSONC_LIB_FLAGS], ['-ljson-c'])])],
-                    [AS_UNSET([HAVE_JSONC_LIB])])])
-
-PTPM_VAR_ELSE_IF([ptpm_skip_fsonc], ['no'],
-      [AC_CHECK_HEADER([libfastjson/json.h],
-                       [AS_VAR_SET([HAVE_FJSON_LIB], ['libfastjson/json.h'])])
-       PTPM_LIB_PKG_CONFIG([FJSON], [libfastjson])
-       AC_CHECK_LIB([fastjson], [fjson_version],
-                    [PTPM_VAR_EMPTY_IF([FJSON_LIB_FLAGS],
-                           [AS_VAR_SET([FJSON_LIB_FLAGS], ['-lfastjson'])])],
-                    [AS_UNSET([HAVE_FJSON_LIB])])])
-
-AC_SUBST([HAVE_JSONC_LIB])
-AC_SUBST([JSONC_LIB_FLAGS])
-AC_SUBST([JSONC_INC_FLAGS])
-AC_SUBST([HAVE_FJSON_LIB])
-AC_SUBST([FJSON_LIB_FLAGS])
-AC_SUBST([FJSON_INC_FLAGS])
-
-#----------------------------------------------------------------
 # Version
 AS_UNSET([PACKAGE_VERSION_MAJ])
 AS_UNSET([PACKAGE_VERSION_MIN])

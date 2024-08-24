@@ -15,8 +15,6 @@ BuildRequires:  autoconf m4 automake libtool chrpath
 # You may use 'patchelf' as alternative of `chrpath`
 BuildRequires:  doxygen graphviz texlive-epstopdf
 BuildRequires:  openssl-devel libgcrypt-devel gnutls-devel nettle-devel
-BuildRequires:  json-c json-c-devel
-BuildRequires:  libfastjson libfastjson-devel
 BuildRequires:  perl perl-devel
 BuildRequires:  python3 python3-devel
 BuildRequires:  lua lua-devel
@@ -65,22 +63,6 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       nettle
 %description    nettle
 PTP management library HMAC plugin using the nettle library
-
-%package        jsonc
-Summary:        PTP management library JSON plugin using the json-c library
-License:        LGPLv3+
-Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       json-c
-%description    jsonc
-PTP management library JSON plugin using the json-c library
-
-%package        fastjson
-Summary:        PTP management library JSON plugin using the fastjson library
-License:        LGPLv3+
-Requires:       %{name}%{?_isa} = %{version}-%{release}
-Requires:       libfastjson
-%description    fastjson
-PTP management library JSON plugin using the fastjson library
 
 %package        devel
 Summary:        Development files for the PTP management library
@@ -197,12 +179,6 @@ autoreconf -i
 
 %files nettle
 %{_libdir}/%{name}_nettle.so.*
-
-%files jsonc
-%{_libdir}/%{name}_jsonc.so.*
-
-%files fastjson
-%{_libdir}/%{name}_fastjson.so.*
 
 %files devel
 %{_includedir}/*
