@@ -3,12 +3,12 @@
 # Developer Guide for using Doxygen in our project
 
 # <u>Preface</u>
-Our project uses Doxygen to document the library classes, functions, and constants.
-We document in library headers source code only.
+Our project uses Doxygen to document the library classes, functions, and constants.  
+We document library headers source code mainly.  
 This document guides how to do it properly.
 
 # <u>Instructions</u>
- 1. We use Javadoc style only. We use the at-sign for commands.
+ 1. We use Javadoc style only. Use the at-sign for commands.
  1. We use document block before the item we describe:
     * We use this style `/** xxxxx */`. The block is usually spread on multiple lines. For example:
 
@@ -24,7 +24,7 @@ This document guides how to do it properly.
     void property; /**< description */
     ```
 
- 1. Each header file starts with:
+ 1. Each source file starts with:
     * The licence and copyright using SPDX IDs; our project uses LGPL 3 or later for all library source code.
     *  empty `@file` that starts the block
     *  `@brief` - one line sentence describing this header
@@ -32,7 +32,7 @@ This document guides how to do it properly.
     *  `@copyright` - The copyright. The main library is copyright to Erez Geva. The copyright apear twice, the SPDX ID is for SBOM and this tag is for Doxygen.
     *  following these commands, you may add a more substantial description, if needed
  1. Before each class, structure, or enumerator, add a block with description. You may use `@brief`, and `@detail`. We usually use both of them or none.
- 1. Before function and methods we use a multiple lines block. We start with descriptions, and then we list parameters with the `@param`, and the return value with `@return`, if any. You may add `@note` and `@attention` if you wish to add clarifications. Use `@attention` for more important issues.
+ 1. Before functions and methods we use a multiple lines block. We start with descriptions, and then we list parameters with the `@param`, and the return value with `@return`, if any. You may add `@note` and `@attention` if you wish to add clarifications. Use `@attention` for more important issues.
  1. The `@param` command should comes with `[in]`, `[out]`, `[in ,out]` to specify if parameter is used as input, output or both. You can use 'const' for input only parameters. But do not omit `[in]` in this case. If non static method does not change the object it is better to define it as constant by adding `const` like `method(type param ...) const`.
  1. Private sections are not documented by default, but sometimes items in a protected section or in public sections are intended for internal only. You may remove the block using the conditional command. Feel free to use multiple lines block on starting the conditional block and write explanation for blocking.
     ```
