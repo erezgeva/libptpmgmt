@@ -27,6 +27,7 @@
 #                   Updating major version is done with the '-m' flag.
 # - config_report:  Show configuration summary
 # - sim_ptp4l:      Run ptp4l with a dummy clock and call the testing
+# - tag_release:    Tag new release
 ###############################################################################
 emk()
 {
@@ -527,6 +528,16 @@ EOF
  wait
 }
 ###############################################################################
+# Tag new release
+tag_release()
+{
+ local -r version="$ver_maj.$ver_min"
+ if git rev-list $version > /dev/null 2>&1; then
+   return
+ fi
+ git tag -a -s -u DA12690F5898E40E -m "Version $version" $version
+}
+###############################################################################
 main()
 {
  local -r me1="$(realpath -s "$0")"
@@ -555,6 +566,7 @@ main()
   new_version.sh)    new_version "$@";;
   config_report.sh)  config_report "$@";;
   sim_ptp4l.sh)      sim_ptp4l "$@";;
+  tag_release.sh)    tag_release "$@";;
  esac
 }
 main "$@"
