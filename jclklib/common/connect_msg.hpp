@@ -21,14 +21,14 @@
 #include <common/message.hpp>
 #include <common/transport.hpp>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class CommonConnectMessage : virtual public Message
 {
   private:
     TransportClientId clientId;
   protected:
-#define MESSAGE_CONNECT() JClkLibCommon::Message(JClkLibCommon::CONNECT_MSG)
+#define MESSAGE_CONNECT() Message(CONNECT_MSG)
     CommonConnectMessage() : MESSAGE_CONNECT() {}
   public:
     TransportClientId &getClientId() { return clientId; }
@@ -38,6 +38,7 @@ class CommonConnectMessage : virtual public Message
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
     virtual std::string toString();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_CONNECT_MSG_HPP */

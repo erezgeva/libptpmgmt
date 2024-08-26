@@ -20,7 +20,8 @@
 
 #define INTR_SIGNAL (SIGUSR1)
 
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 #define SIGADDSET(set,sig,ret)            \
@@ -63,7 +64,7 @@ bool GenerateWaitSigset(sigset_t *wait)
     return true;
 }
 
-bool JClkLibCommon::BlockStopSignal()
+bool clkmgr::BlockStopSignal()
 {
     sigset_t blockSigset;
     if(!GenerateBlockSigset(&blockSigset))
@@ -73,7 +74,7 @@ bool JClkLibCommon::BlockStopSignal()
     return true;
 }
 
-bool JClkLibCommon::WaitForStopSignal()
+bool clkmgr::WaitForStopSignal()
 {
     sigset_t waitSigset;
     int cause;
@@ -90,7 +91,7 @@ bool JClkLibCommon::WaitForStopSignal()
 
 void NullSigaction(int sig, siginfo_t *siginfo, void *ctx) {}
 
-bool JClkLibCommon::EnableSyscallInterruptSignal()
+bool clkmgr::EnableSyscallInterruptSignal()
 {
     sigset_t unblockSigset;
     struct sigaction intrSigaction;
@@ -106,7 +107,7 @@ bool JClkLibCommon::EnableSyscallInterruptSignal()
     return true;
 }
 
-bool JClkLibCommon::SendSyscallInterruptSignal(thread &t)
+bool clkmgr::SendSyscallInterruptSignal(thread &t)
 {
     int ret;
     if((ret = pthread_kill(t.native_handle(), INTR_SIGNAL)) != 0) {

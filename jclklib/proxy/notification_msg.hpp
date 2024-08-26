@@ -22,10 +22,10 @@
 #include <common/notification_msg.hpp>
 #include <proxy/message.hpp>
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ProxyNotificationMessage : virtual public ProxyMessage,
-    virtual public JClkLibCommon::NotificationMessage
+    virtual public NotificationMessage
 {
   public:
     ProxyNotificationMessage() : MESSAGE_NOTIFY() {}
@@ -48,6 +48,7 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
      */
     static bool initMessage();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_NOTIFICATION_MSG_HPP */

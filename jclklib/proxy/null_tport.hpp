@@ -20,13 +20,14 @@
 #include <common/null_tport.hpp>
 #include <proxy/transport.hpp>
 
-namespace JClkLibProxy
-{
-class NullProxyTransport : public JClkLibCommon::NullTransport
+__CLKMGR_NAMESPACE_BEGIN
+
+class NullProxyTransport : public NullTransport
 {
   public:
     static SEND_PROXY_MESSAGE(sendMessage);
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_NULL_TPORT_HPP */

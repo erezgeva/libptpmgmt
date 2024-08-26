@@ -27,8 +27,8 @@
 
 #define MAX_BUFFER_LENGTH   (4096)
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 typedef std::array<std::uint8_t, MAX_BUFFER_LENGTH> TransportBuffer;
 class Message;
 class Transport;
@@ -66,14 +66,13 @@ class TransportListenerContext : public TransportContext
     friend class Transport;
   protected:
 #define LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(name)                    \
-    bool name(JClkLibCommon::Message *bmsg, \
-        JClkLibCommon::TransportTransmitterContext *&txcontext)
+    bool name(Message *bmsg, TransportTransmitterContext *&txcontext)
     virtual LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(processMessage) { return false; }
   public:
     virtual ~TransportListenerContext() = default;
 #define CREATE_TRANSMIT_CONTEXT_TYPE(name)                            \
-    JClkLibCommon::TransportTransmitterContext *name \
-    (JClkLibCommon::TransportClientId &clientId)
+    TransportTransmitterContext *name \
+    (TransportClientId &clientId)
     virtual CREATE_TRANSMIT_CONTEXT_TYPE(CreateTransmitterContext) { return NULL; }
 };
 
@@ -131,6 +130,6 @@ PER_TRANSPORT_VARIADIC_TEMPLATE(initTransport)
 PER_TRANSPORT_VARIADIC_TEMPLATE(stopTransport)
 PER_TRANSPORT_VARIADIC_TEMPLATE(finalizeTransport)
 
-}
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_TRANSPORT_HPP */

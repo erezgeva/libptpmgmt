@@ -18,8 +18,8 @@
 #include "jclk_client_state.hpp"
 #include "jclk_subscription.hpp"
 
-namespace JClkLibClient
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 /**
  * Clock Manager APIs
  */
@@ -29,7 +29,7 @@ class JClkLibClientApi
     /**
      * Map of client states
      */
-    static std::map <JClkLibCommon::sessionId_t, ClientState> clientStateMap;
+    static std::map <sessionId_t, ClientState> clientStateMap;
     /**
      * Application client state
      */
@@ -71,7 +71,7 @@ class JClkLibClientApi
      * @param[out] currentState Reference to the current state
      * @return true on success, false on failure
      */
-    bool jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
+    bool jcl_subscribe(jcl_subscription &newSub,
         jcl_state &currentState);
 
     /**
@@ -85,5 +85,7 @@ class JClkLibClientApi
     int jcl_status_wait(int timeout, jcl_state &jcl_state,
         jcl_state_event_count &eventCount);
 };
-}
+
+__CLKMGR_NAMESPACE_END
+
 #endif /* JCLK_INIT_HPP */

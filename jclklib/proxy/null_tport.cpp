@@ -17,7 +17,8 @@
 #include <proxy/null_tport.hpp>
 #include <common/print.hpp>
 
-using namespace JClkLibProxy;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 SEND_PROXY_MESSAGE(NullProxyTransport::sendMessage)

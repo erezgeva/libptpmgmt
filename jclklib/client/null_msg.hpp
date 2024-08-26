@@ -18,16 +18,16 @@
 #include <client/message.hpp>
 #include <common/null_msg.hpp>
 
-namespace JClkLibClient
-{
-class ClientNullMessage : public JClkLibClient::ClientMessage,
-    public JClkLibCommon::CommonNullMessage
+__CLKMGR_NAMESPACE_BEGIN
+
+class ClientNullMessage : public ClientMessage, public CommonNullMessage
 {
   protected:
   public:
     static bool initMessage() { return true; }
     ClientNullMessage() {}
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_NULL_MSG_HPP */

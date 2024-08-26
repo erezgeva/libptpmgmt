@@ -20,11 +20,11 @@
 #include <client/subscribe_msg.hpp>
 #include <common/print.hpp>
 
-using namespace JClkLibClient;
+__CLKMGR_NAMESPACE_USE
 
 bool ClientMessage::init()
 {
     PrintDebug("Initializing Client Message");
-    return JClkLibCommon::_initMessage<ClientNullMessage, ClientConnectMessage,
+    return _initMessage<ClientNullMessage, ClientConnectMessage,
         ClientSubscribeMessage, ClientNotificationMessage>();
 }

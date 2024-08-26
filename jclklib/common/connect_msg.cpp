@@ -17,7 +17,8 @@
 #include <common/print.hpp>
 #include <common/serialize.hpp>
 
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 string CommonConnectMessage::toString()

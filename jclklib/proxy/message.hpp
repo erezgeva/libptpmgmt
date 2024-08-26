@@ -24,9 +24,9 @@
 #include <proxy/clock_config.hpp>
 #include <proxy/clock_status.hpp>
 
-namespace JClkLibProxy
-{
-class ProxyMessage : virtual public JClkLibCommon::Message
+__CLKMGR_NAMESPACE_BEGIN
+
+class ProxyMessage : virtual public Message
 {
   public:
     /**
@@ -42,6 +42,7 @@ class ProxyMessage : virtual public JClkLibCommon::Message
         const ClockStatus &status) = 0;
     static bool init();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_MESSAGE_HPP */

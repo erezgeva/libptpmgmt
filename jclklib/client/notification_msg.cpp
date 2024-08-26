@@ -21,8 +21,8 @@
 #include <common/serialize.hpp>
 #include "jclk_client_state.hpp"
 
-using namespace JClkLibCommon;
-using namespace JClkLibClient;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 /** @brief Create the ClientNotificationMessage object
@@ -126,10 +126,10 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             composite_eventSub,
             (std::size_t)sizeof(composite_eventSub));
         /* Get the correct client_ptp_data according to our current sessionID */
-        JClkLibCommon::client_ptp_event *client_ptp_data = nullptr;
+        client_ptp_event *client_ptp_data = nullptr;
         client_ptp_data = ClientSubscribeMessage::getClientPtpEventStruct(
                 currentClientState->get_sessionId());
-        JClkLibCommon::client_ptp_event *composite_client_ptp_data = nullptr;
+        client_ptp_event *composite_client_ptp_data = nullptr;
         composite_client_ptp_data =
             ClientSubscribeMessage::getClientPtpEventCompositeStruct(
                 currentClientState->get_sessionId());

@@ -18,8 +18,8 @@
 #include <common/print.hpp>
 #include <common/serialize.hpp>
 
-using namespace JClkLibClient;
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 /** @brief Create the ClientSubscribeMessage object
@@ -57,7 +57,7 @@ void ClientSubscribeMessage::setClientState(ClientState *newClientState)
 
 PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 {
-    JClkLibCommon::ptp_event data = {};
+    ptp_event data = {};
     std::uint32_t eventSub[1];
     struct timespec last_notification_time = {};
     if(clock_gettime(CLOCK_MONOTONIC, &last_notification_time) == -1)
@@ -82,11 +82,9 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     1. Remove the pair if the sessionID is terminated (disconnect)
     2. to move some/all processing inside the processMessage instead of here.
     */
-    JClkLibCommon::sessionId_t currentSessionID =
-        currentClientState->get_sessionId();
-    std::map <JClkLibCommon::sessionId_t,
-        std::array<JClkLibCommon::client_ptp_event *, 2>>::iterator it;
-    JClkLibCommon::client_ptp_event *client_data, *composite_client_data;
+    sessionId_t currentSessionID = currentClientState->get_sessionId();
+    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
+    client_ptp_event *client_data, *composite_client_data;
     int64_t lower_master_offset =
         currentClientState->get_eventSub().get_value().getLower(gmOffsetValue);
     int64_t upper_master_offset =
@@ -94,11 +92,11 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     it = client_ptp_event_map.find(currentSessionID);
     if(it == client_ptp_event_map.end()) {
         /* Creation of a new map item for this new sessionID */
-        client_data = new JClkLibCommon::client_ptp_event();
-        composite_client_data = new JClkLibCommon::client_ptp_event();
+        client_data = new client_ptp_event();
+        composite_client_data = new client_ptp_event();
         client_ptp_event_map.insert(\
-            std::pair<JClkLibCommon::sessionId_t, \
-            std::array<JClkLibCommon::client_ptp_event *, 2>>\
+            std::pair<sessionId_t, \
+            std::array<client_ptp_event *, 2>>\
             (currentSessionID, {client_data, composite_client_data}));
     } else {
         /* Reuse the current client data */
@@ -178,12 +176,10 @@ PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
 }
 
 /* delete the client ptp event based on session ID given */
-void ClientSubscribeMessage::deleteClientPtpEventStruct(
-    JClkLibCommon::sessionId_t sID)
+void ClientSubscribeMessage::deleteClientPtpEventStruct(sessionId_t sID)
 {
-    std::map <JClkLibCommon::sessionId_t,
-        std::array<JClkLibCommon::client_ptp_event *, 2>>::iterator it;
-    JClkLibCommon::client_ptp_event *client_data, *composite_data;
+    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
+    client_ptp_event *client_data, *composite_data;
     it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end()) {
         client_data = it->second[0];
@@ -196,12 +192,11 @@ void ClientSubscribeMessage::deleteClientPtpEventStruct(
 }
 
 /* get the corresponding ClientPtpEvent */
-JClkLibCommon::client_ptp_event
-*ClientSubscribeMessage::getClientPtpEventStruct(JClkLibCommon::sessionId_t sID)
+client_ptp_event
+*ClientSubscribeMessage::getClientPtpEventStruct(sessionId_t sID)
 {
-    std::map <JClkLibCommon::sessionId_t,
-        std::array<JClkLibCommon::client_ptp_event *, 2>>::iterator it;
-    JClkLibCommon::client_ptp_event *client_data = nullptr;
+    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
+    client_ptp_event *client_data = nullptr;
     it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end())
         client_data = it->second[0];
@@ -209,13 +204,11 @@ JClkLibCommon::client_ptp_event
 }
 
 /* get the corresponding ClientPtpEvent for composite  */
-JClkLibCommon::client_ptp_event
-*ClientSubscribeMessage::getClientPtpEventCompositeStruct(
-    JClkLibCommon::sessionId_t sID)
+client_ptp_event *ClientSubscribeMessage::getClientPtpEventCompositeStruct(
+    sessionId_t sID)
 {
-    std::map <JClkLibCommon::sessionId_t,
-        std::array<JClkLibCommon::client_ptp_event *, 2>>::iterator it;
-    JClkLibCommon::client_ptp_event *client_data = nullptr;
+    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
+    client_ptp_event *client_data = nullptr;
     it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end())
         client_data = it->second[1];
@@ -223,13 +216,11 @@ JClkLibCommon::client_ptp_event
 }
 
 /* reduce the corresponding eventCount */
-void ClientSubscribeMessage::resetClientPtpEventStruct(
-    JClkLibCommon::sessionId_t sID,
+void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
     jcl_state_event_count &eventCount)
 {
-    std::map <JClkLibCommon::sessionId_t,
-        std::array<JClkLibCommon::client_ptp_event *, 2>>::iterator it;
-    JClkLibCommon::client_ptp_event *client_ptp_data = nullptr;
+    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
+    client_ptp_event *client_ptp_data = nullptr;
     it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end())
         client_ptp_data = it->second[0];

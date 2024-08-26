@@ -18,10 +18,10 @@
 #include <common/null_msg.hpp>
 #include <proxy/message.hpp>
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ProxyNullMessage : virtual public ProxyMessage,
-    virtual public JClkLibCommon::CommonNullMessage
+    virtual public CommonNullMessage
 {
   protected:
     ProxyNullMessage() : MESSAGE_NULL() {};
@@ -32,6 +32,7 @@ class ProxyNullMessage : virtual public ProxyMessage,
     { return false; }
     static bool initMessage() { return true; }
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_NULL_MSG_HPP */

@@ -24,8 +24,7 @@
 
 #include "jclk_init.hpp"
 
-using namespace JClkLibClient;
-using namespace JClkLibCommon;
+using namespace clkmgr;
 
 volatile sig_atomic_t signal_flag = 0;
 
@@ -51,7 +50,7 @@ double getMonotonicTime() {
 int main(int argc, char *argv[])
 {
     jcl_state_event_count eventCount = {};
-    JClkLibCommon::jcl_subscription sub = {};
+    jcl_subscription sub = {};
     jcl_state state = {};
     int lower_master_offset = -100000;
     int upper_master_offset = 100000;

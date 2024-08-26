@@ -30,8 +30,8 @@
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
 #define DEFAULT_SUBSCRIBE_TIME_OUT 5  //5 sec
 
-using namespace JClkLibClient;
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 rtpi::mutex ClientConnectMessage::cv_mtx;
@@ -78,18 +78,18 @@ bool JClkLibClientApi::jcl_connect()
     return true;
 }
 
-bool JClkLibClientApi::jcl_subscribe(JClkLibCommon::jcl_subscription &newSub,
+bool JClkLibClientApi::jcl_subscribe(jcl_subscription &newSub,
     jcl_state &currentState)
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
-    PrintDebug("[JClkLibClient]::subscribe");
+    PrintDebug("[clkmgr]::subscribe");
     MessageX subscribeMsg(new ClientSubscribeMessage());
     ClientSubscribeMessage *cmsg = dynamic_cast<decltype(cmsg)>(subscribeMsg.get());
     if(cmsg == nullptr) {
-        PrintErrorCode("[JClkLibClient::subscribe] subscribeMsg is nullptr !!\n");
+        PrintErrorCode("[clkmgr::subscribe] subscribeMsg is nullptr !!\n");
         return false;
     } else
-        PrintDebug("[JClkLibClient::subscribe] subscribeMsgcreation is OK !!\n");
+        PrintDebug("[clkmgr::subscribe] subscribeMsgcreation is OK !!\n");
     cmsg->setClientState(&appClientState);
     /* Write the current event subscription */
     appClientState.get_eventSub().set_event(newSub.getc_event());

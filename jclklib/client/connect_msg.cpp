@@ -17,8 +17,8 @@
 #include <common/ptp_event.hpp>
 #include <common/serialize.hpp>
 
-using namespace JClkLibClient;
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 /** @brief Create the ClientConnectMessage object
@@ -48,7 +48,7 @@ bool ClientConnectMessage::initMessage()
 
 PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
 {
-    JClkLibCommon::ptp_event data = {};
+    ptp_event data = {};
     PrintDebug("[ClientConnectMessage]::parseBuffer ");
     if(!CommonConnectMessage::parseBuffer(LxContext))
         return false;

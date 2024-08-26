@@ -19,11 +19,11 @@
 #include <proxy/clock_config.hpp>
 #include <proxy/notification_msg.hpp>
 
-using namespace JClkLibCommon;
-using namespace JClkLibProxy;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
-extern JClkLibCommon::ptp_event pe;
+extern ptp_event pe;
 
 /** @brief Create the ProxyNotificationMessage object
  *

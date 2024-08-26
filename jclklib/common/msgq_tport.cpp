@@ -26,7 +26,8 @@
 #include <common/sighandler.hpp>
 #include <common/util.hpp>
 
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 #define QUEUE_FLAGS (O_RDONLY | O_CREAT)

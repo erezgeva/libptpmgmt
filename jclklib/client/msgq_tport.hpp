@@ -26,10 +26,10 @@
 #include <common/msgq_tport.hpp>
 #include <common/util.hpp>
 
-namespace JClkLibClient
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ClientMessageQueueListenerContext :
-    public JClkLibCommon::MessageQueueListenerContext
+    public MessageQueueListenerContext
 {
     friend class ClientMessageQueue;
   protected:
@@ -39,7 +39,7 @@ class ClientMessageQueueListenerContext :
 };
 
 class ClientMessageQueueTransmitterContext  :
-    public JClkLibCommon::MessageQueueTransmitterContext
+    public MessageQueueTransmitterContext
 {
     friend class ClientMessageQueue;
   protected:
@@ -47,20 +47,21 @@ class ClientMessageQueueTransmitterContext  :
         MessageQueueTransmitterContext(mqListenerDesc) {}
 };
 
-class ClientMessageQueue : public JClkLibCommon::MessageQueue,
+class ClientMessageQueue : public MessageQueue,
     public ClientTransport
 {
   private:
     static mqd_t mqNativeClientTransmitterDesc;
     static std::string mqListenerName;
-    static std::unique_ptr<JClkLibCommon::MessageQueueTransmitterContext> txContext;
+    static std::unique_ptr<MessageQueueTransmitterContext> txContext;
   public:
     static bool initTransport();
     static bool stopTransport();
     static bool finalizeTransport();
-    static bool writeTransportClientId(JClkLibCommon::Message *msg);
+    static bool writeTransportClientId(Message *msg);
     static SEND_CLIENT_MESSAGE(sendMessage);
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_MSGQ_TPORT_HPP */

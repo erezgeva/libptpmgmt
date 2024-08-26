@@ -30,8 +30,8 @@
 #define RX_QUEUE_FLAGS (O_RDONLY | O_CREAT)
 #define RX_QUEUE_MODE  (S_IRUSR | S_IWUSR | S_IWGRP)
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class MessageQueueListenerContext : virtual public TransportListenerContext
 {
     friend class MessageQueue;
@@ -69,6 +69,7 @@ class MessageQueue : public Transport
     static bool stopTransport() { return true; };
     static bool finalizeTransport() { return true; };
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_MSGQ_TPORT_HPP */

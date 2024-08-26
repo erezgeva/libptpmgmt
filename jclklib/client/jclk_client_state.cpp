@@ -22,15 +22,15 @@
 #include <common/transport.hpp>
 #include "jclk_client_state.hpp"
 
-using namespace JClkLibClient;
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 ClientState::ClientState()
 {
     connected = false;
     subscribed = false;
-    sessionId = JClkLibCommon::InvalidSessionId;
+    sessionId = InvalidSessionId;
     fill(begin(clientID), end(clientID), 0);
     eventState = {};
     eventStateCount = {};
@@ -125,7 +125,7 @@ string ClientState::toString()
     return name;
 }
 
-JClkLibCommon::jcl_subscription &ClientState::get_eventSub()
+jcl_subscription &ClientState::get_eventSub()
 {
     return eventSub;
 }

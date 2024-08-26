@@ -19,8 +19,7 @@
 
 #include <cstdint>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
 class NullTransport : public Transport
 {
   public:
@@ -28,6 +27,6 @@ class NullTransport : public Transport
     static bool stopTransport() { return true; }
     static bool finalizeTransport() { return true; }
 };
-}
+__CLKMGR_NAMESPACE_END
 
 #endif /* NULL_TPORT_HPP */

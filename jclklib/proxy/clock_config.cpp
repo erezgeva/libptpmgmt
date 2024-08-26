@@ -15,8 +15,8 @@
 
 #include <proxy/clock_config.hpp>
 
-using namespace JClkLibCommon;
-using namespace JClkLibProxy;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 bool ClockConfiguration::readConsume()

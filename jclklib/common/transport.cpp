@@ -24,9 +24,10 @@
 #define EXIT_TIMEOUT    (200 /*ms*/)
 #define START_TIMEOUT   (20 /*ms*/)
 
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
-using namespace JClkLibCommon;
 DECLARE_STATIC(Transport::workerList);
 
 void Transport::dispatchLoop(

@@ -15,8 +15,8 @@
 #include <common/connect_msg.hpp>
 #include <proxy/message.hpp>
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class Connect
 {
   private:
@@ -24,4 +24,5 @@ class Connect
     static int connect(uint8_t transport_specific);
     static void disconnect();
 };
-}
+
+__CLKMGR_NAMESPACE_END

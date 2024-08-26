@@ -20,8 +20,8 @@
 #include <common/sighandler.hpp>
 #include <common/util.hpp>
 
-using namespace JClkLibClient;
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 bool ClientTransport::init()
@@ -29,7 +29,7 @@ bool ClientTransport::init()
     if(!Transport::init())
         return false;
     PrintDebug("Finished common init");
-    return JClkLibCommon::_initTransport<ClientMessageQueue>();
+    return _initTransport<ClientMessageQueue>();
 }
 
 bool ClientTransport::stop()
@@ -37,12 +37,12 @@ bool ClientTransport::stop()
     if(!Transport::stop())
         return false;
     /* Do any transport specific stop */
-    return JClkLibCommon::_stopTransport<ClientMessageQueue>();
+    return _stopTransport<ClientMessageQueue>();
 }
 
 bool ClientTransport::finalize()
 {
     if(!Transport::finalize())
         return false;
-    return JClkLibCommon::_finalizeTransport<ClientMessageQueue>();
+    return _finalizeTransport<ClientMessageQueue>();
 }

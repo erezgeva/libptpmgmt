@@ -26,8 +26,8 @@
 #include <proxy/message.hpp>
 #include <proxy/msgq_tport.hpp>
 
-using namespace JClkLibCommon;
-using namespace JClkLibProxy;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(

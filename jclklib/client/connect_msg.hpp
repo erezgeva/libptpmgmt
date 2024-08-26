@@ -20,9 +20,9 @@
 #include <rtpi/condition_variable.hpp>
 #include <rtpi/mutex.hpp>
 
-namespace JClkLibClient
-{
-class ClientConnectMessage : virtual public JClkLibCommon::CommonConnectMessage,
+__CLKMGR_NAMESPACE_BEGIN
+
+class ClientConnectMessage : virtual public CommonConnectMessage,
     virtual public ClientMessage
 {
   private:
@@ -57,6 +57,7 @@ class ClientConnectMessage : virtual public JClkLibCommon::CommonConnectMessage,
 
     void setClientState(ClientState *newClientState);
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_CONNECT_MSG_HPP */

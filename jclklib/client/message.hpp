@@ -23,19 +23,20 @@
 #include <common/message.hpp>
 #include "jclk_client_state.hpp"
 
-namespace JClkLibClient
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ClientMessage;
 typedef std::shared_ptr<ClientMessage> MessageX;
 typedef std::unique_ptr<ClientMessage> Message0;
 
-class ClientMessage : virtual public JClkLibCommon::Message
+class ClientMessage : virtual public Message
 {
   protected:
-    ClientMessage() : JClkLibCommon::Message() {}
+    ClientMessage() : Message() {}
   public:
     static bool init();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_MESSAGE_HPP */

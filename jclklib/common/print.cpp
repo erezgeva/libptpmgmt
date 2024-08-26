@@ -18,13 +18,14 @@
 #include <iomanip>
 #include <iostream>
 
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 enum LogLevel { DEBUG, INFO, ERROR };
 static LogLevel currentLogLevel = INFO;
 
-void JClkLibCommon::_PrintError(std::string msg, uint16_t line,
+void clkmgr::_PrintError(std::string msg, uint16_t line,
     std::string file, std::string func,
     errno_type errnum)
 {
@@ -34,7 +35,7 @@ void JClkLibCommon::_PrintError(std::string msg, uint16_t line,
     cerr.flush();
 }
 
-void JClkLibCommon::_PrintDebug(std::string msg, uint16_t line,
+void clkmgr::_PrintDebug(std::string msg, uint16_t line,
     std::string file, std::string func)
 {
     if(currentLogLevel <= DEBUG) {
@@ -45,7 +46,7 @@ void JClkLibCommon::_PrintDebug(std::string msg, uint16_t line,
     }
 }
 
-void JClkLibCommon::_PrintInfo(std::string msg, uint16_t line, std::string file,
+void clkmgr::_PrintInfo(std::string msg, uint16_t line, std::string file,
     std::string func)
 {
     if(currentLogLevel <= INFO) {
@@ -57,7 +58,7 @@ void JClkLibCommon::_PrintInfo(std::string msg, uint16_t line, std::string file,
 }
 
 #define HEX_DIGITS_PER_LINE 16
-void JClkLibCommon::_DumpOctetArray(string msg, const uint8_t *arr,
+void clkmgr::_DumpOctetArray(string msg, const uint8_t *arr,
     size_t length, uint16_t line, string file, string func)
 {
     const uint8_t *index = arr;

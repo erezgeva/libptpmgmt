@@ -22,10 +22,10 @@
 #include <common/ptp_event.hpp>
 #include <common/notification_msg.hpp>
 
-namespace JClkLibClient
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ClientNotificationMessage : virtual public ClientMessage,
-    virtual public JClkLibCommon::NotificationMessage
+    virtual public NotificationMessage
 {
   public:
     virtual PROCESS_MESSAGE_TYPE(processMessage);
@@ -63,8 +63,9 @@ class ClientNotificationMessage : virtual public ClientMessage,
   private:
     inline static std::vector<ClientState *> ClientStateArray;
 
-    JClkLibCommon::ptp_event proxy_data = {};
+    ptp_event proxy_data = {};
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_NOTIFICATION_MSG_HPP */

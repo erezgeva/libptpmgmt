@@ -18,8 +18,8 @@
 #include <string>
 #include <common/util.hpp>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 /**
  * Types for class jcl_value
  */
@@ -179,6 +179,7 @@ class jcl_subscription
     DECLARE_ACCESSOR(value); /**< Declare accessor for value */
     DECLARE_ACCESSOR(composite_event); /**< Declare accessor for composite event */
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* JCLK_SUBSCRIPTION_HPP */

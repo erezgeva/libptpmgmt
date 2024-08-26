@@ -14,7 +14,8 @@
 
 #include <common/null_msg.hpp>
 
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 MAKE_RXBUFFER_TYPE(CommonNullMessage::buildMessage)

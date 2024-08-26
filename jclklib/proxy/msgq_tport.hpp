@@ -27,10 +27,10 @@
 
 #define MAX_CLIENT_COUNT    (8)
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ProxyMessageQueueListenerContext : virtual public
-    JClkLibCommon::MessageQueueListenerContext,
+    MessageQueueListenerContext,
     virtual public ProxyTransportListenerContext
 {
     friend class ProxyMessageQueue;
@@ -43,7 +43,7 @@ class ProxyMessageQueueListenerContext : virtual public
 };
 
 class ProxyMessageQueueTransmitterContext  : virtual public
-    JClkLibCommon::MessageQueueTransmitterContext,
+    MessageQueueTransmitterContext,
     virtual public ProxyTransportTransmitterContext
 {
     friend class ProxyMessageQueue;
@@ -54,7 +54,7 @@ class ProxyMessageQueueTransmitterContext  : virtual public
     virtual ~ProxyMessageQueueTransmitterContext() = default;
 };
 
-class ProxyMessageQueue : public JClkLibCommon::MessageQueue,
+class ProxyMessageQueue : public MessageQueue,
     public ProxyTransport
 {
   public:
@@ -62,6 +62,7 @@ class ProxyMessageQueue : public JClkLibCommon::MessageQueue,
     static bool stopTransport();
     static bool finalizeTransport();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_MSGQ_TPORT_HPP */

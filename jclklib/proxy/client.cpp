@@ -15,8 +15,8 @@
 #include <common/print.hpp>
 #include <proxy/client.hpp>
 
-using namespace JClkLibCommon;
-using namespace JClkLibProxy;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 DECLARE_STATIC(Client::nextSession, sessionId_t(InvalidSessionId + 1));

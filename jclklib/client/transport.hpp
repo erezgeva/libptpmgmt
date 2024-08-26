@@ -27,20 +27,20 @@
 #include <common/transport.hpp>
 #include <common/util.hpp>
 
-namespace JClkLibClient
-{
-class ClientTransportContext : virtual public JClkLibCommon::TransportContext
+__CLKMGR_NAMESPACE_BEGIN
+
+class ClientTransportContext : virtual public TransportContext
 {
   public:
     virtual ~ClientTransportContext() = default;
 };
 
-#define SEND_CLIENT_MESSAGE(name) bool name (::JClkLibCommon::Message *msg)
+#define SEND_CLIENT_MESSAGE(name) bool name (Message *msg)
 
-class ClientTransport : public JClkLibCommon::Transport
+class ClientTransport : public Transport
 {
   protected:
-    static bool processMessage(JClkLibCommon::Message *msg) { return false; }
+    static bool processMessage(Message *msg) { return false; }
   public:
     static bool init();
     static bool stop();
@@ -48,6 +48,7 @@ class ClientTransport : public JClkLibCommon::Transport
     static void writeTransportClientId(Message0 &msg) {}
     static SEND_CLIENT_MESSAGE(sendMessage) { return false; }
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_TRANSPORT_HPP */

@@ -17,18 +17,19 @@
 
 #include <common/message.hpp>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class CommonNullMessage : virtual public Message
 {
   protected:
   public:
     static msgId_t getMsgId() { return NULL_MSG; }
     static MAKE_RXBUFFER_TYPE(buildMessage);
-#define MESSAGE_NULL() JClkLibCommon::Message(JClkLibCommon::NULL_MSG)
+#define MESSAGE_NULL() Message(NULL_MSG)
     CommonNullMessage() : MESSAGE_NULL() {};
     static bool initMessage();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_NULL_MSG_HPP */

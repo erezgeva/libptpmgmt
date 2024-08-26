@@ -18,8 +18,7 @@
 #include <proxy/null_msg.hpp>
 #include <proxy/subscribe_msg.hpp>
 
-using namespace JClkLibCommon;
-using namespace JClkLibProxy;
+__CLKMGR_NAMESPACE_USE
 
 bool ProxyMessage::init()
 {

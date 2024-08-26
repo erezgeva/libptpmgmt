@@ -16,9 +16,10 @@
 #define COMMON_JCLTYPES_HPP
 
 #include <cstdint>
+#include <common/util.hpp>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 typedef std::uint16_t sessionId_t;
 static const sessionId_t InvalidSessionId = (sessionId_t)(-1);
 
@@ -29,6 +30,7 @@ typedef std::uint8_t msgId_t;
 enum msgId : msgId_t {INVALID_MSG = (msgId_t) -1, NULL_MSG = 1, CONNECT_MSG,
     SUBSCRIBE_MSG, NOTIFY_MESSAGE, DISCONNECT_MSG
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_JCLTYPES_HPP */

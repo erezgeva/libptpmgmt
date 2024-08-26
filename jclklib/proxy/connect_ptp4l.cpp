@@ -28,38 +28,39 @@
 #include "thread.hpp"
 #include "../../pub/init.h"
 
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
-using namespace JClkLibProxy;
 using namespace ptpmgmt;
 
 static const size_t bufSize = 2000;
 static char buf[bufSize];
 static Init obj;
-static Message &msg = obj.msg();
-static Message msgu;
+static ptpmgmt::Message &msg = obj.msg();
+static ptpmgmt::Message msgu;
 static SockBase *sk;
 
 static std::unique_ptr<SockBase> m_sk;
 
 portState_e portState;
 SUBSCRIBE_EVENTS_NP_t d;
-JClkLibCommon::ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0};
+ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0};
 
 void notify_client()
 {
-    PrintDebug("[JClkLibProxy]::notify_client");
-    JClkLibCommon::sessionId_t SessionId;
+    PrintDebug("[clkmgr]::notify_client");
+    sessionId_t SessionId;
     std::unique_ptr<ProxyMessage> notifyMsg(new ProxyNotificationMessage());
     ProxyNotificationMessage *pmsg = dynamic_cast<decltype(pmsg)>(notifyMsg.get());
     if(pmsg == nullptr) {
-        PrintErrorCode("[JClkLibProxy::notify_client] notifyMsg is nullptr !!\n");
+        PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!\n");
         return;
     }
-    PrintDebug("[JClkLibProxy::notify_client] notifyMsg creation is OK !!\n");
+    PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!\n");
     /* Send data for multiple sessions */
     for(size_t i = 0; i < Client::GetSessionCount(); i++) {
         SessionId = Client::GetSessionIdAt(i);
-        if(SessionId != JClkLibCommon::InvalidSessionId) {
+        if(SessionId != InvalidSessionId) {
             PrintDebug("Get client session ID: " + to_string(SessionId));
             auto TxContext = Client::GetClientSession(
                     SessionId).get()->get_transmitContext();
@@ -129,7 +130,7 @@ void event_handle()
 static inline bool msg_send(bool local)
 {
     static int seq = 0;
-    Message *m;
+    ptpmgmt::Message *m;
     if(local)
         m = &msgu;
     else

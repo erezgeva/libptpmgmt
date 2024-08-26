@@ -19,16 +19,16 @@
 #include <rtpi/mutex.hpp>
 #include "jclk_subscription.hpp"
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ClockStatus
 {
   private:
     class Status
     {
       public:
-        JClkLibCommon::jcl_event    event;
-        JClkLibCommon::jcl_eventcount   count;
+        jcl_event    event;
+        jcl_eventcount   count;
     };
     bool update, writeUpdate;
     rtpi::mutex update_lock;
@@ -37,14 +37,15 @@ class ClockStatus
   public:
     ClockStatus();
     void speculateWrite();
-    void setEvent(const JClkLibCommon::jcl_event &event);
-    void setCount(const JClkLibCommon::jcl_eventcount &count);
+    void setEvent(const jcl_event &event);
+    void setCount(const jcl_eventcount &count);
     void commitWrite();
 
     bool readConsume();
-    const JClkLibCommon::jcl_event &getEvent() { return readShadow.event; }
-    const JClkLibCommon::jcl_eventcount &getCount() { return readShadow.count; }
+    const jcl_event &getEvent() { return readShadow.event; }
+    const jcl_eventcount &getCount() { return readShadow.count; }
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLOCK_STATUS_HPP */

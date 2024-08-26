@@ -23,8 +23,8 @@
 #define EXIT_TIMEOUT    (200 /*ms*/)
 #define START_TIMEOUT   (20 /*ms*/)
 
-using namespace JClkLibProxy;
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 bool ProxyTransport::init()
@@ -32,7 +32,7 @@ bool ProxyTransport::init()
     if(!Transport::init())
         return false;
     PrintDebug("Finished common init");
-    return JClkLibCommon::_initTransport<NullProxyTransport, ProxyMessageQueue>();
+    return _initTransport<NullProxyTransport, ProxyMessageQueue>();
 }
 
 bool ProxyTransport::stop()
@@ -40,7 +40,7 @@ bool ProxyTransport::stop()
     if(!Transport::stop())
         return false;
     /* Do any transport specific stop */
-    return JClkLibCommon::_stopTransport<NullProxyTransport,
+    return _stopTransport<NullProxyTransport,
         ProxyMessageQueue>();
 }
 
@@ -48,6 +48,6 @@ bool ProxyTransport::finalize()
 {
     if(!Transport::finalize())
         return false;
-    return JClkLibCommon::_finalizeTransport<NullProxyTransport,
+    return _finalizeTransport<NullProxyTransport,
         ProxyMessageQueue>();
 }

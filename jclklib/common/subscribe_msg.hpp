@@ -20,8 +20,8 @@
 #include <common/message.hpp>
 #include "jclk_subscription.hpp"
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class CommonSubscribeMessage : virtual public Message
 {
   private:
@@ -42,9 +42,10 @@ class CommonSubscribeMessage : virtual public Message
 
     virtual std::string toString();
   protected:
-#define MESSAGE_SUBSCRIBE() JClkLibCommon::Message(JClkLibCommon::SUBSCRIBE_MSG)
+#define MESSAGE_SUBSCRIBE() Message(SUBSCRIBE_MSG)
     CommonSubscribeMessage() : MESSAGE_SUBSCRIBE() {}
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_SUBSCRIBE_MSG_HPP */

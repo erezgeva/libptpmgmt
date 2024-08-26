@@ -17,9 +17,10 @@
 
 #include <atomic>
 #include <cstdint>
+#include <common/util.hpp>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 struct ptp_event {
     int64_t master_offset;
     uint8_t gm_identity[8]; /* Grandmaster clock ID */
@@ -44,6 +45,7 @@ struct client_ptp_event {
     std::atomic<int> gm_changed_event_count{};
     std::atomic<int> composite_event_count{};
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PTP_EVENT_HPP */

@@ -18,7 +18,8 @@
 #include <common/serialize.hpp>
 #include "jclk_subscription.hpp"
 
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 jcl_value::value_t::value_t()

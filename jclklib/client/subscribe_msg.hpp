@@ -21,17 +21,17 @@
 #include <rtpi/condition_variable.hpp>
 #include "jclk_client_state.hpp"
 
-namespace JClkLibClient
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ClientSubscribeMessage : virtual public
-    JClkLibCommon::CommonSubscribeMessage,
+    CommonSubscribeMessage,
     virtual public ClientMessage
 {
   private:
     inline static jcl_state *jclCurrentState;
     inline static ClientState *currentClientState;
-    inline static std::map <JClkLibCommon::sessionId_t,
-           std::array<JClkLibCommon::client_ptp_event *, 2>> client_ptp_event_map;
+    inline static std::map <sessionId_t,
+           std::array<client_ptp_event *, 2>> client_ptp_event_map;
 
   public:
     ClientSubscribeMessage() : MESSAGE_SUBSCRIBE() {};
@@ -65,19 +65,18 @@ class ClientSubscribeMessage : virtual public
     void setClientState(ClientState *newClientState);
 
     /* Delete the corresponding map pair item */
-    static void deleteClientPtpEventStruct(JClkLibCommon::sessionId_t sID);
+    static void deleteClientPtpEventStruct(sessionId_t sID);
 
     /* Get the corresponding map pair item */
-    static JClkLibCommon::client_ptp_event *getClientPtpEventStruct(
-        JClkLibCommon::sessionId_t sID);
+    static client_ptp_event *getClientPtpEventStruct(sessionId_t sID);
 
-    static JClkLibCommon::client_ptp_event *getClientPtpEventCompositeStruct(
-        JClkLibCommon::sessionId_t sID);
+    static client_ptp_event *getClientPtpEventCompositeStruct(sessionId_t sID);
 
     /* Reduce the corresponding eventCount */
-    static void resetClientPtpEventStruct(JClkLibCommon::sessionId_t sID,
+    static void resetClientPtpEventStruct(sessionId_t sID,
         jcl_state_event_count &eventCount);
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_SUBSCRIBE_MSG_HPP */

@@ -29,10 +29,10 @@
 #include <proxy/clock_config.hpp>
 #include <proxy/message.hpp>
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ProxyTransportTransmitterContext : virtual public
-    JClkLibCommon::TransportTransmitterContext
+    TransportTransmitterContext
 {
   protected:
     ProxyTransportTransmitterContext() {}
@@ -41,22 +41,23 @@ class ProxyTransportTransmitterContext : virtual public
 };
 
 class ProxyTransportListenerContext : virtual public
-    JClkLibCommon::TransportListenerContext
+    TransportListenerContext
 {
   public:
     virtual ~ProxyTransportListenerContext() = default;
 };
 
-class ProxyTransport : public JClkLibCommon::Transport
+class ProxyTransport : public Transport
 {
   public:
     static bool init();
     static bool stop();
     static bool finalize();
 #define SEND_PROXY_MESSAGE(name)                    \
-    bool name (const JClkLibProxy::ProxyMessage *msg)
+    bool name (const ProxyMessage *msg)
     static SEND_PROXY_MESSAGE(sendMessage) { return false; }
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_TRANSPORT_HPP */

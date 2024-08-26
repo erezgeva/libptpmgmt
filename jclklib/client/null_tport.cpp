@@ -17,7 +17,8 @@
 #include <client/null_tport.hpp>
 #include <common/print.hpp>
 
-using namespace JClkLibClient;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 bool NullClientTransport::sendMessage(uint8_t *buffer, size_t length)

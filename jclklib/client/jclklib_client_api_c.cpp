@@ -17,23 +17,23 @@
 
 jcl_c_client_ptr jcl_c_client_create()
 {
-    return new JClkLibClient::JClkLibClientApi();
+    return new clkmgr::JClkLibClientApi();
 }
 
 void jcl_c_client_destroy(jcl_c_client_ptr client_ptr)
 {
-    delete static_cast<JClkLibClient::JClkLibClientApi *>(client_ptr);
+    delete static_cast<clkmgr::JClkLibClientApi *>(client_ptr);
 }
 
 bool jcl_c_connect(jcl_c_client_ptr client_ptr)
 {
-    return static_cast<JClkLibClient::JClkLibClientApi *>
+    return static_cast<clkmgr::JClkLibClientApi *>
         (client_ptr)->jcl_connect();
 }
 
 bool jcl_c_disconnect(jcl_c_client_ptr client_ptr)
 {
-    return static_cast<JClkLibClient::JClkLibClientApi *>
+    return static_cast<clkmgr::JClkLibClientApi *>
         (client_ptr)->jcl_disconnect();
 }
 
@@ -41,15 +41,15 @@ bool jcl_c_subscribe(jcl_c_client_ptr client_ptr,
     struct jcl_c_subscription sub,
     struct jcl_c_state *current_state)
 {
-    JClkLibCommon::jcl_subscription newsub = {};
-    JClkLibClient::jcl_state state = {};
+    clkmgr::jcl_subscription newsub = {};
+    clkmgr::jcl_state state = {};
     bool ret;
     newsub.get_event().writeEvent(sub.event, sizeof(sub.event));
     newsub.get_value().setValue(gm_offset, sub.value[gm_offset].upper,
         sub.value[gm_offset].lower);
     newsub.get_composite_event().writeEvent(sub.composite_event,
         sizeof(sub.composite_event));
-    ret = static_cast<JClkLibClient::JClkLibClientApi *>(client_ptr)->jcl_subscribe(
+    ret = static_cast<clkmgr::JClkLibClientApi *>(client_ptr)->jcl_subscribe(
             newsub, state);
     if(ret == false)
         return ret;
@@ -69,10 +69,10 @@ int jcl_c_status_wait(jcl_c_client_ptr client_ptr, int timeout,
     struct jcl_c_state *current_state,
     struct jcl_c_event_count *event_count)
 {
-    JClkLibClient::jcl_state_event_count eventCount = {};
-    JClkLibClient::jcl_state state = {};
+    clkmgr::jcl_state_event_count eventCount = {};
+    clkmgr::jcl_state state = {};
     int ret;
-    ret = static_cast<JClkLibClient::JClkLibClientApi *>
+    ret = static_cast<clkmgr::JClkLibClientApi *>
         (client_ptr)->jcl_status_wait(timeout, state, eventCount);
     if(ret <= 0)
         return ret;

@@ -16,12 +16,14 @@
 #define SIGHANDLER_HPP
 
 #include <thread>
+#include <common/util.hpp>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 bool BlockStopSignal();
 bool WaitForStopSignal();
 bool EnableSyscallInterruptSignal();
 bool SendSyscallInterruptSignal(std::thread &t);
-}
+
+__CLKMGR_NAMESPACE_END
 #endif /* SIGHANDLER_HPP */

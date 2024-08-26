@@ -19,34 +19,35 @@
 
 #include <common/message.hpp>
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class Client;
-typedef std::shared_ptr<JClkLibProxy::Client> ClientX;
+typedef std::shared_ptr<Client> ClientX;
 
 class Client
 {
   public:
-    typedef std::pair<JClkLibCommon::sessionId_t, ClientX> SessionMapping_t;
+    typedef std::pair<sessionId_t, ClientX> SessionMapping_t;
   private:
-    static JClkLibCommon::sessionId_t nextSession;
+    static sessionId_t nextSession;
     static std::map<SessionMapping_t::first_type, SessionMapping_t::second_type>
     SessionMap;
   public:
-    static JClkLibCommon::sessionId_t CreateClientSession();
+    static sessionId_t CreateClientSession();
     static size_t GetSessionCount() { return SessionMap.size(); }
-    static void RemoveClientSession(JClkLibCommon::sessionId_t sessionId) {
+    static void RemoveClientSession(sessionId_t sessionId) {
         SessionMap.erase(sessionId);
     }
-    static JClkLibCommon::sessionId_t GetSessionIdAt(size_t index);
-    static ClientX GetClientSession(JClkLibCommon::sessionId_t sessionId);
+    static sessionId_t GetSessionIdAt(size_t index);
+    static ClientX GetClientSession(sessionId_t sessionId);
   private:
-    std::unique_ptr<JClkLibCommon::TransportTransmitterContext> transmitContext;
+    std::unique_ptr<TransportTransmitterContext> transmitContext;
   public:
     void set_transmitContext(decltype(transmitContext)::pointer context)
     { this->transmitContext.reset(context); }
     auto get_transmitContext() { return transmitContext.get(); }
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_CLIENT */

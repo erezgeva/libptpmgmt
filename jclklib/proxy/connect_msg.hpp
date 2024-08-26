@@ -19,10 +19,10 @@
 #include <common/connect_msg.hpp>
 #include <proxy/message.hpp>
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ProxyConnectMessage : virtual public ProxyMessage,
-    virtual public JClkLibCommon::CommonConnectMessage
+    virtual public CommonConnectMessage
 {
   protected:
     ProxyConnectMessage() : MESSAGE_CONNECT() {};
@@ -53,6 +53,7 @@ class ProxyConnectMessage : virtual public ProxyMessage,
      */
     static bool initMessage();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_CONNECT_MSG_HPP */

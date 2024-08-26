@@ -20,13 +20,14 @@
 #include <client/transport.hpp>
 #include <common/null_tport.hpp>
 
-namespace JClkLibClient
-{
-class NullClientTransport : public JClkLibCommon::NullTransport
+__CLKMGR_NAMESPACE_BEGIN
+
+class NullClientTransport : public NullTransport
 {
   public:
     static bool sendMessage(std::uint8_t *buffer, std::size_t length);
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLIENT_NULL_TPORT_HPP */

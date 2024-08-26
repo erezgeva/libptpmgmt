@@ -19,7 +19,8 @@
 #include <common/serialize.hpp>
 #include <common/subscribe_msg.hpp>
 
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 DECLARE_STATIC(Message::parseMsgMap);

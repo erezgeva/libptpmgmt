@@ -21,8 +21,8 @@
 #include <proxy/message.hpp>
 #include <proxy/transport.hpp>
 
-using namespace JClkLibCommon;
-using namespace JClkLibProxy;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 int main(int argc, char *argv[])

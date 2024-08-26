@@ -23,8 +23,8 @@
 #include <rtpi/mutex.hpp>
 #include "jclk_subscription.hpp"
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ClockConfiguration
 {
   private:
@@ -32,24 +32,25 @@ class ClockConfiguration
     bool update, writeUpdate;
     rtpi::mutex update_lock;
     struct Config {
-        JClkLibCommon::jcl_event event;
-        JClkLibCommon::jcl_value value;
+        jcl_event event;
+        jcl_value value;
     };
     Config writeShadow, readShadow;
     Config config;
   public:
     ClockConfiguration();
     void speculateWrite();
-    void setEvent(const JClkLibCommon::jcl_event &event);
-    void setValue(const JClkLibCommon::jcl_value &value);
+    void setEvent(const jcl_event &event);
+    void setValue(const jcl_value &value);
     void commitWrite();
 
     bool readConsume();
-    const JClkLibCommon::jcl_event &getEvent() { return readShadow.event; }
-    const JClkLibCommon::jcl_value &getValue() { return readShadow.value; }
+    const jcl_event &getEvent() { return readShadow.event; }
+    const jcl_value &getValue() { return readShadow.value; }
 
-    static JClkLibCommon::sessionId_t getSessionId();
+    static sessionId_t getSessionId();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* CLOCK_CONFIG_HPP */

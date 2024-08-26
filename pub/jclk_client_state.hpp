@@ -22,8 +22,8 @@
 #include <common/util.hpp>
 #include "jclk_subscription.hpp"
 
-namespace JClkLibClient
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 /**
  * Current State for the events
  */
@@ -60,12 +60,12 @@ class ClientState
     /**
      * Session ID
      */
-    JClkLibCommon::sessionId_t sessionId = JClkLibCommon::InvalidSessionId;
-    JClkLibCommon::TransportClientId clientID = {}; /**< Client ID */
+    sessionId_t sessionId = InvalidSessionId;
+    TransportClientId clientID = {}; /**< Client ID */
     uint8_t ptp4l_id = 0; /**< PTP4L ID */
     jcl_state eventState = {}; /**< Event state */
     jcl_state_event_count eventStateCount = {}; /**< Event count */
-    JClkLibCommon::jcl_subscription eventSub = {}; /**< Event subscription */
+    jcl_subscription eventSub = {}; /**< Event subscription */
     struct timespec last_notification_time; /**< Last notification time */
 
   public:
@@ -114,13 +114,13 @@ class ClientState
      * @brief Get the client ID
      * @return Client ID
      */
-    JClkLibCommon::TransportClientId get_clientID();
+    TransportClientId get_clientID();
 
     /**
      * @brief Set the client ID
      * @param cID Reference to the client ID
      */
-    void set_clientID(JClkLibCommon::TransportClientId &cID);
+    void set_clientID(TransportClientId &cID);
 
     /**
      * @brief Get the event state counts
@@ -168,10 +168,12 @@ class ClientState
      * @brief Get the event subscription
      * @return Reference to the event subscription
      */
-    JClkLibCommon::jcl_subscription &get_eventSub();
+    jcl_subscription &get_eventSub();
 
     DECLARE_ACCESSOR(sessionId); /**< Declare accessor for sessionId */
     DECLARE_ACCESSOR(ptp4l_id); /**< Declare accessor for ptp4l_id */
 };
-}
+
+__CLKMGR_NAMESPACE_END
+
 #endif /* PROXY_CLIENT_STATE */

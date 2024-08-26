@@ -18,6 +18,13 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+/** Using clkmgr namespace */
+#define __CLKMGR_NAMESPACE_USE using namespace clkmgr;
+/** Define start of clkmgr namespace block */
+#define __CLKMGR_NAMESPACE_BEGIN namespace clkmgr {
+/** Define end of clkmgr namespace block */
+#define __CLKMGR_NAMESPACE_END }
+
 /* Some commonly used constants */
 #define NSEC_PER_MSEC   (1000000)
 #define NSEC_PER_SEC    (1000000000)

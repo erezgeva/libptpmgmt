@@ -23,15 +23,14 @@
 #include <common/jcltypes.hpp>
 #include <common/transport.hpp>
 
-namespace JClkLibCommon
-{
-class Message;
+__CLKMGR_NAMESPACE_BEGIN
 
+class Message;
 class TransportListenerContext;
 class TransportTransmitterContext;
 
 #define MAKE_RXBUFFER_TYPE(name) bool name (Message *&msg, \
-    ::JClkLibCommon::TransportListenerContext &LxContext)
+    TransportListenerContext &LxContext)
 typedef std::function<MAKE_RXBUFFER_TYPE()> BuildMessage_t;
 
 typedef std::pair<msgId_t, BuildMessage_t> parseMsgMapElement_t;
@@ -52,26 +51,26 @@ class Message
         std::string function);
   public:
 #define COMMON_PRESEND_MESSAGE_TYPE(name) \
-    bool name (JClkLibCommon::TransportTransmitterContext *ctx)
+    bool name (TransportTransmitterContext *ctx)
     COMMON_PRESEND_MESSAGE_TYPE(presendMessage);
 
 #define BUILD_TXBUFFER_TYPE(name) \
-    bool name (::JClkLibCommon::TransportTransmitterContext &TxContext)
+    bool name (TransportTransmitterContext &TxContext)
     static bool registerBuild(BUILD_TXBUFFER_TYPE(buildMessage));
 
 #define PROCESS_MESSAGE_TYPE(name) \
-    bool name(JClkLibCommon::TransportListenerContext &LxContext, \
-        JClkLibCommon::TransportTransmitterContext *&TxContext)
+    bool name(TransportListenerContext &LxContext, \
+        TransportTransmitterContext *&TxContext)
     virtual PROCESS_MESSAGE_TYPE(processMessage) = 0;
 
 #define TRANSMIT_MESSAGE_TYPE(name) \
-    bool name(JClkLibCommon::TransportTransmitterContext &TxContext)
+    bool name(TransportTransmitterContext &TxContext)
     virtual TRANSMIT_MESSAGE_TYPE(transmitMessage) = 0;
 
     static MAKE_RXBUFFER_TYPE(buildMessage);
 
 #define PARSE_RXBUFFER_TYPE(name)                   \
-    bool name (::JClkLibCommon::TransportListenerContext &LxContext)
+    bool name (TransportListenerContext &LxContext)
     virtual PARSE_RXBUFFER_TYPE(parseBuffer);
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
@@ -99,6 +98,7 @@ inline typename std::enable_if < sizeof...(Types) != 0,
 {
     return _initMessage<T>() && _initMessage<Types...>();
 }
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_MESSAGE_HPP */

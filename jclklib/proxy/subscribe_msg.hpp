@@ -19,10 +19,10 @@
 #include <common/subscribe_msg.hpp>
 #include <proxy/message.hpp>
 
-namespace JClkLibProxy
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class ProxySubscribeMessage : virtual public ProxyMessage,
-    virtual public JClkLibCommon::CommonSubscribeMessage
+    virtual public CommonSubscribeMessage
 {
   protected:
     ProxySubscribeMessage() : MESSAGE_SUBSCRIBE() {};
@@ -46,6 +46,7 @@ class ProxySubscribeMessage : virtual public ProxyMessage,
      */
     static bool initMessage();
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* PROXY_SUBSCRIBE_MSG_HPP */

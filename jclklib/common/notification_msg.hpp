@@ -21,8 +21,8 @@
 #include <common/message.hpp>
 #include <common/transport.hpp>
 
-namespace JClkLibCommon
-{
+__CLKMGR_NAMESPACE_BEGIN
+
 class NotificationMessage : virtual public Message
 {
   public:
@@ -30,11 +30,12 @@ class NotificationMessage : virtual public Message
     static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
     bool isEnable() { return waitEnable == 0x1; }
   protected:
-#define MESSAGE_NOTIFY() JClkLibCommon::Message(JClkLibCommon::NOTIFY_MESSAGE)
+#define MESSAGE_NOTIFY() Message(NOTIFY_MESSAGE)
     NotificationMessage() : MESSAGE_NOTIFY(), waitEnable(0) {}
   private:
     std::uint32_t   waitEnable : 1;
 };
-}
+
+__CLKMGR_NAMESPACE_END
 
 #endif /* COMMON_NOTIFICATION_MSG_HPP */

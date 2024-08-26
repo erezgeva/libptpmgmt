@@ -27,8 +27,8 @@
 #include <common/sighandler.hpp>
 #include <common/util.hpp>
 
-using namespace JClkLibClient;
-using namespace JClkLibCommon;
+__CLKMGR_NAMESPACE_USE
+
 using namespace std;
 
 DECLARE_STATIC(ClientMessageQueue::mqListenerName, "");
