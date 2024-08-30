@@ -367,9 +367,21 @@ struct JsonProcFrom : public JsonProc {
 // keep for ABI backward compatibility
 Json2msg::~Json2msg() {}
 // Obsolete as we use internal JSON parser
-bool Json2msg::selectLib(const string &) { return false; }
-const char *Json2msg::loadLibrary() { return nullptr; }
-bool Json2msg::isLibShared() { return false; }
+#ifdef PIC // Shared library code
+const char *libName = "libptpmgmt_jsonc.so";
+#define LIB_NAME libName
+#define LIB true
+#define SET_NAME\
+    if(str.find("fa") == str.npos) libName = "libptpmgmt_jsonc.so";\
+    else libName = "libptpmgmt_fastjson.so"
+#else // PIC
+#define LIB_NAME ""
+#define LIB false
+#define SET_NAME
+#endif // PIC
+bool Json2msg::selectLib(const string &str) { SET_NAME; return LIB; }
+const char *Json2msg::loadLibrary() { return LIB_NAME; }
+bool Json2msg::isLibShared() { return LIB; }
 bool Json2msg::fromJsonObj(const void *) { return false; }
 /* ************************************ */
 bool Json2msg::fromJson(const string &json)
@@ -551,9 +563,14 @@ extern "C" {
         }
     }
     // Obsolete as we use internal JSON parser
-    bool ptpmgmt_json_selectLib(const char *) { return false; }
-    const char *ptpmgmt_json_loadLibrary() { return nullptr; }
-    bool ptpmgmt_json_isLibShared() { return false; }
+    bool ptpmgmt_json_selectLib(const char *libName)
+    {
+        if(libName != nullptr)
+            return Json2msg::selectLib(libName);
+        return false;
+    }
+    const char *ptpmgmt_json_loadLibrary() { return LIB_NAME; }
+    bool ptpmgmt_json_isLibShared() { return LIB; }
     static bool ptpmgmt_json_fromJsonObj(ptpmgmt_json, const void *)
     { return false; }
     /* ************************************ */

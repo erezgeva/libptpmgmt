@@ -16,6 +16,22 @@
 #define clockId ("\xc4\x7d\x46\xff\xfe\x20\xac\xae")
 #define allIds ("\xff\xff\xff\xff\xff\xff\xff\xff")
 
+// Tests selectLib method
+// bool ptpmgmt_json_selectLib(const char *libName)
+Test(Json2msgTest, MethodSelectLib)
+{
+    // We use static link :-)
+    cr_expect(not(ptpmgmt_json_selectLib("jsonc")));
+}
+
+// Tests isLibShared method
+// bool ptpmgmt_json_isLibShared()
+Test(Json2msgTest, MethodIsLibShared)
+{
+    // We use static link :-)
+    cr_expect(not(ptpmgmt_json_isLibShared()));
+}
+
 // Tests fromJson method
 // bool fromJson(ptpmgmt_json m, const char *json)
 Test(Json2msgTest, MethodFromJson)

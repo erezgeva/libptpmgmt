@@ -252,7 +252,7 @@ NETTLE_LA:=$(NETTLE_NAME).la
 
 HMAC_FLIBS:=$(SSL_LIB) $(GNUTLS_LIB) $(NETTLE_LIB) $(GCRYPT_LIB)
 TGT_LNG:=perl5 lua python3 ruby php tcl go
-UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth pmc hmac)
+UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth json_load pmc hmac)
 UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
