@@ -581,16 +581,16 @@ class MsgBuild : public MessageBuilder
 
     /* structure for parser */
     struct val_key_t {
-        bool can_str;        // [in]  check for quoted string & ignore wrong number
-        int base;            // [in]  base for strtol()
-        int64_t def;         // [in]  Default number value
-        int64_t max;         // [in]  maximum number value
-        int64_t min;         // [in]  minimum number value
-        bool req;            // [in]  key is required
-        bool flag;           // [in]  key for a flag
-        int64_t num;         // [out] number value
-        bool got_num;        // [out] flag indicate parsed number successfully
-        const char *str_val; // [out] string value
+        bool can_str = false; // [in]  check for quoted string & ignore wrong number
+        int base = 0;         // [in]  base for strtol()
+        int64_t def = 0;      // [in]  Default number value
+        int64_t max = 0;      // [in]  maximum number value
+        int64_t min = 0;      // [in]  minimum number value
+        bool req = false;     // [in]  key is required
+        bool flag = false;    // [in]  key for a flag
+        int64_t num = 0;      // [out] number value
+        bool got_num = false; // [out] flag indicate parsed number successfully
+        const char *str_val = nullptr; // [out] string value
         // Call-back function for special value parser
         std::function<bool (val_key_t &key)> handle;
     };

@@ -233,9 +233,14 @@ class Spp
   private:
     #ifndef SWIG
     struct key_t {
-        HMAC_t type;
+        HMAC_t type = HMAC_SHA256;
         Binary key;
-        size_t mac_size;
+        size_t mac_size = 0;
+        void operator()(HMAC_t _t, Binary _k, size_t _m) {
+            type = _t;
+            key = _k;
+            mac_size = _m;
+        }
     };
     std::map<uint32_t, key_t> m_keys;
     int8_t m_own_id;

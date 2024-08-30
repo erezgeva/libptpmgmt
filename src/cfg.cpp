@@ -376,7 +376,7 @@ bool Spp::addKey(uint32_t id, HMAC_t type, Binary &value, size_t digest,
         PTPMGMT_ERROR("digest is too big %zu", digest);
         return false;
     }
-    m_keys[id] = {type, value, digest};
+    m_keys[id](type, value, digest);
     PTPMGMT_ERROR_CLR;
     return true;
 }
