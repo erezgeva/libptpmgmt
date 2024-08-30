@@ -39,9 +39,9 @@ struct HMAC_SSL : public HMAC_Key {
     size_t m_min_digest = HMAC_MAC_SIZE_16;
     HMAC_SSL();
     ~HMAC_SSL() override;
-    bool init(HMAC_t type) override;
-    bool digest(const void *data, size_t len, Binary &mac) override;
-    bool verify(const void *data, size_t len, Binary &mac) override;
+    bool init(HMAC_t type) override final;
+    bool digest(const void *data, size_t len, Binary &mac) override final;
+    bool verify(const void *data, size_t len, Binary &mac) override final;
     const char *ssl_err();
 };
 HMAC_SSL::HMAC_SSL()

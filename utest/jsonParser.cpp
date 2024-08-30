@@ -4,6 +4,9 @@
 /** @file
  * @brief unit test Json parser
  *
+ * This is internal API test,
+ * to verify parser.
+ *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2024 Erez Geva
  *

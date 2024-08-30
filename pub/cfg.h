@@ -238,7 +238,7 @@ class Spp
         size_t mac_size;
     };
     std::map<uint32_t, key_t> m_keys;
-    int16_t m_own_id;
+    int8_t m_own_id;
   protected:
     /** @cond internal */
     bool set_val(char *line);

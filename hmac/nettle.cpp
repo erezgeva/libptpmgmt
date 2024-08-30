@@ -29,9 +29,9 @@ struct Nettle : public HMAC_Key {
     void *m_ctx = nullptr;
     const struct nettle_mac *m_mac = nullptr;
     ~Nettle() override {free(m_ctx);};
-    bool init(HMAC_t type) override;
-    bool digest(const void *data, size_t len, Binary &mac) override;
-    bool verify(const void *data, size_t len, Binary &mac) override;
+    bool init(HMAC_t type) override final;
+    bool digest(const void *data, size_t len, Binary &mac) override final;
+    bool verify(const void *data, size_t len, Binary &mac) override final;
 };
 bool Nettle::init(HMAC_t type)
 {

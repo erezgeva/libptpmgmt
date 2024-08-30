@@ -25,9 +25,9 @@ static int algo_vals[] = {
 struct HMAC_gcrypt : public HMAC_Key {
     gcry_mac_hd_t hd;
     ~HMAC_gcrypt() override;
-    bool init(HMAC_t type) override;
-    bool digest(const void *data, size_t len, Binary &mac) override;
-    bool verify(const void *data, size_t len, Binary &mac) override;
+    bool init(HMAC_t type) override final;
+    bool digest(const void *data, size_t len, Binary &mac) override final;
+    bool verify(const void *data, size_t len, Binary &mac) override final;
     bool update(const void *data, size_t len);
 };
 HMAC_gcrypt::~HMAC_gcrypt()
