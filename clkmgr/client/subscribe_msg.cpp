@@ -65,8 +65,6 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
             clock_gettime failed.\n");
     else
         currentClientState->set_last_notification_time(last_notification_time);
-    double seconds = last_notification_time.tv_sec;
-    double nanoseconds = last_notification_time.tv_nsec / 1e9;
     currentClientState->get_eventSub().get_event().readEvent(eventSub,
         (std::size_t)sizeof(eventSub));
     std::uint32_t composite_eventSub[1];
@@ -144,7 +142,9 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
         client_data->synced_to_primary_clock;
     clkmgrCurrentState->composite_event = composite_client_data->composite_event;
     clkmgrCurrentState->clock_offset = client_data->master_offset;
-    clkmgrCurrentState->notification_timestamp = seconds + nanoseconds;
+    clkmgrCurrentState->notification_timestamp = last_notification_time.tv_sec;
+    clkmgrCurrentState->notification_timestamp *= NSEC_PER_SEC;
+    clkmgrCurrentState->notification_timestamp += last_notification_time.tv_nsec;
     memcpy(clkmgrCurrentState->gm_identity, client_data->gm_identity,
         sizeof(client_data->gm_identity));
     return true;

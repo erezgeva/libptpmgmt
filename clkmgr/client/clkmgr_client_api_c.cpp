@@ -74,7 +74,7 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     int ret;
     ret = static_cast<clkmgr::ClkmgrClientApi *>
         (client_ptr)->clkmgr_status_wait(timeout, state, eventCount);
-    if(ret <= 0)
+    if(ret < 0)
         return ret;
     current_state->as_capable = state.as_capable;
     current_state->offset_in_range = state.offset_in_range;
@@ -85,6 +85,8 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     current_state->notification_timestamp = state.notification_timestamp;
     std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
         std::begin(current_state->gm_identity));
+    if(ret == 0)
+        return ret;
     event_count->as_capable_event_count = eventCount.as_capable_event_count;
     event_count->composite_event_count = eventCount.composite_event_count;
     event_count->gm_changed_event_count = eventCount.gm_changed_event_count;

@@ -55,7 +55,7 @@ struct clkmgr_c_state {
     bool gm_changed;                      /**< Primary clock UUID changed */
     bool composite_event;                 /**< Composite event */
     int64_t  clock_offset;                /**< Clock offset */
-    double notification_timestamp;        /**< Timestamp for last notification */
+    uint64_t notification_timestamp;      /**< Timestamp for last notification */
 };
 
 /** Event count for the events */

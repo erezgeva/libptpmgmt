@@ -114,8 +114,6 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 clock_gettime failed.\n");
         else
             currentClientState->set_last_notification_time(last_notification_time);
-        double seconds = last_notification_time.tv_sec;
-        double nanoseconds = last_notification_time.tv_nsec / 1e9;
         clkmgr_state &clkmgrCurrentState =
             currentClientState->get_eventState();
         clkmgr_state_event_count &clkmgrCurrentEventCount =
@@ -209,7 +207,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         clkmgrCurrentState.offset_in_range =
             client_ptp_data->master_offset_in_range;
         clkmgrCurrentState.clock_offset = client_ptp_data->master_offset;
-        clkmgrCurrentState.notification_timestamp = seconds + nanoseconds;
+        clkmgrCurrentState.notification_timestamp = last_notification_time.tv_sec;
+        clkmgrCurrentState.notification_timestamp *= NSEC_PER_SEC;
+        clkmgrCurrentState.notification_timestamp += last_notification_time.tv_nsec;
         clkmgrCurrentState.synced_to_primary_clock =
             client_ptp_data->synced_to_primary_clock;
         clkmgrCurrentState.composite_event =
