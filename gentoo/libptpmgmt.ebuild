@@ -61,8 +61,5 @@ src_compile() {
 	fi
 }
 src_install() {
-	emake DESTDIR="${D}" install
-	# Move documents to Gentoo location
-	mv "${D}/usr/share/doc/${PN}-doc" "${D}/usr/share/doc/${PF}"
-	# TODO python byte-compiled module: /usr/lib/python*/site-packages/ptpmgmt.py
+	emake DESTDIR="${D}" DOC_PKG="${PF}" DEV_PKG="${PF}/dev" install compile_py3
 }

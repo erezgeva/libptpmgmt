@@ -70,6 +70,8 @@ define help
 #                                                                              #
 #   DEV_PKG          Development package name, default libptpmgmt-dev.         #
 #                                                                              #
+#   DOC_PKG          Document package name, default libptpmgmt-doc.            #
+#                                                                              #
 #   USE_ASAN         Use the AddressSanitizer, for testing!                    #
 #                                                                              #
 #   NO_COL           Prevent colour output.                                    #
@@ -602,9 +604,10 @@ INSTALL_FOLDER:=$(INSTALL) -d
 INSTALL_LIB:=$(INSTALL_DATA)
 TOOLS_EXT:=-$(SWIG_LNAME)
 DEV_PKG?=$(LIB_NAME)-dev
+DOC_PKG?=$(LIB_NAME)-doc
 DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
-DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(LIB_NAME)-doc
+DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DOC_PKG)
 MANDIR:=$(DESTDIR)$(mandir)/man8
 ifdef PKG_CONFIG_DIR
 PKGCFGDIR:=$(DESTDIR)$(PKG_CONFIG_DIR)
