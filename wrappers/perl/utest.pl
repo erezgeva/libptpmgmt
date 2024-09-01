@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com>
 #
 # Unit test with Perl wrapper of libptpmgmt

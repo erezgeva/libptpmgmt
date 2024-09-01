@@ -143,7 +143,8 @@ extern "C" {
         };
     };
 }
-#define ptp_perout_request next_ptp_perout_request
+#else
+#define next_ptp_perout_request ptp_perout_request
 #endif
 #ifndef PTP_MASK_CLEAR_ALL
 #define PTP_MASK_CLEAR_ALL _IO(PTP_CLK_MAGIC, 19)
@@ -718,24 +719,24 @@ bool PtpClock::readEvents(vector<PtpEvent_t> &events, size_t max) const
     return true;
 }
 static inline bool PtpClock_setPinPeriod(int fd, clockid_t clkId,
-    unsigned int index, ptp_perout_request &req)
+    unsigned int index, ptp_perout_request *req)
 {
     unsigned long rid;
-    if(req.flags == 0)
+    if(req->flags == 0)
         rid = PTP_PEROUT_REQUEST;
     else
         rid = PTP_PEROUT_REQUEST2;
-    if((req.flags & PTP_PERIOD_PHASE) == 0) {
+    if((req->flags & PTP_PERIOD_PHASE) == 0) {
         timespec ts;
         if(clock_gettime(clkId, &ts)) {
             PTPMGMT_ERROR_P("clock_gettime");
             return false;
         }
-        req.start.sec = ts.tv_sec + 2;
-        req.start.nsec = 0;
+        req->start.sec = ts.tv_sec + 2;
+        req->start.nsec = 0;
     }
-    req.index = index;
-    if(ioctl(fd, rid, &req) == -1) {
+    req->index = index;
+    if(ioctl(fd, rid, req) == -1) {
         PTPMGMT_ERROR_P("PTP_PEROUT_REQUEST");
         return false;
     }
@@ -749,7 +750,7 @@ bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
         PTPMGMT_ERROR("not initialized yet");
         return false;
     }
-    ptp_perout_request req;
+    next_ptp_perout_request req;
     memset(&req, 0, sizeof req);
     req.flags = flags;
     if((PTP_PERIOD_WIDTH & flags) > 0)
@@ -757,7 +758,7 @@ bool PtpClock::setPinPeriod(unsigned int index, PtpPinPeriodDef_t times,
     if((PTP_PERIOD_PHASE & flags) > 0)
         fromTs(req.phase, times.phase);
     fromTs(req.period, times.period);
-    return PtpClock_setPinPeriod(m_fd, m_clkId, index, req);
+    return PtpClock_setPinPeriod(m_fd, m_clkId, index, (ptp_perout_request *)&req);
 }
 bool PtpClock::setPtpPpsEvent(bool enable) const
 {
@@ -1230,7 +1231,7 @@ extern "C" {
         if(clk != nullptr && clk->_this != nullptr && times != nullptr) {
             PtpClock *p = (PtpClock *)clk->_this;
             if(p->isInit())
-                return PtpClock_setPinPeriod(p->getFd(), p->clkId(), index, *times);
+                return PtpClock_setPinPeriod(p->getFd(), p->clkId(), index, times);
             PTPMGMT_ERROR("not initialized yet");
         }
         return false;

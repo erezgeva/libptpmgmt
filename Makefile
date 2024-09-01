@@ -461,13 +461,13 @@ $(PUB_C)/%.h: $(SRC)/%.m4 $(SRC)/ids_base.m4 $(SRC)/c.m4
 # and forward the version parameters here :-)
 $(PUB)/ver.h: $(SRC)/ver.h.in
 	$(Q_GEN)$(SED) $(foreach n,PACKAGE_VERSION_MAJ PACKAGE_VERSION_MIN\
-	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
+	  PACKAGE_VERSION_VAL PACKAGE_VERSION,-e 's!@$n@!$($n)!') $< > $@
 
 HAVE_LIST:=$(foreach n,UNISTD_H SYS_TYPES_H SYS_UN_H NETINET_IN_H\
 	  GETOPT_H,$(if $(HAVE_$(n)), HAVE_$n))
 $(PUB)/name.h: $(SRC)/name.h.in
 	$(Q_GEN)$(SED) $(foreach n,$(HAVE_LIST),\
-	  -e 's/undef __PTPMGMT_$(n)$$/define __PTPMGMT_$(n) 1/') $< > $@
+	  -e 's!undef __PTPMGMT_$(n)$$!define __PTPMGMT_$(n) 1!') $< > $@
 
 ifneq ($(and $(ASTYLE_MINVER),$(PERL5_HAVE_TOUCH)),)
 CPPCHECK_OPT:=--quiet --force --error-exitcode=-1
@@ -531,6 +531,7 @@ endif
 SPDXLI:=SPDX-License-Identifier:
 SPDXCY:=SPDX-FileCopyrightText:
 SPDXCY+=Copyright © $(CYEAR) Erez Geva <ErezGeva2@gmail.com>
+SPDXGPL:=GPL-3.0-or-later
 SPDXGFDL:=GFDL-1.3-no-invariants-or-later
 SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
 
@@ -560,20 +561,20 @@ ALL+=$(SWIG_ALL)
 endif # SWIG_MINVER
 
 tools/doxygen.cfg: tools/doxygen.cfg.in
-	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's/@$n@/$($n)/') $< > $@
+	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's!@$n@!$($n)!') $< > $@
 
 ifdef DOXYGEN_MINVER
 doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
 ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
-	$(SED) -i 's/^\#HAVE_DOT\s.*/HAVE_DOT               = NO/' tools/doxygen.cfg
+	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen.cfg
 endif
 # doxygen fails with cairo 1.17.6, use workaround
 # https://github.com/doxygen/doxygen/issues/9319
 # TODO The bug should be fixed in doxygen version 1.9.7
 	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
 ifndef DOTTOOL
-	$(SED) -i 's/^HAVE_DOT\s.*/\#HAVE_DOT               = YES/' tools/doxygen.cfg
+	$(SED) -i 's!^HAVE_DOT\s.*!\$(hash)HAVE_DOT               = YES!' tools/doxygen.cfg
 endif
 endif # DOXYGEN_MINVER
 
@@ -608,6 +609,9 @@ PKGCFGDIR:=$(DESTDIR)$(PKG_CONFIG_DIR)
 endif
 
 define pkgconfig
+$(hash) $(SPDXLI) $(SPDXGPL)
+$(hash) $(SPDXCY)
+
 Name: $(LIB_NAME) library
 Description: $(LIB_NAME) library to communicate with IEEE 1558 PTP clocks
 URL: $(PACKAGE_URL)
@@ -633,10 +637,10 @@ endif
 	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
 	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
-	  's!#include\s*\"\([^"]\+\)\"!#include <$(SWIG_LNAME)/\1>!'\
+	  's!$(hash)include\s*\"\([^"]\+\)\"!$(hash)include <$(SWIG_LNAME)/\1>!'\
 	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/$f;)
 	$(foreach f,$(notdir $(HEADERS_INST_C)),$(SED) -i\
-	  's!#include\s*\"\([^"]\+\)\"!#include <$(SWIG_LNAME)/\1>!'\
+	  's!$(hash)include\s*\"\([^"]\+\)\"!$(hash)include <$(SWIG_LNAME)/\1>!'\
 	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
 	$(INSTALL_FOLDER) $(DEVDOCDIR)
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
@@ -666,7 +670,7 @@ ifdef DOXYGEN_MINVER
 endif # DOXYGEN_MINVER
 ifdef MARKDOWN
 	for hf in doc/[CBHs]*.md
-	do tl=$$($(SED) -n '/^# /{s/^# //;p;q}' $$hf)
+	do tl=$$($(SED) -n '/^$(hash) /{s!^$(hash) !!;s!<!\&lt;!;s!>!\&gt;!;p;q}' $$hf)
 	tf="$(DOCDIR)/$$(basename "$${hf%.md}.html")"
 	$(MARKDOWN) $$hf | sed "4 i <!doctype html><title>$$tl</title>" > $$tf
 	done
@@ -717,7 +721,7 @@ endif # and wildcard debian/rules, which dpkg-buildpackage
 ####### library code only #######
 LIB_SRC:=$(SRC_NAME).txz
 $(LIB_SRC): $(SRC_FILES)
-	$(Q_TAR)$(TAR) $@ $^ --transform "s#^#$(SRC_NAME)/#S"
+	$(Q_TAR)$(TAR) $@ $^ --transform "s!^!$(SRC_NAME)/!S"
 srcpkg: $(LIB_SRC)
 
 ####### RPM build #######
@@ -776,7 +780,7 @@ ifneq ($(rpm_list),)
 # Default configuration on RPM based distributions
 HAVE_CONFIG_GAOL:=1
 config: FCFG!=rpm --eval %configure | sed -ne '/^\s*.\/configure/,$$ p' |\
-	  sed 's@\\$$@@' | sed 's/disable-dependency/enable-dependency/'
+	  sed 's@\\$$@@' | sed 's!disable-dependency!enable-dependency!'
 config: $(CONF_FILES)
 	$(Q)$(FCFG) $(MORE_CONFIG)
 endif # rpm_list

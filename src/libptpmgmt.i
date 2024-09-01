@@ -174,8 +174,6 @@
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_INDEX) Binary::operator [];
 /* Use the copy constructor :-) */
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Binary::operator=;
-/* internal structure */
-%warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Message::sigTlv::operator=;
 #endif /* SWIG_OPERS_IGNORE_OPERATOR */
 
 /* Support Message::traversSigTlvsCl() */
