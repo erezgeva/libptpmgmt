@@ -53,7 +53,7 @@ utest_go: $(GO_D)/unit_test/go.mod
 install_go:
 	$Q$(INSTALL_FOLDER) $(DESTDIR)$(GOROOT)/src
 	cp -a $(GO_D)/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
-	$(SED) -i 's@^\s*#include "\([^.]\+\.h\)"@#include <$(SWIG_LNAME)/\1>@'\
+	$(SED) -i 's@^\s*$(c_inc) "\([^.]\+\.h\)"@$(c_inc) <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 	$(SED) -i '1 i/* $(SPDXLI) MIT\n   $(SPDXCY) */\n'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/*

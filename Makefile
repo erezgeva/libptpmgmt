@@ -128,6 +128,7 @@ endef
 line=$(subst A,,$(lbase))
 space=$(subst A,,A )
 hash=$(subst A,,A#)
+c_inc=$(hash)include
 
 ###############################################################################
 ### output shaper
@@ -532,6 +533,7 @@ SPDXLI:=SPDX-License-Identifier:
 SPDXCY:=SPDX-FileCopyrightText:
 SPDXCY+=Copyright © $(CYEAR) Erez Geva <ErezGeva2@gmail.com>
 SPDXGPL:=GPL-3.0-or-later
+SPDXLGPL:=L$(SPDXGPL)
 SPDXGFDL:=GFDL-1.3-no-invariants-or-later
 SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
 
@@ -637,10 +639,10 @@ endif
 	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
 	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
-	  's!$(hash)include\s*\"\([^"]\+\)\"!$(hash)include <$(SWIG_LNAME)/\1>!'\
+	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
 	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/$f;)
 	$(foreach f,$(notdir $(HEADERS_INST_C)),$(SED) -i\
-	  's!$(hash)include\s*\"\([^"]\+\)\"!$(hash)include <$(SWIG_LNAME)/\1>!'\
+	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
 	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
 	$(INSTALL_FOLDER) $(DEVDOCDIR)
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\

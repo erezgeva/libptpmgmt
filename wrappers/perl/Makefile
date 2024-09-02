@@ -29,5 +29,5 @@ install_perl5:
 	$Q$(INSTALL_LIB) -D $(PERL_D)/auto/*/*.so -t\
 	  $(DESTDIR)$(PERL5_SITE)/auto/$(SWIG_NAME)
 	$(INSTALL_LIB) $(PERL_D)/*.pm $(DESTDIR)$(PERL5_SITE)
-	$(SED) -i "1 i# $(SPDXLI) LGPL-3.0-or-later\n# $(SPDXCY)\n"\
+	$(SED) -i "1 i$(hash) $(SPDXLI) LGPL-3.0-or-later\n$(hash) $(SPDXCY)\n"\
 	  $(DESTDIR)$(PERL5_SITE)/*.pm
