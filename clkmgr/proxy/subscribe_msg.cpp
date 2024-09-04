@@ -17,7 +17,6 @@
 #include <common/print.hpp>
 #include <common/serialize.hpp>
 #include <proxy/client.hpp>
-#include <proxy/clock_config.hpp>
 #include <proxy/subscribe_msg.hpp>
 
 __CLKMGR_NAMESPACE_USE
@@ -83,12 +82,3 @@ PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
     return true;
 }
 
-/*
-[NOTE] This is to response towards ProxySubscribeMessage -
- wont be using this for the time being.
-*/
-bool ProxySubscribeMessage::generateResponse(uint8_t *msgBuffer, size_t &length,
-    const ClockStatus &status)
-{
-    return false;
-}

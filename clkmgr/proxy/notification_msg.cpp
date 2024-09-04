@@ -16,7 +16,6 @@
 #include <common/message.hpp>
 #include <common/print.hpp>
 #include <common/serialize.hpp>
-#include <proxy/clock_config.hpp>
 #include <proxy/notification_msg.hpp>
 
 __CLKMGR_NAMESPACE_USE
@@ -64,14 +63,4 @@ BUILD_TXBUFFER_TYPE(ProxyNotificationMessage::makeBuffer) const
 PROCESS_MESSAGE_TYPE(ProxyNotificationMessage::processMessage)
 {
     return true;
-}
-
-/*
-TO BE REMOVED
-*/
-bool ProxyNotificationMessage::generateResponse(uint8_t *msgBuffer,
-    size_t &length,
-    const ClockStatus &status)
-{
-    return false;
 }

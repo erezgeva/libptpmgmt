@@ -21,25 +21,12 @@
 #include <memory>
 
 #include <common/message.hpp>
-#include <proxy/clock_config.hpp>
-#include <proxy/clock_status.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 
 class ProxyMessage : virtual public Message
 {
   public:
-    /**
-     * Generate a response, if necessary, to the received message
-     * @brief generate response to received message
-     *
-     * @param msgBuffer (out) transport buffer to fill response
-     * @param length (in/out) length of transport buffer to fill (in) and send (out)
-     *
-     * @return true if a response is required, false otherwise
-     */
-    virtual bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
-        const ClockStatus &status) = 0;
     static bool init();
 };
 

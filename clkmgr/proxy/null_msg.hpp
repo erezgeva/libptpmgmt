@@ -26,10 +26,6 @@ class ProxyNullMessage : virtual public ProxyMessage,
   protected:
     ProxyNullMessage() : MESSAGE_NULL() {};
   public:
-    bool processMessage(ClockConfiguration &config) { return true; }
-    bool generateResponse(uint8_t *msgBuffer, std::size_t &length,
-        const ClockStatus &status)
-    { return false; }
     static bool initMessage() { return true; }
 };
 

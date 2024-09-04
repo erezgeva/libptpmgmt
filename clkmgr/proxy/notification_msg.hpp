@@ -30,8 +30,6 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
   public:
     ProxyNotificationMessage() : MESSAGE_NOTIFY() {}
     virtual PROCESS_MESSAGE_TYPE(processMessage);
-    bool generateResponse(std::uint8_t *msgBuffer, std::size_t &length,
-        const ClockStatus &status);
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
     /**
