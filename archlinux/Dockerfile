@@ -4,7 +4,7 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2021 Erez Geva
 #
-# Docker file for Arch Linux contianer for building and create packages
+# Docker file for Arch Linux container for building and create packages
 # Search packages at: https://archlinux.org/packages/
 # pacman: https://wiki.archlinux.org/title/pacman
 ###############################################################################

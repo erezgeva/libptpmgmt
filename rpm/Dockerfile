@@ -4,7 +4,7 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2021 Erez Geva
 #
-# Docker file for Fedora contianer for building and create rpm packages
+# Docker file for Fedora container for building and create rpm packages
 # Search packages at: https://packages.fedoraproject.org/
 ###############################################################################
 FROM fedora
