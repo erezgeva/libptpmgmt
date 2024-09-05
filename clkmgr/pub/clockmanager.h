@@ -25,69 +25,73 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 /**
- * Clock Manager APIs
+ * @class ClockManager
+ * @brief Class to provide APIs to set up and manage the client-runtime.
  */
-class ClkmgrClientApi
+class ClockManager
 {
   private:
     /**
-     * Map of client states
+     * @brief Map of multiple client states.
      */
     static std::map <sessionId_t, ClientState> clientStateMap;
+
     /**
-     * Application client state
+     * @brief State of current client-runtime.
      */
     ClientState appClientState;
 
   public:
     /**
-     * Default constructor
+     * @brief Default constructor
      */
-    ClkmgrClientApi() {}
+    ClockManager() = default;
 
     /**
-     * Initialize the Clock Manager library
+     * @brief Initialize the Clock Manager library
      * @return 0 on success
      */
     static int init() { return 0; }
 
     /**
-     * Get the application client state
-     * @return Reference to the application client state
+     * @brief Get the client state
+     * @return Reference to the client state
      */
     ClientState &getClientState() { return appClientState; }
 
     /**
-     * Establish connection between Client and Proxy
+     * @brief Establish connection between Client and Proxy
      * @return true on success, false on failure
      */
     bool clkmgr_connect();
 
     /**
-     * Remove the connection between Client and Proxy
+     * @brief Remove the connection between Client and Proxy
      * @return true on success, false on failure
      */
     bool clkmgr_disconnect();
 
     /**
-     * Subscribe to events
+     * @brief Subscribe to events
      * @param[in] newSub Reference to the new subscription
      * @param[out] currentState Reference to the current state
      * @return true on success, false on failure
      */
-    bool clkmgr_subscribe(clkmgr_subscription &newSub,
-        clkmgr_state &currentState);
+    bool clkmgr_subscribe(ClkMgrSubscription &newSub,
+        clkmgr_event_state &currentState);
 
     /**
-     * Wait for client status
-     * @param[in] timeout Timeout value in seconds
-     * @param[out] clkmgr_state Reference to the current state
-     * @param[out] eventCount Reference to the event count
+     * @brief Waits for a specified timeout period for any event changes.
+     * @param[in] timeout The timeout in seconds. If timeout is 0, the function
+     * will check event changes once. If timeout is -1, the function will wait
+     * until there is event changes occurs.
+     * @param[out] currentState Reference to the current event state
+     * @param[out] currentCount Reference to the current event count
      * @return Returns true if there is event changes within the timeout period,
-     *         and false otherwise.
+     * and false otherwise.
      */
-    int clkmgr_status_wait(int timeout, clkmgr_state &clkmgr_state,
-        clkmgr_state_event_count &eventCount);
+    int clkmgr_status_wait(int timeout, clkmgr_event_state &currentState,
+        clkmgr_event_count &currentCount);
 };
 
 __CLKMGR_NAMESPACE_END

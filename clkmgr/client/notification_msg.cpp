@@ -71,7 +71,7 @@ void ClientNotificationMessage::handleEventUpdate(uint32_t eventSub,
     uint32_t eventFlag, bool &currentState, const bool &newState,
     std::atomic<int> &eventCount, bool &compositeEvent)
 {
-    if(eventSub & (1 << eventFlag)) {
+    if(eventSub & eventFlag) {
         if(currentState != newState) {
             currentState = newState;
             eventCount.fetch_add(1, std::memory_order_relaxed);
@@ -85,7 +85,7 @@ void ClientNotificationMessage::handleGmOffsetEvent(uint32_t eventSub,
     std::atomic<int> &eventCount, bool &withinBoundary, uint32_t lowerBound,
     uint32_t upperBound)
 {
-    if(eventSub & (1 << eventFlag)) {
+    if(eventSub & eventFlag) {
         if(masterOffset != newMasterOffset) {
             masterOffset = newMasterOffset;
             bool isWithinBoundary = (masterOffset > lowerBound) &&
@@ -105,8 +105,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
     /* Need to walk thru the whole vector */
     std::vector <ClientState *>::iterator it ;
     for(it = ClientStateArray.begin(); it < ClientStateArray.end(); it++) {
-        std::uint32_t eventSub[1];
-        std::uint32_t composite_eventSub[1];
+        std::uint32_t eventSub;
+        std::uint32_t composite_eventSub;
         ClientState *currentClientState = *it;
         struct timespec last_notification_time = {};
         if(clock_gettime(CLOCK_MONOTONIC, &last_notification_time) == -1)
@@ -114,15 +114,13 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 clock_gettime failed.\n");
         else
             currentClientState->set_last_notification_time(last_notification_time);
-        clkmgr_state &clkmgrCurrentState =
+        clkmgr_event_state &clkmgrCurrentState =
             currentClientState->get_eventState();
-        clkmgr_state_event_count &clkmgrCurrentEventCount =
+        clkmgr_event_count &clkmgrCurrentEventCount =
             currentClientState->get_eventStateCount();
-        currentClientState->get_eventSub().get_event().readEvent(eventSub,
-            (std::size_t)sizeof(eventSub));
-        currentClientState->get_eventSub().get_composite_event().readEvent(
-            composite_eventSub,
-            (std::size_t)sizeof(composite_eventSub));
+        eventSub = currentClientState->get_eventSub().c_get_val_event_mask();
+        composite_eventSub =
+            currentClientState->get_eventSub().c_get_val_composite_event_mask();
         /* Get the correct client_ptp_data according to our current sessionID */
         client_ptp_event *client_ptp_data = nullptr;
         client_ptp_data = ClientSubscribeMessage::getClientPtpEventStruct(
@@ -131,20 +129,16 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         composite_client_ptp_data =
             ClientSubscribeMessage::getClientPtpEventCompositeStruct(
                 currentClientState->get_sessionId());
-        int64_t lower_master_offset =
-            currentClientState->get_eventSub().get_value().getLower(gmOffsetValue);
-        int64_t upper_master_offset =
-            currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue);
         if(client_ptp_data == nullptr) {
             PrintDebug("ClientNotificationMessage::processMessage \
                 ERROR in obtaining client_ptp_data.\n");
             return false;
         }
-        if((eventSub[0] & 1 << gmOffsetEvent) &&
+        if((eventSub & eventGMOffset) &&
             (proxy_data.master_offset != client_ptp_data->master_offset)) {
             client_ptp_data->master_offset = proxy_data.master_offset;
-            if((client_ptp_data->master_offset > lower_master_offset) &&
-                (client_ptp_data->master_offset < upper_master_offset)) {
+            if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+                    client_ptp_data->master_offset)) {
                 if(!(client_ptp_data->master_offset_in_range)) {
                     client_ptp_data->master_offset_in_range = true;
                     client_ptp_data->offset_in_range_event_count.fetch_add(1,
@@ -158,15 +152,15 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 }
             }
         }
-        if((eventSub[0] & 1 << syncedToPrimaryClockEvent) &&
+        if((eventSub & eventSyncedToGM) &&
             (proxy_data.synced_to_primary_clock !=
                 client_ptp_data->synced_to_primary_clock)) {
             client_ptp_data->synced_to_primary_clock =
                 proxy_data.synced_to_primary_clock;
-            client_ptp_data->synced_to_primary_clock_event_count.fetch_add(1,
+            client_ptp_data->synced_to_gm_event_count.fetch_add(1,
                 std::memory_order_relaxed);
         }
-        if((eventSub[0] & 1 << gmChangedEvent) &&
+        if((eventSub & eventGMChanged) &&
             (memcmp(client_ptp_data->gm_identity, proxy_data.gm_identity,
                     sizeof(proxy_data.gm_identity)) != 0)) {
             memcpy(client_ptp_data->gm_identity, proxy_data.gm_identity,
@@ -176,30 +170,30 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             clkmgrCurrentState.gm_changed = true;
         } else
             clkmgrCurrentState.gm_changed = false;
-        if((eventSub[0] & 1 << asCapableEvent) &&
+        if((eventSub & eventASCapable) &&
             (proxy_data.as_capable != client_ptp_data->as_capable)) {
             client_ptp_data->as_capable = proxy_data.as_capable;
             client_ptp_data->as_capable_event_count.fetch_add(1,
                 std::memory_order_relaxed);
         }
-        if(composite_eventSub[0]) {
+        if(composite_eventSub) {
             old_composite_event = composite_client_ptp_data->composite_event;
             composite_client_ptp_data->composite_event = true;
         }
-        if(composite_eventSub[0] & 1 << gmOffsetEvent) {
+        if(composite_eventSub & eventGMOffset) {
             composite_client_ptp_data->master_offset = proxy_data.master_offset;
-            if((composite_client_ptp_data->master_offset > lower_master_offset) &&
-                (composite_client_ptp_data->master_offset < upper_master_offset))
+            if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+                    client_ptp_data->master_offset))
                 composite_client_ptp_data->composite_event = true;
             else
                 composite_client_ptp_data->composite_event = false;
         }
-        if(composite_eventSub[0] & 1 << syncedToPrimaryClockEvent)
+        if(composite_eventSub & eventSyncedToGM)
             composite_client_ptp_data->composite_event &=
                 proxy_data.synced_to_primary_clock;
-        if(composite_eventSub[0] & 1 << asCapableEvent)
+        if(composite_eventSub & eventASCapable)
             composite_client_ptp_data->composite_event &= proxy_data.as_capable;
-        if(composite_eventSub[0] &&
+        if(composite_eventSub &&
             (old_composite_event != composite_client_ptp_data->composite_event))
             client_ptp_data->composite_event_count.fetch_add(1,
                 std::memory_order_relaxed);
@@ -220,8 +214,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             client_ptp_data->offset_in_range_event_count;
         clkmgrCurrentEventCount.as_capable_event_count =
             client_ptp_data->as_capable_event_count;
-        clkmgrCurrentEventCount.synced_to_primary_clock_event_count =
-            client_ptp_data->synced_to_primary_clock_event_count;
+        clkmgrCurrentEventCount.synced_to_gm_event_count =
+            client_ptp_data->synced_to_gm_event_count;
         clkmgrCurrentEventCount.gm_changed_event_count =
             client_ptp_data->gm_changed_event_count;
         clkmgrCurrentEventCount.composite_event_count =

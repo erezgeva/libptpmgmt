@@ -25,7 +25,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class CommonSubscribeMessage : virtual public Message
 {
   private:
-    clkmgr_subscription subscription;
+    ClkMgrSubscription subscription;
     TransportClientId clientId;
 
   public:
@@ -34,11 +34,11 @@ class CommonSubscribeMessage : virtual public Message
     virtual PARSE_RXBUFFER_TYPE(parseBuffer);
     virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
-    clkmgr_subscription &getSubscription()
+    ClkMgrSubscription &getSubscription()
     { return subscription; }
     TransportClientId &getClientId()
     { return clientId; }
-    void setSubscription(clkmgr_subscription &newsub);
+    void setSubscription(ClkMgrSubscription &newsub);
 
     virtual std::string toString();
   protected:

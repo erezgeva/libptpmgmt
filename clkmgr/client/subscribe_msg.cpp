@@ -58,19 +58,17 @@ void ClientSubscribeMessage::setClientState(ClientState *newClientState)
 PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 {
     ptp_event data = {};
-    std::uint32_t eventSub[1];
+    std::uint32_t eventSub;
     struct timespec last_notification_time = {};
     if(clock_gettime(CLOCK_MONOTONIC, &last_notification_time) == -1)
         PrintDebug("ClientNotificationMessage::processMessage \
             clock_gettime failed.\n");
     else
         currentClientState->set_last_notification_time(last_notification_time);
-    currentClientState->get_eventSub().get_event().readEvent(eventSub,
-        (std::size_t)sizeof(eventSub));
-    std::uint32_t composite_eventSub[1];
-    currentClientState->get_eventSub().get_composite_event().readEvent(
-        composite_eventSub,
-        (std::size_t)sizeof(composite_eventSub));
+    eventSub = currentClientState->get_eventSub().c_get_val_event_mask();
+    std::uint32_t composite_eventSub;
+    composite_eventSub =
+        currentClientState->get_eventSub().c_get_val_composite_event_mask();
     PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
     if(!CommonSubscribeMessage::parseBuffer(LxContext))
         return false;
@@ -83,10 +81,6 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     sessionId_t currentSessionID = currentClientState->get_sessionId();
     std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
     client_ptp_event *client_data, *composite_client_data;
-    int64_t lower_master_offset =
-        currentClientState->get_eventSub().get_value().getLower(gmOffsetValue);
-    int64_t upper_master_offset =
-        currentClientState->get_eventSub().get_value().getUpper(gmOffsetValue);
     it = client_ptp_event_map.find(currentSessionID);
     if(it == client_ptp_event_map.end()) {
         /* Creation of a new map item for this new sessionID */
@@ -101,40 +95,40 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
         client_data = it->second[0];
         composite_client_data = it->second[1];
     }
-    if((eventSub[0] & 1 << gmOffsetEvent) &&
+    if((eventSub & eventGMOffset) &&
         (data.master_offset != client_data->master_offset)) {
         client_data->master_offset = data.master_offset;
-        if((client_data->master_offset > lower_master_offset) &&
-            (client_data->master_offset < upper_master_offset))
+        if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+                client_data->master_offset))
             client_data->master_offset_in_range = true;
     }
-    if((eventSub[0] & 1 << syncedToPrimaryClockEvent) &&
+    if((eventSub & eventSyncedToGM) &&
         (data.synced_to_primary_clock != client_data->synced_to_primary_clock))
         client_data->synced_to_primary_clock = data.synced_to_primary_clock;
-    if((eventSub[0] & 1 << gmChangedEvent) &&
+    if((eventSub & eventGMChanged) &&
         (memcmp(client_data->gm_identity, data.gm_identity,
                 sizeof(data.gm_identity))) != 0) {
         memcpy(client_data->gm_identity, data.gm_identity,
             sizeof(data.gm_identity));
         clkmgrCurrentState->gm_changed = true;
     }
-    if((eventSub[0] & 1 << asCapableEvent) &&
+    if((eventSub & eventASCapable) &&
         (data.as_capable != client_data->as_capable))
         client_data->as_capable = data.as_capable;
-    if(composite_eventSub[0])
+    if(composite_eventSub)
         composite_client_data->composite_event = true;
-    if((composite_eventSub[0] & 1 << gmOffsetEvent) &&
+    if((composite_eventSub & eventGMOffset) &&
         (data.master_offset != composite_client_data->master_offset)) {
         composite_client_data->master_offset = data.master_offset;
-        if((composite_client_data->master_offset > lower_master_offset) &&
-            (composite_client_data->master_offset < upper_master_offset))
+        if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+                client_data->master_offset))
             composite_client_data->composite_event = true;
         else
             composite_client_data->composite_event = false;
     }
-    if(composite_eventSub[0] & 1 << syncedToPrimaryClockEvent)
+    if(composite_eventSub & eventSyncedToGM)
         composite_client_data->composite_event &= data.synced_to_primary_clock;
-    if(composite_eventSub[0] & 1 << asCapableEvent)
+    if(composite_eventSub & eventASCapable)
         composite_client_data->composite_event &= data.as_capable;
     clkmgrCurrentState->as_capable = client_data->as_capable;
     clkmgrCurrentState->offset_in_range = client_data->master_offset_in_range;
@@ -171,7 +165,7 @@ PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
     /* Add the current ClientState to the notification class */
     ClientNotificationMessage::addClientState(currentClientState);
     this->set_msgAck(ACK_NONE);
-    clkmgr_state clkmgrCurrentState = currentClientState->get_eventState();
+    clkmgr_event_state clkmgrCurrentState = currentClientState->get_eventState();
     cv.notify_one(lock);
     return true;
 }
@@ -218,7 +212,7 @@ client_ptp_event *ClientSubscribeMessage::getClientPtpEventCompositeStruct(
 
 /* reduce the corresponding eventCount */
 void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
-    clkmgr_state_event_count &eventCount)
+    clkmgr_event_count &eventCount)
 {
     std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
     client_ptp_event *client_ptp_data = nullptr;
@@ -235,8 +229,8 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
     client_ptp_data->as_capable_event_count.fetch_sub(
         eventCount.as_capable_event_count,
         std::memory_order_relaxed);
-    client_ptp_data->synced_to_primary_clock_event_count.fetch_sub(
-        eventCount.synced_to_primary_clock_event_count,
+    client_ptp_data->synced_to_gm_event_count.fetch_sub(
+        eventCount.synced_to_gm_event_count,
         std::memory_order_relaxed);
     client_ptp_data->gm_changed_event_count.fetch_sub(
         eventCount.gm_changed_event_count,
@@ -247,8 +241,8 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
     eventCount.offset_in_range_event_count =
         client_ptp_data->offset_in_range_event_count;
     eventCount.as_capable_event_count = client_ptp_data->as_capable_event_count;
-    eventCount.synced_to_primary_clock_event_count =
-        client_ptp_data->synced_to_primary_clock_event_count;
+    eventCount.synced_to_gm_event_count =
+        client_ptp_data->synced_to_gm_event_count;
     eventCount.gm_changed_event_count = client_ptp_data->gm_changed_event_count;
     eventCount.composite_event_count = client_ptp_data->composite_event_count;
 }

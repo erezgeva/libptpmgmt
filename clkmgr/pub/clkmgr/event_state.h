@@ -21,28 +21,32 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 /**
- * Current State for the events
+ * @struct clkmgr_event_state
+ * @brief Structure to represent the current state of events.
  */
-struct clkmgr_state {
-    uint8_t  gm_identity[8]; /**< Primary clock UUID */
-    bool     as_capable; /**< IEEE 802.1AS capable */
-    bool     offset_in_range; /**< Clock offset in range */
-    bool     synced_to_primary_clock; /**< Synced to primary clock */
-    bool     gm_changed; /**< Primary clock UUID changed */
-    bool     composite_event; /**< Composite event */
-    int64_t  clock_offset; /**< Clock offset */
+struct clkmgr_event_state {
     uint64_t notification_timestamp; /**< Timestamp for last notification */
+    int64_t clock_offset; /**< Clock offset */
+    uint8_t gm_identity[8]; /**< Primary clock UUID */
+    bool offset_in_range; /**< Clock offset in range */
+    bool synced_to_primary_clock; /**< Synced to primary clock */
+    bool as_capable; /**< IEEE 802.1AS capable */
+    bool gm_changed; /**< Primary clock UUID changed */
+    bool composite_event; /**< Composite event */
+    bool reserved[27]; /**< Reserved for future */
 };
 
 /**
- * Event count for the events
+ * @struct clkmgr_event_count
+ * @brief Structure to represent the event counts.
  */
-struct clkmgr_state_event_count {
-    uint64_t offset_in_range_event_count; /**< Clk offset in range */
-    uint64_t gm_changed_event_count; /**< Primary clk ID changed */
-    uint64_t as_capable_event_count; /**< IEEE 802.1AS capable */
-    uint64_t synced_to_primary_clock_event_count; /**< Synced to primary clk */
-    uint64_t composite_event_count; /**< Composite event */
+struct clkmgr_event_count {
+    uint32_t offset_in_range_event_count; /**< Clock offset in range */
+    uint32_t synced_to_gm_event_count; /**< Synced to primary clock */
+    uint32_t as_capable_event_count; /**< IEEE 802.1AS capable */
+    uint32_t gm_changed_event_count; /**< Primary clock UUID changed */
+    uint32_t composite_event_count; /**< Composite event */
+    uint32_t reserved[27]; /**< Reserved for future */
 };
 
 __CLKMGR_NAMESPACE_END

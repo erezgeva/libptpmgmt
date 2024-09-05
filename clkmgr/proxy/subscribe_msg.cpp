@@ -81,4 +81,3 @@ PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
     set_msgAck(ACK_SUCCESS);
     return true;
 }
-

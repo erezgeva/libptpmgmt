@@ -11,8 +11,8 @@
  * @license BSD-3-Clause
  *
  * @note This is a sample code, not a product! You should use it as a reference.
- *  You can compile it with: gcc -Wall clkmgr_test.c -o clkmgr_test -lclkmgr
- *  or use the Makefile file.
+ *  You can compile it with: gcc -Wall clkmgr_c_test.c -o clkmgr_c_test -lclkmgr
+ *  or use the Makefile with: make
  *
  */
 
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 {
     struct clkmgr_c_event_count event_count = {};
     struct clkmgr_c_subscription subscription = {};
-    struct clkmgr_c_state state = {};
+    struct clkmgr_c_event_state state = {};
     clkmgr_c_client_ptr client_ptr;
     int ret = EXIT_SUCCESS;
     int idle_time = 1;
@@ -49,26 +49,28 @@ int main(int argc, char *argv[])
     int retval;
     int opt;
 
-    subscription.event[0] = ((1<<gmOffsetEvent) | (1<<syncedToPrimaryClockEvent) |
-        (1<<asCapableEvent) | (1<<gmChangedEvent));
-    subscription.composite_event[0] = ((1<<gmOffsetEvent) |
-        (1<<syncedToPrimaryClockEvent) | (1<<asCapableEvent));
-    subscription.value[gm_offset].upper = 100000;
-    subscription.value[gm_offset].lower = -100000;
+    subscription.event_mask = (clkmgr_c_event_gm_offset | clkmgr_c_event_synced2gm |
+        clkmgr_c_event_as_capable | clkmgr_c_event_gm_changed);
+    subscription.composite_event_mask = (clkmgr_c_event_gm_offset |
+        clkmgr_c_event_synced2gm | clkmgr_c_event_as_capable);
+    subscription.threshold[clkmgr_c_threshold_gm_offset].upper_limit = 100000;
+    subscription.threshold[clkmgr_c_threshold_gm_offset].lower_limit = -100000;
 
     while ((opt = getopt(argc, argv, "s:c:u:l:i:t:h")) != -1) {
         switch (opt) {
         case 's':
-            subscription.event[0] = strtoul(optarg, NULL, 0);;
+            subscription.event_mask = strtoul(optarg, NULL, 0);;
             break;
         case 'c':
-            subscription.composite_event[0] = strtoul(optarg, NULL, 0);
+            subscription.composite_event_mask = strtoul(optarg, NULL, 0);
             break;
         case 'u':
-            subscription.value[gm_offset].upper = strtol(optarg, NULL, 10);
+            subscription.threshold[clkmgr_c_threshold_gm_offset].upper_limit =
+                strtol(optarg, NULL, 10);
             break;
         case 'l':
-            subscription.value[gm_offset].lower = strtol(optarg, NULL, 10);
+            subscription.threshold[clkmgr_c_threshold_gm_offset].lower_limit =
+                strtol(optarg, NULL, 10);
             break;
         case 'i':
             idle_time = strtol(optarg, NULL, 10);
@@ -81,15 +83,15 @@ int main(int argc, char *argv[])
                    "Options:\n"
                    "  -s subscribe_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: gmOffsetEvent\n"
-                   "     Bit 1: syncedToPrimaryClockEvent\n"
-                   "     Bit 2: asCapableEvent\n"
-                   "     Bit 3: gmChangedEvent\n"
+                   "     Bit 0: eventGMOffset\n"
+                   "     Bit 1: eventSyncedToGM\n"
+                   "     Bit 2: eventASCapable\n"
+                   "     Bit 3: eventGMChanged\n"
                    "  -c composite_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: gmOffsetEvent\n"
-                   "     Bit 1: syncedToPrimaryClockEvent\n"
-                   "     Bit 2: asCapableEvent\n"
+                   "     Bit 0: eventGMOffset\n"
+                   "     Bit 1: eventSyncedToGM\n"
+                   "     Bit 2: eventASCapable\n"
                    "  -u upper master offset (ns)\n"
                    "     Default: %d ns\n"
                    "  -l lower master offset (ns)\n"
@@ -98,25 +100,26 @@ int main(int argc, char *argv[])
                    "     Default: %d s\n"
                    "  -t timeout in waiting notification event (s)\n"
                    "     Default: %d s\n",
-                   argv[0], subscription.event[0],
-                   subscription.composite_event[0],
-                   subscription.value[gm_offset].upper,
-                   subscription.value[gm_offset].lower, idle_time, timeout);
+                   argv[0], subscription.event_mask,
+                   subscription.composite_event_mask,
+                   subscription.threshold[clkmgr_c_threshold_gm_offset].upper_limit,
+                   subscription.threshold[clkmgr_c_threshold_gm_offset].lower_limit,
+                   idle_time, timeout);
             return EXIT_SUCCESS;
         default:
             printf("Usage of %s :\n"
                    "Options:\n"
                    "  -s subscribe_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: gmOffsetEvent\n"
-                   "     Bit 1: syncedToPrimaryClockEvent\n"
-                   "     Bit 2: asCapableEvent\n"
-                   "     Bit 3: gmChangedEvent\n"
+                   "     Bit 0: eventGMOffset\n"
+                   "     Bit 1: eventSyncedToGM\n"
+                   "     Bit 2: eventASCapable\n"
+                   "     Bit 3: eventGMChanged\n"
                    "  -c composite_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: gmOffsetEvent\n"
-                   "     Bit 1: syncedToPrimaryClockEvent\n"
-                   "     Bit 2: asCapableEvent\n"
+                   "     Bit 0: eventGMOffset\n"
+                   "     Bit 1: eventSyncedToGM\n"
+                   "     Bit 2: eventASCapable\n"
                    "  -u upper master offset (ns)\n"
                    "     Default: %d ns\n"
                    "  -l lower master offset (ns)\n"
@@ -125,10 +128,11 @@ int main(int argc, char *argv[])
                    "     Default: %d s\n"
                    "  -t timeout in waiting notification event (s)\n"
                    "     Default: %d s\n",
-                   argv[0], subscription.event[0],
-                   subscription.composite_event[0],
-                   subscription.value[gm_offset].upper,
-                   subscription.value[gm_offset].lower, idle_time, timeout);
+                   argv[0], subscription.event_mask,
+                   subscription.composite_event_mask,
+                   subscription.threshold[clkmgr_c_threshold_gm_offset].upper_limit,
+                   subscription.threshold[clkmgr_c_threshold_gm_offset].lower_limit,
+                   idle_time, timeout);
             return EXIT_FAILURE;
         }
     }
@@ -157,20 +161,20 @@ int main(int argc, char *argv[])
         getMonotonicTime());
     printf("+---------------------------+--------------------+\n");
     printf("| %-25s | %-18s |\n", "Event", "Event Status");
-    if (subscription.event[0]) {
+    if (subscription.event_mask) {
         printf("+---------------------------+--------------------+\n");
     }
-    if (subscription.event[0] & (1<<gmOffsetEvent)) {
+    if (subscription.event_mask & clkmgr_c_event_gm_offset) {
         printf("| %-25s | %-18d |\n", "offset_in_range",
             state.offset_in_range);
     }
-    if (subscription.event[0] & (1<<syncedToPrimaryClockEvent)) {
+    if (subscription.event_mask & clkmgr_c_event_synced2gm) {
         printf("| %-25s | %-18d |\n", "synced_to_primary_clock", state.synced_to_primary_clock);
     }
-    if (subscription.event[0] & (1<<asCapableEvent)) {
+    if (subscription.event_mask & clkmgr_c_event_as_capable) {
         printf("| %-25s | %-18d |\n", "as_capable", state.as_capable);
     }
-    if (subscription.event[0] & (1<<gmChangedEvent)) {
+    if (subscription.event_mask & clkmgr_c_event_gm_changed) {
         printf("| %-25s | %-18d |\n", "gm_Changed", state.gm_changed);
         printf("+---------------------------+--------------------+\n");
         printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x |\n", "UUID",
@@ -184,20 +188,20 @@ int main(int argc, char *argv[])
                 "notification_timestamp", state.notification_timestamp / 1e9);
     }
     printf("+---------------------------+--------------------+\n");
-    if (subscription.composite_event[0]) {
+    if (subscription.composite_event_mask) {
         printf("| %-25s | %-18d |\n", "composite_event",
             state.composite_event);
     }
-    if (subscription.composite_event[0] & (1<<gmOffsetEvent)) {
+    if (subscription.composite_event_mask & clkmgr_c_event_gm_offset) {
         printf("| - %-23s | %-18s |\n", "offset_in_range", " ");
     }
-    if (subscription.composite_event[0] & (1<<syncedToPrimaryClockEvent)) {
+    if (subscription.composite_event_mask & clkmgr_c_event_synced2gm) {
         printf("| - %-19s | %-18s |\n", "synced_to_primary_clock", " ");
     }
-    if (subscription.composite_event[0] & (1<<asCapableEvent)) {
+    if (subscription.composite_event_mask & clkmgr_c_event_as_capable) {
         printf("| - %-23s | %-18s |\n", "as_capable", " ");
     }
-    if (subscription.composite_event[0]) {
+    if (subscription.composite_event_mask) {
         printf("+---------------------------+--------------------+\n\n");
     } else {
         printf("\n");
@@ -227,24 +231,24 @@ int main(int argc, char *argv[])
         printf("+---------------------------+--------------+-------------+\n");
         printf("| %-25s | %-12s | %-11s |\n", "Event", "Event Status",
             "Event Count");
-        if (subscription.event[0]) {
+        if (subscription.event_mask) {
         printf("+---------------------------+--------------+-------------+\n");
         }
-        if (subscription.event[0] & (1<<gmOffsetEvent)) {
-            printf("| %-25s | %-12d | %-11ld |\n", "offset_in_range",
+        if (subscription.event_mask & clkmgr_c_event_gm_offset) {
+            printf("| %-25s | %-12d | %-11d |\n", "offset_in_range",
                 state.offset_in_range,
                 event_count.offset_in_range_event_count);
         }
-        if (subscription.event[0] & (1<<syncedToPrimaryClockEvent)) {
-            printf("| %-25s | %-12d | %-11ld |\n", "synced_to_primary_clock",
-               state.synced_to_primary_clock, event_count.synced_to_primary_clock_event_count);
+        if (subscription.event_mask & clkmgr_c_event_synced2gm) {
+            printf("| %-25s | %-12d | %-11d |\n", "synced_to_primary_clock",
+               state.synced_to_primary_clock, event_count.synced_to_gm_event_count);
         }
-        if (subscription.event[0] & (1<<asCapableEvent)) {
-            printf("| %-25s | %-12d | %-11ld |\n", "as_capable",
+        if (subscription.event_mask & clkmgr_c_event_as_capable) {
+            printf("| %-25s | %-12d | %-11d |\n", "as_capable",
                 state.as_capable, event_count.as_capable_event_count);
         }
-        if (subscription.event[0] & (1<<gmChangedEvent)) {
-            printf("| %-25s | %-12d | %-11ld |\n", "gm_Changed",
+        if (subscription.event_mask & clkmgr_c_event_gm_changed) {
+            printf("| %-25s | %-12d | %-11d |\n", "gm_Changed",
                 state.gm_changed, event_count.gm_changed_event_count);
             printf("+---------------------------+--------------+-------------+\n");
             printf("| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
@@ -258,20 +262,20 @@ int main(int argc, char *argv[])
                 "notification_timestamp", state.notification_timestamp / 1e9);
         }
         printf("+---------------------------+--------------+-------------+\n");
-        if (subscription.composite_event[0]) {
-            printf("| %-25s | %-12d | %-11ld |\n", "composite_event",
+        if (subscription.composite_event_mask) {
+            printf("| %-25s | %-12d | %-11d |\n", "composite_event",
                    state.composite_event, event_count.composite_event_count);
         }
-        if (subscription.composite_event[0] & (1<<gmOffsetEvent)) {
+        if (subscription.composite_event_mask & clkmgr_c_event_gm_offset) {
             printf("| - %-23s | %-12s | %-11s |\n", "offset_in_range", "", "");
         }
-        if (subscription.composite_event[0] & (1<<syncedToPrimaryClockEvent)) {
+        if (subscription.composite_event_mask & clkmgr_c_event_synced2gm) {
             printf("| - %-19s | %-12s | %-11s |\n", "synced_to_primary_clock", "", "");
         }
-        if (subscription.composite_event[0] & (1<<asCapableEvent)) {
+        if (subscription.composite_event_mask & clkmgr_c_event_as_capable) {
             printf("| - %-23s | %-12s | %-11s |\n", "as_capable", "", "");
         }
-        if (subscription.composite_event[0]) {
+        if (subscription.composite_event_mask) {
             printf("+---------------------------+--------------+-------------+\n\n");
         } else {
             printf("\n");

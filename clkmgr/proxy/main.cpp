@@ -27,7 +27,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    uint8_t transport_specific = 0x0;
+    uint8_t transport_specific = 0;
     int value = 0;
     int opt;
     while((opt = getopt(argc, argv, "t:h")) != -1) {
@@ -43,14 +43,16 @@ int main(int argc, char *argv[])
             case 'h':
                 std::cout << "Usage of " << argv[0] << " :\n"
                     "Options:\n"
-                    "  -t transport specific\n"
-                    "     Default: 0x" << transport_specific << "\n";
+                    " -t transport specific\n"
+                    "    Default: 0x" << std::hex <<
+                    static_cast<unsigned int>(transport_specific) << "\n";
                 return EXIT_SUCCESS;
             default:
                 std::cerr << "Usage of " << argv[0] << " :\n"
                     "Options:\n"
-                    "  -t transport specific\n"
-                    "     Default: 0x" << transport_specific << "\n";
+                    " -t transport specific\n"
+                    "    Default: 0x" << std::hex <<
+                    static_cast<unsigned int>(transport_specific) << "\n";
                 return EXIT_FAILURE;
         }
     }

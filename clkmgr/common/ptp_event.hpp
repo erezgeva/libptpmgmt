@@ -41,7 +41,7 @@ struct client_ptp_event {
     bool composite_event;
     std::atomic<int> offset_in_range_event_count{};
     std::atomic<int> as_capable_event_count{};
-    std::atomic<int> synced_to_primary_clock_event_count{};
+    std::atomic<int> synced_to_gm_event_count{};
     std::atomic<int> gm_changed_event_count{};
     std::atomic<int> composite_event_count{};
 };

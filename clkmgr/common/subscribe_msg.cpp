@@ -53,8 +53,9 @@ BUILD_TXBUFFER_TYPE(CommonSubscribeMessage::makeBuffer) const
     if(!WRITE_TX(FIELD, c_get_val_sessionId(), TxContext))
         return false;
     PrintDebug("[CommonSubscribeMessage]::makeBuffer - subscription event : " + \
-        subscription.c_get_val_event().toString() + \
-        ", subscription val : " + subscription.c_get_val_value().toString());
+        std::to_string(subscription.c_get_val_event_mask()) + \
+        ", composite event : " + \
+        std::to_string(subscription.c_get_val_composite_event_mask()));
     if(!WRITE_TX(FIELD, subscription, TxContext))
         return false;
     return true;
@@ -68,7 +69,7 @@ TRANSMIT_MESSAGE_TYPE(CommonSubscribeMessage::transmitMessage)
     return TxContext.sendBuffer();
 }
 
-void setSubscription(clkmgr_subscription &newsub)
+void setSubscription(ClkMgrSubscription &newsub)
 {
     PrintDebug("[CommonSubscribeMessage]::setSubscription ");
 }

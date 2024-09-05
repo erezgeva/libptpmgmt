@@ -32,7 +32,7 @@ This will establish connection to the proxy.
 
 ** Client point of view **
 
-1. **client/clkmgr_init.cpp/ClkmgrClientApi::clkmgr_connect()**
+1. **client/clkmgr_init.cpp/ClockManager::clkmgr_connect()**
         - Creation of new ClientConnectMessage object for CONNECT_MSG
 
 1.1. **client/message.cpp/ClientMessage::init()**

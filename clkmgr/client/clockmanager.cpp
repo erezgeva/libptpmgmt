@@ -39,7 +39,7 @@ rtpi::condition_variable ClientConnectMessage::cv;
 rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
 
-bool ClkmgrClientApi::clkmgr_connect()
+bool ClockManager::clkmgr_connect()
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
     Message0 connectMsg(new ClientConnectMessage());
@@ -78,8 +78,8 @@ bool ClkmgrClientApi::clkmgr_connect()
     return true;
 }
 
-bool ClkmgrClientApi::clkmgr_subscribe(clkmgr_subscription &newSub,
-    clkmgr_state &currentState)
+bool ClockManager::clkmgr_subscribe(ClkMgrSubscription &newSub,
+    clkmgr_event_state &currentState)
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
     PrintDebug("[clkmgr]::subscribe");
@@ -92,12 +92,12 @@ bool ClkmgrClientApi::clkmgr_subscribe(clkmgr_subscription &newSub,
         PrintDebug("[clkmgr::subscribe] subscribeMsgcreation is OK !!\n");
     cmsg->setClientState(&appClientState);
     /* Write the current event subscription */
-    appClientState.get_eventSub().set_event(newSub.getc_event());
-    appClientState.get_eventSub().set_value(newSub.getc_value());
-    appClientState.get_eventSub().set_composite_event(
-        newSub.getc_composite_event());
+    appClientState.get_eventSub().set_event_mask(newSub.getc_event_mask());
+    appClientState.get_eventSub().set_threshold(newSub.getc_threshold());
+    appClientState.get_eventSub().set_composite_event_mask(
+        newSub.getc_composite_event_mask());
     /* Copy the event Mask */
-    cmsg->getSubscription().get_event().copyEventMask(newSub.get_event());
+    cmsg->getSubscription().set_event_mask(newSub.getc_event_mask());
     strcpy((char *)cmsg->getClientId().data(),
         (char *)appClientState.get_clientID().data());
     cmsg->set_sessionId(appClientState.get_sessionId());
@@ -117,12 +117,12 @@ bool ClkmgrClientApi::clkmgr_subscribe(clkmgr_subscription &newSub,
         } else
             PrintDebug("[SUBSCRIBE] SUBSCRIBE reply received.");
     }
-    clkmgr_state clkmgrCurrentState = appClientState.get_eventState();
+    clkmgr_event_state clkmgrCurrentState = appClientState.get_eventState();
     currentState = clkmgrCurrentState;
     return true;
 }
 
-bool ClkmgrClientApi::clkmgr_disconnect()
+bool ClockManager::clkmgr_disconnect()
 {
     bool retVal = false;
     /* Send a disconnect message */
@@ -195,42 +195,27 @@ bool check_proxy_liveness(ClientState &appClientState)
     return true;
 }
 
-/**
- * @brief This function waits for a specified timeout period for any event changes.
- *
- * @param timeout The timeout period in seconds. If timeout is 0, the function
- *                will check event changes once. If timeout is -1, the function
- *                wait until there is event changes occurs.
- * @param clkmgr_state A reference to a clkmgr_state object where the current state
- *                  will be stored.
- * @param eventCount A reference to a clkmgr_state_event_count object where the
- *                   event counts will be stored.
- *
- * @return Returns true if there is event changes within the timeout period,
- *         and false otherwise.
- */
-int ClkmgrClientApi::clkmgr_status_wait(int timeout,
-    clkmgr_state &clkmgr_state_ref,
-    clkmgr_state_event_count &eventCountRef)
+int ClockManager::clkmgr_status_wait(int timeout,
+    clkmgr_event_state &currentState, clkmgr_event_count &currentCount)
 {
     auto start = std::chrono::high_resolution_clock::now();
     auto end = (timeout == -1) ?
         std::chrono::time_point<std::chrono::high_resolution_clock>::max() :
         start + std::chrono::seconds(timeout);
     bool event_changes_detected = false;
-    clkmgr_state_event_count eventCount;
-    clkmgr_state clkmgr_state;
+    clkmgr_event_count eventCount;
+    clkmgr_event_state eventState;
     do {
         /* Check the liveness of the Proxy's message queue */
         if(!check_proxy_liveness(appClientState))
             return -1;
         /* Get the event state and event count from the API */
         eventCount = appClientState.get_eventStateCount();
-        clkmgr_state = appClientState.get_eventState();
+        eventState = appClientState.get_eventState();
         /* Check if any member of eventCount is non-zero */
         if(eventCount.offset_in_range_event_count ||
             eventCount.as_capable_event_count ||
-            eventCount.synced_to_primary_clock_event_count ||
+            eventCount.synced_to_gm_event_count ||
             eventCount.composite_event_count ||
             eventCount.gm_changed_event_count) {
             event_changes_detected = true;
@@ -240,14 +225,13 @@ int ClkmgrClientApi::clkmgr_status_wait(int timeout,
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     } while(std::chrono::high_resolution_clock::now() < end);
     /* Copy out the current state */
-    eventCountRef = eventCount;
-    clkmgr_state_ref = clkmgr_state;
+    currentCount = eventCount;
+    currentState = eventState;
     if(!event_changes_detected)
         return false;
     /* Reset the atomic count by reducing the corresponding eventCount */
     ClientSubscribeMessage::resetClientPtpEventStruct(
-        appClientState.get_sessionId(),
-        eventCount);
+        appClientState.get_sessionId(), eventCount);
     appClientState.set_eventStateCount(eventCount);
     return true;
 }

@@ -24,7 +24,8 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 /**
- * Class to manage the client state
+ * @class ClientState
+ * @brief Class to keep the current state of client-runtime
  */
 class ClientState
 {
@@ -33,20 +34,20 @@ class ClientState
     std::atomic_bool subscribed = false; /**< Subscription status */
     sessionId_t sessionId = InvalidSessionId; /**< Session ID */
     TransportClientId clientID = {}; /**< Client ID */
-    uint8_t ptp4l_id = 0; /**< PTP4L ID */
-    clkmgr_state eventState = {}; /**< Event state */
-    clkmgr_state_event_count eventStateCount = {}; /**< Event count */
-    clkmgr_subscription eventSub = {}; /**< Event subscription */
+    std::uint8_t ptp4l_id = 0; /**< PTP4L ID */
+    clkmgr_event_state eventState = {}; /**< Event state */
+    clkmgr_event_count eventStateCount = {}; /**< Event count */
+    ClkMgrSubscription eventSub = {}; /**< Event subscription */
     struct timespec last_notification_time; /**< Last notification time */
 
   public:
     /**
-     * Default constructor
+     * @brief Default constructor
      */
     ClientState();
 
     /**
-     * Copy constructor
+     * @brief Copy constructor
      * @param newState Reference to the new state
      */
     ClientState(ClientState &newState);
@@ -97,25 +98,25 @@ class ClientState
      * @brief Get the event state counts
      * @return Reference to the event state counts
      */
-    clkmgr_state_event_count &get_eventStateCount();
+    clkmgr_event_count &get_eventStateCount();
 
     /**
      * @brief Get the event state
      * @return Reference to the event state
      */
-    clkmgr_state &get_eventState();
+    clkmgr_event_state &get_eventState();
 
     /**
      * @brief Set the event state counts
      * @param eCount Event state counts
      */
-    void set_eventStateCount(clkmgr_state_event_count eCount);
+    void set_eventStateCount(clkmgr_event_count eCount);
 
     /**
      * @brief Set the event state
      * @param eState Event state
      */
-    void set_eventState(clkmgr_state eState);
+    void set_eventState(clkmgr_event_state eState);
 
     /**
      * @brief Set the last notification time
@@ -139,7 +140,7 @@ class ClientState
      * @brief Get the event subscription
      * @return Reference to the event subscription
      */
-    clkmgr_subscription &get_eventSub();
+    ClkMgrSubscription &get_eventSub();
 
     DECLARE_ACCESSOR(sessionId); /**< Declare accessor for sessionId */
     DECLARE_ACCESSOR(ptp4l_id); /**< Declare accessor for ptp4l_id */

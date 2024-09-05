@@ -17,39 +17,39 @@
 
 clkmgr_c_client_ptr clkmgr_c_client_create()
 {
-    return new clkmgr::ClkmgrClientApi();
+    return new clkmgr::ClockManager();
 }
 
 void clkmgr_c_client_destroy(clkmgr_c_client_ptr client_ptr)
 {
-    delete static_cast<clkmgr::ClkmgrClientApi *>(client_ptr);
+    delete static_cast<clkmgr::ClockManager *>(client_ptr);
 }
 
 bool clkmgr_c_connect(clkmgr_c_client_ptr client_ptr)
 {
-    return static_cast<clkmgr::ClkmgrClientApi *>
+    return static_cast<clkmgr::ClockManager *>
         (client_ptr)->clkmgr_connect();
 }
 
 bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr)
 {
-    return static_cast<clkmgr::ClkmgrClientApi *>
+    return static_cast<clkmgr::ClockManager *>
         (client_ptr)->clkmgr_disconnect();
 }
 
 bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
     struct clkmgr_c_subscription sub,
-    struct clkmgr_c_state *current_state)
+    struct clkmgr_c_event_state *current_state)
 {
-    clkmgr::clkmgr_subscription newsub = {};
-    clkmgr::clkmgr_state state = {};
+    clkmgr::ClkMgrSubscription newsub = {};
+    clkmgr::clkmgr_event_state state = {};
     bool ret;
-    newsub.get_event().writeEvent(sub.event, sizeof(sub.event));
-    newsub.get_value().setValue(gm_offset, sub.value[gm_offset].upper,
-        sub.value[gm_offset].lower);
-    newsub.get_composite_event().writeEvent(sub.composite_event,
-        sizeof(sub.composite_event));
-    ret = static_cast<clkmgr::ClkmgrClientApi *>(client_ptr)->clkmgr_subscribe(
+    newsub.set_event_mask(sub.event_mask);
+    newsub.define_threshold(clkmgr::thresholdGMOffset,
+        sub.threshold[clkmgr_c_threshold_gm_offset].upper_limit,
+        sub.threshold[clkmgr_c_threshold_gm_offset].lower_limit);
+    newsub.set_composite_event_mask(sub.composite_event_mask);
+    ret = static_cast<clkmgr::ClockManager *>(client_ptr)->clkmgr_subscribe(
             newsub, state);
     if(ret == false)
         return ret;
@@ -66,13 +66,13 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
 }
 
 int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
-    struct clkmgr_c_state *current_state,
-    struct clkmgr_c_event_count *event_count)
+    struct clkmgr_c_event_state *current_state,
+    struct clkmgr_c_event_count *current_count)
 {
-    clkmgr::clkmgr_state_event_count eventCount = {};
-    clkmgr::clkmgr_state state = {};
+    clkmgr::clkmgr_event_count eventCount = {};
+    clkmgr::clkmgr_event_state state = {};
     int ret;
-    ret = static_cast<clkmgr::ClkmgrClientApi *>
+    ret = static_cast<clkmgr::ClockManager *>
         (client_ptr)->clkmgr_status_wait(timeout, state, eventCount);
     if(ret < 0)
         return ret;
@@ -87,12 +87,12 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
         std::begin(current_state->gm_identity));
     if(ret == 0)
         return ret;
-    event_count->as_capable_event_count = eventCount.as_capable_event_count;
-    event_count->composite_event_count = eventCount.composite_event_count;
-    event_count->gm_changed_event_count = eventCount.gm_changed_event_count;
-    event_count->offset_in_range_event_count =
+    current_count->as_capable_event_count = eventCount.as_capable_event_count;
+    current_count->composite_event_count = eventCount.composite_event_count;
+    current_count->gm_changed_event_count = eventCount.gm_changed_event_count;
+    current_count->offset_in_range_event_count =
         eventCount.offset_in_range_event_count;
-    event_count->synced_to_primary_clock_event_count =
-        eventCount.synced_to_primary_clock_event_count;
+    current_count->synced_to_gm_event_count =
+        eventCount.synced_to_gm_event_count;
     return ret;
 }
