@@ -41,13 +41,13 @@ int main(int argc, char *argv[])
 {
     struct clkmgr_c_event_count event_count = {};
     struct clkmgr_c_subscription subscription = {};
-    struct clkmgr_c_event_state state = {};
+    struct clkmgr_c_event_state event_state = {};
     clkmgr_c_client_ptr client_ptr;
     int ret = EXIT_SUCCESS;
-    int idle_time = 1;
-    int timeout = 10;
+    uint32_t idle_time = 1;
+    uint32_t timeout = 10;
     int retval;
-    int opt;
+    int option;
 
     subscription.event_mask = (clkmgr_c_event_gm_offset | clkmgr_c_event_synced2gm |
         clkmgr_c_event_as_capable | clkmgr_c_event_gm_changed);
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
     subscription.threshold[clkmgr_c_threshold_gm_offset].upper_limit = 100000;
     subscription.threshold[clkmgr_c_threshold_gm_offset].lower_limit = -100000;
 
-    while ((opt = getopt(argc, argv, "s:c:u:l:i:t:h")) != -1) {
-        switch (opt) {
+    while ((option = getopt(argc, argv, "s:c:u:l:i:t:h")) != -1) {
+        switch (option) {
         case 's':
             subscription.event_mask = strtoul(optarg, NULL, 0);;
             break;
@@ -92,9 +92,9 @@ int main(int argc, char *argv[])
                    "     Bit 0: eventGMOffset\n"
                    "     Bit 1: eventSyncedToGM\n"
                    "     Bit 2: eventASCapable\n"
-                   "  -u upper master offset (ns)\n"
+                   "  -u gm offset upper limit (ns)\n"
                    "     Default: %d ns\n"
-                   "  -l lower master offset (ns)\n"
+                   "  -l gm offset lower limit (ns)\n"
                    "     Default: %d ns\n"
                    "  -i idle time (s)\n"
                    "     Default: %d s\n"
@@ -120,9 +120,9 @@ int main(int argc, char *argv[])
                    "     Bit 0: eventGMOffset\n"
                    "     Bit 1: eventSyncedToGM\n"
                    "     Bit 2: eventASCapable\n"
-                   "  -u upper master offset (ns)\n"
+                   "  -u gm offset upper limit (ns)\n"
                    "     Default: %d ns\n"
-                   "  -l lower master offset (ns)\n"
+                   "  -l gm offset lower limit (ns)\n"
                    "     Default: %d ns\n"
                    "  -i idle time (s)\n"
                    "     Default: %d s\n"
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 
     sleep(1);
 
-    if (clkmgr_c_subscribe(client_ptr, subscription, &state) == false) {
+    if (clkmgr_c_subscribe(client_ptr, subscription, &event_state) == false) {
         printf("[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n");
         ret = EXIT_FAILURE;
         goto do_exit;
@@ -166,31 +166,31 @@ int main(int argc, char *argv[])
     }
     if (subscription.event_mask & clkmgr_c_event_gm_offset) {
         printf("| %-25s | %-18d |\n", "offset_in_range",
-            state.offset_in_range);
+            event_state.offset_in_range);
     }
     if (subscription.event_mask & clkmgr_c_event_synced2gm) {
-        printf("| %-25s | %-18d |\n", "synced_to_primary_clock", state.synced_to_primary_clock);
+        printf("| %-25s | %-18d |\n", "synced_to_primary_clock", event_state.synced_to_primary_clock);
     }
     if (subscription.event_mask & clkmgr_c_event_as_capable) {
-        printf("| %-25s | %-18d |\n", "as_capable", state.as_capable);
+        printf("| %-25s | %-18d |\n", "as_capable", event_state.as_capable);
     }
     if (subscription.event_mask & clkmgr_c_event_gm_changed) {
-        printf("| %-25s | %-18d |\n", "gm_Changed", state.gm_changed);
-        printf("+---------------------------+--------------------+\n");
-        printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x |\n", "UUID",
-            state.gm_identity[0], state.gm_identity[1],
-            state.gm_identity[2], state.gm_identity[3],
-            state.gm_identity[4], state.gm_identity[5],
-            state.gm_identity[6], state.gm_identity[7]);
-        printf("| %-25s | %-15ld ns |\n",
-                "clock_offset", state.clock_offset);
-        printf("| %-25s | %-16.3f s |\n",
-                "notification_timestamp", state.notification_timestamp / 1e9);
+        printf("| %-25s | %-18d |\n", "gm_Changed", event_state.gm_changed);
     }
+    printf("+---------------------------+--------------------+\n");
+    printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x |\n", "UUID",
+        event_state.gm_identity[0], event_state.gm_identity[1],
+        event_state.gm_identity[2], event_state.gm_identity[3],
+        event_state.gm_identity[4], event_state.gm_identity[5],
+        event_state.gm_identity[6], event_state.gm_identity[7]);
+    printf("| %-25s | %-15ld ns |\n",
+            "clock_offset", event_state.clock_offset);
+    printf("| %-25s | %-16.3f s |\n",
+            "notification_timestamp", event_state.notification_timestamp / 1e9);
     printf("+---------------------------+--------------------+\n");
     if (subscription.composite_event_mask) {
         printf("| %-25s | %-18d |\n", "composite_event",
-            state.composite_event);
+            event_state.composite_event);
     }
     if (subscription.composite_event_mask & clkmgr_c_event_gm_offset) {
         printf("| - %-23s | %-18s |\n", "offset_in_range", " ");
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
     while (1) {
         printf("[clkmgr][%.3f] Waiting for Notification Event...\n",
             getMonotonicTime());
-        retval = clkmgr_c_status_wait(client_ptr, timeout, &state , &event_count);
+        retval = clkmgr_c_status_wait(client_ptr, timeout, &event_state , &event_count);
         if (!retval) {
             printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                 getMonotonicTime(), timeout);
@@ -236,35 +236,35 @@ int main(int argc, char *argv[])
         }
         if (subscription.event_mask & clkmgr_c_event_gm_offset) {
             printf("| %-25s | %-12d | %-11d |\n", "offset_in_range",
-                state.offset_in_range,
+                event_state.offset_in_range,
                 event_count.offset_in_range_event_count);
         }
         if (subscription.event_mask & clkmgr_c_event_synced2gm) {
             printf("| %-25s | %-12d | %-11d |\n", "synced_to_primary_clock",
-               state.synced_to_primary_clock, event_count.synced_to_gm_event_count);
+               event_state.synced_to_primary_clock, event_count.synced_to_gm_event_count);
         }
         if (subscription.event_mask & clkmgr_c_event_as_capable) {
             printf("| %-25s | %-12d | %-11d |\n", "as_capable",
-                state.as_capable, event_count.as_capable_event_count);
+                event_state.as_capable, event_count.as_capable_event_count);
         }
         if (subscription.event_mask & clkmgr_c_event_gm_changed) {
             printf("| %-25s | %-12d | %-11d |\n", "gm_Changed",
-                state.gm_changed, event_count.gm_changed_event_count);
-            printf("+---------------------------+--------------+-------------+\n");
-            printf("| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-                "UUID", state.gm_identity[0], state.gm_identity[1],
-                state.gm_identity[2], state.gm_identity[3],
-                state.gm_identity[4], state.gm_identity[5],
-                state.gm_identity[6], state.gm_identity[7]);
-            printf("| %-25s |     %-19ld ns |\n",
-                "clock_offset", state.clock_offset);
-            printf("| %-25s |     %-20.3f s |\n",
-                "notification_timestamp", state.notification_timestamp / 1e9);
+                event_state.gm_changed, event_count.gm_changed_event_count);
         }
+        printf("+---------------------------+--------------+-------------+\n");
+        printf("| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
+            "UUID", event_state.gm_identity[0], event_state.gm_identity[1],
+            event_state.gm_identity[2], event_state.gm_identity[3],
+            event_state.gm_identity[4], event_state.gm_identity[5],
+            event_state.gm_identity[6], event_state.gm_identity[7]);
+        printf("| %-25s |     %-19ld ns |\n",
+            "clock_offset", event_state.clock_offset);
+        printf("| %-25s |     %-20.3f s |\n",
+            "notification_timestamp", event_state.notification_timestamp / 1e9);
         printf("+---------------------------+--------------+-------------+\n");
         if (subscription.composite_event_mask) {
             printf("| %-25s | %-12d | %-11d |\n", "composite_event",
-                   state.composite_event, event_count.composite_event_count);
+                   event_state.composite_event, event_count.composite_event_count);
         }
         if (subscription.composite_event_mask & clkmgr_c_event_gm_offset) {
             printf("| - %-23s | %-12s | %-11s |\n", "offset_in_range", "", "");
