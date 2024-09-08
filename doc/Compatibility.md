@@ -14,7 +14,7 @@ Note that libptpmgmt version 1.3 support AUTHENTICATION TLV.
 |1.0       |4.0     |
 |1.1       |4.1     |
 |1.2       |4.2     |
-|1.3       |4.3     |
+|1.3       |4.4     |
 
 <br>
 ## Note
