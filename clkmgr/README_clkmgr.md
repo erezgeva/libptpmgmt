@@ -1,110 +1,124 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
      SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
-# CLKMGR codeflow
+# Clock Manager codeflow
 
-Clkmgr is a 2-part implementation for C/C++ application to obtain
-ptp4l events via pub/sub method using a library api call.
+Clock Manager (clkmgr) is a software for monitoring network time synchronization
+on the local platform and reporting the time synchronization status to any
+application executing on the local system and subscribe to it.
+The clkmgr communicates with the time synchronization daemon, like ptp4l from
+Linux PTP Project to get real-time telemetry data and synchronization status.
+Any changes to the subscribed event state will generate event notifications to
+the application.
 
-It provides a library libclkmgr.so (aka client-runtime library) and a daemon
-clkmgr_proxy.
+Clkmgr is a 2-part implementation. It provides a library libclkmgr.so
+(aka client-runtime library) and a daemon clkmgr_proxy.
 
 ![High Level Design of Clock Manager Library](./image/hld_clock_mgr.png)
 
-* **c++ app** - Customer application that will be linking to libclkmgr.so library. Header file and sample test cpp file will be provided.
+* **sample app** - Sample application for customer reference on how to use the
+APIs provided by libclkmgr.so library.
 
-* **libclkmgr.so** - A dynamic library that provides a set of APIs to customer application : connect/disconnect, subscribe to proxy which in turn connect to ptp4l service.
-This library is written in C++. It will have a permissive licence. It communicates with clkmgr_proxy using message queues.
-This library is also referred to as client-runtime library.
+* **libclkmgr.so** - A dynamic library that provides a set of C/C++ APIs to
+connect, disconnect, subscribe and listen to clkmgr_proxy daemon.
+This library is under BSD 3-Clause permissive licence. It communicates with
+clkmgr_proxy using message queues. This library is also referred to as
+client-runtime library.
 
-* **clkmgr_proxy** - A daemon that is using libptpmgmt api to establish connection and subscribe towards ptp4l events. The communication is established using ptp4l UDS (/var/run/ptp4l as we now assumed it is always installed in the same local machine as the ptp4l)
+* **clkmgr_proxy** - A daemon that is using libptpmgmt api to establish
+connection and subscribe towards ptp4l events. The communication is established
+using ptp4l UDS (/var/run/ptp4l as we now assumed it is always installed in the
+same local machine as the ptp4l)
 
 ## Compilation and test step
 * [Build project documentation](./TEST_clkmgr.md)
 
-## Connect message info
+## Supported event
 
-### Code Example : sample/clkmgr_test.cpp , sample/run_clkmgr_test.sh
+In current state, total of four ptp4l events are supported. The supported
+telemetry events are:
 
-### Connect message flow (simplified code walkthrough)
+1. AS Capable – A binary event indicating a change in 802.1AS Capable.
 
-Scenario : client application uses the clkmgr.so API to call `clkmgr_connect()`.
-This will establish connection to the proxy.
+2. GM Offset – A binary event indicating whether the offset between the primary
+clock and secondary clock is within predefined upper and lower limit.
 
-** Client point of view **
+3. Synced to GM – A binary event indicating whether the port state is time
+receiver.
 
-1. **client/clkmgr_init.cpp/ClockManager::clkmgr_connect()**
-        - Creation of new ClientConnectMessage object for CONNECT_MSG
+4. GM Change – A binary event indicating whether the UUID of primary clock is
+changed and a string event providing primary clock’s UUID.
 
-1.1. **client/message.cpp/ClientMessage::init()**
-        - We have this recursive template.
-          `"template ClkmgrCommon::_initMessage<ClientNullMessage,ClientConnectMessage>()`
-          This will execute the `ClientConnectMessage::initMessage()`
+5. Composite event – A binary event that combine multiple events into one event.
+An example is combining AS Capable, GM Offset, and Synced to GM to compose a
+“clock is ready to use” event. In this example, if these three parameters are
+all within the acceptable range, the composite event will become TRUE. If any
+one of the three events are not in the acceptable range, the composite event
+will become FALSE, indicating the clock is not yet ready to be consumed.
 
-          1.1.1 **client/connect_msg.cpp/ClientConnectMessage::initMessage()**
-          - This will add the pair of <CONNECT_MSG , buildMessage function>
-          - When an object of the type of ClientConnectMessage is received
-          by the client transporter layer, it will know how to translate the object
-          to messagequeue buffer.
+## Available API for c++ sample application
 
-1.2. **client/clkmgr_init.cpp/ClientTransport::init()**
-        - Same concept as above but using initTransport recursive template.
-        This will execute the `ClientMessageQueue::initTransport()`
+1. clkmgr_connect()
+- This function will establish a connection to the clkmgr_proxy.
+- Once connected, it will assign client ID for the client_runtime that connected
+to the clkmgr_proxy.
 
-        1.2.1 **client/msgq_tport.cpp/initTransport()**
-        - Creation of listening and transmitting message queue.
-        - Creation of **ClientMessageQueueListenerContext** and
-        **ClientMessageQueueTransmitterContext**
+2. clkmgr_subscribe()
+- This function generates a subscribe message signaling interest in specific
+supported event types.
 
-        For each Listener and Transmitter context a specific message queue is defined.
+3. clkmgr_status_wait()
+- This function waits for a specified timeout period for any event changes.
+- The wait function blocks until an undelivered event is queued.
+- If the event is already queued for delivery when the wait function is called,
+the call exits immediately, returning the queued event notification(s).
+- Multiple event notifications may be delivered per call, but the wait function
+returns when a single event is queued. The exception is for composed events.
+- Multiple composed events can be used to wait for one of many or all intrinsic
+events. The application may specify a timeout.
+- If there are no events ready to be delivered before the timeout elapses, the
+function returns with a timeout error.
+- When timeout is equal to -1, this function wait infinite until there is event
+changes occurs.
 
-        - Start *MqListenerWork* listener thread to listen to proxy reply.
+4. clkmgr_disconnect()
+- This function performs disconnect process with clkmgr_proxy by sending
+disconnect message.
+- It will delete the ptp event for subscription and state reference for
+notification.
 
-1.3. **client/msgq_tport.cpp/ClientMessageQueue::writeTransportClientId(connectMsg.get());**
-- Write the Client Listener msgq as the Transport Client ID.
-This will allow the proxy to later connect to the client listener msgq to send ack msg.
+## Available API for c sample application
 
-1.4. **ClientMessageQueue::sendMessage(connectMsg.get());**
-- Send the connect message to proxy. The object will be passed to transport layer.
-Transport will then transform the client connect message object to buffer that
-will then be sent thru the client transmitter msgq.
+1. clkmgr_c_connect()
+This function will establish a connection to the clkmgr_proxy. Once connected,
+it will assign client ID for the client_runtime that connected to the
+clkmgr_proxy.
 
-NOTE: Acknowledgement from proxy is the echo of the same message with ACK field added.
-1.5 **client/connect_msg.cpp/ClientConnectMessage::processMessage**
-- Client Transport layer will call this function to process from ClientConnectMessage reply received.
-It is identified based on the unique msgID for CONNECT_MSG.
-Currently we only printout the sessionID given by the proxy.
+2. clkmgr_c_subscribe()
+This function generates a subscribe message signaling interest in specific
+supported event types.
 
-**[TODO]**: Return the sessionID to user calling the api connect.
+3. clkmgr_c_status_wait()
+This function waits for a specified timeout period for any event changes. The
+wait function blocks until an undelivered event is queued. If the event is
+already queued for delivery when the wait function is called, the call exits
+immediately, returning the queued event notification(s). Multiple event
+notifications may be delivered per call, but the wait function returns when a
+single event is queued. The exception is for composed events. Multiple composed
+events can be used to wait for one of many or all intrinsic events. The
+application may specify a timeout. If there are no events ready to be delivered
+before the timeout elapses, the function returns with a timeout error. When
+timeout is equal to -1, this function wait infinite until there is event changes
+occurs.
 
-** Proxy point of view **
-Clkmgr_proxy runs like a service daemon waiting for messages from potential client app.
-The main loop function is in main.cpp.
+4. clkmgr_c_disconnect()
+This function performs disconnect process with clkmgr_proxy by sending
+disconnect message.  It will delete the ptp event for subscription and state
+reference for notification.
 
-How to run : ./clkmgr/proxy/run_proxy.sh
+5. clkmgr_c_client_create()
+This function creates an instance of a client object and return a pointer to it
 
-1. **proxy/transport.cpp/ProxyTransport::init()**
-- Same as for Client, the ProxyTransport layer is initialized.
-- Set up listening message queue : `proxy/msg_tport.cpp/ProxyMessageQueue::initTransport()`
+6. clkmgr_c_client_destroy()
+This function safely deallocate memory and destroy an object of type that was
+previously created by clkmgr_c_client_create().
 
-1. **proxy/message.cpp/ProxyMessage::init()**
-- Same as for Client, the ProxyMessage layer is initialized.
-This will call the `ProxyConnectMessage::initMessage()`
-
-1.1 **proxy/connect_message.cpp/ProxyConnectMessage::initMessage()**
-- Initialize the map with the first pair being CONNECT_MSG and its proxy buildMessage function.
-
-Upon receiving the CONNECT_MSG in the proxy listener message queue (msgq) buffer, it will be received by `common/Transport::processMessage()`
-which then trigger the `ProxyConnectMessage::buildMessage`.
-And it will the message to `ProxyConnectMessage:processMessage`.
-
-2. **proxy/connect_message.cpp/ProxyConnectMessage:processMessage**
-- A new client session is created. A transmitter context is created for the client.
-A transmitter context will have a dedicated tx msgq buffer for the client.
-- The msg_ack is put to ACK_SUCCESS. This will then be taken back in
-common/Transport::processMessage() and the echo reply be sent back to client.
-
-## Subscription message info
-To be added soon.
-
-## Notification message info
-To be added soon.
