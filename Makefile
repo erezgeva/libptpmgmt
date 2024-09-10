@@ -825,13 +825,15 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.mod */$(LIB_SRC) wrappers/*/$(SWIG_NAME).cpp\
   wrappers/*/$(SWIG_NAME).h\
-  */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
+  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/*/*.d)\
+  $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
   $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
-  .phpunit.result.cache wrappers/go/allocTlv.i\
+  .phpunit.result.cache wrappers/go/allocTlv.i $(CLKMGR_PROXY)\
   wrappers/go/$(SWIG_LNAME).go $(HEADERS_GEN) wrappers/go/gtest/gtest .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
-  archlinux/*/ obj-*/)) _site $(OBJ_DIR) $(LIB_D) wrappers/perl/auto\
+  archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\
+  $(LIB_D) wrappers/perl/auto\
   wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
   ltmain.sh $(wildcard src/config.h* config.*)

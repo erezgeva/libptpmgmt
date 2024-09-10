@@ -25,6 +25,10 @@
 /.libs/libptpmgmt*.a
 /.libs/libptpmgmt*.la*
 /.libs/libptpmgmt*.so.*
+/libclkmgr.la
+/.libs/libclkmgr.a
+/.libs/libclkmgr.la*
+/.libs/libclkmgr.so.*
 /.null
 /libtool
 /*.m4
