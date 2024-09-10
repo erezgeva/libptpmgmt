@@ -536,6 +536,19 @@ AC_SUBST([USE_DEPS])
 AC_SUBST([DO_VERBOSE])
 
 #----------------------------------------------------------------
+# Clock Manager
+AS_UNSET([SKIP_CLKMGR])
+
+AC_ARG_ENABLE([clkmgr],
+            [AS_HELP_STRING([--disable-clkmgr], [Skip Clock Manager build])],
+            [AS_VAR_COPY([ptpm_with_clkmgr], [enableval])])
+
+AS_VAR_IF([ptpm_with_clkmgr], ['no'],
+          [AS_VAR_SET([SKIP_CLKMGR], [1])])
+
+AC_SUBST([SKIP_CLKMGR])
+
+#----------------------------------------------------------------
 # SWIG
 AS_UNSET([ptpm_swigbin])
 AS_UNSET([ptpm_with_alllang])

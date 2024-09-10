@@ -203,6 +203,7 @@ LIB_D:=.libs
 PUB_C:=$(PUB)/c
 PMC_DIR:=ptp-tools
 HMAC_SRC:=hmac
+CLKMGR_DIR:=clkmgr
 OBJ_DIR:=objs
 
 CONF_FILES:=configure src/config.h.in
@@ -230,6 +231,7 @@ HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
 HEADERS_INST_C:=$(HEADERS_PUB_C) $(HEADERS_GEN_PUB_C)
 SRCS:=$(wildcard $(SRC)/*.cpp)
 SRCS_HMAC:=$(wildcard $(HMAC_SRC)/*.cpp)
+SRCS_CLKMGR:=$(wildcard $(CLKMGR_DIR)/[cip]*/*.[ch]* $(CLKMGR_DIR)/*/*/*.h)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 # hmac
 SSL_NAME:=$(LIB_NAME)_openssl
@@ -275,9 +277,10 @@ ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
 SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
-  */github* */*.opt configure.ac src/*.m4 doc/*.md\
-  t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
+  */github* */*.opt configure.ac src/*.m4 */*.md\
+  t*/*.sh */*/*.sh swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile */*/Makefile\
+  $(CLKMGR_DIR)/*/*.[ch]* $(CLKMGR_DIR)/*/*/*.h $(CLKMGR_DIR)/image/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
   $(MAKEFILE_LIST) credits
@@ -427,6 +430,11 @@ endif # VALGRIND
 # HMAC libraries
 include $(HMAC_SRC)/Makefile
 
+# CLKMGR libraries
+ifndef SKIP_CLKMGR
+include $(CLKMGR_DIR)/Makefile
+endif
+
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
@@ -478,7 +486,8 @@ CPPCHECK_OPT+=$(CPPCHECK_OPT_BASE)
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)
-format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_HMAC)
+format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_HMAC)\
+	$(SRCS_CLKMGR)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r";./tools/format.pl $^
@@ -586,7 +595,7 @@ checkall: format doxygen
 
 ifdef CTAGS
 tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
-	$(SRCS_HMAC)
+	$(SRCS_HMAC) $(SRCS_CLKMGR)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
 endif # CTAGS
