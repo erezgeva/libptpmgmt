@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file event_state.h
+/** @file
  * @brief Structure for event state and event count
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>

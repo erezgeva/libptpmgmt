@@ -3,12 +3,11 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file serialize.hpp
+/** @file
  * @brief Utility macros for (de-)serializing data
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

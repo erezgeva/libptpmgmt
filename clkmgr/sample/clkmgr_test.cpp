@@ -3,12 +3,11 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_test.cpp
+/** @file
  * @brief Test clkmgr client code
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  * @note This is a sample code, not a product! You should use it as a reference.
  *  You can compile it with: g++ -Wall clkmgr_test.cpp -o clkmgr_test -lclkmgr

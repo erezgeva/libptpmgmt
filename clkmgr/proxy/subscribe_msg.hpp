@@ -3,13 +3,12 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file subscribe_msg.hpp
+/** @file
  * @brief Proxy subscribe message class.
  * Implements proxy specific subscribe message function.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

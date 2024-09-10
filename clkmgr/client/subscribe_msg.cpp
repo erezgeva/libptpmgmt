@@ -3,13 +3,12 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file subscribe_msg.cpp
+/** @file
  * @brief Client subscribe message class.
  * Implements client specific functionality.
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

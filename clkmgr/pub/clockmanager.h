@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clockmanager.hpp
+/** @file
  * @brief The Clock Manager APIs to set up client-runtime.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>

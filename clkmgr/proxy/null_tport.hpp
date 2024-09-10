@@ -3,12 +3,11 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file null_tport.hpp
+/** @file
  * @brief Null transport class. Non-functional for testing only.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

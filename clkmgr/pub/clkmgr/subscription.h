@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file subscription.h
+/** @file
  * @brief class, structures and enums used for events subsciption
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>

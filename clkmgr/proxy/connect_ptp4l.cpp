@@ -3,12 +3,11 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file connect.cpp
+/** @file
  * @brief Proxy connect ptp4l message class.
  *
  * @author Lai Peter Jun Ann <peter.jun.ann.lai@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

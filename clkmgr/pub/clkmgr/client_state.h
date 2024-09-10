@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file client_state.h
+/** @file
  * @brief Class to get and set the state of client-runtime
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>

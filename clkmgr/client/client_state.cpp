@@ -3,12 +3,11 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file client_state.cpp
+/** @file
  * @brief Set and get the client subscribe event state
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

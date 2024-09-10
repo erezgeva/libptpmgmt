@@ -5,7 +5,6 @@
 #
 # @author Song Yoong Siang <yoong.siang.song@intel.com>
 # @copyright © 2024 Intel Corporation.
-# @license BSD-3-Clause
 #
 ###############################################################################
 

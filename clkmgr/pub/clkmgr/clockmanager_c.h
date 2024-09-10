@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clockmanager_c.h
+/** @file
  * @brief C wrapper for the Clock Manager APIs to set up client-runtime.
  *
  * @author Song Yoong Siang <yoong.siang.song@intel.com>

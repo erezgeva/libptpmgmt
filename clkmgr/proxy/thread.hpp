@@ -3,12 +3,11 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file thread.hpp
+/** @file
  * @brief Proxy message thread class.
  *
  * @author Lai Peter Jun Ann <peter.jun.ann.lai@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

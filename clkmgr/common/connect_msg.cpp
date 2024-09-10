@@ -3,13 +3,12 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file connect_msg.cpp
+/** @file
  * @brief Common connect message implementation.
  * Implements common functions and (de-)serialization
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

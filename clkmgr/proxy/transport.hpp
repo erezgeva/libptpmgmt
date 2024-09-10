@@ -3,13 +3,12 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file transport.hpp
+/** @file
  * @brief Proxy transport base class for Clkmgr.
  * It provides common functionality for derived transport classes.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

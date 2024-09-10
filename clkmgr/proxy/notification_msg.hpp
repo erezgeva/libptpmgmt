@@ -3,13 +3,12 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file notification_msg.hpp
+/** @file
  * @brief Proxy notification message class.
  * Implements proxy specific notification message function.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 

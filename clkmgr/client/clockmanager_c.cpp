@@ -3,12 +3,11 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clockmanager_c.cpp
+/** @file
  * @brief Client utilities to setup and cleanup the library.
  *
  * @author Song Yoong Siang <yoong.siang.song@intel.com>
  * @copyright © 2024 Intel Corporation.
- * @license BSD-3-Clause
  *
  */
 
