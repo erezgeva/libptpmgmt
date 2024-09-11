@@ -13,8 +13,8 @@
  */
 
 #include <client/connect_msg.hpp>
-#include <common/jclklib_import.hpp>
 #include <common/print.hpp>
+#include <common/ptp_event.hpp>
 #include <common/serialize.hpp>
 
 using namespace JClkLibClient;

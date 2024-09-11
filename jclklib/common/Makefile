@@ -11,9 +11,10 @@
 
 JCLKLIB_COMMON_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR := $(JCLKLIB_COMMON_DIR)/..
+LIBPTPMGMT_PUB_DIR = $(JCLKLIB_TOPLEVEL_DIR)/../pub/
 LIBS = pthread rt rtpi
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
-OBJ = jclklib_import message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport
+OBJ = jclk_subscription message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 OBJ_DIR = $(JCLKLIB_COMMON_DIR)/obj
@@ -30,7 +31,7 @@ build-prep:
 
 %.d : %.cpp
 	echo "[MAKEDEP]" $@
-	g++ -I $(JCLKLIB_TOPLEVEL_DIR) -MM -MF $@ $<
+	g++ -I $(JCLKLIB_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -MM -MF $@ $<
 
 .PHONY: clean
 clean:
@@ -61,5 +62,4 @@ common-obj: $(OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -Werror -Wall -Wextra -Wno-unused-parameter -fdiagnostics-color=always
-
+	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -fPIC -Werror -Wall -Wextra -Wno-unused-parameter -fdiagnostics-color=always

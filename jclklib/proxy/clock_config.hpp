@@ -18,9 +18,10 @@
 
 #include <cstdint>
 
-#include <common/jclklib_import.hpp>
+#include <common/ptp_event.hpp>
 #include <proxy/message.hpp>
 #include <rtpi/mutex.hpp>
+#include "jclk_subscription.hpp"
 
 namespace JClkLibProxy
 {

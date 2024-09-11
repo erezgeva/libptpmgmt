@@ -15,8 +15,9 @@
 #ifndef CLOCK_STATUS_HPP
 #define CLOCK_STATUS_HPP
 
-#include <common/jclklib_import.hpp>
+#include <common/ptp_event.hpp>
 #include <rtpi/mutex.hpp>
+#include "jclk_subscription.hpp"
 
 namespace JClkLibProxy
 {

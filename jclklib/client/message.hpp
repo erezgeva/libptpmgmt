@@ -20,8 +20,8 @@
 #include <map>
 #include <memory>
 
-#include <client/jclk_client_state.hpp>
 #include <common/message.hpp>
+#include "jclk_client_state.hpp"
 
 namespace JClkLibClient
 {

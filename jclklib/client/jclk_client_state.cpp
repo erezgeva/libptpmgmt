@@ -16,11 +16,11 @@
 #include <iostream>
 #include <string>
 
-#include <client/jclk_client_state.hpp>
 #include <client/msgq_tport.hpp>
 #include <common/jcltypes.hpp>
 #include <common/message.hpp>
 #include <common/transport.hpp>
+#include "jclk_client_state.hpp"
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;

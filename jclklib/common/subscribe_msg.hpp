@@ -16,8 +16,9 @@
 #ifndef COMMON_SUBSCRIBE_MSG_HPP
 #define COMMON_SUBSCRIBE_MSG_HPP
 
-#include <common/jclklib_import.hpp>
+#include <common/ptp_event.hpp>
 #include <common/message.hpp>
+#include "jclk_subscription.hpp"
 
 namespace JClkLibCommon
 {

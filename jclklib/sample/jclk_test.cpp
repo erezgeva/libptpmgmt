@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <client/jclk_init.hpp>
+#include "jclk_init.hpp"
 
 using namespace JClkLibClient;
 using namespace JClkLibCommon;

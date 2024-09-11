@@ -3,8 +3,8 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file jclklib_import.cpp
- * @brief C API import.
+/** @file jclk_subscription.cpp
+ * @brief PTP event subscription.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -14,9 +14,9 @@
 
 #include <cstring>
 
-#include <common/jclklib_import.hpp>
 #include <common/print.hpp>
 #include <common/serialize.hpp>
+#include "jclk_subscription.hpp"
 
 using namespace JClkLibCommon;
 using namespace std;

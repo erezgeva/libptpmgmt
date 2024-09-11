@@ -18,10 +18,10 @@
 #include <atomic>
 #include <string>
 
-#include <common/jclklib_import.hpp>
 #include <common/jcltypes.hpp>
 #include <common/transport.hpp>
 #include <common/util.hpp>
+#include "jclk_subscription.hpp"
 
 namespace JClkLibClient
 {

@@ -18,7 +18,7 @@
 
 #include <cstdint>
 
-#include <common/jclklib_import.hpp>
+#include <common/ptp_event.hpp>
 #include <common/notification_msg.hpp>
 #include <proxy/message.hpp>
 

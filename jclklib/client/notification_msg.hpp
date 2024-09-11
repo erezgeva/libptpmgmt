@@ -19,7 +19,7 @@
 #include <cstdint>
 
 #include <client/message.hpp>
-#include <common/jclklib_import.hpp>
+#include <common/ptp_event.hpp>
 #include <common/notification_msg.hpp>
 
 namespace JClkLibClient

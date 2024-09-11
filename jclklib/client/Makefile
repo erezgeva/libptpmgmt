@@ -13,10 +13,11 @@
 JCLKLIB_CLIENT_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR = $(JCLKLIB_CLIENT_DIR)/..
 JCLKLIB_COMMON_DIR = $(JCLKLIB_TOPLEVEL_DIR)/common
+LIBPTPMGMT_PUB_DIR = $(JCLKLIB_TOPLEVEL_DIR)/../pub/
 LIBS = pthread rt rtpi
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
 OBJ = jclk_init msgq_tport message null_tport transport msgq_tport notification_msg connect_msg jclk_client_state subscribe_msg jclklib_client_api_c
-COMMON_OBJ = print sighandler transport msgq_tport message connect_msg subscribe_msg notification_msg jclklib_import
+COMMON_OBJ = print sighandler transport msgq_tport message connect_msg subscribe_msg notification_msg jclk_subscription
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 COMMON_OBJ_DIR = $(JCLKLIB_COMMON_DIR)/obj
@@ -35,7 +36,7 @@ build-prep:
 
 %.d : %.cpp
 	echo "[MAKEDEP]" $@
-	g++ -I $(JCLKLIB_TOPLEVEL_DIR) -MM -MF $@ $<
+	g++ -I $(JCLKLIB_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -MM -MF $@ $<
 
 .PHONY: clean
 clean:
@@ -67,4 +68,4 @@ libjclk.so: $(OBJ_FILES) $(COMMON_OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -fPIC -fdiagnostics-color=always
+	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -fPIC -fdiagnostics-color=always

@@ -16,10 +16,10 @@
 #ifndef CLIENT_SUBSCRIBE_MSG_HPP
 #define CLIENT_SUBSCRIBE_MSG_HPP
 
-#include <client/jclk_client_state.hpp>
 #include <client/message.hpp>
 #include <common/subscribe_msg.hpp>
 #include <rtpi/condition_variable.hpp>
+#include "jclk_client_state.hpp"
 
 namespace JClkLibClient
 {

@@ -12,8 +12,8 @@
  *
  */
 
-#include <client/jclklib_client_api_c.h>
-#include <client/jclk_init.hpp>
+#include "c/jclklib_client_api_c.h"
+#include "jclk_init.hpp"
 
 jcl_c_client_ptr jcl_c_client_create()
 {

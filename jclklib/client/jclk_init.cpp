@@ -17,7 +17,6 @@
 #include <iostream>
 
 #include <client/connect_msg.hpp>
-#include <client/jclk_init.hpp>
 #include <client/msgq_tport.hpp>
 #include <client/notification_msg.hpp>
 #include <client/subscribe_msg.hpp>
@@ -25,6 +24,7 @@
 #include <common/sighandler.hpp>
 #include <rtpi/condition_variable.hpp>
 #include <rtpi/mutex.hpp>
+#include "jclk_init.hpp"
 
 #define DEFAULT_LIVENESS_TIMEOUT_IN_MS 50  //50 ms
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec

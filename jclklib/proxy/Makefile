@@ -12,11 +12,12 @@
 JCLKLIB_PROXY_DIR := $(shell pwd)
 JCLKLIB_TOPLEVEL_DIR = $(JCLKLIB_PROXY_DIR)/..
 JCLKLIB_COMMON_DIR = $(JCLKLIB_TOPLEVEL_DIR)/common
+LIBPTPMGMT_PUB_DIR = $(JCLKLIB_TOPLEVEL_DIR)/../pub/
 PTPMGMT_DIR := $(JCLKLIB_TOPLEVEL_DIR)/../.libs
 LIBS = pthread rt ptpmgmt rtpi
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib)) -L$(PTPMGMT_DIR)
 OBJ = client main message msgq_tport notification_msg null_tport connect_msg subscribe_msg transport connect_ptp4l thread
-COMMON_OBJ = print sighandler transport msgq_tport jclklib_import message connect_msg subscribe_msg notification_msg
+COMMON_OBJ = print sighandler transport msgq_tport jclk_subscription message connect_msg subscribe_msg notification_msg
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 COMMON_OBJ_DIR = $(JCLKLIB_COMMON_DIR)/obj
@@ -35,7 +36,7 @@ build-prep:
 
 %.d : %.cpp
 	echo "[MAKEDEP]" $@
-	g++ -I $(JCLKLIB_TOPLEVEL_DIR) -MM -MF $@ $<
+	g++ -I $(JCLKLIB_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -MM -MF $@ $<
 
 .PHONY: clean
 clean:
@@ -67,5 +68,5 @@ jclklib_proxy: $(OBJ_FILES) $(COMMON_OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -fdiagnostics-color=always
+	g++ -c $< -I $(JCLKLIB_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -fdiagnostics-color=always
 

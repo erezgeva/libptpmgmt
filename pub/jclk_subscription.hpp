@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file jclklib_import.hpp
+/** @file jclk_subscription.hpp
  * @brief C API import.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
@@ -12,8 +12,8 @@
  *
  */
 
-#ifndef JCLKLIB_IMPORT_HPP
-#define JCLKLIB_IMPORT_HPP
+#ifndef JCLK_SUBSCRIPTION_HPP
+#define JCLK_SUBSCRIPTION_HPP
 
 #include <cstdint>
 
@@ -124,31 +124,6 @@ class jcl_subscription
     DECLARE_ACCESSOR(value);
     DECLARE_ACCESSOR(composite_event);
 };
-
-struct ptp_event {
-    int64_t master_offset;
-    uint8_t gm_identity[8]; /* Grandmaster clock ID */
-    bool as_capable; /* 802@.1AS Capable */
-    bool synced_to_primary_clock;
-    uint8_t ptp4l_id;
-};
-
-struct client_ptp_event {
-    int64_t master_offset;
-    int64_t master_offset_low;
-    int64_t master_offset_high;
-    uint8_t gm_identity[8]; /* Grandmaster clock ID */
-    uint8_t ptp4l_id;
-    bool as_capable; /* 802@.1AS Capable */
-    bool synced_to_primary_clock;
-    bool master_offset_in_range;
-    bool composite_event;
-    std::atomic<int> offset_in_range_event_count{};
-    std::atomic<int> as_capable_event_count{};
-    std::atomic<int> synced_to_primary_clock_event_count{};
-    std::atomic<int> gm_changed_event_count{};
-    std::atomic<int> composite_event_count{};
-};
 }
 
-#endif /* JCLKLIB_IMPORT_HPP */
+#endif /* JCLK_SUBSCRIPTION_HPP */

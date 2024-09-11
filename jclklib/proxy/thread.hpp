@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <common/jclklib_import.hpp>
+#include <common/ptp_event.hpp>
 
 typedef struct ptp4l_handle *ptp4l_handle_t;
 typedef struct jcl_handle *jcl_handle_t;
