@@ -1,7 +1,5 @@
-/*
- * SPDX-License-Identifier: BSD-3-Clause
- * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
- */
+/* SPDX-License-Identifier: BSD-3-Clause
+   SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
  * @brief Common connect message class.
