@@ -109,7 +109,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         std::uint32_t composite_eventSub;
         ClientState *currentClientState = *it;
         struct timespec last_notification_time = {};
-        if(clock_gettime(CLOCK_MONOTONIC, &last_notification_time) == -1)
+        if(clock_gettime(CLOCK_REALTIME, &last_notification_time) == -1)
             PrintDebug("ClientNotificationMessage::processMessage \
                 clock_gettime failed.\n");
         else

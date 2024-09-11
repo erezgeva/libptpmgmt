@@ -159,50 +159,50 @@ int main(int argc, char *argv[])
 
     printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
         getMonotonicTime());
-    printf("+---------------------------+--------------------+\n");
-    printf("| %-25s | %-18s |\n", "Event", "Event Status");
+    printf("+---------------------------+------------------------+\n");
+    printf("| %-25s | %-22s |\n", "Event", "Event Status");
     if (subscription.event_mask) {
-        printf("+---------------------------+--------------------+\n");
+        printf("+---------------------------+------------------------+\n");
     }
     if (subscription.event_mask & clkmgr_c_event_gm_offset) {
-        printf("| %-25s | %-18d |\n", "offset_in_range",
+        printf("| %-25s | %-22d |\n", "offset_in_range",
             event_state.offset_in_range);
     }
     if (subscription.event_mask & clkmgr_c_event_synced2gm) {
-        printf("| %-25s | %-18d |\n", "synced_to_primary_clock", event_state.synced_to_primary_clock);
+        printf("| %-25s | %-22d |\n", "synced_to_primary_clock", event_state.synced_to_primary_clock);
     }
     if (subscription.event_mask & clkmgr_c_event_as_capable) {
-        printf("| %-25s | %-18d |\n", "as_capable", event_state.as_capable);
+        printf("| %-25s | %-22d |\n", "as_capable", event_state.as_capable);
     }
     if (subscription.event_mask & clkmgr_c_event_gm_changed) {
-        printf("| %-25s | %-18d |\n", "gm_Changed", event_state.gm_changed);
+        printf("| %-25s | %-22d |\n", "gm_Changed", event_state.gm_changed);
     }
-    printf("+---------------------------+--------------------+\n");
-    printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x |\n", "UUID",
+    printf("+---------------------------+------------------------+\n");
+    printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n", "UUID",
         event_state.gm_identity[0], event_state.gm_identity[1],
         event_state.gm_identity[2], event_state.gm_identity[3],
         event_state.gm_identity[4], event_state.gm_identity[5],
         event_state.gm_identity[6], event_state.gm_identity[7]);
-    printf("| %-25s | %-15ld ns |\n",
+    printf("| %-25s | %-19ld ns |\n",
             "clock_offset", event_state.clock_offset);
-    printf("| %-25s | %-16.3f s |\n",
-            "notification_timestamp", event_state.notification_timestamp / 1e9);
-    printf("+---------------------------+--------------------+\n");
+    printf("| %-25s | %-19ld ns |\n",
+            "notification_timestamp", event_state.notification_timestamp);
+    printf("+---------------------------+------------------------+\n");
     if (subscription.composite_event_mask) {
-        printf("| %-25s | %-18d |\n", "composite_event",
+        printf("| %-25s | %-22d |\n", "composite_event",
             event_state.composite_event);
     }
     if (subscription.composite_event_mask & clkmgr_c_event_gm_offset) {
-        printf("| - %-23s | %-18s |\n", "offset_in_range", " ");
+        printf("| - %-23s | %-22s |\n", "offset_in_range", " ");
     }
     if (subscription.composite_event_mask & clkmgr_c_event_synced2gm) {
-        printf("| - %-19s | %-18s |\n", "synced_to_primary_clock", " ");
+        printf("| - %-19s | %-22s |\n", "synced_to_primary_clock", " ");
     }
     if (subscription.composite_event_mask & clkmgr_c_event_as_capable) {
-        printf("| - %-23s | %-18s |\n", "as_capable", " ");
+        printf("| - %-23s | %-22s |\n", "as_capable", " ");
     }
     if (subscription.composite_event_mask) {
-        printf("+---------------------------+--------------------+\n\n");
+        printf("+---------------------------+------------------------+\n\n");
     } else {
         printf("\n");
     }
@@ -259,8 +259,8 @@ int main(int argc, char *argv[])
             event_state.gm_identity[6], event_state.gm_identity[7]);
         printf("| %-25s |     %-19ld ns |\n",
             "clock_offset", event_state.clock_offset);
-        printf("| %-25s |     %-20.3f s |\n",
-            "notification_timestamp", event_state.notification_timestamp / 1e9);
+        printf("| %-25s |     %-19ld ns |\n",
+            "notification_timestamp", event_state.notification_timestamp);
         printf("+---------------------------+--------------+-------------+\n");
         if (subscription.composite_event_mask) {
             printf("| %-25s | %-12d | %-11d |\n", "composite_event",

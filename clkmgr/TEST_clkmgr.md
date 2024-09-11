@@ -110,17 +110,17 @@ reference.
     ```
 3. Run the sample application on DUT:
 
-3a. c++ sample application:
-    ```bash
-    cd libptpmgmt_iaclocklib/clkmgr/client
-    sudo ./run_clkmgr_test.sh <optional arguments>
+    a. c++ sample application:
+        ```bash
+        cd libptpmgmt_iaclocklib/clkmgr/client
+        sudo ./run_clkmgr_test.sh <optional arguments>
+        ```
 
-    ```
-3b. c sample application:
-    ```bash
-    cd libptpmgmt_iaclocklib/clkmgr/client
-    sudo ./run_clkmgr_c_test.sh <optional arguments>
-    ```
+    b. c sample application:
+        ```bash
+        cd libptpmgmt_iaclocklib/clkmgr/client
+        sudo ./run_clkmgr_c_test.sh <optional arguments>
+        ```
 
 # Examples of result :
 
@@ -161,99 +161,51 @@ Options:
 
 Example output of c++ sample application (clkmgr_test) :
 ```bash
-~/libptpmgmt_iaclocklib/clkmgr/sample# ./run_clkmgr_test.sh -l -100 -u 100 -t 0
+~/libptpmgmt_iaclocklib/clkmgr/sample# ./run_clkmgr_test.sh -l -10 -u 10
 [clkmgr] Connected. Session ID : 0
 [clkmgr] set subscribe event : 0xf
 [clkmgr] set composite event : 0x7
-GM Offset upper limit: 100 ns
-GM Offset lower limit: -100 ns
+GM Offset upper limit: 10 ns
+GM Offset lower limit: -10 ns
 
-[clkmgr][22569.983] Obtained data from Subscription Event:
-+---------------------------+--------------------+
-| Event                     | Event Status       |
-+---------------------------+--------------------+
-| offset_in_range           | 0                  |
-| synced_to_primary_clock   | 0                  |
-| as_capable                | 0                  |
-| gm_Changed                | 0                  |
-+---------------------------+--------------------+
-| UUID                      | 000000.0000.000000 |
-| clock_offset              | 0               ns |
-| notification_timestamp    | 22569.982        s |
-+---------------------------+--------------------+
-| composite_event           | 0                  |
-| - offset_in_range         |                    |
-| - synced_to_primary_clock |                    |
-| - as_capable              |                    |
-+---------------------------+--------------------+
+[clkmgr][174.381] Obtained data from Subscription Event:
++---------------------------+------------------------+
+| Event                     | Event Status           |
++---------------------------+------------------------+
+| offset_in_range           | 1                      |
+| synced_to_primary_clock   | 1                      |
+| as_capable                | 1                      |
+| gm_Changed                | 1                      |
++---------------------------+------------------------+
+| UUID                      | 22abbc.fffe.bb1234     |
+| clock_offset              | -2                  ns |
+| notification_timestamp    | 1726024045215150041 ns |
++---------------------------+------------------------+
+| composite_event           | 1                      |
+| - offset_in_range         |                        |
+| - synced_to_primary_clock |                        |
+| - as_capable              |                        |
++---------------------------+------------------------+
 
-[...]
-
-[clkmgr][22582.071] Waiting for Notification Event...
-[clkmgr][22582.071] Obtained data from Notification Event:
+[clkmgr][175.381] Waiting for Notification Event...
+[clkmgr][177.045] Obtained data from Notification Event:
 +---------------------------+--------------+-------------+
 | Event                     | Event Status | Event Count |
 +---------------------------+--------------+-------------+
-| offset_in_range           | 1            | 1           |
+| offset_in_range           | 0            | 1           |
 | synced_to_primary_clock   | 1            | 0           |
 | as_capable                | 1            | 0           |
 | gm_Changed                | 0            | 0           |
 +---------------------------+--------------+-------------+
-| UUID                      |     00a0c9.fffe.000000     |
-| clock_offset              |     -90                 ns |
-| notification_timestamp    |     22582.068            s |
+| UUID                      |     22abbc.fffe.bb1234     |
+| clock_offset              |     11                  ns |
+| notification_timestamp    |     1726024047876554406 ns |
 +---------------------------+--------------+-------------+
-| composite_event           | 1            | 1           |
+| composite_event           | 0            | 1           |
 | - offset_in_range         |              |             |
 | - synced_to_primary_clock |              |             |
 | - as_capable              |              |             |
 +---------------------------+--------------+-------------+
-
-```
-
-Example output of c sample application (clkmgr_c_test) :
-```bash
-~/libptpmgmt_iaclocklib/clkmgr/sample# ./run_clkmgr_c_test.sh -l -100 -u 100 -t 0
-[clkmgr][20271.775] Obtained data from Subscription Event:
-+---------------------------+--------------------+
-| Event                     | Event Status       |
-+---------------------------+--------------------+
-| offset_in_range           | 0                  |
-| synced_to_primary_clock   | 0                  |
-| as_capable                | 0                  |
-| gm_Changed                | 0                  |
-+---------------------------+--------------------+
-| UUID                      | 000000.0000.000000 |
-| clock_offset              | 0               ns |
-| notification_timestamp    | 20271.774        s |
-+---------------------------+--------------------+
-| composite_event           | 0                  |
-| - offset_in_range         |                    |
-| - synced_to_primary_clock |                    |
-| - as_capable              |                    |
-+---------------------------+--------------------+
-
-[...]
-
-[clkmgr][20325.321] Obtained data from Notification Event:
-+---------------------------+--------------+-------------+
-| Event                     | Event Status | Event Count |
-+---------------------------+--------------+-------------+
-| offset_in_range           | 1            | 1           |
-| synced_to_primary_clock   | 1            | 0           |
-| as_capable                | 1            | 0           |
-| gm_Changed                | 0            | 0           |
-+---------------------------+--------------+-------------+
-| UUID                      |     00a0c9.fffe.000000     |
-| clock_offset              |     -81                 ns |
-| notification_timestamp    |     20325.318            s |
-+---------------------------+--------------+-------------+
-| composite_event           | 1            | 1           |
-| - offset_in_range         |              |             |
-| - synced_to_primary_clock |              |             |
-| - as_capable              |              |             |
-+---------------------------+--------------+-------------+
-
 ```
 
 Note :

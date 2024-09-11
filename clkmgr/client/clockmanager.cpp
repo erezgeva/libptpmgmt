@@ -158,7 +158,7 @@ int64_t timespec_delta(const timespec &last_notification_time,
 bool check_proxy_liveness(ClientState &appClientState)
 {
     struct timespec current_time;
-    if(clock_gettime(CLOCK_MONOTONIC, &current_time) == -1)
+    if(clock_gettime(CLOCK_REALTIME, &current_time) == -1)
         PrintDebug("[CONNECT] Failed to get current time.\n");
     else {
         int64_t timeout =
