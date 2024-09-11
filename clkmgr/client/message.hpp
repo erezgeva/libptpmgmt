@@ -29,7 +29,7 @@ typedef std::unique_ptr<ClientMessage> Message0;
 class ClientMessage : virtual public Message
 {
   protected:
-    ClientMessage() : Message() {}
+    ClientMessage() : Message(NULL_MSG) {}
   public:
     static bool init();
 };

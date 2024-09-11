@@ -14,8 +14,8 @@ CFLAGS = -Wall
 CXX = g++
 CXXFLAGS = -Wall
 INCLUDES = -I$(shell pwd)/.. -I$(shell pwd)/../pub
-LDFLAGS = -L$(shell pwd)/../client
-LDLIBS = -lclkmgr
+LDFLAGS = -L$(shell pwd)/../../.libs
+LDLIBS = -lclkmgr -lrtpi
 TARGET = clkmgr_test
 CTARGET = clkmgr_c_test
 

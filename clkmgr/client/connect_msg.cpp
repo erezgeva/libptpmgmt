@@ -18,6 +18,8 @@ __CLKMGR_NAMESPACE_USE
 
 using namespace std;
 
+ClientState *ClientConnectMessage::currentClientState = nullptr;
+
 /** @brief Create the ClientConnectMessage object
  *
  * @param msg msg structure to be fill up
@@ -78,7 +80,6 @@ void ClientConnectMessage::setClientState(ClientState *newClientState)
  */
 PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
 {
-    sessionId_t newSessionId;
     std::unique_lock<rtpi::mutex> lock(cv_mtx);
     PrintDebug("Processing client connect message (reply)");
     currentClientState->set_connected(true);

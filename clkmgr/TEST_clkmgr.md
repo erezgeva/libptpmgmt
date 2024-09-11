@@ -69,7 +69,7 @@ libclkmgr.so is communicating with clkmgr_proxy using message queue.
 6. Outcome : you must have 3 binaries created:
     ```bash
     .libs/libptpmgmt.so
-    clkmgr/client/libclkmgr.so
+    .libs/libclkmgr.so
     clkmgr/proxy/clkmgr_proxy
     ```
 

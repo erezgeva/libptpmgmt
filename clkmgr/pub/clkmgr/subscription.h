@@ -34,6 +34,10 @@ typedef enum : std::uint32_t {
     eventLast = 1 << 4 /**< Last event */
 } EventIndex;
 
+/**
+ * @brief Maximum number of events that can have user predefined threshold
+ * (upper and lower limit) as indicator on whether the event is true or false.
+ */
 constexpr std::uint8_t THRESHOLD_MAX = 8;
 
 /**

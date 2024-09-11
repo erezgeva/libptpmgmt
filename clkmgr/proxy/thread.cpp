@@ -24,7 +24,7 @@ int connect_ptp4l(struct ptp4l_handle **phandle)
 {
     struct ptp4l_handle *handle;
     int ret;
-    handle = (typeof(handle)) malloc((size_t) sizeof(*handle));
+    handle = (decltype(handle)) malloc((size_t) sizeof(*handle));
     if(handle == nullptr) {
         ret = -errno;
         goto alloc_handle_fail;
@@ -59,7 +59,7 @@ int handle_connect()
 {
     struct clkmgr_handle *handle;
     int ret;
-    handle = (typeof(handle)) malloc((size_t) sizeof(*handle));
+    handle = (decltype(handle)) malloc((size_t) sizeof(*handle));
     if(handle == nullptr) {
         ret = -errno;
         goto alloc_fail;

@@ -23,6 +23,8 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class ProxyMessage : virtual public Message
 {
+  protected:
+    ProxyMessage() : Message(NULL_MSG) {}
   public:
     static bool init();
 };

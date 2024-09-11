@@ -58,7 +58,7 @@ class ClientNotificationMessage : virtual public ClientMessage,
     ClientNotificationMessage() : MESSAGE_NOTIFY() {}
 
   private:
-    inline static std::vector<ClientState *> ClientStateArray;
+    static std::vector<ClientState *> ClientStateArray;
 
     ptp_event proxy_data = {};
 };

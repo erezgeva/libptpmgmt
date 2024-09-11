@@ -73,7 +73,6 @@ void event_handle()
     const BaseMngTlv *data = msg.getData();
     int64_t offset;
     ClockIdentity_t gm_uuid;
-    uint8_t servo;
     PORT_DATA_SET_t *pd;
     switch(msg.getTlvId()) {
         case TIME_STATUS_NP:
@@ -85,7 +84,7 @@ void event_handle()
             pe.master_offset = offset;
             memcpy(pe.gm_identity, gm_uuid.v, sizeof(pe.gm_identity));
             /* Uncomment for debug data printing */
-            //printf("master_offset = %ld, synced_to_primary_clock = %d\n", \
+            //printf("master_offset = %ld, synced_to_primary_clock = %d\n",
             //      pe.master_offset, pe.synced_to_primary_clock);
             //printf("gm_identity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
             //       pe.gm_identity[0], pe.gm_identity[1],pe.gm_identity[2],

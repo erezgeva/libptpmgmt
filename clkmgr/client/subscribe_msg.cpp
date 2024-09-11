@@ -19,6 +19,11 @@ __CLKMGR_NAMESPACE_USE
 
 using namespace std;
 
+clkmgr_event_state *ClientSubscribeMessage::clkmgrCurrentState = nullptr;
+ClientState *ClientSubscribeMessage::currentClientState = nullptr;
+std::map<sessionId_t, std::array<client_ptp_event *, 2>>
+    ClientSubscribeMessage::client_ptp_event_map;
+
 /** @brief Create the ClientSubscribeMessage object
  *
  * @param msg msg structure to be fill up
@@ -162,7 +167,6 @@ PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
     /* Add the current ClientState to the notification class */
     ClientNotificationMessage::addClientState(currentClientState);
     this->set_msgAck(ACK_NONE);
-    clkmgr_event_state clkmgrCurrentState = currentClientState->get_eventState();
     cv.notify_one(lock);
     return true;
 }

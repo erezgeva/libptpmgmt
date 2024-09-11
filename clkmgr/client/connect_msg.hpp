@@ -23,7 +23,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
     virtual public ClientMessage
 {
   private:
-    inline static ClientState *currentClientState;
+    static ClientState *currentClientState;
   public:
     ClientConnectMessage() : MESSAGE_CONNECT() {};
     static rtpi::mutex cv_mtx;

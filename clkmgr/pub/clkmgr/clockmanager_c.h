@@ -33,6 +33,10 @@ enum clkmgr_c_event_index {
     clkmgr_c_event_last = 1 << 4 /**< Last event */
 };
 
+/**
+ * @brief Maximum number of events that can have user predefined threshold
+ * (upper and lower limit) as indicator on whether the event is true or false.
+ */
 #define CLKMGR_C_THRESHOLD_MAX 8
 
 /**

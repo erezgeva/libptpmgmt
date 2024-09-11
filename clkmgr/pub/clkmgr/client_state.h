@@ -28,8 +28,8 @@ __CLKMGR_NAMESPACE_BEGIN
 class ClientState
 {
   private:
-    std::atomic_bool connected = false; /**< Connection status */
-    std::atomic_bool subscribed = false; /**< Subscription status */
+    std::atomic_bool connected{false}; /**< Connection status */
+    std::atomic_bool subscribed{false}; /**< Subscription status */
     sessionId_t sessionId = InvalidSessionId; /**< Session ID */
     TransportClientId clientID = {}; /**< Client ID */
     std::uint8_t ptp4l_id = 0; /**< PTP4L ID */

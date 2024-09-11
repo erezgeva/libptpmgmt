@@ -25,10 +25,10 @@ class ClientSubscribeMessage : virtual public
     virtual public ClientMessage
 {
   private:
-    inline static clkmgr_event_state *clkmgrCurrentState;
-    inline static ClientState *currentClientState;
-    inline static std::map <sessionId_t,
-           std::array<client_ptp_event *, 2>> client_ptp_event_map;
+    static clkmgr_event_state *clkmgrCurrentState;
+    static ClientState *currentClientState;
+    static std::map <sessionId_t, std::array<client_ptp_event *, 2>>
+        client_ptp_event_map;
 
   public:
     ClientSubscribeMessage() : MESSAGE_SUBSCRIBE() {};

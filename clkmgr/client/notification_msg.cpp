@@ -22,6 +22,8 @@ __CLKMGR_NAMESPACE_USE
 
 using namespace std;
 
+std::vector<ClientState *> ClientNotificationMessage::ClientStateArray;
+
 /** @brief Create the ClientNotificationMessage object
  *
  * @param msg msg structure to be fill up

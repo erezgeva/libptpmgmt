@@ -42,7 +42,8 @@ class Client
   public:
     void set_transmitContext(decltype(transmitContext)::pointer context)
     { this->transmitContext.reset(context); }
-    auto get_transmitContext() { return transmitContext.get(); }
+    TransportTransmitterContext *get_transmitContext()
+    { return transmitContext.get(); }
 };
 
 __CLKMGR_NAMESPACE_END

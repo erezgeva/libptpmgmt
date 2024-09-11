@@ -14,6 +14,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 __CLKMGR_NAMESPACE_USE
 
