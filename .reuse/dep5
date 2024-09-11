@@ -9,6 +9,10 @@ Files: */changelog
 Copyright: 2021 © Erez Geva
 License: GFDL-1.3-no-invariants-or-later
 
+Files: clkmgr/image/*.png
+Copyright: 2024 © Intel Corporation
+License: GFDL-1.3-no-invariants-or-later
+
 Files: debian/co* debian/source/format
 Copyright: 2021 © Erez Geva
 License: GPL-3.0-or-later
