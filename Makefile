@@ -279,7 +279,7 @@ endif
 SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */github* */*.opt configure.ac src/*.m4 */*.md\
   t*/*.sh */*/*.sh swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile */*/Makefile\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile [wc]*/*/Makefile\
   $(CLKMGR_DIR)/*/*.[ch]* $(CLKMGR_DIR)/*/*/*.h $(CLKMGR_DIR)/image/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
@@ -333,7 +333,7 @@ Q_ERR:=2>/dev/null
 Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
 Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
 Q_TAR=$Q$(info $(COLOR_BUILD)[TAR] $@$(COLOR_NORM))
-Q_DOXY=$Q$(info $(COLOR_BUILD)Doxygen$(COLOR_NORM))
+Q_DOXY=$Q$(info $(COLOR_BUILD)Doxygen $1$(COLOR_NORM))
 Q_FRMT=$Q$(info $(COLOR_BUILD)Format$(COLOR_NORM))
 Q_TAGS=$Q$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
 Q_GEN=$Q$(info $(COLOR_BUILD)[GEN] $@$(COLOR_NORM))
@@ -575,19 +575,24 @@ endif # SWIG_MINVER
 
 tools/doxygen.cfg: tools/doxygen.cfg.in
 	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's!@$n@!$($n)!') $< > $@
+tools/doxygen.clkmgr.cfg: tools/doxygen.clkmgr.cfg.in
+	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's!@$n@!$($n)!') $< > $@
 
 ifdef DOXYGEN_MINVER
-doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
+doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg tools/doxygen.clkmgr.cfg
 ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
-	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen.cfg
+	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen*cfg
 endif
 # doxygen fails with cairo 1.17.6, use workaround
 # https://github.com/doxygen/doxygen/issues/9319
 # TODO The bug should be fixed in doxygen version 1.9.7
 	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
+ifndef SKIP_CLKMGR
+	$(call Q_DOXY,clkmgr)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.clkmgr.cfg $(Q_OUT)
+endif
 ifndef DOTTOOL
-	$(SED) -i 's!^HAVE_DOT\s.*!\$(hash)HAVE_DOT               = YES!' tools/doxygen.cfg
+	$(SED) -i 's!^HAVE_DOT\s.*!\$(hash)HAVE_DOT               = YES!' tools/doxygen*cfg
 endif
 endif # DOXYGEN_MINVER
 
@@ -824,9 +829,9 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   *.la wrappers/*/*.so\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.mod */$(LIB_SRC) wrappers/*/$(SWIG_NAME).cpp\
-  wrappers/*/$(SWIG_NAME).h\
+  wrappers/*/$(SWIG_NAME).h tools/doxygen*cfg\
   */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/*/*.d)\
-  $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
+  $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache wrappers/go/allocTlv.i $(CLKMGR_PROXY)\

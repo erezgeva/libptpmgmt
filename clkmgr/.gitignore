@@ -5,7 +5,8 @@
 # @copyright © 2024 Intel Corporation.
 #
 ###############################################################################
-sample/clkmgr_test
-sample/clkmgr_c_test
-proxy/clkmgr_proxy
-*/*.lo
+/sample/clkmgr_test
+/sample/clkmgr_c_test
+/proxy/clkmgr_proxy
+/*/*.lo
+/doc/
