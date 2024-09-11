@@ -216,7 +216,7 @@ PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
-D_FILES:=$(wildcard *.d */*.d */*/*.d)
+D_FILES:=$(wildcard */*.d */*/*.d)
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
 HDR_BTH:=mngIds types proc sig callDef
 HEADERS_GEN_PUB:=$(foreach n,ver name $(HDR_BTH),$(PUB)/$n.h)
@@ -231,7 +231,7 @@ HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
 HEADERS_INST_C:=$(HEADERS_PUB_C) $(HEADERS_GEN_PUB_C)
 SRCS:=$(wildcard $(SRC)/*.cpp)
 SRCS_HMAC:=$(wildcard $(HMAC_SRC)/*.cpp)
-SRCS_CLKMGR:=$(wildcard $(CLKMGR_DIR)/[cip]*/*.[ch]* $(CLKMGR_DIR)/*/*/*.h)
+SRCS_CLKMGR:=$(wildcard $(CLKMGR_DIR)/[cupi]*/*.[ch]* $(CLKMGR_DIR)/*/*/*.h)
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 # hmac
 SSL_NAME:=$(LIB_NAME)_openssl
@@ -427,14 +427,6 @@ PYUVGD:=PYTHONMALLOC=malloc $(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(S
 endif # VGD_PY
 endif # VALGRIND
 
-# HMAC libraries
-include $(HMAC_SRC)/Makefile
-
-# CLKMGR libraries
-ifndef SKIP_CLKMGR
-include $(CLKMGR_DIR)/Makefile
-endif
-
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
@@ -444,9 +436,17 @@ $(LIB_NAME_SO): $(LIB_NAME_LA)
 $(LIB_NAME_A): $(LIB_NAME_LA)
 	@:
 
+# HMAC libraries
+include $(HMAC_SRC)/Makefile
+
 include utest/Makefile
 ifdef CRITERION_LIB_FLAGS
 include uctest/Makefile
+endif
+
+# CLKMGR libraries
+ifndef SKIP_CLKMGR
+include $(CLKMGR_DIR)/Makefile
 endif
 
 # pmc tool
@@ -704,8 +704,10 @@ ifdef DOXYGEN_MINVER
 endif
 endif # MARKDOWN
 
+ifdef USE_DEPS
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
 include $(D_FILES)
+endif
 endif
 
 $(OBJ_DIR):
@@ -830,8 +832,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.mod */$(LIB_SRC) wrappers/*/$(SWIG_NAME).cpp\
   wrappers/*/$(SWIG_NAME).h tools/doxygen*cfg\
-  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/*/*.d)\
-  $(D_FILES) $(LIB_SRC)\
+  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo) $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache wrappers/go/allocTlv.i $(CLKMGR_PROXY)\

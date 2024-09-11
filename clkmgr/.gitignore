@@ -10,3 +10,4 @@
 /proxy/clkmgr_proxy
 /*/*.lo
 /doc/
+/utest/utest_*
