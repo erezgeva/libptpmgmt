@@ -12,18 +12,13 @@
  *
  */
 
-#include <chrono>
-#include <future>
-
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
-/** Using clkmgr namespace */
-#define __CLKMGR_NAMESPACE_USE using namespace clkmgr;
-/** Define start of clkmgr namespace block */
-#define __CLKMGR_NAMESPACE_BEGIN namespace clkmgr {
-/** Define end of clkmgr namespace block */
-#define __CLKMGR_NAMESPACE_END }
+#include <chrono>
+#include <future>
+
+#include <clkmgr/utility.h>
 
 /* Some commonly used constants */
 #define NSEC_PER_MSEC   (1000000)
@@ -39,13 +34,6 @@ bool isFutureSet(std::future<type> &f)
     return f.valid() &&
         f.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready;
 }
-
-#define DECLARE_ACCESSOR(varname)                   \
-    const decltype(varname) &getc_##varname() { return varname; }       \
-    decltype(varname) &get_##varname() { return varname; }      \
-    void set_##varname (const decltype(varname) &varname) \
-    { this->varname = varname; }      \
-    decltype(varname) c_get_val_##varname () const { return varname; }
 
 #define PTHREAD_CALL(func,err_msg,retval)               \
     {                               \

@@ -20,9 +20,6 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-typedef std::uint16_t sessionId_t;
-static const sessionId_t InvalidSessionId = (sessionId_t)(-1);
-
 typedef std::uint8_t msgAck_t;
 enum  : msgAck_t {ACK_FAIL = (msgAck_t) -1, ACK_NONE = 0, ACK_SUCCESS = 1, };
 

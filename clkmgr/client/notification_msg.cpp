@@ -16,10 +16,10 @@
 #include <algorithm>
 #include <client/notification_msg.hpp>
 #include <client/subscribe_msg.hpp>
+#include <clkmgr/client_state.h>
 #include <common/message.hpp>
 #include <common/print.hpp>
 #include <common/serialize.hpp>
-#include "clkmgr_client_state.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

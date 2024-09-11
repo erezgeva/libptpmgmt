@@ -3,20 +3,23 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_client_api_c.h
- * @brief Client utilities to setup and cleanup the library.
+/** @file clockmanager_c.h
+ * @brief C wrapper for the Clock Manager APIs to set up client-runtime.
  *
  * @author Song Yoong Siang <yoong.siang.song@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
 
+#ifndef CLKMGR_CLOCKMANAGER_C_H
+#define CLKMGR_CLOCKMANAGER_C_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /** Types of PTP events subscription */
 enum event_type {
@@ -121,3 +124,5 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* CLKMGR_CLOCKMANAGER_C_H */

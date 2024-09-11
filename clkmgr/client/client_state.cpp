@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_client_state.cpp
+/** @file client_state.cpp
  * @brief Set and get the client subscribe event state
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
@@ -17,10 +17,10 @@
 #include <string>
 
 #include <client/msgq_tport.hpp>
+#include <clkmgr/client_state.h>
 #include <common/clkmgrtypes.hpp>
 #include <common/message.hpp>
 #include <common/transport.hpp>
-#include "clkmgr_client_state.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

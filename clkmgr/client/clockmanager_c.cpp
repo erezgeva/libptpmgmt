@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_client_api_c.cpp
+/** @file clockmanager_c.cpp
  * @brief Client utilities to setup and cleanup the library.
  *
  * @author Song Yoong Siang <yoong.siang.song@intel.com>
@@ -12,8 +12,8 @@
  *
  */
 
-#include "c/clkmgr_client_api_c.h"
-#include "clkmgr_init.hpp"
+#include "clkmgr/clockmanager_c.h"
+#include "clockmanager.h"
 
 clkmgr_c_client_ptr clkmgr_c_client_create()
 {

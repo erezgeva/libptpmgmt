@@ -17,11 +17,11 @@
 #define CLOCK_CONFIG_HPP
 
 #include <cstdint>
+#include <rtpi/mutex.hpp>
 
+#include <clkmgr/subscription.h>
 #include <common/ptp_event.hpp>
 #include <proxy/message.hpp>
-#include <rtpi/mutex.hpp>
-#include "clkmgr_subscription.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

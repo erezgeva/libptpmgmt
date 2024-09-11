@@ -3,20 +3,24 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_init.hpp
- * @brief Client utilities to setup and cleanup the library.
+/** @file clockmanager.hpp
+ * @brief The Clock Manager APIs to set up client-runtime.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
 
-#ifndef CLKMGR_INIT_HPP
-#define CLKMGR_INIT_HPP
+#ifndef CLOCKMANAGER_H
+#define CLOCKMANAGER_H
 
+#ifdef __cplusplus
 #include <map>
-#include "clkmgr_client_state.hpp"
-#include "clkmgr_subscription.hpp"
+
+#include <clkmgr/client_state.h>
+#include <clkmgr/event_state.h>
+#include <clkmgr/subscription.h>
+#include <clkmgr/utility.h>
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -87,5 +91,8 @@ class ClkmgrClientApi
 };
 
 __CLKMGR_NAMESPACE_END
+#else /* __cplusplus */
+#include "clkmgr/clockmanager_c.h"
+#endif /* __cplusplus */
 
-#endif /* CLKMGR_INIT_HPP */
+#endif /* CLOCKMANAGER_H */

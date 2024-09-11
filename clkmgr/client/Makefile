@@ -13,11 +13,11 @@
 CLKMGR_CLIENT_DIR := $(shell pwd)
 CLKMGR_TOPLEVEL_DIR = $(CLKMGR_CLIENT_DIR)/..
 CLKMGR_COMMON_DIR = $(CLKMGR_TOPLEVEL_DIR)/common
-LIBPTPMGMT_PUB_DIR = $(CLKMGR_TOPLEVEL_DIR)/../pub/
+CLKMGR_PUB_DIR = $(CLKMGR_TOPLEVEL_DIR)/pub/
 LIBS = pthread rt rtpi
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
-OBJ = clkmgr_init msgq_tport message null_tport transport msgq_tport notification_msg connect_msg clkmgr_client_state subscribe_msg clkmgr_client_api_c
-COMMON_OBJ = print sighandler transport msgq_tport message connect_msg subscribe_msg notification_msg clkmgr_subscription
+OBJ = clockmanager msgq_tport message null_tport transport msgq_tport notification_msg connect_msg client_state subscribe_msg clockmanager_c
+COMMON_OBJ = print sighandler transport msgq_tport message connect_msg subscribe_msg notification_msg subscription
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 COMMON_OBJ_DIR = $(CLKMGR_COMMON_DIR)/obj
@@ -36,7 +36,7 @@ build-prep:
 
 %.d : %.cpp
 	echo "[MAKEDEP]" $@
-	g++ -I $(CLKMGR_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -MM -MF $@ $<
+	g++ -I $(CLKMGR_TOPLEVEL_DIR) -I $(CLKMGR_PUB_DIR) -MM -MF $@ $<
 
 .PHONY: clean
 clean:
@@ -68,4 +68,4 @@ libclkmgr.so: $(OBJ_FILES) $(COMMON_OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -I $(CLKMGR_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -fPIC -fdiagnostics-color=always
+	g++ -c $< -I $(CLKMGR_TOPLEVEL_DIR) -I $(CLKMGR_PUB_DIR) -fPIC -fdiagnostics-color=always

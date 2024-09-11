@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "clkmgr_init.hpp"
+#include <clockmanager.h>
 
 using namespace clkmgr;
 

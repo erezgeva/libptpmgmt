@@ -3,51 +3,25 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_client_state.hpp
- * @brief Set and get the client subscribe event state
+/** @file client_state.h
+ * @brief Class to get and set the state of client-runtime
  *
  * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
 
-#ifndef PROXY_CLIENT_STATE
-#define PROXY_CLIENT_STATE
+#ifndef CLKMGR_CLIENT_STATE_H
+#define CLKMGR_CLIENT_STATE_H
 
 #include <atomic>
 #include <string>
 
-#include <common/clkmgrtypes.hpp>
-#include <common/transport.hpp>
-#include <common/util.hpp>
-#include "clkmgr_subscription.hpp"
+#include <clkmgr/event_state.h>
+#include <clkmgr/subscription.h>
+#include <clkmgr/utility.h>
 
 __CLKMGR_NAMESPACE_BEGIN
-
-/**
- * Current State for the events
- */
-struct clkmgr_state {
-    uint8_t  gm_identity[8]; /**< Primary clock UUID */
-    bool     as_capable; /**< IEEE 802.1AS capable */
-    bool     offset_in_range; /**< Clock offset in range */
-    bool     synced_to_primary_clock; /**< Synced to primary clock */
-    bool     gm_changed; /**< Primary clock UUID changed */
-    bool     composite_event; /**< Composite event */
-    int64_t  clock_offset; /**< Clock offset */
-    uint64_t   notification_timestamp; /**< Timestamp for last notification */
-};
-
-/**
- * Event count for the events
- */
-struct clkmgr_state_event_count {
-    uint64_t offset_in_range_event_count; /**< Clk offset in range */
-    uint64_t gm_changed_event_count; /**< Primary clk ID changed */
-    uint64_t as_capable_event_count; /**< IEEE 802.1AS capable */
-    uint64_t synced_to_primary_clock_event_count; /**< Synced to primary clk */
-    uint64_t composite_event_count; /**< Composite event */
-};
 
 /**
  * Class to manage the client state
@@ -57,10 +31,7 @@ class ClientState
   private:
     std::atomic_bool connected = false; /**< Connection status */
     std::atomic_bool subscribed = false; /**< Subscription status */
-    /**
-     * Session ID
-     */
-    sessionId_t sessionId = InvalidSessionId;
+    sessionId_t sessionId = InvalidSessionId; /**< Session ID */
     TransportClientId clientID = {}; /**< Client ID */
     uint8_t ptp4l_id = 0; /**< PTP4L ID */
     clkmgr_state eventState = {}; /**< Event state */
@@ -176,4 +147,4 @@ class ClientState
 
 __CLKMGR_NAMESPACE_END
 
-#endif /* PROXY_CLIENT_STATE */
+#endif /* CLKMGR_CLIENT_STATE_H */

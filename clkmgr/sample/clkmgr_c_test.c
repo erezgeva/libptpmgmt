@@ -21,7 +21,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "c/clkmgr_client_api_c.h"
+#include <clockmanager.h>
 
 double getMonotonicTime() {
     struct timespec time_spec;

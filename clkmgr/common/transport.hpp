@@ -58,9 +58,6 @@ class TransportTransmitterContext : public TransportContext
     virtual SEND_BUFFER_TYPE(sendBuffer) = 0;
 };
 
-#define TRANSPORT_CLIENTID_LENGTH (512)
-typedef std::array<std::uint8_t, TRANSPORT_CLIENTID_LENGTH> TransportClientId;
-
 class TransportListenerContext : public TransportContext
 {
     friend class Transport;

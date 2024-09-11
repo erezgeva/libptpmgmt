@@ -3,20 +3,21 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_subscription.hpp
- * @brief structure needed for PTP event subsciption
+/** @file subscription.h
+ * @brief structure and class needed for events subsciption
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
 
-#ifndef CLKMGR_SUBSCRIPTION_HPP
-#define CLKMGR_SUBSCRIPTION_HPP
+#ifndef CLKMGR_SUBSCRIPTION_H
+#define CLKMGR_SUBSCRIPTION_H
 
 #include <cstdint>
 #include <string>
-#include <common/util.hpp>
+
+#include <clkmgr/utility.h>
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -182,4 +183,4 @@ class clkmgr_subscription
 
 __CLKMGR_NAMESPACE_END
 
-#endif /* CLKMGR_SUBSCRIPTION_HPP */
+#endif /* CLKMGR_SUBSCRIPTION_H */

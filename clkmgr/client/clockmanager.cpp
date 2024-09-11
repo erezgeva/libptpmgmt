@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file init.cpp
+/** @file clockmanager.cpp
  * @brief Client utilities to setup and cleanup the library.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
@@ -24,7 +24,7 @@
 #include <common/sighandler.hpp>
 #include <rtpi/condition_variable.hpp>
 #include <rtpi/mutex.hpp>
-#include "clkmgr_init.hpp"
+#include "clockmanager.h"
 
 #define DEFAULT_LIVENESS_TIMEOUT_IN_MS 50  //50 ms
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec

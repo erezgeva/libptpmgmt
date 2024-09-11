@@ -15,9 +15,10 @@
 #ifndef CLOCK_STATUS_HPP
 #define CLOCK_STATUS_HPP
 
-#include <common/ptp_event.hpp>
 #include <rtpi/mutex.hpp>
-#include "clkmgr_subscription.hpp"
+
+#include <clkmgr/subscription.h>
+#include <common/ptp_event.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
  */
 
-/** @file clkmgr_subscription.cpp
+/** @file subscription.cpp
  * @brief PTP event subscription.
  *
  * @author Christopher Hall <christopher.s.hall@intel.com>
@@ -14,9 +14,9 @@
 
 #include <cstring>
 
+#include <clkmgr/subscription.h>
 #include <common/print.hpp>
 #include <common/serialize.hpp>
-#include "clkmgr_subscription.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

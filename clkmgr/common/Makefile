@@ -11,10 +11,10 @@
 
 CLKMGR_COMMON_DIR := $(shell pwd)
 CLKMGR_TOPLEVEL_DIR := $(CLKMGR_COMMON_DIR)/..
-LIBPTPMGMT_PUB_DIR = $(CLKMGR_TOPLEVEL_DIR)/../pub/
+CLKMGR_PUB_DIR = $(CLKMGR_TOPLEVEL_DIR)/pub/
 LIBS = pthread rt rtpi
 LIBS_FLAGS = $(foreach lib,$(LIBS),-l$(lib))
-OBJ = clkmgr_subscription message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport
+OBJ = subscription message msgq_tport notification_msg null_msg connect_msg print sighandler subscribe_msg transport
 OBJ_FILES = $(foreach f,$(OBJ),$(f).o)
 DEPENDS = $(foreach f,$(OBJ),$(f).d)
 OBJ_DIR = $(CLKMGR_COMMON_DIR)/obj
@@ -31,7 +31,7 @@ build-prep:
 
 %.d : %.cpp
 	echo "[MAKEDEP]" $@
-	g++ -I $(CLKMGR_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -MM -MF $@ $<
+	g++ -I $(CLKMGR_TOPLEVEL_DIR) -I $(CLKMGR_PUB_DIR) -MM -MF $@ $<
 
 .PHONY: clean
 clean:
@@ -62,4 +62,4 @@ common-obj: $(OBJ_FILES)
 
 %.o : %.cpp
 	echo "[COMPILE]" $<
-	g++ -c $< -I $(CLKMGR_TOPLEVEL_DIR) -I $(LIBPTPMGMT_PUB_DIR) -fPIC -Werror -Wall -Wextra -Wno-unused-parameter -fdiagnostics-color=always
+	g++ -c $< -I $(CLKMGR_TOPLEVEL_DIR) -I $(CLKMGR_PUB_DIR) -fPIC -Werror -Wall -Wextra -Wno-unused-parameter -fdiagnostics-color=always
