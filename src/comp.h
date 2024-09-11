@@ -39,15 +39,15 @@ using namespace std;
 
 #define m_init(n) n{{0}}
 
-#if __cplusplus >= 201603L /* C++17 */
+#if __cplusplus >= 201700L /* C++17 */
 #define FALLTHROUGH [[fallthrough]]
 #define MAYBE_UNUSED(_expr) [[maybe_unused]] _expr
-#endif /* __cplusplus >= 201603L */
-#if __cplusplus >= 202002L /* C++20 */
+#endif /* __cplusplus >= 201700L */
+#if __cplusplus >= 202000L /* C++20 */
 /* branch prediction */
 #define LIKELY_COND(_expr) (_expr) [[likely]]
 #define UNLIKELY_COND(_expr) (_expr) [[unlikely]]
-#endif /* __cplusplus >= 202002L */
+#endif /* __cplusplus >= 202000L */
 #ifdef __GNUC__
 /* GNU GCC
  * gcc.gnu.org/onlinedocs/gcc-11.3.0/gcc/Type-Attributes.html
