@@ -39,7 +39,6 @@ static SockBase *sk;
 
 static std::unique_ptr<SockBase> m_sk;
 
-portState_e portState;
 SUBSCRIBE_EVENTS_NP_t d;
 ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0};
 
@@ -71,18 +70,12 @@ void notify_client()
 void event_handle()
 {
     const BaseMngTlv *data = msg.getData();
-    int64_t offset;
-    ClockIdentity_t gm_uuid;
-    PORT_DATA_SET_t *pd;
     switch(msg.getTlvId()) {
-        case TIME_STATUS_NP:
-            /* Workaround for ptp4l continue to send even gm is not present */
-            if(portState < UNCALIBRATED)
-                return;
-            offset = ((TIME_STATUS_NP_t *)data)->master_offset;
-            gm_uuid = ((TIME_STATUS_NP_t *)data)->gmIdentity;
-            pe.master_offset = offset;
-            memcpy(pe.gm_identity, gm_uuid.v, sizeof(pe.gm_identity));
+        case TIME_STATUS_NP: {
+            const auto *timeStatus = static_cast<const TIME_STATUS_NP_t *>(data);
+            pe.master_offset = timeStatus->master_offset;
+            memcpy(pe.gm_identity, timeStatus->gmIdentity.v,
+                sizeof(pe.gm_identity));
             /* Uncomment for debug data printing */
             //printf("master_offset = %ld, synced_to_primary_clock = %d\n",
             //      pe.master_offset, pe.synced_to_primary_clock);
@@ -91,32 +84,39 @@ void event_handle()
             //       pe.gm_identity[3], pe.gm_identity[4],
             //       pe.gm_identity[5], pe.gm_identity[6],pe.gm_identity[7]);
             break;
-        case PORT_DATA_SET:
-            pd = (PORT_DATA_SET_t *)data;
-            portState = pd->portState;
-            /* Reset TIME_STATUS_NP data if port_state <= PASSIVE */
-            if(portState < SLAVE) {
+        }
+        case PORT_PROPERTIES_NP: /* Get initial port state when Proxy starts */
+        case PORT_DATA_SET: {
+            const auto *portDataSet = static_cast<const PORT_DATA_SET_t *>(data);
+            portState_e portState = portDataSet->portState;
+            pe.synced_to_primary_clock = false;
+            if(portState == SLAVE)
+                pe.synced_to_primary_clock = true;
+            else if(portState == MASTER) {
+                /* Set own clock identity as GM identity */
+                pe.master_offset = 0;
+                memcpy(pe.gm_identity,
+                    portDataSet->portIdentity.clockIdentity.v,
+                    sizeof(pe.gm_identity));
+                break;
+            } else if(portState <= PASSIVE) {
+                /* Reset master offset and GM identity */
                 pe.master_offset = 0;
                 memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
-                pe.synced_to_primary_clock = false;
-            } else
-                pe.synced_to_primary_clock = true;
+            }
             break;
-        case PORT_PROPERTIES_NP:
-            /* Retrieve current port state when proxy is started */
-            pd = (PORT_DATA_SET_t *)data;
-            portState = pd->portState;
-            pe.synced_to_primary_clock = portState >= SLAVE ? true : false;
-            break;
-        case CMLDS_INFO_NP:
-            if(pe.as_capable == ((CMLDS_INFO_NP_t *)data)->as_capable) {
+        }
+        case CMLDS_INFO_NP: {
+            const auto *cmldsInfo = static_cast<const CMLDS_INFO_NP_t *>(data);
+            bool asCapable = cmldsInfo->as_capable > 0 ? true : false;
+            /* Skip client notification if no event changes */
+            if(pe.as_capable == asCapable) {
                 PrintDebug("Ignore unchanged as_capable");
                 return;
             }
-            pe.as_capable = \
-                ((CMLDS_INFO_NP_t *)data)->as_capable > 0 ? true : false;
-            //printf("as_capable = %d\n\n", pe.as_capable);
+            pe.as_capable = asCapable;
             break;
+        }
         default:
             return;
     }
