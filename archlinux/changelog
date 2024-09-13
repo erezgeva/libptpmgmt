@@ -1,3 +1,128 @@
+* Fri Sep 13 2024 ErezGeva2@gmail.com 1.4-1
+- Linuxptp version 4.4 do not add any new managment interface.
+- Improve C++ pre-compile compare values.
+- Fix spelling.
+- Fix Gentoo build issue
+  - Add Python3 byte compilation.
+  - Move documents to a Gentoo friendly folder.
+- Add new JSON parser.
+  - Remove JSON wrapper libraries.
+  - Keep backward compatible of JSON library load functions.
+- Improve PTP backward compatible.
+  improve handling of ptp_perout_request structure.
+- Re-license test scripts.
+  So users can use them to any way they wish.
+  The code in sample left with GPL is intended as reference only.
+- Make-file
+  - Replace hash sign with hash variable.
+  - Add SPDX IDs to generated package configuration file.
+  - Use bank sign in regular replace expression.
+  - Use hash variable as hash sign is used fore comments.
+  - Improve verbose flag.
+  - Update to C11 in C unit tests.
+    We need the time structures.
+  - Use libtool to link static and dynamic pair libraries.
+  - Use chrpath or patchelf to remove RUN-PATH from
+    shared libraries before installation.
+- Remove warning suppression of removed code in SWIG files.
+- ABI compare action
+- Add final to virtual override functions of HMAC libraries.
+  The libraries are internal,
+  we can change without effect main library ABI.
+- Fix ID type of SPP class.
+- GPG sign of release tags.
+- Improve documents.
+- Improve ABI script
+  - Skip ABI test if we do not have the release tag.
+    Some developers may run the test on their own fork,
+    which do not have the release tags.
+    No point to indicate error in this case.
+    The test will run on the official repository.
+  - Store last version dump.
+  - Add exit with error in case ABI fails after we save the report.
+- Add Discount-Markdown to containers.
+- Generate HTML from markdown using the discount markdown application.
+- Move markdown files to doc folder.
+- Add package configuration to project.
+  It does not contain much information, but convenient for probing.
+- Autoconf configuration improvements
+  - Add more macros.
+  - Add macros for conditions.
+    Add PTPM_VAR_EMPTY_IF test for empty variable
+    Add PTPM_VAR_ELSE_IF test variable value is other
+    Add PTPM_FILE_IF test file exist
+    Add AS_VAR_SET_IF to test a variable is set.
+    Add AS_VAR_IF to test a variable value.
+    Add macro looping a range.
+  - Use AS_VAR_COPY for copying value from another variable.
+    Use AS_VAR_APPEND when append text to a variable .
+  - Add macros to all shell commands.
+  - Use package configuration (pkgconf)
+  - Replace AC_XXX_PROGS with AC_CHECK_TOOLS
+  - Check that the user Lua setting is a real Lua executable.
+  - Rename variables in AC_XXX_PROGS as they are substitute by definition.
+  - Replace AS_VAR_SET_IF, as condition return true
+    for variable set with empty value.
+  - Improve list of folders to search.
+  - Use 'printf' in m4 and when need formatting.
+    Replace with AS_ECHO_N in the other cases.
+  - Language scripts use 'print', to distinguish from shell echo.
+  - Use AS_ECHO_N, as we do not need the new-line.
+  - Use package configure with the exist flag to determine if a package exist.
+  - Improve wrapper languages probing.
+  - Add report for cross compilation.
+  - Add more sub-versions of Python 3.
+  - Integrate libtool with configuration.
+  - Fix install of Doxygen documents.
+    Verify the files exist before modifying.
+- Remove standard auxiliary files and install them from system.
+- Add Coverity Scan action. Fix defects found by scan.
+  - Initialise class properties.
+  - Ensure buffer is allocated in Binary::iResize.
+  - Skip calling Binary::iResize when using length zero.
+  - Improve Binary::clear().
+  - Add protections on Binary::copy;
+  - Add test in ConfigSection::set_val() before setting m_vals[].
+  - Improve Token::dup().
+  - Remove dead code in Message::mng2str_c().
+  - Add MessageDispatcher::_noTlvClear() and
+    remove dead code in MessageBuilder::buildTlv().
+  - Improve code selection in MsgProc::proc(Float64_t).
+  - Improve interface name copy in IfInfo::initUsingName().
+  - In PMC dump: ensure key handler have a valid string to parse.
+  - In read_cfg(): make sure we close the file.
+  - In message parser: release the SMPTE TLV in case it is not used.
+- Improve document of parse_options().
+- Improve the Go architecture script.
+- Add sys/types.h to pub/c/ptp.h.
+- Create the example make files dynamically.
+- Fix go package.
+- Remove D_INC macro, We use SWIG to create the dependencies file.
+- Fix library name in description.
+- In continuos integration add test without the development package.
+- Use proper name for shared libraries dynamic load.
+  Make sure we use published libraries.
+  And not developers libraries.
+- Add the librtpi package to container.
+- Reorder PHC controller tool help follow Linuxptp.
+- Update GitHub actions versions, using deprecated Node.js version 16.
+- Add link to project home page and issues.
+- Remove MessageBuilder old note, the destructor was removed.
+- Add Compatibility with Linuxptp document.
+- Fix version 1.3 change log.
+- Use C++ 11 default member initialising.
+  Reduce use of direct initialising with constructors.
+- Add C public header external "C" for C++ usage.
+  Although C++ application can use the better C++ API.
+  Some may defer the C API and call them from C++.
+- Fix C API ptpmgmt_clock::fetchCaps() definition,
+  use Linux clock capabilities structure.
+- Move Perl SWIG Module name.
+  from SWIG interface file to SWIG command line.
+- Improve shell script distribution() function in util.sh.
+- Fix Docker file description.
+- Update README.md
+
 * Fri Jun 07 2024 ErezGeva2@gmail.com 1.3-1
 - Support Linuxptp version 4.3
 - Add support for AUTHENTICATION.
@@ -94,7 +219,7 @@
 - Add SPDX IDs to markdown using HTML comment.
   and to generated Doxygen HTML and JavaScripts.
 - Add traversSigTlvs to C and traversSigTlvsCl for script languages.
-- Fix signalling LoopTwoManagmentTlvs unit test to loop over the 2 TLVs.
+- Fix signalling LoopTwoManagementTlvs unit test to loop over the 2 TLVs.
 - Spell signalling in text, leave American spelling in code.
 - Add Gentoo to packages CI.
 - Use "using" standard name space in C++ source code.
@@ -471,7 +596,7 @@
   - Add sample code for probing PTP daemon for synchronization.
 - Improve RPM specification.
 - Add no return attribute to signal handlers.
-- LinuxPTP new management TLVs:
+- Linuxptp new management TLVs:
   - PORT_HWCLOCK_NP TLV.
   - UNICAST_MASTER_TABLE_NP TLV.
 - Improve copyright.

@@ -1754,7 +1754,7 @@ Test(MessageTest, MethodGetType)
     m->free(m);
 }
 
-// Test get parsed PTP managment message managment type
+// Test get parsed PTP management message management type
 // enum ptpmgmt_tlvType_e getMngType(const_ptpmgmt_msg m)
 Test(MessageTest, MethodGetMngType)
 {
@@ -1906,7 +1906,7 @@ Test(MessageTest, MethodGetSigTlv)
     m->free(m);
 }
 
-// Test get a managment TLV and its type from a PTP signaling message
+// Test get a management TLV and its type from a PTP signaling message
 // const void *getSigMngTlv(ptpmgmt_msg m, size_t position)
 // enum ptpmgmt_mng_vals_e getSigMngTlvType(const_ptpmgmt_msg m, size_t position)
 Test(MessageTest, MethodGetSigMngTlvType)

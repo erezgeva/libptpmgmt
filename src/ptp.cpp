@@ -222,7 +222,7 @@ bool IfInfo::initUsingName(const string &ifName)
         return false;
     }
     size_t len = ifName.length();
-    if(ifName.empty() || len >= IFNAMSIZ) {
+    if(len == 0 || len >= IFNAMSIZ) {
         PTPMGMT_ERROR("missing interface");
         return false;
     }

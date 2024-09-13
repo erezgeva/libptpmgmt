@@ -26,9 +26,9 @@ __PTPMGMT_NAMESPACE_BEGIN
 std::string msg2json(const Message &message, int indent = 0);
 
 /**
- * Convert PTP managment TLV to JSON string
- * @param[in] managementId PTP managment TLV id
- * @param[in] tlv PTP managment TLV
+ * Convert PTP management TLV to JSON string
+ * @param[in] managementId PTP management TLV id
+ * @param[in] tlv PTP management TLV
  * @param[in] indent base indent for the JSON string
  * @return JSON string
  */

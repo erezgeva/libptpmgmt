@@ -47,8 +47,8 @@ class SigTest : public ::testing::Test, public Message
     }
 };
 
-// Tests one managment TLV
-TEST_F(SigTest, OneManagmentTlvs)
+// Tests one management TLV
+TEST_F(SigTest, OneManagementTlvs)
 {
     uint8_t m[4] = {0x20, 5, 137}; // PRIORITY1 priority1 = 137
     addTlv(MANAGEMENT, m, sizeof m);
@@ -64,8 +64,8 @@ TEST_F(SigTest, OneManagmentTlvs)
     EXPECT_EQ(p->priority1, 137);
 }
 
-// Tests two managment TLVs
-TEST_F(SigTest, TwoManagmentTlvs)
+// Tests two management TLVs
+TEST_F(SigTest, TwoManagementTlvs)
 {
     uint8_t m1[4] = {0x20, 6, 119}; // PRIORITY2 priority2 = 119
     uint8_t m2[4] = {0x20, 7, 7};  // DOMAIN domainNumber = 7
@@ -88,8 +88,8 @@ TEST_F(SigTest, TwoManagmentTlvs)
     EXPECT_EQ(p2->domainNumber, 7);
 }
 
-// Tests organization and two managment TLVs
-TEST_F(SigTest, OrgTwoManagmentTlvs)
+// Tests organization and two management TLVs
+TEST_F(SigTest, OrgTwoManagementTlvs)
 {
     uint8_t m1[4] = {0x20, 6, 119}; // PRIORITY2 priority2 = 119
     // ORGANIZATION_EXTENSION_PROPAGATE
@@ -122,7 +122,7 @@ TEST_F(SigTest, OrgTwoManagmentTlvs)
     EXPECT_EQ(p3->domainNumber, 7);
 }
 
-// Tests loop two managment TLV
+// Tests loop two management TLV
 static bool loopCheck(const Message &, tlvType_e tlvType, const BaseSigTlv *tlv)
 {
     /**
@@ -148,7 +148,7 @@ static bool loopCheck(const Message &, tlvType_e tlvType, const BaseSigTlv *tlv)
     }
     return true;
 }
-TEST_F(SigTest, LoopTwoManagmentTlvs)
+TEST_F(SigTest, LoopTwoManagementTlvs)
 {
     uint8_t m1[4] = {0x20, 5, 137}; // PRIORITY1 priority1 = 137
     uint8_t m2[4] = {0x20, 6, 119}; // PRIORITY2 priority2 = 119
@@ -259,7 +259,7 @@ TEST_F(SigTest, FilterWithOrgTlvs)
     EXPECT_EQ(p2->dataField, Binary("\x03\x9\xd7\x5", 4));
 }
 
-// Tests managment error, alternate time offset,
+// Tests management error, alternate time offset,
 //  layer 1 synchronization, port communication availability,
 //  protocol address and cumulative rate ratio TLVs
 TEST_F(SigTest, MngErrMoreTlvs)

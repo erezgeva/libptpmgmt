@@ -1388,7 +1388,7 @@ TEST(MessageTest, MethodGetType)
     EXPECT_EQ(m.getType(), Management);
 }
 
-// Test get parsed PTP managment message managment type
+// Test get parsed PTP management message management type
 // tlvType_e getMngType() const
 TEST(MessageTest, MethodGetMngType)
 {
@@ -1535,7 +1535,7 @@ TEST(MessageTest, MethodGetSigTlv)
     EXPECT_EQ(p1->priority1, 137);
 }
 
-// Test get a managment TLV and its type from a PTP signaling message
+// Test get a management TLV and its type from a PTP signaling message
 // const BaseMngTlv *getSigMngTlv(size_t position) const
 // mng_vals_e getSigMngTlvType(size_t position) const
 TEST(MessageTest, MethodGetSigMngTlvType)

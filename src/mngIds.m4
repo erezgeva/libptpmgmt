@@ -35,7 +35,7 @@ cpp_cod(`')dnl
 /**
  * @brief Management TLVs ID
  * @details
- *  Available Management TLVs for use with PTP managment messages.
+ *  Available Management TLVs for use with PTP management messages.
  */
 enm(mng_vals_e) {
 define(A, `    NM($1),')dnl

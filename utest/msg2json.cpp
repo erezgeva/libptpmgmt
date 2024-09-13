@@ -73,7 +73,7 @@ TEST(Msg2JsonTest, Empty)
         "   }");
 }
 
-// Test PTP message with a managment TLV
+// Test PTP message with a management TLV
 TEST(Msg2JsonTest, MngTlv)
 {
     uint8_t buf[70];
@@ -116,7 +116,7 @@ TEST(Msg2JsonTest, MngTlv)
         "}");
 }
 
-// Test PTP message with a managment error TLV
+// Test PTP message with a management error TLV
 TEST(Msg2JsonTest, MngErrTlv)
 {
     Message m;

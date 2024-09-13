@@ -316,8 +316,8 @@ bool Spp::set_val(char *line)
     } else {
         /**
          * = Not relevant:
-         * allow_mutable: is not used as Managment 'correctionField' is always zero
-         * seqid_window: is not relevant to Managment or Signaling messages
+         * allow_mutable: is not used as Management 'correctionField' is always zero
+         * seqid_window: is not relevant to Management or Signaling messages
          * = Future linuxptp use:
          * seqnum_length: sequenceNo (Sequence number) size
          * res_length:    Reserved size

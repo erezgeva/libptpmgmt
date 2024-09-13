@@ -85,7 +85,7 @@ Test(Msg2JsonTest, Empty)
     msg->free(msg);
 }
 
-// Test PTP message with a managment TLV
+// Test PTP message with a management TLV
 Test(Msg2JsonTest, MngTlv)
 {
     uint8_t buf[70];
@@ -135,7 +135,7 @@ Test(Msg2JsonTest, MngTlv)
     msg->free(msg);
 }
 
-// Test PTP message with a managment error TLV
+// Test PTP message with a management error TLV
 Test(Msg2JsonTest, MngErrTlv)
 {
     uint8_t buf[80];

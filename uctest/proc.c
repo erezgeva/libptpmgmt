@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #endif
 #include "proc.h"
-#include "msg.h" // We use message to test the managment TLV
+#include "msg.h" // We use message to test the management TLV
 
 #define tlvLoc (54)
 #define physicalAddress_v ("\xc4\x7d\x46\x20\xac\xae")

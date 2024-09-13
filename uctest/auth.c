@@ -179,7 +179,7 @@ Test(MessageAuthTest, MethodBuild)
     m->free(m);
     s->free(s);
 }
-// Test parse managment message with auth TLV
+// Test parse management message with auth TLV
 // enum ptpmgmt_MNG_PARSE_ERROR_e parse(const_ptpmgmt_msg msg, const void *buf,
 //     ssize_t msgSize)
 Test(MessageAuthTest, MethodParse)

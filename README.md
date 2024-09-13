@@ -128,8 +128,8 @@ but **NOT** with the Go wrapper, which may break!
   * Management TLVs in proc.h - Structures that hold a PTP Management TLV data
   * Signalling TLVs in sig.h - Structures that hold a PTP Signalling TLV data
   * Library version in ver.h
-  * Managment TLVs mngIds.h - Enumerator for PTP Management TLVs
-  * PTP managment types types.h - Enumerators and structure to use with PTP Management messages
+  * Management TLVs mngIds.h - Enumerator for PTP Management TLVs
+  * PTP management types types.h - Enumerators and structure to use with PTP Management messages
   * Dispatcher and builder in msgCall.h - Classes which provide call-backs for specific Management TLVs
   * Dispatcher and builder base in callDef.h - Provide all call-backs which may be implemented
   * Time convertion in timeCvrt.h - Constants to convert time to different units

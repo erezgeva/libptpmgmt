@@ -148,7 +148,7 @@ TEST(MessageAuthTest, MethodBuild)
     EXPECT_EQ(memcmp(buf, ret, sizeof ret), 0);
 }
 
-// Test parse managment message with auth TLV
+// Test parse management message with auth TLV
 // MNG_PARSE_ERROR_e parse(const void *buf, ssize_t msgSize)
 TEST(MessageAuthTest, MethodParse)
 {

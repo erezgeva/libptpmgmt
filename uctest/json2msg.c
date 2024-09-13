@@ -751,7 +751,7 @@ Test(Json2msgTest, MessageParameters)
     m->free(m);
 }
 
-// Tests CLOCK_DESCRIPTION managment ID
+// Tests CLOCK_DESCRIPTION management ID
 Test(Json2msgTest, CLOCK_DESCRIPTION)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -795,7 +795,7 @@ Test(Json2msgTest, CLOCK_DESCRIPTION)
     m->free(m);
 }
 
-// Tests USER_DESCRIPTION managment ID
+// Tests USER_DESCRIPTION management ID
 // bool setAction(const_ptpmgmt_json m, ptpmgmt_msg m)
 Test(Json2msgTest, USER_DESCRIPTION)
 {
@@ -818,7 +818,7 @@ Test(Json2msgTest, USER_DESCRIPTION)
     m->free(m);
 }
 
-// Tests INITIALIZE managment ID
+// Tests INITIALIZE management ID
 Test(Json2msgTest, INITIALIZE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -839,7 +839,7 @@ Test(Json2msgTest, INITIALIZE)
     m->free(m);
 }
 
-// Tests FAULT_LOG managment ID
+// Tests FAULT_LOG management ID
 Test(Json2msgTest, FAULT_LOG)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -893,7 +893,7 @@ Test(Json2msgTest, FAULT_LOG)
     m->free(m);
 }
 
-// Tests DEFAULT_DATA_SET managment ID
+// Tests DEFAULT_DATA_SET management ID
 Test(Json2msgTest, DEFAULT_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -932,7 +932,7 @@ Test(Json2msgTest, DEFAULT_DATA_SET)
     m->free(m);
 }
 
-// Tests CURRENT_DATA_SET managment ID
+// Tests CURRENT_DATA_SET management ID
 Test(Json2msgTest, CURRENT_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -955,7 +955,7 @@ Test(Json2msgTest, CURRENT_DATA_SET)
     m->free(m);
 }
 
-// Tests PARENT_DATA_SET managment ID
+// Tests PARENT_DATA_SET management ID
 Test(Json2msgTest, PARENT_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1004,7 +1004,7 @@ Test(Json2msgTest, PARENT_DATA_SET)
     m->free(m);
 }
 
-// Tests TIME_PROPERTIES_DATA_SET managment ID
+// Tests TIME_PROPERTIES_DATA_SET management ID
 Test(Json2msgTest, TIME_PROPERTIES_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1032,7 +1032,7 @@ Test(Json2msgTest, TIME_PROPERTIES_DATA_SET)
     m->free(m);
 }
 
-// Tests PORT_DATA_SET managment ID
+// Tests PORT_DATA_SET management ID
 Test(Json2msgTest, PORT_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1076,7 +1076,7 @@ Test(Json2msgTest, PORT_DATA_SET)
     m->free(m);
 };
 
-// Tests PRIORITY1 managment ID
+// Tests PRIORITY1 management ID
 Test(Json2msgTest, PRIORITY1)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1097,7 +1097,7 @@ Test(Json2msgTest, PRIORITY1)
     m->free(m);
 }
 
-// Tests PRIORITY2 managment ID
+// Tests PRIORITY2 management ID
 Test(Json2msgTest, PRIORITY2)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1118,7 +1118,7 @@ Test(Json2msgTest, PRIORITY2)
     m->free(m);
 }
 
-// Tests DOMAIN managment ID
+// Tests DOMAIN management ID
 Test(Json2msgTest, DOMAIN)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1139,7 +1139,7 @@ Test(Json2msgTest, DOMAIN)
     m->free(m);
 }
 
-// Tests SLAVE_ONLY managment ID
+// Tests SLAVE_ONLY management ID
 Test(Json2msgTest, SLAVE_ONLY)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1160,7 +1160,7 @@ Test(Json2msgTest, SLAVE_ONLY)
     m->free(m);
 }
 
-// Tests LOG_ANNOUNCE_INTERVAL managment ID
+// Tests LOG_ANNOUNCE_INTERVAL management ID
 Test(Json2msgTest, LOG_ANNOUNCE_INTERVAL)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1182,7 +1182,7 @@ Test(Json2msgTest, LOG_ANNOUNCE_INTERVAL)
     m->free(m);
 }
 
-// Tests ANNOUNCE_RECEIPT_TIMEOUT managment ID
+// Tests ANNOUNCE_RECEIPT_TIMEOUT management ID
 Test(Json2msgTest, ANNOUNCE_RECEIPT_TIMEOUT)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1204,7 +1204,7 @@ Test(Json2msgTest, ANNOUNCE_RECEIPT_TIMEOUT)
     m->free(m);
 }
 
-// Tests LOG_SYNC_INTERVAL managment ID
+// Tests LOG_SYNC_INTERVAL management ID
 Test(Json2msgTest, LOG_SYNC_INTERVAL)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1226,7 +1226,7 @@ Test(Json2msgTest, LOG_SYNC_INTERVAL)
     m->free(m);
 }
 
-// Tests VERSION_NUMBER managment ID
+// Tests VERSION_NUMBER management ID
 Test(Json2msgTest, VERSION_NUMBER)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1247,7 +1247,7 @@ Test(Json2msgTest, VERSION_NUMBER)
     m->free(m);
 }
 
-// Tests TIME managment ID
+// Tests TIME management ID
 Test(Json2msgTest, TIME)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1269,7 +1269,7 @@ Test(Json2msgTest, TIME)
     m->free(m);
 }
 
-// Tests CLOCK_ACCURACY managment ID
+// Tests CLOCK_ACCURACY management ID
 Test(Json2msgTest, CLOCK_ACCURACY)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1290,7 +1290,7 @@ Test(Json2msgTest, CLOCK_ACCURACY)
     m->free(m);
 }
 
-// Tests UTC_PROPERTIES managment ID
+// Tests UTC_PROPERTIES management ID
 Test(Json2msgTest, UTC_PROPERTIES)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1315,7 +1315,7 @@ Test(Json2msgTest, UTC_PROPERTIES)
     m->free(m);
 }
 
-// Tests TRACEABILITY_PROPERTIES managment ID
+// Tests TRACEABILITY_PROPERTIES management ID
 Test(Json2msgTest, TRACEABILITY_PROPERTIES)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1338,7 +1338,7 @@ Test(Json2msgTest, TRACEABILITY_PROPERTIES)
     m->free(m);
 }
 
-// Tests TIMESCALE_PROPERTIES managment ID
+// Tests TIMESCALE_PROPERTIES management ID
 Test(Json2msgTest, TIMESCALE_PROPERTIES)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1362,7 +1362,7 @@ Test(Json2msgTest, TIMESCALE_PROPERTIES)
     m->free(m);
 }
 
-// Tests UNICAST_NEGOTIATION_ENABLE managment ID
+// Tests UNICAST_NEGOTIATION_ENABLE management ID
 Test(Json2msgTest, UNICAST_NEGOTIATION_ENABLE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1384,7 +1384,7 @@ Test(Json2msgTest, UNICAST_NEGOTIATION_ENABLE)
     m->free(m);
 }
 
-// Tests PATH_TRACE_LIST managment ID
+// Tests PATH_TRACE_LIST management ID
 Test(Json2msgTest, PATH_TRACE_LIST)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1409,7 +1409,7 @@ Test(Json2msgTest, PATH_TRACE_LIST)
     m->free(m);
 }
 
-// Tests PATH_TRACE_ENABLE managment ID
+// Tests PATH_TRACE_ENABLE management ID
 Test(Json2msgTest, PATH_TRACE_ENABLE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1431,7 +1431,7 @@ Test(Json2msgTest, PATH_TRACE_ENABLE)
     m->free(m);
 }
 
-// Tests GRANDMASTER_CLUSTER_TABLE managment ID
+// Tests GRANDMASTER_CLUSTER_TABLE management ID
 Test(Json2msgTest, GRANDMASTER_CLUSTER_TABLE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1472,7 +1472,7 @@ Test(Json2msgTest, GRANDMASTER_CLUSTER_TABLE)
     m->free(m);
 }
 
-// Tests UNICAST_MASTER_TABLE managment ID
+// Tests UNICAST_MASTER_TABLE management ID
 Test(Json2msgTest, UNICAST_MASTER_TABLE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1513,7 +1513,7 @@ Test(Json2msgTest, UNICAST_MASTER_TABLE)
     m->free(m);
 }
 
-// Tests UNICAST_MASTER_MAX_TABLE_SIZE managment ID
+// Tests UNICAST_MASTER_MAX_TABLE_SIZE management ID
 Test(Json2msgTest, UNICAST_MASTER_MAX_TABLE_SIZE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1532,7 +1532,7 @@ Test(Json2msgTest, UNICAST_MASTER_MAX_TABLE_SIZE)
     m->free(m);
 }
 
-// Tests ACCEPTABLE_MASTER_TABLE managment ID
+// Tests ACCEPTABLE_MASTER_TABLE management ID
 Test(Json2msgTest, ACCEPTABLE_MASTER_TABLE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1585,7 +1585,7 @@ Test(Json2msgTest, ACCEPTABLE_MASTER_TABLE)
     m->free(m);
 }
 
-// Tests ACCEPTABLE_MASTER_TABLE_ENABLED managment ID
+// Tests ACCEPTABLE_MASTER_TABLE_ENABLED management ID
 Test(Json2msgTest, ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1607,7 +1607,7 @@ Test(Json2msgTest, ACCEPTABLE_MASTER_TABLE_ENABLED)
     m->free(m);
 }
 
-// Tests ACCEPTABLE_MASTER_MAX_TABLE_SIZE managment ID
+// Tests ACCEPTABLE_MASTER_MAX_TABLE_SIZE management ID
 Test(Json2msgTest, ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1627,7 +1627,7 @@ Test(Json2msgTest, ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
     m->free(m);
 }
 
-// Tests ALTERNATE_MASTER managment ID
+// Tests ALTERNATE_MASTER management ID
 Test(Json2msgTest, ALTERNATE_MASTER)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1653,7 +1653,7 @@ Test(Json2msgTest, ALTERNATE_MASTER)
     m->free(m);
 }
 
-// Tests ALTERNATE_TIME_OFFSET_ENABLE managment ID
+// Tests ALTERNATE_TIME_OFFSET_ENABLE management ID
 Test(Json2msgTest, ALTERNATE_TIME_OFFSET_ENABLE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1677,7 +1677,7 @@ Test(Json2msgTest, ALTERNATE_TIME_OFFSET_ENABLE)
     m->free(m);
 }
 
-// Tests ALTERNATE_TIME_OFFSET_NAME managment ID
+// Tests ALTERNATE_TIME_OFFSET_NAME management ID
 Test(Json2msgTest, ALTERNATE_TIME_OFFSET_NAME)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1701,7 +1701,7 @@ Test(Json2msgTest, ALTERNATE_TIME_OFFSET_NAME)
     m->free(m);
 }
 
-// Tests ALTERNATE_TIME_OFFSET_MAX_KEY managment ID
+// Tests ALTERNATE_TIME_OFFSET_MAX_KEY management ID
 Test(Json2msgTest, ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1720,7 +1720,7 @@ Test(Json2msgTest, ALTERNATE_TIME_OFFSET_MAX_KEY)
     m->free(m);
 }
 
-// Tests ALTERNATE_TIME_OFFSET_PROPERTIES managment ID
+// Tests ALTERNATE_TIME_OFFSET_PROPERTIES management ID
 Test(Json2msgTest, ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1749,7 +1749,7 @@ Test(Json2msgTest, ALTERNATE_TIME_OFFSET_PROPERTIES)
     m->free(m);
 }
 
-// Tests TRANSPARENT_CLOCK_PORT_DATA_SET managment ID
+// Tests TRANSPARENT_CLOCK_PORT_DATA_SET management ID
 Test(Json2msgTest, TRANSPARENT_CLOCK_PORT_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1783,7 +1783,7 @@ Test(Json2msgTest, TRANSPARENT_CLOCK_PORT_DATA_SET)
     m->free(m);
 }
 
-// Tests LOG_MIN_PDELAY_REQ_INTERVAL managment ID
+// Tests LOG_MIN_PDELAY_REQ_INTERVAL management ID
 Test(Json2msgTest, LOG_MIN_PDELAY_REQ_INTERVAL)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1805,7 +1805,7 @@ Test(Json2msgTest, LOG_MIN_PDELAY_REQ_INTERVAL)
     m->free(m);
 }
 
-// Tests TRANSPARENT_CLOCK_DEFAULT_DATA_SET managment ID
+// Tests TRANSPARENT_CLOCK_DEFAULT_DATA_SET management ID
 Test(Json2msgTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1832,7 +1832,7 @@ Test(Json2msgTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     m->free(m);
 }
 
-// Tests PRIMARY_DOMAIN managment ID
+// Tests PRIMARY_DOMAIN management ID
 Test(Json2msgTest, PRIMARY_DOMAIN)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1853,7 +1853,7 @@ Test(Json2msgTest, PRIMARY_DOMAIN)
     m->free(m);
 }
 
-// Tests DELAY_MECHANISM managment ID
+// Tests DELAY_MECHANISM management ID
 Test(Json2msgTest, DELAY_MECHANISM)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1875,7 +1875,7 @@ Test(Json2msgTest, DELAY_MECHANISM)
     m->free(m);
 }
 
-// Tests EXTERNAL_PORT_CONFIGURATION_ENABLED managment ID
+// Tests EXTERNAL_PORT_CONFIGURATION_ENABLED management ID
 Test(Json2msgTest, EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1899,7 +1899,7 @@ Test(Json2msgTest, EXTERNAL_PORT_CONFIGURATION_ENABLED)
     m->free(m);
 }
 
-// Tests MASTER_ONLY managment ID
+// Tests MASTER_ONLY management ID
 Test(Json2msgTest, MASTER_ONLY)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1920,7 +1920,7 @@ Test(Json2msgTest, MASTER_ONLY)
     m->free(m);
 }
 
-// Tests HOLDOVER_UPGRADE_ENABLE managment ID
+// Tests HOLDOVER_UPGRADE_ENABLE management ID
 Test(Json2msgTest, HOLDOVER_UPGRADE_ENABLE)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1942,7 +1942,7 @@ Test(Json2msgTest, HOLDOVER_UPGRADE_ENABLE)
     m->free(m);
 }
 
-// Tests EXT_PORT_CONFIG_PORT_DATA_SET managment ID
+// Tests EXT_PORT_CONFIG_PORT_DATA_SET management ID
 Test(Json2msgTest, EXT_PORT_CONFIG_PORT_DATA_SET)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -1966,7 +1966,7 @@ Test(Json2msgTest, EXT_PORT_CONFIG_PORT_DATA_SET)
     m->free(m);
 }
 
-// Tests TIME_STATUS_NP managment ID
+// Tests TIME_STATUS_NP management ID
 Test(Json2msgTest, TIME_STATUS_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2002,7 +2002,7 @@ Test(Json2msgTest, TIME_STATUS_NP)
     m->free(m);
 }
 
-// Tests GRANDMASTER_SETTINGS_NP managment ID
+// Tests GRANDMASTER_SETTINGS_NP management ID
 Test(Json2msgTest, GRANDMASTER_SETTINGS_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2042,7 +2042,7 @@ Test(Json2msgTest, GRANDMASTER_SETTINGS_NP)
     m->free(m);
 }
 
-// Tests PORT_DATA_SET_NP managment ID
+// Tests PORT_DATA_SET_NP management ID
 Test(Json2msgTest, PORT_DATA_SET_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2066,7 +2066,7 @@ Test(Json2msgTest, PORT_DATA_SET_NP)
     m->free(m);
 }
 
-// Tests SUBSCRIBE_EVENTS_NP managment ID
+// Tests SUBSCRIBE_EVENTS_NP management ID
 Test(Json2msgTest, SUBSCRIBE_EVENTS_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2096,7 +2096,7 @@ Test(Json2msgTest, SUBSCRIBE_EVENTS_NP)
     m->free(m);
 }
 
-// Tests PORT_PROPERTIES_NP managment ID
+// Tests PORT_PROPERTIES_NP management ID
 Test(Json2msgTest, PORT_PROPERTIES_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2129,7 +2129,7 @@ Test(Json2msgTest, PORT_PROPERTIES_NP)
     m->free(m);
 }
 
-// Tests PORT_STATS_NP managment ID
+// Tests PORT_STATS_NP management ID
 Test(Json2msgTest, PORT_STATS_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2195,7 +2195,7 @@ Test(Json2msgTest, PORT_STATS_NP)
     m->free(m);
 }
 
-// Tests SYNCHRONIZATION_UNCERTAIN_NP managment ID
+// Tests SYNCHRONIZATION_UNCERTAIN_NP management ID
 Test(Json2msgTest, SYNCHRONIZATION_UNCERTAIN_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2217,7 +2217,7 @@ Test(Json2msgTest, SYNCHRONIZATION_UNCERTAIN_NP)
     m->free(m);
 }
 
-// Tests PORT_SERVICE_STATS_NP managment ID
+// Tests PORT_SERVICE_STATS_NP management ID
 Test(Json2msgTest, PORT_SERVICE_STATS_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2264,7 +2264,7 @@ Test(Json2msgTest, PORT_SERVICE_STATS_NP)
     m->free(m);
 }
 
-// Tests UNICAST_MASTER_TABLE_NP managment ID
+// Tests UNICAST_MASTER_TABLE_NP management ID
 Test(Json2msgTest, UNICAST_MASTER_TABLE_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2327,7 +2327,7 @@ Test(Json2msgTest, UNICAST_MASTER_TABLE_NP)
     m->free(m);
 }
 
-// Tests PORT_HWCLOCK_NP managment ID
+// Tests PORT_HWCLOCK_NP management ID
 Test(Json2msgTest, PORT_HWCLOCK_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2358,7 +2358,7 @@ Test(Json2msgTest, PORT_HWCLOCK_NP)
     m->free(m);
 }
 
-// Tests POWER_PROFILE_SETTINGS_NP managment ID
+// Tests POWER_PROFILE_SETTINGS_NP management ID
 Test(Json2msgTest, POWER_PROFILE_SETTINGS_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();
@@ -2385,7 +2385,7 @@ Test(Json2msgTest, POWER_PROFILE_SETTINGS_NP)
     m->free(m);
 }
 
-// Tests CMLDS_INFO_NP managment ID
+// Tests CMLDS_INFO_NP management ID
 Test(Json2msgTest, CMLDS_INFO_NP)
 {
     ptpmgmt_json m = ptpmgmt_json_alloc();

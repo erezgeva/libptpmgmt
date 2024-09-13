@@ -37,7 +37,7 @@ Currently the follow `std::vector<T>` maps are announced in `libptpmgmt.i`:
 
 
 The container can be part of another class or structure.  
-For example `std::vector<FaultRecord_t>` is part of `FAULT_LOG_t`, the structure used for FAULT_LOG Managment TLV.
+For example `std::vector<FaultRecord_t>` is part of `FAULT_LOG_t`, the structure used for FAULT_LOG Management TLV.
 
 It could be an argument of a function.  
 For example `std::vector<PtpEvent_t>` is an argument of `readEvents()`.

@@ -914,7 +914,7 @@ strc(ManagementId_t) {
 /** Receive Authentication modes */
 enm(MsgParams_RcvAuth_e) sz(: uint8_t) {
     NM(RCV_AUTH_NONE) = 0, /**< Ignore all Authentication TLVs */
-    /** Process Authentication TLVs of All Managment packts */
+    /** Process Authentication TLVs of All Management packts */
     NM(RCV_AUTH_MNG) = (1 << 0),
     /** Process last Authentication TLVs of Signaling */
     NM(RCV_AUTH_SIG_LAST) = (1 << 1),

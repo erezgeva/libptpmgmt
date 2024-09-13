@@ -3,7 +3,7 @@
 
 /** @file
  * @brief Simulate dummy PHC clock for ptp4l
- *        The purpose is to get Managment replies on UDS socket
+ *        The purpose is to get Management replies on UDS socket
  *         and run phc_ctl.
  *        Nothing beyond!
  *        If you wish to simulate a clocks network.

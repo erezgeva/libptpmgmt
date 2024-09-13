@@ -34,9 +34,9 @@ typedef const struct ptpmgmt_json_t *const_ptpmgmt_json;
 char *ptpmgmt_json_msg2json(const_ptpmgmt_msg message, int indent);
 
 /**
- * Convert PTP managment TLV to JSON string
- * @param[in] managementId PTP managment TLV id
- * @param[in] tlv PTP managment TLV
+ * Convert PTP management TLV to JSON string
+ * @param[in] managementId PTP management TLV id
+ * @param[in] tlv PTP management TLV
  * @param[in] indent base indent for the JSON string
  * @return JSON string
  * @note The caller @b MUST free the string after use!
@@ -53,8 +53,8 @@ struct ptpmgmt_json_t {
     void *_this; /**< pointer to actual C++ initialization object */
     struct ptpmgmt_PortIdentity_t *_srcPort; /**< Source port */
     struct ptpmgmt_PortIdentity_t *_dstPort; /**< Dest port */
-    void *data; /**< Managment TLV C copy */
-    void *dataTbl; /**< Managment TLV Table C copy */
+    void *data; /**< Management TLV C copy */
+    void *dataTbl; /**< Management TLV Table C copy */
     /**< @endcond */
 
     /**

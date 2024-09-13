@@ -86,7 +86,7 @@ class Message
     std::vector<std::unique_ptr<BaseSigTlv>> m_sigTlvs;
     /* hold signalling TLVs type */
     std::vector<tlvType_e> m_sigTlvsType;
-    /* parsed managment TLV */
+    /* parsed management TLV */
     std::unique_ptr<BaseMngTlv> m_dataGet;
 
     /* Generic */
@@ -121,7 +121,7 @@ class Message
         bool check = false);
     /*
      * dataFieldSize() for sending SET/COMMAND
-     * Get dataField of current build managment ID
+     * Get dataField of current build management ID
      * For id with non fixed size
      * The size is determined by the m_dataSend content
      */

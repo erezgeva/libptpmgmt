@@ -716,7 +716,7 @@ TEST(Json2msgTest, MessageParameters)
     EXPECT_EQ(p.self_id, p1);
 }
 
-// Tests CLOCK_DESCRIPTION managment ID
+// Tests CLOCK_DESCRIPTION management ID
 TEST(Json2msgTest, CLOCK_DESCRIPTION)
 {
     Json2msg m;
@@ -758,7 +758,7 @@ TEST(Json2msgTest, CLOCK_DESCRIPTION)
     EXPECT_EQ(memcmp(t->profileIdentity, "\x1\x2\x3\x4\x5\x6", 6), 0);
 }
 
-// Tests USER_DESCRIPTION managment ID
+// Tests USER_DESCRIPTION management ID
 TEST(Json2msgTest, USER_DESCRIPTION)
 {
     Json2msg m;
@@ -777,7 +777,7 @@ TEST(Json2msgTest, USER_DESCRIPTION)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests INITIALIZE managment ID
+// Tests INITIALIZE management ID
 TEST(Json2msgTest, INITIALIZE)
 {
     Json2msg m;
@@ -796,7 +796,7 @@ TEST(Json2msgTest, INITIALIZE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests FAULT_LOG managment ID
+// Tests FAULT_LOG management ID
 TEST(Json2msgTest, FAULT_LOG)
 {
     Json2msg m;
@@ -846,7 +846,7 @@ TEST(Json2msgTest, FAULT_LOG)
         "This is the second record");
 }
 
-// Tests DEFAULT_DATA_SET managment ID
+// Tests DEFAULT_DATA_SET management ID
 TEST(Json2msgTest, DEFAULT_DATA_SET)
 {
     Json2msg m;
@@ -884,7 +884,7 @@ TEST(Json2msgTest, DEFAULT_DATA_SET)
     EXPECT_EQ(t->domainNumber, 0);
 }
 
-// Tests CURRENT_DATA_SET managment ID
+// Tests CURRENT_DATA_SET management ID
 TEST(Json2msgTest, CURRENT_DATA_SET)
 {
     Json2msg m;
@@ -905,7 +905,7 @@ TEST(Json2msgTest, CURRENT_DATA_SET)
     EXPECT_EQ(t->meanPathDelay.scaledNanoseconds, 0x0906050403020100LL);
 }
 
-// Tests PARENT_DATA_SET managment ID
+// Tests PARENT_DATA_SET management ID
 TEST(Json2msgTest, PARENT_DATA_SET)
 {
     Json2msg m;
@@ -949,7 +949,7 @@ TEST(Json2msgTest, PARENT_DATA_SET)
     EXPECT_EQ(t->grandmasterIdentity, clockId);
 }
 
-// Tests TIME_PROPERTIES_DATA_SET managment ID
+// Tests TIME_PROPERTIES_DATA_SET management ID
 TEST(Json2msgTest, TIME_PROPERTIES_DATA_SET)
 {
     Json2msg m;
@@ -976,7 +976,7 @@ TEST(Json2msgTest, TIME_PROPERTIES_DATA_SET)
     EXPECT_EQ(t->timeSource, INTERNAL_OSCILLATOR);
 }
 
-// Tests PORT_DATA_SET managment ID
+// Tests PORT_DATA_SET management ID
 TEST(Json2msgTest, PORT_DATA_SET)
 {
     Json2msg m;
@@ -1017,7 +1017,7 @@ TEST(Json2msgTest, PORT_DATA_SET)
     EXPECT_EQ(t->versionNumber, 2);
 };
 
-// Tests PRIORITY1 managment ID
+// Tests PRIORITY1 management ID
 TEST(Json2msgTest, PRIORITY1)
 {
     Json2msg m;
@@ -1036,7 +1036,7 @@ TEST(Json2msgTest, PRIORITY1)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests PRIORITY2 managment ID
+// Tests PRIORITY2 management ID
 TEST(Json2msgTest, PRIORITY2)
 {
     Json2msg m;
@@ -1055,7 +1055,7 @@ TEST(Json2msgTest, PRIORITY2)
     EXPECT_EQ(t->priority2, 137);
 }
 
-// Tests DOMAIN managment ID
+// Tests DOMAIN management ID
 TEST(Json2msgTest, DOMAIN)
 {
     Json2msg m;
@@ -1074,7 +1074,7 @@ TEST(Json2msgTest, DOMAIN)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests SLAVE_ONLY managment ID
+// Tests SLAVE_ONLY management ID
 TEST(Json2msgTest, SLAVE_ONLY)
 {
     Json2msg m;
@@ -1093,7 +1093,7 @@ TEST(Json2msgTest, SLAVE_ONLY)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests LOG_ANNOUNCE_INTERVAL managment ID
+// Tests LOG_ANNOUNCE_INTERVAL management ID
 TEST(Json2msgTest, LOG_ANNOUNCE_INTERVAL)
 {
     Json2msg m;
@@ -1113,7 +1113,7 @@ TEST(Json2msgTest, LOG_ANNOUNCE_INTERVAL)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests ANNOUNCE_RECEIPT_TIMEOUT managment ID
+// Tests ANNOUNCE_RECEIPT_TIMEOUT management ID
 TEST(Json2msgTest, ANNOUNCE_RECEIPT_TIMEOUT)
 {
     Json2msg m;
@@ -1133,7 +1133,7 @@ TEST(Json2msgTest, ANNOUNCE_RECEIPT_TIMEOUT)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests LOG_SYNC_INTERVAL managment ID
+// Tests LOG_SYNC_INTERVAL management ID
 TEST(Json2msgTest, LOG_SYNC_INTERVAL)
 {
     Json2msg m;
@@ -1152,7 +1152,7 @@ TEST(Json2msgTest, LOG_SYNC_INTERVAL)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests VERSION_NUMBER managment ID
+// Tests VERSION_NUMBER management ID
 TEST(Json2msgTest, VERSION_NUMBER)
 {
     Json2msg m;
@@ -1171,7 +1171,7 @@ TEST(Json2msgTest, VERSION_NUMBER)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests TIME managment ID
+// Tests TIME management ID
 TEST(Json2msgTest, TIME)
 {
     Json2msg m;
@@ -1190,7 +1190,7 @@ TEST(Json2msgTest, TIME)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests CLOCK_ACCURACY managment ID
+// Tests CLOCK_ACCURACY management ID
 TEST(Json2msgTest, CLOCK_ACCURACY)
 {
     Json2msg m;
@@ -1209,7 +1209,7 @@ TEST(Json2msgTest, CLOCK_ACCURACY)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests UTC_PROPERTIES managment ID
+// Tests UTC_PROPERTIES management ID
 TEST(Json2msgTest, UTC_PROPERTIES)
 {
     Json2msg m;
@@ -1232,7 +1232,7 @@ TEST(Json2msgTest, UTC_PROPERTIES)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests TRACEABILITY_PROPERTIES managment ID
+// Tests TRACEABILITY_PROPERTIES management ID
 TEST(Json2msgTest, TRACEABILITY_PROPERTIES)
 {
     Json2msg m;
@@ -1253,7 +1253,7 @@ TEST(Json2msgTest, TRACEABILITY_PROPERTIES)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests TIMESCALE_PROPERTIES managment ID
+// Tests TIMESCALE_PROPERTIES management ID
 TEST(Json2msgTest, TIMESCALE_PROPERTIES)
 {
     Json2msg m;
@@ -1275,7 +1275,7 @@ TEST(Json2msgTest, TIMESCALE_PROPERTIES)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests UNICAST_NEGOTIATION_ENABLE managment ID
+// Tests UNICAST_NEGOTIATION_ENABLE management ID
 TEST(Json2msgTest, UNICAST_NEGOTIATION_ENABLE)
 {
     Json2msg m;
@@ -1295,7 +1295,7 @@ TEST(Json2msgTest, UNICAST_NEGOTIATION_ENABLE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests PATH_TRACE_LIST managment ID
+// Tests PATH_TRACE_LIST management ID
 TEST(Json2msgTest, PATH_TRACE_LIST)
 {
     Json2msg m;
@@ -1319,7 +1319,7 @@ TEST(Json2msgTest, PATH_TRACE_LIST)
     EXPECT_EQ(t->pathSequence[1], c2);
 }
 
-// Tests PATH_TRACE_ENABLE managment ID
+// Tests PATH_TRACE_ENABLE management ID
 TEST(Json2msgTest, PATH_TRACE_ENABLE)
 {
     Json2msg m;
@@ -1338,7 +1338,7 @@ TEST(Json2msgTest, PATH_TRACE_ENABLE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests GRANDMASTER_CLUSTER_TABLE managment ID
+// Tests GRANDMASTER_CLUSTER_TABLE management ID
 TEST(Json2msgTest, GRANDMASTER_CLUSTER_TABLE)
 {
     Json2msg m;
@@ -1377,7 +1377,7 @@ TEST(Json2msgTest, GRANDMASTER_CLUSTER_TABLE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests UNICAST_MASTER_TABLE managment ID
+// Tests UNICAST_MASTER_TABLE management ID
 TEST(Json2msgTest, UNICAST_MASTER_TABLE)
 {
     Json2msg m;
@@ -1416,7 +1416,7 @@ TEST(Json2msgTest, UNICAST_MASTER_TABLE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests UNICAST_MASTER_MAX_TABLE_SIZE managment ID
+// Tests UNICAST_MASTER_MAX_TABLE_SIZE management ID
 TEST(Json2msgTest, UNICAST_MASTER_MAX_TABLE_SIZE)
 {
     Json2msg m;
@@ -1434,7 +1434,7 @@ TEST(Json2msgTest, UNICAST_MASTER_MAX_TABLE_SIZE)
     EXPECT_EQ(t->maxTableSize, 0x2143);
 }
 
-// Tests ACCEPTABLE_MASTER_TABLE managment ID
+// Tests ACCEPTABLE_MASTER_TABLE management ID
 TEST(Json2msgTest, ACCEPTABLE_MASTER_TABLE)
 {
     Json2msg m;
@@ -1480,7 +1480,7 @@ TEST(Json2msgTest, ACCEPTABLE_MASTER_TABLE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests ACCEPTABLE_MASTER_TABLE_ENABLED managment ID
+// Tests ACCEPTABLE_MASTER_TABLE_ENABLED management ID
 TEST(Json2msgTest, ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
     Json2msg m;
@@ -1500,7 +1500,7 @@ TEST(Json2msgTest, ACCEPTABLE_MASTER_TABLE_ENABLED)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests ACCEPTABLE_MASTER_MAX_TABLE_SIZE managment ID
+// Tests ACCEPTABLE_MASTER_MAX_TABLE_SIZE management ID
 TEST(Json2msgTest, ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
     Json2msg m;
@@ -1518,7 +1518,7 @@ TEST(Json2msgTest, ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
     EXPECT_EQ(t->maxTableSize, 0x67ba);
 }
 
-// Tests ALTERNATE_MASTER managment ID
+// Tests ALTERNATE_MASTER management ID
 TEST(Json2msgTest, ALTERNATE_MASTER)
 {
     Json2msg m;
@@ -1541,7 +1541,7 @@ TEST(Json2msgTest, ALTERNATE_MASTER)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests ALTERNATE_TIME_OFFSET_ENABLE managment ID
+// Tests ALTERNATE_TIME_OFFSET_ENABLE management ID
 TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_ENABLE)
 {
     Json2msg m;
@@ -1563,7 +1563,7 @@ TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_ENABLE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests ALTERNATE_TIME_OFFSET_NAME managment ID
+// Tests ALTERNATE_TIME_OFFSET_NAME management ID
 TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_NAME)
 {
     Json2msg m;
@@ -1585,7 +1585,7 @@ TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_NAME)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests ALTERNATE_TIME_OFFSET_MAX_KEY managment ID
+// Tests ALTERNATE_TIME_OFFSET_MAX_KEY management ID
 TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
     Json2msg m;
@@ -1603,7 +1603,7 @@ TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_MAX_KEY)
     EXPECT_EQ(t->maxKey, 9);
 }
 
-// Tests ALTERNATE_TIME_OFFSET_PROPERTIES managment ID
+// Tests ALTERNATE_TIME_OFFSET_PROPERTIES management ID
 TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
     Json2msg m;
@@ -1629,7 +1629,7 @@ TEST(Json2msgTest, ALTERNATE_TIME_OFFSET_PROPERTIES)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests TRANSPARENT_CLOCK_PORT_DATA_SET managment ID
+// Tests TRANSPARENT_CLOCK_PORT_DATA_SET management ID
 TEST(Json2msgTest, TRANSPARENT_CLOCK_PORT_DATA_SET)
 {
     Json2msg m;
@@ -1659,7 +1659,7 @@ TEST(Json2msgTest, TRANSPARENT_CLOCK_PORT_DATA_SET)
     EXPECT_EQ(t->peerMeanPathDelay.scaledNanoseconds, 0xdcf87240dcd12301LL);
 }
 
-// Tests LOG_MIN_PDELAY_REQ_INTERVAL managment ID
+// Tests LOG_MIN_PDELAY_REQ_INTERVAL management ID
 TEST(Json2msgTest, LOG_MIN_PDELAY_REQ_INTERVAL)
 {
     Json2msg m;
@@ -1679,7 +1679,7 @@ TEST(Json2msgTest, LOG_MIN_PDELAY_REQ_INTERVAL)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests TRANSPARENT_CLOCK_DEFAULT_DATA_SET managment ID
+// Tests TRANSPARENT_CLOCK_DEFAULT_DATA_SET management ID
 TEST(Json2msgTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
 {
     Json2msg m;
@@ -1705,7 +1705,7 @@ TEST(Json2msgTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     EXPECT_EQ(t->primaryDomain, 18);
 }
 
-// Tests PRIMARY_DOMAIN managment ID
+// Tests PRIMARY_DOMAIN management ID
 TEST(Json2msgTest, PRIMARY_DOMAIN)
 {
     Json2msg m;
@@ -1724,7 +1724,7 @@ TEST(Json2msgTest, PRIMARY_DOMAIN)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests DELAY_MECHANISM managment ID
+// Tests DELAY_MECHANISM management ID
 TEST(Json2msgTest, DELAY_MECHANISM)
 {
     Json2msg m;
@@ -1743,7 +1743,7 @@ TEST(Json2msgTest, DELAY_MECHANISM)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests EXTERNAL_PORT_CONFIGURATION_ENABLED managment ID
+// Tests EXTERNAL_PORT_CONFIGURATION_ENABLED management ID
 TEST(Json2msgTest, EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
     Json2msg m;
@@ -1764,7 +1764,7 @@ TEST(Json2msgTest, EXTERNAL_PORT_CONFIGURATION_ENABLED)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests MASTER_ONLY managment ID
+// Tests MASTER_ONLY management ID
 TEST(Json2msgTest, MASTER_ONLY)
 {
     Json2msg m;
@@ -1783,7 +1783,7 @@ TEST(Json2msgTest, MASTER_ONLY)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests HOLDOVER_UPGRADE_ENABLE managment ID
+// Tests HOLDOVER_UPGRADE_ENABLE management ID
 TEST(Json2msgTest, HOLDOVER_UPGRADE_ENABLE)
 {
     Json2msg m;
@@ -1803,7 +1803,7 @@ TEST(Json2msgTest, HOLDOVER_UPGRADE_ENABLE)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests EXT_PORT_CONFIG_PORT_DATA_SET managment ID
+// Tests EXT_PORT_CONFIG_PORT_DATA_SET management ID
 TEST(Json2msgTest, EXT_PORT_CONFIG_PORT_DATA_SET)
 {
     Json2msg m;
@@ -1825,7 +1825,7 @@ TEST(Json2msgTest, EXT_PORT_CONFIG_PORT_DATA_SET)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests TIME_STATUS_NP managment ID
+// Tests TIME_STATUS_NP management ID
 TEST(Json2msgTest, TIME_STATUS_NP)
 {
     Json2msg m;
@@ -1861,7 +1861,7 @@ TEST(Json2msgTest, TIME_STATUS_NP)
     EXPECT_EQ(t->gmIdentity, clockId);
 }
 
-// Tests GRANDMASTER_SETTINGS_NP managment ID
+// Tests GRANDMASTER_SETTINGS_NP management ID
 TEST(Json2msgTest, GRANDMASTER_SETTINGS_NP)
 {
     Json2msg m;
@@ -1899,7 +1899,7 @@ TEST(Json2msgTest, GRANDMASTER_SETTINGS_NP)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests PORT_DATA_SET_NP managment ID
+// Tests PORT_DATA_SET_NP management ID
 TEST(Json2msgTest, PORT_DATA_SET_NP)
 {
     Json2msg m;
@@ -1920,7 +1920,7 @@ TEST(Json2msgTest, PORT_DATA_SET_NP)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests SUBSCRIBE_EVENTS_NP managment ID
+// Tests SUBSCRIBE_EVENTS_NP management ID
 TEST(Json2msgTest, SUBSCRIBE_EVENTS_NP)
 {
     Json2msg m;
@@ -1947,7 +1947,7 @@ TEST(Json2msgTest, SUBSCRIBE_EVENTS_NP)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests PORT_PROPERTIES_NP managment ID
+// Tests PORT_PROPERTIES_NP management ID
 TEST(Json2msgTest, PORT_PROPERTIES_NP)
 {
     Json2msg m;
@@ -1976,7 +1976,7 @@ TEST(Json2msgTest, PORT_PROPERTIES_NP)
     EXPECT_STREQ(t->interface.string(), "enp0s25");
 }
 
-// Tests PORT_STATS_NP managment ID
+// Tests PORT_STATS_NP management ID
 TEST(Json2msgTest, PORT_STATS_NP)
 {
     Json2msg m;
@@ -2039,7 +2039,7 @@ TEST(Json2msgTest, PORT_STATS_NP)
     EXPECT_EQ(t->txMsgType[STAT_MANAGEMENT], 0);
 }
 
-// Tests SYNCHRONIZATION_UNCERTAIN_NP managment ID
+// Tests SYNCHRONIZATION_UNCERTAIN_NP management ID
 TEST(Json2msgTest, SYNCHRONIZATION_UNCERTAIN_NP)
 {
     Json2msg m;
@@ -2059,7 +2059,7 @@ TEST(Json2msgTest, SYNCHRONIZATION_UNCERTAIN_NP)
     EXPECT_TRUE(m.setAction(msg));
 }
 
-// Tests PORT_SERVICE_STATS_NP managment ID
+// Tests PORT_SERVICE_STATS_NP management ID
 TEST(Json2msgTest, PORT_SERVICE_STATS_NP)
 {
     Json2msg m;
@@ -2103,7 +2103,7 @@ TEST(Json2msgTest, PORT_SERVICE_STATS_NP)
     EXPECT_EQ(t->followup_mismatch, 0);
 }
 
-// Tests UNICAST_MASTER_TABLE_NP managment ID
+// Tests UNICAST_MASTER_TABLE_NP management ID
 TEST(Json2msgTest, UNICAST_MASTER_TABLE_NP)
 {
     Json2msg m;
@@ -2159,7 +2159,7 @@ TEST(Json2msgTest, UNICAST_MASTER_TABLE_NP)
     EXPECT_EQ(t->unicastMasters[0].portAddress, portAddress);
 }
 
-// Tests PORT_HWCLOCK_NP managment ID
+// Tests PORT_HWCLOCK_NP management ID
 TEST(Json2msgTest, PORT_HWCLOCK_NP)
 {
     Json2msg m;
@@ -2186,7 +2186,7 @@ TEST(Json2msgTest, PORT_HWCLOCK_NP)
     EXPECT_EQ(t->flags, 7);
 }
 
-// Tests POWER_PROFILE_SETTINGS_NP managment ID
+// Tests POWER_PROFILE_SETTINGS_NP management ID
 TEST(Json2msgTest, POWER_PROFILE_SETTINGS_NP)
 {
     Json2msg m;
@@ -2212,7 +2212,7 @@ TEST(Json2msgTest, POWER_PROFILE_SETTINGS_NP)
     EXPECT_EQ(t->totalTimeInaccuracy, 4223530875);
 }
 
-// Tests CMLDS_INFO_NP managment ID
+// Tests CMLDS_INFO_NP management ID
 TEST(Json2msgTest, CMLDS_INFO_NP)
 {
     Json2msg m;

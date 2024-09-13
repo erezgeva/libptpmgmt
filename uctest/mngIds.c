@@ -9,7 +9,7 @@
  *
  */
 
-#include "msg.h" // We use message class to test managment IDs behavier
+#include "msg.h" // We use message class to test management IDs behavier
 #include "mngIds.h"
 
 Test(MngIDsTest, NULL_PTP_MANAGEMENT)

@@ -43,8 +43,8 @@ void addTlv(uint8_t *buf, size_t *curLen, enum ptpmgmt_tlvType_e type,
     *curLen += len + 4;
 }
 
-// Tests one managment TLV
-Test(SigTest, OneManagmentTlvs)
+// Tests one management TLV
+Test(SigTest, OneManagementTlvs)
 {
     size_t curLen;
     ptpmgmt_msg m;
@@ -70,8 +70,8 @@ Test(SigTest, OneManagmentTlvs)
     m->free(m);
 }
 
-// Tests two managment TLVs
-Test(SigTest, TwoManagmentTlvs)
+// Tests two management TLVs
+Test(SigTest, TwoManagementTlvs)
 {
     size_t curLen;
     ptpmgmt_msg m;
@@ -105,8 +105,8 @@ Test(SigTest, TwoManagmentTlvs)
     m->free(m);
 }
 
-// Tests organization and two managment TLVs
-Test(SigTest, OrgTwoManagmentTlvs)
+// Tests organization and two management TLVs
+Test(SigTest, OrgTwoManagementTlvs)
 {
     size_t curLen;
     ptpmgmt_msg m;
@@ -151,7 +151,7 @@ Test(SigTest, OrgTwoManagmentTlvs)
     m->free(m);
 }
 
-// Tests loop two managment TLV
+// Tests loop two management TLV
 struct cookie_t { size_t cnt; };
 static bool loopCheck(void *cookie, const_ptpmgmt_msg m,
     enum ptpmgmt_tlvType_e tlvType, const void *tlv)
@@ -180,7 +180,7 @@ static bool loopCheck(void *cookie, const_ptpmgmt_msg m,
     }
     return true;
 }
-Test(SigTest, LoopTwoManagmentTlvs)
+Test(SigTest, LoopTwoManagementTlvs)
 {
     size_t curLen;
     ptpmgmt_msg m;
@@ -318,7 +318,7 @@ Test(SigTest, FilterWithOrgTlvs)
     m->free(m);
 }
 
-// Tests managment error, alternate time offset,
+// Tests management error, alternate time offset,
 //  layer 1 synchronization, port communication availability,
 //  protocol address and cumulative rate ratio TLVs
 Test(SigTest, MngErrMoreTlvs)

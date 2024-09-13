@@ -54,8 +54,8 @@ struct ptpmgmt_msg_t {
     /** The last user dataSend ysed in calling setAction */
     const void *dataSend;
     void *sendTlv; /**< The BaseMngTlv object used to send on C++ */
-    void *data; /**< Received managment TLV converted to C */
-    void *dataTbl; /**< Received managment TLV table converted to C */
+    void *data; /**< Received management TLV converted to C */
+    void *dataTbl; /**< Received management TLV table converted to C */
     void *dataSig1; /**< Last signalling converted to C part 1 */
     void *dataSig2; /**< Last signalling converted to C part 2 */
     void *dataSig3; /**< Last signalling converted to C part 3 */
