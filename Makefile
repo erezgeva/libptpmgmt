@@ -832,7 +832,8 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.mod */$(LIB_SRC) wrappers/*/$(SWIG_NAME).cpp\
   wrappers/*/$(SWIG_NAME).h tools/doxygen*cfg $(CLKMGR_DIR)/utest/utest_*\
-  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo) $(D_FILES) $(LIB_SRC)\
+  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/sample/clkmgr*test)\
+  $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache wrappers/go/allocTlv.i $(CLKMGR_PROXY)\

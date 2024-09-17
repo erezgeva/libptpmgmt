@@ -52,8 +52,13 @@ config_ubuntu()
 }
 build_prepare_ubuntu()
 {
+ local -r url=http://de.archive.ubuntu.com/ubuntu/pool/universe/libr/librtpi
+ local -r aver=1.0.0-3_amd64
+ wget -c $url/librtpi1_$aver.deb
+ wget -c $url/librtpi-dev_$aver.deb
  apt_install libtool libtool-bin autoconf automake nettle-dev libgnutls28-dev\
    chrpath
+ sudo dpkg -i *.deb
  config_ubuntu
  config_report
 }
