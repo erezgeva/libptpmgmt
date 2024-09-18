@@ -76,9 +76,91 @@ class ClkMgrSubscription
 
   public:
     ClkMgrSubscription() noexcept : event_mask(0), composite_event_mask(0) {}
-    DECLARE_ACCESSOR(event_mask); /**< Event mask accessor */
-    DECLARE_ACCESSOR(composite_event_mask); /**< Composite event accessor */
-    DECLARE_ACCESSOR(threshold); /**< Threshold accessor */
+
+    /**
+    * @brief Get the constant reference to the event mask.
+    * @return Constant reference to the event mask.
+    */
+    const decltype(event_mask) &getc_event_mask() { return event_mask; }
+
+    /**
+    * @brief Get the reference to the event mask.
+    * @return Reference to the event mask.
+    */
+    decltype(event_mask) &get_event_mask() { return event_mask; }
+
+    /**
+    * @brief Set the event mask.
+    * @param[in] event_mask The new event mask to set.
+    */
+    void set_event_mask(const decltype(event_mask) &event_mask) {
+        this->event_mask = event_mask;
+    }
+
+    /**
+    * @brief Get the value of the event mask.
+    * @return The value of the event mask.
+    */
+    decltype(event_mask) c_get_val_event_mask() const { return event_mask; }
+
+    /**
+    * @brief Get the constant reference to the composite event mask.
+    * @return Constant reference to the composite event mask.
+    */
+    const decltype(composite_event_mask) &getc_composite_event_mask() {
+        return composite_event_mask;
+    }
+
+    /**
+    * @brief Get the reference to the composite event mask.
+    * @return Reference to the composite event mask.
+    */
+    decltype(composite_event_mask) &get_composite_event_mask() {
+        return composite_event_mask;
+    }
+
+    /**
+    * @brief Set the composite event mask.
+    * @param[in] composite_event_mask The new composite event mask to set.
+    */
+    void set_composite_event_mask(const decltype(composite_event_mask)
+        &composite_event_mask) {
+        this->composite_event_mask = composite_event_mask;
+    }
+
+    /**
+    * @brief Get the value of the composite event mask.
+    * @return The value of the composite event mask.
+    */
+    decltype(composite_event_mask) c_get_val_composite_event_mask() const {
+        return composite_event_mask;
+    }
+
+    /**
+    * @brief Get the constant reference to the threshold.
+    * @return Constant reference to the threshold.
+    */
+    const decltype(threshold) &getc_threshold() { return threshold; }
+
+    /**
+    * @brief Get the reference to the threshold.
+    * @return Reference to the threshold.
+    */
+    decltype(threshold) &get_threshold() { return threshold; }
+
+    /**
+    * @brief Set the threshold.
+    * @param[in] threshold The new threshold to set.
+    */
+    void set_threshold(const decltype(threshold) &threshold) {
+        this->threshold = threshold;
+    }
+
+    /**
+    * @brief Get the value of the threshold.
+    * @return The value of the threshold.
+    */
+    decltype(threshold) c_get_val_threshold() const { return threshold; }
 
     /**
      * @brief Define the upper and lower limits of a specific event

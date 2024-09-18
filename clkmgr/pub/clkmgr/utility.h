@@ -24,17 +24,6 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-/**
- * @brief Macro to declare accessor functions for a member variable.
- * @param varname The name of the member variable.
- */
-#define DECLARE_ACCESSOR(varname) \
-    const decltype(varname) &getc_##varname() { return varname; } \
-    decltype(varname) &get_##varname() { return varname; } \
-    void set_##varname (const decltype(varname) &varname) \
-    { this->varname = varname; } \
-    decltype(varname) c_get_val_##varname () const { return varname; }
-
 /** Maximum number of character for transport client ID */
 #define TRANSPORT_CLIENTID_LENGTH (512)
 
