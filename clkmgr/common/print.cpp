@@ -11,9 +11,9 @@
 
 #include <common/print.hpp>
 
+#include <cstdio>
 #include <cstring>
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 
 __CLKMGR_NAMESPACE_USE
@@ -27,20 +27,25 @@ void clkmgr::_PrintError(std::string msg, uint16_t line,
     std::string file, std::string func,
     errno_type errnum)
 {
-    cerr << "*** Error: " + msg + " " + (errnum != (errno_type) - 1 ? strerror(
-                errnum) : "") + " at line " + to_string(line) +
-        " in " + file + ":" + func + "\n";
-    cerr.flush();
+    fprintf(stderr, "*** Error: %s %s at line %u in %s: %s\n",
+        msg.c_str(),
+        errnum != (errno_type)(-1) ? strerror(errnum) : "",
+        line,
+        file.c_str(),
+        func.c_str());
+    fflush(stderr);
 }
 
 void clkmgr::_PrintDebug(std::string msg, uint16_t line,
     std::string file, std::string func)
 {
     if(currentLogLevel <= DEBUG) {
-        cerr << "**  Debug: " + msg + " at line " + to_string(line)
-            + " in " + file +
-            ":" + func + "\n";
-        cerr.flush();
+        fprintf(stderr, "*** Debug: %s at line %u in %s: %s\n",
+            msg.c_str(),
+            line,
+            file.c_str(),
+            func.c_str());
+        fflush(stderr);
     }
 }
 
@@ -48,10 +53,12 @@ void clkmgr::_PrintInfo(std::string msg, uint16_t line, std::string file,
     std::string func)
 {
     if(currentLogLevel <= INFO) {
-        cerr << "*   Info: " + msg + " at line " + to_string(line)
-            + " in " + file + ":"
-            + func + "\n";
-        cerr.flush();
+        fprintf(stderr, "* Info: %s at line %u in %s: %s\n",
+            msg.c_str(),
+            line,
+            file.c_str(),
+            func.c_str());
+        fflush(stderr);
     }
 }
 
@@ -82,6 +89,6 @@ void clkmgr::_DumpOctetArray(string msg, const uint8_t *arr,
     }
     if(addcr)
         output << "\n";
-    cerr << output.str();
-    cerr.flush();
+    fprintf(stderr, "%s", output.str().c_str());
+    fflush(stderr);
 }

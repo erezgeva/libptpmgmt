@@ -9,7 +9,6 @@
  *
  */
 
-#include <iostream>
 #include <signal.h>
 
 #include <common/print.hpp>

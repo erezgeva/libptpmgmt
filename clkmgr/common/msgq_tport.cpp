@@ -11,7 +11,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
 #include <mqueue.h>
 #include <string.h>
 #include <sys/stat.h>

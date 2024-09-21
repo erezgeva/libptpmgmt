@@ -11,7 +11,6 @@
 
 #include <chrono>
 #include <cstring>
-#include <iostream>
 
 #include <client/connect_msg.hpp>
 #include <client/msgq_tport.hpp>

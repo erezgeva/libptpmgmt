@@ -10,7 +10,6 @@
  */
 
 #include <cstring>
-#include <iostream>
 #include <string>
 
 #include <client/msgq_tport.hpp>

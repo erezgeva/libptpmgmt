@@ -9,9 +9,9 @@
  *
  */
 
+#include <cstdio>
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
 #include <mqueue.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -75,7 +75,7 @@ bool ProxyMessageQueue::initTransport()
     mqNativeListenerDesc = mq_open(mqProxyName.c_str(), RX_QUEUE_FLAGS,
             RX_QUEUE_MODE, &mq_attr);
     if(mqNativeListenerDesc == -1) {
-        cout << "mq_open failed " << strerror(errno) << endl;
+        printf("mq_open failed %s\n", strerror(errno));
         return false;
     }
     if(InvalidTransportWorkDesc ==

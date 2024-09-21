@@ -9,7 +9,7 @@
  *
  */
 
-#include <iostream>
+#include <cstdio>
 #include <getopt.h>
 
 #include <common/print.hpp>
@@ -32,34 +32,36 @@ int main(int argc, char *argv[])
             case 't':
                 value = std::stoi(optarg);
                 if(value < 0 || value > 255) {
-                    std::cerr << "Invalid transport specific value: " << "\n";
+                    fprintf(stderr, "Invalid transport specific value: %s\n",
+                        optarg);
                     return EXIT_FAILURE;
                 }
                 transport_specific = static_cast<uint8_t>(value);
                 break;
             case 'h':
-                std::cout << "Usage of " << argv[0] << " :\n"
+                printf("Usage of %s:\n"
                     "Options:\n"
                     " -t transport specific\n"
-                    "    Default: 0x" << std::hex <<
-                    static_cast<unsigned int>(transport_specific) << "\n";
+                    "    Default: 0x%x\n",
+                    argv[0], transport_specific);
                 return EXIT_SUCCESS;
             default:
-                std::cerr << "Usage of " << argv[0] << " :\n"
+                fprintf(stderr, "Usage of %s:\n"
                     "Options:\n"
                     " -t transport specific\n"
-                    "    Default: 0x" << std::hex <<
-                    static_cast<unsigned int>(transport_specific) << "\n";
+                    "    Default: 0x%x\n",
+                    argv[0],
+                    transport_specific);
                 return EXIT_FAILURE;
         }
     }
     BlockStopSignal();
     if(!ProxyTransport::init()) {
-        cout << "Transport init failed" << endl;
+        printf("Transport init failed\n");
         return -1;
     }
     if(!ProxyMessage::init()) {
-        cout << "Message init failed" << endl;
+        printf("Message init failed\n");
         return -1;
     }
     Connect::connect(transport_specific);
@@ -67,11 +69,11 @@ int main(int argc, char *argv[])
     PrintDebug("Got stop signal");
     Connect::disconnect();
     if(!ProxyTransport::stop()) {
-        cout << "stop failed" << endl;
+        printf("stop failed\n");
         return -1;
     }
     if(!ProxyTransport::finalize()) {
-        cout << "finalize failed" << endl;
+        printf("finalize failed\n");
         return -1;
     }
     return 0;
