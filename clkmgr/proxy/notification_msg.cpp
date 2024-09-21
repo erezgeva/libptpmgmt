@@ -10,10 +10,10 @@
  *
  */
 
-#include <common/message.hpp>
-#include <common/print.hpp>
-#include <common/serialize.hpp>
-#include <proxy/notification_msg.hpp>
+#include "common/message.hpp"
+#include "common/print.hpp"
+#include "common/serialize.hpp"
+#include "proxy/notification_msg.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

@@ -9,18 +9,18 @@
  *
  */
 
+#include "pub/clockmanager.h"
+#include "client/connect_msg.hpp"
+#include "client/msgq_tport.hpp"
+#include "client/notification_msg.hpp"
+#include "client/subscribe_msg.hpp"
+#include "common/print.hpp"
+#include "common/sighandler.hpp"
+
 #include <chrono>
 #include <cstring>
-
-#include <client/connect_msg.hpp>
-#include <client/msgq_tport.hpp>
-#include <client/notification_msg.hpp>
-#include <client/subscribe_msg.hpp>
-#include <common/print.hpp>
-#include <common/sighandler.hpp>
 #include <rtpi/condition_variable.hpp>
 #include <rtpi/mutex.hpp>
-#include "clockmanager.h"
 
 #define DEFAULT_LIVENESS_TIMEOUT_IN_MS 50  //50 ms
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec

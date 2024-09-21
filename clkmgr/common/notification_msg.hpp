@@ -13,10 +13,10 @@
 #ifndef COMMON_NOTIFICATION_MSG_HPP
 #define COMMON_NOTIFICATION_MSG_HPP
 
-#include <cstdint>
+#include "common/message.hpp"
+#include "common/transport.hpp"
 
-#include <common/message.hpp>
-#include <common/transport.hpp>
+#include <cstdint>
 
 __CLKMGR_NAMESPACE_BEGIN
 

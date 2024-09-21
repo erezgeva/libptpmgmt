@@ -9,7 +9,7 @@
  *
  */
 
-#include "thread.hpp"
+#include "proxy/thread.hpp"
 
 static int start_work_thread(struct ptp4l_handle *handle)
 {

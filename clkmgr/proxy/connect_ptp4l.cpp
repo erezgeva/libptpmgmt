@@ -9,6 +9,14 @@
  *
  */
 
+#include "common/print.hpp"
+#include "proxy/client.hpp"
+#include "proxy/connect_ptp4l.hpp"
+#include "proxy/notification_msg.hpp"
+#include "proxy/thread.hpp"
+
+#include "init.h" /* libptpmgmt */
+
 #include <libgen.h>
 #include <map>
 #include <poll.h>
@@ -17,13 +25,6 @@
 #include <string>
 #include <sys/epoll.h>
 #include <unistd.h>
-
-#include <common/print.hpp>
-#include <proxy/client.hpp>
-#include <proxy/connect_ptp4l.hpp>
-#include <proxy/notification_msg.hpp>
-#include "thread.hpp"
-#include "../../pub/init.h"
 
 __CLKMGR_NAMESPACE_USE
 

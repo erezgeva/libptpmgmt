@@ -9,6 +9,12 @@
  *
  */
 
+#include "common/print.hpp"
+#include "common/sighandler.hpp"
+#include "common/util.hpp"
+#include "proxy/message.hpp"
+#include "proxy/msgq_tport.hpp"
+
 #include <cstdio>
 #include <errno.h>
 #include <fcntl.h>
@@ -16,12 +22,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <thread>
-
-#include <common/print.hpp>
-#include <common/sighandler.hpp>
-#include <common/util.hpp>
-#include <proxy/message.hpp>
-#include <proxy/msgq_tport.hpp>
 
 __CLKMGR_NAMESPACE_USE
 

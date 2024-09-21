@@ -9,10 +9,10 @@
  *
  */
 
-#include <signal.h>
+#include "common/print.hpp"
+#include "common/sighandler.hpp"
 
-#include <common/print.hpp>
-#include <common/sighandler.hpp>
+#include <signal.h>
 
 #define INTR_SIGNAL (SIGUSR1)
 

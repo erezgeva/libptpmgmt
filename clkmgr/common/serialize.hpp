@@ -12,12 +12,12 @@
 #ifndef SERIALIZE_HPP
 #define SERIALIZE_HPP
 
+#include "common/transport.hpp"
+
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
-
-#include <common/transport.hpp>
 
 #define PARSE_RX(type,var,lc)                       \
     ({                              \

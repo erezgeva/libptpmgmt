@@ -12,8 +12,9 @@
 #ifndef COMMON_JCLTYPES_HPP
 #define COMMON_JCLTYPES_HPP
 
+#include "common/util.hpp"
+
 #include <cstdint>
-#include <common/util.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

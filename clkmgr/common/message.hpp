@@ -13,12 +13,12 @@
 #ifndef COMMON_MESSAGE_HPP
 #define COMMON_MESSAGE_HPP
 
+#include "common/clkmgrtypes.hpp"
+#include "common/transport.hpp"
+
 #include <functional>
 #include <map>
 #include <memory>
-
-#include <common/clkmgrtypes.hpp>
-#include <common/transport.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

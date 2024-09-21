@@ -13,9 +13,9 @@
 #ifndef COMMON_SUBSCRIBE_MSG_HPP
 #define COMMON_SUBSCRIBE_MSG_HPP
 
-#include <clkmgr/subscription.h>
-#include <common/message.hpp>
-#include <common/ptp_event.hpp>
+#include "pub/clkmgr/subscription.h"
+#include "common/message.hpp"
+#include "common/ptp_event.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

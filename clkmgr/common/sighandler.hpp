@@ -12,8 +12,9 @@
 #ifndef SIGHANDLER_HPP
 #define SIGHANDLER_HPP
 
+#include "common/util.hpp"
+
 #include <thread>
-#include <common/util.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

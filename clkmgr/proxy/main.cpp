@@ -12,11 +12,11 @@
 #include <cstdio>
 #include <getopt.h>
 
-#include <common/print.hpp>
-#include <common/sighandler.hpp>
-#include <proxy/connect_ptp4l.hpp>
-#include <proxy/message.hpp>
-#include <proxy/transport.hpp>
+#include "common/print.hpp"
+#include "common/sighandler.hpp"
+#include "proxy/connect_ptp4l.hpp"
+#include "proxy/message.hpp"
+#include "proxy/transport.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

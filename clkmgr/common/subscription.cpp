@@ -9,7 +9,7 @@
  *
  */
 
-#include <clkmgr/subscription.h>
+#include "pub/clkmgr/subscription.h"
 
 __CLKMGR_NAMESPACE_USE
 

@@ -94,7 +94,7 @@ class ClockManager
 
 __CLKMGR_NAMESPACE_END
 #else /* __cplusplus */
-#include "clkmgr/clockmanager_c.h"
+#include <clkmgr/clockmanager_c.h>
 #endif /* __cplusplus */
 
 #endif /* CLOCKMANAGER_H */

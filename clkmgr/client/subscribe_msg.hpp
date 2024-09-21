@@ -13,9 +13,10 @@
 #ifndef CLIENT_SUBSCRIBE_MSG_HPP
 #define CLIENT_SUBSCRIBE_MSG_HPP
 
-#include <client/message.hpp>
-#include <clkmgr/client_state.h>
-#include <common/subscribe_msg.hpp>
+#include "pub/clkmgr/client_state.h"
+#include "client/message.hpp"
+#include "common/subscribe_msg.hpp"
+
 #include <rtpi/condition_variable.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN

@@ -10,12 +10,12 @@
  *
  */
 
-#include <common/print.hpp>
-#include <common/sighandler.hpp>
-#include <common/util.hpp>
-#include <proxy/msgq_tport.hpp>
-#include <proxy/null_tport.hpp>
-#include <proxy/transport.hpp>
+#include "common/print.hpp"
+#include "common/sighandler.hpp"
+#include "common/util.hpp"
+#include "proxy/msgq_tport.hpp"
+#include "proxy/null_tport.hpp"
+#include "proxy/transport.hpp"
 
 #define EXIT_TIMEOUT    (200 /*ms*/)
 #define START_TIMEOUT   (20 /*ms*/)

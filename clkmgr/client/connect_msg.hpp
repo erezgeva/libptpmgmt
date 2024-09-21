@@ -12,8 +12,9 @@
 #ifndef CLIENT_CONNECT_MSG_HPP
 #define CLIENT_CONNECT_MSG_HPP
 
-#include <client/message.hpp>
-#include <common/connect_msg.hpp>
+#include "client/message.hpp"
+#include "common/connect_msg.hpp"
+
 #include <rtpi/condition_variable.hpp>
 #include <rtpi/mutex.hpp>
 

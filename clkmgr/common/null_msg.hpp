@@ -12,7 +12,7 @@
 #ifndef COMMON_NULL_MSG_HPP
 #define COMMON_NULL_MSG_HPP
 
-#include <common/message.hpp>
+#include "common/message.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

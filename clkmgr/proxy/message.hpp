@@ -13,11 +13,11 @@
 #ifndef PROXY_MESSAGE_HPP
 #define PROXY_MESSAGE_HPP
 
+#include "common/message.hpp"
+
 #include <cstdint>
 #include <map>
 #include <memory>
-
-#include <common/message.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

@@ -10,10 +10,10 @@
  *
  */
 
-#include <proxy/connect_msg.hpp>
-#include <proxy/notification_msg.hpp>
-#include <proxy/null_msg.hpp>
-#include <proxy/subscribe_msg.hpp>
+#include "proxy/connect_msg.hpp"
+#include "proxy/notification_msg.hpp"
+#include "proxy/null_msg.hpp"
+#include "proxy/subscribe_msg.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

@@ -9,6 +9,8 @@
  *
  */
 
+#include "common/ptp_event.hpp"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -21,8 +23,6 @@
 #include <sys/un.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include <common/ptp_event.hpp>
 
 typedef struct ptp4l_handle *ptp4l_handle_t;
 typedef struct clkmgr_handle *clkmgr_handle_t;

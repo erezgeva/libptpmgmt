@@ -9,10 +9,10 @@
  *
  */
 
-#include <client/connect_msg.hpp>
-#include <common/print.hpp>
-#include <common/ptp_event.hpp>
-#include <common/serialize.hpp>
+#include "client/connect_msg.hpp"
+#include "common/print.hpp"
+#include "common/ptp_event.hpp"
+#include "common/serialize.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

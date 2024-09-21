@@ -12,16 +12,16 @@
 #ifndef CLIENT_MSGQ_TPORT_HPP
 #define CLIENT_MSGQ_TPORT_HPP
 
+#include "client/transport.hpp"
+#include "common/connect_msg.hpp"
+#include "common/msgq_tport.hpp"
+#include "common/util.hpp"
+
 #include <cstdint>
 #include <future>
 #include <memory>
 #include <mqueue.h>
 #include <string>
-
-#include <client/transport.hpp>
-#include <common/connect_msg.hpp>
-#include <common/msgq_tport.hpp>
-#include <common/util.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

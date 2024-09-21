@@ -12,9 +12,10 @@
 #ifndef PTP_EVENT_HPP
 #define PTP_EVENT_HPP
 
+#include "common/util.hpp"
+
 #include <atomic>
 #include <cstdint>
-#include <common/util.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

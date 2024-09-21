@@ -13,17 +13,17 @@
 #ifndef PROXY_TRANSPORT_HPP
 #define PROXY_TRANSPORT_HPP
 
+#include "common/transport.hpp"
+#include "common/util.hpp"
+#include "proxy/connect_msg.hpp"
+#include "proxy/message.hpp"
+
 #include <cstdint>
 #include <functional>
 #include <future>
 #include <memory>
 #include <thread>
 #include <vector>
-
-#include <common/transport.hpp>
-#include <common/util.hpp>
-#include <proxy/connect_msg.hpp>
-#include <proxy/message.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

@@ -9,7 +9,7 @@
  *
  */
 
-#include <common/null_msg.hpp>
+#include "common/null_msg.hpp"
 
 __CLKMGR_NAMESPACE_USE
 

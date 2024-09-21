@@ -12,10 +12,11 @@
 #ifndef PRINT_HPP
 #define PRINT_HPP
 
+#include "common/util.hpp"
+
 #include <cstdint>
 #include <errno.h>
 #include <string>
-#include <common/util.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

@@ -9,6 +9,13 @@
  *
  */
 
+#include "client/connect_msg.hpp"
+#include "client/msgq_tport.hpp"
+#include "client/subscribe_msg.hpp"
+#include "common/print.hpp"
+#include "common/sighandler.hpp"
+#include "common/util.hpp"
+
 #include <cstring>
 #include <errno.h>
 #include <fcntl.h>
@@ -16,13 +23,6 @@
 #include <sys/stat.h>
 #include <thread>
 #include <unistd.h>
-
-#include <client/connect_msg.hpp>
-#include <client/msgq_tport.hpp>
-#include <client/subscribe_msg.hpp>
-#include <common/print.hpp>
-#include <common/sighandler.hpp>
-#include <common/util.hpp>
 
 __CLKMGR_NAMESPACE_USE
 

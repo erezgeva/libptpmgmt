@@ -9,8 +9,8 @@
  *
  */
 
-#include "clkmgr/clockmanager_c.h"
-#include "clockmanager.h"
+#include "pub/clkmgr/clockmanager_c.h"
+#include "pub/clockmanager.h"
 
 clkmgr_c_client_ptr clkmgr_c_client_create()
 {

@@ -12,8 +12,8 @@
 #ifndef CLIENT_NULL_MSG_HPP
 #define CLIENT_NULL_MSG_HPP
 
-#include <client/message.hpp>
-#include <common/null_msg.hpp>
+#include "client/message.hpp"
+#include "common/null_msg.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

@@ -13,12 +13,12 @@
 #ifndef CLIENT_MESSAGE_HPP
 #define CLIENT_MESSAGE_HPP
 
+#include "pub/clkmgr/client_state.h"
+#include "common/message.hpp"
+
 #include <cstdint>
 #include <map>
 #include <memory>
-
-#include <clkmgr/client_state.h>
-#include <common/message.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

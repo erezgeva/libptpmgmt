@@ -12,14 +12,14 @@
 #ifndef COMMON_MSGQ_TPORT_HPP
 #define COMMON_MSGQ_TPORT_HPP
 
+#include "common/transport.hpp"
+#include "common/util.hpp"
+
 #include <cstdint>
 #include <future>
 #include <memory>
 #include <mqueue.h>
 #include <string>
-
-#include <common/transport.hpp>
-#include <common/util.hpp>
 
 #define MESSAGE_QUEUE_PREFIX "/clkmgr"
 
