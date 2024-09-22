@@ -51,7 +51,6 @@ Pmc_option Options::startOptions[] = {
     { 'F', "sa_file", true, true },
     { 0 },
 };
-
 string Options::helpStore::get(size_t length) const
 {
     string ret = m_start;
@@ -62,13 +61,11 @@ string Options::helpStore::get(size_t length) const
     ret += "\n";
     return ret;
 }
-
 Options::Options(bool useDef)
 {
     if(useDef)
         useDefOption();
 }
-
 void Options::useDefOption()
 {
     if(m_useDef)
@@ -89,7 +86,6 @@ void Options::useDefOption()
         insert(*cur);
     m_useDef = true;
 }
-
 bool Options::insert(const Pmc_option &opt)
 {
     // Verify we use legal character for short
@@ -140,7 +136,6 @@ bool Options::insert(const Pmc_option &opt)
     }
     return true;
 }
-
 const char *Options::get_help()
 {
     if(helpUpdate) {
@@ -151,7 +146,14 @@ const char *Options::get_help()
     }
     return help.c_str();
 }
-
+const string &Options::get_msg() const
+{
+    return m_msg;
+}
+const char *Options::get_msg_c() const
+{
+    return m_msg.c_str();
+}
 Options::loop_val Options::parse_options(int argc, char *const argv[])
 {
     int c;
@@ -207,10 +209,34 @@ Options::loop_val Options::parse_options(int argc, char *const argv[])
     m_end_optind = optind;
     return OPT_DONE;
 }
+bool Options::have(char opt) const
+{
+    return m_opts.count(opt) > 0;
+}
 const string &Options::val(char opt) const
 {
     static const string empty;
     return have(opt) ? m_opts.at(opt) : empty;
+}
+const char *Options::val_c(char opt) const
+{
+    return have(opt) ? m_opts.at(opt).c_str() : "";
+}
+int Options::val_i(char opt) const
+{
+    return have(opt) ? atoi(m_opts.at(opt).c_str()) : 0;
+}
+char Options::get_net_transport() const
+{
+    return m_net_select;
+}
+bool Options::have_more() const
+{
+    return m_end_optind < m_argc;
+}
+int Options::process_next() const
+{
+    return m_end_optind;
 }
 
 __PTPMGMT_NAMESPACE_END
@@ -259,7 +285,7 @@ extern "C" {
     static const char *ptpmgmt_opt_get_msg(ptpmgmt_opt me)
     {
         if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->get_msg().c_str();
+            return ((Options *)me->_this)->get_msg_c();
         return nullptr;
     }
     static ptpmgmt_opt_loop_val ptpmgmt_opt_parse_options(ptpmgmt_opt me,
