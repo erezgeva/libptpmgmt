@@ -101,16 +101,6 @@ static inline bool ensureDir(const char *name)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-
-void SockBase::closeBase()
-{
-    if(m_fd >= 0) {
-        ::close(m_fd);
-        m_fd = -1;
-    }
-    closeChild();
-    m_isInit = false;
-}
 bool SockBase::sendReply(ssize_t cnt, size_t len) const
 {
     if(cnt < 0) {
@@ -123,6 +113,59 @@ bool SockBase::sendReply(ssize_t cnt, size_t len) const
     }
     PTPMGMT_ERROR_CLR;
     return true;
+}
+void SockBase::closeBase()
+{
+    if(m_fd >= 0) {
+        ::close(m_fd);
+        m_fd = -1;
+    }
+    closeChild();
+    m_isInit = false;
+}
+SockBase::~SockBase()
+{
+    closeBase();
+}
+void SockBase::close()
+{
+    closeBase();
+}
+bool SockBase::init()
+{
+    return initBase();
+}
+bool SockBase::send(const void *msg, size_t len)
+{
+    return sendBase(msg, len);
+}
+bool SockBase::send(Buf &buf, size_t len)
+{
+    return sendBase(buf.get(), len);
+}
+bool SockBase::sendBuf(Buf &buf, size_t len)
+{
+    return sendBase(buf.get(), len);
+}
+ssize_t SockBase::rcv(void *buf, size_t bufSize, bool block)
+{
+    return rcvBase(buf, bufSize, block);
+}
+ssize_t SockBase::rcv(Buf &buf, bool block)
+{
+    return rcvBase(buf.get(), buf.size(), block);
+}
+ssize_t SockBase::rcvBuf(Buf &buf, bool block)
+{
+    return rcvBase(buf.get(), buf.size(), block);
+}
+int SockBase::getFd() const
+{
+    return m_fd;
+}
+int SockBase::fileno() const
+{
+    return m_fd;
 }
 bool SockBase::poll(uint64_t timeout_ms) const
 {
@@ -227,9 +270,41 @@ bool SockUnix::setPeerInternal(const string &str, bool useAbstract)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockUnix::setSelfAddress(const string &str)
+SockUnix::SockUnix()
 {
-    return setSelfAddress(str, false);
+    setUnixAddr(m_peerAddr, m_peer);
+}
+const string &SockUnix::getPeerAddress() const
+{
+    return m_peer;
+}
+const char *SockUnix::getPeerAddress_c() const
+{
+    return m_peer.c_str();
+}
+bool SockUnix::isPeerAddressAbstract() const
+{
+    return isAddressAbstract(m_peer);
+}
+bool SockUnix::setPeerAddress(const string &string, bool useAbstract)
+{
+    return setPeerInternal(string, useAbstract);
+}
+bool SockUnix::setPeerAddress(const ConfigFile &cfg, const string &section)
+{
+    return setPeerInternal(cfg.uds_address(section), false);
+}
+const string &SockUnix::getSelfAddress() const
+{
+    return m_me;
+}
+const char *SockUnix::getSelfAddress_c() const
+{
+    return m_me.c_str();
+}
+bool SockUnix::isSelfAddressAbstract() const
+{
+    return isAddressAbstract(m_me);
 }
 bool SockUnix::setSelfAddress(const string &str, bool useAbstract)
 {
@@ -312,10 +387,6 @@ bool SockUnix::sendBase(const void *msg, size_t len)
         return false;
     return sendAny(msg, len, m_peerAddr);
 }
-bool SockUnix::sendTo(const void *msg, size_t len, const string &addrStr) const
-{
-    return sendTo(msg, len, addrStr, false);
-}
 bool SockUnix::sendTo(const void *msg, size_t len, const string &addrStr,
     bool useAbstract) const
 {
@@ -331,6 +402,11 @@ bool SockUnix::sendTo(const void *msg, size_t len, const string &addrStr,
     else
         setUnixAddr(addr, addrStr);
     return sendAny(msg, len, addr);
+}
+bool SockUnix::sendTo(Buf &buf, size_t len, const string &addrStr,
+    bool useAbstract) const
+{
+    return sendTo(buf.get(), len, addrStr, useAbstract);
 }
 ssize_t SockUnix::rcvBase(void *buf, size_t bufSize, bool block)
 {
@@ -376,6 +452,38 @@ ssize_t SockUnix::rcvFrom(void *buf, size_t bufSize, string &from,
     PTPMGMT_ERROR_CLR;
     return cnt;
 }
+ssize_t SockUnix::rcvFrom(Buf &buf, string &from, bool block) const
+{
+    return rcvFrom(buf.get(), buf.size(), from, block);
+}
+ssize_t SockUnix::rcvFrom(void *buf, size_t bufSize, bool block)
+{
+    return rcvFrom(buf, bufSize, m_lastFrom, block);
+}
+ssize_t SockUnix::rcvFrom(Buf &buf, bool block)
+{
+    return rcvFrom(buf.get(), buf.size(), m_lastFrom, block);
+}
+ssize_t SockUnix::rcvBufFrom(Buf &buf, bool block)
+{
+    return rcvFrom(buf.get(), buf.size(), m_lastFrom, block);
+}
+const string &SockUnix::getLastFrom() const
+{
+    return m_lastFrom;
+}
+const char *SockUnix::getLastFrom_c() const
+{
+    return m_lastFrom.c_str();
+}
+bool SockUnix::isLastFromAbstract() const
+{
+    return isAddressAbstract(m_lastFrom);
+}
+bool SockUnix::isAddressAbstract(const string &addr)
+{
+    return !addr.empty() && addr[0] == 0;
+}
 bool SockBaseIf::setInt(const IfInfo &ifObj)
 {
     m_ifName = ifObj.ifName();
@@ -416,6 +524,16 @@ bool SockBaseIf::setIf(const IfInfo &ifObj)
     if(!ifObj.isInit())
         return false;
     return setInt(ifObj);
+}
+bool SockBaseIf::setAll(const IfInfo &ifObj, const ConfigFile &cfg,
+    const string &section)
+{
+    return setIf(ifObj) && setAllBase(cfg, section);
+}
+bool SockBaseIf::setAllInit(const IfInfo &ifObj, const ConfigFile &cfg,
+    const string &section)
+{
+    return setAll(ifObj, cfg, section) && initBase();
 }
 SockIp::SockIp(int domain, const char *mcast, sockaddr *addr, size_t len) :
     m_domain(domain),
@@ -673,10 +791,6 @@ bool SockRaw::setPtpDstMac(const Binary &mac)
     return true;
 }
 bool SockRaw::setPtpDstMac(const void *mac, size_t len)
-{
-    return setPtpDstMac(Binary(mac, len));
-}
-bool SockRaw::setPtpDstMac(const uint8_t *mac, size_t len)
 {
     return setPtpDstMac(Binary(mac, len));
 }
