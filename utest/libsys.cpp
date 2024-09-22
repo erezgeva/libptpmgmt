@@ -49,7 +49,6 @@ struct fdesc_info {
 };
 std::map<int, fdesc_info> fdesc;
 std::map<clockid_t, int> clkId2FD;
-std::map<clockid_t, bool> clkId2Wr;
 static time_t cur_sec;
 void useTestMode(bool n)
 {
@@ -59,7 +58,6 @@ void useTestMode(bool n)
     cur_sec = 0;
     fdesc.clear();
     clkId2FD.clear();
-    clkId2Wr.clear();
 }
 void useRoot(bool n) {rootMode = n;}
 /*****************************************************************************/
@@ -245,7 +243,6 @@ static inline int l_open(const char *name, int flags)
         clockid_t clkID = fd_to_clockid(fd);
         fdesc[fd].clkID = clkID;
         clkId2FD[clkID] = fd;
-        clkId2Wr[clkID] = flags == O_RDWR;
     }
     return fd;
 }
@@ -322,10 +319,8 @@ int close(int fd)
 {
     if(testMode && fdesc.count(fd) > 0) {
         clockid_t clkID = fdesc[fd].clkID;
-        if(clkID != 0) {
+        if(clkID != 0)
             clkId2FD.erase(clkID);
-            clkId2Wr.erase(clkID);
-        }
         fdesc.erase(fd);
     }
     return _close(fd);

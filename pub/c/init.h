@@ -97,10 +97,10 @@ struct ptpmgmt_init_t {
 
     /**
      * Is the socket provide by this object, a Unix socket?
-     * @param[in, out] i init object
+     * @param[in] i init object
      * @return true if the socket is a UDS socket
      */
-    bool (*use_uds)(ptpmgmt_init i);
+    bool (*use_uds)(const_ptpmgmt_init i);
 
     /**
      * Allow unauthnticated parameter
