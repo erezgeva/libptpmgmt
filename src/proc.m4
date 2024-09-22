@@ -496,11 +496,7 @@ c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
 idf() * @param[in] event to set
 idf() */
 c_cod(`void ptpmgmt_setEvent_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv, int event);')dnl
-cpp_cod(`    void setEvent(int event) {')dnl
-cpp_cod(`        std::div_t d;')dnl
-cpp_cod(`        if(div_event(event, d))')dnl
-cpp_cod(`            bitmask[d.quot] |= d.rem;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    void setEvent(int event);')dnl
 idf()/**
 idf() * Clear event bit in bitmask
 c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
@@ -508,19 +504,13 @@ idf() * @param[in] event to clear
 idf() */
 c_cod(`void ptpmgmt_clearEvent_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv,')dnl
 c_cod(`    int event);')dnl
-cpp_cod(`    void clearEvent(int event) {')dnl
-cpp_cod(`        std::div_t d;')dnl
-cpp_cod(`        if(div_event(event, d))')dnl
-cpp_cod(`            bitmask[d.quot] &= ~d.rem;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    void clearEvent(int event);')dnl
 idf()/**
 idf() * Clear all events in bitmask
 c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
 idf() */
 c_cod(`void ptpmgmt_clearAll_lnp(struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv);')dnl
-cpp_cod(`    void clearAll() {')dnl
-cpp_cod(`        memset(bitmask, 0, EVENT_BITMASK_CNT);')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    void clearAll();')dnl
 idf()/**
 idf() * Get bit value in bitmask
 c_cod(idf()` * @param[in, out] tlv with the events storage')dnl
@@ -529,32 +519,15 @@ idf() * @return true if event set
 idf() */
 c_cod(`bool ptpmgmt_getEvent_lnp(const struct ptpmgmt_SUBSCRIBE_EVENTS_NP_t *tlv,')dnl
 c_cod(`    int event);')dnl
-cpp_cod(`    bool getEvent(int event) const {')dnl
-cpp_cod(`        std::div_t d;')dnl
-cpp_cod(`        if(div_event(event, d))')dnl
-cpp_cod(`            return (bitmask[d.quot] & d.rem) > 0;')dnl
-cpp_cod(`        return false;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool getEvent(int event) const;')dnl
 cpp_cod(`    /** @cond internal */')dnl
 cpp_cod(`    /** Divide event to byte and bit locations */')dnl
-cpp_cod(`    static std::div_t div_event(int event) {')dnl
-cpp_cod(`        std::div_t d;')dnl
-cpp_cod(`        div_event_wo(event, d);')dnl
-cpp_cod(`        return d;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static std::div_t div_event(int event);')dnl
 cpp_cod(`  private:')dnl
 cpp_cod(`    /** Divide event to byte and bit locations without check */')dnl
-cpp_cod(`    static void div_event_wo(int event, std::div_t &d) {')dnl
-cpp_cod(`        d = div(event, 8);')dnl
-cpp_cod(`        d.rem = 1 << d.rem;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static void div_event_wo(int event, std::div_t &d);')dnl
 cpp_cod(`    /** Divide event to byte and bit locations */')dnl
-cpp_cod(`    static bool div_event(int event, std::div_t &d) {')dnl
-cpp_cod(`        if(event < 0 || event >= EVENT_BITMASK_CNT)')dnl
-cpp_cod(`            return false;')dnl
-cpp_cod(`        div_event_wo(event, d);')dnl
-cpp_cod(`        return true;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static bool div_event(int event, std::div_t &d);')dnl
 cpp_cod(`    /**< @endcond */')dnl
 cpp_cod(`};')dnl
 /** Port properties TLV
