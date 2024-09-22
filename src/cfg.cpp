@@ -150,6 +150,10 @@ void ConfigFile::clear_sections()
     cfgGlobal = &cfgSec[globalSection];
     cfgGlobal->setGlobal(); // default values
 }
+ConfigFile::ConfigFile()
+{
+    clear_sections();
+}
 // read PTP configuration from file
 bool ConfigFile::read_cfg(const string &_file)
 {
@@ -223,7 +227,7 @@ get_func(network_transport)
 get_func32(active_key_id)
 get_func(spp)
 get_func(allow_unauth)
-bool ConfigFile::haveSpp(const std::string &section) const
+bool ConfigFile::haveSpp(const string &section) const
 {
     if(cfgGlobal->m_set[ConfigSection::spp_val])
         return true;
@@ -336,7 +340,7 @@ static key_limit_t key_limit[] = {
     [HMAC_AES128] = {16, 16},
     [HMAC_AES256] = {32, 16}
 };
-bool Spp::addKey(uint32_t id, HMAC_t type, Binary &value, size_t digest,
+bool Spp::addKey(uint32_t id, HMAC_t type, const Binary &value, size_t digest,
     bool replace)
 {
     // 0 reserved for disabled
@@ -380,25 +384,34 @@ bool Spp::addKey(uint32_t id, HMAC_t type, Binary &value, size_t digest,
     PTPMGMT_ERROR_CLR;
     return true;
 }
+bool Spp::have(uint32_t key) const
+{
+    return key > 0 && m_keys.count(key) > 0;
+}
+#define KET_AT(v, d) return have(id) ? m_keys.at(id).v : d
 size_t Spp::mac_size(uint32_t id) const
 {
-    if(have(id))
-        return m_keys.at(id).mac_size;
-    return 0;
+    KET_AT(mac_size, 0);
 }
 const Binary &Spp::key(uint32_t id) const
 {
-    if(have(id))
-        return m_keys.at(id).key;
-    return empty_key;
+    KET_AT(key, empty_key);
+}
+size_t Spp::keys() const
+{
+    return m_keys.size();
 }
 HMAC_t Spp::htype(uint32_t id) const
 {
-    if(have(id))
-        return m_keys.at(id).type;
-    return HMAC_SHA256; // Does not really matter
+    KET_AT(type, HMAC_SHA256); // Does not really matter
 }
-bool SaFile::read_sa(const std::string &_file)
+uint8_t Spp::ownID() const
+{
+    return m_own_id;
+}
+Spp::Spp(uint8_t id) : m_own_id(id) { }
+Spp::Spp() : m_own_id(-1) {}
+bool SaFile::read_sa(const string &_file)
 {
     if(_file.empty()) {
         PTPMGMT_ERROR("Empty file name");
@@ -483,14 +496,22 @@ lineErr2:
     fclose(f);
     return false;
 }
-bool SaFile::read_sa(const ConfigFile &cfg, const std::string &section)
+bool SaFile::read_sa(const ConfigFile &cfg, const string &section)
 {
-    const std::string &file = cfg.sa_file(section);
+    const string &file = cfg.sa_file(section);
     if(file.empty()) {
         PTPMGMT_ERROR("No sa_file in configuration file (%s)", section.c_str());
         return false;
     }
     return read_sa(file);
+}
+bool SaFile::have(uint8_t spp) const
+{
+    return m_spps.count(spp) > 0;
+}
+bool SaFile::have(uint8_t spp, uint32_t key) const
+{
+    return have(spp) && m_spps.at(spp).have(key);
 }
 const Spp &SaFile::spp(uint8_t sppID) const
 {
