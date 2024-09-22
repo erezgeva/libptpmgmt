@@ -18,6 +18,15 @@ $(TCL_LNAME).so_LDLIBS:=-Wl,-soname,$(SWIG_LIB_NAME)$(SONAME)
 $(TCL_LNAME).so: $(TCL_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(TCL_LNAME).so
+ifndef SKIP_CLKMGR
+TCL_CLKMGR:=$(TCL_D)/$(CLKMGR_NAME)
+$(TCL_CLKMGR).o: $(TCL_CLKMGR).cpp
+	$Q$(MKDIR_P) $(TCL_D)
+	$(call LLC,$(CXXFLAGS_TCL) -I$(TCL_D) $(TCL_INC_FLAGS) $(CLKMGR_CXXFLAGS))
+$(TCL_CLKMGR).so: $(TCL_CLKMGR).o $(CLKMGR_LIB_SO)
+	$(SWIG_LD)
+SWIG_ALL+=$(TCL_CLKMGR).so
+endif # SKIP_CLKMGR
 TCLDIR:=$(DESTDIR)$(TCL_SITE)/$(SWIG_LNAME)
 pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCL_MINVER)]} {return}\n
 pkgIndex+=package ifneeded $(SWIG_LNAME) $(PACKAGE_VERSION)

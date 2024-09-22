@@ -21,6 +21,14 @@ $(LUA_D)/$1/$(SWIG_NAME).o: $(LUA_D)/$(SWIG_NAME).cpp $(HEADERS)
 $$(LUA_LIB_$1): $(LUA_D)/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_LIB_$1)
+ifndef SKIP_CLKMGR
+$(LUA_D)/$1/$(CLKMGR_NAME).o: $(LUA_D)/$(CLKMGR_NAME).cpp
+	$Q$(MKDIR_P) $(LUA_D)/$1
+	$$(call LLC,$$(CXXFLAGS_LUA) $$(LUA_$$(subst .,_,$1)_INC_FLAGS) $(CLKMGR_CXXFLAGS))
+$(LUA_D)/$1/$(CLKMGR_NAME).so: $(LUA_D)/$1/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
+	$$(SWIG_LD)
+SWIG_ALL+=$(LUA_D)/$1/$(CLKMGR_NAME).so
+endif # SKIP_CLKMGR
 utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1)
 	$$(call Q_UTEST,Lua$1)LD_PRELOAD=$(ASAN_PRE)./$$< LUA_CPATH="$(LUA_D)/$1/?.so;;"\
 	  $(UVGD)lua$1 $(LUA_D)/utest.lua $(LUA_FILTERS)
@@ -41,6 +49,14 @@ $(LUA_D)/$(SWIG_NAME).o: $(LUA_D)/$(SWIG_NAME).cpp $(HEADERS)
 $(LUA_LIB): $(LUA_D)/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_LIB)
+ifndef SKIP_CLKMGR
+$(LUA_D)/$(CLKMGR_NAME).o: $(LUA_D)/$(CLKMGR_NAME).cpp
+	$Q$(MKDIR_P) $(LUA_D)
+	$(call LLC,$(CXXFLAGS_LUA) -I$(LUA_D) $(CLKMGR_CXXFLAGS))
+$(LUA_D)/$(CLKMGR_NAME).so: $(LUA_D)/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
+	$(SWIG_LD)
+SWIG_ALL+=$(LUA_D)/$(CLKMGR_NAME).so
+endif # SKIP_CLKMGR
 ifdef LUA_UNIT
 utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
 	$(call Q_UTEST,Lua)LD_PRELOAD=$(ASAN_PRE)./$< LUA_CPATH="$(LUA_D)/?.so;;"\

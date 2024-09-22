@@ -5,8 +5,9 @@
 # @copyright © 2023 Erez Geva
 #
 ###############################################################################
-/ptpmgmt.go
+/*.go
 /ptpmgmt/
+/clkmgr/
 /gtest/gtest
 /allocTlv.i
 go.mod

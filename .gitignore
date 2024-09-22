@@ -42,11 +42,10 @@
 /autom4te.cache/
 /*/.upgrade_cockie
 # In wrappers folder
-/wrappers/*/PtpMgmtLib.h
-/wrappers/*/PtpMgmtLib.cpp
-/wrappers/perl/PtpMgmtLib.pm
+/wrappers/*/*.h
+/wrappers/*/*.cpp
+/wrappers/perl/*.pm
 /wrappers/tcl/pkgIndex.tcl
-/wrappers/php/php_ptpmgmt.h
 /wrappers/php/php.ini
 # Doxygen
 /tools/doxygen.cfg
