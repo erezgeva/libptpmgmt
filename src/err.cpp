@@ -41,6 +41,34 @@ Error &Error::getCur()
     static thread_local Error obj;
     return obj;
 }
+bool Error::isError()
+{
+    return getCur().m_line > 0;
+}
+const string &Error::getError()
+{
+    return getCur().fetch();
+}
+const string &Error::getFile()
+{
+    return getCur().m_file;
+}
+int Error::getFileLine()
+{
+    return getCur().m_line;
+}
+const string &Error::getFunc()
+{
+    return getCur().m_func;
+}
+int Error::getErrno()
+{
+    return getCur().m_errno;
+}
+const string &Error::getMsg()
+{
+    return getCur().m_msg;
+}
 string Error::doFormat(const char *format, ...)
 {
     va_list va;

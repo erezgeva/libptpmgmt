@@ -52,26 +52,26 @@ class Init
      * Get configuration file object
      * @return object
      */
-    const ConfigFile &cfg() const { return m_cfg; }
+    const ConfigFile &cfg() const;
 
     /**
      * Get authentication security association file object
      * @return object
      */
-    const SaFile &sa() const { return m_sa; }
+    const SaFile &sa() const;
 
     /**
      * Get Message object
      * @return object
      */
-    Message &msg() { return m_msg; }
+    Message &msg();
 
     /**
      * Get Socket object
      * @return object or null if not exist
      * @note User @b should not try to free this socket object
      */
-    SockBase *sk() { return m_sk.get(); }
+    SockBase *sk() const;
 
     /**
      * Get network selection character
@@ -81,25 +81,19 @@ class Init
      *   '6' for a PTP IPv6 socket using a SockIp6 object,
      *   '2' for a PTP layer 2 socket using a SockRaw object,
      */
-    char getNetSelect() { return m_net_select; }
+    char getNetSelect() const;
 
     /**
      * Is the socket provide by this object, a Unix socket?
      * @return true if the socket is a UDS socket
      */
-    bool use_uds() const { return m_use_uds; }
+    bool use_uds() const;
 
     /**
      * Allow unauthnticated parameter
      * @return Allow unauthnticated value
      */
-    uint8_t allow_unauth() const { return m_allow_unauth; }
-
-    /** @cond internal
-     * obsolete function: misspelled
-     */
-    __PTPMGMT_DEPRECATED_DEC(int proccess(const Options &opt));
-    /**< @endcond */
+    uint8_t allow_unauth() const;
 };
 
 __PTPMGMT_NAMESPACE_END
