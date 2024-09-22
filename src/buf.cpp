@@ -13,6 +13,10 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
+Buf::Buf(size_t size)
+{
+    alloc(size);
+}
 Buf::~Buf()
 {
     if(m_buf != nullptr)
@@ -30,6 +34,18 @@ bool Buf::alloc(size_t size)
     m_buf = l_buf;
     m_size = size;
     return true;
+}
+void *Buf::get() const
+{
+    return m_buf;
+}
+size_t Buf::size() const
+{
+    return m_size;
+}
+bool Buf::isAlloc() const
+{
+    return m_size > 0;
 }
 
 __PTPMGMT_NAMESPACE_END
