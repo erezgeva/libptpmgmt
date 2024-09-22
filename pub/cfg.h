@@ -98,7 +98,7 @@ class ConfigFile
     bool is_global(int idx, const std::string &section) const;
 
   public:
-    ConfigFile() { clear_sections(); }
+    ConfigFile();
     /**
      * Read a configuration file and parse it
      * @param[in] file name with path
@@ -268,7 +268,7 @@ class Spp
      * @param[in] key ID
      * @return true if key exist
      */
-    bool have(uint32_t key) const { return key > 0 && m_keys.count(key) > 0; }
+    bool have(uint32_t key) const;
     /**
      * Get MAC digest size to use with the key
      * @param[in] key ID
@@ -285,7 +285,7 @@ class Spp
      * Get number of keys
      * @return Key or empty binary if key does not exist
      */
-    size_t keys() const { return m_keys.size(); }
+    size_t keys() const;
     /**
      * Get key type
      * @param[in] key ID
@@ -296,13 +296,13 @@ class Spp
      * Return own SPP ID
      * @return own SPP ID
      */
-    uint8_t ownID() const { return m_own_id; }
+    uint8_t ownID() const;
     /**
      * Construct empty SPP
      * @param[in] id of SPP
      */
-    Spp(uint8_t id) : m_own_id(id) {}
-    Spp() : m_own_id(-1) {}
+    Spp(uint8_t id);
+    Spp();
 };
 
 /**
@@ -337,16 +337,14 @@ class SaFile
      * @param[in] spp ID
      * @return true if SPP exist with at least one key
      */
-    bool have(uint8_t spp) const { return m_spps.count(spp) > 0; }
+    bool have(uint8_t spp) const;
     /**
      * Verify key exist in an SPP
      * @param[in] spp ID
      * @param[in] key ID
      * @return true if key exist
      */
-    bool have(uint8_t spp, uint32_t key) const {
-        return have(spp) && m_spps.at(spp).have(key);
-    }
+    bool have(uint8_t spp, uint32_t key) const;
     /**
      * Get SPP by spp ID
      * @param[in] spp ID
