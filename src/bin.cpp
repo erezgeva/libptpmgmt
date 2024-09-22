@@ -158,6 +158,26 @@ Binary &Binary::operator=(const Binary &rhs)
         return *this;
     return setBin(rhs.m_buf, rhs.m_size);
 }
+size_t Binary::length() const
+{
+    return m_size;
+}
+size_t Binary::size() const
+{
+    return m_size;
+}
+bool Binary::empty() const
+{
+    return m_size == 0;
+}
+const uint8_t *Binary::get() const
+{
+    return m_buf;
+}
+string Binary::getBinString() const
+{
+    return string((char *)m_buf, m_size);
+}
 Binary &Binary::setBin(const void *buf, const size_t length)
 {
     if(buf == nullptr || length == 0)
@@ -317,11 +337,11 @@ bool Binary::fromIp(const string &string)
         return false;
     return fromIp(string, domain);
 }
-string Binary::bufToId(const uint8_t *id, size_t len)
+string Binary::toId(const string &sep) const
 {
-    return bufToId(id, len, ":");
+    return bufToId(m_buf, m_size, sep);
 }
-string Binary::bufToId(const uint8_t *id, size_t len, const std::string &sep)
+string Binary::bufToId(const uint8_t *id, size_t len, const string &sep)
 {
     if(len < 1)
         return "";
@@ -350,6 +370,14 @@ bool Binary::fromId(const string &string)
     }
     setBin(id);
     return true;
+}
+bool Binary::fromMac(const string &string)
+{
+    return fromId(string) && isMacLen();
+}
+bool Binary::isMacLen() const
+{
+    return m_size == EUI48 || m_size == EUI64;
 }
 bool Binary::eui48ToEui64()
 {
@@ -392,6 +420,10 @@ bool Binary::fromHex(const string &hex)
     setBin(id);
     return true;
 }
+string Binary::toHex() const
+{
+    return bufToHex(m_buf, m_size);
+}
 string Binary::bufToHex(const uint8_t *bin, size_t len)
 {
     if(len < 1)
@@ -404,7 +436,7 @@ string Binary::bufToHex(const uint8_t *bin, size_t len)
     }
     return ret;
 }
-bool Binary::fromBase64(const std::string &bin64, bool pad)
+bool Binary::fromBase64(const string &bin64, bool pad)
 {
     // Empty string is empty binary
     if(bin64.empty()) {
@@ -458,12 +490,12 @@ bool Binary::fromBase64(const std::string &bin64, bool pad)
     setBin(id);
     return true;
 }
-std::string Binary::toBase64(bool pad, char v62, char v63)
+string Binary::toBase64(bool pad, char v62, char v63) const
 {
     if(m_size == 0) // Empty
         return "";
     char b64[64];
-    std::string ret;
+    string ret;
     size_t left = m_size;
     uint8_t *cur = m_buf;
     memcpy(b64, toB64, 62);

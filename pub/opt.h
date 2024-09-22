@@ -74,7 +74,7 @@ class Options
     };
     std::string help;
     std::vector<helpStore> helpVec;
-    bool helpUpdate = false;
+    void update_help();
 
   public:
     /** parsing return code */
@@ -104,17 +104,17 @@ class Options
      * Get help message
      * @return help message
      */
-    const char *get_help();
+    const char *get_help() const;
     /**
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const std::string &get_msg() const { return m_msg; }
+    const std::string &get_msg() const;
     /**
      * Get parse_options() message
      * @return message from last parse_options()
      */
-    const char *get_msg_c() const { return m_msg.c_str(); }
+    const char *get_msg_c() const;
     /**
      * Parse command line
      * @param[in] argc number of arguments
@@ -145,7 +145,7 @@ class Options
      * @param[in] opt short option character
      * @return true if option on command line
      */
-    bool have(char opt) const { return m_opts.count(opt) > 0; }
+    bool have(char opt) const;
     /**
      * get option value
      * @param[in] opt short option character
@@ -159,37 +159,30 @@ class Options
      * @return option char pointer of value string (C style)
      * @note relevant for option with argument
      */
-    const char *val_c(char opt) const
-    { return have(opt) ? m_opts.at(opt).c_str() : ""; }
+    const char *val_c(char opt) const;
     /**
      * get option integer value
      * @param[in] opt short option character
      * @return option integer value
      * @note relevant for option with argument of integer value
      */
-    int val_i(char opt) const
-    { return have(opt) ? atoi(m_opts.at(opt).c_str()) : 0; }
+    int val_i(char opt) const;
     /**
      * get Network Transport value
      * @return Network Transport
      * @note return 0 if not select on command line
      */
-    char get_net_transport() const { return m_net_select; }
+    char get_net_transport() const;
     /**
      * Do we have more argumends on the command line, left unprocessed
      * @return true if we have more to process
      */
-    bool have_more() const { return m_end_optind < m_argc; }
+    bool have_more() const;
     /**
      * First argumend on the command line, left unprocessed
      * @return index of argument
      */
-    int process_next() const { return m_end_optind; }
-    /** @cond internal
-     * obsolete function: misspelled
-     */
-    __PTPMGMT_DEPRECATED(int procces_next() const, return process_next())
-    /**< @endcond */
+    int process_next() const;
 };
 
 __PTPMGMT_NAMESPACE_END

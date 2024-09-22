@@ -424,9 +424,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get interval from time interval in nanoseconds')dnl
 cpp_cod(`     * @return scaled time interval in nanoseconds')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    float_nanoseconds getInterval() const {')dnl
-cpp_cod(`        return (float_nanoseconds)scaledNanoseconds / 0x10000;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    float_nanoseconds getInterval() const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Get interval from time interval in nanoseconds, trunc to integer')dnl
 cpp_cod(`     * @return scaled time interval in nanoseconds')dnl
@@ -437,17 +435,13 @@ cpp_cod(`    int64_t getIntervalInt() const;')dnl
 strc(Timestamp_t) {
     UInteger48_t secondsField; /**< seconds */
     UInteger32_t nanosecondsField; /**< nanoseconds */
-cpp_cod(`    /**')dnl
-cpp_cod(`     * Default constructor')dnl
-cpp_cod(`     */')dnl
-cpp_cod(`    Timestamp_t() : secondsField(0), nanosecondsField(0) {}')dnl
+cpp_cod(`    Timestamp_t(); /**< Default constructor */')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Constructor')dnl
 cpp_cod(`     * @param[in] secs Seconds')dnl
 cpp_cod(`     * @param[in] nsecs Nanoseconds')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    Timestamp_t(int64_t secs, uint32_t nsecs) : secondsField(secs),')dnl
-cpp_cod(`        nanosecondsField(nsecs) {}')dnl
+cpp_cod(`    Timestamp_t(int64_t secs, uint32_t nsecs);')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
@@ -470,10 +464,7 @@ cpp_cod(`     * Convert from timespec')dnl
 cpp_cod(`     * @param[in] ts timespec structure')dnl
 cpp_cod(`     * @note scripts should not use the timespec structure')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    Timestamp_t(const timespec &ts) {')dnl
-cpp_cod(`        secondsField = ts.tv_sec;')dnl
-cpp_cod(`        nanosecondsField = ts.tv_nsec;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    Timestamp_t(const timespec &ts);')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to timespec')dnl
 cpp_cod(`     * @note scripts should not use the timespec structure')dnl
@@ -484,10 +475,7 @@ cpp_cod(`     * Convert to timespec')dnl
 cpp_cod(`     * @param[in, out] ts timespec structure')dnl
 cpp_cod(`     * @note scripts should not use the timespec structure')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    void toTimespec(timespec &ts) const {')dnl
-cpp_cod(`        ts.tv_sec = secondsField;')dnl
-cpp_cod(`        ts.tv_nsec = nanosecondsField;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    void toTimespec(timespec &ts) const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert from timeval')dnl
 cpp_cod(`     * @param[in] tv timeval structure')dnl
@@ -514,7 +502,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert from seconds with fractions')dnl
 cpp_cod(`     * @param[in] seconds with fractions')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    Timestamp_t(float_seconds seconds) {fromFloat(seconds);}')dnl
+cpp_cod(`    Timestamp_t(float_seconds seconds);')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert from seconds with fractions')dnl
 cpp_cod(`     * @param[in] seconds with fractions')dnl
@@ -551,10 +539,7 @@ cpp_cod(`     * Compare to another clock time')dnl
 cpp_cod(`     * @param[in] ts another clock time')dnl
 cpp_cod(`     * @return true if the same time')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    bool eq(const Timestamp_t &ts) const {')dnl
-cpp_cod(`        return secondsField == ts.secondsField &&')dnl
-cpp_cod(`            nanosecondsField == ts.nanosecondsField;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool eq(const Timestamp_t &ts) const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare to seconds with fractions')dnl
 cpp_cod(`     * @param[in] seconds')dnl
@@ -582,11 +567,7 @@ cpp_cod(`     * Compare to another clock time')dnl
 cpp_cod(`     * @param[in] ts another clock time')dnl
 cpp_cod(`     * @return true if smaller then other time')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    bool less(const Timestamp_t &ts) const {')dnl
-cpp_cod(`        return secondsField < ts.secondsField ||')dnl
-cpp_cod(`            (secondsField == ts.secondsField &&')dnl
-cpp_cod(`                nanosecondsField < ts.nanosecondsField);')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool less(const Timestamp_t &ts) const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare to seconds with fractions')dnl
 cpp_cod(`     * @param[in] seconds')dnl
@@ -670,7 +651,7 @@ cpp_cod(`     * Subtract seconds with fractions')dnl
 cpp_cod(`     * @param[in] seconds')dnl
 cpp_cod(`     * @return reference to itself')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    Timestamp_t &subt(float_seconds seconds) { return add(-seconds); }')dnl
+cpp_cod(`    Timestamp_t &subt(float_seconds seconds);')dnl
 };
 /** PTP clock ID */
 strc(ClockIdentity_t) {
@@ -689,7 +670,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Clear clock ID and set all octets to val')dnl
 cpp_cod(`     * @param[in] val value to set all octets')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    void clear(int val = 0) {memset(v, val, 8);}')dnl
+cpp_cod(`    void clear(int val = 0);')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare to another clock ID')dnl
 cpp_cod(`     * @param[in] rhs another clock id')dnl
@@ -701,9 +682,7 @@ cpp_cod(`     * Compare to another clock ID')dnl
 cpp_cod(`     * @param[in] rhs another clock id')dnl
 cpp_cod(`     * @return true if IDs are indentical')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    bool eq(const ClockIdentity_t &rhs) const {')dnl
-cpp_cod(`        return memcmp(v, rhs.v, size()) == 0;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool eq(const ClockIdentity_t &rhs) const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare to another clock ID')dnl
 cpp_cod(`     * @param[in] rhs another clock id')dnl
@@ -715,9 +694,7 @@ cpp_cod(`     * Compare to another clock ID')dnl
 cpp_cod(`     * @param[in] rhs another clock id')dnl
 cpp_cod(`     * @return true if ID is smaller')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    bool less(const ClockIdentity_t &rhs) const {')dnl
-cpp_cod(`        return memcmp(v, rhs.v, size()) < 0;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool less(const ClockIdentity_t &rhs) const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare equal with a binary value')dnl
 cpp_cod(`     * @param[in] bin another clock id')dnl
@@ -729,10 +706,7 @@ cpp_cod(`     * Compare equal with a binary value')dnl
 cpp_cod(`     * @param[in] bin another clock id')dnl
 cpp_cod(`     * @return true if binary is equal')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    bool eq(const Binary &bin) const {')dnl
-cpp_cod(`        return bin.size() == size() &&')dnl
-cpp_cod(`            memcmp(v, bin.get(), size()) == 0;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool eq(const Binary &bin) const;')dnl
 };
 /** PTP port ID */
 strc(PortIdentity_t) {
@@ -751,7 +725,7 @@ cpp_cod(`    std::string string() const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Clear port ID and set all octets to val')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    void clear() {clockIdentity.clear(); portNumber = 0;}')dnl
+cpp_cod(`    void clear();')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare to another port ID')dnl
 cpp_cod(`     * @param[in] rhs another port id')dnl
@@ -763,9 +737,7 @@ cpp_cod(`     * Compare to another port ID')dnl
 cpp_cod(`     * @param[in] rhs another port id')dnl
 cpp_cod(`     * @return true if IDs are indentical')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    bool eq(const PortIdentity_t &rhs) const {')dnl
-cpp_cod(`        return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool eq(const PortIdentity_t &rhs) const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare to another port ID')dnl
 cpp_cod(`     * @param[in] rhs another port id')dnl
@@ -814,10 +786,7 @@ cpp_cod(`     * Compare to another port address')dnl
 cpp_cod(`     * @param[in] rhs another port address')dnl
 cpp_cod(`     * @return true if addresses are indentical')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    bool eq(const PortAddress_t &rhs) const {')dnl
-cpp_cod(`        return networkProtocol == rhs.networkProtocol &&')dnl
-cpp_cod(`            addressField == rhs.addressField;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    bool eq(const PortAddress_t &rhs) const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Compare to another port address')dnl
 cpp_cod(`     * @param[in] rhs another port address')dnl

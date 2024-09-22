@@ -267,7 +267,7 @@ struct ptpmgmt_clock_t {
      * @note Pin index comes from ptp_pin_desc!
      * @note Pin index should be in the range (0, ptp_clock_caps.num_pins]
      */
-    bool (*writePin)(const_ptpmgmt_clock clk, struct ptp_pin_desc *pin);
+    bool (*writePin)(const_ptpmgmt_clock clk, const struct ptp_pin_desc *pin);
     /**
      * Enable PHC pin external events
      * @param[in] clk pointer to clock structure

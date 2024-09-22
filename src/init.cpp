@@ -25,11 +25,6 @@ void Init::close()
         s->close();
 }
 
-// obsolete function: misspelled
-int Init::proccess(const Options &opt)
-{
-    return process(opt);
-}
 int Init::process(const Options &opt)
 {
     char net_select = opt.get_net_transport();
@@ -184,6 +179,34 @@ int Init::process(const Options &opt)
     PTPMGMT_ERROR_CLR;
     return EXIT_SUCCESS;
 }
+const ConfigFile &Init::cfg() const
+{
+    return m_cfg;
+}
+const SaFile &Init::sa() const
+{
+    return m_sa;
+}
+Message &Init::msg()
+{
+    return m_msg;
+}
+SockBase *Init::sk() const
+{
+    return m_sk.get();
+}
+char Init::getNetSelect() const
+{
+    return m_net_select;
+}
+bool Init::use_uds() const
+{
+    return m_use_uds;
+}
+uint8_t Init::allow_unauth() const
+{
+    return m_allow_unauth;
+}
 
 __PTPMGMT_NAMESPACE_END
 
@@ -292,7 +315,7 @@ extern "C" {
             return ((Init *)me->_this)->getNetSelect();
         return 0;
     }
-    static bool ptpmgmt_init_use_uds(ptpmgmt_init me)
+    static bool ptpmgmt_init_use_uds(const_ptpmgmt_init me)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Init *)me->_this)->use_uds();

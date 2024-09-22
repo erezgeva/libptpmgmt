@@ -67,37 +67,37 @@ class IfInfo
      * Is object initialized
      * @return true if network interface was successfully initialized
      */
-    bool isInit() const { return m_isInit; }
+    bool isInit() const;
     /**
      * Get interface index
      * @return interface index or NO_SUCH_IF if object is not initialized
      */
-    int ifIndex() const { return m_ifIndex; }
+    int ifIndex() const;
     /**
      * Get interface name
      * @return interface name or empty string if object is not initialized
      */
-    const std::string &ifName() const { return m_ifName; }
+    const std::string &ifName() const;
     /**
      * Get interface name
      * @return interface name or empty string if object is not initialized
      */
-    const char *ifName_c() const { return m_ifName.c_str(); }
+    const char *ifName_c() const;
     /**
      * Get interface MAC address
      * @return binary from address or empty string if object is not initialized
      */
-    const Binary &mac() const { return m_mac; }
+    const Binary &mac() const;
     /**
      * Get interface MAC address
      * @return binary from address or empty string if object is not initialized
      */
-    const uint8_t *mac_c() const { return m_mac.get(); }
+    const uint8_t *mac_c() const;
     /**
      * Get interface MAC address length
      * @return binary from address length or 0 if object is not initialized
      */
-    size_t mac_size() const { return m_mac.length(); }
+    size_t mac_size() const;
     /**
      * Get interface PTP index
      * @return ptp index or NO_SUCH_PTP if object is not initialized or
@@ -105,7 +105,7 @@ class IfInfo
      * @note An interface may have multiple PHCs,
      *       this function return the index report by the get_ts_info
      */
-    int ptpIndex() const { return m_ptpIndex; }
+    int ptpIndex() const;
 };
 /**
  * Bridge to Linux kernel struct ptp_clock_caps
@@ -300,7 +300,7 @@ class PtpClock : public BaseClock
     bool init(const char *device, bool readonly);
 
   public:
-    PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP) {}
+    PtpClock();
     ~PtpClock();
     /**
      * Check file is a char file
@@ -327,38 +327,38 @@ class PtpClock : public BaseClock
      * Is object initialized
      * @return true if PTP clock exist and object was successfully initialized
      */
-    bool isInit() const { return m_isInit; }
+    bool isInit() const;
     /**
      * Get dynamic clock id
      * @return dynamic clock id or CLOCK_INVALID if not initialized
      */
-    clockid_t clkId() const { return m_clkId; }
+    clockid_t clkId() const;
     /**
      * Get file description
      * @return file description
      */
-    int getFd() const { return m_fd; }
+    int getFd() const;
     /**
      * Get file description
      * @return file description
      */
-    int fileno() const { return m_fd; }
+    int fileno() const;
     /**
      * Get PTP index
      * @return index or NO_SUCH_PTP if not initialized or
      *         clock do not have PTP index
      */
-    int ptpIndex() const { return m_ptpIndex; }
+    int ptpIndex() const;
     /**
      * Get POSIX device name
      * @return device name or empty string if not initialized
      */
-    const std::string &device() const { return m_device; }
+    const std::string &device() const;
     /**
      * Get POSIX device name
      * @return device name or empty string if not initialized
      */
-    const char *device_c() const { return m_device.c_str(); }
+    const char *device_c() const;
     /**
      * Set PHC time using the system clock
      * @return true for success
@@ -390,7 +390,7 @@ class PtpClock : public BaseClock
      * @note Pin index comes from PtpPin_t!
      * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
      */
-    bool writePin(PtpPin_t &pin) const;
+    bool writePin(const PtpPin_t &pin) const;
     /**
      * Enable PHC pin external events
      * @param[in] index pin index to enable

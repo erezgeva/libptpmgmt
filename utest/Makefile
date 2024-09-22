@@ -32,7 +32,6 @@ ifdef GTEST_LIB_FLAGS
 UTEST:=$(OBJ_DIR)/utest
 UTEST_SYS:=$(OBJ_DIR)/utest_sys
 UTEST_AUTH:=$(OBJ_DIR)/utest_auth
-UTEST_JSON_LOAD:=$(OBJ_DIR)/utest_json_load
 UTEST_SRCS:=bin buf cfg err mngIds msg2json msgCall msg opt proc sig types ver\
   jsonParser json2msg
 TEST_OBJS:=$(foreach n,$(UTEST_SRCS),utest/$n.o)
@@ -75,12 +74,6 @@ $(UTEST_AUTH): $(OBJ_DIR)/utest_m.o utest/auth.o $(LIB_NAME_A) $(HMAC_ALIB)
 utest_auth: $(HEADERS_GEN_COMP) $(UTEST_AUTH)
 	$(call Q_UTEST,C++AUTH)$(UVGD)$(UTEST_AUTH) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif
-$(UTEST_JSON_LOAD): $(OBJ_DIR)/utest_m.o utest/jsonLoad.o $(LIB_NAME_SO)
-	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
-	  $(GTEST_LIB_FLAGS) -o $@ -ldl
-utest_json_load: $(HEADERS_GEN_COMP) $(UTEST_JSON_LOAD)
-	$(call Q_UTEST,JSON_LOAD)LD_PRELOAD=./$(LIB_NAME_SO)\
-	  $(UVGD)$(UTEST_JSON_LOAD) $(GTEST_NO_COL) $(GTEST_FILTERS)
 TEST_LIBSYS_PMC:=$(OBJ_DIR)/libsys_pmc.so
 UTEST_PMC:=$(OBJ_DIR)/utest_pmc
 $(TEST_LIBSYS_PMC): utest/libsys_pmc.cpp | $(OBJ_DIR)

@@ -271,7 +271,7 @@ class Message
      * Get the current msgparams parameters
      * @return msgparams parameters
      */
-    const MsgParams &getParams() const { return m_prms; }
+    const MsgParams &getParams() const;
     /**
      * Set and use a user MsgParams parameters
      * @param[in] prms MsgParams parameters
@@ -311,37 +311,37 @@ class Message
      * Disable the use of AUTHENTICATION TLV
      * @return true if disabled
      */
-    bool disableAuth() { m_haveAuth = false; return true; }
+    bool disableAuth();
     /**
      * Get used AUTHENTICATION TLV Spp ID used for send
      * @return Spp ID or -1
      */
-    int usedAuthSppID() const { return m_haveAuth ? m_sppID : -1; }
+    int usedAuthSppID() const;
     /**
      * Get used AUTHENTICATION TLV key ID used for send
      * @return key ID or 0
      */
-    uint32_t usedAuthKeyID() const { return m_haveAuth ? m_keyID : 0; }
+    uint32_t usedAuthKeyID() const;
     /**
      * Get authentication security association pool
      * @return authentication parameters
      */
-    const SaFile &getSa() const { return m_sa; }
+    const SaFile &getSa() const;
     /**
      * Get if AUTHENTICATION TLV with authentication parameters are used
      * @return true if AUTHENTICATION TLV is used
      */
-    bool haveAuth() const { return m_haveAuth; }
+    bool haveAuth() const;
     /**
      * Get the current parsed TLV id
      * @return current parsed TLV id
      */
-    mng_vals_e getTlvId() const { return m_replayTlv_id; }
+    mng_vals_e getTlvId() const;
     /**
      * Get the current build TLV id
      * @return current TLV id
      */
-    mng_vals_e getBuildTlvId() const { return m_tlv_id; }
+    mng_vals_e getBuildTlvId() const;
     /**
      * Set target clock ID to use all clocks.
      */
@@ -503,37 +503,37 @@ class Message
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_LI_61(uint8_t flags) { return (flags & F_LI_61) != 0; }
+    static bool is_LI_61(uint8_t flags);
     /**
      * Check if leap 59 seconds flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_LI_59(uint8_t flags) { return (flags & F_LI_59) != 0; }
+    static bool is_LI_59(uint8_t flags);
     /**
      * Check if UTC offset is valid flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_UTCV(uint8_t flags) { return (flags & F_UTCV) != 0; }
+    static bool is_UTCV(uint8_t flags);
     /**
      * Check if is PTP instance flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_PTP(uint8_t flags) { return (flags & F_PTP) != 0; }
+    static bool is_PTP(uint8_t flags);
     /**
      * Check if timescale is traceable flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_TTRA(uint8_t flags) { return (flags & F_TTRA) != 0; }
+    static bool is_TTRA(uint8_t flags);
     /**
      * Check if frequency is traceable flag is enabled
      * @param[in] flags
      * @return true if flag on
      */
-    static bool is_FTRA(uint8_t flags) { return (flags & F_FTRA) != 0; }
+    static bool is_FTRA(uint8_t flags);
     /**
      * Check management TLV id uses empty dataField
      * @param[in] id management TLV id
@@ -591,18 +591,17 @@ class Message
      * @note if raw message is larger than buffer size the function
      *   return MNG_PARSE_ERROR_TOO_SMALL
      */
-    MNG_PARSE_ERROR_e build(Buf &buf, uint16_t sequence)
-    { return build(buf.get(), buf.size(), sequence); }
+    MNG_PARSE_ERROR_e build(Buf &buf, uint16_t sequence);
     /**
      * Get build management action
      * @return build management action
      */
-    actionField_e getSendAction() const { return m_sendAction; }
+    actionField_e getSendAction() const;
     /**
      * Get last build message size
      * @return message size
      */
-    size_t getMsgLen() const { return m_msgLen; }
+    size_t getMsgLen() const;
     /**
      * Get planned message to build size
      * @return planned message size or negative for error
@@ -632,54 +631,54 @@ class Message
      * @return reply management action
      * @note set on parse
      */
-    actionField_e getReplyAction() const { return m_replyAction; }
+    actionField_e getReplyAction() const;
     /**
      * Is last parsed message a unicast or not
      * @return true if parsed message is unicast
      */
-    bool isUnicast() const { return m_isUnicast; }
+    bool isUnicast() const;
     /**
      * Get last reply PTP Profile Specific
      * @return reply management action
      * @note set on parse
      */
-    uint8_t getPTPProfileSpecific() const { return m_PTPProfileSpecific; }
+    uint8_t getPTPProfileSpecific() const;
     /**
      * Get last parsed message sequence number
      * @return parsed sequence number
      */
-    uint16_t getSequence() const { return m_sequence; }
+    uint16_t getSequence() const;
     /**
      * Get last parsed message peer port ID
      * @return parsed message peer port ID
      */
-    const PortIdentity_t &getPeer() const { return m_peer; }
+    const PortIdentity_t &getPeer() const;
     /**
      * Get last parsed message target port ID
      * @return parsed message target port ID
      */
-    const PortIdentity_t &getTarget() const { return m_target; }
+    const PortIdentity_t &getTarget() const;
     /**
      * Get last parsed message sdoId
      * @return parsed message sdoId
      * @note upper byte is transportSpecific
      */
-    uint32_t getSdoId() const { return m_sdoId; }
+    uint32_t getSdoId() const;
     /**
      * Get last parsed message domainNumber
      * @return parsed message domainNumber
      */
-    uint8_t getDomainNumber() const { return m_domainNumber; }
+    uint8_t getDomainNumber() const;
     /**
      * Get last parsed message PTP version
      * @return parsed message versionPTP
      */
-    uint8_t getVersionPTP() const { return m_versionPTP; }
+    uint8_t getVersionPTP() const;
     /**
      * Get last parsed message minor PTP version
      * @return parsed message versionPTP
      */
-    uint8_t getMinorVersionPTP() const { return m_minorVersionPTP; }
+    uint8_t getMinorVersionPTP() const;
     /**
      * Get last parsed message dataField
      * @return pointer to last parsed message dataField or null
@@ -687,7 +686,7 @@ class Message
      *  management TLV ID, get with.
      * @note You @b should not try to free or change this TLV object
      */
-    const BaseMngTlv *getData() const { return m_dataGet.get(); }
+    const BaseMngTlv *getData() const;
     /**
      * Get send message dataField
      * @return pointer to send message dataField or null
@@ -696,30 +695,30 @@ class Message
      * @note In case you release this memory,
      *  you should call @code clearData() @endcode
      */
-    const BaseMngTlv *getSendData() const { return m_dataSend; }
+    const BaseMngTlv *getSendData() const;
     /**
      * Get management error code ID
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error code
      */
-    managementErrorId_e getErrId() const { return m_errorId; }
+    managementErrorId_e getErrId() const;
     /**
      * Get management error message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error message
      */
-    const std::string &getErrDisplay() const { return m_errorDisplay.textField; }
+    const std::string &getErrDisplay() const;
     /**
      * Get management error message
      * Relevant only when parsed message return MNG_PARSE_ERROR_MSG
      * @return error message
      */
-    const char *getErrDisplay_c() const { return m_errorDisplay.string(); }
+    const char *getErrDisplay_c() const;
     /**
      * query if last message is a signalling message
      * @return true if last message is a signalling message
      */
-    bool isLastMsgSig() const { return m_type == Signaling; }
+    bool isLastMsgSig() const;
     /**
      * query if last message is a SMPTE message
      * @return true if last message is a SMPTE message
@@ -729,13 +728,13 @@ class Message
      * Get message type
      * @return message type
      */
-    msgType_e getType() const { return m_type; }
+    msgType_e getType() const;
     /**
      * Get management message type
      * @return management message type
      * @note return MANAGEMENT or MANAGEMENT_ERROR_STATUS
      */
-    tlvType_e getMngType() const { return m_mngType; }
+    tlvType_e getMngType() const;
     /**
      * Traverse all last signalling message TLVs
      * @param[in] callback function to call with each TLV

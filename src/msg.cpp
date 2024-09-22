@@ -255,6 +255,10 @@ ssize_t Message::getMsgPlanedLen() const
     return ret + mngMsgBaseSize + addAuth;
     // return total length of to the message to be send
 }
+const MsgParams &Message::getParams() const
+{
+    return m_prms;
+}
 bool Message::updateParams(const MsgParams &prms)
 {
     if(prms.transportSpecific > 0xf)
@@ -314,6 +318,30 @@ bool Message::changeAuth(uint32_t keyID)
         return true;
     }
     return false;
+}
+bool Message::is_LI_61(uint8_t flags)
+{
+    return (flags & F_LI_61) > 0;
+}
+bool Message::is_LI_59(uint8_t flags)
+{
+    return (flags & F_LI_59) > 0;
+}
+bool Message::is_UTCV(uint8_t flags)
+{
+    return (flags & F_UTCV) > 0;
+}
+bool Message::is_PTP(uint8_t flags)
+{
+    return (flags & F_PTP) > 0;
+}
+bool Message::is_TTRA(uint8_t flags)
+{
+    return (flags & F_TTRA) > 0;
+}
+bool Message::is_FTRA(uint8_t flags)
+{
+    return (flags & F_FTRA) > 0;
 }
 bool Message::isEmpty(mng_vals_e id)
 {
@@ -457,6 +485,18 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
         msg->messageLength = cpu_to_net16(size);
     m_msgLen = size;
     return MNG_PARSE_ERROR_OK;
+}
+MNG_PARSE_ERROR_e Message::build(Buf &buf, uint16_t sequence)
+{
+    return build(buf.get(), buf.size(), sequence);
+}
+actionField_e Message::getSendAction() const
+{
+    return m_sendAction;
+}
+size_t Message::getMsgLen() const
+{
+    return m_msgLen;
 }
 MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
 {
@@ -799,10 +839,82 @@ MNG_PARSE_ERROR_e Message::parseSig(const void *buf, MsgProc *pMp)
     }
     return MNG_PARSE_ERROR_SIG; // We have signalling message
 }
+actionField_e Message::getReplyAction() const
+{
+    return m_replyAction;
+}
+bool Message::isUnicast() const
+{
+    return m_isUnicast;
+}
+uint8_t Message::getPTPProfileSpecific() const
+{
+    return m_PTPProfileSpecific;
+}
+uint16_t Message::getSequence() const
+{
+    return m_sequence;
+}
+const PortIdentity_t &Message::getPeer() const
+{
+    return m_peer;
+}
+const PortIdentity_t &Message::getTarget() const
+{
+    return m_target;
+}
+uint32_t Message::getSdoId() const
+{
+    return m_sdoId;
+}
+uint8_t Message::getDomainNumber() const
+{
+    return m_domainNumber;
+}
+uint8_t Message::getVersionPTP() const
+{
+    return m_versionPTP;
+}
+uint8_t Message::getMinorVersionPTP() const
+{
+    return m_minorVersionPTP;
+}
+const BaseMngTlv *Message::getData() const
+{
+    return m_dataGet.get();
+}
+const BaseMngTlv *Message::getSendData() const
+{
+    return m_dataSend;
+}
+managementErrorId_e Message::getErrId() const
+{
+    return m_errorId;
+}
+const string &Message::getErrDisplay() const
+{
+    return m_errorDisplay.textField;
+}
+const char *Message::getErrDisplay_c() const
+{
+    return m_errorDisplay.string();
+}
+bool Message::isLastMsgSig() const
+{
+    return m_type == Signaling;
+}
 bool Message::isLastMsgSMPTE() const
 {
     return m_type == Management && m_mngType == ORGANIZATION_EXTENSION &&
         m_replayTlv_id == SMPTE_MNG_ID;
+}
+msgType_e Message::getType() const
+{
+    return m_type;
+}
+tlvType_e Message::getMngType() const
+{
+    return m_mngType;
 }
 bool Message::traversSigTlvs(function<bool (const Message &msg,
         tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const
@@ -836,6 +948,35 @@ const BaseMngTlv *Message::getSigMngTlv(size_t pos) const
 const MessageSigTlvs &Message::getSigTlvs() const
 {
     return m_sigTlvs;
+}
+bool Message::disableAuth()
+{
+    m_haveAuth = false;
+    return true;
+}
+int Message::usedAuthSppID() const
+{
+    return m_haveAuth ? m_sppID : -1;
+}
+uint32_t Message::usedAuthKeyID() const
+{
+    return m_haveAuth ? m_keyID : 0;
+}
+const SaFile &Message::getSa() const
+{
+    return m_sa;
+}
+bool Message::haveAuth() const
+{
+    return m_haveAuth;
+}
+mng_vals_e Message::getTlvId() const
+{
+    return m_replayTlv_id;
+}
+mng_vals_e Message::getBuildTlvId() const
+{
+    return m_tlv_id;
 }
 void Message::setAllClocks()
 {
@@ -1245,17 +1386,34 @@ const char *Message::us2str_c(linuxptpUnicastState_e state)
     }
     return "???";
 }
+float_nanoseconds TimeInterval_t::getInterval() const
+{
+    return (float_nanoseconds)scaledNanoseconds / 0x10000;
+}
 int64_t TimeInterval_t::getIntervalInt() const
 {
     if(scaledNanoseconds < 0)
         return -((-scaledNanoseconds) >> 16);
     return scaledNanoseconds >> 16;
 }
+Timestamp_t::Timestamp_t() : secondsField(0), nanosecondsField(0) {}
+Timestamp_t::Timestamp_t(int64_t secs, uint32_t nsecs) : secondsField(secs),
+    nanosecondsField(nsecs) {}
 string Timestamp_t::string() const
 {
     char buf[200];
     snprintf(buf, sizeof buf, "%ju.%.9u", secondsField, nanosecondsField);
     return buf;
+}
+Timestamp_t::Timestamp_t(const timespec &ts)
+{
+    secondsField = ts.tv_sec;
+    nanosecondsField = ts.tv_nsec;
+}
+void Timestamp_t::toTimespec(timespec &ts) const
+{
+    ts.tv_sec = secondsField;
+    ts.tv_nsec = nanosecondsField;
 }
 Timestamp_t::Timestamp_t(const timeval &tv)
 {
@@ -1266,6 +1424,10 @@ void Timestamp_t::toTimeval(timeval &tv) const
 {
     tv.tv_sec = secondsField;
     tv.tv_usec = nanosecondsField / NSEC_PER_USEC;
+}
+Timestamp_t::Timestamp_t(float_seconds seconds)
+{
+    fromFloat(seconds);
 }
 void Timestamp_t::fromFloat(float_seconds seconds)
 {
@@ -1291,6 +1453,11 @@ uint64_t Timestamp_t::toNanoseconds() const
 {
     return nanosecondsField + secondsField * NSEC_PER_SEC;
 }
+bool Timestamp_t::eq(const Timestamp_t &ts) const
+{
+    return secondsField == ts.secondsField &&
+        nanosecondsField == ts.nanosecondsField;
+}
 bool Timestamp_t::eq(float_seconds seconds) const
 {
     // We use unsigned, negitive can not be equal
@@ -1306,6 +1473,12 @@ bool Timestamp_t::eq(float_seconds seconds) const
             return true;
     }
     return false;
+}
+bool Timestamp_t::less(const Timestamp_t &ts) const
+{
+    return secondsField < ts.secondsField ||
+        (secondsField == ts.secondsField &&
+            nanosecondsField < ts.nanosecondsField);
 }
 bool Timestamp_t::less(float_seconds seconds) const
 {
@@ -1348,6 +1521,10 @@ Timestamp_t &Timestamp_t::subt(const Timestamp_t &ts)
     nanosecondsField -= ts.nanosecondsField;
     return normNano(this);
 }
+Timestamp_t &Timestamp_t::subt(float_seconds seconds)
+{
+    return add(-seconds);
+}
 string ClockIdentity_t::string() const
 {
     char buf[25];
@@ -1355,12 +1532,38 @@ string ClockIdentity_t::string() const
         v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
     return buf;
 }
+void ClockIdentity_t::clear(int val)
+{
+    memset(v, val, 8);
+}
+bool ClockIdentity_t::eq(const ClockIdentity_t &rhs) const
+{
+    return memcmp(v, rhs.v, size()) == 0;
+}
+bool ClockIdentity_t::less(const ClockIdentity_t &rhs) const
+{
+    return memcmp(v, rhs.v, size()) < 0;
+}
+bool ClockIdentity_t::eq(const Binary &bin) const
+{
+    return bin.size() == size() &&
+        memcmp(v, bin.get(), size()) == 0;
+}
 string PortIdentity_t::string() const
 {
     std::string ret = clockIdentity.string();
     ret += "-";
     ret += to_string(portNumber);
     return ret;
+}
+void PortIdentity_t::clear()
+{
+    clockIdentity.clear();
+    portNumber = 0;
+}
+bool PortIdentity_t::eq(const PortIdentity_t &rhs) const
+{
+    return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
 }
 bool PortIdentity_t::less(const PortIdentity_t &rhs) const
 {
@@ -1384,6 +1587,11 @@ string PortAddress_t::string() const
             break;
     }
     return addressField.toId();
+}
+bool PortAddress_t::eq(const PortAddress_t &rhs) const
+{
+    return networkProtocol == rhs.networkProtocol &&
+        addressField == rhs.addressField;
 }
 bool PortAddress_t::less(const PortAddress_t &rhs) const
 {

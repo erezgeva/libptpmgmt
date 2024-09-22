@@ -37,6 +37,16 @@ void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
             break;
     }
 }
+MessageBuilder::MessageBuilder(Message &msg) : m_msg(msg) {}
+Message &MessageBuilder::getMsg()
+{
+    return m_msg;
+}
+void MessageBuilder::clear()
+{
+    m_msg.clearData();
+    m_tlv.reset();
+}
 bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 {
     if(!m_msg.isValidId(tlv_id))

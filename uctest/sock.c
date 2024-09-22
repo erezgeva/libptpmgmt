@@ -19,14 +19,15 @@ TestSuite(SockIp6Test, .init = initLibSys);
 TestSuite(SockRawTest, .init = initLibSys);
 
 // Tests getHomeDir method
-// const char *getHomeDir(ptpmgmt_sk sk)
+// const char *getHomeDir()
+// const char *ptpmgmt_sk_getHomeDir()
 Test(SockUnixTest, MethodGetHomeDir)
 {
     ptpmgmt_sk sk = ptpmgmt_sk_alloc(ptpmgmt_SockUnix);
     useTestMode(true);
-    bool r1 = strcmp(sk->getHomeDir(sk), "/home/usr") == 0;
+    bool r1 = strcmp(sk->getHomeDir(), "/home/usr") == 0;
     useRoot(true);
-    bool r2 = strcmp(sk->getHomeDir(sk), "/root") == 0;
+    bool r2 = strcmp(ptpmgmt_sk_getHomeDir(), "/root") == 0;
     useTestMode(false);
     cr_expect(r1);
     cr_expect(r2);

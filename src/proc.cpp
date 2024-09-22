@@ -54,6 +54,48 @@ const int64_t ieee754_mnt_base = (int64_t)1 << ieee754_mnt_size;
 // 0x000fffffffffffff
 const int64_t ieee754_mnt_mask = ieee754_mnt_base - 1;
 
+void SUBSCRIBE_EVENTS_NP_t::setEvent(int event)
+{
+    div_t d;
+    if(div_event(event, d))
+        bitmask[d.quot] |= d.rem;
+}
+void SUBSCRIBE_EVENTS_NP_t::clearEvent(int event)
+{
+    div_t d;
+    if(div_event(event, d))
+        bitmask[d.quot] &= ~d.rem;
+}
+void SUBSCRIBE_EVENTS_NP_t::clearAll()
+{
+    memset(bitmask, 0, EVENT_BITMASK_CNT);
+}
+bool SUBSCRIBE_EVENTS_NP_t::getEvent(int event) const
+{
+    div_t d;
+    if(div_event(event, d))
+        return (bitmask[d.quot] & d.rem) > 0;
+    return false;
+}
+div_t SUBSCRIBE_EVENTS_NP_t::div_event(int event)
+{
+    div_t d;
+    div_event_wo(event, d);
+    return d;
+}
+void SUBSCRIBE_EVENTS_NP_t::div_event_wo(int event, div_t &d)
+{
+    d = div(event, 8);
+    d.rem = 1 << d.rem;
+}
+bool SUBSCRIBE_EVENTS_NP_t::div_event(int event, div_t &d)
+{
+    if(event < 0 || event >= EVENT_BITMASK_CNT)
+        return false;
+    div_event_wo(event, d);
+    return true;
+}
+
 MNG_PARSE_ERROR_e MsgProc::call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv)
 {
 #define _ptpmCaseNA(n) case n: return MNG_PARSE_ERROR_OK

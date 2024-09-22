@@ -267,6 +267,38 @@ bool IfInfo::initUsingIndex(int ifIndex)
     m_ifIndex = ifIndex;
     return initPtp(fd, ifr);
 }
+bool IfInfo::isInit() const
+{
+    return m_isInit;
+}
+int IfInfo::ifIndex() const
+{
+    return m_ifIndex;
+}
+const string &IfInfo::ifName() const
+{
+    return m_ifName;
+}
+const char *IfInfo::ifName_c() const
+{
+    return m_ifName.c_str();
+}
+const Binary &IfInfo::mac() const
+{
+    return m_mac;
+}
+const uint8_t *IfInfo::mac_c() const
+{
+    return m_mac.get();
+}
+size_t IfInfo::mac_size() const
+{
+    return m_mac.length();
+}
+int IfInfo::ptpIndex() const
+{
+    return m_ptpIndex;
+}
 Timestamp_t BaseClock::getTime() const
 {
     if(!m_isInit) {
@@ -379,6 +411,7 @@ bool BaseClock::setPhase(int64_t offset) const
     return true;
 }
 SysClock::SysClock() : BaseClock(CLOCK_REALTIME, true) {}
+PtpClock::PtpClock() : m_fd(-1), m_ptpIndex(NO_SUCH_PTP) {}
 PtpClock::~PtpClock()
 {
     if(m_fd >= 0)
@@ -475,6 +508,34 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
     PTPMGMT_ERROR_CLR;
     return true;
 }
+bool PtpClock::isInit() const
+{
+    return m_isInit;
+}
+clockid_t PtpClock::clkId() const
+{
+    return m_clkId;
+}
+int PtpClock::getFd() const
+{
+    return m_fd;
+}
+int PtpClock::fileno() const
+{
+    return m_fd;
+}
+int PtpClock::ptpIndex() const
+{
+    return m_ptpIndex;
+}
+const string &PtpClock::device() const
+{
+    return m_device;
+}
+const char *PtpClock::device_c() const
+{
+    return m_device.c_str();
+}
 bool PtpClock::setTimeFromSys() const
 {
     return setTimeFromTime(m_isInit, CLOCK_REALTIME, m_clkId);
@@ -556,16 +617,16 @@ bool PtpClock::readPin(unsigned int index, PtpPin_t &pin) const
     };
     return true;
 }
-static inline bool PtpClock_writePin(int fd, ptp_pin_desc &desc)
+static inline bool PtpClock_writePin(int fd, const ptp_pin_desc *desc)
 {
-    if(ioctl(fd, PTP_PIN_SETFUNC, &desc) == -1) {
+    if(ioctl(fd, PTP_PIN_SETFUNC, desc) == -1) {
         PTPMGMT_ERROR_P("PTP_PIN_SETFUNC");
         return false;
     }
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool PtpClock::writePin(PtpPin_t &pin) const
+bool PtpClock::writePin(const PtpPin_t &pin) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("not initialized yet");
@@ -591,7 +652,7 @@ bool PtpClock::writePin(PtpPin_t &pin) const
     };
     desc.index = pin.index;
     desc.chan = pin.channel;
-    return PtpClock_writePin(m_fd, desc);
+    return PtpClock_writePin(m_fd, &desc);
 }
 bool PtpClock::ExternTSEbable(unsigned int index, uint8_t flags) const
 {
@@ -1126,16 +1187,18 @@ extern "C" {
         }
         return false;
     }
-    static bool non_ptpmgmt_clock_writePin(const_ptpmgmt_clock, ptp_pin_desc *)
+    static bool non_ptpmgmt_clock_writePin(const_ptpmgmt_clock,
+        const ptp_pin_desc *)
     {
         return false;
     }
-    static bool ptpmgmt_clock_writePin(const_ptpmgmt_clock clk, ptp_pin_desc *pin)
+    static bool ptpmgmt_clock_writePin(const_ptpmgmt_clock clk,
+        const ptp_pin_desc *pin)
     {
         if(clk != nullptr && clk->_this != nullptr && pin != nullptr) {
             PtpClock *p = (PtpClock *)clk->_this;
             if(p->isInit())
-                return PtpClock_writePin(p->getFd(), *pin);
+                return PtpClock_writePin(p->getFd(), pin);
             PTPMGMT_ERROR("not initialized yet");
         }
         return false;

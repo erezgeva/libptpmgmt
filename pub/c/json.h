@@ -62,22 +62,12 @@ struct ptpmgmt_json_t {
      * @param[in, out] j json object
      */
     void (*free)(ptpmgmt_json j);
-    /** @cond internal
-     * Use internal JSON parser */
-    __PTPMGMT_DEPRECATED_DEC(bool (*selectLib)(const char *libName));
-    __PTPMGMT_DEPRECATED_DEC(const char *(*loadLibrary)());
-    __PTPMGMT_DEPRECATED_DEC(bool (*isLibShared)());
-    /**< @endcond */
     /**
      * Convert JSON string to message
      * @param[in, out] json string
      * @return true if parsing success
      */
     bool (*fromJson)(ptpmgmt_json j, const char *json);
-    /** @cond internal
-     * Use internal JSON parser */
-    __PTPMGMT_DEPRECATED_DEC(bool (*fromJsonObj)(ptpmgmt_json j, const void *jobj));
-    /**< @endcond */
     /**
      * Get management ID
      * @param[in] j json object
@@ -212,12 +202,6 @@ struct ptpmgmt_json_t {
      */
     bool (*setAction)(const_ptpmgmt_json j, ptpmgmt_msg message);
 };
-/** @cond internal
- * Use internal JSON parser */
-__PTPMGMT_DEPRECATED_DEC(bool ptpmgmt_json_selectLib(const char *libName));
-__PTPMGMT_DEPRECATED_DEC(const char *ptpmgmt_json_loadLibrary());
-__PTPMGMT_DEPRECATED_DEC(bool ptpmgmt_json_isLibShared());
-/**< @endcond */
 /**
  * Alocate new json structure
  * @return new json structure or null in case of error

@@ -59,38 +59,38 @@ class Error
      * Query if we have error
      * @return last error string
      */
-    static bool isError() { return getCur().m_line > 0; }
+    static bool isError();
     /**
      * Get last error full string
      * @return last error string
      */
-    static const std::string &getError() { return getCur().fetch(); }
+    static const std::string &getError();
     /**
      * Get last error source file name
      * @return last error source file name
      */
-    static const std::string &getFile() { return getCur().m_file; }
+    static const std::string &getFile();
     /**
      * Get last error source file line number
      * @return last error source file line number
      */
-    static int getFileLine() { return getCur().m_line; }
+    static int getFileLine();
     /**
      * Get last error function name
      * @return last error function name
      */
-    static const std::string &getFunc() { return getCur().m_func; }
+    static const std::string &getFunc();
     /**
      * Get last error errno value
      * @return last errno value or zero if last error was not using errno
      */
-    static int getErrno() { return getCur().m_errno; }
+    static int getErrno();
     /**
      * Get last error message
      * @return last error message
      * @note The error do not include the errno message!
      */
-    static const std::string &getMsg() { return getCur().m_msg; }
+    static const std::string &getMsg();
     /**
      * Get last errno message
      * @return last error message
