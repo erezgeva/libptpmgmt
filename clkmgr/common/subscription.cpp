@@ -17,8 +17,8 @@ bool ClkMgrSubscription::define_threshold(std::uint8_t index,
     std::int32_t upper, std::int32_t lower)
 {
     if(index < static_cast<std::uint8_t>(thresholdLast)) {
-        threshold[index].upper_limit = upper;
-        threshold[index].lower_limit = lower;
+        m_threshold[index].upper_limit = upper;
+        m_threshold[index].lower_limit = lower;
         return true;
     }
     return false;
@@ -27,8 +27,8 @@ bool ClkMgrSubscription::define_threshold(std::uint8_t index,
 bool ClkMgrSubscription::in_range(std::uint8_t index, std::int32_t value) const
 {
     if(index < static_cast<std::uint8_t>(thresholdLast)) {
-        if(value > threshold[index].lower_limit &&
-            value < threshold[index].upper_limit)
+        if(value > m_threshold[index].lower_limit &&
+            value < m_threshold[index].upper_limit)
             return true;
     }
     return false;

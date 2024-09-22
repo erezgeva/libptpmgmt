@@ -161,9 +161,9 @@ int main(int argc, char *argv[])
         gmOffsetLowerLimit);
     subscription.set_composite_event_mask(composite_event);
     std::cout << "[clkmgr] set subscribe event : 0x"
-        << std::hex << subscription.c_get_val_event_mask() <<  "\n";
+        << std::hex << subscription.get_event_mask() <<  "\n";
     std::cout << "[clkmgr] set composite event : 0x"
-        << std::hex << subscription.c_get_val_composite_event_mask() <<  "\n";
+        << std::hex << subscription.get_composite_event_mask() <<  "\n";
     std::cout << "GM Offset upper limit: " << std::dec << gmOffsetUpperLimit << " ns\n";
     std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n\n";
 

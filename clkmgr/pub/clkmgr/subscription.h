@@ -26,19 +26,19 @@ __CLKMGR_NAMESPACE_BEGIN
  * event.
  * @note The eventLast is reserved for future use.
  */
-typedef enum : std::uint32_t {
+enum EventIndex : uint32_t {
     eventGMOffset = 1 << 0, /**< Offset between primary and secondary clock */
     eventSyncedToGM = 1 << 1, /**< Secondary clock is synced to primary clock */
     eventASCapable = 1 << 2, /**< Link Partner is IEEE 802.1AS capable */
     eventGMChanged = 1 << 3, /**< UUID of primary clock is changed */
     eventLast = 1 << 4 /**< Last event */
-} EventIndex;
+};
 
 /**
  * @brief Maximum number of events that can have user predefined threshold
  * (upper and lower limit) as indicator on whether the event is true or false.
  */
-constexpr std::uint8_t THRESHOLD_MAX = 8;
+constexpr uint8_t THRESHOLD_MAX = 8;
 
 /**
  * @enum ThresholdIndex
@@ -46,10 +46,23 @@ constexpr std::uint8_t THRESHOLD_MAX = 8;
  * @note The thresholdLast is reserved for future use. The maximum number of
  * events which can have threshold is THRESHOLD_MAX.
  */
-typedef enum : std::uint8_t {
+enum ThresholdIndex : uint8_t {
     thresholdGMOffset,  /**< threshold for primary-secondary clock offset */
     thresholdLast       /**< Last threshold */
-} ThresholdIndex;
+} ;
+
+/**
+ * @struct Threshold
+ * @brief Structure to hold upper and lower limits
+ */
+struct Threshold {
+    int32_t upper_limit; /**< Upper limit */
+    int32_t lower_limit; /**< Lower limit */
+    Threshold() noexcept : upper_limit(0), lower_limit(0) {}
+};
+
+/** Upper & lower limits type */
+typedef std::array<Threshold, THRESHOLD_MAX> threshold_t;
 
 /**
  * @class ClkMgrSubscription
@@ -57,110 +70,60 @@ typedef enum : std::uint8_t {
  * thresholds for events that require user-defined threshold (upper and lower
  * limits).
  */
+
 class ClkMgrSubscription
 {
   private:
-    /**
-     * @struct Threshold
-     * @brief Structure to hold upper and lower limits
-     */
-    struct Threshold {
-        std::int32_t upper_limit; /**< Upper limit */
-        std::int32_t lower_limit; /**< Lower limit */
-        Threshold() noexcept : upper_limit(0), lower_limit(0) {}
-    };
-
-    std::uint32_t event_mask; /**< Event subscription mask */
-    std::uint32_t composite_event_mask; /**< Composite event mask */
-    std::array<Threshold, THRESHOLD_MAX> threshold; /**< Upper & lower limits */
+    uint32_t m_event_mask; /**< Event subscription mask */
+    uint32_t m_composite_event_mask; /**< Composite event mask */
+    threshold_t m_threshold; /**< Upper & lower limits */
 
   public:
-    ClkMgrSubscription() noexcept : event_mask(0), composite_event_mask(0) {}
-
-    /**
-    * @brief Get the constant reference to the event mask.
-    * @return Constant reference to the event mask.
-    */
-    const decltype(event_mask) &getc_event_mask() { return event_mask; }
-
-    /**
-    * @brief Get the reference to the event mask.
-    * @return Reference to the event mask.
-    */
-    decltype(event_mask) &get_event_mask() { return event_mask; }
+    ClkMgrSubscription() noexcept : m_event_mask(0), m_composite_event_mask(0) {}
 
     /**
     * @brief Set the event mask.
     * @param[in] event_mask The new event mask to set.
     */
-    void set_event_mask(const decltype(event_mask) &event_mask) {
-        this->event_mask = event_mask;
+    void set_event_mask(uint32_t event_mask) {
+        m_event_mask = event_mask;
     }
 
     /**
     * @brief Get the value of the event mask.
     * @return The value of the event mask.
     */
-    decltype(event_mask) c_get_val_event_mask() const { return event_mask; }
-
-    /**
-    * @brief Get the constant reference to the composite event mask.
-    * @return Constant reference to the composite event mask.
-    */
-    const decltype(composite_event_mask) &getc_composite_event_mask() {
-        return composite_event_mask;
-    }
-
-    /**
-    * @brief Get the reference to the composite event mask.
-    * @return Reference to the composite event mask.
-    */
-    decltype(composite_event_mask) &get_composite_event_mask() {
-        return composite_event_mask;
-    }
+    uint32_t get_event_mask() const { return m_event_mask; }
 
     /**
     * @brief Set the composite event mask.
     * @param[in] composite_event_mask The new composite event mask to set.
     */
-    void set_composite_event_mask(const decltype(composite_event_mask)
-        &composite_event_mask) {
-        this->composite_event_mask = composite_event_mask;
+    void set_composite_event_mask(const uint32_t composite_event_mask) {
+        m_composite_event_mask = composite_event_mask;
     }
 
     /**
     * @brief Get the value of the composite event mask.
-    * @return The value of the composite event mask.
+    * @return the composite event mask.
     */
-    decltype(composite_event_mask) c_get_val_composite_event_mask() const {
-        return composite_event_mask;
+    uint32_t get_composite_event_mask() const {
+        return m_composite_event_mask;
     }
 
     /**
     * @brief Get the constant reference to the threshold.
     * @return Constant reference to the threshold.
     */
-    const decltype(threshold) &getc_threshold() { return threshold; }
-
-    /**
-    * @brief Get the reference to the threshold.
-    * @return Reference to the threshold.
-    */
-    decltype(threshold) &get_threshold() { return threshold; }
+    const threshold_t &get_threshold() const { return m_threshold; }
 
     /**
     * @brief Set the threshold.
     * @param[in] threshold The new threshold to set.
     */
-    void set_threshold(const decltype(threshold) &threshold) {
-        this->threshold = threshold;
+    void set_threshold(const threshold_t &threshold) {
+        m_threshold = threshold;
     }
-
-    /**
-    * @brief Get the value of the threshold.
-    * @return The value of the threshold.
-    */
-    decltype(threshold) c_get_val_threshold() const { return threshold; }
 
     /**
      * @brief Define the upper and lower limits of a specific event
@@ -169,8 +132,7 @@ class ClkMgrSubscription
      * @param[in] lower Lower limit
      * @return true on success, false on failure
      */
-    bool define_threshold(std::uint8_t index, std::int32_t upper,
-        std::int32_t lower);
+    bool define_threshold(uint8_t index, int32_t upper, int32_t lower);
 
     /**
      * @brief Check whether a given value is within predefined threshold
@@ -178,7 +140,7 @@ class ClkMgrSubscription
      * @param[in] value Current value
      * @return Return true if value is within the threshold, and false otherwise
      */
-    bool in_range(std::uint8_t index, std::int32_t value) const;
+    bool in_range(uint8_t index, int32_t value) const;
 };
 
 __CLKMGR_NAMESPACE_END

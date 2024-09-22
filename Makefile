@@ -204,6 +204,7 @@ PUB_C:=$(PUB)/c
 PMC_DIR:=ptp-tools
 HMAC_SRC:=hmac
 CLKMGR_DIR:=clkmgr
+CLKMGR_NAME:=clkmgr
 OBJ_DIR:=objs
 
 CONF_FILES:=configure src/config.h.in

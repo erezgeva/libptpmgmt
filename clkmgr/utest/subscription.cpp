@@ -15,17 +15,13 @@ using namespace clkmgr;
 
 // Tests event_mask
 // void set_event_mask(const uint32_t &varname)
-// const uint32_t &getc_event_mask()
-// uint32_t &get_event_mask()
-// uint32_t c_get_val_event_mask() const
+// uint32_t get_event_mask() const
 TEST(SubscriptionTest, MacroMajor)
 {
     ClkMgrSubscription subscription = {};
     uint32_t events = eventGMOffset | eventSyncedToGM;
     subscription.set_event_mask(events);
-    EXPECT_EQ(subscription.getc_event_mask(), events);
     EXPECT_EQ(subscription.get_event_mask(), events);
-    EXPECT_EQ(subscription.c_get_val_event_mask(), events);
     EXPECT_TRUE(subscription.get_event_mask() & eventSyncedToGM);
     EXPECT_FALSE(subscription.get_event_mask() & eventASCapable);
 }

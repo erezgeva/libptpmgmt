@@ -50,9 +50,9 @@ BUILD_TXBUFFER_TYPE(CommonSubscribeMessage::makeBuffer) const
     if(!WRITE_TX(FIELD, c_get_val_sessionId(), TxContext))
         return false;
     PrintDebug("[CommonSubscribeMessage]::makeBuffer - subscription event : " + \
-        std::to_string(subscription.c_get_val_event_mask()) + \
+        std::to_string(subscription.get_event_mask()) + \
         ", composite event : " + \
-        std::to_string(subscription.c_get_val_composite_event_mask()));
+        std::to_string(subscription.get_composite_event_mask()));
     if(!WRITE_TX(FIELD, subscription, TxContext))
         return false;
     return true;

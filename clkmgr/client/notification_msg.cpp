@@ -118,9 +118,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             currentClientState->get_eventState();
         clkmgr_event_count &clkmgrCurrentEventCount =
             currentClientState->get_eventStateCount();
-        eventSub = currentClientState->get_eventSub().c_get_val_event_mask();
+        eventSub = currentClientState->get_eventSub().get_event_mask();
         composite_eventSub =
-            currentClientState->get_eventSub().c_get_val_composite_event_mask();
+            currentClientState->get_eventSub().get_composite_event_mask();
         /* Get the correct client_ptp_data according to our current sessionID */
         client_ptp_event *client_ptp_data = nullptr;
         client_ptp_data = ClientSubscribeMessage::getClientPtpEventStruct(

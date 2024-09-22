@@ -26,7 +26,7 @@ ClientState::ClientState()
 {
     connected = false;
     subscribed = false;
-    sessionId = InvalidSessionId;
+    m_sessionId = InvalidSessionId;
     fill(begin(clientID), end(clientID), 0);
     eventState = {};
     eventStateCount = {};
@@ -38,7 +38,7 @@ ClientState::ClientState(ClientState &newState)
 {
     connected = newState.get_connected();
     subscribed = newState.get_subscribed();
-    sessionId = newState.get_sessionId();
+    m_sessionId = newState.get_sessionId();
     strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
     eventState = newState.get_eventState();
     eventStateCount = newState.get_eventStateCount();
@@ -50,7 +50,7 @@ void ClientState::set_clientState(ClientState &newState)
 {
     connected = newState.get_connected();
     subscribed = newState.get_subscribed();
-    sessionId = newState.get_sessionId();
+    m_sessionId = newState.get_sessionId();
     strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
     eventState = newState.get_eventState();
     eventStateCount = newState.get_eventStateCount();

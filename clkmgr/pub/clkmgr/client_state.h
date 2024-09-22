@@ -30,9 +30,9 @@ class ClientState
   private:
     std::atomic_bool connected{false}; /**< Connection status */
     std::atomic_bool subscribed{false}; /**< Subscription status */
-    sessionId_t sessionId = InvalidSessionId; /**< Session ID */
+    sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
     TransportClientId clientID = {}; /**< Client ID */
-    std::uint8_t ptp4l_id = 0; /**< PTP4L ID */
+    uint8_t m_ptp4l_id = 0; /**< PTP4L ID */
     clkmgr_event_state eventState = {}; /**< Event state */
     clkmgr_event_count eventStateCount = {}; /**< Event count */
     ClkMgrSubscription eventSub = {}; /**< Event subscription */
@@ -142,55 +142,31 @@ class ClientState
 
     /**
     * @brief Get the constant reference to the session ID.
-    * @return const decltype(sessionId)& Constant reference to the session ID.
+    * @return session ID.
     */
-    const decltype(sessionId) &getc_sessionId() { return sessionId; }
-
-    /**
-    * @brief Get the reference to the session ID.
-    * @return decltype(sessionId)& Reference to the session ID.
-    */
-    decltype(sessionId) &get_sessionId() { return sessionId; }
+    sessionId_t get_sessionId() const { return m_sessionId; }
 
     /**
     * @brief Set the session ID.
     * @param[in] sessionId The new session ID to set.
     */
-    void set_sessionId(const decltype(sessionId) &sessionId) {
-        this->sessionId = sessionId;
+    void set_sessionId(sessionId_t sessionId) {
+        m_sessionId = sessionId;
     }
-
-    /**
-    * @brief Get the value of the session ID.
-    * @return decltype(sessionId) The value of the session ID.
-    */
-    decltype(sessionId) c_get_val_sessionId() const { return sessionId; }
-
-    /**
-    * @brief Get the constant reference to the ptp4l ID.
-    * @return const decltype(ptp4l_id)& Constant reference to the ptp4l ID.
-    */
-    const decltype(ptp4l_id) &getc_ptp4l_id() { return ptp4l_id; }
-
-    /**
-    * @brief Get the reference to the ptp4l ID.
-    * @return decltype(ptp4l_id)& Reference to the ptp4l ID.
-    */
-    decltype(ptp4l_id) &get_ptp4l_id() { return ptp4l_id; }
 
     /**
     * @brief Set the ptp4l ID.
     * @param[in] ptp4l_id The new ptp4l ID to set.
     */
-    void set_ptp4l_id(const decltype(ptp4l_id) &ptp4l_id) {
-        this->ptp4l_id = ptp4l_id;
+    void set_ptp4l_id(uint8_t ptp4l_id) {
+        m_ptp4l_id = ptp4l_id;
     }
 
     /**
     * @brief Get the value of the ptp4l ID.
-    * @return decltype(ptp4l_id) The value of the ptp4l ID.
+    * @return the ptp4l ID.
     */
-    decltype(ptp4l_id) c_get_val_ptp4l_id() const { return ptp4l_id; }
+    uint8_t get_ptp4l_id() const { return m_ptp4l_id; }
 };
 
 __CLKMGR_NAMESPACE_END

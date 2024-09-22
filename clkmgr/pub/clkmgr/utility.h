@@ -15,12 +15,14 @@
 #include <array>
 #include <cstdint>
 
+#ifndef __CLKMGR_NAMESPACE_USE
 /** Using clkmgr namespace */
 #define __CLKMGR_NAMESPACE_USE using namespace clkmgr;
 /** Define start of clkmgr namespace block */
 #define __CLKMGR_NAMESPACE_BEGIN namespace clkmgr {
 /** Define end of clkmgr namespace block */
 #define __CLKMGR_NAMESPACE_END }
+#endif
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -31,13 +33,13 @@ __CLKMGR_NAMESPACE_BEGIN
  * @typedef TransportClientId
  * @brief Array to store transport client ID.
  */
-typedef std::array<std::uint8_t, TRANSPORT_CLIENTID_LENGTH> TransportClientId;
+typedef std::array<uint8_t, TRANSPORT_CLIENTID_LENGTH> TransportClientId;
 
 /**
  * @typedef sessionId_t
  * @brief Type definition for session ID.
  */
-typedef std::uint16_t sessionId_t;
+typedef uint16_t sessionId_t;
 
 /** Invalid session ID (default session ID) */
 static const sessionId_t InvalidSessionId = static_cast<sessionId_t>(-1);

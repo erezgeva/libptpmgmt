@@ -67,10 +67,10 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
             clock_gettime failed.\n");
     else
         currentClientState->set_last_notification_time(last_notification_time);
-    eventSub = currentClientState->get_eventSub().c_get_val_event_mask();
+    eventSub = currentClientState->get_eventSub().get_event_mask();
     std::uint32_t composite_eventSub;
     composite_eventSub =
-        currentClientState->get_eventSub().c_get_val_composite_event_mask();
+        currentClientState->get_eventSub().get_composite_event_mask();
     PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
     if(!CommonSubscribeMessage::parseBuffer(LxContext))
         return false;
