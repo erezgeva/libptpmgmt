@@ -61,17 +61,17 @@ struct ptpmgmt_sk_t {
     bool (*init)(ptpmgmt_sk sk);
     /**
      * Send the message using the socket
-     * @param[in, out] sk socket
+     * @param[in] sk socket
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @return true if message is sent
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool (*send)(ptpmgmt_sk sk, const void *msg, size_t len);
+    bool (*send)(const_ptpmgmt_sk sk, const void *msg, size_t len);
     /**
      * Receive a message using the socket
-     * @param[in, out] sk socket
+     * @param[in] sk socket
      * @param[in, out] buf pointer to a memory buffer
      * @param[in] bufSize memory buffer size
      * @param[in] block true, wait till a packet arrives.
@@ -79,7 +79,7 @@ struct ptpmgmt_sk_t {
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    ssize_t (*rcv)(ptpmgmt_sk sk, void *buf, size_t bufSize, bool block);
+    ssize_t (*rcv)(const_ptpmgmt_sk sk, void *buf, size_t bufSize, bool block);
     /**
      * Get socket file description
      * @param[in] sk socket
@@ -100,7 +100,7 @@ struct ptpmgmt_sk_t {
     int (*fileno)(const_ptpmgmt_sk sk);
     /**
      * Single socket polling
-     * @param[in, out] sk socket
+     * @param[in] sk socket
      * @param[in] timeout_ms timeout in milliseconds,
      *  until receive a packet. use 0 for blocking.
      * @return true if a packet is ready for receive
@@ -108,10 +108,10 @@ struct ptpmgmt_sk_t {
      *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
      */
-    bool (*poll)(ptpmgmt_sk sk, uint64_t timeout_ms);
+    bool (*poll)(const_ptpmgmt_sk sk, uint64_t timeout_ms);
     /**
      * Single socket polling and update timeout
-     * @param[in, out] sk socket
+     * @param[in] sk socket
      * @param[in, out] timeout_ms timeout in milliseconds
      *  until receive a packet. use 0 for blocking.
      * @return true if a packet is ready for receive
@@ -119,7 +119,7 @@ struct ptpmgmt_sk_t {
      *  when packet arrives. The user is advice to ensure the timeout
      *  is positive, as @b zero cause to block until receive a packet.
      */
-    bool (*tpoll)(ptpmgmt_sk sk, uint64_t *timeout_ms);
+    bool (*tpoll)(const_ptpmgmt_sk sk, uint64_t *timeout_ms);
     /**
      * Get peer address
      * @param[in] sk socket
@@ -206,13 +206,12 @@ struct ptpmgmt_sk_t {
         const char *useDef);
     /**
      * Get user home directory
-     * @param[in, out] sk socket
      * @return string object with home directory
      */
-    const char *(*getHomeDir)(ptpmgmt_sk sk);
+    const char *(*getHomeDir)();
     /**
      * Send the message using the socket to a specific address
-     * @param[in, out] sk socket
+     * @param[in] sk socket
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix socket address (socket file)
@@ -220,11 +219,11 @@ struct ptpmgmt_sk_t {
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool (*sendTo)(ptpmgmt_sk sk, const void *msg, size_t len,
+    bool (*sendTo)(const_ptpmgmt_sk sk, const void *msg, size_t len,
         const char *addrStr);
     /**
      * Send the message using the socket to a specific abstract soket address
-     * @param[in, out] sk socket
+     * @param[in] sk socket
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix abstract socket address
@@ -234,7 +233,7 @@ struct ptpmgmt_sk_t {
      * @note add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool (*sendToA)(ptpmgmt_sk sk, const void *msg, size_t len,
+    bool (*sendToA)(const_ptpmgmt_sk sk, const void *msg, size_t len,
         const char *addrStr);
     /**
      * Receive a message using the socket from any address
@@ -450,6 +449,12 @@ struct ptpmgmt_sk_t {
     bool (*setSocketPriorityCfg)(ptpmgmt_sk sk, const_ptpmgmt_cfg cfg,
         const char *section);
 };
+
+/**
+ * Get user home directory
+ * @return string object with home directory
+ */
+const char *ptpmgmt_sk_getHomeDir();
 
 /**
  * Enumerator for the available socket classes, we support
