@@ -25,11 +25,6 @@ void Init::close()
         s->close();
 }
 
-// obsolete function: misspelled
-int Init::proccess(const Options &opt)
-{
-    return process(opt);
-}
 int Init::process(const Options &opt)
 {
     char net_select = opt.get_net_transport();
@@ -183,6 +178,34 @@ int Init::process(const Options &opt)
     m_msg.updateParams(prms);
     PTPMGMT_ERROR_CLR;
     return EXIT_SUCCESS;
+}
+const ConfigFile &Init::cfg() const
+{
+    return m_cfg;
+}
+const SaFile &Init::sa() const
+{
+    return m_sa;
+}
+Message &Init::msg()
+{
+    return m_msg;
+}
+SockBase *Init::sk()
+{
+    return m_sk.get();
+}
+char Init::getNetSelect()
+{
+    return m_net_select;
+}
+bool Init::use_uds() const
+{
+    return m_use_uds;
+}
+uint8_t Init::allow_unauth() const
+{
+    return m_allow_unauth;
 }
 
 __PTPMGMT_NAMESPACE_END
