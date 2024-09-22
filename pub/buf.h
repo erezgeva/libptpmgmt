@@ -33,7 +33,7 @@ class Buf
      * Create a new memory buffer
      * @param[in] size new buffer size
      */
-    Buf(size_t size) {alloc(size);}
+    Buf(size_t size);
     ~Buf();
     /**
      * Create a new memory buffer or resize existing one
@@ -45,22 +45,22 @@ class Buf
      * Get memory buffer pointer
      * @return memory buffer pointer or null if buffer does not exist
      */
-    void *get() const {return m_buf;}
+    void *get() const;
     /**
      * Get memory buffer pointer
      * @return memory buffer pointer or null if buffer does not exist
      */
-    void *operator()() const {return m_buf;}
+    void *operator()() const {return get();}
     /**
      * Get memory buffer size
      * @return memory buffer size or 0 if buffer does not exist
      */
-    size_t size() const {return m_size;}
+    size_t size() const;
     /**
      * Is memory buffer allocated?
      * @return true if memory buffer is allocated
      */
-    bool isAlloc() const {return m_size > 0;}
+    bool isAlloc() const;
 };
 
 __PTPMGMT_NAMESPACE_END
