@@ -73,29 +73,29 @@ class Binary
      * Get Binary length
      * @return Binary length
      */
-    size_t length() const { return m_size; }
+    size_t length() const;
     /**
      * Get Binary length
      * @return Binary length
      */
-    size_t size() const { return m_size; }
+    size_t size() const;
     /**
      * Return if Binary is empty
      * @return true if empty
      */
-    bool empty() const { return m_size == 0; }
+    bool empty() const;
     /**
      * Get pointer to Binary
      * @return pointer to octets
      */
-    const uint8_t *get() const { return m_buf; }
+    const uint8_t *get() const;
     /**
      * Get binary content in a string
      * @return string with binary content
      * @note for scripts, to use unpacking assignment
      *       and split octets into array or list
      */
-    std::string getBinString() const { return std::string((char *)m_buf, m_size); }
+    std::string getBinString() const;
     /**
      * Set new value
      * @param[in] buf pointer to Binary octets
@@ -227,18 +227,7 @@ class Binary
      * @return address
      * @note Support MAC addresses
      */
-    std::string toId(const std::string &sep = ":") const {
-        return bufToId(m_buf, m_size, sep);
-    }
-    /**
-     * Convert Binary ID to string
-     * @param[in] id pointer to memory buffer
-     * @param[in] length of memory buffer
-     * @return address
-     * @note Support MAC addresses
-     * @remark keep for ABI backward compatibility.
-     */
-    static std::string bufToId(const uint8_t *id, size_t length);
+    std::string toId(const std::string &sep = ":") const;
     /**
      * Convert Binary ID to string with a selected seperator
      * @param[in] id pointer to memory buffer
@@ -248,7 +237,7 @@ class Binary
      * @note Support MAC addresses
      */
     static std::string bufToId(const uint8_t *id, size_t length,
-        const std::string &sep);
+        const std::string &sep = ":");
     /**
      * Convert ID address string to Binary
      * @param[in] string address
@@ -261,12 +250,12 @@ class Binary
      * @param[in] string address
      * @return true if MAC address
      */
-    bool fromMac(const std::string &string) { return fromId(string) && isMacLen(); }
+    bool fromMac(const std::string &string);
     /**
      * Check if ID length is a valid MAC address
      * @return true if ID length is valid MAC length
      */
-    bool isMacLen() const { return m_size == EUI48 || m_size == EUI64; }
+    bool isMacLen() const;
     /**
      * Convert ID from EUI48 to EUI64 using 0xfffe padding
      * @return true if ID is EUI64 after conversion
@@ -282,7 +271,7 @@ class Binary
      * Convert Binary to hex string
      * @return hex string
      */
-    std::string toHex() const { return bufToHex(m_buf, m_size); }
+    std::string toHex() const;
     /**
      * Convert Binary to hex string
      * @param[in] bin pointer to memory buffer
@@ -312,7 +301,7 @@ class Binary
      * @attention The function do not verify proper characters
      *            for values 62, 63. The caller should use proper characters.
      */
-    std::string toBase64(bool pad = true, char v62 = '+', char v63 = '/');
+    std::string toBase64(bool pad = true, char v62 = '+', char v63 = '/') const;
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare
