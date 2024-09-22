@@ -18,7 +18,7 @@ Homepage: https://libptpmgmt.nwtime.org
 Vcs-Browser: https://github.com/erezgeva/libptpmgmt
 Vcs-Git: https://github.com/erezgeva/libptpmgmt.git
 
-Package: libptpmgmt
+Package: libptpmgmt2
 Architecture: any
 Multi-Arch: same
 Section: libs
@@ -27,39 +27,39 @@ Depends: ${misc:Depends}, ${shlibs:Depends}
 Recommends: linuxptp
 Description: PTP management library, to communicate with ptp4l
 
-Package: libptpmgmt-openssl
+Package: libptpmgmt2-openssl
 Architecture: any
 Multi-Arch: same
 Section: libs
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt2 (= ${binary:Version})
 Recommends: linuxptp
 Description: PTP management library HMAC plugin using the openssl library
 
-Package: libptpmgmt-gcrypt
+Package: libptpmgmt2-gcrypt
 Architecture: any
 Multi-Arch: same
 Section: libs
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt2 (= ${binary:Version})
 Recommends: linuxptp
 Description: PTP management library HMAC plugin using the LGPG crypt library
 
-Package: libptpmgmt-gnutls
+Package: libptpmgmt2-gnutls
 Architecture: any
 Multi-Arch: same
 Section: libs
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt2 (= ${binary:Version})
 Recommends: linuxptp
 Description: PTP management library HMAC plugin using the gnutls library
 
-Package: libptpmgmt-nettle
+Package: libptpmgmt2-nettle
 Architecture: any
 Multi-Arch: same
 Section: libs
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt2 (= ${binary:Version})
 Recommends: linuxptp
 Description: PTP management library HMAC plugin using the nettle library
 
@@ -69,7 +69,8 @@ Multi-Arch: same
 Section: libdevel
 Provides: libclkmgr-dev
 Pre-Depends: ${misc:Pre-Depends}
-Depends: g++, ${misc:Depends}, libptpmgmt (= ${binary:Version}), libclkmgr (= ${binary:Version})
+Depends: g++, ${misc:Depends}, libptpmgmt2 (= ${binary:Version}),
+	 libclkmgr2 (= ${binary:Version})
 Description: PTP management library development
  This package provides header files and static library.
  For both libraries.
@@ -90,7 +91,7 @@ Section: perl
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${perl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends},
-	 libptpmgmt (= ${binary:Version})
+	 libptpmgmt2 (= ${binary:Version})
 Description: PTP management library Perl wrapper
 
 Package: python3-ptpmgmt
@@ -100,7 +101,7 @@ Section: python
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${python3:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends},
-	 libptpmgmt (= ${binary:Version})
+	 libptpmgmt2 (= ${binary:Version})
 Description: PTP management library python version 3 wrapper
 
 Package: lua-ptpmgmt
@@ -109,7 +110,7 @@ Multi-Arch: same
 Section: interpreters
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${lua:Provides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, libptpmgmt2 (= ${binary:Version})
 XB-Lua-Versions: ${lua:Versions}
 Description: PTP management library Lua wrapper
 
@@ -120,7 +121,7 @@ Section: ruby
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${ruby:Provides}
 Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends},
-	 ${ruby:Depends}, libptpmgmt (= ${binary:Version})
+	 ${ruby:Depends}, libptpmgmt2 (= ${binary:Version})
 Description: PTP management library ruby wrapper
 
 Package: php-ptpmgmt
@@ -129,7 +130,7 @@ Section: php
 Pre-Depends: php-common (>= 2:69), ${misc:Pre-Depends}
 Provides: ${php:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
-	 libptpmgmt (= ${binary:Version})
+	 libptpmgmt2 (= ${binary:Version})
 Description: PTP management library php wrapper
 
 Package: tcl-ptpmgmt
@@ -139,7 +140,7 @@ Section: interpreters
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${tcl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
-	 libptpmgmt (= ${binary:Version})
+	 libptpmgmt2 (= ${binary:Version})
 Description: PTP management library tcl wrapper
 
 Package: golang-ptpmgmt
@@ -156,7 +157,7 @@ Package: pmc-ptpmgmt
 Architecture: any
 Section: utils
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, libptpmgmt (= ${binary:Version})
+Depends: ${misc:Depends}, libptpmgmt2 (= ${binary:Version})
 Recommends: linuxptp
 Description: pmc tool.
  new rewrite of LinuxPTP pmc tool using the PTP management library.
@@ -175,7 +176,7 @@ Package: clkmgr-proxy
 Architecture: any
 Section: utils
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, libptpmgmt (= ${binary:Version})
+Depends: ${misc:Depends}, libptpmgmt2 (= ${binary:Version})
 Recommends: linuxptp
 Description: Clock Manager proxy service.
  framework for controlling and monitoring network time synchronization
@@ -191,7 +192,7 @@ Description: Clock Manager proxy service. (Runit integration)
  This package contains scripts to run clkmgr-proxy under Runit
  supervision system.
 
-Package: libclkmgr
+Package: libclkmgr2
 Architecture: any
 Multi-Arch: same
 Section: libs
@@ -209,7 +210,7 @@ Section: perl
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${perl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends},
-	 libclkmgr (= ${binary:Version})
+	 libclkmgr2 (= ${binary:Version})
 Description: Clock Manager library Perl wrapper
 
 Package: python3-clkmgr
@@ -219,7 +220,7 @@ Section: python
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${python3:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends},
-	 libclkmgr (= ${binary:Version})
+	 libclkmgr2 (= ${binary:Version})
 Description: Clock Manager library python version 3 wrapper
 
 Package: lua-clkmgr
@@ -228,7 +229,7 @@ Multi-Arch: same
 Section: interpreters
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${lua:Provides}
-Depends: ${misc:Depends}, ${shlibs:Depends}, libclkmgr (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, libclkmgr2 (= ${binary:Version})
 XB-Lua-Versions: ${lua:Versions}
 Description: Clock Manager library Lua wrapper
 
@@ -239,7 +240,7 @@ Section: ruby
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${ruby:Provides}
 Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends},
-	 ${ruby:Depends}, libclkmgr (= ${binary:Version})
+	 ${ruby:Depends}, libclkmgr2 (= ${binary:Version})
 Description: Clock Manager library ruby wrapper
 
 Package: php-clkmgr
@@ -248,7 +249,7 @@ Section: php
 Pre-Depends: php-common (>= 2:69), ${misc:Pre-Depends}
 Provides: ${php:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
-	 libclkmgr (= ${binary:Version})
+	 libclkmgr2 (= ${binary:Version})
 Description: Clock Manager library php wrapper
 
 Package: tcl-clkmgr
@@ -258,5 +259,5 @@ Section: interpreters
 Pre-Depends: ${misc:Pre-Depends}
 Provides: ${tcl:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
-	 libclkmgr (= ${binary:Version})
+	 libclkmgr2 (= ${binary:Version})
 Description: Clock Manager library tcl wrapper

@@ -68,9 +68,9 @@ override_dh_install:
 	  tcl-clkmgr/usr/$(TCLDIR) $(PYDIR) $(PERLDIR)/auto $(PHPDIR) $(RUBYDIR)\
 	  $(addsuffix /usr/lib,python3-ptpmgmt php-ptpmgmt tcl-ptpmgmt\
 	  golang-ptpmgmt)\
-	  $(addsuffix $(LIBDIR),lua-ptpmgmt lua-clkmgr ruby-ptpmgmt libptpmgmt\
-	  $(addprefix libptpmgmt-,perl dev openssl gcrypt gnutls\
-	  nettle) libclkmgr))
+	  $(addsuffix $(LIBDIR),lua-ptpmgmt lua-clkmgr ruby-ptpmgmt libptpmgmt2\
+	  $(addprefix libptpmgmt2-,openssl gcrypt gnutls nettle)\
+	  libptpmgmt-perl libptpmgmt-dev libclkmgr2))
 	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
 	$Q$(MV) $(DSRC)share/doc/libptpmgmt-dev debian/libptpmgmt-dev/usr/share/doc
 	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
@@ -106,9 +106,9 @@ endif
 ifneq ($(wildcard $(DSRC)lib/go*),)
 	$Q$(MV) $(DSRC)lib/go* debian/golang-ptpmgmt/usr/lib
 endif
-	$Q$(MV) $(SLIBDIR)/libclkmgr* debian/libclkmgr$(LIBDIR)
-	$Q$(MV) $(SLIBDIR)/libptpmgmt_openssl* debian/libptpmgmt-openssl$(LIBDIR)
-	$Q$(MV) $(SLIBDIR)/libptpmgmt_gcrypt* debian/libptpmgmt-gcrypt$(LIBDIR)
-	$Q$(MV) $(SLIBDIR)/libptpmgmt_gnutls* debian/libptpmgmt-gnutls$(LIBDIR)
-	$Q$(MV) $(SLIBDIR)/libptpmgmt_nettle* debian/libptpmgmt-nettle$(LIBDIR)
-	$Q$(MV) $(SLIBDIR)/* debian/libptpmgmt$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libclkmgr* debian/libclkmgr2$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libptpmgmt_openssl* debian/libptpmgmt2-openssl$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libptpmgmt_gcrypt* debian/libptpmgmt2-gcrypt$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libptpmgmt_gnutls* debian/libptpmgmt2-gnutls$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/libptpmgmt_nettle* debian/libptpmgmt2-nettle$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/* debian/libptpmgmt2$(LIBDIR)
