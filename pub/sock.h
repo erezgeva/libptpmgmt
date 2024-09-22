@@ -55,18 +55,18 @@ class SockBase
     void closeBase();
 
   public:
-    virtual ~SockBase() { closeBase(); }
+    virtual ~SockBase();
     /**< @endcond */
 
     /**
      * close socket and release its resources
      */
-    void close() { closeBase(); }
+    void close();
     /**
      * Allocate the socket and initialize it with current parameters
      * @return true if socket creation success
      */
-    bool init() { return initBase(); }
+    bool init();
     /**
      * Send the message using the socket
      * @param[in] msg pointer to message memory buffer
@@ -75,8 +75,7 @@ class SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool send(const void *msg, size_t len)
-    { return sendBase(msg, len); }
+    bool send(const void *msg, size_t len);
     /**
      * Send the message using the socket
      * @param[in] buf object with message memory buffer
@@ -85,8 +84,7 @@ class SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool send(Buf &buf, size_t len)
-    { return sendBase(buf.get(), len); }
+    bool send(Buf &buf, size_t len);
     /**
      * Send the message using the socket
      * @param[in] buf object with message memory buffer
@@ -96,8 +94,7 @@ class SockBase
      *  arrives its target. Only the network layer sends it.
      * @note identical to send. Some scripts fail to match proper function
      */
-    bool sendBuf(Buf &buf, size_t len)
-    { return sendBase(buf.get(), len); }
+    bool sendBuf(Buf &buf, size_t len);
     /**
      * Receive a message using the socket
      * @param[in, out] buf pointer to a memory buffer
@@ -107,8 +104,7 @@ class SockBase
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    ssize_t rcv(void *buf, size_t bufSize, bool block = false)
-    { return rcvBase(buf, bufSize, block); }
+    ssize_t rcv(void *buf, size_t bufSize, bool block = false);
     /**
      * Receive a message using the socket
      * @param[in, out] buf object with message memory buffer
@@ -117,8 +113,7 @@ class SockBase
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    ssize_t rcv(Buf &buf, bool block = false)
-    { return rcvBase(buf.get(), buf.size(), block); }
+    ssize_t rcv(Buf &buf, bool block = false);
     /**
      * Receive a message using the socket
      * @param[in, out] buf object with message memory buffer
@@ -128,8 +123,7 @@ class SockBase
      * @return number of bytes received or negative on failure
      * @note identical to rcv. Some scripts fail to match proper function
      */
-    ssize_t rcvBuf(Buf &buf, bool block = false)
-    { return rcvBase(buf.get(), buf.size(), block); }
+    ssize_t rcvBuf(Buf &buf, bool block = false);
     /**
      * Get socket file description
      * @return socket file description
@@ -137,7 +131,7 @@ class SockBase
      *  The user is advice to use properly. Do @b NOT free the socket.
      *  If you want to close the socket use the close function @b ONLY.
      */
-    int getFd() const { return m_fd; }
+    int getFd() const;
     /**
      * Get socket file description
      * @return socket file description
@@ -145,7 +139,7 @@ class SockBase
      *  The user is advice to use properly. Do @b NOT free the socket.
      *  If you want to close the socket use the close function @b ONLY.
      */
-    int fileno() const { return m_fd; }
+    int fileno() const;
     #ifdef __PTPMGMT_SWIG_THREAD_START
     __PTPMGMT_SWIG_THREAD_START;
     #endif
@@ -210,22 +204,22 @@ class SockUnix : public SockBase
     /**< @endcond */
 
   public:
-    SockUnix() { setUnixAddr(m_peerAddr, m_peer); }
+    SockUnix();
     /**
      * Get peer address
      * @return string object with peer address
      */
-    const std::string &getPeerAddress() const { return m_peer; }
+    const std::string &getPeerAddress() const;
     /**
      * Get peer address
      * @return string with peer address
      */
-    const char *getPeerAddress_c() const { return m_peer.c_str(); }
+    const char *getPeerAddress_c() const;
     /**
      * Is peer address abstract?
      * @return true if peer address is abstract address
      */
-    bool isPeerAddressAbstract() const { return isAddressAbstract(m_peer); }
+    bool isPeerAddressAbstract() const;
     /**
      * Set peer address
      * @param[in] string object with peer address
@@ -234,9 +228,7 @@ class SockUnix : public SockBase
      * @note useAbstract add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool setPeerAddress(const std::string &string, bool useAbstract = false) {
-        return setPeerInternal(string, useAbstract);
-    }
+    bool setPeerAddress(const std::string &string, bool useAbstract = false);
     /**
      * Set peer address using configuration file
      * @param[in] cfg reference to configuration file object
@@ -244,34 +236,22 @@ class SockUnix : public SockBase
      * @return true if peer address is updated
      * @note calling without section will fetch value from @"global@" section
      */
-    bool setPeerAddress(const ConfigFile &cfg, const std::string &section = "") {
-        return setPeerInternal(cfg.uds_address(section), false);
-    }
+    bool setPeerAddress(const ConfigFile &cfg, const std::string &section = "");
     /**
      * Get self address
      * @return string object with self address
      */
-    const std::string &getSelfAddress() const { return m_me; }
+    const std::string &getSelfAddress() const;
     /**
      * Get self address
      * @return string with self address
      */
-    const char *getSelfAddress_c() const { return m_me.c_str(); }
+    const char *getSelfAddress_c() const;
     /**
      * Is self address abstract?
      * @return true if self address is abstract address
      */
-    bool isSelfAddressAbstract() const { return isAddressAbstract(m_me); }
-    /**
-     * Set self address
-     * @param[in] string object with self address
-     * @return true if self address is updated
-     * @note address can not be changed after initializing.
-     *  User can close the socket, change this value, and
-     *  initialize a new socket.
-     * @remark keep for ABI backward compatibility.
-     */
-    bool setSelfAddress(const std::string &string);
+    bool isSelfAddressAbstract() const;
     /**
      * Set self address
      * @param[in] string object with self address
@@ -283,7 +263,7 @@ class SockUnix : public SockBase
      * @note useAbstract add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool setSelfAddress(const std::string &string, bool useAbstract);
+    bool setSelfAddress(const std::string &string, bool useAbstract = false);
     /**
      * Set self address using predefined algorithm
      * @param[in] rootBase base used for root user
@@ -310,17 +290,6 @@ class SockUnix : public SockBase
      * @param[in] msg pointer to message memory buffer
      * @param[in] len message length
      * @param[in] addrStr Unix socket address (socket file)
-     * @return true if message is sent
-     * @note true does @b NOT guarantee the frame was successfully
-     *  arrives its target. Only the network layer sends it.
-     * @remark keep for ABI backward compatibility.
-     */
-    bool sendTo(const void *msg, size_t len, const std::string &addrStr) const;
-    /**
-     * Send the message using the socket to a specific address
-     * @param[in] msg pointer to message memory buffer
-     * @param[in] len message length
-     * @param[in] addrStr Unix socket address (socket file)
      * @param[in] useAbstract use Abstract socket address
      * @return true if message is sent
      * @note true does @b NOT guarantee the frame was successfully
@@ -329,7 +298,7 @@ class SockUnix : public SockBase
      *       to mark it as abstract socket address
      */
     bool sendTo(const void *msg, size_t len, const std::string &addrStr,
-        bool useAbstract) const;
+        bool useAbstract = false) const;
     /**
      * Send the message using the socket to a specific address
      * @param[in] buf object with message memory buffer
@@ -343,8 +312,7 @@ class SockUnix : public SockBase
      *       to mark it as abstract socket address
      */
     bool sendTo(Buf &buf, size_t len, const std::string &addrStr,
-        bool useAbstract = false) const
-    { return sendTo(buf.get(), len, addrStr, useAbstract); }
+        bool useAbstract = false) const;
     /**
      * Receive a message using the socket from any address
      * @param[in, out] buf pointer to a memory buffer
@@ -368,8 +336,7 @@ class SockUnix : public SockBase
      * @return number of bytes received or negative on failure
      * @note from store the origin address which send the packet
      */
-    ssize_t rcvFrom(Buf &buf, std::string &from, bool block = false) const
-    { return rcvFrom(buf.get(), buf.size(), from, block); }
+    ssize_t rcvFrom(Buf &buf, std::string &from, bool block = false) const;
     /**
      * Receive a message using the socket from any address
      * @param[in, out] buf pointer to a memory buffer
@@ -380,8 +347,7 @@ class SockUnix : public SockBase
      * @return number of bytes received or negative on failure
      * @note use getLastFrom() to fetch origin address which send the packet
      */
-    ssize_t rcvFrom(void *buf, size_t bufSize, bool block = false)
-    { return rcvFrom(buf, bufSize, m_lastFrom, block); }
+    ssize_t rcvFrom(void *buf, size_t bufSize, bool block = false);
     /**
      * Receive a message using the socket from any address
      * @param[in] buf object with message memory buffer
@@ -391,8 +357,7 @@ class SockUnix : public SockBase
      * @return number of bytes received or negative on failure
      * @note use getLastFrom() to fetch origin address which send the packet
      */
-    ssize_t rcvFrom(Buf &buf, bool block = false)
-    { return rcvFrom(buf.get(), buf.size(), m_lastFrom, block); }
+    ssize_t rcvFrom(Buf &buf, bool block = false);
     /**
      * Receive a message using the socket from any address
      * @param[in] buf object with message memory buffer
@@ -403,8 +368,7 @@ class SockUnix : public SockBase
      * @note use getLastFrom() to fetch origin address which send the packet
      * @note identical to rcvFrom(). Some scripts fail to match proper function.
      */
-    ssize_t rcvBufFrom(Buf &buf, bool block = false)
-    { return rcvFrom(buf.get(), buf.size(), m_lastFrom, block); }
+    ssize_t rcvBufFrom(Buf &buf, bool block = false);
     /**
      * Fetch origin address from last rcvFrom() call
      * @return Unix socket address
@@ -412,7 +376,7 @@ class SockUnix : public SockBase
      * @attention no protection or thread safe, fetch last rcvFrom() call with
      *  this object.
      */
-    const std::string &getLastFrom() const { return m_lastFrom; }
+    const std::string &getLastFrom() const;
     /**
      * Fetch origin address from last rcvFrom() call
      * @return Unix socket address
@@ -420,20 +384,18 @@ class SockUnix : public SockBase
      * @attention no protection or thread safe, fetch last rcvFrom() call with
      *  this object.
      */
-    const char *getLastFrom_c() const { return m_lastFrom.c_str(); }
+    const char *getLastFrom_c() const;
     /**
      * Is last from address abstract?
      * @return true if last from address is abstract address
      */
-    bool isLastFromAbstract() const { return isAddressAbstract(m_lastFrom); }
+    bool isLastFromAbstract() const;
     /**
      * Is address abstract?
      * @param[in] addr socket address
      * @return true if address is abstract address
      */
-    static bool isAddressAbstract(const std::string &addr) {
-        return !addr.empty() && addr[0] == 0;
-    }
+    static bool isAddressAbstract(const std::string &addr);
 };
 
 /**
@@ -495,9 +457,7 @@ class SockBaseIf : public SockBase
      * @note calling without section will fetch value from @"global@" section
      */
     bool setAll(const IfInfo &ifObj, const ConfigFile &cfg,
-        const std::string &section = "") {
-        return setIf(ifObj) && setAllBase(cfg, section);
-    }
+        const std::string &section = "");
     /**
      * Set all socket parameters using a network interface object and
      *  a configuration file and initialize
@@ -511,9 +471,7 @@ class SockBaseIf : public SockBase
      * @note calling without section will fetch value from @"global@" section
      */
     bool setAllInit(const IfInfo &ifObj, const ConfigFile &cfg,
-        const std::string &section = "") {
-        return setAll(ifObj, cfg, section) && initBase();
-    }
+        const std::string &section = "");
 };
 
 /**
@@ -680,17 +638,6 @@ class SockRaw : public SockBaseIf
      *  initialize a new socket.
      */
     bool setPtpDstMac(const void *ptp_dst_mac, size_t len);
-    /**
-     * Set PTP multicast address using binary from
-     * @param[in] ptp_dst_mac address in binary form
-     * @param[in] len address length
-     * @return true if PTP multicast address is updated
-     * @note PTP multicast address can not be changed after initializing.
-     *  User can close the socket, change this value, and
-     *  initialize a new socket.
-     * @remark keep for ABI backward compatibility.
-     */
-    bool setPtpDstMac(const uint8_t *ptp_dst_mac, size_t len);
     /**
      * Set PTP multicast address using configuration file
      * @param[in] cfg reference to configuration file object
