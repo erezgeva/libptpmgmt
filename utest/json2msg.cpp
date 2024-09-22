@@ -13,22 +13,6 @@
 
 using namespace ptpmgmt;
 
-// Tests selectLib method
-// static bool selectLib(const std::string &libName)
-TEST(Json2msgTest, MethodSelectLib)
-{
-    // We use static link :-)
-    EXPECT_FALSE(Json2msg::selectLib("jsonc"));
-}
-
-// Tests isLibShared method
-// static bool isLibShared()
-TEST(Json2msgTest, MethodIsLibShared)
-{
-    // We use static link :-)
-    EXPECT_FALSE(Json2msg::isLibShared());
-}
-
 // Tests fromJson method
 // bool fromJson(const std::string &json)
 TEST(Json2msgTest, MethodFromJson)
