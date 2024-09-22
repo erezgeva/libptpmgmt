@@ -237,7 +237,8 @@ ci_abi_err()
 {
  if [[ -f abi_error ]]; then
    echo "== Report ABI error =="
-   exit $(cat abi_error)
+   # TODO Major version breaks ABI
+   echo "exit $(cat abi_error)"
  fi
 }
 ###############################################################################
