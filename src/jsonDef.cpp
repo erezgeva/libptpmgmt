@@ -366,26 +366,6 @@ struct JsonProcFrom : public JsonProc {
     procVector(AcceptableMaster_t)
     procVector(LinuxptpUnicastMaster_t)
 };
-// keep for ABI backward compatibility
-Json2msg::~Json2msg() {}
-// Obsolete as we use internal JSON parser
-#ifdef PIC // Shared library code
-const char *libName = "libptpmgmt_jsonc.so";
-#define LIB_NAME libName
-#define LIB true
-#define SET_NAME\
-    if(str.find("fa") == str.npos) libName = "libptpmgmt_jsonc.so";\
-    else libName = "libptpmgmt_fastjson.so"
-#else // PIC
-#define LIB_NAME ""
-#define LIB false
-#define SET_NAME
-#endif // PIC
-bool Json2msg::selectLib(const string &str) { SET_NAME; return LIB; }
-const char *Json2msg::loadLibrary() { return LIB_NAME; }
-bool Json2msg::isLibShared() { return LIB; }
-bool Json2msg::fromJsonObj(const void *) { return false; }
-/* ************************************ */
 bool Json2msg::fromJson(const string &json)
 {
     jsonMain jmain;
@@ -519,6 +499,94 @@ bool Json2msg::fromJson(const string &json)
     }
     return true;
 }
+mng_vals_e Json2msg::managementId() const
+{
+    return m_managementId;
+}
+const BaseMngTlv *Json2msg::dataField() const
+{
+    return m_tlvData.get();
+}
+actionField_e Json2msg::actionField() const
+{
+    return m_action;
+}
+bool Json2msg::isUnicast() const
+{
+    return m_unicastFlag;
+}
+bool Json2msg::haveIsUnicast() const
+{
+    return m_have[have_unicastFlag];
+}
+uint8_t Json2msg::PTPProfileSpecific() const
+{
+    return m_PTPProfileSpecific;
+}
+bool Json2msg::havePTPProfileSpecific() const
+{
+    return m_have[have_PTPProfileSpecific];
+}
+uint8_t Json2msg::domainNumber() const
+{
+    return m_domainNumber;
+}
+bool Json2msg::haveDomainNumber() const
+{
+    return m_have[have_domainNumber];
+}
+uint8_t Json2msg::versionPTP() const
+{
+    return m_versionPTP;
+}
+bool Json2msg::haveVersionPTP() const
+{
+    return m_have[have_versionPTP];
+}
+uint8_t Json2msg::minorVersionPTP() const
+{
+    return m_minorVersionPTP;
+}
+bool Json2msg::haveMinorVersionPTP() const
+{
+    return m_have[have_minorVersionPTP];
+}
+uint16_t Json2msg::sequenceId() const
+{
+    return m_sequenceId;
+}
+bool Json2msg::haveSequenceId() const
+{
+    return m_have[have_sequenceId];
+}
+uint32_t Json2msg::sdoId() const
+{
+    return m_sdoId;
+}
+bool Json2msg::haveSdoId() const
+{
+    return m_have[have_sdoId];
+}
+const PortIdentity_t &Json2msg::srcPort() const
+{
+    return m_srcPort;
+}
+bool Json2msg::haveSrcPort() const
+{
+    return m_have[have_srcPort];
+}
+const PortIdentity_t &Json2msg::dstPort() const
+{
+    return m_dstPort;
+}
+bool Json2msg::haveDstPort() const
+{
+    return m_have[have_dstPort];
+}
+bool Json2msg::setAction(Message &message) const
+{
+    return message.setAction(m_action, m_managementId, m_tlvData.get());
+}
 
 __PTPMGMT_NAMESPACE_END
 
@@ -560,18 +628,6 @@ extern "C" {
             free(j);
         }
     }
-    // Obsolete as we use internal JSON parser
-    bool ptpmgmt_json_selectLib(const char *libName)
-    {
-        if(libName != nullptr)
-            return Json2msg::selectLib(libName);
-        return false;
-    }
-    const char *ptpmgmt_json_loadLibrary() { return LIB_NAME; }
-    bool ptpmgmt_json_isLibShared() { return LIB; }
-    static bool ptpmgmt_json_fromJsonObj(ptpmgmt_json, const void *)
-    { return false; }
-    /* ************************************ */
     static bool ptpmgmt_json_fromJson(ptpmgmt_json j, const char *arg)
     {
         if(j != nullptr && j->_this != nullptr && arg != nullptr)
@@ -636,12 +692,6 @@ extern "C" {
         }
 #define C_ASGN(n) j->n = ptpmgmt_json_##n
         C_ASGN(free);
-        // Obsolete as we use internal JSON parser
-        C_ASGN(selectLib);
-        C_ASGN(loadLibrary);
-        C_ASGN(isLibShared);
-        C_ASGN(fromJsonObj);
-        /* ************************************ */
         C_ASGN(fromJson);
         C_ASGN(managementId);
         C_ASGN(dataField);
