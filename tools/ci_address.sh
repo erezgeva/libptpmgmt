@@ -197,6 +197,7 @@ ci_pkgs_no_dev()
 # Compart ABI of current library with last version
 ci_abi()
 {
+ return # TODO Major version breaks ABI
  local -r cur_hash="$(git rev-parse HEAD)"
  local -r version="$ver_maj.$ver_min"
  if ! git rev-list $version > /dev/null 2>&1; then
