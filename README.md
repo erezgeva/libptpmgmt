@@ -138,6 +138,14 @@ but **NOT** with the Go wrapper, which may break!
   * Options in opt.h - Parse pmc tool command line parameters
   * Init in init.h - Initialize objects for a pmc tool
 
+# <u>Clock Manager</u>
+Leveraging the libptpmgmt Library, the clock Manager is a framework for monitoring network time
+synchronization on the local platform. The Clock Manager exposes an API to
+enable reporting time synchronization status to any application executing on the
+system. It is planned that Clock Manager will not only be able to report
+timing telemetry information, but also configure the platform. For further
+information, see the [Clock Manager](./clkmgr/README.md) introduction.
+
 # <u>pmc and phc_ctl tools</u>
 The project provides a clone of [LinuxPTP](https://linuxptp.nwtime.org)
 pmc tool using the libptpmgmt library  
