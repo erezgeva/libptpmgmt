@@ -35,3 +35,6 @@ endif
 
 install_php:
 	$Q$(INSTALL_LIB) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHP_SITE)
+ifndef SKIP_CLKMGR
+	$(INSTALL_LIB) -D $(PHP_CLKMGR).so -t $(DESTDIR)$(PHP_SITE)
+endif

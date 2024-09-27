@@ -8,7 +8,6 @@
 #
 ###############################################################################
 
-CLKMGR_PUB_DIR = $(CLKMGR_DIR)/pub
 CLKMGR_COMMON_DIR:=$(CLKMGR_DIR)/common
 CLKMGR_CLIENT_DIR:=$(CLKMGR_DIR)/client
 CLKMGR_PROXY_DIR:=$(CLKMGR_DIR)/proxy
@@ -21,7 +20,7 @@ CLKMGR_LIB_LA:=$(CLKMGR_LIB).la
 CLKMGR_PROXY:=$(CLKMGR_PROXY_DIR)/clkmgr_proxy
 
 CLKMGR_LDLIBS:=$(foreach lib,pthread rt rtpi,-l$(lib))
-CLKMGR_CXXFLAGS:=-I$(CLKMGR_PUB_DIR) -I$(CLKMGR_DIR)
+CLKMGR_CXXFLAGS:=-I$(CLKMGR_DIR)
 
 CLKMGR_COMMON_SRCS:=$(wildcard $(CLKMGR_COMMON_DIR)/*.cpp)
 CLKMGR_COMMON_LOBJS:=$(CLKMGR_COMMON_SRCS:.cpp=.lo)
@@ -69,3 +68,31 @@ $(CLKMGR_CLIENT_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_CLIENT_OBJS) \
 utest_clkmgr_client: $(HEADERS_GEN_COMP) $(CLKMGR_CLIENT_UTEST)
 	$(call Q_UTEST,C++)$(UVGD)$(CLKMGR_CLIENT_UTEST) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif #GTEST_LIB_FLAGS
+
+define clkmgr_pkgconfig
+$(hash) $(SPDXLI) $(SPDXBSD3)
+$(hash) $(SPDXCY_INTEL)
+
+Name: $(CLKMGR_LIB) library
+Description: $(CLKMGR_LIB) Clock Manager library
+
+URL: $(PACKAGE_URL)
+Version: $(PACKAGE_VERSION)
+Cflags:
+Libs: -l$(CLKMGR_NAME)
+endef
+
+install_clkmgr:
+	$(Q)$(INSTALL_FOLDER) $(DESTDIR)$(includedir) $(PKGCFGDIR)\
+	  $(DESTDIR)$(sbindir)
+	$(INSTALL_PROGRAM) -D $(CLKMGR_PROXY) -t $(DESTDIR)$(sbindir)
+ifdef PKG_CONFIG_DIR
+	echo "$(clkmgr_pkgconfig)" > $(PKGCFGDIR)/$(CLKMGR_NAME).pc
+	for pf in $(CLKMGR_NAME)$(PACKAGE_VERSION) $(CLKMGR_LIB)\
+	  $(CLKMGR_LIB)$(PACKAGE_VERSION)
+	do $(LN) $(CLKMGR_NAME).pc $(PKGCFGDIR)/$$pf.pc;done
+endif
+	cp -a $(CLKMGR_DIR)/pub/* $(DESTDIR)$(includedir)
+	$(SED) -i 's!$(c_inc)\s*\"pub/\([^"]\+\)\"!$(c_inc) <\1>!'\
+	  $(DESTDIR)$(includedir)/clockmanager.h\
+	  $(DESTDIR)$(includedir)/$(CLKMGR_NAME)/*.h

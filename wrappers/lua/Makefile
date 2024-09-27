@@ -22,12 +22,14 @@ $$(LUA_LIB_$1): $(LUA_D)/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_LIB_$1)
 ifndef SKIP_CLKMGR
+LUA_CLKMGR_$1:=$(LUA_D)/$1/$(CLKMGR_NAME).so
+LUA_FCLKMGR_$1:=liblua$1-$(CLKMGR_NAME).so
 $(LUA_D)/$1/$(CLKMGR_NAME).o: $(LUA_D)/$(CLKMGR_NAME).cpp
 	$Q$(MKDIR_P) $(LUA_D)/$1
 	$$(call LLC,$$(CXXFLAGS_LUA) $$(LUA_$$(subst .,_,$1)_INC_FLAGS) $(CLKMGR_CXXFLAGS))
-$(LUA_D)/$1/$(CLKMGR_NAME).so: $(LUA_D)/$1/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
+$$(LUA_CLKMGR_$1): $(LUA_D)/$1/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
 	$$(SWIG_LD)
-SWIG_ALL+=$(LUA_D)/$1/$(CLKMGR_NAME).so
+SWIG_ALL+=$$(LUA_CLKMGR_$1)
 endif # SKIP_CLKMGR
 utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1)
 	$$(call Q_UTEST,Lua$1)LD_PRELOAD=$(ASAN_PRE)./$$< LUA_CPATH="$(LUA_D)/$1/?.so;;"\
@@ -74,7 +76,16 @@ install_lua:
 	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
 	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
 	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME);)
+ifndef SKIP_CLKMGR
+	$Q$(foreach n,$(LUA_VERS),\
+	  $(INSTALL_LIB) -D $(LUA_CLKMGR_$n)\
+	  $(DLIBDIR)/$(LUA_FCLKMGR_$n).$(PACKAGE_VERSION);\
+	  $(LN) $(LUA_FCLKMGR_$n).$(PACKAGE_VERSION)\
+	  $(DLIBDIR)/$(LUA_FCLKMGR_$n)$(SONAME);\
+	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
+	  $(LN) ../../$(LUA_FCLKMGR_$n).$(PACKAGE_VERSION)\
+	  $(DLIBDIR)/lua/$n/$(CLKMGR_NAME).so;)
+endif # SKIP_CLKMGR
 ifdef LUA_VER
-	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUA_VER)
-	$(INSTALL_LIB) -D $(LUA_LIB) $(DLIBDIR)/lua/$(LUA_VER)/$(SWIG_LIB_NAME)
+	$(INSTALL_LIB) -D $(LUA_D)/*.so -t $(DLIBDIR)/lua/$(LUA_VER)
 endif # LUA_VER

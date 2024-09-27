@@ -35,3 +35,6 @@ utest_ruby: $(LIB_NAME_SO) $(RUBY_LNAME).so
 
 install_ruby:
 	$Q$(INSTALL_LIB) -D $(RUBY_LNAME).so -t $(DESTDIR)$(RUBY_SITE)
+ifndef SKIP_CLKMGR
+	$(INSTALL_LIB) -D $(RUBY_CLKMGR_SO) -t $(DESTDIR)$(RUBY_SITE)
+endif # SKIP_CLKMGR

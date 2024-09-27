@@ -9,7 +9,8 @@ Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
 		    liblua5.2-dev, liblua5.3-dev, liblua5.4-dev, pkgconf,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),
 		    ruby:native, ruby-dev,
-		    libssl-dev, libgcrypt20-dev, libgnutls28-dev, nettle-dev
+		    libssl-dev, libgcrypt20-dev, libgnutls28-dev, nettle-dev,
+		    librtpi-dev
 Build-Depends-Indep: graphviz, doxygen (>=1.8), dh-exec (>=0.3),
 		     swig (>=4.1), coreutils, m4, gawk, autoconf, automake,
 		     chrpath | patchelf
@@ -64,17 +65,21 @@ Package: libptpmgmt-dev
 Architecture: any
 Multi-Arch: same
 Section: libdevel
+Provides: libclkmgr-dev
 Pre-Depends: ${misc:Pre-Depends}
-Depends: g++, ${misc:Depends}, libptpmgmt (= ${binary:Version})
+Depends: g++, ${misc:Depends}, libptpmgmt (= ${binary:Version}), libclkmgr (= ${binary:Version})
 Description: PTP management library development
  This package provides header files and static library.
+ For both libraries.
 
 Package: libptpmgmt-doc
 Architecture: all
 Section: doc
+Provides: libclkmgr-doc
 Pre-Depends: ${misc:Pre-Depends}
-Depends: libptpmgmt (= ${binary:Version})
 Description: PTP management library documentation, to communicate with ptp4l
+ This package provides project documentation.
+ For both libraries.
 
 Package: libptpmgmt-perl
 Architecture: any
@@ -139,10 +144,11 @@ Package: golang-ptpmgmt
 Architecture: all
 Section: libdevel
 Pre-Depends: ${misc:Pre-Depends}
-Provides: ${golang:Provides}
+Provides: golang-clkmgr, ${golang:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${golang:Depends}, golang,
 	 libptpmgmt-dev (= ${binary:Version})
 Description: PTP management library golang development wrapper
+ This package provides GO source code for both libraries.
 
 Package: pmc-ptpmgmt
 Architecture: any
@@ -162,3 +168,83 @@ Depends: ${misc:Depends}, python3-ptpmgmt (= ${binary:Version})
 Recommends: linuxptp
 Description: phc-ctl tool.
  new rewrite of LinuxPTP phc_ctl tool using the PTP management library.
+
+Package: clkmgr-proxy
+Architecture: any
+Section: utils
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends}, libptpmgmt (= ${binary:Version})
+Recommends: linuxptp
+Description: Clock Manager proxy service.
+ framework for controlling and monitoring network time synchronization
+ on the local platform.
+
+Package: libclkmgr
+Architecture: any
+Multi-Arch: same
+Section: libs
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, clkmgr-proxy (= ${binary:Version})
+Recommends: linuxptp
+Description: Clock Manager library
+ framework for controlling and monitoring network time synchronization
+ on the local platform.
+
+Package: libclkmgr-perl
+Architecture: any
+Multi-Arch: same
+Section: perl
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${perl:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends},
+	 libclkmgr (= ${binary:Version})
+Description: Clock Manager library Perl wrapper
+
+Package: python3-clkmgr
+Architecture: any
+Multi-Arch: same
+Section: python
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${python3:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python3:Depends},
+	 libclkmgr (= ${binary:Version})
+Description: Clock Manager library python version 3 wrapper
+
+Package: lua-clkmgr
+Architecture: any
+Multi-Arch: same
+Section: interpreters
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${lua:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, libclkmgr (= ${binary:Version})
+XB-Lua-Versions: ${lua:Versions}
+Description: Clock Manager library Lua wrapper
+
+Package: ruby-clkmgr
+Architecture: any
+Multi-Arch: same
+Section: ruby
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${ruby:Provides}
+Depends: ruby | ruby-interpreter, ${misc:Depends}, ${shlibs:Depends},
+	 ${ruby:Depends}, libclkmgr (= ${binary:Version})
+Description: Clock Manager library ruby wrapper
+
+Package: php-clkmgr
+Architecture: any
+Section: php
+Pre-Depends: php-common (>= 2:69), ${misc:Pre-Depends}
+Provides: ${php:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${php:Depends},
+	 libclkmgr (= ${binary:Version})
+Description: Clock Manager library php wrapper
+
+Package: tcl-clkmgr
+Architecture: any
+Multi-Arch: same
+Section: interpreters
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${tcl:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${tcl:Depends}, tcl,
+	 libclkmgr (= ${binary:Version})
+Description: Clock Manager library tcl wrapper

@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <string>
 
-#include <clkmgr/utility.h>
+#include "pub/clkmgr/utility.h"
 
 __CLKMGR_NAMESPACE_BEGIN
 

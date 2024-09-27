@@ -65,5 +65,12 @@ install_go:
 	cp -a $(GO_D)/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
 	$(SED) -i 's@^\s*$(c_inc) "\([^.]\+\.h\)"@$(c_inc) <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
-	$(SED) -i '1 i/* $(SPDXLI) MIT\n   $(SPDXCY) */\n'\
+	$(SED) -i '1 i/* $(SPDXLI) $(SPDXBSD3)\n   $(SPDXCY) */\n'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/*
+ifndef SKIP_CLKMGR
+	cp -a $(GO_CLKMGR_DIR) $(DESTDIR)$(GOROOT)/src
+	$(SED) -i 's!$(c_inc)\s*\"pub/\([^"]\+\)\"!$(c_inc) <\1>!'\
+	  $(DESTDIR)$(GOROOT)/src/$(CLKMGR_NAME)/*.cpp
+	$(SED) -i '1 i/* $(SPDXLI) $(SPDXBSD3)\n   $(SPDXCY_INTEL) */\n'\
+	  $(DESTDIR)$(GOROOT)/src/$(CLKMGR_NAME)/*
+endif

@@ -21,20 +21,23 @@ BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
 BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
+BuildRequires:  librtpi1 librtpi-devel
 BuildRequires:  golang
 #Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
 Source0:        %{name}-%{version}.txz
 
 %define bname   ptpmgmt
+%define cname   libclkmgr
+%define cbname  clkmgr
 
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Summary:        PTP management library, to communicate with ptp4l
 %description
 PTP management library, to communicate with ptp4l
 
 %package        openssl
 Summary:        PTP management library HMAC plugin using the openssl library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       openssl-libs
 %description    openssl
@@ -42,7 +45,7 @@ PTP management library HMAC plugin using the openssl library
 
 %package        gcrypt
 Summary:        PTP management library HMAC plugin using the gcrypt library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       libgcrypt
 %description    gcrypt
@@ -50,7 +53,7 @@ PTP management library HMAC plugin using the gcrypt library
 
 %package        gnutls
 Summary:        PTP management library HMAC plugin using the gnutls library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       gnutls
 %description    gnutls
@@ -58,7 +61,7 @@ PTP management library HMAC plugin using the gnutls library
 
 %package        nettle
 Summary:        PTP management library HMAC plugin using the nettle library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       nettle
 %description    nettle
@@ -66,24 +69,28 @@ PTP management library HMAC plugin using the nettle library
 
 %package        devel
 Summary:        Development files for the PTP management library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Provides:       %{name}-static = %{version}-%{release}
+Provides:       %{cname}-devel = %{version}-%{release}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       %{cname}%{?_isa} = %{version}-%{release}
 %description    devel
 The %{name}-devel package contains libraries and header files for
-developing applications that use the PTP management library.
+developing applications that use the PTP management library,
+And for clock manager client library.
 
 %package        doc
 Summary:        Documentation files for the PTP management library
-License:        GFDLv1.3+
+License:        GFDL-1.3-no-invariants-or-later
+Provides:       %{cname}-doc = %{version}-%{release}
 BuildArch:      noarch
-Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description    doc
 PTP management library documentation, to communicate with ptp4l
+And clock manager documentation.
 
 %package        perl
 Summary:        PTP management library Perl wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       perl
 %description    perl
@@ -91,7 +98,7 @@ PTP management library Perl wrapper
 
 %package -n     python3-%{bname}
 Summary:        PTP management library python version 3 wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       python3
 %description -n python3-%{bname}
@@ -99,7 +106,7 @@ PTP management library python version 3 wrapper
 
 %package -n     lua-%{bname}
 Summary:        PTP management library Lua wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       lua
 %description -n lua-%{bname}
@@ -107,7 +114,7 @@ PTP management library Lua wrapper
 
 %package -n     ruby-%{bname}
 Summary:        PTP management library ruby wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       ruby
 %description -n ruby-%{bname}
@@ -115,7 +122,7 @@ PTP management library ruby wrapper
 
 %package -n     php-%{bname}
 Summary:        PTP management library php wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       php
 %description -n php-%{bname}
@@ -123,7 +130,7 @@ PTP management library php wrapper
 
 %package -n     tcl-%{bname}
 Summary:        PTP management library tcl wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       tcl
 %description -n tcl-%{bname}
@@ -131,28 +138,98 @@ PTP management library tcl wrapper
 
 %package -n     golang-%{bname}
 Summary:        PTP management library golang development wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 BuildArch:      noarch
+Provides:       golang-%{cbname} = %{version}-%{release}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       golang
 %description -n golang-%{bname}
 PTP management library golang development wrapper
+And for clock manager client library.
 
 %package -n     pmc-%{bname}
 Summary:        pmc tool
-License:        GPLv3+
+License:        GPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description -n pmc-%{bname}
- new rewrite of linuxptp pmc tool using the PTP managemen library.
- This tool is faster than the original linuxptp tool.
+new rewrite of linuxptp pmc tool using the PTP managemen library.
+This tool is faster than the original linuxptp tool.
 
 %package -n     phc-ctl-%{bname}
 Summary:        phc_ctl tool
-License:        GPLv3+
+License:        GPL-3.0-or-later
 BuildArch:      noarch
-Requires:       python3-%{bname} = %{version}-%{release}
+Requires:       python3-%{bname}%{?_isa} = %{version}-%{release}
 %description -n phc-ctl-%{bname}
- new rewrite of linuxptp phc_ctl tool using the PTP managemen library.
+new rewrite of linuxptp phc_ctl tool using the PTP managemen library.
+
+%package -n     %{cbname}-proxy
+Summary:        Clock Manager proxy service
+License:        BSD-3-Clause
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       librtpi1
+%description -n %{cbname}-proxy
+Clock Manager proxy service.
+framework for controlling and monitoring network time synchronization
+on the local platform.
+
+%package -n     %{cname}
+Summary:        Clock Manager client library
+License:        BSD-3-Clause
+Requires:       %{cbname}-proxy%{?_isa} = %{version}-%{release}
+Requires:       librtpi1
+%description -n %{cname}
+Clock Manager library
+framework for controlling and monitoring network time synchronization
+on the local platform.
+
+%package -n     %{cname}-perl
+Summary:        Clock Manager library Perl wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}%{?_isa} = %{version}-%{release}
+Requires:       perl
+%description -n %{cname}-perl
+Clock Manager library Perl wrapper
+
+%package -n     python3-%{cbname}
+Summary:        Clock Manager library python version 3 wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}%{?_isa} = %{version}-%{release}
+Requires:       python3
+%description -n python3-%{cbname}
+Clock Manager library python version 3 wrapper
+
+%package -n     lua-%{cbname}
+Summary:        Clock Manager library Lua wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}%{?_isa} = %{version}-%{release}
+Requires:       lua
+%description -n lua-%{cbname}
+Clock Manager library Lua wrapper
+
+%package -n     ruby-%{cbname}
+Summary:        Clock Manager library ruby wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}%{?_isa} = %{version}-%{release}
+Requires:       ruby
+%description -n ruby-%{cbname}
+Clock Manager library ruby wrapper
+
+%package -n     php-%{cbname}
+Summary:        Clock Manager library php wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}%{?_isa} = %{version}-%{release}
+Requires:       php
+%description -n php-%{cbname}
+Clock Manager library php wrapper
+
+%package -n     tcl-%{cbname}
+Summary:        Clock Manager library tcl wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}%{?_isa} = %{version}-%{release}
+Requires:       tcl
+%description -n tcl-%{cbname}
+Clock Manager library tcl wrapper
 
 %prep
 %setup -q
@@ -184,6 +261,8 @@ autoreconf -i
 %{_includedir}/*
 %{_libdir}/%{name}*.a
 %{_libdir}/%{name}*.so
+%{_libdir}/%{cname}*.a
+%{_libdir}/%{cname}*.so
 %{_libdir}/pkgconfig
 %{_datadir}/doc/%{name}-devel/*
 
@@ -214,6 +293,7 @@ autoreconf -i
 
 %files -n golang-%{bname}
 /usr/lib/golang/src/%{bname}/*
+/usr/lib/golang/src/%{cbname}/*
 
 %files -n pmc-%{bname}
 %{_sbindir}/pmc-%{bname}
@@ -222,6 +302,34 @@ autoreconf -i
 %files -n phc-ctl-%{bname}
 %{_sbindir}/phc_ctl-%{bname}
 %{_mandir}/man8/phc_ctl-%{bname}.8*
+
+%files -n %{cbname}-proxy
+%{_sbindir}/%{cbname}_proxy
+
+%files -n %{cname}
+%{_libdir}/%{cname}.so.*
+
+%files -n %{cname}-perl
+%{_libdir}/perl5/ClkMgrLib.pm
+%{_libdir}/perl5/auto/ClkMgrLib/ClkMgrLib.so
+
+%files -n python3-%{cbname}
+%{_libdir}/python3*/*/_%{cbname}.cpython-*.so
+%{_libdir}/python3*/*/%{cbname}.py
+%{_libdir}/python3*/*/*/%{cbname}.*.pyc
+
+%files -n lua-%{cbname}
+%{_libdir}/lua/*/%{cbname}.so
+
+%files -n ruby-%{cbname}
+%{_libdir}/ruby/*/%{cbname}.so
+
+%files -n php-%{cbname}
+%{_libdir}/php/*/%{cbname}.so
+
+%files -n tcl-%{cbname}
+%{_libdir}/tcl*/%{cbname}/%{cbname}.so
+%{_libdir}/tcl*/%{cbname}/pkgIndex.tcl
 
 ###############################################################################
 # The changelog is updated with the 'tools/update_changelog.pl' script.

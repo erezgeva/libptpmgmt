@@ -42,10 +42,12 @@ utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
 endif
 
 install_perl5:
-	$Q$(INSTALL_LIB) -D $(PERL_D)/auto/$(SWIG_NAME)/*.so -t\
-	  $(DESTDIR)$(PERL5_SITE)/auto/$(SWIG_NAME)
+	$(Q)$(INSTALL_FOLDER) $(DESTDIR)$(PERL5_SITE)
+	cp -a $(PERL_D)/auto $(DESTDIR)$(PERL5_SITE)
 	$(INSTALL_LIB) $(PERL_D)/*.pm $(DESTDIR)$(PERL5_SITE)
-	# TODO remove when we do install
-	rm $(DESTDIR)$(PERL5_SITE)/$(PERL_CLKMGR_NAME).pm
-	$(SED) -i "1 i$(hash) $(SPDXLI) LGPL-3.0-or-later\n$(hash) $(SPDXCY)\n"\
-	  $(DESTDIR)$(PERL5_SITE)/*.pm
+	$(SED) -i "1 i$(hash) $(SPDXLI) $(SPDXLGPL)\n$(hash) $(SPDXCY)\n"\
+	  $(DESTDIR)$(PERL5_SITE)/$(SWIG_NAME).pm
+ifndef SKIP_CLKMGR
+	$(SED) -i "1 i$(hash) $(SPDXLI) $(SPDXBSD3)\n$(hash) $(SPDXCY_INTEL)\n"\
+	  $(DESTDIR)$(PERL5_SITE)/$(PERL_CLKMGR_NAME).pm
+endif

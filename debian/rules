@@ -33,9 +33,20 @@ override_dh_auto_clean:
 	$Q$(MAKE) distclean
 
 MV:=mv
+CPA:=cp -a
 LIBDIR:=/usr/lib/$(DEB_TARGET_MULTIARCH)
 DSRC:=debian/tmp/usr/
 SLIBDIR:=debian/tmp$(LIBDIR)
+TCLDIR:=lib/tcltk/$(DEB_TARGET_MULTIARCH)
+PYVER:=$(notdir $(wildcard $(DSRC)lib/python3*))
+PYDIR:=python3-clkmgr/usr/lib/$(PYVER)/dist-packages
+PERLVER:=$(notdir $(wildcard $(SLIBDIR)/perl*/*))
+PERLDIR:=libclkmgr-perl$(LIBDIR)/perl/$(PERLVER)
+PHPVER:=$(notdir $(wildcard $(DSRC)lib/php/*))
+PHPDIR:=php-clkmgr/usr/lib/php/$(PHPVER)
+RUBYVER:=$(notdir $(wildcard\
+  $(DSRC)lib/$(DEB_TARGET_MULTIARCH)/ruby/vendor_ruby/*))
+RUBYDIR:=ruby-clkmgr/$(LIBDIR)/ruby/vendor_ruby/$(RUBYVER)
 
 # Call doxygen, for the document package
 override_dh_prep:
@@ -48,30 +59,44 @@ override_dh_install:
 	  libptpmgmt-doc/usr/share pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib\
 	  tcl-ptpmgmt/usr/lib golang-ptpmgmt/usr/lib\
 	  phc-ctl-ptpmgmt/usr/share/man/man8 phc-ctl-ptpmgmt/usr/sbin\
-	  $(addsuffix $(LIBDIR),lua-ptpmgmt ruby-ptpmgmt libptpmgmt\
+	  clkmgr-proxy/usr/sbin tcl-clkmgr/usr/$(TCLDIR)\
+	  $(PYDIR) $(PERLDIR)/auto $(PHPDIR) $(RUBYDIR)\
+	  $(addsuffix $(LIBDIR),lua-ptpmgmt lua-clkmgr ruby-ptpmgmt libptpmgmt\
 	  $(addprefix libptpmgmt-,perl dev openssl gcrypt gnutls\
-	  nettle)))
+	  nettle) libclkmgr))
 	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
 	$Q$(MV) $(DSRC)share/doc/libptpmgmt-dev debian/libptpmgmt-dev/usr/share/doc
 	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
 	$Q$(MV) $(DSRC)share/man/man8/phc* debian/phc-ctl-ptpmgmt/usr/share/man/man8
 	$Q$(MV) $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
+	$Q$(MV) $(DSRC)sbin/clkmgr_proxy debian/clkmgr-proxy/usr/sbin
 	$Q$(MV) $(DSRC)sbin/phc* debian/phc-ctl-ptpmgmt/usr/sbin
 	$Q$(MV) $(DSRC)sbin debian/pmc-ptpmgmt/usr
+	$Q$(MV) $(DSRC)lib/python3*/dist-packages/*clkmgr* debian/$(PYDIR)
 	$Q$(MV) $(DSRC)lib/python3* debian/python3-ptpmgmt/usr/lib
+	$Q$(MV) $(SLIBDIR)/liblua*clkmgr* debian/lua-clkmgr$(LIBDIR)
+	$Q$(CPA) $(SLIBDIR)/lua* debian/lua-clkmgr$(LIBDIR)
+	$Q$(RM) debian/lua-clkmgr$(LIBDIR)/lua*/*/ptpmgmt*
+	$Q$(RM) $(SLIBDIR)/lua*/*/clkmgr*
 	$Q$(MV) $(SLIBDIR)/lua* $(SLIBDIR)/liblua* debian/lua-ptpmgmt$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/perl*/*/auto/ClkMgrLib debian/$(PERLDIR)/auto
+	$Q$(MV) $(SLIBDIR)/perl*/*/ClkMgrLib* debian/$(PERLDIR)
 	$Q$(MV) $(SLIBDIR)/perl* debian/libptpmgmt-perl$(LIBDIR)
+	$Q$(MV) $(SLIBDIR)/ruby*/*/*/clkmgr* debian/$(RUBYDIR)
 	$Q$(MV) $(SLIBDIR)/ruby* debian/ruby-ptpmgmt$(LIBDIR)
 ifneq ($(wildcard $(DSRC)lib/php),)
+	$Q$(MV) $(DSRC)lib/php/*/clkmgr* debian/$(PHPDIR)
 	$Q$(MV) $(DSRC)lib/php debian/php-ptpmgmt/usr/lib
 endif
-	$Q$(MV) $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
+	$Q$(MV) $(DSRC)$(TCLDIR)/clkmgr debian/tcl-clkmgr/usr/$(TCLDIR)
+	$Q$(MV) $(DSRC)lib/tcltk debian/tcl-ptpmgmt/usr/lib
 	$Q$(MV) $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/pkgconfig debian/libptpmgmt-dev$(LIBDIR)
 ifneq ($(wildcard $(DSRC)lib/go*),)
 	$Q$(MV) $(DSRC)lib/go* debian/golang-ptpmgmt/usr/lib
 endif
+	$Q$(MV) $(SLIBDIR)/libclkmgr* debian/libclkmgr$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_openssl* debian/libptpmgmt-openssl$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_gcrypt* debian/libptpmgmt-gcrypt$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_gnutls* debian/libptpmgmt-gnutls$(LIBDIR)

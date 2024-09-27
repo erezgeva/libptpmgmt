@@ -47,7 +47,14 @@ install_python3:
 	  $(DESTDIR)$(PY3_SITE)/$(PY_LIB_NAME)$(PY3_EXT)
 	$(INSTALL_LIB) $(PY_D)/$(SWIG_LNAME).py $(DESTDIR)$(PY3_SITE)
 	$(SED) -i "1 i$(hash) $(SPDXLI) $(SPDXLGPL)\n$(hash) $(SPDXCY)\n"\
-	  $(DESTDIR)$(PY3_SITE)/*.py
+	  $(DESTDIR)$(PY3_SITE)/$(SWIG_LNAME).py
+ifndef SKIP_CLKMGR
+	$(INSTALL_LIB) -D $(PY_CLKMGR_SO_3)\
+	  $(DESTDIR)$(PY3_SITE)/$(PY_CLKMGRLIB_NAME)$(PY3_EXT)
+	$(INSTALL_LIB) $(PY_D)/$(CLKMGR_NAME).py $(DESTDIR)$(PY3_SITE)
+	$(SED) -i "1 i$(hash) $(SPDXLI) $(SPDXBSD3)\n$(hash) $(SPDXCY_INTEL)\n"\
+	  $(DESTDIR)$(PY3_SITE)/$(CLKMGR_NAME).py
+endif
 # Used by gentoo to byte-compile
 compile_py3:
 	$Q$(PY3_BIN) -m compileall -q -f -d "$(PY3_SITE)" "$(DESTDIR)$(PY3_SITE)"

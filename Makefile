@@ -263,7 +263,7 @@ UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
   $(UTEST_C_TGT)
-INS_TGT:=install_main $(addprefix install_,$(TGT_LNG))
+INS_TGT:=install_main $(addprefix install_,$(TGT_LNG)) install_clkmgr
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\
   $(UTEST_TGT) $(INS_TGT) utest_lua_a uctest
@@ -548,8 +548,10 @@ else
 CYEAR=2024
 endif
 SPDXLI:=SPDX-License-Identifier:
-SPDXCY:=SPDX-FileCopyrightText:
-SPDXCY+=Copyright © $(CYEAR) Erez Geva <ErezGeva2@gmail.com>
+SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
+SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
+SPDXCY_INTEL:=$(SPDXCY_BASE) Intel Corporation.
+SPDXBSD3:=BSD-3-Clause
 SPDXGPL:=GPL-3.0-or-later
 SPDXLGPL:=L$(SPDXGPL)
 SPDXGFDL:=GFDL-1.3-no-invariants-or-later
@@ -649,11 +651,11 @@ endef
 install: $(INS_TGT)
 install_main:
 	$(Q)$(INSTALL_FOLDER) $(DLIBDIR) $(PKGCFGDIR)
-	cp -a $(LIB_D)/$(LIB_NAME)*.so* $(DLIBDIR)
-	$(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.so.*.*.* $(DLIBDIR)
-	$(call RMRPATH,$(DLIBDIR)/$(LIB_NAME)*.so.*.*.*)
+	cp -a $(LIB_D)/*.so* $(DLIBDIR)
+	$(INSTALL_LIB) $(LIB_D)/*.so.*.*.* $(DLIBDIR)
+	$(call RMRPATH,$(DLIBDIR)/*.so.*.*.*)
 	if test -f "$(LIB_NAME_A)"
-	then $(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.a $(DLIBDIR); fi
+	then $(INSTALL_LIB) $(LIB_D)/*.a $(DLIBDIR); fi
 ifdef PKG_CONFIG_DIR
 	echo "$(pkgconfig)" > $(PKGCFGDIR)/$(SWIG_LNAME).pc
 	for pf in $(SWIG_LNAME)$(PACKAGE_VERSION) $(LIB_NAME)\

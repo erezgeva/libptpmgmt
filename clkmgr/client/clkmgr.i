@@ -12,7 +12,7 @@
 
 /* Headers and namespace for moudle source code */
 %{
-    #include "clockmanager.h"
+    #include "pub/clockmanager.h"
     using namespace clkmgr;
 %}
 
@@ -55,8 +55,8 @@
 %include "warn.i"
 
 /* library code */
-%include "clockmanager.h"
-%include "clkmgr/client_state.h"
-%include "clkmgr/event_state.h"
-%include "clkmgr/subscription.h"
-%include "clkmgr/utility.h"
+%include "pub/clockmanager.h"
+%include "pub/clkmgr/client_state.h"
+%include "pub/clkmgr/event_state.h"
+%include "pub/clkmgr/subscription.h"
+%include "pub/clkmgr/utility.h"

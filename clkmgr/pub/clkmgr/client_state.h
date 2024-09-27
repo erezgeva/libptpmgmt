@@ -15,9 +15,9 @@
 #include <atomic>
 #include <string>
 
-#include <clkmgr/event_state.h>
-#include <clkmgr/subscription.h>
-#include <clkmgr/utility.h>
+#include "pub/clkmgr/event_state.h"
+#include "pub/clkmgr/subscription.h"
+#include "pub/clkmgr/utility.h"
 
 __CLKMGR_NAMESPACE_BEGIN
 
