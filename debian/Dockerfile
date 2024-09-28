@@ -37,14 +37,12 @@ RUN apt-get update;\
     apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
-    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers;\
-    if test "$DIST" = "bookworm";then mkdir -p /tmp/1;cd /tmp/1;\
-    rtpi_ver=1.0.0-1+b1;\
-    wget -c $REPO/pool/main/libr/librtpi/librtpi1_${rtpi_ver}_$ARCH.deb;\
-    wget -c $REPO/pool/main/libr/librtpi/librtpi-dev_${rtpi_ver}_$ARCH.deb;\
-    for a in $ARCHS;\
-    do wget -c $REPO/pool/main/libr/librtpi/librtpi1_${rtpi_ver}_$a.deb;\
-    wget -c $REPO/pool/main/libr/librtpi/librtpi-dev_${rtpi_ver}_$a.deb;\
+    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers
+ARG RTPI_VER
+RUN if test "$DIST" = "bookworm";then mkdir -p /tmp/1;cd /tmp/1;\
+    url=$REPO/pool/main/libr/librtpi;for a in $ARCH $ARCHS;\
+    do wget -c "$url/librtpi1_${RTPI_VER}_$a.deb";\
+    wget -c "$url/librtpi-dev_${RTPI_VER}_$a.deb";\
     done;dpkg -i *.deb;cd ..;rm -Rf 1;fi
 ARG COOKIE
 RUN apt-get update; apt-get upgrade -y --no-install-recommends
