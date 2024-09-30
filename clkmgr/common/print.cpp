@@ -13,8 +13,6 @@
 
 #include <cstdio>
 #include <cstring>
-#include <iomanip>
-#include <sstream>
 
 __CLKMGR_NAMESPACE_USE
 
@@ -66,29 +64,12 @@ void clkmgr::_PrintInfo(std::string msg, uint16_t line, std::string file,
 void clkmgr::_DumpOctetArray(string msg, const uint8_t *arr,
     size_t length, uint16_t line, string file, string func)
 {
-    const uint8_t *index = arr;
-    size_t offset;
-    stringstream output;
-    bool addspc = false, addcr;
     if(currentLogLevel > DEBUG)
         return;
-    output << "*   Info: " << msg << " at line " << to_string(
-            line) << " in " << file << ":" << func << "\n";
-    while((offset = (index - arr)) < length) {
-        if(addspc)
-            output << " ";
-        output << "0x" << setfill('0') << setw(2) << std::hex << int(*index++);
-        if(offset % HEX_DIGITS_PER_LINE != HEX_DIGITS_PER_LINE - 1) {
-            addspc = true;
-            addcr = true;
-        } else {
-            addspc = false;
-            addcr = false;
-            output << "\n";
-        }
-    }
-    if(addcr)
-        output << "\n";
-    fprintf(stderr, "%s", output.str().c_str());
+    fprintf(stderr, "*   Info: %s at line %u in %s:%s",
+        msg.c_str(), line, file.c_str(), func.c_str());
+    for(size_t i = 0; i < length; i++)
+        fprintf(stderr, "%s0x%.2x", i % HEX_DIGITS_PER_LINE ? " " : "\n", arr[i]);
+    fprintf(stderr, "\n");
     fflush(stderr);
 }
