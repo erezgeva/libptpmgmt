@@ -11,3 +11,4 @@
 /*/*.lo
 /doc/
 /utest/utest_*
+/pub/clkmgr/types*.h

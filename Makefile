@@ -230,9 +230,12 @@ HEADERS:=$(HEADERS_SRCS) $(HEADERS_GEN_COMP)
 HEADERS_GEN:=$(HEADERS_GEN_COMP) $(addprefix $(SRC)/,vecDef.h cnvFunc.h)
 HEADERS_INST:=$(HEADERS_PUB) $(HEADERS_GEN_PUB)
 HEADERS_INST_C:=$(HEADERS_PUB_C) $(HEADERS_GEN_PUB_C)
+CLKMGR_HEADERS_GEN:=$(addprefix $(CLKMGR_DIR)/pub/clkmgr/,types.h types_c.h)
 SRCS:=$(wildcard $(SRC)/*.cpp)
 SRCS_HMAC:=$(wildcard $(HMAC_SRC)/*.cpp)
-SRCS_CLKMGR:=$(wildcard $(CLKMGR_DIR)/[cupi]*/*.[ch]* $(CLKMGR_DIR)/*/*/*.h)
+SRCS_CLKMGR:=$(wildcard $(CLKMGR_DIR)/[cupi]*/*.[ch]*)
+SRCS_CLKMGR+=$(filter-out $(CLKMGR_HEADERS_GEN),\
+  $(wildcard $(CLKMGR_DIR)/pub/clkmgr/*.h))
 COMP_DEPS:=$(OBJ_DIR) $(HEADERS_GEN_COMP)
 # hmac
 SSL_NAME:=$(LIB_NAME)_openssl
@@ -281,10 +284,10 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */github* */*.opt configure.ac src/*.m4 */*.md t*/*.sh */*/*.sh swig/*/*\
   */*.i */*/msgCall.i */*/warn.i clkmgr/*/*.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile [wc]*/*/Makefile\
-  $(CLKMGR_DIR)/*/*.[ch]* $(CLKMGR_DIR)/*/*/*.h $(CLKMGR_DIR)/image/*\
+  $(CLKMGR_DIR)/sample/*.c* $(CLKMGR_DIR)/image/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
-  $(MAKEFILE_LIST) credits
+  $(MAKEFILE_LIST) credits $(SRCS_CLKMGR)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[chj]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\
@@ -488,7 +491,7 @@ EXTRA_C_SRCS:=$(wildcard uctest/*.c)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)
 format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_HMAC)\
-	$(SRCS_CLKMGR)
+	$(SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r";./tools/format.pl $^
@@ -609,7 +612,7 @@ checkall: format doxygen
 
 ifdef CTAGS
 tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
-	$(SRCS_HMAC) $(SRCS_CLKMGR)
+	$(SRCS_HMAC) $(SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
 endif # CTAGS
@@ -847,7 +850,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache wrappers/go/allocTlv.i wrappers/go/gtest/gtest\
-  $(CLKMGR_PROXY) $(HEADERS_GEN) .null
+  $(CLKMGR_PROXY) $(HEADERS_GEN) $(CLKMGR_HEADERS_GEN) .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
   archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\
   $(LIB_D) wrappers/perl/auto $(CLKMGR_DIR)/doc wrappers/go/$(CLKMGR_NAME)\

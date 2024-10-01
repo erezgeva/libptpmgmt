@@ -17,49 +17,9 @@
 #include <string>
 
 #include "pub/clkmgr/utility.h"
+#include "pub/clkmgr/types.h"
 
 __CLKMGR_NAMESPACE_BEGIN
-
-/**
- * @enum EventIndex
- * @brief Bitmask of events available for subscription. Each bit represents one
- * event.
- * @note The eventLast is reserved for future use.
- */
-enum EventIndex : uint32_t {
-    eventGMOffset = 1 << 0, /**< Offset between primary and secondary clock */
-    eventSyncedToGM = 1 << 1, /**< Secondary clock is synced to primary clock */
-    eventASCapable = 1 << 2, /**< Link Partner is IEEE 802.1AS capable */
-    eventGMChanged = 1 << 3, /**< UUID of primary clock is changed */
-    eventLast = 1 << 4 /**< Last event */
-};
-
-/**
- * @brief Maximum number of events that can have user predefined threshold
- * (upper and lower limit) as indicator on whether the event is true or false.
- */
-constexpr uint8_t THRESHOLD_MAX = 8;
-
-/**
- * @enum ThresholdIndex
- * @brief Index of events which require user to provide predefined threshold.
- * @note The thresholdLast is reserved for future use. The maximum number of
- * events which can have threshold is THRESHOLD_MAX.
- */
-enum ThresholdIndex : uint8_t {
-    thresholdGMOffset,  /**< threshold for primary-secondary clock offset */
-    thresholdLast       /**< Last threshold */
-} ;
-
-/**
- * @struct Threshold
- * @brief Structure to hold upper and lower limits
- */
-struct Threshold {
-    int32_t upper_limit; /**< Upper limit */
-    int32_t lower_limit; /**< Lower limit */
-    Threshold() noexcept : upper_limit(0), lower_limit(0) {}
-};
 
 /** Upper & lower limits type */
 typedef std::array<Threshold, THRESHOLD_MAX> threshold_t;

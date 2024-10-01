@@ -43,8 +43,8 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
     bool ret;
     newsub.set_event_mask(sub.event_mask);
     newsub.define_threshold(clkmgr::thresholdGMOffset,
-        sub.threshold[clkmgr_c_threshold_gm_offset].upper_limit,
-        sub.threshold[clkmgr_c_threshold_gm_offset].lower_limit);
+        sub.threshold[Clkmgr_thresholdGMOffset].upper_limit,
+        sub.threshold[Clkmgr_thresholdGMOffset].lower_limit);
     newsub.set_composite_event_mask(sub.composite_event_mask);
     ret = static_cast<clkmgr::ClockManager *>(client_ptr)->clkmgr_subscribe(
             newsub, state);

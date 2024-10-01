@@ -12,67 +12,27 @@
 #ifndef CLKMGR_CLOCKMANAGER_C_H
 #define CLKMGR_CLOCKMANAGER_C_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
+#include "pub/clkmgr/types_c.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdbool.h>
-#include <stdint.h>
-
 /**
- * @enum clkmgr_c_event_index
- * @brief Bitmask of events available for subscription. Each bit represents one
- * event.
- * @note The clkmgr_c_event_last is reserved for future use.
- */
-enum clkmgr_c_event_index {
-    clkmgr_c_event_gm_offset = 1 << 0, /**< Primary and secondary clock offset */
-    clkmgr_c_event_synced2gm = 1 << 1, /**< Clock is synced to primary clock */
-    clkmgr_c_event_as_capable = 1 << 2, /**< IEEE 802.1AS capable */
-    clkmgr_c_event_gm_changed = 1 << 3, /**< UUID of primary clock is changed */
-    clkmgr_c_event_last = 1 << 4 /**< Last event */
-};
-
-/**
- * @brief Maximum number of events that can have user predefined threshold
- * (upper and lower limit) as indicator on whether the event is true or false.
- */
-#define CLKMGR_C_THRESHOLD_MAX 8
-
-/**
- * @enum clkmgr_c_threshold_index
- * @brief Index of events which require user to provide predefined threshold.
- * @note The clkmgr_c_threshold_last is reserved for future use. The maximum
- * number of events which can have threshold is CLKMGR_C_THRESHOLD_MAX.
- */
-enum clkmgr_c_threshold_index {
-    clkmgr_c_threshold_gm_offset, /**< threshold for clock offset */
-    clkmgr_c_threshold_last /**< Last threshold */
-};
-
-/**
- * @struct clkmgr_c_threshold
- * @brief Structure to hold upper and lower limits
- */
-struct clkmgr_c_threshold {
-    int32_t upper_limit; /**< Upper limit */
-    int32_t lower_limit; /**< Lower limit */
-};
-
-/**
- * @struct clkmgr_c_subscription
- * @brief structure to hold the event mask, composite event mask, and thresholds
+ * structure to hold the event mask, composite event mask, and thresholds
  * for events that require user-defined threshold (upper and lower limits).
  */
 struct clkmgr_c_subscription {
     uint32_t event_mask; /**< Events subscription mask */
     uint32_t composite_event_mask; /**< Composite events mask */
-    struct clkmgr_c_threshold threshold[CLKMGR_C_THRESHOLD_MAX]; /**< Limits */
+    struct Clkmgr_Threshold threshold[CLKMGR_THRESHOLD_MAX]; /**< Limits */
 };
 
 /**
- * @struct clkmgr_c_event_state
- * @brief Structure to represent the current state of events.
+ * Structure to represent the current state of events.
  */
 struct clkmgr_c_event_state {
     uint64_t notification_timestamp; /**< Timestamp for last notification */
@@ -87,8 +47,7 @@ struct clkmgr_c_event_state {
 };
 
 /**
- * @struct clkmgr_c_event_count
- * @brief Structure to represent the event counts.
+ * Structure to represent the event counts.
  */
 struct clkmgr_c_event_count {
     uint32_t offset_in_range_event_count; /**< Clock offset in range */
