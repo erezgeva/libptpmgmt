@@ -5,7 +5,7 @@
  * @brief Subscription class unit tests
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
- * @copyright © 2024 Erez Geva
+ * @copyright © 2024 Intel Corporation.
  *
  */
 
