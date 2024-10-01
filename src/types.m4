@@ -132,7 +132,7 @@ enm(MNG_PARSE_ERROR_e) {
 /** PTP messages type
  * @note: 4 bits
  */
-enm(msgType_e) sz(: Nibble_t) {
+enm(msgType_e) sz(: Nibble_t ){
     /* Event messages */
     /** Synchronization event message */
     nm(Sync)                    = 0,
@@ -160,7 +160,7 @@ enm(msgType_e) sz(: Nibble_t) {
  * PTP messages TLV types
  * @note: With new signalling TLVs from "IEEE Std 1588-2019@"
  */
-enm(tlvType_e) sz(: uint16_t) {
+enm(tlvType_e) sz(: uint16_t ){
     /** Management TLV */
     NM(MANAGEMENT)                              = 0x0001,
     /** Management Error TLV */
@@ -209,7 +209,7 @@ enm(tlvType_e) sz(: uint16_t) {
     NM(SLAVE_DELAY_TIMING_DATA_NP)              = 0x7f00,
 };
 /** PTP management action */
-enm(actionField_e) sz(: uint8_t) {
+enm(actionField_e) sz(: uint8_t ){
     NM(GET) = 0,            /**< Send a get message */
     NM(SET) = 1,            /**< Send a set message */
     NM(RESPONSE) = 2,       /**< Receive response for a get or a set message */
@@ -217,7 +217,7 @@ enm(actionField_e) sz(: uint8_t) {
     NM(ACKNOWLEDGE) = 4,    /**< Receive acknowledge on command */
 };
 /** PTP Management Error IDs */
-enm(managementErrorId_e) sz(: uint16_t) {
+enm(managementErrorId_e) sz(: uint16_t ){
     NM(RESPONSE_TOO_BIG) = 0x0001, /**< Response is too big */
     NM(NO_SUCH_ID)       = 0x0002, /**< No such id */
     NM(WRONG_LENGTH)     = 0x0003, /**< Wrong length */
@@ -230,7 +230,7 @@ enm(managementErrorId_e) sz(: uint16_t) {
  * @details A PTP clock could act as more than a single type
  * @note: Ruby's wrapping, capitalize first letter of enumerators values
  */
-enm(clockType_e) sz(: uint16_t) {
+enm(clockType_e) sz(: uint16_t ){
     nm(ordinaryClock)       = 0x8000, /**< ordinary clock */
     nm(boundaryClock)       = 0x4000, /**< boundary clock */
     nm(p2pTransparentClock) = 0x2000, /**< peer-to-peer transparent clock */
@@ -238,7 +238,7 @@ enm(clockType_e) sz(: uint16_t) {
     nm(managementClock)     = 0x0800, /**< management node (deprecated) */
 };
 /** PTP using a network layer */
-enm(networkProtocol_e) sz(: uint16_t) {
+enm(networkProtocol_e) sz(: uint16_t ){
     nm(UDP_IPv4)   = 1, /**< UDP over IP version 4 */
     nm(UDP_IPv6)   = 2, /**< UDP over IP version 6 */
     nm(IEEE_802_3) = 3, /**< Raw Ethernet using IEEE 802@.3 */
@@ -247,7 +247,7 @@ enm(networkProtocol_e) sz(: uint16_t) {
     nm(PROFINET)   = 6, /**< PROFINET */
 };
 /** PTP clock accuracy */
-enm(clockAccuracy_e) sz(: uint8_t) {
+enm(clockAccuracy_e) sz(: uint8_t ){
     nm(Accurate_within_1ps)   = 0x17, /**< higher than 1 picosecond */
     nm(Accurate_within_2_5ps) = 0x18, /**< higher than 2@.5 picoseconds */
     nm(Accurate_within_10ps)  = 0x19, /**< higher than 10 picoseconds */
@@ -278,7 +278,7 @@ enm(clockAccuracy_e) sz(: uint8_t) {
     nm(Accurate_Unknown)      = 0xfe, /**< Unknown */
 };
 /** Fault record severity code */
-enm(faultRecord_e) sz(: uint8_t) {
+enm(faultRecord_e) sz(: uint8_t ){
     nm(F_Emergency)     = 0x00, /**< system is unusable */
     nm(F_Alert)         = 0x01, /**< immediate action needed */
     nm(F_Critical)      = 0x02, /**< critical conditions */
@@ -289,7 +289,7 @@ enm(faultRecord_e) sz(: uint8_t) {
     nm(F_Debug)         = 0x07, /**< debug-level messages */
 };
 /** Time source type */
-enm(timeSource_e) sz(: uint8_t) {
+enm(timeSource_e) sz(: uint8_t ){
     NM(ATOMIC_CLOCK)        = 0x10, /**< Atomic clock */
     NM(GNSS)                = 0x20, /**< Satellite navigation */
     NM(GPS)                 = 0x20, /**< Satellite navigation */
@@ -302,7 +302,7 @@ enm(timeSource_e) sz(: uint8_t) {
     NM(INTERNAL_OSCILLATOR) = 0xa0, /**< Internal oscillator */
 };
 /** Port state */
-enm(portState_e) sz(: uint8_t) {
+enm(portState_e) sz(: uint8_t ){
     NM(INITIALIZING)         = 1, /**< Initializing */
     NM(FAULTY)               = 2, /**< Faulty */
     NM(DISABLED)             = 3, /**< Disabled */
@@ -317,7 +317,7 @@ enm(portState_e) sz(: uint8_t) {
     NM(TIME_RECEIVER)        = 9, /**< TimeReceiver */
 };
 /** Delay mechanizem */
-enm(delayMechanism_e) sz(: uint8_t) {
+enm(delayMechanism_e) sz(: uint8_t ){
     /**
      *  Automatic probing
      *  @note LinuxPTP value
@@ -345,7 +345,7 @@ enm(implementSpecific_e) {
     nm(linuxptp),            /**< linuxptp project */
 };
 /** SMPTE master clock locking status */
-enm(SMPTEmasterLockingStatus_e) sz(: uint8_t) {
+enm(SMPTEmasterLockingStatus_e) sz(: uint8_t ){
     NM(SMPTE_NOT_IN_USE)   = 0, /**< Not in use */
     NM(SMPTE_FREE_RUN)     = 1, /**< Free Run */
     /**
@@ -365,7 +365,7 @@ enm(SMPTEmasterLockingStatus_e) sz(: uint8_t) {
 /** linuxptp timestamp
  *  Specify the underlaying Linux time stamps type that the daemon receive
  */
-enm(linuxptpTimeStamp_e) sz(: uint8_t) {
+enm(linuxptpTimeStamp_e) sz(: uint8_t ){
     /** Using system clock based with an offset that is maintain by driver */
     NM(TS_SOFTWARE),
     /** network interface have a PTP Hardware clock, and the
@@ -381,7 +381,7 @@ enm(linuxptpTimeStamp_e) sz(: uint8_t) {
 /** linuxptp Power Profile version
  *  Specify the which power system profile to use
  */
-enm(linuxptpPowerProfileVersion_e) sz(: uint16_t) {
+enm(linuxptpPowerProfileVersion_e) sz(: uint16_t ){
     /** Do not use power system */
     NM(IEEE_C37_238_VERSION_NONE),
     /** Use IEEE C37.238-2011 profile */
@@ -390,14 +390,14 @@ enm(linuxptpPowerProfileVersion_e) sz(: uint16_t) {
     NM(IEEE_C37_238_VERSION_2017),
 };
 /** linuxptp timeReceiver side unicast negotiation state */
-enm(linuxptpUnicastState_e) sz(: uint8_t) {
+enm(linuxptpUnicastState_e) sz(: uint8_t ){
     NM(UC_WAIT), /**< Wait for answer */
     NM(UC_HAVE_ANN), /**< Have answer */
     NM(UC_NEED_SYDY), /**< Need to stand by */
     NM(UC_HAVE_SYDY), /**< In stand by */
 };
 /** Clock time properties bit mask */
-enum sz(: uint8_t) {
+enum sz(: uint8_t ){
     /** The last minute of the current UTC day contains 61 seconds */
     NM(F_LI_61) = (1 << 0),
     /** the last minute of the current UTC day contains 59 seconds */
@@ -912,7 +912,7 @@ strc(ManagementId_t) {
 };
 
 /** Receive Authentication modes */
-enm(MsgParams_RcvAuth_e) sz(: uint8_t) {
+enm(MsgParams_RcvAuth_e) sz(: uint8_t ){
     NM(RCV_AUTH_NONE) = 0, /**< Ignore all Authentication TLVs */
     /** Process Authentication TLVs of All Management packts */
     NM(RCV_AUTH_MNG) = (1 << 0),
