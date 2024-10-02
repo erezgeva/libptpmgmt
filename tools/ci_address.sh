@@ -134,7 +134,7 @@ ci_build()
      ;;
    fedora|redhat)
      make rpm
-     sudo dnf install -y rpm/RPMS/*/*.rpm
+     sudo rpm -i rpm/RPMS/*/*.rpm
      make config
      ;;
    arch)
