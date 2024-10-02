@@ -156,8 +156,8 @@ usage: {name} [options] <device> -- [command]
   phase <seconds>  pass offset to PHC phase control keyword
   cmp              compare PHC offset to CLOCK_REALTIME
   caps             display device capabilities (default if no command given)
-  wait  <seconds>  pause between commands
-    ''', file=file)
+  wait <seconds>   pause between commands
+''', file=file)
 
 def main():
     name = os.path.basename(sys.argv[0])
