@@ -41,15 +41,15 @@ class TransportContext
     TransportContext() : _init(true), offset(0) {}
     virtual ~TransportContext() = default;
 
-    const decltype(offset) &getc_offset() { return offset; }
-    decltype(offset) &get_offset() { return offset; }
-    void set_offset(const decltype(offset) &offset) { this->offset = offset; }
-    decltype(offset) c_get_val_offset() const { return offset; }
+    const std::size_t &getc_offset() { return offset; }
+    std::size_t &get_offset() { return offset; }
+    void set_offset(const std::size_t &offset) { this->offset = offset; }
+    std::size_t c_get_val_offset() const { return offset; }
 
-    const decltype(buffer) &getc_buffer() { return buffer; }
-    decltype(buffer) &get_buffer() { return buffer; }
-    void set_buffer(const decltype(buffer) &buffer) { this->buffer = buffer; }
-    decltype(buffer) c_get_val_buffer() const { return buffer; }
+    const TransportBuffer &getc_buffer() { return buffer; }
+    TransportBuffer &get_buffer() { return buffer; }
+    void set_buffer(const TransportBuffer &buffer) { this->buffer = buffer; }
+    TransportBuffer c_get_val_buffer() const { return buffer; }
 
     void resetOffset() { set_offset(0); }
     void addOffset(std::size_t offset) { this->offset += offset; }
@@ -101,7 +101,7 @@ class Transport
     static std::vector<TransportWorkerState> workerList;
     static void dispatchLoop(
         std::promise<FUTURE_TYPEOF(TransportWorkerState::retVal)>,
-        decltype(TransportWorkerState::exitVal) exitVal,
+        std::shared_ptr<std::atomic<bool>> exitVal,
         TransportWork arg
     );
   public:

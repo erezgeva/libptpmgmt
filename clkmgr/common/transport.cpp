@@ -97,7 +97,7 @@ bool Transport::init()
 bool Transport::stop()
 {
     /* Send stop signal to all of the threads */
-    for(decltype(workerList)::iterator it = workerList.begin();
+    for(std::vector<TransportWorkerState>::iterator it = workerList.begin();
         it != workerList.end(); ++it)
         it->exitVal->store(true);
     /* Do any transport specific stop */

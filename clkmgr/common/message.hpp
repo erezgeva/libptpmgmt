@@ -35,14 +35,13 @@ typedef std::pair<msgId_t, BuildMessage_t> parseMsgMapElement_t;
 class Message
 {
   private:
-    static std::map<decltype(parseMsgMapElement_t::first),
-           decltype(parseMsgMapElement_t::second)> parseMsgMap;
+    static std::map<msgId_t, BuildMessage_t> parseMsgMap;
     msgId_t msgId;
     msgAck_t msgAck;
     sessionId_t sessionId;
 
   protected:
-    Message(decltype(msgId) msgId);
+    Message(msgId_t msgId);
     static bool addMessageType(parseMsgMapElement_t);
     static std::string ExtractClassName(std::string prettyFunction,
         std::string function);
@@ -76,22 +75,22 @@ class Message
 
     virtual ~Message() = default;
 
-    const decltype(msgId) &getc_msgId() { return msgId; }
-    decltype(msgId) &get_msgId() { return msgId; }
-    void set_msgId(const decltype(msgId) &msgId) { this->msgId = msgId; }
-    decltype(msgId) c_get_val_msgId() const { return msgId; }
+    const msgId_t &getc_msgId() { return msgId; }
+    msgId_t &get_msgId() { return msgId; }
+    void set_msgId(const msgId_t &msgId) { this->msgId = msgId; }
+    msgId_t c_get_val_msgId() const { return msgId; }
 
-    const decltype(msgAck) &getc_msgAck() { return msgAck; }
-    decltype(msgAck) &get_msgAck() { return msgAck; }
-    void set_msgAck(const decltype(msgAck) &msgAck) { this->msgAck = msgAck; }
-    decltype(msgAck) c_get_val_msgAck() const { return msgAck; }
+    const msgAck_t &getc_msgAck() { return msgAck; }
+    msgAck_t &get_msgAck() { return msgAck; }
+    void set_msgAck(const msgAck_t &msgAck) { this->msgAck = msgAck; }
+    msgAck_t c_get_val_msgAck() const { return msgAck; }
 
-    const decltype(sessionId) &getc_sessionId() { return sessionId; }
-    decltype(sessionId) &get_sessionId() { return sessionId; }
-    void set_sessionId(const decltype(sessionId) &sessionId) {
+    const sessionId_t &getc_sessionId() { return sessionId; }
+    sessionId_t &get_sessionId() { return sessionId; }
+    void set_sessionId(const sessionId_t &sessionId) {
         this->sessionId = sessionId;
     }
-    decltype(sessionId) c_get_val_sessionId() const { return sessionId; }
+    sessionId_t c_get_val_sessionId() const { return sessionId; }
 
     static bool initMessage() { return false; };
     static bool init() { return false; }

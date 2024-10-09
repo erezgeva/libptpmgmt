@@ -22,7 +22,7 @@ using namespace std;
 
 DECLARE_STATIC(Message::parseMsgMap);
 
-Message::Message(decltype(msgId) msgId)
+Message::Message(msgId_t msgId)
 {
     this->msgId = msgId;
     this->msgAck = ACK_NONE;
@@ -79,7 +79,7 @@ COMMON_PRESEND_MESSAGE_TYPE(Message::presendMessage)
 
 bool Message::addMessageType(parseMsgMapElement_t mapping)
 {
-    decltype(parseMsgMap)::size_type size = parseMsgMap.size();
+    std::map<msgId_t, BuildMessage_t>::size_type size = parseMsgMap.size();
     parseMsgMap.insert(mapping);
     if(parseMsgMap.size() == size)
         return false;
@@ -100,7 +100,7 @@ PARSE_RXBUFFER_TYPE(Message::parseBuffer)
 MAKE_RXBUFFER_TYPE(Message::buildMessage)
 {
     msgId_t msgId;
-    decltype(parseMsgMap)::iterator it;
+    std::map<msgId_t, BuildMessage_t>::iterator it;
     if(!PARSE_RX(FIELD, msgId, LxContext))
         return false;
     it = parseMsgMap.find(msgId);
