@@ -479,6 +479,7 @@ bool MsgProc::procLe(uint64_t &val)
 template <typename T> bool MsgProc::vector_f(uint32_t count, vector<T> &vec)
 {
     vector_b(vec) {
+        vec.reserve(vec.size() + count);
         for(uint32_t i = 0; i < count; i++) {
             T rec = {};
             if(proc(rec))
@@ -1431,6 +1432,7 @@ C2(INITIALIZE)
 C2(FAULT_LOG)
 {
     a.numberOfFaultRecords = d.numberOfFaultRecords;
+    a.faultRecords.reserve(d.numberOfFaultRecords);
     for(int i = 0; i < d.numberOfFaultRecords; i++) {
         FaultRecord_t r;
         const ptpmgmt_FaultRecord_t &f = d.faultRecords[i];
@@ -1595,6 +1597,7 @@ C2(GRANDMASTER_CLUSTER_TABLE)
 {
     a.logQueryInterval = d.logQueryInterval;
     a.actualTableSize = d.actualTableSize;
+    a.PortAddress.reserve(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
         PortAddress_t r;
         r.networkProtocol = (networkProtocol_e)d.PortAddress[i].networkProtocol;
@@ -1608,6 +1611,7 @@ C2(UNICAST_MASTER_TABLE)
 {
     a.logQueryInterval = d.logQueryInterval;
     a.actualTableSize = d.actualTableSize;
+    a.PortAddress.reserve(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
         PortAddress_t r;
         r.networkProtocol = (networkProtocol_e)d.PortAddress[i].networkProtocol;
@@ -1624,6 +1628,7 @@ C2(UNICAST_MASTER_MAX_TABLE_SIZE)
 C2(ACCEPTABLE_MASTER_TABLE)
 {
     a.actualTableSize = d.actualTableSize;
+    a.list.reserve(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
         AcceptableMaster_t r;
         r.acceptablePortIdentity.portNumber =
@@ -1795,6 +1800,7 @@ C2(PORT_SERVICE_STATS_NP)
 C2(UNICAST_MASTER_TABLE_NP)
 {
     a.actualTableSize = d.actualTableSize;
+    a.unicastMasters.reserve(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
         LinuxptpUnicastMaster_t r;
         const ptpmgmt_LinuxptpUnicastMaster_t &f = d.unicastMasters[i];

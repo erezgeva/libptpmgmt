@@ -322,6 +322,7 @@ struct JsonProcFrom : public JsonProc {
         jsonArray *arr = m_obj->getArr(key);
         if(arr == nullptr)
             return false;
+        d.reserve(d.size() + arr->size());
         for(size_t i = 0; i < arr->size(); i++) {
             jsonValue *jval = arr->getVal(i);
             if(jval == nullptr || jval->getType() != t_string)
@@ -343,6 +344,7 @@ struct JsonProcFrom : public JsonProc {
             return false;\
         jsonObject *keep = m_obj;\
         bool ret = true;\
+        d.reserve(d.size() + arr->size());\
         for(size_t i = 0; i < arr->size(); i++) {\
             m_obj = arr->getObj(i);\
             if(m_obj == nullptr) {\
