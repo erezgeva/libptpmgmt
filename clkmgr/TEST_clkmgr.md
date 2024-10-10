@@ -42,11 +42,12 @@ libclkmgr.so is communicating with clkmgr_proxy using message queue.
 
 2. Install Real-Time Priority Inheritance Library (librtpi):
     ```bash
-    git clone https://github.com/dvhart/librtpi.git
+    git clone https://github.com/linux-rt/librtpi.git
     cd librtpi
     autoreconf --install
     ./configure
-    sudo make install
+    make
+    make check
    ```
 
 3. Clone the repository:
