@@ -392,7 +392,7 @@ config_report()
  local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER
    LUA_VERS LUA_VER USE_ENDIAN PERL5_VER
    GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
-   CPPCHECK SWIG_MINVER DOXYGEN_MINVER
+   HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER
    PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl5 python3 ruby php lua go'
@@ -436,6 +436,7 @@ config_report()
  [[ -n "$HAVE_GNUTLS_HEADER" ]] && local -r gnutls='v' || local -r gnutls='x'
  [[ -n "$HAVE_NETTLE_HEADER" ]] && local -r nettle='v' || local -r nettle='x'
  [[ -n "$HAVE_GTEST_HEADER" ]] && local -r gtest='v' || local -r gtest='x'
+ [[ -n "$HAVE_GMOCK_HEADER" ]] && local -r gmock='v' || local -r gmock='x'
  [[ -n "$HAVE_CRITERION_HEADER" ]] && local -r crtest='v' || local -r crtest='x'
  [[ -n "$CPPCHECK" ]] && local -r cppcheck='v' || local -r cppcheck='x'
  [[ -n "$SWIG_MINVER" ]] && local -r swig="$SWIG_MINVER" || local -r swig='x'
@@ -447,7 +448,7 @@ compilers $CXX $CXX_VERSION, $CC $CC_VERSION
 rpath '$rpath'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
-Google test '$gtest' Criterion test '$crtest'
+Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'
 swig '$swig' Python '$python3' Ruby '$ruby' PHP '$php'
 Perl '$perl5' go '$go' tcl '$tcl' Lua '$lua'
 ============================================================

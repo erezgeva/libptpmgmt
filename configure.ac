@@ -339,6 +339,7 @@ AS_UNSET([ptpm_skip_libsys])
 AS_UNSET([HAVE_GTEST_HEADER])
 AS_UNSET([GTEST_INC_FLAGS])
 AS_UNSET([GTEST_LIB_FLAGS])
+AS_UNSET([HAVE_GMOCK_HEADER])
 AS_UNSET([HAVE_CRITERION_HEADER])
 AS_UNSET([CRITERION_INC_FLAGS])
 AS_UNSET([CRITERION_LIB_FLAGS])
@@ -361,6 +362,8 @@ AS_IF([PTPM_VAR_SET_TEST([HAVE_GTEST_HEADER]) &&\
                                        ['-lgtest -lpthread'])])],
                     [AS_UNSET([GTEST_LIB_FLAGS])],
                     ["$GTEST_LIB_FLAGS"])])
+AC_CHECK_HEADER([gmock/gmock.h],
+                [AS_VAR_SET([HAVE_GMOCK_HEADER], ['gmock/gmock.h'])])
 
 AC_CHECK_HEADER([criterion/criterion.h],
                 [AS_VAR_SET([HAVE_CRITERION_HEADER], ['criterion/criterion.h'])])
@@ -388,6 +391,7 @@ AS_VAR_IF([ptpm_skip_libsys], ['no'],
 AC_SUBST([HAVE_GTEST_HEADER])
 AC_SUBST([GTEST_INC_FLAGS])
 AC_SUBST([GTEST_LIB_FLAGS])
+AC_SUBST([HAVE_GMOCK_HEADER])
 AC_SUBST([HAVE_CRITERION_HEADER])
 AC_SUBST([CRITERION_INC_FLAGS])
 AC_SUBST([CRITERION_LIB_FLAGS])
