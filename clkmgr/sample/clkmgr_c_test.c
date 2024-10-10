@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
         printf("| %-25s | %-22d |\n", "gm_Changed", event_state.gm_changed);
     }
     printf("+---------------------------+------------------------+\n");
-    printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n", "UUID",
+    printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n", "GM UUID",
         event_state.gm_identity[0], event_state.gm_identity[1],
         event_state.gm_identity[2], event_state.gm_identity[3],
         event_state.gm_identity[4], event_state.gm_identity[5],
@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
         }
         printf("+---------------------------+--------------+-------------+\n");
         printf("| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-            "UUID", event_state.gm_identity[0], event_state.gm_identity[1],
+            "GM UUID", event_state.gm_identity[0], event_state.gm_identity[1],
             event_state.gm_identity[2], event_state.gm_identity[3],
             event_state.gm_identity[4], event_state.gm_identity[5],
             event_state.gm_identity[6], event_state.gm_identity[7]);
