@@ -16,19 +16,24 @@ ARG USER
 ARG DIST
 ARG ARCH
 ARG ARCHS
-ARG SRC_CFG
 ARG DPKGS
 ARG REPO
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update;\
-    apt-get install -y --no-install-recommends gnupg ca-certificates\
-    apt-utils;for a in $ARCHS;do dpkg --add-architecture $a;\
-    done;printf "$SRC_CFG" > /etc/apt/sources.list; apt-get update;\
-    apt-get install -y --no-install-recommends debhelper coreutils sudo\
-    dh-lua dh-make-perl dh-exec git procps dh-php build-essential ncurses-bin\
-    dlocate dialog lsb-release quilt apt-file libtool libtool-bin swig golang\
-    install-info doxygen graphviz qemu-user-static distro-info chrpath patchelf\
-    tree lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
+RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
+    sed -i "s|http://deb.debian.org/debian|$REPO|"\
+    /etc/apt/sources.list.d/debian.sources;fi;\
+    if [ -f /etc/apt/sources.list ];then\
+    sed -i "s|http://deb.debian.org/debian|$REPO|;/^#/ d"\
+    /etc/apt/sources.list;fi;apt-get update;\
+    apt-get install -y --no-install-recommends --no-remove\
+    gnupg ca-certificates apt-utils;for a in $ARCHS;\
+    do dpkg --add-architecture $a;done;apt-get update;\
+    apt-get install -y --no-install-recommends --no-remove\
+    debhelper coreutils sudo dh-lua dh-make-perl dh-exec git procps dh-php\
+    build-essential ncurses-bin dlocate dialog lsb-release quilt apt-file\
+    libtool libtool-bin swig golang install-info doxygen graphviz\
+    qemu-user-static distro-info chrpath patchelf tree\
+    lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck universal-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
     python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\

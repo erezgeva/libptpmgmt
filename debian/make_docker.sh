@@ -9,12 +9,6 @@
 ###############################################################################
 set_dist_args()
 {
-  SRC_CFG="deb $repo $1 main\ndeb $repo $1-updates main\n"
-  case $1 in
-    *)
-      SRC_CFG+="deb $repo-security $1-security main\n"
-      ;;
-  esac
   dpkgs="$dpkgs_all"
   local -n d=dpkgs_$1
   for m in $d; do
@@ -71,7 +65,7 @@ main()
     n="$(dpkg-architecture -a$a -qDEB_TARGET_GNU_TYPE 2> /dev/null)"
     dpkgs_all+=" g++-$n"
   done
-  local SRC_CFG dpkgs all_args="$args"
+  local dpkgs all_args="$args"
   make_args repo arch rtpi_ver
   all_args+="$args"
   for dist in $names; do
@@ -79,7 +73,6 @@ main()
     set_dist_args $dist
     cmd docker build $no_cache -f "$base_dir/Dockerfile" $all_args $args\
         --build-arg ARCHS="$archs"\
-        --build-arg SRC_CFG="$SRC_CFG"\
         --build-arg DPKGS="$dpkgs" -t $bname$dist$ename .
     if [[ -n "$use_srv" ]]; then
       cmd docker push $bname$dist$ename

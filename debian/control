@@ -15,6 +15,8 @@ Build-Depends-Indep: graphviz, doxygen (>=1.8), dh-exec (>=0.3),
 		     swig (>=4.1), coreutils, m4, gawk, autoconf, automake,
 		     chrpath | patchelf
 Homepage: https://libptpmgmt.nwtime.org
+Vcs-Browser: https://github.com/erezgeva/libptpmgmt
+Vcs-Git: https://github.com/erezgeva/libptpmgmt.git
 
 Package: libptpmgmt
 Architecture: any
