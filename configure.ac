@@ -719,7 +719,8 @@ AS_VAR_IF([ptpm_tclpackage], ['no'],
       PTPM_VAR_EMPTY_IF([ptpm_tclver],
             [AS_VAR_COPY([ptpm_tclver], [TCL_VERSION])])
       PTPM_VAR_SET_IF([TCL_PACKAGE_PATH],
-        [AS_VAR_COPY([ptpm_tcl_package_path], [TCL_PACKAGE_PATH])
+        [PTPM_VAR_SED_COPY([ptpm_tcl_package_path],
+                           [TCL_PACKAGE_PATH], ['s%:% %g'])
          PTPM_CROSS([ptpm_tcl_package_path])
          dnl Try first folder under main libdir
          PTPM_FOR([d], [$ptpm_tcl_package_path],

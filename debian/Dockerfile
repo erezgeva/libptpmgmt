@@ -42,7 +42,10 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     apt-get upgrade -y --no-install-recommends;\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
     useradd $USER -u $UID -m -G sudo;\
-    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers
+    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers;\
+    for a in $ARCHS; do list=`dpkg --get-selections | grep "linux-gnu:$a" |\
+    sed "s/\s*install/ /;s/:$a/:$ARCH/" | tr -d $'\r\n'`; if [ -n "$list" ];\
+    then apt-get install -y --no-install-recommends $list;fi;done
 ARG RTPI_VER
 RUN if test "$DIST" = "bookworm";then mkdir -p /tmp/1;cd /tmp/1;\
     url=$REPO/pool/main/libr/librtpi;for a in $ARCH $ARCHS;\
