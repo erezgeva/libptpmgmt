@@ -248,4 +248,7 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
         client_ptp_data->synced_to_gm_event_count;
     eventCount.gm_changed_event_count = client_ptp_data->gm_changed_event_count;
     eventCount.composite_event_count = client_ptp_data->composite_event_count;
+    /* Reset gm_changed event if the event count is 0 */
+    if(client_ptp_data->gm_changed_event_count == 0)
+        clkmgrCurrentState->gm_changed = false;
 }

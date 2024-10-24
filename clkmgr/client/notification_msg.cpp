@@ -165,8 +165,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             client_ptp_data->gm_changed_event_count.fetch_add(1,
                 std::memory_order_relaxed);
             clkmgrCurrentState.gm_changed = true;
-        } else
-            clkmgrCurrentState.gm_changed = false;
+        }
         if((eventSub & eventASCapable) &&
             (proxy_data.as_capable != client_ptp_data->as_capable)) {
             client_ptp_data->as_capable = proxy_data.as_capable;
