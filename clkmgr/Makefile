@@ -23,7 +23,7 @@ CLKMGR_GEN_CPP=$(Q_GEN)$(M4) -I $(CLKMGR_COMMON_DIR) -D lang=cpp $< > $@
 CLKMGR_GEN_C=$(Q_GEN)$(M4) -I $(CLKMGR_COMMON_DIR) -D lang=c $< > $@
 
 CLKMGR_LDLIBS:=$(foreach lib,pthread rt rtpi,-l$(lib))
-CLKMGR_CXXFLAGS:=-I$(CLKMGR_DIR)
+CLKMGR_CXXFLAGS:=-I$(CLKMGR_DIR) -I$(CLKMGR_PUB_DIR)
 
 CLKMGR_COMMON_SRCS:=$(wildcard $(CLKMGR_COMMON_DIR)/*.cpp)
 CLKMGR_COMMON_LOBJS:=$(CLKMGR_COMMON_SRCS:.cpp=.lo)
