@@ -1,63 +1,62 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
      SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
-# The diagram of Clock Manager usage in system :
+# The diagram of Clock Manager usage in system:
 
 Test app <----> client runtime(libclkmgr.so) <----> clkmgr_proxy <----> libptpmgmt.so <----> ptp4l
 
-# How to Clone and Build the Intel Customized Linux PTP:
+# How to get Linux PTP:
 
-We have applied several patches to the latest version of Linux PTP project
-(https://git.code.sf.net/p/linuxptp/code), including config file for i225/6.
-The repository with our custom changes can be found at
-https://github.com/intel-staging/linux-ptp_iaclocklib. It should be used
-together with this Clock Manager application.
+You can install it from your Linux distribution:  
+On Ubuntu and Debian:  
+```bash
+sudo apt install linuxptp
+```
+On Fedora:  
+```bash
+dnf install linuxptp
+```
 
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/intel-staging/linux-ptp_iaclocklib.git
-    ```
-
-2. Navigate to the cloned directory:
-    ```bash
-    cd linux-ptp_iaclocklib
-    ```
-
-3. Build the application:
-    ```bash
-    make
-    ```
+Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
 
 # How to Clone and Build the Clock Manager together with libptpmgmt:
 
-Clock manager is basically divided to 2 parts: libclkmgr.so + clkmgr_proxy.
-libclkmgr.so provided API for an user application to connect, subscribe and
-receive ptp4l events, whereas clkmgr_proxy uses libptpmgmt.so API
-(dynamically linked) to subscribe and listen to notify event from ptp4l.
-libclkmgr.so is communicating with clkmgr_proxy using message queue.
+Clock manager is divided to two parts:  
+  * clkmgr_proxy: The Clock manager proxy.  
+  * libclkmgr.so: The Clock manager user library.  
 
-1. Install package dependencies:
+We provide libclkmgr.so with API for user applications to connect, subscribe and
+receive ptp4l events forward by the Clock manager proxy.  
+The Clock manager proxy uses libptpmgmt.so to subscribe and to listen for events received from ptp4l.  
+libclkmgr.so communicates with the Clock manager proxy through a message queue.
+
+1. Install package dependencies:  
     ```bash
-    sudo apt-get install -y swig libtool-bin cppcheck doxygen ctags astyle dot epstopdf valgrind
+    sudo apt install swig libtool-bin cppcheck doxygen ctags astyle dot epstopdf valgrind
     ```
 
-2. Install Real-Time Priority Inheritance Library (librtpi):
+2. Install Real-Time Priority Inheritance Library (librtpi):  
+    On new Ubuntu and Debian systems:  
     ```bash
-    git clone https://github.com/linux-rt/librtpi.git
-    cd librtpi
-    autoreconf --install
-    ./configure
-    make
-    make check
-   ```
-
-3. Clone the repository:
+    sudo apt install librtpi-dev
+    ```
+    On older systems, build and install the library:  
     ```bash
-    git clone https://github.com/intel-staging/libptpmgmt_iaclocklib
+    git clone https://github.com/linux-rt/librtpi.git  
+    cd librtpi  
+    autoreconf --install  
+    ./configure  
+    make  
+    make install
     ```
 
-4. Navigate to the cloned directory:
+3. Clone the repository:  
     ```bash
-    cd libptpmgmt_iaclocklib
+    git clone https://github.com/erezgeva/libptpmgmt
+    ```
+
+4. Navigate to the cloned directory:  
+    ```bash
+    cd libptpmgmt
     ```
 
 5. Build the application:
@@ -67,7 +66,7 @@ libclkmgr.so is communicating with clkmgr_proxy using message queue.
     make
     ```
 
-6. Outcome : you must have 3 binaries created:
+6. Outcome: two libraries and one application
     ```bash
     .libs/libptpmgmt.so
     .libs/libclkmgr.so
@@ -76,13 +75,14 @@ libclkmgr.so is communicating with clkmgr_proxy using message queue.
 
 # How to Build the Sample Application:
 
-We provided a sample code (not a product!) of test application which will uses
-Clock Manager API to track latest status of ptp4l. You should use it as a
-reference.
+We provided a sample code of testing applications which will uses
+Clock Manager API to track latest status of ptp4l.  
+The applications are provided for demonstration only.  
+We do not recommand to use them for production.  
 
 1. Navigate to the sample directory:
     ```bash
-    cd libptpmgmt_iaclocklib/clkmgr/sample
+    cd libptpmgmt/clkmgr/sample
     ```
 
 2. Build the application:
@@ -90,54 +90,59 @@ reference.
     make
     ```
 
-3. Outcome : you must have 2 binary created:
+3. Outcome: two binary
     ```bash
     clkmgr_test
     clkmgr_c_test
     ```
 
-# How to test :
+# How to test:
 
-1. Run the Intel customized ptp4l application on both DUT and link partner:
+1. Run the ptp4l service on both DUT and link partner:
+    If linuxptp is installed on system:
     ```bash
-    cd linux-ptp_iaclocklib
-    sudo ./ptp4l -i <interface name> -f configs/igc.cfg
+    sudo ptp4l -i <interface name>
+    ```
+    Or you build it yourself
+    ```bash
+    cd <folder>
+    sudo ./ptp4l -i <interface name>
     ```
 
 2. Run the clkmgr_proxy application on DUT:
     ```bash
-    cd libptpmgmt_iaclocklib/clkmgr/proxy
-    sudo ./run_proxy.sh  -t 1
+    cd libptpmgmt/clkmgr/proxy
+    sudo ./run_proxy.sh -t 1
     ```
 3. Run the sample application on DUT:
 
     a. c++ sample application:
-        ```bash
-        cd libptpmgmt_iaclocklib/clkmgr/client
-        sudo ./run_clkmgr_test.sh <optional arguments>
-        ```
+    ```bash
+    cd libptpmgmt/clkmgr/client
+    sudo ./run_clkmgr_test.sh <optional arguments>
+    ```
 
     b. c sample application:
-        ```bash
-        cd libptpmgmt_iaclocklib/clkmgr/client
-        sudo ./run_clkmgr_c_test.sh <optional arguments>
-        ```
+    ```bash
+    cd libptpmgmt/clkmgr/client
+    sudo ./run_clkmgr_c_test.sh <optional arguments>
+    ```
 
-# Examples of result :
+# Examples of result:
 
-Usage of proxy daemon (clkmgr_proxy) :
+Usage of proxy daemon (clkmgr_proxy):
 ```bash
-~/libptpmgmt_iaclocklib/clkmgr/proxy# ./run_proxy.sh -h
-Usage of ./clkmgr_proxy :
+~/libptpmgmt/clkmgr/proxy# ./run_proxy.sh -h
+Usage of ./clkmgr_proxy:
 Options:
  -t transport specific
     Default: 0x0
 ```
 
-Usage of c++ sample application (clkmgr_test) :
+Usage of c++ sample application (clkmgr_test):
 ```bash
-~/libptpmgmt_iaclocklib/clkmgr/sample# ./run_clkmgr_test.sh -h
-Usage of ./clkmgr_test :
+~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -h
+Usage of ./clkmgr_test:
 Options:
   -s subscribe_event_mask
      Default: 0xf
@@ -160,9 +165,9 @@ Options:
      Default: 10 s
 ```
 
-Example output of c++ sample application (clkmgr_test) :
+Example output of c++ sample application (clkmgr_test):
 ```bash
-~/libptpmgmt_iaclocklib/clkmgr/sample# ./run_clkmgr_test.sh -l -10 -u 10
+~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -l -10 -u 10
 [clkmgr] Connected. Session ID : 0
 [clkmgr] set subscribe event : 0xf
 [clkmgr] set composite event : 0x7
@@ -209,8 +214,8 @@ GM Offset lower limit: -10 ns
 +---------------------------+--------------+-------------+
 ```
 
-Note :
-```bash
+Note:
+```
 In the absence of a primary clock (GM), the clock offset defaults to 0, which
 it's anticipated that the offset_in_range event will be TRUE. Consequently,
 the synced_to_primary_clock event is used to ensure that the offset_in_range
