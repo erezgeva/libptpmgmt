@@ -27,7 +27,7 @@ class ProxySubscribeMessage : virtual public ProxyMessage,
     virtual PROCESS_MESSAGE_TYPE(processMessage);
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
     /**
-     * @brief Create the ProxyConnectMessage object
+     * Create the ProxyConnectMessage object
      * @param msg msg structure to be fill up
      * @param LxContext proxy transport listener context
      * @return true
@@ -35,7 +35,7 @@ class ProxySubscribeMessage : virtual public ProxyMessage,
     static MAKE_RXBUFFER_TYPE(buildMessage);
 
     /**
-     * @brief Add proxy's CONNECT_MSG type and its builder to transport layer.
+     * Add proxy's CONNECT_MSG type and its builder to transport layer.
      * @return true
      */
     static bool initMessage();

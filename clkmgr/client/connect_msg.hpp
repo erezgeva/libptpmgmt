@@ -31,7 +31,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
     static rtpi::condition_variable cv;
 
     /**
-     * @brief process the reply for connect msg from proxy.
+     * process the reply for connect msg from proxy.
      * @param LxContext client run-time transport listener context
      * @param TxContext client run-time transport transmitter context
      * @return true
@@ -40,7 +40,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
     virtual PARSE_RXBUFFER_TYPE(parseBuffer);
 
     /**
-     * @brief Create the ClientConnectMessage object
+     * Create the ClientConnectMessage object
      * @param msg msg structure to be fill up
      * @param LxContext client run-time transport listener context
      * @return true
@@ -48,7 +48,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
     static MAKE_RXBUFFER_TYPE(buildMessage);
 
     /**
-     * @brief Add client's CONNECT_MSG type and its builder to transport layer.
+     * Add client's CONNECT_MSG type and its builder to transport layer.
      * @return true
      */
     static bool initMessage();

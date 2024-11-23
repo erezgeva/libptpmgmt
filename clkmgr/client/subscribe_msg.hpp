@@ -37,7 +37,7 @@ class ClientSubscribeMessage : virtual public
     static rtpi::mutex cv_mtx;
     static rtpi::condition_variable cv;
     /**
-     * @brief process the reply for subscribe msg from proxy.
+     * process the reply for subscribe msg from proxy.
      * @param LxContext client run-time transport listener context
      * @param TxContext client run-time transport transmitter context
      * @return true
@@ -45,7 +45,7 @@ class ClientSubscribeMessage : virtual public
     virtual PROCESS_MESSAGE_TYPE(processMessage);
 
     /**
-     * @brief Create the ClientSubscribeMessage object
+     * Create the ClientSubscribeMessage object
      * @param msg msg structure to be fill up
      * @param LxContext client run-time transport listener context
      * @return true
@@ -53,7 +53,7 @@ class ClientSubscribeMessage : virtual public
     static MAKE_RXBUFFER_TYPE(buildMessage);
 
     /**
-     * @brief Add client's SUBSCRIBE_MSG type and its builder to transport layer.
+     * Add client's SUBSCRIBE_MSG type and its builder to transport layer.
      * @return true
      */
     static bool initMessage();

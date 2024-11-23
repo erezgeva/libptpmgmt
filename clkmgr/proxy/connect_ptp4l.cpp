@@ -272,8 +272,9 @@ void *ptp4l_event_loop(void *arg)
     }
 }
 
-/** @brief Establishes a connection to the local PTP (Precision Time Protocol)
- *         daemon.
+/**
+ * @brief Establishes a connection to the local PTP (Precision Time Protocol)
+ *        daemon.
  *
  * This method initializes a Unix socket connection to the local PTP daemon.
  * It sets up the message parameters, including the boundary hops and the

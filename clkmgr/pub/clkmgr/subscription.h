@@ -25,12 +25,10 @@ __CLKMGR_NAMESPACE_BEGIN
 typedef std::array<Threshold, THRESHOLD_MAX> threshold_t;
 
 /**
- * @class ClkMgrSubscription
- * @brief Class to hold the event subscription mask, composite event mask, and
+ * Class to hold the event subscription mask, composite event mask, and
  * thresholds for events that require user-defined threshold (upper and lower
  * limits).
  */
-
 class ClkMgrSubscription
 {
   private:
@@ -42,7 +40,7 @@ class ClkMgrSubscription
     ClkMgrSubscription() noexcept : m_event_mask(0), m_composite_event_mask(0) {}
 
     /**
-    * @brief Set the event mask.
+    * Set the event mask.
     * @param[in] event_mask The new event mask to set.
     */
     void set_event_mask(uint32_t event_mask) {
@@ -50,13 +48,13 @@ class ClkMgrSubscription
     }
 
     /**
-    * @brief Get the value of the event mask.
+    * Get the value of the event mask.
     * @return The value of the event mask.
     */
     uint32_t get_event_mask() const { return m_event_mask; }
 
     /**
-    * @brief Set the composite event mask.
+    * Set the composite event mask.
     * @param[in] composite_event_mask The new composite event mask to set.
     */
     void set_composite_event_mask(const uint32_t composite_event_mask) {
@@ -64,7 +62,7 @@ class ClkMgrSubscription
     }
 
     /**
-    * @brief Get the value of the composite event mask.
+    * Get the value of the composite event mask.
     * @return the composite event mask.
     */
     uint32_t get_composite_event_mask() const {
@@ -72,13 +70,13 @@ class ClkMgrSubscription
     }
 
     /**
-    * @brief Get the constant reference to the threshold.
+    * Get the constant reference to the threshold.
     * @return Constant reference to the threshold.
     */
     const threshold_t &get_threshold() const { return m_threshold; }
 
     /**
-    * @brief Set the threshold.
+    * Set the threshold.
     * @param[in] threshold The new threshold to set.
     */
     void set_threshold(const threshold_t &threshold) {
@@ -86,7 +84,7 @@ class ClkMgrSubscription
     }
 
     /**
-     * @brief Define the upper and lower limits of a specific event
+     * Define the upper and lower limits of a specific event
      * @param[in] index Index of the event according to ThresholdIndex enum
      * @param[in] upper Upper limit
      * @param[in] lower Lower limit
@@ -95,7 +93,7 @@ class ClkMgrSubscription
     bool define_threshold(uint8_t index, int32_t upper, int32_t lower);
 
     /**
-     * @brief Check whether a given value is within predefined threshold
+     * Check whether a given value is within predefined threshold
      * @param[in] index Index of the event according to ThresholdIndex enum
      * @param[in] value Current value
      * @return Return true if value is within the threshold, and false otherwise

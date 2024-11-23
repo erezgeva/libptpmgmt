@@ -30,7 +30,7 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
     /**
-     * @brief Create the ProxyNotificationMessage object
+     * Create the ProxyNotificationMessage object
      * @param msg msg structure to be fill up
      * @param LxContext proxy transport listener context
      * @return true
@@ -38,7 +38,7 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
     static MAKE_RXBUFFER_TYPE(buildMessage);
 
     /**
-     * @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
+     * Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
      * @return true
      */
     static bool initMessage();

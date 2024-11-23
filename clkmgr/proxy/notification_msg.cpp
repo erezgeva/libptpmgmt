@@ -21,8 +21,8 @@ using namespace std;
 
 extern ptp_event pe;
 
-/** @brief Create the ProxyNotificationMessage object
- *
+/**
+ * Create the ProxyNotificationMessage object
  * @param msg msg structure to be fill up
  * @param LxContext proxy transport listener context
  * @return true
@@ -33,7 +33,8 @@ MAKE_RXBUFFER_TYPE(ProxyNotificationMessage::buildMessage)
     return true;
 }
 
-/** @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
+/**
+ * @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
  *
  * This function will be called during init to add a map of NOTIFY_MESSAGE
  * type and its corresponding buildMessage function.

@@ -29,7 +29,7 @@ class ClientNotificationMessage : virtual public ClientMessage,
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
     /**
-     * @brief Create the ClientNotificationMessage object
+     * Create the ClientNotificationMessage object
      * @param msg msg structure to be fill up
      * @param LxContext client transport listener context
      * @return true
@@ -37,7 +37,7 @@ class ClientNotificationMessage : virtual public ClientMessage,
     static MAKE_RXBUFFER_TYPE(buildMessage);
 
     /**
-     * @brief Add client's NOTIFY_MESSAGE type and its builder to transport layer.
+     * Add client's NOTIFY_MESSAGE type and its builder to transport layer.
      * @return true
      */
     static bool initMessage();

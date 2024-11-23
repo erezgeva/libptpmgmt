@@ -20,9 +20,9 @@ using namespace std;
 
 ClientState *ClientConnectMessage::currentClientState = nullptr;
 
-/** @brief Create the ClientConnectMessage object
- *
- * @param msg msg structure to be fill up
+/**
+ * Create the ClientConnectMessage object
+ * @param msg structure to be fill up
  * @param LxContext client run-time transport listener context
  * @return true
  */
@@ -32,7 +32,8 @@ MAKE_RXBUFFER_TYPE(ClientConnectMessage::buildMessage)
     return true;
 }
 
-/** @brief Add client's CONNECT_MSG type and its builder to transport layer.
+/**
+ * @brief Add client's CONNECT_MSG type and its builder to transport layer.
  *
  * This function will be called during init to add a map of CONNECT_MSG
  * type and its corresponding buildMessage function.
@@ -62,7 +63,8 @@ void ClientConnectMessage::setClientState(ClientState *newClientState)
     currentClientState = newClientState;
 }
 
-/** @brief process the reply for connect msg from proxy.
+/**
+ * @brief process the reply for connect msg from proxy.
  *
  * This function will be called when the transport layer
  * in client runtime received a CONNECT_MSG type (an echo reply from

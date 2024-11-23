@@ -23,8 +23,8 @@ using namespace std;
 
 extern ptp_event pe;
 
-/** @brief Create the ProxyConnectMessage object
- *
+/**
+ * Create the ProxyConnectMessage object
  * @param msg msg structure to be fill up
  * @param LxContext proxy transport listener context
  * @return true
@@ -35,7 +35,8 @@ MAKE_RXBUFFER_TYPE(ProxyConnectMessage::buildMessage)
     return true;
 }
 
-/** @brief Add proxy's CONNECT_MSG type and its builder to transport layer.
+/**
+ * @brief Add proxy's CONNECT_MSG type and its builder to transport layer.
  *
  * This function will be called during init to add a map of CONNECT_MSG
  * type and its corresponding buildMessage function.
@@ -48,7 +49,8 @@ bool ProxyConnectMessage::initMessage()
     return true;
 }
 
-/** @brief process the connect msg from client-runtime
+/**
+ * @brief process the connect msg from client-runtime
  *
  * This function will be called when the transport layer
  * in proxy receive a CONNECT_MSG type from client-runtime.
