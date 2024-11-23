@@ -88,22 +88,22 @@ void ClientState::set_clientID(TransportClientId &new_cID)
     strcpy((char *)clientID.data(), (char *)new_cID.data());
 }
 
-clkmgr_event_count &ClientState::get_eventStateCount()
+Event_count &ClientState::get_eventStateCount()
 {
     return eventStateCount;
 }
 
-clkmgr_event_state &ClientState::get_eventState()
+Event_state &ClientState::get_eventState()
 {
     return eventState;
 }
 
-void ClientState::set_eventStateCount(clkmgr_event_count newCount)
+void ClientState::set_eventStateCount(Event_count newCount)
 {
     eventStateCount = newCount;
 }
 
-void ClientState::set_eventState(clkmgr_event_state newState)
+void ClientState::set_eventState(Event_state newState)
 {
     eventState = newState;
 }

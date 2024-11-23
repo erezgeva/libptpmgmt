@@ -19,7 +19,7 @@ __CLKMGR_NAMESPACE_USE
 
 using namespace std;
 
-clkmgr_event_state *ClientSubscribeMessage::clkmgrCurrentState = nullptr;
+Event_state *ClientSubscribeMessage::clkmgrCurrentState = nullptr;
 ClientState *ClientSubscribeMessage::currentClientState = nullptr;
 std::map<sessionId_t, std::array<client_ptp_event *, 2>>
     ClientSubscribeMessage::client_ptp_event_map;
@@ -213,7 +213,7 @@ client_ptp_event *ClientSubscribeMessage::getClientPtpEventCompositeStruct(
 
 /* reduce the corresponding eventCount */
 void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
-    clkmgr_event_count &eventCount)
+    Event_count &eventCount)
 {
     std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
     client_ptp_event *client_ptp_data = nullptr;

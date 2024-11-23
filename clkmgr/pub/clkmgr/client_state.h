@@ -15,7 +15,6 @@
 #include <atomic>
 #include <string>
 
-#include "pub/clkmgr/event_state.h"
 #include "pub/clkmgr/subscription.h"
 #include "pub/clkmgr/utility.h"
 
@@ -33,8 +32,8 @@ class ClientState
     sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
     TransportClientId clientID = {}; /**< Client ID */
     uint8_t m_ptp4l_id = 0; /**< PTP4L ID */
-    clkmgr_event_state eventState = {}; /**< Event state */
-    clkmgr_event_count eventStateCount = {}; /**< Event count */
+    Event_state eventState = {}; /**< Event state */
+    Event_count eventStateCount = {}; /**< Event count */
     ClkMgrSubscription eventSub = {}; /**< Event subscription */
     struct timespec last_notification_time; /**< Last notification time */
 
@@ -96,25 +95,25 @@ class ClientState
      * @brief Get the event state counts
      * @return Reference to the event state counts
      */
-    clkmgr_event_count &get_eventStateCount();
+    Event_count &get_eventStateCount();
 
     /**
      * @brief Get the event state
      * @return Reference to the event state
      */
-    clkmgr_event_state &get_eventState();
+    Event_state &get_eventState();
 
     /**
      * @brief Set the event state counts
      * @param[in] eCount Event state counts
      */
-    void set_eventStateCount(clkmgr_event_count eCount);
+    void set_eventStateCount(Event_count eCount);
 
     /**
      * @brief Set the event state
      * @param[in] eState Event state
      */
-    void set_eventState(clkmgr_event_state eState);
+    void set_eventState(Event_state eState);
 
     /**
      * @brief Set the last notification time

@@ -16,7 +16,6 @@
 #include <map>
 
 #include "pub/clkmgr/client_state.h"
-#include "pub/clkmgr/event_state.h"
 #include "pub/clkmgr/subscription.h"
 #include "pub/clkmgr/utility.h"
 
@@ -75,8 +74,7 @@ class ClockManager
      * @param[out] currentState Reference to the current state
      * @return true on success, false on failure
      */
-    bool clkmgr_subscribe(ClkMgrSubscription &newSub,
-        clkmgr_event_state &currentState);
+    bool clkmgr_subscribe(ClkMgrSubscription &newSub, Event_state &currentState);
 
     /**
      * @brief Waits for a specified timeout period for any event changes.
@@ -88,8 +86,8 @@ class ClockManager
      * @return Returns true if there is event changes within the timeout period,
      * and false otherwise.
      */
-    int clkmgr_status_wait(int timeout, clkmgr_event_state &currentState,
-        clkmgr_event_count &currentCount);
+    int clkmgr_status_wait(int timeout, Event_state &currentState,
+        Event_count &currentCount);
 };
 
 __CLKMGR_NAMESPACE_END

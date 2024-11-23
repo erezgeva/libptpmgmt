@@ -75,7 +75,7 @@ bool ClockManager::clkmgr_connect()
 }
 
 bool ClockManager::clkmgr_subscribe(ClkMgrSubscription &newSub,
-    clkmgr_event_state &currentState)
+    Event_state &currentState)
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
     PrintDebug("[clkmgr]::subscribe");
@@ -113,7 +113,7 @@ bool ClockManager::clkmgr_subscribe(ClkMgrSubscription &newSub,
         } else
             PrintDebug("[SUBSCRIBE] SUBSCRIBE reply received.");
     }
-    clkmgr_event_state clkmgrCurrentState = appClientState.get_eventState();
+    Event_state clkmgrCurrentState = appClientState.get_eventState();
     currentState = clkmgrCurrentState;
     return true;
 }
@@ -192,15 +192,15 @@ bool check_proxy_liveness(ClientState &appClientState)
 }
 
 int ClockManager::clkmgr_status_wait(int timeout,
-    clkmgr_event_state &currentState, clkmgr_event_count &currentCount)
+    Event_state &currentState, Event_count &currentCount)
 {
     auto start = std::chrono::high_resolution_clock::now();
     auto end = (timeout == -1) ?
         std::chrono::time_point<std::chrono::high_resolution_clock>::max() :
         start + std::chrono::seconds(timeout);
     bool event_changes_detected = false;
-    clkmgr_event_count eventCount;
-    clkmgr_event_state eventState;
+    Event_count eventCount;
+    Event_state eventState;
     do {
         /* Check the liveness of the Proxy's message queue */
         if(!check_proxy_liveness(appClientState))

@@ -22,8 +22,8 @@ TEST(ClientStateTest, ApiTest)
     ClientState cstate = {};
     struct timespec current_time = {};
     TransportClientId refClientID = { 0x41, 0x42, 0x43 };
-    clkmgr_event_state eState = {};
-    clkmgr_event_count eCount = {};
+    Event_state eState = {};
+    Event_count eCount = {};
     cstate.set_connected(true);
     EXPECT_EQ(cstate.get_connected(), true);
     cstate.set_subscribed(true);

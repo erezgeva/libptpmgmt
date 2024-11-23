@@ -26,7 +26,7 @@ class ClientSubscribeMessage : virtual public
     virtual public ClientMessage
 {
   private:
-    static clkmgr_event_state *clkmgrCurrentState;
+    static Event_state *clkmgrCurrentState;
     static ClientState *currentClientState;
     static std::map <sessionId_t, std::array<client_ptp_event *, 2>>
         client_ptp_event_map;
@@ -71,8 +71,7 @@ class ClientSubscribeMessage : virtual public
     static client_ptp_event *getClientPtpEventCompositeStruct(sessionId_t sID);
 
     /* Reduce the corresponding eventCount */
-    static void resetClientPtpEventStruct(sessionId_t sID,
-        clkmgr_event_count &eventCount);
+    static void resetClientPtpEventStruct(sessionId_t sID, Event_count &eventCount);
 };
 
 __CLKMGR_NAMESPACE_END

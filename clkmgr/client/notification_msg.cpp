@@ -114,9 +114,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 clock_gettime failed.\n");
         else
             currentClientState->set_last_notification_time(last_notification_time);
-        clkmgr_event_state &clkmgrCurrentState =
-            currentClientState->get_eventState();
-        clkmgr_event_count &clkmgrCurrentEventCount =
+        Event_state &clkmgrCurrentState = currentClientState->get_eventState();
+        Event_count &clkmgrCurrentEventCount =
             currentClientState->get_eventStateCount();
         eventSub = currentClientState->get_eventSub().get_event_mask();
         composite_eventSub =

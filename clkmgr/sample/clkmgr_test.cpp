@@ -47,8 +47,8 @@ double getMonotonicTime() {
 int main(int argc, char *argv[])
 {
     ClkMgrSubscription subscription = {};
-    clkmgr_event_count eventCount = {};
-    clkmgr_event_state eventState = {};
+    Event_count eventCount = {};
+    Event_state eventState = {};
     int32_t  gmOffsetLowerLimit = -100000;
     int32_t  gmOffsetUpperLimit = 100000;
     int ret = EXIT_SUCCESS;

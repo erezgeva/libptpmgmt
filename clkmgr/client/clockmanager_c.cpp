@@ -36,10 +36,10 @@ bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr)
 
 bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
     struct clkmgr_c_subscription sub,
-    struct clkmgr_c_event_state *current_state)
+    struct Clkmgr_Event_state *current_state)
 {
     clkmgr::ClkMgrSubscription newsub = {};
-    clkmgr::clkmgr_event_state state = {};
+    clkmgr::Event_state state = {};
     bool ret;
     newsub.set_event_mask(sub.event_mask);
     newsub.define_threshold(clkmgr::thresholdGMOffset,
@@ -63,11 +63,11 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
 }
 
 int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
-    struct clkmgr_c_event_state *current_state,
-    struct clkmgr_c_event_count *current_count)
+    struct Clkmgr_Event_state *current_state,
+    struct Clkmgr_Event_count *current_count)
 {
-    clkmgr::clkmgr_event_count eventCount = {};
-    clkmgr::clkmgr_event_state state = {};
+    clkmgr::Event_count eventCount = {};
+    clkmgr::Event_state state = {};
     int ret;
     ret = static_cast<clkmgr::ClockManager *>
         (client_ptr)->clkmgr_status_wait(timeout, state, eventCount);

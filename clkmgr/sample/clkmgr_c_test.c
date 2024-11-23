@@ -36,9 +36,9 @@ double getMonotonicTime() {
 
 int main(int argc, char *argv[])
 {
-    struct clkmgr_c_event_count event_count = {};
+    struct Clkmgr_Event_count event_count = {};
     struct clkmgr_c_subscription subscription = {};
-    struct clkmgr_c_event_state event_state = {};
+    struct Clkmgr_Event_state event_state = {};
     clkmgr_c_client_ptr client_ptr;
     int ret = EXIT_SUCCESS;
     uint32_t idle_time = 1;

@@ -31,33 +31,6 @@ struct clkmgr_c_subscription {
     struct Clkmgr_Threshold threshold[CLKMGR_THRESHOLD_MAX]; /**< Limits */
 };
 
-/**
- * Structure to represent the current state of events.
- */
-struct clkmgr_c_event_state {
-    uint64_t notification_timestamp; /**< Timestamp for last notification */
-    int64_t clock_offset; /**< Clock offset */
-    uint8_t gm_identity[8]; /**< Primary clock UUID */
-    bool offset_in_range; /**< Clock offset in range */
-    bool synced_to_primary_clock; /**< Synced to primary clock */
-    bool as_capable; /**< IEEE 802.1AS capable */
-    bool gm_changed; /**< Primary clock UUID changed */
-    bool composite_event; /**< Composite event */
-    bool reserved[27]; /**< Reserved for future */
-};
-
-/**
- * Structure to represent the event counts.
- */
-struct clkmgr_c_event_count {
-    uint32_t offset_in_range_event_count; /**< Clock offset in range */
-    uint32_t synced_to_gm_event_count; /**< Synced to primary clock */
-    uint32_t as_capable_event_count; /**< IEEE 802.1AS capable */
-    uint32_t gm_changed_event_count; /**< Primary clock UUID changed */
-    uint32_t composite_event_count; /**< Composite event */
-    uint32_t reserved[27]; /**< Reserved for future */
-};
-
 /** Pointer to the client structure */
 typedef void *clkmgr_c_client_ptr;
 
@@ -96,7 +69,7 @@ bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr);
  */
 bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
     struct clkmgr_c_subscription sub,
-    struct clkmgr_c_event_state *current_state);
+    struct Clkmgr_Event_state *current_state);
 
 /**
  * @brief Waits for a specified timeout period for any event changes
@@ -110,8 +83,8 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
  *         and false otherwise
  */
 int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
-    struct clkmgr_c_event_state *current_state,
-    struct clkmgr_c_event_count *current_count);
+    struct Clkmgr_Event_state *current_state,
+    struct Clkmgr_Event_count *current_count);
 
 #ifdef __cplusplus
 }
