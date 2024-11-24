@@ -13,7 +13,6 @@
 #define CLOCKMANAGER_H
 
 #ifdef __cplusplus
-#include <map>
 
 #include "pub/clkmgr/client_state.h"
 #include "pub/clkmgr/subscription.h"
@@ -22,69 +21,74 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 /**
- * @class ClockManager
- * @brief Class to provide APIs to set up and manage the client-runtime.
+ * Class to provide APIs to set up and manage the client-runtime.
+ * @note the class is singelton
  */
 class ClockManager
 {
   private:
     /**
-     * @brief Map of multiple client states.
-     */
-    static std::map <sessionId_t, ClientState> clientStateMap;
-
-    /**
-     * @brief State of current client-runtime.
+     * State of current client-runtime.
      */
     ClientState appClientState;
 
-  public:
     /**
-     * @brief Default constructor
+     * Default constructor
      */
     ClockManager() = default;
 
-    /**
-     * @brief Initialize the Clock Manager library
-     * @return 0 on success
-     */
-    static int init() { return 0; }
+  public:
 
     /**
-     * @brief Get the client state
+     * Fetch single class object
+     * @return reference to single class object
+     */
+    static ClockManager &FetchSingle();
+
+    /**
+     * Initialize the Clock Manager library
+     * @return true on success
+     */
+    bool init();
+
+    /**
+     * Get the client state
      * @return Reference to the client state
      */
-    ClientState &getClientState() { return appClientState; }
+    const ClientState &getClientState();
 
     /**
-     * @brief Establish connection between Client and Proxy
+     * Establish connection between Client and Proxy
      * @return true on success, false on failure
      */
     bool clkmgr_connect();
 
     /**
-     * @brief Remove the connection between Client and Proxy
+     * Remove the connection between Client and Proxy
      * @return true on success, false on failure
      */
     bool clkmgr_disconnect();
 
     /**
-     * @brief Subscribe to events
+     * Subscribe to events
      * @param[in] newSub Reference to the new subscription
      * @param[out] currentState Reference to the current state
      * @return true on success, false on failure
      */
-    bool clkmgr_subscribe(ClkMgrSubscription &newSub, Event_state &currentState);
+    bool clkmgr_subscribe(const ClkMgrSubscription &newSub,
+        Event_state &currentState);
 
     /**
-     * @brief Waits for a specified timeout period for any event changes.
-     * @param[in] timeout The timeout in seconds. If timeout is 0, the function
-     * will check event changes once. If timeout is -1, the function will wait
-     * until there is event changes occurs.
+     * Waits for a specified timeout period for any event changes.
+     * @param[in] timeout in seconds
+     * @li Use 0 to check without waiting
+     * @li Use -1 to wait until there is event changes occurs.
      * @param[out] currentState Reference to the current event state
      * @param[out] currentCount Reference to the current event count
-     * @return Returns true if there is event changes within the timeout period,
-     * and false otherwise.
+     * @return result
+     * @li 1 when an event changes within the timeout period
+     * @li 0 No event changes
+     * @li -1 lost connection to the Clock manager Proxy
      */
     int clkmgr_status_wait(int timeout, Event_state &currentState,
         Event_count &currentCount);

@@ -35,44 +35,38 @@ struct clkmgr_c_subscription {
 typedef void *clkmgr_c_client_ptr;
 
 /**
- * @brief Create a new client instance
- * @return Pointer to the new client instance
+ * Fetch the single client instance
+ * @return Pointer to the single client instance
  */
-clkmgr_c_client_ptr clkmgr_c_client_create();
+clkmgr_c_client_ptr clkmgr_c_client_fetch();
 
 /**
- * @brief Destroy a client instance
- * @param[in, out] client_ptr Pointer to the client instance
- */
-void clkmgr_c_client_destroy(clkmgr_c_client_ptr client_ptr);
-
-/**
- * @brief Connect the client
+ * Connect the client
  * @param[in, out] client_ptr Pointer to the client instance
  * @return true on success, false on failure
  */
 bool clkmgr_c_connect(clkmgr_c_client_ptr client_ptr);
 
 /**
- * @brief Disconnect the client
+ * Disconnect the client
  * @param[in, out] client_ptr Pointer to the client instance
  * @return true on success, false on failure
  */
 bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr);
 
 /**
- * @brief Subscribe to client events
+ * Subscribe to client events
  * @param[in, out] client_ptr Pointer to the client instance
  * @param[in] sub Subscription structure
  * @param[out] current_state Pointer to the current state structure
  * @return true on success, false on failure
  */
 bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
-    struct clkmgr_c_subscription sub,
+    const struct clkmgr_c_subscription sub,
     struct Clkmgr_Event_state *current_state);
 
 /**
- * @brief Waits for a specified timeout period for any event changes
+ * Waits for a specified timeout period for any event changes
  * @param[in, out] client_ptr Pointer to the client instance
  * @param[in] timeout TThe timeout in seconds. If timeout is 0, the function
  * will check event changes once. If timeout is -1, the function will wait

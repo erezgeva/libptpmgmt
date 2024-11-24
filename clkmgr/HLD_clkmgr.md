@@ -115,10 +115,5 @@ This function performs disconnect process with clkmgr_proxy by sending
 disconnect message.  It will delete the ptp event for subscription and state
 reference for notification.
 
-5. clkmgr_c_client_create()
-This function creates an instance of a client object and return a pointer to it
-
-6. clkmgr_c_client_destroy()
-This function safely deallocate memory and destroy an object of type that was
-previously created by clkmgr_c_client_create().
-
+5. clkmgr_c_client_fetch()
+This function fetch the single client object and return a pointer to it

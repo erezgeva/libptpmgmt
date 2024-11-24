@@ -37,51 +37,43 @@ class ClkMgrSubscription
     threshold_t m_threshold; /**< Upper & lower limits */
 
   public:
-    ClkMgrSubscription() noexcept : m_event_mask(0), m_composite_event_mask(0) {}
+    ClkMgrSubscription() noexcept;
 
     /**
     * Set the event mask.
     * @param[in] event_mask The new event mask to set.
     */
-    void set_event_mask(uint32_t event_mask) {
-        m_event_mask = event_mask;
-    }
+    void set_event_mask(uint32_t event_mask);
 
     /**
     * Get the value of the event mask.
     * @return The value of the event mask.
     */
-    uint32_t get_event_mask() const { return m_event_mask; }
+    uint32_t get_event_mask() const;
 
     /**
     * Set the composite event mask.
     * @param[in] composite_event_mask The new composite event mask to set.
     */
-    void set_composite_event_mask(const uint32_t composite_event_mask) {
-        m_composite_event_mask = composite_event_mask;
-    }
+    void set_composite_event_mask(uint32_t composite_event_mask);
 
     /**
     * Get the value of the composite event mask.
     * @return the composite event mask.
     */
-    uint32_t get_composite_event_mask() const {
-        return m_composite_event_mask;
-    }
+    uint32_t get_composite_event_mask() const;
 
     /**
     * Get the constant reference to the threshold.
     * @return Constant reference to the threshold.
     */
-    const threshold_t &get_threshold() const { return m_threshold; }
+    const threshold_t &get_threshold() const;
 
     /**
     * Set the threshold.
     * @param[in] threshold The new threshold to set.
     */
-    void set_threshold(const threshold_t &threshold) {
-        m_threshold = threshold;
-    }
+    void set_threshold(const threshold_t &threshold);
 
     /**
      * Define the upper and lower limits of a specific event

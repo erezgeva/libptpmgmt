@@ -58,7 +58,7 @@ void ClientState::set_clientState(ClientState &newState)
     last_notification_time = newState.get_last_notification_time();
 }
 
-bool ClientState::get_connected()
+bool ClientState::get_connected() const
 {
     return connected;
 }
@@ -68,7 +68,7 @@ void ClientState::set_connected(bool new_state)
     connected = new_state;
 }
 
-bool ClientState::get_subscribed()
+bool ClientState::get_subscribed() const
 {
     return subscribed;
 }
@@ -83,7 +83,7 @@ TransportClientId ClientState::get_clientID()
     return clientID;
 }
 
-void ClientState::set_clientID(TransportClientId &new_cID)
+void ClientState::set_clientID(const TransportClientId &new_cID)
 {
     strcpy((char *)clientID.data(), (char *)new_cID.data());
 }
@@ -98,12 +98,12 @@ Event_state &ClientState::get_eventState()
     return eventState;
 }
 
-void ClientState::set_eventStateCount(Event_count newCount)
+void ClientState::set_eventStateCount(const Event_count &newCount)
 {
     eventStateCount = newCount;
 }
 
-void ClientState::set_eventState(Event_state newState)
+void ClientState::set_eventState(const Event_state &newState)
 {
     eventState = newState;
 }
@@ -126,7 +126,27 @@ ClkMgrSubscription &ClientState::get_eventSub()
     return eventSub;
 }
 
-void ClientState::set_last_notification_time(struct timespec newTime)
+sessionId_t ClientState::get_sessionId() const
+{
+    return m_sessionId;
+}
+
+void ClientState::set_sessionId(sessionId_t sessionId)
+{
+    m_sessionId = sessionId;
+}
+
+void ClientState::set_ptp4l_id(uint8_t ptp4l_id)
+{
+    m_ptp4l_id = ptp4l_id;
+}
+
+uint8_t ClientState::get_ptp4l_id() const
+{
+    return m_ptp4l_id;
+}
+
+void ClientState::set_last_notification_time(const struct timespec &newTime)
 {
     last_notification_time = newTime;
 }

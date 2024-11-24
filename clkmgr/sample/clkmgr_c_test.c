@@ -134,12 +134,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    client_ptr = clkmgr_c_client_create();
-    if (client_ptr == NULL) {
-        printf("[clkmgr] Failure in creating clkmgr Proxy !!!\n");
-        return EXIT_FAILURE;
-    }
-
+    client_ptr = clkmgr_c_client_fetch();
     if (clkmgr_c_connect(client_ptr) == false) {
         printf("[clkmgr] Failure in connecting !!!\n");
         ret = EXIT_FAILURE;
@@ -284,7 +279,7 @@ int main(int argc, char *argv[])
     }
 
 do_exit:
-    clkmgr_c_client_destroy(client_ptr);
+    clkmgr_c_disconnect(client_ptr);
 
     return ret;
 }

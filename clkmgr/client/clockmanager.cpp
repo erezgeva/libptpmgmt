@@ -35,6 +35,22 @@ rtpi::condition_variable ClientConnectMessage::cv;
 rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
 
+ClockManager &ClockManager::FetchSingle()
+{
+    static ClockManager m_single;
+    return m_single;
+}
+
+bool ClockManager::init()
+{
+    return true;
+}
+
+const ClientState &ClockManager::getClientState()
+{
+    return appClientState;
+}
+
 bool ClockManager::clkmgr_connect()
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
@@ -74,7 +90,7 @@ bool ClockManager::clkmgr_connect()
     return true;
 }
 
-bool ClockManager::clkmgr_subscribe(ClkMgrSubscription &newSub,
+bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
     Event_state &currentState)
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
@@ -224,10 +240,10 @@ int ClockManager::clkmgr_status_wait(int timeout,
     currentCount = eventCount;
     currentState = eventState;
     if(!event_changes_detected)
-        return false;
+        return 0;
     /* Reset the atomic count by reducing the corresponding eventCount */
     ClientSubscribeMessage::resetClientPtpEventStruct(
         appClientState.get_sessionId(), eventCount);
     appClientState.set_eventStateCount(eventCount);
-    return true;
+    return 1;
 }

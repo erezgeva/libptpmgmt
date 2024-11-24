@@ -36,7 +36,7 @@ typedef std::array<uint8_t, TRANSPORT_CLIENTID_LENGTH> TransportClientId;
 typedef uint16_t sessionId_t;
 
 /** Invalid session ID (default session ID) */
-static const sessionId_t InvalidSessionId = static_cast<sessionId_t>(-1);
+static const sessionId_t InvalidSessionId = UINT16_MAX;
 
 __CLKMGR_NAMESPACE_END
 

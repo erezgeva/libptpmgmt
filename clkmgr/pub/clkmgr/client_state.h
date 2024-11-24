@@ -58,7 +58,7 @@ class ClientState
      * Get the connection status
      * @return true if connected, false otherwise
      */
-    bool get_connected();
+    bool get_connected() const;
 
     /**
      * Set the connection status
@@ -70,7 +70,7 @@ class ClientState
      * Get the subscription status
      * @return true if subscribed, false otherwise
      */
-    bool get_subscribed();
+    bool get_subscribed() const;
 
     /**
      * Set the subscription status
@@ -88,7 +88,7 @@ class ClientState
      * Set the client ID
      * @param[in] cID Reference to the client ID
      */
-    void set_clientID(TransportClientId &cID);
+    void set_clientID(const TransportClientId &cID);
 
     /**
      * Get the event state counts
@@ -106,19 +106,19 @@ class ClientState
      * Set the event state counts
      * @param[in] eCount Event state counts
      */
-    void set_eventStateCount(Event_count eCount);
+    void set_eventStateCount(const Event_count &eCount);
 
     /**
      * Set the event state
      * @param[in] eState Event state
      */
-    void set_eventState(Event_state eState);
+    void set_eventState(const Event_state &eState);
 
     /**
      * Set the last notification time
      * @param[in] last_notification_time Last notification time
      */
-    void set_last_notification_time(struct timespec last_notification_time);
+    void set_last_notification_time(const struct timespec &last_notification_time);
 
     /**
      * Get the last notification time
@@ -142,29 +142,25 @@ class ClientState
     * Get the constant reference to the session ID.
     * @return session ID.
     */
-    sessionId_t get_sessionId() const { return m_sessionId; }
+    sessionId_t get_sessionId() const;
 
     /**
     * Set the session ID.
     * @param[in] sessionId The new session ID to set.
     */
-    void set_sessionId(sessionId_t sessionId) {
-        m_sessionId = sessionId;
-    }
+    void set_sessionId(sessionId_t sessionId);
 
     /**
     * Set the ptp4l ID.
     * @param[in] ptp4l_id The new ptp4l ID to set.
     */
-    void set_ptp4l_id(uint8_t ptp4l_id) {
-        m_ptp4l_id = ptp4l_id;
-    }
+    void set_ptp4l_id(uint8_t ptp4l_id);
 
     /**
     * Get the value of the ptp4l ID.
     * @return the ptp4l ID.
     */
-    uint8_t get_ptp4l_id() const { return m_ptp4l_id; }
+    uint8_t get_ptp4l_id() const;
 };
 
 __CLKMGR_NAMESPACE_END

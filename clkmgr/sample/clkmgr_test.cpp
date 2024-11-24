@@ -139,17 +139,20 @@ int main(int argc, char *argv[])
     signal(SIGTERM, signal_handler);
     signal(SIGHUP, signal_handler);
 
-    ClockManager *cm = new ClockManager();
+    ClockManager &cm = ClockManager::FetchSingle();
+    if (!cm.init()) {
+        std::cout << "[clkmgr] initialize failure !!!\n";
+        ret = EXIT_FAILURE;
+        goto do_exit;
+    }
 
-    cm->init();
 
-    ClientState &myState = cm->getClientState();
-
-    if (cm->clkmgr_connect() == false) {
-        std::cout << "[clkmgr] Failure in connecting !!!\n";
+    if (!cm.clkmgr_connect() == false) {
+        std::cout << "[clkmgr] failure in connecting !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
     } else {
+        const ClientState &myState = cm.getClientState();
         std::cout << "[clkmgr] Connected. Session ID : " <<
             myState.get_sessionId() << "\n";
     }
@@ -167,9 +170,9 @@ int main(int argc, char *argv[])
     std::cout << "GM Offset upper limit: " << std::dec << gmOffsetUpperLimit << " ns\n";
     std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n\n";
 
-    if (cm->clkmgr_subscribe(subscription, eventState) == false) {
+    if (cm.clkmgr_subscribe(subscription, eventState) == false) {
         std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";
-        cm->clkmgr_disconnect();
+        cm.clkmgr_disconnect();
         return EXIT_FAILURE;
     }
 
@@ -228,7 +231,7 @@ int main(int argc, char *argv[])
     while (!signal_flag) {
         printf("[clkmgr][%.3f] Waiting for Notification Event...\n",
             getMonotonicTime());
-        retval = cm->clkmgr_status_wait(timeout, eventState , eventCount);
+        retval = cm.clkmgr_status_wait(timeout, eventState , eventCount);
         if (!retval) {
             printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                 getMonotonicTime(), timeout);
@@ -303,7 +306,7 @@ int main(int argc, char *argv[])
     }
 
 do_exit:
-    cm->clkmgr_disconnect();
+    cm.clkmgr_disconnect();
 
     return ret;
 }
