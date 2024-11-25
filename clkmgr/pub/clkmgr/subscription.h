@@ -21,11 +21,8 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-/** Upper & lower limits type */
-typedef std::array<Threshold, THRESHOLD_MAX> threshold_t;
-
 /**
- * Class to hold the event subscription mask, composite event mask, and
+ * Class to hold the event subscription masks, composite event mask, and
  * thresholds for events that require user-defined threshold (upper and lower
  * limits).
  */
@@ -34,10 +31,16 @@ class ClkMgrSubscription
   private:
     uint32_t m_event_mask; /**< Event subscription mask */
     uint32_t m_composite_event_mask; /**< Composite event mask */
-    threshold_t m_threshold; /**< Upper & lower limits */
+    std::array<Threshold, THRESHOLD_MAX> m_threshold; /**< Upper & lower limits */
 
   public:
     ClkMgrSubscription() noexcept;
+
+    /**
+    * Set the Subscription masks.
+    * @param[in] newSubscription The new event mask to set.
+    */
+    void set_ClkMgrSubscription(const ClkMgrSubscription &newSubscription);
 
     /**
     * Set the event mask.
@@ -64,18 +67,6 @@ class ClkMgrSubscription
     uint32_t get_composite_event_mask() const;
 
     /**
-    * Get the constant reference to the threshold.
-    * @return Constant reference to the threshold.
-    */
-    const threshold_t &get_threshold() const;
-
-    /**
-    * Set the threshold.
-    * @param[in] threshold The new threshold to set.
-    */
-    void set_threshold(const threshold_t &threshold);
-
-    /**
      * Define the upper and lower limits of a specific event
      * @param[in] index Index of the event according to ThresholdIndex enum
      * @param[in] upper Upper limit
@@ -83,6 +74,15 @@ class ClkMgrSubscription
      * @return true on success, false on failure
      */
     bool define_threshold(ThresholdIndex index, int32_t upper, int32_t lower);
+
+    /**
+     * get the upper and lower limits of a specific event
+     * @param[in] index Index of the event according to ThresholdIndex enum
+     * @param[out] upper Upper limit
+     * @param[out] lower Lower limit
+     * @return true on success, false on failure
+     */
+    bool get_threshold(ThresholdIndex index, int32_t &upper, int32_t &lower);
 
     /**
      * Check whether a given value is within predefined threshold
