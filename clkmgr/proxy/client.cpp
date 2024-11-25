@@ -12,7 +12,7 @@
 #include "common/print.hpp"
 #include "proxy/client.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

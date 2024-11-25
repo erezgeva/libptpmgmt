@@ -11,7 +11,7 @@
 
 #include "pub/clkmgr/subscription.h"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 ClkMgrSubscription::ClkMgrSubscription() noexcept : m_event_mask(0),
     m_composite_event_mask(0) {}
@@ -46,23 +46,18 @@ void ClkMgrSubscription::set_threshold(const threshold_t &threshold)
     m_threshold = threshold;
 }
 
-bool ClkMgrSubscription::define_threshold(std::uint8_t index,
-    std::int32_t upper, std::int32_t lower)
+bool ClkMgrSubscription::define_threshold(ThresholdIndex index, int32_t upper,
+    int32_t lower)
 {
-    if(index < static_cast<std::uint8_t>(thresholdLast)) {
-        m_threshold[index].upper_limit = upper;
-        m_threshold[index].lower_limit = lower;
-        return true;
-    }
-    return false;
+    if(index >= thresholdLast || upper <= lower)
+        return false;
+    m_threshold[index].upper_limit = upper;
+    m_threshold[index].lower_limit = lower;
+    return true;
 }
 
-bool ClkMgrSubscription::in_range(std::uint8_t index, std::int32_t value) const
+bool ClkMgrSubscription::in_range(ThresholdIndex index, int32_t value) const
 {
-    if(index < static_cast<std::uint8_t>(thresholdLast)) {
-        if(value > m_threshold[index].lower_limit &&
-            value < m_threshold[index].upper_limit)
-            return true;
-    }
-    return false;
+    return index < thresholdLast && value > m_threshold[index].lower_limit &&
+        value < m_threshold[index].upper_limit;
 }

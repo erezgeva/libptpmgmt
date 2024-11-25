@@ -17,7 +17,7 @@
 #include "common/sighandler.hpp"
 #include "common/util.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

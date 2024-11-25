@@ -11,7 +11,7 @@
 
 #include "common/null_msg.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

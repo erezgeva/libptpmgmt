@@ -14,7 +14,7 @@
 #include "common/print.hpp"
 #include "common/serialize.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

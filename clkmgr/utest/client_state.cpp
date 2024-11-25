@@ -13,7 +13,8 @@
 
 using namespace clkmgr;
 
-// ClientState(ClientState &newState);
+// Tests copy constructor
+// ClientState(ClientState &newState)
 TEST(ClientStateTest, copy_constructor)
 {
     ClientState cstate1;
@@ -22,7 +23,8 @@ TEST(ClientStateTest, copy_constructor)
     EXPECT_TRUE(cstate2.get_connected());
 }
 
-// void set_clientState(ClientState &newState);
+// Tests copy setting from another object
+// void set_clientState(ClientState &newState)
 TEST(ClientStateTest, set_clientState)
 {
     ClientState cstate1;
@@ -33,8 +35,9 @@ TEST(ClientStateTest, set_clientState)
     EXPECT_TRUE(cstate2.get_connected());
 }
 
-// bool get_connected() const;
-// void set_connected(bool state);
+// Tests connected status flag
+// bool get_connected() const
+// void set_connected(bool state)
 TEST(ClientStateTest, connected)
 {
     ClientState cstate;
@@ -42,8 +45,9 @@ TEST(ClientStateTest, connected)
     EXPECT_TRUE(cstate.get_connected());
 }
 
-// bool get_subscribed() const;
-// void set_subscribed(bool subscriptionState);
+// Tests subscribed status flag
+// bool get_subscribed() const
+// void set_subscribed(bool subscriptionState)
 TEST(ClientStateTest, subscribed)
 {
     ClientState cstate;
@@ -51,8 +55,9 @@ TEST(ClientStateTest, subscribed)
     EXPECT_TRUE(cstate.get_subscribed());
 }
 
-// TransportClientId get_clientID();
-// void set_clientID(const TransportClientId &cID);
+// Tests Transport client ID
+// TransportClientId get_clientID()
+// void set_clientID(const TransportClientId &cID)
 TEST(ClientStateTest, clientID)
 {
     ClientState cstate;
@@ -61,8 +66,9 @@ TEST(ClientStateTest, clientID)
     //EXPECT_EQ(cstate.get_clientID(), { 0x41, 0x42, 0x43} );  // TODO
 }
 
-// Event_count &get_eventStateCount();
-// void set_eventStateCount(const Event_count &eCount);
+// Tests event counters
+// Event_count &get_eventStateCount()
+// void set_eventStateCount(const Event_count &eCount)
 TEST(ClientStateTest, eventStateCount)
 {
     ClientState cstate;
@@ -75,8 +81,9 @@ TEST(ClientStateTest, eventStateCount)
     EXPECT_EQ(e.offset_in_range_event_count, 0x4);
 }
 
-// Event_state &get_eventState();
-// void set_eventState(const Event_state &eState);
+// Tests event state
+// Event_state &get_eventState()
+// void set_eventState(const Event_state &eState)
 TEST(ClientStateTest, eventState)
 {
     ClientState cstate;
@@ -99,8 +106,9 @@ TEST(ClientStateTest, eventState)
     EXPECT_FALSE(e.composite_event);
 }
 
-// void set_last_notification_time(const struct timespec &last_notification_time);
-// struct timespec get_last_notification_time();
+// Tests last notification timestamp
+// void set_last_notification_time(const struct timespec &last_notification_time)
+// struct timespec get_last_notification_time()
 TEST(ClientStateTest, notification_time)
 {
     ClientState cstate;
@@ -110,12 +118,15 @@ TEST(ClientStateTest, notification_time)
     EXPECT_EQ(c.tv_nsec, 5019);
 }
 
+// Tests stringify
 // std::string toString(); // TODO
 
+// Tests event subscription masks
 // ClkMgrSubscription &get_eventSub(); // TODO
 
-// sessionId_t get_sessionId() const;
-// void set_sessionId(sessionId_t sessionId);
+// Tests session ID
+// sessionId_t get_sessionId() const
+// void set_sessionId(sessionId_t sessionId)
 TEST(ClientStateTest, sessionId)
 {
     ClientState cstate;
@@ -123,8 +134,9 @@ TEST(ClientStateTest, sessionId)
     EXPECT_EQ(cstate.get_sessionId(), 0x3f);
 }
 
-// void set_ptp4l_id(uint8_t ptp4l_id);
-// uint8_t get_ptp4l_id() const;
+// Tests PTP ID
+// void set_ptp4l_id(uint8_t ptp4l_id)
+// uint8_t get_ptp4l_id() const
 TEST(ClientStateTest, ptp4l_id)
 {
     ClientState cstate;

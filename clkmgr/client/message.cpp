@@ -17,7 +17,7 @@
 #include "client/subscribe_msg.hpp"
 #include "common/print.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 bool ClientMessage::init()
 {

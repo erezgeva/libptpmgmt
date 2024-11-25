@@ -16,7 +16,7 @@
 
 #define INTR_SIGNAL (SIGUSR1)
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

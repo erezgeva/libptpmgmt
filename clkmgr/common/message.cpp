@@ -16,7 +16,7 @@
 #include "common/serialize.hpp"
 #include "common/subscribe_msg.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

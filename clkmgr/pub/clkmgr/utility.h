@@ -17,7 +17,7 @@
 
 #ifndef __CLKMGR_NAMESPACE_USE
 /** Using clkmgr namespace */
-#define __CLKMGR_NAMESPACE_USE using namespace clkmgr;
+#define __CLKMGR_NAMESPACE_USE using namespace clkmgr
 /** Define start of clkmgr namespace block */
 #define __CLKMGR_NAMESPACE_BEGIN namespace clkmgr {
 /** Define end of clkmgr namespace block */

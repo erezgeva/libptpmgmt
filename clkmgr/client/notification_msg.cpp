@@ -19,7 +19,7 @@
 
 #include <algorithm>
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

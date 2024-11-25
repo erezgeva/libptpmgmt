@@ -82,7 +82,7 @@ class ClkMgrSubscription
      * @param[in] lower Lower limit
      * @return true on success, false on failure
      */
-    bool define_threshold(uint8_t index, int32_t upper, int32_t lower);
+    bool define_threshold(ThresholdIndex index, int32_t upper, int32_t lower);
 
     /**
      * Check whether a given value is within predefined threshold
@@ -90,7 +90,7 @@ class ClkMgrSubscription
      * @param[in] value Current value
      * @return Return true if value is within the threshold, and false otherwise
      */
-    bool in_range(uint8_t index, int32_t value) const;
+    bool in_range(ThresholdIndex index, int32_t value) const;
 };
 
 __CLKMGR_NAMESPACE_END

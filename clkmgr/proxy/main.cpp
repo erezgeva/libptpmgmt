@@ -18,7 +18,7 @@
 #include "proxy/message.hpp"
 #include "proxy/transport.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 

@@ -15,7 +15,7 @@
 #include "proxy/null_msg.hpp"
 #include "proxy/subscribe_msg.hpp"
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 bool ProxyMessage::init()
 {

@@ -22,7 +22,7 @@
 #include <sys/stat.h>
 #include <thread>
 
-__CLKMGR_NAMESPACE_USE
+__CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
