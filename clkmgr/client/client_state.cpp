@@ -34,27 +34,27 @@ ClientState::ClientState()
     last_notification_time = {};
 }
 
-ClientState::ClientState(ClientState &newState)
+ClientState::ClientState(const ClientState &newState)
 {
     connected = newState.get_connected();
     subscribed = newState.get_subscribed();
     m_sessionId = newState.get_sessionId();
     strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
-    eventState = newState.get_eventState();
-    eventStateCount = newState.get_eventStateCount();
-    eventSub = newState.get_eventSub();
+    eventState = newState.eventState;
+    eventStateCount = newState.eventStateCount;
+    eventSub = newState.eventSub;
     last_notification_time = newState.get_last_notification_time();
 }
 
-void ClientState::set_clientState(ClientState &newState)
+void ClientState::set_clientState(const ClientState &newState)
 {
     connected = newState.get_connected();
     subscribed = newState.get_subscribed();
     m_sessionId = newState.get_sessionId();
     strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
-    eventState = newState.get_eventState();
-    eventStateCount = newState.get_eventStateCount();
-    eventSub = newState.get_eventSub();
+    eventState = newState.eventState;
+    eventStateCount = newState.eventStateCount;
+    eventSub = newState.eventSub;
     last_notification_time = newState.get_last_notification_time();
 }
 
@@ -78,7 +78,7 @@ void ClientState::set_subscribed(bool subscriptionState)
     subscribed = subscriptionState;
 }
 
-TransportClientId ClientState::get_clientID()
+TransportClientId ClientState::get_clientID() const
 {
     return clientID;
 }
@@ -88,7 +88,7 @@ void ClientState::set_clientID(const TransportClientId &new_cID)
     strcpy((char *)clientID.data(), (char *)new_cID.data());
 }
 
-Event_count &ClientState::get_eventStateCount()
+const Event_count &ClientState::get_eventStateCount()
 {
     return eventStateCount;
 }
@@ -108,22 +108,24 @@ void ClientState::set_eventState(const Event_state &newState)
     eventState = newState;
 }
 
-string ClientState::toString()
+string ClientState::toString() const
 {
-    string name = "[ClientState::eventState]";
-    name += " as_capable = " + to_string(this->get_eventState().as_capable);
-    name += " gm_changed = " + to_string(this->get_eventState().gm_changed);
-    name += " offset_in_range = " + to_string(
-            this->get_eventState().offset_in_range);
-    name += " synced_to_primary_clock = " + to_string(
-            this->get_eventState().synced_to_primary_clock);
-    name += "\n";
-    return name;
+    return string("[ClientState::eventState]") +
+        " as_capable = " + to_string(eventState.as_capable) +
+        " gm_changed = " + to_string(eventState.gm_changed) +
+        " offset_in_range = " + to_string(eventState.offset_in_range) +
+        " synced_to_primary_clock = " +
+        to_string(eventState.synced_to_primary_clock) + "\n";
 }
 
-ClkMgrSubscription &ClientState::get_eventSub()
+const ClkMgrSubscription &ClientState::get_eventSub()
 {
     return eventSub;
+}
+
+void ClientState::set_eventSub(const ClkMgrSubscription &eSub)
+{
+    eventSub.set_ClkMgrSubscription(eSub);
 }
 
 sessionId_t ClientState::get_sessionId() const
@@ -151,7 +153,7 @@ void ClientState::set_last_notification_time(const struct timespec &newTime)
     last_notification_time = newTime;
 }
 
-struct timespec ClientState::get_last_notification_time()
+timespec ClientState::get_last_notification_time() const
 {
     return last_notification_time;
 }

@@ -14,7 +14,7 @@
 using namespace clkmgr;
 
 // Tests copy constructor
-// ClientState(ClientState &newState)
+// ClientState(const ClientState &newState)
 TEST(ClientStateTest, copy_constructor)
 {
     ClientState cstate1;
@@ -24,7 +24,7 @@ TEST(ClientStateTest, copy_constructor)
 }
 
 // Tests copy setting from another object
-// void set_clientState(ClientState &newState)
+// void set_clientState(const ClientState &newState)
 TEST(ClientStateTest, set_clientState)
 {
     ClientState cstate1;
@@ -56,7 +56,7 @@ TEST(ClientStateTest, subscribed)
 }
 
 // Tests Transport client ID
-// TransportClientId get_clientID()
+// TransportClientId get_clientID() const
 // void set_clientID(const TransportClientId &cID)
 TEST(ClientStateTest, clientID)
 {
@@ -67,7 +67,7 @@ TEST(ClientStateTest, clientID)
 }
 
 // Tests event counters
-// Event_count &get_eventStateCount()
+// const Event_count &get_eventStateCount()
 // void set_eventStateCount(const Event_count &eCount)
 TEST(ClientStateTest, eventStateCount)
 {
@@ -76,7 +76,7 @@ TEST(ClientStateTest, eventStateCount)
     eCount.as_capable_event_count = 0x2;
     eCount.offset_in_range_event_count = 0x4;
     cstate.set_eventStateCount(eCount);
-    Event_count &e = cstate.get_eventStateCount();
+    const Event_count &e = cstate.get_eventStateCount();
     EXPECT_EQ(e.as_capable_event_count, 0x2);
     EXPECT_EQ(e.offset_in_range_event_count, 0x4);
 }
@@ -108,7 +108,7 @@ TEST(ClientStateTest, eventState)
 
 // Tests last notification timestamp
 // void set_last_notification_time(const struct timespec &last_notification_time)
-// struct timespec get_last_notification_time()
+// struct timespec get_last_notification_time() const
 TEST(ClientStateTest, notification_time)
 {
     ClientState cstate;
@@ -119,10 +119,24 @@ TEST(ClientStateTest, notification_time)
 }
 
 // Tests stringify
-// std::string toString(); // TODO
+// std::string toString() const
+TEST(ClientStateTest, toString)
+{
+    ClientState cstate;
+    Event_state &es = cstate.get_eventState();
+    es.as_capable = true;
+    es.gm_changed = true;
+    es.offset_in_range = true;
+    es.synced_to_primary_clock = true;
+    EXPECT_STREQ(cstate.toString().c_str(),
+        "[ClientState::eventState] as_capable = 1 gm_changed = 1 "
+        "offset_in_range = 1 synced_to_primary_clock = 1\n");
+}
 
 // Tests event subscription masks
-// ClkMgrSubscription &get_eventSub(); // TODO
+// TODO
+// const ClkMgrSubscription &get_eventSub()
+// void set_eventSub(const ClkMgrSubscription &eSub)
 
 // Tests session ID
 // sessionId_t get_sessionId() const

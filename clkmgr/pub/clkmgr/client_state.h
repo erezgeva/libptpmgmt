@@ -46,13 +46,13 @@ class ClientState
      * Copy constructor
      * @param[in] newState Reference to the new state
      */
-    ClientState(ClientState &newState);
+    ClientState(const ClientState &newState);
 
     /**
      * Set the client state
      * @param[in] newState Reference to the new state
      */
-    void set_clientState(ClientState &newState);
+    void set_clientState(const ClientState &newState);
 
     /**
      * Get the connection status
@@ -82,7 +82,7 @@ class ClientState
      * Get the client ID
      * @return Client ID
      */
-    TransportClientId get_clientID();
+    TransportClientId get_clientID() const;
 
     /**
      * Set the client ID
@@ -94,7 +94,7 @@ class ClientState
      * Get the event state counts
      * @return Reference to the event state counts
      */
-    Event_count &get_eventStateCount();
+    const Event_count &get_eventStateCount();
 
     /**
      * Get the event state
@@ -124,19 +124,25 @@ class ClientState
      * Get the last notification time
      * @return Last notification time
      */
-    struct timespec get_last_notification_time();
+    struct timespec get_last_notification_time() const;
 
     /**
      * Convert the client state to a string
      * @return String representation of the client state
      */
-    std::string toString();
+    std::string toString() const;
 
     /**
      * Get the event subscription
      * @return Reference to the event subscription
      */
-    ClkMgrSubscription &get_eventSub();
+    const ClkMgrSubscription &get_eventSub();
+
+    /**
+     * Set the event subscription
+     * @param[in] eSub event subscription
+     */
+    void set_eventSub(const ClkMgrSubscription &eSub);
 
     /**
     * Get the constant reference to the session ID.

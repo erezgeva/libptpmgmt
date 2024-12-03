@@ -32,7 +32,7 @@ define(bintyp, `Binary ')dnl
 define(strtyp, `std::string ')dnl
 define(vec, `std::vector<$1> ')dnl
 define(arr, `$1 $2[$3]')dnl
-define(cnst, `constexpr $1 $2 = $3;')dnl
+define(cnst, `const $1 $2 = $3;')dnl
 define(cpp_st, `#ifdef __cplusplus
 ')dnl
 define(cpp_en, `#else /* __cplusplus */

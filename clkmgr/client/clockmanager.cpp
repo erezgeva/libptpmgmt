@@ -104,7 +104,7 @@ bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
         PrintDebug("[clkmgr::subscribe] subscribeMsgcreation is OK !!\n");
     cmsg->setClientState(&appClientState);
     /* Write the current event subscription */
-    appClientState.get_eventSub().set_ClkMgrSubscription(newSub);
+    appClientState.set_eventSub(newSub);
     /* Copy the event Mask */
     cmsg->getSubscription().set_event_mask(newSub.get_event_mask());
     strcpy((char *)cmsg->getClientId().data(),

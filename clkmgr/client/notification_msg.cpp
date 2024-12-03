@@ -115,8 +115,6 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         else
             currentClientState->set_last_notification_time(last_notification_time);
         Event_state &clkmgrCurrentState = currentClientState->get_eventState();
-        Event_count &clkmgrCurrentEventCount =
-            currentClientState->get_eventStateCount();
         eventSub = currentClientState->get_eventSub().get_event_mask();
         composite_eventSub =
             currentClientState->get_eventSub().get_composite_event_mask();
@@ -209,6 +207,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             composite_client_ptp_data->composite_event;
         memcpy(clkmgrCurrentState.gm_identity, client_ptp_data->gm_identity,
             sizeof(client_ptp_data->gm_identity));
+        // Update Event_count
+        Event_count clkmgrCurrentEventCount =
+            currentClientState->get_eventStateCount();
         clkmgrCurrentEventCount.offset_in_range_event_count =
             client_ptp_data->offset_in_range_event_count;
         clkmgrCurrentEventCount.as_capable_event_count =
@@ -219,6 +220,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             client_ptp_data->gm_changed_event_count;
         clkmgrCurrentEventCount.composite_event_count =
             client_ptp_data->composite_event_count;
+        currentClientState->set_eventStateCount(clkmgrCurrentEventCount);
     }
     return true;
 }
