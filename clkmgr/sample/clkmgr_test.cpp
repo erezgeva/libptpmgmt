@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     }
 
 
-    if (!cm.clkmgr_connect() == false) {
+    if (!cm.clkmgr_connect()) {
         std::cout << "[clkmgr] failure in connecting !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     std::cout << "GM Offset upper limit: " << std::dec << gmOffsetUpperLimit << " ns\n";
     std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n\n";
 
-    if (cm.clkmgr_subscribe(subscription, eventState) == false) {
+    if (!cm.clkmgr_subscribe(subscription, eventState)) {
         std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";
         cm.clkmgr_disconnect();
         return EXIT_FAILURE;
