@@ -48,8 +48,8 @@ class SockBase
     bool m_isInit = false;
     SockBase() = default;
     bool sendReply(ssize_t cnt, size_t len) const;
-    virtual bool sendBase(const void *msg, size_t len) = 0;
-    virtual ssize_t rcvBase(void *buf, size_t bufSize, bool block) = 0;
+    virtual bool sendBase(const void *msg, size_t len) const = 0;
+    virtual ssize_t rcvBase(void *buf, size_t bufSize, bool block) const = 0;
     virtual bool initBase() = 0;
     virtual void closeChild() {}
     void closeBase();
@@ -75,7 +75,7 @@ class SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool send(const void *msg, size_t len);
+    bool send(const void *msg, size_t len) const;
     /**
      * Send the message using the socket
      * @param[in] buf object with message memory buffer
@@ -84,7 +84,7 @@ class SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool send(Buf &buf, size_t len);
+    bool send(const Buf &buf, size_t len) const;
     /**
      * Send the message using the socket
      * @param[in] buf object with message memory buffer
@@ -94,7 +94,7 @@ class SockBase
      *  arrives its target. Only the network layer sends it.
      * @note identical to send. Some scripts fail to match proper function
      */
-    bool sendBuf(Buf &buf, size_t len);
+    bool sendBuf(const Buf &buf, size_t len) const;
     /**
      * Receive a message using the socket
      * @param[in, out] buf pointer to a memory buffer
@@ -104,7 +104,7 @@ class SockBase
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    ssize_t rcv(void *buf, size_t bufSize, bool block = false);
+    ssize_t rcv(void *buf, size_t bufSize, bool block = false) const;
     /**
      * Receive a message using the socket
      * @param[in, out] buf object with message memory buffer
@@ -113,7 +113,7 @@ class SockBase
      *                  if no packet available
      * @return number of bytes received or negative on failure
      */
-    ssize_t rcv(Buf &buf, bool block = false);
+    ssize_t rcv(Buf &buf, bool block = false) const;
     /**
      * Receive a message using the socket
      * @param[in, out] buf object with message memory buffer
@@ -123,7 +123,7 @@ class SockBase
      * @return number of bytes received or negative on failure
      * @note identical to rcv. Some scripts fail to match proper function
      */
-    ssize_t rcvBuf(Buf &buf, bool block = false);
+    ssize_t rcvBuf(Buf &buf, bool block = false) const;
     /**
      * Get socket file description
      * @return socket file description
@@ -190,15 +190,16 @@ class SockBase
 class SockUnix : public SockBase
 {
   private:
-    std::string m_me, m_peer, m_homeDir, m_lastFrom;
+    static std::string m_homeDir;
+    std::string m_me, m_peer, m_lastFrom;
     sockaddr_un m_peerAddr;
     bool setPeerInternal(const std::string &str, bool useAbstract);
     bool sendAny(const void *msg, size_t len, const sockaddr_un &addr) const;
     static void setUnixAddr(sockaddr_un &addr, const std::string &str);
   protected:
     /**< @cond internal */
-    bool sendBase(const void *msg, size_t len) override final;
-    ssize_t rcvBase(void *buf, size_t bufSize, bool block) override final;
+    bool sendBase(const void *msg, size_t len) const override final;
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block) const override final;
     bool initBase() override final;
     void closeChild() override final;
     /**< @endcond */
@@ -279,12 +280,12 @@ class SockUnix : public SockBase
      * Get user home directory
      * @return string object with home directory
      */
-    const std::string &getHomeDir();
+    static const std::string &getHomeDir();
     /**
      * Get user home directory
      * @return string with home directory
      */
-    const char *getHomeDir_c();
+    static const char *getHomeDir_c();
     /**
      * Send the message using the socket to a specific address
      * @param[in] msg pointer to message memory buffer
@@ -311,7 +312,7 @@ class SockUnix : public SockBase
      * @note useAbstract add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool sendTo(Buf &buf, size_t len, const std::string &addrStr,
+    bool sendTo(const Buf &buf, size_t len, const std::string &addrStr,
         bool useAbstract = false) const;
     /**
      * Receive a message using the socket from any address
@@ -492,8 +493,8 @@ class SockIp : public SockBaseIf
     Binary m_mcast;
     SockIp(int domain, const char *mcast, sockaddr *addr, size_t len);
     virtual bool initIp() = 0;
-    bool sendBase(const void *msg, size_t len) override final;
-    ssize_t rcvBase(void *buf, size_t bufSize, bool block) override final;
+    bool sendBase(const void *msg, size_t len) const override final;
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block) const override final;
     bool initBase() override final;
     /**< @endcond */
 
@@ -592,17 +593,14 @@ class SockRaw : public SockBaseIf
     Binary m_ptp_dst_mac;
     int m_socket_priority = -1;
     sockaddr_ll m_addr = {0};
-    iovec m_iov_tx[2] = {{0}, {0}}, m_iov_rx[2] = {{0}, {0}};
-    msghdr m_msg_tx = {0}, m_msg_rx = {0};
     ethhdr m_hdr;
-    uint8_t m_rx_buf[sizeof(ethhdr)];
 
   protected:
     /**< @cond internal */
     bool setAllBase(const ConfigFile &cfg,
         const std::string &section) override final;
-    bool sendBase(const void *msg, size_t len) override final;
-    ssize_t rcvBase(void *buf, size_t bufSize, bool block) override final;
+    bool sendBase(const void *msg, size_t len) const override final;
+    ssize_t rcvBase(void *buf, size_t bufSize, bool block) const override final;
     bool initBase() override final;
 
   public:

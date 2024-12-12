@@ -74,7 +74,7 @@ class Options
     };
     std::string help;
     std::vector<helpStore> helpVec;
-    bool helpUpdate = false;
+    void update_help();
 
   public:
     /** parsing return code */
@@ -104,7 +104,7 @@ class Options
      * Get help message
      * @return help message
      */
-    const char *get_help();
+    const char *get_help() const;
     /**
      * Get parse_options() message
      * @return message from last parse_options()
