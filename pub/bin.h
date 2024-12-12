@@ -276,7 +276,7 @@ class Binary
      * @attention The function do not verify proper characters
      *            for values 62, 63. The caller should use proper characters.
      */
-    std::string toBase64(bool pad = true, char v62 = '+', char v63 = '/');
+    std::string toBase64(bool pad = true, char v62 = '+', char v63 = '/') const;
     /**
      * Compare binaries
      * @param[in] rhs Binary to compare
