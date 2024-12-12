@@ -61,6 +61,12 @@ string Options::helpStore::get(size_t length) const
     ret += "\n";
     return ret;
 }
+void Options::update_help()
+{
+    help.clear();
+    for(const helpStore &a : helpVec)
+        help += a.get(m_max_arg_name + 7);
+}
 Options::Options(bool useDef)
 {
     if(useDef)
@@ -81,7 +87,7 @@ void Options::useDefOption()
     helpVec.emplace_back(" -6", "UDP IPV6");
     helpVec.emplace_back(" -u", "UDS local\n");
     helpVec.emplace_back(" Other Options\n");
-    helpUpdate = true;
+    update_help();
     for(Pmc_option *cur = startOptions; cur->short_name; cur++)
         insert(*cur);
     m_useDef = true;
@@ -113,7 +119,7 @@ bool Options::insert(const Pmc_option &opt)
         if(opt.have_arg && !opt.def_val.empty())
             h.addEnd(", default ").addEnd(opt.def_val);
         helpVec.push_back(std::move(h));
-        helpUpdate = true;
+        update_help();
     }
     if(opt.have_arg)
         m_with_opts += opt.short_name;
@@ -136,14 +142,8 @@ bool Options::insert(const Pmc_option &opt)
     }
     return true;
 }
-const char *Options::get_help()
+const char *Options::get_help() const
 {
-    if(helpUpdate) {
-        help = "";
-        for(const helpStore &a : helpVec)
-            help += a.get(m_max_arg_name + 7);
-        helpUpdate = false;
-    }
     return help.c_str();
 }
 const string &Options::get_msg() const
@@ -275,13 +275,13 @@ extern "C" {
         }
         return false;
     }
-    static const char *ptpmgmt_opt_get_help(ptpmgmt_opt me)
+    static const char *ptpmgmt_opt_get_help(const_ptpmgmt_opt me)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->get_help();
         return nullptr;
     }
-    static const char *ptpmgmt_opt_get_msg(ptpmgmt_opt me)
+    static const char *ptpmgmt_opt_get_msg(const_ptpmgmt_opt me)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->get_msg_c();
@@ -305,13 +305,13 @@ extern "C" {
         }
         return PTPMGMT_OPT_ERR;
     }
-    static bool ptpmgmt_opt_have(ptpmgmt_opt me, char opt)
+    static bool ptpmgmt_opt_have(const_ptpmgmt_opt me, char opt)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->have(opt);
         return false;
     }
-    static const char *ptpmgmt_opt_val(ptpmgmt_opt me, char opt)
+    static const char *ptpmgmt_opt_val(const_ptpmgmt_opt me, char opt)
     {
         if(me != nullptr && me->_this != nullptr) {
             const string &v = ((Options *)me->_this)->val(opt);
@@ -320,25 +320,25 @@ extern "C" {
         }
         return nullptr;
     }
-    static int ptpmgmt_opt_val_i(ptpmgmt_opt me, char opt)
+    static int ptpmgmt_opt_val_i(const_ptpmgmt_opt me, char opt)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->val_i(opt);
         return 0;
     }
-    static char ptpmgmt_opt_get_net_transport(ptpmgmt_opt me)
+    static char ptpmgmt_opt_get_net_transport(const_ptpmgmt_opt me)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->get_net_transport();
         return 0;
     }
-    static bool ptpmgmt_opt_have_more(ptpmgmt_opt me)
+    static bool ptpmgmt_opt_have_more(const_ptpmgmt_opt me)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->have_more();
         return false;
     }
-    static int ptpmgmt_opt_process_next(ptpmgmt_opt me)
+    static int ptpmgmt_opt_process_next(const_ptpmgmt_opt me)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Options *)me->_this)->process_next();

@@ -340,7 +340,7 @@ static key_limit_t key_limit[] = {
     [HMAC_AES128] = {16, 16},
     [HMAC_AES256] = {32, 16}
 };
-bool Spp::addKey(uint32_t id, HMAC_t type, Binary &value, size_t digest,
+bool Spp::addKey(uint32_t id, HMAC_t type, const Binary &value, size_t digest,
     bool replace)
 {
     // 0 reserved for disabled
@@ -388,17 +388,14 @@ bool Spp::have(uint32_t key) const
 {
     return key > 0 && m_keys.count(key) > 0;
 }
+#define KET_AT(v, d) return have(id) ? m_keys.at(id).v : d
 size_t Spp::mac_size(uint32_t id) const
 {
-    if(have(id))
-        return m_keys.at(id).mac_size;
-    return 0;
+    KET_AT(mac_size, 0);
 }
 const Binary &Spp::key(uint32_t id) const
 {
-    if(have(id))
-        return m_keys.at(id).key;
-    return empty_key;
+    KET_AT(key, empty_key);
 }
 size_t Spp::keys() const
 {
@@ -406,9 +403,7 @@ size_t Spp::keys() const
 }
 HMAC_t Spp::htype(uint32_t id) const
 {
-    if(have(id))
-        return m_keys.at(id).type;
-    return HMAC_SHA256; // Does not really matter
+    KET_AT(type, HMAC_SHA256); // Does not really matter
 }
 uint8_t Spp::ownID() const
 {
