@@ -71,7 +71,7 @@ class Init
      * @return object or null if not exist
      * @note User @b should not try to free this socket object
      */
-    SockBase *sk();
+    SockBase *sk() const;
 
     /**
      * Get network selection character
@@ -81,7 +81,7 @@ class Init
      *   '6' for a PTP IPv6 socket using a SockIp6 object,
      *   '2' for a PTP layer 2 socket using a SockRaw object,
      */
-    char getNetSelect();
+    char getNetSelect() const;
 
     /**
      * Is the socket provide by this object, a Unix socket?

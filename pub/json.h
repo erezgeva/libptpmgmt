@@ -182,6 +182,7 @@ class Json2msg
     bool haveDstPort() const;
     /**
      * Call message setAction with parsed JSON
+     * @param[in, out] message object
      * @return message setAction result
      */
     bool setAction(Message &message) const;
