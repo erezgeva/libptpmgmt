@@ -139,11 +139,11 @@ bool SockBase::send(const void *msg, size_t len)
 {
     return sendBase(msg, len);
 }
-bool SockBase::send(Buf &buf, size_t len)
+bool SockBase::send(const Buf &buf, size_t len)
 {
     return sendBase(buf.get(), len);
 }
-bool SockBase::sendBuf(Buf &buf, size_t len)
+bool SockBase::sendBuf(const Buf &buf, size_t len)
 {
     return sendBase(buf.get(), len);
 }
@@ -403,7 +403,7 @@ bool SockUnix::sendTo(const void *msg, size_t len, const string &addrStr,
         setUnixAddr(addr, addrStr);
     return sendAny(msg, len, addr);
 }
-bool SockUnix::sendTo(Buf &buf, size_t len, const string &addrStr,
+bool SockUnix::sendTo(const Buf &buf, size_t len, const string &addrStr,
     bool useAbstract) const
 {
     return sendTo(buf.get(), len, addrStr, useAbstract);
