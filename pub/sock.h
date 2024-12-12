@@ -84,7 +84,7 @@ class SockBase
      * @note true does @b NOT guarantee the frame was successfully
      *  arrives its target. Only the network layer sends it.
      */
-    bool send(Buf &buf, size_t len);
+    bool send(const Buf &buf, size_t len);
     /**
      * Send the message using the socket
      * @param[in] buf object with message memory buffer
@@ -94,7 +94,7 @@ class SockBase
      *  arrives its target. Only the network layer sends it.
      * @note identical to send. Some scripts fail to match proper function
      */
-    bool sendBuf(Buf &buf, size_t len);
+    bool sendBuf(const Buf &buf, size_t len);
     /**
      * Receive a message using the socket
      * @param[in, out] buf pointer to a memory buffer
@@ -311,7 +311,7 @@ class SockUnix : public SockBase
      * @note useAbstract add '0' byte at the start of the address
      *       to mark it as abstract socket address
      */
-    bool sendTo(Buf &buf, size_t len, const std::string &addrStr,
+    bool sendTo(const Buf &buf, size_t len, const std::string &addrStr,
         bool useAbstract = false) const;
     /**
      * Receive a message using the socket from any address
