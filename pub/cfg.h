@@ -236,7 +236,7 @@ class Spp
         HMAC_t type = HMAC_SHA256;
         Binary key;
         size_t mac_size = 0;
-        void operator()(HMAC_t _t, Binary _k, size_t _m) {
+        void operator()(HMAC_t _t, const Binary &_k, size_t _m) {
             type = _t;
             key = _k;
             mac_size = _m;
@@ -261,7 +261,7 @@ class Spp
      * @param[in] replace an existing key if exist
      * @return true, if new key is valid
      */
-    bool addKey(uint32_t id, HMAC_t type, Binary &value, size_t digest,
+    bool addKey(uint32_t id, HMAC_t type, const Binary &value, size_t digest,
         bool replace = true);
     /**
      * Verify key exist
