@@ -390,7 +390,7 @@ class PtpClock : public BaseClock
      * @note Pin index comes from PtpPin_t!
      * @note Pin index should be in the range (0, PtpCaps_t.num_pins]
      */
-    bool writePin(PtpPin_t &pin) const;
+    bool writePin(const PtpPin_t &pin) const;
     /**
      * Enable PHC pin external events
      * @param[in] index pin index to enable
