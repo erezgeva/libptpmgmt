@@ -226,7 +226,8 @@ int ClockManager::clkmgr_status_wait(int timeout,
             eventCount.as_capable_event_count ||
             eventCount.synced_to_gm_event_count ||
             eventCount.composite_event_count ||
-            eventCount.gm_changed_event_count) {
+            eventCount.gm_changed_event_count ||
+            eventCount.chrony_offset_in_range_event_count) {
             event_changes_detected = true;
             break;
         }

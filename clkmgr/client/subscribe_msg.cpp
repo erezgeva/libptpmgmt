@@ -144,6 +144,16 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     clkmgrCurrentState->notification_timestamp += last_notification_time.tv_nsec;
     memcpy(clkmgrCurrentState->gm_identity, client_data->gm_identity,
         sizeof(client_data->gm_identity));
+    client_data->chrony_offset = data.chrony_offset;
+    if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+            client_data->chrony_offset))
+        client_data->chrony_offset_in_range = true;
+    client_data->chrony_reference_id = data.chrony_reference_id;
+    clkmgrCurrentState->chrony_clock_offset = client_data->chrony_offset;
+    clkmgrCurrentState->chrony_offset_in_range =
+        client_data->chrony_offset_in_range;
+    client_data->chrony_reference_id = data.chrony_reference_id;
+    clkmgrCurrentState->chrony_reference_id = client_data->chrony_reference_id;
     return true;
 }
 
@@ -241,6 +251,9 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
     client_ptp_data->composite_event_count.fetch_sub(
         eventCount.composite_event_count,
         std::memory_order_relaxed);
+    client_ptp_data->chrony_offset_in_range_event_count.fetch_sub(
+        eventCount.chrony_offset_in_range_event_count,
+        std::memory_order_relaxed);
     eventCount.offset_in_range_event_count =
         client_ptp_data->offset_in_range_event_count;
     eventCount.as_capable_event_count = client_ptp_data->as_capable_event_count;
@@ -248,6 +261,8 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
         client_ptp_data->synced_to_gm_event_count;
     eventCount.gm_changed_event_count = client_ptp_data->gm_changed_event_count;
     eventCount.composite_event_count = client_ptp_data->composite_event_count;
+    eventCount.chrony_offset_in_range_event_count =
+        client_ptp_data->chrony_offset_in_range_event_count;
     /* Reset gm_changed event if the event count is 0 */
     if(client_ptp_data->gm_changed_event_count == 0)
         clkmgrCurrentState->gm_changed = false;

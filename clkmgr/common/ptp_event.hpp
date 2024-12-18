@@ -25,6 +25,8 @@ struct ptp_event {
     bool as_capable; /* 802@.1AS Capable */
     bool synced_to_primary_clock;
     uint8_t ptp4l_id;
+    int64_t chrony_offset;
+    uint64_t chrony_reference_id;
 };
 
 struct client_ptp_event {
@@ -42,6 +44,10 @@ struct client_ptp_event {
     std::atomic<int> synced_to_gm_event_count{};
     std::atomic<int> gm_changed_event_count{};
     std::atomic<int> composite_event_count{};
+    int64_t chrony_offset;
+    uint32_t chrony_reference_id;
+    bool chrony_offset_in_range;
+    std::atomic<int> chrony_offset_in_range_event_count{};
 };
 
 __CLKMGR_NAMESPACE_END

@@ -59,6 +59,9 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
         current_state->notification_timestamp = state.notification_timestamp;
         std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
             std::begin(current_state->gm_identity));
+        current_state->chrony_clock_offset = state.chrony_clock_offset;
+        current_state->chrony_reference_id = state.chrony_reference_id;
+        current_state->chrony_offset_in_range = state.chrony_offset_in_range;
     }
     return ret;
 }
@@ -86,6 +89,9 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     current_state->notification_timestamp = state.notification_timestamp;
     std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
         std::begin(current_state->gm_identity));
+    current_state->chrony_clock_offset = state.chrony_clock_offset;
+    current_state->chrony_reference_id = state.chrony_reference_id;
+    current_state->chrony_offset_in_range = state.chrony_offset_in_range;
     if(ret > 0) {
         current_count->as_capable_event_count = eventCount.as_capable_event_count;
         current_count->composite_event_count = eventCount.composite_event_count;
@@ -94,6 +100,8 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
             eventCount.offset_in_range_event_count;
         current_count->synced_to_gm_event_count =
             eventCount.synced_to_gm_event_count;
+        current_count->chrony_offset_in_range_event_count =
+            eventCount.chrony_offset_in_range_event_count;
     }
     return ret;
 }

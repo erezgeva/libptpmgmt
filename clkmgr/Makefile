@@ -36,9 +36,8 @@ CLKMGR_CLIENT_SRCS:=$(wildcard $(CLKMGR_CLIENT_DIR)/*.cpp)
 CLKMGR_CLIENT_LOBJS:=$(CLKMGR_CLIENT_SRCS:.cpp=.lo)
 CLKMGR_PROXY_SRCS:=$(wildcard $(CLKMGR_PROXY_DIR)/*.cpp)
 CLKMGR_PROXY_OBJS:=$(CLKMGR_PROXY_SRCS:.cpp=.o)
-# TODO: use_chrony.cpp is example to a module that depends on libchrony
 ifndef HAVE_LIBCHRONY_HEADER
-CLKMGR_PROXY_OBJS:=$(filter-out $(CLKMGR_PROXY_DIR)/use_chrony.o,\
+CLKMGR_PROXY_OBJS:=$(filter-out $(CLKMGR_PROXY_DIR)/connect_chrony.o,\
   $(CLKMGR_PROXY_OBJS))
 endif
 

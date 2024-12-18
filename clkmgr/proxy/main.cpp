@@ -15,6 +15,9 @@
 #include "common/print.hpp"
 #include "common/sighandler.hpp"
 #include "proxy/connect_ptp4l.hpp"
+#ifdef HAVE_LIBCHRONY
+#include "proxy/connect_chrony.hpp"
+#endif
 #include "proxy/message.hpp"
 #include "proxy/transport.hpp"
 
@@ -64,6 +67,9 @@ int main(int argc, char *argv[])
         printf("Message init failed\n");
         return -1;
     }
+    #ifdef HAVE_LIBCHRONY
+    ConnectChrony::connect_chrony();
+    #endif
     Connect::connect(transport_specific);
     WaitForStopSignal();
     PrintDebug("Got stop signal");

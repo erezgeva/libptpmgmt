@@ -77,6 +77,9 @@ struct Nm(Event_state) {
     bool as_capable; /**< IEEE 802.1AS capable */
     bool gm_changed; /**< Primary clock UUID changed */
     bool composite_event; /**< Composite event */
+    int64_t chrony_clock_offset; /**< Chrony clock offset */
+    bool chrony_offset_in_range; /**< Chrony_clock offset in range */
+    uint64_t chrony_reference_id; /**< Chrony reference ID */
 };
 
 /**
@@ -88,6 +91,7 @@ struct Nm(Event_count) {
     uint32_t as_capable_event_count; /**< IEEE 802.1AS capable */
     uint32_t gm_changed_event_count; /**< Primary clock UUID changed */
     uint32_t composite_event_count; /**< Composite event */
+    uint32_t chrony_offset_in_range_event_count; /**< Chrony clock offset */
 };
 
 ns_e()

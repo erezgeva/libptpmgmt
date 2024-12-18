@@ -206,6 +206,29 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             composite_client_ptp_data->composite_event;
         memcpy(clkmgrCurrentState.gm_identity, client_ptp_data->gm_identity,
             sizeof(client_ptp_data->gm_identity));
+        if(proxy_data.chrony_offset != client_ptp_data->chrony_offset) {
+            client_ptp_data->chrony_offset = proxy_data.chrony_offset;
+            if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+                    client_ptp_data->chrony_offset)) {
+                if(!(client_ptp_data->chrony_offset_in_range)) {
+                    client_ptp_data->chrony_offset_in_range = true;
+                    client_ptp_data->chrony_offset_in_range_event_count.fetch_add(1,
+                        std::memory_order_relaxed);
+                }
+            } else {
+                if((client_ptp_data->chrony_offset_in_range)) {
+                    client_ptp_data->chrony_offset_in_range = false;
+                    client_ptp_data->chrony_offset_in_range_event_count.fetch_add(1,
+                        std::memory_order_relaxed);
+                }
+            }
+        }
+        clkmgrCurrentState.chrony_clock_offset = client_ptp_data->chrony_offset;
+        clkmgrCurrentState.chrony_offset_in_range =
+            client_ptp_data->chrony_offset_in_range;
+        client_ptp_data->chrony_reference_id = proxy_data.chrony_reference_id;
+        clkmgrCurrentState.chrony_reference_id =
+            client_ptp_data->chrony_reference_id;
         // Update Event_count
         Event_count clkmgrCurrentEventCount =
             currentClientState->get_eventStateCount();
@@ -219,6 +242,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             client_ptp_data->gm_changed_event_count;
         clkmgrCurrentEventCount.composite_event_count =
             client_ptp_data->composite_event_count;
+        clkmgrCurrentEventCount.chrony_offset_in_range_event_count =
+            client_ptp_data->chrony_offset_in_range_event_count;
         currentClientState->set_eventStateCount(clkmgrCurrentEventCount);
     }
     return true;
