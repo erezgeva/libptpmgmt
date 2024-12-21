@@ -9,7 +9,7 @@
  *
  */
 
-#include "clockmanager.h"
+#include "pub/clockmanager.h"
 
 using namespace clkmgr;
 
