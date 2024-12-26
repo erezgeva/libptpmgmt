@@ -20,3 +20,11 @@ License: GPL-3.0-or-later
 Files: swig/*/*.i
 Copyright: 2022 © The SWIG Developers
 License: GPL-3.0-or-later
+
+Files: debian/libchrony.txz
+Copyright: 2024 © Erez Geva
+License: LGPL-2.1-or-later
+
+Files: rpm/external/libchrony.patch
+Copyright: 2023 © Miroslav Lichvar
+License: LGPL-2.1-or-later

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-License-Identifier: LGPL-2.1-only
 # SPDX-FileCopyrightText: Copyright © 2024 Erez Geva <ErezGeva2@gmail.com>
 #
 # @author Erez Geva <ErezGeva2@@gmail.com>
@@ -12,7 +12,7 @@ Release:        1%{?dist}
 URL:            https://gitlab.com/linux-rt/%{name}
 BuildRequires:  autoconf m4 automake libtool
 Source0:        https://gitlab.com/linux-rt/%%{name}/-/archive/%%{version}/%%{name}-%%{version}.tar.bz2
-License:        LGPL-2.1-or-later
+License:        LGPL-2.1-only
 Summary:        The Real-Time Priority Inheritance Library
 %description
 realtime capable pthread locking primitives (lib)

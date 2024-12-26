@@ -23,13 +23,13 @@ env:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
       fail-fast: false
     container:
-      image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest
+      image: ghcr.io/erezgeva/${{ matrix.names }}:latest
     env:
       GITHUB_CONTAINER: ${{ matrix.names }}
 
@@ -52,13 +52,13 @@ jobs:
         su $USER -c tools/ci.sh
 
   cross:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         names: [deb.trixie, deb.bookworm]
       fail-fast: false
     container:
-      image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest
+      image: ghcr.io/erezgeva/${{ matrix.names }}:latest
 
     steps:
 
@@ -71,13 +71,13 @@ jobs:
         su $USER -c tools/ci_cross.sh
 
   pkgs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
       fail-fast: false
     container:
-      image: ghcr.io/${{ github.repository_owner }}/${{ matrix.names }}:latest
+      image: ghcr.io/erezgeva/${{ matrix.names }}:latest
     env:
       GITHUB_CONTAINER: ${{ matrix.names }}
 
@@ -110,9 +110,9 @@ jobs:
       run: libptpmgmt/tools/ci_pkgs_no_dev.sh
 
   abi:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
+      image: ghcr.io/erezgeva/deb.trixie:latest
 
     steps:
 

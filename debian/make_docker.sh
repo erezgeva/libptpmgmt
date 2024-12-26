@@ -30,8 +30,6 @@ main()
   cd "$base_dir/.."
   source tools/make_docker.sh
   local -r repo=http://ftp.de.debian.org/debian
-  # librtpi1 version on http://ftp.de.debian.org/debian/pool/main/libr/librtpi
-  local -r rtpi_ver=1.0.0-3+b1
   local -r names='bookworm trixie'
   local -r arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
@@ -66,7 +64,7 @@ main()
     dpkgs_all+=" g++-$n"
   done
   local dpkgs all_args="$args"
-  make_args repo arch rtpi_ver
+  make_args repo arch
   all_args+="$args"
   for dist in $names; do
     make_args dist

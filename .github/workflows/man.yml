@@ -20,9 +20,9 @@ env:
 
 jobs:
   full:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
+      image: ghcr.io/erezgeva/deb.trixie:latest
 
     steps:
 
@@ -41,7 +41,7 @@ jobs:
       run: libptpmgmt/tools/sim_ptp4l.sh -ct
 
   adress:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
 
@@ -60,14 +60,14 @@ jobs:
       run: libptpmgmt/tools/ci_address.sh
 
   mem:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
         names: [utest_address, utest_valgrid]
       fail-fast: false
     container:
-      image: ghcr.io/${{ github.repository_owner }}/deb.trixie:latest
+      image: ghcr.io/erezgeva/deb.trixie:latest
     env:
       GITHUB_TOOL: ${{ matrix.names }}
 

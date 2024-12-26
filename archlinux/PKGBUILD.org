@@ -126,9 +126,7 @@ package_tcl-ptpmgmt() {
   pkgdesc='PTP management library tcl wrapper'
   depends=("$pkgbase=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/tcl* $pkgdir/$libdir
-  rm -rf $srcdir/install/usr/lib/tcl*/ptpmgmt
-  rm -rf $pkgdir/$libdir/tcl*/clkmgr
+  mv $srcdir/install/usr/lib/ptpmgmt $pkgdir/$libdir
 }
 package_go-ptpmgmt() {
   arch=(any)
@@ -228,8 +226,7 @@ package_tcl-clkmgr() {
   pkgdesc='Clock Manager library tcl wrapper'
   depends=("libclkmgr=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/tcl* $pkgdir/$libdir
-  rm -rf $srcdir/install/usr/lib/tcl*/clkmgr
-  rm -rf $pkgdir/$libdir/tcl*/ptpmgmt
+  mv $srcdir/install/usr/lib/clkmgr $pkgdir/$libdir
 }
 changelog=changelog
+# vim: set ft=bash:

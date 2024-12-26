@@ -323,7 +323,7 @@ cp_license()
  fi
  mkdir -p LICENSES
  for n in GPL-3.0-or-later LGPL-3.0-or-later BSD-3-Clause LGPL-2.1-or-later\
-          GFDL-1.3-no-invariants-or-later GPL-2.0-or-later
+          GFDL-1.3-no-invariants-or-later GPL-2.0-or-later LGPL-2.1-only
  do
    if ! [[ -f "LICENSES/$n.txt" ]]; then
      reuse download $n

@@ -851,7 +851,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache wrappers/go/allocTlv.i wrappers/go/gtest/gtest\
   $(CLKMGR_PROXY) $(HEADERS_GEN) $(CLKMGR_HEADERS_GEN) .null
-CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
+CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
   archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\
   $(LIB_D) wrappers/perl/auto $(CLKMGR_DIR)/doc wrappers/go/$(CLKMGR_NAME)\
   wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))

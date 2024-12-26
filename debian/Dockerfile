@@ -24,11 +24,11 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     /etc/apt/sources.list.d/debian.sources;fi;\
     if [ -f /etc/apt/sources.list ];then\
     sed -i "s|http://deb.debian.org/debian|$REPO|;/^#/ d"\
-    /etc/apt/sources.list;fi;apt-get update;\
-    apt-get install -y --no-install-recommends --no-remove\
-    gnupg ca-certificates apt-utils;for a in $ARCHS;\
-    do dpkg --add-architecture $a;done;apt-get update;\
-    apt-get install -y --no-install-recommends --no-remove\
+    /etc/apt/sources.list;fi;\
+    apt-get update && apt-get install -y --no-install-recommends --no-remove\
+    gnupg ca-certificates apt-utils;\
+    for a in $ARCHS;do dpkg --add-architecture $a;done;\
+    apt-get update && apt-get install -y --no-install-recommends --no-remove\
     debhelper coreutils sudo dh-lua dh-make-perl dh-exec git procps dh-php\
     build-essential ncurses-bin dlocate dialog lsb-release quilt apt-file\
     libtool libtool-bin swig golang install-info doxygen graphviz\
@@ -38,20 +38,17 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
     python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\
     texlive-font-utils libcriterion-dev jq clang gdb abi-dumper gawk wget\
-    abi-compliance-checker discount $DPKGS;\
-    apt-get upgrade -y --no-install-recommends;\
-    sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini;\
-    useradd $USER -u $UID -m -G sudo;\
+    abi-compliance-checker discount $DPKGS &&\
+    apt-get upgrade -y --no-install-recommends &&\
+    sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini &&\
+    useradd $USER -u $UID -m -G sudo &&\
     sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers;\
     for a in $ARCHS; do list=`dpkg --get-selections | grep "linux-gnu:$a" |\
-    sed "s/\s*install/ /;s/:$a/:$ARCH/" | tr -d $'\r\n'`; if [ -n "$list" ];\
-    then apt-get install -y --no-install-recommends $list;fi;done
-ARG RTPI_VER
-RUN if test "$DIST" = "bookworm";then mkdir -p /tmp/1;cd /tmp/1;\
-    url=$REPO/pool/main/libr/librtpi;for a in $ARCH $ARCHS;\
-    do wget -c "$url/librtpi1_${RTPI_VER}_$a.deb";\
-    wget -c "$url/librtpi-dev_${RTPI_VER}_$a.deb";\
-    done;dpkg -i *.deb;cd ..;rm -Rf 1;fi
+    sed "s/\s*install/ /;s/:$a/:$ARCH/" | tr -d $'\r\n'`;\
+    if [ -n "$list" ];then apt-get install -y --no-install-recommends $list;\
+    fi;done
+COPY debian/pkgs /tmp/pkgs
+RUN dpkg -i /tmp/pkgs/$DIST/*.deb && rm -R /tmp/pkgs
 ARG COOKIE
 RUN apt-get update; apt-get upgrade -y --no-install-recommends
 ARG SRC
