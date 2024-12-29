@@ -542,6 +542,9 @@ AC_SUBST([DO_VERBOSE])
 #----------------------------------------------------------------
 # Clock Manager
 AS_UNSET([SKIP_CLKMGR])
+AS_UNSET([HAVE_LIBCHRONY_HEADER])
+AS_UNSET([CHRONY_LIB_FLAGS])
+AS_UNSET([CHRONY_INC_FLAGS])
 
 AC_ARG_ENABLE([clkmgr],
             [AS_HELP_STRING([--disable-clkmgr], [Skip Clock Manager build])],
@@ -550,7 +553,14 @@ AC_ARG_ENABLE([clkmgr],
 AS_VAR_IF([ptpm_with_clkmgr], ['no'],
           [AS_VAR_SET([SKIP_CLKMGR], [1])])
 
+AC_CHECK_HEADER([chrony.h], [AS_VAR_SET([HAVE_LIBCHRONY_HEADER], [1])])
+PTPM_VAR_SET_IF([HAVE_LIBCHRONY_HEADER],
+          [AS_VAR_SET([CHRONY_LIB_FLAGS], [-lchrony])])
+
 AC_SUBST([SKIP_CLKMGR])
+AC_SUBST([HAVE_LIBCHRONY_HEADER])
+AC_SUBST([CHRONY_LIB_FLAGS])
+AC_SUBST([CHRONY_INC_FLAGS])
 
 #----------------------------------------------------------------
 # SWIG
