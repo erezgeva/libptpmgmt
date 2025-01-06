@@ -10,8 +10,7 @@
 FROM fedora
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "RPM build for libptpmgmt"
-ARG UID
-ARG USER
+ARG UID USER
 RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sudo automake autoconf yum-utils rpm-build dnf-utils fedora-packager\
     rpmdevtools doxygen graphviz perl php-devel ruby ruby-devel swig astyle\
@@ -28,6 +27,5 @@ COPY rpm/pkgs /tmp
 RUN dnf install -y /tmp/*.rpm && rm /tmp/*.rpm
 ARG COOKIE
 RUN dnf upgrade -y
-ARG SRC
-ARG DST
+ARG SRC DST
 COPY --chown=builder $SRC $DST

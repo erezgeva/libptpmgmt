@@ -11,8 +11,7 @@
 FROM archlinux
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "Arch Linux build for libptpmgmt"
-ARG UID
-ARG USER
+ARG UID USER
 RUN pacman-key --init && pacman-key --populate &&\
     pacman -Syu --noconfirm --needed archlinux-keyring &&\
     pacman -Syu --noconfirm --needed bash rustup gcc fakeroot pkgconf libtool\
@@ -29,6 +28,5 @@ RUN pacman-key --init && pacman-key --populate &&\
     cd libchrony && make install prefix=/usr && cd && rm -Rf /t0
 ARG COOKIE
 RUN pacman -Syu --noconfirm --needed
-ARG SRC
-ARG DST
+ARG SRC DST
 COPY --chown=builder $SRC $DST

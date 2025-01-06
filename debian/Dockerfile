@@ -11,14 +11,7 @@ ARG DIST
 FROM debian:${DIST}
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
-ARG UID
-ARG USER
-ARG DIST
-ARG ARCH
-ARG ARCHS
-ARG DPKGS
-ARG REPO
-ARG DEBIAN_FRONTEND=noninteractive
+ARG UID USER DIST ARCH ARCHS DPKGS REPO DEBIAN_FRONTEND=noninteractive
 RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     sed -i "s|http://deb.debian.org/debian|$REPO|"\
     /etc/apt/sources.list.d/debian.sources;fi;\
@@ -51,6 +44,5 @@ COPY debian/pkgs /tmp/pkgs
 RUN dpkg -i /tmp/pkgs/$DIST/*.deb && rm -R /tmp/pkgs
 ARG COOKIE
 RUN apt-get update; apt-get upgrade -y --no-install-recommends
-ARG SRC
-ARG DST
+ARG SRC DST
 COPY --chown=builder $SRC $DST
