@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
     Event_state eventState = {};
     int32_t  gmOffsetLowerLimit = -100000;
     int32_t  gmOffsetUpperLimit = 100000;
+    int32_t  chronyGmOffsetLowerLimit = -100000;
+    int32_t  chronyGmOffsetUpperLimit = 100000;
     int ret = EXIT_SUCCESS;
     uint32_t idleTime = 1;
     uint32_t timeout = 10;
@@ -66,7 +68,7 @@ int main(int argc, char *argv[])
         (eventGMOffset | eventSyncedToGM | eventASCapable)
     };
 
-    while ((option = getopt(argc, argv, "s:c:u:l:i:t:h")) != -1) {
+    while ((option = getopt(argc, argv, "s:c:u:l:i:t:n:m:h")) != -1) {
         switch (option) {
         case 's':
             event2Sub = std::stoul(optarg, nullptr, 0);
@@ -85,6 +87,12 @@ int main(int argc, char *argv[])
             break;
         case 't':
             timeout = std::stoi(optarg);
+            break;
+        case 'm':
+            chronyGmOffsetUpperLimit = std::stoi(optarg);
+            break;
+        case 'n':
+            chronyGmOffsetLowerLimit = std::stoi(optarg);
             break;
         case 'h':
             std::cout << "Usage of " << argv[0] << " :\n"
@@ -129,6 +137,10 @@ int main(int argc, char *argv[])
                 "     Default: " << gmOffsetLowerLimit << " ns\n"
                 "  -i idle time (s)\n"
                 "     Default: " << idleTime << " s\n"
+                "  -m chrony offset upper limit (ns)\n"
+                "     Default: " << std::dec << chronyGmOffsetUpperLimit << " ns\n"
+                "  -n chrony offset lower limit (ns)\n"
+                "     Default: " << chronyGmOffsetLowerLimit << " ns\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_FAILURE;
@@ -162,6 +174,8 @@ int main(int argc, char *argv[])
     subscription.set_event_mask(event2Sub);
     subscription.define_threshold(thresholdGMOffset, gmOffsetUpperLimit,
         gmOffsetLowerLimit);
+    subscription.define_threshold(thresholdChronyOffset, chronyGmOffsetUpperLimit,
+        chronyGmOffsetLowerLimit);
     subscription.set_composite_event_mask(composite_event);
     std::cout << "[clkmgr] set subscribe event : 0x"
         << std::hex << subscription.get_event_mask() <<  "\n";
@@ -169,6 +183,8 @@ int main(int argc, char *argv[])
         << std::hex << subscription.get_composite_event_mask() <<  "\n";
     std::cout << "GM Offset upper limit: " << std::dec << gmOffsetUpperLimit << " ns\n";
     std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n\n";
+    std::cout << "Chrony Offset upper limit: " << std::dec << chronyGmOffsetUpperLimit << " ns\n";
+    std::cout << "Chrony Offset lower limit: " << std::dec << chronyGmOffsetLowerLimit << " ns\n\n";
 
     if (!cm.clkmgr_subscribe(subscription, eventState)) {
         std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";

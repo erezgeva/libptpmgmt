@@ -208,7 +208,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             sizeof(client_ptp_data->gm_identity));
         if(proxy_data.chrony_offset != client_ptp_data->chrony_offset) {
             client_ptp_data->chrony_offset = proxy_data.chrony_offset;
-            if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+            if(currentClientState->get_eventSub().in_range(thresholdChronyOffset,
                     client_ptp_data->chrony_offset)) {
                 if(!(client_ptp_data->chrony_offset_in_range)) {
                     client_ptp_data->chrony_offset_in_range = true;

@@ -52,8 +52,10 @@ int main(int argc, char *argv[])
         Clkmgr_eventSyncedToGM | Clkmgr_eventASCapable);
     subscription.threshold[Clkmgr_thresholdGMOffset].upper_limit = 100000;
     subscription.threshold[Clkmgr_thresholdGMOffset].lower_limit = -100000;
+    subscription.threshold[Clkmgr_thresholdChronyOffset].upper_limit = 100000;
+    subscription.threshold[Clkmgr_thresholdChronyOffset].lower_limit = -100000;
 
-    while ((option = getopt(argc, argv, "s:c:u:l:i:t:h")) != -1) {
+    while ((option = getopt(argc, argv, "s:c:u:l:i:t:m:n:h")) != -1) {
         switch (option) {
         case 's':
             subscription.event_mask = strtoul(optarg, NULL, 0);;
@@ -75,6 +77,14 @@ int main(int argc, char *argv[])
         case 't':
             timeout = strtol(optarg, NULL, 10);
             break;
+        case 'm':
+            subscription.threshold[Clkmgr_thresholdChronyOffset].upper_limit =
+                strtol(optarg, NULL, 10);
+            break;
+        case 'n':
+            subscription.threshold[Clkmgr_thresholdChronyOffset].lower_limit =
+                strtol(optarg, NULL, 10);
+            break;
         case 'h':
             printf("Usage of %s :\n"
                    "Options:\n"
@@ -95,12 +105,18 @@ int main(int argc, char *argv[])
                    "     Default: %d ns\n"
                    "  -i idle time (s)\n"
                    "     Default: %d s\n"
+                   "  -m chrony offset upper limit (ns)\n"
+                   "     Default: %d ns\n"
+                   "  -n chrony offset lower limit (ns)\n"
+                   "     Default: %d ns\n"
                    "  -t timeout in waiting notification event (s)\n"
                    "     Default: %d s\n",
                    argv[0], subscription.event_mask,
                    subscription.composite_event_mask,
                    subscription.threshold[Clkmgr_thresholdGMOffset].upper_limit,
                    subscription.threshold[Clkmgr_thresholdGMOffset].lower_limit,
+                   subscription.threshold[Clkmgr_thresholdChronyOffset].upper_limit,
+                   subscription.threshold[Clkmgr_thresholdChronyOffset].lower_limit,
                    idle_time, timeout);
             return EXIT_SUCCESS;
         default:
@@ -123,12 +139,18 @@ int main(int argc, char *argv[])
                    "     Default: %d ns\n"
                    "  -i idle time (s)\n"
                    "     Default: %d s\n"
+                   "  -m chrony offset upper limit (ns)\n"
+                   "     Default: %d ns\n"
+                   "  -n chrony offset lower limit (ns)\n"
+                   "     Default: %d ns\n"
                    "  -t timeout in waiting notification event (s)\n"
                    "     Default: %d s\n",
                    argv[0], subscription.event_mask,
                    subscription.composite_event_mask,
                    subscription.threshold[Clkmgr_thresholdGMOffset].upper_limit,
                    subscription.threshold[Clkmgr_thresholdGMOffset].lower_limit,
+                   subscription.threshold[Clkmgr_thresholdChronyOffset].upper_limit,
+                   subscription.threshold[Clkmgr_thresholdChronyOffset].lower_limit,
                    idle_time, timeout);
             return EXIT_FAILURE;
         }

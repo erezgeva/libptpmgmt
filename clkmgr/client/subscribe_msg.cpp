@@ -145,7 +145,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     memcpy(clkmgrCurrentState->gm_identity, client_data->gm_identity,
         sizeof(client_data->gm_identity));
     client_data->chrony_offset = data.chrony_offset;
-    if(currentClientState->get_eventSub().in_range(thresholdGMOffset,
+    if(currentClientState->get_eventSub().in_range(thresholdChronyOffset,
             client_data->chrony_offset))
         client_data->chrony_offset_in_range = true;
     client_data->chrony_reference_id = data.chrony_reference_id;

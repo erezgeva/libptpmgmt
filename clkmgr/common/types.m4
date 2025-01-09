@@ -53,7 +53,8 @@ cnst(uint8_t,THRESHOLD_MAX,8)
  */
 enum Nm(ThresholdIndex) sz(`: uint8_t '){
     Nm(thresholdGMOffset),  /**< threshold for primary-secondary clock offset */
-    Nm(thresholdLast)       /**< Last threshold */
+    Nm(thresholdChronyOffset),  /**< threshold for chrony clock offset */
+    Nm(thresholdLast)           /**< Last threshold */
 };
 
 /**
