@@ -49,24 +49,32 @@ libclkmgr.so communicates with the Clock manager proxy through a message queue.
     make install
     ```
 
-3. Clone the repository:  
+3. Install libchrony:
+    ```bash
+    git clone https://gitlab.com/chrony/libchrony.git
+    cd libchrony
+    make
+    make install prefix=/usr/local
+    ```
+
+4. Clone the repository:
     ```bash
     git clone https://github.com/erezgeva/libptpmgmt
     ```
 
-4. Navigate to the cloned directory:  
+5. Navigate to the cloned directory:
     ```bash
     cd libptpmgmt
     ```
 
-5. Build the application:
+6. Build the application:
     ```bash
     autoreconf -i
     ./configure
     make
     ```
 
-6. Outcome: two libraries and one application
+7. Outcome: two libraries and one application
     ```bash
     .libs/libptpmgmt.so
     .libs/libclkmgr.so
@@ -109,12 +117,21 @@ We do not recommand to use them for production.
     sudo ./ptp4l -i <interface name>
     ```
 
-2. Run the clkmgr_proxy application on DUT:
+2. Add ptp device (e.g /dev/ptp0) as refclock for chrony daemon application on DUT:
+    ```bash
+    echo "refclock PHC /dev/ptp0 poll -6 dpoll -1" >>  /etc/chrony/chrony.conf
+    ```
+3. Run the chrony daemon application on DUT:
+    ```bash
+    chronyd -f /etc/chrony/chrony.conf
+    ```
+
+4. Run the clkmgr_proxy application on DUT:
     ```bash
     cd libptpmgmt/clkmgr/proxy
     sudo ./run_proxy.sh -t 1
     ```
-3. Run the sample application on DUT:
+5. Run the sample application on DUT:
 
     a. c++ sample application:
     ```bash
@@ -198,20 +215,27 @@ GM Offset lower limit: -10 ns
 +---------------------------+--------------+-------------+
 | Event                     | Event Status | Event Count |
 +---------------------------+--------------+-------------+
-| offset_in_range           | 0            | 1           |
+| offset_in_range           | 1            | 1           |
 | synced_to_primary_clock   | 1            | 0           |
 | as_capable                | 1            | 0           |
 | gm_Changed                | 0            | 0           |
 +---------------------------+--------------+-------------+
-| UUID                      |     22abbc.fffe.bb1234     |
-| clock_offset              |     11                  ns |
-| notification_timestamp    |     1726024047876554406 ns |
+| GM UUID                   |     222211.fffe.011122     |
+| clock_offset              |     33                  ns |
+| notification_timestamp    |     1929621371292023896 ns |
 +---------------------------+--------------+-------------+
-| composite_event           | 0            | 1           |
+| composite_event           | 1            | 1           |
 | - offset_in_range         |              |             |
 | - synced_to_primary_clock |              |             |
 | - as_capable              |              |             |
 +---------------------------+--------------+-------------+
+
++---------------------------+----------------------------+
+| chrony offset_in_range    | 1            | 0           |
++---------------------------+----------------------------+
+| chrony clock_offset       |     4                   ns |
+| chrony clock_reference_id |     50484330               |
++---------------------------+----------------------------+
 ```
 
 Note:
