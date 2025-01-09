@@ -35,7 +35,7 @@ sub main
   $dpkg_arc=`which dpkg-architecture 2> /dev/null`;
   $dpkg_arc =~ s/\n//;
   # Make sure we have the tool
-  return if $dpkg_arc eq "";
+  return unless $dpkg_arc ne '' and -x $dpkg_arc;
   my $fname = 'goarch.sh';
   open OUT, "> $fname";
   # Header
