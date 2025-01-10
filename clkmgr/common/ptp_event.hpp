@@ -26,7 +26,8 @@ struct ptp_event {
     bool synced_to_primary_clock;
     uint8_t ptp4l_id;
     int64_t chrony_offset;
-    uint64_t chrony_reference_id;
+    uint32_t chrony_reference_id;
+    int64_t polling_interval;
 };
 
 struct client_ptp_event {
@@ -46,6 +47,7 @@ struct client_ptp_event {
     std::atomic<int> composite_event_count{};
     int64_t chrony_offset;
     uint32_t chrony_reference_id;
+    int64_t polling_interval;
     bool chrony_offset_in_range;
     std::atomic<int> chrony_offset_in_range_event_count{};
 };

@@ -114,6 +114,10 @@ int main(int argc, char *argv[])
                 "     Default: " << gmOffsetLowerLimit << " ns\n"
                 "  -i idle time (s)\n"
                 "     Default: " << idleTime << " s\n"
+                "  -m chrony offset upper limit (ns)\n"
+                "     Default: " << std::dec << chronyGmOffsetUpperLimit << " ns\n"
+                "  -n chrony offset lower limit (ns)\n"
+                "     Default: " << chronyGmOffsetLowerLimit << " ns\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_SUCCESS;
@@ -182,7 +186,7 @@ int main(int argc, char *argv[])
     std::cout << "[clkmgr] set composite event : 0x"
         << std::hex << subscription.get_composite_event_mask() <<  "\n";
     std::cout << "GM Offset upper limit: " << std::dec << gmOffsetUpperLimit << " ns\n";
-    std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n\n";
+    std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n";
     std::cout << "Chrony Offset upper limit: " << std::dec << chronyGmOffsetUpperLimit << " ns\n";
     std::cout << "Chrony Offset lower limit: " << std::dec << chronyGmOffsetLowerLimit << " ns\n\n";
 
@@ -247,8 +251,10 @@ int main(int argc, char *argv[])
     printf("+---------------------------+------------------------+\n");
     printf("| %-25s | %-19ld ns |\n",
             "chrony clock_offset", eventState.chrony_clock_offset);
-    printf("| %-25s | %-19lX    |\n",
+    printf("| %-25s | %-19X    |\n",
             "chrony clock_reference_id", eventState.chrony_reference_id);
+    printf("| %-25s | %-19d us |\n",
+            "chrony polling interval", eventState.polling_interval);
     printf("+---------------------------+------------------------+\n\n");
 
     sleep(1);
@@ -330,8 +336,10 @@ int main(int argc, char *argv[])
         printf("+---------------------------+----------------------------+\n");
         printf("| %-25s |     %-19ld ns |\n",
             "chrony clock_offset", eventState.chrony_clock_offset);
-        printf("| %-25s |     %-19lX    |\n",
+        printf("| %-25s |     %-19X    |\n",
             "chrony clock_reference_id", eventState.chrony_reference_id);
+        printf("| %-25s |     %-19d us |\n",
+            "chrony polling_interval", eventState.polling_interval);
         printf("+---------------------------+----------------------------+\n\n");
 
         printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",

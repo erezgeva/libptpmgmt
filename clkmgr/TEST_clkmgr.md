@@ -178,20 +178,26 @@ Options:
      Default: -100000 ns
   -i idle time (s)
      Default: 1 s
+  -m chrony offset upper limit (ns)
+     Default: 100000 ns
+  -n chrony offset lower limit (ns)
+     Default: -100000 ns
   -t timeout in waiting notification event (s)
      Default: 10 s
 ```
 
 Example output of c++ sample application (clkmgr_test):
 ```bash
-~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -l -10 -u 10
+~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -n 0 -m 5 -t 0
 [clkmgr] Connected. Session ID : 0
 [clkmgr] set subscribe event : 0xf
 [clkmgr] set composite event : 0x7
-GM Offset upper limit: 10 ns
-GM Offset lower limit: -10 ns
+GM Offset upper limit: 100000 ns
+GM Offset lower limit: -100000 ns
+Chrony Offset upper limit: 5 ns
+Chrony Offset lower limit: 0 ns
 
-[clkmgr][174.381] Obtained data from Subscription Event:
+[clkmgr][360038.267] Obtained data from Subscription Event:
 +---------------------------+------------------------+
 | Event                     | Event Status           |
 +---------------------------+------------------------+
@@ -210,8 +216,16 @@ GM Offset lower limit: -10 ns
 | - as_capable              |                        |
 +---------------------------+------------------------+
 
-[clkmgr][175.381] Waiting for Notification Event...
-[clkmgr][177.045] Obtained data from Notification Event:
++---------------------------+------------------------+
+| chrony offset_in_range    | 0                      |
++---------------------------+------------------------+
+| chrony clock_offset       | 5                   ns |
+| chrony clock_reference_id | 50484330               |
+| chrony polling interval   | 500000              us |
++---------------------------+------------------------+
+
+[clkmgr][360039.268] Waiting for Notification Event...
+[clkmgr][360039.268] Obtained data from Notification Event:
 +---------------------------+--------------+-------------+
 | Event                     | Event Status | Event Count |
 +---------------------------+--------------+-------------+
@@ -231,10 +245,11 @@ GM Offset lower limit: -10 ns
 +---------------------------+--------------+-------------+
 
 +---------------------------+----------------------------+
-| chrony offset_in_range    | 1            | 0           |
+| chrony offset_in_range    | 1            | 1           |
 +---------------------------+----------------------------+
-| chrony clock_offset       |     4                   ns |
+| chrony clock_offset       |     3                   ns |
 | chrony clock_reference_id |     50484330               |
+| chrony polling_interval   |     500000              us |
 +---------------------------+----------------------------+
 ```
 

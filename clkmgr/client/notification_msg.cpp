@@ -229,6 +229,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         client_ptp_data->chrony_reference_id = proxy_data.chrony_reference_id;
         clkmgrCurrentState.chrony_reference_id =
             client_ptp_data->chrony_reference_id;
+        client_ptp_data->polling_interval = proxy_data.polling_interval;
+        clkmgrCurrentState.polling_interval =
+            client_ptp_data->polling_interval;
         // Update Event_count
         Event_count clkmgrCurrentEventCount =
             currentClientState->get_eventStateCount();

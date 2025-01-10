@@ -65,6 +65,7 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
         current_state->chrony_clock_offset = state.chrony_clock_offset;
         current_state->chrony_reference_id = state.chrony_reference_id;
         current_state->chrony_offset_in_range = state.chrony_offset_in_range;
+        current_state->polling_interval = state.polling_interval;
     }
     return ret;
 }
@@ -95,6 +96,7 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     current_state->chrony_clock_offset = state.chrony_clock_offset;
     current_state->chrony_reference_id = state.chrony_reference_id;
     current_state->chrony_offset_in_range = state.chrony_offset_in_range;
+    current_state->polling_interval = state.polling_interval;
     if(ret > 0) {
         current_count->as_capable_event_count = eventCount.as_capable_event_count;
         current_count->composite_event_count = eventCount.composite_event_count;

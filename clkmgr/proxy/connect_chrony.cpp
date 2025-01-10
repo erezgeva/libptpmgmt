@@ -24,6 +24,7 @@
 #include <sys/epoll.h>
 #include <cstring>
 #include <unistd.h>
+#include <cmath>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -32,8 +33,12 @@ using namespace std;
 chrony_session *s;
 int fd;
 int report_index = 0;
-int polling_interval;
 extern ptp_event pe;
+
+struct ThreadArgs {
+    chrony_session *s;
+    int report_index;
+};
 
 void chrony_notify_client()
 {
@@ -106,17 +111,17 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index)
         }
         if(field_name != nullptr && strcmp(field_name, "Reference ID") == 0)
             pe.chrony_reference_id = chrony_get_field_uinteger(s, j);
-        if(field_name != nullptr && strcmp(field_name, "Poll") == 0)
-            polling_interval = chrony_get_field_integer(s, j);
+        if(field_name != nullptr && strcmp(field_name, "Poll") == 0) {
+            int32_t interval = static_cast<int32_t>
+                (static_cast<int16_t>(chrony_get_field_integer(s, j)));
+            pe.polling_interval = std::pow(2.0, interval) * 1000000;
+            //printf("CHRONY polling_interval = %d us\n",
+            //      pe.polling_interval);}
+        }
     }
     chrony_notify_client();
     return CHRONY_OK;
 }
-
-struct ThreadArgs {
-    chrony_session *s;
-    int report_index;
-};
 
 void *monitor_chronyd(void *arg)
 {
@@ -128,7 +133,7 @@ void *monitor_chronyd(void *arg)
                 subscribe_to_chronyd(s, i);
         }
         // Sleep duration is based on chronyd polling interval
-        usleep(polling_interval);
+        usleep(pe.polling_interval);
     }
 }
 

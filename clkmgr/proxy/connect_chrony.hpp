@@ -16,7 +16,7 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class ConnectChrony
 {
-public:
+  public:
     static void connect_chrony();
 };
 

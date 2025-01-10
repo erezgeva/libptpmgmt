@@ -148,12 +148,13 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     if(currentClientState->get_eventSub().in_range(thresholdChronyOffset,
             client_data->chrony_offset))
         client_data->chrony_offset_in_range = true;
-    client_data->chrony_reference_id = data.chrony_reference_id;
     clkmgrCurrentState->chrony_clock_offset = client_data->chrony_offset;
     clkmgrCurrentState->chrony_offset_in_range =
         client_data->chrony_offset_in_range;
     client_data->chrony_reference_id = data.chrony_reference_id;
     clkmgrCurrentState->chrony_reference_id = client_data->chrony_reference_id;
+    client_data->polling_interval = data.polling_interval;
+    clkmgrCurrentState->polling_interval = client_data->polling_interval;
     return true;
 }
 

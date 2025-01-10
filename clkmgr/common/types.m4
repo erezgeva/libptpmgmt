@@ -80,7 +80,8 @@ struct Nm(Event_state) {
     bool composite_event; /**< Composite event */
     int64_t chrony_clock_offset; /**< Chrony clock offset */
     bool chrony_offset_in_range; /**< Chrony_clock offset in range */
-    uint64_t chrony_reference_id; /**< Chrony reference ID */
+    uint32_t chrony_reference_id; /**< Chrony reference ID */
+    uint32_t polling_interval; /**< Chrony polling interval */
 };
 
 /**
