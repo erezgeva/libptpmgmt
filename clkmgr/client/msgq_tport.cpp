@@ -113,7 +113,8 @@ bool ClientMessageQueue::writeTransportClientId(Message *msg)
                     "cmsg is nullptr!!\n");
                 return false;
             }
-            strcpy((char *)cmsg->getClientId().data(), mqListenerName.c_str());
+            memcpy(cmsg->getClientId().data(), mqListenerName.c_str(),
+                TRANSPORT_CLIENTID_LENGTH);
             break;
         }
         case SUBSCRIBE_MSG : {
