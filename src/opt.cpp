@@ -76,7 +76,8 @@ void Options::useDefOption()
     m_net_opts = "u246";
     m_all_opts += m_net_opts;
     m_all_short_opts += m_net_opts;
-    helpVec.reserve(helpVec.size() + 6);
+    size_t sz = helpVec.size();
+    helpVec.reserve(sz + std::max((size_t)6, sz));
     helpVec.emplace_back(" Network Transport\n");
     helpVec.emplace_back(" -2", "IEEE 802.3");
     helpVec.emplace_back(" -4", "UDP IPV4 (default)");
@@ -115,7 +116,7 @@ bool Options::insert(const Pmc_option &opt)
         h.addEnd(opt.help_msg);
         if(opt.have_arg && !opt.def_val.empty())
             h.addEnd(", default ").addEnd(opt.def_val);
-        helpVec.push_back(h);
+        helpVec.push_back(std::move(h));
         helpUpdate = true;
     }
     if(opt.have_arg)

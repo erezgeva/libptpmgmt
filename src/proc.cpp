@@ -484,7 +484,7 @@ template <typename T> bool MsgProc::vector_f(uint32_t count, vector<T> &vec)
             T rec = {};
             if(proc(rec))
                 return true;
-            vec.push_back(rec);
+            vec.push_back(std::move(rec));
         }
     }
     return false;
@@ -1432,9 +1432,9 @@ C2(INITIALIZE)
 C2(FAULT_LOG)
 {
     a.numberOfFaultRecords = d.numberOfFaultRecords;
-    a.faultRecords.reserve(d.numberOfFaultRecords);
+    a.faultRecords.resize(d.numberOfFaultRecords);
     for(int i = 0; i < d.numberOfFaultRecords; i++) {
-        FaultRecord_t r;
+        FaultRecord_t &r = a.faultRecords[i];
         const ptpmgmt_FaultRecord_t &f = d.faultRecords[i];
         r.faultRecordLength = f.faultRecordLength;
         r.faultTime.secondsField = f.faultTime.secondsField;
@@ -1453,7 +1453,6 @@ C2(FAULT_LOG)
             f.faultDescription.lengthField > 0)
             r.faultDescription.textField = string(f.faultDescription.textField,
                     f.faultDescription.lengthField);
-        a.faultRecords.push_back(r);
     }
 }
 C2(DEFAULT_DATA_SET)
@@ -1597,28 +1596,26 @@ C2(GRANDMASTER_CLUSTER_TABLE)
 {
     a.logQueryInterval = d.logQueryInterval;
     a.actualTableSize = d.actualTableSize;
-    a.PortAddress.reserve(d.actualTableSize);
+    a.PortAddress.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
-        PortAddress_t r;
+        PortAddress_t &r = a.PortAddress[i];
         r.networkProtocol = (networkProtocol_e)d.PortAddress[i].networkProtocol;
         r.addressLength = d.PortAddress[i].addressLength;
         if(d.PortAddress[i].addressField != nullptr && r.addressLength > 0)
             r.addressField.setBin(d.PortAddress[i].addressField, r.addressLength);
-        a.PortAddress.push_back(r);
     }
 }
 C2(UNICAST_MASTER_TABLE)
 {
     a.logQueryInterval = d.logQueryInterval;
     a.actualTableSize = d.actualTableSize;
-    a.PortAddress.reserve(d.actualTableSize);
+    a.PortAddress.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
-        PortAddress_t r;
+        PortAddress_t &r = a.PortAddress[i];
         r.networkProtocol = (networkProtocol_e)d.PortAddress[i].networkProtocol;
         r.addressLength = d.PortAddress[i].addressLength;
         if(d.PortAddress[i].addressField != nullptr && r.addressLength > 0)
             r.addressField.setBin(d.PortAddress[i].addressField, r.addressLength);
-        a.PortAddress.push_back(r);
     }
 }
 C2(UNICAST_MASTER_MAX_TABLE_SIZE)
@@ -1628,16 +1625,15 @@ C2(UNICAST_MASTER_MAX_TABLE_SIZE)
 C2(ACCEPTABLE_MASTER_TABLE)
 {
     a.actualTableSize = d.actualTableSize;
-    a.list.reserve(d.actualTableSize);
+    a.list.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
-        AcceptableMaster_t r;
+        AcceptableMaster_t &r = a.list[i];
         r.acceptablePortIdentity.portNumber =
             d.list[i].acceptablePortIdentity.portNumber;
         memcpy(r.acceptablePortIdentity.clockIdentity.v,
             d.list[i].acceptablePortIdentity.clockIdentity.v,
             ClockIdentity_t::size());
         r.alternatePriority1 = d.list[i].alternatePriority1;
-        a.list.push_back(r);
     }
 }
 C2(ACCEPTABLE_MASTER_TABLE_ENABLED)
@@ -1800,9 +1796,9 @@ C2(PORT_SERVICE_STATS_NP)
 C2(UNICAST_MASTER_TABLE_NP)
 {
     a.actualTableSize = d.actualTableSize;
-    a.unicastMasters.reserve(d.actualTableSize);
+    a.unicastMasters.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
-        LinuxptpUnicastMaster_t r;
+        LinuxptpUnicastMaster_t &r = a.unicastMasters[i];
         const ptpmgmt_LinuxptpUnicastMaster_t &f = d.unicastMasters[i];
         r.portIdentity.portNumber = f.portIdentity.portNumber;
         memcpy(r.portIdentity.clockIdentity.v, f.portIdentity.clockIdentity.v,
@@ -1822,7 +1818,6 @@ C2(UNICAST_MASTER_TABLE_NP)
         if(f.portAddress.addressField != nullptr && f.portAddress.addressLength > 0)
             r.portAddress.addressField.setBin(f.portAddress.addressField,
                 f.portAddress.addressLength);
-        a.unicastMasters.push_back(r);
     }
 }
 C2(PORT_HWCLOCK_NP)

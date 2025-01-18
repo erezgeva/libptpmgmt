@@ -31,7 +31,7 @@
 ###############################################################################
 emk()
 {
- make $* > /dev/null
+ make $@ > /dev/null
 }
 s_mv()
 {
@@ -43,12 +43,12 @@ apt_install()
 {
  export DEBIAN_FRONTEND=noninteractive
  sudo apt-get update
- sudo apt-get install -y --no-install-recommends $*
+ sudo apt-get install -y --no-install-recommends $@
 }
 config_ubuntu()
 {
  autoreconf -i
- ./configure
+ ./configure $@
 }
 build_prepare_ubuntu()
 {
@@ -59,14 +59,14 @@ build_prepare_ubuntu()
  apt_install libtool libtool-bin autoconf automake nettle-dev libgnutls28-dev\
    chrpath
  sudo dpkg -i *.deb
- config_ubuntu
+ config_ubuntu $@
  config_report
 }
 ###############################################################################
 # Configure for coverity scan
 ci_coverity()
 {
- build_prepare_ubuntu
+ build_prepare_ubuntu --without-swig
 }
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
