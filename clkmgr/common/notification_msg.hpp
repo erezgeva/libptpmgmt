@@ -30,7 +30,7 @@ class NotificationMessage : virtual public Message
 #define MESSAGE_NOTIFY() Message(NOTIFY_MESSAGE)
     NotificationMessage() : MESSAGE_NOTIFY(), waitEnable(0) {}
   private:
-    std::uint32_t   waitEnable : 1;
+    uint32_t   waitEnable : 1;
 };
 
 __CLKMGR_NAMESPACE_END

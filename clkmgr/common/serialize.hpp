@@ -33,7 +33,7 @@
     _PARSE(std::remove_reference<decltype(var)>::type,var,ptr,len)
 #define _PARSE(var_type,var,ptr,len)                    \
     ({                              \
-        std::size_t var_len = sizeof(var);          \
+        size_t var_len = sizeof(var);          \
         bool can_parse = len >= var_len;            \
         if (can_parse) var = *(var_type *)(ptr); \
         (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
@@ -41,7 +41,7 @@
 
 #define PARSE_ARRAY(arr,ptr,len)                    \
     ({                              \
-        std::size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type); \
+        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type); \
         bool can_parse = len >= var_len;            \
         if (can_parse) memcpy(arr.data(), ptr, var_len);    \
         (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
@@ -65,7 +65,7 @@
     _WRITE(std::remove_reference<decltype(var)>::type,var,ptr,len)
 #define _WRITE(var_type,var,ptr,len)                    \
     ({                              \
-        std::size_t var_len = sizeof(var);          \
+        size_t var_len = sizeof(var);          \
         bool can_parse = (len) >= var_len;          \
         if (can_parse) *(var_type *)(ptr) = var; \
         (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
@@ -74,7 +74,7 @@
 /* For writing std::array */
 #define WRITE_ARRAY(arr,ptr,len)                    \
     ({                              \
-        std::size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type); \
+        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type); \
         bool can_parse = len >= var_len;            \
         if (can_parse) memcpy(ptr, arr.data(), var_len);    \
         (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \

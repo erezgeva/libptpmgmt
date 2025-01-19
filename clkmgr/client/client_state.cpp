@@ -148,7 +148,7 @@ uint8_t ClientState::get_ptp4l_id() const
     return m_ptp4l_id;
 }
 
-void ClientState::set_last_notification_time(const struct timespec &newTime)
+void ClientState::set_last_notification_time(const timespec &newTime)
 {
     last_notification_time = newTime;
 }

@@ -34,8 +34,8 @@ bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr)
 }
 
 bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
-    const struct clkmgr_c_subscription sub,
-    struct Clkmgr_Event_state *current_state)
+    const clkmgr_c_subscription sub,
+    Clkmgr_Event_state *current_state)
 {
     if(client_ptr == nullptr || current_state == nullptr)
         return false;
@@ -71,8 +71,8 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
 }
 
 int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
-    struct Clkmgr_Event_state *current_state,
-    struct Clkmgr_Event_count *current_count)
+    Clkmgr_Event_state *current_state,
+    Clkmgr_Event_count *current_count)
 {
     if(client_ptr == nullptr || current_state == nullptr ||
         current_count == nullptr)

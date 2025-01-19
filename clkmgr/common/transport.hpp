@@ -25,7 +25,7 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-typedef std::array<std::uint8_t, MAX_BUFFER_LENGTH> TransportBuffer;
+typedef std::array<uint8_t, MAX_BUFFER_LENGTH> TransportBuffer;
 class Message;
 class Transport;
 
@@ -33,17 +33,17 @@ class TransportContext
 {
   protected:
     bool _init;
-    std::size_t offset;
+    size_t offset;
     TransportBuffer buffer;
   public:
     bool init() { return _init; }
     TransportContext() : _init(true), offset(0) {}
     virtual ~TransportContext() = default;
 
-    const std::size_t &getc_offset() { return offset; }
-    std::size_t &get_offset() { return offset; }
-    void set_offset(const std::size_t &offset) { this->offset = offset; }
-    std::size_t c_get_val_offset() const { return offset; }
+    const size_t &getc_offset() { return offset; }
+    size_t &get_offset() { return offset; }
+    void set_offset(const size_t &offset) { this->offset = offset; }
+    size_t c_get_val_offset() const { return offset; }
 
     const TransportBuffer &getc_buffer() { return buffer; }
     TransportBuffer &get_buffer() { return buffer; }
@@ -51,7 +51,7 @@ class TransportContext
     TransportBuffer c_get_val_buffer() const { return buffer; }
 
     void resetOffset() { set_offset(0); }
-    void addOffset(std::size_t offset) { this->offset += offset; }
+    void addOffset(size_t offset) { this->offset += offset; }
 };
 
 class TransportTransmitterContext : public TransportContext

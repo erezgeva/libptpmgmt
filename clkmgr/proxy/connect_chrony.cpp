@@ -63,7 +63,7 @@ void chrony_notify_client()
 
 static chrony_err process_chronyd_data(chrony_session *s)
 {
-    struct pollfd pfd = { .fd = chrony_get_fd(s), .events = POLLIN };
+    pollfd pfd = { .fd = chrony_get_fd(s), .events = POLLIN };
     int n, timeout;
     chrony_err r;
     timeout = 1000;
