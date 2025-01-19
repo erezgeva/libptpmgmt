@@ -18,9 +18,6 @@
 #include "common/util.hpp"
 
 #include <cstdint>
-#include <future>
-#include <memory>
-#include <mqueue.h>
 #include <string>
 
 __CLKMGR_NAMESPACE_BEGIN
