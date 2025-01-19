@@ -17,7 +17,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <type_traits>
 
 #define PARSE_RX(type,var,lc)                       \
     ({                              \

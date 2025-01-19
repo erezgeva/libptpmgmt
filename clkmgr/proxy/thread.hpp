@@ -11,18 +11,8 @@
 
 #include "common/ptp_event.hpp"
 
-#include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <pthread.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 typedef struct ptp4l_handle *ptp4l_handle_t;
 typedef struct clkmgr_handle *clkmgr_handle_t;
@@ -34,7 +24,6 @@ struct clkmgr_handle {
 };
 
 struct ptp4l_handle {
-    struct epoll_event epd_event;
     state_update_t update_cb;
     void *ctx;
     pthread_t work_thread;

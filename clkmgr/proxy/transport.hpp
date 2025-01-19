@@ -19,11 +19,6 @@
 #include "proxy/message.hpp"
 
 #include <cstdint>
-#include <functional>
-#include <future>
-#include <memory>
-#include <thread>
-#include <vector>
 
 __CLKMGR_NAMESPACE_BEGIN
 

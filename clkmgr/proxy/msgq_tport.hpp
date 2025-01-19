@@ -17,9 +17,6 @@
 #include "proxy/transport.hpp"
 
 #include <cstdint>
-#include <future>
-#include <memory>
-#include <mqueue.h>
 #include <string>
 
 #define MAX_CLIENT_COUNT    (8)

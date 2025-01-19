@@ -15,12 +15,7 @@
 #include "common/sighandler.hpp"
 #include "common/util.hpp"
 
-#include <errno.h>
-#include <fcntl.h>
-#include <mqueue.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <thread>
 
 __CLKMGR_NAMESPACE_USE;
 
