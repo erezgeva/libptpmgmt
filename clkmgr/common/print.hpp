@@ -41,9 +41,8 @@ void _PrintInfo(std::string msg, uint16_t line, std::string file,
 #define DumpOctetArray(msg,arr,size) clkmgr::_DumpOctetArray(msg, arr, \
     size, __LINE__, __FILE__, __func__)
 
-void _DumpOctetArray(std::string msg, const std::uint8_t *arr,
-    std::size_t length,
-    std::uint16_t line, std::string file, std::string func);
+void _DumpOctetArray(std::string msg, const uint8_t *arr, size_t length,
+    uint16_t line, std::string file, std::string func);
 
 __CLKMGR_NAMESPACE_END
 

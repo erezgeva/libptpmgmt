@@ -61,15 +61,15 @@ void ClientSubscribeMessage::setClientState(ClientState *newClientState)
 PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 {
     ptp_event data = {};
-    std::uint32_t eventSub;
-    struct timespec last_notification_time = {};
+    uint32_t eventSub;
+    timespec last_notification_time = {};
     if(clock_gettime(CLOCK_REALTIME, &last_notification_time) == -1)
         PrintDebug("ClientNotificationMessage::processMessage \
             clock_gettime failed.\n");
     else
         currentClientState->set_last_notification_time(last_notification_time);
     eventSub = currentClientState->get_eventSub().get_event_mask();
-    std::uint32_t composite_eventSub;
+    uint32_t composite_eventSub;
     composite_eventSub =
         currentClientState->get_eventSub().get_composite_event_mask();
     PrintDebug("[ClientSubscribeMessage]::parseBuffer ");

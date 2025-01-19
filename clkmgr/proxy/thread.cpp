@@ -11,7 +11,7 @@
 
 #include "proxy/thread.hpp"
 
-static int start_work_thread(struct ptp4l_handle *handle)
+static int start_work_thread(ptp4l_handle *handle)
 {
     int ret;
     if((ret = -pthread_create(&handle->work_thread, nullptr, ptp4l_event_loop,
@@ -20,9 +20,9 @@ static int start_work_thread(struct ptp4l_handle *handle)
     return 0;
 }
 
-int connect_ptp4l(struct ptp4l_handle **phandle)
+int connect_ptp4l(ptp4l_handle **phandle)
 {
-    struct ptp4l_handle *handle;
+    ptp4l_handle *handle;
     int ret;
     handle = (decltype(handle)) malloc((size_t) sizeof(*handle));
     if(handle == nullptr) {
@@ -57,7 +57,7 @@ alloc_handle_fail:
  */
 int handle_connect()
 {
-    struct clkmgr_handle *handle;
+    clkmgr_handle *handle;
     int ret;
     handle = (decltype(handle)) malloc((size_t) sizeof(*handle));
     if(handle == nullptr) {

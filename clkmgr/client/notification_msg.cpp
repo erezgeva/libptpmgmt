@@ -105,10 +105,10 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
     /* Need to walk thru the whole vector */
     std::vector <ClientState *>::iterator it ;
     for(it = ClientStateArray.begin(); it < ClientStateArray.end(); it++) {
-        std::uint32_t eventSub;
-        std::uint32_t composite_eventSub;
+        uint32_t eventSub;
+        uint32_t composite_eventSub;
         ClientState *currentClientState = *it;
-        struct timespec last_notification_time = {};
+        timespec last_notification_time = {};
         if(clock_gettime(CLOCK_REALTIME, &last_notification_time) == -1)
             PrintDebug("ClientNotificationMessage::processMessage \
                 clock_gettime failed.\n");

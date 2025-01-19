@@ -178,7 +178,7 @@ static inline bool msg_set_action(bool local, mng_vals_e id)
  *         sent, false otherwise.
  *
  */
-bool event_subscription(struct clkmgr_handle **handle)
+bool event_subscription(clkmgr_handle **handle)
 {
     memset(d.bitmask, 0, sizeof d.bitmask);
     d.duration = UINT16_MAX;

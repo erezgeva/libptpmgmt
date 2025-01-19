@@ -14,13 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct ptp4l_handle *ptp4l_handle_t;
-typedef struct clkmgr_handle *clkmgr_handle_t;
-
 typedef bool (*state_update_t)(struct ptp4l_state *, void *);
 
 struct clkmgr_handle {
-    ptp4l_handle_t ptp4l_handle;
+    struct ptp4l_handle *ptp4l_handle;
 };
 
 struct ptp4l_handle {
@@ -38,7 +35,7 @@ struct ptp4l_state {
 };
 
 int handle_connect();
-int connect_ptp4l(ptp4l_handle_t *phandle);
+int connect_ptp4l(ptp4l_handle **phandle);
 
 void *ptp4l_event_loop(void *arg);
-bool event_subscription(struct clkmgr_handle **handle);
+bool event_subscription(clkmgr_handle **handle);
