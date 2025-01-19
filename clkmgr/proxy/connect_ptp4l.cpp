@@ -17,13 +17,8 @@
 
 #include "init.h" /* libptpmgmt */
 
-#include <libgen.h>
-#include <map>
-#include <poll.h>
-#include <signal.h>
 #include <stdio.h>
 #include <string>
-#include <sys/epoll.h>
 #include <unistd.h>
 
 __CLKMGR_NAMESPACE_USE;

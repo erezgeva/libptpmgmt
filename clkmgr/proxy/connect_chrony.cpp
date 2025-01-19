@@ -15,13 +15,9 @@
 #include "proxy/notification_msg.hpp"
 #include <chrony.h>
 
-#include <libgen.h>
-#include <map>
 #include <poll.h>
-#include <signal.h>
 #include <stdio.h>
 #include <string>
-#include <sys/epoll.h>
 #include <cstring>
 #include <unistd.h>
 #include <cmath>

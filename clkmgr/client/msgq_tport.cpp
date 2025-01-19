@@ -17,11 +17,6 @@
 #include "common/util.hpp"
 
 #include <cstring>
-#include <errno.h>
-#include <fcntl.h>
-#include <mqueue.h>
-#include <sys/stat.h>
-#include <thread>
 #include <unistd.h>
 
 __CLKMGR_NAMESPACE_USE;

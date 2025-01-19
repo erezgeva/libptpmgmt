@@ -16,8 +16,6 @@
 #include "common/message.hpp"
 
 #include <cstdint>
-#include <map>
-#include <memory>
 
 __CLKMGR_NAMESPACE_BEGIN
 

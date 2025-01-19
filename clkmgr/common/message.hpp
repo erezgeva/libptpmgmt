@@ -18,7 +18,6 @@
 
 #include <functional>
 #include <map>
-#include <memory>
 
 __CLKMGR_NAMESPACE_BEGIN
 
