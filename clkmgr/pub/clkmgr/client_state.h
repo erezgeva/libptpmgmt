@@ -34,7 +34,7 @@ class ClientState
     Event_state eventState = {}; /**< Event state */
     Event_count eventStateCount = {}; /**< Event count */
     ClkMgrSubscription eventSub = {}; /**< Event subscription */
-    struct timespec last_notification_time; /**< Last notification time */
+    timespec last_notification_time; /**< Last notification time */
 
   public:
     /**
@@ -118,13 +118,13 @@ class ClientState
      * Set the last notification time
      * @param[in] last_notification_time Last notification time
      */
-    void set_last_notification_time(const struct timespec &last_notification_time);
+    void set_last_notification_time(const timespec &last_notification_time);
 
     /**
      * Get the last notification time
      * @return Last notification time
      */
-    struct timespec get_last_notification_time() const;
+    timespec get_last_notification_time() const;
 
     /**
      * Convert the client state to a string

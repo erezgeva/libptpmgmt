@@ -22,7 +22,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class NullClientTransport : public NullTransport
 {
   public:
-    static bool sendMessage(std::uint8_t *buffer, std::size_t length);
+    static bool sendMessage(uint8_t *buffer, size_t length);
 };
 
 __CLKMGR_NAMESPACE_END

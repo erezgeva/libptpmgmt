@@ -18,10 +18,10 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-typedef std::uint8_t msgAck_t;
+typedef uint8_t msgAck_t;
 enum  : msgAck_t {ACK_FAIL = (msgAck_t) -1, ACK_NONE = 0, ACK_SUCCESS = 1, };
 
-typedef std::uint8_t msgId_t;
+typedef uint8_t msgId_t;
 enum msgId : msgId_t {INVALID_MSG = (msgId_t) -1, NULL_MSG = 1, CONNECT_MSG,
     SUBSCRIBE_MSG, NOTIFY_MESSAGE, DISCONNECT_MSG
 };
