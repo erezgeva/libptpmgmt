@@ -97,9 +97,8 @@ bool Transport::init()
 bool Transport::stop()
 {
     /* Send stop signal to all of the threads */
-    for(std::vector<TransportWorkerState>::iterator it = workerList.begin();
-        it != workerList.end(); ++it)
-        it->exitVal->store(true);
+    for(const auto &it : workerList)
+        it.exitVal->store(true);
     /* Do any transport specific stop */
     if(!_stopTransport<NullTransport, MessageQueue>())
         return false;
@@ -109,15 +108,14 @@ bool Transport::stop()
 bool Transport::finalize()
 {
     bool retVal = false;
-    for(auto it = workerList.begin();
-        it != workerList.end(); ++it) {
-        if(it->retVal.wait_for(chrono::milliseconds(EXIT_TIMEOUT)) !=
+    for(auto &it : workerList) {
+        if(it.retVal.wait_for(chrono::milliseconds(EXIT_TIMEOUT)) !=
             future_status::ready) {
             PrintError("Thread Join Timeout");
             goto done;
         }
-        it->thread.get()->join();
-        retVal &= it->retVal.get();
+        it.thread.get()->join();
+        retVal = retVal && it.retVal.get();
     }
     if(!_finalizeTransport<NullTransport, MessageQueue>())
         goto done;

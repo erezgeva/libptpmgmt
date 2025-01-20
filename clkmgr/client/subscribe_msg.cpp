@@ -82,9 +82,8 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     2. to move some/all processing inside the processMessage instead of here.
     */
     sessionId_t currentSessionID = currentClientState->get_sessionId();
-    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
     client_ptp_event *client_data, *composite_client_data;
-    it = client_ptp_event_map.find(currentSessionID);
+    const auto &it = client_ptp_event_map.find(currentSessionID);
     if(it == client_ptp_event_map.end()) {
         /* Creation of a new map item for this new sessionID */
         client_data = new client_ptp_event();
@@ -187,9 +186,8 @@ PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
 /* delete the client ptp event based on session ID given */
 void ClientSubscribeMessage::deleteClientPtpEventStruct(sessionId_t sID)
 {
-    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
     client_ptp_event *client_data, *composite_data;
-    it = client_ptp_event_map.find(sID);
+    const auto &it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end()) {
         client_data = it->second[0];
         composite_data = it->second[1];
@@ -201,36 +199,31 @@ void ClientSubscribeMessage::deleteClientPtpEventStruct(sessionId_t sID)
 }
 
 /* get the corresponding ClientPtpEvent */
-client_ptp_event
-*ClientSubscribeMessage::getClientPtpEventStruct(sessionId_t sID)
+client_ptp_event *ClientSubscribeMessage::getClientPtpEventStruct(
+    sessionId_t sID)
 {
-    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
-    client_ptp_event *client_data = nullptr;
-    it = client_ptp_event_map.find(sID);
+    const auto &it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end())
-        client_data = it->second[0];
-    return client_data;
+        return it->second[0];
+    return nullptr;
 }
 
 /* get the corresponding ClientPtpEvent for composite  */
 client_ptp_event *ClientSubscribeMessage::getClientPtpEventCompositeStruct(
     sessionId_t sID)
 {
-    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
-    client_ptp_event *client_data = nullptr;
-    it = client_ptp_event_map.find(sID);
+    const auto &it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end())
-        client_data = it->second[1];
-    return client_data;
+        return it->second[1];
+    return nullptr;
 }
 
 /* reduce the corresponding eventCount */
 void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
     Event_count &eventCount)
 {
-    std::map <sessionId_t, std::array<client_ptp_event *, 2>>::iterator it;
     client_ptp_event *client_ptp_data = nullptr;
-    it = client_ptp_event_map.find(sID);
+    const auto &it = client_ptp_event_map.find(sID);
     if(it != client_ptp_event_map.end())
         client_ptp_data = it->second[0];
     else {
