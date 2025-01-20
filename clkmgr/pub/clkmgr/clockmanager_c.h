@@ -12,9 +12,6 @@
 #ifndef CLKMGR_CLOCKMANAGER_C_H
 #define CLKMGR_CLOCKMANAGER_C_H
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include "pub/clkmgr/types_c.h"
 
 #ifdef __cplusplus
