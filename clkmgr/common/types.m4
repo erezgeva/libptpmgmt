@@ -22,6 +22,7 @@ include(lang().m4)dnl
 ics(TYPE)
 
 inc_c(`stdint')
+c_cod(`#include <stdbool.h>')
 
 ns_s()
 

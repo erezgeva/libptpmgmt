@@ -15,8 +15,6 @@
 #ifdef __cplusplus
 
 #include "pub/clkmgr/client_state.h"
-#include "pub/clkmgr/subscription.h"
-#include "pub/clkmgr/utility.h"
 
 __CLKMGR_NAMESPACE_BEGIN
 

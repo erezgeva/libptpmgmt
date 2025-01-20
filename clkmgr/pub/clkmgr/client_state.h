@@ -12,11 +12,10 @@
 #ifndef CLKMGR_CLIENT_STATE_H
 #define CLKMGR_CLIENT_STATE_H
 
-#include <atomic>
-#include <string>
-
 #include "pub/clkmgr/subscription.h"
-#include "pub/clkmgr/utility.h"
+
+#include <string>
+#include <atomic>
 
 __CLKMGR_NAMESPACE_BEGIN
 
