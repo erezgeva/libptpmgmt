@@ -40,7 +40,7 @@ sessionId_t Client::GetSessionIdAt(size_t index)
 
 ClientX Client::GetClientSession(sessionId_t sessionId)
 {
-    auto iter = SessionMap.find(sessionId);
+    const auto &iter = SessionMap.find(sessionId);
     if(iter == SessionMap.cend()) {
         PrintError("Session ID " + to_string(sessionId) + " not found");
         return ClientX(nullptr);

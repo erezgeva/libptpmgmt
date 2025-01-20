@@ -31,18 +31,17 @@ Message::Message(msgId_t msgId)
 
 string Message::ExtractClassName(string prettyFunction, string function)
 {
-    auto fpos = prettyFunction.find(function);
-    auto spos = fpos;
+    const auto &fpos = prettyFunction.find(function);
     if(fpos == string::npos)
         return prettyFunction;
-    spos = prettyFunction.rfind(" ", fpos);
+    auto spos = prettyFunction.rfind(" ", fpos);
     ++spos;
     if(spos == string::npos || spos >= fpos)
         return prettyFunction;
-    auto ret = prettyFunction.substr(spos, fpos - spos);
-    while(ret.length() > 0 && ret.back() == ':')
+    string ret = prettyFunction.substr(spos, fpos - spos);
+    while(!ret.empty() && ret.back() == ':')
         ret.pop_back();
-    return ret.length() != 0 ? ret : prettyFunction;
+    return ret.empty() ? prettyFunction : ret;
 }
 
 string Message::toString()
@@ -100,10 +99,9 @@ PARSE_RXBUFFER_TYPE(Message::parseBuffer)
 MAKE_RXBUFFER_TYPE(Message::buildMessage)
 {
     msgId_t msgId;
-    std::map<msgId_t, BuildMessage_t>::iterator it;
     if(!PARSE_RX(FIELD, msgId, LxContext))
         return false;
-    it = parseMsgMap.find(msgId);
+    const auto &it = parseMsgMap.find(msgId);
     if(it == parseMsgMap.cend()) {
         PrintError("Unknown message type " + to_string(msgId));
         return false;

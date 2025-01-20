@@ -103,11 +103,9 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
     PrintDebug("[ClientNotificationMessage]::processMessage ");
     bool old_composite_event;
     /* Need to walk thru the whole vector */
-    std::vector <ClientState *>::iterator it ;
-    for(it = ClientStateArray.begin(); it < ClientStateArray.end(); it++) {
+    for(const auto &currentClientState : ClientStateArray) {
         uint32_t eventSub;
         uint32_t composite_eventSub;
-        ClientState *currentClientState = *it;
         timespec last_notification_time = {};
         if(clock_gettime(CLOCK_REALTIME, &last_notification_time) == -1)
             PrintDebug("ClientNotificationMessage::processMessage \
