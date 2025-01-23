@@ -714,6 +714,7 @@ bool PtpClock::readEvents(vector<PtpEvent_t> &events, size_t max) const
     if(num == 0)
         return false;
     ptp_extts_event *ent = ents;
+    events.reserve(events.size() + num);
     for(size_t i = 0; i < num; i++, ent++)
         events.push_back({ent->index, toTs(ent->t)});
     return true;
@@ -800,6 +801,7 @@ bool PtpClock::samplePtpSys(size_t count, vector<PtpSample_t> &samples) const
     if(!PtpClock_samplePtpSys(m_isInit, m_fd, count, req))
         return false;
     ptp_clock_time *pct = req.ts;
+    samples.reserve(samples.size() + req.n_samples);
     for(unsigned i = 0; i < req.n_samples; i++)
         samples.push_back({
         toTs(*pct++), // System clock
@@ -832,6 +834,7 @@ bool PtpClock::extSamplePtpSys(size_t count,
     ptp_sys_offset_extended req;
     if(!PtpClock_extSamplePtpSys(m_isInit, m_fd, count, req))
         return false;
+    samples.reserve(samples.size() + req.n_samples);
     for(unsigned i = 0; i < req.n_samples; i++) {
         ptp_clock_time *pct = req.ts[i];
         samples.push_back({

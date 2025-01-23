@@ -26,7 +26,7 @@ __PTPMGMT_NAMESPACE_BEGIN
     jsonValue *jval = m_obj->getVal(key);\
     if(jval == nullptr || jval->getType() != t_string)\
         return false;\
-    const string str = jval->getStr();
+    const string &str = jval->getStr();
 #define GET_NUM(type, func)\
     EMPTY_KEY;\
     type num;\
@@ -96,7 +96,7 @@ struct JsonProcFrom : public JsonProc {
         if(jval == nullptr)
             return false;
         uint64_t u64;
-        const string str = jval->getStr();
+        const string &str = jval->getStr();
         switch(jval->getType()) {
             case t_string:
                 if(str.empty())
@@ -322,11 +322,12 @@ struct JsonProcFrom : public JsonProc {
         jsonArray *arr = m_obj->getArr(key);
         if(arr == nullptr)
             return false;
+        d.reserve(d.size() + arr->size());
         for(size_t i = 0; i < arr->size(); i++) {
             jsonValue *jval = arr->getVal(i);
             if(jval == nullptr || jval->getType() != t_string)
                 return false;
-            const string str = jval->getStr();
+            const string &str = jval->getStr();
             Binary b;
             ClockIdentity_t rec;
             if(!b.fromHex(str) || b.size() != rec.size())
@@ -343,6 +344,7 @@ struct JsonProcFrom : public JsonProc {
             return false;\
         jsonObject *keep = m_obj;\
         bool ret = true;\
+        d.reserve(d.size() + arr->size());\
         for(size_t i = 0; i < arr->size(); i++) {\
             m_obj = arr->getObj(i);\
             if(m_obj == nullptr) {\
@@ -354,7 +356,7 @@ struct JsonProcFrom : public JsonProc {
                 ret = false;\
                 break;\
             }\
-            d.push_back(rec);\
+            d.push_back(std::move(rec));\
         }\
         m_obj = keep;\
         return ret;\

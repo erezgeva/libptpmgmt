@@ -65,7 +65,7 @@ override_dh_install:
 ifneq ($(wildcard $(DSRC)lib/php),)
 	$Q$(MV) $(DSRC)lib/php debian/php-ptpmgmt/usr/lib
 endif
-	$Q$(MV) $(DSRC)/lib/tcltk debian/tcl-ptpmgmt/usr/lib
+	$Q$(MV) $(DSRC)lib/tcltk debian/tcl-ptpmgmt/usr/lib
 	$Q$(MV) $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/pkgconfig debian/libptpmgmt-dev$(LIBDIR)

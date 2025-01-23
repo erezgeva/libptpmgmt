@@ -27,14 +27,14 @@ Source0:        %{name}-%{version}.txz
 
 %define bname   ptpmgmt
 
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Summary:        PTP management library, to communicate with ptp4l
 %description
 PTP management library, to communicate with ptp4l
 
 %package        openssl
 Summary:        PTP management library HMAC plugin using the openssl library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       openssl-libs
 %description    openssl
@@ -42,7 +42,7 @@ PTP management library HMAC plugin using the openssl library
 
 %package        gcrypt
 Summary:        PTP management library HMAC plugin using the gcrypt library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       libgcrypt
 %description    gcrypt
@@ -50,7 +50,7 @@ PTP management library HMAC plugin using the gcrypt library
 
 %package        gnutls
 Summary:        PTP management library HMAC plugin using the gnutls library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       gnutls
 %description    gnutls
@@ -58,7 +58,7 @@ PTP management library HMAC plugin using the gnutls library
 
 %package        nettle
 Summary:        PTP management library HMAC plugin using the nettle library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       nettle
 %description    nettle
@@ -66,7 +66,7 @@ PTP management library HMAC plugin using the nettle library
 
 %package        devel
 Summary:        Development files for the PTP management library
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Provides:       %{name}-static = %{version}-%{release}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description    devel
@@ -75,15 +75,14 @@ developing applications that use the PTP management library.
 
 %package        doc
 Summary:        Documentation files for the PTP management library
-License:        GFDLv1.3+
+License:        GFDL-1.3-no-invariants-or-later
 BuildArch:      noarch
-Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description    doc
 PTP management library documentation, to communicate with ptp4l
 
 %package        perl
 Summary:        PTP management library Perl wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       perl
 %description    perl
@@ -91,7 +90,7 @@ PTP management library Perl wrapper
 
 %package -n     python3-%{bname}
 Summary:        PTP management library python version 3 wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       python3
 %description -n python3-%{bname}
@@ -99,7 +98,7 @@ PTP management library python version 3 wrapper
 
 %package -n     lua-%{bname}
 Summary:        PTP management library Lua wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       lua
 %description -n lua-%{bname}
@@ -107,7 +106,7 @@ PTP management library Lua wrapper
 
 %package -n     ruby-%{bname}
 Summary:        PTP management library ruby wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       ruby
 %description -n ruby-%{bname}
@@ -115,7 +114,7 @@ PTP management library ruby wrapper
 
 %package -n     php-%{bname}
 Summary:        PTP management library php wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       php
 %description -n php-%{bname}
@@ -123,7 +122,7 @@ PTP management library php wrapper
 
 %package -n     tcl-%{bname}
 Summary:        PTP management library tcl wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       tcl
 %description -n tcl-%{bname}
@@ -131,7 +130,7 @@ PTP management library tcl wrapper
 
 %package -n     golang-%{bname}
 Summary:        PTP management library golang development wrapper
-License:        LGPLv3+
+License:        LGPL-3.0-or-later
 BuildArch:      noarch
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 Requires:       golang
@@ -140,19 +139,19 @@ PTP management library golang development wrapper
 
 %package -n     pmc-%{bname}
 Summary:        pmc tool
-License:        GPLv3+
+License:        GPL-3.0-or-later
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 %description -n pmc-%{bname}
- new rewrite of linuxptp pmc tool using the PTP managemen library.
- This tool is faster than the original linuxptp tool.
+new rewrite of linuxptp pmc tool using the PTP managemen library.
+This tool is faster than the original linuxptp tool.
 
 %package -n     phc-ctl-%{bname}
 Summary:        phc_ctl tool
-License:        GPLv3+
+License:        GPL-3.0-or-later
 BuildArch:      noarch
-Requires:       python3-%{bname} = %{version}-%{release}
+Requires:       python3-%{bname}%{?_isa} = %{version}-%{release}
 %description -n phc-ctl-%{bname}
- new rewrite of linuxptp phc_ctl tool using the PTP managemen library.
+new rewrite of linuxptp phc_ctl tool using the PTP managemen library.
 
 %prep
 %setup -q

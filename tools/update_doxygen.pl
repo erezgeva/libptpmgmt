@@ -11,9 +11,9 @@
 use File::Basename;
 use Cwd 'realpath';
 
-sub main
+sub o_file
 {
-  my $cfg='tools/doxygen.cfg.in';
+  my $cfg= shift;
   return unless -f $cfg;
   my $yes = 'YES';
   my $key_reg=qr([A-Z0-9_]+); # regular expression to catch a key
@@ -109,6 +109,10 @@ sub main
     print "New option: $_\n" unless exists $cur_options{$_};
   }
   unlink "$cfg.bak" if -f "$cfg.bak";
+}
+sub main
+{
+ o_file 'tools/doxygen.cfg.in';
 }
 chdir dirname(realpath($0)) . "/..";
 main;

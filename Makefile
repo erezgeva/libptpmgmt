@@ -215,7 +215,7 @@ PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
-D_FILES:=$(wildcard *.d */*.d */*/*.d)
+D_FILES:=$(wildcard */*.d */*/*.d)
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
 HDR_BTH:=mngIds types proc sig callDef
 HEADERS_GEN_PUB:=$(foreach n,ver name $(HDR_BTH),$(PUB)/$n.h)
@@ -275,9 +275,9 @@ ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
 SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
-  */github* */*.opt configure.ac src/*.m4 doc/*.md\
-  t*/*.sh */*/*.sh swig/*.md swig/*/* */*.i */*/msgCall.i */*/warn.i man/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
+  */github* */*.opt configure.ac src/*.m4 */*.md t*/*.sh */*/*.sh swig/*/*\
+  */*.i */*/msgCall.i */*/warn.i man/*\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile [wc]*/*/Makefile\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
   $(MAKEFILE_LIST) credits
@@ -330,7 +330,7 @@ Q_ERR:=2>/dev/null
 Q_CLEAN=$Q$(info $(COLOR_BUILD)Cleaning$(COLOR_NORM))
 Q_DISTCLEAN=$Q$(info $(COLOR_BUILD)Cleaning all$(COLOR_NORM))
 Q_TAR=$Q$(info $(COLOR_BUILD)[TAR] $@$(COLOR_NORM))
-Q_DOXY=$Q$(info $(COLOR_BUILD)Doxygen$(COLOR_NORM))
+Q_DOXY=$Q$(info $(COLOR_BUILD)Doxygen $1$(COLOR_NORM))
 Q_FRMT=$Q$(info $(COLOR_BUILD)Format$(COLOR_NORM))
 Q_TAGS=$Q$(info $(COLOR_BUILD)[TAGS]$(COLOR_NORM))
 Q_GEN=$Q$(info $(COLOR_BUILD)[GEN] $@$(COLOR_NORM))
@@ -424,9 +424,6 @@ PYUVGD:=PYTHONMALLOC=malloc $(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(S
 endif # VGD_PY
 endif # VALGRIND
 
-# HMAC libraries
-include $(HMAC_SRC)/Makefile
-
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
@@ -435,6 +432,9 @@ $(LIB_NAME_SO): $(LIB_NAME_LA)
 	@:
 $(LIB_NAME_A): $(LIB_NAME_LA)
 	@:
+
+# HMAC libraries
+include $(HMAC_SRC)/Makefile
 
 include utest/Makefile
 ifdef CRITERION_LIB_FLAGS
@@ -532,8 +532,9 @@ else
 CYEAR=2024
 endif
 SPDXLI:=SPDX-License-Identifier:
-SPDXCY:=SPDX-FileCopyrightText:
-SPDXCY+=Copyright © $(CYEAR) Erez Geva <ErezGeva2@gmail.com>
+SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
+SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
+SPDXBSD3:=BSD-3-Clause
 SPDXGPL:=GPL-3.0-or-later
 SPDXLGPL:=L$(SPDXGPL)
 SPDXGFDL:=GFDL-1.3-no-invariants-or-later
@@ -571,14 +572,14 @@ ifdef DOXYGEN_MINVER
 doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
 ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
-	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen.cfg
+	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen*cfg
 endif
 # doxygen fails with cairo 1.17.6, use workaround
 # https://github.com/doxygen/doxygen/issues/9319
 # TODO The bug should be fixed in doxygen version 1.9.7
 	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
 ifndef DOTTOOL
-	$(SED) -i 's!^HAVE_DOT\s.*!\$(hash)HAVE_DOT               = YES!' tools/doxygen.cfg
+	$(SED) -i 's!^HAVE_DOT\s.*!\$(hash)HAVE_DOT               = YES!' tools/doxygen*cfg
 endif
 endif # DOXYGEN_MINVER
 
@@ -628,11 +629,11 @@ endef
 install: $(INS_TGT)
 install_main:
 	$(Q)$(INSTALL_FOLDER) $(DLIBDIR) $(PKGCFGDIR)
-	cp -a $(LIB_D)/$(LIB_NAME)*.so* $(DLIBDIR)
-	$(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.so.*.*.* $(DLIBDIR)
-	$(call RMRPATH,$(DLIBDIR)/$(LIB_NAME)*.so.*.*.*)
+	cp -a $(LIB_D)/*.so* $(DLIBDIR)
+	$(INSTALL_LIB) $(LIB_D)/*.so.*.*.* $(DLIBDIR)
+	$(call RMRPATH,$(DLIBDIR)/*.so.*.*.*)
 	if test -f "$(LIB_NAME_A)"
-	then $(INSTALL_LIB) $(LIB_D)/$(LIB_NAME)*.a $(DLIBDIR); fi
+	then $(INSTALL_LIB) $(LIB_D)/*.a $(DLIBDIR); fi
 ifdef PKG_CONFIG_DIR
 	echo "$(pkgconfig)" > $(PKGCFGDIR)/$(SWIG_LNAME).pc
 	for pf in $(SWIG_LNAME)$(PACKAGE_VERSION) $(LIB_NAME)\
@@ -649,9 +650,9 @@ endif
 	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
 	$(INSTALL_FOLDER) $(DEVDOCDIR)
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
-	  'LDLIBS+=-lptpmgmt' > $(DEVDOCDIR)/default.mk
+	  'LDLIBS+=-l$(SWIG_LNAME)' > $(DEVDOCDIR)/default.mk
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
-	  'LDLIBS+= -Wl,-static -lptpmgmt -Wl,-Bdynamic' > $(DEVDOCDIR)/static.mk
+	  'LDLIBS+= -Wl,-static -l$(SWIG_LNAME) -Wl,-Bdynamic' > $(DEVDOCDIR)/static.mk
 	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
 	$(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8
 	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\
@@ -690,8 +691,10 @@ ifdef DOXYGEN_MINVER
 endif
 endif # MARKDOWN
 
+ifdef USE_DEPS
 ifeq ($(filter distclean clean,$(MAKECMDGOALS)),)
 include $(D_FILES)
+endif
 endif
 
 $(OBJ_DIR):
@@ -814,15 +817,18 @@ endif # MAKECMDGOALS
 CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   *.la wrappers/*/*.so\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
-  wrappers/go/*/go.mod */$(LIB_SRC) wrappers/*/$(SWIG_NAME).cpp\
-  wrappers/*/$(SWIG_NAME).h\
-  */*/$(LIB_SRC)) $(D_FILES) $(LIB_SRC) tools/doxygen.cfg\
-  $(ARCHL_BLD) tags wrappers/python/$(SWIG_LNAME).py $(PHP_LNAME).php $(PMC_NAME)\
+  wrappers/go/*/go.mod wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
+  */$(LIB_SRC) tools/doxygen*cfg\
+  */*/$(LIB_SRC))\
+  $(D_FILES) $(LIB_SRC)\
+  $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
+  wrappers/python/$(SWIG_LNAME).py\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
-  .phpunit.result.cache wrappers/go/allocTlv.i\
-  wrappers/go/$(SWIG_LNAME).go $(HEADERS_GEN) wrappers/go/gtest/gtest .null
-CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/*/\
-  archlinux/*/ obj-*/)) _site $(OBJ_DIR) $(LIB_D) wrappers/perl/auto\
+  .phpunit.result.cache wrappers/go/allocTlv.i wrappers/go/gtest/gtest\
+  $(HEADERS_GEN) .null
+CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
+  archlinux/*/ obj-*/)) _site $(OBJ_DIR)\
+  $(LIB_D) wrappers/perl/auto\
   wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
   ltmain.sh $(wildcard src/config.h* config.*)
