@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2023 Erez Geva
+#
+# Docker file for Gentoo container base for building and installing
+# Search packages at: https://portagefilelist.de/
+# https://dev.gentoo.org/~zmedico/portage/doc/man/emerge.1.html
+# --tree, -t Shows the dependency tree
+# --verbose, -v
+###############################################################################
+FROM gentoo/stage3
+MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
+LABEL org.opencontainers.image.description "Gentoo build for libptpmgmt"
+COPY gentoo/pkgs_use /etc/portage/package.use/pkgs
+RUN emerge-webrsync && emerge -tvuD @world &&\
+    emerge -tv dev-lang/go app-portage/portage-utils app-shells/bash\
+    app-admin/sudo app-admin/chrpath app-editors/vim app-misc/jq\
+    app-text/discount app-text/doxygen sys-devel/m4\
+    sys-apps/fakeroot sys-apps/which dev-build/libtool\
+    dev-build/make dev-util/pkgconf dev-util/astyle dev-util/patchelf\
+    dev-vcs/git dev-libs/criterion dev-cpp/gtest dev-debug/gdb\
+    dev-lang/swig dev-lang/perl dev-lang/ruby dev-lang/python\
+    dev-lang/lua dev-lua/luaposix dev-lang/php dev-lang/tcl sys-devel/gcc\
+    dev-util/cppcheck media-gfx/graphviz perl-core/Test-Simple\
+    app-text/texlive-core dev-texlive/texlive-fontutils &&\
+    sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
+    mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\
+    cd librtpi && autoreconf -i &&\
+    ./configure --prefix=/usr --includedir=/usr/include --libdir=/usr/lib64 &&\
+    make install &&\
+    cd /t0 && git clone https://gitlab.com/chrony/libchrony &&\
+    cd libchrony && make install includedir=/usr/include libdir=/usr/lib64 &&\
+    cd && rm -Rf /t0
+ARG UID USER COOKIE SRC DST

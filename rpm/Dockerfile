@@ -10,8 +10,7 @@
 FROM fedora
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "RPM build for libptpmgmt"
-ARG UID
-ARG USER
+ARG UID USER
 RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sudo automake autoconf yum-utils rpm-build dnf-utils fedora-packager\
     rpmdevtools doxygen graphviz perl php-devel ruby ruby-devel swig astyle\
@@ -20,16 +19,13 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     openssl-devel libgcrypt-devel gnutls-devel nettle-devel perl-Test-Class\
     libfastjson libfastjson-devel json-c-devel m4 rubygem-test-unit gdb\
     texlive-epstopdf ghostscript php-phpunit-PHPUnit perl-File-Touch jq\
-    chrpath patchelf discount && dnf clean all &&\
+    chrpath patchelf discount gmock-devel cppcheck && dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
-    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers;\
-    mkdir -p /tmp/1;cd /tmp/1;git clone https://github.com/linux-rt/librtpi;\
-    cd librtpi;autoreconf --i;\
-    ./configure --prefix=/usr --includedir=/usr/include --libdir=/usr/lib64;\
-    make install;cd /tmp;rm -Rf 1
+    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+COPY rpm/pkgs /tmp
+RUN dnf install -y /tmp/*.rpm && rm /tmp/*.rpm
 ARG COOKIE
 RUN dnf upgrade -y
-ARG SRC
-ARG DST
+ARG SRC DST
 COPY --chown=builder $SRC $DST

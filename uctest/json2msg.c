@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief Json2msg class unit tests
+ * @brief Json2msg wrapper class unit tests
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
  * @copyright © 2022 Erez Geva
@@ -2405,4 +2405,5 @@ Test(Json2msgTest, CMLDS_INFO_NP)
     cr_expect(eq(i64, t->meanLinkDelay.scaledNanoseconds, 201548321LL));
     cr_expect(eq(i32, t->scaledNeighborRateRatio, 1842));
     cr_expect(eq(i32, t->as_capable, 1));
+    m->free(m);
 }

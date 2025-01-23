@@ -30,5 +30,5 @@ utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so $(TCL_D)/pkgIndex.tcl
 
 install_tcl:
 	$Q$(INSTALL_LIB) -D $(TCL_LNAME).so -t $(TCLDIR)
-	printf '$(hash) $(SPDXLI) LGPL-3.0-or-later\n$(hash) $(SPDXCY)\n\n$(pkgIndex)' >\
+	printf '$(hash) $(SPDXLI) $(SPDXLGPL)\n$(hash) $(SPDXCY)\n\n$(pkgIndex)' >\
 	  $(TCLDIR)/pkgIndex.tcl

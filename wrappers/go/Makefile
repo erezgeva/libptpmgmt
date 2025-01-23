@@ -10,6 +10,7 @@
 
 GO_D:=wrappers/go
 # Go environment
+ifneq ($(call which,$(GO_BIN)),)
 CGO_CXXFLAGS!=$(GO_BIN) env CGO_CXXFLAGS
 CGO_CXXFLAGS+=$(CXXFLAGS_GO) -I$(PWD)/$(SRC) -I$(PWD)/$(PUB)
 CGO_CXXFLAGS+=-I$(PWD)/$(GO_D)
@@ -24,6 +25,7 @@ ifdef GOARCH
 export CXX CC GOARCH
 export CGO_ENABLED=1
 endif
+endif #GO_BIN
 go_SFLAGS+=-go
 
 GO_SRC:=$(GO_D)/$(SWIG_LNAME)/$(SWIG_NAME).cpp
@@ -55,5 +57,5 @@ install_go:
 	cp -a $(GO_D)/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
 	$(SED) -i 's@^\s*$(c_inc) "\([^.]\+\.h\)"@$(c_inc) <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
-	$(SED) -i '1 i/* $(SPDXLI) MIT\n   $(SPDXCY) */\n'\
+	$(SED) -i '1 i/* $(SPDXLI) $(SPDXBSD3)\n   $(SPDXCY) */\n'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/*

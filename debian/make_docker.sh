@@ -9,12 +9,6 @@
 ###############################################################################
 set_dist_args()
 {
-  SRC_CFG="deb $repo $1 main\ndeb $repo $1-updates main\n"
-  case $1 in
-    *)
-      SRC_CFG+="deb $repo-security $1-security main\n"
-      ;;
-  esac
   dpkgs="$dpkgs_all"
   local -n d=dpkgs_$1
   for m in $d; do
@@ -40,10 +34,10 @@ main()
   local -r arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
   local -r dpkgs_bookworm=''
-  local -r dpkgs_trixie='librtpi-dev@'
+  local -r dpkgs_trixie='librtpi-dev@ libgcrypt20-dev@'
   local dpkgs_arch='libstdc++6 pkgconf
     libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
-    libfastjson-dev libgtest-dev lua-posix libjson-c-dev
+    libfastjson-dev libgtest-dev libgmock-dev lua-posix libjson-c-dev
     libssl-dev libgcrypt20 libgnutls28-dev nettle-dev'
   for n in 1-0 {2..4};do dpkgs_arch+=" liblua5.$n-dev";done
   local no_cache use_srv srv_ns args
@@ -69,7 +63,7 @@ main()
     n="$(dpkg-architecture -a$a -qDEB_TARGET_GNU_TYPE 2> /dev/null)"
     dpkgs_all+=" g++-$n"
   done
-  local SRC_CFG dpkgs all_args="$args"
+  local dpkgs all_args="$args"
   make_args repo arch
   all_args+="$args"
   for dist in $names; do
@@ -77,7 +71,6 @@ main()
     set_dist_args $dist
     cmd docker build $no_cache -f "$base_dir/Dockerfile" $all_args $args\
         --build-arg ARCHS="$archs"\
-        --build-arg SRC_CFG="$SRC_CFG"\
         --build-arg DPKGS="$dpkgs" -t $bname$dist$ename .
     if [[ -n "$use_srv" ]]; then
       cmd docker push $bname$dist$ename

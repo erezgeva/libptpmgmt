@@ -10,7 +10,7 @@
 
 PY_D:=wrappers/python
 PY_BASE:=$(PY_D)/$(SWIG_NAME)
-PY_LIB_NAME:=_ptpmgmt
+PY_LIB_NAME:=_$(SWIG_LNAME)
 python_SFLAGS+=-python
 ifeq ($(PY_USE_S_THRD),)
 python_SFLAGS+=-threads -DSWIG_USE_MULTITHREADS
@@ -34,7 +34,7 @@ install_python3:
 	  $(DESTDIR)$(PY3_SITE)/$(PY_LIB_NAME)$(PY3_EXT)
 	$(INSTALL_LIB) $(PY_D)/$(SWIG_LNAME).py $(DESTDIR)$(PY3_SITE)
 	$(SED) -i "1 i$(hash) $(SPDXLI) $(SPDXLGPL)\n$(hash) $(SPDXCY)\n"\
-	  $(DESTDIR)$(PY3_SITE)/*.py
+	  $(DESTDIR)$(PY3_SITE)/$(SWIG_LNAME).py
 # Used by gentoo to byte-compile
 compile_py3:
 	$Q$(PY3_BIN) -m compileall -q -f -d "$(PY3_SITE)" "$(DESTDIR)$(PY3_SITE)"

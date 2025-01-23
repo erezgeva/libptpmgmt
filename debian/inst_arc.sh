@@ -10,15 +10,23 @@
 ###############################################################################
 main()
 {
- if [[ -n "$1" ]]; then
+ local -r a="$1"
+ if [[ -n "$a" ]]; then
   local n
-  local -r a="$1"
   local -a l
   for n in libgcrypt20-dev
-  do l+=($n:$a);done
-  export DEBIAN_FRONTEND=noninteractive
-  apt-get update
-  apt-get install -y --no-install-recommends ${l[@]}
+  do
+   local p="$n:$a"
+   if ! dpkg-query -s $p 2>/dev/null |\
+    grep -q '^Status: install ok installed'; then
+    l+=($p)
+   fi
+  done
+  if [[ ${#l[@]} -gt 0 ]]; then
+   export DEBIAN_FRONTEND=noninteractive
+   apt-get update
+   apt-get install -y --no-install-recommends ${l[@]}
+  fi
  fi
 }
 main "$@"

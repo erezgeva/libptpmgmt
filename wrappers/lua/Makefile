@@ -59,6 +59,5 @@ install_lua:
 	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
 	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME);)
 ifdef LUA_VER
-	$(INSTALL_FOLDER) $(DLIBDIR)/lua/$(LUA_VER)
-	$(INSTALL_LIB) -D $(LUA_LIB) $(DLIBDIR)/lua/$(LUA_VER)/$(SWIG_LIB_NAME)
+	$(INSTALL_LIB) -D $(LUA_D)/*.so -t $(DLIBDIR)/lua/$(LUA_VER)
 endif # LUA_VER

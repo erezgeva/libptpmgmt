@@ -8,10 +8,11 @@
 #
 ###############################################################################
 
-perl_SFLAGS+=-perl5 -module PtpMgmtLib
+perl_SFLAGS+=-perl5
 PERL_D:=wrappers/perl
+$(PERL_D)/$(SWIG_NAME).cpp: perl_SFLAGS+=-module $(SWIG_NAME)
 $(PERL_D)/$(SWIG_NAME).o: $(PERL_D)/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(call LLC,$(CXXFLAGS_PERL) -Iwrappers/perl $(PERL5_INC_FLAGS))
+	$Q$(call LLC,$(CXXFLAGS_PERL) -I$(PERL_D) $(PERL5_INC_FLAGS))
 PERL_SO_DIR:=$(PERL_D)/auto/$(SWIG_NAME)
 $(PERL_SO_DIR):
 	$Q$(MKDIR_P) $@
@@ -26,8 +27,8 @@ utest_perl5: $(LIB_NAME_SO) $(PERL_SO_DIR)/$(SWIG_NAME).so
 endif
 
 install_perl5:
-	$Q$(INSTALL_LIB) -D $(PERL_D)/auto/*/*.so -t\
-	  $(DESTDIR)$(PERL5_SITE)/auto/$(SWIG_NAME)
+	$(Q)$(INSTALL_FOLDER) $(DESTDIR)$(PERL5_SITE)
+	cp -a $(PERL_D)/auto $(DESTDIR)$(PERL5_SITE)
 	$(INSTALL_LIB) $(PERL_D)/*.pm $(DESTDIR)$(PERL5_SITE)
-	$(SED) -i "1 i$(hash) $(SPDXLI) LGPL-3.0-or-later\n$(hash) $(SPDXCY)\n"\
-	  $(DESTDIR)$(PERL5_SITE)/*.pm
+	$(SED) -i "1 i$(hash) $(SPDXLI) $(SPDXLGPL)\n$(hash) $(SPDXCY)\n"\
+	  $(DESTDIR)$(PERL5_SITE)/$(SWIG_NAME).pm

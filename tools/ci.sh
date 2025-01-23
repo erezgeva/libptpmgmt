@@ -74,6 +74,11 @@ check_clean()
    printf "$color_red$left"
    mquit "Make $name left unused files"
  fi
+ gstatus="$(git status -s)"
+ if [[ -n "$gstatus" ]]; then
+   printf "$color_red$gstatus"
+   mquit "Make $name change files"
+ fi
 }
 test_clean()
 {
@@ -94,7 +99,7 @@ main()
  cd "$(realpath "$(dirname "$0")/..")"
  source tools/util.sh
  local -i jobs=1 # Number of Make parallel jobs
- local nocolor
+ local nocolor gstatus
  if [[ "$GITHUB_ACTIONS" = "true" ]] && [[ `id -u` -ne 0 ]]; then
    nocolor=yes
  fi
@@ -153,7 +158,8 @@ main()
  fi
  ### run reuse lint ###
  if $have_git && [[ -n "$(which reuse 2> /dev/null)" ]]; then
-   local -ri reuse_ver="$(reuse --version | sed 's/^reuse\s*//;s/\..*//')"
+   local -ri reuse_ver="$(reuse --version | head -1 |\
+     sed 's/version//;s/,//;s/^reuse\s*//;s/\..*//')"
    echo " * Check files licenses with 'reuse'"
    if [[ $reuse_ver -ge 2 ]]; then
      # reuse 2.1 can detect copyright better, suppress warnings

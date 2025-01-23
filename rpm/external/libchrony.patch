@@ -1,0 +1,42 @@
+diff --git a/Makefile b/Makefile
+index 96f2917..f4b74b0 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,15 +1,15 @@
+-CC = cc
+-CFLAGS = -O2 -Wall -g
+-LDFLAGS = -lm
+-INSTALL = install
+-LIBTOOL = libtool
++CC ?= cc
++CFLAGS += -O2 -Wall -g
++LDFLAGS += -lm
++INSTALL ?= install
++LIBTOOL ?= libtool
+ 
+ lib = libchrony.la
+-lib_version = 0:0:0
++lib_version = 0:1:0
+ 
+-prefix = /usr/local
+-libdir = $(prefix)/lib
+-includedir = $(prefix)/include
++prefix ?= /usr/local
++libdir ?= $(prefix)/lib
++includedir ?= $(prefix)/include
+ 
+ objs = $(patsubst %.c,%.o,$(wildcard *.c))
+ headers = chrony.h
+@@ -31,9 +31,9 @@ fuzz: fuzz.o $(lib)
+ 	$(LIBTOOL) --tag=CC --mode=link $(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+ 
+ install: $(lib)
+-	mkdir -p $(libdir) $(includedir)
+-	$(LIBTOOL) --mode=install $(INSTALL) $(lib) $(libdir)
+-	$(INSTALL) -m644 $(headers) $(includedir)
++	mkdir -p $(DESTDIR)/$(libdir) $(DESTDIR)/$(includedir)
++	$(LIBTOOL) --mode=install $(INSTALL) $(lib) $(DESTDIR)/$(libdir)
++	$(INSTALL) -m644 $(headers) $(DESTDIR)/$(includedir)
+ 
+ clean:
+ 	-rm -rf $(lib) $(examples) *.o *.lo .deps .libs

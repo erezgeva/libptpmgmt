@@ -35,17 +35,22 @@ void useRoot(bool n) {}
 sysFuncDec(int, printf, const char *, ...);
 sysFuncDec(int, __printf_chk, int, const char *, ...);
 sysFuncDec(int, puts, const char *);
+sysFuncDec(int, vprintf, const char *, va_list);
+sysFuncDec(int, __vprintf_chk, int, const char *, va_list);
 void initLibSys(void)
 {
     bool fail = false;
     sysFuncAgn(int, printf, const char *, ...);
     sysFuncAgn(int, __printf_chk, int, const char *, ...);
     sysFuncAgn(int, puts, const char *);
+    sysFuncAgn(int, vprintf, const char *, va_list);
+    sysFuncAgn(int, __vprintf_chk, int, const char *, va_list);
     if(fail)
         fprintf(stderr, "Fail obtain address of functions\n");
     useTestMode(false);
 }
 /*****************************************************************************/
+#define VA_PRINT(ap, format) _vprintf(ap, format)
 #define retTest(name, ...)\
     if(!testMode)\
         return _##name(__VA_ARGS__)
@@ -54,13 +59,26 @@ void initLibSys(void)
     va_list ap;\
     va_start(ap, format);\
     if(!testMode)\
-        ret = vprintf(format, ap);\
+        ret = VA_PRINT(format, ap);\
     else {\
         char str[1024];\
         ret = vsnprintf(str, sizeof(str), format, ap);\
         pmc_out += str;\
     }\
     va_end(ap);\
+    return ret
+#define V_PRINTF(format, ap)\
+    int ret = 0;\
+    va_list ap1;\
+    va_copy(ap1, ap);\
+    if(!testMode)\
+        ret = VA_PRINT(format, ap1);\
+    else {\
+        char str[1024];\
+        ret = vsnprintf(str, sizeof(str), format, ap1);\
+        pmc_out += str;\
+    }\
+    va_end(ap1);\
     return ret
 /*****************************************************************************/
 int printf(const char *format, ...)
@@ -75,4 +93,12 @@ int puts(const char *s)
 {
     retTest(puts, s);
     return 0;
+}
+int vprintf(const char *format, va_list ap)
+{
+    V_PRINTF(format, ap);
+}
+int __vprintf_chk(int __flag, const char *format, va_list ap)
+{
+    V_PRINTF(format, ap);
 }

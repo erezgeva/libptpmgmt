@@ -76,12 +76,14 @@ void Options::useDefOption()
     m_net_opts = "u246";
     m_all_opts += m_net_opts;
     m_all_short_opts += m_net_opts;
-    helpVec.push_back(helpStore(" Network Transport\n"));
-    helpVec.push_back(helpStore(" -2", "IEEE 802.3"));
-    helpVec.push_back(helpStore(" -4", "UDP IPV4 (default)"));
-    helpVec.push_back(helpStore(" -6", "UDP IPV6"));
-    helpVec.push_back(helpStore(" -u", "UDS local\n"));
-    helpVec.push_back(helpStore(" Other Options\n"));
+    size_t sz = helpVec.size();
+    helpVec.reserve(sz + std::max((size_t)6, sz));
+    helpVec.emplace_back(" Network Transport\n");
+    helpVec.emplace_back(" -2", "IEEE 802.3");
+    helpVec.emplace_back(" -4", "UDP IPV4 (default)");
+    helpVec.emplace_back(" -6", "UDP IPV6");
+    helpVec.emplace_back(" -u", "UDS local\n");
+    helpVec.emplace_back(" Other Options\n");
     helpUpdate = true;
     for(Pmc_option *cur = startOptions; cur->short_name; cur++)
         insert(*cur);
@@ -114,7 +116,7 @@ bool Options::insert(const Pmc_option &opt)
         h.addEnd(opt.help_msg);
         if(opt.have_arg && !opt.def_val.empty())
             h.addEnd(", default ").addEnd(opt.def_val);
-        helpVec.push_back(h);
+        helpVec.push_back(std::move(h));
         helpUpdate = true;
     }
     if(opt.have_arg)
