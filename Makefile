@@ -819,7 +819,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.mod wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
   */$(LIB_SRC) tools/doxygen*cfg\
-  */*/$(LIB_SRC)\
+  */*/$(LIB_SRC))\
   $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/python/$(SWIG_LNAME).py\
@@ -827,7 +827,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   .phpunit.result.cache wrappers/go/allocTlv.i wrappers/go/gtest/gtest\
   $(HEADERS_GEN) .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
-  archlinux/*/ obj-*/ _site $(OBJ_DIR)\
+  archlinux/*/ obj-*/)) _site $(OBJ_DIR)\
   $(LIB_D) wrappers/perl/auto\
   wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
