@@ -15,7 +15,9 @@
 #include "proxy/notification_msg.hpp"
 #include "proxy/thread.hpp"
 
-#include "init.h" /* libptpmgmt */
+/* libptpmgmt */
+#include "msg.h"
+#include "sock.h"
 
 #include <stdio.h>
 #include <string>
@@ -28,15 +30,12 @@ using namespace ptpmgmt;
 
 static const size_t bufSize = 2000;
 static char buf[bufSize];
-static Init obj;
-static ptpmgmt::Message &msg = obj.msg();
+static ptpmgmt::Message msg;
 static ptpmgmt::Message msgu;
-static SockBase *sk;
-
-static std::unique_ptr<SockBase> m_sk;
-
-SUBSCRIBE_EVENTS_NP_t d;
-ptp_event pe = { 0, {0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0};
+static ptpmgmt::SockUnix sku;
+static ptpmgmt::SockBase *sk = &sku;
+static ptpmgmt::SUBSCRIBE_EVENTS_NP_t events_tlv;
+ptp_event clockEvent = { 0 };
 
 void notify_client()
 {
@@ -69,36 +68,37 @@ void event_handle()
     switch(msg.getTlvId()) {
         case TIME_STATUS_NP: {
             const auto *timeStatus = static_cast<const TIME_STATUS_NP_t *>(data);
-            pe.master_offset = timeStatus->master_offset;
-            memcpy(pe.gm_identity, timeStatus->gmIdentity.v,
-                sizeof(pe.gm_identity));
+            clockEvent.master_offset = timeStatus->master_offset;
+            memcpy(clockEvent.gm_identity, timeStatus->gmIdentity.v,
+                sizeof(clockEvent.gm_identity));
             /* Uncomment for debug data printing */
             //printf("master_offset = %ld, synced_to_primary_clock = %d\n",
-            //      pe.master_offset, pe.synced_to_primary_clock);
+            //      clockEvent.master_offset, clockEvent.synced_to_primary_clock);
             //printf("gm_identity = %02x%02x%02x.%02x%02x.%02x%02x%02x\n\n",
-            //       pe.gm_identity[0], pe.gm_identity[1],pe.gm_identity[2],
-            //       pe.gm_identity[3], pe.gm_identity[4],
-            //       pe.gm_identity[5], pe.gm_identity[6],pe.gm_identity[7]);
+            //       clockEvent.gm_identity[0], clockEvent.gm_identity[1],
+            //       clockEvent.gm_identity[2], clockEvent.gm_identity[3],
+            //       clockEvent.gm_identity[4], clockEvent.gm_identity[5],
+            //       clockEvent.gm_identity[6], clockEvent.gm_identity[7]);
             break;
         }
         case PORT_PROPERTIES_NP: /* Get initial port state when Proxy starts */
         case PORT_DATA_SET: {
             const auto *portDataSet = static_cast<const PORT_DATA_SET_t *>(data);
             portState_e portState = portDataSet->portState;
-            pe.synced_to_primary_clock = false;
+            clockEvent.synced_to_primary_clock = false;
             if(portState == SLAVE)
-                pe.synced_to_primary_clock = true;
+                clockEvent.synced_to_primary_clock = true;
             else if(portState == MASTER) {
                 /* Set own clock identity as GM identity */
-                pe.master_offset = 0;
-                memcpy(pe.gm_identity,
+                clockEvent.master_offset = 0;
+                memcpy(clockEvent.gm_identity,
                     portDataSet->portIdentity.clockIdentity.v,
-                    sizeof(pe.gm_identity));
+                    sizeof(clockEvent.gm_identity));
                 break;
             } else if(portState <= PASSIVE) {
                 /* Reset master offset and GM identity */
-                pe.master_offset = 0;
-                memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
+                clockEvent.master_offset = 0;
+                memset(clockEvent.gm_identity, 0, sizeof(clockEvent.gm_identity));
             }
             break;
         }
@@ -106,11 +106,11 @@ void event_handle()
             const auto *cmldsInfo = static_cast<const CMLDS_INFO_NP_t *>(data);
             bool asCapable = cmldsInfo->as_capable > 0 ? true : false;
             /* Skip client notification if no event changes */
-            if(pe.as_capable == asCapable) {
+            if(clockEvent.as_capable == asCapable) {
                 PrintDebug("Ignore unchanged as_capable");
                 return;
             }
-            pe.as_capable = asCapable;
+            clockEvent.as_capable = asCapable;
             break;
         }
         default:
@@ -129,7 +129,7 @@ static inline bool msg_send(bool local)
         m = &msg;
     MNG_PARSE_ERROR_e err = m->build(buf, bufSize, seq);
     if(err != MNG_PARSE_ERROR_OK) {
-        fprintf(stderr, "build error %s\n", msgu.err2str_c(err));
+        fprintf(stderr, "build error %s\n", msg.err2str_c(err));
         return false;
     }
     bool ret;
@@ -180,18 +180,16 @@ static inline bool msg_set_action(bool local, mng_vals_e id)
  */
 bool event_subscription(clkmgr_handle **handle)
 {
-    memset(d.bitmask, 0, sizeof d.bitmask);
-    d.duration = UINT16_MAX;
-    d.setEvent(NOTIFY_TIME_SYNC);
-    d.setEvent(NOTIFY_PORT_STATE);
-    d.setEvent(NOTIFY_CMLDS);
-    if(!msg.setAction(SET, SUBSCRIBE_EVENTS_NP, &d)) {
+    memset(events_tlv.bitmask, 0, sizeof events_tlv.bitmask);
+    events_tlv.duration = UINT16_MAX;
+    events_tlv.setEvent(NOTIFY_TIME_SYNC);
+    events_tlv.setEvent(NOTIFY_PORT_STATE);
+    events_tlv.setEvent(NOTIFY_CMLDS);
+    if(!msg.setAction(SET, SUBSCRIBE_EVENTS_NP, &events_tlv)) {
         fprintf(stderr, "Fail set SUBSCRIBE_EVENTS_NP\n");
         return false;
     }
     bool ret = msg_send(false);
-    /* Remove referance to local SUBSCRIBE_EVENTS_NP_t */
-    msg.clearData();
     return ret;
 }
 
@@ -234,7 +232,7 @@ void *ptp4l_event_loop(void *arg)
     }
     msg_set_action(false, PORT_PROPERTIES_NP);
     event_subscription(nullptr);
-    while(1) {
+    for(;;) {
         if(sk->poll(timeout_ms) > 0) {
             const auto cnt = sk->rcv(buf, bufSize);
             if(cnt > 0) {
@@ -243,16 +241,17 @@ void *ptp4l_event_loop(void *arg)
                     event_handle();
             }
         } else {
-            while(1) {
+            for(;;) {
                 if(event_subscription(nullptr))
                     break;
                 if(!lost_connection) {
                     PrintError("Lost connection to ptp4l.");
                     PrintInfo("Resetting clkmgr's ptp4l data.");
-                    pe.master_offset = 0;
-                    memset(pe.gm_identity, 0, sizeof(pe.gm_identity));
-                    pe.synced_to_primary_clock = false;
-                    pe.as_capable = 0;
+                    clockEvent.master_offset = 0;
+                    memset(clockEvent.gm_identity, 0,
+                        sizeof(clockEvent.gm_identity));
+                    clockEvent.synced_to_primary_clock = false;
+                    clockEvent.as_capable = 0;
                     notify_client();
                     lost_connection = true;
                 }
@@ -283,27 +282,20 @@ void *ptp4l_event_loop(void *arg)
  */
 int Connect::connect(uint8_t transport_specific)
 {
-    std::string uds_address;
-    SockUnix *sku = new SockUnix;
-    if(sku == nullptr)
-        return -1;
-    m_sk.reset(sku);
-    pe.ptp4l_id = 1;
-    uds_address = "/var/run/ptp4l";
-    if(!sku->setDefSelfAddress() || !sku->init() ||
-        !sku->setPeerAddress(uds_address))
+    clockEvent.ptp4l_id = 1;
+    const char *uds_address = "/var/run/ptp4l";
+    if(!sku.setDefSelfAddress() || !sku.init() ||
+        !sku.setPeerAddress(uds_address))
         return -1;
     /* Set Transport Specific */
     MsgParams prms = msg.getParams();
     prms.transportSpecific = transport_specific;
     msg.updateParams(prms);
-    sk = m_sk.get();
     handle_connect();
     return 0;
 }
 
 void Connect::disconnect()
 {
-    obj.close();
     sk->close();
 }

@@ -282,7 +282,7 @@ INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
 SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */github* */*.opt configure.ac src/*.m4 */*.md t*/*.sh */*/*.sh swig/*/*\
-  */*.i */*/msgCall.i */*/warn.i clkmgr/*/*.i man/*\
+  */*.i */*/msgCall.i */*/warn.i $(CLKMGR_DIR)/*/*.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile [wc]*/*/Makefile\
   $(CLKMGR_DIR)/sample/*.c* $(CLKMGR_DIR)/image/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\

@@ -21,7 +21,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-extern ptp_event pe;
+extern ptp_event clockEvent;
 
 /**
  * Create the ProxyConnectMessage object
@@ -69,7 +69,7 @@ PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
     sessionId_t newSessionId = this->getc_sessionId();
     PrintDebug("Processing proxy connect message");
     /* Check whether there is ptp4l available */
-    if(!pe.ptp4l_id) {
+    if(!clockEvent.ptp4l_id) {
         PrintError("ptp4l_id is not available.");
         return false;
     }
@@ -100,7 +100,7 @@ BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
     if(!CommonConnectMessage::makeBuffer(TxContext))
         return false;
     /* Add ptp4l_id here */
-    if(!WRITE_TX(FIELD, pe.ptp4l_id, TxContext))
+    if(!WRITE_TX(FIELD, clockEvent.ptp4l_id, TxContext))
         return false;
     return true;
 }

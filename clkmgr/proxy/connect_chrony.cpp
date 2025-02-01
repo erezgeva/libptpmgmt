@@ -26,10 +26,9 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-chrony_session *s;
-int fd;
-int report_index = 0;
-extern ptp_event pe;
+static int fd;
+static int report_index = 0;
+extern ptp_event clockEvent;
 
 struct ThreadArgs {
     chrony_session *s;
@@ -101,18 +100,18 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index)
         const char *field_name = chrony_get_field_name(s, j);
         if(field_name != nullptr && strcmp(field_name, "Last offset") == 0) {
             float second = (chrony_get_field_float(s, j) * 1e9);
-            pe.chrony_offset = (int)second;
+            clockEvent.chrony_offset = (int)second;
             //printf("CHRONY master_offset = %ld \n",
-            //      pe.chrony_offset);
+            //      clockEvent.chrony_offset);
         }
         if(field_name != nullptr && strcmp(field_name, "Reference ID") == 0)
-            pe.chrony_reference_id = chrony_get_field_uinteger(s, j);
+            clockEvent.chrony_reference_id = chrony_get_field_uinteger(s, j);
         if(field_name != nullptr && strcmp(field_name, "Poll") == 0) {
             int32_t interval = static_cast<int32_t>
                 (static_cast<int16_t>(chrony_get_field_integer(s, j)));
-            pe.polling_interval = std::pow(2.0, interval) * 1000000;
+            clockEvent.polling_interval = std::pow(2.0, interval) * 1000000;
             //printf("CHRONY polling_interval = %d us\n",
-            //      pe.polling_interval);}
+            //      clockEvent.polling_interval);}
         }
     }
     chrony_notify_client();
@@ -123,13 +122,13 @@ void *monitor_chronyd(void *arg)
 {
     ThreadArgs *args = (ThreadArgs *)arg;
     chrony_session *s = args->s;
-    while(true) {
+    for(;;) {
         if(chrony_init_session(&s, fd) == CHRONY_OK) {
             for(int i = 0; i < 2; i++)
                 subscribe_to_chronyd(s, i);
         }
         // Sleep duration is based on chronyd polling interval
-        usleep(pe.polling_interval);
+        usleep(clockEvent.polling_interval);
     }
 }
 
