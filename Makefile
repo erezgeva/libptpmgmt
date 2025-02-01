@@ -298,7 +298,7 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/*\
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[chj]* uctest/*.[ch]* .github .gitlab $(CLKMGR_DIR)/sample\
-  $(CLKMGR_DIR)/utest/*.cpp,':!/:$n')\
+  $(CLKMGR_DIR)/tool $(CLKMGR_DIR)/utest/*.cpp,':!/:$n')\
   ':!:*.gitignore' ':!*/*/test.*' ':!*/*/clkmgr_test.*' ':!*/*/utest.*'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))
@@ -876,7 +876,7 @@ CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]
   wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
   ltmain.sh $(wildcard src/config.h* config.*)
-DISTCLEAN_DIRS:=autom4te.cache m4
+DISTCLEAN_DIRS:=autom4te.cache m4 $(CLKMGR_DIR)/sim
 
 clean: deb_clean
 	$(Q_CLEAN)$(RM) $(CLEAN)
