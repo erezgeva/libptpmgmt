@@ -28,3 +28,7 @@ License: LGPL-2.1-or-later
 Files: rpm/external/libchrony.patch
 Copyright: 2023 © Miroslav Lichvar
 License: LGPL-2.1-or-later
+
+Files: clkmgr/tool/clknetsim/*
+Copyright: 2025 © Erez Geva
+License: GPL-2.0-or-later
