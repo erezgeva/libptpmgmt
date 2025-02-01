@@ -18,10 +18,13 @@
 /* libptpmgmt */
 #include "msg.h"
 #include "sock.h"
+#include "err.h"
 
 #include <stdio.h>
 #include <string>
+#include <stdlib.h>
 #include <unistd.h>
+#include <atomic>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -31,12 +34,22 @@ using namespace ptpmgmt;
 static const size_t bufSize = 2000;
 static char buf[bufSize];
 static ptpmgmt::Message msg;
-static ptpmgmt::Message msgu;
 static ptpmgmt::SockUnix sku;
 static ptpmgmt::SockBase *sk = &sku;
 static ptpmgmt::SUBSCRIBE_EVENTS_NP_t events_tlv;
+static atomic<bool> sk_init(false);
 ptp_event clockEvent = { 0 };
 
+static inline bool connect_uds()
+{
+    const char *uds_address = getenv("CLKMGR_UDS_ADDRESS");
+    if(uds_address == nullptr || *uds_address == 0)
+        uds_address = "/var/run/ptp4l";
+    bool ret = sku.setDefSelfAddress() && sku.init() &&
+        sku.setPeerAddress(uds_address);
+    sk_init.store(ret);
+    return ret;
+}
 void notify_client()
 {
     PrintDebug("[clkmgr]::notify_client");
@@ -65,6 +78,9 @@ void notify_client()
 void event_handle()
 {
     const BaseMngTlv *data = msg.getData();
+    #if 0
+    PrintDebug(string("ptp4l handle: ") + msg.mng2str_c(msg.getTlvId()));
+    #endif
     switch(msg.getTlvId()) {
         case TIME_STATUS_NP: {
             const auto *timeStatus = static_cast<const TIME_STATUS_NP_t *>(data);
@@ -124,43 +140,29 @@ void event_handle()
     notify_client();
 }
 
-static inline bool msg_send(bool local)
+static inline bool msg_send(mng_vals_e id)
 {
     static int seq = 0;
-    ptpmgmt::Message *m;
-    if(local)
-        m = &msgu;
-    else
-        m = &msg;
-    MNG_PARSE_ERROR_e err = m->build(buf, bufSize, seq);
+    MNG_PARSE_ERROR_e err = msg.build(buf, bufSize, seq);
     if(err != MNG_PARSE_ERROR_OK) {
-        PrintError(string("build error ") + msg.err2str_c(err));
+        PrintError(string("ptp4l msg build error ") + msg.err2str_c(err));
         return false;
     }
-    bool ret;
-    ret = sk->send(buf, m->getMsgLen());
-    if(!ret) {
-        #if 0
-        PrintError("send failed");
-        #endif
-        return false;
+    bool ret = sk->send(buf, msg.getMsgLen());
+    if(ret) {
+        seq++;
+        return true;
     }
-    seq++;
-    return true;
+    #if 0
+    PrintError("ptp4l send failed: " + Error::getError() + ", ID: " +
+        msg.mng2str_c(id));
+    #endif
+    return false;
 }
 
-static inline bool msg_set_action(bool local, mng_vals_e id)
+static inline bool msg_send_id(mng_vals_e id)
 {
-    bool ret;
-    if(local)
-        ret = msgu.setAction(GET, id);
-    else
-        ret = msg.setAction(GET, id);
-    if(!ret) {
-        PrintError(string("Fail get ") + msg.mng2str_c(id));
-        return false;
-    }
-    return msg_send(local);
+    return msg.setAction(GET, id) && msg_send(id);
 }
 
 /**
@@ -185,19 +187,14 @@ static inline bool msg_set_action(bool local, mng_vals_e id)
  *         sent, false otherwise.
  *
  */
-bool event_subscription(clkmgr_handle **handle)
+bool event_subscription(clkmgr_handle **handle = nullptr)
 {
-    memset(events_tlv.bitmask, 0, sizeof events_tlv.bitmask);
-    events_tlv.duration = UINT16_MAX;
-    events_tlv.setEvent(NOTIFY_TIME_SYNC);
-    events_tlv.setEvent(NOTIFY_PORT_STATE);
-    events_tlv.setEvent(NOTIFY_CMLDS);
-    if(!msg.setAction(SET, SUBSCRIBE_EVENTS_NP, &events_tlv)) {
+    const mng_vals_e id = SUBSCRIBE_EVENTS_NP;
+    if(!msg.setAction(SET, id, &events_tlv)) {
         PrintError("Fail set SUBSCRIBE_EVENTS_NP");
         return false;
     }
-    bool ret = msg_send(false);
-    return ret;
+    return msg_send(id);
 }
 
 /**
@@ -223,33 +220,44 @@ void *ptp4l_event_loop(void *arg)
 {
     const uint64_t timeout_ms = 1000;
     bool lost_connection = false;
+    // Ensure socket is initilized before we start
+    while(!sk_init.load())
+        sleep(1);
     for(;;) {
-        if(!msg_set_action(true, PORT_PROPERTIES_NP))
+        if(!msg_send_id(PORT_PROPERTIES_NP))
             break;
         ssize_t cnt;
-        sk->poll(timeout_ms);
-        cnt = sk->rcv(buf, bufSize);
-        if(cnt > 0) {
-            MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
-            if(err == MNG_PARSE_ERROR_OK) {
-                event_handle();
-                break;
+        if(sk->poll(timeout_ms)) {
+            cnt = sk->rcv(buf, bufSize);
+            if(cnt > 0) {
+                MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
+                if(err == MNG_PARSE_ERROR_OK) {
+                    event_handle();
+                    break;
+                }
             }
         }
+        #if 0
+        else
+            PrintError("ptp4l first poll fail: " + Error::getError());
+        #endif
     }
-    msg_set_action(false, PORT_PROPERTIES_NP);
-    event_subscription(nullptr);
+    msg_send_id(PORT_PROPERTIES_NP);
+    event_subscription();
     for(;;) {
-        if(sk->poll(timeout_ms) > 0) {
-            const auto cnt = sk->rcv(buf, bufSize);
+        if(sk->poll(timeout_ms)) {
+            const ssize_t cnt = sk->rcv(buf, bufSize);
             if(cnt > 0) {
                 MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
                 if(err == MNG_PARSE_ERROR_OK)
                     event_handle();
             }
         } else {
+            #if 0
+            PrintError("ptp4l poll fail: " + Error::getError());
+            #endif
             for(;;) {
-                if(event_subscription(nullptr))
+                if(event_subscription())
                     break;
                 if(!lost_connection) {
                     PrintError("Lost connection to ptp4l.");
@@ -290,14 +298,17 @@ void *ptp4l_event_loop(void *arg)
 int Connect::connect(uint8_t transport_specific)
 {
     clockEvent.ptp4l_id = 1;
-    const char *uds_address = "/var/run/ptp4l";
-    if(!sku.setDefSelfAddress() || !sku.init() ||
-        !sku.setPeerAddress(uds_address))
+    if(!connect_uds())
         return -1;
     /* Set Transport Specific */
     MsgParams prms = msg.getParams();
     prms.transportSpecific = transport_specific;
     msg.updateParams(prms);
+    // Prepare Events
+    events_tlv.duration = UINT16_MAX;
+    events_tlv.setEvent(NOTIFY_TIME_SYNC);
+    events_tlv.setEvent(NOTIFY_PORT_STATE);
+    events_tlv.setEvent(NOTIFY_CMLDS);
     handle_connect();
     return 0;
 }

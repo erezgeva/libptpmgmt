@@ -21,6 +21,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <cmath>
+#include <sys/stat.h>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -34,6 +35,14 @@ struct ThreadArgs {
     chrony_session *s;
     int report_index;
 };
+
+static inline bool isFileSock(const char *file)
+{
+    struct stat sb;
+    if(stat(file, &sb) != 0)
+        return false;
+    return (sb.st_mode & S_IFMT) == S_IFSOCK;
+}
 
 void chrony_notify_client()
 {
@@ -148,8 +157,13 @@ void start_monitor_thread(chrony_session *s, int report_index)
 
 void ConnectChrony::connect_chrony()
 {
+    const char *chronyd_addr = "/var/run/chrony/chronyd.sock";
+    if(!isFileSock(chronyd_addr)) {
+        PrintInfo("Skip chrony.");
+        return;
+    }
     /* connect to chronyd unix socket*/
-    fd = chrony_open_socket("/var/run/chrony/chronyd.sock");
+    fd = chrony_open_socket(chronyd_addr);
     chrony_session *s;
     if(chrony_init_session(&s, fd) == CHRONY_OK) {
         start_monitor_thread(s, report_index);
