@@ -286,6 +286,7 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */*.i */*/msgCall.i */*/warn.i $(CLKMGR_DIR)/*/*.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile [wc]*/*/Makefile\
   $(CLKMGR_DIR)/sample/*.c* $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/*\
+  $(CLKMGR_DIR)/tool/clknetsim/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp\
   $(CLKMGR_DIR)/proxy/clkmgr-proxy.s*)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
@@ -860,7 +861,7 @@ CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]
   wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
   ltmain.sh $(wildcard src/config.h* config.*)
-DISTCLEAN_DIRS:=autom4te.cache m4
+DISTCLEAN_DIRS:=autom4te.cache m4 $(CLKMGR_DIR)/sim
 
 clean: deb_clean
 	$(Q_CLEAN)$(RM) $(CLEAN)
