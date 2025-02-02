@@ -31,7 +31,7 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
     python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\
     texlive-font-utils libcriterion-dev jq clang gdb abi-dumper gawk wget\
-    abi-compliance-checker discount $DPKGS &&\
+    abi-compliance-checker discount chrony $DPKGS &&\
     apt-get upgrade -y --no-install-recommends &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini &&\
     useradd $USER -u $UID -m -G sudo &&\

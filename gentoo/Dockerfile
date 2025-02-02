@@ -18,6 +18,7 @@ ARG UID USER
 RUN emerge -tv llvm-core/clang &&\
     useradd $USER -u $UID -m -G users,wheel,portage &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN emerge -tv net-misc/chrony
 ARG COOKIE
 # RUN emerge --sync && emerge -tvuD @world
 ARG SRC DST
