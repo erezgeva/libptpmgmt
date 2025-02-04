@@ -78,7 +78,7 @@ COMMON_PRESEND_MESSAGE_TYPE(Message::presendMessage)
 
 bool Message::addMessageType(parseMsgMapElement_t mapping)
 {
-    std::map<msgId_t, BuildMessage_t>::size_type size = parseMsgMap.size();
+    auto size = parseMsgMap.size();
     parseMsgMap.insert(mapping);
     if(parseMsgMap.size() == size)
         return false;

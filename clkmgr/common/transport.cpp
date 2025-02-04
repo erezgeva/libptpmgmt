@@ -57,8 +57,8 @@ Transport::TransportWorkDesc Transport::registerWork(TransportWork work)
 {
     promise<FUTURE_TYPEOF(TransportWorkerState::retVal)> promise;
     workerList.push_back(TransportWorkerState(promise.get_future(), false));
-    workerList.back().thread = std::unique_ptr<thread>(
-            new std::thread(MessageQueue::dispatchLoop, std::move(promise),
+    workerList.back().thread = unique_ptr<thread>(
+            new thread(MessageQueue::dispatchLoop, std::move(promise),
                 workerList.back().exitVal,
                 TransportWork(work.first, std::move(work.second))));
     PrintDebug("Thread started");

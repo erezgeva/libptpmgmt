@@ -23,7 +23,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-std::vector<ClientState *> ClientNotificationMessage::ClientStateArray;
+vector<ClientState *> ClientNotificationMessage::ClientStateArray;
 
 /**
  * Create the ClientNotificationMessage object
@@ -63,18 +63,18 @@ void ClientNotificationMessage::addClientState(ClientState *newClientState)
 
 void ClientNotificationMessage::deleteClientState(ClientState *newClientState)
 {
-    ClientStateArray.erase(std::remove(ClientStateArray.begin(),
+    ClientStateArray.erase(remove(ClientStateArray.begin(),
             ClientStateArray.end(), newClientState), ClientStateArray.end());
 }
 
 void ClientNotificationMessage::handleEventUpdate(uint32_t eventSub,
     uint32_t eventFlag, bool &currentState, const bool &newState,
-    std::atomic<int> &eventCount, bool &compositeEvent)
+    atomic<int> &eventCount, bool &compositeEvent)
 {
     if(eventSub & eventFlag) {
         if(currentState != newState) {
             currentState = newState;
-            eventCount.fetch_add(1, std::memory_order_relaxed);
+            eventCount.fetch_add(1, memory_order_relaxed);
         }
         compositeEvent &= newState;
     }
@@ -82,7 +82,7 @@ void ClientNotificationMessage::handleEventUpdate(uint32_t eventSub,
 
 void ClientNotificationMessage::handleGmOffsetEvent(uint32_t eventSub,
     uint32_t eventFlag, int64_t &masterOffset, const uint32_t &newMasterOffset,
-    std::atomic<int> &eventCount, bool &withinBoundary, uint32_t lowerBound,
+    atomic<int> &eventCount, bool &withinBoundary, uint32_t lowerBound,
     uint32_t upperBound)
 {
     if(eventSub & eventFlag) {
@@ -92,7 +92,7 @@ void ClientNotificationMessage::handleGmOffsetEvent(uint32_t eventSub,
                 (masterOffset < upperBound);
             if(withinBoundary != isWithinBoundary) {
                 withinBoundary = isWithinBoundary;
-                eventCount.fetch_add(1, std::memory_order_relaxed);
+                eventCount.fetch_add(1, memory_order_relaxed);
             }
         }
     }
@@ -108,8 +108,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         uint32_t composite_eventSub;
         timespec last_notification_time = {};
         if(clock_gettime(CLOCK_REALTIME, &last_notification_time) == -1)
-            PrintDebug("ClientNotificationMessage::processMessage \
-                clock_gettime failed.\n");
+            PrintDebug("ClientNotificationMessage::processMessage "
+                "clock_gettime failed.");
         else
             currentClientState->set_last_notification_time(last_notification_time);
         Event_state &clkmgrCurrentState = currentClientState->get_eventState();
@@ -125,8 +125,8 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             ClientSubscribeMessage::getClientPtpEventCompositeStruct(
                 currentClientState->get_sessionId());
         if(client_ptp_data == nullptr) {
-            PrintDebug("ClientNotificationMessage::processMessage \
-                ERROR in obtaining client_ptp_data.\n");
+            PrintDebug("ClientNotificationMessage::processMessage "
+                "ERROR in obtaining client_ptp_data.");
             return false;
         }
         if((eventSub & eventGMOffset) &&
@@ -137,13 +137,13 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 if(!(client_ptp_data->master_offset_in_range)) {
                     client_ptp_data->master_offset_in_range = true;
                     client_ptp_data->offset_in_range_event_count.fetch_add(1,
-                        std::memory_order_relaxed);
+                        memory_order_relaxed);
                 }
             } else {
                 if((client_ptp_data->master_offset_in_range)) {
                     client_ptp_data->master_offset_in_range = false;
                     client_ptp_data->offset_in_range_event_count.fetch_add(1,
-                        std::memory_order_relaxed);
+                        memory_order_relaxed);
                 }
             }
         }
@@ -153,7 +153,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             client_ptp_data->synced_to_primary_clock =
                 proxy_data.synced_to_primary_clock;
             client_ptp_data->synced_to_gm_event_count.fetch_add(1,
-                std::memory_order_relaxed);
+                memory_order_relaxed);
         }
         if((eventSub & eventGMChanged) &&
             (memcmp(client_ptp_data->gm_identity, proxy_data.gm_identity,
@@ -161,14 +161,14 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
             memcpy(client_ptp_data->gm_identity, proxy_data.gm_identity,
                 sizeof(proxy_data.gm_identity));
             client_ptp_data->gm_changed_event_count.fetch_add(1,
-                std::memory_order_relaxed);
+                memory_order_relaxed);
             clkmgrCurrentState.gm_changed = true;
         }
         if((eventSub & eventASCapable) &&
             (proxy_data.as_capable != client_ptp_data->as_capable)) {
             client_ptp_data->as_capable = proxy_data.as_capable;
             client_ptp_data->as_capable_event_count.fetch_add(1,
-                std::memory_order_relaxed);
+                memory_order_relaxed);
         }
         if(composite_eventSub) {
             old_composite_event = composite_client_ptp_data->composite_event;
@@ -190,7 +190,7 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
         if(composite_eventSub &&
             (old_composite_event != composite_client_ptp_data->composite_event))
             client_ptp_data->composite_event_count.fetch_add(1,
-                std::memory_order_relaxed);
+                memory_order_relaxed);
         clkmgrCurrentState.as_capable = client_ptp_data->as_capable;
         clkmgrCurrentState.offset_in_range =
             client_ptp_data->master_offset_in_range;
@@ -211,13 +211,13 @@ PROCESS_MESSAGE_TYPE(ClientNotificationMessage::processMessage)
                 if(!(client_ptp_data->chrony_offset_in_range)) {
                     client_ptp_data->chrony_offset_in_range = true;
                     client_ptp_data->chrony_offset_in_range_event_count.fetch_add(1,
-                        std::memory_order_relaxed);
+                        memory_order_relaxed);
                 }
             } else {
                 if((client_ptp_data->chrony_offset_in_range)) {
                     client_ptp_data->chrony_offset_in_range = false;
                     client_ptp_data->chrony_offset_in_range_event_count.fetch_add(1,
-                        std::memory_order_relaxed);
+                        memory_order_relaxed);
                 }
             }
         }

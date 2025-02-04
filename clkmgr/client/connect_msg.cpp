@@ -82,7 +82,7 @@ void ClientConnectMessage::setClientState(ClientState *newClientState)
  */
 PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
 {
-    std::unique_lock<rtpi::mutex> lock(cv_mtx);
+    unique_lock<rtpi::mutex> lock(cv_mtx);
     PrintDebug("Processing client connect message (reply)");
     currentClientState->set_connected(true);
     currentClientState->set_sessionId(this->get_sessionId());

@@ -105,7 +105,7 @@ bool ClientMessageQueue::writeTransportClientId(Message *msg)
             ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
             if(cmsg == nullptr) {
                 PrintErrorCode("[ClientMessageQueue] ClientConnectMessage "
-                    "cmsg is nullptr!!\n");
+                    "cmsg is nullptr!!");
                 return false;
             }
             memcpy(cmsg->getClientId().data(), mqListenerName.c_str(),
@@ -116,12 +116,12 @@ bool ClientMessageQueue::writeTransportClientId(Message *msg)
             ClientSubscribeMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
             if(cmsg == nullptr) {
                 PrintErrorCode("[ClientMessageQueue] ClientSubscribeMessage "
-                    "cmsg is nullptr!!\n");
+                    "cmsg is nullptr!!");
                 return false;
             }
             PrintDebug("[ClientMessageQueue] [SUBSCRIBE] : "
                 "subscription->event Mask : " +
-                std::to_string(cmsg->getSubscription().get_event_mask()));
+                to_string(cmsg->getSubscription().get_event_mask()));
             break;
         }
         default: {

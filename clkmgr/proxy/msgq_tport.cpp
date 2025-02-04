@@ -71,7 +71,7 @@ bool ProxyMessageQueue::initTransport()
     mqNativeListenerDesc = mq_open(mqProxyName.c_str(), RX_QUEUE_FLAGS,
             RX_QUEUE_MODE, &mq_attr);
     if(mqNativeListenerDesc == -1) {
-        printf("mq_open failed %s\n", strerror(errno));
+        PrintErrorCode("mq_open failed");
         return false;
     }
     if(InvalidTransportWorkDesc ==

@@ -21,7 +21,7 @@ using namespace std;
 
 Event_state *ClientSubscribeMessage::clkmgrCurrentState = nullptr;
 ClientState *ClientSubscribeMessage::currentClientState = nullptr;
-std::map<sessionId_t, std::array<client_ptp_event *, 2>>
+map<sessionId_t, array<client_ptp_event *, 2>>
     ClientSubscribeMessage::client_ptp_event_map;
 
 /**
@@ -64,8 +64,8 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
     uint32_t eventSub;
     timespec last_notification_time = {};
     if(clock_gettime(CLOCK_REALTIME, &last_notification_time) == -1)
-        PrintDebug("ClientNotificationMessage::processMessage \
-            clock_gettime failed.\n");
+        PrintDebug("ClientNotificationMessage::processMessage "
+            "clock_gettime failed.");
     else
         currentClientState->set_last_notification_time(last_notification_time);
     eventSub = currentClientState->get_eventSub().get_event_mask();
@@ -88,9 +88,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
         /* Creation of a new map item for this new sessionID */
         client_data = new client_ptp_event();
         composite_client_data = new client_ptp_event();
-        client_ptp_event_map.insert(\
-            std::pair<sessionId_t, \
-            std::array<client_ptp_event *, 2>>\
+        client_ptp_event_map.insert(pair<sessionId_t, array<client_ptp_event *, 2>>
             (currentSessionID, {client_data, composite_client_data}));
     } else {
         /* Reuse the current client data */
@@ -174,7 +172,7 @@ PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 PROCESS_MESSAGE_TYPE(ClientSubscribeMessage::processMessage)
 {
     PrintDebug("[ClientSubscribeMessage]::processMessage (reply)");
-    std::unique_lock<rtpi::mutex> lock(cv_mtx);
+    unique_lock<rtpi::mutex> lock(cv_mtx);
     currentClientState->set_subscribed(true);
     /* Add the current ClientState to the notification class */
     ClientNotificationMessage::addClientState(currentClientState);
@@ -231,23 +229,17 @@ void ClientSubscribeMessage::resetClientPtpEventStruct(sessionId_t sID,
         return;
     }
     client_ptp_data->offset_in_range_event_count.fetch_sub(
-        eventCount.offset_in_range_event_count,
-        std::memory_order_relaxed);
+        eventCount.offset_in_range_event_count, memory_order_relaxed);
     client_ptp_data->as_capable_event_count.fetch_sub(
-        eventCount.as_capable_event_count,
-        std::memory_order_relaxed);
+        eventCount.as_capable_event_count, memory_order_relaxed);
     client_ptp_data->synced_to_gm_event_count.fetch_sub(
-        eventCount.synced_to_gm_event_count,
-        std::memory_order_relaxed);
+        eventCount.synced_to_gm_event_count, memory_order_relaxed);
     client_ptp_data->gm_changed_event_count.fetch_sub(
-        eventCount.gm_changed_event_count,
-        std::memory_order_relaxed);
+        eventCount.gm_changed_event_count, memory_order_relaxed);
     client_ptp_data->composite_event_count.fetch_sub(
-        eventCount.composite_event_count,
-        std::memory_order_relaxed);
+        eventCount.composite_event_count, memory_order_relaxed);
     client_ptp_data->chrony_offset_in_range_event_count.fetch_sub(
-        eventCount.chrony_offset_in_range_event_count,
-        std::memory_order_relaxed);
+        eventCount.chrony_offset_in_range_event_count, memory_order_relaxed);
     eventCount.offset_in_range_event_count =
         client_ptp_data->offset_in_range_event_count;
     eventCount.as_capable_event_count = client_ptp_data->as_capable_event_count;

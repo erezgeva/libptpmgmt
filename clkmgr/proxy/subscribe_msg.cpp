@@ -67,12 +67,12 @@ PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
 {
     sessionId_t sID;
     sID = this->getc_sessionId();
-    PrintDebug("[ProxySubscribeMessage]::processMessage - \
-        Use current client session ID: "
+    PrintDebug("[ProxySubscribeMessage]::processMessage - "
+        "Use current client session ID: "
         + to_string(sID));
     if(sID == InvalidSessionId) {
-        PrintError("Session ID *should be* invalid for received \
-            proxy connect message");
+        PrintError("Session ID *should be* invalid for received "
+            "proxy connect message");
         return false;
     }
     TxContext = Client::GetClientSession(sID).get()->get_transmitContext();

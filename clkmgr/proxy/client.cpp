@@ -32,7 +32,7 @@ sessionId_t Client::GetSessionIdAt(size_t index)
 {
     if(index < SessionMap.size()) {
         auto iter = SessionMap.begin();
-        std::advance(iter, index);
+        advance(iter, index);
         return iter->first;
     }
     return InvalidSessionId;

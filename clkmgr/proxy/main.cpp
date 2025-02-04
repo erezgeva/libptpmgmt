@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     while((opt = getopt(argc, argv, "t:h")) != -1) {
         switch(opt) {
             case 't':
-                value = std::stoi(optarg);
+                value = stoi(optarg);
                 if(value < 0 || value > 255) {
                     fprintf(stderr, "Invalid transport specific value: %s\n",
                         optarg);
@@ -60,12 +60,12 @@ int main(int argc, char *argv[])
     }
     BlockStopSignal();
     if(!ProxyTransport::init()) {
-        printf("Transport init failed\n");
-        return -1;
+        PrintError("Transport init failed");
+        return EXIT_FAILURE;
     }
     if(!ProxyMessage::init()) {
-        printf("Message init failed\n");
-        return -1;
+        PrintError("Message init failed");
+        return EXIT_FAILURE;
     }
     #ifdef HAVE_LIBCHRONY
     ConnectChrony::connect_chrony();
@@ -75,12 +75,12 @@ int main(int argc, char *argv[])
     PrintDebug("Got stop signal");
     Connect::disconnect();
     if(!ProxyTransport::stop()) {
-        printf("stop failed\n");
-        return -1;
+        PrintError("stop failed");
+        return EXIT_FAILURE;
     }
     if(!ProxyTransport::finalize()) {
-        printf("finalize failed\n");
-        return -1;
+        PrintError("finalize failed");
+        return EXIT_FAILURE;
     }
-    return 0;
+    return EXIT_SUCCESS;
 }

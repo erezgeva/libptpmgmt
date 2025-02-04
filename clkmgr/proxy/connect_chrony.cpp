@@ -39,13 +39,13 @@ void chrony_notify_client()
 {
     PrintDebug("[clkmgr]::notify_client");
     sessionId_t SessionId;
-    std::unique_ptr<ProxyMessage> notifyMsg(new ProxyNotificationMessage());
+    unique_ptr<ProxyMessage> notifyMsg(new ProxyNotificationMessage());
     ProxyNotificationMessage *pmsg = dynamic_cast<decltype(pmsg)>(notifyMsg.get());
     if(pmsg == nullptr) {
-        PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!\n");
+        PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
         return;
     }
-    PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!\n");
+    PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
     /* Send data for multiple sessions */
     for(size_t i = 0; i < Client::GetSessionCount(); i++) {
         SessionId = Client::GetSessionIdAt(i);
@@ -56,7 +56,7 @@ void chrony_notify_client()
             if(!pmsg->transmitMessage(*TxContext))
                 Client::RemoveClientSession(SessionId);
         } else
-            PrintError("Unable to get Session ID\n");
+            PrintError("Unable to get Session ID");
     }
 }
 
@@ -69,9 +69,9 @@ static chrony_err process_chronyd_data(chrony_session *s)
     while(chrony_needs_response(s)) {
         n = poll(&pfd, 1, timeout);
         if(n < 0)
-            perror("poll");
+            PrintErrorCode("poll");
         else if(n == 0)
-            fprintf(stderr, "No valid response received\n");
+            PrintError("No valid response received");
         r = chrony_process_response(s);
         if(r != CHRONY_OK)
             return r;
@@ -101,17 +101,21 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index)
         if(field_name != nullptr && strcmp(field_name, "Last offset") == 0) {
             float second = (chrony_get_field_float(s, j) * 1e9);
             clockEvent.chrony_offset = (int)second;
-            //printf("CHRONY master_offset = %ld \n",
-            //      clockEvent.chrony_offset);
+            #if 0
+            PrintDebug("CHRONY master_offset = " +
+                to_string(clockEvent.chrony_offset));
+            #endif
         }
         if(field_name != nullptr && strcmp(field_name, "Reference ID") == 0)
             clockEvent.chrony_reference_id = chrony_get_field_uinteger(s, j);
         if(field_name != nullptr && strcmp(field_name, "Poll") == 0) {
             int32_t interval = static_cast<int32_t>
                 (static_cast<int16_t>(chrony_get_field_integer(s, j)));
-            clockEvent.polling_interval = std::pow(2.0, interval) * 1000000;
-            //printf("CHRONY polling_interval = %d us\n",
-            //      clockEvent.polling_interval);}
+            clockEvent.polling_interval = pow(2.0, interval) * 1000000;
+            #if 0
+            PrintDebug("CHRONY polling_interval = " +
+                to_string(clockEvent.polling_interval) + " us");
+            #endif
         }
     }
     chrony_notify_client();
@@ -137,7 +141,7 @@ void start_monitor_thread(chrony_session *s, int report_index)
     pthread_t thread_id;
     ThreadArgs *args = new ThreadArgs{s, report_index};
     if(pthread_create(&thread_id, nullptr, monitor_chronyd, args) != 0) {
-        fprintf(stderr, "Failed to create thread\n");
+        PrintError("Failed to create thread");
         exit(EXIT_FAILURE);
     }
 }

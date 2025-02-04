@@ -45,14 +45,13 @@ BUILD_TXBUFFER_TYPE(CommonSubscribeMessage::makeBuffer) const
     auto ret = Message::makeBuffer(TxContext);
     if(!ret)
         return ret;
-    PrintDebug("[CommonSubscribeMessage]::makeBuffer - sessionId : " + \
+    PrintDebug("[CommonSubscribeMessage]::makeBuffer - sessionId : " +
         to_string(c_get_val_sessionId()));
     if(!WRITE_TX(FIELD, c_get_val_sessionId(), TxContext))
         return false;
-    PrintDebug("[CommonSubscribeMessage]::makeBuffer - subscription event : " + \
-        std::to_string(subscription.get_event_mask()) + \
-        ", composite event : " + \
-        std::to_string(subscription.get_composite_event_mask()));
+    PrintDebug("[CommonSubscribeMessage]::makeBuffer - subscription event : " +
+        to_string(subscription.get_event_mask()) + ", composite event : " +
+        to_string(subscription.get_composite_event_mask()));
     if(!WRITE_TX(FIELD, subscription, TxContext))
         return false;
     return true;
