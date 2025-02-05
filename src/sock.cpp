@@ -144,7 +144,7 @@ bool SockBase::poll(uint64_t timeout_ms) const
         return true;
     }
     if(ret == -1)
-        PTPMGMT_ERROR_P("selec");
+        PTPMGMT_ERROR_P("select");
     else
         PTPMGMT_ERROR("select fails with %d", ret);
     return false;

@@ -14,6 +14,9 @@ name: coverity scan
 # Start manually
 on: workflow_dispatch
 
+# Permit read-only with GITHUB_TOKEN
+permissions: read-all
+
 jobs:
   coverity:
     runs-on: ubuntu-24.04
