@@ -56,6 +56,5 @@
 
 /* library code */
 %include "pub/clockmanager.h"
-%include "pub/clkmgr/client_state.h"
 %include "pub/clkmgr/subscription.h"
 %include "pub/clkmgr/utility.h"

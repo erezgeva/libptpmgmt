@@ -13,7 +13,7 @@
 #ifndef CLIENT_MESSAGE_HPP
 #define CLIENT_MESSAGE_HPP
 
-#include "pub/clkmgr/client_state.h"
+#include "client/client_state.hpp"
 #include "common/message.hpp"
 
 #include <cstdint>

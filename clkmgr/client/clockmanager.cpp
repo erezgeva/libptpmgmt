@@ -10,6 +10,7 @@
  */
 
 #include "pub/clockmanager.h"
+#include "client/client_state.hpp"
 #include "client/connect_msg.hpp"
 #include "client/msgq_tport.hpp"
 #include "client/notification_msg.hpp"
@@ -36,6 +37,10 @@ rtpi::condition_variable ClientConnectMessage::cv;
 rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
 
+ClockManager::ClockManager() : implClientState(new ClientState()) {}
+
+ClockManager::~ClockManager() = default;
+
 ClockManager &ClockManager::FetchSingle()
 {
     static ClockManager m_single;
@@ -47,18 +52,13 @@ bool ClockManager::init()
     return true;
 }
 
-const ClientState &ClockManager::getClientState()
-{
-    return appClientState;
-}
-
 bool ClockManager::clkmgr_connect()
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
     Message0 connectMsg(new ClientConnectMessage());
     TransportClientId newClientID;
     ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
-    cmsg->setClientState(&appClientState);
+    cmsg->setClientState(implClientState.get());
     if(!ClientMessage::init()) {
         PrintError("Client Message Init Failed");
         return false;
@@ -72,10 +72,10 @@ bool ClockManager::clkmgr_connect()
     /* Wait for connection result */
     auto endTime = system_clock::now() + seconds(timeout_sec);
     unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
-    while(appClientState.get_connected() == false) {
+    while(implClientState->get_connected() == false) {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
         if(res == cv_status::timeout) {
-            if(appClientState.get_connected() == false) {
+            if(implClientState->get_connected() == false) {
                 PrintDebug("[CONNECT] Connect reply from proxy - "
                     "timeout failure!!");
                 return false;
@@ -85,7 +85,7 @@ bool ClockManager::clkmgr_connect()
     }
     if((cmsg != nullptr) && !(cmsg->getClientId().empty())) {
         strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
-        appClientState.set_clientID(newClientID);
+        implClientState->set_clientID(newClientID);
     }
     return true;
 }
@@ -102,30 +102,30 @@ bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
         return false;
     } else
         PrintDebug("[clkmgr::subscribe] subscribeMsgcreation is OK !!");
-    cmsg->setClientState(&appClientState);
+    cmsg->setClientState(implClientState.get());
     /* Write the current event subscription */
-    appClientState.set_eventSub(newSub);
+    implClientState->set_eventSub(newSub);
     /* Copy the event Mask */
     cmsg->getSubscription().set_event_mask(newSub.get_event_mask());
     strcpy((char *)cmsg->getClientId().data(),
-        (char *)appClientState.get_clientID().data());
-    cmsg->set_sessionId(appClientState.get_sessionId());
+        (char *)implClientState->get_clientID().data());
+    cmsg->set_sessionId(implClientState->get_sessionId());
     ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
     ClientMessageQueue::sendMessage(subscribeMsg.get());
     /* Wait for subscription result */
     auto endTime = system_clock::now() + seconds(timeout_sec);
     unique_lock<rtpi::mutex> lck(ClientSubscribeMessage::cv_mtx);
-    while(appClientState.get_subscribed() == false) {
+    while(implClientState->get_subscribed() == false) {
         auto res = ClientSubscribeMessage::cv.wait_until(lck, endTime);
         if(res == cv_status::timeout) {
-            if(appClientState.get_subscribed() == false) {
+            if(implClientState->get_subscribed() == false) {
                 PrintDebug("[SUBSCRIBE] No reply from proxy - timeout failure!!");
                 return false;
             }
         } else
             PrintDebug("[SUBSCRIBE] SUBSCRIBE reply received.");
     }
-    Event_state clkmgrCurrentState = appClientState.get_eventState();
+    Event_state clkmgrCurrentState = implClientState->get_eventState();
     currentState = clkmgrCurrentState;
     return true;
 }
@@ -144,9 +144,9 @@ bool ClockManager::clkmgr_disconnect()
     }
     /* Delete the ClientPtpEvent inside Subscription */
     ClientSubscribeMessage::deleteClientPtpEventStruct(
-        appClientState.get_sessionId());
+        implClientState->get_sessionId());
     /* Delete the ClientState reference inside ClientNotificationMessage class */
-    ClientNotificationMessage::deleteClientState(&appClientState);
+    ClientNotificationMessage::deleteClientState(implClientState.get());
     retVal = true;
 done:
     if(!retVal)
@@ -163,14 +163,14 @@ int64_t timespec_delta(const timespec &last_notification_time,
     return delta_in_ms;
 }
 
-bool check_proxy_liveness(ClientState &appClientState)
+bool check_proxy_liveness(ClientState &implClientState)
 {
     timespec current_time;
     if(clock_gettime(CLOCK_REALTIME, &current_time) == -1)
         PrintDebug("[CONNECT] Failed to get current time.");
     else {
         int64_t timeout =
-            timespec_delta(appClientState.get_last_notification_time(),
+            timespec_delta(implClientState.get_last_notification_time(),
                 current_time);
         if(timeout < DEFAULT_LIVENESS_TIMEOUT_IN_MS)
             return true;
@@ -181,19 +181,19 @@ bool check_proxy_liveness(ClientState &appClientState)
         PrintDebug("[CONNECT] Failed to cast to ClientConnectMessage");
         return false;
     }
-    appClientState.set_connected(false);
-    cmsg->setClientState(&appClientState);
-    cmsg->set_sessionId(appClientState.get_sessionId());
+    implClientState.set_connected(false);
+    cmsg->setClientState(&implClientState);
+    cmsg->set_sessionId(implClientState.get_sessionId());
     ClientMessageQueue::writeTransportClientId(connectMsg.get());
     ClientMessageQueue::sendMessage(connectMsg.get());
     /* Wait for connection result */
     auto endTime = system_clock::now() +
         milliseconds(DEFAULT_LIVENESS_TIMEOUT_IN_MS);
     unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
-    while(appClientState.get_connected() == false) {
+    while(implClientState.get_connected() == false) {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
         if(res == cv_status::timeout) {
-            if(appClientState.get_connected() == false) {
+            if(implClientState.get_connected() == false) {
                 PrintDebug("[CONNECT] Connect reply timeout!!");
                 return false;
             }
@@ -214,11 +214,11 @@ int ClockManager::clkmgr_status_wait(int timeout,
     Event_state eventState;
     do {
         /* Check the liveness of the Proxy's message queue */
-        if(!check_proxy_liveness(appClientState))
+        if(!check_proxy_liveness(*implClientState))
             return -1;
         /* Get the event state and event count from the API */
-        eventCount = appClientState.get_eventStateCount();
-        eventState = appClientState.get_eventState();
+        eventCount = implClientState->get_eventStateCount();
+        eventState = implClientState->get_eventState();
         /* Check if any member of eventCount is non-zero */
         if(eventCount.offset_in_range_event_count ||
             eventCount.as_capable_event_count ||
@@ -239,7 +239,7 @@ int ClockManager::clkmgr_status_wait(int timeout,
         return 0;
     /* Reset the atomic count by reducing the corresponding eventCount */
     ClientSubscribeMessage::resetClientPtpEventStruct(
-        appClientState.get_sessionId(), eventCount);
-    appClientState.set_eventStateCount(eventCount);
+        implClientState->get_sessionId(), eventCount);
+    implClientState->set_eventStateCount(eventCount);
     return 1;
 }

@@ -167,10 +167,6 @@ int main(int argc, char *argv[])
         std::cout << "[clkmgr] failure in connecting !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
-    } else {
-        const ClientState &myState = cm.getClientState();
-        std::cout << "[clkmgr] Connected. Session ID : " <<
-            myState.get_sessionId() << "\n";
     }
 
     sleep(1);

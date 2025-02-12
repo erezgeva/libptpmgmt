@@ -10,7 +10,7 @@
  *
  */
 
-#include "pub/clkmgr/client_state.h"
+#include "client/client_state.hpp"
 #include "client/notification_msg.hpp"
 #include "client/subscribe_msg.hpp"
 #include "common/message.hpp"

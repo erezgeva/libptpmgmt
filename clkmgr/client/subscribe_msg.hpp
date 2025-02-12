@@ -13,7 +13,7 @@
 #ifndef CLIENT_SUBSCRIBE_MSG_HPP
 #define CLIENT_SUBSCRIBE_MSG_HPP
 
-#include "pub/clkmgr/client_state.h"
+#include "client/client_state.hpp"
 #include "client/message.hpp"
 #include "common/subscribe_msg.hpp"
 

@@ -14,9 +14,12 @@
 
 #ifdef __cplusplus
 
-#include "pub/clkmgr/client_state.h"
+#include "pub/clkmgr/subscription.h"
+#include <memory>
 
 __CLKMGR_NAMESPACE_BEGIN
+
+class ClientState; /* Forward declaration */
 
 /**
  * Class to provide APIs to set up and manage the client-runtime.
@@ -26,14 +29,19 @@ class ClockManager
 {
   private:
     /**
-     * State of current client-runtime.
+     * Implementation pointer to current state of client-runtime.
      */
-    ClientState appClientState;
+    std::unique_ptr<ClientState> implClientState;
 
     /**
-     * Default constructor
+     * Constructor
      */
-    ClockManager() = default;
+    ClockManager();
+
+    /**
+     * Destructor
+     */
+    ~ClockManager();
 
   public:
 
@@ -48,12 +56,6 @@ class ClockManager
      * @return true on success
      */
     bool init();
-
-    /**
-     * Get the client state
-     * @return Reference to the client state
-     */
-    const ClientState &getClientState();
 
     /**
      * Establish connection between Client and Proxy

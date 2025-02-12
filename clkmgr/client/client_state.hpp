@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef CLKMGR_CLIENT_STATE_H
-#define CLKMGR_CLIENT_STATE_H
+#ifndef CLIENT_CLIENT_STATE_H
+#define CLIENT_CLIENT_STATE_H
 
 #include "pub/clkmgr/subscription.h"
 
@@ -170,4 +170,4 @@ class ClientState
 
 __CLKMGR_NAMESPACE_END
 
-#endif /* CLKMGR_CLIENT_STATE_H */
+#endif /* CLIENT_CLIENT_STATE_H */
