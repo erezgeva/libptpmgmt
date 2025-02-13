@@ -59,6 +59,35 @@ BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
     return true;
 }
 
+PARSE_RXBUFFER_TYPE(ProxySubscribeMessage::parseBuffer)
+{
+    uint8_t ptp4lDomainNumber = 0;
+    std::string chronyUDSAddr;
+    std::string ptp4lUDSAddr;
+    UDSAddress chronyAddr;
+    UDSAddress ptp4lAddr;
+    PrintDebug("[ProxySubscribeMessage]::parseBuffer ");
+    if(!CommonSubscribeMessage::parseBuffer(LxContext))
+        return false;
+    /* Retrieve ptp4l and chrony UDS addresses */
+    if(!PARSE_RX(ARRAY, chronyAddr, LxContext))
+        return false;
+    if(!PARSE_RX(ARRAY, ptp4lAddr, LxContext))
+        return false;
+    /* Retrieve ptp4l domain number */
+    if(!PARSE_RX(FIELD, ptp4lDomainNumber, LxContext))
+        return false;
+    /* Convert array to string */
+    chronyUDSAddr.assign(chronyAddr.begin(), chronyAddr.end());
+    ptp4lUDSAddr.assign(ptp4lAddr.begin(), ptp4lAddr.end());
+    PrintDebug("[ProxySubscribeMessage] Chrony UDS address: " + chronyUDSAddr);
+    PrintDebug("[ProxySubscribeMessage] PTP4L UDS address: " + ptp4lUDSAddr);
+    PrintDebug("[ProxySubscribeMessage] PTP4L Domain Number: " +
+        std::to_string(ptp4lDomainNumber));
+    /* ToDo: communicate to Chrony and ptp4l only after get the uds addr */
+    return true;
+}
+
 /*
 This is to process the subscription from the clkmgr client runtime
 via POSIX msg queue.

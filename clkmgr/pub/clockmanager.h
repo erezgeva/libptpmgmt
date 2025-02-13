@@ -70,6 +70,22 @@ class ClockManager
     bool clkmgr_disconnect();
 
     /**
+     * Add the Chrony instance
+     * @param[in] udsAddr unix domain address to communicate with Chrony
+     * @return true on success, false on failure
+     */
+    bool clkmgr_add_chrony_instance(const UDSAddress &udsAddr);
+
+    /**
+     * Add the ptp4l instance
+     * @param[in] udsAddr unix domain address to communicate with ptp4l
+     * @param[in] domainNumber domain number used
+     * @return true on success, false on failure
+     */
+    bool clkmgr_add_ptp4l_instance(const UDSAddress &udsAddr,
+        uint8_t domainNumber);
+
+    /**
      * Subscribe to events
      * @param[in] newSub Reference to the new subscription
      * @param[out] currentState Reference to the current state

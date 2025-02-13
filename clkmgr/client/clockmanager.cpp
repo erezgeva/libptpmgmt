@@ -154,6 +154,17 @@ done:
     return retVal;
 }
 
+bool ClockManager::clkmgr_add_chrony_instance(const UDSAddress &udsAddr)
+{
+    return implClientState->add_chrony_instance(udsAddr);
+}
+
+bool ClockManager::clkmgr_add_ptp4l_instance(const UDSAddress &udsAddr,
+    uint8_t domainNumber)
+{
+    return implClientState->add_ptp4l_instance(udsAddr, domainNumber);
+}
+
 int64_t timespec_delta(const timespec &last_notification_time,
     const timespec &current_time)
 {

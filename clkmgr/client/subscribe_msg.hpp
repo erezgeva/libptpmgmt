@@ -33,6 +33,7 @@ class ClientSubscribeMessage : virtual public
 
   public:
     ClientSubscribeMessage() : MESSAGE_SUBSCRIBE() {};
+    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
     static rtpi::mutex cv_mtx;
     static rtpi::condition_variable cv;

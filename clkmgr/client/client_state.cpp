@@ -157,3 +157,32 @@ timespec ClientState::get_last_notification_time() const
 {
     return last_notification_time;
 }
+
+bool ClientState::add_chrony_instance(const UDSAddress &udsAddr)
+{
+    chronyudsAddr = udsAddr;
+    return true;
+}
+
+bool ClientState::add_ptp4l_instance(const UDSAddress &udsAddr,
+    uint8_t domainNumber)
+{
+    ptp4ludsAddr = udsAddr;
+    ptp4ldomainNumber = domainNumber;
+    return true;
+}
+
+UDSAddress ClientState::get_ptp4ludsAddr() const
+{
+    return ptp4ludsAddr;
+}
+
+UDSAddress ClientState::get_chronyudsAddr() const
+{
+    return chronyudsAddr;
+}
+
+uint8_t ClientState::get_ptp4ldomainNumber() const
+{
+    return ptp4ldomainNumber;
+}

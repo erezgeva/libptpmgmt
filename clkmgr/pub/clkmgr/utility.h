@@ -32,6 +32,12 @@ const int TRANSPORT_CLIENTID_LENGTH = 512;
 /** Array to store transport client ID. */
 typedef std::array<uint8_t, TRANSPORT_CLIENTID_LENGTH> TransportClientId;
 
+/** Maximum number of character for UDS address. */
+const int UDS_ADDRESS_LENGTH = 64;
+
+/** Array to store UDS address. */
+typedef std::array<uint8_t, UDS_ADDRESS_LENGTH> UDSAddress;
+
 /** Type definition for session ID. */
 typedef uint16_t sessionId_t;
 

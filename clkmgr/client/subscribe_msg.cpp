@@ -58,6 +58,22 @@ void ClientSubscribeMessage::setClientState(ClientState *newClientState)
     clkmgrCurrentState = &(newClientState->get_eventState());
 }
 
+BUILD_TXBUFFER_TYPE(ClientSubscribeMessage::makeBuffer) const
+{
+    PrintDebug("[ClientSubscribeMessage]::makeBuffer");
+    if(!CommonSubscribeMessage::makeBuffer(TxContext))
+        return false;
+    /* Add UDS address here */
+    if(!WRITE_TX(ARRAY, currentClientState->get_chronyudsAddr(), TxContext))
+        return false;
+    if(!WRITE_TX(ARRAY, currentClientState->get_ptp4ludsAddr(), TxContext))
+        return false;
+    /* Add PTP4L domain number here */
+    if(!WRITE_TX(FIELD, currentClientState->get_ptp4ldomainNumber(), TxContext))
+        return false;
+    return true;
+}
+
 PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 {
     ptp_event data = {};

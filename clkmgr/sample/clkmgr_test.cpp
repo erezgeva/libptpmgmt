@@ -53,6 +53,8 @@ int main(int argc, char *argv[])
     int32_t  gmOffsetUpperLimit = 100000;
     int32_t  chronyGmOffsetLowerLimit = -100000;
     int32_t  chronyGmOffsetUpperLimit = 100000;
+    UDSAddress ptp4lAddr = {"/var/run/ptp4l"};
+    UDSAddress chronyAddr = {"/var/run/chrony/chronyd.sock"};
     int ret = EXIT_SUCCESS;
     uint32_t idleTime = 1;
     uint32_t timeout = 10;
@@ -165,6 +167,17 @@ int main(int argc, char *argv[])
 
     if (!cm.clkmgr_connect()) {
         std::cout << "[clkmgr] failure in connecting !!!\n";
+        ret = EXIT_FAILURE;
+        goto do_exit;
+    }
+
+    if (!cm.clkmgr_add_ptp4l_instance(ptp4lAddr, 0)) {
+        std::cout << "[clkmgr] failure in setting ptp4l UDS address !!!\n";
+        ret = EXIT_FAILURE;
+        goto do_exit;
+    }
+    if (!cm.clkmgr_add_chrony_instance(chronyAddr)) {
+        std::cout << "[clkmgr] failure in setting chrony UDS address !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
     }

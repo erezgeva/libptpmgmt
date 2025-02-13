@@ -34,6 +34,9 @@ class ClientState
     Event_count eventStateCount = {}; /**< Event count */
     ClkMgrSubscription eventSub = {}; /**< Event subscription */
     timespec last_notification_time; /**< Last notification time */
+    uint8_t ptp4ldomainNumber; /**< PTP4L Domain number */
+    UDSAddress ptp4ludsAddr; /**< PTP4L UDS address */
+    UDSAddress chronyudsAddr; /**< Chrony UDS address */
 
   public:
     /**
@@ -166,6 +169,39 @@ class ClientState
     * @return the ptp4l ID.
     */
     uint8_t get_ptp4l_id() const;
+
+    /**
+     * Add the Chrony instance
+     * @param[in] udsAddr UDS address to communicate with Chrony
+     * @return true on success, false on failure
+     */
+    bool add_chrony_instance(const UDSAddress &udsAddr);
+
+    /**
+     * Add the PTP4L instance
+     * @param[in] udsAddr UDS address to communicate with PTP4L
+     * @param[in] domainNumber Domain number used
+     * @return true on success, false on failure
+     */
+    bool add_ptp4l_instance(const UDSAddress &udsAddr, uint8_t domainNumber);
+
+    /**
+     * Get the PTP4L UDS address
+     * @return PTP4L UDS address
+     */
+    UDSAddress get_ptp4ludsAddr() const;
+
+    /**
+     * Get the Chrony UDS address
+     * @return Chrony UDS address
+     */
+    UDSAddress get_chronyudsAddr() const;
+
+    /**
+     * Get the PTP4L Domain number
+     * @return PTP4L Domain number
+     */
+    uint8_t get_ptp4ldomainNumber() const;
 };
 
 __CLKMGR_NAMESPACE_END
