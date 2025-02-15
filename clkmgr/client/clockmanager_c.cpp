@@ -110,3 +110,10 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     }
     return ret;
 }
+
+int clkmgr_c_gettime(clkmgr_c_client_ptr client_ptr, struct timespec *ts)
+{
+    if(client_ptr == nullptr)
+        return -1;
+    return static_cast<clkmgr::ClockManager *>(client_ptr)->clkmgr_gettime(ts);
+}

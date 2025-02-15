@@ -86,19 +86,22 @@ disconnect message.
 - It will delete the ptp event for subscription and state reference for
 notification.
 
+5. clkmgr_gettime()
+- This function retrieve the time of the CLOCK_REALTIME.
+
 ## Available API for c sample application
 
 1. clkmgr_c_connect()
-This function will establish a connection to the clkmgr_proxy. Once connected,
+- This function will establish a connection to the clkmgr_proxy. Once connected,
 it will assign client ID for the client_runtime that connected to the
 clkmgr_proxy.
 
 2. clkmgr_c_subscribe()
-This function generates a subscribe message signaling interest in specific
+- This function generates a subscribe message signaling interest in specific
 supported event types.
 
 3. clkmgr_c_status_wait()
-This function waits for a specified timeout period for any event changes. The
+- This function waits for a specified timeout period for any event changes. The
 wait function blocks until an undelivered event is queued. If the event is
 already queued for delivery when the wait function is called, the call exits
 immediately, returning the queued event notification(s). Multiple event
@@ -111,9 +114,12 @@ timeout is equal to -1, this function wait infinite until there is event changes
 occurs.
 
 4. clkmgr_c_disconnect()
-This function performs disconnect process with clkmgr_proxy by sending
+- This function performs disconnect process with clkmgr_proxy by sending
 disconnect message.  It will delete the ptp event for subscription and state
 reference for notification.
 
 5. clkmgr_c_client_fetch()
-This function fetch the single client object and return a pointer to it
+- This function fetch the single client object and return a pointer to it
+
+6. clkmgr_c_gettime()
+- This function retrieve the time of the CLOCK_REALTIME.
