@@ -31,7 +31,7 @@ void signal_handler(int sig)
 }
 
 double getMonotonicTime() {
-    struct timespec timeSpec;
+    timespec timeSpec;
 
     if (clock_gettime(CLOCK_MONOTONIC, &timeSpec) == -1) {
         perror("clock_gettime failed");
@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
     int ret = EXIT_SUCCESS;
     uint32_t idleTime = 1;
     uint32_t timeout = 10;
+    timespec ts;
     int retval;
     int option;
 
@@ -207,6 +208,12 @@ int main(int argc, char *argv[])
 
     printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
         getMonotonicTime());
+    if (cm.clkmgr_gettime(&ts)) {
+        perror("clock_gettime failed");
+    } else {
+        printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
+            (ts.tv_sec * 1000000000) + ts.tv_nsec);
+    }
     printf("+---------------------------+------------------------+\n");
     printf("| %-25s | %-22s |\n", "Event", "Event Status");
     if (event2Sub) {
@@ -287,6 +294,12 @@ int main(int argc, char *argv[])
 
         printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
             getMonotonicTime());
+        if (cm.clkmgr_gettime(&ts)) {
+            perror("clock_gettime failed");
+        } else {
+            printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
+                (ts.tv_sec * 1000000000) + ts.tv_nsec);
+        }
         printf("+---------------------------+--------------+-------------+\n");
         printf("| %-25s | %-12s | %-11s |\n", "Event", "Event Status",
             "Event Count");

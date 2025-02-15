@@ -108,6 +108,13 @@ class ClockManager
      */
     int clkmgr_status_wait(int timeout, Event_state &currentState,
         Event_count &currentCount);
+
+    /**
+     * Retrieve the time of the CLOCK_REALTIME
+     * @param[out] ts timestamp of the CLOCK_REALTIME
+     * @return 0 on success, -1 on failure
+     */
+    int clkmgr_gettime(timespec *ts);
 };
 
 __CLKMGR_NAMESPACE_END

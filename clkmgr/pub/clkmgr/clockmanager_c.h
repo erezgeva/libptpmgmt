@@ -13,6 +13,7 @@
 #define CLKMGR_CLOCKMANAGER_C_H
 
 #include "pub/clkmgr/types_c.h"
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,6 +77,14 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
 int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     struct Clkmgr_Event_state *current_state,
     struct Clkmgr_Event_count *current_count);
+
+/**
+ * Retrieve the time of the CLOCK_REALTIME
+ * @param[in, out] client_ptr Pointer to the client instance
+ * @param[out] ts timestamp of the CLOCK_REALTIME
+ * @return 0 on success, -1 on failure
+ */
+int clkmgr_c_gettime(clkmgr_c_client_ptr client_ptr, struct timespec *ts);
 
 #ifdef __cplusplus
 }

@@ -254,3 +254,9 @@ int ClockManager::clkmgr_status_wait(int timeout,
     implClientState->set_eventStateCount(eventCount);
     return 1;
 }
+
+int ClockManager::clkmgr_gettime(timespec *ts)
+{
+    clockid_t clk_id = CLOCK_REALTIME;
+    return clock_gettime(clk_id, ts);
+}
