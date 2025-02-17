@@ -1043,6 +1043,37 @@ TEST(PmcDumpTest, CMLDS_INFO_NP)
         IDENT "as_capable              1");
 }
 
+// Tests dump PORT_CORRECTIONS_NP tlv
+TEST(PmcDumpTest, PORT_CORRECTIONS_NP)
+{
+    Message m;
+    PORT_CORRECTIONS_NP_t t;
+    t.egressLatency = 234 << 16;
+    t.ingressLatency = 135 << 16;
+    t.delayAsymmetry = 4156 << 16;
+    useTestMode(true);
+    call_dump(m, PORT_CORRECTIONS_NP, &t);
+    EXPECT_STREQ(getPmcOut(),
+        IDENT "egressLatency  234"
+        IDENT "ingressLatency 135"
+        IDENT "delayAsymmetry 4156");
+}
+
+// Tests dump EXTERNAL_GRANDMASTER_PROPERTIES_NP tlv
+TEST(PmcDumpTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    Message m;
+    EXTERNAL_GRANDMASTER_PROPERTIES_NP_t t;
+    ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
+    t.gmIdentity = clockId;
+    t.stepsRemoved = 654;
+    useTestMode(true);
+    call_dump(m, EXTERNAL_GRANDMASTER_PROPERTIES_NP, &t);
+    EXPECT_STREQ(getPmcOut(),
+        IDENT "gmIdentity   c47d46.fffe.20acae"
+        IDENT "stepsRemoved 654");
+}
+
 // Tests dump SLAVE_RX_SYNC_TIMING_DATA signalling
 TEST(PmcSigDumpTest, SLAVE_RX_SYNC_TIMING_DATA)
 {

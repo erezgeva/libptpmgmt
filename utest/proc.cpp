@@ -1158,3 +1158,45 @@ TEST_F(ProcTest, CMLDS_INFO_NP)
     EXPECT_EQ(r->scaledNeighborRateRatio, 0x41173445);
     EXPECT_EQ(r->as_capable, 1);
 }
+
+// Tests PORT_CORRECTIONS_NP structure
+TEST_F(ProcTest, PORT_CORRECTIONS_NP)
+{
+    PORT_CORRECTIONS_NP_t t;
+    t.egressLatency = 156315;
+    t.ingressLatency = 13654;
+    t.delayAsymmetry = 298631;
+    EXPECT_TRUE(setAction(SET, PORT_CORRECTIONS_NP, &t));
+    EXPECT_EQ(getBuildTlvId(), PORT_CORRECTIONS_NP);
+    EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
+    uint8_t m[24] = { 0, 0, 0, 0, 0, 2, 98, 155, 0, 0, 0, 0, 0, 0, 53, 86, 0,
+            0, 0, 0, 0, 4, 142, 135
+        };
+    EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
+    EXPECT_EQ(memcmp(buf + tlvLoc, m, sizeof m), 0);
+    ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
+    const PORT_CORRECTIONS_NP_t *r = (const PORT_CORRECTIONS_NP_t *)getData();
+    EXPECT_EQ(r->egressLatency, 156315);
+    EXPECT_EQ(r->ingressLatency, 13654);
+    EXPECT_EQ(r->delayAsymmetry, 298631);
+}
+
+// Tests EXTERNAL_GRANDMASTER_PROPERTIES_NP structure
+TEST_F(ProcTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    EXTERNAL_GRANDMASTER_PROPERTIES_NP_t t;
+    const ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
+    t.gmIdentity = clockId;
+    t.stepsRemoved = 581;
+    EXPECT_TRUE(setAction(SET, EXTERNAL_GRANDMASTER_PROPERTIES_NP, &t));
+    EXPECT_EQ(getBuildTlvId(), EXTERNAL_GRANDMASTER_PROPERTIES_NP);
+    EXPECT_EQ(build(buf, sizeof buf, 1), MNG_PARSE_ERROR_OK);
+    uint8_t m[10] = { 196, 125, 70, 255, 254, 32, 172, 174, 2, 69 };
+    EXPECT_EQ(getMsgLen(), tlvLoc + sizeof m);
+    EXPECT_EQ(memcmp(buf + tlvLoc, m, sizeof m), 0);
+    ASSERT_EQ(parse(buf, sizeMsg(sizeof m)), MNG_PARSE_ERROR_OK);
+    const EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *r = (const
+            EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *)getData();
+    EXPECT_EQ(r->gmIdentity, clockId);
+    EXPECT_EQ(r->stepsRemoved, 581);
+}

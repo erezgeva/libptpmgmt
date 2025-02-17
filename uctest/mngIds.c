@@ -861,3 +861,45 @@ Test(MngIDsTest, CMLDS_INFO_NP)
     cr_expect(not(m->setAction(m, PTPMGMT_COMMAND, PTPMGMT_CMLDS_INFO_NP, NULL)));
     m->free(m);
 }
+
+Test(MngIDsTest, PORT_CORRECTIONS_NP)
+{
+    ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_expect(m->setAction(m, PTPMGMT_GET, PTPMGMT_PORT_CORRECTIONS_NP, NULL));
+    struct ptpmgmt_PORT_CORRECTIONS_NP_t t;
+    memset(&t, 0, sizeof(struct ptpmgmt_PORT_CORRECTIONS_NP_t));
+    cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PORT_CORRECTIONS_NP, &t));
+    cr_expect(not(m->setAction(m, PTPMGMT_COMMAND, PTPMGMT_PORT_CORRECTIONS_NP,
+                NULL)));
+    ptpmgmt_pMsgParams p = m->getParams(m);
+    p->implementSpecific = ptpmgmt_noImplementSpecific;
+    m->updateParams(m, p);
+    cr_expect(not(m->setAction(m, PTPMGMT_GET, PTPMGMT_PORT_CORRECTIONS_NP, NULL)));
+    cr_expect(not(m->setAction(m, PTPMGMT_SET, PTPMGMT_PORT_CORRECTIONS_NP, &t)));
+    cr_expect(not(m->setAction(m, PTPMGMT_COMMAND, PTPMGMT_PORT_CORRECTIONS_NP,
+                NULL)));
+    m->free(m);
+}
+
+Test(MngIDsTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    cr_expect(m->setAction(m, PTPMGMT_GET,
+            PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, NULL));
+    struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t t;
+    memset(&t, 0, sizeof(struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t));
+    cr_expect(m->setAction(m, PTPMGMT_SET,
+            PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, &t));
+    cr_expect(not(m->setAction(m, PTPMGMT_COMMAND,
+                PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, NULL)));
+    ptpmgmt_pMsgParams p = m->getParams(m);
+    p->implementSpecific = ptpmgmt_noImplementSpecific;
+    m->updateParams(m, p);
+    cr_expect(not(m->setAction(m, PTPMGMT_GET,
+                PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, NULL)));
+    cr_expect(not(m->setAction(m, PTPMGMT_SET,
+                PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, &t)));
+    cr_expect(not(m->setAction(m, PTPMGMT_COMMAND,
+                PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, NULL)));
+    m->free(m);
+}

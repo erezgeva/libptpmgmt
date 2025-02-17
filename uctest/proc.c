@@ -1484,3 +1484,62 @@ Test(ProcTest, CMLDS_INFO_NP)
     cr_expect(eq(i32, r->as_capable, 1));
     m->free(m);
 }
+
+// Tests PORT_CORRECTIONS_NP structure
+Test(ProcTest, PORT_CORRECTIONS_NP)
+{
+    uint8_t buf[400];
+    ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    struct ptpmgmt_PORT_CORRECTIONS_NP_t t;
+    t.egressLatency = 156315;
+    t.ingressLatency = 13654;
+    t.delayAsymmetry = 298631;
+    cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PORT_CORRECTIONS_NP, &t));
+    cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PORT_CORRECTIONS_NP));
+    cr_expect(eq(int, m->build(m, buf, sizeof buf, 1), PTPMGMT_MNG_PARSE_ERROR_OK));
+    uint8_t mb[24] = { 0, 0, 0, 0, 0, 2, 98, 155, 0, 0, 0, 0, 0, 0, 53, 86, 0,
+            0, 0, 0, 0, 4, 142, 135
+        };
+    cr_expect(eq(sz, m->getMsgLen(m), tlvLoc + sizeof mb));
+    cr_expect(zero(memcmp(buf + tlvLoc, mb, sizeof mb)));
+    cr_assert(eq(int, m->parse(m, buf, sizeMsg(buf, sizeof mb)),
+            PTPMGMT_MNG_PARSE_ERROR_OK));
+    const struct ptpmgmt_PORT_CORRECTIONS_NP_t *r =
+        (const struct ptpmgmt_PORT_CORRECTIONS_NP_t *)m->getData(m);
+    cr_expect(eq(i64, r->egressLatency, 156315));
+    cr_expect(eq(i64, r->ingressLatency, 13654));
+    cr_expect(eq(i64, r->delayAsymmetry, 298631));
+    m->free(m);
+}
+
+// Tests EXTERNAL_GRANDMASTER_PROPERTIES_NP structure
+Test(ProcTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    uint8_t buf[400];
+    ptpmgmt_msg m = ptpmgmt_msg_alloc();
+    struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t t;
+    t.gmIdentity.v[0] = 196;
+    t.gmIdentity.v[1] = 125;
+    t.gmIdentity.v[2] = 70;
+    t.gmIdentity.v[3] = 255;
+    t.gmIdentity.v[4] = 254;
+    t.gmIdentity.v[5] = 32;
+    t.gmIdentity.v[6] = 172;
+    t.gmIdentity.v[7] = 174;
+    t.stepsRemoved = 581;
+    cr_expect(m->setAction(m, PTPMGMT_SET,
+            PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, &t));
+    cr_expect(eq(int, m->getBuildTlvId(m),
+            PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP));
+    cr_expect(eq(int, m->build(m, buf, sizeof buf, 1), PTPMGMT_MNG_PARSE_ERROR_OK));
+    uint8_t mb[10] = { 196, 125, 70, 255, 254, 32, 172, 174, 2, 69 };
+    cr_expect(eq(sz, m->getMsgLen(m), tlvLoc + sizeof mb));
+    cr_expect(zero(memcmp(buf + tlvLoc, mb, sizeof mb)));
+    cr_assert(eq(int, m->parse(m, buf, sizeMsg(buf, sizeof mb)),
+            PTPMGMT_MNG_PARSE_ERROR_OK));
+    const struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *r =
+        (const struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *)m->getData(m);
+    cr_expect(zero(memcmp(r->gmIdentity.v, clockId, 8)));
+    cr_expect(eq(u16, r->stepsRemoved, 581));
+    m->free(m);
+}

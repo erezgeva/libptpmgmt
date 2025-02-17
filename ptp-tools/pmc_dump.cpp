@@ -551,6 +551,22 @@ class MsgDump : public MessageDispatcher
             d.scaledNeighborRateRatio,
             d.as_capable);
     }
+    dump(PORT_CORRECTIONS_NP) {
+        DUMPS(
+            IDENT "egressLatency  %ju"
+            IDENT "ingressLatency %ju"
+            IDENT "delayAsymmetry %ju",
+            d.egressLatency >> 16,
+            d.ingressLatency >> 16,
+            d.delayAsymmetry >> 16);
+    }
+    dump(EXTERNAL_GRANDMASTER_PROPERTIES_NP) {
+        DUMPS(
+            IDENT "gmIdentity   %s"
+            IDENT "stepsRemoved %u",
+            d.gmIdentity.string().c_str(),
+            d.stepsRemoved);
+    }
 }; // class MsgDump
 void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *data)
 {
@@ -852,6 +868,12 @@ class MsgBuild : public MessageBuilder
         }
         key.num = num;
         return false; // No errors!
+    }
+    static bool isClockIdentity(val_key_t &key) {
+        Binary id;
+        if(id.fromHex(key.str_val) && id.size() == ClockIdentity_t::size())
+            return false; // No errors!
+        return true;
     }
 
     build(USER_DESCRIPTION) {
@@ -1213,6 +1235,36 @@ class MsgBuild : public MessageBuilder
         d.grandmasterTimeInaccuracy = keys["grandmasterTimeInaccuracy"].num;
         d.networkTimeInaccuracy = keys["networkTimeInaccuracy"].num;
         d.totalTimeInaccuracy = keys["totalTimeInaccuracy"].num;
+        build_end;
+    }
+    build(PORT_CORRECTIONS_NP) {
+        defKeys;
+        keys["egressLatency"].min = INT48_MIN;
+        keys["egressLatency"].max = INT48_MAX;
+        keys["egressLatency"].req = true;
+        keys["ingressLatency"].min = INT48_MIN;
+        keys["ingressLatency"].max = INT48_MAX;
+        keys["ingressLatency"].req = true;
+        keys["delayAsymmetry"].min = INT48_MIN;
+        keys["delayAsymmetry"].max = INT48_MAX;
+        keys["delayAsymmetry"].req = true;
+        parseKeys;
+        d.egressLatency  = keys["egressLatency"].num << 16L;
+        d.ingressLatency = keys["ingressLatency"].num << 16L;
+        d.delayAsymmetry = keys["delayAsymmetry"].num << 16L;
+        build_end;
+    }
+    build(EXTERNAL_GRANDMASTER_PROPERTIES_NP) {
+        defKeys;
+        keys["gmIdentity"].req = true;
+        keys["gmIdentity"].handle = isClockIdentity;
+        keys["stepsRemoved"].max = UINT16_MAX;
+        keys["stepsRemoved"].req = true;
+        parseKeys;
+        Binary gmIdentity;
+        gmIdentity.fromHex(keys["gmIdentity"].str_val);
+        gmIdentity.copy(d.gmIdentity.v);
+        d.stepsRemoved = keys["stepsRemoved"].num;
         build_end;
     }
 }; // class MsgBuild

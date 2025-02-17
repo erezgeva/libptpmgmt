@@ -2003,3 +2003,43 @@ Test(Tlv2JsonTest, CMLDS_INFO_NP)
             "}"));
     free(ret);
 }
+
+// Tests PORT_CORRECTIONS_NP structure
+Test(Tlv2JsonTest, PORT_CORRECTIONS_NP)
+{
+    struct ptpmgmt_PORT_CORRECTIONS_NP_t t;
+    t.egressLatency = 5486;
+    t.ingressLatency = 2379;
+    t.delayAsymmetry = 1358196;
+    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_CORRECTIONS_NP, &t, 0);
+    cr_assert(not(zero(ptr, ret)));
+    cr_assert(eq(str, (char *)ret,
+            "{\n"
+            "  \"egressLatency\" : 5486,\n"
+            "  \"ingressLatency\" : 2379,\n"
+            "  \"delayAsymmetry\" : 1358196\n"
+            "}"));
+}
+
+// Tests EXTERNAL_GRANDMASTER_PROPERTIES_NP structure
+Test(Tlv2JsonTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t t;
+    t.gmIdentity.v[0] = 196;
+    t.gmIdentity.v[1] = 125;
+    t.gmIdentity.v[2] = 70;
+    t.gmIdentity.v[3] = 255;
+    t.gmIdentity.v[4] = 254;
+    t.gmIdentity.v[5] = 32;
+    t.gmIdentity.v[6] = 172;
+    t.gmIdentity.v[7] = 174;
+    t.stepsRemoved = 1963;
+    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP,
+            &t, 0);
+    cr_assert(not(zero(ptr, ret)));
+    cr_assert(eq(str, (char *)ret,
+            "{\n"
+            "  \"gmIdentity\" : \"c47d46.fffe.20acae\",\n"
+            "  \"stepsRemoved\" : 1963\n"
+            "}"));
+}
