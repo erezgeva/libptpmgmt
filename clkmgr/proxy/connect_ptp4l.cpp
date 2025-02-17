@@ -36,6 +36,7 @@ static ptpmgmt::SockUnix sku;
 static ptpmgmt::SockBase *sk = &sku;
 static ptpmgmt::SUBSCRIBE_EVENTS_NP_t events_tlv;
 ptp_event clockEvent = { 0 };
+extern uint8_t cmGlobalTransportSpecific;
 
 void notify_client()
 {
@@ -287,22 +288,22 @@ void *ptp4l_event_loop(void *arg)
  *         Returns 0 on success, or -1 if an error occurs during socket
  *         initialization, address setting, or epoll configuration.
  */
-int Connect::connect(uint8_t transport_specific)
+int ConnectPtp4l::connect_ptp4l(std::string ptp4lUdsAddress, uint8_t domain)
 {
-    clockEvent.ptp4l_id = 1;
-    const char *uds_address = "/var/run/ptp4l";
+    clockEvent.ptp4l_id = domain;
     if(!sku.setDefSelfAddress() || !sku.init() ||
-        !sku.setPeerAddress(uds_address))
+        !sku.setPeerAddress(ptp4lUdsAddress.c_str()))
         return -1;
     /* Set Transport Specific */
     MsgParams prms = msg.getParams();
-    prms.transportSpecific = transport_specific;
+    prms.transportSpecific = cmGlobalTransportSpecific;
+    prms.domainNumber = domain;
     msg.updateParams(prms);
     handle_connect();
     return 0;
 }
 
-void Connect::disconnect()
+void ConnectPtp4l::disconnect_ptp4l()
 {
     sk->close();
 }

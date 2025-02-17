@@ -14,6 +14,8 @@
 #include "common/print.hpp"
 #include "common/serialize.hpp"
 #include "proxy/client.hpp"
+#include "proxy/connect_chrony.hpp"
+#include "proxy/connect_ptp4l.hpp"
 #include "proxy/subscribe_msg.hpp"
 
 __CLKMGR_NAMESPACE_USE;
@@ -84,7 +86,10 @@ PARSE_RXBUFFER_TYPE(ProxySubscribeMessage::parseBuffer)
     PrintDebug("[ProxySubscribeMessage] PTP4L UDS address: " + ptp4lUDSAddr);
     PrintDebug("[ProxySubscribeMessage] PTP4L Domain Number: " +
         std::to_string(ptp4lDomainNumber));
-    /* ToDo: communicate to Chrony and ptp4l only after get the uds addr */
+    ConnectPtp4l::connect_ptp4l(ptp4lUDSAddr, ptp4lDomainNumber);
+    #ifdef HAVE_LIBCHRONY
+    ConnectChrony::connect_chrony(chronyUDSAddr);
+    #endif
     return true;
 }
 

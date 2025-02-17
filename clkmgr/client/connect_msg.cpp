@@ -48,13 +48,9 @@ bool ClientConnectMessage::initMessage()
 
 PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
 {
-    ptp_event data = {};
     PrintDebug("[ClientConnectMessage]::parseBuffer ");
     if(!CommonConnectMessage::parseBuffer(LxContext))
         return false;
-    if(!PARSE_RX(FIELD, data.ptp4l_id, LxContext))
-        return false;
-    currentClientState->set_ptp4l_id(data.ptp4l_id);
     return true;
 }
 

@@ -14,12 +14,12 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class Connect
+class ConnectPtp4l
 {
   private:
   public:
-    static int connect(uint8_t transport_specific);
-    static void disconnect();
+    static int connect_ptp4l(std::string ptp4lUdsAddress, uint8_t domain);
+    static void disconnect_ptp4l();
 };
 
 __CLKMGR_NAMESPACE_END

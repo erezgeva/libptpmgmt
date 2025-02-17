@@ -146,10 +146,10 @@ void start_monitor_thread(chrony_session *s, int report_index)
     }
 }
 
-void ConnectChrony::connect_chrony()
+void ConnectChrony::connect_chrony(std::string chronyUdsAddress)
 {
     /* connect to chronyd unix socket*/
-    fd = chrony_open_socket("/var/run/chrony/chronyd.sock");
+    fd = chrony_open_socket(chronyUdsAddress.c_str());
     chrony_session *s;
     if(chrony_init_session(&s, fd) == CHRONY_OK) {
         start_monitor_thread(s, report_index);
