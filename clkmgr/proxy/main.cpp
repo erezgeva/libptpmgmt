@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
                 return EXIT_FAILURE;
         }
     }
+    PrintStartLog(argv[0]);
     BlockStopSignal();
     if(!ProxyTransport::init()) {
         PrintError("Transport init failed");
@@ -82,5 +83,6 @@ int main(int argc, char *argv[])
         PrintError("finalize failed");
         return EXIT_FAILURE;
     }
+    PrintStopLog();
     return EXIT_SUCCESS;
 }

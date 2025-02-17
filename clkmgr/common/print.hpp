@@ -44,6 +44,9 @@ void _PrintInfo(std::string msg, uint16_t line, const char *file,
 void _DumpOctetArray(std::string msg, const uint8_t *arr, size_t length,
     uint16_t line, const char *file, const char *func);
 
+void PrintStartLog(const char *me);
+void PrintStopLog();
+
 __CLKMGR_NAMESPACE_END
 
 #endif /* PRINT_HPP */
