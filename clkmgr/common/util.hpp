@@ -17,6 +17,18 @@
 
 #include "pub/clkmgr/utility.h"
 
+/** Maximum number of character for transport client ID */
+const int TRANSPORT_CLIENTID_LENGTH = 512;
+
+/** Array to store transport client ID. */
+typedef std::array<uint8_t, TRANSPORT_CLIENTID_LENGTH> TransportClientId;
+
+/** Type definition for session ID. */
+typedef uint16_t sessionId_t;
+
+/** Invalid session ID (default session ID) */
+const sessionId_t InvalidSessionId = UINT16_MAX;
+
 /* Some commonly used constants */
 #define NSEC_PER_MSEC   (1000000)
 #define NSEC_PER_SEC    (1000000000)

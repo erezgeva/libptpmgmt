@@ -13,6 +13,7 @@
 #define CLIENT_CLIENT_STATE_H
 
 #include "pub/clkmgr/subscription.h"
+#include "common/util.hpp"
 
 #include <string>
 #include <atomic>
