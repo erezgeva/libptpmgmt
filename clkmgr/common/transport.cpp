@@ -115,7 +115,7 @@ bool Transport::finalize()
             goto done;
         }
         it.thread.get()->join();
-        retVal = retVal && it.retVal.get();
+        retVal = retVal & it.retVal.get();
     }
     if(!_finalizeTransport<NullTransport, MessageQueue>())
         goto done;

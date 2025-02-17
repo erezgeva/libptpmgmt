@@ -86,9 +86,9 @@ PARSE_RXBUFFER_TYPE(ProxySubscribeMessage::parseBuffer)
     PrintDebug("[ProxySubscribeMessage] PTP4L UDS address: " + ptp4lUDSAddr);
     PrintDebug("[ProxySubscribeMessage] PTP4L Domain Number: " +
         std::to_string(ptp4lDomainNumber));
-    ConnectPtp4l::connect_ptp4l(ptp4lUDSAddr, ptp4lDomainNumber);
+    ConnectPtp4l::connect_ptp4l(std::move(ptp4lUDSAddr), ptp4lDomainNumber);
     #ifdef HAVE_LIBCHRONY
-    ConnectChrony::connect_chrony(chronyUDSAddr);
+    ConnectChrony::connect_chrony(std::move(chronyUDSAddr));
     #endif
     return true;
 }

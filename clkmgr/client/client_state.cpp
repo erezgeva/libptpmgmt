@@ -32,6 +32,9 @@ ClientState::ClientState()
     eventStateCount = {};
     eventSub = {};
     last_notification_time = {};
+    ptp4ldomainNumber = 0;
+    fill(begin(ptp4ludsAddr), end(ptp4ludsAddr), 0);
+    fill(begin(chronyudsAddr), end(chronyudsAddr), 0);
 }
 
 ClientState::ClientState(const ClientState &newState)
@@ -44,6 +47,9 @@ ClientState::ClientState(const ClientState &newState)
     eventStateCount = newState.eventStateCount;
     eventSub = newState.eventSub;
     last_notification_time = newState.get_last_notification_time();
+    ptp4ldomainNumber = newState.get_ptp4ldomainNumber();
+    ptp4ludsAddr = newState.get_ptp4ludsAddr();
+    chronyudsAddr = newState.get_chronyudsAddr();
 }
 
 void ClientState::set_clientState(const ClientState &newState)
@@ -56,6 +62,9 @@ void ClientState::set_clientState(const ClientState &newState)
     eventStateCount = newState.eventStateCount;
     eventSub = newState.eventSub;
     last_notification_time = newState.get_last_notification_time();
+    ptp4ldomainNumber = newState.get_ptp4ldomainNumber();
+    ptp4ludsAddr = newState.get_ptp4ludsAddr();
+    chronyudsAddr = newState.get_chronyudsAddr();
 }
 
 bool ClientState::get_connected() const
