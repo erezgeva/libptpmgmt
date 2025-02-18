@@ -44,7 +44,7 @@ LT_INIT
 AC_CONFIG_MACRO_DIRS([m4])
 
 #----------------------------------------------------------------
-# Macroes and Globals
+# Macros and Globals
 dnl Pipes to clean output
 AC_DEFUN([PTPM_DUMP_OUT], [>/dev/null])
 AC_DEFUN([PTPM_DUMP_ERR], [2>/dev/null])
