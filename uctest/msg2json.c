@@ -28,9 +28,10 @@ Test(Msg2JsonTest, Empty)
     cr_expect(eq(int, msg->getMsgLen(msg), 54));
     buf[46] = PTPMGMT_RESPONSE;
     cr_assert(eq(int, msg->parse(msg, buf, 54), PTPMGMT_MNG_PARSE_ERROR_OK));
-    char *ret = ptpmgmt_json_msg2json(msg, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_msg2json(msg, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"sequenceId\" : 1,\n"
             "  \"sdoId\" : 0,\n"
@@ -54,10 +55,11 @@ Test(Msg2JsonTest, Empty)
             "  \"tlvType\" : \"MANAGEMENT\",\n"
             "  \"managementId\" : \"NULL_PTP_MANAGEMENT\"\n"
             "}"));
-    free(ret);
-    ret = ptpmgmt_json_msg2json(msg, 3);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    jstr->free(jstr);
+    jstr = ptpmgmt_json_msg2json(msg, 3);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "   {\n"
             "     \"sequenceId\" : 1,\n"
             "     \"sdoId\" : 0,\n"
@@ -81,7 +83,7 @@ Test(Msg2JsonTest, Empty)
             "     \"tlvType\" : \"MANAGEMENT\",\n"
             "     \"managementId\" : \"NULL_PTP_MANAGEMENT\"\n"
             "   }"));
-    free(ret);
+    jstr->free(jstr);
     msg->free(msg);
 }
 
@@ -101,9 +103,10 @@ Test(Msg2JsonTest, MngTlv)
     cr_expect(eq(int, msg->getMsgLen(msg), 62));
     buf[46] = PTPMGMT_RESPONSE;
     cr_assert(eq(int, msg->parse(msg, buf, 62), PTPMGMT_MNG_PARSE_ERROR_OK));
-    char *ret = ptpmgmt_json_msg2json(msg, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_msg2json(msg, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"sequenceId\" : 1,\n"
             "  \"sdoId\" : 0,\n"
@@ -131,7 +134,7 @@ Test(Msg2JsonTest, MngTlv)
             "    \"userDescription\" : \"test123\"\n"
             "  }\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
     msg->free(msg);
 }
 
@@ -159,9 +162,10 @@ Test(Msg2JsonTest, MngErrTlv)
     buf[3] = 70; // header.messageLength
     memcpy(d + 1, displayData, 8); // displayData.textField
     cr_expect(eq(int, msg->parse(msg, buf, 70), PTPMGMT_MNG_PARSE_ERROR_MSG));
-    char *ret = ptpmgmt_json_msg2json(msg, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_msg2json(msg, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"sequenceId\" : 1,\n"
             "  \"sdoId\" : 0,\n"
@@ -187,7 +191,7 @@ Test(Msg2JsonTest, MngErrTlv)
             "  \"managementErrorId\" : \"WRONG_VALUE\",\n"
             "  \"displayData\" : \"test 123\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
     msg->free(msg);
 }
 
@@ -291,9 +295,10 @@ Test(Msg2JsonTest, Signaling)
     buf[2] = curLen >> 8;
     buf[3] = curLen & 0xff;
     cr_assert(eq(int, msg->parse(msg, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
-    char *ret = ptpmgmt_json_msg2json(msg, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_msg2json(msg, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"sequenceId\" : 1,\n"
             "  \"sdoId\" : 0,\n"
@@ -521,7 +526,7 @@ Test(Msg2JsonTest, Signaling)
             "    }\n"
             "  ]\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
     msg->free(msg);
 }
 
@@ -555,9 +560,10 @@ Test(Tlv2JsonTest, CLOCK_DESCRIPTION)
     t.profileIdentity[3] = 4;
     t.profileIdentity[4] = 5;
     t.profileIdentity[5] = 6;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_CLOCK_DESCRIPTION, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_CLOCK_DESCRIPTION, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"clockType\" : 32768,\n"
             "  \"physicalLayerProtocol\" : \"IEEE 802.3\",\n"
@@ -573,7 +579,7 @@ Test(Tlv2JsonTest, CLOCK_DESCRIPTION)
             "  \"userDescription\" : \"test123\",\n"
             "  \"profileIdentity\" : \"01:02:03:04:05:06\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests USER_DESCRIPTION structure
@@ -583,13 +589,14 @@ Test(Tlv2JsonTest, USER_DESCRIPTION)
     char txt[] = "test123";
     t.userDescription.lengthField = strlen(txt);
     t.userDescription.textField = txt;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_USER_DESCRIPTION, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_USER_DESCRIPTION, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"userDescription\" : \"test123\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests INITIALIZE structure
@@ -597,19 +604,22 @@ Test(Tlv2JsonTest, INITIALIZE)
 {
     struct ptpmgmt_INITIALIZE_t t;
     t.initializationKey = 0x1234;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_INITIALIZE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_INITIALIZE, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"initializationKey\" : 4660\n"
             "}"));
-    free(ret);
-    ret = ptpmgmt_json_tlv2json(PTPMGMT_INITIALIZE, &t, 3);
-    cr_assert(eq(str, (char *)ret,
+    jstr->free(jstr);
+    jstr = ptpmgmt_json_tlv2json(PTPMGMT_INITIALIZE, &t, 3);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "   {\n"
             "     \"initializationKey\" : 4660\n"
             "   }"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests FAULT_LOG structure
@@ -646,9 +656,10 @@ Test(Tlv2JsonTest, FAULT_LOG)
     char txt6[] = "This is the second record";
     t.faultRecords[1].faultDescription.lengthField = strlen(txt6);
     t.faultRecords[1].faultDescription.textField = txt6;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_FAULT_LOG, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_FAULT_LOG, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"numberOfFaultRecords\" : 2,\n"
             "  \"faultRecords\" :\n"
@@ -672,7 +683,7 @@ Test(Tlv2JsonTest, FAULT_LOG)
             "  ]\n"
             "}"));
     free(x);
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests DEFAULT_DATA_SET structure
@@ -695,9 +706,10 @@ Test(Tlv2JsonTest, DEFAULT_DATA_SET)
     t.clockIdentity.v[6] = 172;
     t.clockIdentity.v[7] = 174;
     t.domainNumber = 0;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_DEFAULT_DATA_SET, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_DEFAULT_DATA_SET, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"twoStepFlag\" : true,\n"
             "  \"slaveOnly\" : true,\n"
@@ -713,7 +725,7 @@ Test(Tlv2JsonTest, DEFAULT_DATA_SET)
             "  \"clockIdentity\" : \"c47d46.fffe.20acae\",\n"
             "  \"domainNumber\" : 0\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests CURRENT_DATA_SET structure
@@ -723,15 +735,16 @@ Test(Tlv2JsonTest, CURRENT_DATA_SET)
     t.stepsRemoved = 0x1234;
     t.offsetFromMaster.scaledNanoseconds = 0x321047abcd541285LL;
     t.meanPathDelay.scaledNanoseconds = 0x0906050403020100LL;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_CURRENT_DATA_SET, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_CURRENT_DATA_SET, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"stepsRemoved\" : 4660,\n"
             "  \"offsetFromMaster\" : 3607462104733586053,\n"
             "  \"meanPathDelay\" : 650212710990086400\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PARENT_DATA_SET structure
@@ -763,9 +776,10 @@ Test(Tlv2JsonTest, PARENT_DATA_SET)
     t.grandmasterIdentity.v[5] = 32;
     t.grandmasterIdentity.v[6] = 172;
     t.grandmasterIdentity.v[7] = 174;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PARENT_DATA_SET, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PARENT_DATA_SET, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"parentPortIdentity\" :\n"
             "  {\n"
@@ -785,7 +799,7 @@ Test(Tlv2JsonTest, PARENT_DATA_SET)
             "  \"grandmasterPriority2\" : 255,\n"
             "  \"grandmasterIdentity\" : \"c47d46.fffe.20acae\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests TIME_PROPERTIES_DATA_SET structure
@@ -795,9 +809,11 @@ Test(Tlv2JsonTest, TIME_PROPERTIES_DATA_SET)
     t.currentUtcOffset = 37;
     t.flags = PTPMGMT_F_PTP; // ptpTimescale bit
     t.timeSource = PTPMGMT_INTERNAL_OSCILLATOR;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_TIME_PROPERTIES_DATA_SET, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_TIME_PROPERTIES_DATA_SET,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"currentUtcOffset\" : 37,\n"
             "  \"leap61\" : false,\n"
@@ -808,7 +824,7 @@ Test(Tlv2JsonTest, TIME_PROPERTIES_DATA_SET)
             "  \"frequencyTraceable\" : false,\n"
             "  \"timeSource\" : \"INTERNAL_OSCILLATOR\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PORT_DATA_SET structure
@@ -833,9 +849,10 @@ Test(Tlv2JsonTest, PORT_DATA_SET)
     t.delayMechanism = PTPMGMT_P2P;
     t.logMinPdelayReqInterval = 0;
     t.versionNumber = 2;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_DATA_SET, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PORT_DATA_SET, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"portIdentity\" :\n"
             "  {\n"
@@ -852,7 +869,7 @@ Test(Tlv2JsonTest, PORT_DATA_SET)
             "  \"logMinPdelayReqInterval\" : 0,\n"
             "  \"versionNumber\" : 2\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 };
 
 // Tests PRIORITY1 structure
@@ -860,13 +877,14 @@ Test(Tlv2JsonTest, PRIORITY1)
 {
     struct ptpmgmt_PRIORITY1_t t;
     t.priority1 = 153;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PRIORITY1, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PRIORITY1, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"priority1\" : 153\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PRIORITY2 structure
@@ -874,13 +892,14 @@ Test(Tlv2JsonTest, PRIORITY2)
 {
     struct ptpmgmt_PRIORITY2_t t;
     t.priority2 = 137;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PRIORITY2, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PRIORITY2, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"priority2\" : 137\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests DOMAIN structure
@@ -888,13 +907,14 @@ Test(Tlv2JsonTest, DOMAIN)
 {
     struct ptpmgmt_DOMAIN_t t;
     t.domainNumber = 7;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_DOMAIN, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_DOMAIN, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"domainNumber\" : 7\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests SLAVE_ONLY structure
@@ -902,13 +922,14 @@ Test(Tlv2JsonTest, SLAVE_ONLY)
 {
     struct ptpmgmt_SLAVE_ONLY_t t;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_SLAVE_ONLY, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_SLAVE_ONLY, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"slaveOnly\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests LOG_ANNOUNCE_INTERVAL structure
@@ -916,13 +937,15 @@ Test(Tlv2JsonTest, LOG_ANNOUNCE_INTERVAL)
 {
     struct ptpmgmt_LOG_ANNOUNCE_INTERVAL_t t;
     t.logAnnounceInterval = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_LOG_ANNOUNCE_INTERVAL, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_LOG_ANNOUNCE_INTERVAL, &t,
+            0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"logAnnounceInterval\" : 1\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ANNOUNCE_RECEIPT_TIMEOUT structure
@@ -930,13 +953,15 @@ Test(Tlv2JsonTest, ANNOUNCE_RECEIPT_TIMEOUT)
 {
     struct ptpmgmt_ANNOUNCE_RECEIPT_TIMEOUT_t t;
     t.announceReceiptTimeout = 3;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ANNOUNCE_RECEIPT_TIMEOUT, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_ANNOUNCE_RECEIPT_TIMEOUT,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"announceReceiptTimeout\" : 3\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests LOG_SYNC_INTERVAL structure
@@ -944,13 +969,14 @@ Test(Tlv2JsonTest, LOG_SYNC_INTERVAL)
 {
     struct ptpmgmt_LOG_SYNC_INTERVAL_t t;
     t.logSyncInterval = 7;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_LOG_SYNC_INTERVAL, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_LOG_SYNC_INTERVAL, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"logSyncInterval\" : 7\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests VERSION_NUMBER structure
@@ -958,13 +984,14 @@ Test(Tlv2JsonTest, VERSION_NUMBER)
 {
     struct ptpmgmt_VERSION_NUMBER_t t;
     t.versionNumber = 2;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_VERSION_NUMBER, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_VERSION_NUMBER, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"versionNumber\" : 2\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests TIME structure
@@ -973,13 +1000,14 @@ Test(Tlv2JsonTest, TIME)
     struct ptpmgmt_TIME_t t;
     t.currentTime.secondsField = 13;
     t.currentTime.nanosecondsField = 150000000;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_TIME, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_TIME, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"currentTime\" : 13.150000000\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests CLOCK_ACCURACY structure
@@ -987,13 +1015,14 @@ Test(Tlv2JsonTest, CLOCK_ACCURACY)
 {
     struct ptpmgmt_CLOCK_ACCURACY_t t;
     t.clockAccuracy = ptpmgmt_Accurate_Unknown;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_CLOCK_ACCURACY, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_CLOCK_ACCURACY, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"clockAccuracy\" : \"Unknown\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests UTC_PROPERTIES structure
@@ -1002,16 +1031,17 @@ Test(Tlv2JsonTest, UTC_PROPERTIES)
     struct ptpmgmt_UTC_PROPERTIES_t t;
     t.currentUtcOffset = -0x5433;
     t.flags = 7;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_UTC_PROPERTIES, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_UTC_PROPERTIES, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"currentUtcOffset\" : -21555,\n"
             "  \"leap61\" : true,\n"
             "  \"leap59\" : true,\n"
             "  \"currentUtcOffsetValid\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests TRACEABILITY_PROPERTIES structure
@@ -1019,14 +1049,16 @@ Test(Tlv2JsonTest, TRACEABILITY_PROPERTIES)
 {
     struct ptpmgmt_TRACEABILITY_PROPERTIES_t t;
     t.flags = PTPMGMT_F_TTRA | PTPMGMT_F_FTRA;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_TRACEABILITY_PROPERTIES, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_TRACEABILITY_PROPERTIES,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"timeTraceable\" : true,\n"
             "  \"frequencyTraceable\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests TIMESCALE_PROPERTIES structure
@@ -1035,14 +1067,16 @@ Test(Tlv2JsonTest, TIMESCALE_PROPERTIES)
     struct ptpmgmt_TIMESCALE_PROPERTIES_t t;
     t.flags = PTPMGMT_F_PTP;
     t.timeSource = PTPMGMT_HAND_SET;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_TIMESCALE_PROPERTIES, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_TIMESCALE_PROPERTIES, &t,
+            0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"ptpTimescale\" : true,\n"
             "  \"timeSource\" : \"HAND_SET\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests UNICAST_NEGOTIATION_ENABLE structure
@@ -1050,13 +1084,15 @@ Test(Tlv2JsonTest, UNICAST_NEGOTIATION_ENABLE)
 {
     struct ptpmgmt_UNICAST_NEGOTIATION_ENABLE_t t;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_NEGOTIATION_ENABLE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_NEGOTIATION_ENABLE, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"unicastNegotiationPortDS\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PATH_TRACE_LIST structure
@@ -1091,9 +1127,10 @@ Test(Tlv2JsonTest, PATH_TRACE_LIST)
     t.pathSequence[2].v[5] = 0;
     t.pathSequence[2].v[6] = 0;
     t.pathSequence[2].v[7] = 0;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PATH_TRACE_LIST, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PATH_TRACE_LIST, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"pathSequence\" :\n"
             "  [\n"
@@ -1102,7 +1139,7 @@ Test(Tlv2JsonTest, PATH_TRACE_LIST)
             "  ]\n"
             "}"));
     free(x);
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PATH_TRACE_ENABLE structure
@@ -1110,13 +1147,14 @@ Test(Tlv2JsonTest, PATH_TRACE_ENABLE)
 {
     struct ptpmgmt_PATH_TRACE_ENABLE_t t;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PATH_TRACE_ENABLE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PATH_TRACE_ENABLE, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"pathTraceDS\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests GRANDMASTER_CLUSTER_TABLE structure
@@ -1134,9 +1172,11 @@ Test(Tlv2JsonTest, GRANDMASTER_CLUSTER_TABLE)
     t.PortAddress[1].networkProtocol = ptpmgmt_UDP_IPv4;
     t.PortAddress[1].addressLength = 4;
     t.PortAddress[1].addressField = ip_v;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_GRANDMASTER_CLUSTER_TABLE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_GRANDMASTER_CLUSTER_TABLE,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"logQueryInterval\" : -19,\n"
             "  \"actualTableSize\" : 2,\n"
@@ -1153,7 +1193,7 @@ Test(Tlv2JsonTest, GRANDMASTER_CLUSTER_TABLE)
             "  ]\n"
             "}"));
     free(x);
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests UNICAST_MASTER_TABLE structure
@@ -1171,9 +1211,11 @@ Test(Tlv2JsonTest, UNICAST_MASTER_TABLE)
     t.PortAddress[1].networkProtocol = ptpmgmt_UDP_IPv4;
     t.PortAddress[1].addressLength = 4;
     t.PortAddress[1].addressField = ip_v;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_MASTER_TABLE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_MASTER_TABLE, &t,
+            0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"logQueryInterval\" : -19,\n"
             "  \"actualTableSize\" : 2,\n"
@@ -1190,7 +1232,7 @@ Test(Tlv2JsonTest, UNICAST_MASTER_TABLE)
             "  ]\n"
             "}"));
     free(x);
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests UNICAST_MASTER_MAX_TABLE_SIZE structure
@@ -1198,13 +1240,15 @@ Test(Tlv2JsonTest, UNICAST_MASTER_MAX_TABLE_SIZE)
 {
     struct ptpmgmt_UNICAST_MASTER_MAX_TABLE_SIZE_t t;
     t.maxTableSize = 0x2143;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_MASTER_MAX_TABLE_SIZE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_MASTER_MAX_TABLE_SIZE, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"maxTableSize\" : 8515\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ACCEPTABLE_MASTER_TABLE structure
@@ -1235,9 +1279,11 @@ Test(Tlv2JsonTest, ACCEPTABLE_MASTER_TABLE)
     t.list[1].acceptablePortIdentity.clockIdentity.v[7] = 7;
     t.list[1].acceptablePortIdentity.portNumber = 2;
     t.list[1].alternatePriority1 = 111;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ACCEPTABLE_MASTER_TABLE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_ACCEPTABLE_MASTER_TABLE,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"actualTableSize\" : 2,\n"
             "  \"list\" :\n"
@@ -1261,7 +1307,7 @@ Test(Tlv2JsonTest, ACCEPTABLE_MASTER_TABLE)
             "  ]\n"
             "}"));
     free(x);
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ACCEPTABLE_MASTER_TABLE_ENABLED structure
@@ -1269,14 +1315,15 @@ Test(Tlv2JsonTest, ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
     struct ptpmgmt_ACCEPTABLE_MASTER_TABLE_ENABLED_t t;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ACCEPTABLE_MASTER_TABLE_ENABLED, &t,
-            0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_ACCEPTABLE_MASTER_TABLE_ENABLED, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"acceptableMasterPortDS\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ACCEPTABLE_MASTER_MAX_TABLE_SIZE structure
@@ -1284,14 +1331,15 @@ Test(Tlv2JsonTest, ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
     struct ptpmgmt_ACCEPTABLE_MASTER_MAX_TABLE_SIZE_t t;
     t.maxTableSize = 0x67ba;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ACCEPTABLE_MASTER_MAX_TABLE_SIZE, &t,
-            0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_ACCEPTABLE_MASTER_MAX_TABLE_SIZE, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"maxTableSize\" : 26554\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ALTERNATE_MASTER structure
@@ -1301,15 +1349,16 @@ Test(Tlv2JsonTest, ALTERNATE_MASTER)
     t.flags = 1;
     t.logAlternateMulticastSyncInterval = -17;
     t.numberOfAlternateMasters = 210;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_MASTER, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_MASTER, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"transmitAlternateMulticastSync\" : true,\n"
             "  \"logAlternateMulticastSyncInterval\" : -17,\n"
             "  \"numberOfAlternateMasters\" : 210\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ALTERNATE_TIME_OFFSET_ENABLE structure
@@ -1318,14 +1367,16 @@ Test(Tlv2JsonTest, ALTERNATE_TIME_OFFSET_ENABLE)
     struct ptpmgmt_ALTERNATE_TIME_OFFSET_ENABLE_t t;
     t.keyField = 7;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_ENABLE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_ENABLE, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"keyField\" : 7,\n"
             "  \"alternateTimescaleOffsetsDS\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ALTERNATE_TIME_OFFSET_NAME structure
@@ -1336,14 +1387,16 @@ Test(Tlv2JsonTest, ALTERNATE_TIME_OFFSET_NAME)
     char txt[] = "123";
     t.displayName.lengthField = strlen(txt);
     t.displayName.textField = txt;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_NAME, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_NAME, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"keyField\" : 11,\n"
             "  \"displayName\" : \"123\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ALTERNATE_TIME_OFFSET_MAX_KEY structure
@@ -1351,13 +1404,15 @@ Test(Tlv2JsonTest, ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
     struct ptpmgmt_ALTERNATE_TIME_OFFSET_MAX_KEY_t t;
     t.maxKey = 9;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_MAX_KEY, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_MAX_KEY, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"maxKey\" : 9\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests ALTERNATE_TIME_OFFSET_PROPERTIES structure
@@ -1368,17 +1423,18 @@ Test(Tlv2JsonTest, ALTERNATE_TIME_OFFSET_PROPERTIES)
     t.currentOffset = -2145493247;
     t.jumpSeconds = -2147413249;
     t.timeOfNextJump = 0x912478321891LL;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_PROPERTIES, &t,
-            0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_ALTERNATE_TIME_OFFSET_PROPERTIES, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"keyField\" : 13,\n"
             "  \"currentOffset\" : -2145493247,\n"
             "  \"jumpSeconds\" : -2147413249,\n"
             "  \"timeOfNextJump\" : 159585821399185\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests TRANSPARENT_CLOCK_PORT_DATA_SET structure
@@ -1397,10 +1453,11 @@ Test(Tlv2JsonTest, TRANSPARENT_CLOCK_PORT_DATA_SET)
     t.flags = 1;
     t.logMinPdelayReqInterval = -21;
     t.peerMeanPathDelay.scaledNanoseconds = 0xdcf87240dcd12301LL;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_TRANSPARENT_CLOCK_PORT_DATA_SET, &t,
-            0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_TRANSPARENT_CLOCK_PORT_DATA_SET, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"portIdentity\" :\n"
             "  {\n"
@@ -1411,7 +1468,7 @@ Test(Tlv2JsonTest, TRANSPARENT_CLOCK_PORT_DATA_SET)
             "  \"logMinPdelayReqInterval\" : -21,\n"
             "  \"peerMeanPathDelay\" : -2524141968232996095\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests LOG_MIN_PDELAY_REQ_INTERVAL structure
@@ -1419,13 +1476,15 @@ Test(Tlv2JsonTest, LOG_MIN_PDELAY_REQ_INTERVAL)
 {
     struct ptpmgmt_LOG_MIN_PDELAY_REQ_INTERVAL_t t;
     t.logMinPdelayReqInterval = 9;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_LOG_MIN_PDELAY_REQ_INTERVAL, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_LOG_MIN_PDELAY_REQ_INTERVAL, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"logMinPdelayReqInterval\" : 9\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests TRANSPARENT_CLOCK_DEFAULT_DATA_SET structure
@@ -1443,17 +1502,18 @@ Test(Tlv2JsonTest, TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     t.numberPorts = 0x177a;
     t.delayMechanism = PTPMGMT_NO_MECHANISM;
     t.primaryDomain = 18;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_TRANSPARENT_CLOCK_DEFAULT_DATA_SET,
-            &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_TRANSPARENT_CLOCK_DEFAULT_DATA_SET, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"clockIdentity\" : \"c47d46.fffe.20acae\",\n"
             "  \"numberPorts\" : 6010,\n"
             "  \"delayMechanism\" : \"NO_MECHANISM\",\n"
             "  \"primaryDomain\" : 18\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PRIMARY_DOMAIN structure
@@ -1461,13 +1521,14 @@ Test(Tlv2JsonTest, PRIMARY_DOMAIN)
 {
     struct ptpmgmt_PRIMARY_DOMAIN_t t;
     t.primaryDomain = 17;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PRIMARY_DOMAIN, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PRIMARY_DOMAIN, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"primaryDomain\" : 17\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests DELAY_MECHANISM structure
@@ -1475,13 +1536,14 @@ Test(Tlv2JsonTest, DELAY_MECHANISM)
 {
     struct ptpmgmt_DELAY_MECHANISM_t t;
     t.delayMechanism = PTPMGMT_P2P;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_DELAY_MECHANISM, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_DELAY_MECHANISM, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"delayMechanism\" : \"P2P\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests EXTERNAL_PORT_CONFIGURATION_ENABLED structure
@@ -1489,14 +1551,15 @@ Test(Tlv2JsonTest, EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
     struct ptpmgmt_EXTERNAL_PORT_CONFIGURATION_ENABLED_t t;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_EXTERNAL_PORT_CONFIGURATION_ENABLED,
-            &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_EXTERNAL_PORT_CONFIGURATION_ENABLED, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"externalPortConfiguration\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests MASTER_ONLY structure
@@ -1504,13 +1567,14 @@ Test(Tlv2JsonTest, MASTER_ONLY)
 {
     struct ptpmgmt_MASTER_ONLY_t t;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_MASTER_ONLY, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_MASTER_ONLY, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"masterOnly\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests HOLDOVER_UPGRADE_ENABLE structure
@@ -1518,13 +1582,15 @@ Test(Tlv2JsonTest, HOLDOVER_UPGRADE_ENABLE)
 {
     struct ptpmgmt_HOLDOVER_UPGRADE_ENABLE_t t;
     t.flags = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_HOLDOVER_UPGRADE_ENABLE, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_HOLDOVER_UPGRADE_ENABLE,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"holdoverUpgradeDS\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests EXT_PORT_CONFIG_PORT_DATA_SET structure
@@ -1533,14 +1599,16 @@ Test(Tlv2JsonTest, EXT_PORT_CONFIG_PORT_DATA_SET)
     struct ptpmgmt_EXT_PORT_CONFIG_PORT_DATA_SET_t t;
     t.flags = 1;
     t.desiredState = PTPMGMT_PASSIVE;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_EXT_PORT_CONFIG_PORT_DATA_SET, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_EXT_PORT_CONFIG_PORT_DATA_SET, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"acceptableMasterPortDS\" : true,\n"
             "  \"desiredState\" : \"PASSIVE\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests SMPTE organization extension
@@ -1558,9 +1626,10 @@ Test(Tlv2JsonTest, SMPTE_ORGANIZATION_EXTENSION)
     cr_expect(msg->updateParams(msg, a));
     cr_assert(eq(int, msg->parse(msg, b, sizeof b), PTPMGMT_MNG_PARSE_ERROR_SMPTE));
     cr_assert(msg->isLastMsgSMPTE(msg));
-    char *ret = ptpmgmt_json_msg2json(msg, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_msg2json(msg, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"sequenceId\" : 0,\n"
             "  \"sdoId\" : 0,\n"
@@ -1599,7 +1668,7 @@ Test(Tlv2JsonTest, SMPTE_ORGANIZATION_EXTENSION)
             "  \"leapSecondJump\" : 0\n"
             "}"));
     msg->free(msg);
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests TIME_STATUS_NP structure
@@ -1623,9 +1692,10 @@ Test(Tlv2JsonTest, TIME_STATUS_NP)
     t.gmIdentity.v[5] = 32;
     t.gmIdentity.v[6] = 172;
     t.gmIdentity.v[7] = 174;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_TIME_STATUS_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_TIME_STATUS_NP, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"master_offset\" : 0,\n"
             "  \"ingress_time\" : 0,\n"
@@ -1638,7 +1708,7 @@ Test(Tlv2JsonTest, TIME_STATUS_NP)
             "  \"gmPresent\" : 0,\n"
             "  \"gmIdentity\" : \"c47d46.fffe.20acae\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests GRANDMASTER_SETTINGS_NP structure
@@ -1651,9 +1721,11 @@ Test(Tlv2JsonTest, GRANDMASTER_SETTINGS_NP)
     t.currentUtcOffset = 37;
     t.flags = PTPMGMT_F_PTP;
     t.timeSource = PTPMGMT_INTERNAL_OSCILLATOR;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_GRANDMASTER_SETTINGS_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_GRANDMASTER_SETTINGS_NP,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"clockQuality\" :\n"
             "  {\n"
@@ -1670,7 +1742,7 @@ Test(Tlv2JsonTest, GRANDMASTER_SETTINGS_NP)
             "  \"frequencyTraceable\" : false,\n"
             "  \"timeSource\" : \"INTERNAL_OSCILLATOR\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PORT_DATA_SET_NP structure
@@ -1679,14 +1751,15 @@ Test(Tlv2JsonTest, PORT_DATA_SET_NP)
     struct ptpmgmt_PORT_DATA_SET_NP_t t;
     t.neighborPropDelayThresh = 20000000;
     t.asCapable = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_DATA_SET_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PORT_DATA_SET_NP, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"neighborPropDelayThresh\" : 20000000,\n"
             "  \"asCapable\" : 1\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests SUBSCRIBE_EVENTS_NP structure
@@ -1698,9 +1771,11 @@ Test(Tlv2JsonTest, SUBSCRIBE_EVENTS_NP)
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_TIME_SYNC);
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_PARENT_DATA_SET);
     ptpmgmt_setEvent_lnp(&t, PTPMGMT_NOTIFY_CMLDS);
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_SUBSCRIBE_EVENTS_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_SUBSCRIBE_EVENTS_NP, &t,
+            0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"duration\" : 4660,\n"
             "  \"NOTIFY_PORT_STATE\" : true,\n"
@@ -1708,7 +1783,7 @@ Test(Tlv2JsonTest, SUBSCRIBE_EVENTS_NP)
             "  \"NOTIFY_PARENT_DATA_SET\" : true,\n"
             "  \"NOTIFY_CMLDS\" : true\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PORT_PROPERTIES_NP structure
@@ -1729,9 +1804,11 @@ Test(Tlv2JsonTest, PORT_PROPERTIES_NP)
     char txt[] = "enp0s25";
     t.interface.lengthField = strlen(txt);
     t.interface.textField = txt;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_PROPERTIES_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PORT_PROPERTIES_NP, &t,
+            0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"portIdentity\" :\n"
             "  {\n"
@@ -1742,7 +1819,7 @@ Test(Tlv2JsonTest, PORT_PROPERTIES_NP)
             "  \"timestamping\" : \"HARDWARE\",\n"
             "  \"interface\" : \"enp0s25\"\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PORT_STATS_NP structure
@@ -1778,9 +1855,10 @@ Test(Tlv2JsonTest, PORT_STATS_NP)
     t.txMsgType[PTPMGMT_STAT_ANNOUNCE] = 0;
     t.txMsgType[PTPMGMT_STAT_SIGNALING] = 0;
     t.txMsgType[PTPMGMT_STAT_MANAGEMENT] = 0;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_STATS_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PORT_STATS_NP, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"portIdentity\" :\n"
             "  {\n"
@@ -1808,7 +1886,7 @@ Test(Tlv2JsonTest, PORT_STATS_NP)
             "  \"tx_Signaling\" : 0,\n"
             "  \"tx_Management\" : 0\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests SYNCHRONIZATION_UNCERTAIN_NP structure
@@ -1816,13 +1894,15 @@ Test(Tlv2JsonTest, SYNCHRONIZATION_UNCERTAIN_NP)
 {
     struct ptpmgmt_SYNCHRONIZATION_UNCERTAIN_NP_t t;
     t.val = PTPMGMT_SYNC_UNCERTAIN_DONTCARE;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_SYNCHRONIZATION_UNCERTAIN_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_SYNCHRONIZATION_UNCERTAIN_NP, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"val\" : 255\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PORT_SERVICE_STATS_NP structure
@@ -1848,9 +1928,11 @@ Test(Tlv2JsonTest, PORT_SERVICE_STATS_NP)
     t.qualification_timeout = 0;
     t.sync_mismatch = 0;
     t.followup_mismatch = 0;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_SERVICE_STATS_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PORT_SERVICE_STATS_NP, &t,
+            0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"portIdentity\" :\n"
             "  {\n"
@@ -1868,7 +1950,7 @@ Test(Tlv2JsonTest, PORT_SERVICE_STATS_NP)
             "  \"sync_mismatch\" : 0,\n"
             "  \"followup_mismatch\" : 0\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests UNICAST_MASTER_TABLE_NP structure
@@ -1899,9 +1981,11 @@ Test(Tlv2JsonTest, UNICAST_MASTER_TABLE_NP)
     t.unicastMasters[0].portAddress.networkProtocol = ptpmgmt_IEEE_802_3;
     t.unicastMasters[0].portAddress.addressLength = 6;
     t.unicastMasters[0].portAddress.addressField = physicalAddress_v;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_MASTER_TABLE_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_UNICAST_MASTER_TABLE_NP,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"actualTableSize\" : 1,\n"
             "  \"unicastMasters\" :\n"
@@ -1931,7 +2015,7 @@ Test(Tlv2JsonTest, UNICAST_MASTER_TABLE_NP)
             "  ]\n"
             "}"));
     free(x);
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PORT_HWCLOCK_NP structure
@@ -1949,9 +2033,10 @@ Test(Tlv2JsonTest, PORT_HWCLOCK_NP)
     t.portIdentity.portNumber = 1;
     t.phc_index = 1;
     t.flags = 7;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_HWCLOCK_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PORT_HWCLOCK_NP, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"portIdentity\" :\n"
             "  {\n"
@@ -1961,7 +2046,7 @@ Test(Tlv2JsonTest, PORT_HWCLOCK_NP)
             "  \"phc_index\" : 1,\n"
             "  \"flags\" : 7\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests POWER_PROFILE_SETTINGS_NP structure
@@ -1973,9 +2058,11 @@ Test(Tlv2JsonTest, POWER_PROFILE_SETTINGS_NP)
     t.grandmasterTimeInaccuracy = 4124796349;
     t.networkTimeInaccuracy = 3655058877;
     t.totalTimeInaccuracy = 4223530875;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_POWER_PROFILE_SETTINGS_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_POWER_PROFILE_SETTINGS_NP,
+            &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"version\" : \"2011\",\n"
             "  \"grandmasterID\" : 56230,\n"
@@ -1983,7 +2070,7 @@ Test(Tlv2JsonTest, POWER_PROFILE_SETTINGS_NP)
             "  \"networkTimeInaccuracy\" : 3655058877,\n"
             "  \"totalTimeInaccuracy\" : 4223530875\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests CMLDS_INFO_NP structure
@@ -1993,15 +2080,16 @@ Test(Tlv2JsonTest, CMLDS_INFO_NP)
     t.meanLinkDelay.scaledNanoseconds = 201548321LL;
     t.scaledNeighborRateRatio = 1842;
     t.as_capable = 1;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_CMLDS_INFO_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_CMLDS_INFO_NP, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"meanLinkDelay\" : 201548321,\n"
             "  \"scaledNeighborRateRatio\" : 1842,\n"
             "  \"as_capable\" : 1\n"
             "}"));
-    free(ret);
+    jstr->free(jstr);
 }
 
 // Tests PORT_CORRECTIONS_NP structure
@@ -2011,14 +2099,17 @@ Test(Tlv2JsonTest, PORT_CORRECTIONS_NP)
     t.egressLatency = 5486;
     t.ingressLatency = 2379;
     t.delayAsymmetry = 1358196;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_PORT_CORRECTIONS_NP, &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr = ptpmgmt_json_tlv2json(PTPMGMT_PORT_CORRECTIONS_NP, &t,
+            0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"egressLatency\" : 5486,\n"
             "  \"ingressLatency\" : 2379,\n"
             "  \"delayAsymmetry\" : 1358196\n"
             "}"));
+    jstr->free(jstr);
 }
 
 // Tests EXTERNAL_GRANDMASTER_PROPERTIES_NP structure
@@ -2034,12 +2125,14 @@ Test(Tlv2JsonTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
     t.gmIdentity.v[6] = 172;
     t.gmIdentity.v[7] = 174;
     t.stepsRemoved = 1963;
-    char *ret = ptpmgmt_json_tlv2json(PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP,
-            &t, 0);
-    cr_assert(not(zero(ptr, ret)));
-    cr_assert(eq(str, (char *)ret,
+    ptpmgmt_json_str jstr =
+        ptpmgmt_json_tlv2json(PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP, &t, 0);
+    cr_assert(not(zero(ptr, jstr)));
+    cr_assert(not(zero(ptr, (char *)jstr->json_string)));
+    cr_assert(eq(str, (char *)jstr->json_string,
             "{\n"
             "  \"gmIdentity\" : \"c47d46.fffe.20acae\",\n"
             "  \"stepsRemoved\" : 1963\n"
             "}"));
+    jstr->free(jstr);
 }
