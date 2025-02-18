@@ -18,6 +18,9 @@ name: continuous integration
 # On evry push and Pull Request (PR)
 on: [push, pull_request, workflow_dispatch]
 
+# Permit read-only with GITHUB_TOKEN
+permissions: read-all
+
 env:
   USER: builder
 

@@ -18,6 +18,7 @@ env:
 jobs:
   gentoo:
     runs-on: ubuntu-24.04
+    # Sets permissions of the GITHUB_TOKEN to allow upload new container
     permissions:
       contents: read
       packages: write

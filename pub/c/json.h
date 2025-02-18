@@ -58,7 +58,7 @@ struct ptpmgmt_json_t {
     /**< @endcond */
 
     /**
-     * Free json object
+     * Free this json object
      * @param[in, out] j json object
      */
     void (*free)(ptpmgmt_json j);

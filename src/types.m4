@@ -998,7 +998,7 @@ c_cod(`     * @param[in] mp pointer to MsgParams wrapper structure')dnl
 cpp_cod(`    size_t countSigTlvs() const;')dnl
 c_cod(`    size_t (*countSigTlvs)(ptpmgmt_cpMsgParams m);')dnl
 c_cod(`    /**')dnl
-c_cod(`     * Free structure object')dnl
+c_cod(`     * Free this object')dnl
 c_cod(`     * @param[in, out] mp pointer to MsgParams wrapper structure')dnl
 c_cod(`     */')dnl
 c_cod(`    void (*free)(ptpmgmt_pMsgParams mp);')dnl

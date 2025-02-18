@@ -15,6 +15,9 @@ name: manual testing
 # Start manually
 on: workflow_dispatch
 
+# Permit read-only with GITHUB_TOKEN
+permissions: read-all
+
 env:
   USER: builder
 

@@ -736,3 +736,49 @@ void handle_POWER_PROFILE_SETTINGS_NP(const BaseMngTlv *d)
     EXPECT_EQ(t->networkTimeInaccuracy, 3655058877);
     EXPECT_EQ(t->totalTimeInaccuracy, 4223530875);
 }
+
+// Tests build PORT_CORRECTIONS_NP tlv
+void handle_PORT_CORRECTIONS_NP(const BaseMngTlv *d);
+TEST(PmcBuildTest, PORT_CORRECTIONS_NP)
+{
+    handle = handle_PORT_CORRECTIONS_NP;
+    strcpy(str,
+        "egressLatency 153 "
+        "ingressLatency 45 "
+        "delayAsymmetry 36");
+    bool ret = call_data(m, SET, PORT_CORRECTIONS_NP, str);
+    useTestMode(false);
+    EXPECT_TRUE(ret);
+}
+void handle_PORT_CORRECTIONS_NP(const BaseMngTlv *d)
+{
+    ASSERT_NE(d, nullptr);
+    const PORT_CORRECTIONS_NP_t *t = dynamic_cast<const PORT_CORRECTIONS_NP_t *>(d);
+    ASSERT_NE(t, nullptr);
+    EXPECT_EQ(t->egressLatency, 153L << 16);
+    EXPECT_EQ(t->ingressLatency, 45L << 16);
+    EXPECT_EQ(t->delayAsymmetry, 36L << 16);
+}
+
+// Tests build EXTERNAL_GRANDMASTER_PROPERTIES_NP tlv
+void handle_EXTERNAL_GRANDMASTER_PROPERTIES_NP(const BaseMngTlv *d);
+TEST(PmcBuildTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    handle = handle_EXTERNAL_GRANDMASTER_PROPERTIES_NP;
+    strcpy(str,
+        "gmIdentity c47d46.fffe.20acae "
+        "stepsRemoved 1365");
+    bool ret = call_data(m, SET, EXTERNAL_GRANDMASTER_PROPERTIES_NP, str);
+    useTestMode(false);
+    EXPECT_TRUE(ret);
+}
+void handle_EXTERNAL_GRANDMASTER_PROPERTIES_NP(const BaseMngTlv *d)
+{
+    ASSERT_NE(d, nullptr);
+    const EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *t =
+        dynamic_cast<const EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *>(d);
+    ASSERT_NE(t, nullptr);
+    ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
+    EXPECT_EQ(t->gmIdentity, clockId);
+    EXPECT_EQ(t->stepsRemoved, 1365);
+}

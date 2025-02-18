@@ -2232,3 +2232,46 @@ TEST(Json2msgTest, CMLDS_INFO_NP)
     EXPECT_EQ(t->scaledNeighborRateRatio, 1842);
     EXPECT_EQ(t->as_capable, 1);
 }
+
+// Tests PORT_CORRECTIONS_NP management ID
+TEST(Json2msgTest, PORT_CORRECTIONS_NP)
+{
+    Json2msg m;
+    ASSERT_TRUE(m.fromJson("{\"actionField\":\"SET\","
+            "\"managementId\":\"PORT_CORRECTIONS_NP\",\"dataField\":{"
+            "\"egressLatency\":1046,"
+            "\"ingressLatency\":5426,"
+            "\"delayAsymmetry\":78652"
+            "}}"));
+    EXPECT_EQ(m.actionField(), SET);
+    EXPECT_EQ(m.managementId(), PORT_CORRECTIONS_NP);
+    const BaseMngTlv *d = m.dataField();
+    ASSERT_NE(d, nullptr);
+    const PORT_CORRECTIONS_NP_t *t = dynamic_cast<const PORT_CORRECTIONS_NP_t *>(d);
+    ASSERT_NE(t, nullptr);
+    EXPECT_EQ(t->egressLatency, 1046L);
+    EXPECT_EQ(t->ingressLatency, 5426L);
+    EXPECT_EQ(t->delayAsymmetry, 78652L);
+}
+
+// Tests EXTERNAL_GRANDMASTER_PROPERTIES_NP management ID
+TEST(Json2msgTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    Json2msg m;
+    ASSERT_TRUE(m.fromJson("{\"actionField\":\"SET\","
+            "\"managementId\":\"EXTERNAL_GRANDMASTER_PROPERTIES_NP\","
+            "\"dataField\":{"
+            "\"gmIdentity\":\"c47d46.fffe.20acae\","
+            "\"stepsRemoved\":148"
+            "}}"));
+    EXPECT_EQ(m.actionField(), SET);
+    EXPECT_EQ(m.managementId(), EXTERNAL_GRANDMASTER_PROPERTIES_NP);
+    const BaseMngTlv *d = m.dataField();
+    ASSERT_NE(d, nullptr);
+    const EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *t =
+        dynamic_cast<const EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *>(d);
+    ASSERT_NE(t, nullptr);
+    ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
+    EXPECT_EQ(t->gmIdentity, clockId);
+    EXPECT_EQ(t->stepsRemoved, 148);
+}

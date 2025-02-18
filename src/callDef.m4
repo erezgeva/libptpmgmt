@@ -31,10 +31,14 @@ incb(msg)
 
 ns_s()
 
-c_cod(`/** pointer to ptpmgmt dispatcher structure */')dnl
+c_cod(`/** pointer to constant ptpmgmt dispatcher structure */')dnl
 c_cod(`typedef const struct ptpmgmt_dispatcher_t *const_ptpmgmt_dispatcher;')dnl
-c_cod(`/** pointer to ptpmgmt builder structure */')dnl
+c_cod(`/** pointer to ptpmgmt dispatcher structure */')dnl
+c_cod(`typedef struct ptpmgmt_dispatcher_t *ptpmgmt_dispatcher;')dnl
+c_cod(`/** pointer to constant ptpmgmt builder structure */')dnl
 c_cod(`typedef const struct ptpmgmt_builder_t *const_ptpmgmt_builder;')dnl
+c_cod(`/** pointer to ptpmgmt builder structure */')dnl
+c_cod(`typedef struct ptpmgmt_builder_t *ptpmgmt_builder;')dnl
 c_cod(`')dnl
 /**
  * @brief Dispacher for management TLV
@@ -60,6 +64,11 @@ cpp_cod(`    /**< @endcond */')dnl
 cpp_cod(`  public:')dnl
 cpp_cod(`    BaseMngDispatchCallback() = default;')dnl
 cpp_cod(`    virtual ~BaseMngDispatchCallback() = default;')dnl
+c_cod(`    /**')dnl
+c_cod(`     * Free this dispacher object')dnl
+c_cod(`     * @param[in, out] dispacher object to free')dnl
+c_cod(`     */')dnl
+c_cod(`    void (*free)(ptpmgmt_dispatcher dsp);')dnl
 define(D,`    /**
      * Handle $1 management TLV
 c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
@@ -112,6 +121,11 @@ c_cod(`struct ptpmgmt_builder_t {')dnl
 cpp_cod(`  public:')dnl
 cpp_cod(`    BaseMngBuildCallback() = default;')dnl
 cpp_cod(`    virtual ~BaseMngBuildCallback() = default;')dnl
+c_cod(`    /**')dnl
+c_cod(`     * Free this builder object')dnl
+c_cod(`     * @param[in, out] builder object to free')dnl
+c_cod(`     */')dnl
+c_cod(`    void (*free)(ptpmgmt_builder dsp);')dnl
 define(B,`    /**
      * Handle $1 management TLV
      * Set values in the new TLV

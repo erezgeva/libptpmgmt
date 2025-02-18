@@ -40,7 +40,7 @@ struct ptpmgmt_init_t {
     /**< @endcond */
 
     /**
-     * Free init object
+     * Free this init object
      * @param[in, out] i init object
      */
     void (*free)(ptpmgmt_init i);

@@ -2407,3 +2407,47 @@ Test(Json2msgTest, CMLDS_INFO_NP)
     cr_expect(eq(i32, t->as_capable, 1));
     m->free(m);
 }
+
+// Tests PORT_CORRECTIONS_NP management ID
+Test(Json2msgTest, PORT_CORRECTIONS_NP)
+{
+    ptpmgmt_json m = ptpmgmt_json_alloc();
+    cr_assert(m->fromJson(m, "{\"actionField\":\"SET\","
+            "\"managementId\":\"PORT_CORRECTIONS_NP\",\"dataField\":{"
+            "\"egressLatency\":1046,"
+            "\"ingressLatency\":5426,"
+            "\"delayAsymmetry\":78652"
+            "}}"));
+    cr_expect(eq(int, m->actionField(m), PTPMGMT_SET));
+    cr_expect(eq(int, m->managementId(m), PTPMGMT_PORT_CORRECTIONS_NP));
+    const void *d = m->dataField(m);
+    cr_assert(not(zero(ptr, (void *)d)));
+    const struct ptpmgmt_PORT_CORRECTIONS_NP_t *t =
+        (struct ptpmgmt_PORT_CORRECTIONS_NP_t *)d;
+    cr_expect(eq(i64, t->egressLatency, 1046L));
+    cr_expect(eq(i64, t->ingressLatency, 5426L));
+    cr_expect(eq(i64, t->delayAsymmetry, 78652L));
+    m->free(m);
+}
+
+// Tests EXTERNAL_GRANDMASTER_PROPERTIES_NP management ID
+Test(Json2msgTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    ptpmgmt_json m = ptpmgmt_json_alloc();
+    cr_assert(m->fromJson(m, "{\"actionField\":\"SET\","
+            "\"managementId\":\"EXTERNAL_GRANDMASTER_PROPERTIES_NP\","
+            "\"dataField\":{"
+            "\"gmIdentity\":\"c47d46.fffe.20acae\","
+            "\"stepsRemoved\":148"
+            "}}"));
+    cr_expect(eq(int, m->actionField(m), PTPMGMT_SET));
+    cr_expect(eq(int, m->managementId(m),
+            PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP));
+    const void *d = m->dataField(m);
+    cr_assert(not(zero(ptr, (void *)d)));
+    const struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *t =
+        (struct ptpmgmt_EXTERNAL_GRANDMASTER_PROPERTIES_NP_t *)d;
+    cr_expect(zero(memcmp(t->gmIdentity.v, clockId, 8)));
+    cr_expect(eq(u16, t->stepsRemoved, 148));
+    m->free(m);
+}

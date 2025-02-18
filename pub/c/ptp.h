@@ -44,7 +44,7 @@ struct ptpmgmt_ifInfo_t {
     void *_this; /**< pointer to actual C++ network interface object */
     /**< @endcond */
     /**
-     * Free a network interface object
+     * Free this network interface object
      * @param[in, out] i network interface object
      */
     void (*free)(ptpmgmt_ifInfo i);

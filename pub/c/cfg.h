@@ -47,7 +47,7 @@ struct ptpmgmt_cfg_t {
     /**< @endcond */
 
     /**
-     * Free a configuration object
+     * Free this configuration object
      * @param[in, out] cfg configuration object to free
      */
     void (*free)(ptpmgmt_cfg cfg);

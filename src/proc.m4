@@ -672,6 +672,21 @@ strc(CMLDS_INFO_NP_t) sz(: public BaseMngTlv) {
     Integer32_t scaledNeighborRateRatio;
     uint32_t as_capable; /**< Capable */
 };
+/** Port corrections TLV
+* @note linuxptp implementation specific
+*/
+strc(PORT_CORRECTIONS_NP_t) sz(: public BaseMngTlv) {
+    Integer64_t egressLatency; /**< egress Latency */
+    Integer64_t ingressLatency; /**< ingress Latency */
+    Integer64_t delayAsymmetry; /**< delay Asymmetry */
+};
+/** External grandmaster properties TLV
+ * @note linuxptp implementation specific
+ */
+strc(EXTERNAL_GRANDMASTER_PROPERTIES_NP_t) sz(: public BaseMngTlv) {
+    strcc(ClockIdentity_t) gmIdentity; /**< Grandmaster clock ID */
+    UInteger16_t stepsRemoved; /**< Steps removed */
+};
 
 ns_e()
 cpp_en(proc)dnl

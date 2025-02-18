@@ -515,6 +515,11 @@ Test(MessageTest, MethodMng2str)
             "POWER_PROFILE_SETTINGS_NP"));
     cr_expect(eq(str, (char *)ptpmgmt_msg_mng2str(PTPMGMT_CMLDS_INFO_NP),
             "CMLDS_INFO_NP"));
+    cr_expect(eq(str, (char *)ptpmgmt_msg_mng2str(PTPMGMT_PORT_CORRECTIONS_NP),
+            "PORT_CORRECTIONS_NP"));
+    cr_expect(eq(str,
+            (char *)ptpmgmt_msg_mng2str(PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP),
+            "EXTERNAL_GRANDMASTER_PROPERTIES_NP"));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     cr_assert(not(zero(ptr, m)));
     cr_expect(eq(str, (char *)m->mng2str(PTPMGMT_INITIALIZE), "INITIALIZE"));
@@ -1205,6 +1210,8 @@ Test(MessageTest, MethodIsEmpty)
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_PORT_HWCLOCK_NP)));
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_POWER_PROFILE_SETTINGS_NP)));
     cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_CMLDS_INFO_NP)));
+    cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_PORT_CORRECTIONS_NP)));
+    cr_expect(not(ptpmgmt_msg_isEmpty(PTPMGMT_EXTERNAL_GRANDMASTER_PROPERTIES_NP)));
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     cr_assert(not(zero(ptr, m)));
     cr_expect(not(m->isEmpty(PTPMGMT_PORT_HWCLOCK_NP)));

@@ -43,7 +43,7 @@ struct ptpmgmt_sk_t {
     /**< @endcond */
 
     /**
-     * Free a socket object
+     * Free this socket object
      * @param[in, out] sk socket
      */
     void (*free)(ptpmgmt_sk sk);

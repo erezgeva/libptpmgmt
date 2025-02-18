@@ -471,6 +471,19 @@ JS(CMLDS_INFO_NP)
         PROC_VAL(scaledNeighborRateRatio) &&
         PROC_VAL(as_capable);
 }
+JS(PORT_CORRECTIONS_NP)
+{
+    return
+        PROC_VAL(egressLatency) &&
+        PROC_VAL(ingressLatency) &&
+        PROC_VAL(delayAsymmetry);
+}
+JS(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    return
+        PROC_VAL(gmIdentity) &&
+        PROC_VAL(stepsRemoved);
+}
 
 /* Finish Process functions of JsonProc */
 #undef JS

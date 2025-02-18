@@ -901,6 +901,15 @@ A(CMLDS_INFO_NP)
     return proc(d.meanLinkDelay) || proc(d.scaledNeighborRateRatio) ||
         proc(d.as_capable);
 }
+A(PORT_CORRECTIONS_NP)
+{
+    return proc(d.egressLatency) || proc(d.ingressLatency) ||
+        proc(d.delayAsymmetry);
+}
+A(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    return proc(d.gmIdentity) || proc(d.stepsRemoved);
+}
 
 #undef A
 #define C1(n)\
@@ -1349,6 +1358,17 @@ C1(CMLDS_INFO_NP)
     a.meanLinkDelay.scaledNanoseconds = d.meanLinkDelay.scaledNanoseconds;
     a.scaledNeighborRateRatio = d.scaledNeighborRateRatio;
     a.as_capable = d.as_capable;
+}
+C1(PORT_CORRECTIONS_NP)
+{
+    a.egressLatency = d.egressLatency;
+    a.ingressLatency = d.ingressLatency;
+    a.delayAsymmetry = d.delayAsymmetry;
+}
+C1(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    memcpy(a.gmIdentity.v, d.gmIdentity.v, ClockIdentity_t::size());
+    a.stepsRemoved = d.stepsRemoved;
 }
 
 void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x)
@@ -1841,6 +1861,17 @@ C2(CMLDS_INFO_NP)
     a.meanLinkDelay.scaledNanoseconds = d.meanLinkDelay.scaledNanoseconds;
     a.scaledNeighborRateRatio = d.scaledNeighborRateRatio;
     a.as_capable = d.as_capable;
+}
+C2(PORT_CORRECTIONS_NP)
+{
+    a.egressLatency = d.egressLatency;
+    a.ingressLatency = d.ingressLatency;
+    a.delayAsymmetry = d.delayAsymmetry;
+}
+C2(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    memcpy(a.gmIdentity.v, d.gmIdentity.v, ClockIdentity_t::size());
+    a.stepsRemoved = d.stepsRemoved;
 }
 
 BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *data)

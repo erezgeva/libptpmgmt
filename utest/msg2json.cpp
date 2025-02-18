@@ -1628,3 +1628,32 @@ TEST(Tlv2JsonTest, CMLDS_INFO_NP)
         "  \"as_capable\" : 1\n"
         "}");
 }
+
+// Tests PORT_CORRECTIONS_NP structure
+TEST(Tlv2JsonTest, PORT_CORRECTIONS_NP)
+{
+    PORT_CORRECTIONS_NP_t t;
+    t.egressLatency = 5486;
+    t.ingressLatency = 2379;
+    t.delayAsymmetry = 1358196;
+    EXPECT_STREQ(tlv2json(PORT_CORRECTIONS_NP, &t).c_str(),
+        "{\n"
+        "  \"egressLatency\" : 5486,\n"
+        "  \"ingressLatency\" : 2379,\n"
+        "  \"delayAsymmetry\" : 1358196\n"
+        "}");
+}
+
+// Tests EXTERNAL_GRANDMASTER_PROPERTIES_NP structure
+TEST(Tlv2JsonTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
+{
+    EXTERNAL_GRANDMASTER_PROPERTIES_NP_t t;
+    ClockIdentity_t clockId = { 196, 125, 70, 255, 254, 32, 172, 174 };
+    t.gmIdentity = clockId;
+    t.stepsRemoved = 1963;
+    EXPECT_STREQ(tlv2json(EXTERNAL_GRANDMASTER_PROPERTIES_NP, &t).c_str(),
+        "{\n"
+        "  \"gmIdentity\" : \"c47d46.fffe.20acae\",\n"
+        "  \"stepsRemoved\" : 1963\n"
+        "}");
+}

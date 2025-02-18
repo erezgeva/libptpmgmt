@@ -191,7 +191,15 @@ ci_abi()
  emk config
  emk libptpmgmt.la
  echo "== Dump current version =="
- abi-dumper .libs/libptpmgmt.so -o cur.dump -lver 1 -public-headers pub
+ # Filter headers which change when adding new TLVs ID
+ # The changes should be ABI backward compatible
+ local -r hdr_lst=$(mktemp /tmp/headers.XXXX.list)
+ for n in pub/* pub/c/*; do
+   if [[ -f "$n" ]] && ! [[ $n =~ mngIds.h ]] && ! [[ $n =~ callDef.h ]];then
+     echo "$n" >> $hdr_lst
+   fi
+ done
+ abi-dumper .libs/libptpmgmt.so -o cur.dump -lver 1 -public-headers $hdr_lst
  make distclean
  echo "== Build last tag $version =="
  git checkout $version
@@ -205,7 +213,7 @@ ci_abi()
    # TODO Use new location
    file="libptpmgmt.so"
  fi
- abi-dumper "$file" -o old.dump -lver 0 -public-headers pub
+ abi-dumper "$file" -o old.dump -lver 0 -public-headers $hdr_lst
  echo "== Compare ABI =="
  if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
    echo "== Found errors =="
@@ -216,7 +224,6 @@ ci_abi()
    for n in */*/*.htm* */*.htm*; do
      s_mv "$n" .
    done
-   s_mv "../old.dump" $version.dump
    rmdir -p */* || true
    cd ..
  fi
