@@ -53,7 +53,7 @@ struct ptpmgmt_opt_t {
     /**< @endcond */
 
     /**
-     * Free an options object
+     * Free this options object
      * @param[in, out] opt options object to free
      */
     void (*free)(ptpmgmt_opt opt);

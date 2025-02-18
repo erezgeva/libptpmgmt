@@ -62,7 +62,7 @@ struct ptpmgmt_msg_t {
     /**< @endcond */
 
     /**
-     * Free msg object
+     * Free this msg object
      * @param[in, out] msg object
      */
     void (*free)(ptpmgmt_msg msg);
