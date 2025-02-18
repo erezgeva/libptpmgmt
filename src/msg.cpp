@@ -347,7 +347,7 @@ bool Message::isEmpty(mng_vals_e id)
 {
     return id >= FIRST_MNG_ID && id < LAST_MNG_ID && mng_all_vals[id].size == 0;
 }
-bool Message::isValidId(mng_vals_e id)
+bool Message::isValidId(mng_vals_e id) const
 {
     if(id < FIRST_MNG_ID || id >= LAST_MNG_ID)
         return false;
@@ -921,7 +921,7 @@ bool Message::traversSigTlvs(function<bool (const Message &msg,
 {
     return m_sigTlvs.traverse(callback);
 }
-bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback)
+bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback) const
 {
     return m_sigTlvs.traverse(callback);
 }
@@ -1620,6 +1620,49 @@ MessageSigTlv::MessageSigTlv(BaseSigTlv *tlv, tlvType_e tlvType) :
 {
     m_tlv.reset(tlv);
 }
+MessageSigTlv::MessageSigTlv(const MessageSigTlv &o)
+{
+#define copySigTlv(n) n: { n##_t *t = new n##_t;\
+            if(t != nullptr) {\
+                n##_t *t2 = dynamic_cast<n##_t *>(ot);\
+                if(t2 != nullptr) {*t = *t2; tlv = t;}\
+            } break; }
+    BaseSigTlv *tlv = nullptr;
+    BaseSigTlv *ot = o.m_tlv.get();
+    if(ot != nullptr)
+        switch(o.m_tlvType) {
+            case ORGANIZATION_EXTENSION_PROPAGATE:
+                FALLTHROUGH;
+            case ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE:
+                FALLTHROUGH;
+            case copySigTlv(ORGANIZATION_EXTENSION);
+            case copySigTlv(PATH_TRACE);
+            case copySigTlv(ALTERNATE_TIME_OFFSET_INDICATOR);
+            case copySigTlv(ENHANCED_ACCURACY_METRICS);
+            case copySigTlv(L1_SYNC);
+            case copySigTlv(PORT_COMMUNICATION_AVAILABILITY);
+            case copySigTlv(PROTOCOL_ADDRESS);
+            case copySigTlv(SLAVE_RX_SYNC_TIMING_DATA);
+            case copySigTlv(SLAVE_RX_SYNC_COMPUTED_DATA);
+            case copySigTlv(SLAVE_TX_EVENT_TIMESTAMPS);
+            case copySigTlv(CUMULATIVE_RATE_RATIO);
+            case copySigTlv(MANAGEMENT_ERROR_STATUS);
+            case copySigTlv(MANAGEMENT);
+            case copySigTlv(SLAVE_DELAY_TIMING_DATA_NP);
+            default: // Ignore TLV
+                break;
+        }
+    if(tlv != nullptr) {
+        m_tlv.reset(tlv);
+        m_tlvType = o.m_tlvType;
+    } else
+        m_tlvType = (tlvType_e)0;
+}
+MessageSigTlv::MessageSigTlv(MessageSigTlv &&o) : m_tlv(std::move(o.m_tlv)),
+    m_tlvType(o.m_tlvType)
+{
+    o.m_tlvType = (tlvType_e)0;
+}
 tlvType_e MessageSigTlv::tlvType() const
 {
     return m_tlvType;
@@ -1627,6 +1670,25 @@ tlvType_e MessageSigTlv::tlvType() const
 const BaseSigTlv *MessageSigTlv::tlv() const
 {
     return m_tlv.get();
+}
+MessageSigTlvs::MessageSigTlvs(const MessageSigTlvs &o) : m_msg(o.m_msg),
+    m_lastSig(o.m_lastSig && !o.m_tlvs.empty())
+{
+    if(m_lastSig)
+        for(const auto &m : o.m_tlvs)
+            m_tlvs.push_back(m);
+}
+MessageSigTlvs::MessageSigTlvs(MessageSigTlvs &&o) : m_msg(o.m_msg),
+    m_lastSig(false)
+{
+    if(!o.m_tlvs.empty()) {
+        if(o.m_lastSig)  {
+            m_tlvs = std::move(o.m_tlvs);
+            m_lastSig = true;
+        } else
+            o.m_tlvs.clear();
+    }
+    o.m_lastSig = false;
 }
 void MessageSigTlvs::push(tlvType_e tlvType, BaseSigTlv *tlv)
 {
@@ -1692,6 +1754,11 @@ MessageSigTlvs::iterator::iterator(const vector<MessageSigTlv>::const_iterator
 MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++()
 {
     ++it;
+    return *this;
+}
+MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++(int)
+{
+    it++;
     return *this;
 }
 const MessageSigTlv &MessageSigTlvs::iterator::operator*()
