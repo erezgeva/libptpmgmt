@@ -14,6 +14,78 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
+const uint8_t L1_SYNC_t::flagsMask1 = 0xf;
+const uint8_t L1_SYNC_t::flagsMask2 = 0x7;
+const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask1 = 0xf;
+const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask2 = 0xf;
+const uint8_t SLAVE_RX_SYNC_COMPUTED_DATA_t::flagsMask = 0x7;
+
+size_t SLAVE_RX_SYNC_TIMING_DATA_rec_t::size()
+{
+    return sizeof sequenceId + 2 * Timestamp_t::size() +
+        TimeInterval_t::size() + sizeof scaledCumulativeRateOffset;
+}
+size_t SLAVE_RX_SYNC_COMPUTED_DATA_rec_t::size()
+{
+    return sizeof sequenceId + 2 * TimeInterval_t::size() +
+        sizeof scaledNeighborRateRatio;
+}
+size_t SLAVE_TX_EVENT_TIMESTAMPS_rec_t::size()
+{
+    return sizeof sequenceId + Timestamp_t::size();
+}
+size_t SMPTE_ORGANIZATION_EXTENSION_t::size()
+{
+    return 3 * 2 + sizeof(UInteger32_t) * 2 + sizeof(uint8_t) * 3 +
+        sizeof(Integer32_t) * 3 + sizeof_UInteger48_t * 3
+        + sizeof(SMPTEmasterLockingStatus_e);
+}
+size_t SLAVE_DELAY_TIMING_DATA_NP_rec_t::size()
+{
+    return sizeof sequenceId + TimeInterval_t::size() +
+        2 * Timestamp_t::size();
+}
+
+static inline void copyMANAGEMENT(MANAGEMENT_t &m, const MANAGEMENT_t &o)
+{
+#define _ptpmCaseUF(n) case n: {\
+            n##_t *t = new n##_t;\
+            if(t != nullptr) {\
+                n##_t *t2 = dynamic_cast<n##_t*>(ot);\
+                if(t2 != nullptr) { *t = *t2; tlv = t; }\
+            } break; }
+#define _ptpmCaseUFBS(n) _ptpmCaseUFS(n)
+    mng_vals_e id = o.managementId;
+    BaseMngTlv *ot = o.tlvData.get();
+    BaseMngTlv *tlv = nullptr;
+    if(ot != nullptr)
+        switch(id) {
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+#include "ids.h"
+            default:
+                break;
+        }
+    if(tlv == nullptr)
+        id = NULL_PTP_MANAGEMENT;
+    m.managementId = id;
+    m.tlvData.reset(tlv);
+}
+MANAGEMENT_t::MANAGEMENT_t(const MANAGEMENT_t &o)
+{
+    copyMANAGEMENT(*this, o);
+}
+MANAGEMENT_t &MANAGEMENT_t::operator=(const MANAGEMENT_t &o)
+{
+    if(this != &o) // Prevent self assignment
+        copyMANAGEMENT(*this, o);
+    return *this;
+}
+MANAGEMENT_t::MANAGEMENT_t(MANAGEMENT_t &&o) : managementId(o.managementId),
+    tlvData(std::move(o.tlvData))
+{
+    o.managementId = NULL_PTP_MANAGEMENT;
+}
+
 #define A(n) bool MsgProc::n##_f(n##_t &d)
 A(ORGANIZATION_EXTENSION)
 {
@@ -161,6 +233,7 @@ C1(ORGANIZATION_EXTENSION)
 {
     C1_CP(organizationId, 3);
     C1_CP(organizationSubType, 3);
+    a.dataSize = d.dataField.size();
     a.dataField = d.dataField.empty() ? nullptr :
         const_cast<uint8_t *>(d.dataField.get());
 }
