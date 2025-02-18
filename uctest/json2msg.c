@@ -1387,9 +1387,11 @@ Test(Json2msgTest, PATH_TRACE_LIST)
     const struct ptpmgmt_PATH_TRACE_LIST_t *t =
         (struct ptpmgmt_PATH_TRACE_LIST_t *)d;
     cr_assert(not(zero(ptr, (void *)t)));
+    cr_expect(eq(sz, t->actualTableSize, 2));
     cr_expect(zero(memcmp(t->pathSequence[0].v, clockId, 8)));
     cr_expect(zero(memcmp(t->pathSequence[1].v,
                 "\xc\x4\x13\x61\xb\x4a\xc\x4a", 8)));
+    cr_expect(zero(memcmp(t->pathSequence[2].v, "\0\0\0\0\0\0\0", 8)));
     m->free(m);
 }
 
