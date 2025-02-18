@@ -24,22 +24,14 @@ include(lang().m4)dnl
  *
  */
 
-ics(CALL_DEFS)
+#ifndef __PTPMGMT_CALL_DEFS_H
+#define __PTPMGMT_CALL_DEFS_H
 
-cpp_st()dnl
-incb(msg)
+#ifdef __cplusplus
+#include "msg.h"
 
-ns_s()
+__PTPMGMT_NAMESPACE_BEGIN
 
-c_cod(`/** pointer to constant ptpmgmt dispatcher structure */')dnl
-c_cod(`typedef const struct ptpmgmt_dispatcher_t *const_ptpmgmt_dispatcher;')dnl
-c_cod(`/** pointer to ptpmgmt dispatcher structure */')dnl
-c_cod(`typedef struct ptpmgmt_dispatcher_t *ptpmgmt_dispatcher;')dnl
-c_cod(`/** pointer to constant ptpmgmt builder structure */')dnl
-c_cod(`typedef const struct ptpmgmt_builder_t *const_ptpmgmt_builder;')dnl
-c_cod(`/** pointer to ptpmgmt builder structure */')dnl
-c_cod(`typedef struct ptpmgmt_builder_t *ptpmgmt_builder;')dnl
-c_cod(`')dnl
 /**
  * @brief Dispacher for management TLV
  * @details
@@ -51,55 +43,54 @@ c_cod(`')dnl
     to handle the dispached TLVs.
  * @attention Do @b NOT @p use this header in your application.
  */
-cpp_cod(`class BaseMngDispatchCallback')dnl
-cpp_cod(`{')dnl
-c_cod(`struct ptpmgmt_dispatcher_t {')dnl
-cpp_cod(`    /** @cond internal */')dnl
-cpp_cod(`  private:')dnl
-cpp_cod(`    bool _nc; /**< flag indicating no inherite call back */')dnl
-cpp_cod(`  protected:')dnl
-cpp_cod(`    void _noTlvClear() { _nc = false; }')dnl
-cpp_cod(`    bool _noTlv() {bool r = _nc; _nc = false; return r;}')dnl
-cpp_cod(`    /**< @endcond */')dnl
-cpp_cod(`  public:')dnl
-cpp_cod(`    BaseMngDispatchCallback() = default;')dnl
-cpp_cod(`    virtual ~BaseMngDispatchCallback() = default;')dnl
-c_cod(`    /**')dnl
-c_cod(`     * Free this dispacher object')dnl
-c_cod(`     * @param[in, out] dispacher object to free')dnl
-c_cod(`     */')dnl
-c_cod(`    void (*free)(ptpmgmt_dispatcher dsp);')dnl
+class BaseMngDispatchCallback
+{
+  private:
+    /** @cond internal */
+    bool _nc; /**< flag indicating no inherite call back */
+  protected:
+    /* To improve backward compatibility
+       Call virtual functions here in this inline function,
+       so we compile it in the application
+       and avoid using virtual function table in the library code */
+    const char *iCallHandler(const Message &msg, mng_vals_e tlv_id,
+        const BaseMngTlv *tlv) {
+        const char *idStr = nullptr;
+        _nc = false;
+        switch(tlv_id) {
+define(E,`            case $1: {
+                idStr = "$1";
+                auto d = dynamic_cast
+                    <const $1_t *>(tlv);
+                if(d != nullptr)
+                    $1_h(msg, *d, idStr);
+                break;
+            }')dnl
+define(A, `ifelse(regexp($6, `^UF', `0'),`0',`E($1)',`dnl')')dnl
+include(ids_base.m4)dnl
+undefine(`A')dnl
+            default:
+                break;
+        }
+        return idStr;
+    }
+    bool isNoTlv() { return _nc; }
+    /**< @endcond */
+  public:
+    BaseMngDispatchCallback() = default;
+    virtual ~BaseMngDispatchCallback() = default;
 define(D,`    /**
      * Handle $1 management TLV
-c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
-c_cod(`     * @param[in, out] msg ref_s() to the Message object')dnl
-cpp_cod(`     * @param[in] msg ref_s() to the Message object')dnl
-     * @param[in] tlv ref_s() to the management tlv
+     * @param[in] msg referance to the Message object
+     * @param[in] tlv referance to the management tlv
      * @param[in] idStr ID string of the management tlv
      */
-c_cod(`    void (*$1_h)(void *cookie, ptpmgmt_msg msg,')dnl
-c_cod(`        const struct ptpmgmt_$1_t *tlv,')dnl
-c_cod(`        const char *idStr);')dnl
-cpp_cod(`    virtual void $1_h(const Message &msg,')dnl
-cpp_cod(`        const $1_t &tlv, const char *idStr)')dnl
-cpp_cod(`    {_nc = true;}')dnl')dnl
+    virtual void $1_h(const Message &msg,
+        const $1_t &tlv, const char *idStr)
+    {_nc = true;}')dnl
 define(A, `ifelse(regexp($6, `^UF', `0'),`0',`D($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 undefine(`A')dnl
-c_cod(`    /**')dnl
-c_cod(`     * Handler called if there is no TLV data')dnl
-c_cod(`     * It could be an empty TLV or unkown')dnl
-c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
-c_cod(`     * @param[in, out] msg pointer to the Message object')dnl
-c_cod(`     */')dnl
-c_cod(`    void (*noTlv)(void *cookie, ptpmgmt_msg msg);')dnl
-c_cod(`    /**')dnl
-c_cod(`     * Handler called if TLV does not have a callback.')dnl
-c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
-c_cod(`     * @param[in, out] msg pointer to the Message object')dnl
-c_cod(`     * @param[in] idStr string of the tlv_id')dnl
-c_cod(`     */')dnl
-c_cod(`    void (*noTlvCallBack)(void *cookie, ptpmgmt_msg msg, const char *idStr);')dnl
 };
 
 /**
@@ -115,38 +106,56 @@ c_cod(`    void (*noTlvCallBack)(void *cookie, ptpmgmt_msg msg, const char *idSt
  *  Developers may set the TLV values.
  * @attention Do @b NOT @p use this header in your application.
  */
-cpp_cod(`class BaseMngBuildCallback')dnl
-cpp_cod(`{')dnl
-c_cod(`struct ptpmgmt_builder_t {')dnl
-cpp_cod(`  public:')dnl
-cpp_cod(`    BaseMngBuildCallback() = default;')dnl
-cpp_cod(`    virtual ~BaseMngBuildCallback() = default;')dnl
-c_cod(`    /**')dnl
-c_cod(`     * Free this builder object')dnl
-c_cod(`     * @param[in, out] builder object to free')dnl
-c_cod(`     */')dnl
-c_cod(`    void (*free)(ptpmgmt_builder dsp);')dnl
+class BaseMngBuildCallback
+{
+  protected:
+    /** @cond internal */
+    /* To improve backward compatibility
+       Call virtual functions here in this inline function,
+       so we compile it in the application
+       and avoid using virtual function table in the library code */
+    BaseMngTlv *iBuild(Message &msg, mng_vals_e tlv_id) {
+        switch(tlv_id) {
+define(F,`            case $1: {
+                auto d = new $1_t;
+                if(d != nullptr) {
+                    if($1_b(msg, *d))
+                        return d;
+                    delete d;
+                }
+                break;
+            }')dnl
+define(A, `ifelse(regexp($6, `^UFB', `0'),`0',`F($1)',`dnl')')dnl
+include(ids_base.m4)dnl
+undefine(`A')dnl
+            default:
+                break;
+        }
+        return nullptr;
+    }
+    /**< @endcond */
+  public:
+    BaseMngBuildCallback() = default;
+    virtual ~BaseMngBuildCallback() = default;
 define(B,`    /**
      * Handle $1 management TLV
      * Set values in the new TLV
-c_cod(`     * @param[in, out] cookie pointer to a user cookie')dnl
-c_cod(`     * @param[in, out] msg ref_s() to the Message object')dnl
-cpp_cod(`     * @param[in] msg ref_s() to the Message object')dnl
-     * @param[in, out] tlv ref_s() to the new management tlv
+     * @param[in] msg referance to the Message object
+     * @param[in, out] tlv referance to the new management tlv
      * @return true if set success
      * @note MessageBuilder::buildTlv call setAction with new TLV
      *  if an inherit method return true!
      */
-c_cod(`    bool (*$1_b)(void *cookie, ptpmgmt_msg msg,')dnl
-c_cod(`        struct ptpmgmt_$1_t *tlv);')dnl
-cpp_cod(`    virtual bool $1_b(const Message &msg,')dnl
-cpp_cod(`        $1_t &tlv)')dnl
-cpp_cod(`    {return false;}')dnl')dnl
+    virtual bool $1_b(const Message &msg,
+        $1_t &tlv)
+    {return false;}')dnl
 define(A, `ifelse(regexp($6, `^UFB', `0'),`0',`B($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 };
 
-ns_e()
-cpp_en(callDef)dnl
+__PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#error "this header is for C++ and scripts use only, NOT for C"
+#endif /* __cplusplus */
 
-ice(CALL_DEFS)
+#endif /* __PTPMGMT_CALL_DEFS_H */

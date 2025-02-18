@@ -22,62 +22,7 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
-class ConfigFile;
 class SaFile;
-
-#ifndef SWIG
-/**
- * @cond internal
- * Internal class
- */
-class ConfigSection
-{
-  protected:
-    enum {
-        val_base_val,
-        transportSpecific_val = val_base_val,
-        domainNumber_val,
-        udp6_scope_val,
-        udp_ttl_val,
-        socket_priority_val,
-        network_transport_val,
-        active_key_id_val,
-        spp_val,
-        allow_unauth_val,
-        str_base_val,
-        uds_address_val = str_base_val,
-        sa_file_val,
-        bin_base_val,
-        ptp_dst_mac_val = bin_base_val,
-        p2p_dst_mac_val,
-        last_val,
-    };
-    /* new values must be add to ranges[] */
-    struct range_t {
-        const char *name;
-        const char *defStr;
-        uint32_t defVal;
-        uint32_t min;
-        uint32_t max;
-    };
-    /* ranges and default value */
-    static const range_t ranges[];
-    /* String values */
-    std::string m_str_vals[bin_base_val - str_base_val];
-    /* Binaries values */
-    Binary m_bin_vals[last_val - bin_base_val];
-    /* integer values */
-    uint32_t m_vals[str_base_val - val_base_val];
-    /* Determine if a value is set in the configuration file.
-     * Relevant for non global sections. */
-    bool m_set[last_val] = { false };
-
-    friend class ConfigFile;
-    void setGlobal();
-    bool set_val(char *line);
-};
-/**< @endcond */
-#endif /* SWIG */
 
 /**
  * @brief Hold configuration parameters
@@ -88,6 +33,53 @@ class ConfigSection
 class ConfigFile
 {
   private:
+    #ifndef SWIG
+    /** @cond internal */
+    class ConfigSection
+    {
+      public:
+        enum {
+            val_base_val,
+            transportSpecific_val = val_base_val,
+            domainNumber_val,
+            udp6_scope_val,
+            udp_ttl_val,
+            socket_priority_val,
+            network_transport_val,
+            active_key_id_val,
+            spp_val,
+            allow_unauth_val,
+            str_base_val,
+            uds_address_val = str_base_val,
+            sa_file_val,
+            bin_base_val,
+            ptp_dst_mac_val = bin_base_val,
+            p2p_dst_mac_val,
+            last_val,
+        };
+        /* new values must be add to ranges[] */
+        struct range_t {
+            const char *name;
+            const char *defStr;
+            uint32_t defVal;
+            uint32_t min;
+            uint32_t max;
+        };
+        /* ranges and default value */
+        static const range_t ranges[];
+        /* String values */
+        std::string m_str_vals[bin_base_val - str_base_val];
+        /* Binaries values */
+        Binary m_bin_vals[last_val - bin_base_val];
+        /* integer values */
+        uint32_t m_vals[str_base_val - val_base_val];
+        /* Determine if a value is set in the configuration file.
+         * Relevant for non global sections. */
+        bool m_set[last_val] = { false };
+
+        void setGlobal();
+        bool set_val(char *line);
+    };
     std::map<std::string, ConfigSection> cfgSec;
     ConfigSection *cfgGlobal; /* Not the owner, just a shortcut */
     void clear_sections();
@@ -96,7 +88,8 @@ class ConfigFile
     const std::string &get_str(int idx, const std::string &section) const;
     const Binary &get_bin(int idx, const std::string &section) const;
     bool is_global(int idx, const std::string &section) const;
-
+    /**< @endcond */
+    #endif
   public:
     ConfigFile();
     /**

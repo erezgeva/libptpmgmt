@@ -38,13 +38,13 @@ static void noTlvCallBack(void *cookie, ptpmgmt_msg msg, const char *idStr)
 
 // Tests callHadler method with paresed empty TLV
 // ptpmgmt_dispatcher ptpmgmt_dispatcher_alloc()
-// bool ptpmgmt_dispatcher_assign(ptpmgmt_dispatcher d,
-//     enum ptpmgmt_mng_vals_e tlv_id, ptpmgmt_dispatcher_callback callback)
-// bool ptpmgmt_dispatcher_assign_noTlv(ptpmgmt_dispatcher d,
+// bool assign(ptpmgmt_dispatcher dispatcher, enum ptpmgmt_mng_vals_e tlv_id,
+//     ptpmgmt_dispatcher_callback callback)
+// bool assign_noTlv(ptpmgmt_dispatcher dispatcher,
 //     ptpmgmt_dispatcher_noTlv_callback callback)
-// bool ptpmgmt_dispatcher_assign_noTlvCallBack(ptpmgmt_dispatcher d,
+// bool assign_noTlvCallBack(ptpmgmt_dispatcher dispatcher,
 //     ptpmgmt_dispatcher_noTlvCallBack_callback callback)
-// void ptpmgmt_callHadler(void *cookie, const_ptpmgmt_dispatcher d,
+// void callHadler(const_ptpmgmt_dispatcher dispatcher, void *cookie,
 //     ptpmgmt_msg msg)
 Test(MessageDispatcherTest, MethodParsedCallHadlerEmptyTLV)
 {
@@ -54,10 +54,10 @@ Test(MessageDispatcherTest, MethodParsedCallHadlerEmptyTLV)
     cr_assert(not(zero(ptr, msg)));
     ptpmgmt_dispatcher d = ptpmgmt_dispatcher_alloc();
     cr_assert(not(zero(ptr, d)));
-    cr_assert(ptpmgmt_dispatcher_assign(d, PTPMGMT_PRIORITY1,
+    cr_assert(d->assign(d, PTPMGMT_PRIORITY1,
             (ptpmgmt_dispatcher_callback)PRIORITY1_h));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlv(d, noTlv));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlvCallBack(d, noTlvCallBack));
+    cr_assert(d->assign_noTlv(d, noTlv));
+    cr_assert(d->assign_noTlvCallBack(d, noTlvCallBack));
     cr_expect(msg->setAction(msg, PTPMGMT_COMMAND, PTPMGMT_ENABLE_PORT, NULL));
     cr_expect(eq(int, msg->getBuildTlvId(msg), PTPMGMT_ENABLE_PORT));
     uint8_t buf[70];
@@ -69,7 +69,7 @@ Test(MessageDispatcherTest, MethodParsedCallHadlerEmptyTLV)
     cr_expect(eq(int, msg->parse(msg, buf, 54), PTPMGMT_MNG_PARSE_ERROR_OK));
     f.noTlvCalled = false;
     // Dispatch ENABLE_PORT
-    ptpmgmt_callHadler(&f, d, msg);
+    d->callHadler(d, &f, msg);
     // ENABLE_PORT is an empty code, which do not have a TLV, so noTlv is called!
     cr_expect(f.noTlvCalled);
     d->free(d);
@@ -77,7 +77,7 @@ Test(MessageDispatcherTest, MethodParsedCallHadlerEmptyTLV)
 }
 
 // Tests callHadler with method with provided empty TLV
-// void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d,
+// void d->callHadler_tlv(const_ptpmgmt_dispatcher dispatcher, void *cookie,
 //     ptpmgmt_msg msg, enum ptpmgmt_mng_vals_e tlv_id, const void *tlv)
 Test(MessageDispatcherTest, MethodProvidedCallHadlerEmptyTLV)
 {
@@ -87,19 +87,19 @@ Test(MessageDispatcherTest, MethodProvidedCallHadlerEmptyTLV)
     cr_assert(not(zero(ptr, msg)));
     ptpmgmt_dispatcher d = ptpmgmt_dispatcher_alloc();
     cr_assert(not(zero(ptr, d)));
-    cr_assert(ptpmgmt_dispatcher_assign(d, PTPMGMT_PRIORITY1,
+    cr_assert(d->assign(d, PTPMGMT_PRIORITY1,
             (ptpmgmt_dispatcher_callback)PRIORITY1_h));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlv(d, noTlv));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlvCallBack(d, noTlvCallBack));
+    cr_assert(d->assign_noTlv(d, noTlv));
+    cr_assert(d->assign_noTlvCallBack(d, noTlvCallBack));
     f.noTlvCalled = false;
     // Dispatch ENABLE_PORT
-    ptpmgmt_callHadler_tlv(&f, d, msg, PTPMGMT_ENABLE_PORT, NULL);
+    d->callHadler_tlv(d, &f, msg, PTPMGMT_ENABLE_PORT, NULL);
     // ENABLE_PORT is an empty code, which do not have a TLV, so noTlv is called!
     cr_expect(f.noTlvCalled);
     char dummy[2];
     f.noTlvCalled = false;
     // Dispatch ENABLE_PORT
-    ptpmgmt_callHadler_tlv(&f, d, msg, PTPMGMT_ENABLE_PORT, dummy);
+    d->callHadler_tlv(d, &f, msg, PTPMGMT_ENABLE_PORT, dummy);
     cr_expect(f.noTlvCalled);
     d->free(d);
     msg->free(msg);
@@ -114,10 +114,10 @@ Test(MessageDispatcherTest, MethodParsedCallHadlerTLV)
     cr_assert(not(zero(ptr, msg)));
     ptpmgmt_dispatcher d = ptpmgmt_dispatcher_alloc();
     cr_assert(not(zero(ptr, d)));
-    cr_assert(ptpmgmt_dispatcher_assign(d, PTPMGMT_PRIORITY1,
+    cr_assert(d->assign(d, PTPMGMT_PRIORITY1,
             (ptpmgmt_dispatcher_callback)PRIORITY1_h));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlv(d, noTlv));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlvCallBack(d, noTlvCallBack));
+    cr_assert(d->assign_noTlv(d, noTlv));
+    cr_assert(d->assign_noTlvCallBack(d, noTlvCallBack));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 137;
     f.noTlvCalled = false;
@@ -131,7 +131,7 @@ Test(MessageDispatcherTest, MethodParsedCallHadlerTLV)
     buf[46] = PTPMGMT_RESPONSE;
     cr_expect(eq(int, msg->parse(msg, buf, 56), PTPMGMT_MNG_PARSE_ERROR_OK));
     // Dispatch PRIORITY1 in parsed message
-    ptpmgmt_callHadler(&f, d, msg);
+    d->callHadler(d, &f, msg);
     // PRIORITY1 have callback
     cr_expect(not(f.noTlvCalled));
     cr_expect(eq(u8, f.tlv.priority1, p.priority1));
@@ -149,15 +149,15 @@ Test(MessageDispatcherTest, MethodProvidedCallHadlerTLV)
     cr_assert(not(zero(ptr, msg)));
     ptpmgmt_dispatcher d = ptpmgmt_dispatcher_alloc();
     cr_assert(not(zero(ptr, d)));
-    cr_assert(ptpmgmt_dispatcher_assign(d, PTPMGMT_PRIORITY1,
+    cr_assert(d->assign(d, PTPMGMT_PRIORITY1,
             (ptpmgmt_dispatcher_callback)PRIORITY1_h));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlv(d, noTlv));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlvCallBack(d, noTlvCallBack));
+    cr_assert(d->assign_noTlv(d, noTlv));
+    cr_assert(d->assign_noTlvCallBack(d, noTlvCallBack));
     struct ptpmgmt_PRIORITY1_t p;
     p.priority1 = 137;
     f.noTlvCalled = false;
     // Dispatch PRIORITY1
-    ptpmgmt_callHadler_tlv(&f, d, msg, PTPMGMT_PRIORITY1, &p);
+    d->callHadler_tlv(d, &f, msg, PTPMGMT_PRIORITY1, &p);
     // PRIORITY1 have callback
     cr_expect(not(f.noTlvCalled));
     cr_expect(eq(u8, f.tlv.priority1, p.priority1));
@@ -175,10 +175,10 @@ Test(MessageDispatcherTest, MethodParsedCallHadlerTLVNoCallback)
     cr_assert(not(zero(ptr, msg)));
     ptpmgmt_dispatcher d = ptpmgmt_dispatcher_alloc();
     cr_assert(not(zero(ptr, d)));
-    cr_assert(ptpmgmt_dispatcher_assign(d, PTPMGMT_PRIORITY1,
+    cr_assert(d->assign(d, PTPMGMT_PRIORITY1,
             (ptpmgmt_dispatcher_callback)PRIORITY1_h));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlv(d, noTlv));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlvCallBack(d, noTlvCallBack));
+    cr_assert(d->assign_noTlv(d, noTlv));
+    cr_assert(d->assign_noTlvCallBack(d, noTlvCallBack));
     struct ptpmgmt_PRIORITY2_t p;
     p.priority2 = 137;
     f.noTlvCalled = false;
@@ -192,7 +192,7 @@ Test(MessageDispatcherTest, MethodParsedCallHadlerTLVNoCallback)
     buf[46] = PTPMGMT_RESPONSE;
     cr_expect(eq(int, msg->parse(msg, buf, 56), PTPMGMT_MNG_PARSE_ERROR_OK));
     // Dispatch PRIORITY2 in parsed message
-    ptpmgmt_callHadler(&f, d, msg);
+    d->callHadler(d, &f, msg);
     // PRIORITY2 do not have callback
     cr_expect(not(f.noTlvCalled));
     cr_expect(eq(u8, f.tlv.priority1, 0));
@@ -211,20 +211,112 @@ Test(MessageDispatcherTest, MethodProvidedCallHadlerTLVNoCallback)
     cr_assert(not(zero(ptr, msg)));
     ptpmgmt_dispatcher d = ptpmgmt_dispatcher_alloc();
     cr_assert(not(zero(ptr, d)));
-    cr_assert(ptpmgmt_dispatcher_assign(d, PTPMGMT_PRIORITY1,
+    cr_assert(d->assign(d, PTPMGMT_PRIORITY1,
             (ptpmgmt_dispatcher_callback)PRIORITY1_h));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlv(d, noTlv));
-    cr_assert(ptpmgmt_dispatcher_assign_noTlvCallBack(d, noTlvCallBack));
+    cr_assert(d->assign_noTlv(d, noTlv));
+    cr_assert(d->assign_noTlvCallBack(d, noTlvCallBack));
     struct ptpmgmt_PRIORITY2_t p;
     p.priority2 = 137;
     f.noTlvCalled = false;
     // Dispatch PRIORITY2
-    ptpmgmt_callHadler_tlv(&f, d, msg, PTPMGMT_PRIORITY2, &p);
+    d->callHadler_tlv(d, &f, msg, PTPMGMT_PRIORITY2, &p);
     // PRIORITY2 do not have callback
     cr_expect(not(f.noTlvCalled));
     cr_expect(eq(u8, f.tlv.priority1, 0));
     cr_expect(zero(ptr, (char *)f.idStr_PRIORITY1));
     cr_expect(eq(str, (char *)f.idStr_noTlvCallBack, "PRIORITY2"));
     d->free(d);
+    msg->free(msg);
+}
+
+struct builderReport_t {
+    bool have_priority1;
+};
+
+bool PRIORITY1_b(void *cookie, ptpmgmt_msg msg, struct ptpmgmt_PRIORITY1_t *tlv,
+    ptpmgmt_tlv_mem tlv_mem)
+{
+    struct builderReport_t *c = (struct builderReport_t *)cookie;
+    tlv->priority1 = 97;
+    c->have_priority1 = true;
+    return true;
+}
+
+// Tests get Message method
+// ptpmgmt_builder ptpmgmt_builder_alloc(ptpmgmt_msg msg)
+// ptpmgmt_msg msg
+// ptpmgmt_msg getMsg(const_ptpmgmt_builder builder)
+// ptpmgmt_tlv_mem tlv_mem
+// ptpmgmt_tlv_mem getTlvMem(const_ptpmgmt_builder builder)
+// void free(ptpmgmt_builder builder)
+Test(MessageBuilderTest, MethodGetMsg)
+{
+    ptpmgmt_msg msg = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, msg)));
+    ptpmgmt_builder b = ptpmgmt_builder_alloc(msg);
+    cr_assert(not(zero(ptr, b)));
+    cr_expect(eq(ptr, msg, b->getMsg(b)));
+    cr_expect(eq(ptr, msg, b->msg));
+    cr_expect(not(zero(ptr, b->tlv_mem)));
+    cr_expect(eq(ptr, b->tlv_mem, b->getTlvMem(b)));
+    b->free(b);
+    msg->free(msg);
+}
+
+// Tests build empty TLV
+// bool assign(ptpmgmt_builder builder, enum ptpmgmt_mng_vals_e tlv_id,
+//     ptpmgmt_builder_callback callback)
+// bool buildTlv(ptpmgmt_builder builder, void *cookie,
+//     enum ptpmgmt_actionField_e actionField, enum ptpmgmt_mng_vals_e tlv_id)
+// void clear(ptpmgmt_builder builder)
+Test(MessageBuilderTest, BuildEmptyTLV)
+{
+    ptpmgmt_msg msg = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, msg)));
+    ptpmgmt_builder b = ptpmgmt_builder_alloc(msg);
+    cr_assert(not(zero(ptr, b)));
+    cr_expect(b->assign(b, PTPMGMT_PRIORITY1,
+            (ptpmgmt_builder_callback)PRIORITY1_b));
+    struct builderReport_t cookie = { false };
+    cr_expect(b->buildTlv(b, &cookie, PTPMGMT_COMMAND, PTPMGMT_ENABLE_PORT));
+    cr_expect(not(cookie.have_priority1));
+    b->clear(b);
+    b->free(b);
+    msg->free(msg);
+}
+
+// Tests build TLV that lack callback
+//  bool buildTlv(actionField_e actionField, mng_vals_e tlv_id)
+Test(MessageBuilderTest, BuildNOCallback)
+{
+    ptpmgmt_msg msg = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, msg)));
+    ptpmgmt_builder b = ptpmgmt_builder_alloc(msg);
+    cr_assert(not(zero(ptr, b)));
+    cr_expect(b->assign(b, PTPMGMT_PRIORITY1,
+            (ptpmgmt_builder_callback)PRIORITY1_b));
+    struct builderReport_t cookie = { false };
+    cr_expect(not(b->buildTlv(b, &cookie, PTPMGMT_SET, PTPMGMT_PRIORITY2)));
+    cr_expect(not(cookie.have_priority1));
+    b->clear(b);
+    b->free(b);
+    msg->free(msg);
+}
+
+// Tests build TLV that have callback
+//  bool buildTlv(actionField_e actionField, mng_vals_e tlv_id)
+Test(MessageBuilderTest, BuildWithCallback)
+{
+    ptpmgmt_msg msg = ptpmgmt_msg_alloc();
+    cr_assert(not(zero(ptr, msg)));
+    ptpmgmt_builder b = ptpmgmt_builder_alloc(msg);
+    cr_assert(not(zero(ptr, b)));
+    cr_expect(b->assign(b, PTPMGMT_PRIORITY1,
+            (ptpmgmt_builder_callback)PRIORITY1_b));
+    struct builderReport_t cookie = { false };
+    cr_expect(b->buildTlv(b, &cookie, PTPMGMT_SET, PTPMGMT_PRIORITY1));
+    cr_expect(cookie.have_priority1);
+    b->clear(b);
+    b->free(b);
     msg->free(msg);
 }

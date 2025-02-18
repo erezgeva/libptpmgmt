@@ -142,6 +142,7 @@ Test(SigTest, OrgTwoManagementTlvs)
     cr_expect(eq(int, memcmp(p2->organizationId, "\x12\x34\x56", 3), 0));
     cr_expect(eq(int, memcmp(p2->organizationSubType, "\x7\x19\xa3", 3), 0));
     cr_expect(zero(memcmp(p2->dataField, "\x17\x23\x75\x31", 4)));
+    cr_expect(eq(sz, p2->dataSize, 4));
     cr_assert(eq(int, m->getSigTlvType(m, 2), PTPMGMT_MANAGEMENT));
     cr_expect(eq(int, m->getSigMngTlvType(m, 2), PTPMGMT_DOMAIN));
     const struct ptpmgmt_DOMAIN_t *p3 =
@@ -245,6 +246,7 @@ Test(SigTest, AllOrgTlvs)
     cr_expect(eq(int, memcmp(p0->organizationId, "\x12\x34\x15", 3), 0));
     cr_expect(eq(int, memcmp(p0->organizationSubType, "\x7\xf3\xa3", 3), 0));
     cr_expect(zero(memcmp(p0->dataField, "\x17\x3\x05\x1", 4)));
+    cr_expect(eq(sz, p0->dataSize, 4));
     cr_assert(eq(int, m->getSigTlvType(m, 1),
             PTPMGMT_ORGANIZATION_EXTENSION_PROPAGATE));
     const struct ptpmgmt_ORGANIZATION_EXTENSION_t *p1 =
@@ -253,6 +255,7 @@ Test(SigTest, AllOrgTlvs)
     cr_expect(eq(int, memcmp(p1->organizationId, "\x23\x13\x27", 3), 0));
     cr_expect(eq(int, memcmp(p1->organizationSubType, "\x8\x07\xb2", 3), 0));
     cr_expect(zero(memcmp(p1->dataField, "\x09\x7\xb5\x3", 4)));
+    cr_expect(eq(sz, p1->dataSize, 4));
     cr_assert(eq(int, m->getSigTlvType(m, 2),
             PTPMGMT_ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE));
     const struct ptpmgmt_ORGANIZATION_EXTENSION_t *p2 =
@@ -261,6 +264,7 @@ Test(SigTest, AllOrgTlvs)
     cr_expect(eq(int, memcmp(p2->organizationId, "\x45\x02\x29", 3), 0));
     cr_expect(eq(int, memcmp(p2->organizationSubType, "\x9\x19\xc5", 3), 0));
     cr_expect(zero(memcmp(p2->dataField, "\x03\x9\xd7\x5", 4)));
+    cr_expect(eq(sz, p2->dataSize, 4));
     m->free(m);
 }
 
@@ -307,6 +311,7 @@ Test(SigTest, FilterWithOrgTlvs)
     cr_expect(eq(int, memcmp(p0->organizationId, "\x12\x34\x15", 3), 0));
     cr_expect(eq(int, memcmp(p0->organizationSubType, "\x7\xf3\xa3", 3), 0));
     cr_expect(zero(memcmp(p0->dataField, "\x17\x3\x05\x1", 4)));
+    cr_expect(eq(sz, p0->dataSize, 4));
     cr_assert(eq(int, m->getSigTlvType(m, 1),
             PTPMGMT_ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE));
     const struct ptpmgmt_ORGANIZATION_EXTENSION_t *p2 =
@@ -315,6 +320,7 @@ Test(SigTest, FilterWithOrgTlvs)
     cr_expect(eq(int, memcmp(p2->organizationId, "\x45\x02\x29", 3), 0));
     cr_expect(eq(int, memcmp(p2->organizationSubType, "\x9\x19\xc5", 3), 0));
     cr_expect(zero(memcmp(p2->dataField, "\x03\x9\xd7\x5", 4)));
+    cr_expect(eq(sz, p2->dataSize, 4));
     m->free(m);
 }
 

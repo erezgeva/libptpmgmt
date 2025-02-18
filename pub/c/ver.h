@@ -8,7 +8,7 @@
  * @copyright © 2024 Erez Geva
  *
  * This header is generated automatically.
- * @note The compilation macroes are provided for compilation only
+ * @note The compilation macros are provided for compilation only
  *       scripts should use version functions.
  */
 

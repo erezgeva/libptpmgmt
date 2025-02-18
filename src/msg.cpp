@@ -18,18 +18,6 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
-struct floor_t {
-    int64_t intg;
-    float_seconds rem;
-};
-static inline floor_t _floor(float_seconds val)
-{
-    floor_t ret;
-    ret.intg = floorl(val);
-    ret.rem = val - ret.intg;
-    return ret;
-}
-
 const uint8_t ptp_major_ver = 0x2; // low Nibble, portDS.versionNumber
 // IEEE 1588-2019 uses PTP minor version 1
 const uint8_t controlFieldMng = 0x04; // For Management
@@ -118,23 +106,6 @@ PACK(struct managementErrorTLV_p {
 const size_t mngMsgBaseSize = sizeof(managementMessage_p) +
     sizeof(managementTLV_t);
 const ssize_t mngMsgMinSize = sizeof(managementMessage_p) + tlvSizeHdr;
-
-void MsgParams::allowSigTlv(tlvType_e type)
-{
-    allowSigTlvs[type] = true;
-}
-void MsgParams::removeSigTlv(tlvType_e type)
-{
-    allowSigTlvs.erase(type);
-}
-bool MsgParams::isSigTlv(tlvType_e type) const
-{
-    return allowSigTlvs.count(type) > 0;
-}
-size_t MsgParams::countSigTlvs() const
-{
-    return allowSigTlvs.size();
-}
 
 /** Properties of a PTP management TLV */
 struct ManagementId_t {
@@ -347,7 +318,7 @@ bool Message::isEmpty(mng_vals_e id)
 {
     return id >= FIRST_MNG_ID && id < LAST_MNG_ID && mng_all_vals[id].size == 0;
 }
-bool Message::isValidId(mng_vals_e id)
+bool Message::isValidId(mng_vals_e id) const
 {
     if(id < FIRST_MNG_ID || id >= LAST_MNG_ID)
         return false;
@@ -921,7 +892,7 @@ bool Message::traversSigTlvs(function<bool (const Message &msg,
 {
     return m_sigTlvs.traverse(callback);
 }
-bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback)
+bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback) const
 {
     return m_sigTlvs.traverse(callback);
 }
@@ -1386,239 +1357,53 @@ const char *Message::us2str_c(linuxptpUnicastState_e state)
     }
     return "???";
 }
-float_nanoseconds TimeInterval_t::getInterval() const
-{
-    return (float_nanoseconds)scaledNanoseconds / 0x10000;
-}
-int64_t TimeInterval_t::getIntervalInt() const
-{
-    if(scaledNanoseconds < 0)
-        return -((-scaledNanoseconds) >> 16);
-    return scaledNanoseconds >> 16;
-}
-Timestamp_t::Timestamp_t() : secondsField(0), nanosecondsField(0) {}
-Timestamp_t::Timestamp_t(int64_t secs, uint32_t nsecs) : secondsField(secs),
-    nanosecondsField(nsecs) {}
-string Timestamp_t::string() const
-{
-    char buf[200];
-    snprintf(buf, sizeof buf, "%ju.%.9u", secondsField, nanosecondsField);
-    return buf;
-}
-Timestamp_t::Timestamp_t(const timespec &ts)
-{
-    secondsField = ts.tv_sec;
-    nanosecondsField = ts.tv_nsec;
-}
-void Timestamp_t::toTimespec(timespec &ts) const
-{
-    ts.tv_sec = secondsField;
-    ts.tv_nsec = nanosecondsField;
-}
-Timestamp_t::Timestamp_t(const timeval &tv)
-{
-    secondsField = tv.tv_sec;
-    nanosecondsField = tv.tv_usec * NSEC_PER_USEC;
-}
-void Timestamp_t::toTimeval(timeval &tv) const
-{
-    tv.tv_sec = secondsField;
-    tv.tv_usec = nanosecondsField / NSEC_PER_USEC;
-}
-Timestamp_t::Timestamp_t(float_seconds seconds)
-{
-    fromFloat(seconds);
-}
-void Timestamp_t::fromFloat(float_seconds seconds)
-{
-    floor_t ret = _floor(seconds);
-    secondsField = ret.intg;
-    nanosecondsField = ret.rem * NSEC_PER_SEC;
-}
-float_seconds Timestamp_t::toFloat() const
-{
-    return (float_seconds)nanosecondsField / NSEC_PER_SEC + secondsField;
-}
-void Timestamp_t::fromNanoseconds(uint64_t nanoseconds)
-{
-    lldiv_t d = lldiv((long long)nanoseconds, (long long)NSEC_PER_SEC);
-    while(d.rem < 0) {
-        d.quot--;
-        d.rem += NSEC_PER_SEC;
-    };
-    secondsField = d.quot;
-    nanosecondsField = d.rem;
-}
-uint64_t Timestamp_t::toNanoseconds() const
-{
-    return nanosecondsField + secondsField * NSEC_PER_SEC;
-}
-bool Timestamp_t::eq(const Timestamp_t &ts) const
-{
-    return secondsField == ts.secondsField &&
-        nanosecondsField == ts.nanosecondsField;
-}
-bool Timestamp_t::eq(float_seconds seconds) const
-{
-    // We use unsigned, negitive can not be equal
-    if(seconds < 0)
-        return false;
-    uint64_t secs = floorl(seconds);
-    if(secondsField == secs) {
-        uint32_t nano = (seconds - secs) * NSEC_PER_SEC;
-        uint32_t diff = nano > nanosecondsField ?
-            nano - nanosecondsField : nanosecondsField - nano;
-        // printf("secs %lu diff %d\n", secs, diff);
-        if(diff < 10)
-            return true;
-    }
-    return false;
-}
-bool Timestamp_t::less(const Timestamp_t &ts) const
-{
-    return secondsField < ts.secondsField ||
-        (secondsField == ts.secondsField &&
-            nanosecondsField < ts.nanosecondsField);
-}
-bool Timestamp_t::less(float_seconds seconds) const
-{
-    // As we use unsigned, we are always bigger than negitive
-    if(seconds < 0)
-        return false;
-    uint64_t secs = floorl(seconds);
-    if(secondsField == secs)
-        return nanosecondsField < (seconds - secs) * NSEC_PER_SEC;
-    return secondsField < secs;
-}
-Timestamp_t &normNano(Timestamp_t *ts)
-{
-    while(ts->nanosecondsField >= NSEC_PER_SEC) {
-        ts->nanosecondsField -= NSEC_PER_SEC;
-        ts->secondsField++;
-    }
-    return *ts;
-}
-Timestamp_t &Timestamp_t::add(const Timestamp_t &ts)
-{
-    secondsField += ts.secondsField;
-    nanosecondsField += ts.nanosecondsField;
-    return normNano(this);
-}
-Timestamp_t &Timestamp_t::add(float_seconds seconds)
-{
-    floor_t ret = _floor(seconds);
-    secondsField += ret.intg;
-    nanosecondsField += ret.rem * NSEC_PER_SEC;
-    return normNano(this);
-}
-Timestamp_t &Timestamp_t::subt(const Timestamp_t &ts)
-{
-    secondsField -= ts.secondsField;
-    while(nanosecondsField < ts.nanosecondsField) {
-        nanosecondsField += NSEC_PER_SEC;
-        secondsField--;
-    }
-    nanosecondsField -= ts.nanosecondsField;
-    return normNano(this);
-}
-Timestamp_t &Timestamp_t::subt(float_seconds seconds)
-{
-    return add(-seconds);
-}
-string ClockIdentity_t::string() const
-{
-    char buf[25];
-    snprintf(buf, sizeof buf, "%02x%02x%02x.%02x%02x.%02x%02x%02x",
-        v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
-    return buf;
-}
-void ClockIdentity_t::clear(int val)
-{
-    memset(v, val, 8);
-}
-bool ClockIdentity_t::eq(const ClockIdentity_t &rhs) const
-{
-    return memcmp(v, rhs.v, size()) == 0;
-}
-bool ClockIdentity_t::less(const ClockIdentity_t &rhs) const
-{
-    return memcmp(v, rhs.v, size()) < 0;
-}
-bool ClockIdentity_t::eq(const Binary &bin) const
-{
-    return bin.size() == size() &&
-        memcmp(v, bin.get(), size()) == 0;
-}
-string PortIdentity_t::string() const
-{
-    std::string ret = clockIdentity.string();
-    ret += "-";
-    ret += to_string(portNumber);
-    return ret;
-}
-void PortIdentity_t::clear()
-{
-    clockIdentity.clear();
-    portNumber = 0;
-}
-bool PortIdentity_t::eq(const PortIdentity_t &rhs) const
-{
-    return clockIdentity == rhs.clockIdentity && portNumber == rhs.portNumber;
-}
-bool PortIdentity_t::less(const PortIdentity_t &rhs) const
-{
-    return clockIdentity == rhs.clockIdentity ?
-        portNumber < rhs.portNumber : clockIdentity < rhs.clockIdentity;
-}
-string PortAddress_t::string() const
-{
-    switch(networkProtocol) {
-        case UDP_IPv4:
-            FALLTHROUGH;
-        case UDP_IPv6:
-            return addressField.toIp();
-        case IEEE_802_3:
-            break;
-        case DeviceNet:
-            break;
-        case ControlNet:
-            break;
-        case PROFINET:
-            break;
-    }
-    return addressField.toId();
-}
-bool PortAddress_t::eq(const PortAddress_t &rhs) const
-{
-    return networkProtocol == rhs.networkProtocol &&
-        addressField == rhs.addressField;
-}
-bool PortAddress_t::less(const PortAddress_t &rhs) const
-{
-    return networkProtocol == rhs.networkProtocol ? addressField <
-        rhs.addressField : networkProtocol < rhs.networkProtocol;
-}
-MsgParams::MsgParams() :
-    transportSpecific(0),
-    domainNumber(0),
-    boundaryHops(1),
-    minorVersion(0),
-    isUnicast(true),
-    implementSpecific(linuxptp),
-    target{allClocks, allPorts},
-    m_init(self_id),
-    useZeroGet(true),
-    rcvSignaling(false),
-    filterSignaling(true),
-    rcvSMPTEOrg(true),
-    sendAuth(true),
-    rcvAuth(RCV_AUTH_ALL)
-{
-}
-MessageSigTlv::MessageSigTlv(BaseSigTlv *tlv, tlvType_e tlvType) :
-    m_tlvType(tlvType)
+MessageSigTlv::MessageSigTlv(BaseSigTlv *tlv,
+    tlvType_e tlvType) : m_tlvType(tlvType)
 {
     m_tlv.reset(tlv);
+}
+MessageSigTlv::MessageSigTlv(const MessageSigTlv &o)
+{
+#define copySigTlv(n) n: { n##_t *t = new n##_t;\
+            if(t != nullptr) {\
+                n##_t *t2 = dynamic_cast<n##_t *>(ot);\
+                if(t2 != nullptr) {*t = *t2; tlv = t;}\
+            } break; }
+    BaseSigTlv *tlv = nullptr;
+    BaseSigTlv *ot = o.m_tlv.get();
+    if(ot != nullptr)
+        switch(o.m_tlvType) {
+            case ORGANIZATION_EXTENSION_PROPAGATE:
+                FALLTHROUGH;
+            case ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE:
+                FALLTHROUGH;
+            case copySigTlv(ORGANIZATION_EXTENSION);
+            case copySigTlv(PATH_TRACE);
+            case copySigTlv(ALTERNATE_TIME_OFFSET_INDICATOR);
+            case copySigTlv(ENHANCED_ACCURACY_METRICS);
+            case copySigTlv(L1_SYNC);
+            case copySigTlv(PORT_COMMUNICATION_AVAILABILITY);
+            case copySigTlv(PROTOCOL_ADDRESS);
+            case copySigTlv(SLAVE_RX_SYNC_TIMING_DATA);
+            case copySigTlv(SLAVE_RX_SYNC_COMPUTED_DATA);
+            case copySigTlv(SLAVE_TX_EVENT_TIMESTAMPS);
+            case copySigTlv(CUMULATIVE_RATE_RATIO);
+            case copySigTlv(MANAGEMENT_ERROR_STATUS);
+            case copySigTlv(MANAGEMENT);
+            case copySigTlv(SLAVE_DELAY_TIMING_DATA_NP);
+            default: // Ignore TLV
+                break;
+        }
+    if(tlv != nullptr) {
+        m_tlv.reset(tlv);
+        m_tlvType = o.m_tlvType;
+    } else
+        m_tlvType = (tlvType_e)0;
+}
+MessageSigTlv::MessageSigTlv(MessageSigTlv &&o) : m_tlv(std::move(o.m_tlv)),
+    m_tlvType(o.m_tlvType)
+{
+    o.m_tlvType = (tlvType_e)0;
 }
 tlvType_e MessageSigTlv::tlvType() const
 {
@@ -1627,6 +1412,25 @@ tlvType_e MessageSigTlv::tlvType() const
 const BaseSigTlv *MessageSigTlv::tlv() const
 {
     return m_tlv.get();
+}
+MessageSigTlvs::MessageSigTlvs(const MessageSigTlvs &o) : m_msg(o.m_msg),
+    m_lastSig(o.m_lastSig && !o.m_tlvs.empty())
+{
+    if(m_lastSig)
+        for(const auto &m : o.m_tlvs)
+            m_tlvs.push_back(m);
+}
+MessageSigTlvs::MessageSigTlvs(MessageSigTlvs &&o) : m_msg(o.m_msg),
+    m_lastSig(false)
+{
+    if(!o.m_tlvs.empty()) {
+        if(o.m_lastSig)  {
+            m_tlvs = std::move(o.m_tlvs);
+            m_lastSig = true;
+        } else
+            o.m_tlvs.clear();
+    }
+    o.m_lastSig = false;
 }
 void MessageSigTlvs::push(tlvType_e tlvType, BaseSigTlv *tlv)
 {
@@ -1694,6 +1498,11 @@ MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++()
     ++it;
     return *this;
 }
+MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++(int)
+{
+    it++;
+    return *this;
+}
 const MessageSigTlv &MessageSigTlvs::iterator::operator*()
 {
     return *it;
@@ -1731,18 +1540,9 @@ class unq_cptr // Used with vector to store allocations in _memHndl
 
 extern "C" {
     extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
+    extern void cpyMsgParams(ptpmgmt_pMsgParams p);
+    extern void ptpmgmt_MsgParams_alloc_wrap(ptpmgmt_pMsgParams p);
 
-    // C interfaces
-    static void ptpmgmt_MsgParams_free(ptpmgmt_pMsgParams m)
-    {
-        if(m != nullptr) {
-            delete(MsgParams *)m->_this;
-            free(m);
-        }
-    }
-    static void ptpmgmt_MsgParams_free_wrap(ptpmgmt_pMsgParams m)
-    {
-    }
     static inline MsgParams &getMsgParams(ptpmgmt_cpMsgParams p)
     {
         MsgParams &r = *(MsgParams *)p->_this;
@@ -1766,73 +1566,7 @@ extern "C" {
         r.self_id.portNumber = p->self_id.portNumber;
         return r;
     }
-    static inline void cpyMsgParams(ptpmgmt_pMsgParams p)
-    {
-        MsgParams &r = *(MsgParams *)p->_this;
-        p->transportSpecific = r.transportSpecific;
-        p->domainNumber = r.domainNumber;
-        p->boundaryHops = r.boundaryHops;
-        p->minorVersion = r.minorVersion;
-        p->isUnicast = r.isUnicast;
-        p->useZeroGet = r.useZeroGet;
-        p->rcvSignaling = r.rcvSignaling;
-        p->filterSignaling = r.filterSignaling;
-        p->rcvSMPTEOrg = r.rcvSMPTEOrg;
-        p->sendAuth = r.sendAuth;
-        p->rcvAuth = (ptpmgmt_MsgParams_RcvAuth_e)r.rcvAuth;
-        p->implementSpecific = (ptpmgmt_implementSpecific_e)r.implementSpecific;
-        memcpy(p->target.clockIdentity.v, r.target.clockIdentity.v,
-            ClockIdentity_t::size());
-        p->target.portNumber = r.target.portNumber;
-        memcpy(p->self_id.clockIdentity.v, r.self_id.clockIdentity.v,
-            ClockIdentity_t::size());
-        p->self_id.portNumber = r.self_id.portNumber;
-    }
-    static void ptpmgmt_allowSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            ((MsgParams *)m->_this)->allowSigTlv((tlvType_e)type);
-    }
-    static void ptpmgmt_removeSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            ((MsgParams *)m->_this)->removeSigTlv((tlvType_e)type);
-    }
-    static bool ptpmgmt_isSigTlv(ptpmgmt_cpMsgParams m, ptpmgmt_tlvType_e type)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((MsgParams *)m->_this)->isSigTlv((tlvType_e)type);
-        return false;
-    }
-    static size_t ptpmgmt_countSigTlvs(ptpmgmt_cpMsgParams m)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((MsgParams *)m->_this)->countSigTlvs();
-        return 0;
-    }
-    static inline void ptpmgmt_MsgParams_asign_cb(ptpmgmt_pMsgParams m)
-    {
-        m->allowSigTlv  = ptpmgmt_allowSigTlv;
-        m->removeSigTlv = ptpmgmt_removeSigTlv;
-        m->isSigTlv     = ptpmgmt_isSigTlv;
-        m->countSigTlvs = ptpmgmt_countSigTlvs;
-        cpyMsgParams(m);
-    }
-    ptpmgmt_pMsgParams ptpmgmt_MsgParams_alloc()
-    {
-        ptpmgmt_pMsgParams m =
-            (ptpmgmt_pMsgParams)malloc(sizeof(ptpmgmt_MsgParams));
-        if(m == nullptr)
-            return nullptr;
-        m->_this = (void *)(new MsgParams);
-        if(m->_this == nullptr) {
-            free(m);
-            return nullptr;
-        }
-        ptpmgmt_MsgParams_asign_cb(m);
-        m->free = ptpmgmt_MsgParams_free;
-        return m;
-    }
+    // C interfaces
 #define C_SWP(n, v) free(m->n); m->n = v
     static void ptpmgmt_msg_free_wrap(ptpmgmt_msg m)
     {
@@ -2248,9 +1982,7 @@ extern "C" {
         // set MsgParams
         const MsgParams &pm = ((Message *)m->_this)->getParams();
         m->_prms._this = (void *)&pm; // point to actual message parameters
-        ptpmgmt_pMsgParams p = &(m->_prms);
-        ptpmgmt_MsgParams_asign_cb(p);
-        p->free = ptpmgmt_MsgParams_free_wrap;
+        ptpmgmt_MsgParams_alloc_wrap(&(m->_prms));
     }
     ptpmgmt_msg ptpmgmt_msg_alloc()
     {

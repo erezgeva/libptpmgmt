@@ -32,10 +32,10 @@ const size_t lineSize = 512;
 
 // Holds all values from enumerator
 #define rang_val(n, dVal, minVal, maxVal)\
-    [ConfigSection::n##_val] = {#n, nullptr, dVal, minVal, maxVal}
+    [ConfigFile::ConfigSection::n##_val] = {#n, nullptr, dVal, minVal, maxVal}
 #define rang_str(n, dStr)\
-    [ConfigSection::n##_val] = {#n, dStr}
-const ConfigSection::range_t ConfigSection::ranges[] = {
+    [ConfigFile::ConfigSection::n##_val] = {#n, dStr}
+const ConfigFile::ConfigSection::range_t ConfigFile::ConfigSection::ranges[] = {
     rang_val(transportSpecific, 0, 0, 0xf),
     // IEEE 1588-2019 permit upto 239 based on sdoId value
     //  (transportSpecific == majorSdoId)
@@ -75,7 +75,7 @@ static inline void strip_end_spaces(char *end)
     *(end + 1) = 0;
 }
 
-void ConfigSection::setGlobal()
+void ConfigFile::ConfigSection::setGlobal()
 {
     int i;
     // Use default values from linuxptp
@@ -86,7 +86,7 @@ void ConfigSection::setGlobal()
     for(i = val_base_val; i < str_base_val; i++)
         m_vals[i - val_base_val] = ranges[i].defVal;
 }
-bool ConfigSection::set_val(char *line)
+bool ConfigFile::ConfigSection::set_val(char *line)
 {
     char *val = next_space_token(line); // find value
     int idx = val_base_val - 1;

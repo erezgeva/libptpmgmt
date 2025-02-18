@@ -20,32 +20,46 @@ extern "C" {
 
 /** pointer to ptpmgmt json structure */
 typedef struct ptpmgmt_json_t *ptpmgmt_json;
-
 /** pointer to constant ptpmgmt json structure */
 typedef const struct ptpmgmt_json_t *const_ptpmgmt_json;
+/** pointer to ptpmgmt json string structure */
+typedef struct ptpmgmt_json_str_t *ptpmgmt_json_str;
+
+/**
+ * The ptpmgmt json string structure hold a C string
+ */
+struct ptpmgmt_json_str_t {
+    /**
+     * The JSON string
+     */
+    const char *json_string;
+    /**
+     * Free this json string object
+     * @param[in, out] obj json string object
+     */
+    void (*free)(ptpmgmt_json_str obj);
+};
 
 /**
  * Convert Message to JSON string
  * @param[in] message received from PTP entity
  * @param[in] indent base indent for the JSON string
- * @return JSON string
- * @note The caller @b MUST free the string after use!
+ * @return JSON string object
  */
-char *ptpmgmt_json_msg2json(const_ptpmgmt_msg message, int indent);
+ptpmgmt_json_str ptpmgmt_json_msg2json(const_ptpmgmt_msg message, int indent);
 
 /**
  * Convert PTP management TLV to JSON string
  * @param[in] managementId PTP management TLV id
  * @param[in] tlv PTP management TLV
  * @param[in] indent base indent for the JSON string
- * @return JSON string
- * @note The caller @b MUST free the string after use!
+ * @return JSON string object
  */
-char *ptpmgmt_json_tlv2json(enum ptpmgmt_mng_vals_e managementId,
+ptpmgmt_json_str ptpmgmt_json_tlv2json(enum ptpmgmt_mng_vals_e managementId,
     const void *tlv, int indent);
 
 /**
- * The ptpmgmt message structure hold the json object
+ * The ptpmgmt json structure hold the json object
  *  and call backs to call C++ methods
  */
 struct ptpmgmt_json_t {

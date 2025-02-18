@@ -50,7 +50,7 @@
 #define __PTPMGMT_SWIG_THREAD_END %nothread
 #endif
 
-/* Include standatd types and SWIG macroes
+/* Include standatd types and SWIG macros
    From /usr/share/swig./ */
 %include <stdint.i>
 %include <cpointer.i>
