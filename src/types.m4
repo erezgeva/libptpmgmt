@@ -419,7 +419,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() { return sizeof scaledNanoseconds; }')dnl
+cpp_cod(`    static size_t size();')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Get interval from time interval in nanoseconds')dnl
 cpp_cod(`     * @return scaled time interval in nanoseconds')dnl
@@ -446,7 +446,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() { return sizeof_UInteger48_t + sizeof nanosecondsField; }')dnl
+cpp_cod(`    static size_t size();')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to string')dnl
 cpp_cod(`     * @return string')dnl
@@ -469,7 +469,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to timespec')dnl
 cpp_cod(`     * @note scripts should not use the timespec structure')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    operator timespec() const { timespec ts; toTimespec(ts); return ts; }')dnl
+cpp_cod(`    operator timespec() const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to timespec')dnl
 cpp_cod(`     * @param[in, out] ts timespec structure')dnl
@@ -488,7 +488,7 @@ cpp_cod(`     * @note scripts should not use the timeval structure')dnl
 cpp_cod(`     * @note Trunc nanosecods to microseconds')dnl
 cpp_cod(`     *       Could result zero microseconds from a small nanosecods value')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    operator timeval() const { timeval tv; toTimeval(tv); return tv; }')dnl
+cpp_cod(`    operator timeval() const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to timeval')dnl
 cpp_cod(`     * @param[in, out] tv timeval structure')dnl
@@ -660,7 +660,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() { return sizeof v; }')dnl
+cpp_cod(`    static size_t size();')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to string')dnl
 cpp_cod(`     * @return string')dnl
@@ -716,7 +716,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() { return ClockIdentity_t::size() + sizeof portNumber; }')dnl
+cpp_cod(`    static size_t size();')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to string')dnl
 cpp_cod(`     * @return string')dnl
@@ -766,10 +766,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    size_t size() const {')dnl
-cpp_cod(`        return sizeof networkProtocol + sizeof addressLength +')dnl
-cpp_cod(`            addressField.length();')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    size_t size() const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Convert to string')dnl
 cpp_cod(`     * @return string')dnl
@@ -809,10 +806,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() {')dnl
-cpp_cod(`        return sizeof clockClass + sizeof clockAccuracy +')dnl
-cpp_cod(`            sizeof offsetScaledLogVariance;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static size_t size();')dnl
 };
 /** PTP text value */
 strc(PTPText_t) {
@@ -828,12 +822,12 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    size_t size() const { return sizeof lengthField + textField.length(); }')dnl
+cpp_cod(`    size_t size() const;')dnl
 cpp_cod(`    /**')dnl
 cpp_cod(`     * Get string')dnl
 cpp_cod(`     * @return pointer to string')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    const char *string() const { return textField.c_str(); }')dnl
+cpp_cod(`    const char *string() const;')dnl
 };
 /** PTP fault record */
 strc(FaultRecord_t) {
@@ -847,10 +841,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    size_t size() const {')dnl
-cpp_cod(`        return sizeof faultRecordLength + faultTime.size() + sizeof severityCode +')dnl
-cpp_cod(`            faultName.size() + faultValue.size() + faultDescription.size();')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    size_t size() const;')dnl
 };
 /** PTP Acceptable timeTransmitter */
 strc(AcceptableMaster_t) {
@@ -860,9 +851,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() {')dnl
-cpp_cod(`        return PortIdentity_t::size() + sizeof alternatePriority1;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static size_t size();')dnl
 };
 
 /** Receive Authentication modes */
@@ -983,11 +972,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    size_t size() const {')dnl
-cpp_cod(`        return portIdentity.size() + clockQuality.size() +')dnl
-cpp_cod(`            sizeof selected + sizeof portState + sizeof priority1 +')dnl
-cpp_cod(`            sizeof priority2 + portAddress.size();')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    size_t size() const;')dnl
 };
 
 ns_e()
