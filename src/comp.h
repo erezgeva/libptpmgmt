@@ -26,7 +26,7 @@
 
 using namespace std;
 /* ************************************************************************** */
-/* compilation macroes */
+/* compilation macros */
 
 #define caseItem(a) a: return #a
 #define caseItemOff(a) a: return (#a) + off
@@ -34,8 +34,6 @@ using namespace std;
 #define stringify(s) #s
 /* Need 2 levels to stringify macros value instead of macro name */
 #define stringifyVal(a) stringify(a)
-
-#define DO_PRAGMA(x) _Pragma (#x)
 
 #define m_init(n) n{{0}}
 
@@ -335,7 +333,7 @@ struct MsgProc {
     bool proc48(uint64_t &val);
     bool proc48(int64_t &val);
     bool proc(Float64_t &val);
-    bool proc(std::string &str, uint16_t len);
+    bool proc(string &str, uint16_t len);
     bool proc(Binary &bin, uint16_t len);
     bool proc(uint8_t *val, size_t len);
     /* For Enumerators using 8 bits */
@@ -371,9 +369,9 @@ struct MsgProc {
     /* linuxptp PORT_STATS_NP statistics use little endian */
     bool procLe(uint64_t &val);
     /* list process with count */
-    template <typename T> bool vector_f(uint32_t count, std::vector<T> &vec);
+    template <typename T> bool vector_f(uint32_t count, vector<T> &vec);
     /* countless list process */
-    template <typename T> bool vector_o(std::vector<T> &vec);
+    template <typename T> bool vector_o(vector<T> &vec);
 };
 
 void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *tlv, void *&x);
@@ -425,7 +423,7 @@ struct JsonProc {
     virtual bool procFlag(const char *name, uint8_t &flags, int mask) = 0;
     virtual void procZeroFlag(uint8_t &flags) = 0;
 #define _ptpmProcVector(type) \
-    virtual bool procArray(const char *name, std::vector<type> &val) = 0;
+    virtual bool procArray(const char *name, vector<type> &val) = 0;
     _ptpmProcVector(ClockIdentity_t)
     _ptpmProcVector(PortAddress_t)
     _ptpmProcVector(FaultRecord_t)
@@ -452,23 +450,23 @@ struct HMAC_Key {
 
 /* structure for linking */
 struct HMAC_lib {
-    std::function<HMAC_Key *()> m_alloc_key;
+    function<HMAC_Key *()> m_alloc_key;
     const char *m_name; /**< Used in static only */
 };
 
+static const size_t HMAC_MAX_MAC_SIZE = 64;
+static const size_t HMAC_MAC_SIZE_16 = 16;
+static const size_t HMAC_MAC_SIZE_32 = 32;
 /**
  * Library binding use C, find it easily with dlsym()
  *  and '-uptpm_hmac' for static link.
  */
-static const size_t HMAC_MAX_MAC_SIZE = 64;
-static const size_t HMAC_MAC_SIZE_16 = 16;
-static const size_t HMAC_MAC_SIZE_32 = 32;
 #define HMAC_DECL(cls) \
     HMAC_lib me = { [](){return new cls;}, HLIB_NAME }; \
     extern "C" { HMAC_lib *ptpm_hmac() { return &me; } }
 
 const char *hmac_loadLibrary();
-bool hmac_selectLib(const std::string &libMatch);
+bool hmac_selectLib(const string &libMatch);
 bool hmac_isLibShared();
 void hmac_freeLib();
 size_t hmac_count();

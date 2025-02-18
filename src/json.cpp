@@ -1079,17 +1079,35 @@ __PTPMGMT_NAMESPACE_USE;
 
 extern "C" {
     // C interfaces
-    char *ptpmgmt_json_msg2json(const_ptpmgmt_msg m, int indent)
+    static void ptpmgmt_json_str_free(ptpmgmt_json_str me)
     {
-        if(m != nullptr && m->_this != nullptr) {
-            string ret = msg2json(*(Message *)m->_this, indent);
-            if(!ret.empty())
-                return strdup(ret.c_str());
-        }
+        free(me);
+    }
+    static inline ptpmgmt_json_str makeStr(const string &str)
+    {
+        if(str.empty())
+            return nullptr;
+        static const size_t sz = sizeof(ptpmgmt_json_str_t);
+        size_t len = str.size();
+        char *b = (char *)malloc(sz + len + 1);
+        if(b == nullptr)
+            return nullptr;
+        ptpmgmt_json_str me = (ptpmgmt_json_str)b;
+        me->free = ptpmgmt_json_str_free;
+        b += sz;
+        me->json_string = b;
+        str.copy(b, len);
+        b[len] = 0;
+        return me;
+    }
+    ptpmgmt_json_str ptpmgmt_json_msg2json(const_ptpmgmt_msg m, int indent)
+    {
+        if(m != nullptr && m->_this != nullptr)
+            return makeStr(msg2json(*(Message *)m->_this, indent));
         return nullptr;
     }
-    char *ptpmgmt_json_tlv2json(ptpmgmt_mng_vals_e managementId, const void *tlv,
-        int indent)
+    ptpmgmt_json_str ptpmgmt_json_tlv2json(ptpmgmt_mng_vals_e managementId,
+        const void *tlv, int indent)
     {
         if(tlv != nullptr) {
             mng_vals_e id = (mng_vals_e)managementId;
@@ -1097,8 +1115,7 @@ extern "C" {
             if(t != nullptr) {
                 string ret = tlv2json(id, t, indent);
                 delete t;
-                if(!ret.empty())
-                    return strdup(ret.c_str());
+                return makeStr(ret);
             }
         }
         return nullptr;
