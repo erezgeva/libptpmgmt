@@ -33,6 +33,10 @@ define(vec, `std::vector<$1> ')dnl
 define(pmng, `std::unique_ptr<BaseMngTlv> ')dnl
 define(arr, `$1 $2[$3]')dnl
 define(cnst, `const $1 $2 = $3;')dnl
+define(flgs, `uint8_t flags;
+    static const uint8_t flagsMask; /**< Mask for flags */')dnl
+define(flgs2, `uint8_t $1;
+    static const uint8_t flagsMask$2; /**< Mask for $1 */')dnl
 define(cpp_st, `#ifdef __cplusplus
 ')dnl
 define(cpp_en, `#else /* __cplusplus */

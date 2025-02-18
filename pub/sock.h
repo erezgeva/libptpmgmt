@@ -53,10 +53,10 @@ class SockBase
     virtual bool initBase() = 0;
     virtual void closeChild() {}
     void closeBase();
+    /**< @endcond */
 
   public:
     virtual ~SockBase();
-    /**< @endcond */
 
     /**
      * close socket and release its resources
@@ -196,13 +196,11 @@ class SockUnix : public SockBase
     bool setPeerInternal(const std::string &str, bool useAbstract);
     bool sendAny(const void *msg, size_t len, const sockaddr_un &addr) const;
     static void setUnixAddr(sockaddr_un &addr, const std::string &str);
-  protected:
-    /**< @cond internal */
+
     bool sendBase(const void *msg, size_t len) const override final;
     ssize_t rcvBase(void *buf, size_t bufSize, bool block) const override final;
     bool initBase() override final;
     void closeChild() override final;
-    /**< @endcond */
 
   public:
     SockUnix();
@@ -531,15 +529,12 @@ class SockIp4 : public SockIp
   private:
     sockaddr_in m_addr4;
 
-  protected:
-    /**< @cond internal */
     bool initIp() override final;
     bool setAllBase(const ConfigFile &cfg,
         const std::string &section) override final;
 
   public:
     SockIp4();
-    /**< @endcond */
 };
 
 /**
@@ -551,15 +546,12 @@ class SockIp6 : public SockIp
     sockaddr_in6 m_addr6;
     int m_udp6_scope = -1;
 
-  protected:
-    /**< @cond internal */
     bool initIp() override final;
     bool setAllBase(const ConfigFile &cfg,
         const std::string &section) override final;
 
   public:
     SockIp6();
-    /**< @endcond */
 
     /**
      * Set IP version 6 address scope
@@ -595,8 +587,6 @@ class SockRaw : public SockBaseIf
     sockaddr_ll m_addr = {0};
     ethhdr m_hdr;
 
-  protected:
-    /**< @cond internal */
     bool setAllBase(const ConfigFile &cfg,
         const std::string &section) override final;
     bool sendBase(const void *msg, size_t len) const override final;
@@ -605,7 +595,6 @@ class SockRaw : public SockBaseIf
 
   public:
     SockRaw();
-    /**< @endcond */
     /**
      * Set PTP multicast address using string from
      * @param[in] string address in a string object

@@ -221,6 +221,20 @@ TEST_F(SigTest, AllOrgTlvs)
     EXPECT_EQ(memcmp(p2->organizationId, "\x45\x02\x29", 3), 0);
     EXPECT_EQ(memcmp(p2->organizationSubType, "\x9\x19\xc5", 3), 0);
     EXPECT_EQ(p2->dataField, Binary("\x03\x9\xd7\x5", 4));
+    const MessageSigTlvs &t = getSigTlvs();
+    EXPECT_EQ(t.size(), 3);
+    // Copy constructor
+    MessageSigTlvs t2(t);
+    EXPECT_EQ(t2.size(), 3);
+    // Move constructor
+    MessageSigTlvs t3(std::move(t2));
+    EXPECT_EQ(t3.size(), 3);
+    const MessageSigTlv &d = t3.getTlv(2);
+    EXPECT_EQ(d.tlvType(), ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE);
+    MessageSigTlv d2(d);
+    EXPECT_EQ(d2.tlvType(), ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE);
+    MessageSigTlv d3(std::move(d2));
+    EXPECT_EQ(d3.tlvType(), ORGANIZATION_EXTENSION_DO_NOT_PROPAGATE);
 }
 
 // Tests filter with organization TLVs
@@ -543,4 +557,43 @@ TEST(SMPTETest, SMPTE_Org)
     ASSERT_EQ(o->previousJamLocalOffset, 0);
     ASSERT_EQ(o->daylightSaving, 0);
     ASSERT_EQ(o->leapSecondJump, 0);
+}
+
+// Test MANAGEMENT_t constructors and assignment
+// MANAGEMENT_t() = default;
+// MANAGEMENT_t(const MANAGEMENT_t &other)
+// MANAGEMENT_t(MANAGEMENT_t &&other)
+// MANAGEMENT_t &operator=(const MANAGEMENT_t &other);
+TEST(MANAGEMENTTest, MANAGEMENT_t)
+{
+    PRIORITY1_t *p = new PRIORITY1_t;
+    ASSERT_NE(p, nullptr);
+    p->priority1 = 17;
+    // Default constructor
+    MANAGEMENT_t a;
+    a.managementId = PRIORITY1;
+    a.tlvData.reset(p);
+    // Copy constructor
+    MANAGEMENT_t b(a);
+    EXPECT_EQ(b.managementId, PRIORITY1);
+    EXPECT_NE(a.tlvData.get(), b.tlvData.get());
+    p = dynamic_cast<PRIORITY1_t *>(b.tlvData.get());
+    EXPECT_NE(p, nullptr);
+    EXPECT_EQ(p->priority1, 17);
+    // Assignment
+    MANAGEMENT_t c;
+    c = a;
+    EXPECT_EQ(c.managementId, PRIORITY1);
+    EXPECT_NE(a.tlvData.get(), c.tlvData.get());
+    p = dynamic_cast<PRIORITY1_t *>(c.tlvData.get());
+    EXPECT_NE(p, nullptr);
+    EXPECT_EQ(p->priority1, 17);
+    // Move constructor
+    MANAGEMENT_t d(std::move(c));
+    EXPECT_EQ(d.managementId, PRIORITY1);
+    EXPECT_NE(a.tlvData.get(), d.tlvData.get());
+    PRIORITY1_t *p2 = dynamic_cast<PRIORITY1_t *>(d.tlvData.get());
+    EXPECT_EQ(p2, p);
+    EXPECT_NE(p2, nullptr);
+    EXPECT_EQ(p2->priority1, 17);
 }
