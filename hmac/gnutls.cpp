@@ -15,7 +15,7 @@
 #include "comp.h"
 #include <gnutls/crypto.h>
 
-static int count = 0;
+static size_t objCount = 0;
 
 __PTPMGMT_NAMESPACE_USE;
 
@@ -38,16 +38,16 @@ Gnutls::~Gnutls()
 {
     if(m_keyInit)
         gnutls_hmac_deinit(m_dig, nullptr);
-    count--;
-    if(count == 0)
+    objCount--;
+    if(objCount == 0)
         gnutls_global_deinit();
 }
 bool Gnutls::init()
 {
     m_algorithm = vals[m_type];
     int err;
-    count++;
-    if(count == 1) {
+    objCount++;
+    if(objCount == 1) {
         err = gnutls_global_init();
         if(err < 0) {
             PTPMGMT_ERROR("gnutls global initializing fail %s",

@@ -40,8 +40,6 @@ parameters that are relevant to the pmc tool.
 The library is written in C++ and provides a C wrapper.  
 A notice regarding memory:  
 The classes wrappers, provide a `free` callback which free any memory allocated by the wrapper itself.  
-With one exception: the functions `ptpmgmt_json_msg2json` and `ptpmgmt_json_tlv2json` allocate string,
- which you need to free, in your application!  
 You need to release any memory allocated on your application,
  as the library and the wrappers do **not** free them!  
 As C do not provides namespaces, all global functions and global structures

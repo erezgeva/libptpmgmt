@@ -37,6 +37,8 @@ define(vec, `struct ptpmgmt_$1 *')dnl
 define(pmng, `const void *')dnl
 define(arr, `$1 $2[LIBPTPMGMT_$3]')dnl
 define(cnst, `#define LIBPTPMGMT_$2 ($3)')dnl
+define(flgs, `uint8_t flags;')dnl
+define(flgs2, `uint8_t $1;')dnl
 define(cpp_st, `')dnl
 define(cpp_en, `')dnl
 define(cnst_st, `static const')dnl
