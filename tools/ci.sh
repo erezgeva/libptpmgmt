@@ -138,9 +138,11 @@ main()
  local clean_list="autom4te.cache/ m4/ config.log config.status"
  clean_list+=" config.guess config.sub ltmain.sh configure defs.mk"
  clean_list+=" src/config.h src/config.h.in install-sh aclocal.m4 libtool"
- clean_list+=" rpm/pkgs/ debian/pkgs/"
  for n in */.upgrade_cockie; do
    ! [[ -f "$n" ]] || distclean_list+=" $n"
+ done
+ for n in */pkgs/; do
+   ! [[ -d "$n" ]] || distclean_list+=" $n"
  done
  ##########################################################
  ######                 Test start                   ######
