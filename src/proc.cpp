@@ -31,6 +31,25 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
+const uint8_t DEFAULT_DATA_SET_t::flagsMask = 0x3;
+const uint8_t PARENT_DATA_SET_t::flagsMask = 0x1;
+const uint8_t TIME_PROPERTIES_DATA_SET_t::flagsMask = 0x3f;
+const uint8_t SLAVE_ONLY_t::flagsMask = 0x1;
+const uint8_t UTC_PROPERTIES_t::flagsMask = 0x7;
+const uint8_t TRACEABILITY_PROPERTIES_t::flagsMask = 0x30;
+const uint8_t TIMESCALE_PROPERTIES_t::flagsMask = 0x8;
+const uint8_t UNICAST_NEGOTIATION_ENABLE_t::flagsMask = 0x1;
+const uint8_t PATH_TRACE_ENABLE_t::flagsMask = 0x1;
+const uint8_t ACCEPTABLE_MASTER_TABLE_ENABLED_t::flagsMask = 0x1;
+const uint8_t ALTERNATE_MASTER_t::flagsMask = 0x1;
+const uint8_t ALTERNATE_TIME_OFFSET_ENABLE_t::flagsMask = 0x1;
+const uint8_t TRANSPARENT_CLOCK_PORT_DATA_SET_t::flagsMask = 0x1;
+const uint8_t EXTERNAL_PORT_CONFIGURATION_ENABLED_t::flagsMask = 0x1;
+const uint8_t MASTER_ONLY_t::flagsMask = 0x1;
+const uint8_t HOLDOVER_UPGRADE_ENABLE_t::flagsMask = 0x1;
+const uint8_t EXT_PORT_CONFIG_PORT_DATA_SET_t::flagsMask = 0x1;
+const uint8_t GRANDMASTER_SETTINGS_NP_t::flagsMask = 0x3f;
+
 /**
  * Constants for proc(Float64_t)
  */
@@ -90,7 +109,7 @@ void SUBSCRIBE_EVENTS_NP_t::div_event_wo(int event, div_t &d)
 }
 bool SUBSCRIBE_EVENTS_NP_t::div_event(int event, div_t &d)
 {
-    if(event < 0 || event >= EVENT_BITMASK_CNT)
+    if(event < 0 || event >= EVENT_BITMASK_CNT * 8)
         return false;
     div_event_wo(event, d);
     return true;
@@ -985,18 +1004,13 @@ A(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
 void c_st(ptpmgmt_PTPText_t &a, const PTPText_t &d)
 {
     size_t sz = d.textField.size();
-    if(sz > 0) {
-        a.lengthField = std::min(sz, (size_t)UINT8_MAX);
-        a.textField = d.textField.c_str();
-    } else {
-        a.lengthField = 0;
-        a.textField = nullptr;
-    }
+    a.lengthField = std::min(sz, (size_t)UINT8_MAX);
+    a.textField = sz > 0 ? d.textField.c_str() : nullptr;
 }
-#define C1_B(b, s) c_st(a.b, a.s, d.b, d.s)
-static inline void c_st(uint8_t *&b, uint16_t &n, const Binary &d, uint16_t m)
+#define C1_B(b, s) c_st(a.b, a.s, d.b)
+static inline void c_st(uint8_t *&b, uint16_t &n, const Binary &d)
 {
-    n = d.empty() ? 0 : m;
+    n = d.size();
     b = n > 0 ? const_cast<uint8_t *>(d.get()) : nullptr;
 }
 // Used in sig.cpp
@@ -1170,6 +1184,7 @@ C1(PATH_TRACE_LIST)
     if(sz > 0)
         memcpy(m, d.pathSequence.data(), s);
     memset(m + sz, 0, sizeof(ptpmgmt_ClockIdentity_t));
+    a.actualTableSize = sz;
     a.pathSequence = m;
 }
 C1(PATH_TRACE_ENABLE)
@@ -1857,10 +1872,7 @@ __PTPMGMT_NAMESPACE_USE;
 
 static inline bool div_event(int event, div_t &d)
 {
-    if(event < 0 || event >= EVENT_BITMASK_CNT)
-        return false;
-    d = SUBSCRIBE_EVENTS_NP_t::div_event(event);
-    return true;
+    return SUBSCRIBE_EVENTS_NP_t::div_event(event, d);
 }
 
 extern "C" {

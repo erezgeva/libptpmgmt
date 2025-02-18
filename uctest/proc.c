@@ -616,10 +616,12 @@ Test(ProcTest, PATH_TRACE_LIST)
     cr_expect(eq(int, m->getTlvId(m), PTPMGMT_PATH_TRACE_LIST));
     const struct ptpmgmt_PATH_TRACE_LIST_t *r =
         (const struct ptpmgmt_PATH_TRACE_LIST_t *)m->getData(m);
+    cr_expect(eq(sz, r->actualTableSize, 2));
     cr_expect(zero(memcmp(r->pathSequence[0].v, "\xc4\x7d\x46\xff\xfe\x20\xac\xae",
                 8)));
     cr_expect(zero(memcmp(r->pathSequence[1].v, "\xc\x4\x13\x61\xb\x4a\xc\x4a",
                 8)));
+    cr_expect(zero(memcmp(r->pathSequence[2].v, "\0\0\0\0\0\0\0", 8)));
     m->free(m);
 }
 
