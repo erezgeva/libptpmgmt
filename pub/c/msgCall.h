@@ -17,10 +17,54 @@
 extern "C" {
 #endif
 
+/** pointer to a ptpmgmt dispatcher structure callback */
+typedef void (*ptpmgmt_dispatcher_callback)(void *cookie, ptpmgmt_msg msg,
+    const void *tlv, const char *idStr);
+/** pointer to ptpmgmt dispatcher structure noTlv callback */
+typedef void (*ptpmgmt_dispatcher_noTlv_callback)(void *cookie,
+    ptpmgmt_msg msg);
+/** pointer to ptpmgmt dispatcher structure noTlvCallBack callback */
+typedef void (*ptpmgmt_dispatcher_noTlvCallBack_callback)(void *cookie,
+    ptpmgmt_msg msg, const char *idStr);
+
+/**
+ * Allocate new empty dispatcher object
+ * @return new dispatcher object or null on error
+ */
+ptpmgmt_dispatcher ptpmgmt_dispatcher_alloc();
+/**
+ * Assign tlv ID with callback function
+ * @param[in] d pointer to dispatcher object
+ * @param[in] tlv_id TLV ID
+ * @param[in] callback to use
+ * @return true on success
+ * @note the callback parameters must match the callback in the structure
+ */
+bool ptpmgmt_dispatcher_assign(ptpmgmt_dispatcher d,
+    enum ptpmgmt_mng_vals_e tlv_id, ptpmgmt_dispatcher_callback callback);
+/**
+ * Assign noTlv callback function
+ * @param[in] d pointer to dispatcher object
+ * @param[in] callback to use
+ * @return true on success
+ * @note We call the noTlv callback in case the TLV ID is unknown
+ */
+bool ptpmgmt_dispatcher_assign_noTlv(ptpmgmt_dispatcher d,
+    ptpmgmt_dispatcher_noTlv_callback callback);
+/**
+ * Assign noTlvCallBack callback function
+ * @param[in] d pointer to dispatcher object
+ * @param[in] callback to use
+ * @return true on success
+ * @note We call the noTlvCallBack callback in case
+ *       we do not have a callback to a TLV ID
+ */
+bool ptpmgmt_dispatcher_assign_noTlvCallBack(ptpmgmt_dispatcher d,
+    ptpmgmt_dispatcher_noTlvCallBack_callback callback);
 /**
  * Call handler based on Message last received message
  * @param[in] cookie user cookie passed to user callback
- * @param[in] d pointer to structure with the callbacks
+ * @param[in] d pointer to dispatcher object
  * @param[in] msg pointer to message object wrapper
  * @note Do not forget to null unused callbacks
  */
@@ -29,7 +73,7 @@ void ptpmgmt_callHadler(void *cookie, const_ptpmgmt_dispatcher d,
 /**
  * Call handler based on supplied TLV
  * @param[in] cookie user cookie passed to user callback
- * @param[in] d pointer to structure with the callbacks
+ * @param[in] d pointer to dispatcher object
  * @param[in] msg pointer to message object wrapper
  * @param[in] tlv_id TLV ID
  * @param[in] tlv pointer to a TLV of TLV ID

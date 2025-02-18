@@ -76,6 +76,55 @@ __PTPMGMT_NAMESPACE_END
 
 extern "C" {
     // C interfaces
+    static void ptpmgmt_dispatcher_free(ptpmgmt_dispatcher me)
+    {
+        free(me);
+    }
+    ptpmgmt_dispatcher ptpmgmt_dispatcher_alloc()
+    {
+        static const size_t sz = sizeof(ptpmgmt_dispatcher_t);
+        ptpmgmt_dispatcher me = (ptpmgmt_dispatcher)malloc(sz);
+        if(me == nullptr)
+            return nullptr;
+        memset(me, 0, sz);
+        me->free = ptpmgmt_dispatcher_free;
+        return me;
+    }
+#define _ptpmCaseUF(n)\
+case PTPMGMT_##n:\
+    d->n##_h = (void (*)(void*, ptpmgmt_msg,\
+                const ptpmgmt_##n##_t*, const char*))callback;\
+    return true;
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+    bool ptpmgmt_dispatcher_assign(ptpmgmt_dispatcher d,
+        enum ptpmgmt_mng_vals_e tlv_id, ptpmgmt_dispatcher_callback callback)
+    {
+        if(d == nullptr || callback == (ptpmgmt_dispatcher_callback)nullptr)
+            return false;
+        switch(tlv_id) {
+#include "ids.h"
+            default:
+                break;
+        }
+        return false;
+    }
+    bool ptpmgmt_dispatcher_assign_noTlv(ptpmgmt_dispatcher d,
+        ptpmgmt_dispatcher_noTlv_callback callback)
+    {
+        if(d == nullptr || callback == (ptpmgmt_dispatcher_noTlv_callback)nullptr)
+            return false;
+        d->noTlv = callback;
+        return true;
+    }
+    bool ptpmgmt_dispatcher_assign_noTlvCallBack(ptpmgmt_dispatcher d,
+        ptpmgmt_dispatcher_noTlvCallBack_callback callback)
+    {
+        if(d == nullptr ||
+            callback == (ptpmgmt_dispatcher_noTlvCallBack_callback)nullptr)
+            return false;
+        d->noTlvCallBack = callback;
+        return true;
+    }
 #define _ptpmCaseUF(n)\
 case PTPMGMT_##n:if(d->n##_h != nullptr){\
         d->n##_h(cookie, msg, (const ptpmgmt_##n##_t*)tlv, #n);}else{\
@@ -84,6 +133,8 @@ case PTPMGMT_##n:if(d->n##_h != nullptr){\
     void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d,
         ptpmgmt_msg msg, ptpmgmt_mng_vals_e tlv_id, const void *tlv)
     {
+        if(d == nullptr)
+            return;
         if(tlv == nullptr) {
             if(d->noTlv != nullptr)
                 d->noTlv(cookie, msg);
@@ -100,6 +151,8 @@ case PTPMGMT_##n:if(d->n##_h != nullptr){\
     void ptpmgmt_callHadler(void *cookie, const_ptpmgmt_dispatcher d,
         ptpmgmt_msg msg)
     {
+        if(d == nullptr || msg == nullptr)
+            return;
         ptpmgmt_callHadler_tlv(cookie, d, msg, msg->getTlvId(msg),
             msg->getData(msg));
     }
