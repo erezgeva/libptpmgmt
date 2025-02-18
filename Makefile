@@ -99,7 +99,7 @@ define help
 endef
 
 ###############################################################################
-### General macroes
+### General macros
 which=$(shell which $1 2>/dev/null)
 NOP:=@:
 define depend
@@ -219,8 +219,8 @@ SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard */*.d */*/*.d)
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
-HDR_BTH:=mngIds types proc sig callDef
-HEADERS_GEN_PUB:=$(foreach n,ver name $(HDR_BTH),$(PUB)/$n.h)
+HDR_BTH:=mngIds types proc sig
+HEADERS_GEN_PUB:=$(foreach n,ver name callDef $(HDR_BTH),$(PUB)/$n.h)
 HEADERS_PUB:=$(filter-out $(HEADERS_GEN_PUB),$(wildcard $(PUB)/*.h))
 HEADERS_GEN_PUB_C:=$(foreach n,$(HDR_BTH),$(PUB_C)/$n.h)
 HEADERS_PUB_C:=$(filter-out $(HEADERS_GEN_PUB_C),$(wildcard $(PUB_C)/*.h))
