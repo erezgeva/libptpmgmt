@@ -347,7 +347,7 @@ bool Message::isEmpty(mng_vals_e id)
 {
     return id >= FIRST_MNG_ID && id < LAST_MNG_ID && mng_all_vals[id].size == 0;
 }
-bool Message::isValidId(mng_vals_e id)
+bool Message::isValidId(mng_vals_e id) const
 {
     if(id < FIRST_MNG_ID || id >= LAST_MNG_ID)
         return false;
@@ -921,7 +921,7 @@ bool Message::traversSigTlvs(function<bool (const Message &msg,
 {
     return m_sigTlvs.traverse(callback);
 }
-bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback)
+bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback) const
 {
     return m_sigTlvs.traverse(callback);
 }
