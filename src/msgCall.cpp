@@ -86,13 +86,23 @@ __PTPMGMT_NAMESPACE_END
 
 extern "C" {
     // C interfaces
-    static void ptpmgmt_dispatcher_free(ptpmgmt_dispatcher me)
+#define _ptpmCaseUF(n) void (*n##_h)(void *cookie, ptpmgmt_msg msg,\
+    const struct ptpmgmt_##n##_t *tlv, const char *idStr);
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+    // The three first function are identical to struct ptpmgmt_dispatcher_t
+    struct ptpmgmt_dispatcher_full_t {
+        void (*free)(ptpmgmt_dispatcher dsp);
+        ptpmgmt_dispatcher_noTlv_callback noTlv;
+        ptpmgmt_dispatcher_noTlvCallBack_callback noTlvCallBack;
+#include "ids.h"
+    };
+    void ptpmgmt_dispatcher_free(ptpmgmt_dispatcher me)
     {
         free(me);
     }
     ptpmgmt_dispatcher ptpmgmt_dispatcher_alloc()
     {
-        static const size_t sz = sizeof(ptpmgmt_dispatcher_t);
+        static const size_t sz = sizeof(ptpmgmt_dispatcher_full_t);
         ptpmgmt_dispatcher me = (ptpmgmt_dispatcher)malloc(sz);
         if(me == nullptr)
             return nullptr;
@@ -106,9 +116,10 @@ case PTPMGMT_##n:\
                 const ptpmgmt_##n##_t*, const char*))callback;\
     return true;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    bool ptpmgmt_dispatcher_assign(ptpmgmt_dispatcher d,
+    bool ptpmgmt_dispatcher_assign(ptpmgmt_dispatcher d_,
         enum ptpmgmt_mng_vals_e tlv_id, ptpmgmt_dispatcher_callback callback)
     {
+        ptpmgmt_dispatcher_full_t *d = (ptpmgmt_dispatcher_full_t *)d_;
         if(d == nullptr || callback == (ptpmgmt_dispatcher_callback)nullptr)
             return false;
         switch(tlv_id) {
@@ -140,9 +151,10 @@ case PTPMGMT_##n:if(d->n##_h != nullptr){\
         d->n##_h(cookie, msg, (const ptpmgmt_##n##_t*)tlv, #n);}else{\
         if(d->noTlvCallBack != nullptr){d->noTlvCallBack(cookie, msg, #n);}}break;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d,
+    void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d_,
         ptpmgmt_msg msg, ptpmgmt_mng_vals_e tlv_id, const void *tlv)
     {
+        ptpmgmt_dispatcher_full_t *d = (ptpmgmt_dispatcher_full_t *)d_;
         if(d == nullptr)
             return;
         if(tlv == nullptr) {
