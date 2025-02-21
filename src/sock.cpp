@@ -376,8 +376,7 @@ const string &SockUnix::getHomeDir()
 }
 const char *SockUnix::getHomeDir_c()
 {
-    getHomeDir();
-    return m_homeDir.c_str();
+    return getHomeDir().c_str();
 }
 bool SockUnix::sendAny(const void *msg, size_t len,
     const sockaddr_un &addr) const
@@ -969,9 +968,7 @@ extern "C" {
         if(sk == nullptr || sk->_this == nullptr)\
             return nullptr;\
         return (cls *)(sk->_this); }
-    C2CPP_valid(csk, SockBase)
     C2CPP_valid(sk, SockBase)
-    C2CPP_valid(cusk, SockUnix)
     C2CPP_valid(usk, SockUnix)
     C2CPP_valid(isk, SockBaseIf)
     C2CPP_valid(ipsk, SockIp)
@@ -1016,19 +1013,19 @@ extern "C" {
     }
     static int ptpmgmt_sk_getFd(const_ptpmgmt_sk sk)
     {
-        SockBase *s = valid_csk(sk);
+        SockBase *s = valid_sk(sk);
         if(s != nullptr)
             return s->getFd();
         return -1;
     }
-    static bool ptpmgmt_sk_poll(ptpmgmt_sk sk, uint64_t timeout_ms)
+    static bool ptpmgmt_sk_poll(const_ptpmgmt_sk sk, uint64_t timeout_ms)
     {
         SockBase *s = valid_sk(sk);
         if(s != nullptr)
             return s->poll(timeout_ms);
         return false;
     }
-    static bool ptpmgmt_sk_tpoll(ptpmgmt_sk sk, uint64_t *timeout_ms)
+    static bool ptpmgmt_sk_tpoll(const_ptpmgmt_sk sk, uint64_t *timeout_ms)
     {
         SockBase *s = valid_sk(sk);
         if(s != nullptr) {
@@ -1044,7 +1041,7 @@ extern "C" {
     }
     static const char *ptpmgmt_sk_getPeerAddress(const_ptpmgmt_sk sk)
     {
-        SockUnix *s = valid_cusk(sk);
+        SockUnix *s = valid_usk(sk);
         if(s != nullptr)
             return s->getPeerAddress_c();
         return nullptr;
@@ -1055,7 +1052,7 @@ extern "C" {
     }
     static bool ptpmgmt_sk_isPeerAddressAbstract(const_ptpmgmt_sk sk)
     {
-        SockUnix *s = valid_cusk(sk);
+        SockUnix *s = valid_usk(sk);
         if(s != nullptr)
             return s->isPeerAddressAbstract();
         return false;
@@ -1119,7 +1116,7 @@ extern "C" {
     }
     static const char *ptpmgmt_sk_getSelfAddress(const_ptpmgmt_sk sk)
     {
-        SockUnix *s = valid_cusk(sk);
+        SockUnix *s = valid_usk(sk);
         if(s != nullptr)
             return s->getSelfAddress_c();
         return nullptr;
@@ -1130,7 +1127,7 @@ extern "C" {
     }
     static bool ptpmgmt_sk_isSelfAddressAbstract(const_ptpmgmt_sk sk)
     {
-        SockUnix *s = valid_cusk(sk);
+        SockUnix *s = valid_usk(sk);
         if(s != nullptr)
             return s->isSelfAddressAbstract();
         return false;
@@ -1251,7 +1248,7 @@ extern "C" {
     }
     static const char *ptpmgmt_sk_getLastFrom(const_ptpmgmt_sk sk)
     {
-        SockUnix *s = valid_cusk(sk);
+        SockUnix *s = valid_usk(sk);
         if(s != nullptr)
             return s->getLastFrom_c();
         return nullptr;
@@ -1262,7 +1259,7 @@ extern "C" {
     }
     static bool ptpmgmt_sk_isLastFromAbstract(const_ptpmgmt_sk sk)
     {
-        SockUnix *s = valid_cusk(sk);
+        SockUnix *s = valid_usk(sk);
         if(s != nullptr)
             return s->isLastFromAbstract();
         return false;
