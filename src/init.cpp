@@ -191,11 +191,11 @@ Message &Init::msg()
 {
     return m_msg;
 }
-SockBase *Init::sk()
+SockBase *Init::sk() const
 {
     return m_sk.get();
 }
-char Init::getNetSelect()
+char Init::getNetSelect() const
 {
     return m_net_select;
 }
@@ -322,7 +322,7 @@ extern "C" {
             return ((Init *)me->_this)->getNetSelect();
         return 0;
     }
-    static bool ptpmgmt_init_use_uds(ptpmgmt_init me)
+    static bool ptpmgmt_init_use_uds(const_ptpmgmt_init me)
     {
         if(me != nullptr && me->_this != nullptr)
             return ((Init *)me->_this)->use_uds();

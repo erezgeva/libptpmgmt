@@ -108,7 +108,7 @@ struct ptpmgmt_sk_t {
      *  then fetch the file description with fileno()
      *  And implement it, or merge it into an existing polling
      */
-    bool (*poll)(ptpmgmt_sk sk, uint64_t timeout_ms);
+    bool (*poll)(const_ptpmgmt_sk sk, uint64_t timeout_ms);
     /**
      * Single socket polling and update timeout
      * @param[in, out] sk socket
@@ -119,7 +119,7 @@ struct ptpmgmt_sk_t {
      *  when packet arrives. The user is advice to ensure the timeout
      *  is positive, as @b zero cause to block until receive a packet.
      */
-    bool (*tpoll)(ptpmgmt_sk sk, uint64_t *timeout_ms);
+    bool (*tpoll)(const_ptpmgmt_sk sk, uint64_t *timeout_ms);
     /**
      * Get peer address
      * @param[in] sk socket

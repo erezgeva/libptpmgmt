@@ -460,7 +460,7 @@ bool Binary::fromBase64(const string &bin64, bool pad)
     setBin(id);
     return true;
 }
-string Binary::toBase64(bool pad, char v62, char v63)
+string Binary::toBase64(bool pad, char v62, char v63) const
 {
     if(m_size == 0) // Empty
         return "";
