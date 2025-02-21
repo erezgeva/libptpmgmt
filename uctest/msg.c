@@ -816,7 +816,7 @@ Test(MessageTest, MethodFindTimeSrc)
     cr_expect(m->findTimeSrc("Other", &t, false));
     cr_expect(eq(int, t, PTPMGMT_OTHER));
     m->free(m);
-    // Confirm compatability
+    // Confirm compatibility
     cr_expect(eq(int, PTPMGMT_GPS, PTPMGMT_GNSS));
 }
 
@@ -915,7 +915,7 @@ Test(MessageTest, MethodFindPortState)
     cr_assert(not(zero(ptr, m)));
     cr_expect(m->findPortState("Slave", &s, false));
     m->free(m);
-    // Confirm compatability
+    // Confirm compatibility
     cr_expect(eq(int, PTPMGMT_PRE_MASTER, PTPMGMT_PRE_TIME_TRANSMITTER));
     cr_expect(eq(int, PTPMGMT_MASTER, PTPMGMT_TIME_TRANSMITTER));
     cr_expect(eq(int, PTPMGMT_SLAVE, PTPMGMT_TIME_RECEIVER));
