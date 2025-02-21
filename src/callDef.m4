@@ -24,12 +24,13 @@ include(lang().m4)dnl
  *
  */
 
-ics(CALL_DEFS)
+#ifndef __PTPMGMT_CALL_DEFS_H
+#define __PTPMGMT_CALL_DEFS_H
 
-cpp_st()dnl
-incb(msg)
+#ifdef __cplusplus
+#include "msg.h"
 
-ns_s()
+__PTPMGMT_NAMESPACE_BEGIN
 
 /**
  * @brief Dispacher for management TLV
@@ -42,27 +43,51 @@ ns_s()
     to handle the dispached TLVs.
  * @attention Do @b NOT @p use this header in your application.
  */
-cpp_cod(`class BaseMngDispatchCallback')dnl
-cpp_cod(`{')dnl
-cpp_cod(`    /** @cond internal */')dnl
-cpp_cod(`  private:')dnl
-cpp_cod(`    bool _nc; /**< flag indicating no inherite call back */')dnl
-cpp_cod(`  protected:')dnl
-cpp_cod(`    void _noTlvClear() { _nc = false; }')dnl
-cpp_cod(`    bool _noTlv() {bool r = _nc; _nc = false; return r;}')dnl
-cpp_cod(`    /**< @endcond */')dnl
-cpp_cod(`  public:')dnl
-cpp_cod(`    BaseMngDispatchCallback() = default;')dnl
-cpp_cod(`    virtual ~BaseMngDispatchCallback() = default;')dnl
+class BaseMngDispatchCallback
+{
+  private:
+    /** @cond internal */
+    bool _nc; /**< flag indicating no inherite call back */
+  protected:
+    /* To improve backward compatibility
+       Call virtual functions here in this inline function,
+       so we compile it in the application
+       and avoid using virtual function table in the library code */
+    const char *iCallHandler(const Message &msg, mng_vals_e tlv_id,
+        const BaseMngTlv *tlv) {
+        const char *idStr = nullptr;
+        _nc = false;
+        switch(tlv_id) {
+define(E,`            case $1: {
+                idStr = "$1";
+                auto d = dynamic_cast
+                    <const $1_t *>(tlv);
+                if(d != nullptr)
+                    $1_h(msg, *d, idStr);
+                break;
+            }')dnl
+define(A, `ifelse(regexp($6, `^UF', `0'),`0',`E($1)',`dnl')')dnl
+include(ids_base.m4)dnl
+undefine(`A')dnl
+            default:
+                break;
+        }
+        return idStr;
+    }
+    bool isNoTlv() { return _nc; }
+    /**< @endcond */
+  public:
+    BaseMngDispatchCallback() = default;
+    virtual ~BaseMngDispatchCallback() = default;
 define(D,`    /**
      * Handle $1 management TLV
-cpp_cod(`     * @param[in] msg ref_s() to the Message object')dnl
-     * @param[in] tlv ref_s() to the management tlv
+     * @param[in] msg referance to the Message object
+     * @param[in] tlv referance to the management tlv
      * @param[in] idStr ID string of the management tlv
      */
-cpp_cod(`    virtual void $1_h(const Message &msg,')dnl
-cpp_cod(`        const $1_t &tlv, const char *idStr)')dnl
-cpp_cod(`    {_nc = true;}')dnl')dnl
+    virtual void $1_h(const Message &msg,
+        const $1_t &tlv, const char *idStr)
+    {_nc = true;}')dnl
 define(A, `ifelse(regexp($6, `^UF', `0'),`0',`D($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 undefine(`A')dnl
@@ -81,28 +106,56 @@ undefine(`A')dnl
  *  Developers may set the TLV values.
  * @attention Do @b NOT @p use this header in your application.
  */
-cpp_cod(`class BaseMngBuildCallback')dnl
-cpp_cod(`{')dnl
-cpp_cod(`  public:')dnl
-cpp_cod(`    BaseMngBuildCallback() = default;')dnl
-cpp_cod(`    virtual ~BaseMngBuildCallback() = default;')dnl
+class BaseMngBuildCallback
+{
+  protected:
+    /** @cond internal */
+    /* To improve backward compatibility
+       Call virtual functions here in this inline function,
+       so we compile it in the application
+       and avoid using virtual function table in the library code */
+    BaseMngTlv *iBuild(Message &msg, mng_vals_e tlv_id) {
+        switch(tlv_id) {
+define(F,`            case $1: {
+                auto d = new $1_t;
+                if(d != nullptr) {
+                    if($1_b(msg, *d))
+                        return d;
+                    delete d;
+                }
+                break;
+            }')dnl
+define(A, `ifelse(regexp($6, `^UFB', `0'),`0',`F($1)',`dnl')')dnl
+include(ids_base.m4)dnl
+undefine(`A')dnl
+            default:
+                break;
+        }
+        return nullptr;
+    }
+    /**< @endcond */
+  public:
+    BaseMngBuildCallback() = default;
+    virtual ~BaseMngBuildCallback() = default;
 define(B,`    /**
      * Handle $1 management TLV
      * Set values in the new TLV
-cpp_cod(`     * @param[in] msg ref_s() to the Message object')dnl
-     * @param[in, out] tlv ref_s() to the new management tlv
+     * @param[in] msg referance to the Message object
+     * @param[in, out] tlv referance to the new management tlv
      * @return true if set success
      * @note MessageBuilder::buildTlv call setAction with new TLV
      *  if an inherit method return true!
      */
-cpp_cod(`    virtual bool $1_b(const Message &msg,')dnl
-cpp_cod(`        $1_t &tlv)')dnl
-cpp_cod(`    {return false;}')dnl')dnl
+    virtual bool $1_b(const Message &msg,
+        $1_t &tlv)
+    {return false;}')dnl
 define(A, `ifelse(regexp($6, `^UFB', `0'),`0',`B($1)',`dnl')')dnl
 include(ids_base.m4)dnl
 };
 
-ns_e()
-cpp_en(callDef)dnl
+__PTPMGMT_NAMESPACE_END
+#else /* __cplusplus */
+#error "this header is for C++ and scripts use only, NOT for C"
+#endif /* __cplusplus */
 
-ice(CALL_DEFS)
+#endif /* __PTPMGMT_CALL_DEFS_H */

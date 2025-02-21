@@ -18,24 +18,20 @@ void MessageDispatcher::callHadler(const Message &msg)
 {
     callHadler(msg, msg.getTlvId(), msg.getData());
 }
-#define _ptpmCaseUF(n)\
-    case n: n##_h(msg, *dynamic_cast<const n##_t*>(tlv), #n);\
-    if(_noTlv()){noTlvCallBack(msg, #n);}break;
-#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 void MessageDispatcher::callHadler(const Message &msg, mng_vals_e tlv_id,
     const BaseMngTlv *tlv)
 {
-    if(tlv == nullptr) {
-        noTlv(msg);
+    if(tlv == nullptr || !msg.isValidId(tlv_id) || Message::isEmpty(tlv_id)) {
+        cNoTlv(msg);
         return;
     }
-    _noTlvClear(); /* Clear the flag */
-    switch(tlv_id) {
-#include "ids.h"
-        default:
-            noTlv(msg);
-            break;
+    const char *idStr = iCallHandler(msg, tlv_id, tlv);
+    if(idStr == nullptr) {
+        cNoTlv(msg);
+        return;
     }
+    if(isNoTlv())
+        cNoTlvCB(msg, idStr);
 }
 MessageBuilder::MessageBuilder(Message &msg) : m_msg(msg) {}
 Message &MessageBuilder::getMsg()
@@ -51,7 +47,7 @@ bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
 {
     if(!m_msg.isValidId(tlv_id))
         return false;
-    if(actionField == GET || m_msg.isEmpty(tlv_id))
+    if(actionField == GET || Message::isEmpty(tlv_id))
         return m_msg.setAction(actionField, tlv_id);
     switch(actionField) {
         case SET:
@@ -61,18 +57,9 @@ bool MessageBuilder::buildTlv(actionField_e actionField, mng_vals_e tlv_id)
         default:
             return false;
     }
-    BaseMngTlv *tlv = nullptr;
-#define _ptpmCaseUFB(n) case n: {\
-            n##_t *d = new n##_t;\
-            if (d == nullptr) return false;\
-            if (!n##_b(m_msg, *d)) { delete d; return false; }\
-            tlv = d; } break;
-    switch(tlv_id) {
-#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-#include "ids.h"
-        default:
-            return false;
-    }
+    BaseMngTlv *tlv = iBuild(m_msg, tlv_id);
+    if(tlv == nullptr)
+        return false;
     if LIKELY_COND(m_msg.setAction(actionField, tlv_id, tlv)) {
         m_tlv.reset(tlv);
         return true;
@@ -125,14 +112,13 @@ case PTPMGMT_##n:\
         switch(tlv_id) {
 #include "ids.h"
             default:
-                break;
+                return false;
         }
-        return false;
     }
     bool ptpmgmt_dispatcher_assign_noTlv(ptpmgmt_dispatcher d,
         ptpmgmt_dispatcher_noTlv_callback callback)
     {
-        if(d == nullptr || callback == (ptpmgmt_dispatcher_noTlv_callback)nullptr)
+        if(d == nullptr || callback == nullptr)
             return false;
         d->noTlv = callback;
         return true;
@@ -140,8 +126,7 @@ case PTPMGMT_##n:\
     bool ptpmgmt_dispatcher_assign_noTlvCallBack(ptpmgmt_dispatcher d,
         ptpmgmt_dispatcher_noTlvCallBack_callback callback)
     {
-        if(d == nullptr ||
-            callback == (ptpmgmt_dispatcher_noTlvCallBack_callback)nullptr)
+        if(d == nullptr || callback == nullptr)
             return false;
         d->noTlvCallBack = callback;
         return true;
@@ -157,7 +142,9 @@ case PTPMGMT_##n:if(d->n##_h != nullptr){\
         ptpmgmt_dispatcher_full_t *d = (ptpmgmt_dispatcher_full_t *)d_;
         if(d == nullptr)
             return;
-        if(tlv == nullptr) {
+        if(tlv == nullptr ||
+            (msg != nullptr && !msg->isValidId(msg, tlv_id)) ||
+            ptpmgmt_msg_isEmpty((tlv_id))) {
             if(d->noTlv != nullptr)
                 d->noTlv(cookie, msg);
             return;

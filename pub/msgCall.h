@@ -25,6 +25,15 @@ __PTPMGMT_NAMESPACE_BEGIN
  */
 class MessageDispatcher : public BaseMngDispatchCallback
 {
+  private:
+    /* To improve backward compatibility
+       Call virtual functions in inline functions,
+       so we compile them in the application
+       and avoid using virtual function table in the library */
+    void cNoTlv(const Message &msg) { noTlv(msg); }
+    void cNoTlvCB(const Message &msg, const char *idStr) {
+        noTlvCallBack(msg, idStr);
+    }
   public:
     /**
      * Construct a message TLV dispatcher
