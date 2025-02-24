@@ -895,21 +895,6 @@ cpp_cod(`    static size_t size() {')dnl
 cpp_cod(`        return PortIdentity_t::size() + sizeof alternatePriority1;')dnl
 cpp_cod(`    }')dnl
 };
-/** Properties of a PTP management TLV */
-strc(ManagementId_t) {
-    uint16_t value;   /**< managementId value */
-    uint8_t scope;   /**< Applies port or clock using scope_e */
-    uint8_t allowed; /**< Allowed actions, bits from allowAction_e */
-    /**
-     * TLV dataField size
-     * @li positive size of TLV dataField when it is fixed length
-     * @li 0 for TLV without dataField
-     * @li -1 TLV is not supported
-     * @li -2 The dataField length need calculation based on values
-     * @note the size might be even. Just pad another byte at the end.
-     */
-    ssize_t size;
-};
 
 /** Receive Authentication modes */
 enm(MsgParams_RcvAuth_e) sz(: uint8_t ){
