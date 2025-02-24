@@ -421,8 +421,10 @@ bool MsgProc::proc(ClockQuality_t &d)
 }
 bool MsgProc::proc(PTPText_t &d)
 {
-    d.lengthField = d.textField.length();
-    return proc(d.lengthField) || proc(d.textField, d.lengthField);
+    size_t sz = d.textField.length();
+    d.lengthField = sz;
+    return sz > UINT8_MAX || proc(d.lengthField) ||
+        proc(d.textField, d.lengthField);
 }
 bool MsgProc::proc(FaultRecord_t &d)
 {
@@ -930,31 +932,47 @@ A(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
     }\
     ptpmgmt_##n##_t *m = (ptpmgmt_##n##_t *)x
 
+#define C1_TEXT(a, d, n) c1_text(a.n, d.n)
+void c1_text(ptpmgmt_PTPText_t &a, const PTPText_t &d)
+{
+    if(d.textField.empty()) {
+        a.lengthField = 0;
+        a.textField = nullptr;
+    } else {
+        a.lengthField = d.textField.size();
+        a.textField = d.textField.c_str();
+    }
+}
+void c1_port(ptpmgmt_PortAddress_t &a, const PortAddress_t &d)
+{
+    a.networkProtocol = (ptpmgmt_networkProtocol_e)d.networkProtocol;
+    a.addressLength = d.addressLength;
+    a.addressField = const_cast<uint8_t *>(d.addressField.get());
+}
+#define C1_QUALITY(a, d, n) c1_quality(a.n, d.n)
+void c1_quality(ptpmgmt_ClockQuality_t &a, const ClockQuality_t &d)
+{
+    a.clockClass = d.clockClass;
+    a.clockAccuracy = (ptpmgmt_clockAccuracy_e)d.clockAccuracy;
+    a.offsetScaledLogVariance = d.offsetScaledLogVariance;
+}
+
 C1(CLOCK_DESCRIPTION)
 {
     a.clockType = d.clockType;
-    a.physicalLayerProtocol.lengthField = d.physicalLayerProtocol.lengthField;
-    a.physicalLayerProtocol.textField = d.physicalLayerProtocol.textField.c_str();
+    C1_TEXT(a, d, physicalLayerProtocol);
     a.physicalAddressLength = d.physicalAddressLength;
     a.physicalAddress = const_cast<uint8_t *>(d.physicalAddress.get());
-    a.protocolAddress.networkProtocol =
-        (ptpmgmt_networkProtocol_e)d.protocolAddress.networkProtocol;
-    a.protocolAddress.addressLength = d.protocolAddress.addressLength;
-    a.protocolAddress.addressField =
-        const_cast<uint8_t *>(d.protocolAddress.addressField.get());
+    c1_port(a.protocolAddress, d.protocolAddress);
     memcpy(a.manufacturerIdentity, d.manufacturerIdentity, 3);
-    a.productDescription.lengthField = d.productDescription.lengthField;
-    a.productDescription.textField = d.productDescription.textField.c_str();
-    a.revisionData.lengthField = d.revisionData.lengthField;
-    a.revisionData.textField = d.revisionData.textField.c_str();
-    a.userDescription.lengthField = d.userDescription.lengthField;
-    a.userDescription.textField = d.userDescription.textField.c_str();
+    C1_TEXT(a, d, productDescription);
+    C1_TEXT(a, d, revisionData);
+    C1_TEXT(a, d, userDescription);
     memcpy(a.profileIdentity, d.profileIdentity, 6);
 }
 C1(USER_DESCRIPTION)
 {
-    a.userDescription.lengthField = d.userDescription.lengthField;
-    a.userDescription.textField = d.userDescription.textField.c_str();
+    C1_TEXT(a, d, userDescription);
 }
 C1(INITIALIZE)
 {
@@ -969,12 +987,9 @@ C1(FAULT_LOG)
         m[i].faultTime.secondsField = f.faultTime.secondsField;
         m[i].faultTime.nanosecondsField = f.faultTime.nanosecondsField;
         m[i].severityCode = (ptpmgmt_faultRecord_e)f.severityCode;
-        m[i].faultName.lengthField = f.faultName.lengthField;
-        m[i].faultName.textField = f.faultName.textField.c_str();
-        m[i].faultValue.lengthField = f.faultValue.lengthField;
-        m[i].faultValue.textField = f.faultValue.textField.c_str();
-        m[i].faultDescription.lengthField = f.faultDescription.lengthField;
-        m[i].faultDescription.textField = f.faultDescription.textField.c_str();
+        C1_TEXT(m[i], f, faultName);
+        C1_TEXT(m[i], f, faultValue);
+        C1_TEXT(m[i], f, faultDescription);
     }
     a.faultRecords = m;
 }
@@ -983,11 +998,7 @@ C1(DEFAULT_DATA_SET)
     a.flags = d.flags;
     a.numberPorts = d.numberPorts;
     a.priority1 = d.priority1;
-    a.clockQuality.clockClass = d.clockQuality.clockClass;
-    a.clockQuality.clockAccuracy =
-        (ptpmgmt_clockAccuracy_e)d.clockQuality.clockAccuracy;
-    a.clockQuality.offsetScaledLogVariance =
-        d.clockQuality.offsetScaledLogVariance;
+    C1_QUALITY(a, d, clockQuality);
     a.priority2 = d.priority2;
     memcpy(a.clockIdentity.v, d.clockIdentity.v, ClockIdentity_t::size());
     a.domainNumber = d.domainNumber;
@@ -1008,11 +1019,7 @@ C1(PARENT_DATA_SET)
         d.observedParentOffsetScaledLogVariance;
     a.observedParentClockPhaseChangeRate = d.observedParentClockPhaseChangeRate;
     a.grandmasterPriority1 = d.grandmasterPriority1;
-    a.grandmasterClockQuality.clockClass = d.grandmasterClockQuality.clockClass;
-    a.grandmasterClockQuality.clockAccuracy =
-        (ptpmgmt_clockAccuracy_e)d.grandmasterClockQuality.clockAccuracy;
-    a.grandmasterClockQuality.offsetScaledLogVariance =
-        d.grandmasterClockQuality.offsetScaledLogVariance;
+    C1_QUALITY(a, d, grandmasterClockQuality);
     a.grandmasterPriority2 = d.grandmasterPriority2;
     memcpy(a.grandmasterIdentity.v, d.grandmasterIdentity.v,
         ClockIdentity_t::size());
@@ -1120,26 +1127,16 @@ C1(GRANDMASTER_CLUSTER_TABLE)
 {
     a.logQueryInterval = d.logQueryInterval;
     C1_tbl(PortAddress, actualTableSize, PortAddress);
-    for(int i = 0; i < d.actualTableSize; i++) {
-        m[i].networkProtocol =
-            (ptpmgmt_networkProtocol_e)d.PortAddress[i].networkProtocol;
-        m[i].addressLength = d.PortAddress[i].addressLength;
-        m[i].addressField =
-            const_cast<uint8_t *>(d.PortAddress[i].addressField.get());
-    }
+    for(int i = 0; i < d.actualTableSize; i++)
+        c1_port(m[i], d.PortAddress[i]);
     a.PortAddress = m;
 }
 C1(UNICAST_MASTER_TABLE)
 {
     a.logQueryInterval = d.logQueryInterval;
     C1_tbl(PortAddress, actualTableSize, PortAddress);
-    for(int i = 0; i < d.actualTableSize; i++) {
-        m[i].networkProtocol =
-            (ptpmgmt_networkProtocol_e)d.PortAddress[i].networkProtocol;
-        m[i].addressLength = d.PortAddress[i].addressLength;
-        m[i].addressField =
-            const_cast<uint8_t *>(d.PortAddress[i].addressField.get());
-    }
+    for(int i = 0; i < d.actualTableSize; i++)
+        c1_port(m[i], d.PortAddress[i]);
     a.PortAddress = m;
 }
 C1(UNICAST_MASTER_MAX_TABLE_SIZE)
@@ -1181,8 +1178,7 @@ C1(ALTERNATE_TIME_OFFSET_ENABLE)
 C1(ALTERNATE_TIME_OFFSET_NAME)
 {
     a.keyField = d.keyField;
-    a.displayName.lengthField = d.displayName.lengthField;
-    a.displayName.textField = d.displayName.textField.c_str();
+    C1_TEXT(a, d, displayName);
 }
 C1(ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
@@ -1255,11 +1251,7 @@ C1(TIME_STATUS_NP)
 }
 C1(GRANDMASTER_SETTINGS_NP)
 {
-    a.clockQuality.clockClass = d.clockQuality.clockClass;
-    a.clockQuality.clockAccuracy =
-        (ptpmgmt_clockAccuracy_e)d.clockQuality.clockAccuracy;
-    a.clockQuality.offsetScaledLogVariance =
-        d.clockQuality.offsetScaledLogVariance;
+    C1_QUALITY(a, d, clockQuality);
     a.currentUtcOffset = d.currentUtcOffset;
     a.flags = d.flags;
     a.timeSource = (ptpmgmt_timeSource_e)d.timeSource;
@@ -1281,8 +1273,7 @@ C1(PORT_PROPERTIES_NP)
         ClockIdentity_t::size());
     a.portState = (ptpmgmt_portState_e)d.portState;
     a.timestamping = (ptpmgmt_linuxptpTimeStamp_e)d.timestamping;
-    a.interface.lengthField = d.interface.lengthField;
-    a.interface.textField = d.interface.textField.c_str();
+    C1_TEXT(a, d, interface);
 }
 C1(PORT_STATS_NP)
 {
@@ -1320,20 +1311,12 @@ C1(UNICAST_MASTER_TABLE_NP)
         m[i].portIdentity.portNumber = f.portIdentity.portNumber;
         memcpy(m[i].portIdentity.clockIdentity.v, f.portIdentity.clockIdentity.v,
             ClockIdentity_t::size());
-        m[i].clockQuality.clockClass = f.clockQuality.clockClass;
-        m[i].clockQuality.clockAccuracy =
-            (ptpmgmt_clockAccuracy_e)f.clockQuality.clockAccuracy;
-        m[i].clockQuality.offsetScaledLogVariance =
-            f.clockQuality.offsetScaledLogVariance;
+        C1_QUALITY(m[i], f, clockQuality);
         m[i].selected = f.selected;
         m[i].portState = (ptpmgmt_linuxptpUnicastState_e)f.portState;
         m[i].priority1 = f.priority1;
         m[i].priority2 = f.priority2;
-        m[i].portAddress.networkProtocol =
-            (ptpmgmt_networkProtocol_e)f.portAddress.networkProtocol;
-        m[i].portAddress.addressLength = f.portAddress.addressLength;
-        m[i].portAddress.addressField =
-            const_cast<uint8_t *>(f.portAddress.addressField.get());
+        c1_port(m[i].portAddress, f.portAddress);
     }
     a.unicastMasters = m;
 }
@@ -1403,47 +1386,45 @@ void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x)
 #define C2(n)\
     static inline void n##_c2(n##_t &a, const ptpmgmt_##n##_t &d)
 
+#define C2_TEXT(a, d, n) c2_text(a.n, d.n)
+void c2_text(PTPText_t &a, const ptpmgmt_PTPText_t &d)
+{
+    a.lengthField = d.lengthField;
+    if(d.textField != nullptr && d.lengthField > 0)
+        a.textField = string(d.textField, d.lengthField);
+}
+void c2_port(PortAddress_t &a, const ptpmgmt_PortAddress_t &d)
+{
+    a.networkProtocol = (networkProtocol_e)d.networkProtocol;
+    a.addressLength = d.addressLength;
+    if(d.addressField != nullptr && d.addressLength > 0)
+        a.addressField.setBin(d.addressField, d.addressLength);
+}
+#define C2_QUALITY(a, d, n) c2_quality(a.n, d.n)
+void c2_quality(ClockQuality_t &a, const ptpmgmt_ClockQuality_t &d)
+{
+    a.clockClass = d.clockClass;
+    a.clockAccuracy = (clockAccuracy_e)d.clockAccuracy;
+    a.offsetScaledLogVariance = d.offsetScaledLogVariance;
+}
+
 C2(CLOCK_DESCRIPTION)
 {
     a.clockType = d.clockType;
-    a.physicalLayerProtocol.lengthField = d.physicalLayerProtocol.lengthField;
-    if(d.physicalLayerProtocol.textField != nullptr &&
-        d.physicalLayerProtocol.lengthField > 0)
-        a.physicalLayerProtocol.textField =
-            string(d.physicalLayerProtocol.textField,
-                d.physicalLayerProtocol.lengthField);
+    C2_TEXT(a, d, physicalLayerProtocol);
     a.physicalAddressLength = d.physicalAddressLength;
     if(d.physicalAddress != nullptr && d.physicalAddressLength > 0)
         a.physicalAddress.setBin(d.physicalAddress, d.physicalAddressLength);
-    a.protocolAddress.networkProtocol =
-        (networkProtocol_e)d.protocolAddress.networkProtocol;
-    a.protocolAddress.addressLength = d.protocolAddress.addressLength;
-    if(d.protocolAddress.addressField != nullptr &&
-        d.protocolAddress.addressLength > 0)
-        a.protocolAddress.addressField.setBin(d.protocolAddress.addressField,
-            d.protocolAddress.addressLength);
+    c2_port(a.protocolAddress, d.protocolAddress);
     memcpy(a.manufacturerIdentity, d.manufacturerIdentity, 3);
-    a.productDescription.lengthField = d.productDescription.lengthField;
-    if(d.productDescription.textField != nullptr &&
-        d.productDescription.lengthField > 0)
-        a.productDescription.textField = string(d.productDescription.textField,
-                d.productDescription.lengthField);
-    a.revisionData.lengthField = d.revisionData.lengthField;
-    if(d.revisionData.textField != nullptr && d.revisionData.lengthField > 0)
-        a.revisionData.textField = string(d.revisionData.textField,
-                d.revisionData.lengthField);
-    a.userDescription.lengthField = d.userDescription.lengthField;
-    if(d.userDescription.textField != nullptr && d.userDescription.lengthField > 0)
-        a.userDescription.textField = string(d.userDescription.textField,
-                d.userDescription.lengthField);
+    C2_TEXT(a, d, productDescription);
+    C2_TEXT(a, d, revisionData);
+    C2_TEXT(a, d, userDescription);
     memcpy(a.profileIdentity, d.profileIdentity, 6);
 }
 C2(USER_DESCRIPTION)
 {
-    a.userDescription.lengthField = d.userDescription.lengthField;
-    if(d.userDescription.textField != nullptr && d.userDescription.lengthField > 0)
-        a.userDescription.textField = string(d.userDescription.textField,
-                d.userDescription.lengthField);
+    C2_TEXT(a, d, userDescription);
 }
 C2(INITIALIZE)
 {
@@ -1460,19 +1441,9 @@ C2(FAULT_LOG)
         r.faultTime.secondsField = f.faultTime.secondsField;
         r.faultTime.nanosecondsField = f.faultTime.nanosecondsField;
         r.severityCode = (faultRecord_e)f.severityCode;
-        r.faultName.lengthField = f.faultName.lengthField;
-        if(f.faultName.textField != nullptr && f.faultName.lengthField > 0)
-            r.faultName.textField = string(f.faultName.textField,
-                    f.faultName.lengthField);
-        r.faultValue.lengthField = f.faultValue.lengthField;
-        if(f.faultValue.textField != nullptr && f.faultValue.lengthField > 0)
-            r.faultValue.textField = string(f.faultValue.textField,
-                    f.faultValue.lengthField);
-        r.faultDescription.lengthField = f.faultDescription.lengthField;
-        if(f.faultDescription.textField != nullptr &&
-            f.faultDescription.lengthField > 0)
-            r.faultDescription.textField = string(f.faultDescription.textField,
-                    f.faultDescription.lengthField);
+        C2_TEXT(r, f, faultName);
+        C2_TEXT(r, f, faultValue);
+        C2_TEXT(r, f, faultDescription);
     }
 }
 C2(DEFAULT_DATA_SET)
@@ -1480,11 +1451,7 @@ C2(DEFAULT_DATA_SET)
     a.flags = d.flags;
     a.numberPorts = d.numberPorts;
     a.priority1 = d.priority1;
-    a.clockQuality.clockClass = d.clockQuality.clockClass;
-    a.clockQuality.clockAccuracy =
-        (clockAccuracy_e)d.clockQuality.clockAccuracy;
-    a.clockQuality.offsetScaledLogVariance =
-        d.clockQuality.offsetScaledLogVariance;
+    C2_QUALITY(a, d, clockQuality);
     a.priority2 = d.priority2;
     memcpy(a.clockIdentity.v, d.clockIdentity.v, ClockIdentity_t::size());
     a.domainNumber = d.domainNumber;
@@ -1505,11 +1472,7 @@ C2(PARENT_DATA_SET)
         d.observedParentOffsetScaledLogVariance;
     a.observedParentClockPhaseChangeRate = d.observedParentClockPhaseChangeRate;
     a.grandmasterPriority1 = d.grandmasterPriority1;
-    a.grandmasterClockQuality.clockClass = d.grandmasterClockQuality.clockClass;
-    a.grandmasterClockQuality.clockAccuracy =
-        (clockAccuracy_e)d.grandmasterClockQuality.clockAccuracy;
-    a.grandmasterClockQuality.offsetScaledLogVariance =
-        d.grandmasterClockQuality.offsetScaledLogVariance;
+    C2_QUALITY(a, d, grandmasterClockQuality);
     a.grandmasterPriority2 = d.grandmasterPriority2;
     memcpy(a.grandmasterIdentity.v, d.grandmasterIdentity.v,
         ClockIdentity_t::size());
@@ -1617,26 +1580,16 @@ C2(GRANDMASTER_CLUSTER_TABLE)
     a.logQueryInterval = d.logQueryInterval;
     a.actualTableSize = d.actualTableSize;
     a.PortAddress.resize(d.actualTableSize);
-    for(int i = 0; i < d.actualTableSize; i++) {
-        PortAddress_t &r = a.PortAddress[i];
-        r.networkProtocol = (networkProtocol_e)d.PortAddress[i].networkProtocol;
-        r.addressLength = d.PortAddress[i].addressLength;
-        if(d.PortAddress[i].addressField != nullptr && r.addressLength > 0)
-            r.addressField.setBin(d.PortAddress[i].addressField, r.addressLength);
-    }
+    for(int i = 0; i < d.actualTableSize; i++)
+        c2_port(a.PortAddress[i], d.PortAddress[i]);
 }
 C2(UNICAST_MASTER_TABLE)
 {
     a.logQueryInterval = d.logQueryInterval;
     a.actualTableSize = d.actualTableSize;
     a.PortAddress.resize(d.actualTableSize);
-    for(int i = 0; i < d.actualTableSize; i++) {
-        PortAddress_t &r = a.PortAddress[i];
-        r.networkProtocol = (networkProtocol_e)d.PortAddress[i].networkProtocol;
-        r.addressLength = d.PortAddress[i].addressLength;
-        if(d.PortAddress[i].addressField != nullptr && r.addressLength > 0)
-            r.addressField.setBin(d.PortAddress[i].addressField, r.addressLength);
-    }
+    for(int i = 0; i < d.actualTableSize; i++)
+        c2_port(a.PortAddress[i], d.PortAddress[i]);
 }
 C2(UNICAST_MASTER_MAX_TABLE_SIZE)
 {
@@ -1678,10 +1631,7 @@ C2(ALTERNATE_TIME_OFFSET_ENABLE)
 C2(ALTERNATE_TIME_OFFSET_NAME)
 {
     a.keyField = d.keyField;
-    a.displayName.lengthField = d.displayName.lengthField;
-    if(d.displayName.textField != nullptr && d.displayName.lengthField > 0)
-        a.displayName.textField = string(d.displayName.textField,
-                d.displayName.lengthField);
+    C2_TEXT(a, d, displayName);
 }
 C2(ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
@@ -1754,11 +1704,7 @@ C2(TIME_STATUS_NP)
 }
 C2(GRANDMASTER_SETTINGS_NP)
 {
-    a.clockQuality.clockClass = d.clockQuality.clockClass;
-    a.clockQuality.clockAccuracy =
-        (clockAccuracy_e)d.clockQuality.clockAccuracy;
-    a.clockQuality.offsetScaledLogVariance =
-        d.clockQuality.offsetScaledLogVariance;
+    C2_QUALITY(a, d, clockQuality);
     a.currentUtcOffset = d.currentUtcOffset;
     a.flags = d.flags;
     a.timeSource = (timeSource_e)d.timeSource;
@@ -1780,10 +1726,7 @@ C2(PORT_PROPERTIES_NP)
         ClockIdentity_t::size());
     a.portState = (portState_e)d.portState;
     a.timestamping = (linuxptpTimeStamp_e)d.timestamping;
-    a.interface.lengthField = d.interface.lengthField;
-    if(d.interface.textField != nullptr && d.interface.lengthField > 0)
-        a.interface.textField = string(d.interface.textField,
-                d.interface.lengthField);
+    C2_TEXT(a, d, interface);
 }
 C2(PORT_STATS_NP)
 {
@@ -1823,21 +1766,12 @@ C2(UNICAST_MASTER_TABLE_NP)
         r.portIdentity.portNumber = f.portIdentity.portNumber;
         memcpy(r.portIdentity.clockIdentity.v, f.portIdentity.clockIdentity.v,
             ClockIdentity_t::size());
-        r.clockQuality.clockClass = f.clockQuality.clockClass;
-        r.clockQuality.clockAccuracy =
-            (clockAccuracy_e)f.clockQuality.clockAccuracy;
-        r.clockQuality.offsetScaledLogVariance =
-            f.clockQuality.offsetScaledLogVariance;
+        C2_QUALITY(r, f, clockQuality);
         r.selected = f.selected;
         r.portState = (linuxptpUnicastState_e)f.portState;
         r.priority1 = f.priority1;
         r.priority2 = f.priority2;
-        r.portAddress.networkProtocol =
-            (networkProtocol_e)f.portAddress.networkProtocol;
-        r.portAddress.addressLength = f.portAddress.addressLength;
-        if(f.portAddress.addressField != nullptr && f.portAddress.addressLength > 0)
-            r.portAddress.addressField.setBin(f.portAddress.addressField,
-                f.portAddress.addressLength);
+        c2_port(r.portAddress, f.portAddress);
     }
 }
 C2(PORT_HWCLOCK_NP)
