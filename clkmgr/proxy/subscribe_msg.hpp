@@ -21,11 +21,15 @@ __CLKMGR_NAMESPACE_BEGIN
 class ProxySubscribeMessage : virtual public ProxyMessage,
     virtual public CommonSubscribeMessage
 {
+  private:
+    int timeBaseIndex;
   protected:
     ProxySubscribeMessage() : MESSAGE_SUBSCRIBE() {};
   public:
     virtual PROCESS_MESSAGE_TYPE(processMessage);
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+    virtual PARSE_RXBUFFER_TYPE(parseBuffer);
+
     /**
      * Create the ProxyConnectMessage object
      * @param msg msg structure to be fill up

@@ -28,7 +28,8 @@ using namespace std;
 
 static int fd;
 static int report_index = 0;
-extern ptp_event clockEvent;
+extern std::map<int, ptp_event> ptp4lEvents;
+int timeBaseIndex = 1; // TODO: Need to get the correct timeBaseIndex
 
 struct ThreadArgs {
     chrony_session *s;
@@ -100,21 +101,23 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index)
         const char *field_name = chrony_get_field_name(s, j);
         if(field_name != nullptr && strcmp(field_name, "Last offset") == 0) {
             float second = (chrony_get_field_float(s, j) * 1e9);
-            clockEvent.chrony_offset = (int)second;
+            ptp4lEvents[timeBaseIndex].chrony_offset = (int)second;
             #if 0
             PrintDebug("CHRONY master_offset = " +
-                to_string(clockEvent.chrony_offset));
+                to_string(ptp4lEvents[timeBaseIndex].chrony_offset));
             #endif
         }
         if(field_name != nullptr && strcmp(field_name, "Reference ID") == 0)
-            clockEvent.chrony_reference_id = chrony_get_field_uinteger(s, j);
+            ptp4lEvents[timeBaseIndex].chrony_reference_id =
+                chrony_get_field_uinteger(s, j);
         if(field_name != nullptr && strcmp(field_name, "Poll") == 0) {
             int32_t interval = static_cast<int32_t>
                 (static_cast<int16_t>(chrony_get_field_integer(s, j)));
-            clockEvent.polling_interval = pow(2.0, interval) * 1000000;
+            ptp4lEvents[timeBaseIndex].polling_interval =
+                pow(2.0, interval) * 1000000;
             #if 0
             PrintDebug("CHRONY polling_interval = " +
-                to_string(clockEvent.polling_interval) + " us");
+                to_string(ptp4lEvents[timeBaseIndex].polling_interval) + " us");
             #endif
         }
     }
@@ -132,7 +135,7 @@ void *monitor_chronyd(void *arg)
                 subscribe_to_chronyd(s, i);
         }
         // Sleep duration is based on chronyd polling interval
-        usleep(clockEvent.polling_interval);
+        usleep(ptp4lEvents[timeBaseIndex].polling_interval);
     }
 }
 
@@ -146,7 +149,7 @@ void start_monitor_thread(chrony_session *s, int report_index)
     }
 }
 
-void ConnectChrony::connect_chrony()
+void ConnectChrony::connect_chrony(const std::vector<TimeBaseCfg> &params)
 {
     /* connect to chronyd unix socket*/
     fd = chrony_open_socket("/var/run/chrony/chronyd.sock");

@@ -14,13 +14,15 @@
 #include "common/print.hpp"
 #include "common/serialize.hpp"
 #include "proxy/client.hpp"
+#include "proxy/connect_chrony.hpp"
+#include "proxy/connect_ptp4l.hpp"
 #include "proxy/subscribe_msg.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-extern ptp_event clockEvent;
+extern std::map<int, ptp_event> ptp4lEvents;
 
 /**
  * Create the ProxySubscribeMessage object
@@ -53,9 +55,19 @@ BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
     if(!CommonSubscribeMessage::makeBuffer(TxContext))
         return false;
+    ptp_event event = ptp4lEvents[timeBaseIndex];
     /* Add ptp data here */
-    if(!WRITE_TX(FIELD, clockEvent, TxContext))
+    if(!WRITE_TX(FIELD, event, TxContext))
         return false;
+    return true;
+}
+
+PARSE_RXBUFFER_TYPE(ProxySubscribeMessage::parseBuffer)
+{
+    PrintDebug("[ProxySubscribeMessage]::parseBuffer ");
+    if(!CommonSubscribeMessage::parseBuffer(LxContext))
+        return false;
+    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, this->getc_sessionId());
     return true;
 }
 

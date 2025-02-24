@@ -27,34 +27,16 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    uint8_t transport_specific = 0;
-    int value = 0;
     int opt;
     while((opt = getopt(argc, argv, "t:h")) != -1) {
         switch(opt) {
-            case 't':
-                value = stoi(optarg);
-                if(value < 0 || value > 255) {
-                    fprintf(stderr, "Invalid transport specific value: %s\n",
-                        optarg);
-                    return EXIT_FAILURE;
-                }
-                transport_specific = static_cast<uint8_t>(value);
-                break;
             case 'h':
-                printf("Usage of %s:\n"
-                    "Options:\n"
-                    " -t transport specific\n"
-                    "    Default: 0x%x\n",
-                    argv[0], transport_specific);
+                printf("Usage of :\n"
+                    "Options:\n");
                 return EXIT_SUCCESS;
             default:
-                fprintf(stderr, "Usage of %s:\n"
-                    "Options:\n"
-                    " -t transport specific\n"
-                    "    Default: 0x%x\n",
-                    argv[0],
-                    transport_specific);
+                fprintf(stderr, "Usage of:\n"
+                    "Options:\n");
                 return EXIT_FAILURE;
         }
     }
@@ -68,13 +50,14 @@ int main(int argc, char *argv[])
         PrintError("Message init failed");
         return EXIT_FAILURE;
     }
+    std::vector<TimeBaseCfg> timeBaseCfgs;
+    ConnectPtp4l::connect_ptp4l(timeBaseCfgs);
     #ifdef HAVE_LIBCHRONY
-    ConnectChrony::connect_chrony();
+    ConnectChrony::connect_chrony(timeBaseCfgs);
     #endif
-    Connect::connect(transport_specific);
     WaitForStopSignal();
     PrintDebug("Got stop signal");
-    Connect::disconnect();
+    ConnectPtp4l::disconnect_ptp4l();
     if(!ProxyTransport::stop()) {
         PrintError("stop failed");
         return EXIT_FAILURE;

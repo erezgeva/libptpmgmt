@@ -19,7 +19,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-extern ptp_event clockEvent;
+extern std::map<int, ptp_event> ptp4lEvents;
 
 /**
  * Create the ProxyNotificationMessage object
@@ -52,8 +52,9 @@ BUILD_TXBUFFER_TYPE(ProxyNotificationMessage::makeBuffer) const
     PrintDebug("[ProxyNotificationMessage]::makeBuffer");
     if(!Message::makeBuffer(TxContext))
         return false;
-    /* Add ptp data here */
-    if(!WRITE_TX(FIELD, clockEvent, TxContext))
+    ptp_event event = ptp4lEvents[timeBaseIndex];
+    /* Add ptp_event data to the buffer */
+    if(!WRITE_TX(FIELD, event, TxContext))
         return false;
     return true;
 }

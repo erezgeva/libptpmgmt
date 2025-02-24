@@ -24,6 +24,8 @@ __CLKMGR_NAMESPACE_BEGIN
 class ProxyNotificationMessage : virtual public ProxyMessage,
     virtual public NotificationMessage
 {
+  private:
+    int timeBaseIndex;
   public:
     ProxyNotificationMessage() : MESSAGE_NOTIFY() {}
     virtual PROCESS_MESSAGE_TYPE(processMessage);
@@ -42,6 +44,9 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
      * @return true
      */
     static bool initMessage();
+    void setTimeBaseIndex(int newTimeBaseIndex) {
+        timeBaseIndex = newTimeBaseIndex;
+    }
 };
 
 __CLKMGR_NAMESPACE_END

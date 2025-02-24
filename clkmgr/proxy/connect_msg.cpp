@@ -21,8 +21,6 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-extern ptp_event clockEvent;
-
 /**
  * Create the ProxyConnectMessage object
  * @param msg msg structure to be fill up

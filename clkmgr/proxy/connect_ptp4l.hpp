@@ -8,18 +8,32 @@
  * @copyright © 2024 Intel Corporation.
  *
  */
+#ifndef PROXY_CONNECT_PTP4L_HPP
+#define PROXY_CONNECT_PTP4L_HPP
 
 #include "common/connect_msg.hpp"
 #include "proxy/message.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class Connect
+struct TimeBaseCfg {
+    std::string udsAddrChrony;
+    std::string udsAddrPtp4l;
+    std::string interfaceName;
+    int timeBaseIndex;
+    uint8_t transportSpecific;
+    uint8_t domainNumber;
+};
+
+class ConnectPtp4l
 {
   private:
   public:
-    static int connect(uint8_t transport_specific);
-    static void disconnect();
+    static int connect_ptp4l(const std::vector<TimeBaseCfg> &params);
+    static int subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId);
+    static void disconnect_ptp4l();
 };
 
 __CLKMGR_NAMESPACE_END
+
+#endif /* PROXY_CONNECT_PTP4L_HPP */
