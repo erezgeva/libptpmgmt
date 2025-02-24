@@ -24,7 +24,6 @@ struct ptp_event {
     uint8_t gm_identity[8]; /* Grandmaster clock ID */
     bool as_capable; /* 802@.1AS Capable */
     bool synced_to_primary_clock;
-    uint8_t ptp4l_id;
     int64_t chrony_offset;
     uint32_t chrony_reference_id;
     int64_t polling_interval;
@@ -35,7 +34,6 @@ struct client_ptp_event {
     int64_t master_offset_low;
     int64_t master_offset_high;
     uint8_t gm_identity[8]; /* Grandmaster clock ID */
-    uint8_t ptp4l_id;
     bool as_capable; /* 802@.1AS Capable */
     bool synced_to_primary_clock;
     bool master_offset_in_range;

@@ -289,7 +289,6 @@ void *ptp4l_event_loop(void *arg)
  */
 int Connect::connect(uint8_t transport_specific)
 {
-    clockEvent.ptp4l_id = 1;
     const char *uds_address = "/var/run/ptp4l";
     if(!sku.setDefSelfAddress() || !sku.init() ||
         !sku.setPeerAddress(uds_address))

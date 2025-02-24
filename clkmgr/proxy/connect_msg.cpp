@@ -68,11 +68,6 @@ PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
 {
     sessionId_t newSessionId = this->getc_sessionId();
     PrintDebug("Processing proxy connect message");
-    /* Check whether there is ptp4l available */
-    if(!clockEvent.ptp4l_id) {
-        PrintError("ptp4l_id is not available.");
-        return false;
-    }
     if(newSessionId != InvalidSessionId) {
         auto clientSession = Client::GetClientSession(newSessionId);
         if(clientSession)
@@ -98,9 +93,6 @@ BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
 {
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
     if(!CommonConnectMessage::makeBuffer(TxContext))
-        return false;
-    /* Add ptp4l_id here */
-    if(!WRITE_TX(FIELD, clockEvent.ptp4l_id, TxContext))
         return false;
     return true;
 }

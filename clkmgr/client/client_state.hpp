@@ -29,7 +29,6 @@ class ClientState
     std::atomic_bool subscribed{false}; /**< Subscription status */
     sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
     TransportClientId clientID = {}; /**< Client ID */
-    uint8_t m_ptp4l_id = 0; /**< PTP4L ID */
     Event_state eventState = {}; /**< Event state */
     Event_count eventStateCount = {}; /**< Event count */
     ClkMgrSubscription eventSub = {}; /**< Event subscription */
@@ -154,18 +153,6 @@ class ClientState
     * @param[in] sessionId The new session ID to set.
     */
     void set_sessionId(sessionId_t sessionId);
-
-    /**
-    * Set the ptp4l ID.
-    * @param[in] ptp4l_id The new ptp4l ID to set.
-    */
-    void set_ptp4l_id(uint8_t ptp4l_id);
-
-    /**
-    * Get the value of the ptp4l ID.
-    * @return the ptp4l ID.
-    */
-    uint8_t get_ptp4l_id() const;
 };
 
 __CLKMGR_NAMESPACE_END

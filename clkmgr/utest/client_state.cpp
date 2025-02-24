@@ -147,13 +147,3 @@ TEST(ClientStateTest, sessionId)
     cstate.set_sessionId(0x3f);
     EXPECT_EQ(cstate.get_sessionId(), 0x3f);
 }
-
-// Tests PTP ID
-// void set_ptp4l_id(uint8_t ptp4l_id)
-// uint8_t get_ptp4l_id() const
-TEST(ClientStateTest, ptp4l_id)
-{
-    ClientState cstate;
-    cstate.set_ptp4l_id(0x55);
-    EXPECT_EQ(cstate.get_ptp4l_id(), 0x55);
-}

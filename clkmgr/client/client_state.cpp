@@ -138,16 +138,6 @@ void ClientState::set_sessionId(sessionId_t sessionId)
     m_sessionId = sessionId;
 }
 
-void ClientState::set_ptp4l_id(uint8_t ptp4l_id)
-{
-    m_ptp4l_id = ptp4l_id;
-}
-
-uint8_t ClientState::get_ptp4l_id() const
-{
-    return m_ptp4l_id;
-}
-
 void ClientState::set_last_notification_time(const timespec &newTime)
 {
     last_notification_time = newTime;
