@@ -504,8 +504,8 @@ struct ptpmgmt_msg_t {
     /**
      * Get send message dataField
      * @param[in] msg object
-     * @return pointer to send message dataField or null
-     *         a pointer to the last setAction dataSend parameter.
+     * @return pointer to send message dataField or null.
+     *         A pointer to the last setAction dataSend parameter.
      * @note You need to cast to proper structure depends on
      *  management TLV ID.
      * @note In case you release this memory,
@@ -796,6 +796,168 @@ ptpmgmt_msg ptpmgmt_msg_alloc();
  * @return new message structure or null in case of error
  */
 ptpmgmt_msg ptpmgmt_msg_alloc_prms(ptpmgmt_cpMsgParams prms);
+
+/** pointer to ptpmgmt TLV allocator structure */
+typedef struct ptpmgmt_tlv_mem_t *ptpmgmt_tlv_mem;
+/** pointer to constant ptpmgmt message structure */
+typedef const struct ptpmgmt_tlv_mem_t *const_ptpmgmt_tlv_mem;
+
+/**
+ * Structure to track allocations for TLV objects and release all memory at once
+ */
+struct ptpmgmt_tlv_mem_t {
+    /**< @cond internal */
+    void *_memHndl; /**< memory tracking */
+    /**< @endcond */
+    enum ptpmgmt_mng_vals_e id; /**< The TLV ID */
+    void *tlv; /**< The TLV object */
+    /**
+     * Free this tlv object and free all memory allocations
+     * @param[in, out] self memory object
+     */
+    void (*free)(ptpmgmt_tlv_mem self);
+    /**
+     * clear the tlv and free all memory allocations
+     * @param[in, out] self memory object
+     */
+    void (*clear)(ptpmgmt_tlv_mem self);
+    /**
+     * Allocate new empty tlv
+     * @param[in, out] self memory object
+     * @param[in] ID of tlv to allocate
+     * @return true on success
+     * @note On success this function will free any previous memory allocation
+     *       and tlv allocated previously, same as calling clear() before.
+     */
+    bool (*newTlv)(ptpmgmt_tlv_mem self, enum ptpmgmt_mng_vals_e ID);
+    /**
+     * Copy tlv
+     * @param[in, out] self memory object
+     * @param[in] other tlv to copy
+     * @return true on success
+     * @note On success this function will free any previous memory allocation
+     *       and tlv allocated previously, same as calling clear() before.
+     */
+    bool (*copy)(ptpmgmt_tlv_mem self, const_ptpmgmt_tlv_mem other);
+    /**
+     * Copy tlv
+     * @param[in, out] self memory object
+     * @param[in] ID of tlv to copy
+     * @param[in] tlv to copy
+     * @return true on success
+     * @note On success this function will free any previous memory allocation
+     *       and tlv allocated previously, same as calling clear() before.
+     */
+    bool (*copyTlv)(ptpmgmt_tlv_mem self, enum ptpmgmt_mng_vals_e ID, void *tlv);
+    /**
+     * get tlv ID
+     * @param[in] self memory object
+     * @return tlv ID
+     * @note On success this function will free any previous memory allocation
+     *       and tlv allocated previously, same as calling clear() before.
+     */
+    enum ptpmgmt_mng_vals_e(*getID)(const_ptpmgmt_tlv_mem self);
+    /**
+     * Get the tlv itsef
+     * @param[in] self memory object
+     * @return tlv
+     */
+    void *(*getTLV)(const_ptpmgmt_tlv_mem self);
+    /**
+     * Allocate new memory to use with the tlv
+     * @param[in] self memory object
+     * @param[in] size for new allocation
+     * @return new memory
+     * @note memory will be free when freeing the tlv memory object
+     */
+    void *(*allocMem)(ptpmgmt_tlv_mem self, size_t size);
+    /**
+     * Allocate new memory to use with the tlv
+     * @param[in] self memory object
+     * @param[in] number of elements
+     * @param[in] size of element
+     * @return new memory size of number of elements multuiple by size of element
+     * @note memory will be free when freeing the tlv memory object
+     */
+    void *(*callocMem)(ptpmgmt_tlv_mem self, size_t number, size_t size);
+    /**
+     * Reallocate memory to use with the tlv
+     * @param[in] self memory object
+     * @param[in] memory pointer to reallocate
+     * @param[in] size for new allocation
+     * @return reallocated memory or null if fail
+     * @note memory will be free when freeing the tlv memory object
+     */
+    void *(*reallocMem)(ptpmgmt_tlv_mem self, void *memory, size_t size);
+    /**
+     * Reallocate new memory to use with the tlv
+     * @param[in] self memory object
+     * @param[in] memory pointer to reallocate
+     * @param[in] number of elements
+     * @param[in] size of element
+     * @return new memory size of number of elements multuiple by size of element
+     * @note memory will be free when freeing the tlv memory object
+     */
+    void *(*recallocMem)(ptpmgmt_tlv_mem self, void *memory, size_t number,
+        size_t size);
+    /**
+     * Allocate new PTPText with string
+     * @param[in] self memory object
+     * @param[in] str null terminated string used in new allocation
+     * @return PTPText with new allocated string or length zero if fail
+     */
+    struct ptpmgmt_PTPText_t (*allocString)(ptpmgmt_tlv_mem self, const char *str);
+    /**
+     * Allocate new PTPText with string
+     * @param[in] self memory object
+     * @param[in] str string used in new allocation
+     * @param[in] len string length used in new allocation
+     * @return PTPText with new allocated string or length zero if fail
+     */
+    struct ptpmgmt_PTPText_t (*allocStringLen)(ptpmgmt_tlv_mem self,
+        const char *str, size_t len);
+    /**
+     * reallocate new PTPText with string
+     * @param[in] self memory object
+     * @param[in] text object to reallocate
+     * @param[in] str null terminated string used in new allocation
+     * @return true on success
+     * @note The function relay on PTPText.lengthField value.
+     */
+    bool (*reallocString)(ptpmgmt_tlv_mem self, struct ptpmgmt_PTPText_t *text,
+        const char *str);
+    /**
+     * reallocate new PTPText with string
+     * @param[in] self memory object
+     * @param[in] text object to reallocate
+     * @param[in] str string used in new allocation
+     * @param[in] len string length used in new allocation
+     * @return true on success
+     * @note The function relay on PTPText.lengthField value.
+     */
+    bool (*reallocStringLen)(ptpmgmt_tlv_mem self, struct ptpmgmt_PTPText_t *text,
+        const char *str, size_t len);
+    /**
+     * Free memory use with the tlv
+     * @param[in] self memory object
+     * @param[in] mem to free
+     * @return true if memory belong to this memory tlv and successfuly released
+     */
+    bool (*freeMem)(ptpmgmt_tlv_mem self, void *mem);
+    /**
+     * Free memory use in the PTPText
+     * @param[in] self memory object
+     * @param[in] mem to free
+     * @return true if memory belong to this memory tlv and successfuly released
+     */
+    bool (*freeString)(ptpmgmt_tlv_mem self, struct ptpmgmt_PTPText_t *txt);
+};
+
+/**
+ * Alocate new tlv memory structure
+ * @return new tlv memory or null in case of error
+ */
+ptpmgmt_tlv_mem ptpmgmt_tlv_mem_alloc();
 
 #ifdef __cplusplus
 }

@@ -107,9 +107,6 @@ class Message
     managementErrorId_e m_errorId = (managementErrorId_e)0;
     PTPText_t m_errorDisplay;
 
-    /* Map to all management IDs */
-    static const ManagementId_t mng_all_vals[];
-
     bool allowedAction(mng_vals_e id, actionField_e action);
     /* val in network order */
     static bool findTlvId(uint16_t val, mng_vals_e &rid, implementSpecific_e spec);

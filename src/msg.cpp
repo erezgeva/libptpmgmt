@@ -136,13 +136,29 @@ size_t MsgParams::countSigTlvs() const
     return allowSigTlvs.size();
 }
 
+/** Properties of a PTP management TLV */
+struct ManagementId_t {
+    uint16_t value;   /**< managementId value */
+    uint8_t scope;   /**< Applies port or clock using scope_e */
+    uint8_t allowed; /**< Allowed actions, bits from allowAction_e */
+    /**
+     * TLV dataField size
+     * @li positive size of TLV dataField when it is fixed length
+     * @li 0 for TLV without dataField
+     * @li -1 TLV is not supported
+     * @li -2 The dataField length need calculation based on values
+     * @note the size might be even. Just pad another byte at the end.
+     */
+    ssize_t size;
+};
+
 // Shortcuts for the ids table
 #define use_GSC A_GET | A_SET | A_COMMAND
 #define use_GS  A_GET | A_SET
 #define use_GL  A_GET | A_USE_LINUXPTP
 #define use_GSL A_GET | A_SET | A_USE_LINUXPTP
 #define use_CL A_COMMAND | A_USE_LINUXPTP
-const ManagementId_t Message::mng_all_vals[] = {
+const static ManagementId_t mng_all_vals[] = {
 #define A(n, v, sc, a, sz, f)\
     [n] = {.value = 0x##v, .scope = s_##sc, .allowed = a, .size = sz},
 #include "ids.h"
@@ -2008,6 +2024,433 @@ extern "C" {
         m->_this = (void *)&msg;
         m->free = ptpmgmt_msg_free_wrap;
         ptpmgmt_msg_asign_cb(m);
+        return m;
+    }
+    static const size_t tlv_c_size[] = {
+#define _ptpmCaseNA(n) [PTPMGMT_##n] = 0,
+#define _ptpmCaseUF(n) [PTPMGMT_##n] = sizeof(ptpmgmt_##n##_t),
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+#include "ids.h"
+    };
+    static void ptpmgmt_tlv_mem_free(ptpmgmt_tlv_mem self)
+    {
+        if(self != nullptr) {
+            free(self->tlv);
+            vector<void *> *n = (vector<void *> *)self->_memHndl;
+            if(n != nullptr) {
+                for(auto m : *n)
+                    free(m);
+                delete n;
+            }
+            free(self);
+        }
+    }
+    static void _clearTlv(ptpmgmt_tlv_mem self)
+    {
+        free(self->tlv);
+        vector<void *> *n = (vector<void *> *)self->_memHndl;
+        if(n != nullptr) {
+            for(auto m : *n)
+                free(m);
+            n->clear();
+        }
+    }
+    static void ptpmgmt_tlv_mem_clear(ptpmgmt_tlv_mem self)
+    {
+        if(self != nullptr) {
+            _clearTlv(self);
+            self->tlv = nullptr;
+            self->id = PTPMGMT_NULL_PTP_MANAGEMENT;
+        }
+    }
+    static void *_allocTLV(size_t &sz, ptpmgmt_mng_vals_e id)
+    {
+        if((mng_vals_e)id >= FIRST_MNG_ID && (mng_vals_e)id < LAST_MNG_ID) {
+            sz = tlv_c_size[id];
+            if(sz > 0)
+                return malloc(sz);
+        }
+        return nullptr;
+    }
+    static bool ptpmgmt_tlv_mem_newTlv(ptpmgmt_tlv_mem self, ptpmgmt_mng_vals_e id)
+    {
+        if(self != nullptr) {
+            size_t sz;
+            void *tlv = _allocTLV(sz, id);
+            if(tlv != nullptr) {
+                _clearTlv(self);
+                memset(tlv, 0, sz);
+                self->tlv = tlv;
+                self->id = id;
+                return true;
+            }
+        }
+        return false;
+    }
+    static bool _copyText(vector<void *> &n, ptpmgmt_PTPText_t &t)
+    {
+        if(t.lengthField > 0 && t.textField != nullptr) {
+            size_t len = t.lengthField;
+            char *s = (char *)malloc(len + 1);
+            if(s == nullptr)
+                return false;
+            n.push_back(s);
+            memcpy(s, t.textField, len);
+            s[len] = 0;
+            t.textField = s;
+            return true;
+        }
+        return false;
+    }
+    static bool _copyBloc(vector<void *> &n, void *&p, size_t len)
+    {
+        if(len > 0 && p != nullptr) {
+            void *b = malloc(len);
+            if(b == nullptr)
+                return false;
+            n.push_back(b);
+            memcpy(b, p, len);
+            p = b;
+            return true;
+        }
+        return false;
+    }
+    static bool ptpmgmt_tlv_mem_copyTlv(ptpmgmt_tlv_mem self, ptpmgmt_mng_vals_e id,
+        void *tlv)
+    {
+        if(self == nullptr || tlv == nullptr)
+            return false;
+        vector<void *> *n = (vector<void *> *)self->_memHndl;
+        if(n == nullptr)
+            return false;
+        size_t sz;
+        void *ntlv = _allocTLV(sz, id);
+        if(ntlv == nullptr)
+            return false;
+        bool ret = true;
+        vector<void *> _nalc;
+        memcpy(ntlv, tlv, sz);
+        switch(id) {
+            case PTPMGMT_CLOCK_DESCRIPTION: {
+                auto *a = (ptpmgmt_CLOCK_DESCRIPTION_t *)ntlv;
+                void *n = a->physicalAddress;
+                void *n2 = a->protocolAddress.addressField;
+                ret = _copyText(_nalc, a->physicalLayerProtocol) &&
+                    _copyText(_nalc, a->productDescription) &&
+                    _copyText(_nalc, a->revisionData) &&
+                    _copyText(_nalc, a->userDescription) &&
+                    _copyBloc(_nalc, n, a->physicalAddressLength) &&
+                    _copyBloc(_nalc, n2, a->protocolAddress.addressLength);
+                a->physicalAddress = (uint8_t *)n;
+                a->protocolAddress.addressField = (uint8_t *)n2;
+                break;
+            }
+            case PTPMGMT_USER_DESCRIPTION: {
+                auto *a = (ptpmgmt_USER_DESCRIPTION_t *)ntlv;
+                ret = _copyText(_nalc, a->userDescription);
+                break;
+            }
+            case PTPMGMT_ALTERNATE_TIME_OFFSET_NAME: {
+                auto *a = (ptpmgmt_ALTERNATE_TIME_OFFSET_NAME_t *)ntlv;
+                ret = _copyText(_nalc, a->displayName);
+                break;
+            }
+            case PTPMGMT_PORT_PROPERTIES_NP: {
+                auto *a = (ptpmgmt_PORT_PROPERTIES_NP_t *)ntlv;
+                ret = _copyText(_nalc, a->interface);
+                break;
+            }
+            case PTPMGMT_FAULT_LOG: {
+                auto *a = (ptpmgmt_FAULT_LOG_t *)ntlv;
+                void *n = a->faultRecords;
+                ret = _copyBloc(_nalc, n,
+                        a->numberOfFaultRecords * sizeof(ptpmgmt_FaultRecord_t));
+                a->faultRecords = (ptpmgmt_FaultRecord_t *)n;
+                for(size_t i = 0; ret && i < a->numberOfFaultRecords; i++)
+                    ret = _copyText(_nalc, a->faultRecords[i].faultName) &&
+                        _copyText(_nalc, a->faultRecords[i].faultValue) &&
+                        _copyText(_nalc, a->faultRecords[i].faultDescription);
+                break;
+            }
+            case PTPMGMT_PATH_TRACE_LIST: {
+                ptpmgmt_ClockIdentity_t nClock = { 0 };
+                auto *a = (ptpmgmt_PATH_TRACE_LIST_t *)ntlv;
+                for(size_t sz = 0; memcmp(a->pathSequence[sz].v, nClock.v,
+                        sizeof(nClock)); sz++);
+                void *n = a->pathSequence;
+                ret = _copyBloc(_nalc, n, sizeof(nClock) * sz);
+                a->pathSequence = (ptpmgmt_ClockIdentity_t *)n;
+                break;
+            }
+            case PTPMGMT_GRANDMASTER_CLUSTER_TABLE: {
+                auto *a = (ptpmgmt_GRANDMASTER_CLUSTER_TABLE_t *)ntlv;
+                void *n = a->PortAddress;
+                ret = _copyBloc(_nalc, n,
+                        a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
+                a->PortAddress = (ptpmgmt_PortAddress_t *)n;
+                for(size_t i = 0; ret && i < a->actualTableSize; i++) {
+                    n = a->PortAddress[i].addressField;
+                    ret = _copyBloc(_nalc, n, a->PortAddress[i].addressLength);
+                    a->PortAddress[i].addressField = (uint8_t *)n;
+                }
+                break;
+            }
+            case PTPMGMT_UNICAST_MASTER_TABLE: {
+                auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_t *)ntlv;
+                void *n = a->PortAddress;
+                ret = _copyBloc(_nalc, n,
+                        a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
+                a->PortAddress = (ptpmgmt_PortAddress_t *)n;
+                for(size_t i = 0; ret && i < a->actualTableSize; i++) {
+                    n = a->PortAddress[i].addressField;
+                    ret = _copyBloc(_nalc, n, a->PortAddress[i].addressLength);
+                    a->PortAddress[i].addressField = (uint8_t *)n;
+                }
+                break;
+            }
+            case PTPMGMT_ACCEPTABLE_MASTER_TABLE: {
+                auto *a = (ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *)ntlv;
+                void *n = a->list;
+                ret = _copyBloc(_nalc, n,
+                        a->actualTableSize * sizeof(ptpmgmt_AcceptableMaster_t));
+                a->list = (ptpmgmt_AcceptableMaster_t *)n;
+                break;
+            }
+            case PTPMGMT_UNICAST_MASTER_TABLE_NP: {
+                auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_NP_t *)ntlv;
+                void *n = a->unicastMasters;
+                ret = _copyBloc(_nalc, n, a->actualTableSize *
+                        sizeof(ptpmgmt_LinuxptpUnicastMaster_t));
+                a->unicastMasters = (ptpmgmt_LinuxptpUnicastMaster_t *)n;
+                for(int i = 0; ret && i < a->actualTableSize; i++) {
+                    n = a->unicastMasters[i].portAddress.addressField;
+                    ret = _copyBloc(_nalc, n,
+                            a->unicastMasters[i].portAddress.addressLength);
+                    a->unicastMasters[i].portAddress.addressField = (uint8_t *)n;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+        if(ret) {
+            _clearTlv(self);
+            self->tlv = ntlv;
+            self->id = id;
+            *n = _nalc;
+        } else {
+            for(auto m : _nalc)
+                free(m);
+            free(ntlv);
+        }
+        return ret;
+    }
+    static bool ptpmgmt_tlv_mem_copy(ptpmgmt_tlv_mem self,
+        const_ptpmgmt_tlv_mem other)
+    {
+        if(other != nullptr)
+            return ptpmgmt_tlv_mem_copyTlv(self, other->id, other->tlv);
+        return false;
+    }
+    static ptpmgmt_mng_vals_e ptpmgmt_tlv_mem_getID(const_ptpmgmt_tlv_mem self)
+    {
+        if(self != nullptr)
+            return self->id;
+        return PTPMGMT_NULL_PTP_MANAGEMENT;
+    }
+    static void *ptpmgmt_tlv_mem_getTLV(const_ptpmgmt_tlv_mem self)
+    {
+        if(self != nullptr)
+            return self->tlv;
+        return nullptr;
+    }
+    static void *ptpmgmt_tlv_mem_allocMem(ptpmgmt_tlv_mem self, size_t size)
+    {
+        if(self != nullptr && size > 0 && self->tlv != nullptr) {
+            vector<void *> *n = (vector<void *> *)self->_memHndl;
+            if(n != nullptr) {
+                void *m = malloc(size);
+                if(m != nullptr) {
+                    memset(m, 0, size);
+                    n->push_back(m);
+                    return m;
+                }
+            }
+        }
+        return nullptr;
+    }
+    static void *ptpmgmt_tlv_mem_callocMem(ptpmgmt_tlv_mem self, size_t number,
+        size_t size)
+    {
+        if(self != nullptr && number > 0 && size > 0 && self->tlv != nullptr)
+            return ptpmgmt_tlv_mem_allocMem(self, number * size);
+        return nullptr;
+    }
+    void *_reallocMem(ptpmgmt_tlv_mem self, void *memory, size_t size)
+    {
+        vector<void *> *n = (vector<void *> *)self->_memHndl;
+        if(n != nullptr) {
+            auto it = n->begin();
+            bool find = false;
+            for(; !find && it != n->end(); ++it) {
+                if(*it == memory) {
+                    find = true;
+                    break;
+                }
+            }
+            if(!find)
+                return nullptr;
+            void *nmem = realloc(memory, size);
+            if(nmem != nullptr) {
+                n->erase(it);
+                n->push_back(nmem);
+            }
+            return nmem;
+        }
+        return nullptr;
+    }
+    void *ptpmgmt_tlv_mem_reallocMem(ptpmgmt_tlv_mem self, void *memory,
+        size_t size)
+    {
+        if(self != nullptr && size > 0 && self->tlv != nullptr) {
+            if(memory == nullptr)
+                return ptpmgmt_tlv_mem_allocMem(self, size);
+            return _reallocMem(self, memory, size);
+        }
+        return nullptr;
+    }
+    void *ptpmgmt_tlv_mem_recallocMem(ptpmgmt_tlv_mem self, void *memory,
+        size_t number, size_t size)
+    {
+        if(self != nullptr && number > 0 && size > 0 && self->tlv != nullptr)
+            return ptpmgmt_tlv_mem_reallocMem(self, memory, number * size);
+        return nullptr;
+    }
+    static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
+        const char *str, size_t len)
+    {
+        ptpmgmt_PTPText_t a;
+        if(self != nullptr && self->tlv != nullptr && str != nullptr && len > 0 &&
+            len <= UINT8_MAX) {
+            vector<void *> *n = (vector<void *> *)self->_memHndl;
+            if(n != nullptr) {
+                char *s = (char *)malloc(len + 1);
+                if(s != nullptr) {
+                    memcpy(s, str, len);
+                    n->push_back(s);
+                    a.lengthField = len;
+                    a.textField = s;
+                    s[len] = 0;
+                    return a;
+                }
+            }
+        }
+        a.lengthField = 0;
+        a.textField = nullptr;
+        return a;
+    }
+    static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocString(ptpmgmt_tlv_mem self,
+        const char *str)
+    {
+        if(self != nullptr && self->tlv != nullptr && str != nullptr)
+            return ptpmgmt_tlv_mem_allocStringLen(self, str, strlen(str));
+        ptpmgmt_PTPText_t a;
+        a.lengthField = 0;
+        a.textField = nullptr;
+        return a;
+    }
+    bool ptpmgmt_tlv_mem_reallocStringLen(ptpmgmt_tlv_mem self,
+        struct ptpmgmt_PTPText_t *text, const char *str, size_t len)
+    {
+        if(self != nullptr && self->tlv != nullptr && text != nullptr &&
+            str != nullptr && len > 0 && len <= UINT8_MAX) {
+            if(text->textField == nullptr || text->lengthField == 0) {
+                *text = ptpmgmt_tlv_mem_allocStringLen(self, str, len);
+                return text->lengthField > 0 && text->textField != nullptr ;
+            }
+            char *tgt = (char *)text->textField;
+            if(len > text->lengthField) {
+                tgt = (char *)_reallocMem(self, tgt, len);
+                if(tgt == nullptr)
+                    return false;
+                text->textField = tgt;
+            }
+            memcpy(tgt, str, len);
+            tgt[len] = 0;
+            text->lengthField = len;
+            return true;
+        }
+        return false;
+    }
+    bool ptpmgmt_tlv_mem_reallocString(ptpmgmt_tlv_mem self,
+        struct ptpmgmt_PTPText_t *text, const char *str)
+    {
+        if(self != nullptr && self->tlv != nullptr && text != nullptr
+            && str != nullptr)
+            return ptpmgmt_tlv_mem_reallocStringLen(self, text, str, strlen(str));
+        return false;
+    }
+    static bool _freeMem(ptpmgmt_tlv_mem self, const void *mem)
+    {
+        vector<void *> *n = (vector<void *> *)self->_memHndl;
+        if(n != nullptr) {
+            for(auto it = n->begin(); it != n->end(); ++it)
+                if(*it == mem) {
+                    free(*it);
+                    n->erase(it);
+                    return true;
+                }
+        }
+        return false;
+    }
+    static bool ptpmgmt_tlv_mem_freeMem(ptpmgmt_tlv_mem self, void *mem)
+    {
+        if(self != nullptr && mem != nullptr)
+            return _freeMem(self, mem);
+        return false;
+    }
+    static bool ptpmgmt_tlv_mem_freeString(ptpmgmt_tlv_mem self,
+        ptpmgmt_PTPText_t *txt)
+    {
+        if(self != nullptr && txt != nullptr && txt->textField != nullptr &&
+            _freeMem(self, txt->textField)) {
+            txt->lengthField = 0;
+            txt->textField = nullptr;
+            return true;
+        }
+        return false;
+    }
+    ptpmgmt_tlv_mem ptpmgmt_tlv_mem_alloc()
+    {
+        ptpmgmt_tlv_mem m = (ptpmgmt_tlv_mem)malloc(sizeof(ptpmgmt_tlv_mem_t));
+        if(m == nullptr)
+            return nullptr;
+        vector<void *> *n = new vector<void *>;
+        if(n == nullptr) {
+            free(m);
+            return nullptr;
+        }
+        m->_memHndl = (void *)n;
+        m->id = PTPMGMT_NULL_PTP_MANAGEMENT;
+        m->tlv = nullptr;
+#define T_ASGN(n) m->n = ptpmgmt_tlv_mem_##n
+        T_ASGN(free);
+        T_ASGN(clear);
+        T_ASGN(newTlv);
+        T_ASGN(copy);
+        T_ASGN(copyTlv);
+        T_ASGN(getID);
+        T_ASGN(getTLV);
+        T_ASGN(allocMem);
+        T_ASGN(callocMem);
+        T_ASGN(reallocMem);
+        T_ASGN(recallocMem);
+        T_ASGN(allocString);
+        T_ASGN(allocStringLen);
+        T_ASGN(reallocString);
+        T_ASGN(reallocStringLen);
+        T_ASGN(freeMem);
+        T_ASGN(freeString);
         return m;
     }
 }

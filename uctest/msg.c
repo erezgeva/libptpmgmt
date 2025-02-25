@@ -1952,3 +1952,229 @@ Test(MessageTest, MethodGetSigMngTlvType)
     cr_expect(eq(int, p1->priority1, 137));
     m->free(m);
 }
+
+// ptpmgmt_tlv_mem ptpmgmt_tlv_mem_alloc()
+// enum ptpmgmt_mng_vals_e getID(const_ptpmgmt_tlv_mem self)
+// enum ptpmgmt_mng_vals_e id
+// void *getTLV(const_ptpmgmt_tlv_mem self)
+// void *tlv
+// bool newTlv(ptpmgmt_tlv_mem self, enum ptpmgmt_mng_vals_e ID)
+// void free(ptpmgmt_tlv_mem self)
+Test(TlvMem, newTlv)
+{
+    ptpmgmt_tlv_mem t = ptpmgmt_tlv_mem_alloc();
+    cr_assert(not(zero(ptr, t)));
+    cr_expect(eq(int, t->getID(t), PTPMGMT_NULL_PTP_MANAGEMENT));
+    cr_expect(eq(int, t->id, PTPMGMT_NULL_PTP_MANAGEMENT));
+    cr_assert(zero(ptr, t->getTLV(t)));
+    cr_assert(zero(ptr, t->tlv));
+    cr_expect(t->newTlv(t, PTPMGMT_USER_DESCRIPTION));
+    cr_expect(eq(int, t->getID(t), PTPMGMT_USER_DESCRIPTION));
+    cr_expect(eq(int, t->id, PTPMGMT_USER_DESCRIPTION));
+    cr_assert(not(zero(ptr, t->getTLV(t))));
+    cr_assert(not(zero(ptr, t->tlv)));
+    t->free(t);
+}
+
+// bool copyTlv(ptpmgmt_tlv_mem self, enum ptpmgmt_mng_vals_e ID, void *tlv)
+// void clear(ptpmgmt_tlv_mem self)
+Test(TlvMem, copyTlv)
+{
+    ptpmgmt_tlv_mem t = ptpmgmt_tlv_mem_alloc();
+    struct ptpmgmt_ALTERNATE_TIME_OFFSET_NAME_t v = {
+        .keyField = 54,
+        .displayName.lengthField = 4,
+        .displayName.textField = "AaBb"
+    };
+    cr_expect(t->copyTlv(t, PTPMGMT_ALTERNATE_TIME_OFFSET_NAME, &v));
+    cr_expect(eq(int, t->getID(t), PTPMGMT_ALTERNATE_TIME_OFFSET_NAME));
+    void *p = t->getTLV(t);
+    cr_assert(not(zero(ptr, p)));
+    struct ptpmgmt_ALTERNATE_TIME_OFFSET_NAME_t *v2 = (struct
+            ptpmgmt_ALTERNATE_TIME_OFFSET_NAME_t *)p;
+    cr_assert(not(zero(ptr, v2)));
+    cr_expect(ne(ptr, v2, &v));
+    cr_expect(ne(ptr, (char *)v2->displayName.textField,
+            (char *)v.displayName.textField));
+    cr_expect(eq(int, v2->keyField, 54));
+    cr_expect(eq(u8, v2->displayName.lengthField, 4));
+    cr_expect(eq(str, (char *)v2->displayName.textField, "AaBb"));
+    t->clear(t);
+    cr_expect(eq(int, t->getID(t), PTPMGMT_NULL_PTP_MANAGEMENT));
+    cr_assert(zero(ptr, t->getTLV(t)));
+    t->free(t);
+}
+
+// bool copy(ptpmgmt_tlv_mem self, const_ptpmgmt_tlv_mem other)
+// void *allocMem(ptpmgmt_tlv_mem self, size_t size)
+// struct ptpmgmt_PTPText_t allocString(ptpmgmt_tlv_mem self, const char *str)
+// struct ptpmgmt_PTPText_t allocStringLen(ptpmgmt_tlv_mem self, const char *str,
+//     size_t len)
+Test(TlvMem, copy)
+{
+    ptpmgmt_tlv_mem t1 = ptpmgmt_tlv_mem_alloc();
+    cr_expect(t1->newTlv(t1, PTPMGMT_CLOCK_DESCRIPTION));
+    void *p = t1->getTLV(t1);
+    cr_assert(not(zero(ptr, p)));
+    struct ptpmgmt_CLOCK_DESCRIPTION_t *v = (struct ptpmgmt_CLOCK_DESCRIPTION_t *)p;
+    v->clockType = 1687;
+    v->physicalLayerProtocol = t1->allocString(t1, "test12");
+    v->physicalAddressLength = 4;
+    v->physicalAddress = t1->allocMem(t1, 4);
+    memcpy(v->physicalAddress, "\x1\x2\x3\x4", 4);
+    v->protocolAddress.networkProtocol = ptpmgmt_UDP_IPv4;
+    v->protocolAddress.addressLength = 4;
+    v->protocolAddress.addressField = (uint8_t *)"\x12\x0\x0\x31";
+    v->manufacturerIdentity[0] = 0x24;
+    v->manufacturerIdentity[1] = 0x35;
+    v->manufacturerIdentity[2] = 0x78;
+    v->productDescription = t1->allocStringLen(t1, "Description", 4);
+    v->revisionData = t1->allocString(t1, "rev");
+    v->userDescription = t1->allocString(t1, "des123");
+    v->profileIdentity[0] = 0x32;
+    v->profileIdentity[1] = 0x25;
+    v->profileIdentity[2] = 0x12;
+    v->profileIdentity[3] = 0x63;
+    v->profileIdentity[4] = 0x4d;
+    v->profileIdentity[5] = 0x27;
+    ptpmgmt_tlv_mem t2 = ptpmgmt_tlv_mem_alloc();
+    cr_expect(t2->copy(t2, t1));
+    t1->clear(t1);
+    struct ptpmgmt_CLOCK_DESCRIPTION_t *v2 = (struct ptpmgmt_CLOCK_DESCRIPTION_t *)
+        t2->getTLV(t2);
+    cr_assert(not(zero(ptr, v2)));
+    cr_expect(eq(int, t2->getID(t2), PTPMGMT_CLOCK_DESCRIPTION));
+    cr_expect(eq(u16, v2->clockType, 1687));
+    cr_expect(eq(u8, v2->physicalLayerProtocol.lengthField, 6));
+    cr_expect(eq(str, (char *)v2->physicalLayerProtocol.textField, "test12"));
+    cr_expect(eq(u16, v2->physicalAddressLength, 4));
+    cr_expect(zero(memcmp(v2->physicalAddress, "\x1\x2\x3\x4", 4)));
+    cr_expect(eq(int, v2->protocolAddress.networkProtocol, ptpmgmt_UDP_IPv4));
+    cr_expect(eq(u16, v2->protocolAddress.addressLength, 4));
+    cr_expect(zero(memcmp(v2->protocolAddress.addressField, "\x12\x0\x0\x31", 4)));
+    cr_expect(zero(memcmp(v2->manufacturerIdentity, "\x24\x35\x78", 3)));
+    cr_expect(eq(u8, v2->productDescription.lengthField, 4));
+    cr_expect(eq(str, (char *)v2->productDescription.textField, "Desc"));
+    cr_expect(eq(u8, v2->revisionData.lengthField, 3));
+    cr_expect(eq(str, (char *)v2->revisionData.textField, "rev"));
+    cr_expect(eq(u8, v2->userDescription.lengthField, 6));
+    cr_expect(eq(str, (char *)v2->userDescription.textField, "des123"));
+    cr_expect(zero(memcmp(v2->profileIdentity, "\x32\x25\x12\x63\x4d\x27", 6)));
+    t1->free(t1);
+    t2->free(t2);
+}
+
+// void *callocMem(ptpmgmt_tlv_mem self, size_t number, size_t size)
+// void *recallocMem(ptpmgmt_tlv_mem self, void *memory, size_t number, size_t size)
+Test(TlvMem, callocMem)
+{
+    ptpmgmt_tlv_mem t = ptpmgmt_tlv_mem_alloc();
+    cr_expect(t->newTlv(t, PTPMGMT_ACCEPTABLE_MASTER_TABLE));
+    void *p = t->getTLV(t);
+    cr_assert(not(zero(ptr, p)));
+    struct ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *v = (struct
+            ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *)p;
+    v->actualTableSize = 3;
+    v->list = t->callocMem(t, 3, sizeof(struct ptpmgmt_AcceptableMaster_t));
+    v->list[0].alternatePriority1 = 1;
+    memcpy(v->list[0].acceptablePortIdentity.clockIdentity.v,
+        "\x1\x0\x1\x0\x1\x0\x1\x0", 8);
+    v->list[0].acceptablePortIdentity.portNumber = 1;
+    v->list[1].alternatePriority1 = 2;
+    memcpy(v->list[1].acceptablePortIdentity.clockIdentity.v,
+        "\x2\x0\x2\x0\x2\x0\x2\x0", 8);
+    v->list[1].acceptablePortIdentity.portNumber = 2;
+    v->list[2].alternatePriority1 = 3;
+    memcpy(v->list[2].acceptablePortIdentity.clockIdentity.v,
+        "\x3\x0\x3\x0\x3\x0\x3\x0", 8);
+    v->list[2].acceptablePortIdentity.portNumber = 3;
+    void *n = t->recallocMem(t, v->list, 4,
+            sizeof(struct ptpmgmt_AcceptableMaster_t));
+    cr_assert(not(zero(ptr, n)));
+    v->actualTableSize = 4;
+    v->list = n;
+    v->list[3].alternatePriority1 = 4;
+    memcpy(v->list[3].acceptablePortIdentity.clockIdentity.v,
+        "\x4\x0\x4\x0\x4\x0\x4\x0", 8);
+    v->list[3].acceptablePortIdentity.portNumber = 4;
+    ptpmgmt_tlv_mem t2 = ptpmgmt_tlv_mem_alloc();
+    cr_expect(t2->copy(t2, t));
+    struct ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *v2 = (struct
+            ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *)t2->getTLV(t2);
+    cr_assert(not(zero(ptr, v2)));
+    cr_expect(eq(int, t2->getID(t2), PTPMGMT_ACCEPTABLE_MASTER_TABLE));
+    cr_expect(eq(i16, v->actualTableSize, 4));
+    cr_expect(eq(u8, v->list[0].alternatePriority1, 1));
+    cr_expect(zero(memcmp(v->list[0].acceptablePortIdentity.clockIdentity.v,
+                "\x1\x0\x1\x0\x1\x0\x1\x0", 8)));
+    cr_expect(eq(u16, v->list[0].acceptablePortIdentity.portNumber, 1));
+    cr_expect(eq(u8, v->list[1].alternatePriority1, 2));
+    cr_expect(zero(memcmp(v->list[1].acceptablePortIdentity.clockIdentity.v,
+                "\x2\x0\x2\x0\x2\x0\x2\x0", 8)));
+    cr_expect(eq(u16, v->list[1].acceptablePortIdentity.portNumber, 2));
+    cr_expect(eq(u8, v->list[2].alternatePriority1, 3));
+    cr_expect(zero(memcmp(v->list[2].acceptablePortIdentity.clockIdentity.v,
+                "\x3\x0\x3\x0\x3\x0\x3\x0", 8)));
+    cr_expect(eq(u16, v->list[2].acceptablePortIdentity.portNumber, 3));
+    cr_expect(eq(u8, v->list[3].alternatePriority1, 4));
+    cr_expect(zero(memcmp(v->list[3].acceptablePortIdentity.clockIdentity.v,
+                "\x4\x0\x4\x0\x4\x0\x4\x0", 8)));
+    cr_expect(eq(u16, v->list[3].acceptablePortIdentity.portNumber, 4));
+    t->free(t);
+    t2->free(t2);
+}
+
+// bool reallocString(ptpmgmt_tlv_mem self, struct ptpmgmt_PTPText_t *text,
+//     const char *str)
+// bool reallocStringLen(ptpmgmt_tlv_mem self, struct ptpmgmt_PTPText_t *text,
+//     const char *str, size_t len)
+// bool freeString(ptpmgmt_tlv_mem self, struct ptpmgmt_PTPText_t *txt)
+Test(TlvMem, reallocString)
+{
+    ptpmgmt_tlv_mem t = ptpmgmt_tlv_mem_alloc();
+    cr_expect(t->newTlv(t, PTPMGMT_USER_DESCRIPTION));
+    void *p = t->getTLV(t);
+    cr_assert(not(zero(ptr, p)));
+    struct ptpmgmt_USER_DESCRIPTION_t *v = (struct ptpmgmt_USER_DESCRIPTION_t *)p;
+    cr_expect(t->reallocString(t, &v->userDescription, "desc 12"));
+    cr_expect(eq(u8, v->userDescription.lengthField, 7));
+    cr_expect(eq(str, (char *)v->userDescription.textField, "desc 12"));
+    char *a1 = (char *)v->userDescription.textField;
+    cr_expect(t->reallocStringLen(t, &v->userDescription, "123456", 4));
+    cr_expect(eq(ptr, a1, (char *)v->userDescription.textField));
+    cr_expect(eq(u8, v->userDescription.lengthField, 4));
+    cr_expect(eq(str, (char *)v->userDescription.textField, "1234"));
+    cr_expect(t->reallocStringLen(t, &v->userDescription, "1234567890", 10));
+    cr_expect(eq(u8, v->userDescription.lengthField, 10));
+    cr_expect(eq(str, (char *)v->userDescription.textField, "1234567890"));
+    cr_expect(t->freeString(t, &v->userDescription));
+    cr_expect(eq(u8, v->userDescription.lengthField, 0));
+    cr_expect(zero(ptr, (char *)v->userDescription.textField));
+    t->free(t);
+}
+
+// void *reallocMem(ptpmgmt_tlv_mem self, void *memory, size_t size)
+// bool freeMem(ptpmgmt_tlv_mem self, void *mem)
+Test(TlvMem, reallocMem)
+{
+    ptpmgmt_tlv_mem t = ptpmgmt_tlv_mem_alloc();
+    cr_expect(t->newTlv(t, PTPMGMT_UNICAST_MASTER_TABLE));
+    struct ptpmgmt_UNICAST_MASTER_TABLE_t *v = (struct
+            ptpmgmt_UNICAST_MASTER_TABLE_t *)t->getTLV(t);
+    cr_assert(not(zero(ptr, v)));
+    v->logQueryInterval = 5; //Integer8_t
+    v->actualTableSize = 2; // UInteger16_t
+    v->PortAddress = t->callocMem(t, 2, sizeof(struct ptpmgmt_PortAddress_t));
+    v->PortAddress[0].networkProtocol = ptpmgmt_UDP_IPv4;
+    v->PortAddress[0].addressLength = 4; // UInteger16_t
+    v->PortAddress[0].addressField = t->reallocMem(t,
+            v->PortAddress[0].addressField, 4);
+    cr_expect(not(zero(ptr, v->PortAddress[0].addressField)));
+    v->PortAddress[1].networkProtocol = ptpmgmt_UDP_IPv6;
+    v->PortAddress[1].addressLength = 6;
+    v->PortAddress[1].addressField = t->reallocMem(t,
+            v->PortAddress[0].addressField, 6);
+    cr_expect(not(zero(ptr, v->PortAddress[1].addressField)));
+    cr_expect(t->freeMem(t, v->PortAddress));
+    t->free(t);
+}
