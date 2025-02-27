@@ -2301,7 +2301,7 @@ extern "C" {
             if(!find)
                 return nullptr;
             void *nmem = realloc(memory, size);
-            if(nmem != nullptr) {
+            if(nmem != nullptr && nmem != memory) {
                 n->erase(it);
                 n->push_back(nmem);
             }
