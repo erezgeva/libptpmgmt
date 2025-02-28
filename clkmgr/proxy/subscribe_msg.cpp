@@ -68,6 +68,10 @@ PARSE_RXBUFFER_TYPE(ProxySubscribeMessage::parseBuffer)
     if(!CommonSubscribeMessage::parseBuffer(LxContext))
         return false;
     ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, this->getc_sessionId());
+    #ifdef HAVE_LIBCHRONY
+    ConnectChrony::subscribe_chrony(std::move(timeBaseIndex),
+        this->getc_sessionId());
+    #endif
     return true;
 }
 

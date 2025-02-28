@@ -19,6 +19,7 @@ class ConnectChrony
 {
   public:
     static void connect_chrony(const std::vector<TimeBaseCfg> &params);
+    static int subscribe_chrony(int timeBaseIndex, sessionId_t sessionId);
 };
 
 __CLKMGR_NAMESPACE_END

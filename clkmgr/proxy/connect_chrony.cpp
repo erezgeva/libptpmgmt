@@ -26,38 +26,36 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-static int fd;
-static int report_index = 0;
+std::map<int, int> chronyIndex;
+int report_index = 0;
 extern std::map<int, ptp_event> ptp4lEvents;
-int timeBaseIndex = 1; // TODO: Need to get the correct timeBaseIndex
+std::map<int, std::vector<sessionId_t>> subscribedClientsChrony;
 
 struct ThreadArgs {
     chrony_session *s;
     int report_index;
+    int fd;
 };
 
-void chrony_notify_client()
+void chrony_notify_client(int timeBaseIndex)
 {
     PrintDebug("[clkmgr]::notify_client");
-    sessionId_t SessionId;
-    unique_ptr<ProxyMessage> notifyMsg(new ProxyNotificationMessage());
-    ProxyNotificationMessage *pmsg = dynamic_cast<decltype(pmsg)>(notifyMsg.get());
-    if(pmsg == nullptr) {
-        PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
-        return;
-    }
-    PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
-    /* Send data for multiple sessions */
-    for(size_t i = 0; i < Client::GetSessionCount(); i++) {
-        SessionId = Client::GetSessionIdAt(i);
-        if(SessionId != InvalidSessionId) {
-            PrintDebug("Get client session ID: " + to_string(SessionId));
-            auto TxContext = Client::GetClientSession(
-                    SessionId).get()->get_transmitContext();
-            if(!pmsg->transmitMessage(*TxContext))
-                Client::RemoveClientSession(SessionId);
-        } else
-            PrintError("Unable to get Session ID");
+    for(const auto &sessionId : subscribedClientsChrony[timeBaseIndex]) {
+        unique_ptr<ProxyMessage> notifyMsg(new ProxyNotificationMessage());
+        ProxyNotificationMessage *pmsg =
+            dynamic_cast<decltype(pmsg)>(notifyMsg.get());
+        if(pmsg == nullptr) {
+            PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
+            return;
+        }
+        PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
+        /* Send data for multiple sessions */
+        pmsg->setTimeBaseIndex(timeBaseIndex);
+        PrintDebug("Get client session ID: " + to_string(sessionId));
+        auto TxContext = Client::GetClientSession(
+                sessionId).get()->get_transmitContext();
+        if(!pmsg->transmitMessage(*TxContext))
+            Client::RemoveClientSession(sessionId);
     }
 }
 
@@ -80,7 +78,8 @@ static chrony_err process_chronyd_data(chrony_session *s)
     return CHRONY_OK;
 }
 
-static int subscribe_to_chronyd(chrony_session *s, int report_index)
+static int subscribe_to_chronyd(chrony_session *s, int report_index,
+    int timeBaseIndex)
 {
     chrony_field_content content;
     const char *report_name;
@@ -99,14 +98,6 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index)
         if(content == CHRONY_CONTENT_NONE)
             continue;
         const char *field_name = chrony_get_field_name(s, j);
-        if(field_name != nullptr && strcmp(field_name, "Last offset") == 0) {
-            float second = (chrony_get_field_float(s, j) * 1e9);
-            ptp4lEvents[timeBaseIndex].chrony_offset = (int)second;
-            #if 0
-            PrintDebug("CHRONY master_offset = " +
-                to_string(ptp4lEvents[timeBaseIndex].chrony_offset));
-            #endif
-        }
         if(field_name != nullptr && strcmp(field_name, "Reference ID") == 0)
             ptp4lEvents[timeBaseIndex].chrony_reference_id =
                 chrony_get_field_uinteger(s, j);
@@ -120,8 +111,17 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index)
                 to_string(ptp4lEvents[timeBaseIndex].polling_interval) + " us");
             #endif
         }
+        if(field_name != nullptr && strcmp(field_name,
+                "Last sample offset (original)") == 0) {
+            float second = (chrony_get_field_float(s, j) * 1e9);
+            ptp4lEvents[timeBaseIndex].chrony_offset = (int)second;
+            #if 0
+            PrintDebug("CHRONY master_offset = " +
+                to_string(ptp4lEvents[timeBaseIndex].chrony_offset));
+            #endif
+        }
     }
-    chrony_notify_client();
+    chrony_notify_client(timeBaseIndex);
     return CHRONY_OK;
 }
 
@@ -129,33 +129,53 @@ void *monitor_chronyd(void *arg)
 {
     ThreadArgs *args = (ThreadArgs *)arg;
     chrony_session *s = args->s;
+    int fd = args->fd;
     for(;;) {
         if(chrony_init_session(&s, fd) == CHRONY_OK) {
-            for(int i = 0; i < 2; i++)
-                subscribe_to_chronyd(s, i);
+            /* Subscribe to chronyd source index 1 */
+            subscribe_to_chronyd(s, 1, chronyIndex[fd]);
         }
-        // Sleep duration is based on chronyd polling interval
-        usleep(ptp4lEvents[timeBaseIndex].polling_interval);
+        /* Sleep duration is based on chronyd polling interval */
+        usleep(ptp4lEvents[chronyIndex[fd]].polling_interval);
     }
 }
 
-void start_monitor_thread(chrony_session *s, int report_index)
+void start_monitor_thread(chrony_session *s, int report_index, int fd)
 {
     pthread_t thread_id;
-    ThreadArgs *args = new ThreadArgs{s, report_index};
+    ThreadArgs *args = new ThreadArgs{s, report_index, fd};
     if(pthread_create(&thread_id, nullptr, monitor_chronyd, args) != 0) {
         PrintError("Failed to create thread");
         exit(EXIT_FAILURE);
     }
 }
 
+int ConnectChrony::subscribe_chrony(int timeBaseIndex, sessionId_t sessionId)
+{
+    auto it = ptp4lEvents.find(timeBaseIndex);
+    if(it != ptp4lEvents.end()) {
+        /* timeBaseIndex exists in the map */
+        subscribedClientsChrony[timeBaseIndex].push_back(sessionId);
+    } else {
+        /* timeBaseIndex does not exist in the map */
+        PrintDebug("timeBaseIndex does not exist in the map");
+    }
+    return 0;
+}
+
 void ConnectChrony::connect_chrony(const std::vector<TimeBaseCfg> &params)
 {
-    /* connect to chronyd unix socket*/
-    fd = chrony_open_socket("/var/run/chrony/chronyd.sock");
-    chrony_session *s;
-    if(chrony_init_session(&s, fd) == CHRONY_OK) {
-        start_monitor_thread(s, report_index);
-        chrony_deinit_session(s);
+    for(const auto &param : params) {
+        /* skip if chrony UDS address is empty */
+        if(param.udsAddrChrony.empty())
+            continue;
+        /* connect to chronyd unix socket using udsAddrChrony */
+        int fd = chrony_open_socket(param.udsAddrChrony.c_str());
+        chronyIndex.insert(std::pair<int, int>(fd, param.timeBaseIndex));
+        chrony_session *s;
+        if(chrony_init_session(&s, fd) == CHRONY_OK) {
+            start_monitor_thread(s, report_index, fd);
+            chrony_deinit_session(s);
+        }
     }
 }
