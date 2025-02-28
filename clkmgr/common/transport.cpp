@@ -107,21 +107,15 @@ bool Transport::stop()
 
 bool Transport::finalize()
 {
-    bool retVal = false;
     for(auto &it : workerList) {
         if(it.retVal.wait_for(chrono::milliseconds(EXIT_TIMEOUT)) !=
             future_status::ready) {
             PrintError("Thread Join Timeout");
-            goto done;
+            return false;
         }
         it.thread.get()->join();
-        retVal = retVal && it.retVal.get();
     }
-    if(!_finalizeTransport<NullTransport, MessageQueue>())
-        goto done;
-    retVal = true;
-done:
-    return retVal;
+    return _finalizeTransport<NullTransport, MessageQueue>();
 }
 
 bool Transport::InterruptWorker(TransportWorkDesc d)
