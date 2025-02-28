@@ -74,48 +74,35 @@ __PTPMGMT_NAMESPACE_END
 extern "C" {
     // C interfaces
 #define _ptpmCaseUF(n) void (*n##_h)(void *cookie, ptpmgmt_msg msg,\
-    const struct ptpmgmt_##n##_t *tlv, const char *idStr);
+    const ptpmgmt_##n##_t *tlv, const char *idStr);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    // The three first function are identical to struct ptpmgmt_dispatcher_t
     struct ptpmgmt_dispatcher_full_t {
-        void (*free)(ptpmgmt_dispatcher dsp);
-        ptpmgmt_dispatcher_noTlv_callback noTlv;
-        ptpmgmt_dispatcher_noTlvCallBack_callback noTlvCallBack;
+        ptpmgmt_dispatcher_t main;
 #include "ids.h"
     };
-    void ptpmgmt_dispatcher_free(ptpmgmt_dispatcher me)
+    static void ptpmgmt_dispatcher_free(ptpmgmt_dispatcher me)
     {
         free(me);
     }
-    ptpmgmt_dispatcher ptpmgmt_dispatcher_alloc()
-    {
-        static const size_t sz = sizeof(ptpmgmt_dispatcher_full_t);
-        ptpmgmt_dispatcher me = (ptpmgmt_dispatcher)malloc(sz);
-        if(me == nullptr)
-            return nullptr;
-        memset(me, 0, sz);
-        me->free = ptpmgmt_dispatcher_free;
-        return me;
-    }
 #define _ptpmCaseUF(n)\
 case PTPMGMT_##n:\
-    d->n##_h = (void (*)(void*, ptpmgmt_msg,\
+    df->n##_h = (void (*)(void*, ptpmgmt_msg,\
                 const ptpmgmt_##n##_t*, const char*))callback;\
     return true;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    bool ptpmgmt_dispatcher_assign(ptpmgmt_dispatcher d_,
-        enum ptpmgmt_mng_vals_e tlv_id, ptpmgmt_dispatcher_callback callback)
+    static bool ptpmgmt_dispatcher_assign(ptpmgmt_dispatcher d,
+        ptpmgmt_mng_vals_e tlv_id, ptpmgmt_dispatcher_callback callback)
     {
-        ptpmgmt_dispatcher_full_t *d = (ptpmgmt_dispatcher_full_t *)d_;
-        if(d == nullptr || callback == (ptpmgmt_dispatcher_callback)nullptr)
+        if(d == nullptr || callback == nullptr)
             return false;
+        ptpmgmt_dispatcher_full_t *df = (ptpmgmt_dispatcher_full_t *)d;
         switch(tlv_id) {
 #include "ids.h"
             default:
                 return false;
         }
     }
-    bool ptpmgmt_dispatcher_assign_noTlv(ptpmgmt_dispatcher d,
+    static bool ptpmgmt_dispatcher_assign_noTlv(ptpmgmt_dispatcher d,
         ptpmgmt_dispatcher_noTlv_callback callback)
     {
         if(d == nullptr || callback == nullptr)
@@ -123,7 +110,7 @@ case PTPMGMT_##n:\
         d->noTlv = callback;
         return true;
     }
-    bool ptpmgmt_dispatcher_assign_noTlvCallBack(ptpmgmt_dispatcher d,
+    static bool ptpmgmt_dispatcher_assign_noTlvCallBack(ptpmgmt_dispatcher d,
         ptpmgmt_dispatcher_noTlvCallBack_callback callback)
     {
         if(d == nullptr || callback == nullptr)
@@ -132,23 +119,27 @@ case PTPMGMT_##n:\
         return true;
     }
 #define _ptpmCaseUF(n)\
-case PTPMGMT_##n:if(d->n##_h != nullptr){\
-        d->n##_h(cookie, msg, (const ptpmgmt_##n##_t*)tlv, #n);}else{\
-        if(d->noTlvCallBack != nullptr){d->noTlvCallBack(cookie, msg, #n);}}break;
+case PTPMGMT_##n:\
+    if(df->n##_h != nullptr) {\
+        df->n##_h(cookie, msg, (const ptpmgmt_##n##_t*)tlv, #n);\
+    } else {\
+        if(d->noTlvCallBack != nullptr)\
+            d->noTlvCallBack(cookie, msg, #n);\
+    }\
+    break;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    void ptpmgmt_callHadler_tlv(void *cookie, const_ptpmgmt_dispatcher d_,
-        ptpmgmt_msg msg, ptpmgmt_mng_vals_e tlv_id, const void *tlv)
+    static void ptpmgmt_dispatcher_callHadler_tlv(const_ptpmgmt_dispatcher d,
+        void *cookie, ptpmgmt_msg msg, ptpmgmt_mng_vals_e tlv_id, const void *tlv)
     {
-        ptpmgmt_dispatcher_full_t *d = (ptpmgmt_dispatcher_full_t *)d_;
         if(d == nullptr)
             return;
-        if(tlv == nullptr ||
-            (msg != nullptr && !msg->isValidId(msg, tlv_id)) ||
-            ptpmgmt_msg_isEmpty((tlv_id))) {
+        if(tlv == nullptr || (msg != nullptr && !msg->isValidId(msg, tlv_id)) ||
+            ptpmgmt_msg_isEmpty(tlv_id)) {
             if(d->noTlv != nullptr)
                 d->noTlv(cookie, msg);
             return;
         }
+        ptpmgmt_dispatcher_full_t *df = (ptpmgmt_dispatcher_full_t *)d;
         switch(tlv_id) {
 #include "ids.h"
             default:
@@ -157,12 +148,142 @@ case PTPMGMT_##n:if(d->n##_h != nullptr){\
                 break;
         }
     }
-    void ptpmgmt_callHadler(void *cookie, const_ptpmgmt_dispatcher d,
-        ptpmgmt_msg msg)
+    static void ptpmgmt_dispatcher_callHadler(const_ptpmgmt_dispatcher d,
+        void *cookie, ptpmgmt_msg msg)
     {
         if(d == nullptr || msg == nullptr)
             return;
-        ptpmgmt_callHadler_tlv(cookie, d, msg, msg->getTlvId(msg),
+        ptpmgmt_dispatcher_callHadler_tlv(d, cookie, msg, msg->getTlvId(msg),
             msg->getData(msg));
+    }
+    ptpmgmt_dispatcher ptpmgmt_dispatcher_alloc()
+    {
+        static const size_t sz = sizeof(ptpmgmt_dispatcher_full_t);
+        ptpmgmt_dispatcher me = (ptpmgmt_dispatcher)malloc(sz);
+        if(me == nullptr)
+            return nullptr;
+        memset(me, 0, sz);
+#define C_ASGN(n) me->n = ptpmgmt_dispatcher_##n
+        C_ASGN(free);
+        C_ASGN(assign);
+        C_ASGN(assign_noTlv);
+        C_ASGN(assign_noTlvCallBack);
+        C_ASGN(callHadler);
+        C_ASGN(callHadler_tlv);
+        return me;
+    }
+#define _ptpmCaseUFB(n) bool (*n##_b)(void *cookie, ptpmgmt_msg msg,\
+    ptpmgmt_##n##_t *tlv, ptpmgmt_tlv_mem tlv_mem);
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+    struct ptpmgmt_builder_full_t {
+        ptpmgmt_builder_t main;
+#include "ids.h"
+    };
+    static void ptpmgmt_builder_free(ptpmgmt_builder b)
+    {
+        if(b != nullptr) {
+            if(b->tlv_mem != nullptr)
+                b->tlv_mem->free(b->tlv_mem);
+            free(b);
+        }
+    }
+    static ptpmgmt_msg ptpmgmt_builder_getMsg(const_ptpmgmt_builder b)
+    {
+        if(b != nullptr)
+            return b->msg;
+        return nullptr;
+    }
+    static ptpmgmt_tlv_mem ptpmgmt_builder_getTlvMem(const_ptpmgmt_builder b)
+    {
+        if(b != nullptr)
+            return b->tlv_mem;
+        return nullptr;
+    }
+    static void ptpmgmt_builder_clear(ptpmgmt_builder b)
+    {
+        if(b != nullptr) {
+            if(b->msg != nullptr)
+                b->msg->clearData(b->msg);
+            if(b->tlv_mem != nullptr)
+                b->tlv_mem->clear(b->tlv_mem);
+        }
+    }
+#define _ptpmCaseUFB(n)\
+case PTPMGMT_##n:\
+    bf->n##_b = (bool (*)(void*, ptpmgmt_msg, ptpmgmt_##n##_t*,\
+                ptpmgmt_tlv_mem))callback;\
+    return true;
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+    static bool ptpmgmt_builder_assign(ptpmgmt_builder b, ptpmgmt_mng_vals_e tlv_id,
+        ptpmgmt_builder_callback callback)
+    {
+        if(b == nullptr || callback == nullptr)
+            return false;
+        ptpmgmt_builder_full_t *bf = (ptpmgmt_builder_full_t *)b;
+        switch(tlv_id) {
+#include "ids.h"
+            default:
+                return false;
+        }
+    }
+#define _ptpmCaseUFB(n)\
+case PTPMGMT_##n:\
+    if(bf->n##_b != nullptr)\
+        ret = bf->n##_b(cookie, b->msg, (ptpmgmt_##n##_t*)tlv, b->tlv_mem);\
+    break;
+#define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
+    static bool ptpmgmt_builder_buildTlv(ptpmgmt_builder b, void *cookie,
+        ptpmgmt_actionField_e actionField, ptpmgmt_mng_vals_e tlv_id)
+    {
+        if(b == nullptr || b->msg == nullptr || !b->msg->isValidId(b->msg, tlv_id))
+            return false;
+        if(actionField == PTPMGMT_GET || ptpmgmt_msg_isEmpty(tlv_id))
+            return b->msg->setAction(b->msg, actionField, tlv_id, nullptr);
+        switch(actionField) {
+            case PTPMGMT_SET:
+                FALLTHROUGH;
+            case PTPMGMT_COMMAND:
+                break;
+            default:
+                return false;
+        }
+        if(b->tlv_mem == nullptr || !b->tlv_mem->newTlv(b->tlv_mem, tlv_id))
+            return false;
+        void *tlv = b->tlv_mem->getTLV(b->tlv_mem);
+        if UNLIKELY_COND(tlv == nullptr)
+            return false;
+        bool ret = false;
+        ptpmgmt_builder_full_t *bf = (ptpmgmt_builder_full_t *)b;
+        switch(tlv_id) {
+#include "ids.h"
+            default:
+                break;
+        }
+        return ret && b->msg->setAction(b->msg, actionField, tlv_id, tlv);
+    }
+    ptpmgmt_builder ptpmgmt_builder_alloc(ptpmgmt_msg msg)
+    {
+        if(msg == nullptr)
+            return nullptr;
+        ptpmgmt_builder me =
+            (ptpmgmt_builder)malloc(sizeof(ptpmgmt_builder_full_t));
+        if(me == nullptr)
+            return nullptr;
+        ptpmgmt_tlv_mem tlv = ptpmgmt_tlv_mem_alloc();
+        if(tlv == nullptr) {
+            free(me);
+            return nullptr;
+        }
+        memset(me, 0, sizeof(ptpmgmt_builder_full_t));
+        me->msg = msg;
+        me->tlv_mem = tlv;
+#define B_ASGN(n) me->n = ptpmgmt_builder_##n
+        B_ASGN(free);
+        B_ASGN(getMsg);
+        B_ASGN(getTlvMem);
+        B_ASGN(clear);
+        B_ASGN(assign);
+        B_ASGN(buildTlv);
+        return me;
     }
 }
