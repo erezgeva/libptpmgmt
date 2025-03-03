@@ -20,9 +20,9 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-enum LogLevel { DEBUG, INFO, ERROR };
 static LogLevel currentLogLevel = INFO;
-bool useSyslog = false;
+static bool useSyslog = false;
+static bool verbose = true;
 static rtpi::mutex errMutex;
 
 void clkmgr::PrintStartLog(const char *me)
@@ -35,9 +35,18 @@ void clkmgr::PrintStopLog()
     closelog();
 }
 
-void clkmgr::_PrintError(string msg, uint16_t line,
-    const char *file, const char *func,
-    errno_type errnum)
+void clkmgr::setLogLevel(LogLevel level)
+{
+    currentLogLevel = level;
+}
+
+void clkmgr::setVerbose(bool isVerbose)
+{
+    verbose = isVerbose;
+}
+
+void clkmgr::_PrintError(string msg, uint16_t line, const char *file,
+    const char *func, errno_type errnum)
 {
     string ebuf;
     if(errnum != (errno_type)(-1)) {
@@ -47,18 +56,22 @@ void clkmgr::_PrintError(string msg, uint16_t line,
     if(useSyslog)
         syslog(LOG_ERR, "*** Error: %s %s at line %u in %s: %s",
             msg.c_str(), ebuf.c_str(), line, file, func);
-    fprintf(stderr, "*** Error: %s %s at line %u in %s: %s\n",
-        msg.c_str(), ebuf.c_str(), line, file, func);
-    fflush(stderr);
+    if(verbose) {
+        fprintf(stderr, "*** Error: %s %s at line %u in %s: %s\n",
+            msg.c_str(), ebuf.c_str(), line, file, func);
+        fflush(stderr);
+    }
 }
 
-void clkmgr::_PrintDebug(string msg, uint16_t line,
-    const char *file, const char *func)
+void clkmgr::_PrintDebug(string msg, uint16_t line, const char *file,
+    const char *func)
 {
+    if(currentLogLevel < DEBUG)
+        return;
     if(useSyslog)
         syslog(LOG_DEBUG, "*** Debug: %s at line %u in %s: %s",
             msg.c_str(), line, file, func);
-    if(currentLogLevel <= DEBUG) {
+    if(verbose) {
         fprintf(stderr, "*** Debug: %s at line %u in %s: %s\n",
             msg.c_str(), line, file, func);
         fflush(stderr);
@@ -68,10 +81,12 @@ void clkmgr::_PrintDebug(string msg, uint16_t line,
 void clkmgr::_PrintInfo(string msg, uint16_t line, const char *file,
     const char *func)
 {
+    if(currentLogLevel < INFO)
+        return;
     if(useSyslog)
         syslog(LOG_INFO, "* Info: %s at line %u in %s: %s",
             msg.c_str(), line, file, func);
-    if(currentLogLevel <= INFO) {
+    if(verbose) {
         fprintf(stderr, "* Info: %s at line %u in %s: %s\n",
             msg.c_str(), line, file, func);
         fflush(stderr);
@@ -82,7 +97,7 @@ void clkmgr::_PrintInfo(string msg, uint16_t line, const char *file,
 void clkmgr::_DumpOctetArray(string msg, const uint8_t *arr,
     size_t length, uint16_t line, const char *file, const char *func)
 {
-    if(!useSyslog && currentLogLevel > DEBUG)
+    if(currentLogLevel < TRACE)
         return;
     char buf[2000];
     string str;
@@ -96,7 +111,7 @@ void clkmgr::_DumpOctetArray(string msg, const uint8_t *arr,
     }
     if(useSyslog)
         syslog(LOG_DEBUG, "%s", str.c_str());
-    if(currentLogLevel <= DEBUG) {
+    if(verbose) {
         fprintf(stderr, "%s\n", str.c_str());
         fflush(stderr);
     }

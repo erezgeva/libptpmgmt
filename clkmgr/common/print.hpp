@@ -20,6 +20,8 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
+enum LogLevel { ERROR, INFO, DEBUG, TRACE };
+
 typedef std::remove_reference<decltype(errno)>::type errno_type;
 #define PrintErrorCode(msg) PrintError(msg, errno)
 #define PrintError(msg,...) ::clkmgr::_PrintError(msg, \
@@ -46,6 +48,8 @@ void _DumpOctetArray(std::string msg, const uint8_t *arr, size_t length,
 
 void PrintStartLog(const char *me);
 void PrintStopLog();
+void setLogLevel(LogLevel level);
+void setVerbose(bool isVerbose);
 
 __CLKMGR_NAMESPACE_END
 
