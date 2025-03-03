@@ -13,7 +13,6 @@
 #include "proxy/client.hpp"
 #include "proxy/connect_ptp4l.hpp"
 #include "proxy/notification_msg.hpp"
-#include "proxy/thread.hpp"
 
 /* libptpmgmt */
 #include "msg.h"
@@ -206,7 +205,7 @@ static inline bool msg_set_action(bool local, mng_vals_e id)
  *         sent, false otherwise.
  *
  */
-bool event_subscription(clkmgr_handle **handle)
+bool event_subscription(ptpmgmt::Message *msg)
 {
     bool ret = false;
     memset(eventsTlv.bitmask, 0, sizeof eventsTlv.bitmask);
@@ -214,17 +213,14 @@ bool event_subscription(clkmgr_handle **handle)
     eventsTlv.setEvent(NOTIFY_TIME_SYNC);
     eventsTlv.setEvent(NOTIFY_PORT_STATE);
     eventsTlv.setEvent(NOTIFY_CMLDS);
-    for(const auto &pair : combinedList) {
-        ptpmgmt::Message *msg = std::get<1>(pair);
-        MsgParams prms = msg->getParams();
-        if(!msg->setAction(SET, SUBSCRIBE_EVENTS_NP, &eventsTlv)) {
-            PrintError("Fail set SUBSCRIBE_EVENTS_NP");
-            return false;
-        }
-        ret = msg_send(false);
-        /* Remove referance to local SUBSCRIBE_EVENTS_NP_t */
-        msg->clearData();
+    MsgParams prms = msg->getParams();
+    if(!msg->setAction(SET, SUBSCRIBE_EVENTS_NP, &eventsTlv)) {
+        PrintError("Fail set SUBSCRIBE_EVENTS_NP");
+        return false;
     }
+    ret = msg_send(false);
+    /* Remove referance to local SUBSCRIBE_EVENTS_NP_t */
+    msg->clearData();
     return ret;
 }
 
@@ -247,63 +243,56 @@ bool event_subscription(clkmgr_handle **handle)
  *         the function signature and implementation should be modified accordingly.
  *
  */
-void *ptp4l_event_loop(void *arg)
+void *ptp4l_event_loop(SockBase *sk, ptpmgmt::Message *msg, int timeBaseIndex,
+    std::string udsAddr)
 {
     const uint64_t timeout_ms = 1000;
     bool lost_connection = false;
     if(!msg_set_action(true, PORT_PROPERTIES_NP))
         PrintDebug("Failed to get port properties\n");
     ssize_t cnt;
-    for(const auto &pair : combinedList) {
-        SockBase *sk = std::get<0>(pair);
-        ptpmgmt::Message *msg = std::get<1>(pair);
-        int timeBaseIndex = std::get<2>(pair);
-        sk->poll(timeout_ms);
-        cnt = sk->rcv(buf, bufSize);
-        if(cnt > 0) {
-            MNG_PARSE_ERROR_e err = msg->parse(buf, cnt);
-            if(err == MNG_PARSE_ERROR_OK)
-                event_handle(msg, timeBaseIndex);
-        }
+    sk->poll(timeout_ms);
+    cnt = sk->rcv(buf, bufSize);
+    if(cnt > 0) {
+        MNG_PARSE_ERROR_e err = msg->parse(buf, cnt);
+        if(err == MNG_PARSE_ERROR_OK)
+            event_handle(msg, timeBaseIndex);
     }
     msg_set_action(false, PORT_PROPERTIES_NP);
-    event_subscription(nullptr);
+    event_subscription(msg);
     for(;;) {
-        for(const auto &pair : combinedList) {
-            SockBase *sk = std::get<0>(pair);
-            ptpmgmt::Message *msg = std::get<1>(pair);
-            int timeBaseIndex = std::get<2>(pair);
-            MsgParams prms;
-            prms = msg->getParams();
-            if(sk->poll(timeout_ms) > 0) {
-                const auto cnt = sk->rcv(buf, bufSize);
-                if(cnt > 0) {
-                    MNG_PARSE_ERROR_e err = msg->parse(buf, cnt);
-                    if(err == MNG_PARSE_ERROR_OK)
-                        event_handle(msg, timeBaseIndex);
+        MsgParams prms;
+        prms = msg->getParams();
+        if(sk->poll(timeout_ms) > 0) {
+            const auto cnt = sk->rcv(buf, bufSize);
+            if(cnt > 0) {
+                MNG_PARSE_ERROR_e err = msg->parse(buf, cnt);
+                if(err == MNG_PARSE_ERROR_OK)
+                    event_handle(msg, timeBaseIndex);
+            }
+        } else {
+            for(;;) {
+                if(event_subscription(msg))
+                    break;
+                if(!lost_connection) {
+                    PrintError("Lost connection to ptp4l at address: " + udsAddr);
+                    PrintInfo("Resetting clkmgr's ptp4l data.");
+                    ptp4lEvents[timeBaseIndex].master_offset = 0;
+                    memset(ptp4lEvents[timeBaseIndex].gm_identity, 0,
+                        sizeof(ptp4lEvents[timeBaseIndex].gm_identity));
+                    ptp4lEvents[timeBaseIndex].synced_to_primary_clock = false;
+                    ptp4lEvents[timeBaseIndex].as_capable = 0;
+                    notify_client(prms.domainNumber);
+                    lost_connection = true;
+                    notify_client(timeBaseIndex);
                 }
-            } else {
-                for(;;) {
-                    if(event_subscription(nullptr))
-                        break;
-                    if(!lost_connection) {
-                        PrintError("Lost connection to ptp4l.");
-                        PrintInfo("Resetting clkmgr's ptp4l data.");
-                        ptp4lEvents[timeBaseIndex].master_offset = 0;
-                        memset(ptp4lEvents[timeBaseIndex].gm_identity, 0,
-                            sizeof(ptp4lEvents[timeBaseIndex].gm_identity));
-                        ptp4lEvents[timeBaseIndex].synced_to_primary_clock = false;
-                        ptp4lEvents[timeBaseIndex].as_capable = 0;
-                        notify_client(prms.domainNumber);
-                        lost_connection = true;
-                    }
-                    PrintInfo("Attempting to reconnect to ptp4l...");
-                    sleep(2);
-                }
-                if(lost_connection) {
-                    PrintInfo("Successful connected to ptp4l.");
-                    lost_connection = false;
-                }
+                PrintInfo("Attempting to reconnect to ptp4l at address: "
+                    + udsAddr);
+                sleep(2);
+            }
+            if(lost_connection) {
+                PrintInfo("Successful connected to ptp4l at address: " + udsAddr);
+                lost_connection = false;
             }
         }
     }
@@ -320,6 +309,13 @@ int ConnectPtp4l::subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId)
         PrintDebug("timeBaseIndex does not exist in the map");
     }
     return 0;
+}
+
+void handle_connect_thread(SockBase *sk, ptpmgmt::Message *msg,
+    int timeBaseIndex, std::string udsAddr)
+{
+    combinedList.push_back(std::make_tuple(sk, msg, timeBaseIndex));
+    ptp4l_event_loop(sk, msg, timeBaseIndex, udsAddr);
 }
 
 /**
@@ -364,11 +360,10 @@ int ConnectPtp4l::connect_ptp4l(const std::vector<TimeBaseCfg> &params)
         msgs.push_back(&msg);
         SockBase &sk = *sockets.back();
         socketList.push_back(&sk);
+        // Create a thread for each param and pass the necessary parameters
+        std::thread(handle_connect_thread, &sk, &msg, param.timeBaseIndex,
+            param.udsAddrPtp4l).detach();
     }
-    for(size_t i = 0; i < socketList.size(); ++i)
-        combinedList.push_back(std::make_tuple(socketList[i], std::move(msgs[i]),
-                timeBaseIndexs[i]));
-    handle_connect();
     return 0;
 }
 
