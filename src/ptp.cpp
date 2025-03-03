@@ -878,8 +878,7 @@ extern "C" {
     static void ptpmgmt_ifInfo_free(ptpmgmt_ifInfo me)
     {
         if(me != nullptr) {
-            if(me->_this != nullptr)
-                delete(IfInfo *)me->_this;
+            delete(IfInfo *)me->_this;
             free(me);
         }
     }
@@ -958,16 +957,14 @@ extern "C" {
     static void ptpmgmt_clock_free(ptpmgmt_clock clk)
     {
         if(clk != nullptr) {
-            if(clk->_this != nullptr)
-                delete(PtpClock *)clk->_this;
+            delete(PtpClock *)clk->_this;
             free(clk);
         }
     }
     static void ptpmgmt_clock_free_sys(ptpmgmt_clock clk)
     {
         if(clk != nullptr) {
-            if(clk->_this != nullptr)
-                delete(SysClock *)clk->_this;
+            delete(SysClock *)clk->_this;
             free(clk);
         }
     }

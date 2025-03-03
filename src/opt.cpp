@@ -221,8 +221,7 @@ extern "C" {
     static void ptpmgmt_opt_free(ptpmgmt_opt me)
     {
         if(me != nullptr) {
-            if(me->_this != nullptr)
-                delete(Options *)me->_this;
+            delete(Options *)me->_this;
             free(me);
         }
     }

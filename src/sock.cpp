@@ -858,10 +858,8 @@ extern "C" {
     static void ptpmgmt_sk_free(ptpmgmt_sk sk)
     {
         SockBase *s = valid_sk(sk);
-        if(s != nullptr) {
-            delete s;
-            free(sk);
-        }
+        delete s;
+        free(sk);
     }
     static void ptpmgmt_sk_free_wrap(ptpmgmt_sk sk)
     {

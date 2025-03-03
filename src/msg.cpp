@@ -222,8 +222,7 @@ Message::Message(const MsgParams &prms) :
 }
 Message::~Message()
 {
-    if(m_hmac != nullptr)
-        delete m_hmac;
+    delete m_hmac;
     hmac_freeLib();
 }
 ssize_t Message::getMsgPlanedLen() const
@@ -1437,10 +1436,7 @@ extern "C" {
     static void ptpmgmt_MsgParams_free(ptpmgmt_pMsgParams m)
     {
         if(m != nullptr) {
-            if(m->_this != nullptr) {
-                delete(MsgParams *)m->_this;
-                m->_this = nullptr;
-            }
+            delete(MsgParams *)m->_this;
             free(m);
         }
     }
@@ -1516,10 +1512,10 @@ extern "C" {
     }
     static inline void ptpmgmt_MsgParams_asign_cb(ptpmgmt_pMsgParams m)
     {
-        m->allowSigTlv    = ptpmgmt_allowSigTlv;
-        m->removeSigTlv   = ptpmgmt_removeSigTlv;
-        m->isSigTlv       = ptpmgmt_isSigTlv;
-        m->countSigTlvs   = ptpmgmt_countSigTlvs;
+        m->allowSigTlv  = ptpmgmt_allowSigTlv;
+        m->removeSigTlv = ptpmgmt_removeSigTlv;
+        m->isSigTlv     = ptpmgmt_isSigTlv;
+        m->countSigTlvs = ptpmgmt_countSigTlvs;
         cpyMsgParams(m);
     }
     ptpmgmt_pMsgParams ptpmgmt_MsgParams_alloc()
@@ -1537,23 +1533,17 @@ extern "C" {
         m->free = ptpmgmt_MsgParams_free;
         return m;
     }
+#define C_SWP(n, v) free(m->n); m->n = v
     static void ptpmgmt_msg_free_wrap(ptpmgmt_msg m)
     {
         if(m != nullptr) {
-            if(m->sendTlv != nullptr) {
-                delete(BaseMngTlv *)m->sendTlv;
-                m->sendTlv = nullptr;
-            }
-            free(m->data);
-            free(m->dataTbl);
-            m->data = nullptr;
-            m->dataTbl = nullptr;
-            free(m->dataSig1);
-            free(m->dataSig2);
-            free(m->dataSig3);
-            m->dataSig1 = nullptr;
-            m->dataSig2 = nullptr;
-            m->dataSig3 = nullptr;
+            delete(BaseMngTlv *)m->sendTlv;
+            m->sendTlv = nullptr;
+            C_SWP(data, nullptr);
+            C_SWP(dataTbl, nullptr);
+            C_SWP(dataSig1, nullptr);
+            C_SWP(dataSig2, nullptr);
+            C_SWP(dataSig3, nullptr);
             if(m->_sa != nullptr) {
                 m->_sa->free(m->_sa);
                 free(m->_sa);
@@ -1564,10 +1554,7 @@ extern "C" {
     static void ptpmgmt_msg_free(ptpmgmt_msg m)
     {
         if(m != nullptr) {
-            if(m->_this != nullptr) {
-                delete(Message *)m->_this;
-                m->_this = nullptr;
-            }
+            delete(Message *)m->_this;
             ptpmgmt_msg_free_wrap(m);
             free(m);
         }
@@ -1742,8 +1729,7 @@ extern "C" {
             if(actionField != PTPMGMT_GET && dataSend != nullptr) {
                 tlv = c2cppMngTlv((mng_vals_e) tlv_id, dataSend);
                 if(tlv != nullptr) {
-                    if(m->sendTlv != nullptr)
-                        delete(BaseMngTlv *)m->sendTlv;
+                    delete(BaseMngTlv *)m->sendTlv;
                     m->sendTlv = (void *)tlv;
                 }
                 m->dataSend = dataSend;
@@ -1792,10 +1778,8 @@ extern "C" {
                 void *x = nullptr;
                 void *tlv = cpp2cMngTlv(me->getTlvId(), t, x);
                 if(tlv != nullptr) {
-                    free(m->data);
-                    free(m->dataTbl);
-                    m->data = tlv;
-                    m->dataTbl = x;
+                    C_SWP(data, tlv);
+                    C_SWP(dataTbl, x);
                     return tlv;
                 }
             }
@@ -1831,12 +1815,9 @@ extern "C" {
                     void *x2 = nullptr;
                     sig = cpp2cSigTlv(tlvType, tlv, x, x2);
                     if(sig != nullptr) {
-                        free(m->dataSig1);
-                        free(m->dataSig2);
-                        free(m->dataSig3);
-                        m->dataSig1 = sig;
-                        m->dataSig2 = x;
-                        m->dataSig3 = x2;
+                        C_SWP(dataSig1, sig);
+                        C_SWP(dataSig2, x);
+                        C_SWP(dataSig3, x2);
                     }
                 }
                 return callback(cookie, m, (ptpmgmt_tlvType_e)tlvType, sig);
@@ -1855,12 +1836,9 @@ extern "C" {
                 void *x2 = nullptr;
                 void *sig = cpp2cSigTlv(me->getSigTlvType(position), s, x, x2);
                 if(sig != nullptr) {
-                    free(m->dataSig1);
-                    free(m->dataSig2);
-                    free(m->dataSig3);
-                    m->dataSig1 = sig;
-                    m->dataSig2 = x;
-                    m->dataSig3 = x2;
+                    C_SWP(dataSig1, sig);
+                    C_SWP(dataSig2, x);
+                    C_SWP(dataSig3, x2);
                     return sig;
                 }
             }
@@ -1879,12 +1857,9 @@ extern "C" {
                 void *x = nullptr;
                 void *tlv = cpp2cMngTlv(me->getSigMngTlvType(position), t, x);
                 if(tlv != nullptr) {
-                    free(m->dataSig1);
-                    free(m->dataSig2);
-                    free(m->dataSig3);
-                    m->dataSig1 = nullptr;
-                    m->dataSig2 = tlv;
-                    m->dataSig3 = x;
+                    C_SWP(dataSig1, nullptr);
+                    C_SWP(dataSig2, tlv);
+                    C_SWP(dataSig3, x);
                     return tlv;
                 }
             }
@@ -1893,14 +1868,6 @@ extern "C" {
     }
     static inline void ptpmgmt_msg_asign_cb(ptpmgmt_msg m)
     {
-        m->_sa = nullptr;
-        m->sendTlv = nullptr;
-        m->dataSend = nullptr;
-        m->data = nullptr;
-        m->dataTbl = nullptr;
-        m->dataSig1 = nullptr;
-        m->dataSig2 = nullptr;
-        m->dataSig3 = nullptr;
 #define C_ASGN(n) m->n = ptpmgmt_msg_##n
         C_ASGN(getParams);
         C_ASGN(updateParams);
@@ -1990,6 +1957,7 @@ extern "C" {
         ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
         if(m == nullptr)
             return nullptr;
+        memset(m, 0, sizeof(ptpmgmt_msg_t));
         m->_this = (void *)(new Message);
         if(m->_this == nullptr) {
             free(m);
@@ -2007,6 +1975,7 @@ extern "C" {
         ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
         if(m == nullptr)
             return nullptr;
+        memset(m, 0, sizeof(ptpmgmt_msg_t));
         m->_this = (void *)(new Message(prm));
         if(m->_this == nullptr) {
             free(m);
@@ -2021,6 +1990,7 @@ extern "C" {
         ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
         if(m == nullptr)
             return nullptr;
+        memset(m, 0, sizeof(ptpmgmt_msg_t));
         m->_this = (void *)&msg;
         m->free = ptpmgmt_msg_free_wrap;
         ptpmgmt_msg_asign_cb(m);

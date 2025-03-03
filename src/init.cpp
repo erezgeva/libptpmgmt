@@ -202,27 +202,20 @@ extern "C" {
             if(me->sCfg != nullptr) {
                 me->sCfg->free(me->sCfg);
                 free(me->sCfg);
-                me->sCfg = nullptr;
             }
             if(me->sSaFile != nullptr) {
                 me->sSaFile->free(me->sSaFile);
                 free(me->sSaFile);
-                me->sSaFile = nullptr;
             }
             if(me->sMsg != nullptr) {
                 me->sMsg->free(me->sMsg);
                 free(me->sMsg);
-                me->sMsg = nullptr;
             }
             if(me->sSk != nullptr) {
                 me->sSk->free(me->sSk);
                 free(me->sSk);
-                me->sSk = nullptr;
             }
-            if(me->_this != nullptr) {
-                delete(Init *)me->_this;
-                me->_this = nullptr;
-            }
+            delete(Init *)me->_this;
             free(me);
         }
     }
@@ -316,6 +309,7 @@ extern "C" {
         ptpmgmt_init me = (ptpmgmt_init)malloc(sizeof(ptpmgmt_init_t));
         if(me == nullptr)
             return nullptr;
+        memset(me, 0, sizeof(ptpmgmt_init_t));
         me->_this = (void *)(new Init);
         if(me->_this == nullptr) {
             free(me);
@@ -332,10 +326,6 @@ extern "C" {
         C_ASGN(getNetSelect);
         C_ASGN(use_uds);
         C_ASGN(allow_unauth);
-        me->sCfg = nullptr;
-        me->sSaFile = nullptr;
-        me->sMsg = nullptr;
-        me->sSk = nullptr;
         return me;
     }
 }

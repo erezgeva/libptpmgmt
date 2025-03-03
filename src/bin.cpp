@@ -115,8 +115,7 @@ bool Binary::iResize(size_t l_alloc)
 }
 Binary::~Binary()
 {
-    if(m_buf != nullptr)
-        free(m_buf);
+    free(m_buf);
 }
 Binary::Binary()
 {

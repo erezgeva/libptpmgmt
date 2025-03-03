@@ -510,8 +510,7 @@ extern "C" {
     static void ptpmgmt_cfg_free(ptpmgmt_cfg me)
     {
         if(me != nullptr) {
-            if(me->_this != nullptr)
-                delete(ConfigFile *)me->_this;
+            delete(ConfigFile *)me->_this;
             free(me);
         }
     }
@@ -624,8 +623,7 @@ extern "C" {
     static void ptpmgmt_spp_free(ptpmgmt_spp me)
     {
         if(me != nullptr) {
-            if(me->_this != nullptr)
-                delete(Spp *)me->_this;
+            delete(Spp *)me->_this;
             free(me);
         }
     }
@@ -727,8 +725,7 @@ extern "C" {
     static void ptpmgmt_safile_free(ptpmgmt_safile me)
     {
         if(me != nullptr) {
-            if(me->_this != nullptr)
-                delete(SaFile *)me->_this;
+            delete(SaFile *)me->_this;
             for(size_t i = 0; i < UINT8_MAX; i++)
                 free(me->_all[i]);
             free(me);

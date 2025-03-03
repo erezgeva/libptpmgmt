@@ -15,8 +15,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 Buf::~Buf()
 {
-    if(m_buf != nullptr)
-        free(m_buf);
+    free(m_buf);
 }
 bool Buf::alloc(size_t size)
 {
