@@ -76,13 +76,15 @@ extern "C" {
 #define _ptpmCaseUF(n) void (*n##_h)(void *cookie, ptpmgmt_msg msg,\
     const ptpmgmt_##n##_t *tlv, const char *idStr);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    struct ptpmgmt_dispatcher_full_t {
-        ptpmgmt_dispatcher_t main;
+    struct ptpmgmt_dispatcher_cb_t {
 #include "ids.h"
     };
-    static void ptpmgmt_dispatcher_free(ptpmgmt_dispatcher me)
+    static void ptpmgmt_dispatcher_free(ptpmgmt_dispatcher d)
     {
-        free(me);
+        if(d != nullptr) {
+            free(d->cbs);
+            free(d);
+        }
     }
 #define _ptpmCaseUF(n)\
 case PTPMGMT_##n:\
@@ -95,7 +97,7 @@ case PTPMGMT_##n:\
     {
         if(d == nullptr || callback == nullptr)
             return false;
-        ptpmgmt_dispatcher_full_t *df = (ptpmgmt_dispatcher_full_t *)d;
+        ptpmgmt_dispatcher_cb_t *df = d->cbs;
         switch(tlv_id) {
 #include "ids.h"
             default:
@@ -120,12 +122,10 @@ case PTPMGMT_##n:\
     }
 #define _ptpmCaseUF(n)\
 case PTPMGMT_##n:\
-    if(df->n##_h != nullptr) {\
+    if(df->n##_h != nullptr) \
         df->n##_h(cookie, msg, (const ptpmgmt_##n##_t*)tlv, #n);\
-    } else {\
-        if(d->noTlvCallBack != nullptr)\
-            d->noTlvCallBack(cookie, msg, #n);\
-    }\
+    else if(d->noTlvCallBack != nullptr)\
+        d->noTlvCallBack(cookie, msg, #n);\
     break;
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
     static void ptpmgmt_dispatcher_callHadler_tlv(const_ptpmgmt_dispatcher d,
@@ -139,7 +139,7 @@ case PTPMGMT_##n:\
                 d->noTlv(cookie, msg);
             return;
         }
-        ptpmgmt_dispatcher_full_t *df = (ptpmgmt_dispatcher_full_t *)d;
+        ptpmgmt_dispatcher_cb_t *df = d->cbs;
         switch(tlv_id) {
 #include "ids.h"
             default:
@@ -158,11 +158,19 @@ case PTPMGMT_##n:\
     }
     ptpmgmt_dispatcher ptpmgmt_dispatcher_alloc()
     {
-        static const size_t sz = sizeof(ptpmgmt_dispatcher_full_t);
+        static const size_t sz = sizeof(ptpmgmt_dispatcher_t);
+        static const size_t sz2 = sizeof(ptpmgmt_dispatcher_cb_t);;
         ptpmgmt_dispatcher me = (ptpmgmt_dispatcher)malloc(sz);
         if(me == nullptr)
             return nullptr;
+        ptpmgmt_dispatcher_cb_t *cbs = (ptpmgmt_dispatcher_cb_t *)malloc(sz2);
+        if(cbs == nullptr) {
+            free(me);
+            return nullptr;
+        }
         memset(me, 0, sz);
+        memset(cbs, 0, sz2);
+        me->cbs = cbs;
 #define C_ASGN(n) me->n = ptpmgmt_dispatcher_##n
         C_ASGN(free);
         C_ASGN(assign);
@@ -175,8 +183,7 @@ case PTPMGMT_##n:\
 #define _ptpmCaseUFB(n) bool (*n##_b)(void *cookie, ptpmgmt_msg msg,\
     ptpmgmt_##n##_t *tlv, ptpmgmt_tlv_mem tlv_mem);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
-    struct ptpmgmt_builder_full_t {
-        ptpmgmt_builder_t main;
+    struct ptpmgmt_builder_cb_t {
 #include "ids.h"
     };
     static void ptpmgmt_builder_free(ptpmgmt_builder b)
@@ -184,6 +191,7 @@ case PTPMGMT_##n:\
         if(b != nullptr) {
             if(b->tlv_mem != nullptr)
                 b->tlv_mem->free(b->tlv_mem);
+            free(b->cbs);
             free(b);
         }
     }
@@ -219,7 +227,7 @@ case PTPMGMT_##n:\
     {
         if(b == nullptr || callback == nullptr)
             return false;
-        ptpmgmt_builder_full_t *bf = (ptpmgmt_builder_full_t *)b;
+        ptpmgmt_builder_cb_t *bf = b->cbs;
         switch(tlv_id) {
 #include "ids.h"
             default:
@@ -253,7 +261,7 @@ case PTPMGMT_##n:\
         if UNLIKELY_COND(tlv == nullptr)
             return false;
         bool ret = false;
-        ptpmgmt_builder_full_t *bf = (ptpmgmt_builder_full_t *)b;
+        ptpmgmt_builder_cb_t *bf = b->cbs;
         switch(tlv_id) {
 #include "ids.h"
             default:
@@ -265,18 +273,27 @@ case PTPMGMT_##n:\
     {
         if(msg == nullptr)
             return nullptr;
-        ptpmgmt_builder me =
-            (ptpmgmt_builder)malloc(sizeof(ptpmgmt_builder_full_t));
+        static const size_t sz = sizeof(ptpmgmt_builder_t);
+        static const size_t sz2 = sizeof(ptpmgmt_builder_cb_t);
+        ptpmgmt_builder me = (ptpmgmt_builder)malloc(sz);
         if(me == nullptr)
             return nullptr;
-        ptpmgmt_tlv_mem tlv = ptpmgmt_tlv_mem_alloc();
-        if(tlv == nullptr) {
+        ptpmgmt_builder_cb_t *cbs = (ptpmgmt_builder_cb_t *)malloc(sz2);
+        if(cbs == nullptr) {
             free(me);
             return nullptr;
         }
-        memset(me, 0, sizeof(ptpmgmt_builder_full_t));
+        ptpmgmt_tlv_mem tlv = ptpmgmt_tlv_mem_alloc();
+        if(tlv == nullptr) {
+            free(me);
+            free(cbs);
+            return nullptr;
+        }
+        memset(me, 0, sz);
+        memset(cbs, 0, sz2);
         me->msg = msg;
         me->tlv_mem = tlv;
+        me->cbs = cbs;
 #define B_ASGN(n) me->n = ptpmgmt_builder_##n
         B_ASGN(free);
         B_ASGN(getMsg);

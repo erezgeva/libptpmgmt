@@ -34,6 +34,10 @@ typedef void (*ptpmgmt_dispatcher_noTlv_callback)(void *cookie,
 typedef void (*ptpmgmt_dispatcher_noTlvCallBack_callback)(void *cookie,
     ptpmgmt_msg msg, const char *idStr);
 
+/**< @cond internal */
+struct ptpmgmt_dispatcher_cb_t; /**< hold the callbacks to the tlvs */
+/**< @endcond */
+
 /**
  * @brief Dispacher for management TLV
  * @details
@@ -111,6 +115,9 @@ struct ptpmgmt_dispatcher_t {
      * @param[in] idStr string of the tlv_id
      */
     void (*noTlvCallBack)(void *cookie, ptpmgmt_msg msg, const char *idStr);
+    /**< @cond internal */
+    struct ptpmgmt_dispatcher_cb_t *cbs; /**< hold the callbacks to the tlvs */
+    /**< @endcond */
 };
 
 /**
@@ -133,6 +140,10 @@ typedef struct ptpmgmt_builder_t *ptpmgmt_builder;
  */
 typedef bool (*ptpmgmt_builder_callback)(void *cookie, ptpmgmt_msg msg,
     void *tlv, ptpmgmt_tlv_mem tlv_mem);
+
+/**< @cond internal */
+struct ptpmgmt_builder_cb_t; /**< hold the callbacks to the tlvs */
+/**< @endcond */
 
 /**
  * @brief Builder for a management TLV
@@ -190,6 +201,9 @@ struct ptpmgmt_builder_t {
      */
     bool (*buildTlv)(ptpmgmt_builder builder, void *cookie,
         enum ptpmgmt_actionField_e actionField, enum ptpmgmt_mng_vals_e tlv_id);
+    /**< @cond internal */
+    struct ptpmgmt_builder_cb_t *cbs; /**< hold the callbacks to the tlvs */
+    /**< @endcond */
 };
 
 /**
