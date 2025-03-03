@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cinttypes>
+#include <cmath>
 
 const size_t lineSize = 512;
 
@@ -438,7 +439,7 @@ class jsonParserFile : public jsonParser
 {
   private:
     FILE *f = nullptr;
-    char buf[lineSize] = {0};
+    char buf[lineSize] = { 0 };
 
   public:
     jsonParserFile(bool _c = false) : jsonParser(_c) {}
@@ -458,7 +459,7 @@ class jsonParserFile : public jsonParser
         skipBOM();
         return true;
     }
-    virtual bool isEOF() override {
+    bool isEOF() override {
         if(*cur == 0) {
             if(fgets(buf, lineSize, f) == nullptr)
                 return true; // EOF
@@ -570,12 +571,14 @@ bool jsonMain::paresJson(jsonParser *_p)
         delete m;
         return false;
     }
-    if(main != nullptr)
-        delete main;
+    delete main;
     main = m;
     return true;
 }
-
+jsonMain::~jsonMain()
+{
+    delete main;
+}
 bool jsonMain::parseFile(const std::string &name, bool useComments)
 {
     jsonParserFile _p(useComments);
@@ -585,6 +588,10 @@ bool jsonMain::parseBuffer(const std::string &buffer, bool useComments)
 {
     jsonParser _p(useComments);
     return _p.init(buffer) && paresJson(&_p);
+}
+bool jsonMain::empty() const
+{
+    return main == nullptr;
 }
 e_type jsonMain::getType() const
 {
@@ -616,6 +623,36 @@ jsonArray *jsonMain::getArr() const
 {
     return main != nullptr && main->getType() == t_array ?
         dynamic_cast<jsonArray *>(main) : nullptr;
+}
+jsonValueBase::jsonValueBase(e_type type) : m_type(type)
+{
+}
+jsonValueBase::~jsonValueBase()
+{
+}
+e_type jsonValueBase::getType()
+{
+    return m_type;
+}
+jsonValue::jsonValue(e_type type, bool boolean) : jsonValueBase(type),
+    valBool(boolean)
+{
+}
+const char *jsonValue::getCStr() const
+{
+    return val.c_str();
+}
+const std::string &jsonValue::getStr() const
+{
+    return val;
+}
+size_t jsonValue::getStrLen() const
+{
+    return val.length();
+}
+bool jsonValue::getBool() const
+{
+    return valBool;
 }
 bool jsonValue::getInt64(int64_t &_val, bool flexible) const
 {
@@ -727,14 +764,45 @@ bool jsonValue::getFrac(int64_t &integer, uint64_t &fraction,
             fraction = (uint64_t)strtoumax(after.c_str(), &endptr, 10);
             if(endptr == nullptr || *endptr != 0)
                 return false;
-            for(size_t i = aDot; i < fracSize; i++)
-                fraction *= 10;
+            /*for(size_t i = aDot; i < fracSize; i++)
+                  fraction *= 10; */
+            size_t pow10 = fracSize - aDot;
+            if(pow10 > 0)
+                fraction *= (uint64_t)pow((double)10, (double)pow10);
             return true;
         }
     }
     return false;
 }
 
+jsonObject::jsonObject() : jsonValueBase(t_object)
+{
+}
+jsonObject::~jsonObject()
+{
+    for(auto &i : members)
+        delete i.second;
+}
+size_t jsonObject::size() const
+{
+    return members.size();
+}
+size_t jsonObject::count(const std::string &key) const
+{
+    return members.count(key);
+}
+obj_iter jsonObject::find(const std::string &key)
+{
+    return members.find(key);
+}
+obj_iter jsonObject::begin()
+{
+    return members.begin();
+}
+obj_iter jsonObject::end()
+{
+    return members.end();
+}
 e_type jsonObject::getMulType(const obj_iter &iter) const
 {
     return iter->second->getType();
@@ -780,6 +848,18 @@ jsonObject *jsonObject::getObj(const std::string &key)
 jsonArray *jsonObject::getArr(const std::string &key)
 {
     return count(key) == 1 ? getMulArr(find(key)) : nullptr;
+}
+jsonArray::jsonArray() : jsonValueBase(t_array)
+{
+}
+jsonArray::~jsonArray()
+{
+    for(auto &i : elements)
+        delete i;
+}
+size_t jsonArray::size() const
+{
+    return elements.size();
 }
 e_type jsonArray::getType(size_t index) const
 {

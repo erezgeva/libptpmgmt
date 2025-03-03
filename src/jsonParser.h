@@ -56,7 +56,7 @@ class jsonValueBase
       * Constractor
       * @param[in] type value
       */
-    jsonValueBase(e_type type) : m_type(type) {}
+    jsonValueBase(e_type type);
 
     friend class jsonMain;
     friend class jsonObject;
@@ -64,13 +64,13 @@ class jsonValueBase
 
   public:
 
-    virtual ~jsonValueBase() {}
+    virtual ~jsonValueBase();
 
     /**
       * Get value type
       * @return value type
       */
-    e_type getType() { return m_type; }
+    e_type getType();
 };
 
 /** class jsonValue for string, number, boolean or null value */
@@ -96,28 +96,27 @@ class jsonValue : public jsonValueBase
       * @param[in] type value
       * @param[in] boolean value
       */
-    jsonValue(e_type type, bool boolean = false) : jsonValueBase(type),
-        valBool(boolean) {}
+    jsonValue(e_type type, bool boolean = false);
     /**
       * Get String value
       * @return pointer to a C string
       */
-    const char *getCStr() const { return val.c_str(); }
+    const char *getCStr() const;
     /**
       * Get String value
       * @return String
       */
-    const std::string &getStr() const { return val; }
+    const std::string &getStr() const;
     /**
       * Get String length
       * @return length
       */
-    size_t getStrLen() const { return val.length(); }
+    size_t getStrLen() const;
     /**
       * Get boolean value
       * @return boolean value
       */
-    bool getBool() const { return valBool; }
+    bool getBool() const;
     /**
       * get signed 64 bits integer
       * @param[out] val integer value
@@ -165,39 +164,36 @@ class jsonObject : public jsonValueBase
     bool parserVal(jsonParser *parser) override;
 
   public:
-    jsonObject() : jsonValueBase(t_object) {}
-    ~jsonObject() {
-        for(auto &i : members)
-            delete i.second;
-    }
+    jsonObject();
+    ~jsonObject();
 
     /**
       * Get number of members
       * @return number of members
       */
-    size_t size() const { return members.size(); }
+    size_t size() const;
     /**
       * Get number of members with a key
       * @param[in] key string with key value
       * @return number of members with a key
       */
-    size_t count(const std::string &key) const { return members.count(key); }
+    size_t count(const std::string &key) const;
     /**
       * Get members with a key
       * @param[in] key string
       * @return iterator to loop all members match the key
       */
-    obj_iter find(const std::string &key) { return members.find(key); }
+    obj_iter find(const std::string &key);
     /**
       * Get members begin iterator
       * @return iterator to start of all members
       */
-    obj_iter begin() { return members.begin(); }
+    obj_iter begin();
     /**
       * Get members end iterator
       * @return iterator to end
       */
-    obj_iter end() { return members.end(); }
+    obj_iter end();
     /**
       * Get member value type
       * @param[in] iterator to a member
@@ -267,16 +263,13 @@ class jsonArray : public jsonValueBase
     bool parserVal(jsonParser *parser) override;
 
   public:
-    jsonArray() : jsonValueBase(t_array) {}
-    ~jsonArray() {
-        for(auto &i : elements)
-            delete i;
-    }
+    jsonArray();
+    ~jsonArray();
     /**
       * Get number of elements
       * @return number of elements
       */
-    size_t size() const { return elements.size(); }
+    size_t size() const;
     /**
       * Get element value type with index
       * @param[in] index number
@@ -318,7 +311,8 @@ class jsonMain
     bool paresJson(jsonParser *parser);
 
   public:
-    ~jsonMain() { delete main; }
+    jsonMain() = default;
+    ~jsonMain();
     /**
       * Parse a JSON file
       * @param[in] file name
@@ -337,7 +331,7 @@ class jsonMain
       * Quary if value exist
       * @return no value exist
       */
-    bool empty() const { return main == nullptr; }
+    bool empty() const;
     /**
       * Get value type
       * @return value type
