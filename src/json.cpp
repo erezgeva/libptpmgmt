@@ -1083,7 +1083,7 @@ extern "C" {
     {
         free(me);
     }
-    static ptpmgmt_json_str makeStr(string str)
+    static inline ptpmgmt_json_str makeStr(const string &str)
     {
         if(str.empty())
             return nullptr;
@@ -1107,8 +1107,7 @@ extern "C" {
         return nullptr;
     }
     ptpmgmt_json_str ptpmgmt_json_tlv2json(ptpmgmt_mng_vals_e managementId,
-        const void *tlv,
-        int indent)
+        const void *tlv, int indent)
     {
         if(tlv != nullptr) {
             mng_vals_e id = (mng_vals_e)managementId;
