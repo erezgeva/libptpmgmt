@@ -11,6 +11,7 @@
 
 #include "common/print.hpp"
 #include "proxy/client.hpp"
+#include "proxy/config_parser.hpp"
 #include "proxy/connect_ptp4l.hpp"
 #include "proxy/notification_msg.hpp"
 
@@ -332,12 +333,12 @@ void handle_connect_thread(SockBase *sk, ptpmgmt::Message *msg,
  *         Returns 0 on success, or -1 if an error occurs during socket
  *         initialization, address setting, or epoll configuration.
  */
-int ConnectPtp4l::connect_ptp4l(const std::vector<TimeBaseCfg> &params)
+int ConnectPtp4l::connect_ptp4l()
 {
     std::vector<int> timeBaseIndexs;
-    for(const auto &param : params) {
+    for(const auto &param : timeBaseCfgs) {
         /* skip if ptp4l UDS address is empty */
-        if(param.udsAddrPtp4l.empty())
+        if(param.udsAddrPtp4l[0] == '\0')
             continue;
         SockUnix *sku = new SockUnix;
         std::unique_ptr<ptpmgmt::Message> msg_ptr(new ptpmgmt::Message());
@@ -348,7 +349,7 @@ int ConnectPtp4l::connect_ptp4l(const std::vector<TimeBaseCfg> &params)
         std::unique_ptr<SockUnix> sku_ptr(sku);
         std::string addr = baseAddr + std::to_string(param.domainNumber);
         if(!sku->setDefSelfAddress(addr) || !sku->init() ||
-            !sku->setPeerAddress(param.udsAddrPtp4l.c_str()))
+            !sku->setPeerAddress(param.udsAddrPtp4l))
             return -1;
         sockets.push_back(std::move(sku_ptr));
         MsgParams prms = msg.getParams();

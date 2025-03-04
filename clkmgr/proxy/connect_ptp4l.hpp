@@ -16,20 +16,11 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-struct TimeBaseCfg {
-    std::string udsAddrChrony;
-    std::string udsAddrPtp4l;
-    std::string interfaceName;
-    int timeBaseIndex;
-    uint8_t transportSpecific;
-    uint8_t domainNumber;
-};
-
 class ConnectPtp4l
 {
   private:
   public:
-    static int connect_ptp4l(const std::vector<TimeBaseCfg> &params);
+    static int connect_ptp4l();
     static int subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId);
     static void disconnect_ptp4l();
 };

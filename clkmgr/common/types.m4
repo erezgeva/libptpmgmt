@@ -21,10 +21,29 @@ include(lang().m4)dnl
 
 ics(TYPE)
 
+incpp(<cstddef>)dnl
 inc_c(`stdint')
 c_cod(`#include <stdbool.h>')
 
 ns_s()
+
+/**
+ * Maximum size for strings used in the time base configuration.
+ */
+cnst(size_t,STRING_SIZE_MAX,64)
+
+/**
+ * Structure to represent the configuration of a time base.
+ */
+struct Nm(TimeBaseCfg) {
+    int timeBaseIndex; /**< Index of the time base */
+    arr(char,timeBaseName,STRING_SIZE_MAX); /**< Name of the time base */
+    arr(char,udsAddrChrony,STRING_SIZE_MAX); /**< UDS address for Chrony */
+    arr(char,udsAddrPtp4l,STRING_SIZE_MAX); /**< UDS address for ptp4l */
+    arr(char,interfaceName,STRING_SIZE_MAX); /**< Network interface name */
+    uint8_t transportSpecific; /**< Transport specific for ptp4l */
+    uint8_t domainNumber; /**< Domain number for ptp4l */
+};
 
 /**
  * Bitmask of events available for subscription. Each bit represents one event.

@@ -11,6 +11,7 @@
 
 #include "common/print.hpp"
 #include "proxy/client.hpp"
+#include "proxy/config_parser.hpp"
 #include "proxy/connect_chrony.hpp"
 #include "proxy/notification_msg.hpp"
 #include <chrony.h>
@@ -163,14 +164,14 @@ int ConnectChrony::subscribe_chrony(int timeBaseIndex, sessionId_t sessionId)
     return 0;
 }
 
-void ConnectChrony::connect_chrony(const std::vector<TimeBaseCfg> &params)
+void ConnectChrony::connect_chrony()
 {
-    for(const auto &param : params) {
+    for(const auto &param : timeBaseCfgs) {
         /* skip if chrony UDS address is empty */
-        if(param.udsAddrChrony.empty())
+        if(param.udsAddrChrony[0] == '\0')
             continue;
         /* connect to chronyd unix socket using udsAddrChrony */
-        int fd = chrony_open_socket(param.udsAddrChrony.c_str());
+        int fd = chrony_open_socket(param.udsAddrChrony);
         chronyIndex.insert(std::pair<int, int>(fd, param.timeBaseIndex));
         chrony_session *s;
         if(chrony_init_session(&s, fd) == CHRONY_OK) {

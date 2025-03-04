@@ -93,10 +93,9 @@ int main(int argc, char *argv[])
         PrintError("Message init failed");
         return EXIT_FAILURE;
     }
-    std::vector<TimeBaseCfg> timeBaseCfgs;
-    ConnectPtp4l::connect_ptp4l(timeBaseCfgs);
+    ConnectPtp4l::connect_ptp4l();
     #ifdef HAVE_LIBCHRONY
-    ConnectChrony::connect_chrony(timeBaseCfgs);
+    ConnectChrony::connect_chrony();
     #endif
     WaitForStopSignal();
     PrintDebug("Got stop signal");
