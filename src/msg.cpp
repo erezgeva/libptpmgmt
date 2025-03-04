@@ -2247,7 +2247,7 @@ extern "C" {
             _tlv_mem_clearTlv(self);
             self->tlv = ntlv;
             self->id = id;
-            *n = _nalc;
+            *n = std::move(_nalc);
         } else {
             for(auto m : _nalc)
                 free(m);
@@ -2313,12 +2313,11 @@ extern "C" {
             return ptpmgmt_tlv_mem_reallocMem(self, memory, number * size);
         return nullptr;
     }
-    static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
+    static inline ptpmgmt_PTPText_t _tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
         const char *str, size_t len)
     {
-        ptpmgmt_PTPText_t a;
-        if(self != nullptr && self->tlv != nullptr && str != nullptr && len > 0 &&
-            len <= UINT8_MAX) {
+        ptpmgmt_PTPText_t a = { 0 };
+        if(self != nullptr && self->tlv != nullptr && len > 0 && len <= UINT8_MAX) {
             vector<void *> *n = (vector<void *> *)self->_memHndl;
             if(n != nullptr) {
                 char *s = (char *)malloc(len + 1);
@@ -2328,53 +2327,62 @@ extern "C" {
                     a.lengthField = len;
                     a.textField = s;
                     s[len] = 0;
-                    return a;
                 }
             }
         }
-        a.lengthField = 0;
-        a.textField = nullptr;
         return a;
+    }
+    static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
+        const char *str, size_t len)
+    {
+        if(str != nullptr)
+            return _tlv_mem_allocStringLen(self, str, len);
+        return { 0 };
     }
     static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocString(ptpmgmt_tlv_mem self,
         const char *str)
     {
-        if(self != nullptr && self->tlv != nullptr && str != nullptr)
-            return ptpmgmt_tlv_mem_allocStringLen(self, str, strlen(str));
-        ptpmgmt_PTPText_t a;
-        a.lengthField = 0;
-        a.textField = nullptr;
-        return a;
+        if(str != nullptr)
+            return _tlv_mem_allocStringLen(self, str, strlen(str));
+        return { 0 };
+    }
+    static bool inline _tlv_mem_reallocStringLen(ptpmgmt_tlv_mem self,
+        struct ptpmgmt_PTPText_t *text, const char *str, size_t len)
+    {
+        if(text != nullptr) {
+            if(text->textField == nullptr || text->lengthField == 0) {
+                *text = _tlv_mem_allocStringLen(self, str, len);
+                return text->lengthField > 0 && text->textField != nullptr ;
+            }
+            if(self != nullptr && self->tlv != nullptr && len > 0 &&
+                len <= UINT8_MAX) {
+                char *tgt = (char *)text->textField;
+                if(len > text->lengthField) {
+                    tgt = (char *)_tlv_mem_reallocMem(self, tgt, len + 1);
+                    if(tgt == nullptr)
+                        return false;
+                    text->textField = tgt;
+                }
+                memcpy(tgt, str, len);
+                tgt[len] = 0;
+                text->lengthField = len;
+                return true;
+            }
+        }
+        return false;
     }
     static bool ptpmgmt_tlv_mem_reallocStringLen(ptpmgmt_tlv_mem self,
         struct ptpmgmt_PTPText_t *text, const char *str, size_t len)
     {
-        if(self != nullptr && self->tlv != nullptr && text != nullptr &&
-            str != nullptr && len > 0 && len <= UINT8_MAX) {
-            if(text->textField == nullptr || text->lengthField == 0) {
-                *text = ptpmgmt_tlv_mem_allocStringLen(self, str, len);
-                return text->lengthField > 0 && text->textField != nullptr ;
-            }
-            char *tgt = (char *)text->textField;
-            if(len > text->lengthField) {
-                tgt = (char *)_tlv_mem_reallocMem(self, tgt, len);
-                if(tgt == nullptr)
-                    return false;
-                text->textField = tgt;
-            }
-            memcpy(tgt, str, len);
-            tgt[len] = 0;
-            text->lengthField = len;
-            return true;
-        }
+        if(str != nullptr)
+            return _tlv_mem_reallocStringLen(self, text, str, len);
         return false;
     }
     static bool ptpmgmt_tlv_mem_reallocString(ptpmgmt_tlv_mem self,
         struct ptpmgmt_PTPText_t *text, const char *str)
     {
-        if(self != nullptr && self->tlv != nullptr && text != nullptr
-            && str != nullptr)
-            return ptpmgmt_tlv_mem_reallocStringLen(self, text, str, strlen(str));
+        if(str != nullptr)
+            return _tlv_mem_reallocStringLen(self, text, str, strlen(str));
         return false;
     }
     static bool ptpmgmt_tlv_mem_freeMem(ptpmgmt_tlv_mem self, void *mem)

@@ -1262,7 +1262,8 @@ class MsgBuild : public MessageBuilder
         keys["stepsRemoved"].req = true;
         parseKeys;
         Binary gmIdentity;
-        gmIdentity.fromHex(keys["gmIdentity"].str_val);
+        if(!gmIdentity.fromHex(keys["gmIdentity"].str_val))
+            build_fail;
         gmIdentity.copy(d.gmIdentity.v);
         d.stepsRemoved = keys["stepsRemoved"].num;
         build_end;
