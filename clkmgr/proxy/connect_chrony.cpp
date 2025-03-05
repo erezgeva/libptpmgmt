@@ -99,10 +99,10 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index,
         if(content == CHRONY_CONTENT_NONE)
             continue;
         const char *field_name = chrony_get_field_name(s, j);
-        if(field_name != nullptr && strcmp(field_name, "Reference ID") == 0)
+        if(field_name != nullptr && strcmp(field_name, "reference ID") == 0)
             ptp4lEvents[timeBaseIndex].chrony_reference_id =
                 chrony_get_field_uinteger(s, j);
-        if(field_name != nullptr && strcmp(field_name, "Poll") == 0) {
+        if(field_name != nullptr && strcmp(field_name, "poll") == 0) {
             int32_t interval = static_cast<int32_t>
                 (static_cast<int16_t>(chrony_get_field_integer(s, j)));
             ptp4lEvents[timeBaseIndex].polling_interval =
@@ -113,7 +113,7 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index,
             #endif
         }
         if(field_name != nullptr && strcmp(field_name,
-                "Last sample offset (original)") == 0) {
+                "original last sample offset") == 0) {
             float second = (chrony_get_field_float(s, j) * 1e9);
             ptp4lEvents[timeBaseIndex].chrony_offset = (int)second;
             #if 0
