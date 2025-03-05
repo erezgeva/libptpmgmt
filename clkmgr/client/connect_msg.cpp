@@ -18,6 +18,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+extern std::vector<TimeBaseCfg> timeBaseCfgs;
 ClientState *ClientConnectMessage::currentClientState = nullptr;
 
 /**
@@ -51,6 +52,15 @@ PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
     PrintDebug("[ClientConnectMessage]::parseBuffer ");
     if(!CommonConnectMessage::parseBuffer(LxContext))
         return false;
+    size_t mapSize = 0;
+    if(!PARSE_RX(FIELD, mapSize, LxContext))
+        return false;
+    for(size_t i = 0; i < mapSize; ++i) {
+        TimeBaseCfg newCfg = {};
+        if(!PARSE_RX(FIELD, newCfg, LxContext))
+            return false;
+        timeBaseCfgs.push_back(newCfg);
+    }
     return true;
 }
 

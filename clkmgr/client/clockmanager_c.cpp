@@ -11,6 +11,7 @@
 
 #include "pub/clkmgr/clockmanager_c.h"
 #include "pub/clockmanager.h"
+#include <cstring>
 
 clkmgr_c_client_ptr clkmgr_c_client_fetch()
 {
@@ -33,8 +34,39 @@ bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr)
         (client_ptr)->clkmgr_disconnect();
 }
 
+bool clkmgr_c_get_timebase_cfgs(clkmgr_c_client_ptr client_ptr,
+    int time_base_index, struct Clkmgr_TimeBaseCfg *cfg)
+{
+    if(client_ptr == nullptr || cfg == nullptr)
+        return false;
+    clkmgr::ClockManager *cm = static_cast<clkmgr::ClockManager *>(client_ptr);
+    std::vector<clkmgr::TimeBaseCfg> cfgs = cm->clkmgr_get_timebase_cfgs();
+    if(static_cast<size_t>(time_base_index) > cfgs.size() || !time_base_index)
+        return false;
+    cfg->timeBaseIndex = cfgs[time_base_index - 1].timeBaseIndex;
+    strncpy(cfg->timeBaseName, cfgs[time_base_index - 1].timeBaseName,
+        CLKMGR_STRING_SIZE_MAX - 1);
+    strncpy(cfg->udsAddrChrony, cfgs[time_base_index - 1].udsAddrChrony,
+        CLKMGR_STRING_SIZE_MAX - 1);
+    strncpy(cfg->udsAddrPtp4l, cfgs[time_base_index - 1].udsAddrPtp4l,
+        CLKMGR_STRING_SIZE_MAX - 1);
+    strncpy(cfg->interfaceName, cfgs[time_base_index - 1].interfaceName,
+        CLKMGR_STRING_SIZE_MAX - 1);
+    cfg->transportSpecific = cfgs[time_base_index - 1].transportSpecific;
+    cfg->domainNumber = cfgs[time_base_index - 1].domainNumber;
+    return true;
+}
+
+size_t clkmgr_c_get_timebase_cfgs_size(clkmgr_c_client_ptr client_ptr)
+{
+    if(client_ptr == nullptr)
+        return 0;
+    clkmgr::ClockManager *cm = static_cast<clkmgr::ClockManager *>(client_ptr);
+    return cm->clkmgr_get_timebase_cfgs().size();
+}
+
 bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
-    const clkmgr_c_subscription sub,
+    const clkmgr_c_subscription sub, int time_base_index,
     Clkmgr_Event_state *current_state)
 {
     if(client_ptr == nullptr || current_state == nullptr)
@@ -51,7 +83,7 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
         sub.threshold[Clkmgr_thresholdChronyOffset].lower_limit);
     newsub.set_composite_event_mask(sub.composite_event_mask);
     ret = static_cast<clkmgr::ClockManager *>(client_ptr)->clkmgr_subscribe(newsub,
-            state);
+            time_base_index, state);
     if(ret) {
         current_state->as_capable = state.as_capable;
         current_state->offset_in_range = state.offset_in_range;

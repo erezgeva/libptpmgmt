@@ -13,6 +13,7 @@
 #include "common/message.hpp"
 #include "common/print.hpp"
 #include "common/serialize.hpp"
+#include "proxy/config_parser.hpp"
 #include "proxy/connect_msg.hpp"
 #include "proxy/client.hpp"
 #include "proxy/subscribe_msg.hpp"
@@ -92,5 +93,13 @@ BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
     if(!CommonConnectMessage::makeBuffer(TxContext))
         return false;
+    size_t mapSize = timeBaseCfgs.size();
+    if(!WRITE_TX(FIELD, mapSize, TxContext))
+        return false;;
+    for(size_t i = 0; i < mapSize; i++) {
+        TimeBaseCfg cfg = timeBaseCfgs[i];
+        if(!WRITE_TX(FIELD, cfg, TxContext))
+            return false;
+    }
     return true;
 }

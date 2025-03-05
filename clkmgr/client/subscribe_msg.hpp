@@ -30,6 +30,7 @@ class ClientSubscribeMessage : virtual public
     static ClientState *currentClientState;
     static std::map <sessionId_t, std::array<client_ptp_event *, 2>>
         client_ptp_event_map;
+    int timeBaseIndex = 0; /**< Timebase index */
 
   public:
     ClientSubscribeMessage() : MESSAGE_SUBSCRIBE() {};
@@ -59,6 +60,7 @@ class ClientSubscribeMessage : virtual public
     static bool initMessage();
 
     virtual PARSE_RXBUFFER_TYPE(parseBuffer);
+    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
     void setClientState(ClientState *newClientState);
 
@@ -72,6 +74,22 @@ class ClientSubscribeMessage : virtual public
 
     /* Reduce the corresponding eventCount */
     static void resetClientPtpEventStruct(sessionId_t sID, Event_count &eventCount);
+
+    /**
+     * Set the time base index.
+     * @param[in] newTimeBaseIndex The new time base index to set.
+     */
+    void set_timeBaseIndex(int newTimeBaseIndex) {
+        timeBaseIndex = newTimeBaseIndex;
+    }
+
+    /**
+     * Get the value of the time base index.
+     * @return The value of the time base index.
+     */
+    int get_timeBaseIndex() const {
+        return timeBaseIndex;
+    }
 };
 
 __CLKMGR_NAMESPACE_END

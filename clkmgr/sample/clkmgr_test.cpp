@@ -186,8 +186,20 @@ int main(int argc, char *argv[])
     std::cout << "GM Offset lower limit: " << std::dec << gmOffsetLowerLimit << " ns\n";
     std::cout << "Chrony Offset upper limit: " << std::dec << chronyGmOffsetUpperLimit << " ns\n";
     std::cout << "Chrony Offset lower limit: " << std::dec << chronyGmOffsetLowerLimit << " ns\n\n";
-
-    if (!cm.clkmgr_subscribe(subscription, eventState)) {
+    std::cout << "[clkmgr] List of available clock: \n";
+    /* Print out each member of the TimeBaseCfg objects */
+    for (const auto &cfg : cm.clkmgr_get_timebase_cfgs()) {
+        std::cout << "TimeBaseIndex: " << cfg.timeBaseIndex << "\n";
+        std::cout << "timeBaseName: " << cfg.timeBaseName << "\n";
+        std::cout << "udsAddrChrony: " << cfg.udsAddrChrony << "\n";
+        std::cout << "udsAddrPtp4l: " << cfg.udsAddrPtp4l << "\n";
+        std::cout << "interfaceName: " << cfg.interfaceName << "\n";
+        std::cout << "transportSpecific: " << static_cast<int>(cfg.transportSpecific) << "\n";
+        std::cout << "domainNumber: " << static_cast<int>(cfg.domainNumber) << "\n\n";
+    }
+    /* Subscribe to default time base index 1 */
+    std::cout << "[clkmgr] Subscribe to time base index 1. \n\n";
+    if (!cm.clkmgr_subscribe(subscription, 1, eventState)) {
         std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";
         cm.clkmgr_disconnect();
         return EXIT_FAILURE;

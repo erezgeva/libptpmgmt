@@ -166,7 +166,31 @@ int main(int argc, char *argv[])
 
     sleep(1);
 
-    if (clkmgr_c_subscribe(client_ptr, subscription, &event_state) == false) {
+    size_t index_size = clkmgr_c_get_timebase_cfgs_size(client_ptr);
+    if(index_size == 0) {
+        printf("[clkmgr] No available clock found !!!\n");
+        ret = EXIT_FAILURE;
+        goto do_exit;
+    }
+    printf("[clkmgr] List of available clock: \n");
+    for(size_t i = 1; i <= index_size; i++) {
+        struct Clkmgr_TimeBaseCfg cfg;
+        if (clkmgr_c_get_timebase_cfgs(client_ptr, i, &cfg)) {
+            printf("TimeBaseIndex: %d\n", cfg.timeBaseIndex);
+            printf("timeBaseName: %s\n", cfg.timeBaseName);
+            printf("udsAddrChrony: %s\n", cfg.udsAddrChrony);
+            printf("udsAddrPtp4l: %s\n", cfg.udsAddrPtp4l);
+            printf("interfaceName: %s\n", cfg.interfaceName);
+            printf("transportSpecific: %d\n", cfg.transportSpecific);
+            printf("domainNumber: %d\n\n", cfg.domainNumber);
+        } else {
+            printf("Failed to get time base configuration for index %d\n", i);
+        }
+    }
+
+    /* Subscribe to default time base index 1 */
+    printf("[clkmgr] Subscribe to time base index 1. \n");
+    if (clkmgr_c_subscribe(client_ptr, subscription, 1, &event_state) == false) {
         printf("[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n");
         ret = EXIT_FAILURE;
         goto do_exit;

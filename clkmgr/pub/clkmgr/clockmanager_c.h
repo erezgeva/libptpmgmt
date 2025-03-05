@@ -53,14 +53,32 @@ bool clkmgr_c_connect(clkmgr_c_client_ptr client_ptr);
 bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr);
 
 /**
+ * Get the time base configuration
+ * @param[in, out] client_ptr Pointer to the client instance
+ * @param[in] time_base_index Index of the time base to be retrieved
+ * @param[out] cfg Pointer to the TimeBaseCfg structures
+ * @return true on success, false on failure
+ */
+bool clkmgr_c_get_timebase_cfgs(clkmgr_c_client_ptr client_ptr,
+    int time_base_index, struct Clkmgr_TimeBaseCfg *cfg);
+
+/**
+ * Get the size of the time base configurations
+ * @param[in, out] client_ptr Pointer to the client instance
+ * @return The size of the time base configurations
+ */
+size_t clkmgr_c_get_timebase_cfgs_size(clkmgr_c_client_ptr client_ptr);
+
+/**
  * Subscribe to client events
  * @param[in, out] client_ptr Pointer to the client instance
  * @param[in] sub Subscription structure
+ * @param[in] time_base_index Index of the time base to be subscribed
  * @param[out] current_state Pointer to the current state structure
  * @return true on success, false on failure
  */
 bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
-    const struct clkmgr_c_subscription sub,
+    const struct clkmgr_c_subscription sub, int time_base_index,
     struct Clkmgr_Event_state *current_state);
 
 /**

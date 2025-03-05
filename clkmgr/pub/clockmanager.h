@@ -16,6 +16,7 @@
 
 #include "pub/clkmgr/subscription.h"
 #include <memory>
+#include <vector>
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -70,12 +71,19 @@ class ClockManager
     bool clkmgr_disconnect();
 
     /**
+     * Get the time base configurations
+     * @return vector of TimeBaseCfg
+     */
+    std::vector<TimeBaseCfg> clkmgr_get_timebase_cfgs() const;
+
+    /**
      * Subscribe to events
      * @param[in] newSub Reference to the new subscription
+     * @param[in] timeBaseIndex Index of the time base to be subscribed
      * @param[out] currentState Reference to the current state
      * @return true on success, false on failure
      */
-    bool clkmgr_subscribe(const ClkMgrSubscription &newSub,
+    bool clkmgr_subscribe(const ClkMgrSubscription &newSub, int timeBaseIndex,
         Event_state &currentState);
 
     /**

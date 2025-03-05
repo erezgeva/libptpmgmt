@@ -58,6 +58,16 @@ void ClientSubscribeMessage::setClientState(ClientState *newClientState)
     clkmgrCurrentState = &(newClientState->get_eventState());
 }
 
+BUILD_TXBUFFER_TYPE(ClientSubscribeMessage::makeBuffer) const
+{
+    PrintDebug("[ProxySubscribeMessage]::makeBuffer");
+    if(!CommonSubscribeMessage::makeBuffer(TxContext))
+        return false;
+    if(!WRITE_TX(FIELD, timeBaseIndex, TxContext))
+        return false;
+    return true;
+}
+
 PARSE_RXBUFFER_TYPE(ClientSubscribeMessage::parseBuffer)
 {
     ptp_event data = {};

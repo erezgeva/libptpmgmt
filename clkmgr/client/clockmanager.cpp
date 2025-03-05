@@ -37,6 +37,9 @@ rtpi::condition_variable ClientConnectMessage::cv;
 rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
 
+/* Global vector to hold all time base configurations */
+std::vector<TimeBaseCfg> timeBaseCfgs;
+
 ClockManager::ClockManager() : implClientState(new ClientState()) {}
 
 ClockManager::~ClockManager() = default;
@@ -90,8 +93,13 @@ bool ClockManager::clkmgr_connect()
     return true;
 }
 
+std::vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs() const
+{
+    return timeBaseCfgs;
+}
+
 bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
-    Event_state &currentState)
+    int timeBaseIndex, Event_state &currentState)
 {
     unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
     PrintDebug("[clkmgr]::subscribe");
@@ -103,6 +111,7 @@ bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
     } else
         PrintDebug("[clkmgr::subscribe] subscribeMsgcreation is OK !!");
     cmsg->setClientState(implClientState.get());
+    cmsg->set_timeBaseIndex(timeBaseIndex);
     /* Write the current event subscription */
     implClientState->set_eventSub(newSub);
     /* Copy the event Mask */
