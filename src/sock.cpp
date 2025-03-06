@@ -126,6 +126,10 @@ bool SockBase::sendReply(ssize_t cnt, size_t len) const
 }
 bool SockBase::poll(uint64_t timeout_ms) const
 {
+    if(!m_isInit) {
+        PTPMGMT_ERROR("Socket is not initialized");
+        return false;
+    }
     timeval to, *pto;
     if(timeout_ms > 0) {
         to = {
@@ -151,6 +155,10 @@ bool SockBase::poll(uint64_t timeout_ms) const
 }
 bool SockBase::tpoll(uint64_t &timeout_ms) const
 {
+    if(!m_isInit) {
+        PTPMGMT_ERROR("Socket is not initialized");
+        return false;
+    }
     bool have_clock = timeout_ms > 0;
     timespec start;
     if(have_clock)
