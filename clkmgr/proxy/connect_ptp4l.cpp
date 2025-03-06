@@ -55,8 +55,7 @@ map<int, ptp_event> ptp4lEvents;
 class ptpSet : MessageDispatcher
 {
   private:
-    int index; // Index of the time base (timeBaseIndex)
-    uint8_t domainNumber; // PTP Domain number
+    int timeBaseIndex; // Index of the time base
     const TimeBaseCfg &param; // time base configuration
     ptp_event &event;
     string udsAddr;
@@ -65,14 +64,18 @@ class ptpSet : MessageDispatcher
     bool do_notify = false;
     char buf[bufSize];
     int seq = 0; // PTP message sequance
-    // Used during initializing, before we create the thread
+    thread self;
   public:
-    ptpSet(const TimeBaseCfg &p) : index(p.timeBaseIndex),
-        domainNumber(p.domainNumber), param(p),
+    // These methods are used during initializing, before we create the thread.
+    ptpSet(const TimeBaseCfg &p) : timeBaseIndex(p.timeBaseIndex), param(p),
         event(ptp4lEvents[p.timeBaseIndex]) {}
     bool init();
     void close() { sku.close(); }
-    // Used inside the thread
+    void start();
+    // Theis method and this property are used to terminate the thread.
+    bool stopThread = false;
+    void wait();
+    // This is the thread method
     void thread_loop();
   private:
     void portDataSet(portState_e state, const ClockIdentity_t &id);
@@ -208,11 +211,13 @@ callback_define(CMLDS_INFO_NP)
 }
 void ptpSet::event_handle()
 {
+    if(stopThread)
+        return;
     do_notify = false;
     // Call the callbacks of the last message
     callHadler(msg);
     if(do_notify)
-        notify_client(index);
+        notify_client(timeBaseIndex);
 }
 
 /**
@@ -239,17 +244,28 @@ void ptpSet::thread_loop()
     bool lost_connection = false;
     if(!msg_set_action(PORT_PROPERTIES_NP))
         PrintDebug("Failed to get port properties\n");
-    sku.poll(timeout_ms);
-    ssize_t cnt = sku.rcv(buf, bufSize);
-    if(cnt > 0) {
-        MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
-        if(err == MNG_PARSE_ERROR_OK)
-            event_handle();
+    if(stopThread)
+        return;
+    bool ret = sku.poll(timeout_ms);
+    if(stopThread)
+        return;
+    if(ret) {
+        ssize_t cnt = sku.rcv(buf, bufSize);
+        if(cnt > 0) {
+            MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
+            if(err == MNG_PARSE_ERROR_OK)
+                event_handle();
+        }
     }
     msg_set_action(PORT_PROPERTIES_NP);
     event_subscription();
     for(;;) {
-        if(sku.poll(timeout_ms) > 0) {
+        if(stopThread)
+            return;
+        bool ret = sku.poll(timeout_ms);
+        if(stopThread)
+            return;
+        if(ret) {
             const auto cnt = sku.rcv(buf, bufSize);
             if(cnt > 0) {
                 MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
@@ -258,6 +274,8 @@ void ptpSet::thread_loop()
             }
         } else {
             for(;;) {
+                if(stopThread)
+                    return;
                 if(event_subscription())
                     break;
                 if(!lost_connection) {
@@ -268,7 +286,9 @@ void ptpSet::thread_loop()
                     event.synced_to_primary_clock = false;
                     event.as_capable = 0;
                     lost_connection = true;
-                    notify_client(index);
+                    if(stopThread)
+                        return;
+                    notify_client(timeBaseIndex);
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at address: " +
                     udsAddr);
@@ -292,15 +312,23 @@ void ptp4l_event_loop(ptpSet *set)
 
 bool ptpSet::init()
 {
-    string addr = baseAddr + to_string(domainNumber);
+    string addr = baseAddr + to_string(param.domainNumber);
     if(!sku.setDefSelfAddress(addr) || !sku.init() ||
         !sku.setPeerAddress(param.udsAddrPtp4l))
         return false;
     udsAddr = param.udsAddrPtp4l;
     MsgParams prms = msg.getParams();
     prms.transportSpecific = param.transportSpecific;
-    prms.domainNumber = domainNumber;
+    prms.domainNumber = param.domainNumber;
     return msg.updateParams(prms);
+}
+void ptpSet::start()
+{
+    self = thread(ptp4l_event_loop, this);
+}
+void ptpSet::wait()
+{
+    self.join();
 }
 
 int ConnectPtp4l::subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId)
@@ -359,15 +387,20 @@ int ConnectPtp4l::connect_ptp4l()
     all_init.store(true);
     for(auto &set : ptpSets)
         // Create a thread for each set
-        thread(ptp4l_event_loop, set.get()).detach();
-    // TODO why do we detach threads? Should we join them when we disconnect?
+        set->start();
     return 0;
 }
 
 void ConnectPtp4l::disconnect_ptp4l()
 {
-    /* TODO Should we mark the threads to stop and
-       join them before we close the sockets? */
+    for(auto &set : ptpSets)
+        set->stopThread = true;
+    // Give time and cpu to threads to end
+    sleep(1);
+    // Wait for threads to end
+    for(auto &set : ptpSets)
+        set->wait();
+    // Close the sockets
     for(auto &set : ptpSets)
         set->close();
 }
