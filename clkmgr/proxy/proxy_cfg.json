@@ -1,0 +1,38 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+   SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation. */
+
+/** @file
+ * @brief Proxy JSON Configuration
+ *
+ * @author Goh Wei Sheng <wei.sheng.goh@intel.com>
+ * @copyright © 2025 Intel Corporation.
+ *
+ */
+{
+    "timeBases": [
+        {
+            "timeBaseName": "Global Clock",
+            "ptp4l":
+            {
+                "interfaceName": "eth0",
+                "udsAddr": "/var/run/ptp4l-domain-0",
+                "domainNumber": 0,
+                "transportSpecific": 1
+            },
+            "chrony":
+            {
+                "udsAddr": "/var/run/chrony/chronyd.sock"
+            }
+        },
+        {
+            "timeBaseName": "Working Clock",
+            "ptp4l":
+            {
+                "interfaceName": "eth1",
+                "udsAddr": "/var/run/ptp4l-domain-20",
+                "domainNumber": 20,
+                "transportSpecific": 1
+            }
+        }
+    ]
+}

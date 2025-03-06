@@ -184,6 +184,7 @@ int ConnectChrony::subscribe_chrony(int timeBaseIndex, sessionId_t sessionId)
 
 void ConnectChrony::connect_chrony()
 {
+    const auto &timeBaseCfgs = JsonConfigParser::getInstance().getTimeBaseCfgs();
     for(const auto &param : timeBaseCfgs) {
         /* skip if chrony UDS address is empty */
         if(param.udsAddrChrony[0] == '\0')

@@ -93,6 +93,7 @@ BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
     if(!CommonConnectMessage::makeBuffer(TxContext))
         return false;
+    const auto &timeBaseCfgs = JsonConfigParser::getInstance().getTimeBaseCfgs();
     size_t mapSize = timeBaseCfgs.size();
     if(!WRITE_TX(FIELD, mapSize, TxContext))
         return false;;

@@ -432,6 +432,7 @@ static inline void close_all()
 int ConnectPtp4l::connect_ptp4l()
 {
     // Create all sets required for the threads
+    const auto &timeBaseCfgs = JsonConfigParser::getInstance().getTimeBaseCfgs();
     for(const auto &param : timeBaseCfgs) {
         // skip if ptp4l UDS address is empty
         if(*param.udsAddrPtp4l == 0)
