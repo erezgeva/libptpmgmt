@@ -48,6 +48,8 @@ const char *useDefstr = "/.pmc."; // relative to home directory
 const char *rootBasestr = "/var/run/pmc."; // Follow LinuxPTP
 const size_t unix_path_max = sizeof(((sockaddr_un *)nullptr)->sun_path) - 1;
 
+string SockUnix::m_homeDir;
+
 // Berkeley Packet Filter code
 // The code run on network order (big endian).
 // 0x30 Load bottom (2 last bytes of word)
@@ -135,27 +137,27 @@ bool SockBase::init()
 {
     return initBase();
 }
-bool SockBase::send(const void *msg, size_t len)
+bool SockBase::send(const void *msg, size_t len) const
 {
     return sendBase(msg, len);
 }
-bool SockBase::send(const Buf &buf, size_t len)
+bool SockBase::send(const Buf &buf, size_t len) const
 {
     return sendBase(buf.get(), len);
 }
-bool SockBase::sendBuf(const Buf &buf, size_t len)
+bool SockBase::sendBuf(const Buf &buf, size_t len) const
 {
     return sendBase(buf.get(), len);
 }
-ssize_t SockBase::rcv(void *buf, size_t bufSize, bool block)
+ssize_t SockBase::rcv(void *buf, size_t bufSize, bool block) const
 {
     return rcvBase(buf, bufSize, block);
 }
-ssize_t SockBase::rcv(Buf &buf, bool block)
+ssize_t SockBase::rcv(Buf &buf, bool block) const
 {
     return rcvBase(buf.get(), buf.size(), block);
 }
-ssize_t SockBase::rcvBuf(Buf &buf, bool block)
+ssize_t SockBase::rcvBuf(Buf &buf, bool block) const
 {
     return rcvBase(buf.get(), buf.size(), block);
 }
@@ -384,7 +386,7 @@ bool SockUnix::sendAny(const void *msg, size_t len,
     ssize_t cnt = sendto(m_fd, msg, len, 0, (sockaddr *)&addr, sizeof addr);
     return sendReply(cnt, len);
 }
-bool SockUnix::sendBase(const void *msg, size_t len)
+bool SockUnix::sendBase(const void *msg, size_t len) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("Socket is not initialized");
@@ -415,8 +417,12 @@ bool SockUnix::sendTo(const Buf &buf, size_t len, const string &addrStr,
 {
     return sendTo(buf.get(), len, addrStr, useAbstract);
 }
-ssize_t SockUnix::rcvBase(void *buf, size_t bufSize, bool block)
+ssize_t SockUnix::rcvBase(void *buf, size_t bufSize, bool block) const
 {
+    if(!m_isInit) {
+        PTPMGMT_ERROR("Socket is not initialized");
+        return -1;
+    }
     if(!testUnix(m_peer))
         return -1;
     string from;
@@ -569,7 +575,7 @@ bool SockIp::setUdpTtl(const ConfigFile &cfg, const string &section)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockIp::sendBase(const void *msg, size_t len)
+bool SockIp::sendBase(const void *msg, size_t len) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("Socket is not initialized");
@@ -578,7 +584,7 @@ bool SockIp::sendBase(const void *msg, size_t len)
     ssize_t cnt = sendto(m_fd, msg, len, 0, m_addr, m_addr_len);
     return sendReply(cnt, len);
 }
-ssize_t SockIp::rcvBase(void *buf, size_t bufSize, bool block)
+ssize_t SockIp::rcvBase(void *buf, size_t bufSize, bool block) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("Socket is not initialized");
@@ -760,8 +766,7 @@ bool SockIp6::setAllBase(const ConfigFile &cfg, const string &section)
 {
     return setUdpTtl(cfg, section) && setScope(cfg, section);
 }
-SockRaw::SockRaw() :
-    m_init(m_hdr)
+SockRaw::SockRaw() : m_init(m_hdr)
 {
 }
 bool SockRaw::setPtpDstMacStr(const string &str)
@@ -895,34 +900,39 @@ bool SockRaw::initBase()
     // TX
     m_addr.sll_halen = m_ptp_dst_mac.length();
     m_ptp_dst_mac.copy(m_addr.sll_addr);
-    m_msg_tx.msg_name = &m_addr;
-    m_msg_tx.msg_namelen = sizeof m_addr;
-    m_msg_tx.msg_iov = m_iov_tx;
-    m_msg_tx.msg_iovlen = sizeof(m_iov_tx) / sizeof(iovec);
     m_hdr.h_proto = port_ptp;
     m_ptp_dst_mac.copy(m_hdr.h_dest);
     m_mac.copy(m_hdr.h_source);
-    m_iov_tx[0].iov_base = &m_hdr;
-    m_iov_tx[0].iov_len = sizeof m_hdr;
-    // RX
-    m_msg_rx.msg_iov = m_iov_rx;
-    m_msg_rx.msg_iovlen = sizeof(m_iov_rx) / sizeof(iovec);
     m_isInit = true;
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool SockRaw::sendBase(const void *msg, size_t len)
+bool SockRaw::sendBase(const void *msg, size_t len) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("Socket is not initialized");
         return false;
     }
-    m_iov_tx[1].iov_base = (void *)msg;
-    m_iov_tx[1].iov_len = len;
-    ssize_t cnt = sendmsg(m_fd, &m_msg_tx, 0);
+    iovec iov_tx[2] = {
+        {
+            .iov_base = (void *) &m_hdr,
+            .iov_len = sizeof m_hdr
+        },
+        {
+            .iov_base = (void *)msg,
+            .iov_len = len
+        }
+    };
+    msghdr msg_tx = {
+        .msg_name = (void *) &m_addr,
+        .msg_namelen = sizeof m_addr,
+        .msg_iov = iov_tx,
+        .msg_iovlen = 2
+    };
+    ssize_t cnt = sendmsg(m_fd, &msg_tx, 0);
     return sendReply(cnt, len + sizeof m_hdr);
 }
-ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
+ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block) const
 {
     if(!m_isInit) {
         PTPMGMT_ERROR("Socket is not initialized");
@@ -931,26 +941,37 @@ ssize_t SockRaw::rcvBase(void *buf, size_t bufSize, bool block)
     int flags = 0;
     if(!block)
         flags |= MSG_DONTWAIT;
-    m_iov_rx[0].iov_base = m_rx_buf;
-    m_iov_rx[0].iov_len = sizeof m_rx_buf;
-    m_iov_rx[1].iov_base = buf;
-    m_iov_rx[1].iov_len = bufSize;
-    ssize_t cnt = recvmsg(m_fd, &m_msg_rx, flags);
+    uint8_t rx_buf[sizeof(ethhdr)];
+    iovec iov_rx[2] = {
+        {
+            .iov_base = rx_buf,
+            .iov_len = sizeof rx_buf
+        },
+        {
+            .iov_base = buf,
+            .iov_len = bufSize
+        }
+    };
+    msghdr msg_rx = {
+        .msg_iov = iov_rx,
+        .msg_iovlen = 2
+    };
+    ssize_t cnt = recvmsg(m_fd, &msg_rx, flags);
     if(cnt < 0) {
         PTPMGMT_ERROR_P("recvmsg");
         return -1;
     }
-    if(cnt < (ssize_t)(sizeof m_rx_buf)) {
+    if(cnt < (ssize_t)(sizeof rx_buf)) {
         PTPMGMT_ERROR("rcv %zu less than Ethernet header", cnt);
         return -1;
     }
-    if(cnt > (ssize_t)(bufSize + sizeof m_rx_buf)) {
+    if(cnt > (ssize_t)(bufSize + sizeof rx_buf)) {
         PTPMGMT_ERROR("rcv %zd more than buffer size %zu", cnt,
-            bufSize + sizeof m_rx_buf);
+            bufSize + sizeof rx_buf);
         return -1;
     }
     PTPMGMT_ERROR_CLR;
-    return cnt - sizeof m_rx_buf;
+    return cnt - sizeof rx_buf;
 }
 bool SockRaw::setAllBase(const ConfigFile &cfg, const string &section)
 {
@@ -996,14 +1017,14 @@ extern "C" {
             return s->init();
         return false;
     }
-    static bool ptpmgmt_sk_send(ptpmgmt_sk sk, const void *msg, size_t len)
+    static bool ptpmgmt_sk_send(const_ptpmgmt_sk sk, const void *msg, size_t len)
     {
         SockBase *s = valid_sk(sk);
         if(s != nullptr)
             return s->send(msg, len);
         return false;
     }
-    static ssize_t ptpmgmt_sk_rcv(ptpmgmt_sk sk, void *buf, size_t bufSize,
+    static ssize_t ptpmgmt_sk_rcv(const_ptpmgmt_sk sk, void *buf, size_t bufSize,
         bool block)
     {
         SockBase *s = valid_sk(sk);
@@ -1170,23 +1191,16 @@ extern "C" {
         }
         return false;
     }
-    static const char *non_ptpmgmt_sk_getHomeDir(ptpmgmt_sk)
+    const char *ptpmgmt_sk_getHomeDir()
     {
-        return nullptr;
+        return SockUnix::getHomeDir_c();
     }
-    static const char *ptpmgmt_sk_getHomeDir(ptpmgmt_sk sk)
-    {
-        SockUnix *s = valid_usk(sk);
-        if(s != nullptr)
-            return s->getHomeDir_c();
-        return nullptr;
-    }
-    static bool non_ptpmgmt_sk_sendTo(ptpmgmt_sk, const void *, size_t,
+    static bool non_ptpmgmt_sk_sendTo(const_ptpmgmt_sk, const void *, size_t,
         const char *)
     {
         return false;
     }
-    static bool ptpmgmt_sk_sendTo(ptpmgmt_sk sk, const void *msg, size_t len,
+    static bool ptpmgmt_sk_sendTo(const_ptpmgmt_sk sk, const void *msg, size_t len,
         const char *addrStr)
     {
         SockUnix *s = valid_usk(sk);
@@ -1194,12 +1208,12 @@ extern "C" {
             return s->sendTo(msg, len, addrStr, false);
         return false;
     }
-    static bool non_ptpmgmt_sk_sendToA(ptpmgmt_sk, const void *, size_t,
+    static bool non_ptpmgmt_sk_sendToA(const_ptpmgmt_sk, const void *, size_t,
         const char *)
     {
         return false;
     }
-    static bool ptpmgmt_sk_sendToA(ptpmgmt_sk sk, const void *msg, size_t len,
+    static bool ptpmgmt_sk_sendToA(const_ptpmgmt_sk sk, const void *msg, size_t len,
         const char *addrStr)
     {
         SockUnix *s = valid_usk(sk);
@@ -1428,7 +1442,7 @@ extern "C" {
         C_NO_ASGN(setSelfAddress);
         C_NO_ASGN(setSelfAddressAbstract);
         C_NO_ASGN(setDefSelfAddress);
-        C_NO_ASGN(getHomeDir);
+        C_ASGN(getHomeDir);
         C_NO_ASGN(sendTo);
         C_NO_ASGN(sendToA);
         C_NO_ASGN(rcvFrom);
@@ -1463,7 +1477,6 @@ extern "C" {
                 C_ASGN(setSelfAddress);
                 C_ASGN(setSelfAddressAbstract);
                 C_ASGN(setDefSelfAddress);
-                C_ASGN(getHomeDir);
                 C_ASGN(sendTo);
                 C_ASGN(sendToA);
                 C_ASGN(rcvFrom);
