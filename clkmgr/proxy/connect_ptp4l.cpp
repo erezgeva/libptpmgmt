@@ -12,6 +12,7 @@
 #include "common/print.hpp"
 #include "proxy/client.hpp"
 #include "proxy/config_parser.hpp"
+#include "proxy/connect_chrony.hpp"
 #include "proxy/connect_ptp4l.hpp"
 #include "proxy/notification_msg.hpp"
 
@@ -153,9 +154,30 @@ static map<int, unique_ptr<ptpSet>> ptpSets;
    We can not define the mutex inside the ptpSet class itself! */
 static map<int, rtpi::mutex> subscribedLock;
 
+int ConnectPtp4l::remove_ptp4l_subscriber(int timeBaseIndex,
+    sessionId_t sessionId)
+{
+    if(ptpSets.count(timeBaseIndex) > 0) {
+        if(ptpSets[timeBaseIndex]->unsubscribe(sessionId)) {
+            PrintDebug("sessionId " + to_string(sessionId) +
+                " unsubscribed successfully");
+            return 0; // Successfully unsubscribed
+        } else {
+            PrintDebug("sessionId " + to_string(sessionId) +
+                " was not subscribed");
+            return -1; // sessionId was not subscribed
+        }
+    } else {
+        PrintDebug("timeBaseIndex " + to_string(timeBaseIndex) +
+            " does not exist in the map");
+        return -1; // timeBaseIndex does not exist
+    }
+}
+
 void ptpSet::notify_client()
 {
     PrintDebug("[clkmgr]::notify_client");
+    vector<sessionId_t> sessionIdToRemove;
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
     for(const sessionId_t sessionId : subscribedClients) {
         ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
@@ -170,8 +192,18 @@ void ptpSet::notify_client()
         PrintDebug("Get client session ID: " + to_string(sessionId));
         auto TxContext =
             Client::GetClientSession(sessionId).get()->get_transmitContext();
-        if(!pmsg->transmitMessage(*TxContext))
-            Client::RemoveClientSession(sessionId);
+        if(!pmsg->transmitMessage(*TxContext)) {
+            /* Add sessionId into the list to remove */
+            sessionIdToRemove.push_back(sessionId);
+        }
+    }
+    local.unlock(); // Explicitly unlock the mutex
+    for(const sessionId_t sessionId : sessionIdToRemove) {
+        ConnectPtp4l::remove_ptp4l_subscriber(timeBaseIndex, sessionId);
+        #ifdef HAVE_LIBCHRONY
+        ConnectChrony::remove_chrony_subscriber(timeBaseIndex, sessionId);
+        #endif
+        Client::RemoveClientSession(sessionId);
     }
 }
 

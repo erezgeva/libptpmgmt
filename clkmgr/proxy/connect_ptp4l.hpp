@@ -22,6 +22,7 @@ class ConnectPtp4l
   public:
     static int connect_ptp4l();
     static int subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId);
+    static int remove_ptp4l_subscriber(int timeBaseIndex, sessionId_t sessionId);
     static void disconnect_ptp4l();
 };
 

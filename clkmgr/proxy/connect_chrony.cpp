@@ -13,6 +13,7 @@
 #include "proxy/client.hpp"
 #include "proxy/config_parser.hpp"
 #include "proxy/connect_chrony.hpp"
+#include "proxy/connect_ptp4l.hpp"
 #include "proxy/notification_msg.hpp"
 #include <chrony.h>
 
@@ -38,6 +39,20 @@ struct ThreadArgs {
     int fd;
 };
 
+int ConnectChrony::remove_chrony_subscriber(int timeBaseIndex,
+    sessionId_t sessionId)
+{
+    auto &clients = subscribedClientsChrony[timeBaseIndex];
+    for(auto it = clients.begin(); it != clients.end(); ++it) {
+        if(*it == sessionId) {
+            // sessionId found, remove it
+            clients.erase(it);
+            return 0;
+        }
+    }
+    return 0;
+}
+
 void chrony_notify_client(int timeBaseIndex)
 {
     PrintDebug("[clkmgr]::notify_client");
@@ -55,8 +70,11 @@ void chrony_notify_client(int timeBaseIndex)
         PrintDebug("Get client session ID: " + to_string(sessionId));
         auto TxContext = Client::GetClientSession(
                 sessionId).get()->get_transmitContext();
-        if(!pmsg->transmitMessage(*TxContext))
+        if(!pmsg->transmitMessage(*TxContext)) {
+            ConnectPtp4l::remove_ptp4l_subscriber(timeBaseIndex, sessionId);
+            ConnectChrony::remove_chrony_subscriber(timeBaseIndex, sessionId);
             Client::RemoveClientSession(sessionId);
+        }
     }
 }
 
