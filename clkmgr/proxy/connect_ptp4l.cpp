@@ -24,6 +24,7 @@
 #include <string>
 #include <unistd.h>
 #include <atomic>
+#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -143,10 +144,12 @@ class ptpSet : MessageDispatcher
 
 static vector<unique_ptr<ptpSet>> ptpSets;
 static map<int, vector<sessionId_t>> subscribedClients;
+static rtpi::mutex subscribedLock; // Prevent subscribe during notification
 
-void notify_client(int timeBaseIndex)
+static void notify_client(int timeBaseIndex)
 {
     PrintDebug("[clkmgr]::notify_client");
+    unique_lock<rtpi::mutex> local(subscribedLock);
     for(const auto &sessionId : subscribedClients[timeBaseIndex]) {
         ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
         if(pmsg == nullptr) {
@@ -302,7 +305,7 @@ void ptpSet::thread_loop()
     }
 }
 
-void ptp4l_event_loop(ptpSet *set)
+static void ptp4l_event_loop(ptpSet *set)
 {
     // Ensure we start after initializing ends
     while(!all_init.load())
@@ -334,13 +337,21 @@ void ptpSet::wait()
 int ConnectPtp4l::subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId)
 {
     auto it = ptp4lEvents.find(timeBaseIndex);
-    if(it != ptp4lEvents.end())
+    if(it != ptp4lEvents.end()) {
         // timeBaseIndex exists in the map
+        unique_lock<rtpi::mutex> local(subscribedLock);
         subscribedClients[timeBaseIndex].push_back(sessionId);
-    else
+    } else
         // timeBaseIndex does not exist in the map
         PrintDebug("timeBaseIndex does not exist in the map");
     return 0;
+}
+
+static inline void close_all()
+{
+    // Close the sockets
+    for(auto &set : ptpSets)
+        set->close();
 }
 
 /**
@@ -373,7 +384,7 @@ int ConnectPtp4l::connect_ptp4l()
     for(auto &set : ptpSets) {
         if(!set->init()) {
             // We need to close all other sockets, which succeed
-            disconnect_ptp4l();
+            close_all();
             return -1;
         }
     }
@@ -400,7 +411,5 @@ void ConnectPtp4l::disconnect_ptp4l()
     // Wait for threads to end
     for(auto &set : ptpSets)
         set->wait();
-    // Close the sockets
-    for(auto &set : ptpSets)
-        set->close();
+    close_all();
 }
