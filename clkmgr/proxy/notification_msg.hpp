@@ -25,7 +25,7 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
     virtual public NotificationMessage
 {
   private:
-    int timeBaseIndex;
+    int timeBaseIndex = 0;
   public:
     ProxyNotificationMessage() : MESSAGE_NOTIFY() {}
     virtual PROCESS_MESSAGE_TYPE(processMessage);
