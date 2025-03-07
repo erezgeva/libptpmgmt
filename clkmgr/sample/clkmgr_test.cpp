@@ -275,9 +275,9 @@ int main(int argc, char *argv[])
     sleep(1);
 
     while (!signal_flag) {
-        printf("[clkmgr][%.3f] Waiting for Notification Event...\n",
+        printf("[clkmgr][%.3f] Waiting Notification from time base index 1 ...\n",
             getMonotonicTime());
-        retval = cm.clkmgr_status_wait(timeout, eventState , eventCount);
+        retval = cm.clkmgr_status_wait(timeout, 1, eventState , eventCount);
         if (!retval) {
             printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                 getMonotonicTime(), timeout);

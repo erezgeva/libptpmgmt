@@ -91,6 +91,7 @@ class ClockManager
      * @param[in] timeout in seconds
      * @li Use 0 to check without waiting
      * @li Use -1 to wait until there is event changes occurs.
+     * @param[in] timeBaseIndex Index of the time base to be monitored
      * @param[out] currentState Reference to the current event state
      * @param[out] currentCount Reference to the current event count
      * @return result
@@ -98,8 +99,8 @@ class ClockManager
      * @li 0 No event changes
      * @li -1 lost connection to the Clock manager Proxy
      */
-    int clkmgr_status_wait(int timeout, Event_state &currentState,
-        Event_count &currentCount);
+    int clkmgr_status_wait(int timeout, int timeBaseIndex,
+        Event_state &currentState, Event_count &currentCount);
 
     /**
      * Retrieve the time of the CLOCK_REALTIME

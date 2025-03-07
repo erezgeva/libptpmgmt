@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
             printf("transportSpecific: %d\n", cfg.transportSpecific);
             printf("domainNumber: %d\n\n", cfg.domainNumber);
         } else {
-            printf("Failed to get time base configuration for index %d\n", i);
+            printf("Failed to get time base configuration for index %ld\n", i);
         }
     }
 
@@ -266,9 +266,9 @@ int main(int argc, char *argv[])
     sleep(1);
 
     while (1) {
-        printf("[clkmgr][%.3f] Waiting for Notification Event...\n",
+        printf("[clkmgr][%.3f] Waiting Notification from time base index 1 ...\n",
             getMonotonicTime());
-        retval = clkmgr_c_status_wait(client_ptr, timeout, &event_state , &event_count);
+        retval = clkmgr_c_status_wait(client_ptr, timeout, 1, &event_state , &event_count);
         if (!retval) {
             printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                 getMonotonicTime(), timeout);

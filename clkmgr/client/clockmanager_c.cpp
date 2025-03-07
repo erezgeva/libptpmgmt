@@ -103,7 +103,7 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
 }
 
 int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
-    Clkmgr_Event_state *current_state,
+    int time_base_index, Clkmgr_Event_state *current_state,
     Clkmgr_Event_count *current_count)
 {
     if(client_ptr == nullptr || current_state == nullptr ||
@@ -113,7 +113,8 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     clkmgr::Event_state state = {};
     int ret;
     ret = static_cast<clkmgr::ClockManager *>
-        (client_ptr)->clkmgr_status_wait(timeout, state, eventCount);
+        (client_ptr)->clkmgr_status_wait(timeout, time_base_index, state,
+            eventCount);
     if(ret < 0)
         return ret;
     current_state->as_capable = state.as_capable;

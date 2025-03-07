@@ -212,7 +212,7 @@ bool check_proxy_liveness(ClientState &implClientState)
     return true;
 }
 
-int ClockManager::clkmgr_status_wait(int timeout,
+int ClockManager::clkmgr_status_wait(int timeout, int timeBaseIndex,
     Event_state &currentState, Event_count &currentCount)
 {
     auto start = high_resolution_clock::now();
