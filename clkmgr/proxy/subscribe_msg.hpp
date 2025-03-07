@@ -22,7 +22,7 @@ class ProxySubscribeMessage : virtual public ProxyMessage,
     virtual public CommonSubscribeMessage
 {
   private:
-    int timeBaseIndex;
+    int timeBaseIndex = 0;
   protected:
     ProxySubscribeMessage() : MESSAGE_SUBSCRIBE() {};
   public:
@@ -43,6 +43,9 @@ class ProxySubscribeMessage : virtual public ProxyMessage,
      * @return true
      */
     static bool initMessage();
+    void setTimeBaseIndex(int newTimeBaseIndex) {
+        timeBaseIndex = newTimeBaseIndex;
+    }
 };
 
 __CLKMGR_NAMESPACE_END
