@@ -66,6 +66,7 @@ class ptpSet : MessageDispatcher
     char buf[bufSize];
     int seq = 0; // PTP message sequance
     thread self;
+    vector<sessionId_t> subscribedClients; // Clients list for notification
   public:
     // These methods are used during initializing, before we create the thread.
     ptpSet(const TimeBaseCfg &p) : timeBaseIndex(p.timeBaseIndex), param(p),
@@ -78,6 +79,10 @@ class ptpSet : MessageDispatcher
     void wait();
     // This is the thread method
     void thread_loop();
+    // notification subscribe
+    bool subscribe(sessionId_t sessionId);
+    // notification unsubscribe
+    bool unsubscribe(sessionId_t sessionId);
   private:
     void portDataSet(portState_e state, const ClockIdentity_t &id);
     callback_declare(TIME_STATUS_NP);
@@ -88,6 +93,7 @@ class ptpSet : MessageDispatcher
         portDataSet(tlv.portState, tlv.portIdentity.clockIdentity);
     }
     callback_declare(CMLDS_INFO_NP);
+    void notify_client();
     void event_handle();
     bool msg_send() {
         MNG_PARSE_ERROR_e err = msg.build(buf, bufSize, seq);
@@ -142,15 +148,16 @@ class ptpSet : MessageDispatcher
     }
 };
 
-static vector<unique_ptr<ptpSet>> ptpSets;
-static map<int, vector<sessionId_t>> subscribedClients;
-static rtpi::mutex subscribedLock; // Prevent subscribe during notification
+static map<int, unique_ptr<ptpSet>> ptpSets;
+/* Prevent subscribe during notification per set
+   We can not define the mutex inside the ptpSet class itself! */
+static map<int, rtpi::mutex> subscribedLock;
 
-static void notify_client(int timeBaseIndex)
+void ptpSet::notify_client()
 {
     PrintDebug("[clkmgr]::notify_client");
-    unique_lock<rtpi::mutex> local(subscribedLock);
-    for(const auto &sessionId : subscribedClients[timeBaseIndex]) {
+    unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
+    for(const sessionId_t sessionId : subscribedClients) {
         ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
         if(pmsg == nullptr) {
             PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
@@ -220,7 +227,7 @@ void ptpSet::event_handle()
     // Call the callbacks of the last message
     callHadler(msg);
     if(do_notify)
-        notify_client(timeBaseIndex);
+        notify_client();
 }
 
 /**
@@ -291,7 +298,7 @@ void ptpSet::thread_loop()
                     lost_connection = true;
                     if(stopThread)
                         return;
-                    notify_client(timeBaseIndex);
+                    notify_client();
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at address: " +
                     udsAddr);
@@ -319,6 +326,7 @@ bool ptpSet::init()
     if(!sku.setDefSelfAddress(addr) || !sku.init() ||
         !sku.setPeerAddress(param.udsAddrPtp4l))
         return false;
+    subscribedLock[timeBaseIndex]; // Make dure mutex exist before we start
     udsAddr = param.udsAddrPtp4l;
     MsgParams prms = msg.getParams();
     prms.transportSpecific = param.transportSpecific;
@@ -333,25 +341,46 @@ void ptpSet::wait()
 {
     self.join();
 }
-
+bool ptpSet::subscribe(sessionId_t sessionId)
+{
+    unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
+    for(const sessionId_t &id : subscribedClients) {
+        if(id == sessionId)
+            return false; // Client is already subscribed
+    }
+    subscribedClients.push_back(sessionId);
+    return true;
+}
+bool ptpSet::unsubscribe(sessionId_t sessionId)
+{
+    unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
+    for(auto it = subscribedClients.begin(); it != subscribedClients.end(); it++) {
+        if(*it == sessionId) {
+            subscribedClients.erase(it);
+            return true;
+        }
+    }
+    return false; // Client was not subscribed
+}
 int ConnectPtp4l::subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId)
 {
-    auto it = ptp4lEvents.find(timeBaseIndex);
-    if(it != ptp4lEvents.end()) {
-        // timeBaseIndex exists in the map
-        unique_lock<rtpi::mutex> local(subscribedLock);
-        subscribedClients[timeBaseIndex].push_back(sessionId);
+    if(ptpSets.count(timeBaseIndex) > 0) {
+        if(!ptpSets[timeBaseIndex]->subscribe(sessionId)) {
+            PrintDebug("sessionId " + to_string(sessionId) +
+                " is already subscribe");
+            return -1; // We try to subscribe twice
+        }
     } else
-        // timeBaseIndex does not exist in the map
-        PrintDebug("timeBaseIndex does not exist in the map");
+        PrintDebug("timeBaseIndex " + to_string(timeBaseIndex) +
+            " does not exist in the map");
     return 0;
 }
 
 static inline void close_all()
 {
     // Close the sockets
-    for(auto &set : ptpSets)
-        set->close();
+    for(const auto &it : ptpSets)
+        it.second->close();
 }
 
 /**
@@ -378,11 +407,11 @@ int ConnectPtp4l::connect_ptp4l()
         ptpSet *set = new ptpSet(param);
         if(set == nullptr)
             return -1;
-        ptpSets.push_back(unique_ptr<ptpSet>(set));
+        ptpSets[param.timeBaseIndex].reset(set);
     }
     // initializing before creating the threads
-    for(auto &set : ptpSets) {
-        if(!set->init()) {
+    for(const auto &it : ptpSets) {
+        if(!it.second->init()) {
             // We need to close all other sockets, which succeed
             close_all();
             return -1;
@@ -396,20 +425,20 @@ int ConnectPtp4l::connect_ptp4l()
     eventsTlv.setEvent(NOTIFY_CMLDS);
     // Ensure threads start after we initializing
     all_init.store(true);
-    for(auto &set : ptpSets)
+    for(const auto &it : ptpSets)
         // Create a thread for each set
-        set->start();
+        it.second->start();
     return 0;
 }
 
 void ConnectPtp4l::disconnect_ptp4l()
 {
-    for(auto &set : ptpSets)
-        set->stopThread = true;
+    for(const auto &it : ptpSets)
+        it.second->stopThread = true;
     // Give time and cpu to threads to end
     sleep(1);
     // Wait for threads to end
-    for(auto &set : ptpSets)
-        set->wait();
+    for(const auto &it : ptpSets)
+        it.second->wait();
     close_all();
 }
