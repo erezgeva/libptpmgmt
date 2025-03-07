@@ -19,6 +19,7 @@
 
 class jsonMain;
 class jsonParser;
+class jsonValue;
 class jsonObject;
 class jsonArray;
 
@@ -70,7 +71,22 @@ class jsonValueBase
       * Get value type
       * @return value type
       */
-    e_type getType();
+    e_type getType() const;
+    /**
+      * Get value object
+      * @return value object
+      */
+    jsonValue *getVal();
+    /**
+      * Get JSON object object
+      * @return JSON object object
+      */
+    jsonObject *getObj();
+    /**
+      * Get JSON array object
+      * @return JSON array object
+      */
+    jsonArray *getArr();
 };
 
 /** class jsonValue for string, number, boolean or null value */
@@ -248,6 +264,9 @@ class jsonObject : public jsonValueBase
     jsonArray *getArr(const std::string &key);
 };
 
+/** Iterator type of jsonArray elements */
+typedef std::vector<jsonValueBase *>::iterator arr_iter;
+
 /** class jsonArray for holding JSON array with elements */
 class jsonArray : public jsonValueBase
 {
@@ -270,6 +289,16 @@ class jsonArray : public jsonValueBase
       * @return number of elements
       */
     size_t size() const;
+    /**
+      * Get members begin iterator
+      * @return iterator to start of all members
+      */
+    arr_iter begin();
+    /**
+      * Get members end iterator
+      * @return iterator to end
+      */
+    arr_iter end();
     /**
       * Get element value type with index
       * @param[in] index number
@@ -294,6 +323,30 @@ class jsonArray : public jsonValueBase
       * @return JSON array object
       */
     jsonArray *getArr(size_t index) const;
+    /**
+      * Get element value type with index
+      * @param[in] iterator to element
+      * @return value type
+      */
+    e_type getType(const arr_iter &iterator) const;
+    /**
+      * Get element value object with index
+      * @param[in] iterator to element
+      * @return value object
+      */
+    jsonValue *getVal(const arr_iter &iterator) const;
+    /**
+      * Get element JSON object object with index
+      * @param[in] iterator to element
+      * @return JSON object object
+      */
+    jsonObject *getObj(const arr_iter &iterator) const;
+    /**
+      * Get element JSON array object with index
+      * @param[in] iterator to element
+      * @return JSON array object
+      */
+    jsonArray *getArr(const arr_iter &iterator) const;
 };
 
 /** class jsonMain for holding a JSON value */

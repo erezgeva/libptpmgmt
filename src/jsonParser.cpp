@@ -74,7 +74,7 @@ class jsonParser
                 case '\t':
                     break; // 0x09 horizontal tabulation
                 case ' ':
-                    break;  // 0x20 space
+                    break; // 0x20 space
                 default:
                     return false;
             }
@@ -597,22 +597,25 @@ e_type jsonMain::getType() const
 {
     return main != nullptr ? main->getType() : t_non;
 }
+static inline bool isJsonVal(e_type type)
+{
+    switch(type) {
+        case t_string:
+            FALLTHROUGH;
+        case t_number:
+            FALLTHROUGH;
+        case t_boolean:
+            FALLTHROUGH;
+        case t_null:
+            return true;
+        default:
+            return false;
+    }
+}
 jsonValue *jsonMain::getVal() const
 {
-    if(main != nullptr)
-        switch(main->getType()) {
-            case t_string:
-                FALLTHROUGH;
-            case t_number:
-                FALLTHROUGH;
-            case t_boolean:
-                FALLTHROUGH;
-            case t_null:
-                return dynamic_cast<jsonValue *>(main);
-            default:
-                break;
-        }
-    return nullptr;
+    return main != nullptr &&
+        isJsonVal(main->getType()) ? dynamic_cast<jsonValue *>(main) : nullptr;
 };
 jsonObject *jsonMain::getObj() const
 {
@@ -630,9 +633,21 @@ jsonValueBase::jsonValueBase(e_type type) : m_type(type)
 jsonValueBase::~jsonValueBase()
 {
 }
-e_type jsonValueBase::getType()
+e_type jsonValueBase::getType() const
 {
     return m_type;
+}
+jsonValue *jsonValueBase::getVal()
+{
+    return isJsonVal(m_type) ? dynamic_cast<jsonValue *>(this) : nullptr;
+}
+jsonObject *jsonValueBase::getObj()
+{
+    return m_type == t_object ? dynamic_cast<jsonObject *>(this) : nullptr;
+}
+jsonArray *jsonValueBase::getArr()
+{
+    return m_type == t_array ? dynamic_cast<jsonArray *>(this) : nullptr;
 }
 jsonValue::jsonValue(e_type type, bool boolean) : jsonValueBase(type),
     valBool(boolean)
@@ -809,19 +824,8 @@ e_type jsonObject::getMulType(const obj_iter &iter) const
 }
 jsonValue *jsonObject::getMulVal(const obj_iter &iter) const
 {
-    switch(iter->second->getType()) {
-        case t_string:
-            FALLTHROUGH;
-        case t_number:
-            FALLTHROUGH;
-        case t_boolean:
-            FALLTHROUGH;
-        case t_null:
-            break;
-        default:
-            return nullptr;
-    }
-    return dynamic_cast<jsonValue *>(iter->second);
+    return isJsonVal(iter->second->getType()) ?
+        dynamic_cast<jsonValue *>(iter->second) : nullptr;
 }
 jsonObject *jsonObject::getMulObj(const obj_iter &iter) const
 {
@@ -861,26 +865,23 @@ size_t jsonArray::size() const
 {
     return elements.size();
 }
+arr_iter jsonArray::begin()
+{
+    return elements.begin();
+}
+arr_iter jsonArray::end()
+{
+    return elements.end();
+}
 e_type jsonArray::getType(size_t index) const
 {
     return index < elements.size() ? elements[index]->getType() : t_non;
 }
 jsonValue *jsonArray::getVal(size_t index) const
 {
-    if(index < elements.size())
-        switch(elements[index]->getType()) {
-            case t_string:
-                FALLTHROUGH;
-            case t_number:
-                FALLTHROUGH;
-            case t_boolean:
-                FALLTHROUGH;
-            case t_null:
-                return dynamic_cast<jsonValue *>(elements[index]);
-            default:
-                break;
-        }
-    return nullptr;
+    return index < elements.size() &&
+        isJsonVal(elements[index]->getType()) ?
+        dynamic_cast<jsonValue *>(elements[index]) : nullptr;
 }
 jsonObject *jsonArray::getObj(size_t index) const
 {
@@ -891,6 +892,25 @@ jsonArray *jsonArray::getArr(size_t index) const
 {
     return index < elements.size() && elements[index]->getType() == t_array ?
         dynamic_cast<jsonArray *>(elements[index]) : nullptr;
+}
+e_type jsonArray::getType(const arr_iter &iterator) const
+{
+    return (*iterator)->getType();
+}
+jsonValue *jsonArray::getVal(const arr_iter &iterator) const
+{
+    return isJsonVal((*iterator)->getType()) ?
+        dynamic_cast<jsonValue *>(*iterator) : nullptr;
+}
+jsonObject *jsonArray::getObj(const arr_iter &iterator) const
+{
+    return (*iterator)->getType() == t_object ?
+        dynamic_cast<jsonObject *>(*iterator) : nullptr;
+}
+jsonArray *jsonArray::getArr(const arr_iter &iterator) const
+{
+    return (*iterator)->getType() == t_array ?
+        dynamic_cast<jsonArray *>(*iterator) : nullptr;
 }
 
 const char *jsonType2str(e_type type)
