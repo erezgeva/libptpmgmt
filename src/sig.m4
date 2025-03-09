@@ -60,6 +60,7 @@ strc(ORGANIZATION_EXTENSION_t) sz(: public BaseSigTlv) {
     Octet_t organizationId[3]; /**< IEEE organization ID */
     Octet_t organizationSubType[3]; /**< sub-organization ID */
     bintyp()dataField; /**< organization own data */
+c_cod(`    size_t dataSize; /**< size of data (For C usage) */')dnl
 };
 /** PATH_TRACE TLV */
 strc(PATH_TRACE_t) sz(: public BaseSigTlv) {

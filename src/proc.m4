@@ -244,9 +244,15 @@ strc(UNICAST_NEGOTIATION_ENABLE_t) sz(: public BaseMngTlv) {
     uint8_t flags;
 cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
 };
-/** Path trace list TLV */
+/**
+ * Path trace list TLV
+c_cod(` * @note Last elemnt in list is set to a zero value')dnl
+c_cod(` * @note actualTableSize is set on convertion from C++ to C')dnl
+c_cod(` *       and otherwise ignored.')dnl
+ */
 strc(PATH_TRACE_LIST_t) sz(: public BaseMngTlv) {
     vec(ClockIdentity_t)pathSequence; /**< clock id per path */
+c_cod(`    size_t actualTableSize; /**< Number of addresses in table */')dnl
 };
 /** Path-trace enable TLV */
 strc(PATH_TRACE_ENABLE_t) sz(: public BaseMngTlv) {
@@ -262,7 +268,7 @@ strc(GRANDMASTER_CLUSTER_TABLE_t) sz(: public BaseMngTlv) {
     /** logarithm to the base 2 of the mean interval in seconds between
         unicast Announce messages from grandmaster */
     Integer8_t logQueryInterval;
-    UInteger8_t actualTableSize; /**< Number of addresses table */
+    UInteger8_t actualTableSize; /**< Number of addresses in table */
     /** Port addresses of grandmasters cluster */
     vec(PortAddress_t)PortAddress;
 };
@@ -271,7 +277,7 @@ strc(UNICAST_MASTER_TABLE_t) sz(: public BaseMngTlv) {
     /** logarithm to the base 2 of the mean interval in seconds between
         unicast Announce messages from time transmitter */
     Integer8_t logQueryInterval;
-    UInteger16_t actualTableSize; /**< Number of addresses table */
+    UInteger16_t actualTableSize; /**< Number of addresses in table */
     /** Port addresses of unicast time transmitters */
     vec(PortAddress_t)PortAddress;
 };
@@ -282,7 +288,7 @@ strc(UNICAST_MASTER_MAX_TABLE_SIZE_t) sz(: public BaseMngTlv) {
 };
 /** Acceptable time transmitter table TLV */
 strc(ACCEPTABLE_MASTER_TABLE_t) sz(: public BaseMngTlv) {
-    Integer16_t actualTableSize; /**< Number of addresses table */
+    Integer16_t actualTableSize; /**< Number of elements in table */
     /** Acceptable time transmitter table records */
     vec(AcceptableMaster_t)list;
 };
@@ -523,11 +529,11 @@ cpp_cod(`    bool getEvent(int event) const;')dnl
 cpp_cod(`    /** @cond internal */')dnl
 cpp_cod(`    /** Divide event to byte and bit locations */')dnl
 cpp_cod(`    static std::div_t div_event(int event);')dnl
+cpp_cod(`    /** Divide event to byte and bit locations */')dnl
+cpp_cod(`    static bool div_event(int event, std::div_t &d);')dnl
 cpp_cod(`  private:')dnl
 cpp_cod(`    /** Divide event to byte and bit locations without check */')dnl
 cpp_cod(`    static void div_event_wo(int event, std::div_t &d);')dnl
-cpp_cod(`    /** Divide event to byte and bit locations */')dnl
-cpp_cod(`    static bool div_event(int event, std::div_t &d);')dnl
 cpp_cod(`    /**< @endcond */')dnl
 cpp_cod(`};')dnl
 /** Port properties TLV
@@ -613,7 +619,7 @@ strc(PORT_SERVICE_STATS_NP_t) sz(: public BaseMngTlv) {
  * @note linuxptp implementation specific
  */
 strc(UNICAST_MASTER_TABLE_NP_t) sz(: public BaseMngTlv) {
-    Integer16_t actualTableSize; /**< Number of addresses table */
+    Integer16_t actualTableSize; /**< Number of elements in table */
     /** unicast masters table */
     vec(LinuxptpUnicastMaster_t)unicastMasters;
 };
