@@ -331,7 +331,7 @@ bool MsgProc::proc(string &str, uint16_t len)
     if(m_build)
         memcpy(m_cur, str.c_str(), len);
     else
-        str = string((char *)m_cur, len);
+        str.assign((char *)m_cur, len);
     move(len);
     return false;
 }
@@ -932,426 +932,422 @@ A(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
     }\
     ptpmgmt_##n##_t *m = (ptpmgmt_##n##_t *)x
 
-#define C1_TEXT(a, d, n) c1_text(a.n, d.n)
-void c1_text(ptpmgmt_PTPText_t &a, const PTPText_t &d)
+#define C1_MM(n) m[i].n = f.n
+#define C1_MC(n, c) a.n = (ptpmgmt_##c##_e)d.n
+#define C_M(n) a.n = d.n
+#define C_CP(n, s) memcpy(a.n, d.n, s)
+#define C_VARA(n) c_st(a.n, d.n)
+#define C_VARM(n) c_st(m[i].n, f.n)
+#define C_VARR(n) c_st(r.n, f.n)
+// Used in sig.cpp
+void c_st(ptpmgmt_PTPText_t &a, const PTPText_t &d)
 {
-    if(d.textField.empty()) {
+    size_t sz = d.textField.size();
+    if(sz > 0) {
+        a.lengthField = std::min(sz, (size_t)UINT8_MAX);
+        a.textField = d.textField.c_str();
+    } else {
         a.lengthField = 0;
         a.textField = nullptr;
-    } else {
-        a.lengthField = d.textField.size();
-        a.textField = d.textField.c_str();
     }
 }
-void c1_port(ptpmgmt_PortAddress_t &a, const PortAddress_t &d)
+#define C1_B(b, s) c_st(a.b, a.s, d.b, d.s)
+static inline void c_st(uint8_t *&b, uint16_t &n, const Binary &d, uint16_t m)
 {
-    a.networkProtocol = (ptpmgmt_networkProtocol_e)d.networkProtocol;
-    a.addressLength = d.addressLength;
-    a.addressField = const_cast<uint8_t *>(d.addressField.get());
+    n = d.empty() ? 0 : m;
+    b = n > 0 ? const_cast<uint8_t *>(d.get()) : nullptr;
 }
-#define C1_QUALITY(a, d, n) c1_quality(a.n, d.n)
-void c1_quality(ptpmgmt_ClockQuality_t &a, const ClockQuality_t &d)
+// Used in sig.cpp
+void c_st(ptpmgmt_PortAddress_t &a, const PortAddress_t &d)
 {
-    a.clockClass = d.clockClass;
-    a.clockAccuracy = (ptpmgmt_clockAccuracy_e)d.clockAccuracy;
-    a.offsetScaledLogVariance = d.offsetScaledLogVariance;
+    C1_MC(networkProtocol, networkProtocol);
+    C1_B(addressField, addressLength);
+}
+static inline void c_st(ptpmgmt_ClockQuality_t &a, const ClockQuality_t &d)
+{
+    C_M(clockClass);
+    C1_MC(clockAccuracy, clockAccuracy);
+    C_M(offsetScaledLogVariance);
+}
+static inline void c_st(ptpmgmt_PortIdentity_t &a, const PortIdentity_t &d)
+{
+    C_M(portNumber);
+    C_CP(clockIdentity.v, ClockIdentity_t::size());
 }
 
 C1(CLOCK_DESCRIPTION)
 {
-    a.clockType = d.clockType;
-    C1_TEXT(a, d, physicalLayerProtocol);
-    a.physicalAddressLength = d.physicalAddressLength;
-    a.physicalAddress = const_cast<uint8_t *>(d.physicalAddress.get());
-    c1_port(a.protocolAddress, d.protocolAddress);
-    memcpy(a.manufacturerIdentity, d.manufacturerIdentity, 3);
-    C1_TEXT(a, d, productDescription);
-    C1_TEXT(a, d, revisionData);
-    C1_TEXT(a, d, userDescription);
-    memcpy(a.profileIdentity, d.profileIdentity, 6);
+    C_M(clockType);
+    C_VARA(physicalLayerProtocol);
+    C1_B(physicalAddress, physicalAddressLength);
+    C_VARA(protocolAddress);
+    C_CP(manufacturerIdentity, 3);
+    C_VARA(productDescription);
+    C_VARA(revisionData);
+    C_VARA(userDescription);
+    C_CP(profileIdentity, 6);
 }
 C1(USER_DESCRIPTION)
 {
-    C1_TEXT(a, d, userDescription);
+    C_VARA(userDescription);
 }
 C1(INITIALIZE)
 {
-    a.initializationKey = d.initializationKey;
+    C_M(initializationKey);
 }
 C1(FAULT_LOG)
 {
     C1_tbl(FaultRecord, numberOfFaultRecords, faultRecords);
     for(int i = 0; i < d.numberOfFaultRecords; i++) {
         const FaultRecord_t &f = d.faultRecords[i];
-        m[i].faultRecordLength = f.faultRecordLength;
-        m[i].faultTime.secondsField = f.faultTime.secondsField;
-        m[i].faultTime.nanosecondsField = f.faultTime.nanosecondsField;
+        C1_MM(faultRecordLength);
+        C1_MM(faultTime.secondsField);
+        C1_MM(faultTime.nanosecondsField);
         m[i].severityCode = (ptpmgmt_faultRecord_e)f.severityCode;
-        C1_TEXT(m[i], f, faultName);
-        C1_TEXT(m[i], f, faultValue);
-        C1_TEXT(m[i], f, faultDescription);
+        C_VARM(faultName);
+        C_VARM(faultValue);
+        C_VARM(faultDescription);
     }
     a.faultRecords = m;
 }
 C1(DEFAULT_DATA_SET)
 {
-    a.flags = d.flags;
-    a.numberPorts = d.numberPorts;
-    a.priority1 = d.priority1;
-    C1_QUALITY(a, d, clockQuality);
-    a.priority2 = d.priority2;
-    memcpy(a.clockIdentity.v, d.clockIdentity.v, ClockIdentity_t::size());
-    a.domainNumber = d.domainNumber;
+    C_M(flags);
+    C_M(numberPorts);
+    C_M(priority1);
+    C_VARA(clockQuality);
+    C_M(priority2);
+    C_CP(clockIdentity.v, ClockIdentity_t::size());
+    C_M(domainNumber);
 }
 C1(CURRENT_DATA_SET)
 {
-    a.stepsRemoved = d.stepsRemoved;
-    a.offsetFromMaster.scaledNanoseconds = d.offsetFromMaster.scaledNanoseconds;
-    a.meanPathDelay.scaledNanoseconds = d.meanPathDelay.scaledNanoseconds;
+    C_M(stepsRemoved);
+    C_M(offsetFromMaster.scaledNanoseconds);
+    C_M(meanPathDelay.scaledNanoseconds);
 }
 C1(PARENT_DATA_SET)
 {
-    a.parentPortIdentity.portNumber = d.parentPortIdentity.portNumber;
-    memcpy(a.parentPortIdentity.clockIdentity.v,
-        d.parentPortIdentity.clockIdentity.v, ClockIdentity_t::size());
-    a.flags = d.flags;
-    a.observedParentOffsetScaledLogVariance =
-        d.observedParentOffsetScaledLogVariance;
-    a.observedParentClockPhaseChangeRate = d.observedParentClockPhaseChangeRate;
-    a.grandmasterPriority1 = d.grandmasterPriority1;
-    C1_QUALITY(a, d, grandmasterClockQuality);
-    a.grandmasterPriority2 = d.grandmasterPriority2;
-    memcpy(a.grandmasterIdentity.v, d.grandmasterIdentity.v,
-        ClockIdentity_t::size());
+    C_VARA(parentPortIdentity);
+    C_M(flags);
+    C_M(observedParentOffsetScaledLogVariance);
+    C_M(observedParentClockPhaseChangeRate);
+    C_M(grandmasterPriority1);
+    C_VARA(grandmasterClockQuality);
+    C_M(grandmasterPriority2);
+    C_CP(grandmasterIdentity.v, ClockIdentity_t::size());
 }
 C1(TIME_PROPERTIES_DATA_SET)
 {
-    a.currentUtcOffset = d.currentUtcOffset;
-    a.flags = d.flags;
-    a.timeSource = (ptpmgmt_timeSource_e)d.timeSource;
+    C_M(currentUtcOffset);
+    C_M(flags);
+    C1_MC(timeSource, timeSource);
 }
 C1(PORT_DATA_SET)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.portState = (ptpmgmt_portState_e)d.portState;
-    a.logMinDelayReqInterval = d.logMinDelayReqInterval;
-    a.peerMeanPathDelay.scaledNanoseconds = d.peerMeanPathDelay.scaledNanoseconds;
-    a.logAnnounceInterval = d.logAnnounceInterval;
-    a.announceReceiptTimeout = d.announceReceiptTimeout;
-    a.logSyncInterval = d.logSyncInterval;
-    a.delayMechanism = (ptpmgmt_delayMechanism_e)d.delayMechanism;
-    a.logMinPdelayReqInterval = d.logMinPdelayReqInterval;
-    a.versionNumber = d.versionNumber;
+    C_VARA(portIdentity);
+    C1_MC(portState, portState);
+    C_M(logMinDelayReqInterval);
+    C_M(peerMeanPathDelay.scaledNanoseconds);
+    C_M(logAnnounceInterval);
+    C_M(announceReceiptTimeout);
+    C_M(logSyncInterval);
+    C1_MC(delayMechanism, delayMechanism);
+    C_M(logMinPdelayReqInterval);
+    C_M(versionNumber);
 }
 C1(PRIORITY1)
 {
-    a.priority1 = d.priority1;
+    C_M(priority1);
 }
 C1(PRIORITY2)
 {
-    a.priority2 = d.priority2;
+    C_M(priority2);
 }
 C1(DOMAIN)
 {
-    a.domainNumber = d.domainNumber;
+    C_M(domainNumber);
 }
 C1(SLAVE_ONLY)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(LOG_ANNOUNCE_INTERVAL)
 {
-    a.logAnnounceInterval = d.logAnnounceInterval;
+    C_M(logAnnounceInterval);
 }
 C1(ANNOUNCE_RECEIPT_TIMEOUT)
 {
-    a.announceReceiptTimeout = d.announceReceiptTimeout;
+    C_M(announceReceiptTimeout);
 }
 C1(LOG_SYNC_INTERVAL)
 {
-    a.logSyncInterval = d.logSyncInterval;
+    C_M(logSyncInterval);
 }
 C1(VERSION_NUMBER)
 {
-    a.versionNumber = d.versionNumber;
+    C_M(versionNumber);
 }
 C1(TIME)
 {
-    a.currentTime.secondsField = d.currentTime.secondsField;
-    a.currentTime.nanosecondsField = d.currentTime.nanosecondsField;
+    C_M(currentTime.secondsField);
+    C_M(currentTime.nanosecondsField);
 }
 C1(CLOCK_ACCURACY)
 {
-    a.clockAccuracy = (ptpmgmt_clockAccuracy_e)d.clockAccuracy;
+    C1_MC(clockAccuracy, clockAccuracy);
 }
 C1(UTC_PROPERTIES)
 {
-    a.currentUtcOffset = d.currentUtcOffset;
-    a.flags = d.flags;
+    C_M(currentUtcOffset);
+    C_M(flags);
 }
 C1(TRACEABILITY_PROPERTIES)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(TIMESCALE_PROPERTIES)
 {
-    a.flags = d.flags;
-    a.timeSource = (ptpmgmt_timeSource_e)d.timeSource;
+    C_M(flags);
+    C1_MC(timeSource, timeSource);
 }
 C1(UNICAST_NEGOTIATION_ENABLE)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(PATH_TRACE_LIST)
 {
-    size_t s = sizeof(ptpmgmt_ClockIdentity_t) * (d.pathSequence.size() + 1);
-    x = malloc(s);
+    size_t sz = d.pathSequence.size();
+    size_t s = sizeof(ptpmgmt_ClockIdentity_t) * sz;
+    x = malloc(s + sizeof(ptpmgmt_ClockIdentity_t));
     if(x == nullptr) {
         e = true;
         return;
     }
-    memset(x, 0, s);
     ptpmgmt_ClockIdentity_t *m = (ptpmgmt_ClockIdentity_t *)x;
-    size_t i = 0;
-    for(; i < d.pathSequence.size(); i++)
-        memcpy(m[i].v, d.pathSequence[i].v, ClockIdentity_t::size());
+    if(sz > 0)
+        memcpy(m, d.pathSequence.data(), s);
+    memset(m + sz, 0, sizeof(ptpmgmt_ClockIdentity_t));
     a.pathSequence = m;
 }
 C1(PATH_TRACE_ENABLE)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(GRANDMASTER_CLUSTER_TABLE)
 {
-    a.logQueryInterval = d.logQueryInterval;
+    C_M(logQueryInterval);
     C1_tbl(PortAddress, actualTableSize, PortAddress);
     for(int i = 0; i < d.actualTableSize; i++)
-        c1_port(m[i], d.PortAddress[i]);
+        c_st(m[i], d.PortAddress[i]);
     a.PortAddress = m;
 }
 C1(UNICAST_MASTER_TABLE)
 {
-    a.logQueryInterval = d.logQueryInterval;
+    C_M(logQueryInterval);
     C1_tbl(PortAddress, actualTableSize, PortAddress);
     for(int i = 0; i < d.actualTableSize; i++)
-        c1_port(m[i], d.PortAddress[i]);
+        c_st(m[i], d.PortAddress[i]);
     a.PortAddress = m;
 }
 C1(UNICAST_MASTER_MAX_TABLE_SIZE)
 {
-    a.maxTableSize = d.maxTableSize;
+    C_M(maxTableSize);
 }
 C1(ACCEPTABLE_MASTER_TABLE)
 {
     C1_tbl(AcceptableMaster, actualTableSize, list);
     for(int i = 0; i < d.actualTableSize; i++) {
-        m[i].acceptablePortIdentity.portNumber =
-            d.list[i].acceptablePortIdentity.portNumber;
-        memcpy(m[i].acceptablePortIdentity.clockIdentity.v,
-            d.list[i].acceptablePortIdentity.clockIdentity.v,
-            ClockIdentity_t::size());
-        m[i].alternatePriority1 = d.list[i].alternatePriority1;
+        const AcceptableMaster_t &f = d.list[i];
+        C_VARM(acceptablePortIdentity);
+        C1_MM(alternatePriority1);
     }
     a.list = m;
 }
 C1(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
-    a.maxTableSize = d.maxTableSize;
+    C_M(maxTableSize);
 }
 C1(ALTERNATE_MASTER)
 {
-    a.flags = d.flags;
-    a.logAlternateMulticastSyncInterval = d.logAlternateMulticastSyncInterval;
-    a.numberOfAlternateMasters = d.numberOfAlternateMasters;
+    C_M(flags);
+    C_M(logAlternateMulticastSyncInterval);
+    C_M(numberOfAlternateMasters);
 }
 C1(ALTERNATE_TIME_OFFSET_ENABLE)
 {
-    a.keyField = d.keyField;
-    a.flags = d.flags;
+    C_M(keyField);
+    C_M(flags);
 }
 C1(ALTERNATE_TIME_OFFSET_NAME)
 {
-    a.keyField = d.keyField;
-    C1_TEXT(a, d, displayName);
+    C_M(keyField);
+    C_VARA(displayName);
 }
 C1(ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
-    a.maxKey = d.maxKey;
+    C_M(maxKey);
 }
 C1(ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
-    a.keyField = d.keyField;
-    a.currentOffset = d.currentOffset;
-    a.jumpSeconds = d.jumpSeconds;
-    a.timeOfNextJump = d.timeOfNextJump;
+    C_M(keyField);
+    C_M(currentOffset);
+    C_M(jumpSeconds);
+    C_M(timeOfNextJump);
 }
 C1(TRANSPARENT_CLOCK_PORT_DATA_SET)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.flags = d.flags;
-    a.logMinPdelayReqInterval = d.logMinPdelayReqInterval;
-    a.peerMeanPathDelay.scaledNanoseconds = d.peerMeanPathDelay.scaledNanoseconds;
+    C_VARA(portIdentity);
+    C_M(flags);
+    C_M(logMinPdelayReqInterval);
+    C_M(peerMeanPathDelay.scaledNanoseconds);
 }
 C1(LOG_MIN_PDELAY_REQ_INTERVAL)
 {
-    a.logMinPdelayReqInterval = d.logMinPdelayReqInterval;
+    C_M(logMinPdelayReqInterval);
 }
 C1(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
 {
-    memcpy(a.clockIdentity.v, d.clockIdentity.v, ClockIdentity_t::size());
-    a.numberPorts = d.numberPorts;
-    a.delayMechanism = (ptpmgmt_delayMechanism_e)d.delayMechanism;
-    a.primaryDomain = d.primaryDomain;
+    C_CP(clockIdentity.v, ClockIdentity_t::size());
+    C_M(numberPorts);
+    C1_MC(delayMechanism, delayMechanism);
+    C_M(primaryDomain);
 }
 C1(PRIMARY_DOMAIN)
 {
-    a.primaryDomain = d.primaryDomain;
+    C_M(primaryDomain);
 }
 C1(DELAY_MECHANISM)
 {
-    a.delayMechanism = (ptpmgmt_delayMechanism_e)d.delayMechanism;
+    C1_MC(delayMechanism, delayMechanism);
 }
 C1(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(MASTER_ONLY)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(HOLDOVER_UPGRADE_ENABLE)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C1(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
-    a.flags = d.flags;
-    a.desiredState = (ptpmgmt_portState_e)d.desiredState;
+    C_M(flags);
+    C1_MC(desiredState, portState);
 }
 C1(TIME_STATUS_NP)
 {
-    a.master_offset = d.master_offset;
-    a.ingress_time = d.ingress_time;
-    a.cumulativeScaledRateOffset = d.cumulativeScaledRateOffset;
-    a.scaledLastGmPhaseChange = d.scaledLastGmPhaseChange;
-    a.gmTimeBaseIndicator = d.gmTimeBaseIndicator;
-    a.nanoseconds_msb = d.nanoseconds_msb;
-    a.nanoseconds_lsb = d.nanoseconds_lsb;
-    a.fractional_nanoseconds = d.fractional_nanoseconds;
-    a.gmPresent = d.gmPresent;
-    memcpy(a.gmIdentity.v, d.gmIdentity.v, ClockIdentity_t::size());
+    C_M(master_offset);
+    C_M(ingress_time);
+    C_M(cumulativeScaledRateOffset);
+    C_M(scaledLastGmPhaseChange);
+    C_M(gmTimeBaseIndicator);
+    C_M(nanoseconds_msb);
+    C_M(nanoseconds_lsb);
+    C_M(fractional_nanoseconds);
+    C_M(gmPresent);
+    C_CP(gmIdentity.v, ClockIdentity_t::size());
 }
 C1(GRANDMASTER_SETTINGS_NP)
 {
-    C1_QUALITY(a, d, clockQuality);
-    a.currentUtcOffset = d.currentUtcOffset;
-    a.flags = d.flags;
-    a.timeSource = (ptpmgmt_timeSource_e)d.timeSource;
+    C_VARA(clockQuality);
+    C_M(currentUtcOffset);
+    C_M(flags);
+    C1_MC(timeSource, timeSource);
 }
 C1(PORT_DATA_SET_NP)
 {
-    a.neighborPropDelayThresh = d.neighborPropDelayThresh;
-    a.asCapable = d.asCapable;
+    C_M(neighborPropDelayThresh);
+    C_M(asCapable);
 }
 C1(SUBSCRIBE_EVENTS_NP)
 {
-    a.duration = d.duration;
-    memcpy(a.bitmask, d.bitmask, sizeof(uint8_t) * EVENT_BITMASK_CNT);
+    C_M(duration);
+    C_CP(bitmask, sizeof(uint8_t) * EVENT_BITMASK_CNT);
 }
 C1(PORT_PROPERTIES_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.portState = (ptpmgmt_portState_e)d.portState;
-    a.timestamping = (ptpmgmt_linuxptpTimeStamp_e)d.timestamping;
-    C1_TEXT(a, d, interface);
+    C_VARA(portIdentity);
+    C1_MC(portState, portState);
+    C1_MC(timestamping, linuxptpTimeStamp);
+    C_VARA(interface);
 }
 C1(PORT_STATS_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    memcpy(a.rxMsgType, d.rxMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
-    memcpy(a.txMsgType, d.txMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
+    C_VARA(portIdentity);
+    C_CP(rxMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
+    C_CP(txMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
 }
 C1(SYNCHRONIZATION_UNCERTAIN_NP)
 {
-    a.val = d.val;
+    C_M(val);
 }
 C1(PORT_SERVICE_STATS_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.announce_timeout = d.announce_timeout;
-    a.sync_timeout = d.sync_timeout;
-    a.delay_timeout = d.delay_timeout;
-    a.unicast_service_timeout = d.unicast_service_timeout;
-    a.unicast_request_timeout = d.unicast_request_timeout;
-    a.master_announce_timeout = d.master_announce_timeout;
-    a.master_sync_timeout = d.master_sync_timeout;
-    a.qualification_timeout = d.qualification_timeout;
-    a.sync_mismatch = d.sync_mismatch;
-    a.followup_mismatch = d.followup_mismatch;
+    C_VARA(portIdentity);
+    C_M(announce_timeout);
+    C_M(sync_timeout);
+    C_M(delay_timeout);
+    C_M(unicast_service_timeout);
+    C_M(unicast_request_timeout);
+    C_M(master_announce_timeout);
+    C_M(master_sync_timeout);
+    C_M(qualification_timeout);
+    C_M(sync_mismatch);
+    C_M(followup_mismatch);
 }
 C1(UNICAST_MASTER_TABLE_NP)
 {
     C1_tbl(LinuxptpUnicastMaster, actualTableSize, unicastMasters);
     for(int i = 0; i < d.actualTableSize; i++) {
         const LinuxptpUnicastMaster_t &f = d.unicastMasters[i];
-        m[i].portIdentity.portNumber = f.portIdentity.portNumber;
-        memcpy(m[i].portIdentity.clockIdentity.v, f.portIdentity.clockIdentity.v,
-            ClockIdentity_t::size());
-        C1_QUALITY(m[i], f, clockQuality);
-        m[i].selected = f.selected;
+        C_VARM(portIdentity);
+        C_VARM(clockQuality);
+        C1_MM(selected);
         m[i].portState = (ptpmgmt_linuxptpUnicastState_e)f.portState;
-        m[i].priority1 = f.priority1;
-        m[i].priority2 = f.priority2;
-        c1_port(m[i].portAddress, f.portAddress);
+        C1_MM(priority1);
+        C1_MM(priority2);
+        C_VARM(portAddress);
     }
     a.unicastMasters = m;
 }
 C1(PORT_HWCLOCK_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.phc_index = d.phc_index;
-    a.flags = d.flags;
+    C_VARA(portIdentity);
+    C_M(phc_index);
+    C_M(flags);
 }
 C1(POWER_PROFILE_SETTINGS_NP)
 {
-    a.version = (ptpmgmt_linuxptpPowerProfileVersion_e)d.version;
-    a.grandmasterID = d.grandmasterID;
-    a.grandmasterTimeInaccuracy = d.grandmasterTimeInaccuracy;
-    a.networkTimeInaccuracy = d.networkTimeInaccuracy;
-    a.totalTimeInaccuracy = d.totalTimeInaccuracy;
+    C1_MC(version, linuxptpPowerProfileVersion);
+    C_M(grandmasterID);
+    C_M(grandmasterTimeInaccuracy);
+    C_M(networkTimeInaccuracy);
+    C_M(totalTimeInaccuracy);
 }
 C1(CMLDS_INFO_NP)
 {
-    a.meanLinkDelay.scaledNanoseconds = d.meanLinkDelay.scaledNanoseconds;
-    a.scaledNeighborRateRatio = d.scaledNeighborRateRatio;
-    a.as_capable = d.as_capable;
+    C_M(meanLinkDelay.scaledNanoseconds);
+    C_M(scaledNeighborRateRatio);
+    C_M(as_capable);
 }
 C1(PORT_CORRECTIONS_NP)
 {
-    a.egressLatency = d.egressLatency;
-    a.ingressLatency = d.ingressLatency;
-    a.delayAsymmetry = d.delayAsymmetry;
+    C_M(egressLatency);
+    C_M(ingressLatency);
+    C_M(delayAsymmetry);
 }
 C1(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
 {
-    memcpy(a.gmIdentity.v, d.gmIdentity.v, ClockIdentity_t::size());
-    a.stepsRemoved = d.stepsRemoved;
+    C_CP(gmIdentity.v, ClockIdentity_t::size());
+    C_M(stepsRemoved);
 }
 
 void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x)
@@ -1385,177 +1381,180 @@ void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x)
 
 #define C2(n)\
     static inline void n##_c2(n##_t &a, const ptpmgmt_##n##_t &d)
-
-#define C2_TEXT(a, d, n) c2_text(a.n, d.n)
-void c2_text(PTPText_t &a, const ptpmgmt_PTPText_t &d)
+#define C2_MR(n) r.n = f.n
+#define C2_MC(n, c) a.n = (c##_e)d.n
+#define C2_MRC(n, c) r.n = (c##_e)f.n
+static inline void c_st(PTPText_t &a, const ptpmgmt_PTPText_t &d)
 {
-    a.lengthField = d.lengthField;
-    if(d.textField != nullptr && d.lengthField > 0)
-        a.textField = string(d.textField, d.lengthField);
+    uint8_t l = d.textField == nullptr ? 0 : d.lengthField;
+    a.lengthField = l;
+    if(l > 0)
+        a.textField.assign(d.textField, l);
 }
-void c2_port(PortAddress_t &a, const ptpmgmt_PortAddress_t &d)
+#define C2_B(b, s) c_st(a.b, a.s, d.b, d.s)
+static inline void c_st(Binary &a, uint16_t &n, const uint8_t *d, uint16_t m)
 {
-    a.networkProtocol = (networkProtocol_e)d.networkProtocol;
-    a.addressLength = d.addressLength;
-    if(d.addressField != nullptr && d.addressLength > 0)
-        a.addressField.setBin(d.addressField, d.addressLength);
+    n = d == nullptr ? 0 : m;
+    if(n > 0)
+        a.setBin(d, n);
 }
-#define C2_QUALITY(a, d, n) c2_quality(a.n, d.n)
-void c2_quality(ClockQuality_t &a, const ptpmgmt_ClockQuality_t &d)
+static inline void c_st(PortAddress_t &a, const ptpmgmt_PortAddress_t &d)
 {
-    a.clockClass = d.clockClass;
-    a.clockAccuracy = (clockAccuracy_e)d.clockAccuracy;
-    a.offsetScaledLogVariance = d.offsetScaledLogVariance;
+    C2_MC(networkProtocol, networkProtocol);
+    C2_B(addressField, addressLength);
+}
+static inline void c_st(ClockQuality_t &a, const ptpmgmt_ClockQuality_t &d)
+{
+    C_M(clockClass);
+    C2_MC(clockAccuracy, clockAccuracy);
+    C_M(offsetScaledLogVariance);
+}
+static inline void c_st(PortIdentity_t &a, const ptpmgmt_PortIdentity_t &d)
+{
+    C_M(portNumber);
+    C_CP(clockIdentity.v, ClockIdentity_t::size());
 }
 
 C2(CLOCK_DESCRIPTION)
 {
-    a.clockType = d.clockType;
-    C2_TEXT(a, d, physicalLayerProtocol);
-    a.physicalAddressLength = d.physicalAddressLength;
-    if(d.physicalAddress != nullptr && d.physicalAddressLength > 0)
-        a.physicalAddress.setBin(d.physicalAddress, d.physicalAddressLength);
-    c2_port(a.protocolAddress, d.protocolAddress);
-    memcpy(a.manufacturerIdentity, d.manufacturerIdentity, 3);
-    C2_TEXT(a, d, productDescription);
-    C2_TEXT(a, d, revisionData);
-    C2_TEXT(a, d, userDescription);
-    memcpy(a.profileIdentity, d.profileIdentity, 6);
+    C_M(clockType);
+    C_VARA(physicalLayerProtocol);
+    C2_B(physicalAddress, physicalAddressLength);
+    C_VARA(protocolAddress);
+    C_CP(manufacturerIdentity, 3);
+    C_VARA(productDescription);
+    C_VARA(revisionData);
+    C_VARA(userDescription);
+    C_CP(profileIdentity, 6);
 }
 C2(USER_DESCRIPTION)
 {
-    C2_TEXT(a, d, userDescription);
+    C_VARA(userDescription);
 }
 C2(INITIALIZE)
 {
-    a.initializationKey = d.initializationKey;
+    C_M(initializationKey);
 }
 C2(FAULT_LOG)
 {
-    a.numberOfFaultRecords = d.numberOfFaultRecords;
+    C_M(numberOfFaultRecords);
     a.faultRecords.resize(d.numberOfFaultRecords);
     for(int i = 0; i < d.numberOfFaultRecords; i++) {
         FaultRecord_t &r = a.faultRecords[i];
         const ptpmgmt_FaultRecord_t &f = d.faultRecords[i];
-        r.faultRecordLength = f.faultRecordLength;
-        r.faultTime.secondsField = f.faultTime.secondsField;
-        r.faultTime.nanosecondsField = f.faultTime.nanosecondsField;
-        r.severityCode = (faultRecord_e)f.severityCode;
-        C2_TEXT(r, f, faultName);
-        C2_TEXT(r, f, faultValue);
-        C2_TEXT(r, f, faultDescription);
+        C2_MR(faultRecordLength);
+        C2_MR(faultTime.secondsField);
+        C2_MR(faultTime.nanosecondsField);
+        C2_MRC(severityCode, faultRecord);
+        C_VARR(faultName);
+        C_VARR(faultValue);
+        C_VARR(faultDescription);
     }
 }
 C2(DEFAULT_DATA_SET)
 {
-    a.flags = d.flags;
-    a.numberPorts = d.numberPorts;
-    a.priority1 = d.priority1;
-    C2_QUALITY(a, d, clockQuality);
-    a.priority2 = d.priority2;
-    memcpy(a.clockIdentity.v, d.clockIdentity.v, ClockIdentity_t::size());
-    a.domainNumber = d.domainNumber;
+    C_M(flags);
+    C_M(numberPorts);
+    C_M(priority1);
+    C_VARA(clockQuality);
+    C_M(priority2);
+    C_CP(clockIdentity.v, ClockIdentity_t::size());
+    C_M(domainNumber);
 }
 C2(CURRENT_DATA_SET)
 {
-    a.stepsRemoved = d.stepsRemoved;
-    a.offsetFromMaster.scaledNanoseconds = d.offsetFromMaster.scaledNanoseconds;
-    a.meanPathDelay.scaledNanoseconds = d.meanPathDelay.scaledNanoseconds;
+    C_M(stepsRemoved);
+    C_M(offsetFromMaster.scaledNanoseconds);
+    C_M(meanPathDelay.scaledNanoseconds);
 }
 C2(PARENT_DATA_SET)
 {
-    a.parentPortIdentity.portNumber = d.parentPortIdentity.portNumber;
-    memcpy(a.parentPortIdentity.clockIdentity.v,
-        d.parentPortIdentity.clockIdentity.v, ClockIdentity_t::size());
-    a.flags = d.flags;
-    a.observedParentOffsetScaledLogVariance =
-        d.observedParentOffsetScaledLogVariance;
-    a.observedParentClockPhaseChangeRate = d.observedParentClockPhaseChangeRate;
-    a.grandmasterPriority1 = d.grandmasterPriority1;
-    C2_QUALITY(a, d, grandmasterClockQuality);
-    a.grandmasterPriority2 = d.grandmasterPriority2;
-    memcpy(a.grandmasterIdentity.v, d.grandmasterIdentity.v,
-        ClockIdentity_t::size());
+    C_VARA(parentPortIdentity);
+    C_M(flags);
+    C_M(observedParentOffsetScaledLogVariance);
+    C_M(observedParentClockPhaseChangeRate);
+    C_M(grandmasterPriority1);
+    C_VARA(grandmasterClockQuality);
+    C_M(grandmasterPriority2);
+    C_CP(grandmasterIdentity.v, ClockIdentity_t::size());
 }
 C2(TIME_PROPERTIES_DATA_SET)
 {
-    a.currentUtcOffset = d.currentUtcOffset;
-    a.flags = d.flags;
-    a.timeSource = (timeSource_e)d.timeSource;
+    C_M(currentUtcOffset);
+    C_M(flags);
+    C2_MC(timeSource, timeSource);
 }
 C2(PORT_DATA_SET)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.portState = (portState_e)d.portState;
-    a.logMinDelayReqInterval = d.logMinDelayReqInterval;
-    a.peerMeanPathDelay.scaledNanoseconds = d.peerMeanPathDelay.scaledNanoseconds;
-    a.logAnnounceInterval = d.logAnnounceInterval;
-    a.announceReceiptTimeout = d.announceReceiptTimeout;
-    a.logSyncInterval = d.logSyncInterval;
-    a.delayMechanism = (delayMechanism_e)d.delayMechanism;
-    a.logMinPdelayReqInterval = d.logMinPdelayReqInterval;
-    a.versionNumber = d.versionNumber;
+    C_VARA(portIdentity);
+    C2_MC(portState, portState);
+    C_M(logMinDelayReqInterval);
+    C_M(peerMeanPathDelay.scaledNanoseconds);
+    C_M(logAnnounceInterval);
+    C_M(announceReceiptTimeout);
+    C_M(logSyncInterval);
+    C2_MC(delayMechanism, delayMechanism);
+    C_M(logMinPdelayReqInterval);
+    C_M(versionNumber);
 }
 C2(PRIORITY1)
 {
-    a.priority1 = d.priority1;
+    C_M(priority1);
 }
 C2(PRIORITY2)
 {
-    a.priority2 = d.priority2;
+    C_M(priority2);
 }
 C2(DOMAIN)
 {
-    a.domainNumber = d.domainNumber;
+    C_M(domainNumber);
 }
 C2(SLAVE_ONLY)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(LOG_ANNOUNCE_INTERVAL)
 {
-    a.logAnnounceInterval = d.logAnnounceInterval;
+    C_M(logAnnounceInterval);
 }
 C2(ANNOUNCE_RECEIPT_TIMEOUT)
 {
-    a.announceReceiptTimeout = d.announceReceiptTimeout;
+    C_M(announceReceiptTimeout);
 }
 C2(LOG_SYNC_INTERVAL)
 {
-    a.logSyncInterval = d.logSyncInterval;
+    C_M(logSyncInterval);
 }
 C2(VERSION_NUMBER)
 {
-    a.versionNumber = d.versionNumber;
+    C_M(versionNumber);
 }
 C2(TIME)
 {
-    a.currentTime.secondsField = d.currentTime.secondsField;
-    a.currentTime.nanosecondsField = d.currentTime.nanosecondsField;
+    C_M(currentTime.secondsField);
+    C_M(currentTime.nanosecondsField);
 }
 C2(CLOCK_ACCURACY)
 {
-    a.clockAccuracy = (clockAccuracy_e)d.clockAccuracy;
+    C2_MC(clockAccuracy, clockAccuracy);
 }
 C2(UTC_PROPERTIES)
 {
-    a.currentUtcOffset = d.currentUtcOffset;
-    a.flags = d.flags;
+    C_M(currentUtcOffset);
+    C_M(flags);
 }
 C2(TRACEABILITY_PROPERTIES)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(TIMESCALE_PROPERTIES)
 {
-    a.flags = d.flags;
-    a.timeSource = (timeSource_e)d.timeSource;
+    C_M(flags);
+    C2_MC(timeSource, timeSource);
 }
 C2(UNICAST_NEGOTIATION_ENABLE)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(PATH_TRACE_LIST)
 {
@@ -1568,244 +1567,229 @@ C2(PATH_TRACE_LIST)
             if(memcmp(v, zero.v, ClockIdentity_t::size()) == 0)
                 return;
             memcpy(r.v, v, ClockIdentity_t::size());
-            a.pathSequence.push_back(r);
+            a.pathSequence.push_back(std::move(r));
         }
 }
 C2(PATH_TRACE_ENABLE)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(GRANDMASTER_CLUSTER_TABLE)
 {
-    a.logQueryInterval = d.logQueryInterval;
-    a.actualTableSize = d.actualTableSize;
+    C_M(logQueryInterval);
+    C_M(actualTableSize);
     a.PortAddress.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++)
-        c2_port(a.PortAddress[i], d.PortAddress[i]);
+        C_VARA(PortAddress[i]);
 }
 C2(UNICAST_MASTER_TABLE)
 {
-    a.logQueryInterval = d.logQueryInterval;
-    a.actualTableSize = d.actualTableSize;
+    C_M(logQueryInterval);
+    C_M(actualTableSize);
     a.PortAddress.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++)
-        c2_port(a.PortAddress[i], d.PortAddress[i]);
+        C_VARA(PortAddress[i]);
 }
 C2(UNICAST_MASTER_MAX_TABLE_SIZE)
 {
-    a.maxTableSize = d.maxTableSize;
+    C_M(maxTableSize);
 }
 C2(ACCEPTABLE_MASTER_TABLE)
 {
-    a.actualTableSize = d.actualTableSize;
+    C_M(actualTableSize);
     a.list.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
         AcceptableMaster_t &r = a.list[i];
-        r.acceptablePortIdentity.portNumber =
-            d.list[i].acceptablePortIdentity.portNumber;
-        memcpy(r.acceptablePortIdentity.clockIdentity.v,
-            d.list[i].acceptablePortIdentity.clockIdentity.v,
-            ClockIdentity_t::size());
-        r.alternatePriority1 = d.list[i].alternatePriority1;
+        const ptpmgmt_AcceptableMaster_t &f = d.list[i];
+        C_VARR(acceptablePortIdentity);
+        C2_MR(alternatePriority1);
     }
 }
 C2(ACCEPTABLE_MASTER_TABLE_ENABLED)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
-    a.maxTableSize = d.maxTableSize;
+    C_M(maxTableSize);
 }
 C2(ALTERNATE_MASTER)
 {
-    a.flags = d.flags;
-    a.logAlternateMulticastSyncInterval = d.logAlternateMulticastSyncInterval;
-    a.numberOfAlternateMasters = d.numberOfAlternateMasters;
+    C_M(flags);
+    C_M(logAlternateMulticastSyncInterval);
+    C_M(numberOfAlternateMasters);
 }
 C2(ALTERNATE_TIME_OFFSET_ENABLE)
 {
-    a.keyField = d.keyField;
-    a.flags = d.flags;
+    C_M(keyField);
+    C_M(flags);
 }
 C2(ALTERNATE_TIME_OFFSET_NAME)
 {
-    a.keyField = d.keyField;
-    C2_TEXT(a, d, displayName);
+    C_M(keyField);
+    C_VARA(displayName);
 }
 C2(ALTERNATE_TIME_OFFSET_MAX_KEY)
 {
-    a.maxKey = d.maxKey;
+    C_M(maxKey);
 }
 C2(ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
-    a.keyField = d.keyField;
-    a.currentOffset = d.currentOffset;
-    a.jumpSeconds = d.jumpSeconds;
-    a.timeOfNextJump = d.timeOfNextJump;
+    C_M(keyField);
+    C_M(currentOffset);
+    C_M(jumpSeconds);
+    C_M(timeOfNextJump);
 }
 C2(TRANSPARENT_CLOCK_PORT_DATA_SET)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.flags = d.flags;
-    a.logMinPdelayReqInterval = d.logMinPdelayReqInterval;
-    a.peerMeanPathDelay.scaledNanoseconds = d.peerMeanPathDelay.scaledNanoseconds;
+    C_VARA(portIdentity);
+    C_M(flags);
+    C_M(logMinPdelayReqInterval);
+    C_M(peerMeanPathDelay.scaledNanoseconds);
 }
 C2(LOG_MIN_PDELAY_REQ_INTERVAL)
 {
-    a.logMinPdelayReqInterval = d.logMinPdelayReqInterval;
+    C_M(logMinPdelayReqInterval);
 }
 C2(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
 {
-    memcpy(a.clockIdentity.v, d.clockIdentity.v, ClockIdentity_t::size());
-    a.numberPorts = d.numberPorts;
-    a.delayMechanism = (delayMechanism_e)d.delayMechanism;
-    a.primaryDomain = d.primaryDomain;
+    C_CP(clockIdentity.v, ClockIdentity_t::size());
+    C_M(numberPorts);
+    C2_MC(delayMechanism, delayMechanism);
+    C_M(primaryDomain);
 }
 C2(PRIMARY_DOMAIN)
 {
-    a.primaryDomain = d.primaryDomain;
+    C_M(primaryDomain);
 }
 C2(DELAY_MECHANISM)
 {
-    a.delayMechanism = (delayMechanism_e)d.delayMechanism;
+    C2_MC(delayMechanism, delayMechanism);
 }
 C2(EXTERNAL_PORT_CONFIGURATION_ENABLED)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(MASTER_ONLY)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(HOLDOVER_UPGRADE_ENABLE)
 {
-    a.flags = d.flags;
+    C_M(flags);
 }
 C2(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
-    a.flags = d.flags;
-    a.desiredState = (portState_e)d.desiredState;
+    C_M(flags);
+    C2_MC(desiredState, portState);
 }
 C2(TIME_STATUS_NP)
 {
-    a.master_offset = d.master_offset;
-    a.ingress_time = d.ingress_time;
-    a.cumulativeScaledRateOffset = d.cumulativeScaledRateOffset;
-    a.scaledLastGmPhaseChange = d.scaledLastGmPhaseChange;
-    a.gmTimeBaseIndicator = d.gmTimeBaseIndicator;
-    a.nanoseconds_msb = d.nanoseconds_msb;
-    a.nanoseconds_lsb = d.nanoseconds_lsb;
-    a.fractional_nanoseconds = d.fractional_nanoseconds;
-    a.gmPresent = d.gmPresent;
-    memcpy(a.gmIdentity.v, d.gmIdentity.v, ClockIdentity_t::size());
+    C_M(master_offset);
+    C_M(ingress_time);
+    C_M(cumulativeScaledRateOffset);
+    C_M(scaledLastGmPhaseChange);
+    C_M(gmTimeBaseIndicator);
+    C_M(nanoseconds_msb);
+    C_M(nanoseconds_lsb);
+    C_M(fractional_nanoseconds);
+    C_M(gmPresent);
+    C_CP(gmIdentity.v, ClockIdentity_t::size());
 }
 C2(GRANDMASTER_SETTINGS_NP)
 {
-    C2_QUALITY(a, d, clockQuality);
-    a.currentUtcOffset = d.currentUtcOffset;
-    a.flags = d.flags;
-    a.timeSource = (timeSource_e)d.timeSource;
+    C_VARA(clockQuality);
+    C_M(currentUtcOffset);
+    C_M(flags);
+    C2_MC(timeSource, timeSource);
 }
 C2(PORT_DATA_SET_NP)
 {
-    a.neighborPropDelayThresh = d.neighborPropDelayThresh;
-    a.asCapable = d.asCapable;
+    C_M(neighborPropDelayThresh);
+    C_M(asCapable);
 }
 C2(SUBSCRIBE_EVENTS_NP)
 {
-    a.duration = d.duration;
-    memcpy(a.bitmask, d.bitmask, sizeof(uint8_t) * EVENT_BITMASK_CNT);
+    C_M(duration);
+    C_CP(bitmask, sizeof(uint8_t) * EVENT_BITMASK_CNT);
 }
 C2(PORT_PROPERTIES_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.portState = (portState_e)d.portState;
-    a.timestamping = (linuxptpTimeStamp_e)d.timestamping;
-    C2_TEXT(a, d, interface);
+    C_VARA(portIdentity);
+    C2_MC(portState, portState);
+    C2_MC(timestamping, linuxptpTimeStamp);
+    C_VARA(interface);
 }
 C2(PORT_STATS_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    memcpy(a.rxMsgType, d.rxMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
-    memcpy(a.txMsgType, d.txMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
+    C_VARA(portIdentity);
+    C_CP(rxMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
+    C_CP(txMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
 }
 C2(SYNCHRONIZATION_UNCERTAIN_NP)
 {
-    a.val = d.val;
+    C_M(val);
 }
 C2(PORT_SERVICE_STATS_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.announce_timeout = d.announce_timeout;
-    a.sync_timeout = d.sync_timeout;
-    a.delay_timeout = d.delay_timeout;
-    a.unicast_service_timeout = d.unicast_service_timeout;
-    a.unicast_request_timeout = d.unicast_request_timeout;
-    a.master_announce_timeout = d.master_announce_timeout;
-    a.master_sync_timeout = d.master_sync_timeout;
-    a.qualification_timeout = d.qualification_timeout;
-    a.sync_mismatch = d.sync_mismatch;
-    a.followup_mismatch = d.followup_mismatch;
+    C_VARA(portIdentity);
+    C_M(announce_timeout);
+    C_M(sync_timeout);
+    C_M(delay_timeout);
+    C_M(unicast_service_timeout);
+    C_M(unicast_request_timeout);
+    C_M(master_announce_timeout);
+    C_M(master_sync_timeout);
+    C_M(qualification_timeout);
+    C_M(sync_mismatch);
+    C_M(followup_mismatch);
 }
 C2(UNICAST_MASTER_TABLE_NP)
 {
-    a.actualTableSize = d.actualTableSize;
+    C_M(actualTableSize);
     a.unicastMasters.resize(d.actualTableSize);
     for(int i = 0; i < d.actualTableSize; i++) {
         LinuxptpUnicastMaster_t &r = a.unicastMasters[i];
         const ptpmgmt_LinuxptpUnicastMaster_t &f = d.unicastMasters[i];
-        r.portIdentity.portNumber = f.portIdentity.portNumber;
-        memcpy(r.portIdentity.clockIdentity.v, f.portIdentity.clockIdentity.v,
-            ClockIdentity_t::size());
-        C2_QUALITY(r, f, clockQuality);
-        r.selected = f.selected;
-        r.portState = (linuxptpUnicastState_e)f.portState;
-        r.priority1 = f.priority1;
-        r.priority2 = f.priority2;
-        c2_port(r.portAddress, f.portAddress);
+        C_VARR(portIdentity);
+        C_VARR(clockQuality);
+        C2_MR(selected);
+        C2_MRC(portState, linuxptpUnicastState);
+        C2_MR(priority1);
+        C2_MR(priority2);
+        C_VARR(portAddress);
     }
 }
 C2(PORT_HWCLOCK_NP)
 {
-    a.portIdentity.portNumber = d.portIdentity.portNumber;
-    memcpy(a.portIdentity.clockIdentity.v, d.portIdentity.clockIdentity.v,
-        ClockIdentity_t::size());
-    a.phc_index = d.phc_index;
-    a.flags = d.flags;
+    C_VARA(portIdentity);
+    C_M(phc_index);
+    C_M(flags);
 }
 C2(POWER_PROFILE_SETTINGS_NP)
 {
-    a.version = (linuxptpPowerProfileVersion_e)d.version;
-    a.grandmasterID = d.grandmasterID;
-    a.grandmasterTimeInaccuracy = d.grandmasterTimeInaccuracy;
-    a.networkTimeInaccuracy = d.networkTimeInaccuracy;
-    a.totalTimeInaccuracy = d.totalTimeInaccuracy;
+    C2_MC(version, linuxptpPowerProfileVersion);
+    C_M(grandmasterID);
+    C_M(grandmasterTimeInaccuracy);
+    C_M(networkTimeInaccuracy);
+    C_M(totalTimeInaccuracy);
 }
 C2(CMLDS_INFO_NP)
 {
-    a.meanLinkDelay.scaledNanoseconds = d.meanLinkDelay.scaledNanoseconds;
-    a.scaledNeighborRateRatio = d.scaledNeighborRateRatio;
-    a.as_capable = d.as_capable;
+    C_M(meanLinkDelay.scaledNanoseconds);
+    C_M(scaledNeighborRateRatio);
+    C_M(as_capable);
 }
 C2(PORT_CORRECTIONS_NP)
 {
-    a.egressLatency = d.egressLatency;
-    a.ingressLatency = d.ingressLatency;
-    a.delayAsymmetry = d.delayAsymmetry;
+    C_M(egressLatency);
+    C_M(ingressLatency);
+    C_M(delayAsymmetry);
 }
 C2(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
 {
-    memcpy(a.gmIdentity.v, d.gmIdentity.v, ClockIdentity_t::size());
-    a.stepsRemoved = d.stepsRemoved;
+    C_CP(gmIdentity.v, ClockIdentity_t::size());
+    C_M(stepsRemoved);
 }
 
 BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *data)
