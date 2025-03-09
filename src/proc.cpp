@@ -90,7 +90,7 @@ void SUBSCRIBE_EVENTS_NP_t::div_event_wo(int event, div_t &d)
 }
 bool SUBSCRIBE_EVENTS_NP_t::div_event(int event, div_t &d)
 {
-    if(event < 0 || event >= EVENT_BITMASK_CNT)
+    if(event < 0 || event >= EVENT_BITMASK_CNT * 8)
         return false;
     div_event_wo(event, d);
     return true;
@@ -1857,10 +1857,7 @@ __PTPMGMT_NAMESPACE_USE;
 
 static inline bool div_event(int event, div_t &d)
 {
-    if(event < 0 || event >= EVENT_BITMASK_CNT)
-        return false;
-    d = SUBSCRIBE_EVENTS_NP_t::div_event(event);
-    return true;
+    return SUBSCRIBE_EVENTS_NP_t::div_event(event, d);
 }
 
 extern "C" {

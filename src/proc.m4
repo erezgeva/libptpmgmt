@@ -523,11 +523,11 @@ cpp_cod(`    bool getEvent(int event) const;')dnl
 cpp_cod(`    /** @cond internal */')dnl
 cpp_cod(`    /** Divide event to byte and bit locations */')dnl
 cpp_cod(`    static std::div_t div_event(int event);')dnl
+cpp_cod(`    /** Divide event to byte and bit locations */')dnl
+cpp_cod(`    static bool div_event(int event, std::div_t &d);')dnl
 cpp_cod(`  private:')dnl
 cpp_cod(`    /** Divide event to byte and bit locations without check */')dnl
 cpp_cod(`    static void div_event_wo(int event, std::div_t &d);')dnl
-cpp_cod(`    /** Divide event to byte and bit locations */')dnl
-cpp_cod(`    static bool div_event(int event, std::div_t &d);')dnl
 cpp_cod(`    /**< @endcond */')dnl
 cpp_cod(`};')dnl
 /** Port properties TLV
