@@ -312,12 +312,7 @@ utest_valgrid()
    fi
  done
  if [[ $ret -ne 0 ]]; then
-   # TODO When calling 'inet_pton6'
-   # Valgrind confuse 'memmove' with 'memcpy' and
-   # yield a wrong "Source and destination overlap" error.
-   # See: https://bugs.kde.org/show_bug.cgi?id=402833
-   # Once the error is fixed, we can exit with error
-   echo "exit $ret"
+   exit $ret
  fi
 }
 ###############################################################################

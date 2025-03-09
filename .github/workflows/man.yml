@@ -13,7 +13,7 @@
 name: manual testing
 
 # Start manually
-on: workflow_dispatch
+on: [push, pull_request, workflow_dispatch]
 
 # Permit read-only with GITHUB_TOKEN
 permissions: read-all
