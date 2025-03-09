@@ -161,6 +161,7 @@ C1(ORGANIZATION_EXTENSION)
 {
     C1_CP(organizationId, 3);
     C1_CP(organizationSubType, 3);
+    a.dataSize = d.dataField.size();
     a.dataField = d.dataField.empty() ? nullptr :
         const_cast<uint8_t *>(d.dataField.get());
 }
