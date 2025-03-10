@@ -15,6 +15,7 @@
 #include "client/msgq_tport.hpp"
 #include "client/notification_msg.hpp"
 #include "client/subscribe_msg.hpp"
+#include "client/timebase_configs.hpp"
 #include "common/print.hpp"
 #include "common/sighandler.hpp"
 
@@ -36,9 +37,6 @@ rtpi::mutex ClientConnectMessage::cv_mtx;
 rtpi::condition_variable ClientConnectMessage::cv;
 rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
-
-/* Global vector to hold all time base configurations */
-std::vector<TimeBaseCfg> timeBaseCfgs;
 
 ClockManager::ClockManager() : implClientState(new ClientState()) {}
 
@@ -95,7 +93,7 @@ bool ClockManager::clkmgr_connect()
 
 std::vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs() const
 {
-    return timeBaseCfgs;
+    return TimeBaseConfigurations::getInstance().getTimeBaseCfgs();
 }
 
 bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,

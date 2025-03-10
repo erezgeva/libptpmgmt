@@ -10,6 +10,7 @@
  */
 
 #include "client/connect_msg.hpp"
+#include "client/timebase_configs.hpp"
 #include "common/print.hpp"
 #include "common/ptp_event.hpp"
 #include "common/serialize.hpp"
@@ -18,7 +19,6 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-extern std::vector<TimeBaseCfg> timeBaseCfgs;
 ClientState *ClientConnectMessage::currentClientState = nullptr;
 
 /**
@@ -59,7 +59,7 @@ PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
         TimeBaseCfg newCfg = {};
         if(!PARSE_RX(FIELD, newCfg, LxContext))
             return false;
-        timeBaseCfgs.push_back(newCfg);
+        TimeBaseConfigurations::getInstance().addTimeBaseCfg(newCfg);
     }
     return true;
 }
