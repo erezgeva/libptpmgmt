@@ -9,5 +9,6 @@
 
 SCRIPT_PATH="$(dirname "$0")"
 TEST_PATH="${SCRIPT_PATH}/../../.libs"
+JSON_FILE="${SCRIPT_PATH}/proxy_cfg.json"
 
-LD_LIBRARY_PATH=$TEST_PATH $SCRIPT_PATH/clkmgr_proxy "$@"
+LD_LIBRARY_PATH=$TEST_PATH $SCRIPT_PATH/clkmgr_proxy "$@" -f $JSON_FILE
