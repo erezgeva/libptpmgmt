@@ -89,15 +89,6 @@ class Transport
     static const TransportWorkDesc InvalidTransportWorkDesc =
         (TransportWorkDesc)(-1);
   private:
-    class TransportWorkerState
-    {
-      public:
-        std::future<bool> retVal;
-        std::shared_ptr<std::atomic<bool>> exitVal;
-        std::unique_ptr<std::thread> thread;
-        TransportWorkerState(std::future<bool> retInit, bool exitInit);
-    };
-    static std::vector<TransportWorkerState> workerList;
     static void dispatchLoop(std::promise<bool>,
         std::shared_ptr<std::atomic<bool>> exitVal, TransportWork arg);
   public:

@@ -25,14 +25,23 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-DECLARE_STATIC(Transport::workerList);
+class TransportWorkerState
+{
+  public:
+    future<bool> retVal;
+    shared_ptr<atomic<bool>> exitVal;
+    unique_ptr<thread> _thread;
+    TransportWorkerState(future<bool> retInit, bool exitInit) :
+        retVal(std::move(retInit)), exitVal(make_shared<atomic<bool>>(exitInit)) {}
+};
+static vector<TransportWorkerState> workerList;
 
-bool isFutureSet(std::future<bool> &f)
+bool isFutureSet(future<bool> &f)
 {
     return f.valid() &&
-        f.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready;
+        f.wait_for(chrono::milliseconds(0)) == future_status::ready;
 }
-void Transport::dispatchLoop(promise<bool> promise,
+void Transport::dispatchLoop(promise<bool> _promise,
     shared_ptr<atomic<bool>> exitVal, TransportWork work)
 {
     bool promiseVal = false;
@@ -45,29 +54,21 @@ void Transport::dispatchLoop(promise<bool> promise,
     promiseVal = true;
 done:
     PrintDebug("Transport Thread exited");
-    promise.set_value_at_thread_exit(promiseVal);
+    _promise.set_value_at_thread_exit(promiseVal);
     return;
-}
-
-Transport::TransportWorkerState::TransportWorkerState(future<bool> retInit,
-    bool exitInit)
-{
-    exitVal = make_shared<atomic<bool>>(exitInit);
-    retVal = std::move(retInit);
-    thread = nullptr;
 }
 
 Transport::TransportWorkDesc Transport::registerWork(TransportWork work)
 {
-    promise<bool> promise;
-    workerList.push_back(TransportWorkerState(promise.get_future(), false));
-    workerList.back().thread = unique_ptr<thread>(
-            new thread(MessageQueue::dispatchLoop, std::move(promise),
+    promise<bool> _promise;
+    workerList.push_back(TransportWorkerState(_promise.get_future(), false));
+    workerList.back()._thread = unique_ptr<thread>(
+            new thread(MessageQueue::dispatchLoop, std::move(_promise),
                 workerList.back().exitVal,
                 TransportWork(work.first, std::move(work.second))));
     PrintDebug("Thread started");
     if(isFutureSet(workerList.back().retVal)) {
-        workerList.back().thread.get()->join();
+        workerList.back()._thread.get()->join();
         workerList.pop_back();
         PrintError("Thread exited early");
         return InvalidTransportWorkDesc;
@@ -116,7 +117,7 @@ bool Transport::finalize()
             PrintError("Thread Join Timeout");
             return false;
         }
-        it.thread.get()->join();
+        it._thread.get()->join();
     }
     return _finalizeTransport<NullTransport, MessageQueue>();
 }
@@ -129,5 +130,5 @@ bool Transport::InterruptWorker(TransportWorkDesc d)
     if(isFutureSet(workerList.back().retVal))
         return true;
     PrintDebug("Sending interrupt to MessageQueue worker");
-    return SendSyscallInterruptSignal(*workerList[d].thread.get());
+    return SendSyscallInterruptSignal(*workerList[d]._thread.get());
 }
