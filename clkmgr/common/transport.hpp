@@ -87,7 +87,7 @@ class Transport
     typedef std::pair<TransportWorkFunction, TransportWorkArg> TransportWork;
     typedef ptrdiff_t TransportWorkDesc;
     static const TransportWorkDesc InvalidTransportWorkDesc =
-        (TransportWorkDesc) - 1;
+        (TransportWorkDesc)(-1);
   private:
     class TransportWorkerState
     {
@@ -98,11 +98,8 @@ class Transport
         TransportWorkerState(std::future<bool> retInit, bool exitInit);
     };
     static std::vector<TransportWorkerState> workerList;
-    static void dispatchLoop(
-        std::promise<FUTURE_TYPEOF(TransportWorkerState::retVal)>,
-        std::shared_ptr<std::atomic<bool>> exitVal,
-        TransportWork arg
-    );
+    static void dispatchLoop(std::promise<bool>,
+        std::shared_ptr<std::atomic<bool>> exitVal, TransportWork arg);
   public:
     static bool processMessage(TransportListenerContext &context);
     static bool initTransport() { return true; }

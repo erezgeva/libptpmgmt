@@ -27,11 +27,15 @@ using namespace std;
 
 DECLARE_STATIC(Transport::workerList);
 
-void Transport::dispatchLoop(
-    promise<FUTURE_TYPEOF(TransportWorkerState::retVal)> promise,
+bool isFutureSet(std::future<bool> &f)
+{
+    return f.valid() &&
+        f.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready;
+}
+void Transport::dispatchLoop(promise<bool> promise,
     shared_ptr<atomic<bool>> exitVal, TransportWork work)
 {
-    FUTURE_TYPEOF(TransportWorkerState::retVal) promiseVal = false;
+    bool promiseVal = false;
     PrintDebug("Transport Thread started");
     for(; !exitVal->load();) {
         if(!work.first(work.second.get()))
@@ -55,15 +59,14 @@ Transport::TransportWorkerState::TransportWorkerState(future<bool> retInit,
 
 Transport::TransportWorkDesc Transport::registerWork(TransportWork work)
 {
-    promise<FUTURE_TYPEOF(TransportWorkerState::retVal)> promise;
+    promise<bool> promise;
     workerList.push_back(TransportWorkerState(promise.get_future(), false));
     workerList.back().thread = unique_ptr<thread>(
             new thread(MessageQueue::dispatchLoop, std::move(promise),
                 workerList.back().exitVal,
                 TransportWork(work.first, std::move(work.second))));
     PrintDebug("Thread started");
-    if(isFutureSet<FUTURE_TYPEOF(TransportWorkerState::retVal)>
-        (workerList.back().retVal)) {
+    if(isFutureSet(workerList.back().retVal)) {
         workerList.back().thread.get()->join();
         workerList.pop_back();
         PrintError("Thread exited early");
@@ -123,8 +126,7 @@ bool Transport::InterruptWorker(TransportWorkDesc d)
     if(d == InvalidTransportWorkDesc)
         return false;
     /* Thread has exited, no need to interrupt */
-    if(isFutureSet<FUTURE_TYPEOF(TransportWorkerState::retVal)>
-        (workerList.back().retVal))
+    if(isFutureSet(workerList.back().retVal))
         return true;
     PrintDebug("Sending interrupt to MessageQueue worker");
     return SendSyscallInterruptSignal(*workerList[d].thread.get());
