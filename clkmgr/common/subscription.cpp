@@ -66,6 +66,6 @@ bool ClkMgrSubscription::get_threshold(ThresholdIndex index, int32_t &upper,
 bool ClkMgrSubscription::in_range(ThresholdIndex index, int32_t value) const
 {
     return index < thresholdLast &&
-        value > m_threshold[index].lower_limit &&
-        value < m_threshold[index].upper_limit;
+        value >= m_threshold[index].lower_limit &&
+        value <= m_threshold[index].upper_limit;
 }

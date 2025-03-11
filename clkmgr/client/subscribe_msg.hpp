@@ -26,10 +26,7 @@ class ClientSubscribeMessage : virtual public
     virtual public ClientMessage
 {
   private:
-    static Event_state *clkmgrCurrentState;
     static ClientState *currentClientState;
-    static std::map <sessionId_t, std::array<client_ptp_event *, 2>>
-        client_ptp_event_map;
     int timeBaseIndex = 0; /**< Timebase index */
 
   public:
@@ -63,17 +60,6 @@ class ClientSubscribeMessage : virtual public
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
     void setClientState(ClientState *newClientState);
-
-    /* Delete the corresponding map pair item */
-    static void deleteClientPtpEventStruct(sessionId_t sID);
-
-    /* Get the corresponding map pair item */
-    static client_ptp_event *getClientPtpEventStruct(sessionId_t sID);
-
-    static client_ptp_event *getClientPtpEventCompositeStruct(sessionId_t sID);
-
-    /* Reduce the corresponding eventCount */
-    static void resetClientPtpEventStruct(sessionId_t sID, Event_count &eventCount);
 
     /**
      * Set the time base index.

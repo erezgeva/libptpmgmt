@@ -28,3 +28,12 @@ void TimeBaseConfigurations::addTimeBaseCfg(const TimeBaseCfg &cfg)
 {
     timeBaseCfgs.push_back(cfg);
 }
+
+bool TimeBaseConfigurations::isTimeBaseIndexPresent(int timeBaseIndex) const
+{
+    for(const auto &cfg : timeBaseCfgs) {
+        if(cfg.timeBaseIndex == timeBaseIndex)
+            return true;
+    }
+    return false;
+}

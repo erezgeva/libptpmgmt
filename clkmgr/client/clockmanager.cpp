@@ -16,6 +16,7 @@
 #include "client/notification_msg.hpp"
 #include "client/subscribe_msg.hpp"
 #include "client/timebase_configs.hpp"
+#include "client/timebase_state.hpp"
 #include "common/print.hpp"
 #include "common/sighandler.hpp"
 
@@ -55,36 +56,37 @@ bool ClockManager::init()
 
 bool ClockManager::clkmgr_connect()
 {
-    unsigned int timeout_sec = (unsigned int) DEFAULT_CONNECT_TIME_OUT;
+    // Send a connect message to Proxy Daemon
     Message0 connectMsg(new ClientConnectMessage());
-    TransportClientId newClientID;
     ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
     cmsg->setClientState(implClientState.get());
     if(!ClientMessage::init()) {
-        PrintError("Client Message Init Failed");
+        PrintDebug("[CONNECT] Failed to initialize Client message.");
         return false;
     }
     if(!ClientTransport::init()) {
-        PrintError("Client Transport Init Failed");
+        PrintDebug("[CONNECT] Failed to initialize Client transportation.");
         return false;
     }
     ClientMessageQueue::writeTransportClientId(connectMsg.get());
     ClientMessageQueue::sendMessage(connectMsg.get());
-    /* Wait for connection result */
+    // Wait DEFAULT_CONNECT_TIME_OUT seconds for response from Proxy Daemon
+    unsigned int timeout_sec = (unsigned int)DEFAULT_CONNECT_TIME_OUT;
     auto endTime = system_clock::now() + seconds(timeout_sec);
     unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
-    while(implClientState->get_connected() == false) {
+    while(!implClientState->get_connected()) {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
         if(res == cv_status::timeout) {
-            if(implClientState->get_connected() == false) {
-                PrintDebug("[CONNECT] Connect reply from proxy - "
-                    "timeout failure!!");
+            if(!implClientState->get_connected()) {
+                PrintDebug("[CONNECT] Timeout waiting reply from Proxy.");
                 return false;
             }
         } else
-            PrintDebug("[CONNECT] Connect reply received.");
+            PrintDebug("[CONNECT] Received reply from Proxy.");
     }
+    // Store Client ID in Client State
     if((cmsg != nullptr) && !(cmsg->getClientId().empty())) {
+        TransportClientId newClientID;
         strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
         implClientState->set_clientID(newClientID);
     }
@@ -99,66 +101,70 @@ std::vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs() const
 bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
     int timeBaseIndex, Event_state &currentState)
 {
-    unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
-    PrintDebug("[clkmgr]::subscribe");
+    // Check whether connection between Proxy and Client is established or not
+    if(!implClientState->get_connected()) {
+        PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
+        return false;
+    }
+    // Check whether requested timeBaseIndex is valid or not
+    auto &timeBaseConfigs = TimeBaseConfigurations::getInstance();
+    if(!timeBaseConfigs.isTimeBaseIndexPresent(timeBaseIndex)) {
+        PrintDebug("[SUBSCRIBE] Invalid timeBaseIndex.");
+        return false;
+    }
+    // Store the event subscription in TimeBaseStates
+    auto &states = TimeBaseStates::getInstance();
+    states.setEventSubscription(timeBaseIndex, newSub);
+    // Send a subscribe message to Proxy Daemon
     MessageX subscribeMsg(new ClientSubscribeMessage());
     ClientSubscribeMessage *cmsg = dynamic_cast<decltype(cmsg)>(subscribeMsg.get());
     if(cmsg == nullptr) {
-        PrintErrorCode("[clkmgr::subscribe] subscribeMsg is nullptr !!");
+        PrintDebug("[SUBSCRIBE] Failed to create subscribe message.");
         return false;
-    } else
-        PrintDebug("[clkmgr::subscribe] subscribeMsgcreation is OK !!");
+    }
     cmsg->setClientState(implClientState.get());
     cmsg->set_timeBaseIndex(timeBaseIndex);
-    /* Write the current event subscription */
-    implClientState->set_eventSub(newSub);
-    /* Copy the event Mask */
-    cmsg->getSubscription().set_event_mask(newSub.get_event_mask());
     strcpy((char *)cmsg->getClientId().data(),
         (char *)implClientState->get_clientID().data());
     cmsg->set_sessionId(implClientState->get_sessionId());
     ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
     ClientMessageQueue::sendMessage(subscribeMsg.get());
-    /* Wait for subscription result */
+    // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon
+    unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
     auto endTime = system_clock::now() + seconds(timeout_sec);
     unique_lock<rtpi::mutex> lck(ClientSubscribeMessage::cv_mtx);
-    while(implClientState->get_subscribed() == false) {
+    while(!states.getSubscribed(timeBaseIndex)) {
         auto res = ClientSubscribeMessage::cv.wait_until(lck, endTime);
         if(res == cv_status::timeout) {
-            if(implClientState->get_subscribed() == false) {
-                PrintDebug("[SUBSCRIBE] No reply from proxy - timeout failure!!");
+            if(!states.getSubscribed(timeBaseIndex)) {
+                PrintDebug("[SUBSCRIBE] Timeout waiting reply from Proxy.");
                 return false;
             }
         } else
-            PrintDebug("[SUBSCRIBE] SUBSCRIBE reply received.");
+            PrintDebug("[SUBSCRIBE] Received reply from Proxy.");
     }
-    Event_state clkmgrCurrentState = implClientState->get_eventState();
-    currentState = clkmgrCurrentState;
+    // Get the current state of the timebase
+    TimeBaseState state;
+    if(!states.getTimeBaseState(timeBaseIndex, state)) {
+        PrintDebug("[SUBSCRIBE] Failed to get specific timebase state.");
+        return false;
+    }
+    currentState = state.get_eventState();
     return true;
 }
 
 bool ClockManager::clkmgr_disconnect()
 {
-    bool retVal = false;
-    /* Send a disconnect message */
+    // Send a disconnect message
     if(!ClientTransport::stop()) {
         PrintDebug("Client Stop Failed");
-        goto done;
+        return false;
     }
     if(!ClientTransport::finalize()) {
         PrintDebug("Client Finalize Failed");
-        goto done;
+        return false;
     }
-    /* Delete the ClientPtpEvent inside Subscription */
-    ClientSubscribeMessage::deleteClientPtpEventStruct(
-        implClientState->get_sessionId());
-    /* Delete the ClientState reference inside ClientNotificationMessage class */
-    ClientNotificationMessage::deleteClientState(implClientState.get());
-    retVal = true;
-done:
-    if(!retVal)
-        PrintError("Client Error Occured");
-    return retVal;
+    return true;
 }
 
 int64_t timespec_delta(const timespec &last_notification_time,
@@ -170,22 +176,28 @@ int64_t timespec_delta(const timespec &last_notification_time,
     return delta_in_ms;
 }
 
-bool check_proxy_liveness(ClientState &implClientState)
+bool check_proxy_liveness(ClientState &implClientState, int timeBaseIndex)
 {
-    timespec current_time;
-    if(clock_gettime(CLOCK_REALTIME, &current_time) == -1)
-        PrintDebug("[CONNECT] Failed to get current time.");
-    else {
-        int64_t timeout =
-            timespec_delta(implClientState.get_last_notification_time(),
-                current_time);
-        if(timeout < DEFAULT_LIVENESS_TIMEOUT_IN_MS)
-            return true;
+    auto &states = TimeBaseStates::getInstance();
+    timespec lastNotificationTime;
+    timespec currentTime;
+    int64_t timeout = 0;
+    if(clock_gettime(CLOCK_REALTIME, &currentTime) == -1) {
+        PrintDebug("[WAIT] Failed to get currentTime.");
+        goto send_connect;
     }
+    if(!states.getLastNotificationTime(timeBaseIndex, lastNotificationTime)) {
+        PrintDebug("[WAIT] Failed to get lastNotificationTime.");
+        goto send_connect;
+    }
+    timeout = timespec_delta(lastNotificationTime, currentTime);
+    if(timeout < DEFAULT_LIVENESS_TIMEOUT_IN_MS)
+        return true;
+send_connect:
     Message0 connectMsg(new ClientConnectMessage());
     ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
     if(cmsg == nullptr) {
-        PrintDebug("[CONNECT] Failed to cast to ClientConnectMessage");
+        PrintDebug("[WAIT] Failed to cast to ClientConnectMessage");
         return false;
     }
     implClientState.set_connected(false);
@@ -197,15 +209,15 @@ bool check_proxy_liveness(ClientState &implClientState)
     auto endTime = system_clock::now() +
         milliseconds(DEFAULT_LIVENESS_TIMEOUT_IN_MS);
     unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
-    while(implClientState.get_connected() == false) {
+    while(!implClientState.get_connected()) {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
         if(res == cv_status::timeout) {
-            if(implClientState.get_connected() == false) {
-                PrintDebug("[CONNECT] Connect reply timeout!!");
+            if(!implClientState.get_connected()) {
+                PrintDebug("[CONNECT] Timeout waiting reply from Proxy.");
                 return false;
             }
         } else
-            PrintDebug("[CONNECT] Connect reply received.");
+            PrintDebug("[CONNECT] Received reply from Proxy.");
     }
     return true;
 }
@@ -213,41 +225,46 @@ bool check_proxy_liveness(ClientState &implClientState)
 int ClockManager::clkmgr_status_wait(int timeout, int timeBaseIndex,
     Event_state &currentState, Event_count &currentCount)
 {
+    // Check whether connection between Proxy and Client is established or not
+    if(!implClientState->get_connected()) {
+        PrintDebug("[WAIT] Client is not connected to Proxy.");
+        return false;
+    }
+    // Check whether requested timeBaseIndex is subscribed or not
+    auto &states = TimeBaseStates::getInstance();
+    if(!states.getSubscribed(timeBaseIndex)) {
+        PrintDebug("[WAIT] Invalid timeBaseIndex.");
+        return false;
+    }
     auto start = high_resolution_clock::now();
     auto end = (timeout == -1) ?  time_point<high_resolution_clock>::max() :
         start + seconds(timeout);
     bool event_changes_detected = false;
-    Event_count eventCount;
-    Event_state eventState;
+    TimeBaseState state;
     do {
-        /* Check the liveness of the Proxy's message queue */
-        if(!check_proxy_liveness(*implClientState))
+        // Check liveness of the Proxy Daemon
+        if(!check_proxy_liveness(*implClientState, timeBaseIndex)) {
+            PrintDebug("[WAIT] Proxy Daemon is not alive.");
             return -1;
-        /* Get the event state and event count from the API */
-        eventCount = implClientState->get_eventStateCount();
-        eventState = implClientState->get_eventState();
-        /* Check if any member of eventCount is non-zero */
-        if(eventCount.offset_in_range_event_count ||
-            eventCount.as_capable_event_count ||
-            eventCount.synced_to_gm_event_count ||
-            eventCount.composite_event_count ||
-            eventCount.gm_changed_event_count ||
-            eventCount.chrony_offset_in_range_event_count) {
+        }
+        // Get the current state of the timebase
+        if(!states.getTimeBaseState(timeBaseIndex, state)) {
+            PrintDebug("[WAIT] Failed to get specific timebase state.");
+            return -1;
+        }
+        // Check whether there is any changes on the event state
+        if(state.is_event_changed()) {
             event_changes_detected = true;
             break;
         }
-        /* Sleep for a short duration before the next iteration */
+        // Sleep for a short duration before the next iteration
         this_thread::sleep_for(milliseconds(10));
     } while(high_resolution_clock::now() < end);
     /* Copy out the current state */
-    currentCount = eventCount;
-    currentState = eventState;
+    currentCount = state.get_eventStateCount();
+    currentState = state.get_eventState();
     if(!event_changes_detected)
         return 0;
-    /* Reset the atomic count by reducing the corresponding eventCount */
-    ClientSubscribeMessage::resetClientPtpEventStruct(
-        implClientState->get_sessionId(), eventCount);
-    implClientState->set_eventStateCount(eventCount);
     return 1;
 }
 

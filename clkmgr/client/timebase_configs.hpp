@@ -49,6 +49,13 @@ class TimeBaseConfigurations
      * @param[in] cfg TimeBaseCfg to add.
      */
     void addTimeBaseCfg(const TimeBaseCfg &cfg);
+
+    /**
+     * Check if a given timeBaseIndex is found in the vector of TimeBaseCfg.
+     * @param[in] timeBaseIndex The time base index to check.
+     * @return true if found, false otherwise.
+     */
+    bool isTimeBaseIndexPresent(int timeBaseIndex) const;
 };
 
 __CLKMGR_NAMESPACE_END

@@ -26,13 +26,8 @@ class ClientState
 {
   private:
     std::atomic_bool connected{false}; /**< Connection status */
-    std::atomic_bool subscribed{false}; /**< Subscription status */
     sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
     TransportClientId clientID = {}; /**< Client ID */
-    Event_state eventState = {}; /**< Event state */
-    Event_count eventStateCount = {}; /**< Event count */
-    ClkMgrSubscription eventSub = {}; /**< Event subscription */
-    timespec last_notification_time; /**< Last notification time */
 
   public:
     /**
@@ -65,18 +60,6 @@ class ClientState
     void set_connected(bool state);
 
     /**
-     * Get the subscription status
-     * @return true if subscribed, false otherwise
-     */
-    bool get_subscribed() const;
-
-    /**
-     * Set the subscription status
-     * @param[in] subscriptionState Subscription status
-     */
-    void set_subscribed(bool subscriptionState);
-
-    /**
      * Get the client ID
      * @return Client ID
      */
@@ -87,60 +70,6 @@ class ClientState
      * @param[in] cID Reference to the client ID
      */
     void set_clientID(const TransportClientId &cID);
-
-    /**
-     * Get the event state counts
-     * @return Reference to the event state counts
-     */
-    const Event_count &get_eventStateCount();
-
-    /**
-     * Get the event state
-     * @return Reference to the event state
-     */
-    Event_state &get_eventState();
-
-    /**
-     * Set the event state counts
-     * @param[in] eCount Event state counts
-     */
-    void set_eventStateCount(const Event_count &eCount);
-
-    /**
-     * Set the event state
-     * @param[in] eState Event state
-     */
-    void set_eventState(const Event_state &eState);
-
-    /**
-     * Set the last notification time
-     * @param[in] last_notification_time Last notification time
-     */
-    void set_last_notification_time(const timespec &last_notification_time);
-
-    /**
-     * Get the last notification time
-     * @return Last notification time
-     */
-    timespec get_last_notification_time() const;
-
-    /**
-     * Convert the client state to a string
-     * @return String representation of the client state
-     */
-    std::string toString() const;
-
-    /**
-     * Get the event subscription
-     * @return Reference to the event subscription
-     */
-    const ClkMgrSubscription &get_eventSub();
-
-    /**
-     * Set the event subscription
-     * @param[in] eSub event subscription
-     */
-    void set_eventSub(const ClkMgrSubscription &eSub);
 
     /**
     * Get the constant reference to the session ID.

@@ -53,7 +53,10 @@ BUILD_TXBUFFER_TYPE(ProxyNotificationMessage::makeBuffer) const
     if(!Message::makeBuffer(TxContext))
         return false;
     ptp_event event = ptp4lEvents[timeBaseIndex];
-    /* Add ptp_event data to the buffer */
+    // Add timeBaseIndex into the message
+    if(!WRITE_TX(FIELD, timeBaseIndex, TxContext))
+        return false;
+    // Add event data into the message
     if(!WRITE_TX(FIELD, event, TxContext))
         return false;
     return true;

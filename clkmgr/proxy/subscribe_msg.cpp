@@ -56,7 +56,10 @@ BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
     if(!CommonSubscribeMessage::makeBuffer(TxContext))
         return false;
     ptp_event event = ptp4lEvents[timeBaseIndex];
-    /* Add ptp data here */
+    // Add timeBaseIndex into the message
+    if(!WRITE_TX(FIELD, timeBaseIndex, TxContext))
+        return false;
+    // Add event data into the message
     if(!WRITE_TX(FIELD, event, TxContext))
         return false;
     return true;
