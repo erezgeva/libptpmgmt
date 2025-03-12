@@ -100,46 +100,32 @@ static chrony_err process_chronyd_data(chrony_session *s)
 static int subscribe_to_chronyd(chrony_session *s, int report_index,
     int timeBaseIndex)
 {
-    chrony_field_content content;
     const char *report_name;
     chrony_err r;
-    int i, j;
+    int record_index = 0;
+    int field_index = 0;
     report_name = chrony_get_report_name(report_index);
-    i = 0;
-    r = chrony_request_record(s, report_name, i);
+    r = chrony_request_record(s, report_name, record_index);
     if(r != CHRONY_OK)
         return r;
     r = process_chronyd_data(s);
     if(r != CHRONY_OK)
         return r;
-    for(j = 0; j < chrony_get_record_number_fields(s); j++) {
-        content = chrony_get_field_content(s, j);
-        if(content == CHRONY_CONTENT_NONE)
-            continue;
-        const char *field_name = chrony_get_field_name(s, j);
-        if(field_name != nullptr && strcmp(field_name, "reference ID") == 0)
-            ptp4lEvents[timeBaseIndex].chrony_reference_id =
-                chrony_get_field_uinteger(s, j);
-        if(field_name != nullptr && strcmp(field_name, "poll") == 0) {
-            int32_t interval = static_cast<int32_t>
-                (static_cast<int16_t>(chrony_get_field_integer(s, j)));
-            ptp4lEvents[timeBaseIndex].polling_interval =
-                pow(2.0, interval) * 1000000;
-            #if 0
-            PrintDebug("CHRONY polling_interval = " +
-                to_string(ptp4lEvents[timeBaseIndex].polling_interval) + " us");
-            #endif
-        }
-        if(field_name != nullptr && strcmp(field_name,
-                "original last sample offset") == 0) {
-            float second = (chrony_get_field_float(s, j) * 1e9);
-            ptp4lEvents[timeBaseIndex].chrony_offset = (int)second;
-            #if 0
-            PrintDebug("CHRONY master_offset = " +
-                to_string(ptp4lEvents[timeBaseIndex].chrony_offset));
-            #endif
-        }
-    }
+    field_index = chrony_get_field_index(s, "reference ID");
+    ptp4lEvents[timeBaseIndex].chrony_reference_id =
+        chrony_get_field_uinteger(s, field_index);
+    field_index = chrony_get_field_index(s, "poll");
+    int32_t interval = static_cast<int32_t>
+        (static_cast<int16_t>(chrony_get_field_integer(s, field_index)));
+    ptp4lEvents[timeBaseIndex].polling_interval =
+        pow(2.0, interval) * 1000000;
+    PrintDebug("CHRONY polling_interval = " +
+        to_string(ptp4lEvents[timeBaseIndex].polling_interval) + " us");
+    field_index = chrony_get_field_index(s, "original last sample offset");
+    float second = (chrony_get_field_float(s, field_index) * 1e9);
+    ptp4lEvents[timeBaseIndex].chrony_offset = (int)second;
+    PrintDebug("CHRONY master_offset = " +
+        to_string(ptp4lEvents[timeBaseIndex].chrony_offset));
     chrony_notify_client(timeBaseIndex);
     return CHRONY_OK;
 }
