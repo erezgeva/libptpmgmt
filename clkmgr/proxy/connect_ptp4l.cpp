@@ -103,9 +103,7 @@ class ptpSet : MessageDispatcher
             return false;
         }
         if(!sku.send(buf, msg.getMsgLen())) {
-            #if 0
-            PrintError("send failed");
-            #endif
+            PrintDebug("send failed");
             return false;
         }
         seq++;
@@ -212,7 +210,6 @@ callback_define(TIME_STATUS_NP)
     event.master_offset = tlv.master_offset;
     memcpy(event.gm_identity, tlv.gmIdentity.v, sizeof(event.gm_identity));
     do_notify = true;
-    #if 0
     PrintDebug("master_offset = " + to_string(event.master_offset) +
         ", synced_to_primary_clock = " + to_string(event.synced_to_primary_clock));
     char buf[100];
@@ -222,7 +219,6 @@ callback_define(TIME_STATUS_NP)
         event.gm_identity[4], event.gm_identity[5],
         event.gm_identity[6], event.gm_identity[7]);
     PrintDebug(buf);
-    #endif
 }
 void ptpSet::portDataSet(portState_e state, const ClockIdentity_t &id)
 {
@@ -284,23 +280,13 @@ void ptpSet::event_handle()
 void ptpSet::thread_loop()
 {
     bool lost_connection = false;
-    if(!msg_set_action(PORT_PROPERTIES_NP))
-        PrintDebug("Failed to get port properties\n");
     if(stopThread)
         return;
-    bool ret = sku.poll(timeout_ms);
-    if(stopThread)
-        return;
-    if(ret) {
-        ssize_t cnt = sku.rcv(buf, bufSize);
-        if(cnt > 0) {
-            MNG_PARSE_ERROR_e err = msg.parse(buf, cnt);
-            if(err == MNG_PARSE_ERROR_OK)
-                event_handle();
-        }
-    }
-    msg_set_action(PORT_PROPERTIES_NP);
-    event_subscription();
+    if(!event_subscription()) {
+        PrintError("Failed to connect to ptp4l at " + udsAddr);
+        lost_connection = true;
+    } else
+        PrintInfo("Connected to ptp4l at " + udsAddr);
     for(;;) {
         if(stopThread)
             return;
@@ -321,8 +307,7 @@ void ptpSet::thread_loop()
                 if(event_subscription())
                     break;
                 if(!lost_connection) {
-                    PrintError("Lost connection to ptp4l at address: " + udsAddr);
-                    PrintInfo("Resetting clkmgr's ptp4l data.");
+                    PrintError("Lost connection to ptp4l at " + udsAddr);
                     event.master_offset = 0;
                     memset(event.gm_identity, 0, sizeof(event.gm_identity));
                     event.synced_to_primary_clock = false;
@@ -332,12 +317,11 @@ void ptpSet::thread_loop()
                         return;
                     notify_client();
                 }
-                PrintInfo("Attempting to reconnect to ptp4l at address: " +
-                    udsAddr);
+                PrintInfo("Attempting to reconnect to ptp4l at " + udsAddr);
                 sleep(2);
             }
             if(lost_connection) {
-                PrintInfo("Successful connected to ptp4l at address: " + udsAddr);
+                PrintInfo("Reconnected to ptp4l at " + udsAddr);
                 lost_connection = false;
             }
         }

@@ -136,13 +136,16 @@ void *monitor_chronyd(void *arg)
     chrony_session *s = args->s;
     int fd = args->fd;
     for(;;) {
-        if(chrony_init_session(&s, fd) == CHRONY_OK) {
-            /* Subscribe to chronyd source index 1 */
-            subscribe_to_chronyd(s, 1, chronyIndex[fd]);
+        /* Subscribe to chronyd source index 1 */
+        if(subscribe_to_chronyd(s, 1, chronyIndex[fd]) != CHRONY_OK) {
+            PrintError("Failed to subscribe to chronyd");
+            chrony_deinit_session(s);
+            break;
         }
         /* Sleep duration is based on chronyd polling interval */
         usleep(ptp4lEvents[chronyIndex[fd]].polling_interval);
     }
+    return nullptr;
 }
 
 void start_monitor_thread(chrony_session *s, int report_index, int fd)
@@ -177,11 +180,15 @@ void ConnectChrony::connect_chrony()
             continue;
         /* connect to chronyd unix socket using udsAddrChrony */
         int fd = chrony_open_socket(param.udsAddrChrony);
+        if(fd < 0) {
+            PrintError("Failed to connect to Chrony at " +
+                string(param.udsAddrChrony));
+            continue;
+        }
+        PrintInfo("Connected to Chrony at " + string(param.udsAddrChrony));
         chronyIndex.insert(std::pair<int, int>(fd, param.timeBaseIndex));
         chrony_session *s;
-        if(chrony_init_session(&s, fd) == CHRONY_OK) {
+        if(chrony_init_session(&s, fd) == CHRONY_OK)
             start_monitor_thread(s, report_index, fd);
-            chrony_deinit_session(s);
-        }
     }
 }
