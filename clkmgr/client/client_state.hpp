@@ -12,6 +12,7 @@
 #ifndef CLIENT_CLIENT_STATE_H
 #define CLIENT_CLIENT_STATE_H
 
+#include "common/util.hpp"
 #include "pub/clkmgr/subscription.h"
 
 #include <string>
