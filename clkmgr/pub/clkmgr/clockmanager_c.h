@@ -57,6 +57,17 @@ bool clkmgr_c_get_timebase_cfgs(int time_base_index,
 size_t clkmgr_c_get_timebase_cfgs_size();
 
 /**
+ * Subscribe to client events by name for the time base
+ * @param[in] sub Subscription structure
+ * @param[in] timeBaseName Name of the time base to be subscribed
+ * @param[out] current_state Pointer to the current state structure
+ * @return true on success, false on failure
+ */
+bool clkmgr_c_subscribe_by_name(const struct clkmgr_c_subscription sub,
+    char timeBaseName[CLKMGR_STRING_SIZE_MAX],
+    struct Clkmgr_Event_state *current_state);
+
+/**
  * Subscribe to client events
  * @param[in] sub Subscription structure
  * @param[in] time_base_index Index of the time base to be subscribed
@@ -65,6 +76,23 @@ size_t clkmgr_c_get_timebase_cfgs_size();
  */
 bool clkmgr_c_subscribe(const struct clkmgr_c_subscription sub,
     int time_base_index, struct Clkmgr_Event_state *current_state);
+
+/**
+ * Waits for a specified timeout period for any event changes by name of the
+ * time base
+ * @param[in] timeout TThe timeout in seconds. If timeout is 0, the function
+ * will check event changes once. If timeout is -1, the function will wait
+ * until there is event changes occurs
+ * @param[in] timeBaseName Name of the time base to be monitored
+ * @param[out] current_state Pointer to the current state structure
+ * @param[out] current_count Pointer to the event count structure
+ * @return true if there is event changes within the timeout period,
+ *         and false otherwise
+ */
+int clkmgr_c_status_wait_by_name(int timeout,
+    char timeBaseName[CLKMGR_STRING_SIZE_MAX],
+    struct Clkmgr_Event_state *current_state,
+    struct Clkmgr_Event_count *current_count);
 
 /**
  * Waits for a specified timeout period for any event changes

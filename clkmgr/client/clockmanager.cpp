@@ -98,6 +98,21 @@ std::vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs() const
     return TimeBaseConfigurations::getInstance().getTimeBaseCfgs();
 }
 
+bool ClockManager::clkmgr_subscribe_by_name(const ClkMgrSubscription &newSub,
+    char timeBaseName[STRING_SIZE_MAX], Event_state &currentState)
+{
+    int timeBaseIndex = -1;
+    for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs()) {
+        if(strcmp(cfg.timeBaseName, timeBaseName) == 0)
+            timeBaseIndex = cfg.timeBaseIndex;
+    }
+    if(timeBaseIndex == -1) {
+        PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
+        return false;
+    }
+    return clkmgr_subscribe(newSub, timeBaseIndex, currentState);
+}
+
 bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
     int timeBaseIndex, Event_state &currentState)
 {
@@ -220,6 +235,22 @@ send_connect:
             PrintDebug("[CONNECT] Received reply from Proxy.");
     }
     return true;
+}
+
+int ClockManager::clkmgr_status_wait_by_name(int timeout,
+    char timeBaseName[STRING_SIZE_MAX],
+    Event_state &currentState, Event_count &currentCount)
+{
+    int timeBaseIndex = -1;
+    for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs()) {
+        if(strcmp(cfg.timeBaseName, timeBaseName) == 0)
+            timeBaseIndex = cfg.timeBaseIndex;
+    }
+    if(timeBaseIndex == -1) {
+        PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
+        return -1;
+    }
+    return clkmgr_status_wait(timeout, timeBaseIndex, currentState, currentCount);
 }
 
 int ClockManager::clkmgr_status_wait(int timeout, int timeBaseIndex,

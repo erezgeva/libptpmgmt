@@ -48,6 +48,25 @@ size_t clkmgr_c_get_timebase_cfgs_size()
     return c_fetch().clkmgr_get_timebase_cfgs().size();
 }
 
+bool clkmgr_c_subscribe_by_name(const clkmgr_c_subscription sub,
+    char timeBaseName[CLKMGR_STRING_SIZE_MAX],
+    Clkmgr_Event_state *current_state)
+{
+    if(timeBaseName == nullptr || current_state == nullptr)
+        return false;
+    int timeBaseIndex = -1;
+    std::vector<clkmgr::TimeBaseCfg> cfgs = c_fetch().clkmgr_get_timebase_cfgs();
+    for(const auto &cfg : cfgs) {
+        if(strncmp(cfg.timeBaseName, timeBaseName, CLKMGR_STRING_SIZE_MAX) == 0) {
+            timeBaseIndex = cfg.timeBaseIndex;
+            break;
+        }
+    }
+    if(timeBaseIndex == -1)
+        return false;
+    return clkmgr_c_subscribe(sub, timeBaseIndex, current_state);
+}
+
 bool clkmgr_c_subscribe(const clkmgr_c_subscription sub, int time_base_index,
     Clkmgr_Event_state *current_state)
 {
@@ -81,6 +100,26 @@ bool clkmgr_c_subscribe(const clkmgr_c_subscription sub, int time_base_index,
         current_state->polling_interval = state.polling_interval;
     }
     return ret;
+}
+
+int clkmgr_c_status_wait_by_name(int timeout,
+    char timeBaseName[CLKMGR_STRING_SIZE_MAX], Clkmgr_Event_state *current_state,
+    Clkmgr_Event_count *current_count)
+{
+    if(timeBaseName == nullptr || current_state == nullptr)
+        return -1;
+    int timeBaseIndex = -1;
+    std::vector<clkmgr::TimeBaseCfg> cfgs = c_fetch().clkmgr_get_timebase_cfgs();
+    for(const auto &cfg : cfgs) {
+        if(strncmp(cfg.timeBaseName, timeBaseName, CLKMGR_STRING_SIZE_MAX) == 0) {
+            timeBaseIndex = cfg.timeBaseIndex;
+            break;
+        }
+    }
+    if(timeBaseIndex == -1)
+        return -1;
+    return clkmgr_c_status_wait(timeout, timeBaseIndex, current_state,
+            current_count);
 }
 
 int clkmgr_c_status_wait(int timeout, int time_base_index,

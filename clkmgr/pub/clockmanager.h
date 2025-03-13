@@ -77,6 +77,16 @@ class ClockManager
     std::vector<TimeBaseCfg> clkmgr_get_timebase_cfgs() const;
 
     /**
+     * Subscribe to events by name of the time base
+     * @param[in] newSub Reference to the new subscription
+     * @param[in] timeBaseName Name of the time base to be subscribed
+     * @param[out] currentState Reference to the current state
+     * @return true on success, false on failure
+     */
+    bool clkmgr_subscribe_by_name(const ClkMgrSubscription &newSub,
+        char timeBaseName[STRING_SIZE_MAX], Event_state &currentState);
+
+    /**
      * Subscribe to events
      * @param[in] newSub Reference to the new subscription
      * @param[in] timeBaseIndex Index of the time base to be subscribed
@@ -85,6 +95,23 @@ class ClockManager
      */
     bool clkmgr_subscribe(const ClkMgrSubscription &newSub, int timeBaseIndex,
         Event_state &currentState);
+
+    /**
+     * Waits for a specified timeout period for any event changes by
+     * name of the time base.
+     * @param[in] timeout in seconds
+     * @li Use 0 to check without waiting
+     * @li Use -1 to wait until there is event changes occurs.
+     * @param[in] timeBaseName Name of the time base to be monitored
+     * @param[out] currentState Reference to the current event state
+     * @param[out] currentCount Reference to the current event count
+     * @return result
+     * @li 1 when an event changes within the timeout period
+     * @li 0 No event changes
+     * @li -1 lost connection to the Clock manager Proxy
+     */
+    int clkmgr_status_wait_by_name(int timeout, char timeBaseName[STRING_SIZE_MAX],
+        Event_state &currentState, Event_count &currentCount);
 
     /**
      * Waits for a specified timeout period for any event changes.
