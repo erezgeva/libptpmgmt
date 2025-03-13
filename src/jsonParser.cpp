@@ -23,6 +23,8 @@
 #include <cinttypes>
 #include <cmath>
 
+using namespace std;
+
 const size_t lineSize = 512;
 
 enum e_token {
@@ -137,7 +139,7 @@ class jsonParser
         val = strtoul(hex, &endptr, 16);
         return *endptr == 0;
     }
-    bool uProc(std::string &ret, bool &useSur, uint16_t &W1) {
+    bool uProc(string &ret, bool &useSur, uint16_t &W1) {
         uint32_t val;
         uint16_t val16;
         if(!uToVal(val16))
@@ -175,7 +177,7 @@ class jsonParser
             ret += (char)(0x80 | (0x3f & (val >> ((i - 2) * 6))));
         return true;
     }
-    bool checkUTF8(std::string &ret) {
+    bool checkUTF8(string &ret) {
         // Check for proper UTF-8!
         uint8_t val8 = (uint8_t) * cur;
         // Check range reserved for 2nd tp 4th bytes, not first!
@@ -196,7 +198,7 @@ class jsonParser
         return true;
     }
     e_token getKey() {
-        std::string key;
+        string key;
         for(;;) {
             if(isEOF() || strchr("]}, \n\r\t", *cur) != nullptr) {
                 if(key == "true")
@@ -217,7 +219,7 @@ class jsonParser
     jsonParser(bool _c = false) : useComments(_c) {}
     virtual ~jsonParser() {}
     size_t getLine() {return lineNum;}
-    bool init(const std::string &head) {
+    bool init(const string &head) {
         if(head.empty())
             return false;
         cur = head.c_str();
@@ -261,7 +263,7 @@ class jsonParser
         return JSON_INV;
     }
     void closeTk() { cur++; }
-    bool getStr(std::string &ret) {
+    bool getStr(string &ret) {
         ret.clear();
         cur++;
         bool useSur = false; // Have UTF-16 surrogate pair
@@ -326,7 +328,7 @@ class jsonParser
             }
         }
     }
-    bool getNum(std::string &ret, size_t &dot_loc, size_t &e_loc) {
+    bool getNum(string &ret, size_t &dot_loc, size_t &e_loc) {
         ret.clear();
         dot_loc = 0;
         e_loc = 0;
@@ -423,11 +425,11 @@ class jsonParser
             case JSON_NUM:
                 return new jsonValue(t_number);
             case JSON_TRUE:
-                return new jsonValue(t_boolean, true);
+                return new jsonValue(true);
             case JSON_FALSE:
-                return new jsonValue(t_boolean, false);
+                return new jsonValue(false);
             case JSON_NULL:
-                return new jsonValue(t_null);
+                return new jsonValue();
             default:
                 break;
         }
@@ -447,7 +449,7 @@ class jsonParserFile : public jsonParser
         if(f != nullptr)
             fclose(f);
     }
-    bool open(const std::string &name) {
+    bool open(const string &name) {
         if(name.empty())
             return false;
         f = fopen(name.c_str(), "r");
@@ -494,7 +496,7 @@ bool jsonObject::parserVal(jsonParser *_p)
     }
     for(;;) {
         // Key
-        std::string key;
+        string key;
         tk = _p->getToken();
         if(tk != JSON_STR || !_p->getStr(key))
             return false;
@@ -512,7 +514,7 @@ bool jsonObject::parserVal(jsonParser *_p)
             delete e;
             return false;
         }
-        members.emplace(std::make_pair(key, e));
+        members.insert(make_pair(key, e));
         // Separetor or end of object
         tk = _p->getToken();
         switch(tk) {
@@ -579,12 +581,12 @@ jsonMain::~jsonMain()
 {
     delete main;
 }
-bool jsonMain::parseFile(const std::string &name, bool useComments)
+bool jsonMain::parseFile(const string &name, bool useComments)
 {
     jsonParserFile _p(useComments);
     return _p.open(name) && paresJson(&_p);
 }
-bool jsonMain::parseBuffer(const std::string &buffer, bool useComments)
+bool jsonMain::parseBuffer(const string &buffer, bool useComments)
 {
     jsonParser _p(useComments);
     return _p.init(buffer) && paresJson(&_p);
@@ -597,7 +599,11 @@ e_type jsonMain::getType() const
 {
     return main != nullptr ? main->getType() : t_non;
 }
-static inline bool isJsonVal(e_type type)
+string jsonMain::toString(size_t ident) const
+{
+    return main != nullptr ? main->toString(ident) : "";
+}
+static inline bool isJsonValue(e_type type)
 {
     switch(type) {
         case t_string:
@@ -614,18 +620,15 @@ static inline bool isJsonVal(e_type type)
 }
 jsonValue *jsonMain::getVal() const
 {
-    return main != nullptr &&
-        isJsonVal(main->getType()) ? dynamic_cast<jsonValue *>(main) : nullptr;
+    return main != nullptr ? main->getVal() : nullptr;
 };
 jsonObject *jsonMain::getObj() const
 {
-    return main != nullptr && main->getType() == t_object ?
-        dynamic_cast<jsonObject *>(main) : nullptr;
+    return main != nullptr ? main->getObj() : nullptr;
 }
 jsonArray *jsonMain::getArr() const
 {
-    return main != nullptr && main->getType() == t_array ?
-        dynamic_cast<jsonArray *>(main) : nullptr;
+    return main != nullptr ? main->getArr() : nullptr;
 }
 jsonValueBase::jsonValueBase(e_type type) : m_type(type)
 {
@@ -633,31 +636,132 @@ jsonValueBase::jsonValueBase(e_type type) : m_type(type)
 jsonValueBase::~jsonValueBase()
 {
 }
+static inline string jUtf16(uint16_t val)
+{
+    char b[10];
+    sprintf(b, "\\""u%.4x", val);
+    return b;
+}
+string jsonValueBase::strToStr(const string &str)
+{
+    string ret = "\"";
+    const size_t sz = str.size();
+    for(size_t i = 0; i < sz; i++) {
+        switch(str[i]) {
+            case '\\': // reverse solidus
+            case '"': // quotation mark
+            case '/': // solidus
+                ret += '\\';
+                ret += str[i];
+                break;
+            case '\b': // backspace
+                ret += "\\b";
+                break;
+            case '\f': // form feed
+                ret += "\\f";
+                break;
+            case '\n': // line feed
+                ret += "\\n";
+                break;
+            case '\r': // carriage return
+                ret += "\\r";
+                break;
+            case '\t': // horizontal tabulation
+                ret += "\\t";
+                break;
+            default: {
+                uint8_t v = (uint8_t)str[i];
+                if(v >= 0x20 && v < 0x7f)
+                    // 1 UTF-8 printable byte are passes as is
+                    ret += str[i];
+                else {
+                    // Convert UTF-8 to Unicode
+                    uint32_t val = v; // Unicode code
+                    if(v > 0x7f) {
+                        size_t b = 0; // Number of extra characters
+                        bool wrong_utf8 = false;
+                        if((v & 0xe0) == 0xc0) {
+                            val &= 0x1f;
+                            b = 1;
+                        } else if((v & 0xf0) == 0xe0) {
+                            val &= 0xf;
+                            b = 2;
+                        } else if((v & 0xf8) == 0xf0) {
+                            val &= 7;
+                            b = 3;
+                        } else
+                            wrong_utf8 = true;
+                        for(size_t j = 0; j < b; j++) {
+                            if(((uint8_t)str[i + j + 1] & 0xc0) != 0x80) {
+                                wrong_utf8 = true;
+                                break;
+                            }
+                        }
+                        /*
+                         * Check if UTF8 is too short
+                         * Or we use a wrong code
+                         * Then use original string, as it is NOT a proper UTF-8
+                         * We do not know how to translate.
+                         */
+                        if(wrong_utf8 || i + b > sz) {
+                            ret = "\"";
+                            ret += str + "\"";
+                            return ret;
+                        }
+                        // Translate UTF-8 back to unicode
+                        for(size_t j = 0; j < b; j++) {
+                            val <<= 6;
+                            val |= (0x3f & (uint8_t)str[++i]);
+                        }
+                    }
+                    // JSON escape with UTF-16
+                    if(val <= UINT16_MAX)
+                        ret += jUtf16(val);
+                    else {
+                        // UTF-16 surrogate pair
+                        val -= 0x10000;
+                        uint16_t val2 = (val & 0xbff) | 0xdc00;
+                        val >>= 10;
+                        uint16_t val1 = (val & 0xbff) | 0xd800;
+                        ret += jUtf16(val1);
+                        ret += jUtf16(val2);
+                    }
+                }
+                break;
+            }
+        }
+    }
+    ret += "\"";
+    return ret;
+}
 e_type jsonValueBase::getType() const
 {
     return m_type;
 }
-jsonValue *jsonValueBase::getVal()
+#define cast1(n) dynamic_cast<n *>(const_cast<jsonValueBase *>(this))
+#define cast2(n) const_cast<decltype(n)*>(&n)
+jsonValue *jsonValueBase::getVal() const
 {
-    return isJsonVal(m_type) ? dynamic_cast<jsonValue *>(this) : nullptr;
+    return isJsonValue(m_type) ? cast1(jsonValue) : nullptr;
 }
-jsonObject *jsonValueBase::getObj()
+jsonObject *jsonValueBase::getObj() const
 {
-    return m_type == t_object ? dynamic_cast<jsonObject *>(this) : nullptr;
+    return m_type == t_object ? cast1(jsonObject) : nullptr;
 }
-jsonArray *jsonValueBase::getArr()
+jsonArray *jsonValueBase::getArr() const
 {
-    return m_type == t_array ? dynamic_cast<jsonArray *>(this) : nullptr;
+    return m_type == t_array ? cast1(jsonArray) : nullptr;
 }
-jsonValue::jsonValue(e_type type, bool boolean) : jsonValueBase(type),
-    valBool(boolean)
-{
-}
+jsonValue::jsonValue(e_type type) : jsonValueBase(type) {}
+jsonValue::jsonValue(bool boolean) : jsonValueBase(t_boolean),
+    valBool(boolean) {}
+jsonValue::jsonValue() : jsonValueBase(t_null) {}
+jsonValue::jsonValue(const string &str) : jsonValueBase(t_string), val(str) {}
 const char *jsonValue::getCStr() const
 {
     return val.c_str();
 }
-const std::string &jsonValue::getStr() const
+const string &jsonValue::getStr() const
 {
     return val;
 }
@@ -769,12 +873,12 @@ bool jsonValue::getFrac(int64_t &integer, uint64_t &fraction,
         }
         size_t aDot = val.length() - dot_loc - 1;
         if(aDot <= fracSize) {
-            const std::string before = val.substr(0, dot_loc);
+            const string before = val.substr(0, dot_loc);
             char *endptr = nullptr;
             integer = (int64_t)strtoimax(before.c_str(), &endptr, 10);
             if(endptr == nullptr || *endptr != 0)
                 return false;
-            const std::string after = val.substr(dot_loc + 1);
+            const string after = val.substr(dot_loc + 1);
             endptr = nullptr;
             fraction = (uint64_t)strtoumax(after.c_str(), &endptr, 10);
             if(endptr == nullptr || *endptr != 0)
@@ -789,7 +893,21 @@ bool jsonValue::getFrac(int64_t &integer, uint64_t &fraction,
     }
     return false;
 }
-
+string jsonValue::toString(size_t) const
+{
+    switch(m_type) {
+        case t_string:
+            return strToStr(val);
+        case t_number:
+            return val;
+        case t_boolean:
+            return valBool ? "true" : "false";
+        case t_null:
+            return "null";
+        default:
+            return "";
+    }
+}
 jsonObject::jsonObject() : jsonValueBase(t_object)
 {
 }
@@ -802,56 +920,71 @@ size_t jsonObject::size() const
 {
     return members.size();
 }
-size_t jsonObject::count(const std::string &key) const
+size_t jsonObject::count(const string &key) const
 {
     return members.count(key);
 }
-obj_iter jsonObject::find(const std::string &key)
+obj_iter jsonObject::find(const string &key) const
 {
-    return members.find(key);
+    return cast2(members)->find(key);
 }
-obj_iter jsonObject::begin()
+std::pair<obj_iter, obj_iter> jsonObject::equal_range(const std::string &key)
+const
 {
-    return members.begin();
+    return cast2(members)->equal_range(key);
 }
-obj_iter jsonObject::end()
+obj_iter jsonObject::begin() const
 {
-    return members.end();
+    return cast2(members)->begin();
 }
-e_type jsonObject::getMulType(const obj_iter &iter) const
+obj_iter jsonObject::end() const
+{
+    return cast2(members)->end();
+}
+e_type jsonObject::getType(const obj_iter &iter) const
 {
     return iter->second->getType();
 }
-jsonValue *jsonObject::getMulVal(const obj_iter &iter) const
+jsonValue *jsonObject::getVal(const obj_iter &iter) const
 {
-    return isJsonVal(iter->second->getType()) ?
-        dynamic_cast<jsonValue *>(iter->second) : nullptr;
+    return iter->second->getVal();
 }
-jsonObject *jsonObject::getMulObj(const obj_iter &iter) const
+jsonObject *jsonObject::getObj(const obj_iter &iter) const
 {
-    return iter->second->getType() == t_object ?
-        dynamic_cast<jsonObject *>(iter->second) : nullptr;
+    return iter->second->getObj();
 }
-jsonArray *jsonObject::getMulArr(const obj_iter &iter) const
+jsonArray *jsonObject::getArr(const obj_iter &iter) const
 {
-    return iter->second->getType() == t_array ?
-        dynamic_cast<jsonArray *>(iter->second) : nullptr;
+    return iter->second->getArr();
 }
-e_type jsonObject::getType(const std::string &key)
+e_type jsonObject::getType(const string &key) const
 {
-    return count(key) == 1 ? find(key)->second->getType() : t_non;
+    return count(key) == 1 ? getType(find(key)) : t_non;
 }
-jsonValue *jsonObject::getVal(const std::string &key)
+jsonValue *jsonObject::getVal(const string &key) const
 {
-    return count(key) == 1 ? getMulVal(find(key)) : nullptr;
+    return count(key) == 1 ? getVal(find(key)) : nullptr;
 }
-jsonObject *jsonObject::getObj(const std::string &key)
+jsonObject *jsonObject::getObj(const string &key) const
 {
-    return count(key) == 1 ? getMulObj(find(key)) : nullptr;
+    return count(key) == 1 ? getObj(find(key)) : nullptr;
 }
-jsonArray *jsonObject::getArr(const std::string &key)
+jsonArray *jsonObject::getArr(const string &key) const
 {
-    return count(key) == 1 ? getMulArr(find(key)) : nullptr;
+    return count(key) == 1 ? getArr(find(key)) : nullptr;
+}
+string jsonObject::toString(size_t ident) const
+{
+    string it1(2 * ident, ' ');
+    string ret(it1 + "{\n");
+    if(!members.empty()) {
+        for(const auto &m : members)
+            ret += it1 + "  " + strToStr(m.first) + " : " +
+                m.second->toString(ident + 2) + ",\n";
+        ret.erase(ret.size() - 2, 1); // Remove the last comma
+    }
+    ret += it1 + "}";
+    return ret;
 }
 jsonArray::jsonArray() : jsonValueBase(t_array)
 {
@@ -865,13 +998,13 @@ size_t jsonArray::size() const
 {
     return elements.size();
 }
-arr_iter jsonArray::begin()
+arr_iter jsonArray::begin() const
 {
-    return elements.begin();
+    return cast2(elements)->begin();
 }
-arr_iter jsonArray::end()
+arr_iter jsonArray::end() const
 {
-    return elements.end();
+    return cast2(elements)->end();
 }
 e_type jsonArray::getType(size_t index) const
 {
@@ -879,19 +1012,15 @@ e_type jsonArray::getType(size_t index) const
 }
 jsonValue *jsonArray::getVal(size_t index) const
 {
-    return index < elements.size() &&
-        isJsonVal(elements[index]->getType()) ?
-        dynamic_cast<jsonValue *>(elements[index]) : nullptr;
+    return index < elements.size() ? elements[index]->getVal() : nullptr;
 }
 jsonObject *jsonArray::getObj(size_t index) const
 {
-    return index < elements.size() && elements[index]->getType() == t_object ?
-        dynamic_cast<jsonObject *>(elements[index]) : nullptr;
+    return index < elements.size() ? elements[index]->getObj() : nullptr;
 }
 jsonArray *jsonArray::getArr(size_t index) const
 {
-    return index < elements.size() && elements[index]->getType() == t_array ?
-        dynamic_cast<jsonArray *>(elements[index]) : nullptr;
+    return index < elements.size() ? elements[index]->getArr() : nullptr;
 }
 e_type jsonArray::getType(const arr_iter &iterator) const
 {
@@ -899,18 +1028,27 @@ e_type jsonArray::getType(const arr_iter &iterator) const
 }
 jsonValue *jsonArray::getVal(const arr_iter &iterator) const
 {
-    return isJsonVal((*iterator)->getType()) ?
-        dynamic_cast<jsonValue *>(*iterator) : nullptr;
+    return (*iterator)->getVal();
 }
 jsonObject *jsonArray::getObj(const arr_iter &iterator) const
 {
-    return (*iterator)->getType() == t_object ?
-        dynamic_cast<jsonObject *>(*iterator) : nullptr;
+    return (*iterator)->getObj();
 }
 jsonArray *jsonArray::getArr(const arr_iter &iterator) const
 {
-    return (*iterator)->getType() == t_array ?
-        dynamic_cast<jsonArray *>(*iterator) : nullptr;
+    return (*iterator)->getArr();
+}
+string jsonArray::toString(size_t ident) const
+{
+    string it1(2 * ident, ' ');
+    string ret = it1 + "[\n";
+    if(!elements.empty()) {
+        for(const auto &e : elements)
+            ret += it1 + "  " + e->toString(ident + 2) + ",\n";
+        ret.erase(ret.size() - 2, 1); // Remove the last comma
+    }
+    ret += it1 + "]";
+    return ret;
 }
 
 const char *jsonType2str(e_type type)

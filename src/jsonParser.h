@@ -54,6 +54,12 @@ class jsonValueBase
       */
     virtual bool parserVal(jsonParser *parser) = 0;
     /**
+      * convert string to JSON string
+      * @param[in] str string to convert
+      * @return JSON string
+      */
+    static std::string strToStr(const std::string &str);
+    /**
       * Constractor
       * @param[in] type value
       */
@@ -76,17 +82,23 @@ class jsonValueBase
       * Get value object
       * @return value object
       */
-    jsonValue *getVal();
+    jsonValue *getVal() const;
     /**
       * Get JSON object object
       * @return JSON object object
       */
-    jsonObject *getObj();
+    jsonObject *getObj() const;
     /**
       * Get JSON array object
       * @return JSON array object
       */
-    jsonArray *getArr();
+    jsonArray *getArr() const;
+    /**
+      * convert JSON to string
+      * @param[in] ident to use
+      * @return valid JSON parsed
+      */
+    virtual std::string toString(size_t ident = 0) const = 0;
 };
 
 /** class jsonValue for string, number, boolean or null value */
@@ -94,7 +106,7 @@ class jsonValue : public jsonValueBase
 {
   private:
     std::string val;
-    bool valBool;
+    bool valBool = false;
     size_t dot_loc = 0;
     size_t e_loc = 0;
 
@@ -105,14 +117,30 @@ class jsonValue : public jsonValueBase
       * @return valid JSON parsed
       */
     bool parserVal(jsonParser *parser) override;
-
-  public:
     /**
       * Constractor
       * @param[in] type value
+      */
+    jsonValue(e_type type);
+
+    friend class jsonParser;
+
+  public:
+    /**
+      * Constractor a boolean value
       * @param[in] boolean value
       */
-    jsonValue(e_type type, bool boolean = false);
+    jsonValue(bool boolean);
+    /**
+      * Constractor a null value
+      * @param[in] boolean value
+      */
+    jsonValue();
+    /**
+      * Constractor a string value
+      * @param[in] boolean value
+      */
+    jsonValue(const std::string &str);
     /**
       * Get String value
       * @return pointer to a C string
@@ -161,6 +189,12 @@ class jsonValue : public jsonValueBase
       * @return true for valid result
       */
     bool getFrac(int64_t &integer, uint64_t &fraction, size_t fracSize) const;
+    /**
+      * convert JSON to string
+      * @param[in] ident to use
+      * @return valid JSON parsed
+      */
+    std::string toString(size_t ident = 0) const override;
 };
 
 /** Iterator type of jsonObject members */
@@ -171,6 +205,13 @@ class jsonObject : public jsonValueBase
 {
   private:
     std::multimap<std::string, jsonValueBase *> members;
+    /**
+      * Get a member with a key
+      * @param[in] key string
+      * @return iterator to loop all members match the key
+      */
+    obj_iter find(const std::string &key) const;
+
   protected:
     /**
       * parse JSON value
@@ -195,73 +236,79 @@ class jsonObject : public jsonValueBase
       */
     size_t count(const std::string &key) const;
     /**
-      * Get members with a key
+      * Get a range of member using a key
       * @param[in] key string
-      * @return iterator to loop all members match the key
+      * @return pair of iterator to loop all members match the key
       */
-    obj_iter find(const std::string &key);
+    std::pair<obj_iter, obj_iter> equal_range(const std::string &key) const;
     /**
       * Get members begin iterator
       * @return iterator to start of all members
       */
-    obj_iter begin();
+    obj_iter begin() const;
     /**
       * Get members end iterator
       * @return iterator to end
       */
-    obj_iter end();
+    obj_iter end() const;
     /**
       * Get member value type
       * @param[in] iterator to a member
       * @return value type
       */
-    e_type getMulType(const obj_iter &iterator) const;
+    e_type getType(const obj_iter &iterator) const;
     /**
       * Get member value object
       * @param[in] iterator to a member
       * @return value object
       */
-    jsonValue *getMulVal(const obj_iter &iterator) const;
+    jsonValue *getVal(const obj_iter &iterator) const;
     /**
       * Get member JSON object object
       * @param[in] iterator to a member
       * @return JSON object object
       */
-    jsonObject *getMulObj(const obj_iter &iterator) const;
+    jsonObject *getObj(const obj_iter &iterator) const;
     /**
       * Get member JSON array object
       * @param[in] iterator to a member
       * @return JSON array object
       */
-    jsonArray *getMulArr(const obj_iter &iterator) const;
+    jsonArray *getArr(const obj_iter &iterator) const;
     /**
       * Get member value type with key
       * @param[in] key string
       * @return value type
       * @note Use on single member with this key!
       */
-    e_type getType(const std::string &key);
+    e_type getType(const std::string &key) const;
     /**
       * Get member value object with key
       * @param[in] key string
       * @return value object
       * @note Use on single member with this key!
       */
-    jsonValue *getVal(const std::string &key);
+    jsonValue *getVal(const std::string &key) const;
     /**
       * Get member JSON object object with key
       * @param[in] key string
       * @return JSON object object
       * @note Use on single member with this key!
       */
-    jsonObject *getObj(const std::string &key);
+    jsonObject *getObj(const std::string &key) const;
     /**
       * Get member JSON array object with key
       * @param[in] key string
       * @return JSON array object
       * @note Use on single member with this key!
       */
-    jsonArray *getArr(const std::string &key);
+    jsonArray *getArr(const std::string &key) const;
+    /**
+      * convert JSON to string
+      * @param[in] ident to use
+      * @return valid JSON parsed
+      */
+    std::string toString(size_t ident = 0) const override;
 };
 
 /** Iterator type of jsonArray elements */
@@ -293,12 +340,12 @@ class jsonArray : public jsonValueBase
       * Get members begin iterator
       * @return iterator to start of all members
       */
-    arr_iter begin();
+    arr_iter begin() const;
     /**
       * Get members end iterator
       * @return iterator to end
       */
-    arr_iter end();
+    arr_iter end() const;
     /**
       * Get element value type with index
       * @param[in] index number
@@ -347,6 +394,12 @@ class jsonArray : public jsonValueBase
       * @return JSON array object
       */
     jsonArray *getArr(const arr_iter &iterator) const;
+    /**
+      * convert JSON to string
+      * @param[in] ident to use
+      * @return valid JSON parsed
+      */
+    std::string toString(size_t ident = 0) const override;
 };
 
 /** class jsonMain for holding a JSON value */
@@ -405,6 +458,12 @@ class jsonMain
       * @return JSON array object
       */
     jsonArray *getArr() const;
+    /**
+      * convert JSON to string
+      * @param[in] ident to use
+      * @return valid JSON parsed
+      */
+    std::string toString(size_t ident = 0) const;
 };
 
 #endif /* __PTPMGMT_JSON_PARSER_H */
