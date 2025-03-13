@@ -318,7 +318,7 @@ void ptpSet::thread_loop()
                     notify_client();
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at " + udsAddr);
-                sleep(2);
+                sleep(5);
             }
             if(lost_connection) {
                 PrintInfo("Reconnected to ptp4l at " + udsAddr);

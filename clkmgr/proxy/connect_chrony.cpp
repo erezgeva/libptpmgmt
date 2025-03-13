@@ -28,15 +28,12 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-std::map<int, int> chronyIndex;
-int report_index = 0;
 extern std::map<int, ptp_event> ptp4lEvents;
 std::map<int, std::vector<sessionId_t>> subscribedClientsChrony;
 
 struct ThreadArgs {
-    chrony_session *s;
-    int report_index;
-    int fd;
+    int timeBaseIndex;
+    std::string udsAddrChrony;
 };
 
 int ConnectChrony::remove_chrony_subscriber(int timeBaseIndex,
@@ -65,7 +62,7 @@ void chrony_notify_client(int timeBaseIndex)
             return;
         }
         PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
-        /* Send data for multiple sessions */
+        // Send data for multiple sessions
         pmsg->setTimeBaseIndex(timeBaseIndex);
         PrintDebug("Get client session ID: " + to_string(sessionId));
         auto TxContext = Client::GetClientSession(
@@ -97,13 +94,13 @@ static chrony_err process_chronyd_data(chrony_session *s)
     return CHRONY_OK;
 }
 
-static int subscribe_to_chronyd(chrony_session *s, int report_index,
-    int timeBaseIndex)
+static int subscribe_to_chronyd(chrony_session *s, int timeBaseIndex)
 {
     const char *report_name;
     chrony_err r;
     int record_index = 0;
     int field_index = 0;
+    int report_index = 1; // Subscribe to chronyd source index 1
     report_name = chrony_get_report_name(report_index);
     r = chrony_request_record(s, report_name, record_index);
     if(r != CHRONY_OK)
@@ -133,25 +130,45 @@ static int subscribe_to_chronyd(chrony_session *s, int report_index,
 void *monitor_chronyd(void *arg)
 {
     ThreadArgs *args = (ThreadArgs *)arg;
-    chrony_session *s = args->s;
-    int fd = args->fd;
+    chrony_session *s;
+    int timeBaseIndex = args->timeBaseIndex;
+    std::string udsAddrChrony = args->udsAddrChrony;
+    // connect to chronyd unix socket using udsAddrChrony
+    int fd = chrony_open_socket(udsAddrChrony.c_str());
+    if(chrony_init_session(&s, fd) == CHRONY_OK && fd > 0)
+        PrintInfo("Connected to Chrony at " + udsAddrChrony);
     for(;;) {
-        /* Subscribe to chronyd source index 1 */
-        if(subscribe_to_chronyd(s, 1, chronyIndex[fd]) != CHRONY_OK) {
-            PrintError("Failed to subscribe to chronyd");
+        if(subscribe_to_chronyd(s, timeBaseIndex) != CHRONY_OK) {
             chrony_deinit_session(s);
-            break;
+            ptp4lEvents[timeBaseIndex].chrony_reference_id = 0;
+            ptp4lEvents[timeBaseIndex].polling_interval = 0;
+            ptp4lEvents[timeBaseIndex].chrony_offset = 0;
+            chrony_notify_client(timeBaseIndex);
+            PrintError("Failed to connect to Chrony at " + udsAddrChrony);
+            // Reconnection loop
+            for(;;) {
+                PrintInfo("Attempting to reconnect to Chrony at " +
+                    udsAddrChrony);
+                fd = chrony_open_socket(udsAddrChrony.c_str());
+                if(fd < 0) {
+                    sleep(5); // Wait before retrying
+                    continue;
+                }
+                if(chrony_init_session(&s, fd) == CHRONY_OK) {
+                    PrintInfo("Reonnected to Chrony at " + udsAddrChrony);
+                    break;
+                }
+            }
         }
-        /* Sleep duration is based on chronyd polling interval */
-        usleep(ptp4lEvents[chronyIndex[fd]].polling_interval);
+        // Sleep duration is based on chronyd polling interval
+        usleep(ptp4lEvents[timeBaseIndex].polling_interval);
     }
-    return nullptr;
 }
 
-void start_monitor_thread(chrony_session *s, int report_index, int fd)
+void start_monitor_thread(int timeBaseIndex, const std::string &udsAddrChrony)
 {
     pthread_t thread_id;
-    ThreadArgs *args = new ThreadArgs{s, report_index, fd};
+    ThreadArgs *args = new ThreadArgs{timeBaseIndex, udsAddrChrony};
     if(pthread_create(&thread_id, nullptr, monitor_chronyd, args) != 0) {
         PrintError("Failed to create thread");
         exit(EXIT_FAILURE);
@@ -162,10 +179,10 @@ int ConnectChrony::subscribe_chrony(int timeBaseIndex, sessionId_t sessionId)
 {
     auto it = ptp4lEvents.find(timeBaseIndex);
     if(it != ptp4lEvents.end()) {
-        /* timeBaseIndex exists in the map */
+        // timeBaseIndex exists in the map
         subscribedClientsChrony[timeBaseIndex].push_back(sessionId);
     } else {
-        /* timeBaseIndex does not exist in the map */
+        // timeBaseIndex does not exist in the map
         PrintDebug("timeBaseIndex does not exist in the map");
     }
     return 0;
@@ -175,20 +192,9 @@ void ConnectChrony::connect_chrony()
 {
     const auto &timeBaseCfgs = JsonConfigParser::getInstance().getTimeBaseCfgs();
     for(const auto &param : timeBaseCfgs) {
-        /* skip if chrony UDS address is empty */
+        // skip if chrony UDS address is empty
         if(param.udsAddrChrony[0] == '\0')
             continue;
-        /* connect to chronyd unix socket using udsAddrChrony */
-        int fd = chrony_open_socket(param.udsAddrChrony);
-        if(fd < 0) {
-            PrintError("Failed to connect to Chrony at " +
-                string(param.udsAddrChrony));
-            continue;
-        }
-        PrintInfo("Connected to Chrony at " + string(param.udsAddrChrony));
-        chronyIndex.insert(std::pair<int, int>(fd, param.timeBaseIndex));
-        chrony_session *s;
-        if(chrony_init_session(&s, fd) == CHRONY_OK)
-            start_monitor_thread(s, report_index, fd);
+        start_monitor_thread(param.timeBaseIndex, param.udsAddrChrony);
     }
 }
