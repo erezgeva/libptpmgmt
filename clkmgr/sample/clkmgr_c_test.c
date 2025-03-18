@@ -197,8 +197,6 @@ int main(int argc, char *argv[])
         if (clkmgr_c_get_timebase_cfgs(client_ptr, i, &cfg)) {
             printf("TimeBaseIndex: %d\n", cfg.timeBaseIndex);
             printf("timeBaseName: %s\n", cfg.timeBaseName);
-            printf("udsAddrChrony: %s\n", cfg.udsAddrChrony);
-            printf("udsAddrPtp4l: %s\n", cfg.udsAddrPtp4l);
             printf("interfaceName: %s\n", cfg.interfaceName);
             printf("transportSpecific: %d\n", cfg.transportSpecific);
             printf("domainNumber: %d\n\n", cfg.domainNumber);

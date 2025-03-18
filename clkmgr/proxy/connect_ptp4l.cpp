@@ -70,8 +70,8 @@ class ptpSet : MessageDispatcher
     vector<sessionId_t> subscribedClients; // Clients list for notification
   public:
     // These methods are used during initializing, before we create the thread.
-    ptpSet(const TimeBaseCfg &p) : timeBaseIndex(p.timeBaseIndex), param(p),
-        event(ptp4lEvents[p.timeBaseIndex]) {}
+    ptpSet(const TimeBaseCfg &p, string uds) : timeBaseIndex(p.timeBaseIndex),
+        param(p), event(ptp4lEvents[p.timeBaseIndex]), udsAddr(uds) {}
     bool init();
     void close() { sku.close(); }
     void start();
@@ -340,10 +340,9 @@ bool ptpSet::init()
 {
     string addr = baseAddr + to_string(param.domainNumber);
     if(!sku.setDefSelfAddress(addr) || !sku.init() ||
-        !sku.setPeerAddress(param.udsAddrPtp4l))
+        !sku.setPeerAddress(udsAddr))
         return false;
     subscribedLock[timeBaseIndex]; // Make dure mutex exist before we start
-    udsAddr = param.udsAddrPtp4l;
     MsgParams prms = msg.getParams();
     prms.transportSpecific = param.transportSpecific;
     prms.domainNumber = param.domainNumber;
@@ -416,15 +415,14 @@ static inline void close_all()
 int ConnectPtp4l::connect_ptp4l()
 {
     // Create all sets required for the threads
-    const auto &timeBaseCfgs = JsonConfigParser::getInstance().getTimeBaseCfgs();
-    for(const auto &param : timeBaseCfgs) {
+    for(const auto &param : JsonConfigParser::getInstance()) {
         // skip if ptp4l UDS address is empty
-        if(*param.udsAddrPtp4l == 0)
+        if(param.udsAddrPtp4l.empty())
             continue;
-        ptpSet *set = new ptpSet(param);
+        ptpSet *set = new ptpSet(param.base, param.udsAddrPtp4l);
         if(set == nullptr)
             return -1;
-        ptpSets[param.timeBaseIndex].reset(set);
+        ptpSets[param.base.timeBaseIndex].reset(set);
     }
     // initializing before creating the threads
     for(const auto &it : ptpSets) {

@@ -12,9 +12,6 @@
 #ifndef CLKMGR_UTILITY_H
 #define CLKMGR_UTILITY_H
 
-#include <array>
-#include <cstdint>
-
 #ifndef __CLKMGR_NAMESPACE_USE
 /** Using clkmgr namespace */
 #define __CLKMGR_NAMESPACE_USE using namespace clkmgr

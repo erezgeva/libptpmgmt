@@ -208,8 +208,6 @@ int main(int argc, char *argv[])
     for (const auto &cfg : cm.clkmgr_get_timebase_cfgs()) {
         std::cout << "TimeBaseIndex: " << cfg.timeBaseIndex << "\n";
         std::cout << "timeBaseName: " << cfg.timeBaseName << "\n";
-        std::cout << "udsAddrChrony: " << cfg.udsAddrChrony << "\n";
-        std::cout << "udsAddrPtp4l: " << cfg.udsAddrPtp4l << "\n";
         std::cout << "interfaceName: " << cfg.interfaceName << "\n";
         std::cout << "transportSpecific: " << static_cast<int>(cfg.transportSpecific) << "\n";
         std::cout << "domainNumber: " << static_cast<int>(cfg.domainNumber) << "\n\n";

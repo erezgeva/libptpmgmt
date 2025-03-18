@@ -190,11 +190,9 @@ int ConnectChrony::subscribe_chrony(int timeBaseIndex, sessionId_t sessionId)
 
 void ConnectChrony::connect_chrony()
 {
-    const auto &timeBaseCfgs = JsonConfigParser::getInstance().getTimeBaseCfgs();
-    for(const auto &param : timeBaseCfgs) {
+    for(const auto &param : JsonConfigParser::getInstance()) {
         // skip if chrony UDS address is empty
-        if(param.udsAddrChrony[0] == '\0')
-            continue;
-        start_monitor_thread(param.timeBaseIndex, param.udsAddrChrony);
+        if(!param.udsAddrChrony.empty())
+            start_monitor_thread(param.base.timeBaseIndex, param.udsAddrChrony);
     }
 }

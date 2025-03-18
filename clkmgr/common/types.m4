@@ -38,8 +38,6 @@ cnst(size_t,STRING_SIZE_MAX,64)
 struct Nm(TimeBaseCfg) {
     int timeBaseIndex; /**< Index of the time base */
     arr(char,timeBaseName,STRING_SIZE_MAX); /**< Name of the time base */
-    arr(char,udsAddrChrony,STRING_SIZE_MAX); /**< UDS address for Chrony */
-    arr(char,udsAddrPtp4l,STRING_SIZE_MAX); /**< UDS address for ptp4l */
     arr(char,interfaceName,STRING_SIZE_MAX); /**< Network interface name */
     uint8_t transportSpecific; /**< Transport specific for ptp4l */
     uint8_t domainNumber; /**< Domain number for ptp4l */

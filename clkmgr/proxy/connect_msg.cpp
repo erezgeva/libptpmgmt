@@ -93,12 +93,12 @@ BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
     if(!CommonConnectMessage::makeBuffer(TxContext))
         return false;
-    const auto &timeBaseCfgs = JsonConfigParser::getInstance().getTimeBaseCfgs();
-    size_t mapSize = timeBaseCfgs.size();
+    JsonConfigParser parser = JsonConfigParser::getInstance();
+    size_t mapSize = parser.size();
     if(!WRITE_TX(FIELD, mapSize, TxContext))
         return false;;
-    for(size_t i = 0; i < mapSize; i++) {
-        TimeBaseCfg cfg = timeBaseCfgs[i];
+    for(const auto &row : parser) {
+        TimeBaseCfg cfg = row.base;
         if(!WRITE_TX(FIELD, cfg, TxContext))
             return false;
     }

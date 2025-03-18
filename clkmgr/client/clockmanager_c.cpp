@@ -46,10 +46,6 @@ bool clkmgr_c_get_timebase_cfgs(clkmgr_c_client_ptr client_ptr,
     cfg->timeBaseIndex = cfgs[time_base_index - 1].timeBaseIndex;
     strncpy(cfg->timeBaseName, cfgs[time_base_index - 1].timeBaseName,
         CLKMGR_STRING_SIZE_MAX - 1);
-    strncpy(cfg->udsAddrChrony, cfgs[time_base_index - 1].udsAddrChrony,
-        CLKMGR_STRING_SIZE_MAX - 1);
-    strncpy(cfg->udsAddrPtp4l, cfgs[time_base_index - 1].udsAddrPtp4l,
-        CLKMGR_STRING_SIZE_MAX - 1);
     strncpy(cfg->interfaceName, cfgs[time_base_index - 1].interfaceName,
         CLKMGR_STRING_SIZE_MAX - 1);
     cfg->transportSpecific = cfgs[time_base_index - 1].transportSpecific;

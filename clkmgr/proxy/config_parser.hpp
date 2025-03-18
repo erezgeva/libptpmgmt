@@ -21,20 +21,29 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
+struct TimeBaseCfgFull {
+    TimeBaseCfg base;
+    std::string udsAddrChrony;
+    std::string udsAddrPtp4l;
+};
+
+typedef std::vector<TimeBaseCfgFull>::iterator cfgItr;
+
 class JsonConfigParser
 {
   private:
-    std::vector<TimeBaseCfg> timeBaseCfgs;
+    std::vector<TimeBaseCfgFull> timeBaseCfgs;
     JsonConfigParser() = default;
+    bool get_Int_Val(jsonObject *obj, const std::string &key, uint8_t &res);
+    bool get_Str_Val(jsonObject *obj, const std::string &key, char *res);
+    bool get_Str_Val(jsonObject *obj, const std::string &key, std::string &res);
+    void print_config();
   public:
     static JsonConfigParser &getInstance();
     bool process_json(const char *file);
-    bool get_Int_Val(jsonObject *obj, const char *key, uint8_t *res);
-    bool get_Str_Val(jsonObject *obj, const char *key, char *res);
-    void print_config();
-    const std::vector<TimeBaseCfg> &getTimeBaseCfgs() const {
-        return timeBaseCfgs;
-    }
+    cfgItr begin() { return timeBaseCfgs.begin(); }
+    cfgItr end() { return timeBaseCfgs.end(); }
+    size_t size() const { return timeBaseCfgs.size(); }
 };
 
 __CLKMGR_NAMESPACE_END
