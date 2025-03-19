@@ -180,6 +180,7 @@ void TimeBaseStates::setTimeBaseState(int timeBaseIndex,
         composite_event &= eventState.as_capable;
     if(composite_eventSub &&
         (composite_event != eventState.composite_event)) {
+        eventState.composite_event = composite_event;
         eventCount.composite_event_count++;
         state.set_event_changed(true);
     }
