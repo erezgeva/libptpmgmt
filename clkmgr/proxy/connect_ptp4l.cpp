@@ -285,8 +285,10 @@ void ptpSet::thread_loop()
     if(!event_subscription()) {
         PrintError("Failed to connect to ptp4l at " + udsAddr);
         lost_connection = true;
-    } else
+    } else {
         PrintInfo("Connected to ptp4l at " + udsAddr);
+        msg_set_action(PORT_PROPERTIES_NP);
+    }
     for(;;) {
         if(stopThread)
             return;
