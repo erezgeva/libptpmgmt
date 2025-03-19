@@ -68,6 +68,7 @@ bool JsonConfigParser::get_Str_Val(jsonObject *obj, const std::string &key,
             return false;
         }
         strncpy(res, r.c_str(), STRING_SIZE_MAX - 1);
+        return true;
     }
     return false;
 }
@@ -95,10 +96,12 @@ bool JsonConfigParser::process_json(const char *file)
     timeBaseArray = main.getObj()->getArr("timeBases");
     if(!timeBaseArray)
         return false;
-    for(size_t idx = 0; idx < timeBaseArray->size(); ++idx) {
+    for(auto *it : *timeBaseArray) {
+        if(!it)
+            return false;
         TimeBaseCfgFull row = {};
         TimeBaseCfg &config = row.base;
-        jsonObject *timeBaseObj = timeBaseArray->getObj(idx);
+        jsonObject *timeBaseObj = it->getObj();
         if(timeBaseObj == nullptr)
             return false;
         jsonObject *ptp4lObj = timeBaseObj->getObj("ptp4l");
