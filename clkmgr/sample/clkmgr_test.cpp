@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 
         printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
             getMonotonicTime());
-        if (cm.clkmgr_gettime(&ts)) {
+        if (!cm.clkmgr_gettime(ts)) {
             perror("clock_gettime failed");
         } else {
             printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 
             printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
                 getMonotonicTime());
-            if (cm.clkmgr_gettime(&ts)) {
+            if (!cm.clkmgr_gettime(ts)) {
                 perror("clock_gettime failed");
             } else {
                 printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",

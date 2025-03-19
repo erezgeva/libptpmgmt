@@ -13,34 +13,24 @@
 #include "pub/clockmanager.h"
 #include <cstring>
 
-clkmgr_c_client_ptr clkmgr_c_client_fetch()
+static inline clkmgr::ClockManager &c_fetch()
 {
-    return &(clkmgr::ClockManager::FetchSingle());
+    return clkmgr::ClockManager::FetchSingle();
 }
-
-bool clkmgr_c_connect(clkmgr_c_client_ptr client_ptr)
+bool clkmgr_c_connect()
 {
-    if(client_ptr == nullptr)
-        return false;
-    return static_cast<clkmgr::ClockManager *>
-        (client_ptr)->clkmgr_connect();
+    return c_fetch().clkmgr_connect();
 }
-
-bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr)
+bool clkmgr_c_disconnect()
 {
-    if(client_ptr == nullptr)
-        return false;
-    return static_cast<clkmgr::ClockManager *>
-        (client_ptr)->clkmgr_disconnect();
+    return c_fetch().clkmgr_disconnect();
 }
-
-bool clkmgr_c_get_timebase_cfgs(clkmgr_c_client_ptr client_ptr,
-    int time_base_index, struct Clkmgr_TimeBaseCfg *cfg)
+bool clkmgr_c_get_timebase_cfgs(int time_base_index,
+    struct Clkmgr_TimeBaseCfg *cfg)
 {
-    if(client_ptr == nullptr || cfg == nullptr)
+    if(cfg == nullptr)
         return false;
-    clkmgr::ClockManager *cm = static_cast<clkmgr::ClockManager *>(client_ptr);
-    std::vector<clkmgr::TimeBaseCfg> cfgs = cm->clkmgr_get_timebase_cfgs();
+    std::vector<clkmgr::TimeBaseCfg> cfgs = c_fetch().clkmgr_get_timebase_cfgs();
     if(static_cast<size_t>(time_base_index) > cfgs.size() || !time_base_index)
         return false;
     cfg->timeBaseIndex = cfgs[time_base_index - 1].timeBaseIndex;
@@ -53,19 +43,15 @@ bool clkmgr_c_get_timebase_cfgs(clkmgr_c_client_ptr client_ptr,
     return true;
 }
 
-size_t clkmgr_c_get_timebase_cfgs_size(clkmgr_c_client_ptr client_ptr)
+size_t clkmgr_c_get_timebase_cfgs_size()
 {
-    if(client_ptr == nullptr)
-        return 0;
-    clkmgr::ClockManager *cm = static_cast<clkmgr::ClockManager *>(client_ptr);
-    return cm->clkmgr_get_timebase_cfgs().size();
+    return c_fetch().clkmgr_get_timebase_cfgs().size();
 }
 
-bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
-    const clkmgr_c_subscription sub, int time_base_index,
+bool clkmgr_c_subscribe(const clkmgr_c_subscription sub, int time_base_index,
     Clkmgr_Event_state *current_state)
 {
-    if(client_ptr == nullptr || current_state == nullptr)
+    if(current_state == nullptr)
         return false;
     clkmgr::ClkMgrSubscription newsub = {};
     clkmgr::Event_state state = {};
@@ -78,8 +64,7 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
         sub.threshold[Clkmgr_thresholdChronyOffset].upper_limit,
         sub.threshold[Clkmgr_thresholdChronyOffset].lower_limit);
     newsub.set_composite_event_mask(sub.composite_event_mask);
-    ret = static_cast<clkmgr::ClockManager *>(client_ptr)->clkmgr_subscribe(newsub,
-            time_base_index, state);
+    ret = c_fetch().clkmgr_subscribe(newsub, time_base_index, state);
     if(ret) {
         current_state->as_capable = state.as_capable;
         current_state->offset_in_range = state.offset_in_range;
@@ -98,19 +83,15 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
     return ret;
 }
 
-int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
-    int time_base_index, Clkmgr_Event_state *current_state,
-    Clkmgr_Event_count *current_count)
+int clkmgr_c_status_wait(int timeout, int time_base_index,
+    Clkmgr_Event_state *current_state, Clkmgr_Event_count *current_count)
 {
-    if(client_ptr == nullptr || current_state == nullptr ||
-        current_count == nullptr)
+    if(current_state == nullptr || current_count == nullptr)
         return -1;
     clkmgr::Event_count eventCount = {};
     clkmgr::Event_state state = {};
     int ret;
-    ret = static_cast<clkmgr::ClockManager *>
-        (client_ptr)->clkmgr_status_wait(timeout, time_base_index, state,
-            eventCount);
+    ret = c_fetch().clkmgr_status_wait(timeout, time_base_index, state, eventCount);
     if(ret < 0)
         return ret;
     current_state->as_capable = state.as_capable;
@@ -140,9 +121,7 @@ int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
     return ret;
 }
 
-int clkmgr_c_gettime(clkmgr_c_client_ptr client_ptr, struct timespec *ts)
+bool clkmgr_c_gettime(struct timespec *ts)
 {
-    if(client_ptr == nullptr)
-        return -1;
-    return static_cast<clkmgr::ClockManager *>(client_ptr)->clkmgr_gettime(ts);
+    return ts != nullptr && clock_gettime(CLOCK_REALTIME, ts) == 0;
 }

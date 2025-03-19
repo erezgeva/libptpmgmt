@@ -105,9 +105,9 @@ class ClockManager
     /**
      * Retrieve the time of the CLOCK_REALTIME
      * @param[out] ts timestamp of the CLOCK_REALTIME
-     * @return 0 on success, -1 on failure
+     * @return true on success
      */
-    int clkmgr_gettime(timespec *ts);
+    bool clkmgr_gettime(timespec &ts);
 };
 
 __CLKMGR_NAMESPACE_END

@@ -29,61 +29,45 @@ struct clkmgr_c_subscription {
     struct Clkmgr_Threshold threshold[CLKMGR_THRESHOLD_MAX]; /**< Limits */
 };
 
-/** Pointer to the client structure */
-typedef void *clkmgr_c_client_ptr;
-
-/**
- * Fetch the single client instance
- * @return Pointer to the single client instance
- */
-clkmgr_c_client_ptr clkmgr_c_client_fetch();
-
 /**
  * Connect the client
- * @param[in, out] client_ptr Pointer to the client instance
  * @return true on success, false on failure
  */
-bool clkmgr_c_connect(clkmgr_c_client_ptr client_ptr);
+bool clkmgr_c_connect();
 
 /**
  * Disconnect the client
- * @param[in, out] client_ptr Pointer to the client instance
  * @return true on success, false on failure
  */
-bool clkmgr_c_disconnect(clkmgr_c_client_ptr client_ptr);
+bool clkmgr_c_disconnect();
 
 /**
  * Get the time base configuration
- * @param[in, out] client_ptr Pointer to the client instance
  * @param[in] time_base_index Index of the time base to be retrieved
  * @param[out] cfg Pointer to the TimeBaseCfg structures
  * @return true on success, false on failure
  */
-bool clkmgr_c_get_timebase_cfgs(clkmgr_c_client_ptr client_ptr,
-    int time_base_index, struct Clkmgr_TimeBaseCfg *cfg);
+bool clkmgr_c_get_timebase_cfgs(int time_base_index,
+    struct Clkmgr_TimeBaseCfg *cfg);
 
 /**
  * Get the size of the time base configurations
- * @param[in, out] client_ptr Pointer to the client instance
  * @return The size of the time base configurations
  */
-size_t clkmgr_c_get_timebase_cfgs_size(clkmgr_c_client_ptr client_ptr);
+size_t clkmgr_c_get_timebase_cfgs_size();
 
 /**
  * Subscribe to client events
- * @param[in, out] client_ptr Pointer to the client instance
  * @param[in] sub Subscription structure
  * @param[in] time_base_index Index of the time base to be subscribed
  * @param[out] current_state Pointer to the current state structure
  * @return true on success, false on failure
  */
-bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
-    const struct clkmgr_c_subscription sub, int time_base_index,
-    struct Clkmgr_Event_state *current_state);
+bool clkmgr_c_subscribe(const struct clkmgr_c_subscription sub,
+    int time_base_index, struct Clkmgr_Event_state *current_state);
 
 /**
  * Waits for a specified timeout period for any event changes
- * @param[in, out] client_ptr Pointer to the client instance
  * @param[in] timeout TThe timeout in seconds. If timeout is 0, the function
  * will check event changes once. If timeout is -1, the function will wait
  * until there is event changes occurs
@@ -93,17 +77,16 @@ bool clkmgr_c_subscribe(clkmgr_c_client_ptr client_ptr,
  * @return true if there is event changes within the timeout period,
  *         and false otherwise
  */
-int clkmgr_c_status_wait(clkmgr_c_client_ptr client_ptr, int timeout,
-    int time_base_index, struct Clkmgr_Event_state *current_state,
+int clkmgr_c_status_wait(int timeout, int time_base_index,
+    struct Clkmgr_Event_state *current_state,
     struct Clkmgr_Event_count *current_count);
 
 /**
  * Retrieve the time of the CLOCK_REALTIME
- * @param[in, out] client_ptr Pointer to the client instance
  * @param[out] ts timestamp of the CLOCK_REALTIME
- * @return 0 on success, -1 on failure
+ * @return true on success
  */
-int clkmgr_c_gettime(clkmgr_c_client_ptr client_ptr, struct timespec *ts);
+bool clkmgr_c_gettime(struct timespec *ts);
 
 #ifdef __cplusplus
 }
