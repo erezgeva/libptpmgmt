@@ -155,7 +155,7 @@ void *monitor_chronyd(void *arg)
                     continue;
                 }
                 if(chrony_init_session(&s, fd) == CHRONY_OK) {
-                    PrintInfo("Reonnected to Chrony at " + udsAddrChrony);
+                    PrintInfo("Reconnected to Chrony at " + udsAddrChrony);
                     break;
                 }
             }
