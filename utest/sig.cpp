@@ -177,6 +177,13 @@ TEST_F(SigTest, LoopTwoManagementTlvs)
         return ret;
     }));
     EXPECT_EQ(cnt, 2);
+    cnt = 0;
+    // Test range based loop
+    for(const auto &t : getSigTlvs()) {
+        EXPECT_FALSE(loopCheck(*this, t.tlvType(), t.tlv()));
+        cnt++;
+    }
+    EXPECT_EQ(cnt, 2); // Make sure we check the 2 TLVs
 }
 
 // Tests all organization TLVs

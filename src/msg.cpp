@@ -208,11 +208,13 @@ bool Message::allowedAction(mng_vals_e id, actionField_e action)
     return mng_all_vals[id].allowed & (1 << action);
 }
 Message::Message() :
+    m_sigTlvs(*this),
     m_init(m_peer),
     m_init(m_target)
 {
 }
 Message::Message(const MsgParams &prms) :
+    m_sigTlvs(*this),
     m_prms(prms),
     m_init(m_peer),
     m_init(m_target)
@@ -260,7 +262,7 @@ bool Message::updateParams(const MsgParams &prms)
     m_prms = prms;
     return true;
 }
-bool Message::useAuth(const ConfigFile &cfg, const std::string &section)
+bool Message::useAuth(const ConfigFile &cfg, const string &section)
 {
     uint32_t keyID = cfg.active_key_id(section);
     if(cfg.haveSpp(section) && keyID > 0) {
@@ -502,6 +504,7 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
         mp.m_size = msgSize - sigBaseSize; // pass left to parseSig()
         return parseSig(buf, &mp);
     }
+    m_sigTlvs.m_lastSig = false;
     // Management message part
     uint8_t actionField = 0xf & msg->actionField;
     if(actionField != RESPONSE && actionField != ACKNOWLEDGE &&
@@ -633,7 +636,7 @@ MNG_PARSE_ERROR_e Message::parseAuth(const void *buf, const void *auth,
     if((len & 1) > 0 || len < 2)
         return MNG_PARSE_ERROR_AUTH;
     // Delete hmac once the function exit :-)
-    std::unique_ptr<HMAC_Key> hmac_alloc;
+    unique_ptr<HMAC_Key> hmac_alloc;
     HMAC_Key *hmac;
     const Spp &s = m_sa.spp(spp);
     if(len > s.mac_size(m_keyID))
@@ -677,8 +680,7 @@ MNG_PARSE_ERROR_e Message::parseSig(const void *buf, MsgProc *pMp)
 {
     MsgProc &mp = *pMp;
     ssize_t leftAll = mp.m_size;
-    m_sigTlvs.clear(); // remove old TLVs
-    m_sigTlvsType.clear();
+    m_sigTlvs.clearToUse();
     tlvType_e lastTlv = (tlvType_e)0;
     void *lastAuth = nullptr;
     uint16_t lastAuthLen = 0;
@@ -784,12 +786,7 @@ MNG_PARSE_ERROR_e Message::parseSig(const void *buf, MsgProc *pMp)
         }
         if(mp.m_left > 0)
             mp.m_cur += mp.m_left;
-        if(tlv != nullptr) {
-            m_sigTlvs.push_back(nullptr);
-            m_sigTlvsType.push_back(tlvType);
-            // pass the tlv to the vector
-            m_sigTlvs.back().reset(tlv);
-        };
+        m_sigTlvs.push(tlvType, tlv);
     }
     if(m_haveAuth &&
         (m_prms.rcvAuth & (RCV_AUTH_SIG_ALL | RCV_AUTH_SIG_LAST)) > 0) {
@@ -810,49 +807,35 @@ bool Message::isLastMsgSMPTE() const
 bool Message::traversSigTlvs(function<bool (const Message &msg,
         tlvType_e tlvType, const BaseSigTlv *tlv)> callback) const
 {
-    if(m_type == Signaling)
-        for(size_t i = 0; i < m_sigTlvs.size(); i++) {
-            if(callback(*this, m_sigTlvsType[i], m_sigTlvs[i].get()))
-                return true;
-        }
-    return false;
+    return m_sigTlvs.traverse(callback);
 }
 bool Message::traversSigTlvsCl(MessageSigTlvCallback &callback)
 {
-    return traversSigTlvs([&callback](const Message & msg, tlvType_e tlvType,
-    const BaseSigTlv * tlv) { return callback.callback(msg, tlvType, tlv); });
+    return m_sigTlvs.traverse(callback);
 }
 size_t Message::getSigTlvsCount() const
 {
-    return m_type == Signaling ? m_sigTlvs.size() : 0;
+    return m_sigTlvs.size();
 }
 const BaseSigTlv *Message::getSigTlv(size_t pos) const
 {
-    return m_type == Signaling && pos < m_sigTlvs.size() ?
-        m_sigTlvs[pos].get() : nullptr;
+    return m_sigTlvs.get(pos);
 }
 tlvType_e Message::getSigTlvType(size_t pos) const
 {
-    return m_type == Signaling && pos < m_sigTlvs.size() ?
-        m_sigTlvsType[pos] : (tlvType_e)0;
+    return m_sigTlvs.getType(pos);
 }
 mng_vals_e Message::getSigMngTlvType(size_t pos) const
 {
-    if(m_type == Signaling && pos < m_sigTlvs.size() &&
-        m_sigTlvsType[pos] == MANAGEMENT) {
-        const MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].get();
-        return mng->managementId;
-    }
-    return NULL_PTP_MANAGEMENT;
+    return m_sigTlvs.getTlvId(pos);
 }
 const BaseMngTlv *Message::getSigMngTlv(size_t pos) const
 {
-    if(m_type == Signaling && pos < m_sigTlvs.size() &&
-        m_sigTlvsType[pos] == MANAGEMENT) {
-        const MANAGEMENT_t *mng = (MANAGEMENT_t *)m_sigTlvs[pos].get();
-        return mng->tlvData.get();
-    }
-    return nullptr;
+    return m_sigTlvs.getMngTlv(pos);
+}
+const MessageSigTlvs &Message::getSigTlvs() const
+{
+    return m_sigTlvs;
 }
 void Message::setAllClocks()
 {
@@ -2435,4 +2418,94 @@ extern "C" {
         T_ASGN(freeString);
         return m;
     }
+}
+MessageSigTlv::MessageSigTlv(BaseSigTlv *tlv, tlvType_e tlvType) :
+    m_tlvType(tlvType)
+{
+    m_tlv.reset(tlv);
+}
+tlvType_e MessageSigTlv::tlvType() const
+{
+    return m_tlvType;
+}
+const BaseSigTlv *MessageSigTlv::tlv() const
+{
+    return m_tlv.get();
+}
+void MessageSigTlvs::push(tlvType_e tlvType, BaseSigTlv *tlv)
+{
+    if(tlv != nullptr)
+        m_tlvs.push_back(MessageSigTlv(tlv, tlvType));
+}
+bool MessageSigTlvs::traverse(const function<bool (const Message &msg,
+        tlvType_e tlvType, const BaseSigTlv *tlv)> &callback) const
+{
+    if(m_lastSig)
+        for(const auto &m : m_tlvs) {
+            if(callback(m_msg, m.tlvType(), m.tlv()))
+                return true;
+        }
+    return false;
+}
+bool MessageSigTlvs::traverse(MessageSigTlvCallback &callback) const
+{
+    if(m_lastSig)
+        for(const auto &m : m_tlvs) {
+            if(callback.callback(m_msg, m.tlvType(), m.tlv()))
+                return true;
+        }
+    return false;
+}
+size_t MessageSigTlvs::size() const
+{
+    return m_lastSig ? m_tlvs.size() : 0;
+}
+const BaseSigTlv *MessageSigTlvs::get(size_t pos) const
+{
+    return m_lastSig && pos < m_tlvs.size() ? m_tlvs[pos].tlv() : nullptr;
+}
+tlvType_e MessageSigTlvs::getType(size_t pos) const
+{
+    return m_lastSig && pos < m_tlvs.size() ? m_tlvs[pos].tlvType() : (tlvType_e)0;
+}
+const MANAGEMENT_t *MessageSigTlvs::getMng(size_t pos) const
+{
+    if(m_lastSig && pos < m_tlvs.size() && m_tlvs[pos].tlvType() == MANAGEMENT)
+        return dynamic_cast<const MANAGEMENT_t *>(m_tlvs[pos].tlv());
+    return nullptr;
+}
+mng_vals_e MessageSigTlvs::getTlvId(size_t pos) const
+{
+    const MANAGEMENT_t *mng = getMng(pos);
+    return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
+}
+const BaseMngTlv *MessageSigTlvs::getMngTlv(size_t pos) const
+{
+    const MANAGEMENT_t *mng = getMng(pos);
+    return mng != nullptr ? mng->tlvData.get() : nullptr;
+}
+MessageSigTlvs::iterator::iterator(const vector<MessageSigTlv>::const_iterator
+    &_it) : it(_it)
+{
+}
+MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++()
+{
+    ++it;
+    return *this;
+}
+const MessageSigTlv &MessageSigTlvs::iterator::operator*()
+{
+    return *it;
+}
+bool MessageSigTlvs::iterator::operator!=(MessageSigTlvs::iterator &o)
+{
+    return it != o.it;
+}
+MessageSigTlvs::iterator MessageSigTlvs::begin() const
+{
+    return MessageSigTlvs::iterator(m_tlvs.begin());
+}
+MessageSigTlvs::iterator MessageSigTlvs::end() const
+{
+    return MessageSigTlvs::iterator(m_tlvs.end());
 }
