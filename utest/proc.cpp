@@ -1200,3 +1200,29 @@ TEST_F(ProcTest, EXTERNAL_GRANDMASTER_PROPERTIES_NP)
     EXPECT_EQ(r->gmIdentity, clockId);
     EXPECT_EQ(r->stepsRemoved, 581);
 }
+
+// Test copy a TLV
+TEST(Tlvs, copy)
+{
+    CLOCK_DESCRIPTION_t r;
+    r.clockType = ordinaryClock;
+    r.physicalLayerProtocol.textField = "phy1";
+    r.physicalAddress.setBin("\xc4\x7d\x46\x20\xac\xae", 6);
+    r.manufacturerIdentity[0] = 1;
+    r.manufacturerIdentity[1] = 2;
+    r.manufacturerIdentity[2] = 3;
+    r.productDescription.textField = "desc 123";
+    CLOCK_DESCRIPTION_t c = r;
+    EXPECT_EQ(c.clockType, ordinaryClock);
+    EXPECT_STREQ(c.physicalLayerProtocol.string(), "phy1");
+    // compare pointer and verify we use a copy of the value
+    EXPECT_NE(c.physicalLayerProtocol.textField.c_str(),
+        r.physicalLayerProtocol.textField.c_str());
+    EXPECT_EQ(c.physicalAddress.size(), 6);
+    EXPECT_EQ(memcmp(c.physicalAddress.get(), "\xc4\x7d\x46\x20\xac\xae", 6), 0);
+    EXPECT_EQ(memcmp(c.manufacturerIdentity, "\x1\x2\x3", 3), 0);
+    EXPECT_NE(c.manufacturerIdentity, r.manufacturerIdentity);
+    EXPECT_STREQ(c.productDescription.string(), "desc 123");
+    EXPECT_NE(c.productDescription.textField.c_str(),
+        r.productDescription.textField.c_str());
+}

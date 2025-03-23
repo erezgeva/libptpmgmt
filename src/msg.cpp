@@ -1407,6 +1407,101 @@ MsgParams::MsgParams() :
     rcvAuth(RCV_AUTH_ALL)
 {
 }
+MessageSigTlv::MessageSigTlv(BaseSigTlv *tlv, tlvType_e tlvType) :
+    m_tlvType(tlvType)
+{
+    m_tlv.reset(tlv);
+}
+tlvType_e MessageSigTlv::tlvType() const
+{
+    return m_tlvType;
+}
+const BaseSigTlv *MessageSigTlv::tlv() const
+{
+    return m_tlv.get();
+}
+void MessageSigTlvs::push(tlvType_e tlvType, BaseSigTlv *tlv)
+{
+    if(tlv != nullptr)
+        m_tlvs.push_back(MessageSigTlv(tlv, tlvType));
+}
+bool MessageSigTlvs::traverse(const function<bool (const Message &msg,
+        tlvType_e tlvType, const BaseSigTlv *tlv)> &callback) const
+{
+    if(m_lastSig)
+        for(const auto &m : m_tlvs) {
+            if(callback(m_msg, m.tlvType(), m.tlv()))
+                return true;
+        }
+    return false;
+}
+bool MessageSigTlvs::traverse(MessageSigTlvCallback &callback) const
+{
+    if(m_lastSig)
+        for(const auto &m : m_tlvs) {
+            if(callback.callback(m_msg, m.tlvType(), m.tlv()))
+                return true;
+        }
+    return false;
+}
+size_t MessageSigTlvs::size() const
+{
+    return m_lastSig ? m_tlvs.size() : 0;
+}
+const BaseSigTlv *MessageSigTlvs::get(size_t pos) const
+{
+    return m_lastSig && pos < m_tlvs.size() ? m_tlvs[pos].tlv() : nullptr;
+}
+tlvType_e MessageSigTlvs::getType(size_t pos) const
+{
+    return m_lastSig && pos < m_tlvs.size() ? m_tlvs[pos].tlvType() : (tlvType_e)0;
+}
+const MANAGEMENT_t *MessageSigTlvs::getMng(size_t pos) const
+{
+    if(m_lastSig && pos < m_tlvs.size() && m_tlvs[pos].tlvType() == MANAGEMENT)
+        return dynamic_cast<const MANAGEMENT_t *>(m_tlvs[pos].tlv());
+    return nullptr;
+}
+mng_vals_e MessageSigTlvs::getTlvId(size_t pos) const
+{
+    const MANAGEMENT_t *mng = getMng(pos);
+    return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
+}
+const BaseMngTlv *MessageSigTlvs::getMngTlv(size_t pos) const
+{
+    const MANAGEMENT_t *mng = getMng(pos);
+    return mng != nullptr ? mng->tlvData.get() : nullptr;
+}
+const MessageSigTlv &MessageSigTlvs::getTlv(size_t pos) const
+{
+    static MessageSigTlv dummy(nullptr, (tlvType_e)0);
+    return m_lastSig && pos < m_tlvs.size() ? m_tlvs[pos] : dummy;
+}
+MessageSigTlvs::iterator::iterator(const vector<MessageSigTlv>::const_iterator
+    &_it) : it(_it)
+{
+}
+MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++()
+{
+    ++it;
+    return *this;
+}
+const MessageSigTlv &MessageSigTlvs::iterator::operator*()
+{
+    return *it;
+}
+bool MessageSigTlvs::iterator::operator!=(MessageSigTlvs::iterator &o)
+{
+    return it != o.it;
+}
+MessageSigTlvs::iterator MessageSigTlvs::begin() const
+{
+    return MessageSigTlvs::iterator(m_tlvs.begin());
+}
+MessageSigTlvs::iterator MessageSigTlvs::end() const
+{
+    return MessageSigTlvs::iterator(m_tlvs.end());
+}
 
 __PTPMGMT_NAMESPACE_END
 
@@ -2418,94 +2513,4 @@ extern "C" {
         T_ASGN(freeString);
         return m;
     }
-}
-MessageSigTlv::MessageSigTlv(BaseSigTlv *tlv, tlvType_e tlvType) :
-    m_tlvType(tlvType)
-{
-    m_tlv.reset(tlv);
-}
-tlvType_e MessageSigTlv::tlvType() const
-{
-    return m_tlvType;
-}
-const BaseSigTlv *MessageSigTlv::tlv() const
-{
-    return m_tlv.get();
-}
-void MessageSigTlvs::push(tlvType_e tlvType, BaseSigTlv *tlv)
-{
-    if(tlv != nullptr)
-        m_tlvs.push_back(MessageSigTlv(tlv, tlvType));
-}
-bool MessageSigTlvs::traverse(const function<bool (const Message &msg,
-        tlvType_e tlvType, const BaseSigTlv *tlv)> &callback) const
-{
-    if(m_lastSig)
-        for(const auto &m : m_tlvs) {
-            if(callback(m_msg, m.tlvType(), m.tlv()))
-                return true;
-        }
-    return false;
-}
-bool MessageSigTlvs::traverse(MessageSigTlvCallback &callback) const
-{
-    if(m_lastSig)
-        for(const auto &m : m_tlvs) {
-            if(callback.callback(m_msg, m.tlvType(), m.tlv()))
-                return true;
-        }
-    return false;
-}
-size_t MessageSigTlvs::size() const
-{
-    return m_lastSig ? m_tlvs.size() : 0;
-}
-const BaseSigTlv *MessageSigTlvs::get(size_t pos) const
-{
-    return m_lastSig && pos < m_tlvs.size() ? m_tlvs[pos].tlv() : nullptr;
-}
-tlvType_e MessageSigTlvs::getType(size_t pos) const
-{
-    return m_lastSig && pos < m_tlvs.size() ? m_tlvs[pos].tlvType() : (tlvType_e)0;
-}
-const MANAGEMENT_t *MessageSigTlvs::getMng(size_t pos) const
-{
-    if(m_lastSig && pos < m_tlvs.size() && m_tlvs[pos].tlvType() == MANAGEMENT)
-        return dynamic_cast<const MANAGEMENT_t *>(m_tlvs[pos].tlv());
-    return nullptr;
-}
-mng_vals_e MessageSigTlvs::getTlvId(size_t pos) const
-{
-    const MANAGEMENT_t *mng = getMng(pos);
-    return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
-}
-const BaseMngTlv *MessageSigTlvs::getMngTlv(size_t pos) const
-{
-    const MANAGEMENT_t *mng = getMng(pos);
-    return mng != nullptr ? mng->tlvData.get() : nullptr;
-}
-MessageSigTlvs::iterator::iterator(const vector<MessageSigTlv>::const_iterator
-    &_it) : it(_it)
-{
-}
-MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++()
-{
-    ++it;
-    return *this;
-}
-const MessageSigTlv &MessageSigTlvs::iterator::operator*()
-{
-    return *it;
-}
-bool MessageSigTlvs::iterator::operator!=(MessageSigTlvs::iterator &o)
-{
-    return it != o.it;
-}
-MessageSigTlvs::iterator MessageSigTlvs::begin() const
-{
-    return MessageSigTlvs::iterator(m_tlvs.begin());
-}
-MessageSigTlvs::iterator MessageSigTlvs::end() const
-{
-    return MessageSigTlvs::iterator(m_tlvs.end());
 }

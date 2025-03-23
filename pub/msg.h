@@ -48,7 +48,6 @@ class MessageSigTlvCallback
     virtual bool callback(const Message &msg, tlvType_e tlvType,
         const BaseSigTlv *tlv) = 0;
 };
-#ifndef SWIG
 /**
  * Store a Signaling TLV with it's type
  * @note iterators are supported using C++ only.
@@ -76,7 +75,6 @@ class MessageSigTlv
      */
     const BaseSigTlv *tlv() const;
 };
-#endif /* SWIG */
 /**
  * Holds signaling tlvs received in the last receive ptp message
  */
@@ -161,6 +159,12 @@ class MessageSigTlvs
      * @note You @b should not try to free this TLV object
      */
     const BaseMngTlv *getMngTlv(size_t position) const;
+    /**
+     * Get a TLV from the last signalling message TLVs by position
+     * @param[in] position of TLV
+     * @return TLV or null
+     */
+    const MessageSigTlv &getTlv(size_t position) const;
     #ifndef SWIG
     /**
      * Fetch iterator to the first tlv
