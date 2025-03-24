@@ -134,7 +134,7 @@ class Binary
      * @note for scripts, to use packing assignment
      *       and create a string from array or list of octets
      */
-    Binary &mvBin(Binary &&rhs);
+    Binary &mvBin(Binary &rhs);
     /**
      * Get octet in position
      * @param[in] position in Binary octets

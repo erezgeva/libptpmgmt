@@ -186,7 +186,7 @@ Binary &Binary::setBin(const size_t position, const uint8_t value)
     }
     return *this;
 }
-Binary &Binary::mvBin(Binary &&rhs)
+Binary &Binary::mvBin(Binary &rhs)
 {
     free(m_buf);
     m_buf = rhs.m_buf;
