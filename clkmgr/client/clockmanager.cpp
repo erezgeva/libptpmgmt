@@ -99,11 +99,11 @@ std::vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs() const
 }
 
 bool ClockManager::clkmgr_subscribe_by_name(const ClkMgrSubscription &newSub,
-    char timeBaseName[STRING_SIZE_MAX], Event_state &currentState)
+    const std::string &timeBaseName, Event_state &currentState)
 {
     int timeBaseIndex = -1;
     for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs()) {
-        if(strcmp(cfg.timeBaseName, timeBaseName) == 0)
+        if(timeBaseName == cfg.timeBaseName)
             timeBaseIndex = cfg.timeBaseIndex;
     }
     if(timeBaseIndex == -1) {
@@ -238,12 +238,12 @@ send_connect:
 }
 
 int ClockManager::clkmgr_status_wait_by_name(int timeout,
-    char timeBaseName[STRING_SIZE_MAX],
+    const std::string &timeBaseName,
     Event_state &currentState, Event_count &currentCount)
 {
     int timeBaseIndex = -1;
     for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs()) {
-        if(strcmp(cfg.timeBaseName, timeBaseName) == 0)
+        if(timeBaseName == cfg.timeBaseName)
             timeBaseIndex = cfg.timeBaseIndex;
     }
     if(timeBaseIndex == -1) {

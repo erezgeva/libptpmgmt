@@ -64,8 +64,7 @@ size_t clkmgr_c_get_timebase_cfgs_size();
  * @return true on success, false on failure
  */
 bool clkmgr_c_subscribe_by_name(const struct clkmgr_c_subscription sub,
-    char timeBaseName[CLKMGR_STRING_SIZE_MAX],
-    struct Clkmgr_Event_state *current_state);
+    const char *timeBaseName, struct Clkmgr_Event_state *current_state);
 
 /**
  * Subscribe to client events
@@ -90,7 +89,7 @@ bool clkmgr_c_subscribe(const struct clkmgr_c_subscription sub,
  *         and false otherwise
  */
 int clkmgr_c_status_wait_by_name(int timeout,
-    char timeBaseName[CLKMGR_STRING_SIZE_MAX],
+    const char *timeBaseName,
     struct Clkmgr_Event_state *current_state,
     struct Clkmgr_Event_count *current_count);
 

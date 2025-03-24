@@ -84,7 +84,7 @@ class ClockManager
      * @return true on success, false on failure
      */
     bool clkmgr_subscribe_by_name(const ClkMgrSubscription &newSub,
-        char timeBaseName[STRING_SIZE_MAX], Event_state &currentState);
+        const std::string &timeBaseName, Event_state &currentState);
 
     /**
      * Subscribe to events
@@ -110,7 +110,7 @@ class ClockManager
      * @li 0 No event changes
      * @li -1 lost connection to the Clock manager Proxy
      */
-    int clkmgr_status_wait_by_name(int timeout, char timeBaseName[STRING_SIZE_MAX],
+    int clkmgr_status_wait_by_name(int timeout, const std::string &timeBaseName,
         Event_state &currentState, Event_count &currentCount);
 
     /**

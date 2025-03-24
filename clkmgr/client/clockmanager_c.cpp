@@ -49,7 +49,7 @@ size_t clkmgr_c_get_timebase_cfgs_size()
 }
 
 bool clkmgr_c_subscribe_by_name(const clkmgr_c_subscription sub,
-    char timeBaseName[CLKMGR_STRING_SIZE_MAX],
+    const char *timeBaseName,
     Clkmgr_Event_state *current_state)
 {
     if(timeBaseName == nullptr || current_state == nullptr)
@@ -103,7 +103,7 @@ bool clkmgr_c_subscribe(const clkmgr_c_subscription sub, int time_base_index,
 }
 
 int clkmgr_c_status_wait_by_name(int timeout,
-    char timeBaseName[CLKMGR_STRING_SIZE_MAX], Clkmgr_Event_state *current_state,
+    const char *timeBaseName, Clkmgr_Event_state *current_state,
     Clkmgr_Event_count *current_count)
 {
     if(timeBaseName == nullptr || current_state == nullptr)
