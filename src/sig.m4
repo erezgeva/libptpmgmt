@@ -37,6 +37,24 @@ ns_s()
  *  management message do not use this structure!
  */
 strc(MANAGEMENT_t) sz(: public BaseSigTlv) {
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Copy constructor')dnl
+cpp_cod(`     * @param[in] other managment Message to copy')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    MANAGEMENT_t(const MANAGEMENT_t &other);')dnl
+cpp_cod(`    #ifndef SWIG')dnl
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Move constructor')dnl
+cpp_cod(`     * @param[in] other managment Message to move content')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    MANAGEMENT_t(MANAGEMENT_t &&other);')dnl
+cpp_cod(`    /**')dnl
+cpp_cod(`     * Copy managmet TLV from another object')dnl
+cpp_cod(`     * @param[in] other managment Message to move content')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    MANAGEMENT_t &operator=(const MANAGEMENT_t &other);')dnl
+cpp_cod(`    #endif /* SWIG */')dnl
+cpp_cod(`    MANAGEMENT_t() = default;')dnl
     enmc(mng_vals_e) managementId; /**< Management TLV id */
     pmng()tlvData; /**< Management TLV data */
 };
@@ -110,7 +128,7 @@ strc(L1_SYNC_t) sz(: public BaseSigTlv) {
      * @li bit 3: OPE   L1SyncBasicPortDS.optParamsEnabled
      */
     uint8_t flags1;
-cpp_cod(`    const uint8_t flagsMask1 = 0xf; /**< mask for flags1 */')dnl
+cpp_cod(`    static const uint8_t flagsMask1; /**< mask for flags1 */')dnl
     /**
      * Bit fields flag
      * @li bit 0: ITC   L1SyncBasicPortDS.isTxCoherent
@@ -118,7 +136,7 @@ cpp_cod(`    const uint8_t flagsMask1 = 0xf; /**< mask for flags1 */')dnl
      * @li bit 2: IC    L1SyncBasicPortDS.isCongruent
      */
     uint8_t flags2;
-cpp_cod(`    const uint8_t flagsMask2 = 0x7; /**< Mask for flags2 */')dnl
+cpp_cod(`    static const uint8_t flagsMask2; /**< Mask for flags2 */')dnl
 };
 /** PORT_COMMUNICATION_AVAILABILITY */
 strc(PORT_COMMUNICATION_AVAILABILITY_t) sz(: public BaseSigTlv) {
@@ -132,7 +150,7 @@ strc(PORT_COMMUNICATION_AVAILABILITY_t) sz(: public BaseSigTlv) {
      * flags from communicationCapabilitiesPortDS.syncCapabilities
      */
     uint8_t syncMessageAvailability;
-cpp_cod(`    const uint8_t flagsMask1 = 0xf; /**< Mask for syncMessageAvailability */')dnl
+cpp_cod(`    static const uint8_t flagsMask1; /**< Mask for syncMessageAvailability */')dnl
     /**
      * Bit fields delayRespMessageAvailability
      * @li bit 0 delayRespCapabilities.multicastCapable
@@ -143,7 +161,7 @@ cpp_cod(`    const uint8_t flagsMask1 = 0xf; /**< Mask for syncMessageAvailabili
      * flags from communicationCapabilitiesPortDS.delayRespCapabilities.
      */
     uint8_t delayRespMessageAvailability;
-cpp_cod(`    const uint8_t flagsMask2 = 0xf; /**< Mask for delayRespMessageAvailability */')dnl
+cpp_cod(`    static const uint8_t flagsMask2; /**< Mask for delayRespMessageAvailability */')dnl
 };
 /** PROTOCOL_ADDRESS TLV */
 strc(PROTOCOL_ADDRESS_t) sz(: public BaseSigTlv) {
@@ -206,7 +224,7 @@ strc(SLAVE_RX_SYNC_COMPUTED_DATA_t) sz(: public BaseSigTlv) {
      * @li bit 2: offsetFromMasterValid
     */
     uint8_t computedFlags;
-cpp_cod(`    const uint8_t flagsMask = 0x7; /**< Mask for computedFlags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for computedFlags */')dnl
     /** records of received sync messages */
     vec(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t)list;
 };

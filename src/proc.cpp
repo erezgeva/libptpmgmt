@@ -31,6 +31,25 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
+const uint8_t DEFAULT_DATA_SET_t::flagsMask = 0x3;
+const uint8_t PARENT_DATA_SET_t::flagsMask = 0x1;
+const uint8_t TIME_PROPERTIES_DATA_SET_t::flagsMask = 0x3f;
+const uint8_t SLAVE_ONLY_t::flagsMask = 0x1;
+const uint8_t UTC_PROPERTIES_t::flagsMask = 0x7;
+const uint8_t TRACEABILITY_PROPERTIES_t::flagsMask = 0x30;
+const uint8_t TIMESCALE_PROPERTIES_t::flagsMask = 0x8;
+const uint8_t UNICAST_NEGOTIATION_ENABLE_t::flagsMask = 0x1;
+const uint8_t PATH_TRACE_ENABLE_t::flagsMask = 0x1;
+const uint8_t ACCEPTABLE_MASTER_TABLE_ENABLED_t::flagsMask = 0x1;
+const uint8_t ALTERNATE_MASTER_t::flagsMask = 0x1;
+const uint8_t ALTERNATE_TIME_OFFSET_ENABLE_t::flagsMask = 0x1;
+const uint8_t TRANSPARENT_CLOCK_PORT_DATA_SET_t::flagsMask = 0x1;
+const uint8_t EXTERNAL_PORT_CONFIGURATION_ENABLED_t::flagsMask = 0x1;
+const uint8_t MASTER_ONLY_t::flagsMask = 0x1;
+const uint8_t HOLDOVER_UPGRADE_ENABLE_t::flagsMask = 0x1;
+const uint8_t EXT_PORT_CONFIG_PORT_DATA_SET_t::flagsMask = 0x1;
+const uint8_t GRANDMASTER_SETTINGS_NP_t::flagsMask = 0x3f;
+
 /**
  * Constants for proc(Float64_t)
  */
