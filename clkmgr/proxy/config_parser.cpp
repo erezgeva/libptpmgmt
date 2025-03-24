@@ -97,8 +97,6 @@ bool JsonConfigParser::process_json(const char *file)
     if(!timeBaseArray)
         return false;
     for(auto *it : *timeBaseArray) {
-        if(!it)
-            return false;
         TimeBaseCfgFull row = {};
         TimeBaseCfg &config = row.base;
         jsonObject *timeBaseObj = it->getObj();
