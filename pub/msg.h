@@ -65,6 +65,18 @@ class MessageSigTlv
     /**< @endcond */
   public:
     /**
+     * Copy constructor
+     * @param[in] other signalling TLV to copy
+     */
+    MessageSigTlv(const MessageSigTlv &other);
+    #ifndef SWIG
+    /**
+     * Move constructor
+     * @param[in] other signalling TLV to copy
+     */
+    MessageSigTlv(MessageSigTlv &&other);
+    #endif /* SWIG */
+    /**
      * Get signalling TLV id
      * @return TLV id
      */
@@ -104,12 +116,19 @@ class MessageSigTlvs
         iterator(const std::vector<MessageSigTlv>::const_iterator &it);
         friend class MessageSigTlvs;
       public:
+        /* iterator need to support these following operators */
         iterator &operator++(); /* prefix increment */
+        iterator &operator++(int); /* postfix increment */
         const MessageSigTlv &operator*();
         bool operator!=(iterator &o);
     };
     #endif /* SWIG */
     /**< @endcond */
+    /**
+     * Copy constructor
+     * @param[in] other signalling TLVs to copy
+     */
+    MessageSigTlvs(const MessageSigTlvs &other);
     /**
      * Traverse all last signalling message TLVs
      * @param[in] callback function to call with each TLV
@@ -166,6 +185,11 @@ class MessageSigTlvs
      */
     const MessageSigTlv &getTlv(size_t position) const;
     #ifndef SWIG
+    /**
+     * Move constructor
+     * @param[in] other signalling TLVs to copy
+     */
+    MessageSigTlvs(MessageSigTlvs &&other);
     /**
      * Fetch iterator to the first tlv
      * @return iterator

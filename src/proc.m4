@@ -67,7 +67,7 @@ strc(DEFAULT_DATA_SET_t) sz(: public BaseMngTlv) {
      * @li bit 1: SO  defaultDS.slaveOnly
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x3; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     UInteger16_t numberPorts; /**< Number of ports */
     UInteger8_t priority1; /**< Priority 1 */
     strcc(ClockQuality_t) clockQuality; /**< Clock quality */
@@ -91,7 +91,7 @@ strc(PARENT_DATA_SET_t) sz(: public BaseMngTlv) {
      * @li bit 0: PS parentDS.parentStats
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     /** The variance of the parent clock's phase as
         measured by the local clock */
     UInteger16_t observedParentOffsetScaledLogVariance;
@@ -117,7 +117,7 @@ strc(TIME_PROPERTIES_DATA_SET_t) sz(: public BaseMngTlv) {
      * @li bit 5: FTRA  timePropertiesDS.frequencyTraceable
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x3f; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     enmc(timeSource_e) timeSource; /**< Clock source type */
 };
 /** Port data set TLV */
@@ -168,7 +168,7 @@ strc(SLAVE_ONLY_t) sz(: public BaseMngTlv) {
      * @li bit 0: SO  defaultDS.slaveOnly
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Log announce interval TLV */
 strc(LOG_ANNOUNCE_INTERVAL_t) sz(: public BaseMngTlv) {
@@ -213,7 +213,7 @@ strc(UTC_PROPERTIES_t) sz(: public BaseMngTlv) {
      * @li bit 2: UTCV  timePropertiesDS.currentUtcOffsetValid
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x7; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Traceability properties TLV */
 strc(TRACEABILITY_PROPERTIES_t) sz(: public BaseMngTlv) {
@@ -223,7 +223,7 @@ strc(TRACEABILITY_PROPERTIES_t) sz(: public BaseMngTlv) {
      * @li bit 5: FTRA  timePropertiesDS.frequencyTraceable
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x30; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Timescale properties TLV */
 strc(TIMESCALE_PROPERTIES_t) sz(: public BaseMngTlv) {
@@ -232,7 +232,7 @@ strc(TIMESCALE_PROPERTIES_t) sz(: public BaseMngTlv) {
      * @li bit 3: PTP   timePropertiesDS.ptpTimescale
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x8; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     enmc(timeSource_e) timeSource; /**< Clock source type */
 };
 /** Unicast negotiation enables TLV */
@@ -242,7 +242,7 @@ strc(UNICAST_NEGOTIATION_ENABLE_t) sz(: public BaseMngTlv) {
      * @li bit 0: EN - unicastNegotiationPortDS.enable
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /**
  * Path trace list TLV
@@ -261,7 +261,7 @@ strc(PATH_TRACE_ENABLE_t) sz(: public BaseMngTlv) {
      * @li bit 0: EN pathTraceDS.enable
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Grandmaster cluster table TLV */
 strc(GRANDMASTER_CLUSTER_TABLE_t) sz(: public BaseMngTlv) {
@@ -299,7 +299,7 @@ strc(ACCEPTABLE_MASTER_TABLE_ENABLED_t) sz(: public BaseMngTlv) {
      * @li bit 0: EN acceptableMasterPortDS.enable.
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Acceptable time transmitter maximum table size TLV */
 strc(ACCEPTABLE_MASTER_MAX_TABLE_SIZE_t) sz(: public BaseMngTlv) {
@@ -314,7 +314,7 @@ strc(ALTERNATE_MASTER_t) sz(: public BaseMngTlv) {
      * @li bit 0: S - alternateMasterPortDS.transmitAlternateMulticastSync
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     /** Logarithm to the base 2 of the mean period in seconds
         between Sync messages used by alternate time transmitter */
     Integer8_t logAlternateMulticastSyncInterval;
@@ -329,7 +329,7 @@ strc(ALTERNATE_TIME_OFFSET_ENABLE_t) sz(: public BaseMngTlv) {
      * @li bit 0: EN alternateTimescaleOffsetsDS.list[keyField].enable
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Alternate time offset name TLV */
 strc(ALTERNATE_TIME_OFFSET_NAME_t) sz(: public BaseMngTlv) {
@@ -356,7 +356,7 @@ strc(TRANSPARENT_CLOCK_PORT_DATA_SET_t) sz(: public BaseMngTlv) {
      * @li bit 0: FLT transparentClockPortDS.faultyFlag
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     /** the minimum permitted mean time interval between
         successive Pdelay_Req messages */
     Integer8_t logMinPdelayReqInterval;
@@ -396,7 +396,7 @@ strc(EXTERNAL_PORT_CONFIGURATION_ENABLED_t) sz(: public BaseMngTlv) {
      * @li bit 0: EPC defaultDS.externalPortConfigurationEnabled
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Time transmitter only TLV */
 strc(MASTER_ONLY_t) sz(: public BaseMngTlv) {
@@ -405,7 +405,7 @@ strc(MASTER_ONLY_t) sz(: public BaseMngTlv) {
      * @li bit 0: MO - portDS.masterOnly
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** Holdover-upgrade enable TLV */
 strc(HOLDOVER_UPGRADE_ENABLE_t) sz(: public BaseMngTlv) {
@@ -414,7 +414,7 @@ strc(HOLDOVER_UPGRADE_ENABLE_t) sz(: public BaseMngTlv) {
      * @li bit 0: EN holdoverUpgradeDS.enable
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
 };
 /** External port config port data setting TLV */
 strc(EXT_PORT_CONFIG_PORT_DATA_SET_t) sz(: public BaseMngTlv) {
@@ -423,7 +423,7 @@ strc(EXT_PORT_CONFIG_PORT_DATA_SET_t) sz(: public BaseMngTlv) {
      * @li bit 0: EN acceptableMasterPortDS.enable.
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x1; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     enmc(portState_e) desiredState; /**< Desired port state */
 };
 /** TIME_STATUS_NP.cumulativeScaledRateOffset scale factor */
@@ -465,7 +465,7 @@ strc(GRANDMASTER_SETTINGS_NP_t) sz(: public BaseMngTlv) {
      * @li bit 5: FTRA  timePropertiesDS.frequencyTraceable
      */
     uint8_t flags;
-cpp_cod(`    const uint8_t flagsMask = 0x3f; /**< Mask for flags */')dnl
+cpp_cod(`    static const uint8_t flagsMask; /**< Mask for flags */')dnl
     enmc(timeSource_e) timeSource; /**< Clock source type */
 };
 /** Port data setting TLV
