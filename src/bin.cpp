@@ -156,6 +156,8 @@ Binary::Binary(const string &string)
 }
 Binary &Binary::operator=(const Binary &rhs)
 {
+    if(this == &rhs)  // Prevent self assignment
+        return *this;
     return setBin(rhs.m_buf, rhs.m_size);
 }
 Binary &Binary::setBin(const void *buf, const size_t length)
