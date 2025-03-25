@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
 
 # Clock Manager Introduction
 
-Introduction Distributed computing applications, such as databases and
+Distributed computing applications, such as databases and
 industrial automation, require accurate time synchronization (tens of
 milliseconds down to single-digit nanoseconds) to coordinate actions and events
 across multiple devices. In order to synchronize time across multiple devices,
@@ -26,12 +26,12 @@ timing telemetry information, but also configure the platform, allowing
 privileged applications to make changes to the platform time configuration.
 
 ![High-level Overview of the Clock Manager
-Functionality](./image/clkmgr_overview.png) __Figure 1 - High-level Overview of
-the Clock Manager Functionality__
+Functionality](./image/clkmgr_overview.png) 
+__Figure 1 - High-level Overview of the Clock Manager Functionality__
 
 Figure 1 shows the high-level system interactions between the Clock Manager and
 the system software on the local platform. The Clock Manager communicates with
-the time synchronization daemon (e.g., Linux PTP or Chrony) to get current
+the time synchronization daemon (ptp4l & Chrony) to get current
 telemetry data and synchronization error and notifies the application of changes
 to the relevant state. Any changes to the relevant state will generate event
 notifications to the application. This is shown by Clock Manager data path. The
@@ -62,16 +62,11 @@ software.
 
 Applications utilizing Clock Manager must be allowed to be licensed and
 released under any free or non-free terms. The time synchronization daemon
-(e.g., Linux PTP or Chrony) are licensed under GPL. The Clock Manager framework
+(ptp4l & Chrony) are licensed under GPL. The Clock Manager framework
 is released under the BSD-3-Clause and insulates the application from any
 requirement to release the source code. The Clock Manager service is
-implemented using a process separate from both the application and time
-synchronization daemon. This process is the Clock Manager Proxy (CMP). The CMP
-code will include GPL and/or link to GPL code making it a derivative and
-requiring that all code in the CMP code be licensed under the GPLv2. Any Clock
-Manager support libraries must be released under a GPL-compatible license that
-can also be used with proprietary software, such as MIT or modified BSD
-licenses.
+implemented using a process (proxy daemon) to separate from the application from
+time synchronization daemons.
 
 ## Extensibility 
 

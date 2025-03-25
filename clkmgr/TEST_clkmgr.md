@@ -1,12 +1,9 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
      SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
-# The diagram of Clock Manager usage in system:
-
-Test app <----> client runtime(libclkmgr.so) <----> clkmgr_proxy <----> libptpmgmt.so <----> ptp4l
-
 # How to get Linux PTP:
 
 You can install it from your Linux distribution:  
+NOTE: The linuxptp must be version 4.4 and above.
 On Ubuntu and Debian:  
 ```bash
 sudo apt install linuxptp
@@ -18,16 +15,19 @@ dnf install linuxptp
 
 Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
 
-# How to Clone and Build the Clock Manager together with libptpmgmt:
+# How to get Chrony
 
-Clock manager is divided to two parts:  
-  * clkmgr_proxy: The Clock manager proxy.  
-  * libclkmgr.so: The Clock manager user library.  
+1. Install chrony (If chrony pre-installed please skip this step):  
+    On Ubuntu and Debian:  
+    ```bash
+    sudo apt install chrony
+    ```
+    On Fedora:  
+    ```bash
+    dnf install chrony
+    ```
 
-We provide libclkmgr.so with API for user applications to connect, subscribe and
-receive ptp4l events forward by the Clock manager proxy.  
-The Clock manager proxy uses libptpmgmt.so to subscribe and to listen for events received from ptp4l.  
-libclkmgr.so communicates with the Clock manager proxy through a message queue.
+# How to get Clock Manager together with libptpmgmt:
 
 1. Install package dependencies:  
     ```bash
@@ -46,35 +46,29 @@ libclkmgr.so communicates with the Clock manager proxy through a message queue.
     autoreconf --install  
     ./configure  
     make  
-    make install
+    sudo make install
     ```
 
-3. Install libchrony:
+3. Install libchrony:  
     ```bash
     git clone https://gitlab.com/chrony/libchrony.git
     cd libchrony
     make
-    make install prefix=/usr/local
+    sudo make install prefix=/usr/local DESTDIR=
+    ldconfig
     ```
 
-4. Clone the repository:
+4. Install Clock Manager:  
     ```bash
     git clone https://github.com/erezgeva/libptpmgmt
-    ```
-
-5. Navigate to the cloned directory:
-    ```bash
     cd libptpmgmt
-    ```
-
-6. Build the application:
-    ```bash
     autoreconf -i
     ./configure
     make
+    sudo make install
     ```
 
-7. Outcome: two libraries and one application
+5. Outcome of Step 4: two libraries and one application
     ```bash
     .libs/libptpmgmt.so
     .libs/libclkmgr.so
@@ -83,10 +77,10 @@ libclkmgr.so communicates with the Clock manager proxy through a message queue.
 
 # How to Build the Sample Application:
 
-We provided a sample code of testing applications which will uses
-Clock Manager API to track latest status of ptp4l.  
+We provided C/C++ sample applications to showcase on how to use  
+Clock Manager API to track latest status of ptp4l and Chrony.  
 The applications are provided for demonstration only.  
-We do not recommand to use them for production.  
+We do not recommend to use them for production.  
 
 1. Navigate to the sample directory:
     ```bash
@@ -106,32 +100,89 @@ We do not recommand to use them for production.
 
 # How to test:
 
-1. Run the ptp4l service on both DUT and link partner:
-    If linuxptp is installed on system:
+Operation Flow of Clock Manager:
+![Operation Flow of Clock Manager](./image/operation_flow.png)
+__Figure 1 - Operation Flow of Clock Manager__
+
+# Test Steps:
+
+1. For Multi Domain user need to create vclock in order to support multi domain:  
+    Create vclock:
     ```bash
-    sudo ptp4l -i <interface name>
+    echo <number of vclock> > /sys/class/net/<interface name>/device/ptp/<ptp pin>/n_vclocks
     ```
-    Or you build it yourself
+    Verify if vclock created successful:
     ```bash
-    cd <folder>
-    sudo ./ptp4l -i <interface name>
+    udevadm info /dev/ptp*
     ```
 
-2. Add ptp device (e.g /dev/ptp0) as refclock for chrony daemon application on DUT:
+2. Run the ptp4l services on both DUT and link partner:  
+    Before start ptp4l services, user need to prepare the configuration file  
+    accordingly. There are two types of ptp4l service, which is ptp4l CMLDS service  
+    and ptp4l domains service. Each type of service have their own set of  
+    configuration file. Below are some MUST have parameters example that needed  
+    specifically for Clock Manager:
+    1. Example of ptp4l CMLDS service's configuration:
+    ```bash
+    clientOnly                      1
+    delay_mechanism                 P2P
+    free_running                    1
+    follow_up_info                  1
+    transportSpecific               2
+    clockIdentity                   000001.0000.800000
+    phc_index                       4
+    uds_address                     /var/run/master-cmlds
+    ```
+
+    2. Example of ptp4l domains service's configuration:
+    ```bash
+    delay_mechanism            P2P
+    follow_up_info             1
+    transportSpecific          1
+    clockIdentity              000001.0000.000001
+    cmlds.server_address       /var/run/master-cmlds
+    cmlds.client_address       /var/run/master-client-0
+    domainNumber               0
+    phc_index                  4
+    uds_address                /var/run/ptp4l-domain-0
+    ```
+
+    Note:  
+    For multi domain, ptp4l need to run the CMLDS service.  
+    Run the ptp4l CMLDS service on both DUT and link partner:
+    ```bash
+    sudo ptp4l -i <interface name> -f <cmlds config file> -m
+    ```
+    Run the ptp4l domains service on both DUT and link partner:
+    ```bash
+    sudo ptp4l -i <interface name> -f <domain config file> -m
+    ```
+
+3. Add ptp device (e.g /dev/ptp0) as refclock for chrony daemon application on DUT:
     ```bash
     echo "refclock PHC /dev/ptp0 poll -6 dpoll -1" >>  /etc/chrony/chrony.conf
     ```
-3. Run the chrony daemon application on DUT:
+
+4. Run the chrony daemon application on DUT:  
     ```bash
     chronyd -f /etc/chrony/chrony.conf
     ```
 
-4. Run the clkmgr_proxy application on DUT:
+5. Run the clkmgr_proxy application on DUT:  
+    For how to prepare the proxy configuration file, can refer to [sample] (/libptpmgmt/clkmgr/proxy/proxy_cfg.json/)
     ```bash
     cd libptpmgmt/clkmgr/proxy
-    sudo ./run_proxy.sh -t 1
+    sudo ./run_proxy.sh
     ```
-5. Run the sample application on DUT:
+
+6. Run the sample application on DUT:
+    There are 3 modes in multi domain:
+    1. Default Mode: In default mode, the sample application will direct  
+                     subscribe to time base index 1.  
+    2. Subscribe All Mode (-a): In this mode, the sample application will  
+                                subscribe to all available time bases.  
+    3. User Prompt Mode (-p): In this mode, the sample application will prompt  
+                              user to subscribe up to multiple time bases.  
 
     a. c++ sample application:
     ```bash
@@ -152,15 +203,24 @@ Usage of proxy daemon (clkmgr_proxy):
 ~/libptpmgmt/clkmgr/proxy# ./run_proxy.sh -h
 Usage of ./clkmgr_proxy:
 Options:
- -t transport specific
-    Default: 0x0
+ -f [file] Read configuration from 'file'
+ -l <lvl> Set log level
+          0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE
+ -v <0|1> Enable or disable verbose output
+          0: disable, 1: enable(default)
+ -s <0|1> Enable or disable system log printing
+          0: disable, 1: enable(default)
+ -h       Show this help message
 ```
 
 Usage of c++ sample application (clkmgr_test):
 ```bash
 ~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -h
-Usage of ./clkmgr_test:
+Usage of ./clkmgr_test :
 Options:
+  -a subscribe to all time base indices
+     Default: timeBaseIndex: 1
+  -p enable user to subscribe to specific time base indices
   -s subscribe_event_mask
      Default: 0xf
      Bit 0: eventGMOffset
@@ -186,18 +246,32 @@ Options:
      Default: 10 s
 ```
 
-Example output of c++ sample application (clkmgr_test):
+Result for `Subscribe All Mode (-a)`:
 ```bash
-~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -n 0 -m 5 -t 0
-[clkmgr] Connected. Session ID : 0
+~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -l 0 -u 100 -t 0 -a
 [clkmgr] set subscribe event : 0xf
 [clkmgr] set composite event : 0x7
-GM Offset upper limit: 100000 ns
-GM Offset lower limit: -100000 ns
-Chrony Offset upper limit: 5 ns
-Chrony Offset lower limit: 0 ns
+GM Offset upper limit: 100 ns
+GM Offset lower limit: 0 ns
+Chrony Offset upper limit: 100000 ns
+Chrony Offset lower limit: -100000 ns
 
-[clkmgr][360038.267] Obtained data from Subscription Event:
+[clkmgr] List of available clock:
+TimeBaseIndex: 1
+timeBaseName: Global Clock
+interfaceName: eth0
+transportSpecific: 1
+domainNumber: 0
+
+TimeBaseIndex: 2
+timeBaseName: Working Clock
+interfaceName: eth1
+transportSpecific: 1
+domainNumber: 20
+
+Subscribe to time base index: 1
+[clkmgr][344584.100] Obtained data from Subscription Event:
+[clkmgr] Current Time of CLOCK_REALTIME: 1742923371187240156 ns
 +---------------------------+------------------------+
 | Event                     | Event Status           |
 +---------------------------+------------------------+
@@ -206,9 +280,9 @@ Chrony Offset lower limit: 0 ns
 | as_capable                | 1                      |
 | gm_Changed                | 1                      |
 +---------------------------+------------------------+
-| UUID                      | 22abbc.fffe.bb1234     |
-| clock_offset              | -2                  ns |
-| notification_timestamp    | 1726024045215150041 ns |
+| GM UUID                   | 000001.0000.000000     |
+| clock_offset              | 8                   ns |
+| notification_timestamp    | 1742923371187204125 ns |
 +---------------------------+------------------------+
 | composite_event           | 1                      |
 | - offset_in_range         |                        |
@@ -217,39 +291,100 @@ Chrony Offset lower limit: 0 ns
 +---------------------------+------------------------+
 
 +---------------------------+------------------------+
-| chrony offset_in_range    | 0                      |
+| chrony_offset_in_range    | 1                      |
 +---------------------------+------------------------+
-| chrony clock_offset       | 5                   ns |
-| chrony clock_reference_id | 50484330               |
-| chrony polling interval   | 500000              us |
+| chrony_clock_offset       | 23                  ns |
+| chrony_clock_reference_id | 50484330               |
+| chrony_polling interval   | 500000              us |
 +---------------------------+------------------------+
 
-[clkmgr][360039.268] Waiting for Notification Event...
-[clkmgr][360039.268] Obtained data from Notification Event:
+Subscribe to time base index: 2
+[clkmgr][344584.100] Obtained data from Subscription Event:
+[clkmgr] Current Time of CLOCK_REALTIME: 1742923371187340099 ns
++---------------------------+------------------------+
+| Event                     | Event Status           |
++---------------------------+------------------------+
+| offset_in_range           | 1                      |
+| synced_to_primary_clock   | 1                      |
+| as_capable                | 1                      |
+| gm_Changed                | 1                      |
++---------------------------+------------------------+
+| GM UUID                   | 000002.0000.000000     |
+| clock_offset              | 4                   ns |
+| notification_timestamp    | 1742923371187322215 ns |
++---------------------------+------------------------+
+| composite_event           | 1                      |
+| - offset_in_range         |                        |
+| - synced_to_primary_clock |                        |
+| - as_capable              |                        |
++---------------------------+------------------------+
+
++---------------------------+------------------------+
+| chrony_offset_in_range    | 0                      |
++---------------------------+------------------------+
+| chrony_clock_offset       | 0                   ns |
+| chrony_clock_reference_id | 0                      |
+| chrony_polling interval   | 0                   us |
++---------------------------+------------------------+
+
+[clkmgr][344585.100] Waiting Notification from time base index 1 ...
+[clkmgr][344585.100] Obtained data from Notification Event:
+[clkmgr] Current Time of CLOCK_REALTIME: 1742923372187493243 ns
 +---------------------------+--------------+-------------+
 | Event                     | Event Status | Event Count |
 +---------------------------+--------------+-------------+
-| offset_in_range           | 1            | 1           |
+| offset_in_range           | 1            | 4           |
 | synced_to_primary_clock   | 1            | 0           |
 | as_capable                | 1            | 0           |
 | gm_Changed                | 0            | 0           |
 +---------------------------+--------------+-------------+
-| GM UUID                   |     222211.fffe.011122     |
-| clock_offset              |     33                  ns |
-| notification_timestamp    |     1929621371292023896 ns |
+| GM UUID                   |     000001.0000.000000     |
+| clock_offset              |     4                   ns |
+| notification_timestamp    |     1742923372085217302 ns |
 +---------------------------+--------------+-------------+
-| composite_event           | 1            | 1           |
+| composite_event           | 1            | 4           |
 | - offset_in_range         |              |             |
 | - synced_to_primary_clock |              |             |
 | - as_capable              |              |             |
 +---------------------------+--------------+-------------+
 
 +---------------------------+----------------------------+
-| chrony offset_in_range    | 1            | 1           |
+| chrony_offset_in_range    | 1            | 0           |
 +---------------------------+----------------------------+
-| chrony clock_offset       |     3                   ns |
-| chrony clock_reference_id |     50484330               |
-| chrony polling_interval   |     500000              us |
+| chrony_clock_offset       |     -51                 ns |
+| chrony_clock_reference_id |     50484330               |
+| chrony_polling_interval   |     500000              us |
++---------------------------+----------------------------+
+
+[clkmgr][344585.100] sleep for 1 seconds...
+
+[clkmgr][344585.249] Waiting Notification from time base index 2 ...
+[clkmgr][344585.249] Obtained data from Notification Event:
+[clkmgr] Current Time of CLOCK_REALTIME: 1742923372336262939 ns
++---------------------------+--------------+-------------+
+| Event                     | Event Status | Event Count |
++---------------------------+--------------+-------------+
+| offset_in_range           | 1            | 4           |
+| synced_to_primary_clock   | 1            | 0           |
+| as_capable                | 1            | 0           |
+| gm_Changed                | 0            | 0           |
++---------------------------+--------------+-------------+
+| GM UUID                   |     000002.0000.000000     |
+| clock_offset              |     1                   ns |
+| notification_timestamp    |     1742923372318247718 ns |
++---------------------------+--------------+-------------+
+| composite_event           | 1            | 4           |
+| - offset_in_range         |              |             |
+| - synced_to_primary_clock |              |             |
+| - as_capable              |              |             |
++---------------------------+--------------+-------------+
+
++---------------------------+----------------------------+
+| chrony_offset_in_range    | 0            | 0           |
++---------------------------+----------------------------+
+| chrony_clock_offset       |     0                   ns |
+| chrony_clock_reference_id |     0                      |
+| chrony_polling_interval   |     0                   us |
 +---------------------------+----------------------------+
 ```
 
