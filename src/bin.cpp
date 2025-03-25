@@ -126,15 +126,6 @@ Binary::Binary(const Binary &rhs)
     setBin(rhs.m_buf, rhs.m_size);
     iResize(1);
 }
-Binary::Binary(Binary &&rhs)
-{
-    m_buf = rhs.m_buf;
-    m_alloc = rhs.m_alloc;
-    m_size = rhs.m_size;
-    rhs.m_buf = nullptr;
-    rhs.m_alloc = 0;
-    rhs.m_size = 0;
-}
 Binary::Binary(const void *buf, const size_t length)
 {
     setBin(buf, length);

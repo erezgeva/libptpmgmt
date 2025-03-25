@@ -39,13 +39,6 @@ class Binary
      * @param[in] rhs object
      */
     Binary(const Binary &rhs);
-    #ifndef SWIG
-    /**
-     * Move constructor
-     * @param[in] rhs object
-     */
-    Binary(Binary &&rhs);
-    #endif /* SWIG */
     /**
      * Constructor from buffer
      * @param[in] buf pointer to Binary octets
