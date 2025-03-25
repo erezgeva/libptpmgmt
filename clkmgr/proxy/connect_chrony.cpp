@@ -98,13 +98,10 @@ static chrony_err process_chronyd_data(chrony_session *s)
 
 static int subscribe_to_chronyd(chrony_session *s, int timeBaseIndex)
 {
-    const char *report_name;
     chrony_err r;
     int record_index = 0;
     int field_index = 0;
-    int report_index = 1; // Subscribe to chronyd source index 1
-    report_name = chrony_get_report_name(report_index);
-    r = chrony_request_record(s, report_name, record_index);
+    r = chrony_request_record(s, "sources", record_index);
     if(r != CHRONY_OK)
         return r;
     r = process_chronyd_data(s);
