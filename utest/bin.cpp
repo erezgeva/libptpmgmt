@@ -35,6 +35,20 @@ TEST(BinaryTest, MethodCopyConstructor)
     EXPECT_EQ(f.getBinString(), "\x1\x2\x3\x4");
 }
 
+// Tests Binary move constructor
+// Binary(Binary &&rhs)
+TEST(BinaryTest, MethodMoveConstructor)
+{
+    Binary d("\x1\x2\x3\x4");
+    const uint8_t *p = d.get();
+    Binary f(std::move(d));
+    EXPECT_EQ(d.get(), nullptr);
+    EXPECT_EQ(d.size(), 0);
+    EXPECT_EQ(f.get(), p);
+    EXPECT_EQ(f.getBinString(), "\x1\x2\x3\x4");
+    EXPECT_EQ(f.size(), 4);
+}
+
 // Tests Binary constructor from buffer
 // Binary(const void *buf, const size_t length)
 TEST(BinaryTest, MethodBufferConstructor)
@@ -148,6 +162,20 @@ TEST(BinaryTest, MethodSetBinVal)
     Binary f("\x1\x2\x3\x4");
     f.setBin(2, 0xf);
     EXPECT_EQ(f.getBinString(), "\x1\x2\xf\x4");
+}
+
+// Test move value
+// Binary &mvBin(Binary &rhs)
+TEST(BinaryTest, MethodMoveBinVal)
+{
+    Binary f("\x1\x2\x3\x4");
+    const uint8_t *p = f.get();
+    Binary t;
+    t.mvBin(f);
+    EXPECT_EQ(f.get(), nullptr);
+    EXPECT_EQ(f.size(), 0);
+    EXPECT_EQ(t.get(), p);
+    EXPECT_EQ(t.size(), 4);
 }
 
 // Test get value in position
