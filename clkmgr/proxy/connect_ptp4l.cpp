@@ -60,7 +60,7 @@ class ptpSet : MessageDispatcher
     int timeBaseIndex; // Index of the time base
     const TimeBaseCfg &param; // time base configuration
     ptp_event &event;
-    string udsAddr;
+    const string &udsAddr;
     ptpmgmt::Message msg;
     SockUnix sku;
     bool do_notify = false;
@@ -70,8 +70,9 @@ class ptpSet : MessageDispatcher
     vector<sessionId_t> subscribedClients; // Clients list for notification
   public:
     // These methods are used during initializing, before we create the thread.
-    ptpSet(const TimeBaseCfg &p, string uds) : timeBaseIndex(p.timeBaseIndex),
-        param(p), event(ptp4lEvents[p.timeBaseIndex]), udsAddr(std::move(uds)) {}
+    ptpSet(const TimeBaseCfg &p, const string &uds) :
+        timeBaseIndex(p.timeBaseIndex), param(p),
+        event(ptp4lEvents[p.timeBaseIndex]), udsAddr(uds) {}
     bool init();
     void close() { sku.close(); }
     void start();
