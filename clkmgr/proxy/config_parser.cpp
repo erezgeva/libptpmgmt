@@ -124,7 +124,7 @@ bool JsonConfigParser::process_json(const char *file)
         }
         config.timeBaseIndex = currentIndex;
         currentIndex++;
-        timeBaseCfgs.push_back(row);
+        timeBaseCfgs.push_back(std::move(row));
     }
     print_config();
     return true;

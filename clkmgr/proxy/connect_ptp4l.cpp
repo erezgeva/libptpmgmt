@@ -71,7 +71,7 @@ class ptpSet : MessageDispatcher
   public:
     // These methods are used during initializing, before we create the thread.
     ptpSet(const TimeBaseCfg &p, string uds) : timeBaseIndex(p.timeBaseIndex),
-        param(p), event(ptp4lEvents[p.timeBaseIndex]), udsAddr(uds) {}
+        param(p), event(ptp4lEvents[p.timeBaseIndex]), udsAddr(std::move(uds)) {}
     bool init();
     void close() { sku.close(); }
     void start();
