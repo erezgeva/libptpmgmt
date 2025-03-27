@@ -101,6 +101,7 @@ bool TimeBaseStates::getTimeBaseState(int timeBaseIndex, TimeBaseState &state)
         state = it->second; // Copy the TimeBaseState object
         it->second.set_eventStateCount({}); // reset eventStateCount
         it->second.set_event_changed(false); // reset event_changed
+        it->second.get_eventState().gm_changed = false; // reset gm_changed
         return true;
     }
     // If timeBaseIndex is not found, return false
@@ -161,8 +162,7 @@ void TimeBaseStates::setTimeBaseState(int timeBaseIndex,
         eventState.gm_changed = true;
         eventCount.gm_changed_event_count++;
         state.set_event_changed(true);
-    } else
-        eventState.gm_changed = false;
+    }
     // Update eventASCapable
     if((eventSub & eventASCapable) &&
         (newEvent.as_capable != eventState.as_capable)) {
