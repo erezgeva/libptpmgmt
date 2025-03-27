@@ -474,7 +474,6 @@ bool SaFile::read_sa(const std::string &_file)
         }
         spps[cspp.ownID()] = cspp;
     }
-    m_spps.clear(); // remove old configuration
     m_spps = std::move(spps);
     PTPMGMT_ERROR_CLR;
     return true;

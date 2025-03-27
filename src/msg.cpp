@@ -1507,6 +1507,20 @@ __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
+class unq_cptr // Used with vector to store allocations in _memHndl
+{
+  public:
+    void *p = nullptr; // pointer to release
+    unq_cptr() = delete; // prevent
+    unq_cptr(void *_p) : p(_p) {}
+    unq_cptr(const unq_cptr &o) = delete; // prevent copy
+    // Handle move properly
+    unq_cptr(unq_cptr &&o) : p(o.p) { o.p = nullptr; }
+    // assignment is needed by vector header, but we do not use it in practice!
+    unq_cptr &operator=(const unq_cptr &) { return *this; }
+    ~unq_cptr() { free(p); }
+};
+
 extern "C" {
     extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
 
@@ -2083,21 +2097,17 @@ extern "C" {
     static inline void _tlv_mem_clearTlv(ptpmgmt_tlv_mem self)
     {
         free(self->tlv);
-        vector<void *> *n = (vector<void *> *)self->_memHndl;
-        if(n != nullptr) {
-            for(auto m : *n)
-                free(m);
-            n->clear();
-        }
+        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+        if(nalc != nullptr)
+            nalc->clear();
     }
     static inline bool _tlv_mem_freeMem(ptpmgmt_tlv_mem self, const void *mem)
     {
-        vector<void *> *n = (vector<void *> *)self->_memHndl;
-        if(n != nullptr) {
-            for(auto it = n->begin(); it != n->end(); ++it)
-                if(*it == mem) {
-                    free(*it);
-                    n->erase(it);
+        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+        if(nalc != nullptr) {
+            for(auto it = nalc->begin(); it != nalc->end(); ++it)
+                if(it->p == mem) {
+                    nalc->erase(it);
                     return true;
                 }
         }
@@ -2112,30 +2122,32 @@ extern "C" {
         }
         return nullptr;
     }
-    static inline bool _tlv_mem_copyText(vector<void *> &n, ptpmgmt_PTPText_t &t)
+    static inline bool _tlv_mem_copyText(vector<unq_cptr> &nalc,
+        ptpmgmt_PTPText_t &t)
     {
         if(t.lengthField > 0 && t.textField != nullptr) {
             size_t len = t.lengthField;
             char *s = (char *)malloc(len + 1);
             if(s == nullptr)
                 return false;
-            n.push_back(s);
             memcpy(s, t.textField, len);
             s[len] = 0;
             t.textField = s;
+            nalc.push_back({s});
             return true;
         }
         return false;
     }
-    static inline bool _tlv_mem_copyBloc(vector<void *> &n, void *&p, size_t len)
+    static inline bool _tlv_mem_copyBloc(vector<unq_cptr> &nalc, void *&p,
+        size_t len)
     {
         if(len > 0 && p != nullptr) {
             void *b = malloc(len);
             if(b == nullptr)
                 return false;
-            n.push_back(b);
             memcpy(b, p, len);
             p = b;
+            nalc.push_back({b});
             return true;
         }
         return false;
@@ -2143,24 +2155,23 @@ extern "C" {
     static inline void *_tlv_mem_reallocMem(ptpmgmt_tlv_mem self, void *memory,
         size_t size)
     {
-        vector<void *> *n = (vector<void *> *)self->_memHndl;
-        if(n != nullptr) {
-            auto it = n->begin();
+        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+        if(nalc != nullptr) {
+            auto it = nalc->begin();
             bool find = false;
-            for(; !find && it != n->end(); ++it) {
-                if(*it == memory) {
+            for(; !find && it != nalc->end(); ++it) {
+                if(it->p == memory) {
                     find = true;
                     break;
                 }
             }
-            if(!find)
-                return nullptr;
-            void *nmem = realloc(memory, size);
-            if(nmem != nullptr && nmem != memory) {
-                n->erase(it);
-                n->push_back(nmem);
+            if(find) {
+                void *m = realloc(memory, size);
+                if(m != nullptr) {
+                    it->p = m;
+                    return m;
+                }
             }
-            return nmem;
         }
         return nullptr;
     }
@@ -2168,12 +2179,7 @@ extern "C" {
     {
         if(self != nullptr) {
             free(self->tlv);
-            vector<void *> *n = (vector<void *> *)self->_memHndl;
-            if(n != nullptr) {
-                for(auto m : *n)
-                    free(m);
-                delete n;
-            }
+            delete(vector<unq_cptr> *)self->_memHndl;
             free(self);
         }
     }
@@ -2205,28 +2211,28 @@ extern "C" {
     {
         if(self == nullptr || tlv == nullptr)
             return false;
-        vector<void *> *n = (vector<void *> *)self->_memHndl;
-        if(n == nullptr)
+        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+        if(nalc == nullptr)
             return false;
         size_t sz;
         void *ntlv = _tlv_mem_allocTLV(sz, id);
         if(ntlv == nullptr)
             return false;
         bool ret = true;
-        vector<void *> _nalc;
+        vector<unq_cptr> _nalc;
         memcpy(ntlv, tlv, sz);
         switch(id) {
             case PTPMGMT_CLOCK_DESCRIPTION: {
                 auto *a = (ptpmgmt_CLOCK_DESCRIPTION_t *)ntlv;
-                void *n = a->physicalAddress;
+                void *n1 = a->physicalAddress;
                 void *n2 = a->protocolAddress.addressField;
                 ret = _tlv_mem_copyText(_nalc, a->physicalLayerProtocol) &&
                     _tlv_mem_copyText(_nalc, a->productDescription) &&
                     _tlv_mem_copyText(_nalc, a->revisionData) &&
                     _tlv_mem_copyText(_nalc, a->userDescription) &&
-                    _tlv_mem_copyBloc(_nalc, n, a->physicalAddressLength) &&
+                    _tlv_mem_copyBloc(_nalc, n1, a->physicalAddressLength) &&
                     _tlv_mem_copyBloc(_nalc, n2, a->protocolAddress.addressLength);
-                a->physicalAddress = (uint8_t *)n;
+                a->physicalAddress = (uint8_t *)n1;
                 a->protocolAddress.addressField = (uint8_t *)n2;
                 break;
             }
@@ -2247,10 +2253,10 @@ extern "C" {
             }
             case PTPMGMT_FAULT_LOG: {
                 auto *a = (ptpmgmt_FAULT_LOG_t *)ntlv;
-                void *n = a->faultRecords;
-                ret = _tlv_mem_copyBloc(_nalc, n,
+                void *n1 = a->faultRecords;
+                ret = _tlv_mem_copyBloc(_nalc, n1,
                         a->numberOfFaultRecords * sizeof(ptpmgmt_FaultRecord_t));
-                a->faultRecords = (ptpmgmt_FaultRecord_t *)n;
+                a->faultRecords = (ptpmgmt_FaultRecord_t *)n1;
                 for(size_t i = 0; ret && i < a->numberOfFaultRecords; i++)
                     ret = _tlv_mem_copyText(_nalc, a->faultRecords[i].faultName) &&
                         _tlv_mem_copyText(_nalc, a->faultRecords[i].faultValue) &&
@@ -2263,58 +2269,58 @@ extern "C" {
                 auto *a = (ptpmgmt_PATH_TRACE_LIST_t *)ntlv;
                 for(size_t sz = 0; memcmp(a->pathSequence[sz].v, nClock.v,
                         sizeof(nClock)); sz++);
-                void *n = a->pathSequence;
-                ret = _tlv_mem_copyBloc(_nalc, n, sizeof(nClock) * sz);
-                a->pathSequence = (ptpmgmt_ClockIdentity_t *)n;
+                void *n1 = a->pathSequence;
+                ret = _tlv_mem_copyBloc(_nalc, n1, sizeof(nClock) * sz);
+                a->pathSequence = (ptpmgmt_ClockIdentity_t *)n1;
                 break;
             }
             case PTPMGMT_GRANDMASTER_CLUSTER_TABLE: {
                 auto *a = (ptpmgmt_GRANDMASTER_CLUSTER_TABLE_t *)ntlv;
-                void *n = a->PortAddress;
-                ret = _tlv_mem_copyBloc(_nalc, n,
+                void *n1 = a->PortAddress;
+                ret = _tlv_mem_copyBloc(_nalc, n1,
                         a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
-                a->PortAddress = (ptpmgmt_PortAddress_t *)n;
+                a->PortAddress = (ptpmgmt_PortAddress_t *)n1;
                 for(size_t i = 0; ret && i < a->actualTableSize; i++) {
-                    n = a->PortAddress[i].addressField;
-                    ret = _tlv_mem_copyBloc(_nalc, n,
+                    n1 = a->PortAddress[i].addressField;
+                    ret = _tlv_mem_copyBloc(_nalc, n1,
                             a->PortAddress[i].addressLength);
-                    a->PortAddress[i].addressField = (uint8_t *)n;
+                    a->PortAddress[i].addressField = (uint8_t *)n1;
                 }
                 break;
             }
             case PTPMGMT_UNICAST_MASTER_TABLE: {
                 auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_t *)ntlv;
-                void *n = a->PortAddress;
-                ret = _tlv_mem_copyBloc(_nalc, n,
+                void *n1 = a->PortAddress;
+                ret = _tlv_mem_copyBloc(_nalc, n1,
                         a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
-                a->PortAddress = (ptpmgmt_PortAddress_t *)n;
+                a->PortAddress = (ptpmgmt_PortAddress_t *)n1;
                 for(size_t i = 0; ret && i < a->actualTableSize; i++) {
-                    n = a->PortAddress[i].addressField;
-                    ret = _tlv_mem_copyBloc(_nalc, n,
+                    n1 = a->PortAddress[i].addressField;
+                    ret = _tlv_mem_copyBloc(_nalc, n1,
                             a->PortAddress[i].addressLength);
-                    a->PortAddress[i].addressField = (uint8_t *)n;
+                    a->PortAddress[i].addressField = (uint8_t *)n1;
                 }
                 break;
             }
             case PTPMGMT_ACCEPTABLE_MASTER_TABLE: {
                 auto *a = (ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *)ntlv;
-                void *n = a->list;
-                ret = _tlv_mem_copyBloc(_nalc, n,
+                void *n1 = a->list;
+                ret = _tlv_mem_copyBloc(_nalc, n1,
                         a->actualTableSize * sizeof(ptpmgmt_AcceptableMaster_t));
-                a->list = (ptpmgmt_AcceptableMaster_t *)n;
+                a->list = (ptpmgmt_AcceptableMaster_t *)n1;
                 break;
             }
             case PTPMGMT_UNICAST_MASTER_TABLE_NP: {
                 auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_NP_t *)ntlv;
-                void *n = a->unicastMasters;
-                ret = _tlv_mem_copyBloc(_nalc, n, a->actualTableSize *
+                void *n1 = a->unicastMasters;
+                ret = _tlv_mem_copyBloc(_nalc, n1, a->actualTableSize *
                         sizeof(ptpmgmt_LinuxptpUnicastMaster_t));
-                a->unicastMasters = (ptpmgmt_LinuxptpUnicastMaster_t *)n;
+                a->unicastMasters = (ptpmgmt_LinuxptpUnicastMaster_t *)n1;
                 for(int i = 0; ret && i < a->actualTableSize; i++) {
-                    n = a->unicastMasters[i].portAddress.addressField;
-                    ret = _tlv_mem_copyBloc(_nalc, n,
+                    n1 = a->unicastMasters[i].portAddress.addressField;
+                    ret = _tlv_mem_copyBloc(_nalc, n1,
                             a->unicastMasters[i].portAddress.addressLength);
-                    a->unicastMasters[i].portAddress.addressField = (uint8_t *)n;
+                    a->unicastMasters[i].portAddress.addressField = (uint8_t *)n1;
                 }
                 break;
             }
@@ -2322,15 +2328,12 @@ extern "C" {
                 break;
         }
         if(ret) {
-            _tlv_mem_clearTlv(self);
+            free(self->tlv);
             self->tlv = ntlv;
             self->id = id;
-            *n = std::move(_nalc);
-        } else {
-            for(auto m : _nalc)
-                free(m);
+            *nalc = std::move(_nalc);
+        } else
             free(ntlv);
-        }
         return ret;
     }
     static bool ptpmgmt_tlv_mem_copy(ptpmgmt_tlv_mem self,
@@ -2355,12 +2358,13 @@ extern "C" {
     static void *ptpmgmt_tlv_mem_allocMem(ptpmgmt_tlv_mem self, size_t size)
     {
         if(self != nullptr && size > 0 && self->tlv != nullptr) {
-            vector<void *> *n = (vector<void *> *)self->_memHndl;
-            if(n != nullptr) {
+            vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+            if(nalc != nullptr) {
                 void *m = malloc(size);
                 if(m != nullptr) {
                     memset(m, 0, size);
-                    n->push_back(m);
+                    nalc->push_back({nullptr});
+                    nalc->back().p = m;
                     return m;
                 }
             }
@@ -2396,15 +2400,15 @@ extern "C" {
     {
         ptpmgmt_PTPText_t a = { 0 };
         if(self != nullptr && self->tlv != nullptr && len > 0 && len <= UINT8_MAX) {
-            vector<void *> *n = (vector<void *> *)self->_memHndl;
-            if(n != nullptr) {
+            vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+            if(nalc != nullptr) {
                 char *s = (char *)malloc(len + 1);
                 if(s != nullptr) {
                     memcpy(s, str, len);
-                    n->push_back(s);
                     a.lengthField = len;
                     a.textField = s;
                     s[len] = 0;
+                    nalc->push_back({s});
                 }
             }
         }
@@ -2485,12 +2489,12 @@ extern "C" {
         ptpmgmt_tlv_mem m = (ptpmgmt_tlv_mem)malloc(sizeof(ptpmgmt_tlv_mem_t));
         if(m == nullptr)
             return nullptr;
-        vector<void *> *n = new vector<void *>;
-        if(n == nullptr) {
+        vector<unq_cptr> *nalc = new vector<unq_cptr>;
+        if(nalc == nullptr) {
             free(m);
             return nullptr;
         }
-        m->_memHndl = (void *)n;
+        m->_memHndl = (void *)nalc;
         m->id = PTPMGMT_NULL_PTP_MANAGEMENT;
         m->tlv = nullptr;
 #define T_ASGN(n) m->n = ptpmgmt_tlv_mem_##n
