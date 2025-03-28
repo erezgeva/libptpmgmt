@@ -295,7 +295,7 @@ Subscribe to time base index: 1
 +---------------------------+------------------------+
 | chrony_clock_offset       | 23                  ns |
 | chrony_clock_reference_id | 50484330               |
-| chrony_polling interval   | 500000              us |
+| chrony_polling_interval   | 500000              us |
 +---------------------------+------------------------+
 
 Subscribe to time base index: 2
@@ -324,7 +324,7 @@ Subscribe to time base index: 2
 +---------------------------+------------------------+
 | chrony_clock_offset       | 0                   ns |
 | chrony_clock_reference_id | 0                      |
-| chrony_polling interval   | 0                   us |
+| chrony_polling_interval   | 0                   us |
 +---------------------------+------------------------+
 
 [clkmgr][344585.100] Waiting Notification from time base index 1 ...

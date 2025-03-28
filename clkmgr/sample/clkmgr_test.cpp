@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
         printf("| %-25s | %-19X    |\n",
                 "chrony_clock_reference_id", eventState.chrony_reference_id);
         printf("| %-25s | %-19d us |\n",
-                "chrony_polling interval", eventState.polling_interval);
+                "chrony_polling_interval", eventState.polling_interval);
         printf("+---------------------------+------------------------+\n\n");
     }
     sleep(1);

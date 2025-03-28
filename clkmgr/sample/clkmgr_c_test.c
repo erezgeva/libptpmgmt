@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
         printf("| %-25s | %-19X    |\n",
             "chrony_clock_reference_id", event_state.chrony_reference_id);
         printf("| %-25s | %-19d us |\n",
-            "chrony_polling interval", event_state.polling_interval);
+            "chrony_polling_interval", event_state.polling_interval);
         printf("+---------------------------+------------------------+\n\n");
     }
     sleep(1);
@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
             printf("| %-25s |     %-19X    |\n",
                 "chrony_clock_reference_id", event_state.chrony_reference_id);
             printf("| %-25s |     %-19d us |\n",
-                "chrony_polling interval", event_state.polling_interval);
+                "chrony_polling_interval", event_state.polling_interval);
             printf("+---------------------------+----------------------------+\n\n");
 
             printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
