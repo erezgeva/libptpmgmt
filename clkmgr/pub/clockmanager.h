@@ -20,8 +20,6 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ClientState; /* Forward declaration */
-
 /**
  * Class to provide APIs to set up and manage the client-runtime.
  * @note the class is singelton
@@ -29,20 +27,7 @@ class ClientState; /* Forward declaration */
 class ClockManager
 {
   private:
-    /**
-     * Implementation pointer to current state of client-runtime.
-     */
-    std::unique_ptr<ClientState> implClientState;
-
-    /**
-     * Constructor
-     */
-    ClockManager();
-
-    /**
-     * Destructor
-     */
-    ~ClockManager();
+    ClockManager() = default;
 
   public:
 
@@ -56,25 +41,25 @@ class ClockManager
      * Initialize the Clock Manager library
      * @return true on success
      */
-    bool init();
+    static bool init();
 
     /**
      * Establish connection between Client and Proxy
      * @return true on success, false on failure
      */
-    bool clkmgr_connect();
+    static bool connect();
 
     /**
      * Remove the connection between Client and Proxy
      * @return true on success, false on failure
      */
-    bool clkmgr_disconnect();
+    static bool disconnect();
 
     /**
      * Get the time base configurations
      * @return vector of TimeBaseCfg
      */
-    std::vector<TimeBaseCfg> clkmgr_get_timebase_cfgs() const;
+    static std::vector<TimeBaseCfg> clkmgr_get_timebase_cfgs();
 
     /**
      * Subscribe to events by name of the time base
@@ -83,7 +68,7 @@ class ClockManager
      * @param[out] currentState Reference to the current state
      * @return true on success, false on failure
      */
-    bool clkmgr_subscribe_by_name(const ClkMgrSubscription &newSub,
+    static bool subscribe_by_name(const ClkMgrSubscription &newSub,
         const std::string &timeBaseName, Event_state &currentState);
 
     /**
@@ -93,7 +78,7 @@ class ClockManager
      * @param[out] currentState Reference to the current state
      * @return true on success, false on failure
      */
-    bool clkmgr_subscribe(const ClkMgrSubscription &newSub, int timeBaseIndex,
+    static bool subscribe(const ClkMgrSubscription &newSub, size_t timeBaseIndex,
         Event_state &currentState);
 
     /**
@@ -110,7 +95,7 @@ class ClockManager
      * @li 0 No event changes
      * @li -1 lost connection to the Clock manager Proxy
      */
-    int clkmgr_status_wait_by_name(int timeout, const std::string &timeBaseName,
+    static int status_wait_by_name(int timeout, const std::string &timeBaseName,
         Event_state &currentState, Event_count &currentCount);
 
     /**
@@ -126,7 +111,7 @@ class ClockManager
      * @li 0 No event changes
      * @li -1 lost connection to the Clock manager Proxy
      */
-    int clkmgr_status_wait(int timeout, int timeBaseIndex,
+    static int status_wait(int timeout, size_t timeBaseIndex,
         Event_state &currentState, Event_count &currentCount);
 
     /**
@@ -134,7 +119,7 @@ class ClockManager
      * @param[out] ts timestamp of the CLOCK_REALTIME
      * @return true on success
      */
-    bool clkmgr_gettime(timespec &ts);
+    static bool gettime(timespec &ts);
 };
 
 __CLKMGR_NAMESPACE_END

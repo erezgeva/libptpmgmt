@@ -64,9 +64,9 @@ PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
     return true;
 }
 
-void ClientConnectMessage::setClientState(ClientState *newClientState)
+void ClientConnectMessage::setClientState(ClientState &newClientState)
 {
-    currentClientState = newClientState;
+    currentClientState = &newClientState;
 }
 
 /**

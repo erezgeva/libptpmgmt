@@ -38,10 +38,7 @@ rtpi::mutex ClientConnectMessage::cv_mtx;
 rtpi::condition_variable ClientConnectMessage::cv;
 rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
-
-ClockManager::ClockManager() : implClientState(new ClientState()) {}
-
-ClockManager::~ClockManager() = default;
+static ClientState implClientState;
 
 ClockManager &ClockManager::FetchSingle()
 {
@@ -54,12 +51,12 @@ bool ClockManager::init()
     return true;
 }
 
-bool ClockManager::clkmgr_connect()
+bool ClockManager::connect()
 {
     // Send a connect message to Proxy Daemon
     Message0 connectMsg(new ClientConnectMessage());
     ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(connectMsg.get());
-    cmsg->setClientState(implClientState.get());
+    cmsg->setClientState(implClientState);
     if(!ClientMessage::init()) {
         PrintDebug("[CONNECT] Failed to initialize Client message.");
         return false;
@@ -74,10 +71,10 @@ bool ClockManager::clkmgr_connect()
     unsigned int timeout_sec = (unsigned int)DEFAULT_CONNECT_TIME_OUT;
     auto endTime = system_clock::now() + seconds(timeout_sec);
     unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
-    while(!implClientState->get_connected()) {
+    while(!implClientState.get_connected()) {
         auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
         if(res == cv_status::timeout) {
-            if(!implClientState->get_connected()) {
+            if(!implClientState.get_connected()) {
                 PrintDebug("[CONNECT] Timeout waiting reply from Proxy.");
                 return false;
             }
@@ -88,36 +85,41 @@ bool ClockManager::clkmgr_connect()
     if((cmsg != nullptr) && !(cmsg->getClientId().empty())) {
         TransportClientId newClientID;
         strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
-        implClientState->set_clientID(newClientID);
+        implClientState.set_clientID(newClientID);
     }
     return true;
 }
 
-std::vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs() const
+vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs()
 {
     return TimeBaseConfigurations::getInstance().getTimeBaseCfgs();
 }
 
-bool ClockManager::clkmgr_subscribe_by_name(const ClkMgrSubscription &newSub,
-    const std::string &timeBaseName, Event_state &currentState)
+static inline int timeBaseName2Index(const string &timeBaseName)
 {
-    int timeBaseIndex = -1;
-    for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs()) {
-        if(timeBaseName == cfg.timeBaseName)
-            timeBaseIndex = cfg.timeBaseIndex;
-    }
-    if(timeBaseIndex == -1) {
+    if(!timeBaseName.empty())
+        for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs())
+            if(timeBaseName == cfg.timeBaseName)
+                return cfg.timeBaseIndex;
+    return -1;
+}
+
+bool ClockManager::subscribe_by_name(const ClkMgrSubscription &newSub,
+    const string &timeBaseName, Event_state &currentState)
+{
+    int timeBaseIndex = timeBaseName2Index(timeBaseName);
+    if(timeBaseIndex < 0) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
         return false;
     }
-    return clkmgr_subscribe(newSub, timeBaseIndex, currentState);
+    return subscribe(newSub, timeBaseIndex, currentState);
 }
 
-bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
-    int timeBaseIndex, Event_state &currentState)
+bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
+    size_t timeBaseIndex, Event_state &currentState)
 {
     // Check whether connection between Proxy and Client is established or not
-    if(!implClientState->get_connected()) {
+    if(!implClientState.get_connected()) {
         PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
         return false;
     }
@@ -137,11 +139,11 @@ bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
         PrintDebug("[SUBSCRIBE] Failed to create subscribe message.");
         return false;
     }
-    cmsg->setClientState(implClientState.get());
+    cmsg->setClientState(implClientState);
     cmsg->set_timeBaseIndex(timeBaseIndex);
     strcpy((char *)cmsg->getClientId().data(),
-        (char *)implClientState->get_clientID().data());
-    cmsg->set_sessionId(implClientState->get_sessionId());
+        (char *)implClientState.get_clientID().data());
+    cmsg->set_sessionId(implClientState.get_sessionId());
     ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
     ClientMessageQueue::sendMessage(subscribeMsg.get());
     // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon
@@ -168,7 +170,7 @@ bool ClockManager::clkmgr_subscribe(const ClkMgrSubscription &newSub,
     return true;
 }
 
-bool ClockManager::clkmgr_disconnect()
+bool ClockManager::disconnect()
 {
     // Send a disconnect message
     if(!ClientTransport::stop()) {
@@ -182,20 +184,17 @@ bool ClockManager::clkmgr_disconnect()
     return true;
 }
 
-int64_t timespec_delta(const timespec &last_notification_time,
-    const timespec &current_time)
+// Calculate delta in miliseconds
+static inline int64_t timespec_delta(const timespec &last, const timespec &cur)
 {
-    int64_t delta_in_sec = current_time.tv_sec - last_notification_time.tv_sec;
-    int64_t delta_in_nsec = current_time.tv_nsec - last_notification_time.tv_nsec;
-    int64_t delta_in_ms = delta_in_sec * 1000LL + delta_in_nsec / 1000000LL;
-    return delta_in_ms;
+    return (cur.tv_sec - last.tv_sec) * 1000LL +
+        (cur.tv_nsec - last.tv_nsec) / 1000000LL;
 }
 
-bool check_proxy_liveness(ClientState &implClientState, int timeBaseIndex)
+static inline bool check_proxy_liveness(size_t timeBaseIndex)
 {
     auto &states = TimeBaseStates::getInstance();
-    timespec lastNotificationTime;
-    timespec currentTime;
+    timespec currentTime, lastNotificationTime;
     int64_t timeout = 0;
     if(clock_gettime(CLOCK_REALTIME, &currentTime) == -1) {
         PrintDebug("[WAIT] Failed to get currentTime.");
@@ -216,7 +215,7 @@ send_connect:
         return false;
     }
     implClientState.set_connected(false);
-    cmsg->setClientState(&implClientState);
+    cmsg->setClientState(implClientState);
     cmsg->set_sessionId(implClientState.get_sessionId());
     ClientMessageQueue::writeTransportClientId(connectMsg.get());
     ClientMessageQueue::sendMessage(connectMsg.get());
@@ -237,27 +236,22 @@ send_connect:
     return true;
 }
 
-int ClockManager::clkmgr_status_wait_by_name(int timeout,
-    const std::string &timeBaseName,
+int ClockManager::status_wait_by_name(int timeout, const string &timeBaseName,
     Event_state &currentState, Event_count &currentCount)
 {
-    int timeBaseIndex = -1;
-    for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs()) {
-        if(timeBaseName == cfg.timeBaseName)
-            timeBaseIndex = cfg.timeBaseIndex;
-    }
+    int timeBaseIndex = timeBaseName2Index(timeBaseName);
     if(timeBaseIndex == -1) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
         return -1;
     }
-    return clkmgr_status_wait(timeout, timeBaseIndex, currentState, currentCount);
+    return status_wait(timeout, timeBaseIndex, currentState, currentCount);
 }
 
-int ClockManager::clkmgr_status_wait(int timeout, int timeBaseIndex,
+int ClockManager::status_wait(int timeout, size_t timeBaseIndex,
     Event_state &currentState, Event_count &currentCount)
 {
     // Check whether connection between Proxy and Client is established or not
-    if(!implClientState->get_connected()) {
+    if(!implClientState.get_connected()) {
         PrintDebug("[WAIT] Client is not connected to Proxy.");
         return false;
     }
@@ -274,7 +268,7 @@ int ClockManager::clkmgr_status_wait(int timeout, int timeBaseIndex,
     TimeBaseState state;
     do {
         // Check liveness of the Proxy Daemon
-        if(!check_proxy_liveness(*implClientState, timeBaseIndex)) {
+        if(!check_proxy_liveness(timeBaseIndex)) {
             PrintDebug("[WAIT] Proxy Daemon is not alive.");
             return -1;
         }
@@ -299,7 +293,7 @@ int ClockManager::clkmgr_status_wait(int timeout, int timeBaseIndex,
     return 1;
 }
 
-bool ClockManager::clkmgr_gettime(timespec &ts)
+bool ClockManager::gettime(timespec &ts)
 {
     return clock_gettime(CLOCK_REALTIME, &ts) == 0;
 }

@@ -33,13 +33,13 @@ struct clkmgr_c_subscription {
  * Connect the client
  * @return true on success, false on failure
  */
-bool clkmgr_c_connect();
+bool clkmgr_connect();
 
 /**
  * Disconnect the client
  * @return true on success, false on failure
  */
-bool clkmgr_c_disconnect();
+bool clkmgr_disconnect();
 
 /**
  * Get the time base configuration
@@ -47,14 +47,14 @@ bool clkmgr_c_disconnect();
  * @param[out] cfg Pointer to the TimeBaseCfg structures
  * @return true on success, false on failure
  */
-bool clkmgr_c_get_timebase_cfgs(int time_base_index,
+bool clkmgr_get_timebase_cfgs(size_t time_base_index,
     struct Clkmgr_TimeBaseCfg *cfg);
 
 /**
  * Get the size of the time base configurations
  * @return The size of the time base configurations
  */
-size_t clkmgr_c_get_timebase_cfgs_size();
+size_t clkmgr_get_timebase_cfgs_size();
 
 /**
  * Subscribe to client events by name for the time base
@@ -63,7 +63,7 @@ size_t clkmgr_c_get_timebase_cfgs_size();
  * @param[out] current_state Pointer to the current state structure
  * @return true on success, false on failure
  */
-bool clkmgr_c_subscribe_by_name(const struct clkmgr_c_subscription sub,
+bool clkmgr_subscribe_by_name(const struct clkmgr_c_subscription sub,
     const char *timeBaseName, struct Clkmgr_Event_state *current_state);
 
 /**
@@ -73,8 +73,8 @@ bool clkmgr_c_subscribe_by_name(const struct clkmgr_c_subscription sub,
  * @param[out] current_state Pointer to the current state structure
  * @return true on success, false on failure
  */
-bool clkmgr_c_subscribe(const struct clkmgr_c_subscription sub,
-    int time_base_index, struct Clkmgr_Event_state *current_state);
+bool clkmgr_subscribe(const struct clkmgr_c_subscription sub,
+    size_t time_base_index, struct Clkmgr_Event_state *current_state);
 
 /**
  * Waits for a specified timeout period for any event changes by name of the
@@ -88,8 +88,7 @@ bool clkmgr_c_subscribe(const struct clkmgr_c_subscription sub,
  * @return true if there is event changes within the timeout period,
  *         and false otherwise
  */
-int clkmgr_c_status_wait_by_name(int timeout,
-    const char *timeBaseName,
+int clkmgr_status_wait_by_name(int timeout, const char *timeBaseName,
     struct Clkmgr_Event_state *current_state,
     struct Clkmgr_Event_count *current_count);
 
@@ -104,7 +103,7 @@ int clkmgr_c_status_wait_by_name(int timeout,
  * @return true if there is event changes within the timeout period,
  *         and false otherwise
  */
-int clkmgr_c_status_wait(int timeout, int time_base_index,
+int clkmgr_status_wait(int timeout, size_t time_base_index,
     struct Clkmgr_Event_state *current_state,
     struct Clkmgr_Event_count *current_count);
 
@@ -113,7 +112,7 @@ int clkmgr_c_status_wait(int timeout, int time_base_index,
  * @param[out] ts timestamp of the CLOCK_REALTIME
  * @return true on success
  */
-bool clkmgr_c_gettime(struct timespec *ts);
+bool clkmgr_gettime(struct timespec *ts);
 
 #ifdef __cplusplus
 }
