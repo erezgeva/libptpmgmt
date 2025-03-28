@@ -59,7 +59,7 @@ class ClientSubscribeMessage : virtual public
     virtual PARSE_RXBUFFER_TYPE(parseBuffer);
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
-    void setClientState(ClientState *newClientState);
+    void setClientState(ClientState &newClientState);
 
     /**
      * Set the time base index.

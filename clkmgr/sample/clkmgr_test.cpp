@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
     }
 
 
-    if (!cm.clkmgr_connect()) {
+    if (!cm.connect()) {
         std::cout << "[clkmgr] failure in connecting !!!\n";
         ret = EXIT_FAILURE;
         goto do_exit;
@@ -241,15 +241,15 @@ int main(int argc, char *argv[])
 
     for (const auto &idx : index) {
         std::cout << "Subscribe to time base index: " << idx << "\n";
-        if (!cm.clkmgr_subscribe(subscription, idx, eventState)) {
+        if (!cm.subscribe(subscription, idx, eventState)) {
             std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";
-            cm.clkmgr_disconnect();
+            cm.disconnect();
             return EXIT_FAILURE;
         }
 
         printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
             getMonotonicTime());
-        if (!cm.clkmgr_gettime(ts)) {
+        if (!cm.gettime(ts)) {
             perror("clock_gettime failed");
         } else {
             printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
         for (const auto &idx : index) {
             printf("[clkmgr][%.3f] Waiting Notification from time base index %d ...\n",
                 getMonotonicTime(), idx);
-            retval = cm.clkmgr_status_wait(timeout, idx, eventState , eventCount);
+            retval = cm.status_wait(timeout, idx, eventState , eventCount);
             if (!retval) {
                 printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                     getMonotonicTime(), timeout);
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 
             printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
                 getMonotonicTime());
-            if (!cm.clkmgr_gettime(ts)) {
+            if (!cm.gettime(ts)) {
                 perror("clock_gettime failed");
             } else {
                 printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
@@ -413,7 +413,7 @@ int main(int argc, char *argv[])
     }
 
 do_exit:
-    cm.clkmgr_disconnect();
+    cm.disconnect();
 
     return ret;
 }

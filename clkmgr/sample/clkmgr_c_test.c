@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (clkmgr_c_connect() == false) {
+    if (clkmgr_connect() == false) {
         printf("[clkmgr] Failure in connecting !!!\n");
         ret = EXIT_FAILURE;
         goto do_exit;
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 
     sleep(1);
 
-    size_t index_size = clkmgr_c_get_timebase_cfgs_size();
+    size_t index_size = clkmgr_get_timebase_cfgs_size();
     if(index_size == 0) {
         printf("[clkmgr] No available clock found !!!\n");
         ret = EXIT_FAILURE;
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
     printf("[clkmgr] List of available clock: \n");
     for(size_t i = 1; i <= index_size; i++) {
         struct Clkmgr_TimeBaseCfg cfg;
-        if (clkmgr_c_get_timebase_cfgs(i, &cfg)) {
+        if (clkmgr_get_timebase_cfgs(i, &cfg)) {
             printf("TimeBaseIndex: %d\n", cfg.timeBaseIndex);
             printf("timeBaseName: %s\n", cfg.timeBaseName);
             printf("interfaceName: %s\n", cfg.interfaceName);
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
     if (subscribeAll) {
         for (size_t i = 1; i <= index_size; i++) {
             struct Clkmgr_TimeBaseCfg cfg;
-            if (clkmgr_c_get_timebase_cfgs(i, &cfg)) {
+            if (clkmgr_get_timebase_cfgs(i, &cfg)) {
                 index[index_count++] = cfg.timeBaseIndex;
             }
         }
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
     for (size_t i = 0; i < index_count; i++) {
         /* Subscribe to default time base index 1 */
         printf("[clkmgr] Subscribe to time base index: %d\n", index[i]);
-        if (clkmgr_c_subscribe(subscription, index[i], &event_state) == false) {
+        if (clkmgr_subscribe(subscription, index[i], &event_state) == false) {
             printf("[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n");
             ret = EXIT_FAILURE;
             goto do_exit;
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 
         printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
             getMonotonicTime());
-        if (!clkmgr_c_gettime(&ts)) {
+        if (!clkmgr_gettime(&ts)) {
             perror("clock_c_gettime failed");
         } else {
             printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
         for (size_t i = 0; i < index_count; i++) {
             printf("[clkmgr][%.3f] Waiting Notification from time base index %d ...\n",
                 getMonotonicTime(), index[i]);
-            retval = clkmgr_c_status_wait(timeout, index[i], &event_state , &event_count);
+            retval = clkmgr_status_wait(timeout, index[i], &event_state , &event_count);
             if (!retval) {
                 printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                     getMonotonicTime(), timeout);
@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
 
             printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
                 getMonotonicTime());
-            if (!clkmgr_c_gettime(&ts)) {
+            if (!clkmgr_gettime(&ts)) {
                 perror("clock_c_gettime failed");
             } else {
                 printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
@@ -407,7 +407,7 @@ int main(int argc, char *argv[])
     }
 
 do_exit:
-    clkmgr_c_disconnect();
+    clkmgr_disconnect();
 
     return ret;
 }

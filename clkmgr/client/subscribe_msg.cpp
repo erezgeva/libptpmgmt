@@ -50,9 +50,9 @@ bool ClientSubscribeMessage::initMessage()
     return true;
 }
 
-void ClientSubscribeMessage::setClientState(ClientState *newClientState)
+void ClientSubscribeMessage::setClientState(ClientState &newClientState)
 {
-    currentClientState = newClientState;
+    currentClientState = &newClientState;
 }
 
 BUILD_TXBUFFER_TYPE(ClientSubscribeMessage::makeBuffer) const

@@ -53,7 +53,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
      */
     static bool initMessage();
 
-    void setClientState(ClientState *newClientState);
+    void setClientState(ClientState &newClientState);
 };
 
 __CLKMGR_NAMESPACE_END
