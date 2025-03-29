@@ -10,12 +10,12 @@
  */
 
 #include "pub/clockmanager.h"
+#include "pub/clkmgr/timebase_configs.h"
 #include "client/client_state.hpp"
 #include "client/connect_msg.hpp"
 #include "client/msgq_tport.hpp"
 #include "client/notification_msg.hpp"
 #include "client/subscribe_msg.hpp"
-#include "client/timebase_configs.hpp"
 #include "client/timebase_state.hpp"
 #include "common/print.hpp"
 #include "common/sighandler.hpp"
@@ -90,31 +90,21 @@ bool ClockManager::connect()
     return true;
 }
 
-vector<TimeBaseCfg> ClockManager::clkmgr_get_timebase_cfgs()
+const TimeBaseConfigurations &ClockManager::get_timebase_cfgs()
 {
-    return TimeBaseConfigurations::getInstance().getTimeBaseCfgs();
-}
-
-static inline int timeBaseName2Index(const string &timeBaseName)
-{
-    if(!timeBaseName.empty())
-        for(const auto &cfg : ClockManager::clkmgr_get_timebase_cfgs())
-            if(timeBaseName == cfg.timeBaseName)
-                return cfg.timeBaseIndex;
-    return -1;
+    return TimeBaseConfigurations::getInstance();
 }
 
 bool ClockManager::subscribe_by_name(const ClkMgrSubscription &newSub,
     const string &timeBaseName, Event_state &currentState)
 {
-    int timeBaseIndex = timeBaseName2Index(timeBaseName);
-    if(timeBaseIndex < 0) {
+    size_t timeBaseIndex = 0;
+    if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
         return false;
     }
     return subscribe(newSub, timeBaseIndex, currentState);
 }
-
 bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
     size_t timeBaseIndex, Event_state &currentState)
 {
@@ -124,8 +114,7 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
         return false;
     }
     // Check whether requested timeBaseIndex is valid or not
-    auto &timeBaseConfigs = TimeBaseConfigurations::getInstance();
-    if(!timeBaseConfigs.isTimeBaseIndexPresent(timeBaseIndex)) {
+    if(!TimeBaseConfigurations::isTimeBaseIndexPresent(timeBaseIndex)) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseIndex.");
         return false;
     }
@@ -239,8 +228,8 @@ send_connect:
 int ClockManager::status_wait_by_name(int timeout, const string &timeBaseName,
     Event_state &currentState, Event_count &currentCount)
 {
-    int timeBaseIndex = timeBaseName2Index(timeBaseName);
-    if(timeBaseIndex == -1) {
+    size_t timeBaseIndex = 0;
+    if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
         PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
         return -1;
     }

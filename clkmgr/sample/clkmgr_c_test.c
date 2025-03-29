@@ -191,13 +191,14 @@ int main(int argc, char *argv[])
     }
     printf("[clkmgr] List of available clock: \n");
     for(size_t i = 1; i <= index_size; i++) {
-        struct Clkmgr_TimeBaseCfg cfg;
-        if (clkmgr_get_timebase_cfgs(i, &cfg)) {
-            printf("TimeBaseIndex: %d\n", cfg.timeBaseIndex);
-            printf("timeBaseName: %s\n", cfg.timeBaseName);
-            printf("interfaceName: %s\n", cfg.interfaceName);
-            printf("transportSpecific: %d\n", cfg.transportSpecific);
-            printf("domainNumber: %d\n\n", cfg.domainNumber);
+        if (clkmgr_isTimeBaseIndexPresent(i)) {
+            printf("TimeBaseIndex: %zu\n", i);
+            printf("timeBaseName: %s\n", clkmgr_timeBaseName(i));
+            if(clkmgr_havePtp(i)) {
+                printf("interfaceName: %s\n", clkmgr_ifName(i));
+                printf("transportSpecific: %d\n", clkmgr_transportSpecific(i));
+                printf("domainNumber: %d\n\n", clkmgr_domainNumber(i));
+            }
         } else {
             printf("Failed to get time base configuration for index %ld\n", i);
         }
@@ -205,9 +206,8 @@ int main(int argc, char *argv[])
 
     if (subscribeAll) {
         for (size_t i = 1; i <= index_size; i++) {
-            struct Clkmgr_TimeBaseCfg cfg;
-            if (clkmgr_get_timebase_cfgs(i, &cfg)) {
-                index[index_count++] = cfg.timeBaseIndex;
+            if (clkmgr_isTimeBaseIndexPresent(i)) {
+                index[index_count++] = i;
             }
         }
     } else if (userInput) {

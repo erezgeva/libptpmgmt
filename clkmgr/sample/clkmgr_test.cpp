@@ -204,18 +204,20 @@ int main(int argc, char *argv[])
     std::cout << "Chrony Offset upper limit: " << std::dec << chronyGmOffsetUpperLimit << " ns\n";
     std::cout << "Chrony Offset lower limit: " << std::dec << chronyGmOffsetLowerLimit << " ns\n\n";
     std::cout << "[clkmgr] List of available clock: \n";
-    /* Print out each member of the TimeBaseCfg objects */
-    for (const auto &cfg : cm.clkmgr_get_timebase_cfgs()) {
-        std::cout << "TimeBaseIndex: " << cfg.timeBaseIndex << "\n";
-        std::cout << "timeBaseName: " << cfg.timeBaseName << "\n";
-        std::cout << "interfaceName: " << cfg.interfaceName << "\n";
-        std::cout << "transportSpecific: " << static_cast<int>(cfg.transportSpecific) << "\n";
-        std::cout << "domainNumber: " << static_cast<int>(cfg.domainNumber) << "\n\n";
+    /* Print out each member of the Time Base configuration */
+    for (const auto &cfg : cm.get_timebase_cfgs()) {
+        std::cout << "TimeBaseIndex: " << cfg.index() << "\n";
+        std::cout << "timeBaseName: " << cfg.name() << "\n";
+        if(cfg.havePtp()) {
+            std::cout << "interfaceName: " << cfg.ptp().ifName() << "\n";
+            std::cout << "transportSpecific: " << static_cast<int>(cfg.ptp().transportSpecific()) << "\n";
+            std::cout << "domainNumber: " << static_cast<int>(cfg.ptp().domainNumber()) << "\n\n";
+        }
     }
 
     if (subscribeAll) {
-        for (const auto &cfg : cm.clkmgr_get_timebase_cfgs()) {
-            index.push_back(cfg.timeBaseIndex);
+        for (const auto &cfg : cm.get_timebase_cfgs()) {
+            index.push_back(cfg.index());
         }
     } else if (userInput) {
         std::cout << "Enter the time base indices to subscribe (comma-separated, default is 1): ";

@@ -10,45 +10,24 @@
  */
 
 #include "pub/clkmgr/clockmanager_c.h"
+#include "pub/clkmgr/timebase_configs.h"
 #include "pub/clockmanager.h"
 #include <cstring>
 
+using namespace clkmgr;
+
 bool clkmgr_connect()
 {
-    return clkmgr::ClockManager::connect();
+    return ClockManager::connect();
 }
 bool clkmgr_disconnect()
 {
-    return clkmgr::ClockManager::disconnect();
-}
-bool clkmgr_get_timebase_cfgs(size_t time_base_index, Clkmgr_TimeBaseCfg *cfg)
-{
-    if(cfg == nullptr || time_base_index == 0)
-        return false;
-    const auto &cfgs = clkmgr::ClockManager::clkmgr_get_timebase_cfgs();
-    if(time_base_index > cfgs.size())
-        return false;
-    const auto &rcfg = cfgs[time_base_index - 1];
-    strncpy(cfg->timeBaseName, rcfg.timeBaseName, CLKMGR_STRING_SIZE_MAX - 1);
-    strncpy(cfg->interfaceName, rcfg.interfaceName, CLKMGR_STRING_SIZE_MAX - 1);
-    cfg->timeBaseIndex = rcfg.timeBaseIndex;
-    cfg->transportSpecific = rcfg.transportSpecific;
-    cfg->domainNumber = rcfg.domainNumber;
-    return true;
-}
-
-static inline int timeBaseName2Index(const char *timeBaseName)
-{
-    if(timeBaseName != nullptr)
-        for(const auto &cfg : clkmgr::ClockManager::clkmgr_get_timebase_cfgs())
-            if(strncmp(cfg.timeBaseName, timeBaseName, CLKMGR_STRING_SIZE_MAX) == 0)
-                return cfg.timeBaseIndex;
-    return -1;
+    return ClockManager::disconnect();
 }
 
 size_t clkmgr_get_timebase_cfgs_size()
 {
-    return clkmgr::ClockManager::clkmgr_get_timebase_cfgs().size();
+    return TimeBaseConfigurations::size();
 }
 
 bool clkmgr_subscribe_by_name(const clkmgr_c_subscription sub,
@@ -56,10 +35,10 @@ bool clkmgr_subscribe_by_name(const clkmgr_c_subscription sub,
 {
     if(cur_stat == nullptr)
         return false;
-    int timeBaseIndex = timeBaseName2Index(timeBaseName);
-    if(timeBaseIndex < 0)
-        return false;
-    return clkmgr_subscribe(sub, timeBaseIndex, cur_stat);
+    size_t timeBaseIndex = 0;
+    if(TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex))
+        return clkmgr_subscribe(sub, timeBaseIndex, cur_stat);
+    return false;
 }
 
 bool clkmgr_subscribe(const clkmgr_c_subscription sub, size_t time_base_index,
@@ -67,18 +46,18 @@ bool clkmgr_subscribe(const clkmgr_c_subscription sub, size_t time_base_index,
 {
     if(cur_stat == nullptr || time_base_index == 0)
         return false;
-    clkmgr::ClkMgrSubscription newsub = {};
-    clkmgr::Event_state state = {};
+    ClkMgrSubscription newsub = {};
+    Event_state state = {};
     bool ret;
     newsub.set_event_mask(sub.event_mask);
-    newsub.define_threshold(clkmgr::thresholdGMOffset,
+    newsub.define_threshold(thresholdGMOffset,
         sub.threshold[Clkmgr_thresholdGMOffset].upper_limit,
         sub.threshold[Clkmgr_thresholdGMOffset].lower_limit);
-    newsub.define_threshold(clkmgr::thresholdChronyOffset,
+    newsub.define_threshold(thresholdChronyOffset,
         sub.threshold[Clkmgr_thresholdChronyOffset].upper_limit,
         sub.threshold[Clkmgr_thresholdChronyOffset].lower_limit);
     newsub.set_composite_event_mask(sub.composite_event_mask);
-    ret = clkmgr::ClockManager::subscribe(newsub, time_base_index, state);
+    ret = ClockManager::subscribe(newsub, time_base_index, state);
     if(ret) {
         cur_stat->as_capable = state.as_capable;
         cur_stat->offset_in_range = state.offset_in_range;
@@ -102,10 +81,10 @@ int clkmgr_status_wait_by_name(int timeout, const char *timeBaseName,
 {
     if(cur_stat == nullptr)
         return -1;
-    int timeBaseIndex = timeBaseName2Index(timeBaseName);
-    if(timeBaseIndex < 0)
-        return -1;
-    return clkmgr_status_wait(timeout, timeBaseIndex, cur_stat, cur_cnt);
+    size_t timeBaseIndex = 0;
+    if(TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex))
+        return clkmgr_status_wait(timeout, timeBaseIndex, cur_stat, cur_cnt);
+    return -1;
 }
 
 int clkmgr_status_wait(int timeout, size_t time_base_index,
@@ -113,9 +92,9 @@ int clkmgr_status_wait(int timeout, size_t time_base_index,
 {
     if(cur_stat == nullptr || cur_cnt == nullptr || time_base_index == 0)
         return -1;
-    clkmgr::Event_count eventCount = {};
-    clkmgr::Event_state state = {};
-    int ret = clkmgr::ClockManager::status_wait(timeout, time_base_index, state,
+    Event_count eventCount = {};
+    Event_state state = {};
+    int ret = ClockManager::status_wait(timeout, time_base_index, state,
             eventCount);
     if(ret < 0)
         return ret;

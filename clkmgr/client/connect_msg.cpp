@@ -9,11 +9,12 @@
  *
  */
 
+#include "pub/clkmgr/timebase_configs.h"
 #include "client/connect_msg.hpp"
-#include "client/timebase_configs.hpp"
 #include "common/print.hpp"
 #include "common/ptp_event.hpp"
 #include "common/serialize.hpp"
+#include "common/timebase.h"
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -59,7 +60,7 @@ PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
         TimeBaseCfg newCfg = {};
         if(!PARSE_RX(FIELD, newCfg, LxContext))
             return false;
-        TimeBaseConfigurations::getInstance().addTimeBaseCfg(newCfg);
+        TimeBaseConfigurations::addTimeBaseCfg(newCfg);
     }
     return true;
 }

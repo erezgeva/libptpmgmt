@@ -13,6 +13,7 @@
 #define CLKMGR_CLOCKMANAGER_C_H
 
 #include "pub/clkmgr/types_c.h"
+#include "pub/clkmgr/timebase_configs_c.h"
 #include <time.h>
 
 #ifdef __cplusplus
@@ -40,15 +41,6 @@ bool clkmgr_connect();
  * @return true on success, false on failure
  */
 bool clkmgr_disconnect();
-
-/**
- * Get the time base configuration
- * @param[in] time_base_index Index of the time base to be retrieved
- * @param[out] cfg Pointer to the TimeBaseCfg structures
- * @return true on success, false on failure
- */
-bool clkmgr_get_timebase_cfgs(size_t time_base_index,
-    struct Clkmgr_TimeBaseCfg *cfg);
 
 /**
  * Get the size of the time base configurations

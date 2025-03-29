@@ -15,6 +15,7 @@
 #ifdef __cplusplus
 
 #include "pub/clkmgr/subscription.h"
+#include "pub/clkmgr/timebase_configs.h"
 #include <memory>
 #include <vector>
 
@@ -57,9 +58,9 @@ class ClockManager
 
     /**
      * Get the time base configurations
-     * @return vector of TimeBaseCfg
+     * @return reference to the TimeBaseConfigurations object
      */
-    static std::vector<TimeBaseCfg> clkmgr_get_timebase_cfgs();
+    static const TimeBaseConfigurations &get_timebase_cfgs();
 
     /**
      * Subscribe to events by name of the time base
