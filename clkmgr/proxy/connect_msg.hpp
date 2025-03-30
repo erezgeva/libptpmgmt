@@ -5,7 +5,7 @@
  * @brief Proxy connect message class.
  * Implements proxy specific connect message function.
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

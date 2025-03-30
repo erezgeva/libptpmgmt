@@ -4,7 +4,7 @@
 /** @file
  * @brief Client utilities to setup and cleanup the library.
  *
- * @author Song Yoong Siang <yoong.siang.song@intel.com>
+ * @author Song Yoong Siang <yoong.siang.song@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

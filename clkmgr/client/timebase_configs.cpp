@@ -4,7 +4,7 @@
 /** @file
  * @brief Set and get the configuration of time base
  *
- * @author Song Yoong Siang <yoong.siang.song@intel.com>
+ * @author Song Yoong Siang <yoong.siang.song@@intel.com>
  * @copyright © 2025 Intel Corporation.
  *
  */

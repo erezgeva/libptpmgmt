@@ -4,7 +4,7 @@
 /** @file
  * @brief Set and get the timebase subscribe event state
  *
- * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
+ * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@@intel.com>
  * @copyright © 2025 Intel Corporation.
  *
  */

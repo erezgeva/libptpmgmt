@@ -4,7 +4,7 @@
 /** @file
  * @brief Test clkmgr client code
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  * @note This is a sample code, not a product! You should use it as a reference.

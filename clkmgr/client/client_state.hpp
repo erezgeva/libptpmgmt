@@ -4,7 +4,7 @@
 /** @file
  * @brief Class to get and set the state of client-runtime
  *
- * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
+ * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

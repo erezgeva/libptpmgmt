@@ -4,7 +4,7 @@
 /** @file
  * @brief class, structures and enums used for events subsciption
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
@@ -34,33 +34,33 @@ class ClkMgrSubscription
     ClkMgrSubscription() noexcept;
 
     /**
-    * Set the Subscription masks.
-    * @param[in] newSubscription The new event mask to set.
-    */
+     * Set the Subscription masks.
+     * @param[in] newSubscription The new event mask to set.
+     */
     void set_ClkMgrSubscription(const ClkMgrSubscription &newSubscription);
 
     /**
-    * Set the event mask.
-    * @param[in] event_mask The new event mask to set.
-    */
+     * Set the event mask.
+     * @param[in] event_mask The new event mask to set.
+     */
     void set_event_mask(uint32_t event_mask);
 
     /**
-    * Get the value of the event mask.
-    * @return The value of the event mask.
-    */
+     * Get the value of the event mask.
+     * @return The value of the event mask.
+     */
     uint32_t get_event_mask() const;
 
     /**
-    * Set the composite event mask.
-    * @param[in] composite_event_mask The new composite event mask to set.
-    */
+     * Set the composite event mask.
+     * @param[in] composite_event_mask The new composite event mask to set.
+     */
     void set_composite_event_mask(uint32_t composite_event_mask);
 
     /**
-    * Get the value of the composite event mask.
-    * @return the composite event mask.
-    */
+     * Get the value of the composite event mask.
+     * @return the composite event mask.
+     */
     uint32_t get_composite_event_mask() const;
 
     /**

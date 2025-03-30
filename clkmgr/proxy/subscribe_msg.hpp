@@ -5,7 +5,7 @@
  * @brief Proxy subscribe message class.
  * Implements proxy specific subscribe message function.
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

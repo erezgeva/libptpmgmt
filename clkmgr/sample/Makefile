@@ -3,7 +3,7 @@
 #
 # Makefile for clkmgr test application
 #
-# @author Song Yoong Siang <yoong.siang.song@intel.com>
+# @author Song Yoong Siang <yoong.siang.song@@intel.com>
 # @copyright © 2024 Intel Corporation.
 #
 ###############################################################################

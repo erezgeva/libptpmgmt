@@ -14,7 +14,7 @@ include(lang().m4)dnl
 /** @file
  * @brief structures and enums types
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

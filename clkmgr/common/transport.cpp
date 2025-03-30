@@ -5,7 +5,7 @@
  * @brief Common transport base class implementation for Clkmgr.
  * It provides common functionality for derived transport classes.
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

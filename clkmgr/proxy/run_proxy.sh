@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
 #
-# @author Christopher Hall <christopher.s.hall@intel.com>
+# @author Christopher Hall <christopher.s.hall@@intel.com>
 # @copyright © 2024 Intel Corporation.
 #
 ###############################################################################

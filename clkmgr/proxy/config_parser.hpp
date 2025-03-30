@@ -4,7 +4,7 @@
 /** @file
  * @brief Proxy JSON parser
  *
- * @author Goh Wei Sheng <wei.sheng.goh@intel.com>
+ * @author Goh Wei Sheng <wei.sheng.goh@@intel.com>
  * @copyright © 2025 Intel Corporation.
  *
  */

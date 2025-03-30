@@ -4,7 +4,7 @@
 /** @file
  * @brief Common POSIX message queue transport implementation.
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

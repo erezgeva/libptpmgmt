@@ -4,7 +4,7 @@
 /** @file
  * @brief Utility macros for (de-)serializing data
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

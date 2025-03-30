@@ -5,7 +5,7 @@
  * @brief Client notification message class.
  * Implements client specific notification message function.
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

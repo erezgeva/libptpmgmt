@@ -5,7 +5,7 @@
  * @brief Client message base class.
  * Extended for specific messages such as connect and subscribe.
  *
- * @author Christopher Hall <christopher.s.hall@intel.com>
+ * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

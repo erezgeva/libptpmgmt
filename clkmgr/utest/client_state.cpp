@@ -4,7 +4,7 @@
 /** @file
  * @brief ClientState class unit tests
  *
- * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@intel.com>
+ * @author Noor Azura Ahmad Tarmizi <noor.azura.ahmad.tarmizi@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */

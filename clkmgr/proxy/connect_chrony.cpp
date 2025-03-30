@@ -4,7 +4,7 @@
 /** @file
  * @brief Proxy connect chrony message class.
  *
- * @author Lai Peter Jun Ann <peter.jun.ann.lai@intel.com>
+ * @author Lai Peter Jun Ann <peter.jun.ann.lai@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
