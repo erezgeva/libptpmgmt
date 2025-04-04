@@ -209,7 +209,7 @@ Options:
  -v <0|1> Enable or disable verbose output
           0: disable, 1: enable(default)
  -s <0|1> Enable or disable system log printing
-          0: disable, 1: enable(default)
+          0: disable(default), 1: enable
  -h       Show this help message
 ```
 

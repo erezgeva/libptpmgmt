@@ -29,7 +29,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     int level, verbose, syslog;
-    bool startSyslog = true;
+    bool startSyslog = false;
     bool getJsonConfig = false;
     int opt;
     const char *file = nullptr;
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
                     " -v <0|1> Enable or disable verbose output\n"
                     "          0: disable, 1: enable(default)\n"
                     " -s <0|1> Enable or disable system log printing\n"
-                    "          0: disable, 1: enable(default)\n"
+                    "          0: disable(default), 1: enable\n"
                     " -h       Show this help message\n",
                     argv[0]);
                 return EXIT_SUCCESS;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
                     " -v <0|1> Enable or disable verbose output\n"
                     "          0: disable, 1: enable(default)\n"
                     " -s <0|1> Enable or disable system log printing\n"
-                    "          0: disable, 1: enable(default)\n"
+                    "          0: disable(default), 1: enable\n"
                     " -h       Show this help message\n",
                     argv[0]);
                 return EXIT_FAILURE;
