@@ -188,6 +188,8 @@ void TimeBaseStates::setTimeBaseState(int timeBaseIndex,
     eventState.notification_timestamp = last_notification_time.tv_sec;
     eventState.notification_timestamp *= NSEC_PER_SEC;
     eventState.notification_timestamp += last_notification_time.tv_nsec;
+    // Update GM logSyncInterval
+    eventState.ptp4l_sync_interval = newEvent.ptp4l_sync_interval;
     // Update Chrony clock offset
     if(newEvent.chrony_offset != eventState.chrony_clock_offset) {
         eventState.chrony_clock_offset = newEvent.chrony_offset;

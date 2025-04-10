@@ -277,6 +277,8 @@ int main(int argc, char *argv[])
                 "clock_offset", event_state.clock_offset);
         printf("| %-25s | %-19ld ns |\n",
                 "notification_timestamp", event_state.notification_timestamp);
+        printf("| %-25s | %-19ld us |\n",
+                "gm_sync_interval", event_state.ptp4l_sync_interval);
         printf("+---------------------------+------------------------+\n");
         if (subscription.composite_event_mask) {
             printf("| %-25s | %-22d |\n", "composite_event",
@@ -369,6 +371,8 @@ int main(int argc, char *argv[])
                 "clock_offset", event_state.clock_offset);
             printf("| %-25s |     %-19ld ns |\n",
                 "notification_timestamp", event_state.notification_timestamp);
+            printf("| %-25s |     %-19ld us |\n",
+                "gm_sync_interval", event_state.ptp4l_sync_interval);
             printf("+---------------------------+--------------+-------------+\n");
             if (subscription.composite_event_mask) {
                 printf("| %-25s | %-12d | %-11d |\n", "composite_event",

@@ -68,6 +68,7 @@ bool clkmgr_subscribe(const clkmgr_c_subscription sub, size_t time_base_index,
         cur_stat->notification_timestamp = state.notification_timestamp;
         std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
             std::begin(cur_stat->gm_identity));
+        cur_stat->ptp4l_sync_interval = state.ptp4l_sync_interval;
         cur_stat->chrony_clock_offset = state.chrony_clock_offset;
         cur_stat->chrony_reference_id = state.chrony_reference_id;
         cur_stat->chrony_offset_in_range = state.chrony_offset_in_range;
@@ -107,6 +108,7 @@ int clkmgr_status_wait(int timeout, size_t time_base_index,
     cur_stat->notification_timestamp = state.notification_timestamp;
     std::copy(std::begin(state.gm_identity), std::end(state.gm_identity),
         std::begin(cur_stat->gm_identity));
+    cur_stat->ptp4l_sync_interval = state.ptp4l_sync_interval;
     cur_stat->chrony_clock_offset = state.chrony_clock_offset;
     cur_stat->chrony_reference_id = state.chrony_reference_id;
     cur_stat->chrony_offset_in_range = state.chrony_offset_in_range;

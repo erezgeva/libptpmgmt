@@ -75,6 +75,7 @@ struct Nm(Event_state) {
     uint64_t notification_timestamp; /**< Timestamp for last notification */
     int64_t clock_offset; /**< Clock offset */
     uint8_t gm_identity[8]; /**< Primary clock UUID */
+    int64_t ptp4l_sync_interval; /**< Clock Sync Interval */
     bool offset_in_range; /**< Clock offset in range */
     bool synced_to_primary_clock; /**< Synced to primary clock */
     bool as_capable; /**< IEEE 802.1AS capable */

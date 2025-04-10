@@ -285,6 +285,8 @@ int main(int argc, char *argv[])
                 "clock_offset", eventState.clock_offset);
         printf("| %-25s | %-19ld ns |\n",
                 "notification_timestamp", eventState.notification_timestamp);
+        printf("| %-25s | %-19ld us |\n",
+                "gm_sync_interval", eventState.ptp4l_sync_interval);
         printf("+---------------------------+------------------------+\n");
         if (composite_event) {
             printf("| %-25s | %-22d |\n", "composite_event",
@@ -377,6 +379,8 @@ int main(int argc, char *argv[])
                 "clock_offset", eventState.clock_offset);
             printf("| %-25s |     %-19ld ns |\n",
                 "notification_timestamp", eventState.notification_timestamp);
+            printf("| %-25s |     %-19ld us |\n",
+                "gm_sync_interval", eventState.ptp4l_sync_interval);
             printf("+---------------------------+--------------+-------------+\n");
             if (composite_event) {
                 printf("| %-25s | %-12d | %-11d |\n", "composite_event",

@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <atomic>
 #include <rtpi/mutex.hpp>
+#include <cmath>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -68,6 +69,8 @@ class ptpSet : MessageDispatcher
     int seq = 0; // PTP message sequance
     thread self;
     vector<sessionId_t> subscribedClients; // Clients list for notification
+    ClockIdentity_t gmIdentity; // Grandmaster clock ID
+    bool need_set_action = false; // Request action(PORT_DATA_SET)
   public:
     // These methods are used during initializing, before we create the thread.
     ptpSet(const TimeBaseCfg &p, const string &uds) :
@@ -86,14 +89,9 @@ class ptpSet : MessageDispatcher
     // notification unsubscribe
     bool unsubscribe(sessionId_t sessionId);
   private:
-    void portDataSet(portState_e state, const ClockIdentity_t &id);
+    void portDataReset();
     callback_declare(TIME_STATUS_NP);
-    callback_declare(PORT_PROPERTIES_NP) {
-        portDataSet(tlv.portState, tlv.portIdentity.clockIdentity);
-    }
-    callback_declare(PORT_DATA_SET) {
-        portDataSet(tlv.portState, tlv.portIdentity.clockIdentity);
-    }
+    callback_declare(PORT_DATA_SET);
     callback_declare(CMLDS_INFO_NP);
     void notify_client();
     void event_handle();
@@ -205,6 +203,7 @@ callback_define(TIME_STATUS_NP)
 {
     event.master_offset = tlv.master_offset;
     memcpy(event.gm_identity, tlv.gmIdentity.v, sizeof(event.gm_identity));
+    memcpy(gmIdentity.v, tlv.gmIdentity.v, sizeof(gmIdentity.v));
     do_notify = true;
     PrintDebug("master_offset = " + to_string(event.master_offset) +
         ", synced_to_primary_clock = " + to_string(event.synced_to_primary_clock));
@@ -216,19 +215,35 @@ callback_define(TIME_STATUS_NP)
         event.gm_identity[6], event.gm_identity[7]);
     PrintDebug(buf);
 }
-void ptpSet::portDataSet(portState_e state, const ClockIdentity_t &id)
+void ptpSet::portDataReset()
 {
-    if(state == SLAVE)
+    event.synced_to_primary_clock = false;
+    event.master_offset = 0;
+    event.ptp4l_sync_interval = 0;
+    need_set_action = true;
+}
+callback_define(PORT_DATA_SET)
+{
+    if(memcmp(gmIdentity.v, tlv.portIdentity.clockIdentity.v,
+            sizeof(gmIdentity.v)) == 0) {
+        if(tlv.portState == MASTER)
+            event.ptp4l_sync_interval = pow(2.0, tlv.logSyncInterval) * 1000000;
+        return;
+    }
+    if(tlv.portState == SLAVE) {
         event.synced_to_primary_clock = true;
-    else if(state == MASTER) {
-        event.synced_to_primary_clock = false;
+        if(need_set_action) {
+            msg_set_action(PORT_DATA_SET);
+            need_set_action = false;
+        }
+    } else if(tlv.portState == MASTER) {
         // Set own clock identity as GM identity
-        event.master_offset = 0;
-        memcpy(event.gm_identity, id.v, sizeof(event.gm_identity));
-    } else if(state <= PASSIVE) {
-        event.synced_to_primary_clock = false;
+        portDataReset();
+        memcpy(event.gm_identity, tlv.portIdentity.clockIdentity.v,
+            sizeof(event.gm_identity));
+    } else if(tlv.portState <= UNCALIBRATED) {
         // Reset master offset and GM identity
-        event.master_offset = 0;
+        portDataReset();
         memset(event.gm_identity, 0, sizeof(event.gm_identity));
     }
     do_notify = true;
@@ -278,13 +293,13 @@ void ptpSet::thread_loop()
     bool lost_connection = false;
     if(stopThread)
         return;
-    msg_set_action(PORT_PROPERTIES_NP);
     if(!event_subscription()) {
         PrintError("Failed to connect to ptp4l at " + udsAddr);
         lost_connection = true;
     } else {
         PrintInfo("Connected to ptp4l at " + udsAddr);
-        msg_set_action(PORT_PROPERTIES_NP);
+        msg_set_action(TIME_STATUS_NP);
+        msg_set_action(PORT_DATA_SET);
     }
     for(;;) {
         if(stopThread)
@@ -307,10 +322,9 @@ void ptpSet::thread_loop()
                     break;
                 if(!lost_connection) {
                     PrintError("Lost connection to ptp4l at " + udsAddr);
-                    event.master_offset = 0;
+                    portDataReset();
                     memset(event.gm_identity, 0, sizeof(event.gm_identity));
-                    event.synced_to_primary_clock = false;
-                    event.as_capable = 0;
+                    event.as_capable = false;
                     lost_connection = true;
                     if(stopThread)
                         return;

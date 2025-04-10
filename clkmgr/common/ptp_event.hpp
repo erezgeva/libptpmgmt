@@ -23,6 +23,7 @@ struct ptp_event {
     int64_t master_offset;
     uint8_t gm_identity[8]; /* Grandmaster clock ID */
     bool as_capable; /* 802@.1AS Capable */
+    int64_t ptp4l_sync_interval;
     bool synced_to_primary_clock;
     int64_t chrony_offset;
     uint32_t chrony_reference_id;
