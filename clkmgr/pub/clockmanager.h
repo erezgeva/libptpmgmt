@@ -17,7 +17,6 @@
 #include "pub/clkmgr/subscription.h"
 #include "pub/clkmgr/timebase_configs.h"
 #include <memory>
-#include <vector>
 
 __CLKMGR_NAMESPACE_BEGIN
 
