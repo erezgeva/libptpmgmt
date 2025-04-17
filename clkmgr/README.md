@@ -22,7 +22,7 @@ The Clock Manager is a framework for controlling and monitoring network time
 synchronization on the local platform. The Clock Manager exposes an API to
 enable reporting time synchronization status to any application executing on the
 system. It is planned that Clock Manager will not only be able to report
-timing telemetry information, but also configure the platform, allowing
+timing telemetry information but also configure the platform, allowing
 privileged applications to make changes to the platform time configuration.
 
 ![High-level Overview of the Clock Manager
@@ -32,9 +32,9 @@ __Figure 1 - High-level Overview of the Clock Manager Functionality__
 Figure 1 shows the high-level system interactions between the Clock Manager and
 the system software on the local platform. The Clock Manager communicates with
 the time synchronization daemon (ptp4l & Chrony) to get current
-telemetry data and synchronization error and notifies the application of changes
+telemetry data and synchronization errors and notifies the application of changes
 to the relevant state. Any changes to the relevant state will generate event
-notifications to the application. This is shown by Clock Manager data path. The
+notifications to the application. This is shown by the Clock Manager data path. The
 Clock Manager data path is entirely within user-space except for the IPC and
 does not introduce any additional kernel modules. The current Linux timekeeping
 data path is unchanged.
@@ -48,9 +48,9 @@ application](TEST_clkmgr.md).
 
 ## Maintaining Expected Timekeeping Functionality
 
-The Linux timekeeping data path is the fast path. Typically, reading the current
+The Linux timekeeping data path is the fastest path. Typically, reading the current
 time using vDSO calls such as clock_gettime() incurs only a few tens of
-nanoseconds and no context switch. The complete timekeeping data path from time
+nanoseconds and no context switch. The complete timekeeping data path from the time
 sync daemon to the application – including clock_adjtime() – incurs a typical
 latency of less than 10 microseconds. The relatively slower and parallel Clock
 Manager data path requires additional processing and incurs up to 10
@@ -62,7 +62,7 @@ software.
 
 Applications utilizing Clock Manager must be allowed to be licensed and
 released under any free or non-free terms. The time synchronization daemon
-(ptp4l & Chrony) are licensed under GPL. The Clock Manager framework
+(ptp4l & Chrony) is licensed under GPL. The Clock Manager framework
 is released under the BSD-3-Clause and insulates the application from any
 requirement to release the source code. The Clock Manager service is
 implemented using a process (proxy daemon) to separate from the application from
@@ -71,7 +71,7 @@ time synchronization daemons.
 ## Extensibility 
 
 The current Clock Manager development focuses on the PTP time synchronization
-protocol, but is extensible to other protocols such as NTP or GNSS. The set of
+protocol but is extensible to other protocols such as NTP or GNSS. The set of
 protocol telemetry events (e.g., changes in clock state) can be extended to any
 work with any protocol or any daemon. The Clock Manager can be extended to
 support any IPC and protocol to the application and the time synchronization
@@ -85,7 +85,7 @@ shared memory, UNIX sockets, and MQTT.
 Cyberphysical systems have isochronous control loops that run on networks where
 timing must be maintained to ensure the desired functionality (e.g., factory
 automation, power generation, etc.).  The Clock Manager provides the insights
-necessary to understand the network and enable network administrators to take
+necessary to understand the network and enables network administrators to take
 corrective action if needed.
 
 ## Distributed Systems 
