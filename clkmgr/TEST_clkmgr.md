@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
      SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
-# How to get Linux PTP:
+# How to get Linux PTP
 
 You can install it from your Linux distribution:  
 NOTE: The linuxptp must be version 4.4 and above.
@@ -17,7 +17,7 @@ Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
 
 # How to get Chrony
 
-1. Install chrony (If chrony pre-installed please skip this step):  
+1. Install Chrony (If Chrony is already pre-installed, please skip this step):
     On Ubuntu and Debian:  
     ```bash
     sudo apt install chrony
@@ -27,21 +27,21 @@ Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
     dnf install chrony
     ```
 
-# How to get Clock Manager together with libptpmgmt:
+# How to get Clock Manager together with libptpmgmt
 
-1. Install package dependencies:  
+1. Install package dependencies:
     ```bash
     sudo apt install swig libtool-bin cppcheck doxygen ctags astyle dot epstopdf valgrind
     ```
 
-2. Install Real-Time Priority Inheritance Library (librtpi):  
+2. Install Real-Time Priority Inheritance Library (librtpi):
     On new Ubuntu and Debian systems:  
     ```bash
     sudo apt install librtpi-dev
     ```
-    On older systems, build and install the library:  
+    On older systems, build and install the library:
     ```bash
-    git clone https://github.com/linux-rt/librtpi.git  
+    git clone https://github.com/linux-rt/librtpi.git
     cd librtpi  
     autoreconf --install  
     ./configure  
@@ -49,7 +49,7 @@ Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
     sudo make install
     ```
 
-3. Install libchrony:  
+3. Install libchrony:
     ```bash
     git clone https://gitlab.com/chrony/libchrony.git
     cd libchrony
@@ -58,7 +58,7 @@ Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
     ldconfig
     ```
 
-4. Install Clock Manager:  
+4. Install Clock Manager:
     ```bash
     git clone https://github.com/erezgeva/libptpmgmt
     cd libptpmgmt
@@ -75,12 +75,12 @@ Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
     clkmgr/proxy/clkmgr_proxy
     ```
 
-# How to Build the Sample Application:
+# How to Build the Sample Application
 
-We provided C/C++ sample applications to showcase on how to use  
-Clock Manager API to track latest status of ptp4l and Chrony.  
-The applications are provided for demonstration only.  
-We do not recommend to use them for production.  
+We provided C/C++ sample applications to showcase how to use
+Clock Manager API to track the latest status of ptp4l and Chrony.
+The applications are provided for demonstration only.
+We do not recommend to use them for production.
 
 1. Navigate to the sample directory:
     ```bash
@@ -98,29 +98,29 @@ We do not recommend to use them for production.
     clkmgr_c_test
     ```
 
-# How to test:
+# How to Test
 
 Operation Flow of Clock Manager:
 ![Operation Flow of Clock Manager](./image/operation_flow.png)
 __Figure 1 - Operation Flow of Clock Manager__
 
-# Test Steps:
+# Test Steps
 
-1. For Multi Domain user need to create vclock in order to support multi domain:  
+1. For Multi Domain users need to create vclock in order to support multi-domain:
     Create vclock:
     ```bash
     echo <number of vclock> > /sys/class/net/<interface name>/device/ptp/<ptp pin>/n_vclocks
     ```
-    Verify if vclock created successful:
+    Verify if vclock is created successfully:
     ```bash
     udevadm info /dev/ptp*
     ```
 
-2. Run the ptp4l services on both DUT and link partner:  
-    Before start ptp4l services, user need to prepare the configuration file  
-    accordingly. There are two types of ptp4l service, which is ptp4l CMLDS service  
-    and ptp4l domains service. Each type of service have their own set of  
-    configuration file. Below are some MUST have parameters example that needed  
+2. Run the ptp4l services on both DUT and link partner:
+    Before starting ptp4l services, user needs to prepare the configuration file
+    accordingly. There are two types of ptp4l service, which are ptp4l CMLDS service
+    and ptp4l domains service. Each type of service has its own set of
+    configuration files. Below are some MUST-HAVE parameters examples that are needed
     specifically for Clock Manager:
     1. Example of ptp4l CMLDS service's configuration:
     ```bash
@@ -148,7 +148,7 @@ __Figure 1 - Operation Flow of Clock Manager__
     ```
 
     Note:  
-    For multi domain, ptp4l need to run the CMLDS service.  
+    For multi-domain, ptp4l needs to run the CMLDS service.
     Run the ptp4l CMLDS service on both DUT and link partner:
     ```bash
     sudo ptp4l -i <interface name> -f <cmlds config file> -m
@@ -158,45 +158,45 @@ __Figure 1 - Operation Flow of Clock Manager__
     sudo ptp4l -i <interface name> -f <domain config file> -m
     ```
 
-3. Add ptp device (e.g /dev/ptp0) as refclock for chrony daemon application on DUT:
+3. Add ptp device (e.g. /dev/ptp0) as refclock for Chrony daemon application on DUT:
     ```bash
     echo "refclock PHC /dev/ptp0 poll -6 dpoll -1" >>  /etc/chrony/chrony.conf
     ```
 
-4. Run the chrony daemon application on DUT:  
+4. Run the Chrony daemon application on DUT:
     ```bash
     chronyd -f /etc/chrony/chrony.conf
     ```
 
-5. Run the clkmgr_proxy application on DUT:  
-    For how to prepare the proxy configuration file, can refer to [sample] (/libptpmgmt/clkmgr/proxy/proxy_cfg.json/)
+5. Run the clkmgr_proxy application on DUT:
+    For how to prepare the proxy configuration file, refer to [sample] (/libptpmgmt/clkmgr/proxy/proxy_cfg.json/)
     ```bash
     cd libptpmgmt/clkmgr/proxy
     sudo ./run_proxy.sh
     ```
 
 6. Run the sample application on DUT:
-    There are 3 modes in multi domain:
-    1. Default Mode: In default mode, the sample application will direct  
-                     subscribe to time base index 1.  
-    2. Subscribe All Mode (-a): In this mode, the sample application will  
-                                subscribe to all available time bases.  
-    3. User Prompt Mode (-p): In this mode, the sample application will prompt  
-                              user to subscribe up to multiple time bases.  
+    There are 3 modes in multi-domain:
+    1. Default Mode: In default mode, the sample application will directly
+                     subscribes to time base index 1.
+    2. Subscribe All Mode (-a): In this mode, the sample application will
+                                subscribe to all available time bases.
+    3. User Prompt Mode (-p): In this mode, the sample application will prompt
+                              user to subscribe up to multiple time bases.
 
-    a. c++ sample application:
+    a. C++ sample application:
     ```bash
     cd libptpmgmt/clkmgr/client
     sudo ./run_clkmgr_test.sh <optional arguments>
     ```
 
-    b. c sample application:
+    b. C sample application:
     ```bash
     cd libptpmgmt/clkmgr/client
     sudo ./run_clkmgr_c_test.sh <optional arguments>
     ```
 
-# Examples of result:
+# Examples of Result
 
 Usage of proxy daemon (clkmgr_proxy):
 ```bash
@@ -234,7 +234,7 @@ Options:
      Bit 2: eventASCapable
   -u gm offset upper limit (ns)
      Default: 100000 ns
-  -l gm offset lower limitt (ns)
+  -l gm offset lower limit (ns)
      Default: -100000 ns
   -i idle time (s)
      Default: 1 s
