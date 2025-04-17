@@ -135,6 +135,16 @@ class Binary
      *       and create a string from array or list of octets
      */
     Binary &mvBin(Binary &rhs);
+    #ifndef SWIG
+    /**
+     * Move new value from another binary
+     * @param[in] rhs Binary to assign
+     * @return reference to itself
+     * @note for scripts, to use packing assignment
+     *       and create a string from array or list of octets
+     */
+    Binary &mvBin(Binary &&rhs);
+    #endif /* SWIG */
     /**
      * Get octet in position
      * @param[in] position in Binary octets

@@ -178,6 +178,20 @@ TEST(BinaryTest, MethodMoveBinVal)
     EXPECT_EQ(t.size(), 4);
 }
 
+// Test move value
+// Binary &mvBin(Binary &&rhs)
+TEST(BinaryTest, MethodMoveBinRVal)
+{
+    Binary f("\x1\x2\x3\x4");
+    const uint8_t *p = f.get();
+    Binary t;
+    t.mvBin(std::move(f));
+    EXPECT_EQ(f.get(), nullptr);
+    EXPECT_EQ(f.size(), 0);
+    EXPECT_EQ(t.get(), p);
+    EXPECT_EQ(t.size(), 4);
+}
+
 // Test get value in position
 // const uint8_t getBin(const size_t position) const
 TEST(BinaryTest, MethodGetBinPosVal)

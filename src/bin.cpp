@@ -197,6 +197,17 @@ Binary &Binary::mvBin(Binary &rhs)
     rhs.m_size = 0;
     return *this;
 }
+Binary &Binary::mvBin(Binary &&rhs)
+{
+    free(m_buf);
+    m_buf = rhs.m_buf;
+    m_alloc = rhs.m_alloc;
+    m_size = rhs.m_size;
+    rhs.m_buf = nullptr;
+    rhs.m_alloc = 0;
+    rhs.m_size = 0;
+    return *this;
+}
 const uint8_t Binary::getBin(const size_t position) const
 {
     if(position >= m_size)
