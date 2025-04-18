@@ -25,7 +25,7 @@
 #include <rtpi/condition_variable.hpp>
 #include <rtpi/mutex.hpp>
 
-#define DEFAULT_LIVENESS_TIMEOUT_IN_MS 50  //50 ms
+#define DEFAULT_LIVENESS_TIMEOUT_IN_MS 200  //200 ms
 #define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
 #define DEFAULT_SUBSCRIBE_TIME_OUT 5  //5 sec
 
@@ -264,11 +264,6 @@ int ClockManager::status_wait(int timeout, size_t timeBaseIndex,
     bool event_changes_detected = false;
     TimeBaseState state;
     do {
-        // Check liveness of the Proxy Daemon
-        if(!check_proxy_liveness(timeBaseIndex)) {
-            PrintDebug("[WAIT] Proxy Daemon is not alive.");
-            return -1;
-        }
         // Get the current state of the timebase
         if(!states.getTimeBaseState(timeBaseIndex, state)) {
             PrintDebug("[WAIT] Failed to get specific timebase state.");
@@ -278,6 +273,11 @@ int ClockManager::status_wait(int timeout, size_t timeBaseIndex,
         if(state.is_event_changed()) {
             event_changes_detected = true;
             break;
+        }
+        // Check liveness of the Proxy Daemon
+        if(!check_proxy_liveness(timeBaseIndex)) {
+            PrintDebug("[WAIT] Proxy Daemon is not alive.");
+            return -1;
         }
         // Sleep for a short duration before the next iteration
         this_thread::sleep_for(milliseconds(10));
