@@ -21,19 +21,44 @@
 
 #define MESSAGE_QUEUE_PREFIX "/clkmgr"
 
-#define TX_QUEUE_FLAGS (O_WRONLY)
-#define RX_QUEUE_FLAGS (O_RDONLY | O_CREAT)
-#define RX_QUEUE_MODE  (S_IRUSR | S_IWUSR | S_IWGRP)
-
 __CLKMGR_NAMESPACE_BEGIN
+
+class PosixMessageQueue
+{
+  private:
+    static const mqd_t invalidMq = (mqd_t) -1;
+    mqd_t mq = invalidMq;
+    bool rx = false; // Receive or Transmit
+    std::string name;
+  public:
+    PosixMessageQueue() = default;
+    ~PosixMessageQueue() { close(); remove(); }
+    // Receive POSIX message queue
+    bool RxOpen(const std::string &name, size_t maxMsg);
+    // Transmit POSIX message queue
+    bool TxOpen(const std::string &name, bool block = true);
+    // Is the queue exist
+    bool exist() const { return mq != invalidMq; }
+    // Receive with Receive only queue
+    bool send(const void *ptr, size_t size) const;
+    // Transmit Transmit only queue
+    bool receive(const void *ptr, size_t length) const;
+    // Remove receive queue
+    bool remove();
+    // Close queue
+    bool close();
+    // To string
+    operator std::string() const { return std::to_string(mq); }
+    // Get string
+    std::string str() const { return std::to_string(mq); }
+};
 
 class MessageQueueListenerContext : virtual public TransportListenerContext
 {
-    friend class MessageQueue;
-  private:
-    mqd_t mqListenerDesc;
   protected:
-    MessageQueueListenerContext(mqd_t mqListenerDesc);
+    friend class MessageQueue;
+    const PosixMessageQueue &mqListenerDesc;
+    MessageQueueListenerContext(const PosixMessageQueue &q) : mqListenerDesc(q) {}
   public:
     virtual ~MessageQueueListenerContext() = default;
 };
@@ -43,9 +68,10 @@ class MessageQueueTransmitterContext : virtual public
 {
     friend class MessageQueue;
   private:
-    mqd_t mqTransmitterDesc;
+    const PosixMessageQueue &mqTransmitterDesc;
   protected:
-    MessageQueueTransmitterContext(mqd_t mqTransmitterDesc);
+    MessageQueueTransmitterContext(const PosixMessageQueue &q) :
+        mqTransmitterDesc(q) {}
   public:
     virtual ~MessageQueueTransmitterContext() = default;
     virtual SEND_BUFFER_TYPE(sendBuffer);
@@ -56,7 +82,6 @@ class MessageQueue : public Transport
   protected:
     static std::string const mqProxyName;
     static TransportWorkDesc mqListenerDesc;
-    static mqd_t mqNativeListenerDesc;
     static bool MqListenerWork(TransportContext *mqListenerContext);
     static bool MqTransmit(TransportContext *mqTransmitterContext, Message *msg);
   public:

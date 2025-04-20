@@ -21,39 +21,65 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-#define QUEUE_FLAGS (O_RDONLY | O_CREAT)
-#define QUEUE_MODE  (S_IRUSR  | S_IWGRP)
+bool PosixMessageQueue::RxOpen(const string &n, size_t maxMsg)
+{
+    struct mq_attr attr;
+    attr.mq_flags = 0;
+    attr.mq_maxmsg = maxMsg;
+    attr.mq_msgsize = sizeof(TransportBuffer);
+    mq = mq_open(n.c_str(), O_CREAT | O_RDONLY, S_IRUSR | S_IWUSR | S_IWGRP, &attr);
+    if(exist()) {
+        rx = true;
+        name = n;
+        return true;
+    }
+    return false;
+}
+
+bool PosixMessageQueue::TxOpen(const string &n, bool block)
+{
+    mq = mq_open(n.c_str(), O_WRONLY | (block ? 0 : O_NONBLOCK));
+    return exist();
+}
+
+bool PosixMessageQueue::send(const void *ptr, size_t size) const
+{
+    return exist() && !rx ? mq_send(mq, (char *)ptr, size, 0) != -1 : false;
+}
+
+bool PosixMessageQueue::receive(const void *ptr, size_t length) const
+{
+    return exist() &&
+        rx ? mq_receive(mq, (char *)ptr, length, nullptr) != -1 : false;
+}
+
+bool PosixMessageQueue::remove()
+{
+    if(!name.empty() && mq_unlink(name.c_str()) != -1) {
+        name.clear();
+        return true;
+    }
+    return false;
+}
+
+bool PosixMessageQueue::close()
+{
+    if(exist() && mq_close(mq) != -1) {
+        mq = invalidMq;
+        return true;
+    }
+    return false;
+}
 
 DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
 DECLARE_STATIC(MessageQueue::mqListenerDesc,
     Transport::InvalidTransportWorkDesc);
-DECLARE_STATIC(MessageQueue::mqNativeListenerDesc, -1);
-
-MessageQueueListenerContext::MessageQueueListenerContext(mqd_t mqListenerDesc)
-{
-    this->mqListenerDesc = mqListenerDesc;
-}
-
-MessageQueueTransmitterContext::MessageQueueTransmitterContext(
-    mqd_t mqTransmitterDesc)
-{
-    this->mqTransmitterDesc = mqTransmitterDesc;
-}
-
-int mqRecvWrapper(mqd_t mqDesc, uint8_t *data, size_t length)
-{
-    int ret;
-    ret = mq_receive(mqDesc, (char *)data, length, nullptr);
-    if(ret == -1)
-        return -errno;
-    return ret;
-}
 
 bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
 {
     MessageQueueListenerContext *context = dynamic_cast<decltype(context)>
         (mqListenerContext);
-    if(!context) {
+    if(context == nullptr) {
         PrintError("Internal Error: Received inappropriate context");
         return false; // Return early since context is null and cannot be used.
     }
@@ -61,12 +87,13 @@ bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
         PrintError("Unable to enable interrupts in work process context");
         return false;
     }
-    int ret = mqRecvWrapper(context->mqListenerDesc, context->get_buffer().data(),
-            context->getc_buffer().max_size());
-    if(ret < 0) {
-        if(ret != -EINTR)
-            PrintError("MQ Receive Failed", -ret);
-        return ret != -EINTR ? false : true;
+    if(!context->mqListenerDesc.receive(context->get_buffer().data(),
+            context->getc_buffer().max_size())) {
+        if(errno != EINTR) {
+            PrintError("MQ Receive Failed", errno);
+            return false;
+        }
+        return true;
     }
     PrintDebug("Receive complete");
     DumpOctetArray("Received Message", context->getc_buffer().data(),
@@ -77,8 +104,7 @@ bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
 
 SEND_BUFFER_TYPE(MessageQueueTransmitterContext::sendBuffer)
 {
-    if(mq_send(mqTransmitterDesc, (char *)get_buffer().data(), get_offset(),
-            0) == -1) {
+    if(!mqTransmitterDesc.send(get_buffer().data(), get_offset())) {
         PrintErrorCode("Failed to send buffer");
         return false;
     }

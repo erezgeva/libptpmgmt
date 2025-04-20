@@ -28,7 +28,7 @@ class ClientMessageQueueListenerContext :
     friend class ClientMessageQueue;
   protected:
     virtual LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(processMessage);
-    ClientMessageQueueListenerContext(mqd_t mqListenerDesc) :
+    ClientMessageQueueListenerContext(const PosixMessageQueue &mqListenerDesc) :
         MessageQueueListenerContext(mqListenerDesc) {}
 };
 
@@ -37,15 +37,14 @@ class ClientMessageQueueTransmitterContext  :
 {
     friend class ClientMessageQueue;
   protected:
-    ClientMessageQueueTransmitterContext(mqd_t mqListenerDesc) :
-        MessageQueueTransmitterContext(mqListenerDesc) {}
+    ClientMessageQueueTransmitterContext(const PosixMessageQueue &mqTransmitterDesc)
+        : MessageQueueTransmitterContext(mqTransmitterDesc) {}
 };
 
 class ClientMessageQueue : public MessageQueue,
     public ClientTransport
 {
   private:
-    static mqd_t mqNativeClientTransmitterDesc;
     static std::string mqListenerName;
     static std::unique_ptr<MessageQueueTransmitterContext> txContext;
   public:

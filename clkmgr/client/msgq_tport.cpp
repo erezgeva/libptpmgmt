@@ -23,8 +23,10 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+static PosixMessageQueue mqNativeListenerDesc;
+static PosixMessageQueue mqNativeClientTransmitterDesc;
+
 DECLARE_STATIC(ClientMessageQueue::mqListenerName, "");
-DECLARE_STATIC(ClientMessageQueue::mqNativeClientTransmitterDesc, -1);
 DECLARE_STATIC(ClientMessageQueue::txContext);
 
 LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
@@ -41,17 +43,11 @@ LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
 
 bool ClientMessageQueue::initTransport()
 {
-    struct mq_attr mq_attr;
-    mq_attr.mq_flags = 0;
     /* Two outstanding messages per client */
-    mq_attr.mq_maxmsg = 2;
-    mq_attr.mq_msgsize = sizeof(TransportBuffer);
     PrintDebug("Initializing Message Queue Client Transport...");
     mqListenerName += mqProxyName + ".";
     mqListenerName += to_string(getpid());
-    mqNativeListenerDesc = mq_open(mqListenerName.c_str(), RX_QUEUE_FLAGS,
-            RX_QUEUE_MODE, &mq_attr);
-    if(mqNativeListenerDesc == -1) {
+    if(!mqNativeListenerDesc.RxOpen(mqListenerName, 2)) {
         PrintError("Failed to open listener queue");
         return false;
     }
@@ -65,8 +61,7 @@ bool ClientMessageQueue::initTransport()
         PrintError("Listener Thread Unexpectedly Exited");
         return false;
     }
-    mqNativeClientTransmitterDesc = mq_open(mqProxyName.c_str(), TX_QUEUE_FLAGS);
-    if(mqNativeClientTransmitterDesc == -1) {
+    if(!mqNativeClientTransmitterDesc.TxOpen(mqProxyName)) {
         PrintErrorCode("Failed to open transmitter queue: " + mqProxyName);
         return false;
     }
@@ -90,11 +85,10 @@ bool ClientMessageQueue::stopTransport()
 
 bool ClientMessageQueue::finalizeTransport()
 {
-    PrintDebug("mqNativeListenerDesc = " + to_string(mqNativeListenerDesc));
-    PrintDebug("mqNativeClientTransmitterDesc = " + to_string(
-            mqNativeClientTransmitterDesc));
-    return mq_close(mqNativeListenerDesc) != -1 &&
-        mq_close(mqNativeClientTransmitterDesc) != -1;
+    PrintDebug("mqNativeListenerDesc = " + mqNativeListenerDesc.str());
+    PrintDebug("mqNativeClientTransmitterDesc = " +
+        mqNativeClientTransmitterDesc.str());
+    return mqNativeListenerDesc.close() && mqNativeClientTransmitterDesc.close();
 }
 
 bool ClientMessageQueue::writeTransportClientId(Message *msg)
@@ -136,8 +130,8 @@ SEND_CLIENT_MESSAGE(ClientMessageQueue::sendMessage)
 {
     auto context = txContext.get();
     msg->presendMessage(context);
-    if(mq_send(mqNativeClientTransmitterDesc, (char *)context->getc_buffer().data(),
-            context->getc_offset(), 0) == -1) {
+    if(!mqNativeClientTransmitterDesc.send(context->getc_buffer().data(),
+            context->getc_offset())) {
         PrintErrorCode("Failed to transmit client message");
         return false;
     }

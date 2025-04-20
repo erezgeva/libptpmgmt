@@ -30,7 +30,8 @@ class ProxyMessageQueueListenerContext : virtual public
     friend class ProxyMessageQueue;
   protected:
     virtual LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(processMessage);
-    ProxyMessageQueueListenerContext(mqd_t mqListenerDesc);
+    ProxyMessageQueueListenerContext(const PosixMessageQueue &mqListenerDesc) :
+        MessageQueueListenerContext(mqListenerDesc) {}
   public:
     virtual ~ProxyMessageQueueListenerContext() = default;
     virtual CREATE_TRANSMIT_CONTEXT_TYPE(CreateTransmitterContext);
@@ -40,10 +41,18 @@ class ProxyMessageQueueTransmitterContext  : virtual public
     MessageQueueTransmitterContext,
     virtual public ProxyTransportTransmitterContext
 {
+  private:
     friend class ProxyMessageQueue;
     friend class ProxyMessageQueueListenerContext;
+    /**
+     * Store original queue here.
+     * Unlike ClientMessageQueueTransmitterContext,
+     * this class is created with a ad-hook queue object, one for each client.
+     */
+    PosixMessageQueue mqTransmitterDesc;
   protected:
-    ProxyMessageQueueTransmitterContext(mqd_t mqTransmitterDesc);
+    ProxyMessageQueueTransmitterContext(PosixMessageQueue &&q)
+        : MessageQueueTransmitterContext(mqTransmitterDesc), mqTransmitterDesc(q) {}
   public:
     virtual ~ProxyMessageQueueTransmitterContext() = default;
 };

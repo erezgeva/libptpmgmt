@@ -23,6 +23,8 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+static PosixMessageQueue mqNativeListenerDesc;
+
 LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
     ProxyMessageQueueListenerContext::processMessage)
 {
@@ -38,39 +40,20 @@ LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
 CREATE_TRANSMIT_CONTEXT_TYPE(
     ProxyMessageQueueListenerContext::CreateTransmitterContext)
 {
-    mqd_t txd = mq_open((char *)clientId.data(), TX_QUEUE_FLAGS | O_NONBLOCK);
-    if(txd == -1) {
-        PrintErrorCode("Failed to open message queue " + string((
-                    const char *)clientId.data()));
+    string id((const char *)clientId.data());
+    PosixMessageQueue txd;
+    if(!txd.TxOpen(id, false)) {
+        PrintErrorCode("Failed to open message queue " + id);
         return nullptr;
     }
-    PrintDebug("Successfully connected to client " + string((
-                const char *)clientId.data()));
-    return new ProxyMessageQueueTransmitterContext(txd);
-}
-
-ProxyMessageQueueListenerContext::ProxyMessageQueueListenerContext(
-    mqd_t mqListenerDesc)
-    : MessageQueueListenerContext(mqListenerDesc)
-{
-}
-
-ProxyMessageQueueTransmitterContext::ProxyMessageQueueTransmitterContext(
-    mqd_t mqTransmitterDesc)
-    : MessageQueueTransmitterContext(mqTransmitterDesc)
-{
+    PrintDebug("Successfully connected to client " + id);
+    return new ProxyMessageQueueTransmitterContext(std::move(txd));
 }
 
 bool ProxyMessageQueue::initTransport()
 {
-    struct mq_attr mq_attr;
-    mq_attr.mq_flags = 0;
-    mq_attr.mq_maxmsg = MAX_CLIENT_COUNT;
-    mq_attr.mq_msgsize = sizeof(TransportBuffer);
     PrintDebug("Initializing Message Queue Proxy Transport...");
-    mqNativeListenerDesc = mq_open(mqProxyName.c_str(), RX_QUEUE_FLAGS,
-            RX_QUEUE_MODE, &mq_attr);
-    if(mqNativeListenerDesc == -1) {
+    if(!mqNativeListenerDesc.RxOpen(mqProxyName, MAX_CLIENT_COUNT)) {
         PrintErrorCode("mq_open failed");
         return false;
     }
@@ -96,5 +79,5 @@ bool ProxyMessageQueue::stopTransport()
 
 bool ProxyMessageQueue::finalizeTransport()
 {
-    return mq_close(mqNativeListenerDesc) != -1;
+    return mqNativeListenerDesc.close();
 }
