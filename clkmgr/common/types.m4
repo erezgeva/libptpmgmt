@@ -24,7 +24,6 @@ ics(TYPE)
 incpp(<cstddef>)dnl
 inc_c(`stdint')
 c_cod(`#include <stdbool.h>')
-
 ns_s()
 
 /**
@@ -72,19 +71,20 @@ cpp_cod(`    Threshold() noexcept : upper_limit(0), lower_limit(0) {}')dnl
  * Structure to represent the current state of events.
  */
 struct Nm(Event_state) {
-    uint64_t notification_timestamp; /**< Timestamp for last notification */
-    int64_t clock_offset; /**< Clock offset */
+    /** Timestamp for last notification in nanoseconds */
+    uint64_t notification_timestamp;
+    int64_t clock_offset; /**< Clock offset in nanoseconds */
     uint8_t gm_identity[8]; /**< Primary clock UUID */
-    int64_t ptp4l_sync_interval; /**< Clock Sync Interval */
+    int64_t ptp4l_sync_interval; /**< Clock Sync Interval in microseconds */
     bool offset_in_range; /**< Clock offset in range */
     bool synced_to_primary_clock; /**< Synced to primary clock */
     bool as_capable; /**< IEEE 802.1AS capable */
     bool gm_changed; /**< Primary clock UUID changed */
     bool composite_event; /**< Composite event */
-    int64_t chrony_clock_offset; /**< Chrony clock offset */
+    int64_t chrony_clock_offset; /**< Chrony clock offset in nanoseconds */
     bool chrony_offset_in_range; /**< Chrony_clock offset in range */
     uint32_t chrony_reference_id; /**< Chrony reference ID */
-    uint32_t polling_interval; /**< Chrony polling interval */
+    uint32_t polling_interval; /**< Chrony polling interval in microseconds */
 };
 
 /**

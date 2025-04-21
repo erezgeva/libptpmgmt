@@ -30,9 +30,12 @@ typedef uint16_t sessionId_t;
 /** Invalid session ID (default session ID) */
 const sessionId_t InvalidSessionId = UINT16_MAX;
 
-/* Some commonly used constants */
-#define NSEC_PER_MSEC   (1000000)
-#define NSEC_PER_SEC    (1000000000)
+/** Number of nanoseconds in a millisecond */
+const int32_t NSEC_PER_MSEC = 1000000;
+/** Number of nanoseconds in a second */
+const int32_t NSEC_PER_SEC  = 1000000000;
+/** Number of microsecond in a second */
+const int32_t USEC_PER_SEC = 1000000;
 
 #define UNIQUE_TYPEOF(x) remove_reference<decltype(*(x).get())>::type
 #define DECLARE_STATIC(x,...) decltype(x) x __VA_OPT__({) __VA_ARGS__ __VA_OPT__(})

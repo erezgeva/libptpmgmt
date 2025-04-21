@@ -203,7 +203,7 @@ callback_define(TIME_STATUS_NP)
 {
     event.master_offset = tlv.master_offset;
     memcpy(event.gm_identity, tlv.gmIdentity.v, sizeof(event.gm_identity));
-    memcpy(gmIdentity.v, tlv.gmIdentity.v, sizeof(gmIdentity.v));
+    gmIdentity = tlv.gmIdentity;
     do_notify = true;
     PrintDebug("master_offset = " + to_string(event.master_offset) +
         ", synced_to_primary_clock = " + to_string(event.synced_to_primary_clock));
@@ -224,10 +224,10 @@ void ptpSet::portDataReset()
 }
 callback_define(PORT_DATA_SET)
 {
-    if(memcmp(gmIdentity.v, tlv.portIdentity.clockIdentity.v,
-            sizeof(gmIdentity.v)) == 0) {
+    if(gmIdentity == tlv.portIdentity.clockIdentity) {
         if(tlv.portState == MASTER)
-            event.ptp4l_sync_interval = pow(2.0, tlv.logSyncInterval) * 1000000;
+            event.ptp4l_sync_interval =
+                pow(2.0, tlv.logSyncInterval) * USEC_PER_SEC;
         return;
     }
     if(tlv.portState == SLAVE) {
