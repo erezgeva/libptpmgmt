@@ -222,7 +222,7 @@ class Message
     uint8_t           m_sppID = -1; /**< authentication security parameters ID */
     SaFile            m_sa; /**< authentication security association pool */
     bool              m_haveAuth = false;  /**< Have Authentication */
-    HMAC_Key         *m_hmac = nullptr; /**< sending key HMAC library instance */
+    std::unique_ptr<HMAC_Key> m_hmac; /**< sending key HMAC library instance */
 
     /* parsing parameters */
     PortIdentity_t    m_peer; /* parsed message peer port id */

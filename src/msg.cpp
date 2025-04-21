@@ -224,7 +224,7 @@ Message::Message(const MsgParams &prms) :
 }
 Message::~Message()
 {
-    delete m_hmac;
+    m_hmac.reset(nullptr); // delete m_hmac
     hmac_freeLib();
 }
 ssize_t Message::getMsgPlanedLen() const
@@ -279,7 +279,7 @@ bool Message::useAuth(const SaFile &sa, uint8_t sppID, uint32_t keyID)
         HMAC_Key *hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
         if(hmac == nullptr)
             return false;
-        m_hmac = hmac;
+        m_hmac.reset(hmac);
         m_sa = sa;
         m_sppID = sppID;
         m_keyID = keyID;
@@ -295,7 +295,7 @@ bool Message::changeAuth(uint8_t sppID, uint32_t keyID)
         HMAC_Key *hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
         if(hmac == nullptr)
             return false;
-        m_hmac = hmac;
+        m_hmac.reset(hmac);
         m_sppID = sppID;
         m_keyID = keyID;
         return true;
@@ -309,7 +309,7 @@ bool Message::changeAuth(uint32_t keyID)
         HMAC_Key *hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
         if(hmac == nullptr)
             return false;
-        m_hmac = hmac;
+        m_hmac.reset(hmac);
         m_keyID = keyID;
         return true;
     }
@@ -643,7 +643,7 @@ MNG_PARSE_ERROR_e Message::parseAuth(const void *buf, const void *auth,
         return MNG_PARSE_ERROR_AUTH_WRONG;
     if(m_sppID == spp && m_keyID == keyID)
         // Using the same key for sending
-        hmac = m_hmac;
+        hmac = m_hmac.get();
     else {
         hmac = hmac_allocHMAC(s.htype(keyID), s.key(keyID));
         if(hmac == nullptr)
