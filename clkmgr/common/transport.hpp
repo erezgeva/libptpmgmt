@@ -75,7 +75,9 @@ class TransportListenerContext : public TransportContext
 #define CREATE_TRANSMIT_CONTEXT_TYPE(name)                            \
     TransportTransmitterContext *name \
     (TransportClientId &clientId)
-    virtual CREATE_TRANSMIT_CONTEXT_TYPE(CreateTransmitterContext) { return NULL; }
+    virtual CREATE_TRANSMIT_CONTEXT_TYPE(CreateTransmitterContext) {
+        return nullptr;
+    }
 };
 
 class Transport
