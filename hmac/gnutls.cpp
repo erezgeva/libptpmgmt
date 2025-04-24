@@ -30,7 +30,7 @@ struct Gnutls : public HMAC_Key {
     gnutls_hmac_hd_t m_dig = nullptr;
     bool m_keyInit = false;
     ~Gnutls() override;
-    bool init(HMAC_t type) override final;
+    bool init() override final;
     bool digest(const void *data, size_t len, Binary &mac) override final;
     bool verify(const void *data, size_t len, Binary &mac) override final;
 };
@@ -42,9 +42,9 @@ Gnutls::~Gnutls()
     if(count == 0)
         gnutls_global_deinit();
 }
-bool Gnutls::init(HMAC_t type)
+bool Gnutls::init()
 {
-    m_algorithm = vals[type];
+    m_algorithm = vals[m_type];
     int err;
     count++;
     if(count == 1) {

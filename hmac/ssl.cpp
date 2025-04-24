@@ -39,7 +39,7 @@ struct HMAC_SSL : public HMAC_Key {
     size_t m_min_digest = HMAC_MAC_SIZE_16;
     HMAC_SSL();
     ~HMAC_SSL() override;
-    bool init(HMAC_t type) override final;
+    bool init() override final;
     bool digest(const void *data, size_t len, Binary &mac) override final;
     bool verify(const void *data, size_t len, Binary &mac) override final;
     const char *ssl_err();
@@ -55,24 +55,24 @@ HMAC_SSL::~HMAC_SSL()
     if(m_ctx != nullptr)
         EVP_MAC_CTX_free(m_ctx);
 }
-bool HMAC_SSL::init(HMAC_t type)
+bool HMAC_SSL::init()
 {
-    m_mac = EVP_MAC_fetch(nullptr, vals[type].algorithm, nullptr);
+    m_mac = EVP_MAC_fetch(nullptr, vals[m_type].algorithm, nullptr);
     if(m_mac == nullptr)
         return false;
     m_ctx = EVP_MAC_CTX_new(m_mac);
     if(m_ctx == nullptr)
         return false;
     const OSSL_PARAM params[] = {
-        OSSL_PARAM_construct_utf8_string(vals[type].key,
-            (char *)vals[type].algo, 0),
+        OSSL_PARAM_construct_utf8_string(vals[m_type].key,
+            (char *)vals[m_type].algo, 0),
         OSSL_PARAM_END
     };
     if(!EVP_MAC_CTX_set_params(m_ctx, params)) {
         PTPMGMT_ERROR("EVP_MAC_CTX_set_params fail %s", ssl_err());
         return false;
     }
-    m_min_digest = (type == HMAC_SHA256) ? HMAC_MAC_SIZE_32 : HMAC_MAC_SIZE_16;
+    m_min_digest = (m_type == HMAC_SHA256) ? HMAC_MAC_SIZE_32 : HMAC_MAC_SIZE_16;
     if(!EVP_MAC_init(m_ctx, m_key.get(), m_key.size(), nullptr)) {
         PTPMGMT_ERROR("EVP_MAC_init fail %s", ssl_err());
         return false;

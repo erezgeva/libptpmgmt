@@ -14,16 +14,21 @@
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #endif
+#include <atomic>
 
 __PTPMGMT_NAMESPACE_BEGIN
 
 extern "C" { typedef HMAC_lib *(*ptpm_hmac_fech_t)(); }
-static int hmacCount = 0; // Count how many objects exist
 HMAC_lib *ptpm_hmac_p = nullptr;
+static mutex hmacLoadLock; // Lock loading and unloading
 #ifdef PIC // Shared library code
+// Here hmacCount is protected by hmacLoadLock
+static size_t hmacCount = 0; // Count how many objects exist
 static void *hmacLib = nullptr;
 static const char *useLib = nullptr;
-static mutex hmacLoadLock; // Lock loading and unloading
+// List of available HMAP libraries passed
+// from Make file based on configuration probing
+static const char *list[] = { HMAC_LIBS nullptr };
 extern "C" { ptpm_hmac_fech_t ptpm_hmac_fech_p; }
 static void doLibRm()
 {
@@ -57,8 +62,24 @@ static bool tryLib(const char *name)
     }
     return false;
 }
-static inline bool loadMatchLibrary(const char *libMatch, const char *found)
+static inline bool doReloadLibrary(const string &libMatchCpp)
 {
+    if(libMatchCpp.empty()) {
+        PTPMGMT_ERROR("Empty match pattern");
+        return false;
+    }
+    const char *libMatch = libMatchCpp.c_str();
+    const char *found = nullptr;
+    for(const char **cur = list; *cur != nullptr; cur++) {
+        if(strcasestr(*cur, libMatch) != nullptr) {
+            if(found != nullptr) {
+                PTPMGMT_ERROR("Found multiple libraries match to pattern '%s'",
+                    libMatch);
+                return false;
+            }
+            found = *cur;
+        }
+    }
     if(found == nullptr) {
         PTPMGMT_ERROR("Fail to find any library to matche pattern '%s'", libMatch);
         return false;
@@ -77,30 +98,22 @@ static inline bool loadMatchLibrary(const char *libMatch, const char *found)
             "matched '%s' to pattern '%s'", useLib, found, libMatch);
         return false;
     }
+    PTPMGMT_ERROR_CLR;
     return true;
 }
-static bool doLoadLibrary(const char *libMatch)
+static bool doLoadLibrary()
 {
-    const char *list[] = { HMAC_LIBS nullptr };
-    if(libMatch != nullptr) {
-        const char *found = nullptr;
-        for(const char **cur = list; *cur != nullptr; cur++) {
-            if(strcasestr(*cur, libMatch) != nullptr) {
-                if(found != nullptr) {
-                    PTPMGMT_ERROR("Found multiple libraries match to pattern '%s'",
-                        libMatch);
-                    return false;
-                }
-                found = *cur;
-            }
-        }
-        return loadMatchLibrary(libMatch, found);
-    }
-    if(hmacLib != nullptr)
+    if(hmacLib != nullptr) {
+        // A Library already loaded
+        PTPMGMT_ERROR_CLR;
         return true;
+    }
     for(const char **cur = list; *cur != nullptr; cur++) {
-        if(tryLib(*cur))
+        if(tryLib(*cur)) {
+            // We manage to load a proper library
+            PTPMGMT_ERROR_CLR;
             return true;
+        }
     }
     doLibNull(); // Ensure all pointers stay null
     PTPMGMT_ERROR("fail loading an HMAC library");
@@ -108,25 +121,33 @@ static bool doLoadLibrary(const char *libMatch)
 }
 static inline void libFree()
 {
-    if(hmacCount <= 0) {
+    if(hmacCount == 0) {
+        PTPMGMT_ERROR_CLR;
         if(hmacLib != nullptr) {
             doLibRm();
             doLibNull(); // mark all pointers null
         }
-        hmacCount = 0;
     }
 }
 #define LIB_LOCK unique_lock<mutex> lock(hmacLoadLock)
-#define LIB_LOAD if(hmacLib == nullptr && !doLoadLibrary(nullptr)) return nullptr
-#define LIB_RELOAD(match) if(!doLoadLibrary(match)) return false
+#define LIB_LOAD if(hmacLib == nullptr && !doLoadLibrary()) return nullptr
+#define LIB_RELOAD(match) if(!doReloadLibrary(match)) return false
 #define LIB_FREE libFree()
 #define LIB_NAME useLib
 #define LIB_SHARED true
+#define LIB_HMAC_COUNT_VAL hmacCount
 #else // PIC
+// Here hmacCount is not protected by other means, so we use atomic
+static atomic_size_t hmacCount(0); // Count how many objects exist
 extern "C" { extern HMAC_lib *ptpm_hmac() WEAK; }
 static bool staticLink()
 {
     if(ptpm_hmac_p == nullptr) {
+        PTPMGMT_ERROR_CLR;
+        unique_lock<mutex> lock(hmacLoadLock);
+        // Just in case other thread allocate, while we were locked
+        if(ptpm_hmac_p != nullptr)
+            return false;
         if(ptpm_hmac == (ptpm_hmac_fech_t)nullptr) {
             PTPMGMT_ERROR("Link without any HMAC library");
             return true;
@@ -142,6 +163,7 @@ static bool staticLink()
 #define LIB_FREE
 #define LIB_NAME ptpm_hmac_p->m_name
 #define LIB_SHARED false
+#define LIB_HMAC_COUNT_VAL hmacCount.load()
 #endif // PIC
 
 const char *hmac_loadLibrary()
@@ -153,7 +175,7 @@ const char *hmac_loadLibrary()
 bool hmac_selectLib(const string &libMatch)
 {
     LIB_LOCK;
-    LIB_RELOAD(libMatch.c_str());
+    LIB_RELOAD(libMatch);
     return LIB_SHARED;
 }
 bool hmac_isLibShared()
@@ -164,6 +186,11 @@ void hmac_freeLib()
 {
     LIB_LOCK;
     LIB_FREE;
+}
+size_t hmac_count()
+{
+    LIB_LOCK;
+    return LIB_HMAC_COUNT_VAL;
 }
 HMAC_Key *hmac_allocHMAC(HMAC_t type, const Binary &key)
 {
@@ -178,12 +205,12 @@ HMAC_Key *hmac_allocHMAC(HMAC_t type, const Binary &key)
         }
         hmacCount++;
     }
+    hmac->m_type = type;
     hmac->m_key = key;
-    if(!hmac->init(type)) {
+    if(!hmac->init()) {
         delete hmac;
         return nullptr;
     }
-    hmac->m_type = type;
     PTPMGMT_ERROR_CLR;
     return hmac;
 }

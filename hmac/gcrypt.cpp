@@ -25,7 +25,7 @@ static int algo_vals[] = {
 struct HMAC_gcrypt : public HMAC_Key {
     gcry_mac_hd_t hd;
     ~HMAC_gcrypt() override;
-    bool init(HMAC_t type) override final;
+    bool init() override final;
     bool digest(const void *data, size_t len, Binary &mac) override final;
     bool verify(const void *data, size_t len, Binary &mac) override final;
     bool update(const void *data, size_t len);
@@ -34,9 +34,9 @@ HMAC_gcrypt::~HMAC_gcrypt()
 {
     gcry_mac_close(hd);
 }
-bool HMAC_gcrypt::init(HMAC_t type)
+bool HMAC_gcrypt::init()
 {
-    gcry_error_t err = gcry_mac_open(&hd, algo_vals[type], 0, nullptr);
+    gcry_error_t err = gcry_mac_open(&hd, algo_vals[m_type], 0, nullptr);
     if(err != GPG_ERR_NO_ERROR) {
         PTPMGMT_ERROR("gcry_mac_open fail %d", err);
         return false;

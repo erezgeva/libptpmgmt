@@ -19,9 +19,11 @@ __PTPMGMT_NAMESPACE_USE;
 TEST(hmacTest, NoHmac)
 {
     Binary key(16);
+    EXPECT_EQ(hmac_count(), 0);
     HMAC_Key *hmac = hmac_allocHMAC(HMAC_AES128, key);
     /* There is no HMAC library, so we return nullptr! */
     ASSERT_EQ(hmac, nullptr);
+    EXPECT_EQ(hmac_count(), 0);
     /* No library is loaded! */
     EXPECT_EQ(hmac_loadLibrary(), nullptr);
 }

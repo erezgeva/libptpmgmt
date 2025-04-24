@@ -445,7 +445,7 @@ struct HMAC_Key {
     HMAC_t m_type;
     Binary m_key;
     virtual ~HMAC_Key();
-    virtual bool init(HMAC_t _type) = 0;
+    virtual bool init() = 0;
     virtual bool digest(const void *data, size_t len, Binary &mac) = 0;
     virtual bool verify(const void *data, size_t len, Binary &mac) = 0;
 };
@@ -471,6 +471,7 @@ const char *hmac_loadLibrary();
 bool hmac_selectLib(const std::string &libMatch);
 bool hmac_isLibShared();
 void hmac_freeLib();
+size_t hmac_count();
 HMAC_Key *hmac_allocHMAC(HMAC_t type, const Binary &key);
 
 __PTPMGMT_NAMESPACE_END

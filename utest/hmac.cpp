@@ -70,8 +70,10 @@ TEST(hmacTest, MethodIsLibShared)
 TEST(hmacTest, SHA256_128)
 {
     Binary key(bkey, 32);
+    EXPECT_EQ(hmac_count(), 0);
     HMAC_Key *hmac = hmac_allocHMAC(HMAC_SHA256, key);
     ASSERT_NE(hmac, nullptr);
+    EXPECT_EQ(hmac_count(), 1);
     EXPECT_EQ(hmac->m_type, HMAC_SHA256);
     EXPECT_EQ(hmac->m_key, key);
     Binary mac(16);
@@ -84,6 +86,7 @@ TEST(hmacTest, SHA256_128)
     EXPECT_EQ(memcmp(mac.get(), ret, mac.size()), 0);
     EXPECT_TRUE(hmac->verify(data, sizeof data, mac));
     delete hmac;
+    EXPECT_EQ(hmac_count(), 0);
 }
 
 TEST(hmacTest, SHA256)

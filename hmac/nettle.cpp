@@ -29,19 +29,19 @@ struct Nettle : public HMAC_Key {
     void *m_ctx = nullptr;
     const struct nettle_mac *m_mac = nullptr;
     ~Nettle() override {free(m_ctx);};
-    bool init(HMAC_t type) override final;
+    bool init() override final;
     bool digest(const void *data, size_t len, Binary &mac) override final;
     bool verify(const void *data, size_t len, Binary &mac) override final;
 };
-bool Nettle::init(HMAC_t type)
+bool Nettle::init()
 {
-    const char *name = vals[type];
+    const char *name = vals[m_type];
     for(int i = 0; nettle_macs[i] != nullptr; i++) {
         m_mac = nettle_macs[i];
         if(!strcmp(name, m_mac->name)) {
             if(m_mac->context_size == 0 || m_mac->set_key == nullptr)
                 return false;
-            if(type == HMAC_SHA256) {
+            if(m_type == HMAC_SHA256) {
                 m_ctx = malloc(sizeof(hmac_sha256_ctx));
                 if(m_ctx == nullptr)
                     return false;

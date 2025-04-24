@@ -71,8 +71,10 @@ TEST(hmacTest, DynLoadGnutls)
     EXPECT_EQ(strncmp(hmac_loadLibrary(), "libptpmgmt_gnutls.so", 20), 0);
     EXPECT_TRUE(hmac_isLibShared());
     Binary key(bkey, 16);
+    EXPECT_EQ(hmac_count(), 0);
     HMAC_Key *hmac = hmac_allocHMAC(HMAC_AES128, key);
     ASSERT_NE(hmac, nullptr);
+    EXPECT_EQ(hmac_count(), 1);
     EXPECT_EQ(hmac->m_type, HMAC_AES128);
     EXPECT_EQ(hmac->m_key, key);
     Binary mac(16);
@@ -83,5 +85,7 @@ TEST(hmacTest, DynLoadGnutls)
     EXPECT_EQ(memcmp(mac.get(), ret, mac.size()), 0);
     EXPECT_TRUE(hmac->verify(data, sizeof data, mac));
     delete hmac;
+    EXPECT_EQ(hmac_count(), 0);
     hmac_freeLib();
+    EXPECT_EQ(hmac_count(), 0);
 }
