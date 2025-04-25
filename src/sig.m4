@@ -127,16 +127,14 @@ strc(L1_SYNC_t) sz(: public BaseSigTlv) {
      * @li bit 2: CR    L1SyncBasicPortDS.congruentIsRequired
      * @li bit 3: OPE   L1SyncBasicPortDS.optParamsEnabled
      */
-    uint8_t flags1;
-cpp_cod(`    static const uint8_t flagsMask1; /**< mask for flags1 */')dnl
+    flgs2(flags1, 1)
     /**
      * Bit fields flag
      * @li bit 0: ITC   L1SyncBasicPortDS.isTxCoherent
      * @li bit 1: IRC   L1SyncBasicPortDS.isRxCoherent
      * @li bit 2: IC    L1SyncBasicPortDS.isCongruent
      */
-    uint8_t flags2;
-cpp_cod(`    static const uint8_t flagsMask2; /**< Mask for flags2 */')dnl
+    flgs2(flags2, 2)
 };
 /** PORT_COMMUNICATION_AVAILABILITY */
 strc(PORT_COMMUNICATION_AVAILABILITY_t) sz(: public BaseSigTlv) {
@@ -149,8 +147,7 @@ strc(PORT_COMMUNICATION_AVAILABILITY_t) sz(: public BaseSigTlv) {
      * @li bit 3 syncCapabilities.unicastNegotiationCapable.
      * flags from communicationCapabilitiesPortDS.syncCapabilities
      */
-    uint8_t syncMessageAvailability;
-cpp_cod(`    static const uint8_t flagsMask1; /**< Mask for syncMessageAvailability */')dnl
+    flgs2(syncMessageAvailability, 1)
     /**
      * Bit fields delayRespMessageAvailability
      * @li bit 0 delayRespCapabilities.multicastCapable
@@ -160,8 +157,7 @@ cpp_cod(`    static const uint8_t flagsMask1; /**< Mask for syncMessageAvailabil
      * @li bit 3 delayRespCapabilities.unicastNegotiationCapable.
      * flags from communicationCapabilitiesPortDS.delayRespCapabilities.
      */
-    uint8_t delayRespMessageAvailability;
-cpp_cod(`    static const uint8_t flagsMask2; /**< Mask for delayRespMessageAvailability */')dnl
+    flgs2(delayRespMessageAvailability, 2)
 };
 /** PROTOCOL_ADDRESS TLV */
 strc(PROTOCOL_ADDRESS_t) sz(: public BaseSigTlv) {
@@ -182,10 +178,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() {')dnl
-cpp_cod(`        return sizeof sequenceId + 2 * Timestamp_t::size() +')dnl
-cpp_cod(`            TimeInterval_t::size() + sizeof scaledCumulativeRateOffset;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static size_t size();')dnl
 };
 /** SLAVE_RX_SYNC_TIMING_DATA TLV */
 strc(SLAVE_RX_SYNC_TIMING_DATA_t) sz(: public BaseSigTlv) {
@@ -208,10 +201,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() {')dnl
-cpp_cod(`        return sizeof sequenceId + 2 * TimeInterval_t::size() +')dnl
-cpp_cod(`            sizeof scaledNeighborRateRatio;')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static size_t size();')dnl
 };
 /** SLAVE_RX_SYNC_COMPUTED_DATA TLV */
 strc(SLAVE_RX_SYNC_COMPUTED_DATA_t) sz(: public BaseSigTlv) {
@@ -223,8 +213,7 @@ strc(SLAVE_RX_SYNC_COMPUTED_DATA_t) sz(: public BaseSigTlv) {
      * @li bit 1: meanPathDelayValid
      * @li bit 2: offsetFromMasterValid
     */
-    uint8_t computedFlags;
-cpp_cod(`    static const uint8_t flagsMask; /**< Mask for computedFlags */')dnl
+    flgs2(computedFlags, )
     /** records of received sync messages */
     vec(SLAVE_RX_SYNC_COMPUTED_DATA_rec_t)list;
 };
@@ -238,7 +227,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() { return sizeof sequenceId + Timestamp_t::size(); }')dnl
+cpp_cod(`    static size_t size();')dnl
 };
 /** SLAVE_TX_EVENT_TIMESTAMPS TLV */
 strc(SLAVE_TX_EVENT_TIMESTAMPS_t) sz(: public BaseSigTlv) {
@@ -306,11 +295,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() {')dnl
-cpp_cod(`        return 3 * 2 + sizeof(UInteger32_t) * 2 + sizeof(uint8_t) * 3 +')dnl
-cpp_cod(`            sizeof(Integer32_t) * 3 + sizeof_UInteger48_t * 3')dnl
-cpp_cod(`            + sizeof(SMPTEmasterLockingStatus_e);')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static size_t size();')dnl
 };
 /** SLAVE_DELAY_TIMING_DATA_NP TLV record
  * @note linuxptp implementation specific
@@ -327,10 +312,7 @@ cpp_cod(`    /**')dnl
 cpp_cod(`     * Get object size')dnl
 cpp_cod(`     * @return object size')dnl
 cpp_cod(`     */')dnl
-cpp_cod(`    static size_t size() {')dnl
-cpp_cod(`        return sizeof sequenceId + TimeInterval_t::size() +')dnl
-cpp_cod(`            2 * Timestamp_t::size();')dnl
-cpp_cod(`    }')dnl
+cpp_cod(`    static size_t size();')dnl
 };
 /** SLAVE_DELAY_TIMING_DATA_NP TLV
  * @note linuxptp implementation specific

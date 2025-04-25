@@ -20,6 +20,32 @@ const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask1 = 0xf;
 const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask2 = 0xf;
 const uint8_t SLAVE_RX_SYNC_COMPUTED_DATA_t::flagsMask = 0x7;
 
+size_t SLAVE_RX_SYNC_TIMING_DATA_rec_t::size()
+{
+    return sizeof sequenceId + 2 * Timestamp_t::size() +
+        TimeInterval_t::size() + sizeof scaledCumulativeRateOffset;
+}
+size_t SLAVE_RX_SYNC_COMPUTED_DATA_rec_t::size()
+{
+    return sizeof sequenceId + 2 * TimeInterval_t::size() +
+        sizeof scaledNeighborRateRatio;
+}
+size_t SLAVE_TX_EVENT_TIMESTAMPS_rec_t::size()
+{
+    return sizeof sequenceId + Timestamp_t::size();
+}
+size_t SMPTE_ORGANIZATION_EXTENSION_t::size()
+{
+    return 3 * 2 + sizeof(UInteger32_t) * 2 + sizeof(uint8_t) * 3 +
+        sizeof(Integer32_t) * 3 + sizeof_UInteger48_t * 3
+        + sizeof(SMPTEmasterLockingStatus_e);
+}
+size_t SLAVE_DELAY_TIMING_DATA_NP_rec_t::size()
+{
+    return sizeof sequenceId + TimeInterval_t::size() +
+        2 * Timestamp_t::size();
+}
+
 static inline void copyMANAGEMENT(MANAGEMENT_t &m, const MANAGEMENT_t &o)
 {
 #define _ptpmCaseUF(n) case n: {\

@@ -456,13 +456,13 @@ struct HMAC_lib {
     const char *m_name; /**< Used in static only */
 };
 
+static const size_t HMAC_MAX_MAC_SIZE = 64;
+static const size_t HMAC_MAC_SIZE_16 = 16;
+static const size_t HMAC_MAC_SIZE_32 = 32;
 /**
  * Library binding use C, find it easily with dlsym()
  *  and '-uptpm_hmac' for static link.
  */
-static const size_t HMAC_MAX_MAC_SIZE = 64;
-static const size_t HMAC_MAC_SIZE_16 = 16;
-static const size_t HMAC_MAC_SIZE_32 = 32;
 #define HMAC_DECL(cls) \
     HMAC_lib me = { [](){return new cls;}, HLIB_NAME }; \
     extern "C" { HMAC_lib *ptpm_hmac() { return &me; } }
