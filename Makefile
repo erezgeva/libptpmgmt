@@ -287,7 +287,7 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   $(CLKMGR_DIR)/sample/*.c* $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
-  $(MAKEFILE_LIST) credits $(SRCS_CLKMGR)
+  $(MAKEFILE_LIST) credits $(CLKMGR_DIR)/credits $(SRCS_CLKMGR)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[chj]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\

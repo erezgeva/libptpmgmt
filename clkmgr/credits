@@ -1,0 +1,37 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+SPDX-FileCopyrightText: Copyright © 2025 Erez Geva <ErezGeva2@gmail.com>
+
+Formatted: name (N), email (E), description (D), Files (F)
+
+Main developers of the Clock manager sub project:
+
+N: Christopher S M Hall
+E: christopher.s.hall@intel.com
+
+N: Noor Azura Ahmad Tarmizi
+E: noor.azura.ahmad.tarmizi@intel.com
+
+N: Song Yoong Siang
+E: yoong.siang.song@intel.com
+
+N: Lai Peter Jun Ann
+E: peter.jun.ann.lai@intel.com
+
+N: Wei Sheng Goh
+E: wei.sheng.goh@intel.com
+
+Additional Contributors to the Clock manager sub project:
+
+N: David Zage
+E: david.zage@intel.com
+D: Arrange Documentations
+F: README.md
+F: clkmgr/HLD_clkmgr.md
+F: clkmgr/README.md
+F: clkmgr/image/clkmgr_overview.png
+
+N: github.com/sharun2
+D: Improve Spelling of Documentations
+F: clkmgr/README.md
+F: clkmgr/HLD_clkmgr.md
+F: clkmgr/TEST_clkmgr.md
