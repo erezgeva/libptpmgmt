@@ -93,7 +93,7 @@ class PTPCfg
 class TimeBaseRecord
 {
   private:
-    size_t m_index; /**< Index of the time base */
+    size_t m_index = 0; /**< Index of the time base */
     std::string m_name; /**< Name of the time base */
     bool m_have_ptp = true; /**< does this time base use PTP */
     PTPCfg m_ptp; /**< PTP configuration */
