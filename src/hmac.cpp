@@ -19,10 +19,12 @@
 __PTPMGMT_NAMESPACE_BEGIN
 
 extern "C" { typedef HMAC_lib *(*ptpm_hmac_fech_t)(); }
-HMAC_lib *ptpm_hmac_p = nullptr;
-static mutex hmacLoadLock; // Lock loading and unloading
+
 #ifdef PIC // Shared library code
-// Here hmacCount is protected by hmacLoadLock
+static mutex hmacLoadLock; // Lock loading and unloading
+#define LIB_LOCK unique_lock<mutex> lock(hmacLoadLock)
+// Here hmacCount and ptpm_hmac_p are protected by hmacLoadLock
+static HMAC_lib *ptpm_hmac_p = nullptr;
 static size_t hmacCount = 0; // Count how many objects exist
 static void *hmacLib = nullptr;
 static const char *useLib = nullptr;
@@ -106,21 +108,49 @@ static bool doLoadLibrary()
     if(hmacLib != nullptr) {
         // A Library already loaded
         PTPMGMT_ERROR_CLR;
-        return true;
+        return false;
     }
     for(const char **cur = list; *cur != nullptr; cur++) {
         if(tryLib(*cur)) {
             // We manage to load a proper library
             PTPMGMT_ERROR_CLR;
-            return true;
+            return false;
         }
     }
     doLibNull(); // Ensure all pointers stay null
     PTPMGMT_ERROR("fail loading an HMAC library");
-    return false;
+    return true;
 }
-static inline void libFree()
+static inline HMAC_Key *internAlloc()
 {
+    LIB_LOCK;
+    if(doLoadLibrary())
+        return nullptr;
+    HMAC_Key *hmac = ptpm_hmac_p->m_alloc_key();
+    if(hmac == nullptr) {
+        PTPMGMT_ERROR("allocation of HMAC_Key failed");
+        return nullptr;
+    }
+    hmacCount++;
+    return hmac;
+}
+const char *hmac_loadLibrary()
+{
+    LIB_LOCK;
+    return doLoadLibrary() ? nullptr : useLib;
+}
+bool hmac_selectLib(const string &libMatch)
+{
+    LIB_LOCK;
+    return doReloadLibrary(libMatch);
+}
+bool hmac_isLibShared()
+{
+    return true;
+}
+void hmac_freeLib()
+{
+    LIB_LOCK;
     if(hmacCount == 0) {
         PTPMGMT_ERROR_CLR;
         if(hmacLib != nullptr) {
@@ -129,82 +159,72 @@ static inline void libFree()
         }
     }
 }
-#define LIB_LOCK unique_lock<mutex> lock(hmacLoadLock)
-#define LIB_LOAD if(hmacLib == nullptr && !doLoadLibrary()) return nullptr
-#define LIB_RELOAD(match) if(!doReloadLibrary(match)) return false
-#define LIB_FREE libFree()
-#define LIB_NAME useLib
-#define LIB_SHARED true
-#define LIB_HMAC_COUNT_VAL hmacCount
-#else // PIC
-// Here hmacCount is not protected by other means, so we use atomic
-static atomic_size_t hmacCount(0); // Count how many objects exist
-extern "C" { extern HMAC_lib *ptpm_hmac() WEAK; }
-static bool staticLink()
-{
-    if(ptpm_hmac_p == nullptr) {
-        PTPMGMT_ERROR_CLR;
-        unique_lock<mutex> lock(hmacLoadLock);
-        // Just in case other thread allocate, while we were locked
-        if(ptpm_hmac_p != nullptr)
-            return false;
-        if(ptpm_hmac == (ptpm_hmac_fech_t)nullptr) {
-            PTPMGMT_ERROR("Link without any HMAC library");
-            return true;
-        }
-        ptpm_hmac_p = ptpm_hmac();
-        return ptpm_hmac_p == nullptr;
-    }
-    return false;
-}
-#define LIB_LOCK
-#define LIB_LOAD if(staticLink()) return nullptr
-#define LIB_RELOAD(match)
-#define LIB_FREE
-#define LIB_NAME ptpm_hmac_p->m_name
-#define LIB_SHARED false
-#define LIB_HMAC_COUNT_VAL hmacCount.load()
-#endif // PIC
-
-const char *hmac_loadLibrary()
-{
-    LIB_LOCK;
-    LIB_LOAD;
-    return LIB_NAME;
-}
-bool hmac_selectLib(const string &libMatch)
-{
-    LIB_LOCK;
-    LIB_RELOAD(libMatch);
-    return LIB_SHARED;
-}
-bool hmac_isLibShared()
-{
-    return LIB_SHARED;
-}
-void hmac_freeLib()
-{
-    LIB_LOCK;
-    LIB_FREE;
-}
 size_t hmac_count()
 {
     LIB_LOCK;
-    return LIB_HMAC_COUNT_VAL;
+    return hmacCount;
 }
+HMAC_Key::~HMAC_Key()
+{
+    LIB_LOCK;
+    hmacCount--;
+}
+#else // PIC
+extern "C" { extern HMAC_lib *ptpm_hmac() WEAK; }
+// Here ptpm_hmac_p is initilize on library loading
+static HMAC_lib *ptpm_hmac_p =
+    ptpm_hmac == (ptpm_hmac_fech_t)nullptr ? nullptr : ptpm_hmac();
+// Here hmacCount is atomic
+static atomic_size_t hmacCount_a(0); // Count how many objects exist
+static bool staticLink()
+{
+    if(ptpm_hmac_p == nullptr) {
+        PTPMGMT_ERROR("Link without any HMAC library");
+        return true;
+    }
+    return false;
+}
+static inline HMAC_Key *internAlloc()
+{
+    if(staticLink())
+        return nullptr;
+    HMAC_Key *hmac = ptpm_hmac_p->m_alloc_key();
+    if(hmac == nullptr) {
+        PTPMGMT_ERROR("allocation of HMAC_Key failed");
+        return nullptr;
+    }
+    hmacCount_a++;
+    return hmac;
+}
+const char *hmac_loadLibrary()
+{
+    return staticLink() ? nullptr : ptpm_hmac_p->m_name;
+}
+bool hmac_selectLib(const string &libMatch)
+{
+    return false;
+}
+bool hmac_isLibShared()
+{
+    return false;
+}
+void hmac_freeLib()
+{
+}
+size_t hmac_count()
+{
+    return hmacCount_a.load();
+}
+HMAC_Key::~HMAC_Key()
+{
+    hmacCount_a--;
+}
+#endif // PIC
 HMAC_Key *hmac_allocHMAC(HMAC_t type, const Binary &key)
 {
-    HMAC_Key *hmac;
-    {
-        LIB_LOCK;
-        LIB_LOAD;
-        hmac = ptpm_hmac_p->m_alloc_key();
-        if(hmac == nullptr) {
-            PTPMGMT_ERROR("allocation of HMAC_Key failed");
-            return nullptr;
-        }
-        hmacCount++;
-    }
+    HMAC_Key *hmac = internAlloc();
+    if(hmac == nullptr)
+        return nullptr;
     hmac->m_type = type;
     hmac->m_key = key;
     if(!hmac->init()) {
@@ -213,11 +233,6 @@ HMAC_Key *hmac_allocHMAC(HMAC_t type, const Binary &key)
     }
     PTPMGMT_ERROR_CLR;
     return hmac;
-}
-HMAC_Key::~HMAC_Key()
-{
-    LIB_LOCK;
-    hmacCount--;
 }
 
 __PTPMGMT_NAMESPACE_END

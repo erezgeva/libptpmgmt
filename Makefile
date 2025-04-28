@@ -431,9 +431,11 @@ PYUVGD:=PYTHONMALLOC=malloc $(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(S
 endif # VGD_PY
 endif # VALGRIND
 
+# src/hmac.cpp have different code for static and dynamic code
+LIBTOOL_$(OBJ_DIR)/hmac.lo=-no-suppress
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
-	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
+	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@ $(LIBTOOL_$@)
 $(LIB_NAME_LA): $(LIB_OBJS)
 $(LIB_NAME_SO): $(LIB_NAME_LA)
 	@:
