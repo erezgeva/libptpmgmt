@@ -893,6 +893,16 @@ JS(L1_SYNC)
     PROC_FLGB(isTxCoherent, flags2, 0);
     PROC_FLGB(isRxCoherent, flags2, 1);
     PROC_FLGB(isCongruent, flags2, 2);
+    if((d.flags1 & d.optParamsEnabled) > 0) {
+        // Support extended L1_SYNC TLV
+        PROC_FLGB(timestampsCorrectedTx, flags3, 0);
+        PROC_FLGB(phaseOffsetTxValid, flags3, 1);
+        PROC_FLGB(frequencyOffsetTxValid, flags3, 2);
+        PROC_VAL(phaseOffsetTx);
+        PROC_VAL(phaseOffsetTxTimestamp);
+        PROC_VAL(freqOffsetTx);
+        PROC_VAL(freqOffsetTxTimestamp);
+    }
 }
 JS(PORT_COMMUNICATION_AVAILABILITY)
 {
