@@ -506,7 +506,7 @@ void MngErrMoreTlvs_f()
     uint8_t m1[22] = {4, 0x80, 0, 0x76, 0x5c, 0xbb, 0xcb, 0xe3, 0xd4, 0x12,
             0x57, 0x89, 0x19, 0x33, 0x24, 5, 97, 108, 116, 101, 114
         };
-    uint8_t m2[] = {15, 7};
+    uint8_t m2[] = {7, 7}; // Without extensions
     uint8_t m3[] = {15, 15};
     uint8_t m4[8] = {0, 1, 0, 4, 0x12, 0x34, 0x56, 0x78};
     uint8_t m5[] = {0x99, 0x1a, 0x11, 0xbd};
@@ -516,6 +516,13 @@ void MngErrMoreTlvs_f()
     addTlv(PORT_COMMUNICATION_AVAILABILITY, m3, sizeof m3);
     addTlv(PROTOCOL_ADDRESS, m4, sizeof m4);
     addTlv(CUMULATIVE_RATE_RATIO, m5, sizeof m5);
+    sendSig();
+}
+void MngErrMoreTlvs_f_L1_SYNC_f()
+{
+    baseSig();
+    uint8_t m2[] = {7, 7};
+    addTlv(L1_SYNC, m2, sizeof m2);
     sendSig();
 }
 void VectorTlvs_f()

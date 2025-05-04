@@ -278,7 +278,7 @@ TEST_F(SigTest, MngErrMoreTlvs)
             0x57, 0x89, 0x19, 0x33, 0x24, 5, 97, 108, 116, 101, 114
         };
     addTlv(ALTERNATE_TIME_OFFSET_INDICATOR, m1, sizeof m1);
-    uint8_t m2[2] = {15, 7};
+    uint8_t m2[2] = {7, 7}; // Without extensions
     addTlv(L1_SYNC, m2, sizeof m2);
     uint8_t m3[2] = {15, 15};
     addTlv(PORT_COMMUNICATION_AVAILABILITY, m3, sizeof m3);
@@ -313,7 +313,7 @@ TEST_F(SigTest, MngErrMoreTlvs)
     const L1_SYNC_t *p2 =
         dynamic_cast<const L1_SYNC_t *>(getSigTlv(2));
     ASSERT_NE(p2, nullptr);
-    EXPECT_EQ(p2->flags1, 15);
+    EXPECT_EQ(p2->flags1, 7); // Without extensions
     EXPECT_EQ(p2->flags2, 7);
     ASSERT_EQ(getSigTlvType(3), PORT_COMMUNICATION_AVAILABILITY);
     const PORT_COMMUNICATION_AVAILABILITY_t *p3 =
