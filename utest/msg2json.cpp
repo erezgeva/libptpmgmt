@@ -208,7 +208,7 @@ TEST(Msg2JsonTest, Signaling)
             0x57, 0x89, 0x19, 0x33, 0x24, 5, 97, 108, 116, 101, 114
         };
     addTlv(curLen, buf, ALTERNATE_TIME_OFFSET_INDICATOR, m6, sizeof m6);
-    uint8_t m7[2] = {15, 7};
+    uint8_t m7[2] = {7, 7}; // Without extensions
     addTlv(curLen, buf, L1_SYNC, m7, sizeof m7);
     uint8_t m8[2] = {15, 15};
     addTlv(curLen, buf, PORT_COMMUNICATION_AVAILABILITY, m8, sizeof m8);
@@ -261,6 +261,12 @@ TEST(Msg2JsonTest, Signaling)
             0, 8, 0x42, 8, 0xa4, 0x37, 6, 0x2c, 0xe2
         };
     addTlv(curLen, buf, SLAVE_DELAY_TIMING_DATA_NP, m16, sizeof m16);
+    // L1_SYNC with extensions
+    uint8_t m17[40] = {15, 7, 7, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf1,
+            12, 78, 65, 85, 48, 15, 56, 78, 17, 86, 0xc7, 0x64, 0xa8, 0x78,
+            0xf6, 0xbc, 0x19, 0xf1, 82, 74, 65, 65, 44, 15, 55, 78, 14, 81
+        };
+    addTlv(curLen, buf, L1_SYNC, m17, sizeof m17);
     // header.messageLength
     buf[2] = curLen >> 8;
     buf[3] = curLen & 0xff;
@@ -340,7 +346,7 @@ TEST(Msg2JsonTest, Signaling)
         "      \"txCoherentIsRequired\" : true,\n"
         "      \"rxCoherentIsRequired\" : true,\n"
         "      \"congruentIsRequired\" : true,\n"
-        "      \"optParamsEnabled\" : true,\n"
+        "      \"optParamsEnabled\" : false,\n"
         "      \"isTxCoherent\" : true,\n"
         "      \"isRxCoherent\" : true,\n"
         "      \"isCongruent\" : true\n"
@@ -490,6 +496,23 @@ TEST(Msg2JsonTest, Signaling)
         "          \"delayResponseTimestamp\" : 216603929217188.923151586\n"
         "        }\n"
         "      ]\n"
+        "    },\n"
+        "    {\n"
+        "      \"tlvType\" : \"L1_SYNC\",\n"
+        "      \"txCoherentIsRequired\" : true,\n"
+        "      \"rxCoherentIsRequired\" : true,\n"
+        "      \"congruentIsRequired\" : true,\n"
+        "      \"optParamsEnabled\" : true,\n"
+        "      \"isTxCoherent\" : true,\n"
+        "      \"isRxCoherent\" : true,\n"
+        "      \"isCongruent\" : true,\n"
+        "      \"timestampsCorrectedTx\" : true,\n"
+        "      \"phaseOffsetTxValid\" : true,\n"
+        "      \"frequencyOffsetTxValid\" : true,\n"
+        "      \"phaseOffsetTx\" : 1311768467463790321,\n"
+        "      \"phaseOffsetTxTimestamp\" : 13530243084303.944640342,\n"
+        "      \"freqOffsetTx\" : -4078950125001762319,\n"
+        "      \"freqOffsetTxTimestamp\" : 90478875847695.927862353\n"
         "    }\n"
         "  ]\n"
         "}");
