@@ -300,11 +300,17 @@ TEST_F(SigTest, MngErrMoreTlvs)
     addTlv(PROTOCOL_ADDRESS, m4, sizeof m4);
     uint8_t m5[4] = {0x99, 0x1a, 0x11, 0xbd};
     addTlv(CUMULATIVE_RATE_RATIO, m5, sizeof m5);
+    // L1_SYNC with extensions
+    uint8_t m6[40] = {15, 7, 7, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf1,
+            12, 78, 65, 85, 48, 15, 56, 78, 17, 86, 0xc7, 0x64, 0xa8, 0x78,
+            0xf6, 0xbc, 0x19, 0xf1, 82, 74, 65, 65, 44, 15, 55, 78, 14, 81
+        };
+    addTlv(L1_SYNC, m6, sizeof m6);
     a.filterSignaling = false;
     EXPECT_TRUE(updateParams(a));
     ASSERT_EQ(doParse(), MNG_PARSE_ERROR_SIG);
     EXPECT_TRUE(isLastMsgSig());
-    EXPECT_EQ(getSigTlvsCount(), 6);
+    EXPECT_EQ(getSigTlvsCount(), 7);
     ASSERT_EQ(getSigTlvType(0), MANAGEMENT_ERROR_STATUS);
     const MANAGEMENT_ERROR_STATUS_t *p0 =
         dynamic_cast<const MANAGEMENT_ERROR_STATUS_t *>(getSigTlv(0));
@@ -329,6 +335,14 @@ TEST_F(SigTest, MngErrMoreTlvs)
     ASSERT_NE(p2, nullptr);
     EXPECT_EQ(p2->flags1, 7); // Without extensions
     EXPECT_EQ(p2->flags2, 7);
+    // Extensions flag is false
+    EXPECT_EQ(p2->flags1 & L1_SYNC_t::optParamsEnabled, 0);
+    // All extensions are zero
+    EXPECT_EQ(p2->flags3, 0);
+    EXPECT_EQ(p2->phaseOffsetTx.scaledNanoseconds, 0);
+    EXPECT_EQ(p2->phaseOffsetTxTimestamp, Timestamp_t());
+    EXPECT_EQ(p2->freqOffsetTx.scaledNanoseconds, 0);
+    EXPECT_EQ(p2->freqOffsetTxTimestamp, Timestamp_t());
     ASSERT_EQ(getSigTlvType(3), PORT_COMMUNICATION_AVAILABILITY);
     const PORT_COMMUNICATION_AVAILABILITY_t *p3 =
         dynamic_cast<const PORT_COMMUNICATION_AVAILABILITY_t *>(getSigTlv(3));
@@ -346,6 +360,22 @@ TEST_F(SigTest, MngErrMoreTlvs)
         dynamic_cast<const CUMULATIVE_RATE_RATIO_t *>(getSigTlv(5));
     ASSERT_NE(p5, nullptr);
     EXPECT_EQ(p5->scaledCumulativeRateRatio, -1726344771);
+    ASSERT_EQ(getSigTlvType(6), L1_SYNC);
+    const L1_SYNC_t *p6 =
+        dynamic_cast<const L1_SYNC_t *>(getSigTlv(6));
+    ASSERT_NE(p6, nullptr);
+    EXPECT_EQ(p6->flags1, 15); // With extensions
+    EXPECT_EQ(p6->flags2, 7);
+    // Extensions flag is true
+    EXPECT_NE(p6->flags1 & L1_SYNC_t::optParamsEnabled, 0);
+    // Extensions fields
+    EXPECT_EQ(p6->flags3, 7);
+    EXPECT_EQ(p6->phaseOffsetTx.scaledNanoseconds, 1311768467463790321);
+    EXPECT_EQ(p6->phaseOffsetTxTimestamp, Timestamp_t(13530243084303, 944640342));
+    EXPECT_EQ(p6->freqOffsetTx.scaledNanoseconds, -4078950125001762319);
+    EXPECT_EQ(p6->freqOffsetTxTimestamp, Timestamp_t(90478875847695, 927862353));
+    EXPECT_EQ(p6->freqOffsetTxTimestamp.secondsField, 90478875847695);
+    EXPECT_EQ(p6->freqOffsetTxTimestamp.nanosecondsField, 927862353);
 }
 
 // Tests vector TLVs

@@ -16,6 +16,8 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 const uint8_t L1_SYNC_t::flagsMask1 = 0xf;
 const uint8_t L1_SYNC_t::flagsMask2 = 0x7;
+const uint8_t L1_SYNC_t::flagsMask3 = 0x7;
+const uint8_t L1_SYNC_t::optParamsEnabled = 0x8; // flags1.OPE
 const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask1 = 0xf;
 const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask2 = 0xf;
 const uint8_t SLAVE_RX_SYNC_COMPUTED_DATA_t::flagsMask = 0x7;
@@ -114,7 +116,20 @@ A(ENHANCED_ACCURACY_METRICS)
 }
 A(L1_SYNC)
 {
-    return procFlags(d.flags1, d.flagsMask1) || procFlags(d.flags2, d.flagsMask2);
+    if(procFlags(d.flags1, d.flagsMask1) || procFlags(d.flags2, d.flagsMask2))
+        return true;
+    // Check if using extended L1_SYNC TLV, and parse extentet parameters
+    if((d.flags1 & d.optParamsEnabled) > 0)
+        return procFlags(d.flags3, d.flagsMask3) ||
+            proc(d.phaseOffsetTx) || proc(d.phaseOffsetTxTimestamp) ||
+            proc(d.freqOffsetTx) || proc(d.freqOffsetTxTimestamp);
+    // For non-extended TLV, zero all extentet parameters
+    d.flags3 = 0;
+    d.phaseOffsetTx = { 0 };
+    d.phaseOffsetTxTimestamp = { 0 };
+    d.freqOffsetTx = { 0 };
+    d.freqOffsetTxTimestamp = { 0 };
+    return false;
 }
 A(PORT_COMMUNICATION_AVAILABILITY)
 {
@@ -272,6 +287,21 @@ C1(L1_SYNC)
 {
     C1_M(flags1);
     C1_M(flags2);
+    if((d.flags1 & d.optParamsEnabled) > 0) {
+        // For extended TLV, copy extentet parameters
+        C1_M(flags3);
+        C1_VARA(phaseOffsetTx);
+        C1_VARA(phaseOffsetTxTimestamp);
+        C1_VARA(freqOffsetTx);
+        C1_VARA(freqOffsetTxTimestamp);
+    } else {
+        // For non-extended TLV, zero all extentet parameters
+        a.flags3 = 0;
+        a.phaseOffsetTx = { 0 };
+        a.phaseOffsetTxTimestamp = { 0 };
+        a.freqOffsetTx = { 0 };
+        a.freqOffsetTxTimestamp = { 0 };
+    }
 }
 C1(PORT_COMMUNICATION_AVAILABILITY)
 {

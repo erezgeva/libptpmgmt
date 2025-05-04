@@ -341,7 +341,7 @@ Test(SigTest, MngErrMoreTlvs)
             0x57, 0x89, 0x19, 0x33, 0x24, 5, 97, 108, 116, 101, 114
         };
     addTlv(buf, &curLen, PTPMGMT_ALTERNATE_TIME_OFFSET_INDICATOR, m1, sizeof m1);
-    uint8_t m2[2] = {15, 7};
+    uint8_t m2[2] = {7, 7}; // Without extensions
     addTlv(buf, &curLen, PTPMGMT_L1_SYNC, m2, sizeof m2);
     uint8_t m3[2] = {15, 15};
     addTlv(buf, &curLen, PTPMGMT_PORT_COMMUNICATION_AVAILABILITY, m3, sizeof m3);
@@ -349,6 +349,12 @@ Test(SigTest, MngErrMoreTlvs)
     addTlv(buf, &curLen, PTPMGMT_PROTOCOL_ADDRESS, m4, sizeof m4);
     uint8_t m5[4] = {0x99, 0x1a, 0x11, 0xbd};
     addTlv(buf, &curLen, PTPMGMT_CUMULATIVE_RATE_RATIO, m5, sizeof m5);
+    // L1_SYNC with extensions
+    uint8_t m6[40] = {15, 7, 7, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf1,
+            12, 78, 65, 85, 48, 15, 56, 78, 17, 86, 0xc7, 0x64, 0xa8, 0x78,
+            0xf6, 0xbc, 0x19, 0xf1, 82, 74, 65, 65, 44, 15, 55, 78, 14, 81
+        };
+    addTlv(buf, &curLen, PTPMGMT_L1_SYNC, m6, sizeof m6);
     a->filterSignaling = false;
     cr_expect(m->updateParams(m, a));
     // header.messageLength
@@ -356,7 +362,7 @@ Test(SigTest, MngErrMoreTlvs)
     buf[3] = curLen & 0xff;
     cr_assert(eq(int, m->parse(m, buf, curLen), PTPMGMT_MNG_PARSE_ERROR_SIG));
     cr_expect(m->isLastMsgSig(m));
-    cr_expect(eq(int, m->getSigTlvsCount(m), 6));
+    cr_expect(eq(int, m->getSigTlvsCount(m), 7));
     cr_assert(eq(int, m->getSigTlvType(m, 0), PTPMGMT_MANAGEMENT_ERROR_STATUS));
     const struct ptpmgmt_MANAGEMENT_ERROR_STATUS_t *p0 =
         (const struct ptpmgmt_MANAGEMENT_ERROR_STATUS_t *)m->getSigTlv(m, 0);
@@ -381,8 +387,18 @@ Test(SigTest, MngErrMoreTlvs)
     const struct ptpmgmt_L1_SYNC_t *p2 =
         (const struct ptpmgmt_L1_SYNC_t *)m->getSigTlv(m, 2);
     cr_assert(not(zero(ptr, (void *)p2)));
-    cr_expect(eq(int, p2->flags1, 15));
+    cr_expect(eq(int, p2->flags1, 7)); // Without extensions
     cr_expect(eq(int, p2->flags2, 7));
+    // Extensions flag is false
+    cr_expect(zero(int, p2->flags1 & 8));
+    // All extensions are zero
+    cr_expect(zero(int, p2->flags3));
+    cr_expect(zero(i64, p2->phaseOffsetTx.scaledNanoseconds));
+    cr_expect(zero(u64, p2->phaseOffsetTxTimestamp.secondsField));
+    cr_expect(zero(u32, p2->phaseOffsetTxTimestamp.nanosecondsField));
+    cr_expect(zero(i64, p2->freqOffsetTx.scaledNanoseconds));
+    cr_expect(zero(u64, p2->freqOffsetTxTimestamp.secondsField));
+    cr_expect(zero(u32, p2->freqOffsetTxTimestamp.nanosecondsField));
     cr_assert(eq(int, m->getSigTlvType(m, 3),
             PTPMGMT_PORT_COMMUNICATION_AVAILABILITY));
     const struct ptpmgmt_PORT_COMMUNICATION_AVAILABILITY_t *p3 =
@@ -404,6 +420,21 @@ Test(SigTest, MngErrMoreTlvs)
         (const struct ptpmgmt_CUMULATIVE_RATE_RATIO_t *)m->getSigTlv(m, 5);
     cr_assert(not(zero(ptr, (void *)p5)));
     cr_expect(eq(i32, p5->scaledCumulativeRateRatio, -1726344771));
+    const struct ptpmgmt_L1_SYNC_t *p6 =
+        (const struct ptpmgmt_L1_SYNC_t *)m->getSigTlv(m, 6);
+    cr_assert(not(zero(ptr, (void *)p6)));
+    cr_expect(eq(int, p6->flags1, 15)); // With extensions
+    cr_expect(eq(int, p6->flags2, 7));
+    // Extensions flag is true
+    cr_expect(not(zero(int, p6->flags1 & 8)));
+    // Extensions fields
+    cr_expect(eq(int, p6->flags3, 7));
+    cr_expect(eq(i64, p6->phaseOffsetTx.scaledNanoseconds, 1311768467463790321));
+    cr_expect(eq(u64, p6->phaseOffsetTxTimestamp.secondsField, 13530243084303));
+    cr_expect(eq(u32, p6->phaseOffsetTxTimestamp.nanosecondsField, 944640342));
+    cr_expect(eq(i64, p6->freqOffsetTx.scaledNanoseconds, -4078950125001762319));
+    cr_expect(eq(u64, p6->freqOffsetTxTimestamp.secondsField, 90478875847695));
+    cr_expect(eq(u32, p6->freqOffsetTxTimestamp.nanosecondsField, 927862353));
     m->free(m);
 }
 

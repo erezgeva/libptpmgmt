@@ -128,6 +128,8 @@ strc(L1_SYNC_t) sz(: public BaseSigTlv) {
      * @li bit 3: OPE   L1SyncBasicPortDS.optParamsEnabled
      */
     flgs2(flags1, 1)
+cpp_cod(`    /** Mask for the extended format of L1_SYNC TLV */')dnl
+cpp_cod(`    static const uint8_t optParamsEnabled;')dnl
     /**
      * Bit fields flag
      * @li bit 0: ITC   L1SyncBasicPortDS.isTxCoherent
@@ -135,6 +137,34 @@ strc(L1_SYNC_t) sz(: public BaseSigTlv) {
      * @li bit 2: IC    L1SyncBasicPortDS.isCongruent
      */
     flgs2(flags2, 2)
+    /**
+     * Bit fields flag
+     * @li bit 0: TCT   L1SyncOptParamsPortDS.timestampsCorrectedTx
+     * @li bit 1: POV   L1SyncOptParamsPortDS.phaseOffsetTxValid
+     * @li bit 2: FOV   L1SyncOptParamsPortDS.frequencyOffsetTxValid
+     * @note This flags belong to the Extended format of this TLV
+     */
+    flgs2(flags3, 3)
+    /**
+     * The transmission phase offset
+     * @note This parameter belong to the Extended format of this TLV
+     */
+    strcc(TimeInterval_t) phaseOffsetTx;
+    /**
+     * The transmission phase offset timestamp
+     * @note This parameter belong to the Extended format of this TLV
+     */
+    strcc(Timestamp_t) phaseOffsetTxTimestamp;
+    /**
+     * The transmission frequency offset
+     * @note This parameter belong to the Extended format of this TLV
+     */
+    strcc(TimeInterval_t) freqOffsetTx;
+    /**
+     * The transmission frequency offset sample time
+     * @note This parameter belong to the Extended format of this TLV
+     */
+    strcc(Timestamp_t) freqOffsetTxTimestamp;
 };
 /** PORT_COMMUNICATION_AVAILABILITY */
 strc(PORT_COMMUNICATION_AVAILABILITY_t) sz(: public BaseSigTlv) {

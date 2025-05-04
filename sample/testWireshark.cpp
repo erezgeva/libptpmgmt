@@ -518,13 +518,6 @@ void MngErrMoreTlvs_f()
     addTlv(CUMULATIVE_RATE_RATIO, m5, sizeof m5);
     sendSig();
 }
-void MngErrMoreTlvs_f_L1_SYNC_f()
-{
-    baseSig();
-    uint8_t m2[] = {7, 7};
-    addTlv(L1_SYNC, m2, sizeof m2);
-    sendSig();
-}
 void VectorTlvs_f()
 {
     baseSig();
@@ -569,6 +562,19 @@ void AccuracyTlv_f()
             136, 144, 30, 119, 223, 59
         };
     addTlv(ENHANCED_ACCURACY_METRICS, m, sizeof m);
+    sendSig();
+}
+void L1_SYNC_f()
+{
+    baseSig();
+    uint8_t m2[] = {7, 7}; // Without extensions
+    addTlv(L1_SYNC, m2, sizeof m2);
+    // L1_SYNC with extensions
+    uint8_t m6[40] = {15, 7, 7, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf1,
+            12, 78, 65, 85, 48, 15, 56, 78, 17, 86, 0xc7, 0x64, 0xa8, 0x78,
+            0xf6, 0xbc, 0x19, 0xf1, 82, 74, 65, 65, 44, 15, 55, 78, 14, 81
+        };
+    addTlv(L1_SYNC, m6, sizeof m6);
     sendSig();
 }
 /* ********************************************************************* */
@@ -655,6 +661,7 @@ int main()
     MngErrMoreTlvs_f();
     VectorTlvs_f();
     AccuracyTlv_f();
+    L1_SYNC_f();
     // SMPTE
     // Packet data is verifyed in the library unit tests
     SMPTE_Org();
