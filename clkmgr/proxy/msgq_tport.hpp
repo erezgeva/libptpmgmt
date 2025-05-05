@@ -52,7 +52,8 @@ class ProxyMessageQueueTransmitterContext  : virtual public
     PosixMessageQueue mqTransmitterDesc;
   protected:
     ProxyMessageQueueTransmitterContext(PosixMessageQueue &&q)
-        : MessageQueueTransmitterContext(mqTransmitterDesc), mqTransmitterDesc(q) {}
+        : MessageQueueTransmitterContext(mqTransmitterDesc),
+          mqTransmitterDesc(std::move(q)) {}
   public:
     virtual ~ProxyMessageQueueTransmitterContext() = default;
 };

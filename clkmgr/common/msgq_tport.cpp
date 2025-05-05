@@ -21,6 +21,30 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+PosixMessageQueue::PosixMessageQueue(PosixMessageQueue &&other) noexcept
+    : mq(other.mq), rx(other.rx), name(std::move(other.name))
+{
+    other.mq = invalidMq;
+    other.rx = false;
+    other.name.clear();
+}
+
+PosixMessageQueue &PosixMessageQueue::operator=(PosixMessageQueue &&other)
+noexcept
+{
+    if(this != &other) {
+        if(mq != invalidMq)
+            close();
+        mq = other.mq;
+        rx = other.rx;
+        name = std::move(other.name);
+        other.mq = invalidMq;
+        other.rx = false;
+        other.name.clear();
+    }
+    return *this;
+}
+
 bool PosixMessageQueue::RxOpen(const string &n, size_t maxMsg)
 {
     struct mq_attr attr;

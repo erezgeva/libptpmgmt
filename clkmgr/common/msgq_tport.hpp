@@ -33,6 +33,14 @@ class PosixMessageQueue
   public:
     PosixMessageQueue() = default;
     ~PosixMessageQueue() { close(); remove(); }
+    // Move Constructor
+    PosixMessageQueue(PosixMessageQueue &&other) noexcept;
+    // Move Assignment Operator
+    PosixMessageQueue &operator=(PosixMessageQueue &&other) noexcept;
+    // Delete Copy Constructor
+    PosixMessageQueue(const PosixMessageQueue &) = delete;
+    // Delete Copy Assignment Operator
+    PosixMessageQueue &operator=(const PosixMessageQueue &) = delete;
     // Receive POSIX message queue
     bool RxOpen(const std::string &name, size_t maxMsg);
     // Transmit POSIX message queue
