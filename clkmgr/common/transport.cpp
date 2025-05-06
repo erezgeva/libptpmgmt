@@ -21,60 +21,98 @@
 #define EXIT_TIMEOUT    (200 /*ms*/)
 #define START_TIMEOUT   (20 /*ms*/)
 
-__CLKMGR_NAMESPACE_USE;
-
 using namespace std;
+
+__CLKMGR_NAMESPACE_BEGIN;
 
 class TransportWorkerState
 {
+  private:
+    promise<bool> m_promise;
+    TransportWorkFunction m_func; // Callback
+    unique_ptr<TransportListenerContext> m_arg;
+    unique_ptr<atomic<bool>> m_exitVal;
+    thread m_thread;
   public:
-    future<bool> retVal;
-    shared_ptr<atomic<bool>> exitVal;
-    unique_ptr<thread> _thread;
-    TransportWorkerState(future<bool> retInit, bool exitInit) :
-        retVal(std::move(retInit)), exitVal(make_shared<atomic<bool>>(exitInit)) {}
+    TransportWorkerState(TransportWorkFunction func,
+        TransportListenerContext *context) : m_func(std::move(func)),
+        m_arg(context), m_exitVal(new atomic<bool>(false)) {}
+    bool init();
+    void dispatchLoop();
+    bool finalize();
+    bool isFutureSet();
+    void stopSignal() { m_exitVal->store(true); }
+    thread &getThread() { return m_thread; }
 };
+
+__CLKMGR_NAMESPACE_END;
+
+__CLKMGR_NAMESPACE_USE;
+
 static vector<TransportWorkerState> workerList;
 
-bool isFutureSet(future<bool> &f)
+bool TransportWorkerState::isFutureSet()
 {
-    return f.valid() &&
-        f.wait_for(chrono::milliseconds(0)) == future_status::ready;
+    return m_promise.get_future().valid() &&
+        m_promise.get_future().wait_for(chrono::milliseconds(0)) ==
+        future_status::ready;
 }
-void Transport::dispatchLoop(promise<bool> _promise,
-    shared_ptr<atomic<bool>> exitVal, TransportWork work)
+
+void TransportWorkerState::dispatchLoop()
 {
     bool promiseVal = false;
     PrintDebug("Transport Thread started");
-    for(; !exitVal->load();) {
-        if(!work.first(work.second.get()))
+    while(!m_exitVal->load()) {
+        if(!m_func(m_arg.get()))
             goto done;
-        work.second.get()->_init = false;
+        // Set TransportListenerContext::_init
+        m_arg.get()->_init = false;
     }
     promiseVal = true;
 done:
     PrintDebug("Transport Thread exited");
-    _promise.set_value_at_thread_exit(promiseVal);
+    m_promise.set_value_at_thread_exit(promiseVal);
     return;
 }
 
-Transport::TransportWorkDesc Transport::registerWork(TransportWork work)
+static void staticDispatchLoop(TransportWorkerState *me)
 {
-    promise<bool> _promise;
-    workerList.push_back(TransportWorkerState(_promise.get_future(), false));
-    workerList.back()._thread = unique_ptr<thread>(
-            new thread(MessageQueue::dispatchLoop, std::move(_promise),
-                workerList.back().exitVal,
-                TransportWork(work.first, std::move(work.second))));
+    me->dispatchLoop();
+}
+
+bool TransportWorkerState::init()
+{
+    m_thread = thread(staticDispatchLoop, this);
     PrintDebug("Thread started");
-    if(isFutureSet(workerList.back().retVal)) {
-        workerList.back()._thread.get()->join();
-        workerList.pop_back();
+    if(isFutureSet()) {
+        m_thread.join();
         PrintError("Thread exited early");
-        return InvalidTransportWorkDesc;
+        return false;
     }
     /* Return the index of the element we just added */
-    return (workerList.cend() - 1) - workerList.cbegin();
+    return true;
+}
+
+bool TransportWorkerState::finalize()
+{
+    if(m_promise.get_future().wait_for(chrono::milliseconds(EXIT_TIMEOUT)) !=
+        future_status::ready) {
+        PrintError("Thread Join Timeout");
+        return false;
+    }
+    m_thread.join();
+    return true;
+}
+
+TransportWorkDesc Transport::registerWork(TransportWorkFunction func,
+    TransportListenerContext *context)
+{
+    TransportWorkerState row(std::move(func), context);
+    if(!row.init())
+        return InvalidTransportWorkDesc;
+    workerList.push_back(std::move(row));
+    // We add at the end, so the index is the last element
+    return workerList.size() - 1;
 }
 
 bool Transport::processMessage(TransportListenerContext &context)
@@ -101,8 +139,8 @@ bool Transport::init()
 bool Transport::stop()
 {
     /* Send stop signal to all of the threads */
-    for(const auto &it : workerList)
-        it.exitVal->store(true);
+    for(auto &it : workerList)
+        it.stopSignal();
     /* Do any transport specific stop */
     if(!_stopTransport<NullTransport, MessageQueue>())
         return false;
@@ -112,12 +150,8 @@ bool Transport::stop()
 bool Transport::finalize()
 {
     for(auto &it : workerList) {
-        if(it.retVal.wait_for(chrono::milliseconds(EXIT_TIMEOUT)) !=
-            future_status::ready) {
-            PrintError("Thread Join Timeout");
+        if(!it.finalize())
             return false;
-        }
-        it._thread.get()->join();
     }
     return _finalizeTransport<NullTransport, MessageQueue>();
 }
@@ -127,8 +161,8 @@ bool Transport::InterruptWorker(TransportWorkDesc d)
     if(d == InvalidTransportWorkDesc)
         return false;
     /* Thread has exited, no need to interrupt */
-    if(isFutureSet(workerList.back().retVal))
+    if(workerList.back().isFutureSet())
         return true;
     PrintDebug("Sending interrupt to MessageQueue worker");
-    return SendSyscallInterruptSignal(*workerList[d]._thread.get());
+    return SendSyscallInterruptSignal(workerList[d].getThread());
 }
