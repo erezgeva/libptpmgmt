@@ -96,8 +96,7 @@ bool PosixMessageQueue::close()
 }
 
 DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
-DECLARE_STATIC(MessageQueue::mqListenerDesc,
-    Transport::InvalidTransportWorkDesc);
+DECLARE_STATIC(MessageQueue::mqListenerDesc, InvalidTransportWorkDesc);
 
 bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
 {

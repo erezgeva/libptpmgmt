@@ -58,11 +58,9 @@ bool ProxyMessageQueue::initTransport()
         return false;
     }
     if(InvalidTransportWorkDesc ==
-    (mqListenerDesc = registerWork((TransportWork) {
-    MqListenerWork,
-    TransportWorkArg(new ProxyMessageQueueListenerContext(mqNativeListenerDesc))
-    })))
-    return false;
+        (mqListenerDesc = registerWork(MqListenerWork,
+                    new ProxyMessageQueueListenerContext(mqNativeListenerDesc))))
+        return false;
     PrintDebug("Proxy Message queue opened");
     return true;
 }

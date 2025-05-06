@@ -52,12 +52,8 @@ bool ClientMessageQueue::initTransport()
         return false;
     }
     if(InvalidTransportWorkDesc ==
-        (mqListenerDesc = registerWork(
-    TransportWork {
-    MqListenerWork,
-    TransportWorkArg(new ClientMessageQueueListenerContext(
-            mqNativeListenerDesc))
-    }))) {
+        (mqListenerDesc = registerWork(MqListenerWork,
+                    new ClientMessageQueueListenerContext(mqNativeListenerDesc)))) {
         PrintError("Listener Thread Unexpectedly Exited");
         return false;
     }
