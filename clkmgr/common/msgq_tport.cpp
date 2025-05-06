@@ -33,8 +33,8 @@ PosixMessageQueue &PosixMessageQueue::operator=(PosixMessageQueue &&other)
 noexcept
 {
     if(this != &other) {
-        if(mq != invalidMq)
-            close();
+        close();
+        remove();
         mq = other.mq;
         rx = other.rx;
         name = std::move(other.name);
