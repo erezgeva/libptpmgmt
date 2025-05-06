@@ -28,6 +28,7 @@ __CLKMGR_NAMESPACE_BEGIN
 typedef std::array<uint8_t, MAX_BUFFER_LENGTH> TransportBuffer;
 class Message;
 class Transport;
+class TransportWorkerState;
 
 class TransportContext
 {
@@ -66,6 +67,7 @@ class TransportTransmitterContext : public TransportContext
 class TransportListenerContext : public TransportContext
 {
     friend class Transport;
+    friend class TransportWorkerState;
   protected:
 #define LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(name)                    \
     bool name(Message *bmsg, TransportTransmitterContext *&txcontext)
@@ -80,25 +82,19 @@ class TransportListenerContext : public TransportContext
     }
 };
 
+typedef std::function<bool(TransportListenerContext *)> TransportWorkFunction;
+typedef ptrdiff_t TransportWorkDesc;
+const TransportWorkDesc InvalidTransportWorkDesc = (TransportWorkDesc)(-1);
+
 class Transport
 {
-  public:
-    typedef std::unique_ptr<TransportListenerContext> TransportWorkArg;
-    typedef std::function<bool(TransportWorkArg::element_type *)>
-    TransportWorkFunction;
-    typedef std::pair<TransportWorkFunction, TransportWorkArg> TransportWork;
-    typedef ptrdiff_t TransportWorkDesc;
-    static const TransportWorkDesc InvalidTransportWorkDesc =
-        (TransportWorkDesc)(-1);
-  private:
-    static void dispatchLoop(std::promise<bool>,
-        std::shared_ptr<std::atomic<bool>> exitVal, TransportWork arg);
   public:
     static bool processMessage(TransportListenerContext &context);
     static bool initTransport() { return true; }
     static bool stopTransport() { return true; }
     static bool finalizeTransport() { return true; }
-    static TransportWorkDesc registerWork(TransportWork work);
+    static TransportWorkDesc registerWork(TransportWorkFunction func,
+        TransportListenerContext *context);
     static bool init();
     static bool stop();
     static bool finalize();
