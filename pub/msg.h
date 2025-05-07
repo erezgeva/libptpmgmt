@@ -661,7 +661,7 @@ class Message
     /**
      * Get last parsed message sdoId
      * @return parsed message sdoId
-     * @note upper byte is was transportSpecific
+     * @note upper byte is transportSpecific
      */
     uint32_t getSdoId() const { return m_sdoId; }
     /**

@@ -471,7 +471,7 @@ struct ptpmgmt_msg_t {
      * Get last parsed message sdoId
      * @param[in] msg object
      * @return parsed message sdoId
-     * @note upper byte is was transportSpecific
+     * @note upper byte is transportSpecific
      */
     uint32_t (*getSdoId)(const_ptpmgmt_msg msg);
     /**
