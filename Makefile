@@ -290,7 +290,7 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   $(MAKEFILE_LIST) credits $(CLKMGR_DIR)/credits $(SRCS_CLKMGR)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[chj]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\
+  utest/*.[chj]* uctest/*.[ch]* .github .gitlab,':!/:$n')\
   ':!:*.gitignore' ':!*/*/test.*' ':!*/*/utest.*'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))

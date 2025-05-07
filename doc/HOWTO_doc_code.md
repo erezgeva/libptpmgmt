@@ -19,7 +19,7 @@ This document guides how to do it properly.
      */
     ```
 
-    * Alternatively, you may use a short block after a property or a constant. Do not use it with classes, structures, enumerators, functions, or methods.
+    * Alternatively, you may use a short block after a property or a constant on the same line. Do not use it with classes, structures, enumerators, functions, or methods.
     ```
     void property; /**< description */
     ```
