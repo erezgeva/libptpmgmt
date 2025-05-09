@@ -18,8 +18,8 @@
 #include <functional>
 #include "cfg.h"
 #include "buf.h"
-#include "proc.h"
-#include "sig.h"
+#include "mngTlvs.h"
+#include "sigTlvs.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 
