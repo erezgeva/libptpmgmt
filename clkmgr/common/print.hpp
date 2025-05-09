@@ -14,7 +14,6 @@
 
 #include "common/util.hpp"
 
-#include <cstdint>
 #include <errno.h>
 #include <string>
 

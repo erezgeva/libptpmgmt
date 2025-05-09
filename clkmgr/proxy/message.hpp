@@ -15,8 +15,6 @@
 
 #include "common/message.hpp"
 
-#include <cstdint>
-
 __CLKMGR_NAMESPACE_BEGIN
 
 class ProxyMessage : virtual public Message

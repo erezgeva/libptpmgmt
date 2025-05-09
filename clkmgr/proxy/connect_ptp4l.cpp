@@ -9,23 +9,22 @@
  *
  */
 
-#include "common/print.hpp"
+#include "proxy/connect_ptp4l.hpp"
 #include "proxy/client.hpp"
 #include "proxy/config_parser.hpp"
 #include "proxy/connect_chrony.hpp"
-#include "proxy/connect_ptp4l.hpp"
 #include "proxy/notification_msg.hpp"
+#include "common/ptp_event.hpp"
+#include "common/print.hpp"
 
 // libptpmgmt
-#include "msg.h"
 #include "sock.h"
 #include "msgCall.h"
 
-#include <stdio.h>
-#include <string>
 #include <unistd.h>
 #include <atomic>
 #include <rtpi/mutex.hpp>
+#include <thread>
 #include <cmath>
 
 __CLKMGR_NAMESPACE_USE;

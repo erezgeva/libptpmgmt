@@ -13,11 +13,8 @@
 #define CLIENT_MSGQ_TPORT_HPP
 
 #include "client/transport.hpp"
-#include "common/connect_msg.hpp"
 #include "common/msgq_tport.hpp"
-#include "common/util.hpp"
 
-#include <cstdint>
 #include <string>
 
 __CLKMGR_NAMESPACE_BEGIN

@@ -14,12 +14,12 @@
 #define COMMON_TRANSPORT_HPP
 
 #include "common/util.hpp"
+#include "common/message.hpp"
 
+#include <cstddef>
 #include <cstdint>
+#include <string>
 #include <functional>
-#include <future>
-#include <thread>
-#include <vector>
 
 #define MAX_BUFFER_LENGTH   (4096)
 

@@ -13,9 +13,7 @@
 #define COMMON_MSGQ_TPORT_HPP
 
 #include "common/transport.hpp"
-#include "common/util.hpp"
 
-#include <cstdint>
 #include <mqueue.h>
 #include <string>
 

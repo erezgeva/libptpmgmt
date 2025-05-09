@@ -10,13 +10,11 @@
  *
  */
 
-#include "common/message.hpp"
-#include "common/print.hpp"
-#include "common/serialize.hpp"
-#include "proxy/config_parser.hpp"
 #include "proxy/connect_msg.hpp"
+#include "proxy/config_parser.hpp"
 #include "proxy/client.hpp"
-#include "proxy/subscribe_msg.hpp"
+#include "common/serialize.hpp"
+#include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 

@@ -13,15 +13,11 @@
 #define PROXY_MSGQ_TPORT_HPP
 
 #include "common/msgq_tport.hpp"
-#include "common/util.hpp"
 #include "proxy/transport.hpp"
 
-#include <cstdint>
-#include <string>
-
-#define MAX_CLIENT_COUNT    (8)
-
 __CLKMGR_NAMESPACE_BEGIN
+
+static const size_t MAX_CLIENT_COUNT = 8;
 
 class ProxyMessageQueueListenerContext : virtual public
     MessageQueueListenerContext,

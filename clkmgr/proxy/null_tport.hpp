@@ -12,10 +12,8 @@
 #ifndef PROXY_NULL_TPORT_HPP
 #define PROXY_NULL_TPORT_HPP
 
-#include "common/null_tport.hpp"
 #include "proxy/transport.hpp"
-
-#include <cstdint>
+#include "common/null_tport.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

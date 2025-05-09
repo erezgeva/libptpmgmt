@@ -15,7 +15,6 @@
 #include "pub/clkmgr/utility.h"
 #include "pub/clkmgr/types.h"
 #include <map>
-#include <vector>
 #include <string>
 
 __CLKMGR_NAMESPACE_BEGIN

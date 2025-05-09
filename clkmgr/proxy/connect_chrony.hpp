@@ -9,8 +9,7 @@
  *
  */
 
-#include "common/connect_msg.hpp"
-#include "proxy/message.hpp"
+#include "common/util.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

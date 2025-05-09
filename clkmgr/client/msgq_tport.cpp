@@ -9,12 +9,10 @@
  *
  */
 
-#include "client/connect_msg.hpp"
 #include "client/msgq_tport.hpp"
+#include "client/connect_msg.hpp"
 #include "client/subscribe_msg.hpp"
 #include "common/print.hpp"
-#include "common/sighandler.hpp"
-#include "common/util.hpp"
 
 #include <cstring>
 #include <unistd.h>

@@ -13,11 +13,8 @@
 #ifndef PROXY_NOTIFICATION_MSG_HPP
 #define PROXY_NOTIFICATION_MSG_HPP
 
-#include "common/ptp_event.hpp"
-#include "common/notification_msg.hpp"
 #include "proxy/message.hpp"
-
-#include <cstdint>
+#include "common/notification_msg.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

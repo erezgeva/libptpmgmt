@@ -9,8 +9,8 @@
  *
  */
 
-#include "common/print.hpp"
 #include "common/sighandler.hpp"
+#include "common/print.hpp"
 
 #include <signal.h>
 

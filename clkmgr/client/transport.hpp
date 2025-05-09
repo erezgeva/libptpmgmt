@@ -15,9 +15,6 @@
 
 #include "client/message.hpp"
 #include "common/transport.hpp"
-#include "common/util.hpp"
-
-#include <cstdint>
 
 __CLKMGR_NAMESPACE_BEGIN
 

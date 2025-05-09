@@ -9,18 +9,16 @@
  *
  */
 
-#include <cstdio>
-#include <getopt.h>
-
-#include "common/print.hpp"
-#include "common/sighandler.hpp"
-#include "proxy/config_parser.hpp"
-#include "proxy/connect_ptp4l.hpp"
 #ifdef HAVE_LIBCHRONY
 #include "proxy/connect_chrony.hpp"
 #endif
-#include "proxy/message.hpp"
+#include "proxy/config_parser.hpp"
+#include "proxy/connect_ptp4l.hpp"
 #include "proxy/transport.hpp"
+#include "common/sighandler.hpp"
+#include "common/print.hpp"
+
+#include <getopt.h>
 
 __CLKMGR_NAMESPACE_USE;
 

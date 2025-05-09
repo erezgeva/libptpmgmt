@@ -12,6 +12,8 @@
 #ifndef CLKMGR_TIMEBASE_H
 #define CLKMGR_TIMEBASE_H
 
+#include "pub/clkmgr/utility.h"
+
 #include <cstddef>
 #include <cstdint>
 

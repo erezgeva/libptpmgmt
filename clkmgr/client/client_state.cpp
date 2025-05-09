@@ -10,10 +10,6 @@
  */
 
 #include "client/client_state.hpp"
-#include "client/msgq_tport.hpp"
-#include "common/clkmgrtypes.hpp"
-#include "common/message.hpp"
-#include "common/transport.hpp"
 
 #include <cstring>
 #include <string>

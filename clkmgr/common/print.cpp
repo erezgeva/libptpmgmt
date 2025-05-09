@@ -11,7 +11,6 @@
 
 #include "common/print.hpp"
 
-#include <cstdio>
 #include <cstring>
 #include <syslog.h>
 #include <rtpi/mutex.hpp>

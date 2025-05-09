@@ -10,15 +10,10 @@
  *
  */
 
-#include "client/client_state.hpp"
 #include "client/notification_msg.hpp"
-#include "client/subscribe_msg.hpp"
 #include "client/timebase_state.hpp"
-#include "common/message.hpp"
-#include "common/print.hpp"
 #include "common/serialize.hpp"
-
-#include <algorithm>
+#include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 

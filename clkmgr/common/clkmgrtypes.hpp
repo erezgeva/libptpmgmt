@@ -14,8 +14,6 @@
 
 #include "common/util.hpp"
 
-#include <cstdint>
-
 __CLKMGR_NAMESPACE_BEGIN
 
 typedef uint8_t msgAck_t;
