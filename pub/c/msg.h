@@ -15,8 +15,8 @@
 #define __PTPMGMT_C_MSG_H
 
 #include "c/cfg.h"
-#include "c/proc.h"
-#include "c/sig.h"
+#include "c/mngTlvs.h"
+#include "c/sigTlvs.h"
 
 #ifdef __cplusplus
 extern "C" {

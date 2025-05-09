@@ -11,8 +11,8 @@
 UCTEST:=$(OBJ_DIR)/uctest
 UCTEST_SYS:=$(OBJ_DIR)/uctest_sys
 UCTEST_AUTH:=$(OBJ_DIR)/uctest_auth
-UCTEST_SRCS:=cfg ver err setErr opt msg mngIds types proc sig msg2json msgCall\
-  json2msg
+UCTEST_SRCS:=cfg ver err setErr opt msg mngIds types mngTlvs sigTlvs msg2json\
+  msgCall json2msg
 UCTEST_SYS_SRCS:=sock ptp init
 UCTEST_OBJS:=$(foreach n,$(UCTEST_SRCS),uctest/$n.o)
 UCTEST_SYS_OBJS:=$(foreach n,$(UCTEST_SYS_SRCS),uctest/$n.o)
