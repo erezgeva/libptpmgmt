@@ -12,11 +12,11 @@
 #ifndef PROXY_CONFIG_PARSER_HPP
 #define PROXY_CONFIG_PARSER_HPP
 
-#include "jsonParser.h"
-#include "pub/clkmgr/utility.h"
 #include "common/timebase.h"
 
-#include <cstdint>
+// Internal API from libptpmgmt
+#include "jsonParser.h"
+
 #include <vector>
 
 __CLKMGR_NAMESPACE_BEGIN

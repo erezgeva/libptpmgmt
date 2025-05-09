@@ -14,9 +14,6 @@
 
 #include "common/util.hpp"
 
-#include <atomic>
-#include <cstdint>
-
 __CLKMGR_NAMESPACE_BEGIN
 
 struct ptp_event {

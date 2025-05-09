@@ -10,9 +10,9 @@
  *
  */
 
-#include "common/print.hpp"
-#include "common/serialize.hpp"
 #include "common/subscribe_msg.hpp"
+#include "common/serialize.hpp"
+#include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 

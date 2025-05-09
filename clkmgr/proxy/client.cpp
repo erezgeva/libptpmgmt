@@ -9,8 +9,8 @@
  *
  */
 
-#include "common/print.hpp"
 #include "proxy/client.hpp"
+#include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 

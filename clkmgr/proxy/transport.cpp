@@ -10,15 +10,15 @@
  *
  */
 
-#include "common/print.hpp"
-#include "common/sighandler.hpp"
-#include "common/util.hpp"
+#include "proxy/transport.hpp"
 #include "proxy/msgq_tport.hpp"
 #include "proxy/null_tport.hpp"
-#include "proxy/transport.hpp"
+#include "common/print.hpp"
 
+#if 0
 #define EXIT_TIMEOUT    (200 /*ms*/)
 #define START_TIMEOUT   (20 /*ms*/)
+#endif
 
 __CLKMGR_NAMESPACE_USE;
 

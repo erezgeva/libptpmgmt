@@ -12,8 +12,9 @@
 #ifndef PROXY_CLIENT
 #define PROXY_CLIENT
 
-#include "common/message.hpp"
+#include "common/transport.hpp"
 
+#include <memory>
 #include <map>
 
 __CLKMGR_NAMESPACE_BEGIN

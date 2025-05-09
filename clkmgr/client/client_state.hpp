@@ -9,13 +9,12 @@
  *
  */
 
-#ifndef CLIENT_CLIENT_STATE_H
-#define CLIENT_CLIENT_STATE_H
+#ifndef CLIENT_CLIENT_STATE_HPP
+#define CLIENT_CLIENT_STATE_HPP
 
-#include "common/util.hpp"
 #include "pub/clkmgr/subscription.h"
+#include "common/util.hpp"
 
-#include <string>
 #include <atomic>
 
 __CLKMGR_NAMESPACE_BEGIN
@@ -87,4 +86,4 @@ class ClientState
 
 __CLKMGR_NAMESPACE_END
 
-#endif /* CLIENT_CLIENT_STATE_H */
+#endif /* CLIENT_CLIENT_STATE_HPP */

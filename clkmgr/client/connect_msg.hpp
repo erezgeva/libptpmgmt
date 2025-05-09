@@ -16,7 +16,6 @@
 #include "common/connect_msg.hpp"
 
 #include <rtpi/condition_variable.hpp>
-#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

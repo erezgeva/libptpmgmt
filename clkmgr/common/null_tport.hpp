@@ -14,8 +14,6 @@
 
 #include "common/transport.hpp"
 
-#include <cstdint>
-
 __CLKMGR_NAMESPACE_BEGIN
 class NullTransport : public Transport
 {

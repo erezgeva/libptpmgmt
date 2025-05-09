@@ -12,10 +12,7 @@
 #ifndef CLIENT_NULL_TPORT_HPP
 #define CLIENT_NULL_TPORT_HPP
 
-#include "client/transport.hpp"
 #include "common/null_tport.hpp"
-
-#include <cstdint>
 
 __CLKMGR_NAMESPACE_BEGIN
 

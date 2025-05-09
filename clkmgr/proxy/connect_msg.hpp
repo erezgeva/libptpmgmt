@@ -13,8 +13,8 @@
 #ifndef PROXY_CONNECT_MSG_HPP
 #define PROXY_CONNECT_MSG_HPP
 
-#include "common/connect_msg.hpp"
 #include "proxy/message.hpp"
+#include "common/connect_msg.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 
