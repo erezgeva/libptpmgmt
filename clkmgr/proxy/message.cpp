@@ -10,6 +10,7 @@
  *
  */
 
+#include "proxy/message.hpp"
 #include "proxy/connect_msg.hpp"
 #include "proxy/notification_msg.hpp"
 #include "proxy/null_msg.hpp"

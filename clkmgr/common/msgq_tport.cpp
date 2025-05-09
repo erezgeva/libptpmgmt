@@ -10,12 +10,8 @@
  */
 
 #include "common/msgq_tport.hpp"
-#include "common/message.hpp"
-#include "common/print.hpp"
 #include "common/sighandler.hpp"
-#include "common/util.hpp"
-
-#include <string.h>
+#include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 

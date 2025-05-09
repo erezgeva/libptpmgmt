@@ -9,18 +9,16 @@
  *
  */
 
-#include "common/print.hpp"
+#include "proxy/connect_chrony.hpp"
 #include "proxy/client.hpp"
 #include "proxy/config_parser.hpp"
-#include "proxy/connect_chrony.hpp"
 #include "proxy/connect_ptp4l.hpp"
 #include "proxy/notification_msg.hpp"
-#include <chrony.h>
+#include "common/ptp_event.hpp"
+#include "common/print.hpp"
 
+#include <chrony.h>
 #include <poll.h>
-#include <stdio.h>
-#include <string>
-#include <cstring>
 #include <unistd.h>
 #include <cmath>
 #include <thread>

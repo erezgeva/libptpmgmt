@@ -15,7 +15,6 @@
 
 #include "pub/clkmgr/subscription.h"
 #include "common/message.hpp"
-#include "common/ptp_event.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

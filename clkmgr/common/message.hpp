@@ -17,6 +17,7 @@
 #include "common/transport.hpp"
 
 #include <functional>
+#include <string>
 #include <map>
 
 __CLKMGR_NAMESPACE_BEGIN

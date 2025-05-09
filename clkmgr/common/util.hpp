@@ -13,6 +13,7 @@
 #define UTIL_HPP
 
 #include "pub/clkmgr/utility.h"
+
 #include <cstdint>
 #include <array>
 

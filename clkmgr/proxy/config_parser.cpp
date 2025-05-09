@@ -8,10 +8,11 @@
  * @copyright © 2025 Intel Corporation.
  *
  */
-#include <cstring>
 
-#include "common/print.hpp"
 #include "proxy/config_parser.hpp"
+#include "common/print.hpp"
+
+#include <cstring>
 
 __CLKMGR_NAMESPACE_USE;
 

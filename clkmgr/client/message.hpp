@@ -16,7 +16,7 @@
 #include "client/client_state.hpp"
 #include "common/message.hpp"
 
-#include <cstdint>
+#include <memory>
 
 __CLKMGR_NAMESPACE_BEGIN
 

@@ -12,8 +12,8 @@
 #ifndef PROXY_NULL_MSG_HPP
 #define PROXY_NULL_MSG_HPP
 
-#include "common/null_msg.hpp"
 #include "proxy/message.hpp"
+#include "common/null_msg.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 
