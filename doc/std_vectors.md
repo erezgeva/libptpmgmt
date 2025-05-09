@@ -20,20 +20,20 @@ In addition, SWIG requires explicit announcement for the mapping.
 
 Currently the follow `std::vector<T>` maps are announced in `libptpmgmt.i`:
 
-|Class name in scripts  |C++ `std::vector<T>`             |header |
-|-----------------------|---------------------------------|-------|
-|FaultRecord_v          |FaultRecord_t                    |types.h|
-|ClockIdentity_v        |ClockIdentity_t                  |types.h|
-|PortAddress_v          |PortAddress_t                    |types.h|
-|AcceptableMaster_v     |AcceptableMaster_t               |types.h|
-|LinuxptpUnicastMaster_v|LinuxptpUnicastMaster_t          |types.h|
-|PtpEvent_v             |PtpEvent_t                       |ptp.h  |
-|PtpSample_v            |PtpSample_t                      |ptp.h  |
-|PtpSampleExt_v         |PtpSampleExt_t                   |ptp.h  |
-|SigTime                |SLAVE_RX_SYNC_TIMING_DATA_rec_t  |sig.h  |
-|SigComp                |SLAVE_RX_SYNC_COMPUTED_DATA_rec_t|sig.h  |
-|SigEvent               |SLAVE_TX_EVENT_TIMESTAMPS_rec_t  |sig.h  |
-|SigDelay               |SLAVE_DELAY_TIMING_DATA_NP_rec_t |sig.h  |
+|Class name in scripts  |C++ `std::vector<T>`             |header   |
+|-----------------------|---------------------------------|---------|
+|FaultRecord_v          |FaultRecord_t                    |types.h  |
+|ClockIdentity_v        |ClockIdentity_t                  |types.h  |
+|PortAddress_v          |PortAddress_t                    |types.h  |
+|AcceptableMaster_v     |AcceptableMaster_t               |types.h  |
+|LinuxptpUnicastMaster_v|LinuxptpUnicastMaster_t          |types.h  |
+|PtpEvent_v             |PtpEvent_t                       |ptp.h    |
+|PtpSample_v            |PtpSample_t                      |ptp.h    |
+|PtpSampleExt_v         |PtpSampleExt_t                   |ptp.h    |
+|SigTime                |SLAVE_RX_SYNC_TIMING_DATA_rec_t  |sigTlvs.h|
+|SigComp                |SLAVE_RX_SYNC_COMPUTED_DATA_rec_t|sigTlvs.h|
+|SigEvent               |SLAVE_TX_EVENT_TIMESTAMPS_rec_t  |sigTlvs.h|
+|SigDelay               |SLAVE_DELAY_TIMING_DATA_NP_rec_t |sigTlvs.h|
 
 
 The container can be part of another class or structure.  
