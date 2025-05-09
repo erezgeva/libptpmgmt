@@ -13,7 +13,7 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#include "proc.h"
+#include "mngTlvs.h"
 #include "msg.h" // We use message to test the management TLV
 
 #define tlvLoc (54)

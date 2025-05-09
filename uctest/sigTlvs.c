@@ -13,7 +13,7 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#include "sig.h"
+#include "sigTlvs.h"
 #include "msg.h" // Use message to test the signal structures
 
 #define clockId ("\xc4\x7d\x46\xff\xfe\x20\xac\xae")

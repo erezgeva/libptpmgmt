@@ -10,7 +10,7 @@
  */
 
 #include "comp.h"
-#include "c/sig.h"
+#include "c/sigTlvs.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 

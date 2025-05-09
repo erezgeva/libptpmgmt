@@ -15,10 +15,8 @@
 
 #include <stdio.h>
 #include <ptpmgmt/msg.h>
-#include <ptpmgmt/proc.h>
 #include <ptpmgmt/sock.h>
 #include <ptpmgmt/err.h>
-#include <ptpmgmt/sig.h>
 
 using namespace ptpmgmt;
 

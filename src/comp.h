@@ -20,8 +20,8 @@
 #include "name.h"
 #include "cfg.h"
 #include "err.h"
-#include "proc.h" /* Structures for management TLVs */
-#include "sig.h" /* Structures for signalling TLVs */
+#include "mngTlvs.h" /* Structures for management TLVs */
+#include "sigTlvs.h" /* Structures for signalling TLVs */
 #include "json.h"
 
 using namespace std;

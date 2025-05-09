@@ -10,7 +10,7 @@
  */
 
 #include "msg.h"
-#include "proc.h"
+#include "mngTlvs.h"
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_USE;

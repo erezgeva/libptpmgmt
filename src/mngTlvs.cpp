@@ -17,7 +17,7 @@
 #endif
 #include "msg.h"
 #include "c/types.h"
-#include "c/proc.h"
+#include "c/mngTlvs.h"
 
 #if __FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__
 #define ptpm_ordMod USE_BIG // Prefer network order

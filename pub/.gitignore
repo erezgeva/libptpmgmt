@@ -12,7 +12,7 @@
 /c/mngIds.h
 /types.h
 /c/types.h
-/proc.h
-/c/proc.h
-/sig.h
-/c/sig.h
+/mngTlvs.h
+/c/mngTlvs.h
+/sigTlvs.h
+/c/sigTlvs.h

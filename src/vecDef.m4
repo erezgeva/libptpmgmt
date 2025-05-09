@@ -35,8 +35,8 @@ dnl
 #ifndef __PTPMGMT_VEC_DEF_H
 #define __PTPMGMT_VEC_DEF_H
 
-#include "proc.h"
-#include "sig.h"
+#include "mngTlvs.h"
+#include "sigTlvs.h"
 
 __PTPMGMT_NAMESPACE_BEGIN
 

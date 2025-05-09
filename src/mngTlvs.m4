@@ -650,6 +650,6 @@ strc(EXTERNAL_GRANDMASTER_PROPERTIES_NP_t) sz(: public BaseMngTlv) {
 };
 
 ns_e()
-cpp_en(proc)dnl
+cpp_en(mngTlvs)dnl
 
 ice(PROC)

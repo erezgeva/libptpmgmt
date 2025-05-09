@@ -221,7 +221,7 @@ SWIG_LIB_NAME:=$(SWIG_LNAME).so
 D_FILES:=$(wildcard $(addsuffix /*.d,$(OBJ_DIR) utest uctest wrappers/*\
   wrappers/*/* $(addprefix $(CLKMGR_DIR)/,common client proxy utest)))
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
-HDR_BTH:=mngIds types proc sig
+HDR_BTH:=mngIds types mngTlvs sigTlvs
 HEADERS_GEN_PUB:=$(foreach n,ver name callDef $(HDR_BTH),$(PUB)/$n.h)
 HEADERS_PUB:=$(filter-out $(HEADERS_GEN_PUB),$(wildcard $(PUB)/*.h))
 HEADERS_GEN_PUB_C:=$(foreach n,$(HDR_BTH),$(PUB_C)/$n.h)
