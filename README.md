@@ -123,8 +123,8 @@ but **NOT** with the Go wrapper, which may break!
   * PtpClock in ptp.h - Provide a PTP dynamic clock ID
   * sockets classes in sock.h - Provide access to UPD IPv4, IPv6, and L2 PTP networks
   * SockUnix in sock.h - Socket to communicate with local LinuxPTP daemon
-  * Management TLVs in proc.h - Structures that hold a PTP Management TLV data
-  * Signalling TLVs in sig.h - Structures that hold a PTP Signalling TLV data
+  * Management TLVs in mngTlvs.h - Structures that hold a PTP Management TLV data
+  * Signalling TLVs in sigTlvs.h - Structures that hold a PTP Signalling TLV data
   * Library version in ver.h
   * Management TLVs mngIds.h - Enumerator for PTP Management TLVs
   * PTP management types types.h - Enumerators and structure to use with PTP Management messages
