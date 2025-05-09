@@ -16,8 +16,6 @@
 #include "common/message.hpp"
 #include "common/transport.hpp"
 
-#include <cstdint>
-
 __CLKMGR_NAMESPACE_BEGIN
 
 class CommonConnectMessage : virtual public Message

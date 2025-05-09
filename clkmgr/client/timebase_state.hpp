@@ -12,13 +12,12 @@
 #ifndef CLIENT_TIMEBASE_STATE_HPP
 #define CLIENT_TIMEBASE_STATE_HPP
 
-#include "common/ptp_event.hpp"
 #include "pub/clkmgr/subscription.h"
+#include "common/ptp_event.hpp"
 
-#include <atomic>
 #include <map>
-#include <rtpi/mutex.hpp>
 #include <string>
+#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 

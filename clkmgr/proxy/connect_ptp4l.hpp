@@ -11,8 +11,7 @@
 #ifndef PROXY_CONNECT_PTP4L_HPP
 #define PROXY_CONNECT_PTP4L_HPP
 
-#include "common/connect_msg.hpp"
-#include "proxy/message.hpp"
+#include "common/util.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 

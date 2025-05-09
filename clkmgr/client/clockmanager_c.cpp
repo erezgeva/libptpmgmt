@@ -12,9 +12,10 @@
 #include "pub/clkmgr/clockmanager_c.h"
 #include "pub/clkmgr/timebase_configs.h"
 #include "pub/clockmanager.h"
+
 #include <cstring>
 
-using namespace clkmgr;
+__CLKMGR_NAMESPACE_USE;
 
 bool clkmgr_connect()
 {
