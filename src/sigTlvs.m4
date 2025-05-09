@@ -355,6 +355,6 @@ strc(SLAVE_DELAY_TIMING_DATA_NP_t) sz(: public BaseSigTlv) {
 };
 
 ns_e()
-cpp_en(sig)dnl
+cpp_en(sigTlvs)dnl
 
 ice(SIG)
