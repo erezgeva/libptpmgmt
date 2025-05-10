@@ -31,12 +31,12 @@ class TransportWorkerState
     promise<bool> m_promise;
     TransportWorkFunction m_func; // Callback
     unique_ptr<TransportListenerContext> m_arg;
-    unique_ptr<atomic<bool>> m_exitVal;
+    unique_ptr<atomic_bool> m_exitVal;
     thread m_thread;
   public:
     TransportWorkerState(TransportWorkFunction func,
         TransportListenerContext *context) : m_func(std::move(func)),
-        m_arg(context), m_exitVal(new atomic<bool>(false)) {}
+        m_arg(context), m_exitVal(new atomic_bool(false)) {}
     bool init();
     void dispatchLoop();
     bool finalize();
@@ -107,12 +107,13 @@ bool TransportWorkerState::finalize()
 TransportWorkDesc Transport::registerWork(TransportWorkFunction func,
     TransportListenerContext *context)
 {
-    TransportWorkerState row(std::move(func), context);
-    if(!row.init())
-        return InvalidTransportWorkDesc;
-    workerList.push_back(std::move(row));
-    // We add at the end, so the index is the last element
-    return workerList.size() - 1;
+    workerList.push_back(TransportWorkerState(std::move(func), context));
+    if(workerList.back().init())
+        // We add at the end, so the index is the last element
+        return workerList.size() - 1;
+    // Init fail we remove the record from the list
+    workerList.pop_back();
+    return InvalidTransportWorkDesc;
 }
 
 bool Transport::processMessage(TransportListenerContext &context)
