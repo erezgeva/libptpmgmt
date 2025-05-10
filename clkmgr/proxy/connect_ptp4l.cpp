@@ -44,7 +44,7 @@ static SUBSCRIBE_EVENTS_NP_t eventsTlv; // Threads only read it!
  * The atomic guarantee it should not happens.
  * Threads will wait till initializing is done.
  */
-static atomic<bool> all_init(false);
+static atomic_bool all_init(false);
 
 // Globals
 map<int, ptp_event> ptp4lEvents;
@@ -153,16 +153,19 @@ static map<int, rtpi::mutex> subscribedLock;
 
 int ConnectPtp4l::remove_ptp4l_subscriber(sessionId_t sessionId)
 {
+    bool find = false;
     for(const auto &entry : ptpSets) {
         int timeBaseIndex = entry.first; // Get the timeBaseIndex
         if(ptpSets[timeBaseIndex]->unsubscribe(sessionId)) {
             PrintDebug("sessionId " + to_string(sessionId) +
                 " unsubscribed successfully");
-        } else {
-            PrintDebug("sessionId " + to_string(sessionId) +
-                " was not subscribed");
+            find = true; // We found at least one!
         }
     }
+    // We may be subscribed in multiple time bases
+    // But we are satisfied to be in only one!
+    if(!find)
+        PrintDebug("sessionId " + to_string(sessionId) + " was not subscribed");
     return 0;
 }
 
@@ -171,7 +174,8 @@ void ptpSet::notify_client()
     PrintDebug("[clkmgr]::notify_client");
     vector<sessionId_t> sessionIdToRemove;
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    for(const sessionId_t sessionId : subscribedClients) {
+    for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
+        const sessionId_t sessionId = *it;
         ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
         if(pmsg == nullptr) {
             PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
@@ -185,13 +189,14 @@ void ptpSet::notify_client()
         auto TxContext =
             Client::GetClientSession(sessionId).get()->get_transmitContext();
         if(!pmsg->transmitMessage(*TxContext)) {
+            it = subscribedClients.erase(it);
             /* Add sessionId into the list to remove */
             sessionIdToRemove.push_back(sessionId);
-        }
+        } else
+            ++it;
     }
     local.unlock(); // Explicitly unlock the mutex
     for(const sessionId_t sessionId : sessionIdToRemove) {
-        ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
         #ifdef HAVE_LIBCHRONY
         ConnectChrony::remove_chrony_subscriber(sessionId);
         #endif
@@ -382,11 +387,12 @@ bool ptpSet::subscribe(sessionId_t sessionId)
 bool ptpSet::unsubscribe(sessionId_t sessionId)
 {
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    for(auto it = subscribedClients.begin(); it != subscribedClients.end(); it++) {
+    for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
         if(*it == sessionId) {
             subscribedClients.erase(it);
             return true;
         }
+        ++it;
     }
     return false; // Client was not subscribed
 }
