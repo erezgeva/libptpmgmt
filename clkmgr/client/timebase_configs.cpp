@@ -10,7 +10,7 @@
  */
 
 #include "pub/clkmgr/timebase_configs.h"
-#include "common/timebase.h"
+#include "common/timebase.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
