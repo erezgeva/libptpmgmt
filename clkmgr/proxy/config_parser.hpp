@@ -12,7 +12,7 @@
 #ifndef PROXY_CONFIG_PARSER_HPP
 #define PROXY_CONFIG_PARSER_HPP
 
-#include "common/timebase.h"
+#include "common/timebase.hpp"
 
 // Internal API from libptpmgmt
 #include "jsonParser.h"

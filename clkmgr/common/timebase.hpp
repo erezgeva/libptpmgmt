@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef CLKMGR_TIMEBASE_H
-#define CLKMGR_TIMEBASE_H
+#ifndef CLKMGR_TIMEBASE_HPP
+#define CLKMGR_TIMEBASE_HPP
 
 #include "pub/clkmgr/utility.h"
 
@@ -37,4 +37,4 @@ struct TimeBaseCfg {
 
 __CLKMGR_NAMESPACE_END
 
-#endif /* CLKMGR_TIMEBASE_H */
+#endif /* CLKMGR_TIMEBASE_HPP */

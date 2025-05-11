@@ -11,7 +11,7 @@
 
 #include "pub/clkmgr/timebase_configs.h"
 #include "client/connect_msg.hpp"
-#include "common/timebase.h"
+#include "common/timebase.hpp"
 #include "common/serialize.hpp"
 #include "common/print.hpp"
 
