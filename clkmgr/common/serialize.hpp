@@ -43,9 +43,6 @@
         (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
     })
 
-#define CHECK_RSV(field)                        \
-    (field == (std::remove_reference<decltype(field)>::type)0)
-
 #define WRITE_TX(type,var,tc)                   \
     ({                                  \
         decltype(tc.getc_offset()) offset = \

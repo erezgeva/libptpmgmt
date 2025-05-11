@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef PROXY_CLIENT
-#define PROXY_CLIENT
+#ifndef PROXY_CLIENT_HPP
+#define PROXY_CLIENT_HPP
 
 #include "common/transport.hpp"
 
@@ -49,4 +49,4 @@ class Client
 
 __CLKMGR_NAMESPACE_END
 
-#endif /* PROXY_CLIENT */
+#endif /* PROXY_CLIENT_HPP */
