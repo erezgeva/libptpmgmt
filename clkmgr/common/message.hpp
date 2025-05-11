@@ -70,7 +70,7 @@ class Message
     virtual PARSE_RXBUFFER_TYPE(parseBuffer);
     virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
 
-#define PRIMITIVE_TOSTRING(p) std::string(#p) + ": " + std::to_string(p) + "\n"
+#define PRIMITIVE_TOSTRING(p) #p ": " + to_string(p) + "\n"
     virtual std::string toString();
 
     virtual ~Message() = default;
