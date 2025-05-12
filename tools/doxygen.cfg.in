@@ -982,6 +982,7 @@ FILE_PATTERNS          = *.h
 EXCLUDE_PATTERNS       = */comp.h \
                          */jsonParser.h \
                          */ids.h \
+                         */config.h \
                          *test/* \
                          sample/* \
                          pmc/*

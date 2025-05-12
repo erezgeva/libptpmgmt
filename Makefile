@@ -206,6 +206,7 @@ HMAC_SRC:=hmac
 CLKMGR_DIR:=clkmgr
 CLKMGR_NAME:=clkmgr
 OBJ_DIR:=objs
+GITHUB_REP=https://github.com/erezgeva/libptpmgmt
 
 CONF_FILES:=configure src/config.h.in
 SONAME:=.$(ver_maj)
@@ -555,8 +556,6 @@ endif
 SPDXLI:=SPDX-License-Identifier:
 SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
 SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
-SPDXCY_INTEL:=$(SPDXCY_BASE) Intel Corporation.
-SPDXBSD3:=BSD-3-Clause
 SPDXGPL:=GPL-3.0-or-later
 SPDXLGPL:=L$(SPDXGPL)
 SPDXGFDL:=GFDL-1.3-no-invariants-or-later
@@ -693,26 +692,25 @@ ifdef DOXYGEN_MINVER
 	$(RM) doc/html/*.md5 doc/html/*.map
 	cp -a doc/html $(DOCDIR)
 	printf '$(REDIR)' > $(DOCDIR)/index.html
-	for dh in doc/html/*.html doc/html/*/*.html;do if test -f "$$dh"
-	then $(SED) -i '1 i$(SPDXHTML)' $(subst doc/html/,$(DOCDIR)/html/,$$dh)
-	fi;done
-	for dh in doc/html/search/*_*.js doc/html/search/searchdata.js
-	do if test -f "$$dh"
-	then $(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
-	  $(subst doc/html/,$(DOCDIR)/html/,$$dh);fi;done
+	tools/add_doxy_spdx.sh doc/html "$(DOCDIR)/html"
 endif # DOXYGEN_MINVER
+ifdef CMARK
+	head -2 doc/FAQs.md > $(DOCDIR)/FAQs.html
+	echo "<!doctype html><title>Frequently asked questions</title>"\
+	  >> $(DOCDIR)/FAQs.html
+	$(CMARK) -t html doc/FAQs.md >> $(DOCDIR)/FAQs.html
+endif # CMARK
 ifdef MARKDOWN
 	for hf in doc/[CBHs]*.md
 	do tl=$$($(SED) -n '/^$(hash) /{s!^$(hash) !!;s!<!\&lt;!;s!>!\&gt;!;p;q}' $$hf)
 	tf="$(DOCDIR)/$$(basename "$${hf%.md}.html")"
-	$(MARKDOWN) $$hf | sed "4 i <!doctype html><title>$$tl</title>" > $$tf
-	done
-	$(MARKDOWN) doc/FAQs.md |\
-	  $(SED) "4 i <!doctype html><title>Frequently asked questions</title>"\
-	  > $(DOCDIR)/FAQs.html
+	$(MARKDOWN) $$hf | $(SED) -e "4 i <!doctype html><title>$$tl</title>"\
+	  -e 's!https://erezgeva.github.io/libptpmgmt/!./html/!' > $$tf;done
 	$(MARKDOWN) README.md |\
 	$(SED) -e "4 i <!doctype html><title>libptpmgmt library README</title>"\
-	  -e 's!"\./doc/!"./!;s!\.md"!.html"!' > $(DOCDIR)/index.html
+	  -e 's!"\./doc/!"./!;s!"\./clkmgr/README\.md"!"./clkmgr/index.html"!'\
+	  -e 's!\.md"!.html"!'\
+	  > $(DOCDIR)/index.html
 ifdef DOXYGEN_MINVER
 	$(SED) -i 's$(REDIR2)' $(DOCDIR)/index.html
 endif

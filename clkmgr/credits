@@ -32,6 +32,4 @@ F: clkmgr/image/clkmgr_overview.png
 
 N: github.com/sharun2
 D: Improve Spelling of Documentations
-F: clkmgr/README.md
-F: clkmgr/HLD_clkmgr.md
-F: clkmgr/TEST_clkmgr.md
+F: clkmgr/*.md
