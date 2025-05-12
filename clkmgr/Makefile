@@ -22,6 +22,9 @@ CLKMGR_PROXY:=$(CLKMGR_PROXY_DIR)/clkmgr_proxy
 CLKMGR_GEN_CPP=$(Q_GEN)$(M4) -I $(CLKMGR_COMMON_DIR) -D lang=cpp $< > $@
 CLKMGR_GEN_C=$(Q_GEN)$(M4) -I $(CLKMGR_COMMON_DIR) -D lang=c $< > $@
 
+SPDXCY_INTEL:=$(SPDXCY_BASE) Intel Corporation.
+SPDXBSD3:=BSD-3-Clause
+
 CLKMGR_LDLIBS:=$(foreach lib,pthread rt rtpi,-l$(lib))
 CLKMGR_CXXFLAGS:=-I$(CLKMGR_DIR)
 ifdef HAVE_LIBCHRONY_HEADER
@@ -116,3 +119,37 @@ endif
 	$(SED) -i 's!$(c_inc)\s*\"pub/\([^"]\+\)\"!$(c_inc) <\1>!'\
 	  $(DESTDIR)$(includedir)/clockmanager.h\
 	  $(DESTDIR)$(includedir)/$(CLKMGR_NAME)/*.h
+	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY_INTEL)\n\n%s\n"\
+	  'LDLIBS+=-l$(CLKMGR_NAME)' > $(DEVDOCDIR)/clkmgr_default.mk
+	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY_INTEL)\n\n%s\n"\
+	  'LDLIBS+= -Wl,-static -l$(CLKMGR_NAME) -Wl,-Bdynamic' >\
+	  $(DEVDOCDIR)/clkmgr_static.mk
+	$(INSTALL_FOLDER) $(DOCDIR)/clkmgr
+	cp -a clkmgr/*.md clkmgr/image $(DOCDIR)/clkmgr
+ifdef DOXYGEN_MINVER
+	$(INSTALL_FOLDER) $(DOCDIR)/clkmgr_html
+	$(MKDIR_P) "clkmgr/doc/html"
+	$(RM) clkmgr/doc/html/*.md5 clkmgr/doc/html/*.map
+	cp -a clkmgr/doc/html/* $(DOCDIR)/clkmgr_html
+	tools/add_doxy_spdx.sh clkmgr/doc/html "$(DOCDIR)/clkmgr_html" intel
+endif # DOXYGEN_MINVER
+ifdef CMARK
+	head -2 clkmgr/TEST_clkmgr.md > $(DOCDIR)/clkmgr/TEST_clkmgr.html
+	echo "<!doctype html><title>Build and Test Project Document</title>"\
+	  >> $(DOCDIR)/clkmgr/TEST_clkmgr.html
+	$(CMARK) -t html clkmgr/TEST_clkmgr.md |\
+	  $(SED) 's!href="./proxy/!href="$(GITHUB_REP)/blob/master/clkmgr/proxy/!'\
+	  >> $(DOCDIR)/clkmgr/TEST_clkmgr.html
+endif # CMARK
+ifdef MARKDOWN
+	$(MARKDOWN) clkmgr/HLD_clkmgr.md |\
+	  $(SED) -e "4 i <!doctype html><title>Clock Manager Design Document</title>"\
+	  -e 's!"\./doc/!"./!;s!\.md"!.html"!' > $(DOCDIR)/clkmgr/HLD_clkmgr.html
+	$(MARKDOWN) clkmgr/README.md |\
+	  $(SED) -e "4 i <!doctype html><title>Clock Manager Introduction</title>"\
+	  -e 's!"\./doc/!"./!;s!\.md"!.html"!' > $(DOCDIR)/clkmgr/index.html
+#ifdef DOXYGEN_MINVER
+# TODO Add link to the clkmgr doxygen documents
+#       $(SED) -i 's$(REDIR2)' $(DOCDIR)/clkmgr/index.html
+#endif
+endif # MARKDOWN

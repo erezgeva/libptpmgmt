@@ -17,6 +17,7 @@
 # - ci_abi:         Compart ABI of current library with last version
 # - ci_abi_err:     Report ABI error
 # - ci_cross:       CI cross compilation
+# - add_doxy_spdx:  Add SPDX header to doxygen generated files
 # - utest_address:  Run unit tests with Address Sanitizer
 # - utest_valgrid:  Run unit tests with valgrind tool
 # - cp_license:     Follow FSF RESUSE Specification
@@ -89,7 +90,11 @@ ci_pages()
  config_ubuntu
  make doxygen
  mv doc/html _site
- rm -f _site/*.md5 _site/*.map
+ mv clkmgr/doc/html _site2
+ rm -f _site*/*.md5 _site*/*.map
+ add_doxy_spdx _site _site
+ add_doxy_spdx _site2 _site2 intel
+ mv _site2 _site/clkmgr
 }
 ###############################################################################
 docker_dlog()
@@ -255,6 +260,52 @@ ci_cross()
  config_report
 }
 ###############################################################################
+# Add SPDX header to doxygen generated files
+add_doxy_spdx()
+{
+ local -r src="$1"
+ local -r tgt="$2"
+ case $3 in
+   intel)
+     local -r hcpy='Intel Corporation.'
+     ;;
+   *)
+     local -r hcpy='Erez Geva <ErezGeva2@gmail.com>'
+     ;;
+ esac
+ local -r gfdl='SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later'
+ if [[ -n "$(which date 2> /dev/null)" ]]; then
+     local -r year="$(date "+%Y")"
+ else
+    local -r year=2025
+ fi
+ local -r cpy="   SPDX-FileCopyrightText: Copyright © $year"
+ local m
+ for n in $src/*.html $src/*/*.html
+ do
+   if test -f "$n"; then
+     if [[ "$src" = "$tgt" ]]; then
+       m="$n"
+     else
+       m="$(printf $n | sed "s@$src/@$tgt/@")"
+     fi
+     sed -i "1 i<!-- $gfdl\n  $cpy $hcpy -->" $m
+   fi
+ done
+ for n in $src/search/*_*.js $src/search/searchdata.js
+ do
+   if test -f "$n"; then
+
+     if [[ "$src" = "$tgt" ]]; then
+       m="$n"
+     else
+       m="$(printf $n | sed "s@$src/@$tgt/@")"
+     fi
+    sed -i "1 i/* $gfdl\n$cpy $hcpy */\n" $m
+   fi
+ done
+}
+###############################################################################
 # Run unit tests with Address Sanitizer
 utest_address()
 {
@@ -400,7 +451,7 @@ config_report()
  local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER
    LUA_VERS LUA_VER USE_ENDIAN PERL5_VER HAVE_LIBCHRONY_HEADER
    GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
-   HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK
+   HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK MARKDOWN
    PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl5 python3 ruby php lua go'
@@ -450,13 +501,14 @@ config_report()
  [[ -n "$SWIG_MINVER" ]] && local -r swig="$SWIG_MINVER" || local -r swig='x'
  [[ -n "$DOXYGEN_MINVER" ]] && local -r doxy="$DOXYGEN_MINVER" || local -r doxy='x'
  [[ -n "$HAVE_LIBCHRONY_HEADER" ]] && local -r chrony='v' || local -r chrony='x'
+ [[ -n "$MARKDOWN" ]] && local -r markdown='v' || local -r markdown='x'
  [[ -n "$CMARK" ]] && local -r cmark="$CMARK" || local -r cmark='x'
 
  cat << EOF
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
-libchrony '$chrony' rpath '$rpath' cmark '$cmark'
+libchrony '$chrony' markdown '$markdown' rpath '$rpath' cmark '$cmark'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'
@@ -575,6 +627,7 @@ main()
   ci_abi.sh)         ci_abi "$@";;
   ci_abi_err.sh)     ci_abi_err "$@";;
   ci_cross.sh)       ci_cross "$@";;
+  add_doxy_spdx.sh)  add_doxy_spdx "$@";;
   utest_address.sh)  utest_address "$@";;
   utest_valgrid.sh)  utest_valgrid "$@";;
   cp_license.sh)     cp_license "$@";;
