@@ -1038,6 +1038,11 @@ AS_VAR_IF([ptpm_rubybin], ['no'],
                            'print RbConfig::CONFIG[["LIBS"]]' PTPM_DUMP_ERR`"])])
       PTPM_CROSS([RUBY_INC_FLAGS])
       PTPM_CROSS([RUBY_LIB_FLAGS])
+      AS_VAR_APPEND([CPPFLAGS], [" $RUBY_INC_FLAGS"])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([$ptpm_c_include <ruby.h>])], [],
+                        [AS_UNSET([RUBY_INC_FLAGS])
+                         AS_UNSET([RUBY_LIB_FLAGS])])
+      AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
       AC_MSG_CHECKING([for Ruby header files])
       PTPM_MSG_RESULT([RUBY_INC_FLAGS])
       AC_MSG_CHECKING([for Ruby link flags])
