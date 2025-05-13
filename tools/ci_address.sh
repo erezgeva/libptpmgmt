@@ -394,7 +394,7 @@ config_report()
  local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER
    LUA_VERS LUA_VER USE_ENDIAN PERL5_VER HAVE_LIBCHRONY_HEADER
    GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
-   HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER
+   HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK
    PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl5 python3 ruby php lua go'
@@ -444,12 +444,13 @@ config_report()
  [[ -n "$SWIG_MINVER" ]] && local -r swig="$SWIG_MINVER" || local -r swig='x'
  [[ -n "$DOXYGEN_MINVER" ]] && local -r doxy="$DOXYGEN_MINVER" || local -r doxy='x'
  [[ -n "$HAVE_LIBCHRONY_HEADER" ]] && local -r chrony='v' || local -r chrony='x'
+ [[ -n "$CMARK" ]] && local -r cmark="$CMARK" || local -r cmark='x'
+
  cat << EOF
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
-rpath '$rpath'
-libchrony '$chrony'
+libchrony '$chrony' rpath '$rpath' cmark '$cmark'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'

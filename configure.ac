@@ -166,6 +166,13 @@ AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 
 #----------------------------------------------------------------
 # Tools
+
+# Try first the CommonMark with GitHub Flavored
+AC_CHECK_TOOL([CMARK], [cmark-gfm])
+# Else use the original CommonMark convert tool
+PTPM_VAR_EMPTY_IF([CMARK],
+                  [AC_CHECK_TOOL([CMARK], [cmark])])
+
 AC_CHECK_TOOL([DATE], [date])
 PTPM_VAR_SET_IF([DATE],
                 [AS_VAR_SET([ptpm_date], ["`$DATE "+%s"`"])
