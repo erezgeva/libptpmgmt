@@ -26,7 +26,7 @@ timing telemetry information but also configure the platform, allowing
 privileged applications to make changes to the platform time configuration.
 
 ![High-level Overview of the Clock Manager
-Functionality](./image/clkmgr_overview.png) 
+Functionality](./image/clkmgr_overview.png)  
 __Figure 1 - High-level Overview of the Clock Manager Functionality__
 
 Figure 1 shows the high-level system interactions between the Clock Manager and
