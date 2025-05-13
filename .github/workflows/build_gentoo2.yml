@@ -4,13 +4,18 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# GitHub build stage 1 gentoo container image an upload it
+# GitHub build stage 2 gentoo container image an upload it
 ###############################################################################
 
-name: gentoo 1 build docker image
+name: gentoo 2 build docker image
 
-# Start manually
-on: workflow_dispatch
+# Start manually and when step 1 is done
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["gentoo 1 build docker image"]
+    types: [ completed ]
+    branches: [ '*' ]
 
 env:
   REGISTRY: ghcr.io
@@ -38,4 +43,4 @@ jobs:
 
     - name: build and push
       if: ${{ github.actor == github.repository_owner }}
-      run: gentoo/make_docker.sh -gb1
+      run: gentoo/make_docker.sh -gb2

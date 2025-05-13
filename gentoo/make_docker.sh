@@ -10,8 +10,6 @@
 main()
 {
   local -r base_dir="$(dirname "$(realpath "$0")")"
-  local -r b_dock_file=Dockerfile.base
-  local -r b_name=portage_base
   cd "$base_dir/.."
   source tools/make_docker.sh
   make_docker portage "$@"
@@ -22,8 +20,7 @@ ext()
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/gentoo portage
 
-docker pull ghcr.io/erezgeva/portage_base
-docker tag ghcr.io/erezgeva/portage_base portage_base
+docker pull ghcr.io/erezgeva/portage.2
 
 # See https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
 emerge world -ep

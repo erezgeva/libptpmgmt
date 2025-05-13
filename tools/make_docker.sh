@@ -33,7 +33,7 @@ tool_docker_get_opts()
   local use_github use_gitlab server namespace
   local -r uid=$(id -u)
   local -r user=builder
-  while getopts 'nuglb' opt; do
+  while getopts 'nuglb:' opt; do
     case $opt in
       n)
         no_cache=--no-cache
@@ -48,7 +48,7 @@ tool_docker_get_opts()
         use_gitlab=yes
         ;;
       b)
-        use_b=yes
+        use_b=$OPTARG
         ;;
     esac
   done
@@ -61,8 +61,8 @@ tool_docker_get_opts()
     use_srv=yes
     srv_ns=$server/$namespace/libptpmgmt
   fi
-  if [[ -n "$use_b" ]] && [[ -n "$b_dock_file" ]]; then
-    dock_file=$b_dock_file
+  if [[ -n "$use_b" ]] && [[ -f "$base_dir/Dockerfile.$use_b" ]]; then
+    dock_file=Dockerfile.$use_b
   else
     dock_file=Dockerfile
   fi
@@ -89,8 +89,8 @@ make_docker()
   shift
   local no_cache use_srv srv_ns args dock_file use_b
   tool_docker_get_opts "$@"
-  if [[ -n "$use_b" ]] && [[ -n "$b_name" ]]; then
-    name="$b_name"
+  if [[ -n "$use_b" ]]; then
+    name+=".$use_b"
   fi
   if [[ -z "$use_srv" ]]; then
     clean_cont $name

@@ -12,11 +12,10 @@
 # --update, -u
 # --deep [DEPTH], -D    entire dependency tree of packages
 ###############################################################################
-FROM portage_base
+FROM ghcr.io/erezgeva/portage.2
 ARG UID USER
 # 559m34.815s = 9h 16m 34s
-RUN emerge -tv llvm-core/clang &&\
-    useradd $USER -u $UID -m -G users,wheel,portage &&\
+RUN useradd $USER -u $UID -m -G users,wheel,portage &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 ARG COOKIE
 RUN emerge --sync && emerge -tvuD @world
