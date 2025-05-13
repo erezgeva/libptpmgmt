@@ -249,10 +249,10 @@ int main(int argc, char *argv[])
             printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
                 (ts.tv_sec * 1000000000) + ts.tv_nsec);
         }
-        printf("+---------------------------+------------------------+\n");
+        printf("|---------------------------|------------------------|\n");
         printf("| %-25s | %-22s |\n", "Event", "Event Status");
         if (subscription.event_mask) {
-            printf("+---------------------------+------------------------+\n");
+            printf("|---------------------------|------------------------|\n");
         }
         if (subscription.event_mask & Clkmgr_eventGMOffset) {
             printf("| %-25s | %-22d |\n", "offset_in_range",
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
         if (subscription.event_mask & Clkmgr_eventGMChanged) {
             printf("| %-25s | %-22d |\n", "gm_Changed", event_state.gm_changed);
         }
-        printf("+---------------------------+------------------------+\n");
+        printf("|---------------------------|------------------------|\n");
         printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n", "GM UUID",
             event_state.gm_identity[0], event_state.gm_identity[1],
             event_state.gm_identity[2], event_state.gm_identity[3],
@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
                 "notification_timestamp", event_state.notification_timestamp);
         printf("| %-25s | %-19ld us |\n",
                 "gm_sync_interval", event_state.ptp4l_sync_interval);
-        printf("+---------------------------+------------------------+\n");
+        printf("|---------------------------|------------------------|\n");
         if (subscription.composite_event_mask) {
             printf("| %-25s | %-22d |\n", "composite_event",
                 event_state.composite_event);
@@ -294,21 +294,21 @@ int main(int argc, char *argv[])
             printf("| - %-23s | %-22s |\n", "as_capable", " ");
         }
         if (subscription.composite_event_mask) {
-            printf("+---------------------------+------------------------+\n\n");
+            printf("|---------------------------|------------------------|\n\n");
         } else {
             printf("\n");
         }
-        printf("+---------------------------+------------------------+\n");
+        printf("|---------------------------|------------------------|\n");
         printf("| %-25s | %-22d |\n", "chrony_offset_in_range",
                 event_state.chrony_offset_in_range);
-        printf("+---------------------------+------------------------+\n");
+        printf("|---------------------------|------------------------|\n");
         printf("| %-25s | %-19ld ns |\n",
             "chrony_clock_offset", event_state.chrony_clock_offset);
         printf("| %-25s | %-19X    |\n",
             "chrony_clock_reference_id", event_state.chrony_reference_id);
         printf("| %-25s | %-19d us |\n",
             "chrony_polling_interval", event_state.polling_interval);
-        printf("+---------------------------+------------------------+\n\n");
+        printf("|---------------------------|------------------------|\n\n");
     }
     sleep(1);
 
@@ -338,11 +338,11 @@ int main(int argc, char *argv[])
                 printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
                     (ts.tv_sec * 1000000000) + ts.tv_nsec);
             }
-            printf("+---------------------------+--------------+-------------+\n");
+            printf("|---------------------------|--------------|-------------|\n");
             printf("| %-25s | %-12s | %-11s |\n", "Event", "Event Status",
                 "Event Count");
             if (subscription.event_mask) {
-            printf("+---------------------------+--------------+-------------+\n");
+            printf("|---------------------------|--------------|-------------|\n");
             }
             if (subscription.event_mask & Clkmgr_eventGMOffset) {
                 printf("| %-25s | %-12d | %-11d |\n", "offset_in_range",
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
                 printf("| %-25s | %-12d | %-11d |\n", "gm_Changed",
                     event_state.gm_changed, event_count.gm_changed_event_count);
             }
-            printf("+---------------------------+--------------+-------------+\n");
+            printf("|---------------------------|--------------|-------------|\n");
             printf("| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
                 "GM UUID", event_state.gm_identity[0], event_state.gm_identity[1],
                 event_state.gm_identity[2], event_state.gm_identity[3],
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
                 "notification_timestamp", event_state.notification_timestamp);
             printf("| %-25s |     %-19ld us |\n",
                 "gm_sync_interval", event_state.ptp4l_sync_interval);
-            printf("+---------------------------+--------------+-------------+\n");
+            printf("|---------------------------|--------------|-------------|\n");
             if (subscription.composite_event_mask) {
                 printf("| %-25s | %-12d | %-11d |\n", "composite_event",
                     event_state.composite_event, event_count.composite_event_count);
@@ -388,21 +388,21 @@ int main(int argc, char *argv[])
                 printf("| - %-23s | %-12s | %-11s |\n", "as_capable", "", "");
             }
             if (subscription.composite_event_mask) {
-                printf("+---------------------------+--------------+-------------+\n\n");
+                printf("|---------------------------|--------------|-------------|\n\n");
             } else {
                 printf("\n");
             }
-            printf("+---------------------------+----------------------------+\n");
+            printf("|---------------------------|----------------------------|\n");
             printf("| %-25s | %-12d | %-11d |\n", "chrony_offset_in_range",
                 event_state.chrony_offset_in_range, event_count.chrony_offset_in_range_event_count);
-            printf("+---------------------------+----------------------------+\n");
+            printf("|---------------------------|----------------------------|\n");
             printf("| %-25s |     %-19ld ns |\n",
                 "chrony_clock_offset", event_state.chrony_clock_offset);
             printf("| %-25s |     %-19X    |\n",
                 "chrony_clock_reference_id", event_state.chrony_reference_id);
             printf("| %-25s |     %-19d us |\n",
                 "chrony_polling_interval", event_state.polling_interval);
-            printf("+---------------------------+----------------------------+\n\n");
+            printf("|---------------------------|----------------------------|\n\n");
 
             printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
                 getMonotonicTime(), idle_time);
