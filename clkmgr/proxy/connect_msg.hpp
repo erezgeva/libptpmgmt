@@ -22,7 +22,7 @@ class ProxyConnectMessage : virtual public ProxyMessage,
     virtual public CommonConnectMessage
 {
   protected:
-    ProxyConnectMessage() : MESSAGE_CONNECT() {};
+    ProxyConnectMessage() : Message(CONNECT_MSG) {};
   public:
     /**
      * process the connect msg from client-runtime
@@ -30,8 +30,9 @@ class ProxyConnectMessage : virtual public ProxyMessage,
      * @param TxContext proxy transport transmitter context
      * @return true
      */
-    virtual PROCESS_MESSAGE_TYPE(processMessage);
-    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+    virtual bool processMessage(TransportListenerContext &LxContext,
+        TransportTransmitterContext *&TxContext);
+    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
 
     /**
      * Create the ProxyConnectMessage object
@@ -39,7 +40,7 @@ class ProxyConnectMessage : virtual public ProxyMessage,
      * @param LxContext proxy transport listener context
      * @return true
      */
-    static MAKE_RXBUFFER_TYPE(buildMessage);
+    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
 
     /**
      * Add proxy's CONNECT_MSG type and its builder to transport layer.

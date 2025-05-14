@@ -29,7 +29,7 @@ class ClientSubscribeMessage : virtual public
     int timeBaseIndex = 0; /**< Timebase index */
 
   public:
-    ClientSubscribeMessage() : MESSAGE_SUBSCRIBE() {};
+    ClientSubscribeMessage() : Message(SUBSCRIBE_MSG) {};
 
     static rtpi::mutex cv_mtx;
     static rtpi::condition_variable cv;
@@ -39,7 +39,8 @@ class ClientSubscribeMessage : virtual public
      * @param TxContext client run-time transport transmitter context
      * @return true
      */
-    virtual PROCESS_MESSAGE_TYPE(processMessage);
+    virtual bool processMessage(TransportListenerContext &LxContext,
+        TransportTransmitterContext *&TxContext);
 
     /**
      * Create the ClientSubscribeMessage object
@@ -47,7 +48,7 @@ class ClientSubscribeMessage : virtual public
      * @param LxContext client run-time transport listener context
      * @return true
      */
-    static MAKE_RXBUFFER_TYPE(buildMessage);
+    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
 
     /**
      * Add client's SUBSCRIBE_MSG type and its builder to transport layer.
@@ -55,8 +56,8 @@ class ClientSubscribeMessage : virtual public
      */
     static bool initMessage();
 
-    virtual PARSE_RXBUFFER_TYPE(parseBuffer);
-    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+    virtual bool parseBuffer(TransportListenerContext &LxContext);
+    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
 
     void setClientState(ClientState &newClientState);
 

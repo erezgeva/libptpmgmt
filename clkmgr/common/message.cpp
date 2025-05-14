@@ -42,6 +42,7 @@ string Message::ExtractClassName(string prettyFunction, string function)
     return ret.empty() ? prettyFunction : ret;
 }
 
+#define PRIMITIVE_TOSTRING(p) #p ": " + to_string(p) + "\n"
 string Message::toString()
 {
     string ret;
@@ -50,7 +51,7 @@ string Message::toString()
     return ret;
 }
 
-BUILD_TXBUFFER_TYPE(Message::makeBuffer) const
+bool Message::makeBuffer(TransportTransmitterContext &TxContext) const
 {
     PrintDebug("[Message]::makeBuffer");
     if(!WRITE_TX(FIELD, msgId, TxContext))
@@ -60,7 +61,7 @@ BUILD_TXBUFFER_TYPE(Message::makeBuffer) const
     return true;
 }
 
-COMMON_PRESEND_MESSAGE_TYPE(Message::presendMessage)
+bool Message::presendMessage(TransportTransmitterContext *ctx)
 {
     PrintDebug("[Message]::presendMessage starts");
     ctx->resetOffset();
@@ -84,7 +85,7 @@ bool Message::addMessageType(parseMsgMapElement_t mapping)
     return true;
 }
 
-PARSE_RXBUFFER_TYPE(Message::parseBuffer)
+bool Message::parseBuffer(TransportListenerContext &LxContext)
 {
     PrintDebug("[Message]::parseBuffer ");
     if(!PARSE_RX(FIELD, msgId, LxContext))
@@ -94,7 +95,7 @@ PARSE_RXBUFFER_TYPE(Message::parseBuffer)
     return true;
 }
 
-MAKE_RXBUFFER_TYPE(Message::buildMessage)
+bool Message::buildMessage(Message *&msg, TransportListenerContext &LxContext)
 {
     msgId_t msgId;
     if(!PARSE_RX(FIELD, msgId, LxContext))

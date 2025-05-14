@@ -25,12 +25,14 @@ class ProxyMessageQueueListenerContext : virtual public
 {
     friend class ProxyMessageQueue;
   protected:
-    virtual LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(processMessage);
+    virtual bool processMessage(Message *bmsg,
+        TransportTransmitterContext *&txcontext);
     ProxyMessageQueueListenerContext(const PosixMessageQueue &mqListenerDesc) :
         MessageQueueListenerContext(mqListenerDesc) {}
   public:
     virtual ~ProxyMessageQueueListenerContext() = default;
-    virtual CREATE_TRANSMIT_CONTEXT_TYPE(CreateTransmitterContext);
+    virtual TransportTransmitterContext *CreateTransmitterContext(
+        TransportClientId &clientId);
 };
 
 class ProxyMessageQueueTransmitterContext  : virtual public

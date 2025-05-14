@@ -59,9 +59,7 @@ class TransportTransmitterContext : public TransportContext
 {
   public:
     virtual ~TransportTransmitterContext() = default;
-#define SEND_BUFFER_TYPE(name)                \
-    bool name()
-    virtual SEND_BUFFER_TYPE(sendBuffer) = 0;
+    virtual bool sendBuffer() = 0;
 };
 
 class TransportListenerContext : public TransportContext
@@ -69,15 +67,14 @@ class TransportListenerContext : public TransportContext
     friend class Transport;
     friend class TransportWorkerState;
   protected:
-#define LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(name)                    \
-    bool name(Message *bmsg, TransportTransmitterContext *&txcontext)
-    virtual LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(processMessage) { return false; }
+
+    virtual bool processMessage(Message *bmsg,
+        TransportTransmitterContext *&txcontext) { return false; }
   public:
     virtual ~TransportListenerContext() = default;
-#define CREATE_TRANSMIT_CONTEXT_TYPE(name)                            \
-    TransportTransmitterContext *name \
-    (TransportClientId &clientId)
-    virtual CREATE_TRANSMIT_CONTEXT_TYPE(CreateTransmitterContext) {
+
+    virtual TransportTransmitterContext *CreateTransmitterContext(
+        TransportClientId &clientId) {
         return nullptr;
     }
 };

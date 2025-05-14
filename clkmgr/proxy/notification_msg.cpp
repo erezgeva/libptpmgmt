@@ -19,7 +19,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-extern std::map<int, ptp_event> ptp4lEvents;
+extern map<int, ptp_event> ptp4lEvents;
 
 /**
  * Create the ProxyNotificationMessage object
@@ -27,7 +27,8 @@ extern std::map<int, ptp_event> ptp4lEvents;
  * @param LxContext proxy transport listener context
  * @return true
  */
-MAKE_RXBUFFER_TYPE(ProxyNotificationMessage::buildMessage)
+bool ProxyNotificationMessage::buildMessage(Message *&msg,
+    TransportListenerContext &LxContext)
 {
     msg = new ProxyNotificationMessage();
     return true;
@@ -47,7 +48,8 @@ bool ProxyNotificationMessage::initMessage()
     return true;
 }
 
-BUILD_TXBUFFER_TYPE(ProxyNotificationMessage::makeBuffer) const
+bool ProxyNotificationMessage::makeBuffer(TransportTransmitterContext
+    &TxContext) const
 {
     PrintDebug("[ProxyNotificationMessage]::makeBuffer");
     if(!Message::makeBuffer(TxContext))
@@ -62,7 +64,8 @@ BUILD_TXBUFFER_TYPE(ProxyNotificationMessage::makeBuffer) const
     return true;
 }
 
-PROCESS_MESSAGE_TYPE(ProxyNotificationMessage::processMessage)
+bool ProxyNotificationMessage::processMessage(TransportListenerContext
+    &LxContext, TransportTransmitterContext *&TxContext)
 {
     return true;
 }

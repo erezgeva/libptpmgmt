@@ -15,7 +15,8 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-MAKE_RXBUFFER_TYPE(CommonNullMessage::buildMessage)
+bool CommonNullMessage::buildMessage(Message *&msg,
+    TransportListenerContext &LxContext)
 {
     return true;
 }

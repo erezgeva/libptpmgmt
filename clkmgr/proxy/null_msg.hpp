@@ -21,7 +21,7 @@ class ProxyNullMessage : virtual public ProxyMessage,
     virtual public CommonNullMessage
 {
   protected:
-    ProxyNullMessage() : MESSAGE_NULL() {};
+    ProxyNullMessage() : Message(NULL_MSG) {};
   public:
     static bool initMessage() { return true; }
 };

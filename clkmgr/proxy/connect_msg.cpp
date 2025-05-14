@@ -26,7 +26,8 @@ using namespace std;
  * @param LxContext proxy transport listener context
  * @return true
  */
-MAKE_RXBUFFER_TYPE(ProxyConnectMessage::buildMessage)
+bool ProxyConnectMessage::buildMessage(Message *&msg,
+    TransportListenerContext &LxContext)
 {
     msg = new ProxyConnectMessage();
     return true;
@@ -61,7 +62,8 @@ bool ProxyConnectMessage::initMessage()
  * @param TxContext proxy transport transmitter context
  * @return true
  */
-PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
+bool ProxyConnectMessage::processMessage(TransportListenerContext &LxContext,
+    TransportTransmitterContext *&TxContext)
 {
     sessionId_t newSessionId = this->getc_sessionId();
     PrintDebug("Processing proxy connect message");
@@ -86,7 +88,8 @@ PROCESS_MESSAGE_TYPE(ProxyConnectMessage::processMessage)
     return true;
 }
 
-BUILD_TXBUFFER_TYPE(ProxyConnectMessage::makeBuffer) const
+bool ProxyConnectMessage::makeBuffer(TransportTransmitterContext &TxContext)
+const
 {
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
     if(!CommonConnectMessage::makeBuffer(TxContext))

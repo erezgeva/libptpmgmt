@@ -24,9 +24,10 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
   private:
     int timeBaseIndex = 0;
   public:
-    ProxyNotificationMessage() : MESSAGE_NOTIFY() {}
-    virtual PROCESS_MESSAGE_TYPE(processMessage);
-    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+    ProxyNotificationMessage() : Message(NOTIFY_MESSAGE) {}
+    virtual bool processMessage(TransportListenerContext &LxContext,
+        TransportTransmitterContext *&TxContext);
+    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
 
     /**
      * Create the ProxyNotificationMessage object
@@ -34,7 +35,7 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
      * @param LxContext proxy transport listener context
      * @return true
      */
-    static MAKE_RXBUFFER_TYPE(buildMessage);
+    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
 
     /**
      * Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.

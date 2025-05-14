@@ -121,7 +121,7 @@ bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
     return true;
 }
 
-SEND_BUFFER_TYPE(MessageQueueTransmitterContext::sendBuffer)
+bool MessageQueueTransmitterContext::sendBuffer()
 {
     if(!mqTransmitterDesc.send(get_buffer().data(), get_offset())) {
         PrintErrorCode("Failed to send buffer");

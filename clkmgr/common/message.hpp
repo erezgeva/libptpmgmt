@@ -26,9 +26,8 @@ class Message;
 class TransportListenerContext;
 class TransportTransmitterContext;
 
-#define MAKE_RXBUFFER_TYPE(name) bool name (Message *&msg, \
-    TransportListenerContext &LxContext)
-typedef std::function<MAKE_RXBUFFER_TYPE()> BuildMessage_t;
+typedef std::function<bool (Message *&, TransportListenerContext &)>
+BuildMessage_t;
 
 typedef std::pair<msgId_t, BuildMessage_t> parseMsgMapElement_t;
 
@@ -46,31 +45,18 @@ class Message
     static std::string ExtractClassName(std::string prettyFunction,
         std::string function);
   public:
-#define COMMON_PRESEND_MESSAGE_TYPE(name) \
-    bool name (TransportTransmitterContext *ctx)
-    COMMON_PRESEND_MESSAGE_TYPE(presendMessage);
+    bool presendMessage(TransportTransmitterContext *ctx);
 
-#define BUILD_TXBUFFER_TYPE(name) \
-    bool name (TransportTransmitterContext &TxContext)
-    static bool registerBuild(BUILD_TXBUFFER_TYPE(buildMessage));
+    virtual bool processMessage(TransportListenerContext &LxContext,
+        TransportTransmitterContext *&TxContext) = 0;
 
-#define PROCESS_MESSAGE_TYPE(name) \
-    bool name(TransportListenerContext &LxContext, \
-        TransportTransmitterContext *&TxContext)
-    virtual PROCESS_MESSAGE_TYPE(processMessage) = 0;
+    virtual bool transmitMessage(TransportTransmitterContext &TxContext) = 0;
 
-#define TRANSMIT_MESSAGE_TYPE(name) \
-    bool name(TransportTransmitterContext &TxContext)
-    virtual TRANSMIT_MESSAGE_TYPE(transmitMessage) = 0;
+    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
 
-    static MAKE_RXBUFFER_TYPE(buildMessage);
+    virtual bool parseBuffer(TransportListenerContext &LxContext);
+    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
 
-#define PARSE_RXBUFFER_TYPE(name)                   \
-    bool name (TransportListenerContext &LxContext)
-    virtual PARSE_RXBUFFER_TYPE(parseBuffer);
-    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
-
-#define PRIMITIVE_TOSTRING(p) #p ": " + to_string(p) + "\n"
     virtual std::string toString();
 
     virtual ~Message() = default;

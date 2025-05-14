@@ -21,12 +21,11 @@ __CLKMGR_NAMESPACE_BEGIN
 class NotificationMessage : virtual public Message
 {
   public:
-    virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
+    virtual bool transmitMessage(TransportTransmitterContext &TxContext);
     static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
     bool isEnable() { return waitEnable == 0x1; }
   protected:
-#define MESSAGE_NOTIFY() Message(NOTIFY_MESSAGE)
-    NotificationMessage() : MESSAGE_NOTIFY(), waitEnable(0) {}
+    NotificationMessage() : Message(NOTIFY_MESSAGE), waitEnable(0) {}
   private:
     uint32_t   waitEnable : 1;
 };
