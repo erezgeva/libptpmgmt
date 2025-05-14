@@ -10,6 +10,7 @@ FROM gentoo/stage3
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "Gentoo build for libptpmgmt"
 COPY gentoo/pkgs_use /etc/portage/package.use/pkgs
+ARG USER
 RUN emerge-webrsync && emerge -tvuD @world &&\
     emerge -tv dev-lang/go app-portage/portage-utils app-shells/bash\
     app-admin/sudo app-admin/chrpath app-editors/vim app-misc/jq\
@@ -22,6 +23,7 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     dev-util/cppcheck media-gfx/graphviz perl-core/Test-Simple\
     app-text/texlive-core dev-texlive/texlive-fontutils net-misc/chrony\
     dev-util/quilt app-text/cmark &&\
+    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\
     cd librtpi && autoreconf -i &&\
@@ -30,4 +32,4 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     cd /t0 && git clone https://gitlab.com/chrony/libchrony &&\
     cd libchrony && make install includedir=/usr/include libdir=/usr/lib64 &&\
     cd && rm -Rf /t0
-ARG UID USER COOKIE SRC DST
+ARG UID COOKIE SRC DST

@@ -14,9 +14,7 @@
 ###############################################################################
 FROM ghcr.io/erezgeva/portage.2
 ARG UID USER
-# 559m34.815s = 9h 16m 34s
-RUN useradd $USER -u $UID -m -G users,wheel,portage &&\
-    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN useradd $USER -u $UID -m -G users,wheel,portage
 ARG COOKIE
 RUN emerge --sync && emerge -tvuD @world
 ARG SRC DST
