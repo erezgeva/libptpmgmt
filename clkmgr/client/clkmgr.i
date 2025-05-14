@@ -23,13 +23,11 @@
 /* Handle obsolete functions */
 #ifdef SWIGGO
 /* go is used for development only, no need for obsolete functions */
-/*
-#define __PTPMGMT_DEPRECATED(_func, _body)
-#define __PTPMGMT_DEPRECATED_DEC(_func)
+#define __CLKMGR_DEPRECATED(_func, _body)
+#define __CLKMGR_DEPRECATED_DEC(_func)
 #else
-#define __PTPMGMT_DEPRECATED(_func, _body) _func { _body; }
-#define __PTPMGMT_DEPRECATED_DEC(_func) _func
-*/
+#define __CLKMGR_DEPRECATED(_func, _body) _func { _body; }
+#define __CLKMGR_DEPRECATED_DEC(_func) _func
 #endif
 /* Handle multithreads support. */
 #ifdef SWIG_USE_MULTITHREADS
@@ -38,11 +36,11 @@
  * that are allowed to block when using multithreads.
  * The other threads would not be blocked when using these functions.
  */
-#define __PTPMGMT_SWIG_THREAD_START %thread
-#define __PTPMGMT_SWIG_THREAD_END %nothread
+#define __CLKMGR_SWIG_THREAD_START %thread
+#define __CLKMGR_SWIG_THREAD_END %nothread
 #endif
 
-/* Include standatd types and SWIG macroes
+/* Include standatd types and SWIG macros
    From /usr/share/swig./ */
 %include <stdint.i>
 %include <cpointer.i>
