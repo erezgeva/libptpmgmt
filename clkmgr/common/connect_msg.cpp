@@ -28,7 +28,7 @@ string CommonConnectMessage::toString()
     return name;
 }
 
-PARSE_RXBUFFER_TYPE(CommonConnectMessage::parseBuffer)
+bool CommonConnectMessage::parseBuffer(TransportListenerContext &LxContext)
 {
     if(!Message::parseBuffer(LxContext))
         return false;
@@ -39,7 +39,8 @@ PARSE_RXBUFFER_TYPE(CommonConnectMessage::parseBuffer)
     return true;
 }
 
-BUILD_TXBUFFER_TYPE(CommonConnectMessage::makeBuffer) const
+bool CommonConnectMessage::makeBuffer(TransportTransmitterContext &TxContext)
+const
 {
     auto ret = Message::makeBuffer(TxContext);
     if(!ret)
@@ -51,7 +52,8 @@ BUILD_TXBUFFER_TYPE(CommonConnectMessage::makeBuffer) const
     return true;
 }
 
-TRANSMIT_MESSAGE_TYPE(CommonConnectMessage::transmitMessage)
+bool CommonConnectMessage::transmitMessage(TransportTransmitterContext
+    &TxContext)
 {
     PrintDebug("[CommonConnectMessage]::transmitMessage ");
     if(!presendMessage(&TxContext))

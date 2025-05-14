@@ -24,7 +24,8 @@ class ClientMessageQueueListenerContext :
 {
     friend class ClientMessageQueue;
   protected:
-    virtual LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(processMessage);
+    virtual bool processMessage(Message *bmsg,
+        TransportTransmitterContext *&txcontext);
     ClientMessageQueueListenerContext(const PosixMessageQueue &mqListenerDesc) :
         MessageQueueListenerContext(mqListenerDesc) {}
 };
@@ -49,7 +50,7 @@ class ClientMessageQueue : public MessageQueue,
     static bool stopTransport();
     static bool finalizeTransport();
     static bool writeTransportClientId(Message *msg);
-    static SEND_CLIENT_MESSAGE(sendMessage);
+    static bool sendMessage(Message *msg);
 };
 
 __CLKMGR_NAMESPACE_END

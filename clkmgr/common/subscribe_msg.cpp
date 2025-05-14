@@ -28,7 +28,7 @@ string CommonSubscribeMessage::toString()
     return name;
 }
 
-PARSE_RXBUFFER_TYPE(CommonSubscribeMessage::parseBuffer)
+bool CommonSubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
 {
     PrintDebug("[CommonSubscribeMessage]::parseBuffer ");
     if(!Message::parseBuffer(LxContext))
@@ -40,7 +40,8 @@ PARSE_RXBUFFER_TYPE(CommonSubscribeMessage::parseBuffer)
     return true;
 }
 
-BUILD_TXBUFFER_TYPE(CommonSubscribeMessage::makeBuffer) const
+bool CommonSubscribeMessage::makeBuffer(TransportTransmitterContext &TxContext)
+const
 {
     auto ret = Message::makeBuffer(TxContext);
     if(!ret)
@@ -57,7 +58,8 @@ BUILD_TXBUFFER_TYPE(CommonSubscribeMessage::makeBuffer) const
     return true;
 }
 
-TRANSMIT_MESSAGE_TYPE(CommonSubscribeMessage::transmitMessage)
+bool CommonSubscribeMessage::transmitMessage(TransportTransmitterContext
+    &TxContext)
 {
     PrintDebug("[CommonSubscribeMessage]::transmitMessage ");
     if(!presendMessage(&TxContext))

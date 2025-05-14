@@ -20,7 +20,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class NullProxyTransport : public NullTransport
 {
   public:
-    static SEND_PROXY_MESSAGE(sendMessage);
+    static bool sendMessage(const ProxyMessage *msg);
 };
 
 __CLKMGR_NAMESPACE_END

@@ -80,7 +80,7 @@ class MessageQueueTransmitterContext : virtual public
         mqTransmitterDesc(q) {}
   public:
     virtual ~MessageQueueTransmitterContext() = default;
-    virtual SEND_BUFFER_TYPE(sendBuffer);
+    virtual bool sendBuffer();
 };
 
 class MessageQueue : public Transport

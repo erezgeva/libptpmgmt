@@ -27,8 +27,8 @@ static PosixMessageQueue mqNativeClientTransmitterDesc;
 DECLARE_STATIC(ClientMessageQueue::mqListenerName, "");
 DECLARE_STATIC(ClientMessageQueue::txContext);
 
-LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
-    ClientMessageQueueListenerContext::processMessage)
+bool ClientMessageQueueListenerContext::processMessage(Message *bmsg,
+    TransportTransmitterContext *&txcontext)
 {
     ClientMessage *msg = dynamic_cast<decltype(msg)>(bmsg);
     PrintDebug("Processing received client message");
@@ -120,7 +120,7 @@ bool ClientMessageQueue::writeTransportClientId(Message *msg)
     return true;
 }
 
-SEND_CLIENT_MESSAGE(ClientMessageQueue::sendMessage)
+bool ClientMessageQueue::sendMessage(Message *msg)
 {
     auto context = txContext.get();
     msg->presendMessage(context);

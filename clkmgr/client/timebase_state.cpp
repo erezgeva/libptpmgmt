@@ -90,7 +90,7 @@ timespec TimeBaseState::get_last_notification_time() const
 
 bool TimeBaseStates::getTimeBaseState(int timeBaseIndex, TimeBaseState &state)
 {
-    std::lock_guard<rtpi::mutex> lock(mtx);
+    lock_guard<rtpi::mutex> lock(mtx);
     auto it = timeBaseStateMap.find(timeBaseIndex);
     if(it != timeBaseStateMap.end()) {
         state = it->second; // Copy the TimeBaseState object
@@ -106,7 +106,7 @@ bool TimeBaseStates::getTimeBaseState(int timeBaseIndex, TimeBaseState &state)
 void TimeBaseStates::setTimeBaseState(int timeBaseIndex,
     const ptp_event &newEvent)
 {
-    std::lock_guard<rtpi::mutex> lock(mtx);
+    lock_guard<rtpi::mutex> lock(mtx);
     auto &state = timeBaseStateMap[timeBaseIndex];
     // Update the notification timestamp
     timespec last_notification_time = {};

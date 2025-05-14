@@ -39,9 +39,7 @@ class ProxyTransport : public Transport
     static bool init();
     static bool stop();
     static bool finalize();
-#define SEND_PROXY_MESSAGE(name)                    \
-    bool name (const ProxyMessage *msg)
-    static SEND_PROXY_MESSAGE(sendMessage) { return false; }
+    static bool sendMessage(const ProxyMessage *msg) { return false; }
 };
 
 __CLKMGR_NAMESPACE_END

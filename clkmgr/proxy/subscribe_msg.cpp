@@ -22,7 +22,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-extern std::map<int, ptp_event> ptp4lEvents;
+extern map<int, ptp_event> ptp4lEvents;
 
 /**
  * Create the ProxySubscribeMessage object
@@ -30,7 +30,8 @@ extern std::map<int, ptp_event> ptp4lEvents;
  * @param LxContext proxy transport listener context
  * @return true
  */
-MAKE_RXBUFFER_TYPE(ProxySubscribeMessage::buildMessage)
+bool ProxySubscribeMessage::buildMessage(Message *&msg,
+    TransportListenerContext &LxContext)
 {
     msg = new ProxySubscribeMessage();
     return true;
@@ -50,7 +51,8 @@ bool ProxySubscribeMessage::initMessage()
     return true;
 }
 
-BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
+bool ProxySubscribeMessage::makeBuffer(TransportTransmitterContext &TxContext)
+const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
     if(!CommonSubscribeMessage::makeBuffer(TxContext))
@@ -65,7 +67,7 @@ BUILD_TXBUFFER_TYPE(ProxySubscribeMessage::makeBuffer) const
     return true;
 }
 
-PARSE_RXBUFFER_TYPE(ProxySubscribeMessage::parseBuffer)
+bool ProxySubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
 {
     PrintDebug("[ProxySubscribeMessage]::parseBuffer ");
     if(!CommonSubscribeMessage::parseBuffer(LxContext))
@@ -84,7 +86,8 @@ PARSE_RXBUFFER_TYPE(ProxySubscribeMessage::parseBuffer)
 This is to process the subscription from the clkmgr client runtime
 via POSIX msg queue.
 */
-PROCESS_MESSAGE_TYPE(ProxySubscribeMessage::processMessage)
+bool ProxySubscribeMessage::processMessage(TransportListenerContext &LxContext,
+    TransportTransmitterContext *&TxContext)
 {
     sessionId_t sID;
     sID = this->getc_sessionId();

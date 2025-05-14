@@ -24,8 +24,6 @@ class ClientTransportContext : virtual public TransportContext
     virtual ~ClientTransportContext() = default;
 };
 
-#define SEND_CLIENT_MESSAGE(name) bool name (Message *msg)
-
 class ClientTransport : public Transport
 {
   protected:
@@ -35,7 +33,7 @@ class ClientTransport : public Transport
     static bool stop();
     static bool finalize();
     static void writeTransportClientId(Message0 &msg) {}
-    static SEND_CLIENT_MESSAGE(sendMessage) { return false; }
+    static bool sendMessage(Message *msg) { return false; }
 };
 
 __CLKMGR_NAMESPACE_END

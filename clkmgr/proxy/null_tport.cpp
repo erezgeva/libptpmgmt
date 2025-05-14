@@ -16,7 +16,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-SEND_PROXY_MESSAGE(NullProxyTransport::sendMessage)
+bool NullProxyTransport::sendMessage(const ProxyMessage *msg)
 {
     PrintError("NullTransport should not be used");
     return false;

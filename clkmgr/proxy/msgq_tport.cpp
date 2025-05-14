@@ -18,8 +18,8 @@ using namespace std;
 
 static PosixMessageQueue mqNativeListenerDesc;
 
-LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
-    ProxyMessageQueueListenerContext::processMessage)
+bool ProxyMessageQueueListenerContext::processMessage(Message *bmsg,
+    TransportTransmitterContext *&txcontext)
 {
     ProxyMessage *msg = dynamic_cast<decltype(msg)>(bmsg);
     PrintDebug("Processing received proxy message");
@@ -30,8 +30,9 @@ LISTENER_CONTEXT_PROCESS_MESSAGE_TYPE(
     return msg->processMessage(*this, txcontext);
 }
 
-CREATE_TRANSMIT_CONTEXT_TYPE(
-    ProxyMessageQueueListenerContext::CreateTransmitterContext)
+TransportTransmitterContext
+*ProxyMessageQueueListenerContext::CreateTransmitterContext(
+    TransportClientId &clientId)
 {
     string id((const char *)clientId.data());
     PosixMessageQueue txd;

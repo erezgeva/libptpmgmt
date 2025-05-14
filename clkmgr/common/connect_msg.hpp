@@ -23,14 +23,13 @@ class CommonConnectMessage : virtual public Message
   private:
     TransportClientId clientId;
   protected:
-#define MESSAGE_CONNECT() Message(CONNECT_MSG)
-    CommonConnectMessage() : MESSAGE_CONNECT() {}
+    CommonConnectMessage() : Message(CONNECT_MSG) {}
   public:
     TransportClientId &getClientId() { return clientId; }
-    virtual PARSE_RXBUFFER_TYPE(parseBuffer);
+    virtual bool parseBuffer(TransportListenerContext &LxContext);
     static bool registerBuild();
-    virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
-    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+    virtual bool transmitMessage(TransportTransmitterContext &TxContext);
+    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
     virtual std::string toString();
 };
 

@@ -21,9 +21,8 @@ class CommonNullMessage : virtual public Message
   protected:
   public:
     static msgId_t getMsgId() { return NULL_MSG; }
-    static MAKE_RXBUFFER_TYPE(buildMessage);
-#define MESSAGE_NULL() Message(NULL_MSG)
-    CommonNullMessage() : MESSAGE_NULL() {};
+    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    CommonNullMessage() : Message(NULL_MSG) {};
     static bool initMessage();
 };
 

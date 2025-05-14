@@ -27,7 +27,8 @@ ClientState *ClientConnectMessage::currentClientState = nullptr;
  * @param LxContext client run-time transport listener context
  * @return true
  */
-MAKE_RXBUFFER_TYPE(ClientConnectMessage::buildMessage)
+bool ClientConnectMessage::buildMessage(Message *&msg,
+    TransportListenerContext &LxContext)
 {
     msg = new ClientConnectMessage();
     return true;
@@ -47,7 +48,7 @@ bool ClientConnectMessage::initMessage()
     return true;
 }
 
-PARSE_RXBUFFER_TYPE(ClientConnectMessage::parseBuffer)
+bool ClientConnectMessage::parseBuffer(TransportListenerContext &LxContext)
 {
     PrintDebug("[ClientConnectMessage]::parseBuffer ");
     if(!CommonConnectMessage::parseBuffer(LxContext))
@@ -86,7 +87,8 @@ void ClientConnectMessage::setClientState(ClientState &newClientState)
  * @param TxContext client run-time transport transmitter context
  * @return true
  */
-PROCESS_MESSAGE_TYPE(ClientConnectMessage::processMessage)
+bool ClientConnectMessage::processMessage(TransportListenerContext &LxContext,
+    TransportTransmitterContext *&TxContext)
 {
     unique_lock<rtpi::mutex> lock(cv_mtx);
     PrintDebug("Processing client connect message (reply)");

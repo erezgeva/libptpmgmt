@@ -26,10 +26,10 @@ class CommonSubscribeMessage : virtual public Message
 
   public:
     static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
-    //static MAKE_RXBUFFER_TYPE(buildMessage);
-    virtual PARSE_RXBUFFER_TYPE(parseBuffer);
-    virtual TRANSMIT_MESSAGE_TYPE(transmitMessage);
-    virtual BUILD_TXBUFFER_TYPE(makeBuffer) const;
+    //static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    virtual bool parseBuffer(TransportListenerContext &LxContext);
+    virtual bool transmitMessage(TransportTransmitterContext &TxContext);
+    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
     ClkMgrSubscription &getSubscription()
     { return subscription; }
     TransportClientId &getClientId()
@@ -38,8 +38,7 @@ class CommonSubscribeMessage : virtual public Message
 
     virtual std::string toString();
   protected:
-#define MESSAGE_SUBSCRIBE() Message(SUBSCRIBE_MSG)
-    CommonSubscribeMessage() : MESSAGE_SUBSCRIBE() {}
+    CommonSubscribeMessage() : Message(SUBSCRIBE_MSG) {}
 };
 
 __CLKMGR_NAMESPACE_END

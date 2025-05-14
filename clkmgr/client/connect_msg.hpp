@@ -25,7 +25,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
   private:
     static ClientState *currentClientState;
   public:
-    ClientConnectMessage() : MESSAGE_CONNECT() {};
+    ClientConnectMessage() : Message(CONNECT_MSG) {};
     static rtpi::mutex cv_mtx;
     static rtpi::condition_variable cv;
 
@@ -35,8 +35,9 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
      * @param TxContext client run-time transport transmitter context
      * @return true
      */
-    virtual PROCESS_MESSAGE_TYPE(processMessage);
-    virtual PARSE_RXBUFFER_TYPE(parseBuffer);
+    virtual bool processMessage(TransportListenerContext &LxContext,
+        TransportTransmitterContext *&TxContext);
+    virtual bool parseBuffer(TransportListenerContext &LxContext);
 
     /**
      * Create the ClientConnectMessage object
@@ -44,7 +45,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
      * @param LxContext client run-time transport listener context
      * @return true
      */
-    static MAKE_RXBUFFER_TYPE(buildMessage);
+    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
 
     /**
      * Add client's CONNECT_MSG type and its builder to transport layer.
