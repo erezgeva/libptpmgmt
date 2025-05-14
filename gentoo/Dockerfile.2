@@ -6,6 +6,6 @@
 #
 # Docker file for stage 2 of Gentoo container for building and installing
 ###############################################################################
-FROM ghcr.io/erezgeva/portage.1
+FROM portage.1
 RUN emerge -tv llvm-core/clang
 ARG UID USER COOKIE SRC DST

@@ -38,4 +38,4 @@ jobs:
 
     - name: build and push
       if: ${{ github.actor == github.repository_owner }}
-      run: gentoo/make_docker.sh -gb1
+      run: gentoo/make_docker.sh -b1 -tg

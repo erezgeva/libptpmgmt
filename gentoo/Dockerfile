@@ -12,7 +12,7 @@
 # --update, -u
 # --deep [DEPTH], -D    entire dependency tree of packages
 ###############################################################################
-FROM ghcr.io/erezgeva/portage.2
+FROM portage.2
 ARG UID USER
 RUN useradd $USER -u $UID -m -G users,wheel,portage
 ARG COOKIE
