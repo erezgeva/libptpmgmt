@@ -1087,47 +1087,49 @@ __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
-    // C interfaces
-    static void ptpmgmt_json_str_free(ptpmgmt_json_str me)
-    {
-        free(me);
-    }
-    static inline ptpmgmt_json_str makeStr(const string &str)
-    {
-        if(str.empty())
-            return nullptr;
-        static const size_t sz = sizeof(ptpmgmt_json_str_t);
-        size_t len = str.size();
-        char *b = (char *)malloc(sz + len + 1);
-        if(b == nullptr)
-            return nullptr;
-        ptpmgmt_json_str me = (ptpmgmt_json_str)b;
-        me->free = ptpmgmt_json_str_free;
-        b += sz;
-        me->json_string = b;
-        str.copy(b, len);
-        b[len] = 0;
-        return me;
-    }
-    ptpmgmt_json_str ptpmgmt_json_msg2json(const_ptpmgmt_msg m, int indent)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return makeStr(msg2json(*(Message *)m->_this, indent));
-        return nullptr;
-    }
-    ptpmgmt_json_str ptpmgmt_json_tlv2json(ptpmgmt_mng_vals_e managementId,
-        const void *tlv, int indent)
-    {
-        if(tlv != nullptr) {
-            mng_vals_e id = (mng_vals_e)managementId;
-            BaseMngTlv *t = c2cppMngTlv(id, tlv);
-            if(t != nullptr) {
-                string ret = tlv2json(id, t, indent);
-                delete t;
-                return makeStr(ret);
-            }
-        }
-        return nullptr;
-    }
+__PTPMGMT_C_BEGIN
+
+// C interfaces
+static void ptpmgmt_json_str_free(ptpmgmt_json_str me)
+{
+    free(me);
 }
+static inline ptpmgmt_json_str makeStr(const string &str)
+{
+    if(str.empty())
+        return nullptr;
+    static const size_t sz = sizeof(ptpmgmt_json_str_t);
+    size_t len = str.size();
+    char *b = (char *)malloc(sz + len + 1);
+    if(b == nullptr)
+        return nullptr;
+    ptpmgmt_json_str me = (ptpmgmt_json_str)b;
+    me->free = ptpmgmt_json_str_free;
+    b += sz;
+    me->json_string = b;
+    str.copy(b, len);
+    b[len] = 0;
+    return me;
+}
+ptpmgmt_json_str ptpmgmt_json_msg2json(const_ptpmgmt_msg m, int indent)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return makeStr(msg2json(*(Message *)m->_this, indent));
+    return nullptr;
+}
+ptpmgmt_json_str ptpmgmt_json_tlv2json(ptpmgmt_mng_vals_e managementId,
+    const void *tlv, int indent)
+{
+    if(tlv != nullptr) {
+        mng_vals_e id = (mng_vals_e)managementId;
+        BaseMngTlv *t = c2cppMngTlv(id, tlv);
+        if(t != nullptr) {
+            string ret = tlv2json(id, t, indent);
+            delete t;
+            return makeStr(ret);
+        }
+    }
+    return nullptr;
+}
+
+__PTPMGMT_C_END

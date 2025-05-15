@@ -243,138 +243,140 @@ __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
-    static void ptpmgmt_opt_free(ptpmgmt_opt me)
-    {
-        if(me != nullptr) {
-            delete(Options *)me->_this;
-            free(me);
-        }
-    }
-    static void ptpmgmt_opt_useDefOption(ptpmgmt_opt me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->useDefOption();
-    }
-    static bool ptpmgmt_opt_insert(ptpmgmt_opt me, ptpmgmt_opt_option *opt)
-    {
-        if(me != nullptr && me->_this != nullptr && opt != nullptr) {
-#define _asn(a) .a = opt->a
-#define _asn_s(a) .a = (opt->a == nullptr) ? n : opt->a
-            const char *n = "";
-            Pmc_option o = {
-                _asn(short_name),
-                _asn_s(long_name),
-                _asn(have_arg),
-                _asn(long_only),
-                _asn_s(help_msg),
-                _asn_s(arg_help),
-                _asn_s(def_val),
-            };
-            return ((Options *)me->_this)->insert(o);
-        }
-        return false;
-    }
-    static const char *ptpmgmt_opt_get_help(const_ptpmgmt_opt me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->get_help();
-        return nullptr;
-    }
-    static const char *ptpmgmt_opt_get_msg(const_ptpmgmt_opt me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->get_msg_c();
-        return nullptr;
-    }
-    static ptpmgmt_opt_loop_val ptpmgmt_opt_parse_options(ptpmgmt_opt me,
-        int argc, char *argv[])
-    {
-        if(me != nullptr && me->_this != nullptr && argc > 0 && argv != nullptr) {
-            Options::loop_val v = ((Options *)me->_this)->parse_options(argc, argv);
-            switch(v) {
-                case Options::OPT_MSG:
-                    return PTPMGMT_OPT_MSG;
-                case Options::OPT_HELP:
-                    return PTPMGMT_OPT_HELP;
-                case Options::OPT_DONE:
-                    return PTPMGMT_OPT_DONE;
-                default:
-                    break;
-            }
-        }
-        return PTPMGMT_OPT_ERR;
-    }
-    static bool ptpmgmt_opt_have(const_ptpmgmt_opt me, char opt)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->have(opt);
-        return false;
-    }
-    static const char *ptpmgmt_opt_val(const_ptpmgmt_opt me, char opt)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            const string &v = ((Options *)me->_this)->val(opt);
-            if(!v.empty())
-                return v.c_str();
-        }
-        return nullptr;
-    }
-    static int ptpmgmt_opt_val_i(const_ptpmgmt_opt me, char opt)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->val_i(opt);
-        return 0;
-    }
-    static char ptpmgmt_opt_get_net_transport(const_ptpmgmt_opt me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->get_net_transport();
-        return 0;
-    }
-    static bool ptpmgmt_opt_have_more(const_ptpmgmt_opt me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->have_more();
-        return false;
-    }
-    static int ptpmgmt_opt_process_next(const_ptpmgmt_opt me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Options *)me->_this)->process_next();
-        return 0;
-    }
-    static inline ptpmgmt_opt alloc_opt(bool useDef)
-    {
-        ptpmgmt_opt me = (ptpmgmt_opt)malloc(sizeof(ptpmgmt_opt_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)new Options(useDef);
-        if(me->_this == nullptr) {
-            free(me);
-            return nullptr;
-        }
-#define C_ASGN(n) me->n = ptpmgmt_opt_##n
-        C_ASGN(free);
-        C_ASGN(useDefOption);
-        C_ASGN(insert);
-        C_ASGN(get_help);
-        C_ASGN(get_msg);
-        C_ASGN(parse_options);
-        C_ASGN(have);
-        C_ASGN(val);
-        C_ASGN(val_i);
-        C_ASGN(get_net_transport);
-        C_ASGN(have_more);
-        C_ASGN(process_next);
-        return me;
-    }
-    ptpmgmt_opt ptpmgmt_opt_alloc()
-    {
-        return alloc_opt(true);
-    }
-    ptpmgmt_opt ptpmgmt_opt_alloc_empty()
-    {
-        return alloc_opt(false);
+__PTPMGMT_C_BEGIN
+
+static void ptpmgmt_opt_free(ptpmgmt_opt me)
+{
+    if(me != nullptr) {
+        delete(Options *)me->_this;
+        free(me);
     }
 }
+static void ptpmgmt_opt_useDefOption(ptpmgmt_opt me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->useDefOption();
+}
+static bool ptpmgmt_opt_insert(ptpmgmt_opt me, ptpmgmt_opt_option *opt)
+{
+    if(me != nullptr && me->_this != nullptr && opt != nullptr) {
+#define _asn(a) .a = opt->a
+#define _asn_s(a) .a = (opt->a == nullptr) ? n : opt->a
+        const char *n = "";
+        Pmc_option o = {
+            _asn(short_name),
+            _asn_s(long_name),
+            _asn(have_arg),
+            _asn(long_only),
+            _asn_s(help_msg),
+            _asn_s(arg_help),
+            _asn_s(def_val),
+        };
+        return ((Options *)me->_this)->insert(o);
+    }
+    return false;
+}
+static const char *ptpmgmt_opt_get_help(const_ptpmgmt_opt me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->get_help();
+    return nullptr;
+}
+static const char *ptpmgmt_opt_get_msg(const_ptpmgmt_opt me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->get_msg_c();
+    return nullptr;
+}
+static ptpmgmt_opt_loop_val ptpmgmt_opt_parse_options(ptpmgmt_opt me,
+    int argc, char *argv[])
+{
+    if(me != nullptr && me->_this != nullptr && argc > 0 && argv != nullptr) {
+        Options::loop_val v = ((Options *)me->_this)->parse_options(argc, argv);
+        switch(v) {
+            case Options::OPT_MSG:
+                return PTPMGMT_OPT_MSG;
+            case Options::OPT_HELP:
+                return PTPMGMT_OPT_HELP;
+            case Options::OPT_DONE:
+                return PTPMGMT_OPT_DONE;
+            default:
+                break;
+        }
+    }
+    return PTPMGMT_OPT_ERR;
+}
+static bool ptpmgmt_opt_have(const_ptpmgmt_opt me, char opt)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->have(opt);
+    return false;
+}
+static const char *ptpmgmt_opt_val(const_ptpmgmt_opt me, char opt)
+{
+    if(me != nullptr && me->_this != nullptr) {
+        const string &v = ((Options *)me->_this)->val(opt);
+        if(!v.empty())
+            return v.c_str();
+    }
+    return nullptr;
+}
+static int ptpmgmt_opt_val_i(const_ptpmgmt_opt me, char opt)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->val_i(opt);
+    return 0;
+}
+static char ptpmgmt_opt_get_net_transport(const_ptpmgmt_opt me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->get_net_transport();
+    return 0;
+}
+static bool ptpmgmt_opt_have_more(const_ptpmgmt_opt me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->have_more();
+    return false;
+}
+static int ptpmgmt_opt_process_next(const_ptpmgmt_opt me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Options *)me->_this)->process_next();
+    return 0;
+}
+static inline ptpmgmt_opt alloc_opt(bool useDef)
+{
+    ptpmgmt_opt me = (ptpmgmt_opt)malloc(sizeof(ptpmgmt_opt_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)new Options(useDef);
+    if(me->_this == nullptr) {
+        free(me);
+        return nullptr;
+    }
+#define C_ASGN(n) me->n = ptpmgmt_opt_##n
+    C_ASGN(free);
+    C_ASGN(useDefOption);
+    C_ASGN(insert);
+    C_ASGN(get_help);
+    C_ASGN(get_msg);
+    C_ASGN(parse_options);
+    C_ASGN(have);
+    C_ASGN(val);
+    C_ASGN(val_i);
+    C_ASGN(get_net_transport);
+    C_ASGN(have_more);
+    C_ASGN(process_next);
+    return me;
+}
+ptpmgmt_opt ptpmgmt_opt_alloc()
+{
+    return alloc_opt(true);
+}
+ptpmgmt_opt ptpmgmt_opt_alloc_empty()
+{
+    return alloc_opt(false);
+}
+
+__PTPMGMT_C_END
