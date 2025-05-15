@@ -18,6 +18,7 @@ distribution()
    # Also Ubuntu and other Debian based distributions
    dist=debian
  else
+   local n m
    for n in /etc/*-release; do
      if [[ -f "$n" ]]; then
        case $n in
@@ -39,8 +40,8 @@ distribution()
 read_defs()
 {
  [[ -f defs.mk ]] || return
- local l="$@"
- local var val
+ local -r export_list="$@"
+ local var val n
  mapfile < defs.mk
  for n in "${MAPFILE[@]}"; do
   if [[ $n =~ ^# ]]; then
@@ -58,11 +59,10 @@ read_defs()
     fi
   fi
  done
-  if [[ -n "$l" ]]; then
-  local n a
-  for n in $l; do
-   a="$(eval "echo '${R["$n"]}'")"
-   eval "$n=\"$a\""
+ if [[ -n "$export_list" ]]; then
+  for n in $export_list; do
+   val="$(eval "echo '${R["$n"]}'")"
+   eval "$n=\"$val\""
   done
  fi
 }

@@ -23,6 +23,7 @@ License:        LGPL-3.0-or-later
 BuildRequires:  gcc-c++ pkgconfig which swig
 BuildRequires:  autoconf m4 automake libtool chrpath
 # You may use 'patchelf' as alternative of `chrpath`
+BuildRequires:  discount cmark
 BuildRequires:  doxygen graphviz texlive-epstopdf pandoc
 BuildRequires:  openssl-devel libgcrypt-devel gnutls-devel nettle-devel
 BuildRequires:  perl perl-devel
@@ -239,7 +240,7 @@ Clock Manager library tcl wrapper
 %build
 autoreconf -i
 %configure --with-pmc-flags='-fPIE' --enable-systemd
-%make_build PMC_USE_LIB=so --no-print-directory all doxygen
+%make_build all doxygen --no-print-directory
 
 %install
 %make_install DEV_PKG=%{name}-devel --no-print-directory

@@ -38,7 +38,7 @@ const int NO_SUCH_PTP = -1;
 typedef long double float_freq;
 
 /**
- * @brief Network interface information
+ * Network interface information
  */
 class IfInfo
 {
@@ -239,6 +239,7 @@ class BaseClock
     BaseClock() : m_clkId(CLOCK_INVALID), m_isInit(false), m_freq(false) {}
     /**< @endcond */
   public:
+    virtual ~BaseClock();
     /**
      * Get clock time
      * @return clock time or zero on error
@@ -301,7 +302,7 @@ class PtpClock : public BaseClock
 
   public:
     PtpClock();
-    ~PtpClock();
+    virtual ~PtpClock();
     /**
      * Check file is a char file
      * @param[in] file name to check
