@@ -112,4 +112,11 @@ const char *HMAC_SSL::ssl_err()
     return m_err_str;
 }
 
+static bool Load()
+{
+    return true;
+}
+static void Unload()
+{
+}
 HMAC_DECL(HMAC_SSL)

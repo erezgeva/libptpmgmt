@@ -141,10 +141,6 @@ namespace=$def_namespace
 project=$def_project
 EOF
   fi
-  # TODO remove the follow
-  if ! grep 'project=' tools/gitlab_params >> /dev/null; then
-    echo "project=$def_project" >> tools/gitlab_params
-  fi
 }
 docker_dlog()
 {
