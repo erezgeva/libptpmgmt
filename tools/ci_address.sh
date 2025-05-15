@@ -66,7 +66,13 @@ build_prepare_ubuntu()
 # Configure for coverity scan
 ci_coverity()
 {
- build_prepare_ubuntu --without-swig
+ local add_cfg
+ case $1 in
+   clang)
+     add_cfg='CC=clang CXX=clang++'
+     ;;
+ esac
+ build_prepare_ubuntu --without-swig $add_cfg
 }
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
