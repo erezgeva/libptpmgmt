@@ -17,13 +17,11 @@
 #ifdef HAVE_ENDIAN_H
 #include <endian.h>
 #endif
-#if 0
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif
 #endif
 #include "name.h"
 #include "cfg.h"
@@ -160,7 +158,7 @@ __PTPMGMT_NAMESPACE_BEGIN
  * @param[in] value host order unsigned 16 bits integer
  * @return network order unsigned 16 bits integer
  */
-inline uint16_t cpu_to_net16(uint16_t value) {return htobe16(value);}
+inline uint16_t cpu_to_net16(uint16_t value) {return htons(value);}
 /**
  * convert unsigned 16 bits integer from host order to network order
  * @param[in] value host order unsigned 16 bits integer
@@ -172,7 +170,7 @@ inline uint16_t cpu_to_net(uint16_t value) {return cpu_to_net16(value);}
  * @param[in] value network order unsigned 16 bits integer
  * @return host order unsigned 16 bits integer
  */
-inline uint16_t net_to_cpu16(uint16_t value) {return be16toh(value);}
+inline uint16_t net_to_cpu16(uint16_t value) {return ntohs(value);}
 /**
  * convert unsigned 16 bits integer from network order to host order
  * @param[in] value network order unsigned 16 bits integer
