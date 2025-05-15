@@ -17,6 +17,14 @@
 #ifdef HAVE_ENDIAN_H
 #include <endian.h>
 #endif
+#if 0
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#endif
 #include "name.h"
 #include "cfg.h"
 #include "err.h"
@@ -158,7 +166,7 @@ inline uint16_t cpu_to_net16(uint16_t value) {return htobe16(value);}
  * @param[in] value host order unsigned 16 bits integer
  * @return network order unsigned 16 bits integer
  */
-inline uint16_t cpu_to_net(uint16_t value) {return htobe16(value);}
+inline uint16_t cpu_to_net(uint16_t value) {return cpu_to_net16(value);}
 /**
  * convert unsigned 16 bits integer from network order to host order
  * @param[in] value network order unsigned 16 bits integer
@@ -170,7 +178,7 @@ inline uint16_t net_to_cpu16(uint16_t value) {return be16toh(value);}
  * @param[in] value network order unsigned 16 bits integer
  * @return host order unsigned 16 bits integer
  */
-inline uint16_t net_to_cpu(uint16_t value) {return be16toh(value);}
+inline uint16_t net_to_cpu(uint16_t value) {return net_to_cpu16(value);}
 /**
  * convert unsigned 32 bits integer from host order to network order
  * @param[in] value host order unsigned 32 bits integer
@@ -182,7 +190,7 @@ inline uint32_t cpu_to_net32(uint32_t value) {return htobe32(value);}
  * @param[in] value host order unsigned 32 bits integer
  * @return network order unsigned 32 bits integer
  */
-inline uint32_t cpu_to_net(uint32_t value) {return htobe32(value);}
+inline uint32_t cpu_to_net(uint32_t value) {return cpu_to_net32(value);}
 /**
  * convert unsigned 32 bits integer from network order to host order
  * @param[in] value network order unsigned 32 bits integer
@@ -194,7 +202,7 @@ inline uint32_t net_to_cpu32(uint32_t value) {return be32toh(value);}
  * @param[in] value network order unsigned 32 bits integer
  * @return host order unsigned 32 bits integer
  */
-inline uint32_t net_to_cpu(uint32_t value) {return be32toh(value);}
+inline uint32_t net_to_cpu(uint32_t value) {return net_to_cpu32(value);}
 /**
  * convert unsigned 64 bits integer from host order to network order
  * @param[in] value host order unsigned 64 bits integer
@@ -206,7 +214,7 @@ inline uint64_t cpu_to_net64(uint64_t value) {return htobe64(value);}
  * @param[in] value host order unsigned 64 bits integer
  * @return network order unsigned 64 bits integer
  */
-inline uint64_t cpu_to_net(uint64_t value) {return htobe64(value);}
+inline uint64_t cpu_to_net(uint64_t value) {return cpu_to_net64(value);}
 /**
  * convert unsigned 64 bits integer from network order to host order
  * @param[in] value network order unsigned 64 bits integer
@@ -218,7 +226,7 @@ inline uint64_t net_to_cpu64(uint64_t value) {return be64toh(value);}
  * @param[in] value network order unsigned 64 bits integer
  * @return host order unsigned 64 bits integer
  */
-inline uint64_t net_to_cpu(uint64_t value) {return be64toh(value);}
+inline uint64_t net_to_cpu(uint64_t value) {return net_to_cpu64(value);}
 
 /**
  * convert unsigned 64 bits integer from host order to little endian order
@@ -323,13 +331,14 @@ struct MsgProc {
     bool proc(int8_t &val) { return procB8(val); }
     bool proc(uint8_t &val) { return procB8(val); }
     bool procRes() {uint8_t v = 0; return proc(v); }
+    template <typename T> bool procBU(T &val);
+    bool proc(uint16_t &val) { return procBU(val); }
+    bool proc(uint32_t &val) { return procBU(val); }
+    bool proc(uint64_t &val) { return procBU(val); }
     template <typename T, typename U> bool procBN(T &val);
     bool proc(int16_t &val) { return procBN<int16_t, uint16_t>(val); }
-    bool proc(uint16_t &val) { return procBN<uint16_t, uint16_t>(val); }
     bool proc(int32_t &val) { return procBN<int32_t, uint32_t>(val); }
-    bool proc(uint32_t &val) { return procBN<uint32_t, uint32_t>(val); }
     bool proc(int64_t &val) { return procBN<int64_t, uint64_t>(val); }
-    bool proc(uint64_t &val) { return procBN<uint64_t, uint64_t>(val); }
     bool proc48(uint64_t &val);
     bool proc48(int64_t &val);
     bool proc(Float64_t &val);
