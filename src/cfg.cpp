@@ -150,10 +150,7 @@ void ConfigFile::clear_sections()
     cfgGlobal = &cfgSec[globalSection];
     cfgGlobal->setGlobal(); // default values
 }
-ConfigFile::ConfigFile()
-{
-    clear_sections();
-}
+ConfigFile::ConfigFile() { clear_sections(); }
 // read PTP configuration from file
 bool ConfigFile::read_cfg(const string &_file)
 {
@@ -164,7 +161,7 @@ bool ConfigFile::read_cfg(const string &_file)
     const char *file = _file.c_str();
     FILE *f = fopen(file, "r");
     if(f == nullptr) {
-        PTPMGMT_ERROR("fail to open %s: %m", file);
+        PTPMGMT_ERROR_P("fail to open %s", file);
         return false;
     }
     char buf[lineSize];
@@ -240,8 +237,6 @@ get_str_func(sa_file)
 get_bin_func(ptp_dst_mac)
 get_bin_func(p2p_dst_mac)
 
-static const Binary empty_key;
-static const Spp empty_spp;
 struct key_cfg_t {
     const char *name;
     HMAC_t type;
@@ -384,31 +379,20 @@ bool Spp::addKey(uint32_t id, HMAC_t type, const Binary &value, size_t digest,
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool Spp::have(uint32_t key) const
-{
-    return key > 0 && m_keys.count(key) > 0;
-}
+bool Spp::have(uint32_t key) const { return key > 0 && m_keys.count(key) > 0; }
 #define KET_AT(v, d) return have(id) ? m_keys.at(id).v : d
-size_t Spp::mac_size(uint32_t id) const
-{
-    KET_AT(mac_size, 0);
-}
+size_t Spp::mac_size(uint32_t id) const { KET_AT(mac_size, 0); }
 const Binary &Spp::key(uint32_t id) const
 {
-    KET_AT(key, empty_key);
+    static const Binary dummy;
+    KET_AT(key, dummy);
 }
-size_t Spp::keys() const
-{
-    return m_keys.size();
-}
+size_t Spp::keys() const { return m_keys.size(); }
 HMAC_t Spp::htype(uint32_t id) const
 {
     KET_AT(type, HMAC_SHA256); // Does not really matter
 }
-uint8_t Spp::ownID() const
-{
-    return m_own_id;
-}
+uint8_t Spp::ownID() const { return m_own_id; }
 Spp::Spp(uint8_t id) : m_own_id(id) { }
 Spp::Spp() : m_own_id(-1) {}
 bool SaFile::read_sa(const string &_file)
@@ -424,7 +408,7 @@ bool SaFile::read_sa(const string &_file)
     }
     FILE *f = fopen(file, "r");
     if(f == nullptr) {
-        PTPMGMT_ERROR("fail to open %s: %m", file);
+        PTPMGMT_ERROR_P("fail to open %s", file);
         return false;
     }
     char buf[lineSize];
@@ -505,10 +489,7 @@ bool SaFile::read_sa(const ConfigFile &cfg, const string &section)
     }
     return read_sa(file);
 }
-bool SaFile::have(uint8_t spp) const
-{
-    return m_spps.count(spp) > 0;
-}
+bool SaFile::have(uint8_t spp) const { return m_spps.count(spp) > 0; }
 bool SaFile::have(uint8_t spp, uint32_t key) const
 {
     return have(spp) && m_spps.at(spp).have(key);
@@ -517,7 +498,8 @@ const Spp &SaFile::spp(uint8_t sppID) const
 {
     if(have(sppID))
         return m_spps.at(sppID);
-    return empty_spp;
+    static const Spp dummy;
+    return dummy;
 }
 
 __PTPMGMT_NAMESPACE_END
@@ -525,24 +507,25 @@ __PTPMGMT_NAMESPACE_END
 static const char ptpm_empty_str[] = "";
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
-    // C interfaces
-    static void ptpmgmt_cfg_free(ptpmgmt_cfg me)
-    {
-        if(me != nullptr) {
-            delete(ConfigFile *)me->_this;
-            free(me);
-        }
+__PTPMGMT_C_BEGIN
+
+// C interfaces
+static void ptpmgmt_cfg_free(ptpmgmt_cfg me)
+{
+    if(me != nullptr) {
+        delete(ConfigFile *)me->_this;
+        free(me);
     }
-    static void ptpmgmt_cfg_free_wrap(ptpmgmt_cfg me)
-    {
-    }
-    static bool ptpmgmt_cfg_read_cfg(ptpmgmt_cfg me, const char *file)
-    {
-        if(me != nullptr && me->_this != nullptr && file != nullptr)
-            return ((ConfigFile *)me->_this)->read_cfg(file);
-        return false;
-    }
+}
+static void ptpmgmt_cfg_free_wrap(ptpmgmt_cfg me)
+{
+}
+static bool ptpmgmt_cfg_read_cfg(ptpmgmt_cfg me, const char *file)
+{
+    if(me != nullptr && me->_this != nullptr && file != nullptr)
+        return ((ConfigFile *)me->_this)->read_cfg(file);
+    return false;
+}
 #define C2CPP_funcN(n, func)\
     static uint##n##_t ptpmgmt_cfg_##func(const_ptpmgmt_cfg me,\
         const char *section) {\
@@ -552,24 +535,24 @@ extern "C" {
             return (( ConfigFile*)me->_this)->func(section);\
         } return 0; }
 #define C2CPP_func(func) C2CPP_funcN(8, func)
-    C2CPP_func(transportSpecific)
-    C2CPP_func(domainNumber)
-    C2CPP_func(udp6_scope)
-    C2CPP_func(udp_ttl)
-    C2CPP_func(socket_priority)
-    C2CPP_func(network_transport)
-    C2CPP_funcN(16, active_key_id)
-    C2CPP_func(spp)
-    C2CPP_func(allow_unauth)
-    bool ptpmgmt_cfg_haveSpp(const_ptpmgmt_cfg me, const char *section)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            if(section == nullptr)
-                return ((ConfigFile *)me->_this)->haveSpp();
-            return ((ConfigFile *)me->_this)->haveSpp(section);
-        }
-        return false;
+C2CPP_func(transportSpecific)
+C2CPP_func(domainNumber)
+C2CPP_func(udp6_scope)
+C2CPP_func(udp_ttl)
+C2CPP_func(socket_priority)
+C2CPP_func(network_transport)
+C2CPP_funcN(16, active_key_id)
+C2CPP_func(spp)
+C2CPP_func(allow_unauth)
+bool ptpmgmt_cfg_haveSpp(const_ptpmgmt_cfg me, const char *section)
+{
+    if(me != nullptr && me->_this != nullptr) {
+        if(section == nullptr)
+            return ((ConfigFile *)me->_this)->haveSpp();
+        return ((ConfigFile *)me->_this)->haveSpp(section);
     }
+    return false;
+}
 #define C2CPP_str(func)\
     static const char *ptpmgmt_cfg_##func(const_ptpmgmt_cfg me,\
         const char *section) {\
@@ -578,8 +561,8 @@ extern "C" {
             const string &s = ((ConfigFile *)me->_this)->func(a);\
             if(!s.empty()) return s.c_str();\
         }   return nullptr; }
-    C2CPP_str(uds_address)
-    C2CPP_str(sa_file)
+C2CPP_str(uds_address)
+C2CPP_str(sa_file)
 #define C2CPP_bfunc(func)\
     static const void *ptpmgmt_cfg_##func(const_ptpmgmt_cfg me, size_t *len,\
         const char *section) {\
@@ -595,72 +578,71 @@ extern "C" {
         if (len != nullptr)\
             *len = 0;\
         return nullptr; }
-    C2CPP_bfunc(ptp_dst_mac)
-    C2CPP_bfunc(p2p_dst_mac)
-    static inline void ptpmgmt_cfg_asign_cb(ptpmgmt_cfg me)
-    {
+C2CPP_bfunc(ptp_dst_mac)
+C2CPP_bfunc(p2p_dst_mac)
+static inline void ptpmgmt_cfg_asign_cb(ptpmgmt_cfg me)
+{
 #define C_ASGN(n) me->n = ptpmgmt_cfg_##n
-        C_ASGN(read_cfg);
-        C_ASGN(transportSpecific);
-        C_ASGN(domainNumber);
-        C_ASGN(udp6_scope);
-        C_ASGN(udp_ttl);
-        C_ASGN(socket_priority);
-        C_ASGN(network_transport);
-        C_ASGN(active_key_id);
-        C_ASGN(spp);
-        C_ASGN(allow_unauth);
-        C_ASGN(haveSpp);
-        C_ASGN(uds_address);
-        C_ASGN(sa_file);
-        C_ASGN(ptp_dst_mac);
-        C_ASGN(p2p_dst_mac);
+    C_ASGN(read_cfg);
+    C_ASGN(transportSpecific);
+    C_ASGN(domainNumber);
+    C_ASGN(udp6_scope);
+    C_ASGN(udp_ttl);
+    C_ASGN(socket_priority);
+    C_ASGN(network_transport);
+    C_ASGN(active_key_id);
+    C_ASGN(spp);
+    C_ASGN(allow_unauth);
+    C_ASGN(haveSpp);
+    C_ASGN(uds_address);
+    C_ASGN(sa_file);
+    C_ASGN(ptp_dst_mac);
+    C_ASGN(p2p_dst_mac);
+}
+ptpmgmt_cfg ptpmgmt_cfg_alloc()
+{
+    ptpmgmt_cfg me = (ptpmgmt_cfg)malloc(sizeof(ptpmgmt_cfg_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)(new ConfigFile);
+    if(me->_this == nullptr) {
+        free(me);
+        return nullptr;
     }
-    ptpmgmt_cfg ptpmgmt_cfg_alloc()
-    {
-        ptpmgmt_cfg me = (ptpmgmt_cfg)malloc(sizeof(ptpmgmt_cfg_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)(new ConfigFile);
-        if(me->_this == nullptr) {
-            free(me);
-            return nullptr;
-        }
-        me->free = ptpmgmt_cfg_free;
-        ptpmgmt_cfg_asign_cb(me);
-        return me;
+    me->free = ptpmgmt_cfg_free;
+    ptpmgmt_cfg_asign_cb(me);
+    return me;
+}
+ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg)
+{
+    ptpmgmt_cfg me = (ptpmgmt_cfg)malloc(sizeof(ptpmgmt_cfg_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)&cfg;
+    me->free = ptpmgmt_cfg_free_wrap;
+    ptpmgmt_cfg_asign_cb(me);
+    return me;
+}
+static void ptpmgmt_spp_free(ptpmgmt_spp me)
+{
+    if(me != nullptr) {
+        delete(Spp *)me->_this;
+        free(me);
     }
-    ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg)
-    {
-        ptpmgmt_cfg me = (ptpmgmt_cfg)malloc(sizeof(ptpmgmt_cfg_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)&cfg;
-        me->free = ptpmgmt_cfg_free_wrap;
-        ptpmgmt_cfg_asign_cb(me);
-        return me;
+}
+static void ptpmgmt_spp_free_wrap(ptpmgmt_spp me)
+{
+}
+bool ptpmgmt_spp_addKey(ptpmgmt_spp spp, uint32_t id, PTPMGMT_HMAC_t type,
+    const void *value, size_t size, size_t digest, bool replace)
+{
+    if(spp != nullptr && spp->_this != nullptr && value != nullptr &&
+        size > 0 && digest > 1) {
+        Binary k(value, size);
+        return ((Spp *)spp->_this)->addKey(id, (HMAC_t)type, k, digest, replace);
     }
-    static void ptpmgmt_spp_free(ptpmgmt_spp me)
-    {
-        if(me != nullptr) {
-            delete(Spp *)me->_this;
-            free(me);
-        }
-    }
-    static void ptpmgmt_spp_free_wrap(ptpmgmt_spp me)
-    {
-    }
-    bool ptpmgmt_spp_addKey(ptpmgmt_spp spp, uint32_t id, PTPMGMT_HMAC_t type,
-        const void *value, size_t size, size_t digest, bool replace)
-    {
-        if(spp != nullptr && spp->_this != nullptr && value != nullptr &&
-            size > 0 && digest > 1) {
-            Binary k(value, size);
-            return ((Spp *)spp->_this)->addKey(id, (HMAC_t)type, k,
-                    digest, replace);
-        }
-        return false;
-    }
+    return false;
+}
 #define C2CPP_key(ret, nm, def)\
     ret ptpmgmt_spp_##nm(const_ptpmgmt_spp spp, uint32_t key)\
     {\
@@ -668,9 +650,9 @@ extern "C" {
             return (ret)(((const Spp *)spp->_this)->nm(key));\
         return def;\
     }
-    C2CPP_key(bool, have, false)
-    C2CPP_key(size_t, mac_size, 0)
-    C2CPP_key(PTPMGMT_HMAC_t, htype, PTPMGMT_HMAC_SHA256)
+C2CPP_key(bool, have, false)
+C2CPP_key(size_t, mac_size, 0)
+C2CPP_key(PTPMGMT_HMAC_t, htype, PTPMGMT_HMAC_SHA256)
 #define C2CPP_key_fn(ret, nm, fn, def)\
     ret ptpmgmt_spp_##nm(const_ptpmgmt_spp spp, uint32_t key)\
     {\
@@ -678,8 +660,8 @@ extern "C" {
             return ((const Spp *)spp->_this)->key(key).fn();\
         return def;\
     }
-    C2CPP_key_fn(const void *, key, get, nullptr)
-    C2CPP_key_fn(size_t, key_size, size, 0)
+C2CPP_key_fn(const void *, key, get, nullptr)
+C2CPP_key_fn(size_t, key_size, size, 0)
 #define C2CPP_num(ret, nm)\
     ret ptpmgmt_spp_##nm(const_ptpmgmt_spp spp)\
     {\
@@ -687,152 +669,153 @@ extern "C" {
             return ((const Spp *)spp->_this)->nm();\
         return 0;\
     }
-    C2CPP_num(size_t, keys)
-    C2CPP_num(uint8_t, ownID)
-    static inline void ptpmgmt_spp_asign_cb(ptpmgmt_spp me)
-    {
+C2CPP_num(size_t, keys)
+C2CPP_num(uint8_t, ownID)
+static inline void ptpmgmt_spp_asign_cb(ptpmgmt_spp me)
+{
 #undef C_ASGN
 #define C_ASGN(n) me->n = ptpmgmt_spp_##n
-        C_ASGN(addKey);
-        C_ASGN(have);
-        C_ASGN(mac_size);
-        C_ASGN(key);
-        C_ASGN(key_size);
-        C_ASGN(keys);
-        C_ASGN(htype);
-        C_ASGN(ownID);
-    }
-    ptpmgmt_spp ptpmgmt_spp_alloc(uint8_t id)
-    {
-        ptpmgmt_spp me = (ptpmgmt_spp)malloc(sizeof(ptpmgmt_spp_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)(new Spp(id));
-        if(me->_this == nullptr) {
-            free(me);
-            return nullptr;
-        }
-        me->free = ptpmgmt_spp_free;
-        ptpmgmt_spp_asign_cb(me);
-        return me;
-    }
-    ptpmgmt_spp ptpmgmt_spp_alloc_cp(const_ptpmgmt_spp spp)
-    {
-        if(spp == nullptr || spp->_this == nullptr)
-            return nullptr;
-        ptpmgmt_spp me = (ptpmgmt_spp)malloc(sizeof(ptpmgmt_spp_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)(new Spp(*(const Spp *)spp->_this));
-        if(me->_this == nullptr) {
-            free(me);
-            return nullptr;
-        }
-        me->free = ptpmgmt_spp_free;
-        ptpmgmt_spp_asign_cb(me);
-        return me;
-    }
-    ptpmgmt_spp ptpmgmt_spp_alloc_wrap(const Spp &spp)
-    {
-        ptpmgmt_spp me = (ptpmgmt_spp)malloc(sizeof(ptpmgmt_spp_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)&spp;
-        me->free = ptpmgmt_spp_free_wrap;
-        ptpmgmt_spp_asign_cb(me);
-        return me;
-    }
-    static void ptpmgmt_safile_free(ptpmgmt_safile me)
-    {
-        if(me != nullptr) {
-            delete(SaFile *)me->_this;
-            for(size_t i = 0; i < UINT8_MAX; i++)
-                free(me->_all[i]);
-            free(me);
-        }
-    }
-    static void ptpmgmt_safile_free_wrap(ptpmgmt_safile me)
-    {
-        if(me != nullptr) {
-            for(size_t i = 0; i < UINT8_MAX; i++)
-                free(me->_all[i]);
-        }
-    }
-    bool ptpmgmt_safile_read_sa(ptpmgmt_safile sf, const char *file)
-    {
-        if(sf != nullptr && sf->_this != nullptr && file != nullptr)
-            return ((SaFile *)sf->_this)->read_sa(file);
-        return false;
-    }
-    bool ptpmgmt_safile_read_sa_cfg(ptpmgmt_safile sf, const_ptpmgmt_cfg cfg,
-        const char *section)
-    {
-        if(sf != nullptr && sf->_this != nullptr && cfg != nullptr) {
-            SaFile &s = *(SaFile *)sf->_this;
-            ConfigFile &c = *(ConfigFile *)cfg->_this;
-            if(section == nullptr)
-                return s.read_sa(c);
-            return s.read_sa(c, section);
-        }
-        return false;
-    }
-    bool ptpmgmt_safile_have(const_ptpmgmt_safile sf, uint8_t spp)
-    {
-        if(sf != nullptr && sf->_this != nullptr)
-            return ((SaFile *)sf->_this)->have(spp);
-        return false;
-    }
-    bool ptpmgmt_safile_have_key(const_ptpmgmt_safile sf, uint8_t spp, uint32_t key)
-    {
-        if(sf != nullptr && sf->_this != nullptr)
-            return ((SaFile *)sf->_this)->have(spp, key);
-        return false;
-    }
-    const_ptpmgmt_spp ptpmgmt_safile_spp(ptpmgmt_safile sf, uint8_t sppID)
-    {
-        if(sf != nullptr && sf->_this != nullptr) {
-            SaFile &s = *(SaFile *)sf->_this;
-            if(s.have(sppID)) {
-                if(sf->_all[sppID] == nullptr)
-                    sf->_all[sppID] = ptpmgmt_spp_alloc_wrap(s.spp(sppID));
-                return sf->_all[sppID];
-            }
-        }
+    C_ASGN(addKey);
+    C_ASGN(have);
+    C_ASGN(mac_size);
+    C_ASGN(key);
+    C_ASGN(key_size);
+    C_ASGN(keys);
+    C_ASGN(htype);
+    C_ASGN(ownID);
+}
+ptpmgmt_spp ptpmgmt_spp_alloc(uint8_t id)
+{
+    ptpmgmt_spp me = (ptpmgmt_spp)malloc(sizeof(ptpmgmt_spp_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)(new Spp(id));
+    if(me->_this == nullptr) {
+        free(me);
         return nullptr;
     }
-    static inline void ptpmgmt_safile_asign_cb(ptpmgmt_safile me)
-    {
-        memset(me->_all, 0, sizeof me->_all);
-#undef C_ASGN
-#define C_ASGN(n) me->n = ptpmgmt_safile_##n
-        C_ASGN(read_sa);
-        C_ASGN(read_sa_cfg);
-        C_ASGN(have);
-        C_ASGN(have_key);
-        C_ASGN(spp);
+    me->free = ptpmgmt_spp_free;
+    ptpmgmt_spp_asign_cb(me);
+    return me;
+}
+ptpmgmt_spp ptpmgmt_spp_alloc_cp(const_ptpmgmt_spp spp)
+{
+    if(spp == nullptr || spp->_this == nullptr)
+        return nullptr;
+    ptpmgmt_spp me = (ptpmgmt_spp)malloc(sizeof(ptpmgmt_spp_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)(new Spp(*(const Spp *)spp->_this));
+    if(me->_this == nullptr) {
+        free(me);
+        return nullptr;
     }
-    ptpmgmt_safile ptpmgmt_safile_alloc()
-    {
-        ptpmgmt_safile me = (ptpmgmt_safile)malloc(sizeof(ptpmgmt_safile_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)(new SaFile());
-        if(me->_this == nullptr) {
-            free(me);
-            return nullptr;
-        }
-        me->free = ptpmgmt_safile_free;
-        ptpmgmt_safile_asign_cb(me);
-        return me;
-    }
-    ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa)
-    {
-        ptpmgmt_safile me = (ptpmgmt_safile)malloc(sizeof(ptpmgmt_safile_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)&sa;
-        me->free = ptpmgmt_safile_free_wrap;
-        ptpmgmt_safile_asign_cb(me);
-        return me;
+    me->free = ptpmgmt_spp_free;
+    ptpmgmt_spp_asign_cb(me);
+    return me;
+}
+ptpmgmt_spp ptpmgmt_spp_alloc_wrap(const Spp &spp)
+{
+    ptpmgmt_spp me = (ptpmgmt_spp)malloc(sizeof(ptpmgmt_spp_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)&spp;
+    me->free = ptpmgmt_spp_free_wrap;
+    ptpmgmt_spp_asign_cb(me);
+    return me;
+}
+static void ptpmgmt_safile_free(ptpmgmt_safile me)
+{
+    if(me != nullptr) {
+        delete(SaFile *)me->_this;
+        for(size_t i = 0; i < UINT8_MAX; i++)
+            free(me->_all[i]);
+        free(me);
     }
 }
+static void ptpmgmt_safile_free_wrap(ptpmgmt_safile me)
+{
+    if(me != nullptr) {
+        for(size_t i = 0; i < UINT8_MAX; i++)
+            free(me->_all[i]);
+    }
+}
+bool ptpmgmt_safile_read_sa(ptpmgmt_safile sf, const char *file)
+{
+    if(sf != nullptr && sf->_this != nullptr && file != nullptr)
+        return ((SaFile *)sf->_this)->read_sa(file);
+    return false;
+}
+bool ptpmgmt_safile_read_sa_cfg(ptpmgmt_safile sf, const_ptpmgmt_cfg cfg,
+    const char *section)
+{
+    if(sf != nullptr && sf->_this != nullptr && cfg != nullptr) {
+        SaFile &s = *(SaFile *)sf->_this;
+        ConfigFile &c = *(ConfigFile *)cfg->_this;
+        if(section == nullptr)
+            return s.read_sa(c);
+        return s.read_sa(c, section);
+    }
+    return false;
+}
+bool ptpmgmt_safile_have(const_ptpmgmt_safile sf, uint8_t spp)
+{
+    if(sf != nullptr && sf->_this != nullptr)
+        return ((SaFile *)sf->_this)->have(spp);
+    return false;
+}
+bool ptpmgmt_safile_have_key(const_ptpmgmt_safile sf, uint8_t spp, uint32_t key)
+{
+    if(sf != nullptr && sf->_this != nullptr)
+        return ((SaFile *)sf->_this)->have(spp, key);
+    return false;
+}
+const_ptpmgmt_spp ptpmgmt_safile_spp(ptpmgmt_safile sf, uint8_t sppID)
+{
+    if(sf != nullptr && sf->_this != nullptr) {
+        SaFile &s = *(SaFile *)sf->_this;
+        if(s.have(sppID)) {
+            if(sf->_all[sppID] == nullptr)
+                sf->_all[sppID] = ptpmgmt_spp_alloc_wrap(s.spp(sppID));
+            return sf->_all[sppID];
+        }
+    }
+    return nullptr;
+}
+static inline void ptpmgmt_safile_asign_cb(ptpmgmt_safile me)
+{
+    memset(me->_all, 0, sizeof me->_all);
+#undef C_ASGN
+#define C_ASGN(n) me->n = ptpmgmt_safile_##n
+    C_ASGN(read_sa);
+    C_ASGN(read_sa_cfg);
+    C_ASGN(have);
+    C_ASGN(have_key);
+    C_ASGN(spp);
+}
+ptpmgmt_safile ptpmgmt_safile_alloc()
+{
+    ptpmgmt_safile me = (ptpmgmt_safile)malloc(sizeof(ptpmgmt_safile_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)(new SaFile());
+    if(me->_this == nullptr) {
+        free(me);
+        return nullptr;
+    }
+    me->free = ptpmgmt_safile_free;
+    ptpmgmt_safile_asign_cb(me);
+    return me;
+}
+ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa)
+{
+    ptpmgmt_safile me = (ptpmgmt_safile)malloc(sizeof(ptpmgmt_safile_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)&sa;
+    me->free = ptpmgmt_safile_free_wrap;
+    ptpmgmt_safile_asign_cb(me);
+    return me;
+}
+
+__PTPMGMT_C_END

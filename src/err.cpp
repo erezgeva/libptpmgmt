@@ -14,6 +14,41 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
+extern "C" {
+    #ifndef HAVE_DECL_STRERROR_R
+    void strerror_r(int errnum, char buf[], size_t buflen);
+    #endif
+}
+
+static const string _strerror(int errnum)
+{
+    const char *name = nullptr;
+    const char *desc = nullptr;
+    #ifdef HAVE_STRERRORNAME_NP
+    name = strerrorname_np(errnum);
+    #endif
+    #ifdef HAVE_STRERRORDESC_NP
+    desc = strerrordesc_np(errnum);
+    #elif defined HAVE_STRERROR_R
+    char buf[1000];
+    strerror_r(errnum, buf, sizeof buf);
+    desc = buf;
+    #elif defined HAVE_STRERROR_S
+    char buf[RSIZE_MAX];
+    strerror_s(errnum, buf, sizeof buf);
+    desc = buf;
+    #else
+    desc = strerror(errnum);
+    #endif
+    if(desc == nullptr)
+        return "NA";
+    if(name == nullptr)
+        return desc;
+    string r = desc;
+    r.insert(0, string(name) + ": ");
+    return r;
+}
+
 void Error::doError(bool use_errno, const char *file, int line,
     const char *func, const string &msg)
 {
@@ -21,7 +56,7 @@ void Error::doError(bool use_errno, const char *file, int line,
     m_line = line;
     m_func = func;
     m_msg = msg;
-    m_errno = use_errno ? errno : 0;
+    m_errnom = use_errno ? errno : 0;
 }
 const string &Error::fetch()
 {
@@ -30,9 +65,9 @@ const string &Error::fetch()
     m_fmsg = "[" + m_file +
         ":" + to_string(m_line) +
         ":" + m_func + "] " + m_msg;
-    if(m_errno != 0) {
+    if(m_errnom != 0) {
         m_fmsg += ": ";
-        m_fmsg += strerror(m_errno);
+        m_fmsg += _strerror(m_errnom);
     }
     return m_fmsg;
 }
@@ -41,34 +76,13 @@ Error &Error::getCur()
     static thread_local Error obj;
     return obj;
 }
-bool Error::isError()
-{
-    return getCur().m_line > 0;
-}
-const string &Error::getError()
-{
-    return getCur().fetch();
-}
-const string &Error::getFile()
-{
-    return getCur().m_file;
-}
-int Error::getFileLine()
-{
-    return getCur().m_line;
-}
-const string &Error::getFunc()
-{
-    return getCur().m_func;
-}
-int Error::getErrno()
-{
-    return getCur().m_errno;
-}
-const string &Error::getMsg()
-{
-    return getCur().m_msg;
-}
+bool Error::isError() { return getCur().m_line > 0; }
+const string &Error::getError() { return getCur().fetch(); }
+const string &Error::getFile() { return getCur().m_file; }
+int Error::getFileLine() { return getCur().m_line; }
+const string &Error::getFunc() { return getCur().m_func; }
+int Error::getErrno() { return getCur().m_errnom; }
+const string &Error::getMsg() { return getCur().m_msg; }
 string Error::doFormat(const char *format, ...)
 {
     va_list va;
@@ -90,20 +104,24 @@ string Error::doFormat(const char *format, ...)
 }
 const string &Error::getErrnoMsg()
 {
-    getCur().m_emsg = getCur().m_errno == 0 ? "" : strerror(getCur().m_errno);
-    return getCur().m_emsg;
+    Error &self = getCur();
+    self.m_emsg = self.m_errnom == 0 ? "" : _strerror(self.m_errnom);
+    return self.m_emsg;
 }
 
 __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
-extern "C" {
-    int ptpmgmt_err_isError() { return Error::isError(); }
-    const char *ptpmgmt_err_getError() { return Error::getError().c_str(); }
-    const char *ptpmgmt_err_getFile() { return Error::getFile().c_str(); }
-    int ptpmgmt_err_getFileLine() { return Error::getFileLine(); }
-    const char *ptpmgmt_err_getFunc() { return Error::getFunc().c_str(); }
-    int ptpmgmt_err_getErrno() { return Error::getErrno(); }
-    const char *ptpmgmt_err_getMsg() { return Error::getMsg().c_str(); }
-    const char *ptpmgmt_err_getErrnoMsg() { return Error::getErrnoMsg().c_str(); }
-}
+
+__PTPMGMT_C_BEGIN
+
+int ptpmgmt_err_isError() { return Error::isError(); }
+const char *ptpmgmt_err_getError() { return Error::getError().c_str(); }
+const char *ptpmgmt_err_getFile() { return Error::getFile().c_str(); }
+int ptpmgmt_err_getFileLine() { return Error::getFileLine(); }
+const char *ptpmgmt_err_getFunc() { return Error::getFunc().c_str(); }
+int ptpmgmt_err_getErrno() { return Error::getErrno(); }
+const char *ptpmgmt_err_getMsg() { return Error::getMsg().c_str(); }
+const char *ptpmgmt_err_getErrnoMsg() { return Error::getErrnoMsg().c_str(); }
+
+__PTPMGMT_C_END

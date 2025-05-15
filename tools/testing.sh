@@ -104,6 +104,7 @@ main()
        ldPathPhp ldPathTcl needCmpl oneLua skip_php\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54\
        ldPath luaVersions
+ local -r ldPathBase='LD_LIBRARY_PATH=.libs'
  local -r gtest='wrappers/go/gtest/gtest'
  local -r pyVersions='3'
  local -r libptpm='/libptpmgmt.so'
@@ -114,7 +115,7 @@ main()
  if [[ -x $instPmcLib ]] && [[ -n "$probeSystem" ]]; then
    local -r pmclibtool=$instPmcLib
  else
-   local -r pmclibtool=./ptp-tools/pmc
+   local -r pmclibtool="$ldPathBase ./ptp-tools/pmc"
    needCmpl=y
  fi
  local -r instPhcCtlLib=/usr/sbin/phc_ctl-ptpmgmt
@@ -413,7 +414,7 @@ test_phc_ctl()
  if [[ -n "$use_sim_phc" ]]; then
    local -r ldPhcPath='LD_PRELOAD=./objs/ptp4l_sim.so'
    if [[ -n "$pneed" ]]; then
-     pneed="$ldPhcPath:./.libs/$libptpm "
+     pneed="$ldPhcPath:./.libs$libptpm "
    else
      pneed="$ldPhcPath "
    fi
@@ -545,7 +546,7 @@ probeBuild()
 }
 allBuild()
 {
- ldPath="LD_LIBRARY_PATH=.libs LD_PRELOAD=./.libs/$libptpm"
+ ldPath="$ldPathBase LD_PRELOAD=./.libs$libptpm"
  needCmpl=y
  # We need all!
  ldPathPerl="$ldPath PERL5LIB=wrappers/perl"
@@ -596,7 +597,7 @@ probeLibsDebian()
  if [[ $hmacCount -eq 0 ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no hmac plugs"
    needCmpl=y
-   ldPath="LD_LIBRARY_PATH=.libs"
+   ldPath=$ldPathBase
  fi
  getFirstFile "/usr/lib$fmach/perl*/*/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
@@ -667,7 +668,7 @@ probeLibs()
  if [[ $hmacCount -eq 0 ]]; then
    [[ -z "$no_build" ]] || echo "Build as: no hmac plugs"
    needCmpl=y
-   ldPath="LD_LIBRARY_PATH=.libs"
+   ldPath=$ldPathBase
  fi
  getFirstFile "$PERL5_SITE/auto/PtpMgmtLib/PtpMgmtLib.so"
  if ! [[ -f "$file" ]]; then
