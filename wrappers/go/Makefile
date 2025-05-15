@@ -36,13 +36,13 @@ $(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp | $(LIB_NAME_LA)
 	$Q$(MKDIR_P) $(@D)
 	cp $^ $(GO_D)/$(SWIG_LNAME).go $(@D)
 $(GO_D)/$(SWIG_LNAME)/go.mod:
-	$(Q_GEN)if [ -f $@ ]; then touch $@; else $(MKDIR_P) $(@D);\
+	$(Q_GEN)if [ -f $@ ];then touch $@;else $(MKDIR_P) $(@D)&&\
 	cd $(@D) && $(GO_BIN) mod init $(SWIG_LNAME) $(Q_ERR);fi
 $(GO_D)/gtest/go.mod $(GO_D)/unit_test/go.mod: $(GO_D)/$(SWIG_LNAME)/go.mod\
 	  $(GO_SRC)
-	$(Q_GEN)cd $(@D);if [ -f $(@F) ]; then touch $(@F);\
-	else $(GO_BIN) mod init $(subst $(GO_D)/,,$(@D)) $(Q_ERR);\
-	$(GO_BIN) mod edit -replace $(SWIG_LNAME)=../$(SWIG_LNAME);fi;\
+	$(Q_GEN)cd $(@D)&& if [ -f $(@F) ];then touch $(@F)\
+	;else $(GO_BIN) mod init $(subst $(GO_D)/,,$(@D)) $(Q_ERR)&&\
+	$(GO_BIN) mod edit -replace $(SWIG_LNAME)=../$(SWIG_LNAME);fi&&\
 	$(GO_BIN) mod tidy $(Q_ERR)
 $(GO_D)/gtest/gtest: $(GO_D)/gtest/go.mod $(GO_D)/gtest/gtest.go $(GO_SRC)
 	$(Q_LD)cd $(@D) && $(GO_BIN) build .
@@ -53,7 +53,7 @@ $(GO_CLKMGR_DIR)/$(CLKMGR_NAME).cpp: $(GO_D)/$(CLKMGR_NAME).cpp | $(CLKMGR_LIB_L
 	$Q$(MKDIR_P) $(@D)
 	cp $^ $(GO_D)/$(CLKMGR_NAME).go $(@D)
 $(GO_CLKMGR_DIR)/go.mod:
-	$(Q_GEN)if [ -f $@ ]; then touch $@; else $(MKDIR_P) $(@D);\
+	$(Q_GEN)if [ -f $@ ];then touch $@;else $(MKDIR_P) $(@D)&&\
 	cd $(@D) && $(GO_BIN) mod init $(CLKMGR_NAME) $(Q_ERR);fi
 SWIG_ALL+=$(GO_CLKMGR_DIR)/$(CLKMGR_NAME).cpp $(GO_CLKMGR_DIR)/go.mod
 endif # SKIP_CLKMGR

@@ -53,7 +53,7 @@ attach-return-type
 attach-return-type-decl
 # Don't break one-line blocks
 keep-one-line-blocks
-# Closes whitespace between the ending angle brackets of template definitions (c++ 11)
+# Closes whitespace between the ending angle brackets of template definitions (C++11)
 close-templates
 # cause the logical conditionals to be placed last when breaking lines
 break-after-logical

@@ -163,7 +163,7 @@ function main()
   local prms = msg:getParams()
   if(cfg:haveSpp()) then
     if(not msg:useAuth(cfg)) then
-      return printError("fail using Authentication");
+      return printError("fail using Authentication")
     end
     prms.sendAuth = true
   end

@@ -70,21 +70,21 @@ utest_lua: utest_lua_a $(addprefix utest_lua_,$(LUA_UNIT_VERS))
 install_lua:
 	$Q$(foreach n,$(LUA_VERS),\
 	  $(INSTALL_LIB) -D $(LUA_LIB_$n)\
-	  $(DLIBDIR)/$(LUA_FLIB_$n).$(PACKAGE_VERSION);\
+	  $(DLIBDIR)/$(LUA_FLIB_$n).$(PACKAGE_VERSION)&&\
 	  $(LN) $(LUA_FLIB_$n).$(PACKAGE_VERSION)\
-	  $(DLIBDIR)/$(LUA_FLIB_$n)$(SONAME);\
-	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
+	  $(DLIBDIR)/$(LUA_FLIB_$n)$(SONAME)&&\
+	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n&&\
 	  $(LN) ../../$(LUA_FLIB_$n).$(PACKAGE_VERSION)\
-	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME);)
+	  $(DLIBDIR)/lua/$n/$(SWIG_LIB_NAME)&&) true
 ifndef SKIP_CLKMGR
 	$Q$(foreach n,$(LUA_VERS),\
 	  $(INSTALL_LIB) -D $(LUA_CLKMGR_$n)\
-	  $(DLIBDIR)/$(LUA_FCLKMGR_$n).$(PACKAGE_VERSION);\
+	  $(DLIBDIR)/$(LUA_FCLKMGR_$n).$(PACKAGE_VERSION)&&\
 	  $(LN) $(LUA_FCLKMGR_$n).$(PACKAGE_VERSION)\
-	  $(DLIBDIR)/$(LUA_FCLKMGR_$n)$(SONAME);\
-	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n;\
+	  $(DLIBDIR)/$(LUA_FCLKMGR_$n)$(SONAME)&&\
+	  $(INSTALL_FOLDER) $(DLIBDIR)/lua/$n&&\
 	  $(LN) ../../$(LUA_FCLKMGR_$n).$(PACKAGE_VERSION)\
-	  $(DLIBDIR)/lua/$n/$(CLKMGR_NAME).so;)
+	  $(DLIBDIR)/lua/$n/$(CLKMGR_NAME).so&&) true
 endif # SKIP_CLKMGR
 ifdef LUA_VER
 	$(INSTALL_LIB) -D $(LUA_D)/*.so -t $(DLIBDIR)/lua/$(LUA_VER)

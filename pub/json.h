@@ -49,7 +49,7 @@ class Json2msg
     actionField_e m_action = GET;
     /* optional */
     enum {
-        have_unicastFlag,
+        have_isUnicast,
         have_PTPProfileSpecific,
         have_domainNumber,
         have_versionPTP,
@@ -61,7 +61,7 @@ class Json2msg
         have_limit,
     };
     bool m_have[have_limit] = { false };
-    bool m_unicastFlag = false;
+    bool m_isUnicast = false;
     uint8_t m_PTPProfileSpecific = 0, m_domainNumber = 0,
             m_versionPTP = 2, m_minorVersionPTP = 1;
     uint16_t m_sequenceId = 0;
