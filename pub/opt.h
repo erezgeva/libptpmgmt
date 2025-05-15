@@ -24,7 +24,7 @@
 __PTPMGMT_NAMESPACE_BEGIN
 
 /**
- * @brief Structre to add new option
+ * Structre to add new option
  */
 struct Pmc_option {
     /**
@@ -41,7 +41,7 @@ struct Pmc_option {
 };
 
 /**
- * @brief Hold and process options
+ * Hold and process options
  */
 class Options
 {

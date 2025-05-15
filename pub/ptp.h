@@ -38,7 +38,7 @@ const int NO_SUCH_PTP = -1;
 typedef long double float_freq;
 
 /**
- * @brief Network interface information
+ * Network interface information
  */
 class IfInfo
 {

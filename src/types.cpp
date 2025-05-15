@@ -215,10 +215,7 @@ bool ClockIdentity_t::eq(const Binary &bin) const
     return bin.size() == size() &&
         memcmp(v, bin.get(), size()) == 0;
 }
-size_t ClockIdentity_t::size()
-{
-    return sizeof v;
-}
+size_t ClockIdentity_t::size() { return sizeof v; }
 string PortIdentity_t::string() const
 {
     std::string ret = clockIdentity.string();
@@ -343,88 +340,90 @@ __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
-    // C interfaces
-    static void ptpmgmt_MsgParams_free(ptpmgmt_pMsgParams m)
-    {
-        if(m != nullptr) {
-            delete(MsgParams *)m->_this;
-            free(m);
-        }
-    }
-    static void ptpmgmt_MsgParams_free_wrap(ptpmgmt_pMsgParams m)
-    {
-    }
-    void cpyMsgParams(ptpmgmt_pMsgParams p)
-    {
-        MsgParams &r = *(MsgParams *)p->_this;
-        p->transportSpecific = r.transportSpecific;
-        p->domainNumber = r.domainNumber;
-        p->boundaryHops = r.boundaryHops;
-        p->minorVersion = r.minorVersion;
-        p->isUnicast = r.isUnicast;
-        p->useZeroGet = r.useZeroGet;
-        p->rcvSignaling = r.rcvSignaling;
-        p->filterSignaling = r.filterSignaling;
-        p->rcvSMPTEOrg = r.rcvSMPTEOrg;
-        p->sendAuth = r.sendAuth;
-        p->rcvAuth = (ptpmgmt_MsgParams_RcvAuth_e)r.rcvAuth;
-        p->implementSpecific = (ptpmgmt_implementSpecific_e)r.implementSpecific;
-        memcpy(p->target.clockIdentity.v, r.target.clockIdentity.v,
-            ClockIdentity_t::size());
-        p->target.portNumber = r.target.portNumber;
-        memcpy(p->self_id.clockIdentity.v, r.self_id.clockIdentity.v,
-            ClockIdentity_t::size());
-        p->self_id.portNumber = r.self_id.portNumber;
-    }
-    static void ptpmgmt_allowSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            ((MsgParams *)m->_this)->allowSigTlv((tlvType_e)type);
-    }
-    static void ptpmgmt_removeSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            ((MsgParams *)m->_this)->removeSigTlv((tlvType_e)type);
-    }
-    static bool ptpmgmt_isSigTlv(ptpmgmt_cpMsgParams m, ptpmgmt_tlvType_e type)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((MsgParams *)m->_this)->isSigTlv((tlvType_e)type);
-        return false;
-    }
-    static size_t ptpmgmt_countSigTlvs(ptpmgmt_cpMsgParams m)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((MsgParams *)m->_this)->countSigTlvs();
-        return 0;
-    }
-    static inline void ptpmgmt_MsgParams_asign_cb(ptpmgmt_pMsgParams m)
-    {
-        m->allowSigTlv  = ptpmgmt_allowSigTlv;
-        m->removeSigTlv = ptpmgmt_removeSigTlv;
-        m->isSigTlv     = ptpmgmt_isSigTlv;
-        m->countSigTlvs = ptpmgmt_countSigTlvs;
-        cpyMsgParams(m);
-    }
-    ptpmgmt_pMsgParams ptpmgmt_MsgParams_alloc()
-    {
-        ptpmgmt_pMsgParams m =
-            (ptpmgmt_pMsgParams)malloc(sizeof(ptpmgmt_MsgParams));
-        if(m == nullptr)
-            return nullptr;
-        m->_this = (void *)(new MsgParams);
-        if(m->_this == nullptr) {
-            free(m);
-            return nullptr;
-        }
-        ptpmgmt_MsgParams_asign_cb(m);
-        m->free = ptpmgmt_MsgParams_free;
-        return m;
-    }
-    void ptpmgmt_MsgParams_alloc_wrap(ptpmgmt_pMsgParams p)
-    {
-        ptpmgmt_MsgParams_asign_cb(p);
-        p->free = ptpmgmt_MsgParams_free_wrap;
+__PTPMGMT_C_BEGIN
+
+// C interfaces
+static void ptpmgmt_MsgParams_free(ptpmgmt_pMsgParams m)
+{
+    if(m != nullptr) {
+        delete(MsgParams *)m->_this;
+        free(m);
     }
 }
+static void ptpmgmt_MsgParams_free_wrap(ptpmgmt_pMsgParams m)
+{
+}
+void cpyMsgParams(ptpmgmt_pMsgParams p)
+{
+    MsgParams &r = *(MsgParams *)p->_this;
+    p->transportSpecific = r.transportSpecific;
+    p->domainNumber = r.domainNumber;
+    p->boundaryHops = r.boundaryHops;
+    p->minorVersion = r.minorVersion;
+    p->isUnicast = r.isUnicast;
+    p->useZeroGet = r.useZeroGet;
+    p->rcvSignaling = r.rcvSignaling;
+    p->filterSignaling = r.filterSignaling;
+    p->rcvSMPTEOrg = r.rcvSMPTEOrg;
+    p->sendAuth = r.sendAuth;
+    p->rcvAuth = (ptpmgmt_MsgParams_RcvAuth_e)r.rcvAuth;
+    p->implementSpecific = (ptpmgmt_implementSpecific_e)r.implementSpecific;
+    memcpy(p->target.clockIdentity.v, r.target.clockIdentity.v,
+        ClockIdentity_t::size());
+    p->target.portNumber = r.target.portNumber;
+    memcpy(p->self_id.clockIdentity.v, r.self_id.clockIdentity.v,
+        ClockIdentity_t::size());
+    p->self_id.portNumber = r.self_id.portNumber;
+}
+static void ptpmgmt_allowSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
+{
+    if(m != nullptr && m->_this != nullptr)
+        ((MsgParams *)m->_this)->allowSigTlv((tlvType_e)type);
+}
+static void ptpmgmt_removeSigTlv(ptpmgmt_pMsgParams m, ptpmgmt_tlvType_e type)
+{
+    if(m != nullptr && m->_this != nullptr)
+        ((MsgParams *)m->_this)->removeSigTlv((tlvType_e)type);
+}
+static bool ptpmgmt_isSigTlv(ptpmgmt_cpMsgParams m, ptpmgmt_tlvType_e type)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return ((MsgParams *)m->_this)->isSigTlv((tlvType_e)type);
+    return false;
+}
+static size_t ptpmgmt_countSigTlvs(ptpmgmt_cpMsgParams m)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return ((MsgParams *)m->_this)->countSigTlvs();
+    return 0;
+}
+static inline void ptpmgmt_MsgParams_asign_cb(ptpmgmt_pMsgParams m)
+{
+    m->allowSigTlv  = ptpmgmt_allowSigTlv;
+    m->removeSigTlv = ptpmgmt_removeSigTlv;
+    m->isSigTlv     = ptpmgmt_isSigTlv;
+    m->countSigTlvs = ptpmgmt_countSigTlvs;
+    cpyMsgParams(m);
+}
+ptpmgmt_pMsgParams ptpmgmt_MsgParams_alloc()
+{
+    ptpmgmt_pMsgParams m =
+        (ptpmgmt_pMsgParams)malloc(sizeof(ptpmgmt_MsgParams));
+    if(m == nullptr)
+        return nullptr;
+    m->_this = (void *)(new MsgParams);
+    if(m->_this == nullptr) {
+        free(m);
+        return nullptr;
+    }
+    ptpmgmt_MsgParams_asign_cb(m);
+    m->free = ptpmgmt_MsgParams_free;
+    return m;
+}
+void ptpmgmt_MsgParams_alloc_wrap(ptpmgmt_pMsgParams p)
+{
+    ptpmgmt_MsgParams_asign_cb(p);
+    p->free = ptpmgmt_MsgParams_free_wrap;
+}
+
+__PTPMGMT_C_END
