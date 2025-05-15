@@ -160,23 +160,30 @@ template <typename T> bool MsgProc::procB8(T &val)
 #define B8(t) template bool MsgProc::procB8<t>(t &)
 B8(uint8_t);
 B8(int8_t);
+template <typename T> bool MsgProc::procBU(T &val)
+{
+    if(m_left < (ssize_t)sizeof(T))
+        return true;
+    if(m_build)
+        *(T *)m_cur = cpu_to_net(val);
+    else
+        val = net_to_cpu(*(T *)m_cur);
+    move(sizeof(T));
+    return false;
+}
 template <typename T, typename U> bool MsgProc::procBN(T &val)
 {
     if(m_left < (ssize_t)sizeof(T))
         return true;
-    U v;
-    if(m_build) {
-        v = cpu_to_net((U)val);
-        memcpy(m_cur, &v, sizeof(T));
-    } else {
-        memcpy(&v, m_cur, sizeof(T));
-        val = (T)net_to_cpu(v);
-    }
+    if(m_build)
+        *(U *)m_cur = cpu_to_net((U)val);
+    else
+        val = (T)net_to_cpu(*(U *)m_cur);
     move(sizeof(T));
     return false;
 }
-#define BN_(t, u) template bool MsgProc::procBN<t,u>(t &)
-#define BN(n) BN_(uint##n##_t,uint##n##_t); BN_(int##n##_t,uint##n##_t)
+#define BN(n) template bool MsgProc::procBU<uint##n##_t>(uint##n##_t &val);\
+    template bool MsgProc::procBN<int##n##_t,uint##n##_t>(int##n##_t &)
 BN(16);
 BN(32);
 BN(64);
@@ -670,7 +677,7 @@ ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
  * The main build function will add a pad at the end to make size even
  */
 
-#define A(n) bool MsgProc::n##_##f(n##_t &d)
+#define A(n) bool MsgProc::n##_f(n##_t &d)
 
 A(CLOCK_DESCRIPTION)
 {
@@ -693,6 +700,8 @@ A(INITIALIZE)
 }
 A(FAULT_LOG)
 {
+    if(m_build)
+        d.numberOfFaultRecords = d.faultRecords.size();
     if(proc(d.numberOfFaultRecords))
         return true;
     return vector_f(d.numberOfFaultRecords, d.faultRecords);
@@ -794,14 +803,16 @@ A(PATH_TRACE_ENABLE)
 }
 A(GRANDMASTER_CLUSTER_TABLE)
 {
-    d.actualTableSize = d.PortAddress.size();
+    if(m_build)
+        d.actualTableSize = d.PortAddress.size();
     if(proc(d.logQueryInterval) || proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.PortAddress);
 }
 A(UNICAST_MASTER_TABLE)
 {
-    d.actualTableSize = d.PortAddress.size();
+    if(m_build)
+        d.actualTableSize = d.PortAddress.size();
     if(proc(d.logQueryInterval) || proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.PortAddress);
@@ -812,7 +823,8 @@ A(UNICAST_MASTER_MAX_TABLE_SIZE)
 }
 A(ACCEPTABLE_MASTER_TABLE)
 {
-    d.actualTableSize = d.list.size();
+    if(m_build)
+        d.actualTableSize = d.list.size();
     if(proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.list);
@@ -944,7 +956,8 @@ A(PORT_SERVICE_STATS_NP)
 }
 A(UNICAST_MASTER_TABLE_NP)
 {
-    d.actualTableSize = d.unicastMasters.size();
+    if(m_build)
+        d.actualTableSize = d.unicastMasters.size();
     if(proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.unicastMasters);

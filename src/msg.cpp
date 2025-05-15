@@ -195,8 +195,6 @@ Message::Message(const MsgParams &prms) :
 }
 Message::~Message()
 {
-    m_hmac.reset(nullptr); // delete m_hmac
-    hmac_freeLib();
 }
 ssize_t Message::getMsgPlanedLen() const
 {
