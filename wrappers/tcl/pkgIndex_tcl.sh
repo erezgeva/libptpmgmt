@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright © 2022 Erez Geva <ErezGeva2@gmail.com>
 #

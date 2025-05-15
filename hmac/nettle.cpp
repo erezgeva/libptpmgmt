@@ -84,4 +84,11 @@ bool Nettle::verify(const void *hData, size_t len, Binary &mac)
     return memeql_sec(mac.get(), o.get(), size);
 }
 
+static bool Load()
+{
+    return true;
+}
+static void Unload()
+{
+}
 HMAC_DECL(Nettle)

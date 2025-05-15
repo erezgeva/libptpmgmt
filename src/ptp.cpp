@@ -66,10 +66,7 @@ static inline clockid_t fd_to_clockid(int fd)
     return make_process_cpuclock((unsigned int) fd, CLOCKFD);
 }
 #if 0
-static inline int clockid_to_fd(clockid_t clk)
-{
-    return ~(clk >> 3);
-}
+static inline int clockid_to_fd(clockid_t clk) { return ~(clk >> 3); }
 #endif
 
 // From Kernel include/uapi/linux/timex.h
@@ -267,37 +264,22 @@ bool IfInfo::initUsingIndex(int ifIndex)
     m_ifIndex = ifIndex;
     return initPtp(fd, ifr);
 }
-bool IfInfo::isInit() const
-{
-    return m_isInit;
-}
-int IfInfo::ifIndex() const
-{
-    return m_ifIndex;
-}
-const string &IfInfo::ifName() const
-{
-    return m_ifName;
-}
+bool IfInfo::isInit() const { return m_isInit; }
+int IfInfo::ifIndex() const { return m_ifIndex; }
+const string &IfInfo::ifName() const { return m_ifName; }
 const char *IfInfo::ifName_c() const
 {
     return m_ifName.c_str();
 }
-const Binary &IfInfo::mac() const
-{
-    return m_mac;
-}
-const uint8_t *IfInfo::mac_c() const
-{
-    return m_mac.get();
-}
+const Binary &IfInfo::mac() const { return m_mac; }
+const uint8_t *IfInfo::mac_c() const { return m_mac.get(); }
 size_t IfInfo::mac_size() const
 {
     return m_mac.length();
 }
-int IfInfo::ptpIndex() const
+int IfInfo::ptpIndex() const { return m_ptpIndex; }
+BaseClock::~BaseClock()
 {
-    return m_ptpIndex;
 }
 Timestamp_t BaseClock::getTime() const
 {
@@ -432,7 +414,7 @@ bool PtpClock::init(const char *device, bool readonly)
     int flags = readonly ? O_RDONLY : O_RDWR;
     int fd = open(device, flags);
     if(fd < 0) {
-        PTPMGMT_ERROR_P("opening %s: %m", device);
+        PTPMGMT_ERROR_P("opening %s", device);
         return false;
     }
     clockid_t cid = fd_to_clockid(fd);
@@ -508,30 +490,12 @@ bool PtpClock::initUsingIndex(int ptpIndex, bool readonly)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool PtpClock::isInit() const
-{
-    return m_isInit;
-}
-clockid_t PtpClock::clkId() const
-{
-    return m_clkId;
-}
-int PtpClock::getFd() const
-{
-    return m_fd;
-}
-int PtpClock::fileno() const
-{
-    return m_fd;
-}
-int PtpClock::ptpIndex() const
-{
-    return m_ptpIndex;
-}
-const string &PtpClock::device() const
-{
-    return m_device;
-}
+bool PtpClock::isInit() const { return m_isInit; }
+clockid_t PtpClock::clkId() const { return m_clkId; }
+int PtpClock::getFd() const { return m_fd; }
+int PtpClock::fileno() const { return m_fd; }
+int PtpClock::ptpIndex() const { return m_ptpIndex; }
+const string &PtpClock::device() const { return m_device; }
 const char *PtpClock::device_c() const
 {
     return m_device.c_str();
@@ -935,517 +899,519 @@ __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
-    static void ptpmgmt_ifInfo_free(ptpmgmt_ifInfo me)
-    {
-        if(me != nullptr) {
-            delete(IfInfo *)me->_this;
-            free(me);
-        }
-    }
-    static bool ptpmgmt_ifInfo_initUsingName(ptpmgmt_ifInfo me, const char *ifName)
-    {
-        if(me != nullptr && me->_this != nullptr && ifName != nullptr)
-            return ((IfInfo *)me->_this)->initUsingName(ifName);
-        return false;
-    }
-    static bool ptpmgmt_ifInfo_initUsingIndex(ptpmgmt_ifInfo me, int ifIndex)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((IfInfo *)me->_this)->initUsingIndex(ifIndex);
-        return false;
-    }
-    static bool ptpmgmt_ifInfo_isInit(const_ptpmgmt_ifInfo me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((IfInfo *)me->_this)->isInit();
-        return false;
-    }
-    static int ptpmgmt_ifInfo_ifIndex(const_ptpmgmt_ifInfo me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((IfInfo *)me->_this)->ifIndex();
-        return NO_SUCH_IF;
-    }
-    static const char *ptpmgmt_ifInfo_ifName(const_ptpmgmt_ifInfo me)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            const string &a = ((IfInfo *)me->_this)->ifName();
-            if(!a.empty())
-                return a.c_str();
-        }
-        return nullptr;
-    }
-    static const uint8_t *ptpmgmt_ifInfo_mac(const_ptpmgmt_ifInfo me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((IfInfo *)me->_this)->mac_c();
-        return nullptr;
-    }
-    static size_t ptpmgmt_ifInfo_mac_size(const_ptpmgmt_ifInfo me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((IfInfo *)me->_this)->mac_size();
-        return 0;
-    }
-    static int ptpmgmt_ifInfo_ptpIndex(const_ptpmgmt_ifInfo me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((IfInfo *)me->_this)->ptpIndex();
-        return NO_SUCH_PTP;
-    }
-    ptpmgmt_ifInfo ptpmgmt_ifInfo_alloc()
-    {
-        ptpmgmt_ifInfo me = (ptpmgmt_ifInfo)malloc(sizeof(ptpmgmt_ifInfo_t));
-        if(me == nullptr)
-            return nullptr;
-        me->_this = (void *)(new IfInfo);
-        if(me->_this == nullptr) {
-            free(me);
-            return nullptr;
-        }
-        me->free = ptpmgmt_ifInfo_free;
-        me->initUsingName = ptpmgmt_ifInfo_initUsingName;
-        me->initUsingIndex = ptpmgmt_ifInfo_initUsingIndex;
-        me->isInit = ptpmgmt_ifInfo_isInit;
-        me->ifIndex = ptpmgmt_ifInfo_ifIndex;
-        me->ifName = ptpmgmt_ifInfo_ifName;
-        me->mac = ptpmgmt_ifInfo_mac;
-        me->mac_size = ptpmgmt_ifInfo_mac_size;
-        me->ptpIndex = ptpmgmt_ifInfo_ptpIndex;
-        return me;
-    }
-    static void ptpmgmt_clock_free(ptpmgmt_clock clk)
-    {
-        if(clk != nullptr) {
-            delete(PtpClock *)clk->_this;
-            free(clk);
-        }
-    }
-    static void ptpmgmt_clock_free_sys(ptpmgmt_clock clk)
-    {
-        if(clk != nullptr) {
-            delete(SysClock *)clk->_this;
-            free(clk);
-        }
-    }
-    static timespec ptpmgmt_clock_getTime(const_ptpmgmt_clock clk)
-    {
-        Timestamp_t t;
-        if(clk != nullptr && clk->_this != nullptr)
-            t = ((BaseClock *)clk->_this)->getTime();
-        return (timespec)t;
-    }
-    static bool ptpmgmt_clock_setTime(const_ptpmgmt_clock clk, const timespec *ts)
-    {
-        if(clk != nullptr && clk->_this != nullptr && ts != nullptr) {
-            Timestamp_t t(*ts);
-            return ((BaseClock *)clk->_this)->setTime(t);
-        }
-        return false;
-    }
-    static bool ptpmgmt_clock_offsetClock(const_ptpmgmt_clock clk, int64_t offset)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((BaseClock *)clk->_this)->offsetClock(offset);
-        return false;
-    }
-    static double ptpmgmt_clock_getFreq(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((BaseClock *)clk->_this)->getFreq();
-        return 0;
-    }
-    static bool ptpmgmt_clock_setFreq(const_ptpmgmt_clock clk, double freq)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((BaseClock *)clk->_this)->setFreq(freq);
-        return false;
-    }
-    static bool ptpmgmt_clock_setPhase(const_ptpmgmt_clock clk, int64_t offset)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((BaseClock *)clk->_this)->setPhase(offset);
-        return false;
-    }
-    static bool non_ptpmgmt_clock_initUsingDevice(ptpmgmt_clock, const char *, bool)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_initUsingDevice(ptpmgmt_clock clk, const char *device,
-        bool readonly)
-    {
-        if(clk != nullptr && clk->_this != nullptr && device != nullptr)
-            return ((PtpClock *)clk->_this)->initUsingDevice(device, readonly);
-        return false;
-    }
-    static bool non_ptpmgmt_clock_initUsingIndex(ptpmgmt_clock, int, bool)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_initUsingIndex(ptpmgmt_clock clk, int ptpIndex,
-        bool readonly)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->initUsingIndex(ptpIndex, readonly);
-        return false;
-    }
-    static bool non_ptpmgmt_clock_isInit(const_ptpmgmt_clock)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_isInit(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->isInit();
-        return false;
-    }
-    static clockid_t non_ptpmgmt_clock_clkId(const_ptpmgmt_clock)
-    {
-        return CLOCK_INVALID;
-    }
-    static clockid_t ptpmgmt_clock_clkId(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->clkId();
-        return CLOCK_INVALID;
-    }
-    static int non_ptpmgmt_clock_getFd(const_ptpmgmt_clock clk)
-    {
-        return -1;
-    }
-    static int ptpmgmt_clock_getFd(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->getFd();
-        return -1;
-    }
-    static int non_ptpmgmt_clock_ptpIndex(const_ptpmgmt_clock)
-    {
-        return NO_SUCH_PTP;
-    }
-    static int ptpmgmt_clock_ptpIndex(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->ptpIndex();
-        return NO_SUCH_PTP;
-    }
-    static const char *non_ptpmgmt_clock_device(const_ptpmgmt_clock)
-    {
-        return nullptr;
-    }
-    static const char *ptpmgmt_clock_device(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->device_c();
-        return nullptr;
-    }
-    static bool non_ptpmgmt_clock_setTimeFromSys(const_ptpmgmt_clock)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_setTimeFromSys(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->setTimeFromSys();
-        return false;
-    }
-    static bool non_ptpmgmt_clock_setTimeToSys(const_ptpmgmt_clock)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_setTimeToSys(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->setTimeToSys();
-        return false;
-    }
-    static bool non_ptpmgmt_clock_fetchCaps(const_ptpmgmt_clock, ptp_clock_caps *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_fetchCaps(const_ptpmgmt_clock clk,
-        ptp_clock_caps *caps)
-    {
-        if(clk != nullptr && clk->_this != nullptr && caps != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            return PtpClock_fetchCaps(p->isInit(), p->getFd(), caps);
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_readPin(const_ptpmgmt_clock, unsigned int,
-        ptp_pin_desc *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_readPin(const_ptpmgmt_clock clk, unsigned int index,
-        ptp_pin_desc *pin)
-    {
-        if(clk != nullptr && clk->_this != nullptr && pin != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            return PtpClock_readPin(p->isInit(), p->getFd(), index, *pin);
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_writePin(const_ptpmgmt_clock,
-        const ptp_pin_desc *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_writePin(const_ptpmgmt_clock clk,
-        const ptp_pin_desc *pin)
-    {
-        if(clk != nullptr && clk->_this != nullptr && pin != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            if(p->isInit())
-                return PtpClock_writePin(p->getFd(), pin);
-            PTPMGMT_ERROR("not initialized yet");
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_ExternTSEbable(const_ptpmgmt_clock, unsigned int,
-        uint8_t)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_ExternTSEbable(const_ptpmgmt_clock clk,
-        unsigned int index, uint8_t flags)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->ExternTSEbable(index, flags);
-        return false;
-    }
-    static bool non_ptpmgmt_clock_ExternTSDisable(const_ptpmgmt_clock, unsigned int)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_ExternTSDisable(const_ptpmgmt_clock clk,
-        unsigned int index)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->ExternTSDisable(index);
-        return false;
-    }
-    static bool non_ptpmgmt_clock_MaskClearAll(const_ptpmgmt_clock)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_MaskClearAll(const_ptpmgmt_clock clk)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->MaskClearAll();
-        return false;
-    }
-    static bool non_ptpmgmt_clock_MaskEnable(const_ptpmgmt_clock, unsigned int)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_MaskEnable(const_ptpmgmt_clock clk,
-        unsigned int index)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->MaskEnable(index);
-        return false;
-    }
-    static bool non_ptpmgmt_clock_readEvent(const_ptpmgmt_clock, ptp_extts_event *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_readEvent(const_ptpmgmt_clock clk,
-        ptp_extts_event *event)
-    {
-        if(clk != nullptr && clk->_this != nullptr && event != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            return PtpClock_readEvent(p->isInit(), p->getFd(), *event);
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_readEvents(const_ptpmgmt_clock, ptp_extts_event *,
-        size_t *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_readEvents(const_ptpmgmt_clock clk,
-        ptp_extts_event *events, size_t *size)
-    {
-        if(clk != nullptr && clk->_this != nullptr && events != nullptr &&
-            size != nullptr && *size > 0) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            if(p->isInit()) {
-                size_t ret = PtpClock_readEvents(p->getFd(), events, min(*size,
-                            PTP_BUF_TIMESTAMPS));
-                if(ret > 0) {
-                    *size = ret;
-                    return true;
-                }
-            } else
-                PTPMGMT_ERROR("not initialized yet");
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_setPinPeriod(const_ptpmgmt_clock, unsigned int,
-        ptp_perout_request *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_setPinPeriod(const_ptpmgmt_clock clk,
-        unsigned int index, ptp_perout_request *times)
-    {
-        if(clk != nullptr && clk->_this != nullptr && times != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            if(p->isInit())
-                return PtpClock_setPinPeriod(p->getFd(), p->clkId(), index, times);
-            PTPMGMT_ERROR("not initialized yet");
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_setPtpPpsEvent(const_ptpmgmt_clock, bool)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_setPtpPpsEvent(const_ptpmgmt_clock clk, bool enable)
-    {
-        if(clk != nullptr && clk->_this != nullptr)
-            return ((PtpClock *)clk->_this)->setPtpPpsEvent(enable);
-        return false;
-    }
-    static bool non_ptpmgmt_clock_samplePtpSys(const_ptpmgmt_clock, size_t,
-        ptp_sys_offset *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_samplePtpSys(const_ptpmgmt_clock clk, size_t count,
-        ptp_sys_offset *samples)
-    {
-        if(clk != nullptr && clk->_this != nullptr && samples != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            return PtpClock_samplePtpSys(p->isInit(), p->getFd(), count, *samples);
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_extSamplePtpSys(const_ptpmgmt_clock, size_t,
-        ptp_sys_offset_extended *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_extSamplePtpSys(const_ptpmgmt_clock clk, size_t count,
-        ptp_sys_offset_extended *samples)
-    {
-        if(clk != nullptr && clk->_this != nullptr && samples != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            return PtpClock_extSamplePtpSys(p->isInit(), p->getFd(), count,
-                    *samples);
-        }
-        return false;
-    }
-    static bool non_ptpmgmt_clock_preciseSamplePtpSys(const_ptpmgmt_clock,
-        ptp_sys_offset_precise *)
-    {
-        return false;
-    }
-    static bool ptpmgmt_clock_preciseSamplePtpSys(const_ptpmgmt_clock clk,
-        ptp_sys_offset_precise *sample)
-    {
-        if(clk != nullptr && clk->_this != nullptr && sample != nullptr) {
-            PtpClock *p = (PtpClock *)clk->_this;
-            if(p->isInit())
-                return PtpClock_preciseSamplePtpSys(p->getFd(), *sample);
-            PTPMGMT_ERROR("not initialized yet");
-        }
-        return false;
-    }
-    bool ptpmgmt_clock_isCharFile(const char *file)
-    {
-        if(file != nullptr)
-            return PtpClock::isCharFile(file);
-        return false;
-    }
-    static inline void ptpmgmt_clock_cb(ptpmgmt_clock clk)
-    {
-#define C_ASGN(n) clk->n = ptpmgmt_clock_##n
-        C_ASGN(getTime);
-        C_ASGN(setTime);
-        C_ASGN(offsetClock);
-        C_ASGN(getFreq);
-        C_ASGN(setFreq);
-        C_ASGN(setPhase);
-        C_ASGN(isCharFile);
-    }
-    ptpmgmt_clock ptpmgmt_clock_alloc()
-    {
-        ptpmgmt_clock clk = (ptpmgmt_clock)malloc(sizeof(ptpmgmt_clock_t));
-        if(clk == nullptr)
-            return nullptr;
-        clk->_this = (void *)(new PtpClock);
-        if(clk->_this == nullptr) {
-            free(clk);
-            return nullptr;
-        }
-        ptpmgmt_clock_cb(clk);
-        C_ASGN(free);
-        C_ASGN(initUsingDevice);
-        C_ASGN(initUsingIndex);
-        C_ASGN(isInit);
-        C_ASGN(clkId);
-        C_ASGN(getFd);
-        clk->fileno = ptpmgmt_clock_getFd;
-        C_ASGN(ptpIndex);
-        C_ASGN(device);
-        C_ASGN(setTimeFromSys);
-        C_ASGN(setTimeToSys);
-        C_ASGN(fetchCaps);
-        C_ASGN(readPin);
-        C_ASGN(writePin);
-        C_ASGN(ExternTSEbable);
-        C_ASGN(ExternTSDisable);
-        C_ASGN(MaskClearAll);
-        C_ASGN(MaskEnable);
-        C_ASGN(readEvent);
-        C_ASGN(readEvents);
-        C_ASGN(setPinPeriod);
-        C_ASGN(setPtpPpsEvent);
-        C_ASGN(samplePtpSys);
-        C_ASGN(extSamplePtpSys);
-        C_ASGN(preciseSamplePtpSys);
-        return clk;
-    }
-    ptpmgmt_clock ptpmgmt_clock_alloc_sys()
-    {
-        ptpmgmt_clock clk = (ptpmgmt_clock)malloc(sizeof(ptpmgmt_clock_t));
-        if(clk == nullptr)
-            return nullptr;
-        clk->_this = (void *)(new SysClock);
-        if(clk->_this == nullptr) {
-            free(clk);
-            return nullptr;
-        }
-        ptpmgmt_clock_cb(clk);
-        clk->free = ptpmgmt_clock_free_sys;
-#define C_NO_ASGN(n) clk->n = non_ptpmgmt_clock_##n
-        C_NO_ASGN(initUsingDevice);
-        C_NO_ASGN(initUsingIndex);
-        C_NO_ASGN(isInit);
-        C_NO_ASGN(clkId);
-        C_NO_ASGN(getFd);
-        clk->fileno = non_ptpmgmt_clock_getFd;
-        C_NO_ASGN(ptpIndex);
-        C_NO_ASGN(device);
-        C_NO_ASGN(setTimeFromSys);
-        C_NO_ASGN(setTimeToSys);
-        C_NO_ASGN(fetchCaps);
-        C_NO_ASGN(readPin);
-        C_NO_ASGN(writePin);
-        C_NO_ASGN(ExternTSEbable);
-        C_NO_ASGN(ExternTSDisable);
-        C_NO_ASGN(MaskClearAll);
-        C_NO_ASGN(MaskEnable);
-        C_NO_ASGN(readEvent);
-        C_NO_ASGN(readEvents);
-        C_NO_ASGN(setPinPeriod);
-        C_NO_ASGN(setPtpPpsEvent);
-        C_NO_ASGN(samplePtpSys);
-        C_NO_ASGN(extSamplePtpSys);
-        C_NO_ASGN(preciseSamplePtpSys);
-        return clk;
+__PTPMGMT_C_BEGIN
+
+static void ptpmgmt_ifInfo_free(ptpmgmt_ifInfo me)
+{
+    if(me != nullptr) {
+        delete(IfInfo *)me->_this;
+        free(me);
     }
 }
+static bool ptpmgmt_ifInfo_initUsingName(ptpmgmt_ifInfo me, const char *ifName)
+{
+    if(me != nullptr && me->_this != nullptr && ifName != nullptr)
+        return ((IfInfo *)me->_this)->initUsingName(ifName);
+    return false;
+}
+static bool ptpmgmt_ifInfo_initUsingIndex(ptpmgmt_ifInfo me, int ifIndex)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((IfInfo *)me->_this)->initUsingIndex(ifIndex);
+    return false;
+}
+static bool ptpmgmt_ifInfo_isInit(const_ptpmgmt_ifInfo me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((IfInfo *)me->_this)->isInit();
+    return false;
+}
+static int ptpmgmt_ifInfo_ifIndex(const_ptpmgmt_ifInfo me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((IfInfo *)me->_this)->ifIndex();
+    return NO_SUCH_IF;
+}
+static const char *ptpmgmt_ifInfo_ifName(const_ptpmgmt_ifInfo me)
+{
+    if(me != nullptr && me->_this != nullptr) {
+        const string &a = ((IfInfo *)me->_this)->ifName();
+        if(!a.empty())
+            return a.c_str();
+    }
+    return nullptr;
+}
+static const uint8_t *ptpmgmt_ifInfo_mac(const_ptpmgmt_ifInfo me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((IfInfo *)me->_this)->mac_c();
+    return nullptr;
+}
+static size_t ptpmgmt_ifInfo_mac_size(const_ptpmgmt_ifInfo me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((IfInfo *)me->_this)->mac_size();
+    return 0;
+}
+static int ptpmgmt_ifInfo_ptpIndex(const_ptpmgmt_ifInfo me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((IfInfo *)me->_this)->ptpIndex();
+    return NO_SUCH_PTP;
+}
+ptpmgmt_ifInfo ptpmgmt_ifInfo_alloc()
+{
+    ptpmgmt_ifInfo me = (ptpmgmt_ifInfo)malloc(sizeof(ptpmgmt_ifInfo_t));
+    if(me == nullptr)
+        return nullptr;
+    me->_this = (void *)(new IfInfo);
+    if(me->_this == nullptr) {
+        free(me);
+        return nullptr;
+    }
+    me->free = ptpmgmt_ifInfo_free;
+    me->initUsingName = ptpmgmt_ifInfo_initUsingName;
+    me->initUsingIndex = ptpmgmt_ifInfo_initUsingIndex;
+    me->isInit = ptpmgmt_ifInfo_isInit;
+    me->ifIndex = ptpmgmt_ifInfo_ifIndex;
+    me->ifName = ptpmgmt_ifInfo_ifName;
+    me->mac = ptpmgmt_ifInfo_mac;
+    me->mac_size = ptpmgmt_ifInfo_mac_size;
+    me->ptpIndex = ptpmgmt_ifInfo_ptpIndex;
+    return me;
+}
+static void ptpmgmt_clock_free(ptpmgmt_clock clk)
+{
+    if(clk != nullptr) {
+        delete(PtpClock *)clk->_this;
+        free(clk);
+    }
+}
+static void ptpmgmt_clock_free_sys(ptpmgmt_clock clk)
+{
+    if(clk != nullptr) {
+        delete(SysClock *)clk->_this;
+        free(clk);
+    }
+}
+static timespec ptpmgmt_clock_getTime(const_ptpmgmt_clock clk)
+{
+    Timestamp_t t;
+    if(clk != nullptr && clk->_this != nullptr)
+        t = ((BaseClock *)clk->_this)->getTime();
+    return (timespec)t;
+}
+static bool ptpmgmt_clock_setTime(const_ptpmgmt_clock clk, const timespec *ts)
+{
+    if(clk != nullptr && clk->_this != nullptr && ts != nullptr) {
+        Timestamp_t t(*ts);
+        return ((BaseClock *)clk->_this)->setTime(t);
+    }
+    return false;
+}
+static bool ptpmgmt_clock_offsetClock(const_ptpmgmt_clock clk, int64_t offset)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((BaseClock *)clk->_this)->offsetClock(offset);
+    return false;
+}
+static double ptpmgmt_clock_getFreq(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((BaseClock *)clk->_this)->getFreq();
+    return 0;
+}
+static bool ptpmgmt_clock_setFreq(const_ptpmgmt_clock clk, double freq)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((BaseClock *)clk->_this)->setFreq(freq);
+    return false;
+}
+static bool ptpmgmt_clock_setPhase(const_ptpmgmt_clock clk, int64_t offset)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((BaseClock *)clk->_this)->setPhase(offset);
+    return false;
+}
+static bool non_ptpmgmt_clock_initUsingDevice(ptpmgmt_clock, const char *, bool)
+{
+    return false;
+}
+static bool ptpmgmt_clock_initUsingDevice(ptpmgmt_clock clk, const char *device,
+    bool readonly)
+{
+    if(clk != nullptr && clk->_this != nullptr && device != nullptr)
+        return ((PtpClock *)clk->_this)->initUsingDevice(device, readonly);
+    return false;
+}
+static bool non_ptpmgmt_clock_initUsingIndex(ptpmgmt_clock, int, bool)
+{
+    return false;
+}
+static bool ptpmgmt_clock_initUsingIndex(ptpmgmt_clock clk, int ptpIndex,
+    bool readonly)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->initUsingIndex(ptpIndex, readonly);
+    return false;
+}
+static bool non_ptpmgmt_clock_isInit(const_ptpmgmt_clock)
+{
+    return false;
+}
+static bool ptpmgmt_clock_isInit(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->isInit();
+    return false;
+}
+static clockid_t non_ptpmgmt_clock_clkId(const_ptpmgmt_clock)
+{
+    return CLOCK_INVALID;
+}
+static clockid_t ptpmgmt_clock_clkId(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->clkId();
+    return CLOCK_INVALID;
+}
+static int non_ptpmgmt_clock_getFd(const_ptpmgmt_clock clk)
+{
+    return -1;
+}
+static int ptpmgmt_clock_getFd(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->getFd();
+    return -1;
+}
+static int non_ptpmgmt_clock_ptpIndex(const_ptpmgmt_clock)
+{
+    return NO_SUCH_PTP;
+}
+static int ptpmgmt_clock_ptpIndex(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->ptpIndex();
+    return NO_SUCH_PTP;
+}
+static const char *non_ptpmgmt_clock_device(const_ptpmgmt_clock)
+{
+    return nullptr;
+}
+static const char *ptpmgmt_clock_device(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->device_c();
+    return nullptr;
+}
+static bool non_ptpmgmt_clock_setTimeFromSys(const_ptpmgmt_clock)
+{
+    return false;
+}
+static bool ptpmgmt_clock_setTimeFromSys(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->setTimeFromSys();
+    return false;
+}
+static bool non_ptpmgmt_clock_setTimeToSys(const_ptpmgmt_clock)
+{
+    return false;
+}
+static bool ptpmgmt_clock_setTimeToSys(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->setTimeToSys();
+    return false;
+}
+static bool non_ptpmgmt_clock_fetchCaps(const_ptpmgmt_clock, ptp_clock_caps *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_fetchCaps(const_ptpmgmt_clock clk,
+    ptp_clock_caps *caps)
+{
+    if(clk != nullptr && clk->_this != nullptr && caps != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        return PtpClock_fetchCaps(p->isInit(), p->getFd(), caps);
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_readPin(const_ptpmgmt_clock, unsigned int,
+    ptp_pin_desc *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_readPin(const_ptpmgmt_clock clk, unsigned int index,
+    ptp_pin_desc *pin)
+{
+    if(clk != nullptr && clk->_this != nullptr && pin != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        return PtpClock_readPin(p->isInit(), p->getFd(), index, *pin);
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_writePin(const_ptpmgmt_clock,
+    const ptp_pin_desc *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_writePin(const_ptpmgmt_clock clk,
+    const ptp_pin_desc *pin)
+{
+    if(clk != nullptr && clk->_this != nullptr && pin != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        if(p->isInit())
+            return PtpClock_writePin(p->getFd(), pin);
+        PTPMGMT_ERROR("not initialized yet");
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_ExternTSEbable(const_ptpmgmt_clock, unsigned int,
+    uint8_t)
+{
+    return false;
+}
+static bool ptpmgmt_clock_ExternTSEbable(const_ptpmgmt_clock clk,
+    unsigned int index, uint8_t flags)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->ExternTSEbable(index, flags);
+    return false;
+}
+static bool non_ptpmgmt_clock_ExternTSDisable(const_ptpmgmt_clock, unsigned int)
+{
+    return false;
+}
+static bool ptpmgmt_clock_ExternTSDisable(const_ptpmgmt_clock clk,
+    unsigned int index)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->ExternTSDisable(index);
+    return false;
+}
+static bool non_ptpmgmt_clock_MaskClearAll(const_ptpmgmt_clock)
+{
+    return false;
+}
+static bool ptpmgmt_clock_MaskClearAll(const_ptpmgmt_clock clk)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->MaskClearAll();
+    return false;
+}
+static bool non_ptpmgmt_clock_MaskEnable(const_ptpmgmt_clock, unsigned int)
+{
+    return false;
+}
+static bool ptpmgmt_clock_MaskEnable(const_ptpmgmt_clock clk,
+    unsigned int index)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->MaskEnable(index);
+    return false;
+}
+static bool non_ptpmgmt_clock_readEvent(const_ptpmgmt_clock, ptp_extts_event *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_readEvent(const_ptpmgmt_clock clk,
+    ptp_extts_event *event)
+{
+    if(clk != nullptr && clk->_this != nullptr && event != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        return PtpClock_readEvent(p->isInit(), p->getFd(), *event);
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_readEvents(const_ptpmgmt_clock, ptp_extts_event *,
+    size_t *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_readEvents(const_ptpmgmt_clock clk,
+    ptp_extts_event *events, size_t *size)
+{
+    if(clk != nullptr && clk->_this != nullptr && events != nullptr &&
+        size != nullptr && *size > 0) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        if(p->isInit()) {
+            size_t ret = PtpClock_readEvents(p->getFd(), events, min(*size,
+                        PTP_BUF_TIMESTAMPS));
+            if(ret > 0) {
+                *size = ret;
+                return true;
+            }
+        } else
+            PTPMGMT_ERROR("not initialized yet");
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_setPinPeriod(const_ptpmgmt_clock, unsigned int,
+    ptp_perout_request *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_setPinPeriod(const_ptpmgmt_clock clk,
+    unsigned int index, ptp_perout_request *times)
+{
+    if(clk != nullptr && clk->_this != nullptr && times != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        if(p->isInit())
+            return PtpClock_setPinPeriod(p->getFd(), p->clkId(), index, times);
+        PTPMGMT_ERROR("not initialized yet");
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_setPtpPpsEvent(const_ptpmgmt_clock, bool)
+{
+    return false;
+}
+static bool ptpmgmt_clock_setPtpPpsEvent(const_ptpmgmt_clock clk, bool enable)
+{
+    if(clk != nullptr && clk->_this != nullptr)
+        return ((PtpClock *)clk->_this)->setPtpPpsEvent(enable);
+    return false;
+}
+static bool non_ptpmgmt_clock_samplePtpSys(const_ptpmgmt_clock, size_t,
+    ptp_sys_offset *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_samplePtpSys(const_ptpmgmt_clock clk, size_t count,
+    ptp_sys_offset *samples)
+{
+    if(clk != nullptr && clk->_this != nullptr && samples != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        return PtpClock_samplePtpSys(p->isInit(), p->getFd(), count, *samples);
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_extSamplePtpSys(const_ptpmgmt_clock, size_t,
+    ptp_sys_offset_extended *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_extSamplePtpSys(const_ptpmgmt_clock clk, size_t count,
+    ptp_sys_offset_extended *samples)
+{
+    if(clk != nullptr && clk->_this != nullptr && samples != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        return PtpClock_extSamplePtpSys(p->isInit(), p->getFd(), count,
+                *samples);
+    }
+    return false;
+}
+static bool non_ptpmgmt_clock_preciseSamplePtpSys(const_ptpmgmt_clock,
+    ptp_sys_offset_precise *)
+{
+    return false;
+}
+static bool ptpmgmt_clock_preciseSamplePtpSys(const_ptpmgmt_clock clk,
+    ptp_sys_offset_precise *sample)
+{
+    if(clk != nullptr && clk->_this != nullptr && sample != nullptr) {
+        PtpClock *p = (PtpClock *)clk->_this;
+        if(p->isInit())
+            return PtpClock_preciseSamplePtpSys(p->getFd(), *sample);
+        PTPMGMT_ERROR("not initialized yet");
+    }
+    return false;
+}
+bool ptpmgmt_clock_isCharFile(const char *file)
+{
+    if(file != nullptr)
+        return PtpClock::isCharFile(file);
+    return false;
+}
+static inline void ptpmgmt_clock_cb(ptpmgmt_clock clk)
+{
+#define C_ASGN(n) clk->n = ptpmgmt_clock_##n
+    C_ASGN(getTime);
+    C_ASGN(setTime);
+    C_ASGN(offsetClock);
+    C_ASGN(getFreq);
+    C_ASGN(setFreq);
+    C_ASGN(setPhase);
+    C_ASGN(isCharFile);
+}
+ptpmgmt_clock ptpmgmt_clock_alloc()
+{
+    ptpmgmt_clock clk = (ptpmgmt_clock)malloc(sizeof(ptpmgmt_clock_t));
+    if(clk == nullptr)
+        return nullptr;
+    clk->_this = (void *)(new PtpClock);
+    if(clk->_this == nullptr) {
+        free(clk);
+        return nullptr;
+    }
+    ptpmgmt_clock_cb(clk);
+    C_ASGN(free);
+    C_ASGN(initUsingDevice);
+    C_ASGN(initUsingIndex);
+    C_ASGN(isInit);
+    C_ASGN(clkId);
+    C_ASGN(getFd);
+    clk->fileno = ptpmgmt_clock_getFd;
+    C_ASGN(ptpIndex);
+    C_ASGN(device);
+    C_ASGN(setTimeFromSys);
+    C_ASGN(setTimeToSys);
+    C_ASGN(fetchCaps);
+    C_ASGN(readPin);
+    C_ASGN(writePin);
+    C_ASGN(ExternTSEbable);
+    C_ASGN(ExternTSDisable);
+    C_ASGN(MaskClearAll);
+    C_ASGN(MaskEnable);
+    C_ASGN(readEvent);
+    C_ASGN(readEvents);
+    C_ASGN(setPinPeriod);
+    C_ASGN(setPtpPpsEvent);
+    C_ASGN(samplePtpSys);
+    C_ASGN(extSamplePtpSys);
+    C_ASGN(preciseSamplePtpSys);
+    return clk;
+}
+ptpmgmt_clock ptpmgmt_clock_alloc_sys()
+{
+    ptpmgmt_clock clk = (ptpmgmt_clock)malloc(sizeof(ptpmgmt_clock_t));
+    if(clk == nullptr)
+        return nullptr;
+    clk->_this = (void *)(new SysClock);
+    if(clk->_this == nullptr) {
+        free(clk);
+        return nullptr;
+    }
+    ptpmgmt_clock_cb(clk);
+    clk->free = ptpmgmt_clock_free_sys;
+#define C_NO_ASGN(n) clk->n = non_ptpmgmt_clock_##n
+    C_NO_ASGN(initUsingDevice);
+    C_NO_ASGN(initUsingIndex);
+    C_NO_ASGN(isInit);
+    C_NO_ASGN(clkId);
+    C_NO_ASGN(getFd);
+    clk->fileno = non_ptpmgmt_clock_getFd;
+    C_NO_ASGN(ptpIndex);
+    C_NO_ASGN(device);
+    C_NO_ASGN(setTimeFromSys);
+    C_NO_ASGN(setTimeToSys);
+    C_NO_ASGN(fetchCaps);
+    C_NO_ASGN(readPin);
+    C_NO_ASGN(writePin);
+    C_NO_ASGN(ExternTSEbable);
+    C_NO_ASGN(ExternTSDisable);
+    C_NO_ASGN(MaskClearAll);
+    C_NO_ASGN(MaskEnable);
+    C_NO_ASGN(readEvent);
+    C_NO_ASGN(readEvents);
+    C_NO_ASGN(setPinPeriod);
+    C_NO_ASGN(setPtpPpsEvent);
+    C_NO_ASGN(samplePtpSys);
+    C_NO_ASGN(extSamplePtpSys);
+    C_NO_ASGN(preciseSamplePtpSys);
+    return clk;
+}
+
+__PTPMGMT_C_END

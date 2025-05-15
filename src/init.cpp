@@ -179,176 +179,157 @@ int Init::process(const Options &opt)
     PTPMGMT_ERROR_CLR;
     return EXIT_SUCCESS;
 }
-const ConfigFile &Init::cfg() const
-{
-    return m_cfg;
-}
-const SaFile &Init::sa() const
-{
-    return m_sa;
-}
-Message &Init::msg()
-{
-    return m_msg;
-}
-SockBase *Init::sk() const
-{
-    return m_sk.get();
-}
-char Init::getNetSelect() const
-{
-    return m_net_select;
-}
-bool Init::use_uds() const
-{
-    return m_use_uds;
-}
-uint8_t Init::allow_unauth() const
-{
-    return m_allow_unauth;
-}
+const ConfigFile &Init::cfg() const { return m_cfg; }
+const SaFile &Init::sa() const { return m_sa; }
+Message &Init::msg() { return m_msg; }
+SockBase *Init::sk() const { return m_sk.get(); }
+char Init::getNetSelect() const { return m_net_select; }
+bool Init::use_uds() const { return m_use_uds; }
+uint8_t Init::allow_unauth() const { return m_allow_unauth; }
 
 __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
-    extern ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg);
-    extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
-    extern ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg);
-    extern ptpmgmt_sk ptpmgmt_sk_alloc_wrap(ptpmgmt_socket_class type,
-        SockBase *sko);
+__PTPMGMT_C_BEGIN
 
-    static void ptpmgmt_init_free(ptpmgmt_init me)
-    {
-        if(me != nullptr) {
-            if(me->sCfg != nullptr) {
-                me->sCfg->free(me->sCfg);
-                free(me->sCfg);
-            }
-            if(me->sSaFile != nullptr) {
-                me->sSaFile->free(me->sSaFile);
-                free(me->sSaFile);
-            }
-            if(me->sMsg != nullptr) {
-                me->sMsg->free(me->sMsg);
-                free(me->sMsg);
-            }
-            if(me->sSk != nullptr) {
-                me->sSk->free(me->sSk);
-                free(me->sSk);
-            }
-            delete(Init *)me->_this;
-            free(me);
+extern ptpmgmt_cfg ptpmgmt_cfg_alloc_wrap(const ConfigFile &cfg);
+extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
+extern ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg);
+extern ptpmgmt_sk ptpmgmt_sk_alloc_wrap(ptpmgmt_socket_class type,
+    SockBase *sko);
+
+static void ptpmgmt_init_free(ptpmgmt_init me)
+{
+    if(me != nullptr) {
+        if(me->sCfg != nullptr) {
+            me->sCfg->free(me->sCfg);
+            free(me->sCfg);
         }
-    }
-    static void ptpmgmt_init_close(ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            ((Init *)me->_this)->close();
-    }
-    static int ptpmgmt_init_process(ptpmgmt_init me, const_ptpmgmt_opt opt)
-    {
-        if(me != nullptr && me->_this != nullptr && opt != nullptr)
-            return ((Init *)me->_this)->process(*(const Options *)opt->_this);
-        return EXIT_FAILURE;
-    }
-    static ptpmgmt_cfg ptpmgmt_init_cfg(ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            if(me->sCfg == nullptr)
-                me->sCfg = ptpmgmt_cfg_alloc_wrap(((Init *)me->_this)->cfg());
-            return me->sCfg;
+        if(me->sSaFile != nullptr) {
+            me->sSaFile->free(me->sSaFile);
+            free(me->sSaFile);
         }
-        return nullptr;
-    }
-    static ptpmgmt_safile ptpmgmt_init_sa(ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            if(me->sSaFile == nullptr)
-                me->sSaFile = ptpmgmt_safile_alloc_wrap(((Init *)me->_this)->sa());
-            return me->sSaFile;
+        if(me->sMsg != nullptr) {
+            me->sMsg->free(me->sMsg);
+            free(me->sMsg);
         }
-        return nullptr;
-    }
-    static ptpmgmt_msg ptpmgmt_init_msg(ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            if(me->sMsg == nullptr)
-                me->sMsg = ptpmgmt_msg_alloc_wrap(((Init *)me->_this)->msg());
-            return me->sMsg;
+        if(me->sSk != nullptr) {
+            me->sSk->free(me->sSk);
+            free(me->sSk);
         }
-        return nullptr;
-    }
-    static ptpmgmt_sk ptpmgmt_init_sk(ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr) {
-            Init *pi = (Init *)me->_this;
-            if(me->sSk == nullptr) {
-                ptpmgmt_socket_class type;
-                switch(pi->getNetSelect()) {
-                    case 'u':
-                        type = ptpmgmt_SockUnix;
-                        break;
-                    case '4':
-                        type = ptpmgmt_SockIp4;
-                        break;
-                    case '6':
-                        type = ptpmgmt_SockIp6;
-                        break;
-                    case '2':
-                        type = ptpmgmt_SockRaw;
-                        break;
-                    default:
-                        return nullptr;
-                }
-                SockBase *s = pi->sk();
-                me->sSk = ptpmgmt_sk_alloc_wrap(type, s);
-            }
-            return me->sSk;
-        }
-        return nullptr;
-    }
-    static char ptpmgmt_init_getNetSelect(const_ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Init *)me->_this)->getNetSelect();
-        return 0;
-    }
-    static bool ptpmgmt_init_use_uds(const_ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Init *)me->_this)->use_uds();
-        return false;
-    }
-    static uint8_t ptpmgmt_init_allow_unauth(const_ptpmgmt_init me)
-    {
-        if(me != nullptr && me->_this != nullptr)
-            return ((Init *)me->_this)->allow_unauth();
-        return 0;
-    }
-    ptpmgmt_init ptpmgmt_init_alloc()
-    {
-        ptpmgmt_init me = (ptpmgmt_init)malloc(sizeof(ptpmgmt_init_t));
-        if(me == nullptr)
-            return nullptr;
-        memset(me, 0, sizeof(ptpmgmt_init_t));
-        me->_this = (void *)(new Init);
-        if(me->_this == nullptr) {
-            free(me);
-            return nullptr;
-        }
-#define C_ASGN(n) me->n = ptpmgmt_init_##n
-        C_ASGN(free);
-        C_ASGN(close);
-        C_ASGN(process);
-        C_ASGN(cfg);
-        C_ASGN(sa);
-        C_ASGN(msg);
-        C_ASGN(sk);
-        C_ASGN(getNetSelect);
-        C_ASGN(use_uds);
-        C_ASGN(allow_unauth);
-        return me;
+        delete(Init *)me->_this;
+        free(me);
     }
 }
+static void ptpmgmt_init_close(ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        ((Init *)me->_this)->close();
+}
+static int ptpmgmt_init_process(ptpmgmt_init me, const_ptpmgmt_opt opt)
+{
+    if(me != nullptr && me->_this != nullptr && opt != nullptr)
+        return ((Init *)me->_this)->process(*(const Options *)opt->_this);
+    return EXIT_FAILURE;
+}
+static ptpmgmt_cfg ptpmgmt_init_cfg(ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr) {
+        if(me->sCfg == nullptr)
+            me->sCfg = ptpmgmt_cfg_alloc_wrap(((Init *)me->_this)->cfg());
+        return me->sCfg;
+    }
+    return nullptr;
+}
+static ptpmgmt_safile ptpmgmt_init_sa(ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr) {
+        if(me->sSaFile == nullptr)
+            me->sSaFile = ptpmgmt_safile_alloc_wrap(((Init *)me->_this)->sa());
+        return me->sSaFile;
+    }
+    return nullptr;
+}
+static ptpmgmt_msg ptpmgmt_init_msg(ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr) {
+        if(me->sMsg == nullptr)
+            me->sMsg = ptpmgmt_msg_alloc_wrap(((Init *)me->_this)->msg());
+        return me->sMsg;
+    }
+    return nullptr;
+}
+static ptpmgmt_sk ptpmgmt_init_sk(ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr) {
+        Init *pi = (Init *)me->_this;
+        if(me->sSk == nullptr) {
+            ptpmgmt_socket_class type;
+            switch(pi->getNetSelect()) {
+                case 'u':
+                    type = ptpmgmt_SockUnix;
+                    break;
+                case '4':
+                    type = ptpmgmt_SockIp4;
+                    break;
+                case '6':
+                    type = ptpmgmt_SockIp6;
+                    break;
+                case '2':
+                    type = ptpmgmt_SockRaw;
+                    break;
+                default:
+                    return nullptr;
+            }
+            SockBase *s = pi->sk();
+            me->sSk = ptpmgmt_sk_alloc_wrap(type, s);
+        }
+        return me->sSk;
+    }
+    return nullptr;
+}
+static char ptpmgmt_init_getNetSelect(const_ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Init *)me->_this)->getNetSelect();
+    return 0;
+}
+static bool ptpmgmt_init_use_uds(const_ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Init *)me->_this)->use_uds();
+    return false;
+}
+static uint8_t ptpmgmt_init_allow_unauth(const_ptpmgmt_init me)
+{
+    if(me != nullptr && me->_this != nullptr)
+        return ((Init *)me->_this)->allow_unauth();
+    return 0;
+}
+ptpmgmt_init ptpmgmt_init_alloc()
+{
+    ptpmgmt_init me = (ptpmgmt_init)malloc(sizeof(ptpmgmt_init_t));
+    if(me == nullptr)
+        return nullptr;
+    memset(me, 0, sizeof(ptpmgmt_init_t));
+    me->_this = (void *)(new Init);
+    if(me->_this == nullptr) {
+        free(me);
+        return nullptr;
+    }
+#define C_ASGN(n) me->n = ptpmgmt_init_##n
+    C_ASGN(free);
+    C_ASGN(close);
+    C_ASGN(process);
+    C_ASGN(cfg);
+    C_ASGN(sa);
+    C_ASGN(msg);
+    C_ASGN(sk);
+    C_ASGN(getNetSelect);
+    C_ASGN(use_uds);
+    C_ASGN(allow_unauth);
+    return me;
+}
+
+__PTPMGMT_C_END

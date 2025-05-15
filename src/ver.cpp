@@ -21,27 +21,20 @@ const char *getVersion()
 {
     return VER_STR(VER_MAJ, VER_MIN);
 }
-int getVersionMajor()
-{
-    return VER_MAJ;
-}
-int getVersionMinor()
-{
-    return VER_MIN;
-}
-unsigned getVersionValue()
-{
-    return VER_VAL;
-}
+int getVersionMajor() { return VER_MAJ; }
+int getVersionMinor() { return VER_MIN; }
+unsigned getVersionValue() { return VER_VAL; }
 
 __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
-    // C interfaces
-    const char *ptpmgmt_getVersion() {return getVersion();}
-    int ptpmgmt_getVersionMajor() {return getVersionMajor();}
-    int ptpmgmt_getVersionMinor() {return getVersionMinor();}
-    unsigned ptpmgmt_getVersionValue() {return getVersionValue();}
-}
+__PTPMGMT_C_BEGIN
+
+// C interfaces
+const char *ptpmgmt_getVersion() {return getVersion();}
+int ptpmgmt_getVersionMajor() {return getVersionMajor();}
+int ptpmgmt_getVersionMinor() {return getVersionMinor();}
+unsigned ptpmgmt_getVersionValue() {return getVersionValue();}
+
+__PTPMGMT_C_END

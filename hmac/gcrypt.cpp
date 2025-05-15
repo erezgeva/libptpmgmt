@@ -2,9 +2,9 @@
    SPDX-FileCopyrightText: Copyright © 2024 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
- * @brief HMAC wrapper Library using openssl
+ * @brief HMAC wrapper Library using LGPL Crypto
  *
- * The library depends on ssl library
+ * The library depends on LGPL Crypto library
  * And uses the libptpmgmt library!
  *
  * @author Erez Geva <ErezGeva2@@gmail.com>
@@ -98,4 +98,11 @@ bool HMAC_gcrypt::verify(const void *hData, size_t len, Binary &mac)
     return false;
 }
 
+static bool Load()
+{
+    return true;
+}
+static void Unload()
+{
+}
 HMAC_DECL(HMAC_gcrypt)

@@ -28,7 +28,7 @@
 /** Define end of namespace block */
 #define __PTPMGMT_NAMESPACE_END };
 #endif /* __PTPMGMT_NAMESPACE_BEGIN */
-#if __cplusplus >= 201400L /* C++14 */
+#if __cplusplus >= 201402L /* C++14 */
 #define __PTPMGMT_DEPRECATED(_func, _body) [[deprecated]] _func { _body; }
 #define __PTPMGMT_DEPRECATED_DEC(_func) [[deprecated]] _func
 #endif

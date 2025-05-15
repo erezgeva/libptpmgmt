@@ -15,8 +15,6 @@
 #include "comp.h"
 #include <gnutls/crypto.h>
 
-static size_t objCount = 0;
-
 __PTPMGMT_NAMESPACE_USE;
 
 static gnutls_mac_algorithm_t vals[] = {
@@ -38,24 +36,11 @@ Gnutls::~Gnutls()
 {
     if(m_keyInit)
         gnutls_hmac_deinit(m_dig, nullptr);
-    objCount--;
-    if(objCount == 0)
-        gnutls_global_deinit();
 }
 bool Gnutls::init()
 {
     m_algorithm = vals[m_type];
-    int err;
-    objCount++;
-    if(objCount == 1) {
-        err = gnutls_global_init();
-        if(err < 0) {
-            PTPMGMT_ERROR("gnutls global initializing fail %s",
-                gnutls_strerror(err));
-            return false;
-        }
-    }
-    err = gnutls_hmac_init(&m_dig, m_algorithm, m_key.get(), m_key.size());
+    int err = gnutls_hmac_init(&m_dig, m_algorithm, m_key.get(), m_key.size());
     if(err < 0) {
         PTPMGMT_ERROR("gnutls global initializing fail %s", gnutls_strerror(err));
         return false;
@@ -90,4 +75,18 @@ bool Gnutls::verify(const void *hData, size_t len, Binary &mac)
     return false;
 }
 
+static bool Load()
+{
+    int err = gnutls_global_init();
+    if(err < 0) {
+        PTPMGMT_ERROR("gnutls global initializing fail %s",
+            gnutls_strerror(err));
+        return false;
+    }
+    return true;
+}
+static void Unload()
+{
+    gnutls_global_deinit();
+}
 HMAC_DECL(Gnutls)

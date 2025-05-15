@@ -149,7 +149,7 @@ proc main {cfg_file} {
   set prms [ msg getParams ]
   if { [ $cfg haveSpp ] } {
     if { ! [ msg useAuth $cfg ] } {
-      return printError "fail using Authentication";
+      return printError "fail using Authentication"
     }
     $prms configure -sendAuth true
   }
@@ -230,7 +230,6 @@ proc main {cfg_file} {
   puts "getEvent(NOTIFY_PORT_STATE)=$txt"
 
   # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
-  # SigEvent behave like a ruby array
   # See libptpmgmt.i for full list of vectors representors
   ptpmgmt::SigEvent evnts
   ptpmgmt::SLAVE_TX_EVENT_TIMESTAMPS_rec_t e

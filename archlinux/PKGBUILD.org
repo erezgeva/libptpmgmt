@@ -35,12 +35,12 @@ build() {
   autoreconf -i
   ./configure --prefix=/usr --sbindir=\${prefix}/bin --sysconfdir=/etc\
     --enable-systemd
-  make PMC_USE_LIB=so --no-print-directory all doxygen
+  make --no-print-directory all doxygen
   # Place here as make do not use packages!
   make DESTDIR=../install install --no-print-directory compile_py3
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
-  python3 go gcc libtool autoconf make chrpath
+  python3 go gcc libtool autoconf make chrpath discount cmark-gfm
   texlive-fontutils which pandoc openssl libgcrypt gnutls nettle)
 # You may use 'patchelf' as alternative of `chrpath`
 package_libptpmgmt2() {

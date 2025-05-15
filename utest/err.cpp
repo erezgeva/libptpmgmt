@@ -33,7 +33,7 @@ TEST(ErrorTest, MacroPerror)
     EXPECT_TRUE(Error::isError());
     setlocale(LC_MESSAGES, "C");
     EXPECT_STREQ(Error::getError().c_str(),
-        "[utest/err.cpp:32:TestBody] test macro: Interrupted system call");
+        "[utest/err.cpp:32:TestBody] test macro: EINTR: Interrupted system call");
 }
 
 // Tests error clear macro
@@ -53,7 +53,8 @@ TEST(ErrorTest, MethodIsError)
     EXPECT_TRUE(Error::isError());
     setlocale(LC_MESSAGES, "C");
     EXPECT_STREQ(Error::getError().c_str(),
-        "[utest/err.cpp:52:TestBody] test macro: Resource temporarily unavailable");
+        "[utest/err.cpp:52:TestBody] test macro: "
+        "EAGAIN: Resource temporarily unavailable");
 }
 
 // Tests get error full message
@@ -63,7 +64,7 @@ TEST(ErrorTest, MethodGetError)
     PTPMGMT_ERROR("test %s", "macro");
     EXPECT_TRUE(Error::isError());
     EXPECT_STREQ(Error::getError().c_str(),
-        "[utest/err.cpp:63:TestBody] test macro");
+        "[utest/err.cpp:64:TestBody] test macro");
 }
 
 // Tests get error file name
@@ -124,5 +125,5 @@ TEST(ErrorTest, MethodGetErrnoMsg)
     PTPMGMT_ERROR_P("test %s", "macro");
     EXPECT_TRUE(Error::isError());
     setlocale(LC_MESSAGES, "C");
-    EXPECT_STREQ(Error::getErrnoMsg().c_str(), "No such file or directory");
+    EXPECT_STREQ(Error::getErrnoMsg().c_str(), "ENOENT: No such file or directory");
 }

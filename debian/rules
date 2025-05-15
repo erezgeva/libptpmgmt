@@ -19,9 +19,6 @@
 #LDFLAGS+=-Wl,--verbose
 #export LDFLAGS
 
-# build pmc tool with libptpmgmt.so
-export PMC_USE_LIB=so
-
 %:
 	$(Q)dh $@ --parallel --with python3,lua,runit
 
@@ -94,18 +91,14 @@ override_dh_install:
 	$Q$(MV) $(SLIBDIR)/perl* debian/libptpmgmt-perl$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/ruby*/*/*/clkmgr* debian/$(RUBYDIR)
 	$Q$(MV) $(SLIBDIR)/ruby* debian/ruby-ptpmgmt$(LIBDIR)
-ifneq ($(wildcard $(DSRC)lib/php),)
 	$Q$(MV) $(DSRC)lib/php/*/clkmgr* debian/$(PHPDIR)
 	$Q$(MV) $(DSRC)lib/php debian/php-ptpmgmt/usr/lib
-endif
 	$Q$(MV) $(DSRC)$(TCLDIR)/clkmgr debian/tcl-clkmgr/usr/$(TCLDIR)
 	$Q$(MV) $(DSRC)lib/tcltk debian/tcl-ptpmgmt/usr/lib
 	$Q$(MV) $(SLIBDIR)/*.a debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/pkgconfig debian/libptpmgmt-dev$(LIBDIR)
-ifneq ($(wildcard $(DSRC)lib/go*),)
 	$Q$(MV) $(DSRC)lib/go* debian/golang-ptpmgmt/usr/lib
-endif
 	$Q$(MV) $(SLIBDIR)/libclkmgr* debian/libclkmgr2$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_openssl* debian/libptpmgmt2-openssl$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_gcrypt* debian/libptpmgmt2-gcrypt$(LIBDIR)

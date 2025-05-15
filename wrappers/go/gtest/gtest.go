@@ -176,7 +176,7 @@ func main() {
   prms := msg.GetParams()
   if cfg.HaveSpp() {
     if !msg.UseAuth(cfg) {
-      printError("fail using Authentication");
+      printError("fail using Authentication")
       return
     }
     prms.SetSendAuth(true)

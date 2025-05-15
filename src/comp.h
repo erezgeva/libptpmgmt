@@ -17,6 +17,14 @@
 #ifdef HAVE_ENDIAN_H
 #include <endian.h>
 #endif
+#if 0
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#endif
 #include "name.h"
 #include "cfg.h"
 #include "err.h"
@@ -37,15 +45,15 @@ using namespace std;
 
 #define m_init(n) n{{0}}
 
-#if __cplusplus >= 201700L /* C++17 */
+#if __cplusplus >= 201703L /* C++17 */
 #define FALLTHROUGH [[fallthrough]]
 #define MAYBE_UNUSED(_expr) [[maybe_unused]] _expr
-#endif /* __cplusplus >= 201700L */
-#if __cplusplus >= 202000L /* C++20 */
+#endif /* __cplusplus >= 201703L */
+#if __cplusplus >= 202002L /* C++20 */
 /* branch prediction */
 #define LIKELY_COND(_expr) (_expr) [[likely]]
 #define UNLIKELY_COND(_expr) (_expr) [[unlikely]]
-#endif /* __cplusplus >= 202000L */
+#endif /* __cplusplus >= 202002L */
 #ifdef __GNUC__
 /* GNU GCC
  * gcc.gnu.org/onlinedocs/gcc-11.3.0/gcc/Type-Attributes.html
@@ -60,6 +68,7 @@ using namespace std;
 #define MAYBE_UNUSED(_expr) _expr __attribute__((unused))
 #endif
 #define PRINT_FORMAT(_a, _b) __attribute__((format(printf,_a,_b)))
+#define ON_EXIT_ATTR  __attribute__((destructor))
 #ifndef LIKELY_COND
 /* branch prediction */
 #define LIKELY_COND(_expr) (__builtin_expect((_expr), true))
@@ -103,6 +112,9 @@ using namespace std;
 #ifndef PRINT_FORMAT
 #define PRINT_FORMAT(_a, _b)
 #endif
+#ifndef ON_EXIT_ATTR
+#define ON_EXIT_ATTR
+#endif
 #ifndef FALLTHROUGH
 #define FALLTHROUGH
 #endif
@@ -114,6 +126,8 @@ using namespace std;
 /* Use namespace */
 #define __PTPMGMT_NAMESPACE ptpmgmt
 #define __PTPMGMT_NAMESPACE_USE using namespace ptpmgmt
+#define __PTPMGMT_C_BEGIN extern "C" {
+#define __PTPMGMT_C_END }
 
 /* ************************************************************************** */
 /* Error log interfaces */
@@ -158,7 +172,7 @@ inline uint16_t cpu_to_net16(uint16_t value) {return htobe16(value);}
  * @param[in] value host order unsigned 16 bits integer
  * @return network order unsigned 16 bits integer
  */
-inline uint16_t cpu_to_net(uint16_t value) {return htobe16(value);}
+inline uint16_t cpu_to_net(uint16_t value) {return cpu_to_net16(value);}
 /**
  * convert unsigned 16 bits integer from network order to host order
  * @param[in] value network order unsigned 16 bits integer
@@ -170,7 +184,7 @@ inline uint16_t net_to_cpu16(uint16_t value) {return be16toh(value);}
  * @param[in] value network order unsigned 16 bits integer
  * @return host order unsigned 16 bits integer
  */
-inline uint16_t net_to_cpu(uint16_t value) {return be16toh(value);}
+inline uint16_t net_to_cpu(uint16_t value) {return net_to_cpu16(value);}
 /**
  * convert unsigned 32 bits integer from host order to network order
  * @param[in] value host order unsigned 32 bits integer
@@ -182,7 +196,7 @@ inline uint32_t cpu_to_net32(uint32_t value) {return htobe32(value);}
  * @param[in] value host order unsigned 32 bits integer
  * @return network order unsigned 32 bits integer
  */
-inline uint32_t cpu_to_net(uint32_t value) {return htobe32(value);}
+inline uint32_t cpu_to_net(uint32_t value) {return cpu_to_net32(value);}
 /**
  * convert unsigned 32 bits integer from network order to host order
  * @param[in] value network order unsigned 32 bits integer
@@ -194,7 +208,7 @@ inline uint32_t net_to_cpu32(uint32_t value) {return be32toh(value);}
  * @param[in] value network order unsigned 32 bits integer
  * @return host order unsigned 32 bits integer
  */
-inline uint32_t net_to_cpu(uint32_t value) {return be32toh(value);}
+inline uint32_t net_to_cpu(uint32_t value) {return net_to_cpu32(value);}
 /**
  * convert unsigned 64 bits integer from host order to network order
  * @param[in] value host order unsigned 64 bits integer
@@ -206,7 +220,7 @@ inline uint64_t cpu_to_net64(uint64_t value) {return htobe64(value);}
  * @param[in] value host order unsigned 64 bits integer
  * @return network order unsigned 64 bits integer
  */
-inline uint64_t cpu_to_net(uint64_t value) {return htobe64(value);}
+inline uint64_t cpu_to_net(uint64_t value) {return cpu_to_net64(value);}
 /**
  * convert unsigned 64 bits integer from network order to host order
  * @param[in] value network order unsigned 64 bits integer
@@ -218,7 +232,7 @@ inline uint64_t net_to_cpu64(uint64_t value) {return be64toh(value);}
  * @param[in] value network order unsigned 64 bits integer
  * @return host order unsigned 64 bits integer
  */
-inline uint64_t net_to_cpu(uint64_t value) {return be64toh(value);}
+inline uint64_t net_to_cpu(uint64_t value) {return net_to_cpu64(value);}
 
 /**
  * convert unsigned 64 bits integer from host order to little endian order
@@ -323,13 +337,14 @@ struct MsgProc {
     bool proc(int8_t &val) { return procB8(val); }
     bool proc(uint8_t &val) { return procB8(val); }
     bool procRes() {uint8_t v = 0; return proc(v); }
+    template <typename T> bool procBU(T &val);
+    bool proc(uint16_t &val) { return procBU(val); }
+    bool proc(uint32_t &val) { return procBU(val); }
+    bool proc(uint64_t &val) { return procBU(val); }
     template <typename T, typename U> bool procBN(T &val);
     bool proc(int16_t &val) { return procBN<int16_t, uint16_t>(val); }
-    bool proc(uint16_t &val) { return procBN<uint16_t, uint16_t>(val); }
     bool proc(int32_t &val) { return procBN<int32_t, uint32_t>(val); }
-    bool proc(uint32_t &val) { return procBN<uint32_t, uint32_t>(val); }
     bool proc(int64_t &val) { return procBN<int64_t, uint64_t>(val); }
-    bool proc(uint64_t &val) { return procBN<uint64_t, uint64_t>(val); }
     bool proc48(uint64_t &val);
     bool proc48(int64_t &val);
     bool proc(Float64_t &val);
@@ -418,6 +433,7 @@ struct JsonProc {
     _ptpmProcType(FaultRecord_t)
     _ptpmProcType(AcceptableMaster_t)
     _ptpmProcType(LinuxptpUnicastMaster_t)
+#undef _ptpmProcType
     virtual bool procBinary(const char *name, Binary &val, uint16_t &len) = 0;
     virtual bool procBinary(const char *name, uint8_t *val, size_t len) = 0;
     virtual bool procFlag(const char *name, uint8_t &flags, int mask) = 0;
@@ -429,6 +445,7 @@ struct JsonProc {
     _ptpmProcVector(FaultRecord_t)
     _ptpmProcVector(AcceptableMaster_t)
     _ptpmProcVector(LinuxptpUnicastMaster_t)
+#undef _ptpmProcVector
 };
 
 /* ************************************************************************** */
@@ -450,7 +467,8 @@ struct HMAC_Key {
 
 /* structure for linking */
 struct HMAC_lib {
-    function<HMAC_Key *()> m_alloc_key;
+    function<HMAC_Key *()> m_alloc_key; /* Alocate HMAC_Key object */
+    function<void ()> m_unload; /* unload library */
     const char *m_name; /**< Used in static only */
 };
 
@@ -462,8 +480,8 @@ static const size_t HMAC_MAC_SIZE_32 = 32;
  *  and '-uptpm_hmac' for static link.
  */
 #define HMAC_DECL(cls) \
-    HMAC_lib me = { [](){return new cls;}, HLIB_NAME }; \
-    extern "C" { HMAC_lib *ptpm_hmac() { return &me; } }
+    HMAC_lib me = { [](){return new cls;}, [](){Unload();}, HLIB_NAME }; \
+    extern "C" { HMAC_lib *ptpm_hmac() { return Load() ? &me : nullptr; } }
 
 const char *hmac_loadLibrary();
 bool hmac_selectLib(const string &libMatch);

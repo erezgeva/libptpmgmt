@@ -160,23 +160,30 @@ template <typename T> bool MsgProc::procB8(T &val)
 #define B8(t) template bool MsgProc::procB8<t>(t &)
 B8(uint8_t);
 B8(int8_t);
+template <typename T> bool MsgProc::procBU(T &val)
+{
+    if(m_left < (ssize_t)sizeof(T))
+        return true;
+    if(m_build)
+        *(T *)m_cur = cpu_to_net(val);
+    else
+        val = net_to_cpu(*(T *)m_cur);
+    move(sizeof(T));
+    return false;
+}
 template <typename T, typename U> bool MsgProc::procBN(T &val)
 {
     if(m_left < (ssize_t)sizeof(T))
         return true;
-    U v;
-    if(m_build) {
-        v = cpu_to_net((U)val);
-        memcpy(m_cur, &v, sizeof(T));
-    } else {
-        memcpy(&v, m_cur, sizeof(T));
-        val = (T)net_to_cpu(v);
-    }
+    if(m_build)
+        *(U *)m_cur = cpu_to_net((U)val);
+    else
+        val = (T)net_to_cpu(*(U *)m_cur);
     move(sizeof(T));
     return false;
 }
-#define BN_(t, u) template bool MsgProc::procBN<t,u>(t &)
-#define BN(n) BN_(uint##n##_t,uint##n##_t); BN_(int##n##_t,uint##n##_t)
+#define BN(n) template bool MsgProc::procBU<uint##n##_t>(uint##n##_t &val);\
+    template bool MsgProc::procBN<int##n##_t,uint##n##_t>(int##n##_t &)
 BN(16);
 BN(32);
 BN(64);
@@ -670,7 +677,7 @@ ssize_t Message::dataFieldSize(const BaseMngTlv *tlv) const
  * The main build function will add a pad at the end to make size even
  */
 
-#define A(n) bool MsgProc::n##_##f(n##_t &d)
+#define A(n) bool MsgProc::n##_f(n##_t &d)
 
 A(CLOCK_DESCRIPTION)
 {
@@ -693,6 +700,8 @@ A(INITIALIZE)
 }
 A(FAULT_LOG)
 {
+    if(m_build)
+        d.numberOfFaultRecords = d.faultRecords.size();
     if(proc(d.numberOfFaultRecords))
         return true;
     return vector_f(d.numberOfFaultRecords, d.faultRecords);
@@ -740,10 +749,7 @@ A(DOMAIN)
 {
     return proc(d.domainNumber);
 }
-A(SLAVE_ONLY)
-{
-    return fproc;
-}
+A(SLAVE_ONLY) { return fproc; }
 A(LOG_ANNOUNCE_INTERVAL)
 {
     return proc(d.logAnnounceInterval);
@@ -772,36 +778,29 @@ A(UTC_PROPERTIES)
 {
     return proc(d.currentUtcOffset) || fproc;
 }
-A(TRACEABILITY_PROPERTIES)
-{
-    return fproc;
-}
+A(TRACEABILITY_PROPERTIES) { return fproc; }
 A(TIMESCALE_PROPERTIES)
 {
     return fproc || proc(d.timeSource);
 }
-A(UNICAST_NEGOTIATION_ENABLE)
-{
-    return fproc;
-}
+A(UNICAST_NEGOTIATION_ENABLE) { return fproc; }
 A(PATH_TRACE_LIST)
 {
     return vector_o(d.pathSequence);
 }
-A(PATH_TRACE_ENABLE)
-{
-    return fproc;
-}
+A(PATH_TRACE_ENABLE) { return fproc; }
 A(GRANDMASTER_CLUSTER_TABLE)
 {
-    d.actualTableSize = d.PortAddress.size();
+    if(m_build)
+        d.actualTableSize = d.PortAddress.size();
     if(proc(d.logQueryInterval) || proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.PortAddress);
 }
 A(UNICAST_MASTER_TABLE)
 {
-    d.actualTableSize = d.PortAddress.size();
+    if(m_build)
+        d.actualTableSize = d.PortAddress.size();
     if(proc(d.logQueryInterval) || proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.PortAddress);
@@ -812,15 +811,13 @@ A(UNICAST_MASTER_MAX_TABLE_SIZE)
 }
 A(ACCEPTABLE_MASTER_TABLE)
 {
-    d.actualTableSize = d.list.size();
+    if(m_build)
+        d.actualTableSize = d.list.size();
     if(proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.list);
 }
-A(ACCEPTABLE_MASTER_TABLE_ENABLED)
-{
-    return fproc;
-}
+A(ACCEPTABLE_MASTER_TABLE_ENABLED) { return fproc; }
 A(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
     return proc(d.maxTableSize);
@@ -869,18 +866,9 @@ A(DELAY_MECHANISM)
 {
     return proc(d.delayMechanism);
 }
-A(EXTERNAL_PORT_CONFIGURATION_ENABLED)
-{
-    return fproc;
-}
-A(MASTER_ONLY)
-{
-    return fproc;
-}
-A(HOLDOVER_UPGRADE_ENABLE)
-{
-    return fproc;
-}
+A(EXTERNAL_PORT_CONFIGURATION_ENABLED) { return fproc; }
+A(MASTER_ONLY) { return fproc; }
+A(HOLDOVER_UPGRADE_ENABLE) { return fproc; }
 A(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
     return fproc || proc(d.desiredState);
@@ -944,7 +932,8 @@ A(PORT_SERVICE_STATS_NP)
 }
 A(UNICAST_MASTER_TABLE_NP)
 {
-    d.actualTableSize = d.unicastMasters.size();
+    if(m_build)
+        d.actualTableSize = d.unicastMasters.size();
     if(proc(d.actualTableSize))
         return true;
     return vector_f(d.actualTableSize, d.unicastMasters);
@@ -1112,22 +1101,10 @@ C1(PORT_DATA_SET)
     C_M(logMinPdelayReqInterval);
     C_M(versionNumber);
 }
-C1(PRIORITY1)
-{
-    C_M(priority1);
-}
-C1(PRIORITY2)
-{
-    C_M(priority2);
-}
-C1(DOMAIN)
-{
-    C_M(domainNumber);
-}
-C1(SLAVE_ONLY)
-{
-    C_M(flags);
-}
+C1(PRIORITY1) { C_M(priority1); }
+C1(PRIORITY2) { C_M(priority2); }
+C1(DOMAIN) { C_M(domainNumber); }
+C1(SLAVE_ONLY) { C_M(flags); }
 C1(LOG_ANNOUNCE_INTERVAL)
 {
     C_M(logAnnounceInterval);
@@ -1140,10 +1117,7 @@ C1(LOG_SYNC_INTERVAL)
 {
     C_M(logSyncInterval);
 }
-C1(VERSION_NUMBER)
-{
-    C_M(versionNumber);
-}
+C1(VERSION_NUMBER) { C_M(versionNumber); }
 C1(TIME)
 {
     C_M(currentTime.secondsField);
@@ -1158,19 +1132,13 @@ C1(UTC_PROPERTIES)
     C_M(currentUtcOffset);
     C_M(flags);
 }
-C1(TRACEABILITY_PROPERTIES)
-{
-    C_M(flags);
-}
+C1(TRACEABILITY_PROPERTIES) { C_M(flags); }
 C1(TIMESCALE_PROPERTIES)
 {
     C_M(flags);
     C1_MC(timeSource, timeSource);
 }
-C1(UNICAST_NEGOTIATION_ENABLE)
-{
-    C_M(flags);
-}
+C1(UNICAST_NEGOTIATION_ENABLE) { C_M(flags); }
 C1(PATH_TRACE_LIST)
 {
     size_t sz = d.pathSequence.size();
@@ -1187,10 +1155,7 @@ C1(PATH_TRACE_LIST)
     a.actualTableSize = sz;
     a.pathSequence = m;
 }
-C1(PATH_TRACE_ENABLE)
-{
-    C_M(flags);
-}
+C1(PATH_TRACE_ENABLE) { C_M(flags); }
 C1(GRANDMASTER_CLUSTER_TABLE)
 {
     C_M(logQueryInterval);
@@ -1221,10 +1186,7 @@ C1(ACCEPTABLE_MASTER_TABLE)
     }
     a.list = m;
 }
-C1(ACCEPTABLE_MASTER_TABLE_ENABLED)
-{
-    C_M(flags);
-}
+C1(ACCEPTABLE_MASTER_TABLE_ENABLED) { C_M(flags); }
 C1(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
     C_M(maxTableSize);
@@ -1245,10 +1207,7 @@ C1(ALTERNATE_TIME_OFFSET_NAME)
     C_M(keyField);
     C_VARA(displayName);
 }
-C1(ALTERNATE_TIME_OFFSET_MAX_KEY)
-{
-    C_M(maxKey);
-}
+C1(ALTERNATE_TIME_OFFSET_MAX_KEY) { C_M(maxKey); }
 C1(ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
     C_M(keyField);
@@ -1274,26 +1233,14 @@ C1(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     C1_MC(delayMechanism, delayMechanism);
     C_M(primaryDomain);
 }
-C1(PRIMARY_DOMAIN)
-{
-    C_M(primaryDomain);
-}
+C1(PRIMARY_DOMAIN) { C_M(primaryDomain); }
 C1(DELAY_MECHANISM)
 {
     C1_MC(delayMechanism, delayMechanism);
 }
-C1(EXTERNAL_PORT_CONFIGURATION_ENABLED)
-{
-    C_M(flags);
-}
-C1(MASTER_ONLY)
-{
-    C_M(flags);
-}
-C1(HOLDOVER_UPGRADE_ENABLE)
-{
-    C_M(flags);
-}
+C1(EXTERNAL_PORT_CONFIGURATION_ENABLED) { C_M(flags); }
+C1(MASTER_ONLY) { C_M(flags); }
+C1(HOLDOVER_UPGRADE_ENABLE) { C_M(flags); }
 C1(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
     C_M(flags);
@@ -1342,10 +1289,7 @@ C1(PORT_STATS_NP)
     C_CP(rxMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
     C_CP(txMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
 }
-C1(SYNCHRONIZATION_UNCERTAIN_NP)
-{
-    C_M(val);
-}
+C1(SYNCHRONIZATION_UNCERTAIN_NP) { C_M(val); }
 C1(PORT_SERVICE_STATS_NP)
 {
     C_VARA(portIdentity);
@@ -1554,22 +1498,10 @@ C2(PORT_DATA_SET)
     C_M(logMinPdelayReqInterval);
     C_M(versionNumber);
 }
-C2(PRIORITY1)
-{
-    C_M(priority1);
-}
-C2(PRIORITY2)
-{
-    C_M(priority2);
-}
-C2(DOMAIN)
-{
-    C_M(domainNumber);
-}
-C2(SLAVE_ONLY)
-{
-    C_M(flags);
-}
+C2(PRIORITY1) { C_M(priority1); }
+C2(PRIORITY2) { C_M(priority2); }
+C2(DOMAIN) { C_M(domainNumber); }
+C2(SLAVE_ONLY) { C_M(flags); }
 C2(LOG_ANNOUNCE_INTERVAL)
 {
     C_M(logAnnounceInterval);
@@ -1582,10 +1514,7 @@ C2(LOG_SYNC_INTERVAL)
 {
     C_M(logSyncInterval);
 }
-C2(VERSION_NUMBER)
-{
-    C_M(versionNumber);
-}
+C2(VERSION_NUMBER) { C_M(versionNumber); }
 C2(TIME)
 {
     C_M(currentTime.secondsField);
@@ -1600,19 +1529,13 @@ C2(UTC_PROPERTIES)
     C_M(currentUtcOffset);
     C_M(flags);
 }
-C2(TRACEABILITY_PROPERTIES)
-{
-    C_M(flags);
-}
+C2(TRACEABILITY_PROPERTIES) { C_M(flags); }
 C2(TIMESCALE_PROPERTIES)
 {
     C_M(flags);
     C2_MC(timeSource, timeSource);
 }
-C2(UNICAST_NEGOTIATION_ENABLE)
-{
-    C_M(flags);
-}
+C2(UNICAST_NEGOTIATION_ENABLE) { C_M(flags); }
 C2(PATH_TRACE_LIST)
 {
     int i = 0;
@@ -1627,10 +1550,7 @@ C2(PATH_TRACE_LIST)
             a.pathSequence.push_back(std::move(r));
         }
 }
-C2(PATH_TRACE_ENABLE)
-{
-    C_M(flags);
-}
+C2(PATH_TRACE_ENABLE) { C_M(flags); }
 C2(GRANDMASTER_CLUSTER_TABLE)
 {
     C_M(logQueryInterval);
@@ -1662,10 +1582,7 @@ C2(ACCEPTABLE_MASTER_TABLE)
         C2_MR(alternatePriority1);
     }
 }
-C2(ACCEPTABLE_MASTER_TABLE_ENABLED)
-{
-    C_M(flags);
-}
+C2(ACCEPTABLE_MASTER_TABLE_ENABLED) { C_M(flags); }
 C2(ACCEPTABLE_MASTER_MAX_TABLE_SIZE)
 {
     C_M(maxTableSize);
@@ -1686,10 +1603,7 @@ C2(ALTERNATE_TIME_OFFSET_NAME)
     C_M(keyField);
     C_VARA(displayName);
 }
-C2(ALTERNATE_TIME_OFFSET_MAX_KEY)
-{
-    C_M(maxKey);
-}
+C2(ALTERNATE_TIME_OFFSET_MAX_KEY) { C_M(maxKey); }
 C2(ALTERNATE_TIME_OFFSET_PROPERTIES)
 {
     C_M(keyField);
@@ -1715,26 +1629,11 @@ C2(TRANSPARENT_CLOCK_DEFAULT_DATA_SET)
     C2_MC(delayMechanism, delayMechanism);
     C_M(primaryDomain);
 }
-C2(PRIMARY_DOMAIN)
-{
-    C_M(primaryDomain);
-}
-C2(DELAY_MECHANISM)
-{
-    C2_MC(delayMechanism, delayMechanism);
-}
-C2(EXTERNAL_PORT_CONFIGURATION_ENABLED)
-{
-    C_M(flags);
-}
-C2(MASTER_ONLY)
-{
-    C_M(flags);
-}
-C2(HOLDOVER_UPGRADE_ENABLE)
-{
-    C_M(flags);
-}
+C2(PRIMARY_DOMAIN) { C_M(primaryDomain); }
+C2(DELAY_MECHANISM) { C2_MC(delayMechanism, delayMechanism); }
+C2(EXTERNAL_PORT_CONFIGURATION_ENABLED) { C_M(flags); }
+C2(MASTER_ONLY) { C_M(flags); }
+C2(HOLDOVER_UPGRADE_ENABLE) { C_M(flags); }
 C2(EXT_PORT_CONFIG_PORT_DATA_SET)
 {
     C_M(flags);
@@ -1783,10 +1682,7 @@ C2(PORT_STATS_NP)
     C_CP(rxMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
     C_CP(txMsgType, sizeof(uint64_t) * MAX_MESSAGE_TYPES);
 }
-C2(SYNCHRONIZATION_UNCERTAIN_NP)
-{
-    C_M(val);
-}
+C2(SYNCHRONIZATION_UNCERTAIN_NP) { C_M(val); }
 C2(PORT_SERVICE_STATS_NP)
 {
     C_VARA(portIdentity);
@@ -1875,28 +1771,30 @@ static inline bool div_event(int event, div_t &d)
     return SUBSCRIBE_EVENTS_NP_t::div_event(event, d);
 }
 
-extern "C" {
-    void ptpmgmt_setEvent_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
-    {
-        div_t d;
-        if(div_event(event, d))
-            e->bitmask[d.quot] |= d.rem;
-    }
-    void ptpmgmt_clearEvent_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
-    {
-        div_t d;
-        if(div_event(event, d))
-            e->bitmask[d.quot] &= ~d.rem;
-    }
-    void ptpmgmt_clearAll_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e)
-    {
-        memset(e->bitmask, 0, EVENT_BITMASK_CNT);
-    }
-    bool ptpmgmt_getEvent_lnp(const ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
-    {
-        div_t d;
-        if(div_event(event, d))
-            return (e->bitmask[d.quot] & d.rem) > 0;
-        return false;
-    }
+__PTPMGMT_C_BEGIN
+
+void ptpmgmt_setEvent_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
+{
+    div_t d;
+    if(div_event(event, d))
+        e->bitmask[d.quot] |= d.rem;
 }
+void ptpmgmt_clearEvent_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
+{
+    div_t d;
+    if(div_event(event, d))
+        e->bitmask[d.quot] &= ~d.rem;
+}
+void ptpmgmt_clearAll_lnp(ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e)
+{
+    memset(e->bitmask, 0, EVENT_BITMASK_CNT);
+}
+bool ptpmgmt_getEvent_lnp(const ptpmgmt_SUBSCRIBE_EVENTS_NP_t *e, int event)
+{
+    div_t d;
+    if(div_event(event, d))
+        return (e->bitmask[d.quot] & d.rem) > 0;
+    return false;
+}
+
+__PTPMGMT_C_END

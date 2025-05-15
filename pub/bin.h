@@ -21,8 +21,7 @@ const size_t EUI48 = 6; /**< 48 bits MAC address length */
 const size_t EUI64 = 8; /**< 64 bits MAC address length */
 
 /**
- * @brief Hold octets
- * @note functions returning std::string for readable strings
+ * Hold octets
  */
 class Binary
 {
@@ -61,6 +60,8 @@ class Binary
     /**
      * Constructor from binary based string
      * @param[in] string string with octets content
+     * @note for scripts, to use packing assignment
+     *       and create a string from array or list of octets
      */
     Binary(const std::string &string);
     /**
@@ -107,8 +108,6 @@ class Binary
      * Set new value from binary based string
      * @param[in] rhs Binary to assign
      * @return reference to itself
-     * @note for scripts, to use packing assignment
-     *       and create a string from array or list of octets
      */
     Binary &setBin(const Binary &rhs);
     /**
@@ -131,8 +130,6 @@ class Binary
      * Move new value from another binary
      * @param[in] rhs Binary to assign
      * @return reference to itself
-     * @note for scripts, to use packing assignment
-     *       and create a string from array or list of octets
      */
     Binary &mvBin(Binary &rhs);
     #ifndef SWIG
@@ -140,8 +137,6 @@ class Binary
      * Move new value from another binary
      * @param[in] rhs Binary to assign
      * @return reference to itself
-     * @note for scripts, to use packing assignment
-     *       and create a string from array or list of octets
      */
     Binary &mvBin(Binary &&rhs);
     #endif /* SWIG */
@@ -202,15 +197,15 @@ class Binary
      * Convert IP address to string
      * @return Ip address
      * @note Support both IP version 4 and 6
-     * @note the user should use with Binary IP address
-     *  the class does not verify
+     * @attention the user should use with proper IP address,
+     *  the class does not verify the IP address in any way.
      */
     std::string toIp() const;
     /**
      * Convert IP address string to Binary
      * @param[in] string address
      * @return true if valid IP address version 4 or 6
-     * @note this function will toss old value
+     * @note this function will toss the old value
      */
     bool fromIp(const std::string &string);
     /**
@@ -218,7 +213,7 @@ class Binary
      * @param[in] string address
      * @param[in] domain of IP to use
      * @return true if valid IP address version 4 or 6
-     * @note this function will toss old value
+     * @note this function will toss the old value
      */
     bool fromIp(const std::string &string, int domain);
     /**
@@ -288,7 +283,7 @@ class Binary
      *       Both standard and "URL and filename safe".
      *       And IMAP mailbox names from RFC 3501
      *       The function probe the characters for value 62, 63 to match
-     *       to one of the standards.
+     *       one of the standards automatically.
      */
     bool fromBase64(const std::string &bin64, bool pad = false);
     /**

@@ -522,7 +522,7 @@ class SockIp : public SockBaseIf
 };
 
 /**
- * @brief UDP over IP version 4 socket
+ * UDP over IP version 4 socket
  */
 class SockIp4 : public SockIp
 {
@@ -538,7 +538,7 @@ class SockIp4 : public SockIp
 };
 
 /**
- * @brief UDP over IP version 6 socket
+ * UDP over IP version 6 socket
  */
 class SockIp6 : public SockIp
 {
@@ -576,7 +576,7 @@ class SockIp6 : public SockIp
 };
 
 /**
- * @brief Raw socket that uses PTP over Ethernet
+ * Raw socket that uses PTP over Ethernet
  * @note The class does @b NOT support VLAN tags!
  */
 class SockRaw : public SockBaseIf

@@ -24,7 +24,7 @@
 __PTPMGMT_NAMESPACE_BEGIN
 
 /**
- * @brief Structre to add new option
+ * Structre to add new option
  */
 struct Pmc_option {
     /**
@@ -41,7 +41,7 @@ struct Pmc_option {
 };
 
 /**
- * @brief Hold and process options
+ * Hold and process options
  */
 class Options
 {
@@ -136,7 +136,7 @@ class Options
      *  Tcl     @code{.tcl}
      *          obj parse_options [list {*}$argv0 {*}$@::argv] @endcode @n
      *  Lua     @code{.lua}
-     *          table.insert(arg, 1, debug.getinfo(1, 'S').short_src);
+     *          table.insert(arg, 1, arg[0])
      *          obj:parse_options(arg) @endcode
      */
     loop_val parse_options(int argc, char *const argv[]);

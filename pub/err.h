@@ -28,7 +28,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 class Error
 {
   private:
-    int m_errno = 0;
+    int m_errnom = 0;
     int m_line = 0;
     std::string m_file;
     std::string m_msg;

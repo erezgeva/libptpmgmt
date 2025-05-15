@@ -141,7 +141,7 @@ function main()
     print "buffer allocation failed"
     return -1
   end
-  table.insert(arg, 1, debug.getinfo(1, 'S').short_src)
+  table.insert(arg, 1, arg[0])
   local ret = opt:parse_options(arg)
   if(ret ~= ptpmgmt.Options.OPT_DONE) then
     print "fail parsing command line"
@@ -163,7 +163,7 @@ function main()
   local prms = msg:getParams()
   if(cfg:haveSpp()) then
     if(not msg:useAuth(cfg)) then
-      return printError("fail using Authentication");
+      return printError("fail using Authentication")
     end
     prms.sendAuth = true
   end

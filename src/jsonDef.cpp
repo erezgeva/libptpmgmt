@@ -440,8 +440,8 @@ bool Json2msg::fromJson(const string &json)
             PTPMGMT_ERROR("Wrong value for unicastFlag");
             return false;
         }
-        m_have[have_unicastFlag] = true;
-        m_unicastFlag = val->getBool();
+        m_have[have_isUnicast] = true;
+        m_isUnicast = val->getBool();
     }
     JsonProcFrom pproc;
     pproc.m_obj = mobj;
@@ -499,90 +499,23 @@ bool Json2msg::fromJson(const string &json)
     }
     return true;
 }
-mng_vals_e Json2msg::managementId() const
-{
-    return m_managementId;
-}
-const BaseMngTlv *Json2msg::dataField() const
-{
-    return m_tlvData.get();
-}
-actionField_e Json2msg::actionField() const
-{
-    return m_action;
-}
-bool Json2msg::isUnicast() const
-{
-    return m_unicastFlag;
-}
-bool Json2msg::haveIsUnicast() const
-{
-    return m_have[have_unicastFlag];
-}
-uint8_t Json2msg::PTPProfileSpecific() const
-{
-    return m_PTPProfileSpecific;
-}
-bool Json2msg::havePTPProfileSpecific() const
-{
-    return m_have[have_PTPProfileSpecific];
-}
-uint8_t Json2msg::domainNumber() const
-{
-    return m_domainNumber;
-}
-bool Json2msg::haveDomainNumber() const
-{
-    return m_have[have_domainNumber];
-}
-uint8_t Json2msg::versionPTP() const
-{
-    return m_versionPTP;
-}
-bool Json2msg::haveVersionPTP() const
-{
-    return m_have[have_versionPTP];
-}
-uint8_t Json2msg::minorVersionPTP() const
-{
-    return m_minorVersionPTP;
-}
-bool Json2msg::haveMinorVersionPTP() const
-{
-    return m_have[have_minorVersionPTP];
-}
-uint16_t Json2msg::sequenceId() const
-{
-    return m_sequenceId;
-}
-bool Json2msg::haveSequenceId() const
-{
-    return m_have[have_sequenceId];
-}
-uint32_t Json2msg::sdoId() const
-{
-    return m_sdoId;
-}
-bool Json2msg::haveSdoId() const
-{
-    return m_have[have_sdoId];
-}
-const PortIdentity_t &Json2msg::srcPort() const
-{
-    return m_srcPort;
-}
-bool Json2msg::haveSrcPort() const
-{
-    return m_have[have_srcPort];
-}
-const PortIdentity_t &Json2msg::dstPort() const
-{
-    return m_dstPort;
-}
-bool Json2msg::haveDstPort() const
-{
-    return m_have[have_dstPort];
-}
+mng_vals_e Json2msg::managementId() const { return m_managementId; }
+const BaseMngTlv *Json2msg::dataField() const { return m_tlvData.get(); }
+actionField_e Json2msg::actionField() const { return m_action; }
+#define HAVE(type, Nm, nm)\
+    type Json2msg::nm() const { return m_##nm; }\
+    bool Json2msg::have##Nm() const { return m_have[have_##nm]; }
+HAVE(bool, IsUnicast, isUnicast)
+HAVE(uint8_t, PTPProfileSpecific, PTPProfileSpecific)
+HAVE(uint8_t, DomainNumber, domainNumber)
+HAVE(uint8_t, VersionPTP, versionPTP)
+HAVE(uint8_t, MinorVersionPTP, minorVersionPTP)
+HAVE(uint16_t, SequenceId, sequenceId)
+HAVE(uint32_t, SdoId, sdoId)
+const PortIdentity_t &Json2msg::srcPort() const { return m_srcPort; }
+bool Json2msg::haveSrcPort() const { return m_have[have_srcPort]; }
+const PortIdentity_t &Json2msg::dstPort() const { return m_dstPort; }
+bool Json2msg::haveDstPort() const { return m_have[have_dstPort]; }
 bool Json2msg::setAction(Message &message) const
 {
     return message.setAction(m_action, m_managementId, m_tlvData.get());
@@ -592,7 +525,8 @@ __PTPMGMT_NAMESPACE_END
 
 __PTPMGMT_NAMESPACE_USE;
 
-extern "C" {
+__PTPMGMT_C_BEGIN
+
 #define C2CPP_ret(ret, func, def)\
     static ret ptpmgmt_json_##func(const_ptpmgmt_json j) {\
         if(j != nullptr && j->_this != nullptr)\
@@ -617,104 +551,104 @@ extern "C" {
                 return j->_##n##Port;\
             }\
         } return nullptr; }
-    static void ptpmgmt_json_free(ptpmgmt_json j)
-    {
-        if(j != nullptr) {
-            delete(Json2msg *)j->_this;
-            free(j->_srcPort);
-            free(j->_dstPort);
-            free(j->data);
-            free(j->dataTbl);
-            free(j);
-        }
-    }
-    static bool ptpmgmt_json_fromJson(ptpmgmt_json j, const char *arg)
-    {
-        if(j != nullptr && j->_this != nullptr && arg != nullptr)
-            return ((Json2msg *)j->_this)->fromJson(arg);
-        return false;
-    }
-    C2CPP_cret(managementId, mng_vals_e, NULL_PTP_MANAGEMENT)
-#define C_SWP(n, m) free(j->n); j->n = m
-    static const void *ptpmgmt_json_dataField(ptpmgmt_json j)
-    {
-        if(j != nullptr && j->_this != nullptr) {
-            Json2msg &me = *(Json2msg *)j->_this;
-            const BaseMngTlv *t = me.dataField();
-            if(t != nullptr) {
-                void *x = nullptr;
-                void *ret = cpp2cMngTlv(me.managementId(), t, x);
-                if(ret != nullptr) {
-                    C_SWP(data, ret);
-                    C_SWP(dataTbl, x);
-                    return ret;
-                }
-            }
-        }
-        return nullptr;
-    }
-    C2CPP_cret(actionField, actionField_e, GET)
-    C2CPP_ret(bool, isUnicast, false)
-    C2CPP_ret(bool, haveIsUnicast, false)
-    C2CPP_ret(uint8_t, PTPProfileSpecific, 0)
-    C2CPP_ret(bool, havePTPProfileSpecific, false)
-    C2CPP_ret(uint8_t, domainNumber, 0)
-    C2CPP_ret(bool, haveDomainNumber, false)
-    C2CPP_ret(uint8_t, versionPTP, 0)
-    C2CPP_ret(bool, haveVersionPTP, false)
-    C2CPP_ret(uint8_t, minorVersionPTP, 0)
-    C2CPP_ret(bool, haveMinorVersionPTP, false)
-    C2CPP_ret(uint16_t, sequenceId, 0)
-    C2CPP_ret(bool, haveSequenceId, false)
-    C2CPP_ret(uint32_t, sdoId, 0)
-    C2CPP_ret(bool, haveSdoId, false)
-    C2CPP_port(src)
-    C2CPP_ret(bool, haveSrcPort, false);
-    C2CPP_port(dst);
-    C2CPP_ret(bool, haveDstPort, false);
-    static bool ptpmgmt_json_setAction(const_ptpmgmt_json j, ptpmgmt_msg m)
-    {
-        if(j != nullptr && j->_this != nullptr &&
-            m != nullptr && m->_this != nullptr)
-            return ((Json2msg *)j->_this)->setAction(*(Message *)m->_this);
-        return false;
-    }
-    ptpmgmt_json ptpmgmt_json_alloc()
-    {
-        ptpmgmt_json j = (ptpmgmt_json)malloc(sizeof(ptpmgmt_json_t));
-        if(j == nullptr)
-            return nullptr;
-        memset(j, 0, sizeof(ptpmgmt_json_t));
-        j->_this = (void *)(new Json2msg);
-        if(j->_this == nullptr) {
-            free(j);
-            return nullptr;
-        }
-#define C_ASGN(n) j->n = ptpmgmt_json_##n
-        C_ASGN(free);
-        C_ASGN(fromJson);
-        C_ASGN(managementId);
-        C_ASGN(dataField);
-        C_ASGN(actionField);
-        C_ASGN(isUnicast);
-        C_ASGN(haveIsUnicast);
-        C_ASGN(PTPProfileSpecific);
-        C_ASGN(havePTPProfileSpecific);
-        C_ASGN(domainNumber);
-        C_ASGN(haveDomainNumber);
-        C_ASGN(versionPTP);
-        C_ASGN(haveVersionPTP);
-        C_ASGN(minorVersionPTP);
-        C_ASGN(haveMinorVersionPTP);
-        C_ASGN(sequenceId);
-        C_ASGN(haveSequenceId);
-        C_ASGN(sdoId);
-        C_ASGN(haveSdoId);
-        C_ASGN(srcPort);
-        C_ASGN(haveSrcPort);
-        C_ASGN(dstPort);
-        C_ASGN(haveDstPort);
-        C_ASGN(setAction);
-        return j;
+static void ptpmgmt_json_free(ptpmgmt_json j)
+{
+    if(j != nullptr) {
+        delete(Json2msg *)j->_this;
+        free(j->_srcPort);
+        free(j->_dstPort);
+        free(j->data);
+        free(j->dataTbl);
+        free(j);
     }
 }
+static bool ptpmgmt_json_fromJson(ptpmgmt_json j, const char *arg)
+{
+    if(j != nullptr && j->_this != nullptr && arg != nullptr)
+        return ((Json2msg *)j->_this)->fromJson(arg);
+    return false;
+}
+C2CPP_cret(managementId, mng_vals_e, NULL_PTP_MANAGEMENT)
+#define C_SWP(n, m) free(j->n); j->n = m
+static const void *ptpmgmt_json_dataField(ptpmgmt_json j)
+{
+    if(j != nullptr && j->_this != nullptr) {
+        Json2msg &me = *(Json2msg *)j->_this;
+        const BaseMngTlv *t = me.dataField();
+        if(t != nullptr) {
+            void *x = nullptr;
+            void *ret = cpp2cMngTlv(me.managementId(), t, x);
+            if(ret != nullptr) {
+                C_SWP(data, ret);
+                C_SWP(dataTbl, x);
+                return ret;
+            }
+        }
+    }
+    return nullptr;
+}
+C2CPP_cret(actionField, actionField_e, GET)
+C2CPP_ret(bool, isUnicast, false)
+C2CPP_ret(bool, haveIsUnicast, false)
+C2CPP_ret(uint8_t, PTPProfileSpecific, 0)
+C2CPP_ret(bool, havePTPProfileSpecific, false)
+C2CPP_ret(uint8_t, domainNumber, 0)
+C2CPP_ret(bool, haveDomainNumber, false)
+C2CPP_ret(uint8_t, versionPTP, 0)
+C2CPP_ret(bool, haveVersionPTP, false)
+C2CPP_ret(uint8_t, minorVersionPTP, 0)
+C2CPP_ret(bool, haveMinorVersionPTP, false)
+C2CPP_ret(uint16_t, sequenceId, 0)
+C2CPP_ret(bool, haveSequenceId, false)
+C2CPP_ret(uint32_t, sdoId, 0)
+C2CPP_ret(bool, haveSdoId, false)
+C2CPP_port(src)
+C2CPP_ret(bool, haveSrcPort, false);
+C2CPP_port(dst);
+C2CPP_ret(bool, haveDstPort, false);
+static bool ptpmgmt_json_setAction(const_ptpmgmt_json j, ptpmgmt_msg m)
+{
+    if(j != nullptr && j->_this != nullptr && m != nullptr && m->_this != nullptr)
+        return ((Json2msg *)j->_this)->setAction(*(Message *)m->_this);
+    return false;
+}
+ptpmgmt_json ptpmgmt_json_alloc()
+{
+    ptpmgmt_json j = (ptpmgmt_json)malloc(sizeof(ptpmgmt_json_t));
+    if(j == nullptr)
+        return nullptr;
+    memset(j, 0, sizeof(ptpmgmt_json_t));
+    j->_this = (void *)(new Json2msg);
+    if(j->_this == nullptr) {
+        free(j);
+        return nullptr;
+    }
+#define C_ASGN(n) j->n = ptpmgmt_json_##n
+    C_ASGN(free);
+    C_ASGN(fromJson);
+    C_ASGN(managementId);
+    C_ASGN(dataField);
+    C_ASGN(actionField);
+    C_ASGN(isUnicast);
+    C_ASGN(haveIsUnicast);
+    C_ASGN(PTPProfileSpecific);
+    C_ASGN(havePTPProfileSpecific);
+    C_ASGN(domainNumber);
+    C_ASGN(haveDomainNumber);
+    C_ASGN(versionPTP);
+    C_ASGN(haveVersionPTP);
+    C_ASGN(minorVersionPTP);
+    C_ASGN(haveMinorVersionPTP);
+    C_ASGN(sequenceId);
+    C_ASGN(haveSequenceId);
+    C_ASGN(sdoId);
+    C_ASGN(haveSdoId);
+    C_ASGN(srcPort);
+    C_ASGN(haveSrcPort);
+    C_ASGN(dstPort);
+    C_ASGN(haveDstPort);
+    C_ASGN(setAction);
+    return j;
+}
+
+__PTPMGMT_C_END

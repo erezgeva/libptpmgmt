@@ -113,14 +113,8 @@ bool Binary::iResize(size_t l_alloc)
         memset(m_buf + m_size, 0, m_alloc - m_size);
     return true;
 }
-Binary::~Binary()
-{
-    free(m_buf);
-}
-Binary::Binary()
-{
-    iResize(1);
-}
+Binary::~Binary() { free(m_buf); }
+Binary::Binary() { iResize(1); }
 Binary::Binary(const Binary &rhs)
 {
     setBin(rhs.m_buf, rhs.m_size);
@@ -158,26 +152,11 @@ Binary &Binary::operator=(const Binary &rhs)
         return *this;
     return setBin(rhs.m_buf, rhs.m_size);
 }
-size_t Binary::length() const
-{
-    return m_size;
-}
-size_t Binary::size() const
-{
-    return m_size;
-}
-bool Binary::empty() const
-{
-    return m_size == 0;
-}
-const uint8_t *Binary::get() const
-{
-    return m_buf;
-}
-string Binary::getBinString() const
-{
-    return string((char *)m_buf, m_size);
-}
+size_t Binary::length() const { return m_size; }
+size_t Binary::size() const { return m_size; }
+bool Binary::empty() const { return m_size == 0; }
+const uint8_t *Binary::get() const { return m_buf; }
+string Binary::getBinString() const { return string((char *)m_buf, m_size); }
 Binary &Binary::setBin(const void *buf, const size_t length)
 {
     if(buf == nullptr || length == 0)
@@ -188,10 +167,7 @@ Binary &Binary::setBin(const void *buf, const size_t length)
     }
     return *this;
 }
-Binary &Binary::setBin(const Binary &rhs)
-{
-    return setBin(rhs.m_buf, rhs.m_size);
-}
+Binary &Binary::setBin(const Binary &rhs) { return setBin(rhs.m_buf, rhs.m_size); }
 Binary &Binary::setBin(const string &string)
 {
     if(string.empty())
@@ -305,42 +281,33 @@ string Binary::toIp() const
 }
 bool Binary::fromIp(const string &string, int domain)
 {
-    if(string.length() < 2)
+    if(string.empty())
         return false;
-    size_t len;
-    char buf[sizeof(in6_addr)];
     switch(domain) {
-        case AF_INET: // IP v4
-            len = sizeof(in_addr);
+        case AF_INET: { // IP v4
+            in_addr buf;
+            if(inet_aton(string.c_str(), &buf) == 0)
+                return false;
+            setBin(&buf, sizeof(buf));
             break;
-        case AF_INET6: // IP v6
-            len = sizeof(in6_addr);
+        }
+        case AF_INET6: { // IP v6
+            in6_addr buf;
+            if(inet_pton(AF_INET6, string.c_str(), &buf) != 1)
+                return false;
+            setBin(&buf, sizeof(buf));
             break;
+        }
         default:
             return false;
     }
-    if(inet_pton(domain, string.c_str(), buf) != 1)
-        return false;
-    setBin(buf, len);
     return true;
 }
-bool Binary::fromIp(const string &string)
+bool Binary::fromIp(const string &str)
 {
-    if(string.length() < 2)
-        return false;
-    int domain;
-    if(string.find('.') != string::npos)
-        domain = AF_INET; // IP v4
-    else if(string.find(':') != string::npos)
-        domain = AF_INET6; // IP v6
-    else
-        return false;
-    return fromIp(string, domain);
+    return fromIp(str, str.find(':') != string::npos ? AF_INET6 : AF_INET);
 }
-string Binary::toId(const string &sep) const
-{
-    return bufToId(m_buf, m_size, sep);
-}
+string Binary::toId(const string &sep) const { return bufToId(m_buf, m_size, sep); }
 string Binary::bufToId(const uint8_t *id, size_t len, const string &sep)
 {
     if(len < 1)
@@ -371,14 +338,8 @@ bool Binary::fromId(const string &string)
     setBin(id);
     return true;
 }
-bool Binary::fromMac(const string &string)
-{
-    return fromId(string) && isMacLen();
-}
-bool Binary::isMacLen() const
-{
-    return m_size == EUI48 || m_size == EUI64;
-}
+bool Binary::fromMac(const string &string) { return fromId(string) && isMacLen(); }
+bool Binary::isMacLen() const { return m_size == EUI48 || m_size == EUI64; }
 bool Binary::eui48ToEui64()
 {
     if(m_size == EUI64)
@@ -420,10 +381,7 @@ bool Binary::fromHex(const string &hex)
     setBin(id);
     return true;
 }
-string Binary::toHex() const
-{
-    return bufToHex(m_buf, m_size);
-}
+string Binary::toHex() const { return bufToHex(m_buf, m_size); }
 string Binary::bufToHex(const uint8_t *bin, size_t len)
 {
     if(len < 1)

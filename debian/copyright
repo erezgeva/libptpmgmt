@@ -3,6 +3,8 @@ Upstream-Name: libptpmgmt
 Upstream-Contact: Erez Geva <ErezGeva2@gmail.com>
 Source: https://libptpmgmt.nwtime.org
 Source: https://github.com/erezgeva/libptpmgmt
+Source: https://gitlab.com/erezgeva/libptpmgmt
+Source: https://codeberg.org/erezgeva/libptpmgmt
 Source: https://sf.net/p/libptpmgmt
 
 Files: *

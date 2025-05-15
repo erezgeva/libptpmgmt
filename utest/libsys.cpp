@@ -95,6 +95,7 @@ sysFuncDec(long, sysconf, int) throw();
 sysFuncDec(int, open, const char *, int, ...);
 sysFuncDec(int, __open_2, const char *, int);
 sysFuncDec(ssize_t, read, int, void *, size_t);
+sysFuncDec(ssize_t, __read_chk, int, void *, size_t, size_t);
 // glibc stat fucntions
 sysFuncDec(int, stat, const char *, struct stat *) throw();
 sysFuncDec(int, stat64, const char *, struct stat64 *) throw();
@@ -133,6 +134,7 @@ void initLibSys(void)
     sysFuncAgn(int, open, const char *, int, ...);
     sysFuncAgn(int, __open_2, const char *, int);
     sysFuncAgn(ssize_t, read, int, void *, size_t);
+    sysFuncAgn(ssize_t, __read_chk, int, void *, size_t, size_t);
     sysFuncAgZ(int, stat, const char *, struct stat *);
     sysFuncAgZ(int, stat64, const char *, struct stat64 *);
     sysFuncAgn(int, __xstat, int, const char *, struct stat *);
@@ -734,6 +736,11 @@ ssize_t read(int fd, void *buf, size_t count)
         }
     }
     return retErr(EINVAL);
+}
+ssize_t __read_chk(int fd, void *buf, size_t count, size_t buflen)
+{
+    retSock(__read_chk, buf, count, buflen);
+    return read(fd, buf, count);
 }
 // glibc stat fucntions
 int stat(const char *name, struct stat *sp) throw()
