@@ -13,6 +13,7 @@
 #include <cstdarg>
 #include <dlfcn.h>
 /*****************************************************************************/
+static const size_t single_print = 1024;
 static bool testMode = false;
 static std::string pmc_out;
 void useTestMode(bool n)
@@ -50,7 +51,7 @@ void initLibSys(void)
     useTestMode(false);
 }
 /*****************************************************************************/
-#define VA_PRINT(ap, format) _vprintf(ap, format)
+#define VA_PRINT(format, ap) _vprintf(format, ap)
 #define retTest(name, ...)\
     if(!testMode)\
         return _##name(__VA_ARGS__)
@@ -61,24 +62,11 @@ void initLibSys(void)
     if(!testMode)\
         ret = VA_PRINT(format, ap);\
     else {\
-        char str[1024];\
+        char str[single_print];\
         ret = vsnprintf(str, sizeof(str), format, ap);\
         pmc_out += str;\
     }\
     va_end(ap);\
-    return ret
-#define V_PRINTF(format, ap)\
-    int ret = 0;\
-    va_list ap1;\
-    va_copy(ap1, ap);\
-    if(!testMode)\
-        ret = VA_PRINT(format, ap1);\
-    else {\
-        char str[1024];\
-        ret = vsnprintf(str, sizeof(str), format, ap1);\
-        pmc_out += str;\
-    }\
-    va_end(ap1);\
     return ret
 /*****************************************************************************/
 int printf(const char *format, ...)
@@ -96,9 +84,20 @@ int puts(const char *s)
 }
 int vprintf(const char *format, va_list ap)
 {
-    V_PRINTF(format, ap);
+    int ret = 0;
+    va_list ap1;
+    va_copy(ap1, ap);
+    if(!testMode)
+        ret = VA_PRINT(format, ap1);
+    else {
+        char str[single_print];
+        ret = vsnprintf(str, sizeof(str), format, ap1);
+        pmc_out += str;
+    }
+    va_end(ap1);
+    return ret;
 }
 int __vprintf_chk(int __flag, const char *format, va_list ap)
 {
-    V_PRINTF(format, ap);
+    return vprintf(format, ap);
 }

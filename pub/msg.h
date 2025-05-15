@@ -29,7 +29,7 @@ class MessageSigTlvs;
 struct HMAC_Key;
 
 /**
- * @brief Abstract class used for callback for Signalling TLVs traverse
+ * Abstract class used for callback for Signalling TLVs traverse
  * @note For PHP, Perl, Python and Ruby use
  */
 class MessageSigTlvCallback

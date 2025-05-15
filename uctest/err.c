@@ -26,7 +26,7 @@ Test(ErrorTest, MethodIsError)
     setlocale(LC_MESSAGES, "C");
     cr_expect(eq(str, (char *)ptpmgmt_err_getError(),
             "[uctest/err.c:24:ErrorTest_MethodIsError_impl] test macro: "
-            "Resource temporarily unavailable"));
+            "EAGAIN: Resource temporarily unavailable"));
 }
 
 // Tests get error full message
@@ -99,5 +99,5 @@ Test(ErrorTest, MethodGetErrnoMsg)
     cr_expect(ptpmgmt_err_isError());
     setlocale(LC_MESSAGES, "C");
     cr_expect(eq(str, (char *)ptpmgmt_err_getErrnoMsg(),
-            "No such file or directory"));
+            "ENOENT: No such file or directory"));
 }
