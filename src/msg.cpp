@@ -195,8 +195,6 @@ Message::Message(const MsgParams &prms) :
 }
 Message::~Message()
 {
-    m_hmac.reset(nullptr); // delete m_hmac
-    hmac_freeLib();
 }
 ssize_t Message::getMsgPlanedLen() const
 {
@@ -226,10 +224,7 @@ ssize_t Message::getMsgPlanedLen() const
     return ret + mngMsgBaseSize + addAuth;
     // return total length of to the message to be send
 }
-const MsgParams &Message::getParams() const
-{
-    return m_prms;
-}
+const MsgParams &Message::getParams() const { return m_prms; }
 bool Message::updateParams(const MsgParams &prms)
 {
     if(prms.transportSpecific > 0xf)
@@ -826,18 +821,12 @@ uint16_t Message::getSequence() const
 {
     return m_sequence;
 }
-const PortIdentity_t &Message::getPeer() const
-{
-    return m_peer;
-}
+const PortIdentity_t &Message::getPeer() const { return m_peer; }
 const PortIdentity_t &Message::getTarget() const
 {
     return m_target;
 }
-uint32_t Message::getSdoId() const
-{
-    return m_sdoId;
-}
+uint32_t Message::getSdoId() const { return m_sdoId; }
 uint8_t Message::getDomainNumber() const
 {
     return m_domainNumber;
@@ -879,10 +868,7 @@ bool Message::isLastMsgSMPTE() const
     return m_type == Management && m_mngType == ORGANIZATION_EXTENSION &&
         m_replayTlv_id == SMPTE_MNG_ID;
 }
-msgType_e Message::getType() const
-{
-    return m_type;
-}
+msgType_e Message::getType() const { return m_type; }
 tlvType_e Message::getMngType() const
 {
     return m_mngType;
@@ -933,14 +919,8 @@ uint32_t Message::usedAuthKeyID() const
 {
     return m_haveAuth ? m_keyID : 0;
 }
-const SaFile &Message::getSa() const
-{
-    return m_sa;
-}
-bool Message::haveAuth() const
-{
-    return m_haveAuth;
-}
+const SaFile &Message::getSa() const { return m_sa; }
+bool Message::haveAuth() const { return m_haveAuth; }
 mng_vals_e Message::getTlvId() const
 {
     return m_replayTlv_id;
@@ -1503,10 +1483,7 @@ MessageSigTlvs::iterator &MessageSigTlvs::iterator::operator++(int)
     it++;
     return *this;
 }
-const MessageSigTlv &MessageSigTlvs::iterator::operator*()
-{
-    return *it;
-}
+const MessageSigTlv &MessageSigTlvs::iterator::operator*() { return *it; }
 bool MessageSigTlvs::iterator::operator!=(MessageSigTlvs::iterator &o)
 {
     return it != o.it;
@@ -1538,61 +1515,62 @@ class unq_cptr // Used with vector to store allocations in _memHndl
     ~unq_cptr() { free(p); }
 };
 
-extern "C" {
-    extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
-    extern void cpyMsgParams(ptpmgmt_pMsgParams p);
-    extern void ptpmgmt_MsgParams_alloc_wrap(ptpmgmt_pMsgParams p);
+__PTPMGMT_C_BEGIN
 
-    static inline MsgParams &getMsgParams(ptpmgmt_cpMsgParams p)
-    {
-        MsgParams &r = *(MsgParams *)p->_this;
-        r.transportSpecific = p->transportSpecific;
-        r.domainNumber = p->domainNumber;
-        r.boundaryHops = p->boundaryHops;
-        r.minorVersion = p->minorVersion;
-        r.isUnicast = p->isUnicast;
-        r.useZeroGet = p->useZeroGet;
-        r.rcvSignaling = p->rcvSignaling;
-        r.filterSignaling = p->filterSignaling;
-        r.rcvSMPTEOrg = p->rcvSMPTEOrg;
-        r.sendAuth = p->sendAuth;
-        r.rcvAuth = (MsgParams_RcvAuth_e)p->rcvAuth;
-        r.implementSpecific = (implementSpecific_e)p->implementSpecific;
-        memcpy(r.target.clockIdentity.v, p->target.clockIdentity.v,
-            ClockIdentity_t::size());
-        r.target.portNumber = p->target.portNumber;
-        memcpy(r.self_id.clockIdentity.v, p->self_id.clockIdentity.v,
-            ClockIdentity_t::size());
-        r.self_id.portNumber = p->self_id.portNumber;
-        return r;
-    }
-    // C interfaces
+extern ptpmgmt_safile ptpmgmt_safile_alloc_wrap(const SaFile &sa);
+extern void cpyMsgParams(ptpmgmt_pMsgParams p);
+extern void ptpmgmt_MsgParams_alloc_wrap(ptpmgmt_pMsgParams p);
+
+static inline MsgParams &getMsgParams(ptpmgmt_cpMsgParams p)
+{
+    MsgParams &r = *(MsgParams *)p->_this;
+    r.transportSpecific = p->transportSpecific;
+    r.domainNumber = p->domainNumber;
+    r.boundaryHops = p->boundaryHops;
+    r.minorVersion = p->minorVersion;
+    r.isUnicast = p->isUnicast;
+    r.useZeroGet = p->useZeroGet;
+    r.rcvSignaling = p->rcvSignaling;
+    r.filterSignaling = p->filterSignaling;
+    r.rcvSMPTEOrg = p->rcvSMPTEOrg;
+    r.sendAuth = p->sendAuth;
+    r.rcvAuth = (MsgParams_RcvAuth_e)p->rcvAuth;
+    r.implementSpecific = (implementSpecific_e)p->implementSpecific;
+    memcpy(r.target.clockIdentity.v, p->target.clockIdentity.v,
+        ClockIdentity_t::size());
+    r.target.portNumber = p->target.portNumber;
+    memcpy(r.self_id.clockIdentity.v, p->self_id.clockIdentity.v,
+        ClockIdentity_t::size());
+    r.self_id.portNumber = p->self_id.portNumber;
+    return r;
+}
+// C interfaces
 #define C_SWP(n, v) free(m->n); m->n = v
-    static void ptpmgmt_msg_free_wrap(ptpmgmt_msg m)
-    {
-        if(m != nullptr) {
-            delete(BaseMngTlv *)m->sendTlv;
-            m->sendTlv = nullptr;
-            C_SWP(data, nullptr);
-            C_SWP(dataTbl, nullptr);
-            C_SWP(dataSig1, nullptr);
-            C_SWP(dataSig2, nullptr);
-            C_SWP(dataSig3, nullptr);
-            if(m->_sa != nullptr) {
-                m->_sa->free(m->_sa);
-                free(m->_sa);
-                m->_sa = nullptr;
-            }
+static void ptpmgmt_msg_free_wrap(ptpmgmt_msg m)
+{
+    if(m != nullptr) {
+        delete(BaseMngTlv *)m->sendTlv;
+        m->sendTlv = nullptr;
+        C_SWP(data, nullptr);
+        C_SWP(dataTbl, nullptr);
+        C_SWP(dataSig1, nullptr);
+        C_SWP(dataSig2, nullptr);
+        C_SWP(dataSig3, nullptr);
+        if(m->_sa != nullptr) {
+            m->_sa->free(m->_sa);
+            free(m->_sa);
+            m->_sa = nullptr;
         }
     }
-    static void ptpmgmt_msg_free(ptpmgmt_msg m)
-    {
-        if(m != nullptr) {
-            delete(Message *)m->_this;
-            ptpmgmt_msg_free_wrap(m);
-            free(m);
-        }
+}
+static void ptpmgmt_msg_free(ptpmgmt_msg m)
+{
+    if(m != nullptr) {
+        delete(Message *)m->_this;
+        ptpmgmt_msg_free_wrap(m);
+        free(m);
     }
+}
 #define C2CPP_void(func)\
     static void ptpmgmt_msg_##func(const_ptpmgmt_msg m) {\
         if(m != nullptr && m->_this != nullptr)\
@@ -1631,830 +1609,829 @@ extern "C" {
             memcpy(l->clockIdentity.v, p.clockIdentity.v, ClockIdentity_t::size());\
             l->portNumber = p.portNumber;return l;\
         } return nullptr; }
-    static ptpmgmt_pMsgParams ptpmgmt_msg_getParams(ptpmgmt_msg m)
-    {
-        if(m != nullptr) {
-            ptpmgmt_pMsgParams p = &(m->_prms);
-            cpyMsgParams(p);
-            return p;
-        }
-        return nullptr;
+static ptpmgmt_pMsgParams ptpmgmt_msg_getParams(ptpmgmt_msg m)
+{
+    if(m != nullptr) {
+        ptpmgmt_pMsgParams p = &(m->_prms);
+        cpyMsgParams(p);
+        return p;
     }
-    static bool ptpmgmt_msg_updateParams(ptpmgmt_msg m, ptpmgmt_cpMsgParams prms)
-    {
-        if(m != nullptr && m->_this != nullptr) {
-            MsgParams &p = getMsgParams(prms);
-            return ((Message *)m->_this)->updateParams(p);
-        }
-        return false;
+    return nullptr;
+}
+static bool ptpmgmt_msg_updateParams(ptpmgmt_msg m, ptpmgmt_cpMsgParams prms)
+{
+    if(m != nullptr && m->_this != nullptr) {
+        MsgParams &p = getMsgParams(prms);
+        return ((Message *)m->_this)->updateParams(p);
     }
-    static bool ptpmgmt_msg_useAuth_cfg(ptpmgmt_msg m, const_ptpmgmt_cfg cfg,
-        const char *section)
-    {
-        if(m != nullptr && m->_this != nullptr && cfg != nullptr &&
-            cfg->_this != nullptr) {
-            Message *me = (Message *)m->_this;
-            ConfigFile &c = *(ConfigFile *)cfg->_this;
-            if(section != nullptr)
-                return me->useAuth(c, section);
-            return me->useAuth(c);
-        }
-        return false;
+    return false;
+}
+static bool ptpmgmt_msg_useAuth_cfg(ptpmgmt_msg m, const_ptpmgmt_cfg cfg,
+    const char *section)
+{
+    if(m != nullptr && m->_this != nullptr && cfg != nullptr &&
+        cfg->_this != nullptr) {
+        Message *me = (Message *)m->_this;
+        ConfigFile &c = *(ConfigFile *)cfg->_this;
+        if(section != nullptr)
+            return me->useAuth(c, section);
+        return me->useAuth(c);
     }
-    static bool ptpmgmt_msg_useAuth(ptpmgmt_msg m, const_ptpmgmt_safile sa,
-        uint8_t spp, uint32_t key)
-    {
-        if(m != nullptr && m->_this != nullptr && sa != nullptr &&
-            sa->_this != nullptr)
-            return ((Message *)m->_this)->useAuth(*(const SaFile *)sa->_this, spp,
-                    key);
-        return false;
+    return false;
+}
+static bool ptpmgmt_msg_useAuth(ptpmgmt_msg m, const_ptpmgmt_safile sa,
+    uint8_t spp, uint32_t key)
+{
+    if(m != nullptr && m->_this != nullptr && sa != nullptr && sa->_this != nullptr)
+        return ((Message *)m->_this)->useAuth(*(const SaFile *)sa->_this, spp, key);
+    return false;
+}
+static bool ptpmgmt_msg_changeAuth(ptpmgmt_msg m, uint8_t spp, uint32_t key)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return ((Message *)m->_this)->changeAuth(spp, key);
+    return false;
+}
+static bool ptpmgmt_msg_changeAuthKey(ptpmgmt_msg m, uint32_t key)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return ((Message *)m->_this)->changeAuth(key);
+    return false;
+}
+static bool ptpmgmt_msg_disableAuth(ptpmgmt_msg m)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return ((Message *)m->_this)->disableAuth();
+    return false;
+}
+C2CPP_ret(int, usedAuthSppID, -1)
+C2CPP_ret(uint32_t, usedAuthKeyID, 0)
+static const_ptpmgmt_safile ptpmgmt_msg_getSa(ptpmgmt_msg m)
+{
+    if(m != nullptr) {
+        if(m->_sa == nullptr && m->_this != nullptr)
+            m->_sa = ptpmgmt_safile_alloc_wrap(((Message *)m->_this)->getSa());
+        return m->_sa;
     }
-    static bool ptpmgmt_msg_changeAuth(ptpmgmt_msg m, uint8_t spp, uint32_t key)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((Message *)m->_this)->changeAuth(spp, key);
-        return false;
+    return nullptr;
+}
+C2CPP_ret(bool, haveAuth, false)
+C2CPP_cret(getTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
+C2CPP_cret(getBuildTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
+C2CPP_void(setAllClocks)
+C2CPP_ret(bool, isAllClocks, false)
+static bool ptpmgmt_msg_useConfig(ptpmgmt_msg m, const_ptpmgmt_cfg cfg,
+    const char *section)
+{
+    if(m != nullptr && m->_this != nullptr && cfg != nullptr &&
+        cfg->_this != nullptr) {
+        Message *me = (Message *)m->_this;
+        ConfigFile &c = *(ConfigFile *)cfg->_this;
+        if(section != nullptr)
+            return me->useConfig(c, section);
+        return me->useConfig(c);
     }
-    static bool ptpmgmt_msg_changeAuthKey(ptpmgmt_msg m, uint32_t key)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((Message *)m->_this)->changeAuth(key);
-        return false;
-    }
-    static bool ptpmgmt_msg_disableAuth(ptpmgmt_msg m)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((Message *)m->_this)->disableAuth();
-        return false;
-    }
-    C2CPP_ret(int, usedAuthSppID, -1)
-    C2CPP_ret(uint32_t, usedAuthKeyID, 0)
-    static const_ptpmgmt_safile ptpmgmt_msg_getSa(ptpmgmt_msg m)
-    {
-        if(m != nullptr) {
-            if(m->_sa == nullptr && m->_this != nullptr)
-                m->_sa = ptpmgmt_safile_alloc_wrap(((Message *)m->_this)->getSa());
-            return m->_sa;
-        }
-        return nullptr;
-    }
-    C2CPP_ret(bool, haveAuth, false)
-    C2CPP_cret(getTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
-    C2CPP_cret(getBuildTlvId, mng_vals_e, PTPMGMT_NULL_PTP_MANAGEMENT)
-    C2CPP_void(setAllClocks)
-    C2CPP_ret(bool, isAllClocks, false)
-    static bool ptpmgmt_msg_useConfig(ptpmgmt_msg m, const_ptpmgmt_cfg cfg,
-        const char *section)
-    {
-        if(m != nullptr && m->_this != nullptr && cfg != nullptr &&
-            cfg->_this != nullptr) {
-            Message *me = (Message *)m->_this;
-            ConfigFile &c = *(ConfigFile *)cfg->_this;
-            if(section != nullptr)
-                return me->useConfig(c, section);
-            return me->useConfig(c);
-        }
-        return false;
-    }
-    C2CPP_ret_c1(err2str, MNG_PARSE_ERROR)
-    C2CPP_ret_c1(type2str, msgType)
-    C2CPP_ret_c1(tlv2str, tlvType)
-    C2CPP_ret_c1(act2str, actionField)
-    C2CPP_ret_c1(mng2str, mng_vals)
-    C2CPP_find(findMngID, mng_vals_e)
-    C2CPP_ret_c1(errId2str, managementErrorId)
-    C2CPP_ret_c1(clkType2str, clockType)
-    C2CPP_ret_c1(netProt2str, networkProtocol)
-    C2CPP_ret_c1(clockAcc2str, clockAccuracy)
-    C2CPP_ret_c1(faultRec2str, faultRecord)
-    C2CPP_ret_c1(timeSrc2str, timeSource)
-    C2CPP_find(findTimeSrc, timeSource_e)
-    C2CPP_ret_c1(portState2str, portState)
-    C2CPP_find(findPortState, portState_e)
-    C2CPP_ret_c1(delayMech2str, delayMechanism)
-    C2CPP_find(findDelayMech, delayMechanism_e)
-    C2CPP_ret_c1(smpteLck2str, SMPTEmasterLockingStatus)
-    C2CPP_ret_c1(ts2str, linuxptpTimeStamp)
-    C2CPP_ret_c1(pwr2str, linuxptpPowerProfileVersion)
-    C2CPP_ret_c1(us2str, linuxptpUnicastState)
-    C2CPP_ret_1(is_LI_61)
-    C2CPP_ret_1(is_LI_59)
-    C2CPP_ret_1(is_UTCV)
-    C2CPP_ret_1(is_PTP)
-    C2CPP_ret_1(is_TTRA)
-    C2CPP_ret_1(is_FTRA)
-    bool ptpmgmt_msg_isEmpty(ptpmgmt_mng_vals_e id)
-    {
-        return Message::isEmpty((mng_vals_e)id);
-    }
-    static bool ptpmgmt_msg_isValidId(const_ptpmgmt_msg m, ptpmgmt_mng_vals_e id)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((Message *)m->_this)->isValidId((mng_vals_e)id);
-        return false;
-    }
-    static bool ptpmgmt_msg_setAction(ptpmgmt_msg m,
-        ptpmgmt_actionField_e actionField, ptpmgmt_mng_vals_e tlv_id,
-        const void *dataSend)
-    {
-        if(m != nullptr && m->_this != nullptr) {
-            BaseMngTlv *tlv = nullptr;
-            if(actionField != PTPMGMT_GET && dataSend != nullptr) {
-                tlv = c2cppMngTlv((mng_vals_e) tlv_id, dataSend);
-                if(tlv != nullptr) {
-                    delete(BaseMngTlv *)m->sendTlv;
-                    m->sendTlv = (void *)tlv;
-                }
-                m->dataSend = dataSend;
+    return false;
+}
+C2CPP_ret_c1(err2str, MNG_PARSE_ERROR)
+C2CPP_ret_c1(type2str, msgType)
+C2CPP_ret_c1(tlv2str, tlvType)
+C2CPP_ret_c1(act2str, actionField)
+C2CPP_ret_c1(mng2str, mng_vals)
+C2CPP_find(findMngID, mng_vals_e)
+C2CPP_ret_c1(errId2str, managementErrorId)
+C2CPP_ret_c1(clkType2str, clockType)
+C2CPP_ret_c1(netProt2str, networkProtocol)
+C2CPP_ret_c1(clockAcc2str, clockAccuracy)
+C2CPP_ret_c1(faultRec2str, faultRecord)
+C2CPP_ret_c1(timeSrc2str, timeSource)
+C2CPP_find(findTimeSrc, timeSource_e)
+C2CPP_ret_c1(portState2str, portState)
+C2CPP_find(findPortState, portState_e)
+C2CPP_ret_c1(delayMech2str, delayMechanism)
+C2CPP_find(findDelayMech, delayMechanism_e)
+C2CPP_ret_c1(smpteLck2str, SMPTEmasterLockingStatus)
+C2CPP_ret_c1(ts2str, linuxptpTimeStamp)
+C2CPP_ret_c1(pwr2str, linuxptpPowerProfileVersion)
+C2CPP_ret_c1(us2str, linuxptpUnicastState)
+C2CPP_ret_1(is_LI_61)
+C2CPP_ret_1(is_LI_59)
+C2CPP_ret_1(is_UTCV)
+C2CPP_ret_1(is_PTP)
+C2CPP_ret_1(is_TTRA)
+C2CPP_ret_1(is_FTRA)
+bool ptpmgmt_msg_isEmpty(ptpmgmt_mng_vals_e id)
+{
+    return Message::isEmpty((mng_vals_e)id);
+}
+static bool ptpmgmt_msg_isValidId(const_ptpmgmt_msg m, ptpmgmt_mng_vals_e id)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return ((Message *)m->_this)->isValidId((mng_vals_e)id);
+    return false;
+}
+static bool ptpmgmt_msg_setAction(ptpmgmt_msg m,
+    ptpmgmt_actionField_e actionField,
+    ptpmgmt_mng_vals_e tlv_id, const void *dataSend)
+{
+    if(m != nullptr && m->_this != nullptr) {
+        BaseMngTlv *tlv = nullptr;
+        if(actionField != PTPMGMT_GET && dataSend != nullptr) {
+            tlv = c2cppMngTlv((mng_vals_e) tlv_id, dataSend);
+            if(tlv != nullptr) {
+                delete(BaseMngTlv *)m->sendTlv;
+                m->sendTlv = (void *)tlv;
             }
-            return ((Message *)m->_this)->setAction((actionField_e)actionField,
-                    (mng_vals_e) tlv_id, tlv);
+            m->dataSend = dataSend;
         }
-        return false;
+        return ((Message *)m->_this)->setAction((actionField_e)actionField,
+                (mng_vals_e) tlv_id, tlv);
     }
-    C2CPP_void(clearData)
-    static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_build(const_ptpmgmt_msg m,
-        void *buf, size_t bufSize, uint16_t sequence)
-    {
-        if(m != nullptr && m->_this != nullptr && buf != nullptr)
-            return (ptpmgmt_MNG_PARSE_ERROR_e)
-                ((Message *)m->_this)->build(buf, bufSize, sequence);
-        return PTPMGMT_MNG_PARSE_ERROR_TOO_SMALL;
-    }
-    C2CPP_cret(getSendAction, actionField_e, PTPMGMT_GET)
-    C2CPP_ret(size_t, getMsgLen, 0)
-    C2CPP_ret(ssize_t, getMsgPlanedLen, -1)
-    static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_parse(const_ptpmgmt_msg m,
-        const void *buf, ssize_t msgSize)
-    {
-        if(m != nullptr && m->_this != nullptr && buf != nullptr)
-            return (ptpmgmt_MNG_PARSE_ERROR_e)
-                ((Message *)m->_this)->parse(buf, msgSize);
-        return PTPMGMT_MNG_PARSE_ERROR_UNSUPPORT;
-    }
-    C2CPP_cret(getReplyAction, actionField_e, PTPMGMT_GET)
-    C2CPP_ret(bool, isUnicast, false)
-    C2CPP_ret(uint8_t, getPTPProfileSpecific, 0)
-    C2CPP_ret(uint16_t, getSequence, 0)
-    C2CPP_port(getPeer, _peer)
-    C2CPP_port(getTarget, _target)
-    C2CPP_ret(uint32_t, getSdoId, 0)
-    C2CPP_ret(uint8_t, getDomainNumber, 0)
-    C2CPP_ret(uint8_t, getVersionPTP, 0)
-    C2CPP_ret(uint8_t, getMinorVersionPTP, 0)
-    static const void *ptpmgmt_msg_getData(ptpmgmt_msg m)
-    {
-        if(m != nullptr && m->_this != nullptr) {
-            Message *me = (Message *)m->_this;
-            const BaseMngTlv *t = me->getData();
-            if(t != nullptr) {
-                void *x = nullptr;
-                void *tlv = cpp2cMngTlv(me->getTlvId(), t, x);
-                if(tlv != nullptr) {
-                    C_SWP(data, tlv);
-                    C_SWP(dataTbl, x);
-                    return tlv;
-                }
+    return false;
+}
+C2CPP_void(clearData)
+static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_build(const_ptpmgmt_msg m,
+    void *buf, size_t bufSize, uint16_t sequence)
+{
+    if(m != nullptr && m->_this != nullptr && buf != nullptr)
+        return (ptpmgmt_MNG_PARSE_ERROR_e)
+            ((Message *)m->_this)->build(buf, bufSize, sequence);
+    return PTPMGMT_MNG_PARSE_ERROR_TOO_SMALL;
+}
+C2CPP_cret(getSendAction, actionField_e, PTPMGMT_GET)
+C2CPP_ret(size_t, getMsgLen, 0)
+C2CPP_ret(ssize_t, getMsgPlanedLen, -1)
+static ptpmgmt_MNG_PARSE_ERROR_e ptpmgmt_msg_parse(const_ptpmgmt_msg m,
+    const void *buf, ssize_t msgSize)
+{
+    if(m != nullptr && m->_this != nullptr && buf != nullptr)
+        return (ptpmgmt_MNG_PARSE_ERROR_e)
+            ((Message *)m->_this)->parse(buf, msgSize);
+    return PTPMGMT_MNG_PARSE_ERROR_UNSUPPORT;
+}
+C2CPP_cret(getReplyAction, actionField_e, PTPMGMT_GET)
+C2CPP_ret(bool, isUnicast, false)
+C2CPP_ret(uint8_t, getPTPProfileSpecific, 0)
+C2CPP_ret(uint16_t, getSequence, 0)
+C2CPP_port(getPeer, _peer)
+C2CPP_port(getTarget, _target)
+C2CPP_ret(uint32_t, getSdoId, 0)
+C2CPP_ret(uint8_t, getDomainNumber, 0)
+C2CPP_ret(uint8_t, getVersionPTP, 0)
+C2CPP_ret(uint8_t, getMinorVersionPTP, 0)
+static const void *ptpmgmt_msg_getData(ptpmgmt_msg m)
+{
+    if(m != nullptr && m->_this != nullptr) {
+        Message *me = (Message *)m->_this;
+        const BaseMngTlv *t = me->getData();
+        if(t != nullptr) {
+            void *x = nullptr;
+            void *tlv = cpp2cMngTlv(me->getTlvId(), t, x);
+            if(tlv != nullptr) {
+                C_SWP(data, tlv);
+                C_SWP(dataTbl, x);
+                return tlv;
             }
         }
-        return nullptr;
     }
-    static const void *ptpmgmt_msg_getSendData(const_ptpmgmt_msg m)
-    {
-        if(m != nullptr)
-            return m->dataSend;
-        return nullptr;
-    }
-    C2CPP_cret(getErrId, managementErrorId_e, PTPMGMT_GENERAL_ERROR)
-    static const char *ptpmgmt_msg_getErrDisplay(const_ptpmgmt_msg m)
-    {
-        if(m != nullptr && m->_this != nullptr)
-            return ((Message *)m->_this)->getErrDisplay_c();
-        return nullptr;
-    }
-    C2CPP_ret(bool, isLastMsgSig, false)
-    C2CPP_ret(bool, isLastMsgSMPTE, false)
-    C2CPP_cret(getType, msgType_e, ptpmgmt_Management)
-    C2CPP_cret(getMngType, tlvType_e, PTPMGMT_MANAGEMENT)
-    static bool ptpmgmt_msg_traversSigTlvs(ptpmgmt_msg m, void *cookie,
-        ptpmgmt_msg_sig_callback callback)
-    {
-        if(m != nullptr && m->_this != nullptr && callback != nullptr) {
-            return ((Message *)m->_this)->traversSigTlvs([&m, cookie, callback](
-            const Message &, tlvType_e tlvType, const BaseSigTlv * tlv) {
-                void *sig = nullptr;
-                if(tlv != nullptr) {
-                    void *x = nullptr;
-                    void *x2 = nullptr;
-                    sig = cpp2cSigTlv(tlvType, tlv, x, x2);
-                    if(sig != nullptr) {
-                        C_SWP(dataSig1, sig);
-                        C_SWP(dataSig2, x);
-                        C_SWP(dataSig3, x2);
-                    }
-                }
-                return callback(cookie, m, (ptpmgmt_tlvType_e)tlvType, sig);
-            });
-        }
-        return false;
-    }
-    C2CPP_ret(size_t, getSigTlvsCount, 0)
-    static const void *ptpmgmt_msg_getSigTlv(ptpmgmt_msg m, size_t position)
-    {
-        if(m != nullptr && m->_this != nullptr) {
-            Message *me = (Message *)m->_this;
-            const BaseSigTlv *s = me->getSigTlv(position);
-            if(s != nullptr) {
+    return nullptr;
+}
+static const void *ptpmgmt_msg_getSendData(const_ptpmgmt_msg m)
+{
+    if(m != nullptr)
+        return m->dataSend;
+    return nullptr;
+}
+C2CPP_cret(getErrId, managementErrorId_e, PTPMGMT_GENERAL_ERROR)
+static const char *ptpmgmt_msg_getErrDisplay(const_ptpmgmt_msg m)
+{
+    if(m != nullptr && m->_this != nullptr)
+        return ((Message *)m->_this)->getErrDisplay_c();
+    return nullptr;
+}
+C2CPP_ret(bool, isLastMsgSig, false)
+C2CPP_ret(bool, isLastMsgSMPTE, false)
+C2CPP_cret(getType, msgType_e, ptpmgmt_Management)
+C2CPP_cret(getMngType, tlvType_e, PTPMGMT_MANAGEMENT)
+static bool ptpmgmt_msg_traversSigTlvs(ptpmgmt_msg m, void *cookie,
+    ptpmgmt_msg_sig_callback callback)
+{
+    if(m != nullptr && m->_this != nullptr && callback != nullptr) {
+        return ((Message *)m->_this)->traversSigTlvs([&m, cookie, callback](
+        const Message &, tlvType_e tlvType, const BaseSigTlv * tlv) {
+            void *sig = nullptr;
+            if(tlv != nullptr) {
                 void *x = nullptr;
                 void *x2 = nullptr;
-                void *sig = cpp2cSigTlv(me->getSigTlvType(position), s, x, x2);
+                sig = cpp2cSigTlv(tlvType, tlv, x, x2);
                 if(sig != nullptr) {
                     C_SWP(dataSig1, sig);
                     C_SWP(dataSig2, x);
                     C_SWP(dataSig3, x2);
-                    return sig;
                 }
             }
-        }
-        return nullptr;
+            return callback(cookie, m, (ptpmgmt_tlvType_e)tlvType, sig);
+        });
     }
-    C2CPP_cret_1(getSigTlvType, tlvType_e, position, PTPMGMT_MANAGEMENT)
-    C2CPP_cret_1(getSigMngTlvType, mng_vals_e, position,
-        PTPMGMT_NULL_PTP_MANAGEMENT)
-    static const void *ptpmgmt_msg_getSigMngTlv(ptpmgmt_msg m, size_t position)
-    {
-        if(m != nullptr && m->_this != nullptr) {
-            Message *me = (Message *)m->_this;
-            const BaseMngTlv *t = me->getSigMngTlv(position);
-            if(t != nullptr) {
-                void *x = nullptr;
-                void *tlv = cpp2cMngTlv(me->getSigMngTlvType(position), t, x);
-                if(tlv != nullptr) {
-                    C_SWP(dataSig1, nullptr);
-                    C_SWP(dataSig2, tlv);
-                    C_SWP(dataSig3, x);
-                    return tlv;
-                }
+    return false;
+}
+C2CPP_ret(size_t, getSigTlvsCount, 0)
+static const void *ptpmgmt_msg_getSigTlv(ptpmgmt_msg m, size_t position)
+{
+    if(m != nullptr && m->_this != nullptr) {
+        Message *me = (Message *)m->_this;
+        const BaseSigTlv *s = me->getSigTlv(position);
+        if(s != nullptr) {
+            void *x = nullptr;
+            void *x2 = nullptr;
+            void *sig = cpp2cSigTlv(me->getSigTlvType(position), s, x, x2);
+            if(sig != nullptr) {
+                C_SWP(dataSig1, sig);
+                C_SWP(dataSig2, x);
+                C_SWP(dataSig3, x2);
+                return sig;
             }
         }
-        return nullptr;
     }
-    static inline void ptpmgmt_msg_asign_cb(ptpmgmt_msg m)
-    {
+    return nullptr;
+}
+C2CPP_cret_1(getSigTlvType, tlvType_e, position, PTPMGMT_MANAGEMENT)
+C2CPP_cret_1(getSigMngTlvType, mng_vals_e, position,
+    PTPMGMT_NULL_PTP_MANAGEMENT)
+static const void *ptpmgmt_msg_getSigMngTlv(ptpmgmt_msg m, size_t position)
+{
+    if(m != nullptr && m->_this != nullptr) {
+        Message *me = (Message *)m->_this;
+        const BaseMngTlv *t = me->getSigMngTlv(position);
+        if(t != nullptr) {
+            void *x = nullptr;
+            void *tlv = cpp2cMngTlv(me->getSigMngTlvType(position), t, x);
+            if(tlv != nullptr) {
+                C_SWP(dataSig1, nullptr);
+                C_SWP(dataSig2, tlv);
+                C_SWP(dataSig3, x);
+                return tlv;
+            }
+        }
+    }
+    return nullptr;
+}
+static inline void ptpmgmt_msg_asign_cb(ptpmgmt_msg m)
+{
 #define C_ASGN(n) m->n = ptpmgmt_msg_##n
-        C_ASGN(getParams);
-        C_ASGN(updateParams);
-        C_ASGN(useAuth_cfg);
-        C_ASGN(useAuth);
-        C_ASGN(changeAuth);
-        C_ASGN(changeAuthKey);
-        C_ASGN(disableAuth);
-        C_ASGN(usedAuthSppID);
-        C_ASGN(usedAuthKeyID);
-        C_ASGN(getSa);
-        C_ASGN(haveAuth);
-        C_ASGN(getTlvId);
-        C_ASGN(getBuildTlvId);
-        C_ASGN(setAllClocks);
-        C_ASGN(isAllClocks);
-        C_ASGN(useConfig);
-        C_ASGN(err2str);
-        C_ASGN(type2str);
-        C_ASGN(tlv2str);
-        C_ASGN(act2str);
-        C_ASGN(mng2str);
-        C_ASGN(findMngID);
-        C_ASGN(errId2str);
-        C_ASGN(clkType2str);
-        C_ASGN(netProt2str);
-        C_ASGN(clockAcc2str);
-        C_ASGN(faultRec2str);
-        C_ASGN(timeSrc2str);
-        C_ASGN(findTimeSrc);
-        C_ASGN(portState2str);
-        C_ASGN(findPortState);
-        C_ASGN(delayMech2str);
-        C_ASGN(findDelayMech);
-        C_ASGN(smpteLck2str);
-        C_ASGN(ts2str);
-        C_ASGN(pwr2str);
-        C_ASGN(us2str);
-        C_ASGN(is_LI_61);
-        C_ASGN(is_LI_59);
-        C_ASGN(is_UTCV);
-        C_ASGN(is_PTP);
-        C_ASGN(is_TTRA);
-        C_ASGN(is_FTRA);
-        C_ASGN(isEmpty);
-        C_ASGN(isValidId);
-        C_ASGN(setAction);
-        C_ASGN(clearData);
-        C_ASGN(build);
-        C_ASGN(getSendAction);
-        C_ASGN(getMsgLen);
-        C_ASGN(getMsgPlanedLen);
-        C_ASGN(parse);
-        C_ASGN(getReplyAction);
-        C_ASGN(isUnicast);
-        C_ASGN(getPTPProfileSpecific);
-        C_ASGN(getSequence);
-        C_ASGN(getPeer);
-        C_ASGN(getTarget);
-        C_ASGN(getSdoId);
-        C_ASGN(getDomainNumber);
-        C_ASGN(getVersionPTP);
-        C_ASGN(getMinorVersionPTP);
-        C_ASGN(getData);
-        C_ASGN(getSendData);
-        C_ASGN(getErrId);
-        C_ASGN(getErrDisplay);
-        C_ASGN(isLastMsgSig);
-        C_ASGN(isLastMsgSMPTE);
-        C_ASGN(getType);
-        C_ASGN(getMngType);
-        C_ASGN(traversSigTlvs);
-        C_ASGN(getSigTlvsCount);
-        C_ASGN(getSigTlv);
-        C_ASGN(getSigTlvType);
-        C_ASGN(getSigMngTlvType);
-        C_ASGN(getSigMngTlv);
-        // set MsgParams
-        const MsgParams &pm = ((Message *)m->_this)->getParams();
-        m->_prms._this = (void *)&pm; // point to actual message parameters
-        ptpmgmt_MsgParams_alloc_wrap(&(m->_prms));
+    C_ASGN(getParams);
+    C_ASGN(updateParams);
+    C_ASGN(useAuth_cfg);
+    C_ASGN(useAuth);
+    C_ASGN(changeAuth);
+    C_ASGN(changeAuthKey);
+    C_ASGN(disableAuth);
+    C_ASGN(usedAuthSppID);
+    C_ASGN(usedAuthKeyID);
+    C_ASGN(getSa);
+    C_ASGN(haveAuth);
+    C_ASGN(getTlvId);
+    C_ASGN(getBuildTlvId);
+    C_ASGN(setAllClocks);
+    C_ASGN(isAllClocks);
+    C_ASGN(useConfig);
+    C_ASGN(err2str);
+    C_ASGN(type2str);
+    C_ASGN(tlv2str);
+    C_ASGN(act2str);
+    C_ASGN(mng2str);
+    C_ASGN(findMngID);
+    C_ASGN(errId2str);
+    C_ASGN(clkType2str);
+    C_ASGN(netProt2str);
+    C_ASGN(clockAcc2str);
+    C_ASGN(faultRec2str);
+    C_ASGN(timeSrc2str);
+    C_ASGN(findTimeSrc);
+    C_ASGN(portState2str);
+    C_ASGN(findPortState);
+    C_ASGN(delayMech2str);
+    C_ASGN(findDelayMech);
+    C_ASGN(smpteLck2str);
+    C_ASGN(ts2str);
+    C_ASGN(pwr2str);
+    C_ASGN(us2str);
+    C_ASGN(is_LI_61);
+    C_ASGN(is_LI_59);
+    C_ASGN(is_UTCV);
+    C_ASGN(is_PTP);
+    C_ASGN(is_TTRA);
+    C_ASGN(is_FTRA);
+    C_ASGN(isEmpty);
+    C_ASGN(isValidId);
+    C_ASGN(setAction);
+    C_ASGN(clearData);
+    C_ASGN(build);
+    C_ASGN(getSendAction);
+    C_ASGN(getMsgLen);
+    C_ASGN(getMsgPlanedLen);
+    C_ASGN(parse);
+    C_ASGN(getReplyAction);
+    C_ASGN(isUnicast);
+    C_ASGN(getPTPProfileSpecific);
+    C_ASGN(getSequence);
+    C_ASGN(getPeer);
+    C_ASGN(getTarget);
+    C_ASGN(getSdoId);
+    C_ASGN(getDomainNumber);
+    C_ASGN(getVersionPTP);
+    C_ASGN(getMinorVersionPTP);
+    C_ASGN(getData);
+    C_ASGN(getSendData);
+    C_ASGN(getErrId);
+    C_ASGN(getErrDisplay);
+    C_ASGN(isLastMsgSig);
+    C_ASGN(isLastMsgSMPTE);
+    C_ASGN(getType);
+    C_ASGN(getMngType);
+    C_ASGN(traversSigTlvs);
+    C_ASGN(getSigTlvsCount);
+    C_ASGN(getSigTlv);
+    C_ASGN(getSigTlvType);
+    C_ASGN(getSigMngTlvType);
+    C_ASGN(getSigMngTlv);
+    // set MsgParams
+    const MsgParams &pm = ((Message *)m->_this)->getParams();
+    m->_prms._this = (void *)&pm; // point to actual message parameters
+    ptpmgmt_MsgParams_alloc_wrap(&(m->_prms));
+}
+ptpmgmt_msg ptpmgmt_msg_alloc()
+{
+    ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
+    if(m == nullptr)
+        return nullptr;
+    memset(m, 0, sizeof(ptpmgmt_msg_t));
+    m->_this = (void *)(new Message);
+    if(m->_this == nullptr) {
+        free(m);
+        return nullptr;
     }
-    ptpmgmt_msg ptpmgmt_msg_alloc()
-    {
-        ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
-        if(m == nullptr)
-            return nullptr;
-        memset(m, 0, sizeof(ptpmgmt_msg_t));
-        m->_this = (void *)(new Message);
-        if(m->_this == nullptr) {
-            free(m);
-            return nullptr;
-        }
-        m->free = ptpmgmt_msg_free;
-        ptpmgmt_msg_asign_cb(m);
-        return m;
+    m->free = ptpmgmt_msg_free;
+    ptpmgmt_msg_asign_cb(m);
+    return m;
+}
+ptpmgmt_msg ptpmgmt_msg_alloc_prms(ptpmgmt_cpMsgParams prms)
+{
+    if(prms == nullptr || prms->_this == nullptr)
+        return nullptr;
+    MsgParams &prm = getMsgParams(prms);
+    ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
+    if(m == nullptr)
+        return nullptr;
+    memset(m, 0, sizeof(ptpmgmt_msg_t));
+    m->_this = (void *)(new Message(prm));
+    if(m->_this == nullptr) {
+        free(m);
+        return nullptr;
     }
-    ptpmgmt_msg ptpmgmt_msg_alloc_prms(ptpmgmt_cpMsgParams prms)
-    {
-        if(prms == nullptr || prms->_this == nullptr)
-            return nullptr;
-        MsgParams &prm = getMsgParams(prms);
-        ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
-        if(m == nullptr)
-            return nullptr;
-        memset(m, 0, sizeof(ptpmgmt_msg_t));
-        m->_this = (void *)(new Message(prm));
-        if(m->_this == nullptr) {
-            free(m);
-            return nullptr;
-        }
-        m->free = ptpmgmt_msg_free;
-        ptpmgmt_msg_asign_cb(m);
-        return m;
-    }
-    ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg)
-    {
-        ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
-        if(m == nullptr)
-            return nullptr;
-        memset(m, 0, sizeof(ptpmgmt_msg_t));
-        m->_this = (void *)&msg;
-        m->free = ptpmgmt_msg_free_wrap;
-        ptpmgmt_msg_asign_cb(m);
-        return m;
-    }
-    static const size_t tlv_c_size[] = {
+    m->free = ptpmgmt_msg_free;
+    ptpmgmt_msg_asign_cb(m);
+    return m;
+}
+ptpmgmt_msg ptpmgmt_msg_alloc_wrap(const Message &msg)
+{
+    ptpmgmt_msg m = (ptpmgmt_msg)malloc(sizeof(ptpmgmt_msg_t));
+    if(m == nullptr)
+        return nullptr;
+    memset(m, 0, sizeof(ptpmgmt_msg_t));
+    m->_this = (void *)&msg;
+    m->free = ptpmgmt_msg_free_wrap;
+    ptpmgmt_msg_asign_cb(m);
+    return m;
+}
+static const size_t tlv_c_size[] = {
 #define _ptpmCaseNA(n) [PTPMGMT_##n] = 0,
 #define _ptpmCaseUF(n) [PTPMGMT_##n] = sizeof(ptpmgmt_##n##_t),
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
-    };
-    static inline void _tlv_mem_clearTlv(ptpmgmt_tlv_mem self)
-    {
+};
+static inline void _tlv_mem_clearTlv(ptpmgmt_tlv_mem self)
+{
+    free(self->tlv);
+    vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+    if(nalc != nullptr)
+        nalc->clear();
+}
+static inline bool _tlv_mem_freeMem(ptpmgmt_tlv_mem self, const void *mem)
+{
+    vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+    if(nalc != nullptr) {
+        for(auto it = nalc->begin(); it != nalc->end(); ++it)
+            if(it->p == mem) {
+                nalc->erase(it);
+                return true;
+            }
+    }
+    return false;
+}
+static inline void *_tlv_mem_allocTLV(size_t &sz, ptpmgmt_mng_vals_e id)
+{
+    if((mng_vals_e)id >= FIRST_MNG_ID && (mng_vals_e)id < LAST_MNG_ID) {
+        sz = tlv_c_size[id];
+        if(sz > 0)
+            return malloc(sz);
+    }
+    return nullptr;
+}
+static inline bool _tlv_mem_copyText(vector<unq_cptr> &nalc,
+    ptpmgmt_PTPText_t &t)
+{
+    if(t.lengthField > 0 && t.textField != nullptr) {
+        size_t len = t.lengthField;
+        char *s = (char *)malloc(len + 1);
+        if(s == nullptr)
+            return false;
+        memcpy(s, t.textField, len);
+        s[len] = 0;
+        t.textField = s;
+        nalc.push_back({s});
+        return true;
+    }
+    return false;
+}
+static inline bool _tlv_mem_copyBloc(vector<unq_cptr> &nalc, void *&p,
+    size_t len)
+{
+    if(len > 0 && p != nullptr) {
+        void *b = malloc(len);
+        if(b == nullptr)
+            return false;
+        memcpy(b, p, len);
+        p = b;
+        nalc.push_back({b});
+        return true;
+    }
+    return false;
+}
+static inline void *_tlv_mem_reallocMem(ptpmgmt_tlv_mem self, void *memory,
+    size_t size)
+{
+    vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+    if(nalc != nullptr) {
+        auto it = nalc->begin();
+        bool find = false;
+        for(; !find && it != nalc->end(); ++it) {
+            if(it->p == memory) {
+                find = true;
+                break;
+            }
+        }
+        if(find) {
+            void *m = realloc(memory, size);
+            if(m != nullptr) {
+                it->p = m;
+                return m;
+            }
+        }
+    }
+    return nullptr;
+}
+static void ptpmgmt_tlv_mem_free(ptpmgmt_tlv_mem self)
+{
+    if(self != nullptr) {
         free(self->tlv);
-        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
-        if(nalc != nullptr)
-            nalc->clear();
-    }
-    static inline bool _tlv_mem_freeMem(ptpmgmt_tlv_mem self, const void *mem)
-    {
-        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
-        if(nalc != nullptr) {
-            for(auto it = nalc->begin(); it != nalc->end(); ++it)
-                if(it->p == mem) {
-                    nalc->erase(it);
-                    return true;
-                }
-        }
-        return false;
-    }
-    static inline void *_tlv_mem_allocTLV(size_t &sz, ptpmgmt_mng_vals_e id)
-    {
-        if((mng_vals_e)id >= FIRST_MNG_ID && (mng_vals_e)id < LAST_MNG_ID) {
-            sz = tlv_c_size[id];
-            if(sz > 0)
-                return malloc(sz);
-        }
-        return nullptr;
-    }
-    static inline bool _tlv_mem_copyText(vector<unq_cptr> &nalc,
-        ptpmgmt_PTPText_t &t)
-    {
-        if(t.lengthField > 0 && t.textField != nullptr) {
-            size_t len = t.lengthField;
-            char *s = (char *)malloc(len + 1);
-            if(s == nullptr)
-                return false;
-            memcpy(s, t.textField, len);
-            s[len] = 0;
-            t.textField = s;
-            nalc.push_back({s});
-            return true;
-        }
-        return false;
-    }
-    static inline bool _tlv_mem_copyBloc(vector<unq_cptr> &nalc, void *&p,
-        size_t len)
-    {
-        if(len > 0 && p != nullptr) {
-            void *b = malloc(len);
-            if(b == nullptr)
-                return false;
-            memcpy(b, p, len);
-            p = b;
-            nalc.push_back({b});
-            return true;
-        }
-        return false;
-    }
-    static inline void *_tlv_mem_reallocMem(ptpmgmt_tlv_mem self, void *memory,
-        size_t size)
-    {
-        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
-        if(nalc != nullptr) {
-            auto it = nalc->begin();
-            bool find = false;
-            for(; !find && it != nalc->end(); ++it) {
-                if(it->p == memory) {
-                    find = true;
-                    break;
-                }
-            }
-            if(find) {
-                void *m = realloc(memory, size);
-                if(m != nullptr) {
-                    it->p = m;
-                    return m;
-                }
-            }
-        }
-        return nullptr;
-    }
-    static void ptpmgmt_tlv_mem_free(ptpmgmt_tlv_mem self)
-    {
-        if(self != nullptr) {
-            free(self->tlv);
-            delete(vector<unq_cptr> *)self->_memHndl;
-            free(self);
-        }
-    }
-    static void ptpmgmt_tlv_mem_clear(ptpmgmt_tlv_mem self)
-    {
-        if(self != nullptr) {
-            _tlv_mem_clearTlv(self);
-            self->tlv = nullptr;
-            self->id = PTPMGMT_NULL_PTP_MANAGEMENT;
-        }
-    }
-    static bool ptpmgmt_tlv_mem_newTlv(ptpmgmt_tlv_mem self, ptpmgmt_mng_vals_e id)
-    {
-        if(self != nullptr) {
-            size_t sz;
-            void *tlv = _tlv_mem_allocTLV(sz, id);
-            if(tlv != nullptr) {
-                _tlv_mem_clearTlv(self);
-                memset(tlv, 0, sz);
-                self->tlv = tlv;
-                self->id = id;
-                return true;
-            }
-        }
-        return false;
-    }
-    static bool ptpmgmt_tlv_mem_copyTlv(ptpmgmt_tlv_mem self, ptpmgmt_mng_vals_e id,
-        void *tlv)
-    {
-        if(self == nullptr || tlv == nullptr)
-            return false;
-        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
-        if(nalc == nullptr)
-            return false;
-        size_t sz;
-        void *ntlv = _tlv_mem_allocTLV(sz, id);
-        if(ntlv == nullptr)
-            return false;
-        bool ret = true;
-        vector<unq_cptr> _nalc;
-        memcpy(ntlv, tlv, sz);
-        switch(id) {
-            case PTPMGMT_CLOCK_DESCRIPTION: {
-                auto *a = (ptpmgmt_CLOCK_DESCRIPTION_t *)ntlv;
-                void *n1 = a->physicalAddress;
-                void *n2 = a->protocolAddress.addressField;
-                ret = _tlv_mem_copyText(_nalc, a->physicalLayerProtocol) &&
-                    _tlv_mem_copyText(_nalc, a->productDescription) &&
-                    _tlv_mem_copyText(_nalc, a->revisionData) &&
-                    _tlv_mem_copyText(_nalc, a->userDescription) &&
-                    _tlv_mem_copyBloc(_nalc, n1, a->physicalAddressLength) &&
-                    _tlv_mem_copyBloc(_nalc, n2, a->protocolAddress.addressLength);
-                a->physicalAddress = (uint8_t *)n1;
-                a->protocolAddress.addressField = (uint8_t *)n2;
-                break;
-            }
-            case PTPMGMT_USER_DESCRIPTION: {
-                auto *a = (ptpmgmt_USER_DESCRIPTION_t *)ntlv;
-                ret = _tlv_mem_copyText(_nalc, a->userDescription);
-                break;
-            }
-            case PTPMGMT_ALTERNATE_TIME_OFFSET_NAME: {
-                auto *a = (ptpmgmt_ALTERNATE_TIME_OFFSET_NAME_t *)ntlv;
-                ret = _tlv_mem_copyText(_nalc, a->displayName);
-                break;
-            }
-            case PTPMGMT_PORT_PROPERTIES_NP: {
-                auto *a = (ptpmgmt_PORT_PROPERTIES_NP_t *)ntlv;
-                ret = _tlv_mem_copyText(_nalc, a->interface);
-                break;
-            }
-            case PTPMGMT_FAULT_LOG: {
-                auto *a = (ptpmgmt_FAULT_LOG_t *)ntlv;
-                void *n1 = a->faultRecords;
-                ret = _tlv_mem_copyBloc(_nalc, n1,
-                        a->numberOfFaultRecords * sizeof(ptpmgmt_FaultRecord_t));
-                a->faultRecords = (ptpmgmt_FaultRecord_t *)n1;
-                for(size_t i = 0; ret && i < a->numberOfFaultRecords; i++)
-                    ret = _tlv_mem_copyText(_nalc, a->faultRecords[i].faultName) &&
-                        _tlv_mem_copyText(_nalc, a->faultRecords[i].faultValue) &&
-                        _tlv_mem_copyText(_nalc,
-                            a->faultRecords[i].faultDescription);
-                break;
-            }
-            case PTPMGMT_PATH_TRACE_LIST: {
-                ptpmgmt_ClockIdentity_t nClock = { 0 };
-                auto *a = (ptpmgmt_PATH_TRACE_LIST_t *)ntlv;
-                for(size_t sz = 0; memcmp(a->pathSequence[sz].v, nClock.v,
-                        sizeof(nClock)); sz++);
-                void *n1 = a->pathSequence;
-                ret = _tlv_mem_copyBloc(_nalc, n1, sizeof(nClock) * sz);
-                a->pathSequence = (ptpmgmt_ClockIdentity_t *)n1;
-                break;
-            }
-            case PTPMGMT_GRANDMASTER_CLUSTER_TABLE: {
-                auto *a = (ptpmgmt_GRANDMASTER_CLUSTER_TABLE_t *)ntlv;
-                void *n1 = a->PortAddress;
-                ret = _tlv_mem_copyBloc(_nalc, n1,
-                        a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
-                a->PortAddress = (ptpmgmt_PortAddress_t *)n1;
-                for(size_t i = 0; ret && i < a->actualTableSize; i++) {
-                    n1 = a->PortAddress[i].addressField;
-                    ret = _tlv_mem_copyBloc(_nalc, n1,
-                            a->PortAddress[i].addressLength);
-                    a->PortAddress[i].addressField = (uint8_t *)n1;
-                }
-                break;
-            }
-            case PTPMGMT_UNICAST_MASTER_TABLE: {
-                auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_t *)ntlv;
-                void *n1 = a->PortAddress;
-                ret = _tlv_mem_copyBloc(_nalc, n1,
-                        a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
-                a->PortAddress = (ptpmgmt_PortAddress_t *)n1;
-                for(size_t i = 0; ret && i < a->actualTableSize; i++) {
-                    n1 = a->PortAddress[i].addressField;
-                    ret = _tlv_mem_copyBloc(_nalc, n1,
-                            a->PortAddress[i].addressLength);
-                    a->PortAddress[i].addressField = (uint8_t *)n1;
-                }
-                break;
-            }
-            case PTPMGMT_ACCEPTABLE_MASTER_TABLE: {
-                auto *a = (ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *)ntlv;
-                void *n1 = a->list;
-                ret = _tlv_mem_copyBloc(_nalc, n1,
-                        a->actualTableSize * sizeof(ptpmgmt_AcceptableMaster_t));
-                a->list = (ptpmgmt_AcceptableMaster_t *)n1;
-                break;
-            }
-            case PTPMGMT_UNICAST_MASTER_TABLE_NP: {
-                auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_NP_t *)ntlv;
-                void *n1 = a->unicastMasters;
-                ret = _tlv_mem_copyBloc(_nalc, n1, a->actualTableSize *
-                        sizeof(ptpmgmt_LinuxptpUnicastMaster_t));
-                a->unicastMasters = (ptpmgmt_LinuxptpUnicastMaster_t *)n1;
-                for(int i = 0; ret && i < a->actualTableSize; i++) {
-                    n1 = a->unicastMasters[i].portAddress.addressField;
-                    ret = _tlv_mem_copyBloc(_nalc, n1,
-                            a->unicastMasters[i].portAddress.addressLength);
-                    a->unicastMasters[i].portAddress.addressField = (uint8_t *)n1;
-                }
-                break;
-            }
-            default:
-                break;
-        }
-        if(ret) {
-            free(self->tlv);
-            self->tlv = ntlv;
-            self->id = id;
-            *nalc = std::move(_nalc);
-        } else
-            free(ntlv);
-        return ret;
-    }
-    static bool ptpmgmt_tlv_mem_copy(ptpmgmt_tlv_mem self,
-        const_ptpmgmt_tlv_mem other)
-    {
-        if(other != nullptr)
-            return ptpmgmt_tlv_mem_copyTlv(self, other->id, other->tlv);
-        return false;
-    }
-    static ptpmgmt_mng_vals_e ptpmgmt_tlv_mem_getID(const_ptpmgmt_tlv_mem self)
-    {
-        if(self != nullptr)
-            return self->id;
-        return PTPMGMT_NULL_PTP_MANAGEMENT;
-    }
-    static void *ptpmgmt_tlv_mem_getTLV(const_ptpmgmt_tlv_mem self)
-    {
-        if(self != nullptr)
-            return self->tlv;
-        return nullptr;
-    }
-    static void *ptpmgmt_tlv_mem_allocMem(ptpmgmt_tlv_mem self, size_t size)
-    {
-        if(self != nullptr && size > 0 && self->tlv != nullptr) {
-            vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
-            if(nalc != nullptr) {
-                void *m = malloc(size);
-                if(m != nullptr) {
-                    memset(m, 0, size);
-                    nalc->push_back({nullptr});
-                    nalc->back().p = m;
-                    return m;
-                }
-            }
-        }
-        return nullptr;
-    }
-    static void *ptpmgmt_tlv_mem_callocMem(ptpmgmt_tlv_mem self, size_t number,
-        size_t size)
-    {
-        if(self != nullptr && number > 0 && size > 0 && self->tlv != nullptr)
-            return ptpmgmt_tlv_mem_allocMem(self, number * size);
-        return nullptr;
-    }
-    static void *ptpmgmt_tlv_mem_reallocMem(ptpmgmt_tlv_mem self, void *memory,
-        size_t size)
-    {
-        if(self != nullptr && size > 0 && self->tlv != nullptr) {
-            if(memory == nullptr)
-                return ptpmgmt_tlv_mem_allocMem(self, size);
-            return _tlv_mem_reallocMem(self, memory, size);
-        }
-        return nullptr;
-    }
-    static void *ptpmgmt_tlv_mem_recallocMem(ptpmgmt_tlv_mem self, void *memory,
-        size_t number, size_t size)
-    {
-        if(self != nullptr && number > 0 && size > 0 && self->tlv != nullptr)
-            return ptpmgmt_tlv_mem_reallocMem(self, memory, number * size);
-        return nullptr;
-    }
-    static inline ptpmgmt_PTPText_t _tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
-        const char *str, size_t len)
-    {
-        ptpmgmt_PTPText_t a = { 0 };
-        if(self != nullptr && self->tlv != nullptr && len > 0 && len <= UINT8_MAX) {
-            vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
-            if(nalc != nullptr) {
-                char *s = (char *)malloc(len + 1);
-                if(s != nullptr) {
-                    memcpy(s, str, len);
-                    a.lengthField = len;
-                    a.textField = s;
-                    s[len] = 0;
-                    nalc->push_back({s});
-                }
-            }
-        }
-        return a;
-    }
-    static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
-        const char *str, size_t len)
-    {
-        if(str != nullptr)
-            return _tlv_mem_allocStringLen(self, str, len);
-        return { 0 };
-    }
-    static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocString(ptpmgmt_tlv_mem self,
-        const char *str)
-    {
-        if(str != nullptr)
-            return _tlv_mem_allocStringLen(self, str, strlen(str));
-        return { 0 };
-    }
-    static bool inline _tlv_mem_reallocStringLen(ptpmgmt_tlv_mem self,
-        struct ptpmgmt_PTPText_t *text, const char *str, size_t len)
-    {
-        if(text != nullptr) {
-            if(text->textField == nullptr || text->lengthField == 0) {
-                *text = _tlv_mem_allocStringLen(self, str, len);
-                return text->lengthField > 0 && text->textField != nullptr ;
-            }
-            if(self != nullptr && self->tlv != nullptr && len > 0 &&
-                len <= UINT8_MAX) {
-                char *tgt = (char *)text->textField;
-                if(len > text->lengthField) {
-                    tgt = (char *)_tlv_mem_reallocMem(self, tgt, len + 1);
-                    if(tgt == nullptr)
-                        return false;
-                    text->textField = tgt;
-                }
-                memcpy(tgt, str, len);
-                tgt[len] = 0;
-                text->lengthField = len;
-                return true;
-            }
-        }
-        return false;
-    }
-    static bool ptpmgmt_tlv_mem_reallocStringLen(ptpmgmt_tlv_mem self,
-        struct ptpmgmt_PTPText_t *text, const char *str, size_t len)
-    {
-        if(str != nullptr)
-            return _tlv_mem_reallocStringLen(self, text, str, len);
-        return false;
-    }
-    static bool ptpmgmt_tlv_mem_reallocString(ptpmgmt_tlv_mem self,
-        struct ptpmgmt_PTPText_t *text, const char *str)
-    {
-        if(str != nullptr)
-            return _tlv_mem_reallocStringLen(self, text, str, strlen(str));
-        return false;
-    }
-    static bool ptpmgmt_tlv_mem_freeMem(ptpmgmt_tlv_mem self, void *mem)
-    {
-        if(self != nullptr && mem != nullptr)
-            return _tlv_mem_freeMem(self, mem);
-        return false;
-    }
-    static bool ptpmgmt_tlv_mem_freeString(ptpmgmt_tlv_mem self,
-        ptpmgmt_PTPText_t *txt)
-    {
-        if(self != nullptr && txt != nullptr && txt->textField != nullptr &&
-            _tlv_mem_freeMem(self, txt->textField)) {
-            txt->lengthField = 0;
-            txt->textField = nullptr;
-            return true;
-        }
-        return false;
-    }
-    ptpmgmt_tlv_mem ptpmgmt_tlv_mem_alloc()
-    {
-        ptpmgmt_tlv_mem m = (ptpmgmt_tlv_mem)malloc(sizeof(ptpmgmt_tlv_mem_t));
-        if(m == nullptr)
-            return nullptr;
-        vector<unq_cptr> *nalc = new vector<unq_cptr>;
-        if(nalc == nullptr) {
-            free(m);
-            return nullptr;
-        }
-        m->_memHndl = (void *)nalc;
-        m->id = PTPMGMT_NULL_PTP_MANAGEMENT;
-        m->tlv = nullptr;
-#define T_ASGN(n) m->n = ptpmgmt_tlv_mem_##n
-        T_ASGN(free);
-        T_ASGN(clear);
-        T_ASGN(newTlv);
-        T_ASGN(copy);
-        T_ASGN(copyTlv);
-        T_ASGN(getID);
-        T_ASGN(getTLV);
-        T_ASGN(allocMem);
-        T_ASGN(callocMem);
-        T_ASGN(reallocMem);
-        T_ASGN(recallocMem);
-        T_ASGN(allocString);
-        T_ASGN(allocStringLen);
-        T_ASGN(reallocString);
-        T_ASGN(reallocStringLen);
-        T_ASGN(freeMem);
-        T_ASGN(freeString);
-        return m;
+        delete(vector<unq_cptr> *)self->_memHndl;
+        free(self);
     }
 }
+static void ptpmgmt_tlv_mem_clear(ptpmgmt_tlv_mem self)
+{
+    if(self != nullptr) {
+        _tlv_mem_clearTlv(self);
+        self->tlv = nullptr;
+        self->id = PTPMGMT_NULL_PTP_MANAGEMENT;
+    }
+}
+static bool ptpmgmt_tlv_mem_newTlv(ptpmgmt_tlv_mem self, ptpmgmt_mng_vals_e id)
+{
+    if(self != nullptr) {
+        size_t sz;
+        void *tlv = _tlv_mem_allocTLV(sz, id);
+        if(tlv != nullptr) {
+            _tlv_mem_clearTlv(self);
+            memset(tlv, 0, sz);
+            self->tlv = tlv;
+            self->id = id;
+            return true;
+        }
+    }
+    return false;
+}
+static bool ptpmgmt_tlv_mem_copyTlv(ptpmgmt_tlv_mem self, ptpmgmt_mng_vals_e id,
+    void *tlv)
+{
+    if(self == nullptr || tlv == nullptr)
+        return false;
+    vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+    if(nalc == nullptr)
+        return false;
+    size_t sz;
+    void *ntlv = _tlv_mem_allocTLV(sz, id);
+    if(ntlv == nullptr)
+        return false;
+    bool ret = true;
+    vector<unq_cptr> _nalc;
+    memcpy(ntlv, tlv, sz);
+    switch(id) {
+        case PTPMGMT_CLOCK_DESCRIPTION: {
+            auto *a = (ptpmgmt_CLOCK_DESCRIPTION_t *)ntlv;
+            void *n1 = a->physicalAddress;
+            void *n2 = a->protocolAddress.addressField;
+            ret = _tlv_mem_copyText(_nalc, a->physicalLayerProtocol) &&
+                _tlv_mem_copyText(_nalc, a->productDescription) &&
+                _tlv_mem_copyText(_nalc, a->revisionData) &&
+                _tlv_mem_copyText(_nalc, a->userDescription) &&
+                _tlv_mem_copyBloc(_nalc, n1, a->physicalAddressLength) &&
+                _tlv_mem_copyBloc(_nalc, n2, a->protocolAddress.addressLength);
+            a->physicalAddress = (uint8_t *)n1;
+            a->protocolAddress.addressField = (uint8_t *)n2;
+            break;
+        }
+        case PTPMGMT_USER_DESCRIPTION: {
+            auto *a = (ptpmgmt_USER_DESCRIPTION_t *)ntlv;
+            ret = _tlv_mem_copyText(_nalc, a->userDescription);
+            break;
+        }
+        case PTPMGMT_ALTERNATE_TIME_OFFSET_NAME: {
+            auto *a = (ptpmgmt_ALTERNATE_TIME_OFFSET_NAME_t *)ntlv;
+            ret = _tlv_mem_copyText(_nalc, a->displayName);
+            break;
+        }
+        case PTPMGMT_PORT_PROPERTIES_NP: {
+            auto *a = (ptpmgmt_PORT_PROPERTIES_NP_t *)ntlv;
+            ret = _tlv_mem_copyText(_nalc, a->interface);
+            break;
+        }
+        case PTPMGMT_FAULT_LOG: {
+            auto *a = (ptpmgmt_FAULT_LOG_t *)ntlv;
+            void *n1 = a->faultRecords;
+            ret = _tlv_mem_copyBloc(_nalc, n1,
+                    a->numberOfFaultRecords * sizeof(ptpmgmt_FaultRecord_t));
+            a->faultRecords = (ptpmgmt_FaultRecord_t *)n1;
+            for(size_t i = 0; ret && i < a->numberOfFaultRecords; i++)
+                ret = _tlv_mem_copyText(_nalc, a->faultRecords[i].faultName) &&
+                    _tlv_mem_copyText(_nalc, a->faultRecords[i].faultValue) &&
+                    _tlv_mem_copyText(_nalc,
+                        a->faultRecords[i].faultDescription);
+            break;
+        }
+        case PTPMGMT_PATH_TRACE_LIST: {
+            ptpmgmt_ClockIdentity_t nClock = { 0 };
+            auto *a = (ptpmgmt_PATH_TRACE_LIST_t *)ntlv;
+            for(size_t sz = 0; memcmp(a->pathSequence[sz].v, nClock.v,
+                    sizeof(nClock)); sz++);
+            void *n1 = a->pathSequence;
+            ret = _tlv_mem_copyBloc(_nalc, n1, sizeof(nClock) * sz);
+            a->pathSequence = (ptpmgmt_ClockIdentity_t *)n1;
+            break;
+        }
+        case PTPMGMT_GRANDMASTER_CLUSTER_TABLE: {
+            auto *a = (ptpmgmt_GRANDMASTER_CLUSTER_TABLE_t *)ntlv;
+            void *n1 = a->PortAddress;
+            ret = _tlv_mem_copyBloc(_nalc, n1,
+                    a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
+            a->PortAddress = (ptpmgmt_PortAddress_t *)n1;
+            for(size_t i = 0; ret && i < a->actualTableSize; i++) {
+                n1 = a->PortAddress[i].addressField;
+                ret = _tlv_mem_copyBloc(_nalc, n1,
+                        a->PortAddress[i].addressLength);
+                a->PortAddress[i].addressField = (uint8_t *)n1;
+            }
+            break;
+        }
+        case PTPMGMT_UNICAST_MASTER_TABLE: {
+            auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_t *)ntlv;
+            void *n1 = a->PortAddress;
+            ret = _tlv_mem_copyBloc(_nalc, n1,
+                    a->actualTableSize * sizeof(ptpmgmt_PortAddress_t));
+            a->PortAddress = (ptpmgmt_PortAddress_t *)n1;
+            for(size_t i = 0; ret && i < a->actualTableSize; i++) {
+                n1 = a->PortAddress[i].addressField;
+                ret = _tlv_mem_copyBloc(_nalc, n1,
+                        a->PortAddress[i].addressLength);
+                a->PortAddress[i].addressField = (uint8_t *)n1;
+            }
+            break;
+        }
+        case PTPMGMT_ACCEPTABLE_MASTER_TABLE: {
+            auto *a = (ptpmgmt_ACCEPTABLE_MASTER_TABLE_t *)ntlv;
+            void *n1 = a->list;
+            ret = _tlv_mem_copyBloc(_nalc, n1,
+                    a->actualTableSize * sizeof(ptpmgmt_AcceptableMaster_t));
+            a->list = (ptpmgmt_AcceptableMaster_t *)n1;
+            break;
+        }
+        case PTPMGMT_UNICAST_MASTER_TABLE_NP: {
+            auto *a = (ptpmgmt_UNICAST_MASTER_TABLE_NP_t *)ntlv;
+            void *n1 = a->unicastMasters;
+            ret = _tlv_mem_copyBloc(_nalc, n1, a->actualTableSize *
+                    sizeof(ptpmgmt_LinuxptpUnicastMaster_t));
+            a->unicastMasters = (ptpmgmt_LinuxptpUnicastMaster_t *)n1;
+            for(int i = 0; ret && i < a->actualTableSize; i++) {
+                n1 = a->unicastMasters[i].portAddress.addressField;
+                ret = _tlv_mem_copyBloc(_nalc, n1,
+                        a->unicastMasters[i].portAddress.addressLength);
+                a->unicastMasters[i].portAddress.addressField = (uint8_t *)n1;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    if(ret) {
+        free(self->tlv);
+        self->tlv = ntlv;
+        self->id = id;
+        *nalc = std::move(_nalc);
+    } else
+        free(ntlv);
+    return ret;
+}
+static bool ptpmgmt_tlv_mem_copy(ptpmgmt_tlv_mem self,
+    const_ptpmgmt_tlv_mem other)
+{
+    if(other != nullptr)
+        return ptpmgmt_tlv_mem_copyTlv(self, other->id, other->tlv);
+    return false;
+}
+static ptpmgmt_mng_vals_e ptpmgmt_tlv_mem_getID(const_ptpmgmt_tlv_mem self)
+{
+    if(self != nullptr)
+        return self->id;
+    return PTPMGMT_NULL_PTP_MANAGEMENT;
+}
+static void *ptpmgmt_tlv_mem_getTLV(const_ptpmgmt_tlv_mem self)
+{
+    if(self != nullptr)
+        return self->tlv;
+    return nullptr;
+}
+static void *ptpmgmt_tlv_mem_allocMem(ptpmgmt_tlv_mem self, size_t size)
+{
+    if(self != nullptr && size > 0 && self->tlv != nullptr) {
+        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+        if(nalc != nullptr) {
+            void *m = malloc(size);
+            if(m != nullptr) {
+                memset(m, 0, size);
+                nalc->push_back({nullptr});
+                nalc->back().p = m;
+                return m;
+            }
+        }
+    }
+    return nullptr;
+}
+static void *ptpmgmt_tlv_mem_callocMem(ptpmgmt_tlv_mem self, size_t number,
+    size_t size)
+{
+    if(self != nullptr && number > 0 && size > 0 && self->tlv != nullptr)
+        return ptpmgmt_tlv_mem_allocMem(self, number * size);
+    return nullptr;
+}
+static void *ptpmgmt_tlv_mem_reallocMem(ptpmgmt_tlv_mem self, void *memory,
+    size_t size)
+{
+    if(self != nullptr && size > 0 && self->tlv != nullptr) {
+        if(memory == nullptr)
+            return ptpmgmt_tlv_mem_allocMem(self, size);
+        return _tlv_mem_reallocMem(self, memory, size);
+    }
+    return nullptr;
+}
+static void *ptpmgmt_tlv_mem_recallocMem(ptpmgmt_tlv_mem self, void *memory,
+    size_t number, size_t size)
+{
+    if(self != nullptr && number > 0 && size > 0 && self->tlv != nullptr)
+        return ptpmgmt_tlv_mem_reallocMem(self, memory, number * size);
+    return nullptr;
+}
+static inline ptpmgmt_PTPText_t _tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
+    const char *str, size_t len)
+{
+    ptpmgmt_PTPText_t a = { 0 };
+    if(self != nullptr && self->tlv != nullptr && len > 0 && len <= UINT8_MAX) {
+        vector<unq_cptr> *nalc = (vector<unq_cptr> *)self->_memHndl;
+        if(nalc != nullptr) {
+            char *s = (char *)malloc(len + 1);
+            if(s != nullptr) {
+                memcpy(s, str, len);
+                a.lengthField = len;
+                a.textField = s;
+                s[len] = 0;
+                nalc->push_back({s});
+            }
+        }
+    }
+    return a;
+}
+static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocStringLen(ptpmgmt_tlv_mem self,
+    const char *str, size_t len)
+{
+    if(str != nullptr)
+        return _tlv_mem_allocStringLen(self, str, len);
+    return { 0 };
+}
+static ptpmgmt_PTPText_t ptpmgmt_tlv_mem_allocString(ptpmgmt_tlv_mem self,
+    const char *str)
+{
+    if(str != nullptr)
+        return _tlv_mem_allocStringLen(self, str, strlen(str));
+    return { 0 };
+}
+static bool inline _tlv_mem_reallocStringLen(ptpmgmt_tlv_mem self,
+    struct ptpmgmt_PTPText_t *text, const char *str, size_t len)
+{
+    if(text != nullptr) {
+        if(text->textField == nullptr || text->lengthField == 0) {
+            *text = _tlv_mem_allocStringLen(self, str, len);
+            return text->lengthField > 0 && text->textField != nullptr ;
+        }
+        if(self != nullptr && self->tlv != nullptr && len > 0 &&
+            len <= UINT8_MAX) {
+            char *tgt = (char *)text->textField;
+            if(len > text->lengthField) {
+                tgt = (char *)_tlv_mem_reallocMem(self, tgt, len + 1);
+                if(tgt == nullptr)
+                    return false;
+                text->textField = tgt;
+            }
+            memcpy(tgt, str, len);
+            tgt[len] = 0;
+            text->lengthField = len;
+            return true;
+        }
+    }
+    return false;
+}
+static bool ptpmgmt_tlv_mem_reallocStringLen(ptpmgmt_tlv_mem self,
+    struct ptpmgmt_PTPText_t *text, const char *str, size_t len)
+{
+    if(str != nullptr)
+        return _tlv_mem_reallocStringLen(self, text, str, len);
+    return false;
+}
+static bool ptpmgmt_tlv_mem_reallocString(ptpmgmt_tlv_mem self,
+    struct ptpmgmt_PTPText_t *text, const char *str)
+{
+    if(str != nullptr)
+        return _tlv_mem_reallocStringLen(self, text, str, strlen(str));
+    return false;
+}
+static bool ptpmgmt_tlv_mem_freeMem(ptpmgmt_tlv_mem self, void *mem)
+{
+    if(self != nullptr && mem != nullptr)
+        return _tlv_mem_freeMem(self, mem);
+    return false;
+}
+static bool ptpmgmt_tlv_mem_freeString(ptpmgmt_tlv_mem self,
+    ptpmgmt_PTPText_t *txt)
+{
+    if(self != nullptr && txt != nullptr && txt->textField != nullptr &&
+        _tlv_mem_freeMem(self, txt->textField)) {
+        txt->lengthField = 0;
+        txt->textField = nullptr;
+        return true;
+    }
+    return false;
+}
+ptpmgmt_tlv_mem ptpmgmt_tlv_mem_alloc()
+{
+    ptpmgmt_tlv_mem m = (ptpmgmt_tlv_mem)malloc(sizeof(ptpmgmt_tlv_mem_t));
+    if(m == nullptr)
+        return nullptr;
+    vector<unq_cptr> *nalc = new vector<unq_cptr>;
+    if(nalc == nullptr) {
+        free(m);
+        return nullptr;
+    }
+    m->_memHndl = (void *)nalc;
+    m->id = PTPMGMT_NULL_PTP_MANAGEMENT;
+    m->tlv = nullptr;
+#define T_ASGN(n) m->n = ptpmgmt_tlv_mem_##n
+    T_ASGN(free);
+    T_ASGN(clear);
+    T_ASGN(newTlv);
+    T_ASGN(copy);
+    T_ASGN(copyTlv);
+    T_ASGN(getID);
+    T_ASGN(getTLV);
+    T_ASGN(allocMem);
+    T_ASGN(callocMem);
+    T_ASGN(reallocMem);
+    T_ASGN(recallocMem);
+    T_ASGN(allocString);
+    T_ASGN(allocStringLen);
+    T_ASGN(reallocString);
+    T_ASGN(reallocStringLen);
+    T_ASGN(freeMem);
+    T_ASGN(freeString);
+    return m;
+}
+
+__PTPMGMT_C_END

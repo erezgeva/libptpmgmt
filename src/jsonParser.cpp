@@ -577,10 +577,7 @@ bool jsonMain::paresJson(jsonParser *_p)
     main = m;
     return true;
 }
-jsonMain::~jsonMain()
-{
-    delete main;
-}
+jsonMain::~jsonMain() { delete main; }
 bool jsonMain::parseFile(const string &name, bool useComments)
 {
     jsonParserFile _p(useComments);
@@ -591,10 +588,7 @@ bool jsonMain::parseBuffer(const string &buffer, bool useComments)
     jsonParser _p(useComments);
     return _p.init(buffer) && paresJson(&_p);
 }
-bool jsonMain::empty() const
-{
-    return main == nullptr;
-}
+bool jsonMain::empty() const { return main == nullptr; }
 e_type jsonMain::getType() const
 {
     return main != nullptr ? main->getType() : t_non;
@@ -734,10 +728,7 @@ string jsonValueBase::strToStr(const string &str)
     ret += "\"";
     return ret;
 }
-e_type jsonValueBase::getType() const
-{
-    return m_type;
-}
+e_type jsonValueBase::getType() const { return m_type; }
 #define cast1(n) dynamic_cast<n *>(const_cast<jsonValueBase *>(this))
 #define cast2(n) const_cast<decltype(n)*>(&n)
 jsonValue *jsonValueBase::getVal() const
@@ -761,18 +752,12 @@ const char *jsonValue::getCStr() const
 {
     return val.c_str();
 }
-const string &jsonValue::getStr() const
-{
-    return val;
-}
+const string &jsonValue::getStr() const { return val; }
 size_t jsonValue::getStrLen() const
 {
     return val.length();
 }
-bool jsonValue::getBool() const
-{
-    return valBool;
-}
+bool jsonValue::getBool() const { return valBool; }
 bool jsonValue::getInt64(int64_t &_val, bool flexible) const
 {
     int base = 10;

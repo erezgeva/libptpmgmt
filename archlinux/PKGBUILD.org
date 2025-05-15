@@ -34,7 +34,7 @@ build() {
   make DESTDIR=../install install --no-print-directory
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
-  python3 go gcc libtool autoconf make chrpath
+  python3 go gcc libtool autoconf make chrpath discount cmark-gfm
   texlive-fontutils which openssl libgcrypt gnutls nettle)
 # You may use 'patchelf' as alternative of `chrpath`
 package_libptpmgmt2() {
