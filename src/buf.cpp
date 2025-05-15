@@ -13,14 +13,8 @@
 
 __PTPMGMT_NAMESPACE_BEGIN
 
-Buf::Buf(size_t size)
-{
-    alloc(size);
-}
-Buf::~Buf()
-{
-    free(m_buf);
-}
+Buf::Buf(size_t size) { alloc(size); }
+Buf::~Buf() { free(m_buf); }
 bool Buf::alloc(size_t size)
 {
     if(size == 0)
@@ -34,17 +28,8 @@ bool Buf::alloc(size_t size)
     m_size = size;
     return true;
 }
-void *Buf::get() const
-{
-    return m_buf;
-}
-size_t Buf::size() const
-{
-    return m_size;
-}
-bool Buf::isAlloc() const
-{
-    return m_size > 0;
-}
+void *Buf::get() const { return m_buf; }
+size_t Buf::size() const { return m_size; }
+bool Buf::isAlloc() const { return m_size > 0; }
 
 __PTPMGMT_NAMESPACE_END

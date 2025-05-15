@@ -114,7 +114,7 @@ $1:
 endef
 SP:=$(subst X, ,X)
 verCheckDo=$(shell if [ $1 -eq $4 ];then test $2 -eq $5 && a=$3 b=$6 ||\
-  a=$2 b=$5; else a=$1 b=$4;fi;test $$a -lt $$b && echo l)
+  a=$2 b=$5;else a=$1 b=$4;fi&&test $$a -lt $$b && echo l)
 verCheck=$(call verCheckDo,$(firstword $(subst ., ,$1 0 0 0)),$(word 2,\
   $(subst ., ,$1 0 0 0)),$(word 3,$(subst ., ,$1 0 0 0)),$(firstword\
   $(subst ., ,$2 0)),$(word 2,$(subst ., ,$2 0)),$(word 3,$(subst ., ,$2 0)))
@@ -522,8 +522,8 @@ format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_HMAC)\
 	$(EXTRA_SRCS_CLKMGR)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
-	test -z "$$r" || echo "$$r";./tools/format.pl $^
-	if test $$? -ne 0 || test -n "$$r"; then echo '';exit 1;fi
+	test -z "$$r" || echo "$$r"&&./tools/format.pl $^
+	if test $$? -ne 0 || test -n "$$r";then echo ''&&exit 1;fi
 ifdef CPPCHECK
 	$(CPPCHECK) $(CPPCHECK_OPT) --language=c++\
 	  $(filter-out $(EXTRA_C_SRCS) $(addprefix $(SRC)/,ids.h),$^)
@@ -675,7 +675,7 @@ install_main:
 	$(INSTALL_LIB) $(LIB_D)/*.so.*.*.* $(DLIBDIR)
 	$(call RMRPATH,$(DLIBDIR)/*.so.*.*.*)
 	if test -f "$(LIB_NAME_A)"
-	then $(INSTALL_LIB) $(LIB_D)/*.a $(DLIBDIR); fi
+	then $(INSTALL_LIB) $(LIB_D)/*.a $(DLIBDIR);fi
 ifdef PKG_CONFIG_DIR
 	echo "$(pkgconfig)" > $(PKGCFGDIR)/$(SWIG_LNAME).pc
 	for pf in $(SWIG_LNAME)$(PACKAGE_VERSION) $(LIB_NAME)\
@@ -686,10 +686,10 @@ endif
 	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(INCDIR)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
 	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
-	  $(INCDIR)/$(SWIG_LNAME)/$f;)
+	  $(INCDIR)/$(SWIG_LNAME)/$f&&)
 	$(foreach f,$(notdir $(HEADERS_INST_C)),$(SED) -i\
 	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
-	  $(INCDIR)/$(SWIG_LNAME)/c/$f;)
+	  $(INCDIR)/$(SWIG_LNAME)/c/$f&&)
 	$(INSTALL_FOLDER) $(DEVDOCDIR)
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
 	  'LDLIBS+=-l$(SWIG_LNAME)' > $(DEVDOCDIR)/default.mk

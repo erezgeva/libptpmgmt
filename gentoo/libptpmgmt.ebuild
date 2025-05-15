@@ -32,7 +32,8 @@ DEPEND="!skip_perl? ( dev-lang/perl ) !skip_python? ( dev-lang/python )
 	|| ( dev-libs/openssl dev-libs/libgcrypt net-libs/gnutls dev-libs/nettle )"
 BDEPEND="sys-devel/gcc dev-build/libtool sys-apps/which dev-build/make
 	|| ( app-admin/chrpath dev-util/patchelf )
-	!skip_doxygen? ( app-text/doxygen ) !skip_swig? ( dev-lang/swig )"
+	!skip_doxygen? ( app-text/discount app-text/cmark app-text/doxygen )
+    !skip_swig? ( dev-lang/swig )"
 RDEPEND="${DEPEND}"
 src_prepare() {
 	default
