@@ -28,7 +28,7 @@ bool ClientTransport::init()
 
 bool ClientTransport::stop()
 {
-    if(!Transport::stop())
+    if(!Transport::stop() || !ClientMessageQueue::stop())
         return false;
     /* Do any transport specific stop */
     return _stopTransport<ClientMessageQueue>();

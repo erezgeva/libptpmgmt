@@ -21,23 +21,11 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-static PosixMessageQueue mqNativeListenerDesc;
+static MessageQueueListenerContext listenerQueue;
 static PosixMessageQueue mqNativeClientTransmitterDesc;
 
 DECLARE_STATIC(ClientMessageQueue::mqListenerName, "");
 DECLARE_STATIC(ClientMessageQueue::txContext);
-
-bool ClientMessageQueueListenerContext::processMessage(Message *bmsg,
-    TransportTransmitterContext *&txcontext)
-{
-    ClientMessage *msg = dynamic_cast<decltype(msg)>(bmsg);
-    PrintDebug("Processing received client message");
-    if(msg == nullptr) {
-        PrintError("Wrong message type");
-        return false;
-    }
-    return msg->processMessage(*this, txcontext);
-}
 
 bool ClientMessageQueue::initTransport()
 {
@@ -45,14 +33,8 @@ bool ClientMessageQueue::initTransport()
     PrintDebug("Initializing Message Queue Client Transport...");
     mqListenerName += mqProxyName + ".";
     mqListenerName += to_string(getpid());
-    if(!mqNativeListenerDesc.RxOpen(mqListenerName, 2)) {
+    if(!listenerQueue.init(mqListenerName, 2)) {
         PrintError("Failed to open listener queue");
-        return false;
-    }
-    if(InvalidTransportWorkDesc ==
-        (mqListenerDesc = registerWork(MqListenerWork,
-                    new ClientMessageQueueListenerContext(mqNativeListenerDesc)))) {
-        PrintError("Listener Thread Unexpectedly Exited");
         return false;
     }
     if(!mqNativeClientTransmitterDesc.TxOpen(mqProxyName)) {
@@ -69,20 +51,25 @@ bool ClientMessageQueue::stopTransport()
 {
     PrintDebug("Stopping Message Queue Client Transport");
     PrintDebug("mqListenerName = " + mqListenerName);
-    if(mq_unlink(mqListenerName.c_str()) == -1)
-        PrintErrorCode("unlink failed");
-    if(mqListenerDesc != InvalidTransportWorkDesc &&
-        !InterruptWorker(mqListenerDesc))
-        PrintError("Interrupt worker failed");
+    if(!listenerQueue.stopTransport()) {
+        PrintError("stop listenerQueue failed");
+        return false;
+    }
     return true;
 }
 
 bool ClientMessageQueue::finalizeTransport()
 {
-    PrintDebug("mqNativeListenerDesc = " + mqNativeListenerDesc.str());
+    PrintDebug("mqNativeListenerDesc = " + listenerQueue.getQueueName());
     PrintDebug("mqNativeClientTransmitterDesc = " +
         mqNativeClientTransmitterDesc.str());
-    return mqNativeListenerDesc.close() && mqNativeClientTransmitterDesc.close();
+    return listenerQueue.finalize() && mqNativeClientTransmitterDesc.close();
+}
+
+bool ClientMessageQueue::stop()
+{
+    listenerQueue.stopSignal();
+    return true;
 }
 
 bool ClientMessageQueue::writeTransportClientId(Message *msg)

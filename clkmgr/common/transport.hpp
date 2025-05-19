@@ -17,9 +17,6 @@
 #include "common/message.hpp"
 
 #include <cstddef>
-#include <cstdint>
-#include <string>
-#include <functional>
 
 #define MAX_BUFFER_LENGTH   (4096)
 
@@ -28,7 +25,6 @@ __CLKMGR_NAMESPACE_BEGIN
 typedef std::array<uint8_t, MAX_BUFFER_LENGTH> TransportBuffer;
 class Message;
 class Transport;
-class TransportWorkerState;
 
 class TransportContext
 {
@@ -64,12 +60,6 @@ class TransportTransmitterContext : public TransportContext
 
 class TransportListenerContext : public TransportContext
 {
-    friend class Transport;
-    friend class TransportWorkerState;
-  protected:
-
-    virtual bool processMessage(Message *bmsg,
-        TransportTransmitterContext *&txcontext) { return false; }
   public:
     virtual ~TransportListenerContext() = default;
 
@@ -79,23 +69,15 @@ class TransportListenerContext : public TransportContext
     }
 };
 
-typedef std::function<bool(TransportListenerContext *)> TransportWorkFunction;
-typedef ptrdiff_t TransportWorkDesc;
-const TransportWorkDesc InvalidTransportWorkDesc = (TransportWorkDesc)(-1);
-
 class Transport
 {
   public:
-    static bool processMessage(TransportListenerContext &context);
     static bool initTransport() { return true; }
     static bool stopTransport() { return true; }
     static bool finalizeTransport() { return true; }
-    static TransportWorkDesc registerWork(const TransportWorkFunction &func,
-        TransportListenerContext *context);
     static bool init();
     static bool stop();
     static bool finalize();
-    static bool InterruptWorker(TransportWorkDesc d);
 };
 
 #define PER_TRANSPORT_VARIADIC_TEMPLATE(x)                        \

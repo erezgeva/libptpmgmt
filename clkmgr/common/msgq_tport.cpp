@@ -17,6 +17,8 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+const uint16_t EXIT_TIMEOUT = 200; // milliseconds
+
 PosixMessageQueue::PosixMessageQueue(PosixMessageQueue &&other) noexcept
     : mq(other.mq), rx(other.rx), name(std::move(other.name))
 {
@@ -91,23 +93,80 @@ bool PosixMessageQueue::close()
     return false;
 }
 
-DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
-DECLARE_STATIC(MessageQueue::mqListenerDesc, InvalidTransportWorkDesc);
-
-bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
+bool MessageQueueListenerContext::isFutureSet()
 {
-    MessageQueueListenerContext *context = dynamic_cast<decltype(context)>
-        (mqListenerContext);
-    if(context == nullptr) {
-        PrintError("Internal Error: Received inappropriate context");
-        return false; // Return early since context is null and cannot be used.
+    return m_retVal.valid() &&
+        m_retVal.wait_for(chrono::milliseconds(0)) == future_status::ready;
+}
+
+void MessageQueueListenerContext::dispatchLoop()
+{
+    bool promiseVal = false;
+    if(EnableSyscallInterruptSignal())
+        PrintDebug("MessageQueueListenerContext Thread started");
+    else
+        PrintError("MessageQueueListenerContext Thread fail"
+            " enabling interrupt signal");
+    while(!m_exitVal.load()) {
+        if(!MqListenerWork())
+            goto done;
     }
-    if(context->init() && !EnableSyscallInterruptSignal()) {
-        PrintError("Unable to enable interrupts in work process context");
+    promiseVal = true;
+done:
+    PrintDebug("Transport Thread exited");
+    m_promise.set_value_at_thread_exit(promiseVal);
+    return;
+}
+
+static void staticDispatchLoop(MessageQueueListenerContext *me)
+{
+    me->dispatchLoop();
+}
+
+bool MessageQueueListenerContext::init(const string &name, size_t maxMsg)
+{
+    if(!m_listenerQueue.RxOpen(name, maxMsg)) {
+        PrintError("Failed to open listener queue: " + name);
         return false;
     }
-    if(!context->mqListenerDesc.receive(context->get_buffer().data(),
-            context->getc_buffer().max_size())) {
+    m_thread = thread(staticDispatchLoop, this);
+    PrintDebug("Thread started");
+    if(isFutureSet()) {
+        m_thread.join();
+        PrintError("Thread exited early");
+        return false;
+    }
+    return true;
+}
+
+bool MessageQueueListenerContext::finalize()
+{
+    if(m_retVal.wait_for(chrono::milliseconds(EXIT_TIMEOUT)) !=
+        future_status::ready) {
+        PrintError("Thread Join Timeout");
+        return false;
+    }
+    m_thread.join();
+    m_listenerQueue.close();
+    m_listenerQueue.remove();
+    return true;
+}
+
+bool MessageQueueListenerContext::stopTransport()
+{
+    PrintDebug("Stopping Message Queue Proxy Transport");
+    /* Thread has exited, no need to interrupt */
+    if(isFutureSet())
+        return true;
+    m_listenerQueue.close();
+    m_listenerQueue.remove();
+    PrintDebug("Sending interrupt to MessageQueue worker");
+    return SendSyscallInterruptSignal(m_thread);
+}
+
+bool MessageQueueListenerContext::MqListenerWork()
+{
+    if(!m_listenerQueue.receive(get_buffer().data(), get_buffer().max_size())) {
         if(errno != EINTR) {
             PrintError("MQ Receive Failed", errno);
             return false;
@@ -115,11 +174,22 @@ bool MessageQueue::MqListenerWork(TransportContext *mqListenerContext)
         return true;
     }
     PrintDebug("Receive complete");
-    DumpOctetArray("Received Message", context->getc_buffer().data(),
-        context->getc_buffer().max_size());
-    Transport::processMessage(*context);
+    DumpOctetArray("Received Message", get_buffer().data(),
+        get_buffer().max_size());
+    Message *msg;
+    if(!Message::buildMessage(msg, *this))
+        return false;
+    PrintDebug("Received message " + msg->toString());
+    TransportTransmitterContext *txcontext;
+    if(!msg->processMessage(*this, txcontext))
+        return false;
+    // Echo the message back with ACK disposition
+    if(msg->get_msgAck() != ACK_NONE)
+        return msg->transmitMessage(*txcontext);
     return true;
 }
+
+DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
 
 bool MessageQueueTransmitterContext::sendBuffer()
 {

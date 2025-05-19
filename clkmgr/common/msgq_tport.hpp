@@ -15,7 +15,7 @@
 #include "common/transport.hpp"
 
 #include <mqueue.h>
-#include <string>
+#include <future>
 
 #define MESSAGE_QUEUE_PREFIX "/clkmgr"
 
@@ -61,12 +61,26 @@ class PosixMessageQueue
 
 class MessageQueueListenerContext : virtual public TransportListenerContext
 {
-  protected:
-    friend class MessageQueue;
-    const PosixMessageQueue &mqListenerDesc;
-    MessageQueueListenerContext(const PosixMessageQueue &q) : mqListenerDesc(q) {}
+  private:
+    PosixMessageQueue m_listenerQueue;
+    std::promise<bool> m_promise;
+    std::future<bool> m_retVal;
+    std::atomic_bool m_exitVal;
+    std::thread m_thread;
+
+    bool isFutureSet();
+
   public:
-    virtual ~MessageQueueListenerContext() = default;
+    MessageQueueListenerContext() : m_retVal(m_promise.get_future()),
+        m_exitVal(false) {}
+    bool init(const std::string &name, size_t maxMsg);
+    void dispatchLoop();
+    void stopSignal() { m_exitVal.store(true); }
+    bool finalize();
+    bool stopTransport();
+    std::thread &getThread() { return m_thread; }
+    bool MqListenerWork();
+    std::string getQueueName() const { return m_listenerQueue.str(); }
 };
 
 class MessageQueueTransmitterContext : virtual public
@@ -87,8 +101,6 @@ class MessageQueue : public Transport
 {
   protected:
     static std::string const mqProxyName;
-    static TransportWorkDesc mqListenerDesc;
-    static bool MqListenerWork(TransportContext *mqListenerContext);
     static bool MqTransmit(TransportContext *mqTransmitterContext, Message *msg);
   public:
     static bool initTransport() { return true; };

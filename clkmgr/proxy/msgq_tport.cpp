@@ -16,19 +16,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-static PosixMessageQueue mqNativeListenerDesc;
-
-bool ProxyMessageQueueListenerContext::processMessage(Message *bmsg,
-    TransportTransmitterContext *&txcontext)
-{
-    ProxyMessage *msg = dynamic_cast<decltype(msg)>(bmsg);
-    PrintDebug("Processing received proxy message");
-    if(msg == nullptr) {
-        PrintError("Wrong message type");
-        return false;
-    }
-    return msg->processMessage(*this, txcontext);
-}
+static ProxyMessageQueueListenerContext listenerQueue;
 
 TransportTransmitterContext
 *ProxyMessageQueueListenerContext::CreateTransmitterContext(
@@ -47,29 +35,26 @@ TransportTransmitterContext
 bool ProxyMessageQueue::initTransport()
 {
     PrintDebug("Initializing Message Queue Proxy Transport...");
-    if(!mqNativeListenerDesc.RxOpen(mqProxyName, MAX_CLIENT_COUNT)) {
-        PrintErrorCode("mq_open failed");
+    if(!listenerQueue.init(mqProxyName, MAX_CLIENT_COUNT)) {
+        PrintError("Initializing failed");
         return false;
     }
-    if(InvalidTransportWorkDesc ==
-        (mqListenerDesc = registerWork(MqListenerWork,
-                    new ProxyMessageQueueListenerContext(mqNativeListenerDesc))))
-        return false;
     PrintDebug("Proxy Message queue opened");
     return true;
 }
 
 bool ProxyMessageQueue::stopTransport()
 {
-    PrintDebug("Stopping Message Queue Proxy Transport");
-    mq_unlink(mqProxyName.c_str());
-    if(mqListenerDesc != InvalidTransportWorkDesc &&
-        !InterruptWorker(mqListenerDesc))
-        PrintError("Interrupt worker failed");
-    return true;
+    return listenerQueue.stopTransport();
 }
 
 bool ProxyMessageQueue::finalizeTransport()
 {
-    return mqNativeListenerDesc.close();
+    return listenerQueue.finalize();
+}
+
+bool ProxyMessageQueue::stop()
+{
+    listenerQueue.stopSignal();
+    return true;
 }

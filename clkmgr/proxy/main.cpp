@@ -14,7 +14,7 @@
 #endif
 #include "proxy/config_parser.hpp"
 #include "proxy/connect_ptp4l.hpp"
-#include "proxy/transport.hpp"
+#include "proxy/msgq_tport.hpp"
 #include "common/sighandler.hpp"
 #include "common/print.hpp"
 
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     WaitForStopSignal();
     PrintDebug("Got stop signal");
     ConnectPtp4l::disconnect_ptp4l();
-    if(!ProxyTransport::stop()) {
+    if(!ProxyTransport::stop() || !ProxyMessageQueue::stop()) {
         PrintError("stop failed");
         return EXIT_FAILURE;
     }

@@ -12,23 +12,12 @@
 #ifndef CLIENT_MSGQ_TPORT_HPP
 #define CLIENT_MSGQ_TPORT_HPP
 
-#include "client/transport.hpp"
 #include "common/msgq_tport.hpp"
+#include "client/transport.hpp"
 
 #include <string>
 
 __CLKMGR_NAMESPACE_BEGIN
-
-class ClientMessageQueueListenerContext :
-    public MessageQueueListenerContext
-{
-    friend class ClientMessageQueue;
-  protected:
-    virtual bool processMessage(Message *bmsg,
-        TransportTransmitterContext *&txcontext);
-    ClientMessageQueueListenerContext(const PosixMessageQueue &mqListenerDesc) :
-        MessageQueueListenerContext(mqListenerDesc) {}
-};
 
 class ClientMessageQueueTransmitterContext  :
     public MessageQueueTransmitterContext
@@ -49,6 +38,7 @@ class ClientMessageQueue : public MessageQueue,
     static bool initTransport();
     static bool stopTransport();
     static bool finalizeTransport();
+    static bool stop();
     static bool writeTransportClientId(Message *msg);
     static bool sendMessage(Message *msg);
 };

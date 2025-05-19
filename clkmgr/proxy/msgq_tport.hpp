@@ -23,24 +23,18 @@ class ProxyMessageQueueListenerContext : virtual public
     MessageQueueListenerContext,
     virtual public ProxyTransportListenerContext
 {
-    friend class ProxyMessageQueue;
-  protected:
-    virtual bool processMessage(Message *bmsg,
-        TransportTransmitterContext *&txcontext);
-    ProxyMessageQueueListenerContext(const PosixMessageQueue &mqListenerDesc) :
-        MessageQueueListenerContext(mqListenerDesc) {}
   public:
+    ProxyMessageQueueListenerContext() : MessageQueueListenerContext() {}
     virtual ~ProxyMessageQueueListenerContext() = default;
     virtual TransportTransmitterContext *CreateTransmitterContext(
         TransportClientId &clientId);
 };
 
-class ProxyMessageQueueTransmitterContext  : virtual public
-    MessageQueueTransmitterContext,
+class ProxyMessageQueueTransmitterContext  :
+    virtual public MessageQueueTransmitterContext,
     virtual public ProxyTransportTransmitterContext
 {
   private:
-    friend class ProxyMessageQueue;
     friend class ProxyMessageQueueListenerContext;
     /**
      * Store original queue here.
@@ -63,6 +57,7 @@ class ProxyMessageQueue : public MessageQueue,
     static bool initTransport();
     static bool stopTransport();
     static bool finalizeTransport();
+    static bool stop();
 };
 
 __CLKMGR_NAMESPACE_END
