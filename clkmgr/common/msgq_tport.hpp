@@ -59,7 +59,7 @@ class PosixMessageQueue
     std::string str() const { return std::to_string(mq); }
 };
 
-class MessageQueueListenerContext : virtual public TransportListenerContext
+class Listener : public TransportListenerContext
 {
   private:
     PosixMessageQueue m_listenerQueue;
@@ -71,7 +71,7 @@ class MessageQueueListenerContext : virtual public TransportListenerContext
     bool isFutureSet();
 
   public:
-    MessageQueueListenerContext() : m_retVal(m_promise.get_future()),
+    Listener() : m_retVal(m_promise.get_future()),
         m_exitVal(false) {}
     bool init(const std::string &name, size_t maxMsg);
     void dispatchLoop();
@@ -83,25 +83,23 @@ class MessageQueueListenerContext : virtual public TransportListenerContext
     std::string getQueueName() const { return m_listenerQueue.str(); }
 };
 
-class MessageQueueTransmitterContext : virtual public
-    TransportTransmitterContext
+class Transmitter : public TransportTransmitterContext
 {
-    friend class MessageQueue;
   private:
-    const PosixMessageQueue &mqTransmitterDesc;
-  protected:
-    MessageQueueTransmitterContext(const PosixMessageQueue &q) :
-        mqTransmitterDesc(q) {}
+    PosixMessageQueue m_transmitterQueue;
   public:
-    virtual ~MessageQueueTransmitterContext() = default;
-    virtual bool sendBuffer();
+    Transmitter() = default;
+    virtual ~Transmitter() = default;
+    virtual bool sendBuffer() override final;
+    bool open(const std::string &name, bool block = true);
+    std::string getQueueName() const { return m_transmitterQueue.str(); }
+    bool finalize();
 };
 
 class MessageQueue : public Transport
 {
   protected:
     static std::string const mqProxyName;
-    static bool MqTransmit(TransportContext *mqTransmitterContext, Message *msg);
   public:
     static bool initTransport() { return true; };
     static bool stopTransport() { return true; };

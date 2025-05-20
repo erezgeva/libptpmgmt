@@ -56,7 +56,7 @@ bool CommonConnectMessage::transmitMessage(TransportTransmitterContext
     &TxContext)
 {
     PrintDebug("[CommonConnectMessage]::transmitMessage ");
-    if(!presendMessage(&TxContext))
+    if(!presendMessage(TxContext))
         return false;
     return TxContext.sendBuffer();
 }

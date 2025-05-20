@@ -61,16 +61,16 @@ bool Message::makeBuffer(TransportTransmitterContext &TxContext) const
     return true;
 }
 
-bool Message::presendMessage(TransportTransmitterContext *ctx)
+bool Message::presendMessage(TransportTransmitterContext &ctx)
 {
     PrintDebug("[Message]::presendMessage starts");
-    ctx->resetOffset();
-    if(!makeBuffer(*ctx)) {
+    ctx.resetOffset();
+    if(!makeBuffer(ctx)) {
         PrintError("Failed to make buffer from message object");
         return false;
     }
-    DumpOctetArray("Sending message (length = " + to_string(ctx->getc_offset()) +
-        "): ", ctx->getc_buffer().data(), ctx->getc_offset());
+    DumpOctetArray("Sending message (length = " + to_string(ctx.get_offset()) +
+        "): ", ctx.get_buffer().data(), ctx.get_offset());
     PrintDebug("[Message]::presendMessage successful");
     return true;
 }

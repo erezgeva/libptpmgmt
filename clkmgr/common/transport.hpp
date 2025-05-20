@@ -17,38 +17,38 @@
 #include "common/message.hpp"
 
 #include <cstddef>
+#include <string>
 
 #define MAX_BUFFER_LENGTH   (4096)
 
 __CLKMGR_NAMESPACE_BEGIN
 
-typedef std::array<uint8_t, MAX_BUFFER_LENGTH> TransportBuffer;
-class Message;
-class Transport;
+class TransportBuffer
+{
+  private:
+    uint8_t buff[MAX_BUFFER_LENGTH];
+
+  public:
+    uint8_t *data() { return buff; }
+    size_t max_size() { return MAX_BUFFER_LENGTH; }
+};
 
 class TransportContext
 {
-  protected:
-    bool _init;
-    size_t offset;
-    TransportBuffer buffer;
+  private:
+    size_t m_offset = 0;
+    TransportBuffer m_buffer;
+
   public:
-    bool init() { return _init; }
-    TransportContext() : _init(true), offset(0) {}
+    TransportContext() = default;
     virtual ~TransportContext() = default;
 
-    const size_t &getc_offset() { return offset; }
-    size_t &get_offset() { return offset; }
-    void set_offset(const size_t &offset) { this->offset = offset; }
-    size_t c_get_val_offset() const { return offset; }
+    size_t get_offset() { return m_offset; }
+    void set_offset(size_t offset) { m_offset = offset; }
+    TransportBuffer &get_buffer() { return m_buffer; }
 
-    const TransportBuffer &getc_buffer() { return buffer; }
-    TransportBuffer &get_buffer() { return buffer; }
-    void set_buffer(const TransportBuffer &buffer) { this->buffer = buffer; }
-    TransportBuffer c_get_val_buffer() const { return buffer; }
-
-    void resetOffset() { set_offset(0); }
-    void addOffset(size_t offset) { this->offset += offset; }
+    void resetOffset() { m_offset = 0; }
+    void addOffset(size_t offset) { m_offset += offset; }
 };
 
 class TransportTransmitterContext : public TransportContext
@@ -62,11 +62,6 @@ class TransportListenerContext : public TransportContext
 {
   public:
     virtual ~TransportListenerContext() = default;
-
-    virtual TransportTransmitterContext *CreateTransmitterContext(
-        TransportClientId &clientId) {
-        return nullptr;
-    }
 };
 
 class Transport

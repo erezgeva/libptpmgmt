@@ -19,10 +19,9 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class ClientNullMessage : public ClientMessage, public CommonNullMessage
 {
-  protected:
   public:
     static bool initMessage() { return true; }
-    ClientNullMessage() {}
+    ClientNullMessage() = default;
 };
 
 __CLKMGR_NAMESPACE_END

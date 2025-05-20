@@ -19,39 +19,7 @@ __CLKMGR_NAMESPACE_BEGIN
 
 static const size_t MAX_CLIENT_COUNT = 8;
 
-class ProxyMessageQueueListenerContext : virtual public
-    MessageQueueListenerContext,
-    virtual public ProxyTransportListenerContext
-{
-  public:
-    ProxyMessageQueueListenerContext() : MessageQueueListenerContext() {}
-    virtual ~ProxyMessageQueueListenerContext() = default;
-    virtual TransportTransmitterContext *CreateTransmitterContext(
-        TransportClientId &clientId);
-};
-
-class ProxyMessageQueueTransmitterContext  :
-    virtual public MessageQueueTransmitterContext,
-    virtual public ProxyTransportTransmitterContext
-{
-  private:
-    friend class ProxyMessageQueueListenerContext;
-    /**
-     * Store original queue here.
-     * Unlike ClientMessageQueueTransmitterContext,
-     * this class is created with a ad-hook queue object, one for each client.
-     */
-    PosixMessageQueue mqTransmitterDesc;
-  protected:
-    ProxyMessageQueueTransmitterContext(PosixMessageQueue &&q)
-        : MessageQueueTransmitterContext(mqTransmitterDesc),
-          mqTransmitterDesc(std::move(q)) {}
-  public:
-    virtual ~ProxyMessageQueueTransmitterContext() = default;
-};
-
-class ProxyMessageQueue : public MessageQueue,
-    public ProxyTransport
+class ProxyMessageQueue : public MessageQueue, public ProxyTransport
 {
   public:
     static bool initTransport();

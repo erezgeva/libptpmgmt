@@ -19,21 +19,8 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ClientMessageQueueTransmitterContext  :
-    public MessageQueueTransmitterContext
+class ClientMessageQueue : public MessageQueue, public ClientTransport
 {
-    friend class ClientMessageQueue;
-  protected:
-    ClientMessageQueueTransmitterContext(const PosixMessageQueue &mqTransmitterDesc)
-        : MessageQueueTransmitterContext(mqTransmitterDesc) {}
-};
-
-class ClientMessageQueue : public MessageQueue,
-    public ClientTransport
-{
-  private:
-    static std::string mqListenerName;
-    static std::unique_ptr<MessageQueueTransmitterContext> txContext;
   public:
     static bool initTransport();
     static bool stopTransport();

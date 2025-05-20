@@ -21,7 +21,7 @@ bool NotificationMessage::transmitMessage(TransportTransmitterContext
     &TxContext)
 {
     PrintDebug("[NotificationMessage]::transmitMessage ");
-    if(!presendMessage(&TxContext))
+    if(!presendMessage(TxContext))
         return false;
     return TxContext.sendBuffer();
 }

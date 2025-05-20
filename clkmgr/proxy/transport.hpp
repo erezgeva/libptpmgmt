@@ -17,29 +17,12 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ProxyTransportTransmitterContext : virtual public
-    TransportTransmitterContext
-{
-  protected:
-    ProxyTransportTransmitterContext() {}
-  public:
-    virtual ~ProxyTransportTransmitterContext() = default;
-};
-
-class ProxyTransportListenerContext : virtual public
-    TransportListenerContext
-{
-  public:
-    virtual ~ProxyTransportListenerContext() = default;
-};
-
 class ProxyTransport : public Transport
 {
   public:
     static bool init();
     static bool stop();
     static bool finalize();
-    static bool sendMessage(const ProxyMessage *msg) { return false; }
 };
 
 __CLKMGR_NAMESPACE_END

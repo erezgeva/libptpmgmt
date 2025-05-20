@@ -62,7 +62,7 @@ bool CommonSubscribeMessage::transmitMessage(TransportTransmitterContext
     &TxContext)
 {
     PrintDebug("[CommonSubscribeMessage]::transmitMessage ");
-    if(!presendMessage(&TxContext))
+    if(!presendMessage(TxContext))
         return false;
     return TxContext.sendBuffer();
 }

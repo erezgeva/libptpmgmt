@@ -10,32 +10,36 @@
  */
 
 #include "proxy/msgq_tport.hpp"
+#include "proxy/client.hpp"
 #include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-static ProxyMessageQueueListenerContext listenerQueue;
+static Listener rxContext;
 
-TransportTransmitterContext
-*ProxyMessageQueueListenerContext::CreateTransmitterContext(
-    TransportClientId &clientId)
+TransportTransmitterContext *Client::CreateTransmitterContext(TransportClientId
+    &clientId)
 {
     string id((const char *)clientId.data());
-    PosixMessageQueue txd;
-    if(!txd.TxOpen(id, false)) {
-        PrintErrorCode("Failed to open message queue " + id);
-        return nullptr;
-    }
-    PrintDebug("Successfully connected to client " + id);
-    return new ProxyMessageQueueTransmitterContext(std::move(txd));
+    Transmitter *nCtx = new Transmitter();
+    if(nCtx != nullptr) {
+        if(!nCtx->open(id, false)) {
+            PrintErrorCode("Failed to open message queue " + id);
+            delete nCtx;
+            return nullptr;
+        }
+        PrintDebug("Successfully connected to client " + id);
+    } else
+        PrintError("Failed to allocate new message queue " + id);
+    return nCtx;
 }
 
 bool ProxyMessageQueue::initTransport()
 {
     PrintDebug("Initializing Message Queue Proxy Transport...");
-    if(!listenerQueue.init(mqProxyName, MAX_CLIENT_COUNT)) {
+    if(!rxContext.init(mqProxyName, MAX_CLIENT_COUNT)) {
         PrintError("Initializing failed");
         return false;
     }
@@ -45,16 +49,16 @@ bool ProxyMessageQueue::initTransport()
 
 bool ProxyMessageQueue::stopTransport()
 {
-    return listenerQueue.stopTransport();
+    return rxContext.stopTransport();
 }
 
 bool ProxyMessageQueue::finalizeTransport()
 {
-    return listenerQueue.finalize();
+    return rxContext.finalize();
 }
 
 bool ProxyMessageQueue::stop()
 {
-    listenerQueue.stopSignal();
+    rxContext.stopSignal();
     return true;
 }

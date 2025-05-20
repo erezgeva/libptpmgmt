@@ -82,7 +82,7 @@ bool ProxyConnectMessage::processMessage(TransportListenerContext &LxContext,
     newSessionId = Client::CreateClientSession();
     PrintDebug("Created new client session ID: " + to_string(newSessionId));
     this->set_sessionId(newSessionId);
-    TxContext = LxContext.CreateTransmitterContext(getClientId());
+    TxContext = Client::CreateTransmitterContext(getClientId());
     Client::GetClientSession(newSessionId).get()->set_transmitContext(TxContext);
     set_msgAck(ACK_SUCCESS);
     return true;

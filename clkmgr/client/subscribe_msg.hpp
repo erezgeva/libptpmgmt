@@ -20,8 +20,7 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ClientSubscribeMessage : virtual public
-    CommonSubscribeMessage,
+class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
     virtual public ClientMessage
 {
   private:

@@ -19,6 +19,8 @@ using namespace std;
 
 const uint16_t EXIT_TIMEOUT = 200; // milliseconds
 
+DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
+
 PosixMessageQueue::PosixMessageQueue(PosixMessageQueue &&other) noexcept
     : mq(other.mq), rx(other.rx), name(std::move(other.name))
 {
@@ -93,19 +95,19 @@ bool PosixMessageQueue::close()
     return false;
 }
 
-bool MessageQueueListenerContext::isFutureSet()
+bool Listener::isFutureSet()
 {
     return m_retVal.valid() &&
         m_retVal.wait_for(chrono::milliseconds(0)) == future_status::ready;
 }
 
-void MessageQueueListenerContext::dispatchLoop()
+void Listener::dispatchLoop()
 {
     bool promiseVal = false;
     if(EnableSyscallInterruptSignal())
-        PrintDebug("MessageQueueListenerContext Thread started");
+        PrintDebug("Listener Thread started");
     else
-        PrintError("MessageQueueListenerContext Thread fail"
+        PrintError("Listener Thread fail"
             " enabling interrupt signal");
     while(!m_exitVal.load()) {
         if(!MqListenerWork())
@@ -118,12 +120,12 @@ done:
     return;
 }
 
-static void staticDispatchLoop(MessageQueueListenerContext *me)
+static void staticDispatchLoop(Listener *me)
 {
     me->dispatchLoop();
 }
 
-bool MessageQueueListenerContext::init(const string &name, size_t maxMsg)
+bool Listener::init(const string &name, size_t maxMsg)
 {
     if(!m_listenerQueue.RxOpen(name, maxMsg)) {
         PrintError("Failed to open listener queue: " + name);
@@ -139,7 +141,7 @@ bool MessageQueueListenerContext::init(const string &name, size_t maxMsg)
     return true;
 }
 
-bool MessageQueueListenerContext::finalize()
+bool Listener::finalize()
 {
     if(m_retVal.wait_for(chrono::milliseconds(EXIT_TIMEOUT)) !=
         future_status::ready) {
@@ -152,7 +154,7 @@ bool MessageQueueListenerContext::finalize()
     return true;
 }
 
-bool MessageQueueListenerContext::stopTransport()
+bool Listener::stopTransport()
 {
     PrintDebug("Stopping Message Queue Proxy Transport");
     /* Thread has exited, no need to interrupt */
@@ -164,7 +166,7 @@ bool MessageQueueListenerContext::stopTransport()
     return SendSyscallInterruptSignal(m_thread);
 }
 
-bool MessageQueueListenerContext::MqListenerWork()
+bool Listener::MqListenerWork()
 {
     if(!m_listenerQueue.receive(get_buffer().data(), get_buffer().max_size())) {
         if(errno != EINTR) {
@@ -189,13 +191,26 @@ bool MessageQueueListenerContext::MqListenerWork()
     return true;
 }
 
-DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
-
-bool MessageQueueTransmitterContext::sendBuffer()
+bool Transmitter::sendBuffer()
 {
-    if(!mqTransmitterDesc.send(get_buffer().data(), get_offset())) {
+    if(!m_transmitterQueue.send(get_buffer().data(), get_offset())) {
         PrintErrorCode("Failed to send buffer");
         return false;
     }
     return true;
+}
+
+bool Transmitter::open(const std::string &name, bool block)
+{
+    if(m_transmitterQueue.TxOpen(name, block)) {
+        PrintDebug("Successfully connected to client " + name);
+        return true;
+    }
+    PrintErrorCode("Failed to open message queue " + name);
+    return false;
+}
+
+bool Transmitter::finalize()
+{
+    return m_transmitterQueue.close();
 }

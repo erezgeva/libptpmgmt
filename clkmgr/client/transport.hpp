@@ -18,22 +18,12 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ClientTransportContext : virtual public TransportContext
-{
-  public:
-    virtual ~ClientTransportContext() = default;
-};
-
 class ClientTransport : public Transport
 {
-  protected:
-    static bool processMessage(Message *msg) { return false; }
   public:
     static bool init();
     static bool stop();
     static bool finalize();
-    static void writeTransportClientId(Message0 &msg) {}
-    static bool sendMessage(Message *msg) { return false; }
 };
 
 __CLKMGR_NAMESPACE_END

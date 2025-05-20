@@ -45,7 +45,7 @@ class Message
     static std::string ExtractClassName(std::string prettyFunction,
         std::string function);
   public:
-    bool presendMessage(TransportTransmitterContext *ctx);
+    bool presendMessage(TransportTransmitterContext &ctx);
 
     virtual bool processMessage(TransportListenerContext &LxContext,
         TransportTransmitterContext *&TxContext) = 0;
