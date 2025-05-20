@@ -196,6 +196,7 @@ void ptpSet::notify_client()
     }
     local.unlock(); // Explicitly unlock the mutex
     for(const sessionId_t sessionId : sessionIdToRemove) {
+        ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
         #ifdef HAVE_LIBCHRONY
         ConnectChrony::remove_chrony_subscriber(sessionId);
         #endif
