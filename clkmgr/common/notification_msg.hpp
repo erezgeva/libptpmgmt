@@ -21,7 +21,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class NotificationMessage : virtual public Message
 {
   public:
-    virtual bool transmitMessage(TransportTransmitterContext &TxContext);
+    virtual bool transmitMessage(Transmitter &TxContext);
     static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
     bool isEnable() { return waitEnable == 0x1; }
   protected:

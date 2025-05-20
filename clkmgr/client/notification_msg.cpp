@@ -25,8 +25,7 @@ using namespace std;
  * @param LxContext proxy transport listener context
  * @return true
  */
-bool ClientNotificationMessage::buildMessage(Message *&msg,
-    TransportListenerContext &LxContext)
+bool ClientNotificationMessage::buildMessage(Message *&msg, Listener &LxContext)
 {
     msg = new ClientNotificationMessage();
     return true;
@@ -45,21 +44,20 @@ bool ClientNotificationMessage::initMessage()
     return true;
 }
 
-bool ClientNotificationMessage::makeBuffer(TransportTransmitterContext
-    &TxContext) const
+bool ClientNotificationMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ClientNotificationMessage]::makeBuffer");
     return true;
 }
 
-bool ClientNotificationMessage::processMessage(TransportListenerContext
-    &LxContext, TransportTransmitterContext *&TxContext)
+bool ClientNotificationMessage::processMessage(Listener &LxContext,
+    Transmitter *&TxContext)
 {
     PrintDebug("[ClientNotificationMessage]::processMessage ");
     return true;
 }
 
-bool ClientNotificationMessage::parseBuffer(TransportListenerContext &LxContext)
+bool ClientNotificationMessage::parseBuffer(Listener &LxContext)
 {
     PrintDebug("[ClientNotificationMessage]::parseBuffer ");
     int timeBaseIndex = 0;

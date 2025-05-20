@@ -14,7 +14,6 @@
 #define COMMON_CONNECT_MSG_HPP
 
 #include "common/message.hpp"
-#include "common/transport.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -26,10 +25,10 @@ class CommonConnectMessage : virtual public Message
     CommonConnectMessage() : Message(CONNECT_MSG) {}
   public:
     TransportClientId &getClientId() { return clientId; }
-    virtual bool parseBuffer(TransportListenerContext &LxContext);
+    virtual bool parseBuffer(Listener &LxContext);
     static bool registerBuild();
-    virtual bool transmitMessage(TransportTransmitterContext &TxContext);
-    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
+    virtual bool transmitMessage(Transmitter &TxContext);
+    virtual bool makeBuffer(Transmitter &TxContext) const;
     virtual std::string toString();
 };
 

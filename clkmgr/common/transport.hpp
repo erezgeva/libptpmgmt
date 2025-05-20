@@ -14,7 +14,6 @@
 #define COMMON_TRANSPORT_HPP
 
 #include "common/util.hpp"
-#include "common/message.hpp"
 
 #include <cstddef>
 #include <string>
@@ -26,42 +25,23 @@ __CLKMGR_NAMESPACE_BEGIN
 class TransportBuffer
 {
   private:
-    uint8_t buff[MAX_BUFFER_LENGTH];
-
-  public:
-    uint8_t *data() { return buff; }
-    size_t max_size() { return MAX_BUFFER_LENGTH; }
-};
-
-class TransportContext
-{
-  private:
+    uint8_t m_buffer[MAX_BUFFER_LENGTH];
     size_t m_offset = 0;
-    TransportBuffer m_buffer;
 
   public:
-    TransportContext() = default;
-    virtual ~TransportContext() = default;
+    TransportBuffer() = default;
+    virtual ~TransportBuffer() = default;
 
     size_t get_offset() { return m_offset; }
     void set_offset(size_t offset) { m_offset = offset; }
-    TransportBuffer &get_buffer() { return m_buffer; }
+    TransportBuffer &get_buffer() { return *this; }
 
     void resetOffset() { m_offset = 0; }
     void addOffset(size_t offset) { m_offset += offset; }
-};
 
-class TransportTransmitterContext : public TransportContext
-{
-  public:
-    virtual ~TransportTransmitterContext() = default;
-    virtual bool sendBuffer() = 0;
-};
-
-class TransportListenerContext : public TransportContext
-{
-  public:
-    virtual ~TransportListenerContext() = default;
+    // Buffer properties
+    uint8_t *data() { return m_buffer; }
+    static size_t max_size() { return MAX_BUFFER_LENGTH; }
 };
 
 class Transport

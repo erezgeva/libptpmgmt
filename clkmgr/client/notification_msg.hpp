@@ -22,9 +22,8 @@ class ClientNotificationMessage : virtual public ClientMessage,
     virtual public NotificationMessage
 {
   public:
-    virtual bool processMessage(TransportListenerContext &LxContext,
-        TransportTransmitterContext *&TxContext);
-    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
+    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
+    virtual bool makeBuffer(Transmitter &TxContext) const;
 
     /**
      * Create the ClientNotificationMessage object
@@ -32,7 +31,7 @@ class ClientNotificationMessage : virtual public ClientMessage,
      * @param LxContext client transport listener context
      * @return true
      */
-    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    static bool buildMessage(Message *&msg, Listener &LxContext);
 
     /**
      * Add client's NOTIFY_MESSAGE type and its builder to transport layer.
@@ -40,7 +39,7 @@ class ClientNotificationMessage : virtual public ClientMessage,
      */
     static bool initMessage();
 
-    virtual bool parseBuffer(TransportListenerContext &LxContext);
+    virtual bool parseBuffer(Listener &LxContext);
 
   protected:
     ClientNotificationMessage() : Message(NOTIFY_MESSAGE) {}

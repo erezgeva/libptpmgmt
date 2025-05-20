@@ -26,10 +26,9 @@ class CommonSubscribeMessage : virtual public Message
 
   public:
     static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
-    //static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
-    virtual bool parseBuffer(TransportListenerContext &LxContext);
-    virtual bool transmitMessage(TransportTransmitterContext &TxContext);
-    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
+    virtual bool parseBuffer(Listener &LxContext);
+    virtual bool transmitMessage(Transmitter &TxContext);
+    virtual bool makeBuffer(Transmitter &TxContext) const;
     ClkMgrSubscription &getSubscription()
     { return subscription; }
     TransportClientId &getClientId()

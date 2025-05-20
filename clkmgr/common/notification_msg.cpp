@@ -17,8 +17,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-bool NotificationMessage::transmitMessage(TransportTransmitterContext
-    &TxContext)
+bool NotificationMessage::transmitMessage(Transmitter &TxContext)
 {
     PrintDebug("[NotificationMessage]::transmitMessage ");
     if(!presendMessage(TxContext))

@@ -28,7 +28,7 @@ string CommonConnectMessage::toString()
     return name;
 }
 
-bool CommonConnectMessage::parseBuffer(TransportListenerContext &LxContext)
+bool CommonConnectMessage::parseBuffer(Listener &LxContext)
 {
     if(!Message::parseBuffer(LxContext))
         return false;
@@ -39,7 +39,7 @@ bool CommonConnectMessage::parseBuffer(TransportListenerContext &LxContext)
     return true;
 }
 
-bool CommonConnectMessage::makeBuffer(TransportTransmitterContext &TxContext)
+bool CommonConnectMessage::makeBuffer(Transmitter &TxContext)
 const
 {
     auto ret = Message::makeBuffer(TxContext);
@@ -52,8 +52,7 @@ const
     return true;
 }
 
-bool CommonConnectMessage::transmitMessage(TransportTransmitterContext
-    &TxContext)
+bool CommonConnectMessage::transmitMessage(Transmitter &TxContext)
 {
     PrintDebug("[CommonConnectMessage]::transmitMessage ");
     if(!presendMessage(TxContext))

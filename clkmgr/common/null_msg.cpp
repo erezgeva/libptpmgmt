@@ -15,8 +15,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-bool CommonNullMessage::buildMessage(Message *&msg,
-    TransportListenerContext &LxContext)
+bool CommonNullMessage::buildMessage(Message *&msg, Listener &LxContext)
 {
     return true;
 }

@@ -12,7 +12,7 @@
 #ifndef PROXY_CLIENT_HPP
 #define PROXY_CLIENT_HPP
 
-#include "common/transport.hpp"
+#include "common/msgq_tport.hpp"
 
 #include <memory>
 #include <map>
@@ -38,14 +38,13 @@ class Client
     }
     static sessionId_t GetSessionIdAt(size_t index);
     static ClientX GetClientSession(sessionId_t sessionId);
-    static TransportTransmitterContext *CreateTransmitterContext(TransportClientId
-        &clientId);
+    static Transmitter *CreateTransmitterContext(TransportClientId &clientId);
   private:
-    std::unique_ptr<TransportTransmitterContext> transmitContext;
+    std::unique_ptr<Transmitter> transmitContext;
   public:
-    void set_transmitContext(decltype(transmitContext)::pointer context)
+    void set_transmitContext(Transmitter *context)
     { this->transmitContext.reset(context); }
-    TransportTransmitterContext *get_transmitContext()
+    Transmitter *get_transmitContext()
     { return transmitContext.get(); }
 };
 

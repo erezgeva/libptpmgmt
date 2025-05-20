@@ -51,7 +51,7 @@ string Message::toString()
     return ret;
 }
 
-bool Message::makeBuffer(TransportTransmitterContext &TxContext) const
+bool Message::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[Message]::makeBuffer");
     if(!WRITE_TX(FIELD, msgId, TxContext))
@@ -61,7 +61,7 @@ bool Message::makeBuffer(TransportTransmitterContext &TxContext) const
     return true;
 }
 
-bool Message::presendMessage(TransportTransmitterContext &ctx)
+bool Message::presendMessage(Transmitter &ctx)
 {
     PrintDebug("[Message]::presendMessage starts");
     ctx.resetOffset();
@@ -85,7 +85,7 @@ bool Message::addMessageType(parseMsgMapElement_t mapping)
     return true;
 }
 
-bool Message::parseBuffer(TransportListenerContext &LxContext)
+bool Message::parseBuffer(Listener &LxContext)
 {
     PrintDebug("[Message]::parseBuffer ");
     if(!PARSE_RX(FIELD, msgId, LxContext))
@@ -95,7 +95,7 @@ bool Message::parseBuffer(TransportListenerContext &LxContext)
     return true;
 }
 
-bool Message::buildMessage(Message *&msg, TransportListenerContext &LxContext)
+bool Message::buildMessage(Message *&msg, Listener &LxContext)
 {
     msgId_t msgId;
     if(!PARSE_RX(FIELD, msgId, LxContext))

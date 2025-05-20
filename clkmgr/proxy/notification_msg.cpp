@@ -27,8 +27,7 @@ extern map<int, ptp_event> ptp4lEvents;
  * @param LxContext proxy transport listener context
  * @return true
  */
-bool ProxyNotificationMessage::buildMessage(Message *&msg,
-    TransportListenerContext &LxContext)
+bool ProxyNotificationMessage::buildMessage(Message *&msg, Listener &LxContext)
 {
     msg = new ProxyNotificationMessage();
     return true;
@@ -48,8 +47,7 @@ bool ProxyNotificationMessage::initMessage()
     return true;
 }
 
-bool ProxyNotificationMessage::makeBuffer(TransportTransmitterContext
-    &TxContext) const
+bool ProxyNotificationMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ProxyNotificationMessage]::makeBuffer");
     if(!Message::makeBuffer(TxContext))
@@ -64,8 +62,8 @@ bool ProxyNotificationMessage::makeBuffer(TransportTransmitterContext
     return true;
 }
 
-bool ProxyNotificationMessage::processMessage(TransportListenerContext
-    &LxContext, TransportTransmitterContext *&TxContext)
+bool ProxyNotificationMessage::processMessage(Listener &LxContext,
+    Transmitter *&TxContext)
 {
     return true;
 }

@@ -19,8 +19,7 @@ using namespace std;
 
 static Listener rxContext;
 
-TransportTransmitterContext *Client::CreateTransmitterContext(TransportClientId
-    &clientId)
+Transmitter *Client::CreateTransmitterContext(TransportClientId &clientId)
 {
     string id((const char *)clientId.data());
     Transmitter *nCtx = new Transmitter();

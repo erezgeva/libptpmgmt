@@ -21,7 +21,7 @@ class CommonNullMessage : virtual public Message
   protected:
   public:
     static msgId_t getMsgId() { return NULL_MSG; }
-    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    static bool buildMessage(Message *&msg, Listener &LxContext);
     CommonNullMessage() : Message(NULL_MSG) {};
     static bool initMessage();
 };

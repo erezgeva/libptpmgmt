@@ -35,9 +35,8 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
      * @param TxContext client run-time transport transmitter context
      * @return true
      */
-    virtual bool processMessage(TransportListenerContext &LxContext,
-        TransportTransmitterContext *&TxContext);
-    virtual bool parseBuffer(TransportListenerContext &LxContext);
+    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
+    virtual bool parseBuffer(Listener &LxContext);
 
     /**
      * Create the ClientConnectMessage object
@@ -45,7 +44,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
      * @param LxContext client run-time transport listener context
      * @return true
      */
-    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    static bool buildMessage(Message *&msg, Listener &LxContext);
 
     /**
      * Add client's CONNECT_MSG type and its builder to transport layer.

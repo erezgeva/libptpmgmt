@@ -38,8 +38,7 @@ class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
      * @param TxContext client run-time transport transmitter context
      * @return true
      */
-    virtual bool processMessage(TransportListenerContext &LxContext,
-        TransportTransmitterContext *&TxContext);
+    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
 
     /**
      * Create the ClientSubscribeMessage object
@@ -47,7 +46,7 @@ class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
      * @param LxContext client run-time transport listener context
      * @return true
      */
-    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    static bool buildMessage(Message *&msg, Listener &LxContext);
 
     /**
      * Add client's SUBSCRIBE_MSG type and its builder to transport layer.
@@ -55,8 +54,8 @@ class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
      */
     static bool initMessage();
 
-    virtual bool parseBuffer(TransportListenerContext &LxContext);
-    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
+    virtual bool parseBuffer(Listener &LxContext);
+    virtual bool makeBuffer(Transmitter &TxContext) const;
 
     void setClientState(ClientState &newClientState);
 

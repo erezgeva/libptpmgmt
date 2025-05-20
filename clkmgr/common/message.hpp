@@ -15,6 +15,7 @@
 
 #include "common/clkmgrtypes.hpp"
 #include "common/transport.hpp"
+#include "common/msgq_tport.hpp"
 
 #include <functional>
 #include <string>
@@ -23,11 +24,10 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 class Message;
-class TransportListenerContext;
-class TransportTransmitterContext;
+class Listener;
+class Transmitter;
 
-typedef std::function<bool (Message *&, TransportListenerContext &)>
-BuildMessage_t;
+typedef std::function<bool (Message *&, Listener &)> BuildMessage_t;
 
 typedef std::pair<msgId_t, BuildMessage_t> parseMsgMapElement_t;
 
@@ -45,17 +45,16 @@ class Message
     static std::string ExtractClassName(std::string prettyFunction,
         std::string function);
   public:
-    bool presendMessage(TransportTransmitterContext &ctx);
+    bool presendMessage(Transmitter &ctx);
 
-    virtual bool processMessage(TransportListenerContext &LxContext,
-        TransportTransmitterContext *&TxContext) = 0;
+    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext) = 0;
 
-    virtual bool transmitMessage(TransportTransmitterContext &TxContext) = 0;
+    virtual bool transmitMessage(Transmitter &TxContext) = 0;
 
-    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    static bool buildMessage(Message *&msg, Listener &LxContext);
 
-    virtual bool parseBuffer(TransportListenerContext &LxContext);
-    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
+    virtual bool parseBuffer(Listener &LxContext);
+    virtual bool makeBuffer(Transmitter &TxContext) const;
 
     virtual std::string toString();
 

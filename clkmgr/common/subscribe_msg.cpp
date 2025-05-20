@@ -28,7 +28,7 @@ string CommonSubscribeMessage::toString()
     return name;
 }
 
-bool CommonSubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
+bool CommonSubscribeMessage::parseBuffer(Listener &LxContext)
 {
     PrintDebug("[CommonSubscribeMessage]::parseBuffer ");
     if(!Message::parseBuffer(LxContext))
@@ -40,8 +40,7 @@ bool CommonSubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
     return true;
 }
 
-bool CommonSubscribeMessage::makeBuffer(TransportTransmitterContext &TxContext)
-const
+bool CommonSubscribeMessage::makeBuffer(Transmitter &TxContext) const
 {
     auto ret = Message::makeBuffer(TxContext);
     if(!ret)
@@ -58,8 +57,7 @@ const
     return true;
 }
 
-bool CommonSubscribeMessage::transmitMessage(TransportTransmitterContext
-    &TxContext)
+bool CommonSubscribeMessage::transmitMessage(Transmitter &TxContext)
 {
     PrintDebug("[CommonSubscribeMessage]::transmitMessage ");
     if(!presendMessage(TxContext))

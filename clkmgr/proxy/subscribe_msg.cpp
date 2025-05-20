@@ -30,8 +30,7 @@ extern map<int, ptp_event> ptp4lEvents;
  * @param LxContext proxy transport listener context
  * @return true
  */
-bool ProxySubscribeMessage::buildMessage(Message *&msg,
-    TransportListenerContext &LxContext)
+bool ProxySubscribeMessage::buildMessage(Message *&msg, Listener &LxContext)
 {
     msg = new ProxySubscribeMessage();
     return true;
@@ -51,8 +50,7 @@ bool ProxySubscribeMessage::initMessage()
     return true;
 }
 
-bool ProxySubscribeMessage::makeBuffer(TransportTransmitterContext &TxContext)
-const
+bool ProxySubscribeMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
     if(!CommonSubscribeMessage::makeBuffer(TxContext))
@@ -67,7 +65,7 @@ const
     return true;
 }
 
-bool ProxySubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
+bool ProxySubscribeMessage::parseBuffer(Listener &LxContext)
 {
     PrintDebug("[ProxySubscribeMessage]::parseBuffer ");
     if(!CommonSubscribeMessage::parseBuffer(LxContext))
@@ -86,8 +84,8 @@ bool ProxySubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
 This is to process the subscription from the clkmgr client runtime
 via POSIX msg queue.
 */
-bool ProxySubscribeMessage::processMessage(TransportListenerContext &LxContext,
-    TransportTransmitterContext *&TxContext)
+bool ProxySubscribeMessage::processMessage(Listener &LxContext,
+    Transmitter *&TxContext)
 {
     sessionId_t sID;
     sID = this->getc_sessionId();

@@ -30,9 +30,8 @@ class ProxyConnectMessage : virtual public ProxyMessage,
      * @param TxContext proxy transport transmitter context
      * @return true
      */
-    virtual bool processMessage(TransportListenerContext &LxContext,
-        TransportTransmitterContext *&TxContext);
-    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
+    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
+    virtual bool makeBuffer(Transmitter &TxContext) const;
 
     /**
      * Create the ProxyConnectMessage object
@@ -40,7 +39,7 @@ class ProxyConnectMessage : virtual public ProxyMessage,
      * @param LxContext proxy transport listener context
      * @return true
      */
-    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    static bool buildMessage(Message *&msg, Listener &LxContext);
 
     /**
      * Add proxy's CONNECT_MSG type and its builder to transport layer.

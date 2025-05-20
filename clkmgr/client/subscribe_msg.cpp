@@ -27,8 +27,7 @@ ClientState *ClientSubscribeMessage::currentClientState = nullptr;
  * @param LxContext client run-time transport listener context
  * @return true
  */
-bool ClientSubscribeMessage::buildMessage(Message *&msg,
-    TransportListenerContext &LxContext)
+bool ClientSubscribeMessage::buildMessage(Message *&msg, Listener &LxContext)
 {
     PrintDebug("[ClientSubscribeMessage]::buildMessage()");
     msg = new ClientSubscribeMessage();
@@ -55,7 +54,7 @@ void ClientSubscribeMessage::setClientState(ClientState &newClientState)
     currentClientState = &newClientState;
 }
 
-bool ClientSubscribeMessage::makeBuffer(TransportTransmitterContext &TxContext)
+bool ClientSubscribeMessage::makeBuffer(Transmitter &TxContext)
 const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
@@ -66,7 +65,7 @@ const
     return true;
 }
 
-bool ClientSubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
+bool ClientSubscribeMessage::parseBuffer(Listener &LxContext)
 {
     ptp_event data = {};
     PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
@@ -94,8 +93,8 @@ bool ClientSubscribeMessage::parseBuffer(TransportListenerContext &LxContext)
  * @param TxContext client run-time transport transmitter context
  * @return true
  */
-bool ClientSubscribeMessage::processMessage(TransportListenerContext &LxContext,
-    TransportTransmitterContext *&TxContext)
+bool ClientSubscribeMessage::processMessage(Listener &LxContext,
+    Transmitter *&TxContext)
 {
     PrintDebug("[ClientSubscribeMessage]::processMessage (reply)");
     unique_lock<rtpi::mutex> lock(cv_mtx);

@@ -10,6 +10,7 @@
  */
 
 #include "common/msgq_tport.hpp"
+#include "common/message.hpp"
 #include "common/sighandler.hpp"
 #include "common/print.hpp"
 
@@ -182,7 +183,7 @@ bool Listener::MqListenerWork()
     if(!Message::buildMessage(msg, *this))
         return false;
     PrintDebug("Received message " + msg->toString());
-    TransportTransmitterContext *txcontext;
+    Transmitter *txcontext;
     if(!msg->processMessage(*this, txcontext))
         return false;
     // Echo the message back with ACK disposition

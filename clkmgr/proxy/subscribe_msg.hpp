@@ -26,10 +26,9 @@ class ProxySubscribeMessage : virtual public ProxyMessage,
   protected:
     ProxySubscribeMessage() : Message(SUBSCRIBE_MSG) {};
   public:
-    virtual bool processMessage(TransportListenerContext &LxContext,
-        TransportTransmitterContext *&TxContext);
-    virtual bool makeBuffer(TransportTransmitterContext &TxContext) const;
-    virtual bool parseBuffer(TransportListenerContext &LxContext);
+    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
+    virtual bool makeBuffer(Transmitter &TxContext) const;
+    virtual bool parseBuffer(Listener &LxContext);
 
     /**
      * Create the ProxyConnectMessage object
@@ -37,7 +36,7 @@ class ProxySubscribeMessage : virtual public ProxyMessage,
      * @param LxContext proxy transport listener context
      * @return true
      */
-    static bool buildMessage(Message *&msg, TransportListenerContext &LxContext);
+    static bool buildMessage(Message *&msg, Listener &LxContext);
 
     /**
      * Add proxy's CONNECT_MSG type and its builder to transport layer.

@@ -26,8 +26,7 @@ using namespace std;
  * @param LxContext proxy transport listener context
  * @return true
  */
-bool ProxyConnectMessage::buildMessage(Message *&msg,
-    TransportListenerContext &LxContext)
+bool ProxyConnectMessage::buildMessage(Message *&msg, Listener &LxContext)
 {
     msg = new ProxyConnectMessage();
     return true;
@@ -62,8 +61,8 @@ bool ProxyConnectMessage::initMessage()
  * @param TxContext proxy transport transmitter context
  * @return true
  */
-bool ProxyConnectMessage::processMessage(TransportListenerContext &LxContext,
-    TransportTransmitterContext *&TxContext)
+bool ProxyConnectMessage::processMessage(Listener &LxContext,
+    Transmitter *&TxContext)
 {
     sessionId_t newSessionId = this->getc_sessionId();
     PrintDebug("Processing proxy connect message");
@@ -83,13 +82,14 @@ bool ProxyConnectMessage::processMessage(TransportListenerContext &LxContext,
     PrintDebug("Created new client session ID: " + to_string(newSessionId));
     this->set_sessionId(newSessionId);
     TxContext = Client::CreateTransmitterContext(getClientId());
+    if(TxContext == nullptr)
+        return false;
     Client::GetClientSession(newSessionId).get()->set_transmitContext(TxContext);
     set_msgAck(ACK_SUCCESS);
     return true;
 }
 
-bool ProxyConnectMessage::makeBuffer(TransportTransmitterContext &TxContext)
-const
+bool ProxyConnectMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
     if(!CommonConnectMessage::makeBuffer(TxContext))

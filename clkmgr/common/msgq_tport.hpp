@@ -59,7 +59,7 @@ class PosixMessageQueue
     std::string str() const { return std::to_string(mq); }
 };
 
-class Listener : public TransportListenerContext
+class Listener : public TransportBuffer
 {
   private:
     PosixMessageQueue m_listenerQueue;
@@ -71,29 +71,29 @@ class Listener : public TransportListenerContext
     bool isFutureSet();
 
   public:
-    Listener() : m_retVal(m_promise.get_future()),
-        m_exitVal(false) {}
+    Listener() : m_retVal(m_promise.get_future()), m_exitVal(false) {}
+    virtual ~Listener() = default;
     bool init(const std::string &name, size_t maxMsg);
     void dispatchLoop();
-    void stopSignal() { m_exitVal.store(true); }
+    bool MqListenerWork();
     bool finalize();
     bool stopTransport();
+    void stopSignal() { m_exitVal.store(true); }
     std::thread &getThread() { return m_thread; }
-    bool MqListenerWork();
     std::string getQueueName() const { return m_listenerQueue.str(); }
 };
 
-class Transmitter : public TransportTransmitterContext
+class Transmitter : public TransportBuffer
 {
   private:
     PosixMessageQueue m_transmitterQueue;
   public:
     Transmitter() = default;
     virtual ~Transmitter() = default;
-    virtual bool sendBuffer() override final;
+    bool finalize();
+    bool sendBuffer();
     bool open(const std::string &name, bool block = true);
     std::string getQueueName() const { return m_transmitterQueue.str(); }
-    bool finalize();
 };
 
 class MessageQueue : public Transport
