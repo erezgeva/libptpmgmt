@@ -18,31 +18,12 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ClientNotificationMessage : virtual public ClientMessage,
-    virtual public NotificationMessage
+class ClientNotificationMessage : public NotificationMessage
 {
   public:
-    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
-    virtual bool makeBuffer(Transmitter &TxContext) const;
-
-    /**
-     * Create the ClientNotificationMessage object
-     * @param msg msg structure to be fill up
-     * @param LxContext client listener
-     * @return true
-     */
-    static bool buildMessage(Message *&msg, Listener &LxContext);
-
-    /**
-     * Add client's NOTIFY_MESSAGE type and its builder to transport layer.
-     * @return true
-     */
-    static bool initMessage();
-
-    virtual bool parseBuffer(Listener &LxContext);
-
-  protected:
-    ClientNotificationMessage() : Message(NOTIFY_MESSAGE) {}
+    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
+    bool makeBuffer(Transmitter &TxContext) const override;
+    bool parseBuffer(Listener &LxContext) override;
 };
 
 __CLKMGR_NAMESPACE_END

@@ -17,8 +17,10 @@
 
 __CLKMGR_NAMESPACE_USE;
 
-bool ProxyMessage::init()
+bool clkmgr::ProxyMessage_init()
 {
-    return _initMessage<ProxyConnectMessage, ProxySubscribeMessage,
-        ProxyNotificationMessage>();
+    reg_message_type<ProxyConnectMessage>();
+    reg_message_type<ProxySubscribeMessage>();
+    reg_message_type<ProxyNotificationMessage>();
+    return true;
 }

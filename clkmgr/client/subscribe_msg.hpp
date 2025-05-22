@@ -20,16 +20,13 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
-    virtual public ClientMessage
+class ClientSubscribeMessage : public SubscribeMessage
 {
   private:
     static ClientState *currentClientState;
     int timeBaseIndex = 0; /**< Timebase index */
 
   public:
-    ClientSubscribeMessage() : Message(SUBSCRIBE_MSG) {};
-
     static rtpi::mutex cv_mtx;
     static rtpi::condition_variable cv;
     /**
@@ -38,24 +35,9 @@ class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
      * @param TxContext client run-time transmitter
      * @return true
      */
-    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
-
-    /**
-     * Create the ClientSubscribeMessage object
-     * @param msg msg structure to be fill up
-     * @param LxContext client run-time listener
-     * @return true
-     */
-    static bool buildMessage(Message *&msg, Listener &LxContext);
-
-    /**
-     * Add client's SUBSCRIBE_MSG type and its builder to transport layer.
-     * @return true
-     */
-    static bool initMessage();
-
-    virtual bool parseBuffer(Listener &LxContext);
-    virtual bool makeBuffer(Transmitter &TxContext) const;
+    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
+    bool parseBuffer(Listener &LxContext) override;
+    bool makeBuffer(Transmitter &TxContext) const override;
 
     void setClientState(ClientState &newClientState);
 

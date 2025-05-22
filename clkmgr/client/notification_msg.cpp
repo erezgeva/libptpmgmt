@@ -19,37 +19,6 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-/**
- * Create the ClientNotificationMessage object
- * @param msg msg structure to be fill up
- * @param LxContext proxy listener
- * @return true
- */
-bool ClientNotificationMessage::buildMessage(Message *&msg, Listener &LxContext)
-{
-    msg = new ClientNotificationMessage();
-    return true;
-}
-
-/**
- * @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
- * This function will be called during init to add a map of NOTIFY_MESSAGE
- * type and its corresponding buildMessage function.
- *
- * @return true
- */
-bool ClientNotificationMessage::initMessage()
-{
-    addMessageType(parseMsgMapElement_t(NOTIFY_MESSAGE, buildMessage));
-    return true;
-}
-
-bool ClientNotificationMessage::makeBuffer(Transmitter &TxContext) const
-{
-    PrintDebug("[ClientNotificationMessage]::makeBuffer");
-    return true;
-}
-
 bool ClientNotificationMessage::processMessage(Listener &LxContext,
     Transmitter *&TxContext)
 {

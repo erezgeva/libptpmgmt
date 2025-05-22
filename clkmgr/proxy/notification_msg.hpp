@@ -18,29 +18,15 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ProxyNotificationMessage : virtual public ProxyMessage,
-    virtual public NotificationMessage
+class ProxyNotificationMessage : public NotificationMessage
 {
   private:
     int timeBaseIndex = 0;
+
   public:
-    ProxyNotificationMessage() : Message(NOTIFY_MESSAGE) {}
-    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
-    virtual bool makeBuffer(Transmitter &TxContext) const;
+    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
+    bool makeBuffer(Transmitter &TxContext) const override;
 
-    /**
-     * Create the ProxyNotificationMessage object
-     * @param msg msg structure to be fill up
-     * @param LxContext proxy listener
-     * @return true
-     */
-    static bool buildMessage(Message *&msg, Listener &LxContext);
-
-    /**
-     * Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
-     * @return true
-     */
-    static bool initMessage();
     void setTimeBaseIndex(int newTimeBaseIndex) {
         timeBaseIndex = newTimeBaseIndex;
     }

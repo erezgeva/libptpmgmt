@@ -24,36 +24,10 @@ using namespace std;
 
 extern map<int, ptp_event> ptp4lEvents;
 
-/**
- * Create the ProxySubscribeMessage object
- * @param msg msg structure to be fill up
- * @param LxContext proxy listener
- * @return true
- */
-bool ProxySubscribeMessage::buildMessage(Message *&msg, Listener &LxContext)
-{
-    msg = new ProxySubscribeMessage();
-    return true;
-}
-
-/**
- * @brief Add proxy's SUBSCRIBE_MSG type and its builder to transport layer.
- *
- * This function will be called during init to add a map of SUBSCRIBE_MSG
- * type and its corresponding buildMessage function.
- *
- * @return true
- */
-bool ProxySubscribeMessage::initMessage()
-{
-    addMessageType(parseMsgMapElement_t(SUBSCRIBE_MSG, buildMessage));
-    return true;
-}
-
 bool ProxySubscribeMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-    if(!CommonSubscribeMessage::makeBuffer(TxContext))
+    if(!SubscribeMessage::makeBuffer(TxContext))
         return false;
     ptp_event event = ptp4lEvents[timeBaseIndex];
     // Add timeBaseIndex into the message
@@ -68,14 +42,13 @@ bool ProxySubscribeMessage::makeBuffer(Transmitter &TxContext) const
 bool ProxySubscribeMessage::parseBuffer(Listener &LxContext)
 {
     PrintDebug("[ProxySubscribeMessage]::parseBuffer ");
-    if(!CommonSubscribeMessage::parseBuffer(LxContext))
+    if(!SubscribeMessage::parseBuffer(LxContext))
         return false;
     if(!PARSE_RX(FIELD, timeBaseIndex, LxContext))
         return false;
-    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, this->getc_sessionId());
+    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, get_sessionId());
     #ifdef HAVE_LIBCHRONY
-    ConnectChrony::subscribe_chrony(std::move(timeBaseIndex),
-        this->getc_sessionId());
+    ConnectChrony::subscribe_chrony(std::move(timeBaseIndex), get_sessionId());
     #endif
     return true;
 }
@@ -87,8 +60,7 @@ via POSIX msg queue.
 bool ProxySubscribeMessage::processMessage(Listener &LxContext,
     Transmitter *&TxContext)
 {
-    sessionId_t sID;
-    sID = this->getc_sessionId();
+    sessionId_t sID = get_sessionId();
     PrintDebug("[ProxySubscribeMessage]::processMessage - "
         "Use current client session ID: "
         + to_string(sID));

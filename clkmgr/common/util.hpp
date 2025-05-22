@@ -39,26 +39,6 @@ const int32_t USEC_PER_SEC = 1000000;
 
 #define DECLARE_STATIC(x,...) decltype(x) x __VA_OPT__({) __VA_ARGS__ __VA_OPT__(})
 
-// Call function 'x' of all classes
-// Used for staging, like initilizing
-#define DECLARE_METHOD_VARIADIC_CALL(x)                           \
-    template <typename T>                                         \
-    inline bool _##x()                                            \
-    {                                                             \
-        return T::x();                                            \
-    }                                                             \
-    template <typename T, typename... Types>                      \
-    inline typename std::enable_if<sizeof...(Types) != 0, bool>::type    \
-    _##x()                                                        \
-    {                                                             \
-        return _##x<T>() && _##x<Types...>();                     \
-    }
-
-DECLARE_METHOD_VARIADIC_CALL(initMessage)
-DECLARE_METHOD_VARIADIC_CALL(init)
-DECLARE_METHOD_VARIADIC_CALL(stop)
-DECLARE_METHOD_VARIADIC_CALL(finalize)
-
 __CLKMGR_NAMESPACE_END
 
 #endif /* UTIL_HPP */

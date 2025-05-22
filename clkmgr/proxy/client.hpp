@@ -19,13 +19,10 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class Client;
-typedef std::shared_ptr<Client> ClientX;
-
 class Client
 {
   public:
-    typedef std::pair<sessionId_t, ClientX> SessionMapping_t;
+    typedef std::pair<sessionId_t, std::shared_ptr<Client>> SessionMapping_t;
   private:
     static sessionId_t nextSession;
     static std::map<SessionMapping_t::first_type, SessionMapping_t::second_type>
@@ -37,7 +34,7 @@ class Client
         SessionMap.erase(sessionId);
     }
     static sessionId_t GetSessionIdAt(size_t index);
-    static ClientX GetClientSession(sessionId_t sessionId);
+    static std::shared_ptr<Client> GetClientSession(sessionId_t sessionId);
     static Transmitter *CreateTransmitterContext(ClientId &clientId);
   private:
     std::unique_ptr<Transmitter> transmitContext;

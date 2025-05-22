@@ -21,36 +21,10 @@ using namespace std;
 
 ClientState *ClientConnectMessage::currentClientState = nullptr;
 
-/**
- * Create the ClientConnectMessage object
- * @param msg structure to be fill up
- * @param LxContext client run-time listener
- * @return true
- */
-bool ClientConnectMessage::buildMessage(Message *&msg, Listener &LxContext)
-{
-    msg = new ClientConnectMessage();
-    return true;
-}
-
-/**
- * @brief Add client's CONNECT_MSG type and its builder to transport layer.
- *
- * This function will be called during init to add a map of CONNECT_MSG
- * type and its corresponding buildMessage function.
- *
- * @return true
- */
-bool ClientConnectMessage::initMessage()
-{
-    addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
-    return true;
-}
-
 bool ClientConnectMessage::parseBuffer(Listener &LxContext)
 {
     PrintDebug("[ClientConnectMessage]::parseBuffer ");
-    if(!CommonConnectMessage::parseBuffer(LxContext))
+    if(!ConnectMessage::parseBuffer(LxContext))
         return false;
     size_t mapSize = 0;
     if(!PARSE_RX(FIELD, mapSize, LxContext))

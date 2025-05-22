@@ -13,7 +13,6 @@
 #ifndef COMMON_MESSAGE_HPP
 #define COMMON_MESSAGE_HPP
 
-#include "common/clkmgrtypes.hpp"
 #include "common/msgq_tport.hpp"
 
 #include <functional>
@@ -22,61 +21,59 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
+typedef uint8_t msgAck_t;
+enum  : msgAck_t {ACK_FAIL = (msgAck_t) -1, ACK_NONE = 0, ACK_SUCCESS = 1, };
+
+typedef uint8_t msgId_t;
+enum : msgId_t {INVALID_MSG = (msgId_t) -1, NULL_MSG = 1, CONNECT_MSG,
+    SUBSCRIBE_MSG, NOTIFY_MESSAGE, DISCONNECT_MSG
+};
+
 class Message;
+typedef std::function<Message *()> AllocMessage_t;
 
-typedef std::function<bool (Message *&, Listener &)> BuildMessage_t;
-
-typedef std::pair<msgId_t, BuildMessage_t> parseMsgMapElement_t;
+#define MSG_EXTRACT_CLASS_NAME\
+    Message::ExtractClassName(__PRETTY_FUNCTION__, __FUNCTION__)
 
 class Message
 {
   private:
-    static std::map<msgId_t, BuildMessage_t> parseMsgMap;
-    msgId_t msgId;
-    msgAck_t msgAck;
-    sessionId_t sessionId;
+    static std::map<msgId_t, AllocMessage_t> allocMessageMap;
+    msgAck_t m_msgAck = ACK_NONE;
+    sessionId_t m_sessionId = InvalidSessionId;
 
   protected:
-    Message(msgId_t msgId);
-    static bool addMessageType(parseMsgMapElement_t);
-    static std::string ExtractClassName(std::string prettyFunction,
-        std::string function);
+    Message() = default;
+    bool makeBufferBase(Transmitter &TxContext) const;
+
   public:
-    bool presendMessage(Transmitter &ctx);
+    static std::string ExtractClassName(const std::string &prettyFunction,
+        const char *function);
 
-    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext) = 0;
-
-    virtual bool transmitMessage(Transmitter &TxContext) = 0;
-
-    static bool buildMessage(Message *&msg, Listener &LxContext);
-
-    virtual bool parseBuffer(Listener &LxContext);
-    virtual bool makeBuffer(Transmitter &TxContext) const;
-
-    virtual std::string toString();
+    static Message *buildMessage(Listener &LxContext);
+    static void registerMessageType(msgId_t id, AllocMessage_t allocFunc) {
+        allocMessageMap[id] = allocFunc;
+    }
 
     virtual ~Message() = default;
+    virtual msgId_t get_msgId() const = 0;
+    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext) = 0;
+    virtual bool transmitMessage(Transmitter &TxContext) = 0;
+    virtual bool makeBuffer(Transmitter &TxContext) const = 0;
+    virtual bool parseBuffer(Listener &LxContext);
+    virtual std::string toString();
 
-    const msgId_t &getc_msgId() { return msgId; }
-    msgId_t &get_msgId() { return msgId; }
-    void set_msgId(const msgId_t &msgId) { this->msgId = msgId; }
-    msgId_t c_get_val_msgId() const { return msgId; }
-
-    const msgAck_t &getc_msgAck() { return msgAck; }
-    msgAck_t &get_msgAck() { return msgAck; }
-    void set_msgAck(const msgAck_t &msgAck) { this->msgAck = msgAck; }
-    msgAck_t c_get_val_msgAck() const { return msgAck; }
-
-    const sessionId_t &getc_sessionId() { return sessionId; }
-    sessionId_t &get_sessionId() { return sessionId; }
-    void set_sessionId(const sessionId_t &sessionId) {
-        this->sessionId = sessionId;
-    }
-    sessionId_t c_get_val_sessionId() const { return sessionId; }
-
-    static bool initMessage() { return false; };
-    static bool init() { return false; }
+    bool presendMessage(Transmitter &ctx);
+    msgAck_t get_msgAck() const { return m_msgAck; }
+    void set_msgAck(msgAck_t msgAck) { m_msgAck = msgAck; }
+    sessionId_t get_sessionId() const { return m_sessionId; }
+    void set_sessionId(sessionId_t sessionId) { m_sessionId = sessionId; }
 };
+
+template <typename T> inline void reg_message_type()
+{
+    Message::registerMessageType(T::get_ClassMsgId(), []() { return new T; });
+}
 
 __CLKMGR_NAMESPACE_END
 

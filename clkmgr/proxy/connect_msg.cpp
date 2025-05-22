@@ -21,32 +21,6 @@ __CLKMGR_NAMESPACE_USE;
 using namespace std;
 
 /**
- * Create the ProxyConnectMessage object
- * @param msg msg structure to be fill up
- * @param LxContext proxy listener
- * @return true
- */
-bool ProxyConnectMessage::buildMessage(Message *&msg, Listener &LxContext)
-{
-    msg = new ProxyConnectMessage();
-    return true;
-}
-
-/**
- * @brief Add proxy's CONNECT_MSG type and its builder to transport layer.
- *
- * This function will be called during init to add a map of CONNECT_MSG
- * type and its corresponding buildMessage function.
- *
- * @return true
- */
-bool ProxyConnectMessage::initMessage()
-{
-    addMessageType(parseMsgMapElement_t(CONNECT_MSG, buildMessage));
-    return true;
-}
-
-/**
  * @brief process the connect msg from client-runtime
  *
  * This function will be called when the transport layer
@@ -64,7 +38,7 @@ bool ProxyConnectMessage::initMessage()
 bool ProxyConnectMessage::processMessage(Listener &LxContext,
     Transmitter *&TxContext)
 {
-    sessionId_t newSessionId = this->getc_sessionId();
+    sessionId_t newSessionId = get_sessionId();
     PrintDebug("Processing proxy connect message");
     if(newSessionId != InvalidSessionId) {
         auto clientSession = Client::GetClientSession(newSessionId);
@@ -92,7 +66,7 @@ bool ProxyConnectMessage::processMessage(Listener &LxContext,
 bool ProxyConnectMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
-    if(!CommonConnectMessage::makeBuffer(TxContext))
+    if(!ConnectMessage::makeBuffer(TxContext))
         return false;
     JsonConfigParser parser = JsonConfigParser::getInstance();
     size_t mapSize = parser.size();

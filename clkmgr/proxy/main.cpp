@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         PrintError("Proxy queue init failed");
         return EXIT_FAILURE;
     }
-    if(!ProxyMessage::init()) {
+    if(!ProxyMessage_init()) {
         PrintError("Message init failed");
         return EXIT_FAILURE;
     }

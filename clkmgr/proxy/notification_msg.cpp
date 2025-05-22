@@ -21,36 +21,10 @@ using namespace std;
 
 extern map<int, ptp_event> ptp4lEvents;
 
-/**
- * Create the ProxyNotificationMessage object
- * @param msg msg structure to be fill up
- * @param LxContext proxy listener
- * @return true
- */
-bool ProxyNotificationMessage::buildMessage(Message *&msg, Listener &LxContext)
-{
-    msg = new ProxyNotificationMessage();
-    return true;
-}
-
-/**
- * @brief Add proxy's NOTIFY_MESSAGE type and its builder to transport layer.
- *
- * This function will be called during init to add a map of NOTIFY_MESSAGE
- * type and its corresponding buildMessage function.
- *
- * @return true
- */
-bool ProxyNotificationMessage::initMessage()
-{
-    addMessageType(parseMsgMapElement_t(NOTIFY_MESSAGE, buildMessage));
-    return true;
-}
-
 bool ProxyNotificationMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ProxyNotificationMessage]::makeBuffer");
-    if(!Message::makeBuffer(TxContext))
+    if(!makeBufferBase(TxContext))
         return false;
     ptp_event event = ptp4lEvents[timeBaseIndex];
     // Add timeBaseIndex into the message

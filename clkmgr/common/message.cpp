@@ -18,16 +18,10 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-DECLARE_STATIC(Message::parseMsgMap);
+DECLARE_STATIC(Message::allocMessageMap);
 
-Message::Message(msgId_t msgId)
-{
-    this->msgId = msgId;
-    this->msgAck = ACK_NONE;
-    this->sessionId = InvalidSessionId;
-}
-
-string Message::ExtractClassName(string prettyFunction, string function)
+string Message::ExtractClassName(const string &prettyFunction,
+    const char *function)
 {
     const auto &fpos = prettyFunction.find(function);
     if(fpos == string::npos)
@@ -46,17 +40,17 @@ string Message::ExtractClassName(string prettyFunction, string function)
 string Message::toString()
 {
     string ret;
-    ret += PRIMITIVE_TOSTRING(msgId);
-    ret += PRIMITIVE_TOSTRING(msgAck);
+    ret += PRIMITIVE_TOSTRING(get_msgId());
+    ret += PRIMITIVE_TOSTRING(m_msgAck);
     return ret;
 }
 
-bool Message::makeBuffer(Transmitter &TxContext) const
+bool Message::makeBufferBase(Transmitter &TxContext) const
 {
-    PrintDebug("[Message]::makeBuffer");
-    if(!WRITE_TX(FIELD, msgId, TxContext))
+    PrintDebug("[Message]::makeBufferBase");
+    if(!WRITE_TX(FIELD, get_msgId(), TxContext))
         return false;
-    if(!WRITE_TX(FIELD, msgAck, TxContext))
+    if(!WRITE_TX(FIELD, m_msgAck, TxContext))
         return false;
     return true;
 }
@@ -75,42 +69,39 @@ bool Message::presendMessage(Transmitter &ctx)
     return true;
 }
 
-bool Message::addMessageType(parseMsgMapElement_t mapping)
-{
-    auto size = parseMsgMap.size();
-    parseMsgMap.insert(mapping);
-    if(parseMsgMap.size() == size)
-        return false;
-    PrintDebug("Added message type: " + to_string(mapping.first));
-    return true;
-}
-
 bool Message::parseBuffer(Listener &LxContext)
 {
     PrintDebug("[Message]::parseBuffer ");
+    msgId_t msgId;
     if(!PARSE_RX(FIELD, msgId, LxContext))
         return false;
-    if(!PARSE_RX(FIELD, msgAck, LxContext))
+    if(msgId != get_msgId()) {
+        PrintError("Wrong message type " + to_string(msgId));
+        return false;
+    }
+    if(!PARSE_RX(FIELD, m_msgAck, LxContext))
         return false;
     return true;
 }
 
-bool Message::buildMessage(Message *&msg, Listener &LxContext)
+Message *Message::buildMessage(Listener &LxContext)
 {
     msgId_t msgId;
     if(!PARSE_RX(FIELD, msgId, LxContext))
-        return false;
-    const auto &it = parseMsgMap.find(msgId);
-    if(it == parseMsgMap.cend()) {
+        return nullptr;
+    if(allocMessageMap.count(msgId) == 0) {
         PrintError("Unknown message type " + to_string(msgId));
-        return false;
+        return nullptr;
     }
-    if(!it->second(msg, LxContext)) {
+    Message *msg = allocMessageMap[msgId]();
+    if(msg == nullptr) {
         PrintError("Error parsing message");
-        return false;
+        return nullptr;
     }
     LxContext.resetOffset();
-    if(!msg->parseBuffer(LxContext))
-        return false;
-    return true;
+    if(!msg->parseBuffer(LxContext)) {
+        delete msg;
+        return nullptr;
+    }
+    return msg;
 }

@@ -101,13 +101,13 @@ void ChronyThreadSet::notify_client()
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
     for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
         sessionId_t sessionId = *it;
-        unique_ptr<ProxyMessage> notifyMsg(new ProxyNotificationMessage());
-        ProxyNotificationMessage *pmsg =
-            dynamic_cast<decltype(pmsg)>(notifyMsg.get());
+        ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
         if(pmsg == nullptr) {
             PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
             return;
         }
+        // Release message on function ends
+        unique_ptr<Message> notifyMsg(pmsg);
         PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
         // Send data for multiple sessions
         pmsg->setTimeBaseIndex(timeBaseIndex);

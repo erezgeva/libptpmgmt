@@ -18,11 +18,8 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ProxyConnectMessage : virtual public ProxyMessage,
-    virtual public CommonConnectMessage
+class ProxyConnectMessage : public ConnectMessage
 {
-  protected:
-    ProxyConnectMessage() : Message(CONNECT_MSG) {};
   public:
     /**
      * process the connect msg from client-runtime
@@ -30,22 +27,8 @@ class ProxyConnectMessage : virtual public ProxyMessage,
      * @param TxContext proxy transmitter
      * @return true
      */
-    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
-    virtual bool makeBuffer(Transmitter &TxContext) const;
-
-    /**
-     * Create the ProxyConnectMessage object
-     * @param msg msg structure to be fill up
-     * @param LxContext proxy listener
-     * @return true
-     */
-    static bool buildMessage(Message *&msg, Listener &LxContext);
-
-    /**
-     * Add proxy's CONNECT_MSG type and its builder to transport layer.
-     * @return true
-     */
-    static bool initMessage();
+    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
+    bool makeBuffer(Transmitter &TxContext) const override;
 };
 
 __CLKMGR_NAMESPACE_END

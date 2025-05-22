@@ -21,44 +21,15 @@ using namespace std;
 
 ClientState *ClientSubscribeMessage::currentClientState = nullptr;
 
-/**
- * Create the ClientSubscribeMessage object
- * @param msg msg structure to be fill up
- * @param LxContext client run-time listener
- * @return true
- */
-bool ClientSubscribeMessage::buildMessage(Message *&msg, Listener &LxContext)
-{
-    PrintDebug("[ClientSubscribeMessage]::buildMessage()");
-    msg = new ClientSubscribeMessage();
-    return true;
-}
-
-/**
- * @brief Add client's SUBSCRIBE_MSG type and its builder to transport layer.
- *
- * This function will be called during init to add a map of SUBSCRIBE_MSG
- * type and its corresponding buildMessage function.
- *
- * @return true
- */
-bool ClientSubscribeMessage::initMessage()
-{
-    PrintDebug("[ClientSubscribeMessage]::initMessage()");
-    addMessageType(parseMsgMapElement_t(SUBSCRIBE_MSG, buildMessage));
-    return true;
-}
-
 void ClientSubscribeMessage::setClientState(ClientState &newClientState)
 {
     currentClientState = &newClientState;
 }
 
-bool ClientSubscribeMessage::makeBuffer(Transmitter &TxContext)
-const
+bool ClientSubscribeMessage::makeBuffer(Transmitter &TxContext) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-    if(!CommonSubscribeMessage::makeBuffer(TxContext))
+    if(!SubscribeMessage::makeBuffer(TxContext))
         return false;
     if(!WRITE_TX(FIELD, timeBaseIndex, TxContext))
         return false;
@@ -69,7 +40,7 @@ bool ClientSubscribeMessage::parseBuffer(Listener &LxContext)
 {
     ptp_event data = {};
     PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
-    if(!CommonSubscribeMessage::parseBuffer(LxContext))
+    if(!SubscribeMessage::parseBuffer(LxContext))
         return false;
     if(!PARSE_RX(FIELD, timeBaseIndex, LxContext))
         return false;

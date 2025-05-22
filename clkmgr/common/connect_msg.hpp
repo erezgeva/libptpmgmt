@@ -17,19 +17,20 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class CommonConnectMessage : virtual public Message
+class ConnectMessage : public Message
 {
   private:
     ClientId clientId;
   protected:
-    CommonConnectMessage() : Message(CONNECT_MSG) {}
+    ConnectMessage() = default;
   public:
+    static msgId_t get_ClassMsgId() { return CONNECT_MSG; }
+    msgId_t get_msgId() const override final { return CONNECT_MSG; }
     ClientId &getClientId() { return clientId; }
-    virtual bool parseBuffer(Listener &LxContext);
-    static bool registerBuild();
-    virtual bool transmitMessage(Transmitter &TxContext);
-    virtual bool makeBuffer(Transmitter &TxContext) const;
-    virtual std::string toString();
+    bool parseBuffer(Listener &LxContext) override;
+    bool transmitMessage(Transmitter &TxContext) override;
+    bool makeBuffer(Transmitter &TxContext) const override;
+    std::string toString() override;
 };
 
 __CLKMGR_NAMESPACE_END

@@ -18,38 +18,39 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-string CommonSubscribeMessage::toString()
+string SubscribeMessage::toString()
 {
-    string name = ExtractClassName(string(__PRETTY_FUNCTION__),
-            string(__FUNCTION__));
+    string name = MSG_EXTRACT_CLASS_NAME;
     name += "\n";
     name += Message::toString();
     //name += "Client ID: " + string((char *)clientId.data()) + "\n";
     return name;
 }
 
-bool CommonSubscribeMessage::parseBuffer(Listener &LxContext)
+bool SubscribeMessage::parseBuffer(Listener &LxContext)
 {
-    PrintDebug("[CommonSubscribeMessage]::parseBuffer ");
+    PrintDebug("[SubscribeMessage]::parseBuffer ");
     if(!Message::parseBuffer(LxContext))
         return false;
-    if(!PARSE_RX(FIELD, get_sessionId(), LxContext))
+    sessionId_t sessionId;
+    if(!PARSE_RX(FIELD, sessionId, LxContext))
         return false;
+    set_sessionId(sessionId);
     if(!PARSE_RX(FIELD, subscription, LxContext))
         return false;
     return true;
 }
 
-bool CommonSubscribeMessage::makeBuffer(Transmitter &TxContext) const
+bool SubscribeMessage::makeBuffer(Transmitter &TxContext) const
 {
-    auto ret = Message::makeBuffer(TxContext);
+    auto ret = makeBufferBase(TxContext);
     if(!ret)
         return ret;
-    PrintDebug("[CommonSubscribeMessage]::makeBuffer - sessionId : " +
-        to_string(c_get_val_sessionId()));
-    if(!WRITE_TX(FIELD, c_get_val_sessionId(), TxContext))
+    PrintDebug("[SubscribeMessage]::makeBuffer - sessionId : " +
+        to_string(get_sessionId()));
+    if(!WRITE_TX(FIELD, get_sessionId(), TxContext))
         return false;
-    PrintDebug("[CommonSubscribeMessage]::makeBuffer - subscription event : " +
+    PrintDebug("[SubscribeMessage]::makeBuffer - subscription event : " +
         to_string(subscription.get_event_mask()) + ", composite event : " +
         to_string(subscription.get_composite_event_mask()));
     if(!WRITE_TX(FIELD, subscription, TxContext))
@@ -57,9 +58,9 @@ bool CommonSubscribeMessage::makeBuffer(Transmitter &TxContext) const
     return true;
 }
 
-bool CommonSubscribeMessage::transmitMessage(Transmitter &TxContext)
+bool SubscribeMessage::transmitMessage(Transmitter &TxContext)
 {
-    PrintDebug("[CommonSubscribeMessage]::transmitMessage ");
+    PrintDebug("[SubscribeMessage]::transmitMessage ");
     if(!presendMessage(TxContext))
         return false;
     return TxContext.sendBuffer();
@@ -67,5 +68,5 @@ bool CommonSubscribeMessage::transmitMessage(Transmitter &TxContext)
 
 void setSubscription(ClkMgrSubscription &newsub)
 {
-    PrintDebug("[CommonSubscribeMessage]::setSubscription ");
+    PrintDebug("[SubscribeMessage]::setSubscription ");
 }

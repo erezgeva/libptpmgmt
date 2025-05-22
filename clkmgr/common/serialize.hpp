@@ -14,61 +14,47 @@
 
 #include <cstring>
 
-#define PARSE_RX(type,var,lc)                       \
-    ({                              \
-        decltype(lc.get_offset()) offset = \
-            PARSE_##type(var,lc.data() + lc.get_offset(), \
-                lc.max_size() - lc.get_offset()); \
-        if (offset != (decltype(offset))-1) {               \
-            lc.addOffset(offset);                   \
-        }                               \
-        (offset != (decltype(offset))-1);        \
-    })
+#define PARSE_RX(type,var,lc) ({                                            \
+        ssize_t offset = PARSE_##type(var,lc.data() + lc.get_offset(),      \
+                lc.max_size() - lc.get_offset());                           \
+        if (offset > 0)                                                     \
+            lc.addOffset(offset);                                           \
+        offset >= 0; })
 
-#define PARSE_FIELD(var,ptr,len) \
-    ({                              \
-        size_t var_len = sizeof(var);          \
-        bool can_parse = len >= var_len;            \
-        if (can_parse) \
-            var = *(std::remove_reference<decltype(var)>::type *)(ptr); \
-        (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
-    })
+#define PARSE_FIELD(var,ptr,len) ({                                         \
+        size_t var_len = sizeof(var);                                       \
+        bool can_parse = (len) >= var_len;                                  \
+        if (can_parse)                                                      \
+            var = *(remove_reference<decltype(var)>::type *)(ptr);          \
+        can_parse ? var_len : -1; })
 
-#define PARSE_ARRAY(arr,ptr,len)                    \
-    ({                              \
-        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type); \
-        bool can_parse = len >= var_len;            \
-        if (can_parse) memcpy(arr.data(), ptr, var_len);    \
-        (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
-    })
+#define PARSE_ARRAY(arr,ptr,len) ({                                         \
+        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type);  \
+        bool can_parse = (len) >= var_len;                                  \
+        if (can_parse)                                                      \
+            memcpy(arr.data(), ptr, var_len);                               \
+        can_parse ? var_len : -1; })
 
-#define WRITE_TX(type,var,tc)                   \
-    ({                                  \
-        decltype(tc.get_offset()) offset = \
-            WRITE_##type(var,tc.data() + tc.get_offset(), \
-                tc.max_size() - tc.get_offset()); \
-        if (offset != (decltype(offset))-1) {               \
-            tc.addOffset(offset);                   \
-        }                               \
-        (offset != (decltype(offset))-1);        \
-    })
+#define WRITE_TX(type,var,tc) ({                                            \
+        ssize_t offset = WRITE_##type(var,tc.data() + tc.get_offset(),      \
+                tc.max_size() - tc.get_offset());                           \
+        if (offset > 0)                                                     \
+            tc.addOffset(offset);                                           \
+        offset >= 0; })
 
-#define WRITE_FIELD(var,ptr,len) \
-    ({                              \
-        size_t var_len = sizeof(var);          \
-        bool can_parse = (len) >= var_len;          \
-        if (can_parse) \
-            *(std::remove_reference<decltype(var)>::type *)(ptr) = var; \
-        (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
-    })
+#define WRITE_FIELD(var,ptr,len) ({                                         \
+        size_t var_len = sizeof(var);                                       \
+        bool can_parse = (len) >= var_len;                                  \
+        if (can_parse)                                                      \
+            *(remove_reference<decltype(var)>::type *)(ptr) = var;          \
+        can_parse ? var_len : -1; })
 
 /* For writing std::array */
-#define WRITE_ARRAY(arr,ptr,len)                    \
-    ({                              \
-        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type); \
-        bool can_parse = len >= var_len;            \
-        if (can_parse) memcpy(ptr, arr.data(), var_len);    \
-        (can_parse ? var_len : (std::remove_reference<decltype(len)>::type)(-1)); \
-    })
+#define WRITE_ARRAY(arr,ptr,len) ({                                         \
+        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type);  \
+        bool can_parse = (len) >= var_len;                                  \
+        if (can_parse)                                                      \
+            memcpy(ptr, arr.data(), var_len);                               \
+        can_parse ? var_len : -1; })
 
 #endif /* SERIALIZE_HPP */

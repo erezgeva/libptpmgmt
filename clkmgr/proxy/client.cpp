@@ -38,12 +38,12 @@ sessionId_t Client::GetSessionIdAt(size_t index)
     return InvalidSessionId;
 }
 
-ClientX Client::GetClientSession(sessionId_t sessionId)
+shared_ptr<Client> Client::GetClientSession(sessionId_t sessionId)
 {
     const auto &iter = SessionMap.find(sessionId);
     if(iter == SessionMap.cend()) {
         PrintError("Session ID " + to_string(sessionId) + " not found");
-        return ClientX(nullptr);
+        return shared_ptr<Client>(nullptr);
     }
     return iter->second;
 }
