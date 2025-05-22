@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Common POSIX message queue transport class.
+ * @brief Common queue class.
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -12,16 +12,37 @@
 #ifndef COMMON_MSGQ_TPORT_HPP
 #define COMMON_MSGQ_TPORT_HPP
 
-#include "common/transport.hpp"
+#include "common/util.hpp"
 
 #include <mqueue.h>
 #include <future>
 
-#define MESSAGE_QUEUE_PREFIX "/clkmgr"
-
 __CLKMGR_NAMESPACE_BEGIN
 
-class PosixMessageQueue
+static const size_t MAX_BUFFER_LENGTH = 4096;
+static const std::string mqProxyName("/clkmgr");
+
+class Buffer
+{
+  private:
+    uint8_t m_buffer[MAX_BUFFER_LENGTH];
+    size_t m_offset = 0;
+
+  public:
+    Buffer() = default;
+    virtual ~Buffer() = default;
+
+    size_t get_offset() { return m_offset; }
+    void set_offset(size_t offset) { m_offset = offset; }
+
+    void resetOffset() { m_offset = 0; }
+    void addOffset(size_t offset) { m_offset += offset; }
+
+    uint8_t *data() { return m_buffer; }
+    static size_t max_size() { return MAX_BUFFER_LENGTH; }
+};
+
+class Queue
 {
   private:
     static const mqd_t invalidMq = (mqd_t) -1;
@@ -29,16 +50,16 @@ class PosixMessageQueue
     bool rx = false; // Receive or Transmit
     std::string name;
   public:
-    PosixMessageQueue() = default;
-    ~PosixMessageQueue() { close(); remove(); }
+    Queue() = default;
+    ~Queue() { close(); remove(); }
     // Move Constructor
-    PosixMessageQueue(PosixMessageQueue &&other) noexcept;
+    Queue(Queue &&other) noexcept;
     // Move Assignment Operator
-    PosixMessageQueue &operator=(PosixMessageQueue &&other) noexcept;
+    Queue &operator=(Queue &&other) noexcept;
     // Delete Copy Constructor
-    PosixMessageQueue(const PosixMessageQueue &) = delete;
+    Queue(const Queue &) = delete;
     // Delete Copy Assignment Operator
-    PosixMessageQueue &operator=(const PosixMessageQueue &) = delete;
+    Queue &operator=(const Queue &) = delete;
     // Receive POSIX message queue
     bool RxOpen(const std::string &name, size_t maxMsg);
     // Transmit POSIX message queue
@@ -59,10 +80,10 @@ class PosixMessageQueue
     std::string str() const { return std::to_string(mq); }
 };
 
-class Listener : public TransportBuffer
+class Listener : public Buffer
 {
   private:
-    PosixMessageQueue m_listenerQueue;
+    Queue m_listenerQueue;
     std::promise<bool> m_promise;
     std::future<bool> m_retVal;
     std::atomic_bool m_exitVal;
@@ -77,16 +98,16 @@ class Listener : public TransportBuffer
     void dispatchLoop();
     bool MqListenerWork();
     bool finalize();
-    bool stopTransport();
+    bool stop();
     void stopSignal() { m_exitVal.store(true); }
     std::thread &getThread() { return m_thread; }
     std::string getQueueName() const { return m_listenerQueue.str(); }
 };
 
-class Transmitter : public TransportBuffer
+class Transmitter : public Buffer
 {
   private:
-    PosixMessageQueue m_transmitterQueue;
+    Queue m_transmitterQueue;
   public:
     Transmitter() = default;
     virtual ~Transmitter() = default;
@@ -94,16 +115,6 @@ class Transmitter : public TransportBuffer
     bool sendBuffer();
     bool open(const std::string &name, bool block = true);
     std::string getQueueName() const { return m_transmitterQueue.str(); }
-};
-
-class MessageQueue : public Transport
-{
-  protected:
-    static std::string const mqProxyName;
-  public:
-    static bool initTransport() { return true; };
-    static bool stopTransport() { return true; };
-    static bool finalizeTransport() { return true; };
 };
 
 __CLKMGR_NAMESPACE_END

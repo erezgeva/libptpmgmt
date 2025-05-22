@@ -24,7 +24,7 @@ extern map<int, ptp_event> ptp4lEvents;
 /**
  * Create the ProxyNotificationMessage object
  * @param msg msg structure to be fill up
- * @param LxContext proxy transport listener context
+ * @param LxContext proxy listener
  * @return true
  */
 bool ProxyNotificationMessage::buildMessage(Message *&msg, Listener &LxContext)

@@ -24,7 +24,7 @@ ClientState *ClientSubscribeMessage::currentClientState = nullptr;
 /**
  * Create the ClientSubscribeMessage object
  * @param msg msg structure to be fill up
- * @param LxContext client run-time transport listener context
+ * @param LxContext client run-time listener
  * @return true
  */
 bool ClientSubscribeMessage::buildMessage(Message *&msg, Listener &LxContext)
@@ -89,8 +89,8 @@ bool ClientSubscribeMessage::parseBuffer(Listener &LxContext)
  * listening message queue (listening to proxy) and call this function when
  * the enum ID corresponding to the SUBSCRIBE_MSG is received.
  *
- * @param LxContext client run-time transport listener context
- * @param TxContext client run-time transport transmitter context
+ * @param LxContext client run-time listener
+ * @param TxContext client run-time transmitter
  * @return true
  */
 bool ClientSubscribeMessage::processMessage(Listener &LxContext,

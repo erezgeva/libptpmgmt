@@ -14,7 +14,6 @@
 #define COMMON_MESSAGE_HPP
 
 #include "common/clkmgrtypes.hpp"
-#include "common/transport.hpp"
 #include "common/msgq_tport.hpp"
 
 #include <functional>
@@ -24,8 +23,6 @@
 __CLKMGR_NAMESPACE_BEGIN
 
 class Message;
-class Listener;
-class Transmitter;
 
 typedef std::function<bool (Message *&, Listener &)> BuildMessage_t;
 
@@ -80,19 +77,6 @@ class Message
     static bool initMessage() { return false; };
     static bool init() { return false; }
 };
-
-template <typename T>
-inline bool _initMessage()
-{
-    return T::initMessage();
-}
-
-template <typename T, typename... Types>
-inline typename std::enable_if < sizeof...(Types) != 0,
-       bool >::type _initMessage()
-{
-    return _initMessage<T>() && _initMessage<Types...>();
-}
 
 __CLKMGR_NAMESPACE_END
 

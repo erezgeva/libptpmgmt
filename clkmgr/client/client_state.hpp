@@ -27,7 +27,7 @@ class ClientState
   private:
     std::atomic_bool connected{false}; /**< Connection status */
     sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
-    TransportClientId clientID = {}; /**< Client ID */
+    ClientId clientID = {}; /**< Client ID */
 
   public:
     /**
@@ -63,13 +63,13 @@ class ClientState
      * Get the client ID
      * @return Client ID
      */
-    TransportClientId get_clientID() const;
+    ClientId get_clientID() const;
 
     /**
      * Set the client ID
      * @param[in] cID Reference to the client ID
      */
-    void set_clientID(const TransportClientId &cID);
+    void set_clientID(const ClientId &cID);
 
     /**
     * Get the constant reference to the session ID.

@@ -31,7 +31,7 @@ class ProxyNotificationMessage : virtual public ProxyMessage,
     /**
      * Create the ProxyNotificationMessage object
      * @param msg msg structure to be fill up
-     * @param LxContext proxy transport listener context
+     * @param LxContext proxy listener
      * @return true
      */
     static bool buildMessage(Message *&msg, Listener &LxContext);

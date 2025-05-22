@@ -28,7 +28,7 @@ class ClientNotificationMessage : virtual public ClientMessage,
     /**
      * Create the ClientNotificationMessage object
      * @param msg msg structure to be fill up
-     * @param LxContext client transport listener context
+     * @param LxContext client listener
      * @return true
      */
     static bool buildMessage(Message *&msg, Listener &LxContext);

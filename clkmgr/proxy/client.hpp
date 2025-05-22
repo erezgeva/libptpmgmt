@@ -38,7 +38,7 @@ class Client
     }
     static sessionId_t GetSessionIdAt(size_t index);
     static ClientX GetClientSession(sessionId_t sessionId);
-    static Transmitter *CreateTransmitterContext(TransportClientId &clientId);
+    static Transmitter *CreateTransmitterContext(ClientId &clientId);
   private:
     std::unique_ptr<Transmitter> transmitContext;
   public:

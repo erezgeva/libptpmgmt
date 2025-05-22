@@ -24,7 +24,7 @@ ClientState *ClientConnectMessage::currentClientState = nullptr;
 /**
  * Create the ClientConnectMessage object
  * @param msg structure to be fill up
- * @param LxContext client run-time transport listener context
+ * @param LxContext client run-time listener
  * @return true
  */
 bool ClientConnectMessage::buildMessage(Message *&msg, Listener &LxContext)
@@ -82,8 +82,8 @@ void ClientConnectMessage::setClientState(ClientState &newClientState)
  * is always send first from the client runtime first. The proxy will
  * echo-reply with a different ACK msg.
  *
- * @param LxContext client run-time transport listener context
- * @param TxContext client run-time transport transmitter context
+ * @param LxContext client run-time listener
+ * @param TxContext client run-time transmitter
  * @return true
  */
 bool ClientConnectMessage::processMessage(Listener &LxContext,

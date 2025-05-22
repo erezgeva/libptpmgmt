@@ -49,12 +49,12 @@ void ClientState::set_connected(bool new_state)
     connected = new_state;
 }
 
-TransportClientId ClientState::get_clientID() const
+ClientId ClientState::get_clientID() const
 {
     return clientID;
 }
 
-void ClientState::set_clientID(const TransportClientId &new_cID)
+void ClientState::set_clientID(const ClientId &new_cID)
 {
     strcpy((char *)clientID.data(), (char *)new_cID.data());
 }

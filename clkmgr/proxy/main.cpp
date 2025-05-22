@@ -15,6 +15,7 @@
 #include "proxy/config_parser.hpp"
 #include "proxy/connect_ptp4l.hpp"
 #include "proxy/msgq_tport.hpp"
+#include "proxy/message.hpp"
 #include "common/sighandler.hpp"
 #include "common/print.hpp"
 
@@ -101,8 +102,8 @@ int main(int argc, char *argv[])
     if(startSyslog)
         PrintStartLog(argv[0]);
     BlockStopSignal();
-    if(!ProxyTransport::init()) {
-        PrintError("Transport init failed");
+    if(!ProxyQueue::init()) {
+        PrintError("Proxy queue init failed");
         return EXIT_FAILURE;
     }
     if(!ProxyMessage::init()) {
@@ -116,11 +117,11 @@ int main(int argc, char *argv[])
     WaitForStopSignal();
     PrintDebug("Got stop signal");
     ConnectPtp4l::disconnect_ptp4l();
-    if(!ProxyTransport::stop() || !ProxyMessageQueue::stop()) {
+    if(!ProxyQueue::stop()) {
         PrintError("stop failed");
         return EXIT_FAILURE;
     }
-    if(!ProxyTransport::finalize()) {
+    if(!ProxyQueue::finalize()) {
         PrintError("finalize failed");
         return EXIT_FAILURE;
     }

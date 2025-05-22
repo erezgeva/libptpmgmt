@@ -70,7 +70,7 @@ bool Message::presendMessage(Transmitter &ctx)
         return false;
     }
     DumpOctetArray("Sending message (length = " + to_string(ctx.get_offset()) +
-        "): ", ctx.get_buffer().data(), ctx.get_offset());
+        "): ", ctx.data(), ctx.get_offset());
     PrintDebug("[Message]::presendMessage successful");
     return true;
 }

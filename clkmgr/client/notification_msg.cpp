@@ -22,7 +22,7 @@ using namespace std;
 /**
  * Create the ClientNotificationMessage object
  * @param msg msg structure to be fill up
- * @param LxContext proxy transport listener context
+ * @param LxContext proxy listener
  * @return true
  */
 bool ClientNotificationMessage::buildMessage(Message *&msg, Listener &LxContext)

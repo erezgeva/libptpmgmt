@@ -13,7 +13,6 @@
 #include "client/message.hpp"
 #include "client/connect_msg.hpp"
 #include "client/notification_msg.hpp"
-#include "client/null_msg.hpp"
 #include "client/subscribe_msg.hpp"
 #include "common/print.hpp"
 
@@ -22,6 +21,6 @@ __CLKMGR_NAMESPACE_USE;
 bool ClientMessage::init()
 {
     PrintDebug("Initializing Client Message");
-    return _initMessage<ClientNullMessage, ClientConnectMessage,
+    return _initMessage<ClientConnectMessage,
         ClientSubscribeMessage, ClientNotificationMessage>();
 }

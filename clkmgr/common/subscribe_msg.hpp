@@ -22,7 +22,7 @@ class CommonSubscribeMessage : virtual public Message
 {
   private:
     ClkMgrSubscription subscription;
-    TransportClientId clientId;
+    ClientId clientId;
 
   public:
     static msgId_t getMsgId() { return SUBSCRIBE_MSG; }
@@ -31,7 +31,7 @@ class CommonSubscribeMessage : virtual public Message
     virtual bool makeBuffer(Transmitter &TxContext) const;
     ClkMgrSubscription &getSubscription()
     { return subscription; }
-    TransportClientId &getClientId()
+    ClientId &getClientId()
     { return clientId; }
     void setSubscription(ClkMgrSubscription &newsub);
 

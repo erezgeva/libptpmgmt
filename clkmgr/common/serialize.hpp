@@ -17,8 +17,8 @@
 #define PARSE_RX(type,var,lc)                       \
     ({                              \
         decltype(lc.get_offset()) offset = \
-            PARSE_##type(var,lc.get_buffer().data() + lc.get_offset(), \
-                lc.get_buffer().max_size() - lc.get_offset()); \
+            PARSE_##type(var,lc.data() + lc.get_offset(), \
+                lc.max_size() - lc.get_offset()); \
         if (offset != (decltype(offset))-1) {               \
             lc.addOffset(offset);                   \
         }                               \
@@ -45,8 +45,8 @@
 #define WRITE_TX(type,var,tc)                   \
     ({                                  \
         decltype(tc.get_offset()) offset = \
-            WRITE_##type(var,tc.get_buffer().data() + tc.get_offset(), \
-                tc.get_buffer().max_size() - tc.get_offset()); \
+            WRITE_##type(var,tc.data() + tc.get_offset(), \
+                tc.max_size() - tc.get_offset()); \
         if (offset != (decltype(offset))-1) {               \
             tc.addOffset(offset);                   \
         }                               \

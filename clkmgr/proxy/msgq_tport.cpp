@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Proxy POSIX message queue transport implementation.
+ * @brief Proxy queue implementation.
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -19,7 +19,7 @@ using namespace std;
 
 static Listener rxContext;
 
-Transmitter *Client::CreateTransmitterContext(TransportClientId &clientId)
+Transmitter *Client::CreateTransmitterContext(ClientId &clientId)
 {
     string id((const char *)clientId.data());
     Transmitter *nCtx = new Transmitter();
@@ -35,29 +35,24 @@ Transmitter *Client::CreateTransmitterContext(TransportClientId &clientId)
     return nCtx;
 }
 
-bool ProxyMessageQueue::initTransport()
+bool ProxyQueue::init()
 {
-    PrintDebug("Initializing Message Queue Proxy Transport...");
+    PrintDebug("Initializing Proxy Queue ...");
     if(!rxContext.init(mqProxyName, MAX_CLIENT_COUNT)) {
         PrintError("Initializing failed");
         return false;
     }
-    PrintDebug("Proxy Message queue opened");
+    PrintDebug("Proxy queue opened");
     return true;
 }
 
-bool ProxyMessageQueue::stopTransport()
-{
-    return rxContext.stopTransport();
-}
-
-bool ProxyMessageQueue::finalizeTransport()
-{
-    return rxContext.finalize();
-}
-
-bool ProxyMessageQueue::stop()
+bool ProxyQueue::stop()
 {
     rxContext.stopSignal();
-    return true;
+    return rxContext.stop();
+}
+
+bool ProxyQueue::finalize()
+{
+    return rxContext.finalize();
 }

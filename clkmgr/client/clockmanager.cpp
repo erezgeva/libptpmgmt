@@ -15,7 +15,6 @@
 #include "client/msgq_tport.hpp"
 #include "client/subscribe_msg.hpp"
 #include "client/timebase_state.hpp"
-#include "client/transport.hpp"
 #include "common/print.hpp"
 
 #include <chrono>
@@ -59,12 +58,12 @@ bool ClockManager::connect()
         PrintDebug("[CONNECT] Failed to initialize Client message.");
         return false;
     }
-    if(!ClientTransport::init()) {
-        PrintDebug("[CONNECT] Failed to initialize Client transportation.");
+    if(!ClientQueue::init()) {
+        PrintDebug("[CONNECT] Failed to initialize Client queue.");
         return false;
     }
-    ClientMessageQueue::writeTransportClientId(connectMsg.get());
-    ClientMessageQueue::sendMessage(connectMsg.get());
+    ClientQueue::writeClientId(connectMsg.get());
+    ClientQueue::sendMessage(connectMsg.get());
     // Wait DEFAULT_CONNECT_TIME_OUT seconds for response from Proxy Daemon
     unsigned int timeout_sec = (unsigned int)DEFAULT_CONNECT_TIME_OUT;
     auto endTime = system_clock::now() + seconds(timeout_sec);
@@ -81,7 +80,7 @@ bool ClockManager::connect()
     }
     // Store Client ID in Client State
     if((cmsg != nullptr) && !(cmsg->getClientId().empty())) {
-        TransportClientId newClientID;
+        ClientId newClientID;
         strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
         implClientState.set_clientID(newClientID);
     }
@@ -131,8 +130,8 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
     strcpy((char *)cmsg->getClientId().data(),
         (char *)implClientState.get_clientID().data());
     cmsg->set_sessionId(implClientState.get_sessionId());
-    ClientMessageQueue::writeTransportClientId(subscribeMsg.get());
-    ClientMessageQueue::sendMessage(subscribeMsg.get());
+    ClientQueue::writeClientId(subscribeMsg.get());
+    ClientQueue::sendMessage(subscribeMsg.get());
     // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon
     unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
     auto endTime = system_clock::now() + seconds(timeout_sec);
@@ -160,11 +159,11 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
 bool ClockManager::disconnect()
 {
     // Send a disconnect message
-    if(!ClientTransport::stop()) {
+    if(!ClientQueue::stop()) {
         PrintDebug("Client Stop Failed");
         return false;
     }
-    if(!ClientTransport::finalize()) {
+    if(!ClientQueue::finalize()) {
         PrintDebug("Client Finalize Failed");
         return false;
     }
@@ -208,8 +207,8 @@ send_connect:
     implClientState.set_connected(false);
     cmsg->setClientState(implClientState);
     cmsg->set_sessionId(implClientState.get_sessionId());
-    ClientMessageQueue::writeTransportClientId(connectMsg.get());
-    ClientMessageQueue::sendMessage(connectMsg.get());
+    ClientQueue::writeClientId(connectMsg.get());
+    ClientQueue::sendMessage(connectMsg.get());
     /* Wait for connection result */
     auto endTime = system_clock::now() +
         milliseconds(DEFAULT_LIVENESS_TIMEOUT_IN_MS);

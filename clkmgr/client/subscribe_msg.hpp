@@ -34,8 +34,8 @@ class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
     static rtpi::condition_variable cv;
     /**
      * process the reply for subscribe msg from proxy.
-     * @param LxContext client run-time transport listener context
-     * @param TxContext client run-time transport transmitter context
+     * @param LxContext client run-time listener
+     * @param TxContext client run-time transmitter
      * @return true
      */
     virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
@@ -43,7 +43,7 @@ class ClientSubscribeMessage : virtual public CommonSubscribeMessage,
     /**
      * Create the ClientSubscribeMessage object
      * @param msg msg structure to be fill up
-     * @param LxContext client run-time transport listener context
+     * @param LxContext client run-time listener
      * @return true
      */
     static bool buildMessage(Message *&msg, Listener &LxContext);

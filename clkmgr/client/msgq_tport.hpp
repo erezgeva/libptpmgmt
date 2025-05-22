@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Client POSIX message queue transport class.
+ * @brief Client queue class.
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -13,20 +13,20 @@
 #define CLIENT_MSGQ_TPORT_HPP
 
 #include "common/msgq_tport.hpp"
-#include "client/transport.hpp"
 
 #include <string>
 
 __CLKMGR_NAMESPACE_BEGIN
 
-class ClientMessageQueue : public MessageQueue, public ClientTransport
+class Message;
+
+class ClientQueue
 {
   public:
-    static bool initTransport();
-    static bool stopTransport();
-    static bool finalizeTransport();
+    static bool init();
     static bool stop();
-    static bool writeTransportClientId(Message *msg);
+    static bool finalize();
+    static bool writeClientId(Message *msg);
     static bool sendMessage(Message *msg);
 };
 

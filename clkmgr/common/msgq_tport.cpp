@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Common POSIX message queue transport implementation.
+ * @brief Common queue implementation.
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -20,9 +20,7 @@ using namespace std;
 
 const uint16_t EXIT_TIMEOUT = 200; // milliseconds
 
-DECLARE_STATIC(MessageQueue::mqProxyName, MESSAGE_QUEUE_PREFIX);
-
-PosixMessageQueue::PosixMessageQueue(PosixMessageQueue &&other) noexcept
+Queue::Queue(Queue &&other) noexcept
     : mq(other.mq), rx(other.rx), name(std::move(other.name))
 {
     other.mq = invalidMq;
@@ -30,7 +28,7 @@ PosixMessageQueue::PosixMessageQueue(PosixMessageQueue &&other) noexcept
     other.name.clear();
 }
 
-PosixMessageQueue &PosixMessageQueue::operator=(PosixMessageQueue &&other)
+Queue &Queue::operator=(Queue &&other)
 noexcept
 {
     if(this != &other) {
@@ -46,12 +44,12 @@ noexcept
     return *this;
 }
 
-bool PosixMessageQueue::RxOpen(const string &n, size_t maxMsg)
+bool Queue::RxOpen(const string &n, size_t maxMsg)
 {
     struct mq_attr attr;
     attr.mq_flags = 0;
     attr.mq_maxmsg = maxMsg;
-    attr.mq_msgsize = sizeof(TransportBuffer);
+    attr.mq_msgsize = MAX_BUFFER_LENGTH;
     mq = mq_open(n.c_str(), O_CREAT | O_RDONLY, S_IRUSR | S_IWUSR | S_IWGRP, &attr);
     if(exist()) {
         rx = true;
@@ -61,24 +59,24 @@ bool PosixMessageQueue::RxOpen(const string &n, size_t maxMsg)
     return false;
 }
 
-bool PosixMessageQueue::TxOpen(const string &n, bool block)
+bool Queue::TxOpen(const string &n, bool block)
 {
     mq = mq_open(n.c_str(), O_WRONLY | (block ? 0 : O_NONBLOCK));
     return exist();
 }
 
-bool PosixMessageQueue::send(const void *ptr, size_t size) const
+bool Queue::send(const void *ptr, size_t size) const
 {
     return exist() && !rx ? mq_send(mq, (char *)ptr, size, 0) != -1 : false;
 }
 
-bool PosixMessageQueue::receive(const void *ptr, size_t length) const
+bool Queue::receive(const void *ptr, size_t length) const
 {
     return exist() &&
         rx ? mq_receive(mq, (char *)ptr, length, nullptr) != -1 : false;
 }
 
-bool PosixMessageQueue::remove()
+bool Queue::remove()
 {
     if(!name.empty() && mq_unlink(name.c_str()) != -1) {
         name.clear();
@@ -87,7 +85,7 @@ bool PosixMessageQueue::remove()
     return false;
 }
 
-bool PosixMessageQueue::close()
+bool Queue::close()
 {
     if(exist() && mq_close(mq) != -1) {
         mq = invalidMq;
@@ -116,7 +114,7 @@ void Listener::dispatchLoop()
     }
     promiseVal = true;
 done:
-    PrintDebug("Transport Thread exited");
+    PrintDebug("Listener thread exited");
     m_promise.set_value_at_thread_exit(promiseVal);
     return;
 }
@@ -155,21 +153,21 @@ bool Listener::finalize()
     return true;
 }
 
-bool Listener::stopTransport()
+bool Listener::stop()
 {
-    PrintDebug("Stopping Message Queue Proxy Transport");
+    PrintDebug("Stopping listener queue");
     /* Thread has exited, no need to interrupt */
     if(isFutureSet())
         return true;
     m_listenerQueue.close();
     m_listenerQueue.remove();
-    PrintDebug("Sending interrupt to MessageQueue worker");
+    PrintDebug("Sending interrupt to Queue worker");
     return SendSyscallInterruptSignal(m_thread);
 }
 
 bool Listener::MqListenerWork()
 {
-    if(!m_listenerQueue.receive(get_buffer().data(), get_buffer().max_size())) {
+    if(!m_listenerQueue.receive(data(), max_size())) {
         if(errno != EINTR) {
             PrintError("MQ Receive Failed", errno);
             return false;
@@ -177,8 +175,7 @@ bool Listener::MqListenerWork()
         return true;
     }
     PrintDebug("Receive complete");
-    DumpOctetArray("Received Message", get_buffer().data(),
-        get_buffer().max_size());
+    DumpOctetArray("Received Message", data(), max_size());
     Message *msg;
     if(!Message::buildMessage(msg, *this))
         return false;
@@ -194,7 +191,7 @@ bool Listener::MqListenerWork()
 
 bool Transmitter::sendBuffer()
 {
-    if(!m_transmitterQueue.send(get_buffer().data(), get_offset())) {
+    if(!m_transmitterQueue.send(data(), get_offset())) {
         PrintErrorCode("Failed to send buffer");
         return false;
     }

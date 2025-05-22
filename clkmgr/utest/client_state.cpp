@@ -55,13 +55,13 @@ TEST(ClientStateTest, subscribed)
     EXPECT_TRUE(cstate.get_subscribed());
 }
 
-// Tests Transport client ID
-// TransportClientId get_clientID() const
-// void set_clientID(const TransportClientId &cID)
+// Tests client ID
+// ClientId get_clientID() const
+// void set_clientID(const ClientId &cID)
 TEST(ClientStateTest, clientID)
 {
     ClientState cstate;
-    TransportClientId refClientID = { 0x41, 0x42, 0x43 };
+    ClientId refClientID = { 0x41, 0x42, 0x43 };
     cstate.set_clientID(refClientID);
     //EXPECT_EQ(cstate.get_clientID(), { 0x41, 0x42, 0x43} );  // TODO
 }

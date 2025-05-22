@@ -23,7 +23,7 @@ using namespace std;
 /**
  * Create the ProxyConnectMessage object
  * @param msg msg structure to be fill up
- * @param LxContext proxy transport listener context
+ * @param LxContext proxy listener
  * @return true
  */
 bool ProxyConnectMessage::buildMessage(Message *&msg, Listener &LxContext)
@@ -57,8 +57,8 @@ bool ProxyConnectMessage::initMessage()
  * A new ClientSession object and a corresponding TxContext
  * (with the transmit msq) is created in the proxy.
  *
- * @param LxContext proxy transport listener context
- * @param TxContext proxy transport transmitter context
+ * @param LxContext proxy listener
+ * @param TxContext proxy transmitter
  * @return true
  */
 bool ProxyConnectMessage::processMessage(Listener &LxContext,

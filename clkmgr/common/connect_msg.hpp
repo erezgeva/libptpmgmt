@@ -20,11 +20,11 @@ __CLKMGR_NAMESPACE_BEGIN
 class CommonConnectMessage : virtual public Message
 {
   private:
-    TransportClientId clientId;
+    ClientId clientId;
   protected:
     CommonConnectMessage() : Message(CONNECT_MSG) {}
   public:
-    TransportClientId &getClientId() { return clientId; }
+    ClientId &getClientId() { return clientId; }
     virtual bool parseBuffer(Listener &LxContext);
     static bool registerBuild();
     virtual bool transmitMessage(Transmitter &TxContext);

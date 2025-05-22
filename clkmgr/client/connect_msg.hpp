@@ -31,8 +31,8 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
 
     /**
      * process the reply for connect msg from proxy.
-     * @param LxContext client run-time transport listener context
-     * @param TxContext client run-time transport transmitter context
+     * @param LxContext client run-time listener
+     * @param TxContext client run-time transmitter
      * @return true
      */
     virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext);
@@ -41,7 +41,7 @@ class ClientConnectMessage : virtual public CommonConnectMessage,
     /**
      * Create the ClientConnectMessage object
      * @param msg msg structure to be fill up
-     * @param LxContext client run-time transport listener context
+     * @param LxContext client run-time listener
      * @return true
      */
     static bool buildMessage(Message *&msg, Listener &LxContext);

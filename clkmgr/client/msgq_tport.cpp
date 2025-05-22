@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Client POSIX message queue transport class.
+ * @brief Client queue class.
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.
@@ -14,7 +14,6 @@
 #include "client/subscribe_msg.hpp"
 #include "common/print.hpp"
 
-#include <cstring>
 #include <unistd.h>
 
 __CLKMGR_NAMESPACE_USE;
@@ -23,14 +22,13 @@ using namespace std;
 
 static Listener rxContext;
 static Transmitter txContext;
-static std::string mqListenerName;
 
-bool ClientMessageQueue::initTransport()
+bool ClientQueue::init()
 {
     /* Two outstanding messages per client */
-    PrintDebug("Initializing Message Queue Client Transport...");
-    mqListenerName += mqProxyName + ".";
-    mqListenerName += to_string(getpid());
+    PrintDebug("Initializing Client Queue ...");
+    string mqListenerName(mqProxyName);
+    mqListenerName += "." + to_string(getpid());
     if(!rxContext.init(mqListenerName, 2)) {
         PrintError("Failed to open listener queue");
         return false;
@@ -43,53 +41,48 @@ bool ClientMessageQueue::initTransport()
     return true;
 }
 
-bool ClientMessageQueue::stopTransport()
+bool ClientQueue::stop()
 {
-    PrintDebug("Stopping Message Queue Client Transport");
-    PrintDebug("mqListenerName = " + mqListenerName);
-    if(!rxContext.stopTransport()) {
+    rxContext.stopSignal();
+    PrintDebug("Stopping client queue");
+    PrintDebug("Listener queue = " + rxContext.getQueueName());
+    if(!rxContext.stop()) {
         PrintError("stop rxContext failed");
         return false;
     }
     return true;
 }
 
-bool ClientMessageQueue::finalizeTransport()
+bool ClientQueue::finalize()
 {
     PrintDebug("Listener queue = " + rxContext.getQueueName());
     PrintDebug("Transmitter Queue = " + txContext.getQueueName());
     return rxContext.finalize() && txContext.finalize();
 }
 
-bool ClientMessageQueue::stop()
-{
-    rxContext.stopSignal();
-    return true;
-}
-
-bool ClientMessageQueue::writeTransportClientId(Message *msg)
+bool ClientQueue::writeClientId(Message *msg)
 {
     msgId_t msgId = msg->get_msgId();
     switch(msgId) {
         case CONNECT_MSG : {
             ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
             if(cmsg == nullptr) {
-                PrintErrorCode("[ClientMessageQueue] ClientConnectMessage "
+                PrintErrorCode("[ClientQueue] ClientConnectMessage "
                     "cmsg is nullptr!!");
                 return false;
             }
-            memcpy(cmsg->getClientId().data(), mqListenerName.c_str(),
-                TRANSPORT_CLIENTID_LENGTH);
+            rxContext.getQueueName().copy((char *)cmsg->getClientId().data(),
+                CLIENTID_LENGTH);
             break;
         }
         case SUBSCRIBE_MSG : {
             ClientSubscribeMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
             if(cmsg == nullptr) {
-                PrintErrorCode("[ClientMessageQueue] ClientSubscribeMessage "
+                PrintErrorCode("[ClientQueue] ClientSubscribeMessage "
                     "cmsg is nullptr!!");
                 return false;
             }
-            PrintDebug("[ClientMessageQueue] [SUBSCRIBE] : "
+            PrintDebug("[ClientQueue] [SUBSCRIBE] : "
                 "subscription->event Mask : " +
                 to_string(cmsg->getSubscription().get_event_mask()));
             break;
@@ -102,11 +95,11 @@ bool ClientMessageQueue::writeTransportClientId(Message *msg)
     return true;
 }
 
-bool ClientMessageQueue::sendMessage(Message *msg)
+bool ClientQueue::sendMessage(Message *msg)
 {
     msg->presendMessage(txContext);
     if(!txContext.sendBuffer())
         return false;
-    PrintDebug("[ClientMessageQueue]::sendMessage successful ");
+    PrintDebug("[ClientQueue]::sendMessage successful ");
     return true;
 }

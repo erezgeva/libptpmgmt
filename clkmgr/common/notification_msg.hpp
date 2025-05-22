@@ -14,7 +14,6 @@
 #define COMMON_NOTIFICATION_MSG_HPP
 
 #include "common/message.hpp"
-#include "common/transport.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 
