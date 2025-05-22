@@ -24,7 +24,6 @@ class ConnectMessage : public Message
   protected:
     ConnectMessage() = default;
   public:
-    static msgId_t get_ClassMsgId() { return CONNECT_MSG; }
     msgId_t get_msgId() const override final { return CONNECT_MSG; }
     ClientId &getClientId() { return clientId; }
     bool parseBuffer(Listener &rxContext) override;

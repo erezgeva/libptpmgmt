@@ -17,7 +17,7 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-bool ProxyMessage_init();
+bool proxyMessageRegister();
 
 __CLKMGR_NAMESPACE_END
 

@@ -27,7 +27,6 @@ class SubscribeMessage : public Message
     SubscribeMessage() = default;
 
   public:
-    static msgId_t get_ClassMsgId() { return SUBSCRIBE_MSG; }
     msgId_t get_msgId() const override final { return SUBSCRIBE_MSG; }
     bool parseBuffer(Listener &rxContext) override;
     bool transmitMessage(Transmitter &txContext) override;

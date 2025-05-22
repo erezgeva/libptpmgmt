@@ -73,7 +73,14 @@ class Message
 
 template <typename T> inline void reg_message_type()
 {
-    Message::registerMessageType(T::get_ClassMsgId(), []() { return new T; });
+    T t;
+    Message::registerMessageType(t.get_msgId(), []() { return new T; });
+}
+template <typename T, typename... M> inline typename std::enable_if
+< sizeof...(M) != 0, void >::type reg_message_type()
+{
+    reg_message_type<T>();
+    reg_message_type<M...>();
 }
 
 __CLKMGR_NAMESPACE_END

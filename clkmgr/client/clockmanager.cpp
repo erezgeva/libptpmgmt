@@ -56,7 +56,7 @@ bool ClockManager::connect()
         return false;
     unique_ptr<Message> connectMsg(cmsg);
     cmsg->setClientState(implClientState);
-    if(!ClientMessage_init()) {
+    if(!clientMessageRegister()) {
         PrintDebug("[CONNECT] Failed to initialize Client message.");
         return false;
     }

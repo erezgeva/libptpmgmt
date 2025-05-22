@@ -20,7 +20,7 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-bool ClientMessage_init();
+bool clientMessageRegister();
 
 __CLKMGR_NAMESPACE_END
 

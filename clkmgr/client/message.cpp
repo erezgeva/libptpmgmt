@@ -18,11 +18,10 @@
 
 __CLKMGR_NAMESPACE_USE;
 
-bool clkmgr::ClientMessage_init()
+bool clkmgr::clientMessageRegister()
 {
     PrintDebug("Initializing Client Message");
-    reg_message_type<ClientConnectMessage>();
-    reg_message_type<ClientSubscribeMessage>();
-    reg_message_type<ClientNotificationMessage>();
+    reg_message_type<ClientConnectMessage, ClientSubscribeMessage,
+                     ClientNotificationMessage>();
     return true;
 }
