@@ -17,7 +17,6 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class ConnectPtp4l
 {
-  private:
   public:
     static int connect_ptp4l();
     static int subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId);

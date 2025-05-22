@@ -185,9 +185,8 @@ void ptpSet::notify_client()
         // Send data for multiple sessions
         pmsg->setTimeBaseIndex(timeBaseIndex);
         PrintDebug("Get client session ID: " + to_string(sessionId));
-        auto TxContext =
-            Client::GetClientSession(sessionId).get()->get_transmitContext();
-        if(!pmsg->transmitMessage(*TxContext)) {
+        Transmitter *txContext = Client::getTxContext(sessionId);
+        if(txContext != nullptr || !pmsg->transmitMessage(*txContext)) {
             it = subscribedClients.erase(it);
             /* Add sessionId into the list to remove */
             sessionIdToRemove.push_back(sessionId);

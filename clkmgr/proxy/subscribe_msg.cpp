@@ -24,27 +24,27 @@ using namespace std;
 
 extern map<int, ptp_event> ptp4lEvents;
 
-bool ProxySubscribeMessage::makeBuffer(Transmitter &TxContext) const
+bool ProxySubscribeMessage::makeBuffer(Transmitter &txContext) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-    if(!SubscribeMessage::makeBuffer(TxContext))
+    if(!SubscribeMessage::makeBuffer(txContext))
         return false;
     ptp_event event = ptp4lEvents[timeBaseIndex];
     // Add timeBaseIndex into the message
-    if(!WRITE_TX(FIELD, timeBaseIndex, TxContext))
+    if(!WRITE_TX(FIELD, timeBaseIndex, txContext))
         return false;
     // Add event data into the message
-    if(!WRITE_TX(FIELD, event, TxContext))
+    if(!WRITE_TX(FIELD, event, txContext))
         return false;
     return true;
 }
 
-bool ProxySubscribeMessage::parseBuffer(Listener &LxContext)
+bool ProxySubscribeMessage::parseBuffer(Listener &rxContext)
 {
     PrintDebug("[ProxySubscribeMessage]::parseBuffer ");
-    if(!SubscribeMessage::parseBuffer(LxContext))
+    if(!SubscribeMessage::parseBuffer(rxContext))
         return false;
-    if(!PARSE_RX(FIELD, timeBaseIndex, LxContext))
+    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext))
         return false;
     ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, get_sessionId());
     #ifdef HAVE_LIBCHRONY
@@ -57,19 +57,22 @@ bool ProxySubscribeMessage::parseBuffer(Listener &LxContext)
 This is to process the subscription from the clkmgr client runtime
 via POSIX msg queue.
 */
-bool ProxySubscribeMessage::processMessage(Listener &LxContext,
-    Transmitter *&TxContext)
+bool ProxySubscribeMessage::processMessage(Listener &rxContext,
+    Transmitter *&txContext)
 {
     sessionId_t sID = get_sessionId();
     PrintDebug("[ProxySubscribeMessage]::processMessage - "
-        "Use current client session ID: "
-        + to_string(sID));
+        "Use current client session ID: " + to_string(sID));
     if(sID == InvalidSessionId) {
         PrintError("Session ID *should be* invalid for received "
             "proxy connect message");
         return false;
     }
-    TxContext = Client::GetClientSession(sID).get()->get_transmitContext();
+    txContext = Client::getTxContext(sID);
+    if(txContext == nullptr) {
+        PrintError("Session ID " + to_string(sID) + " do not have Transmitter");
+        return false;
+    }
     set_msgAck(ACK_SUCCESS);
     return true;
 }

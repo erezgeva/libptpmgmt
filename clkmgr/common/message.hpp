@@ -44,23 +44,24 @@ class Message
 
   protected:
     Message() = default;
-    bool makeBufferBase(Transmitter &TxContext) const;
+    bool makeBufferBase(Transmitter &txContext) const;
 
   public:
     static std::string ExtractClassName(const std::string &prettyFunction,
         const char *function);
 
-    static Message *buildMessage(Listener &LxContext);
+    static Message *buildMessage(Listener &rxContext);
     static void registerMessageType(msgId_t id, AllocMessage_t allocFunc) {
         allocMessageMap[id] = allocFunc;
     }
 
     virtual ~Message() = default;
     virtual msgId_t get_msgId() const = 0;
-    virtual bool processMessage(Listener &LxContext, Transmitter *&TxContext) = 0;
-    virtual bool transmitMessage(Transmitter &TxContext) = 0;
-    virtual bool makeBuffer(Transmitter &TxContext) const = 0;
-    virtual bool parseBuffer(Listener &LxContext);
+    virtual bool processMessage(Listener &rxContext, Transmitter *&txContext) = 0;
+    virtual bool transmitMessage(Transmitter &txContext) = 0;
+    virtual bool makeBuffer(Transmitter &txContext) const = 0;
+    virtual bool writeClientId(Listener &rxContext) { return false; }
+    virtual bool parseBuffer(Listener &rxContext);
     virtual std::string toString();
 
     bool presendMessage(Transmitter &ctx);

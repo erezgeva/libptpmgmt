@@ -31,13 +31,14 @@ class ClientSubscribeMessage : public SubscribeMessage
     static rtpi::condition_variable cv;
     /**
      * process the reply for subscribe msg from proxy.
-     * @param LxContext client run-time listener
-     * @param TxContext client run-time transmitter
+     * @param rxContext client run-time listener
+     * @param txContext client run-time transmitter
      * @return true
      */
-    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
-    bool parseBuffer(Listener &LxContext) override;
-    bool makeBuffer(Transmitter &TxContext) const override;
+    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
+    bool parseBuffer(Listener &rxContext) override;
+    bool writeClientId(Listener &rxContext) override;
+    bool makeBuffer(Transmitter &txContext) const override;
 
     void setClientState(ClientState &newClientState);
 

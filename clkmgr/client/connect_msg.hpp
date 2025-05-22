@@ -30,12 +30,13 @@ class ClientConnectMessage : public ConnectMessage
 
     /**
      * process the reply for connect msg from proxy.
-     * @param LxContext client run-time listener
-     * @param TxContext client run-time transmitter
+     * @param rxContext client run-time listener
+     * @param txContext client run-time transmitter
      * @return true
      */
-    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
-    bool parseBuffer(Listener &LxContext) override;
+    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
+    bool parseBuffer(Listener &rxContext) override;
+    bool writeClientId(Listener &rxContext) override;
     void setClientState(ClientState &newClientState);
 };
 

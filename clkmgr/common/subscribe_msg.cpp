@@ -27,43 +27,43 @@ string SubscribeMessage::toString()
     return name;
 }
 
-bool SubscribeMessage::parseBuffer(Listener &LxContext)
+bool SubscribeMessage::parseBuffer(Listener &rxContext)
 {
     PrintDebug("[SubscribeMessage]::parseBuffer ");
-    if(!Message::parseBuffer(LxContext))
+    if(!Message::parseBuffer(rxContext))
         return false;
     sessionId_t sessionId;
-    if(!PARSE_RX(FIELD, sessionId, LxContext))
+    if(!PARSE_RX(FIELD, sessionId, rxContext))
         return false;
     set_sessionId(sessionId);
-    if(!PARSE_RX(FIELD, subscription, LxContext))
+    if(!PARSE_RX(FIELD, subscription, rxContext))
         return false;
     return true;
 }
 
-bool SubscribeMessage::makeBuffer(Transmitter &TxContext) const
+bool SubscribeMessage::makeBuffer(Transmitter &txContext) const
 {
-    auto ret = makeBufferBase(TxContext);
+    auto ret = makeBufferBase(txContext);
     if(!ret)
         return ret;
     PrintDebug("[SubscribeMessage]::makeBuffer - sessionId : " +
         to_string(get_sessionId()));
-    if(!WRITE_TX(FIELD, get_sessionId(), TxContext))
+    if(!WRITE_TX(FIELD, get_sessionId(), txContext))
         return false;
     PrintDebug("[SubscribeMessage]::makeBuffer - subscription event : " +
         to_string(subscription.get_event_mask()) + ", composite event : " +
         to_string(subscription.get_composite_event_mask()));
-    if(!WRITE_TX(FIELD, subscription, TxContext))
+    if(!WRITE_TX(FIELD, subscription, txContext))
         return false;
     return true;
 }
 
-bool SubscribeMessage::transmitMessage(Transmitter &TxContext)
+bool SubscribeMessage::transmitMessage(Transmitter &txContext)
 {
     PrintDebug("[SubscribeMessage]::transmitMessage ");
-    if(!presendMessage(TxContext))
+    if(!presendMessage(txContext))
         return false;
-    return TxContext.sendBuffer();
+    return txContext.sendBuffer();
 }
 
 void setSubscription(ClkMgrSubscription &newsub)

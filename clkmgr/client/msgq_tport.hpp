@@ -26,7 +26,6 @@ class ClientQueue
     static bool init();
     static bool stop();
     static bool finalize();
-    static bool writeClientId(Message *msg);
     static bool sendMessage(Message *msg);
 };
 

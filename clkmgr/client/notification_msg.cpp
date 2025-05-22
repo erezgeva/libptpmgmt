@@ -19,23 +19,23 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-bool ClientNotificationMessage::processMessage(Listener &LxContext,
-    Transmitter *&TxContext)
+bool ClientNotificationMessage::processMessage(Listener &rxContext,
+    Transmitter *&txContext)
 {
     PrintDebug("[ClientNotificationMessage]::processMessage ");
     return true;
 }
 
-bool ClientNotificationMessage::parseBuffer(Listener &LxContext)
+bool ClientNotificationMessage::parseBuffer(Listener &rxContext)
 {
     PrintDebug("[ClientNotificationMessage]::parseBuffer ");
     int timeBaseIndex = 0;
     ptp_event data = {};
-    if(!Message::parseBuffer(LxContext))
+    if(!Message::parseBuffer(rxContext))
         return false;
-    if(!PARSE_RX(FIELD, timeBaseIndex, LxContext))
+    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext))
         return false;
-    if(!PARSE_RX(FIELD, data, LxContext))
+    if(!PARSE_RX(FIELD, data, rxContext))
         return false;
     TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
     return true;

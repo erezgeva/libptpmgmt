@@ -16,34 +16,60 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-DECLARE_STATIC(Client::nextSession, sessionId_t(InvalidSessionId + 1));
-DECLARE_STATIC(Client::SessionMap);
+static sessionId_t nextSession = 0;
+static map<sessionId_t, unique_ptr<Client>> sessionMap;
 
-sessionId_t Client::CreateClientSession()
+Transmitter *CreateTransmitterContext(ClientId &clientId)
 {
-    for(auto iter = SessionMap.find(nextSession);
-        nextSession != InvalidSessionId && iter != SessionMap.cend();
-        iter = SessionMap.find(++nextSession));
-    SessionMap.emplace(SessionMapping_t(nextSession, new Client()));
-    return nextSession;
+    string id((const char *)clientId.data());
+    Transmitter *nCtx = new Transmitter();
+    if(nCtx != nullptr) {
+        if(!nCtx->open(id, false)) {
+            PrintErrorCode("Failed to open message queue " + id);
+            delete nCtx;
+            return nullptr;
+        }
+        PrintDebug("Successfully connected to client " + id);
+    } else
+        PrintError("Failed to allocate new message queue " + id);
+    return nCtx;
 }
 
-sessionId_t Client::GetSessionIdAt(size_t index)
+bool Client::existClient(sessionId_t sessionId)
 {
-    if(index < SessionMap.size()) {
-        auto iter = SessionMap.begin();
-        advance(iter, index);
-        return iter->first;
-    }
-    return InvalidSessionId;
+    return sessionMap.count(sessionId) > 0;
 }
 
-shared_ptr<Client> Client::GetClientSession(sessionId_t sessionId)
+Client *Client::getClient(sessionId_t sessionId)
 {
-    const auto &iter = SessionMap.find(sessionId);
-    if(iter == SessionMap.cend()) {
-        PrintError("Session ID " + to_string(sessionId) + " not found");
-        return shared_ptr<Client>(nullptr);
+    return sessionMap.count(sessionId) > 0 ? sessionMap[sessionId].get() : nullptr;
+}
+
+Transmitter *Client::getTxContext(sessionId_t sessionId)
+{
+    Client *client = getClient(sessionId);
+    return client != nullptr ?  client->getTxContext() : nullptr;
+}
+
+sessionId_t Client::CreateClientSession(ClientId &id)
+{
+    for(; sessionMap.count(nextSession) > 0 ||
+        nextSession == InvalidSessionId; nextSession++);
+    Client *client = new Client;
+    if(client == nullptr)
+        return InvalidSessionId;
+    Transmitter *tx = CreateTransmitterContext(id);
+    if(tx == nullptr) {
+        delete client;
+        return InvalidSessionId;
     }
-    return iter->second;
+    client->m_sessionId = nextSession;
+    client->m_transmitContext.reset(tx);
+    sessionMap[nextSession].reset(client);
+    return nextSession++;
+}
+
+void Client::RemoveClientSession(sessionId_t sessionId)
+{
+    sessionMap.erase(sessionId);
 }

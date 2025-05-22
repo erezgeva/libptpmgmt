@@ -23,12 +23,12 @@ class ProxyConnectMessage : public ConnectMessage
   public:
     /**
      * process the connect msg from client-runtime
-     * @param LxContext proxy listener
-     * @param TxContext proxy transmitter
+     * @param rxContext proxy listener
+     * @param txContext proxy transmitter
      * @return true
      */
-    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
-    bool makeBuffer(Transmitter &TxContext) const override;
+    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
+    bool makeBuffer(Transmitter &txContext) const override;
 };
 
 __CLKMGR_NAMESPACE_END

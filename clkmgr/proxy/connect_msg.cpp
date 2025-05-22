@@ -28,23 +28,20 @@ using namespace std;
  * In this case, proxy transport layer will rx a buffer in the
  * message queue and call this function when
  * the enum ID corresponding to the CONNECT_MSG is received.
- * A new ClientSession object and a corresponding TxContext
+ * A new ClientSession object and a corresponding txContext
  * (with the transmit msq) is created in the proxy.
  *
- * @param LxContext proxy listener
- * @param TxContext proxy transmitter
+ * @param rxContext proxy listener
+ * @param txContext proxy transmitter
  * @return true
  */
-bool ProxyConnectMessage::processMessage(Listener &LxContext,
-    Transmitter *&TxContext)
+bool ProxyConnectMessage::processMessage(Listener &rxContext,
+    Transmitter *&txContext)
 {
     sessionId_t newSessionId = get_sessionId();
     PrintDebug("Processing proxy connect message");
     if(newSessionId != InvalidSessionId) {
-        auto clientSession = Client::GetClientSession(newSessionId);
-        if(clientSession)
-            TxContext = clientSession.get()->get_transmitContext();
-        if(TxContext) {
+        if(Client::existClient(newSessionId)) {
             PrintDebug("Receive Connect msg as liveness check.");
             set_msgAck(ACK_SUCCESS);
             return true;
@@ -52,29 +49,29 @@ bool ProxyConnectMessage::processMessage(Listener &LxContext,
         PrintError("Session ID not exists: " + to_string(newSessionId));
         return false;
     }
-    newSessionId = Client::CreateClientSession();
-    PrintDebug("Created new client session ID: " + to_string(newSessionId));
-    this->set_sessionId(newSessionId);
-    TxContext = Client::CreateTransmitterContext(getClientId());
-    if(TxContext == nullptr)
+    newSessionId = Client::CreateClientSession(getClientId());
+    if(newSessionId == InvalidSessionId) {
+        PrintError("Fail to allocate new session");
         return false;
-    Client::GetClientSession(newSessionId).get()->set_transmitContext(TxContext);
+    }
+    PrintDebug("Created new client session ID: " + to_string(newSessionId));
+    set_sessionId(newSessionId);
     set_msgAck(ACK_SUCCESS);
     return true;
 }
 
-bool ProxyConnectMessage::makeBuffer(Transmitter &TxContext) const
+bool ProxyConnectMessage::makeBuffer(Transmitter &txContext) const
 {
     PrintDebug("[ProxyConnectMessage]::makeBuffer");
-    if(!ConnectMessage::makeBuffer(TxContext))
+    if(!ConnectMessage::makeBuffer(txContext))
         return false;
     JsonConfigParser parser = JsonConfigParser::getInstance();
     size_t mapSize = parser.size();
-    if(!WRITE_TX(FIELD, mapSize, TxContext))
+    if(!WRITE_TX(FIELD, mapSize, txContext))
         return false;;
     for(const auto &row : parser) {
         TimeBaseCfg cfg = row.base;
-        if(!WRITE_TX(FIELD, cfg, TxContext))
+        if(!WRITE_TX(FIELD, cfg, txContext))
             return false;
     }
     return true;

@@ -26,7 +26,7 @@ class NotificationMessage : public Message
   public:
     static msgId_t get_ClassMsgId() { return NOTIFY_MESSAGE; }
     msgId_t get_msgId() const override final { return NOTIFY_MESSAGE; }
-    bool transmitMessage(Transmitter &TxContext) override;
+    bool transmitMessage(Transmitter &txContext) override;
     bool isEnable() { return waitEnable == 0x1; }
 };
 

@@ -26,27 +26,34 @@ void ClientSubscribeMessage::setClientState(ClientState &newClientState)
     currentClientState = &newClientState;
 }
 
-bool ClientSubscribeMessage::makeBuffer(Transmitter &TxContext) const
+bool ClientSubscribeMessage::makeBuffer(Transmitter &txContext) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-    if(!SubscribeMessage::makeBuffer(TxContext))
+    if(!SubscribeMessage::makeBuffer(txContext))
         return false;
-    if(!WRITE_TX(FIELD, timeBaseIndex, TxContext))
+    if(!WRITE_TX(FIELD, timeBaseIndex, txContext))
         return false;
     return true;
 }
 
-bool ClientSubscribeMessage::parseBuffer(Listener &LxContext)
+bool ClientSubscribeMessage::parseBuffer(Listener &rxContext)
 {
     ptp_event data = {};
     PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
-    if(!SubscribeMessage::parseBuffer(LxContext))
+    if(!SubscribeMessage::parseBuffer(rxContext))
         return false;
-    if(!PARSE_RX(FIELD, timeBaseIndex, LxContext))
+    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext))
         return false;
-    if(!PARSE_RX(FIELD, data, LxContext))
+    if(!PARSE_RX(FIELD, data, rxContext))
         return false;
     TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
+    return true;
+}
+
+bool ClientSubscribeMessage::writeClientId(Listener &)
+{
+    PrintDebug("[ClientQueue] [SUBSCRIBE] : subscription->event Mask : " +
+        to_string(getSubscription().get_event_mask()));
     return true;
 }
 
@@ -60,17 +67,17 @@ bool ClientSubscribeMessage::parseBuffer(Listener &LxContext)
  * listening message queue (listening to proxy) and call this function when
  * the enum ID corresponding to the SUBSCRIBE_MSG is received.
  *
- * @param LxContext client run-time listener
- * @param TxContext client run-time transmitter
+ * @param rxContext client run-time listener
+ * @param txContext client run-time transmitter
  * @return true
  */
-bool ClientSubscribeMessage::processMessage(Listener &LxContext,
-    Transmitter *&TxContext)
+bool ClientSubscribeMessage::processMessage(Listener &rxContext,
+    Transmitter *&txContext)
 {
     PrintDebug("[ClientSubscribeMessage]::processMessage (reply)");
     unique_lock<rtpi::mutex> lock(cv_mtx);
     TimeBaseStates::getInstance().setSubscribed(timeBaseIndex, true);
-    this->set_msgAck(ACK_NONE);
+    set_msgAck(ACK_NONE);
     cv.notify_one(lock);
     return true;
 }

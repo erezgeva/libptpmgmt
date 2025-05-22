@@ -21,23 +21,23 @@ using namespace std;
 
 extern map<int, ptp_event> ptp4lEvents;
 
-bool ProxyNotificationMessage::makeBuffer(Transmitter &TxContext) const
+bool ProxyNotificationMessage::makeBuffer(Transmitter &txContext) const
 {
     PrintDebug("[ProxyNotificationMessage]::makeBuffer");
-    if(!makeBufferBase(TxContext))
+    if(!makeBufferBase(txContext))
         return false;
     ptp_event event = ptp4lEvents[timeBaseIndex];
     // Add timeBaseIndex into the message
-    if(!WRITE_TX(FIELD, timeBaseIndex, TxContext))
+    if(!WRITE_TX(FIELD, timeBaseIndex, txContext))
         return false;
     // Add event data into the message
-    if(!WRITE_TX(FIELD, event, TxContext))
+    if(!WRITE_TX(FIELD, event, txContext))
         return false;
     return true;
 }
 
-bool ProxyNotificationMessage::processMessage(Listener &LxContext,
-    Transmitter *&TxContext)
+bool ProxyNotificationMessage::processMessage(Listener &rxContext,
+    Transmitter *&txContext)
 {
     return true;
 }

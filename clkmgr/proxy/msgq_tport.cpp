@@ -19,22 +19,6 @@ using namespace std;
 
 static Listener rxContext;
 
-Transmitter *Client::CreateTransmitterContext(ClientId &clientId)
-{
-    string id((const char *)clientId.data());
-    Transmitter *nCtx = new Transmitter();
-    if(nCtx != nullptr) {
-        if(!nCtx->open(id, false)) {
-            PrintErrorCode("Failed to open message queue " + id);
-            delete nCtx;
-            return nullptr;
-        }
-        PrintDebug("Successfully connected to client " + id);
-    } else
-        PrintError("Failed to allocate new message queue " + id);
-    return nCtx;
-}
-
 bool ProxyQueue::init()
 {
     PrintDebug("Initializing Proxy Queue ...");

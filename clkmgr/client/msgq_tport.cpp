@@ -60,43 +60,10 @@ bool ClientQueue::finalize()
     return rxContext.finalize() && txContext.finalize();
 }
 
-bool ClientQueue::writeClientId(Message *msg)
-{
-    msgId_t msgId = msg->get_msgId();
-    switch(msgId) {
-        case CONNECT_MSG : {
-            ClientConnectMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
-            if(cmsg == nullptr) {
-                PrintErrorCode("[ClientQueue] ClientConnectMessage "
-                    "cmsg is nullptr!!");
-                return false;
-            }
-            rxContext.getQueueName().copy((char *)cmsg->getClientId().data(),
-                CLIENTID_LENGTH);
-            break;
-        }
-        case SUBSCRIBE_MSG : {
-            ClientSubscribeMessage *cmsg = dynamic_cast<decltype(cmsg)>(msg);
-            if(cmsg == nullptr) {
-                PrintErrorCode("[ClientQueue] ClientSubscribeMessage "
-                    "cmsg is nullptr!!");
-                return false;
-            }
-            PrintDebug("[ClientQueue] [SUBSCRIBE] : "
-                "subscription->event Mask : " +
-                to_string(cmsg->getSubscription().get_event_mask()));
-            break;
-        }
-        default: {
-            PrintErrorCode("Unknown msgID type");
-            return false;
-        }
-    }
-    return true;
-}
-
 bool ClientQueue::sendMessage(Message *msg)
 {
+    if(!msg->writeClientId(rxContext))
+        PrintErrorCode("Unknown msgID type");
     msg->presendMessage(txContext);
     if(!txContext.sendBuffer())
         return false;

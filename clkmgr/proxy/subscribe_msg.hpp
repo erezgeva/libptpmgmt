@@ -24,9 +24,9 @@ class ProxySubscribeMessage : public SubscribeMessage
     int timeBaseIndex = 0;
 
   public:
-    bool processMessage(Listener &LxContext, Transmitter *&TxContext) override;
-    bool makeBuffer(Transmitter &TxContext) const override;
-    bool parseBuffer(Listener &LxContext) override;
+    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
+    bool makeBuffer(Transmitter &txContext) const override;
+    bool parseBuffer(Listener &rxContext) override;
 
     void setTimeBaseIndex(int newTimeBaseIndex) {
         timeBaseIndex = newTimeBaseIndex;

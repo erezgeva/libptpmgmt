@@ -27,9 +27,9 @@ class ConnectMessage : public Message
     static msgId_t get_ClassMsgId() { return CONNECT_MSG; }
     msgId_t get_msgId() const override final { return CONNECT_MSG; }
     ClientId &getClientId() { return clientId; }
-    bool parseBuffer(Listener &LxContext) override;
-    bool transmitMessage(Transmitter &TxContext) override;
-    bool makeBuffer(Transmitter &TxContext) const override;
+    bool parseBuffer(Listener &rxContext) override;
+    bool transmitMessage(Transmitter &txContext) override;
+    bool makeBuffer(Transmitter &txContext) const override;
     std::string toString() override;
 };
 

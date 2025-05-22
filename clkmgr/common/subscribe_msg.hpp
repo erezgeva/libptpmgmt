@@ -29,9 +29,9 @@ class SubscribeMessage : public Message
   public:
     static msgId_t get_ClassMsgId() { return SUBSCRIBE_MSG; }
     msgId_t get_msgId() const override final { return SUBSCRIBE_MSG; }
-    bool parseBuffer(Listener &LxContext) override;
-    bool transmitMessage(Transmitter &TxContext) override;
-    bool makeBuffer(Transmitter &TxContext) const override;
+    bool parseBuffer(Listener &rxContext) override;
+    bool transmitMessage(Transmitter &txContext) override;
+    bool makeBuffer(Transmitter &txContext) const override;
     ClkMgrSubscription &getSubscription() { return subscription; }
     ClientId &getClientId() { return clientId; }
     void setSubscription(ClkMgrSubscription &newsub);

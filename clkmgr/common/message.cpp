@@ -45,12 +45,12 @@ string Message::toString()
     return ret;
 }
 
-bool Message::makeBufferBase(Transmitter &TxContext) const
+bool Message::makeBufferBase(Transmitter &txContext) const
 {
     PrintDebug("[Message]::makeBufferBase");
-    if(!WRITE_TX(FIELD, get_msgId(), TxContext))
+    if(!WRITE_TX(FIELD, get_msgId(), txContext))
         return false;
-    if(!WRITE_TX(FIELD, m_msgAck, TxContext))
+    if(!WRITE_TX(FIELD, m_msgAck, txContext))
         return false;
     return true;
 }
@@ -69,25 +69,25 @@ bool Message::presendMessage(Transmitter &ctx)
     return true;
 }
 
-bool Message::parseBuffer(Listener &LxContext)
+bool Message::parseBuffer(Listener &rxContext)
 {
     PrintDebug("[Message]::parseBuffer ");
     msgId_t msgId;
-    if(!PARSE_RX(FIELD, msgId, LxContext))
+    if(!PARSE_RX(FIELD, msgId, rxContext))
         return false;
     if(msgId != get_msgId()) {
         PrintError("Wrong message type " + to_string(msgId));
         return false;
     }
-    if(!PARSE_RX(FIELD, m_msgAck, LxContext))
+    if(!PARSE_RX(FIELD, m_msgAck, rxContext))
         return false;
     return true;
 }
 
-Message *Message::buildMessage(Listener &LxContext)
+Message *Message::buildMessage(Listener &rxContext)
 {
     msgId_t msgId;
-    if(!PARSE_RX(FIELD, msgId, LxContext))
+    if(!PARSE_RX(FIELD, msgId, rxContext))
         return nullptr;
     if(allocMessageMap.count(msgId) == 0) {
         PrintError("Unknown message type " + to_string(msgId));
@@ -98,8 +98,8 @@ Message *Message::buildMessage(Listener &LxContext)
         PrintError("Error parsing message");
         return nullptr;
     }
-    LxContext.resetOffset();
-    if(!msg->parseBuffer(LxContext)) {
+    rxContext.resetOffset();
+    if(!msg->parseBuffer(rxContext)) {
         delete msg;
         return nullptr;
     }

@@ -21,28 +21,19 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class Client
 {
-  public:
-    typedef std::pair<sessionId_t, std::shared_ptr<Client>> SessionMapping_t;
   private:
-    static sessionId_t nextSession;
-    static std::map<SessionMapping_t::first_type, SessionMapping_t::second_type>
-    SessionMap;
+    sessionId_t m_sessionId;
+    std::unique_ptr<Transmitter> m_transmitContext;
+
   public:
-    static sessionId_t CreateClientSession();
-    static size_t GetSessionCount() { return SessionMap.size(); }
-    static void RemoveClientSession(sessionId_t sessionId) {
-        SessionMap.erase(sessionId);
-    }
-    static sessionId_t GetSessionIdAt(size_t index);
-    static std::shared_ptr<Client> GetClientSession(sessionId_t sessionId);
-    static Transmitter *CreateTransmitterContext(ClientId &clientId);
-  private:
-    std::unique_ptr<Transmitter> transmitContext;
-  public:
-    void set_transmitContext(Transmitter *context)
-    { this->transmitContext.reset(context); }
-    Transmitter *get_transmitContext()
-    { return transmitContext.get(); }
+    static bool existClient(sessionId_t sessionId);
+    static Client *getClient(sessionId_t sessionId);
+    static Transmitter *getTxContext(sessionId_t sessionId);
+    static sessionId_t CreateClientSession(ClientId &id);
+    static void RemoveClientSession(sessionId_t sessionId);
+
+    sessionId_t getSessionId() { return m_sessionId; }
+    Transmitter *getTxContext() { return m_transmitContext.get(); }
 };
 
 __CLKMGR_NAMESPACE_END
