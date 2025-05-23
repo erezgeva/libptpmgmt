@@ -53,6 +53,7 @@ bool Queue::RxOpen(const string &n, size_t maxMsg)
     if(exist()) {
         rx = true;
         name = n;
+        clientId = name;
         return true;
     }
     return false;
