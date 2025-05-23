@@ -19,7 +19,7 @@ using namespace std;
 static sessionId_t nextSession = 0;
 static map<sessionId_t, unique_ptr<Client>> sessionMap;
 
-Transmitter *CreateTransmitterContext(ClientId &clientId)
+static inline Transmitter *CreateTransmitterContext(const ClientId &clientId)
 {
     string id((const char *)clientId.data());
     Transmitter *nCtx = new Transmitter();
@@ -51,7 +51,7 @@ Transmitter *Client::getTxContext(sessionId_t sessionId)
     return client != nullptr ?  client->getTxContext() : nullptr;
 }
 
-sessionId_t Client::CreateClientSession(ClientId &id)
+sessionId_t Client::CreateClientSession(const ClientId &id)
 {
     for(; sessionMap.count(nextSession) > 0 ||
         nextSession == InvalidSessionId; nextSession++);

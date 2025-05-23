@@ -46,9 +46,14 @@ bool ProxySubscribeMessage::parseBuffer(Listener &rxContext)
         return false;
     if(!PARSE_RX(FIELD, timeBaseIndex, rxContext))
         return false;
-    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, get_sessionId());
+    sessionId_t sID = get_sessionId();
+    if(!Client::existClient(sID)) {
+        PrintError("Session ID " + to_string(sID) + " is not registered");
+        return false;
+    }
+    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, sID);
     #ifdef HAVE_LIBCHRONY
-    ConnectChrony::subscribe_chrony(std::move(timeBaseIndex), get_sessionId());
+    ConnectChrony::subscribe_chrony(timeBaseIndex, sID);
     #endif
     return true;
 }

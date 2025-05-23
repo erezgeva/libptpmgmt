@@ -22,7 +22,8 @@ class SubscribeMessage : public Message
 {
   private:
     ClkMgrSubscription subscription;
-    ClientId clientId;
+    // Client ID Is not in the Subscribe Message
+    // ClientId clientId;
   protected:
     SubscribeMessage() = default;
 
@@ -31,9 +32,14 @@ class SubscribeMessage : public Message
     bool parseBuffer(Listener &rxContext) override;
     bool transmitMessage(Transmitter &txContext) override;
     bool makeBuffer(Transmitter &txContext) const override;
-    ClkMgrSubscription &getSubscription() { return subscription; }
-    ClientId &getClientId() { return clientId; }
-    void setSubscription(ClkMgrSubscription &newsub);
+
+    // Seems the Clock manager subscription is left in the client
+    // Why do we send it in the Subscribe Message?
+    const ClkMgrSubscription &getSubscription() const { return subscription; }
+    // void setSubscription(const ClkMgrSubscription &newsub);
+
+    // Client ID Is not in the Subscribe Message
+    // const ClientId &getClientId() const { return clientId; }
 
     std::string toString() override;
 };

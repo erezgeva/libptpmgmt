@@ -25,7 +25,7 @@ class ConnectMessage : public Message
     ConnectMessage() = default;
   public:
     msgId_t get_msgId() const override final { return CONNECT_MSG; }
-    ClientId &getClientId() { return clientId; }
+    const ClientId &getClientId() const { return clientId; }
     bool parseBuffer(Listener &rxContext) override;
     bool transmitMessage(Transmitter &txContext) override;
     bool makeBuffer(Transmitter &txContext) const override;

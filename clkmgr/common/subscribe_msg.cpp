@@ -66,7 +66,10 @@ bool SubscribeMessage::transmitMessage(Transmitter &txContext)
     return txContext.sendBuffer();
 }
 
-void setSubscription(ClkMgrSubscription &newsub)
+#if 0
+void SubscribeMessage::setSubscription(const ClkMgrSubscription &newsub)
 {
     PrintDebug("[SubscribeMessage]::setSubscription ");
+    subscription = newsub;
 }
+#endif

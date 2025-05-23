@@ -29,7 +29,7 @@ class Client
     static bool existClient(sessionId_t sessionId);
     static Client *getClient(sessionId_t sessionId);
     static Transmitter *getTxContext(sessionId_t sessionId);
-    static sessionId_t CreateClientSession(ClientId &id);
+    static sessionId_t CreateClientSession(const ClientId &id);
     static void RemoveClientSession(sessionId_t sessionId);
 
     sessionId_t getSessionId() { return m_sessionId; }
