@@ -19,7 +19,7 @@ using namespace std;
 
 static Listener rxContext;
 
-bool ProxyQueue::init()
+bool clkmgr::proxyQueueInit()
 {
     PrintDebug("Initializing Proxy Queue ...");
     if(!rxContext.init(mqProxyName, MAX_CLIENT_COUNT)) {
@@ -28,15 +28,4 @@ bool ProxyQueue::init()
     }
     PrintDebug("Proxy queue opened");
     return true;
-}
-
-bool ProxyQueue::stop()
-{
-    rxContext.stopSignal();
-    return rxContext.stop();
-}
-
-bool ProxyQueue::finalize()
-{
-    return rxContext.finalize();
 }

@@ -24,8 +24,6 @@ class ClientQueue
 {
   public:
     static bool init();
-    static bool stop();
-    static bool finalize();
     static bool sendMessage(Message *msg);
 };
 

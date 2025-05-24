@@ -156,11 +156,10 @@ bool Listener::finalize()
 bool Listener::stop()
 {
     PrintDebug("Stopping listener queue");
-    /* Thread has exited, no need to interrupt */
+    m_exitVal.store(true);
+    // Thread has exited, no need to interrupt
     if(isFutureSet())
         return true;
-    m_listenerQueue.close();
-    m_listenerQueue.remove();
     PrintDebug("Sending interrupt to Queue worker");
     return SendSyscallInterruptSignal(m_thread);
 }

@@ -13,6 +13,7 @@
 #define COMMON_MSGQ_TPORT_HPP
 
 #include "common/util.hpp"
+#include "common/termin.hpp"
 
 #include <mqueue.h>
 #include <future>
@@ -80,7 +81,7 @@ class Queue
     std::string str() const { return std::to_string(mq); }
 };
 
-class Listener : public Buffer
+class Listener : public Buffer, public End
 {
   private:
     Queue m_listenerQueue;
@@ -90,6 +91,9 @@ class Listener : public Buffer
     std::thread m_thread;
 
     bool isFutureSet();
+    // Called by End::stopAll
+    bool stop() override final;
+    bool finalize() override final;
 
   public:
     Listener() : m_retVal(m_promise.get_future()), m_exitVal(false) {}
@@ -97,9 +101,6 @@ class Listener : public Buffer
     bool init(const std::string &name, size_t maxMsg);
     void dispatchLoop();
     bool MqListenerWork();
-    bool finalize();
-    bool stop();
-    void stopSignal() { m_exitVal.store(true); }
     std::thread &getThread() { return m_thread; }
     std::string getQueueName() const { return m_listenerQueue.str(); }
 };
@@ -108,6 +109,7 @@ class Transmitter : public Buffer
 {
   private:
     Queue m_transmitterQueue;
+
   public:
     Transmitter() = default;
     virtual ~Transmitter() = default;

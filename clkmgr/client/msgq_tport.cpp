@@ -12,6 +12,7 @@
 #include "client/msgq_tport.hpp"
 #include "client/connect_msg.hpp"
 #include "client/subscribe_msg.hpp"
+#include "common/termin.hpp"
 #include "common/print.hpp"
 
 #include <unistd.h>
@@ -41,25 +42,6 @@ bool ClientQueue::init()
     return true;
 }
 
-bool ClientQueue::stop()
-{
-    rxContext.stopSignal();
-    PrintDebug("Stopping client queue");
-    PrintDebug("Listener queue = " + rxContext.getQueueName());
-    if(!rxContext.stop()) {
-        PrintError("stop rxContext failed");
-        return false;
-    }
-    return true;
-}
-
-bool ClientQueue::finalize()
-{
-    PrintDebug("Listener queue = " + rxContext.getQueueName());
-    PrintDebug("Transmitter Queue = " + txContext.getQueueName());
-    return rxContext.finalize() && txContext.finalize();
-}
-
 bool ClientQueue::sendMessage(Message *msg)
 {
     if(!msg->writeClientId(rxContext))
@@ -70,3 +52,13 @@ bool ClientQueue::sendMessage(Message *msg)
     PrintDebug("[ClientQueue]::sendMessage successful ");
     return true;
 }
+
+class ClientQueueEnd : public End
+{
+    bool stop() override final { return true; }
+    bool finalize() override final {
+        PrintDebug("Transmitter Queue = " + txContext.getQueueName());
+        return txContext.finalize();
+    }
+};
+static ClientQueueEnd endClient;

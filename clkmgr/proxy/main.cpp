@@ -9,6 +9,8 @@
  *
  */
 
+#include "common/termin.hpp"
+
 #ifdef HAVE_LIBCHRONY
 #include "proxy/connect_chrony.hpp"
 #endif
@@ -102,7 +104,7 @@ int main(int argc, char *argv[])
     if(startSyslog)
         PrintStartLog(argv[0]);
     BlockStopSignal();
-    if(!ProxyQueue::init()) {
+    if(!proxyQueueInit()) {
         PrintError("Proxy queue init failed");
         return EXIT_FAILURE;
     }
@@ -116,16 +118,8 @@ int main(int argc, char *argv[])
     #endif
     WaitForStopSignal();
     PrintDebug("Got stop signal");
-    ConnectPtp4l::disconnect_ptp4l();
-    if(!ProxyQueue::stop()) {
-        PrintError("stop failed");
-        return EXIT_FAILURE;
-    }
-    if(!ProxyQueue::finalize()) {
-        PrintError("finalize failed");
-        return EXIT_FAILURE;
-    }
+    int ret = End::stopAll() ? EXIT_SUCCESS : EXIT_FAILURE;
     if(startSyslog)
         PrintStopLog();
-    return EXIT_SUCCESS;
+    return ret;
 }

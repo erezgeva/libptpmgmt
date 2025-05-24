@@ -18,13 +18,7 @@ __CLKMGR_NAMESPACE_BEGIN
 
 static const size_t MAX_CLIENT_COUNT = 8;
 
-class ProxyQueue
-{
-  public:
-    static bool init();
-    static bool stop();
-    static bool finalize();
-};
+bool proxyQueueInit();
 
 __CLKMGR_NAMESPACE_END
 

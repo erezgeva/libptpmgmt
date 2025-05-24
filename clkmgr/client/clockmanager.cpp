@@ -164,13 +164,9 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
 
 bool ClockManager::disconnect()
 {
-    // Send a disconnect message
-    if(!ClientQueue::stop()) {
-        PrintDebug("Client Stop Failed");
-        return false;
-    }
-    if(!ClientQueue::finalize()) {
-        PrintDebug("Client Finalize Failed");
+    // Send a disconnect message - TODO do we want to send a message here?
+    if(!End::stopAll()) {
+        PrintDebug("Client disconnect Failed");
         return false;
     }
     return true;

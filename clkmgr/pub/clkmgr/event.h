@@ -110,6 +110,9 @@ class ClockEventBase
     uint64_t getNotificationTimestamp() const;
 
   protected:
+    /**< @cond internal
+     * set by the clockeventhandler class
+     */
     ClockEventBase(); /**< Constructs a ClockEventBase object. */
     friend class ClockEventHandler; /**< Grants access to ClockEventHandler. */
     int64_t clockOffset; /**< Offset of the clock in nanoseconds. */
@@ -120,6 +123,7 @@ class ClockEventBase
     uint32_t gmChangedCount; /**< Count of grandmaster clock changes. */
     bool offsetInRange; /**< Indicates if the offset is within range. */
     bool gmChanged; /**< Indicates if the grandmaster clock has changed. */
+    /**< @endcond */
 };
 
 /**

@@ -14,6 +14,7 @@
 #include "proxy/config_parser.hpp"
 #include "proxy/connect_chrony.hpp"
 #include "proxy/notification_msg.hpp"
+#include "common/termin.hpp"
 #include "common/ptp_event.hpp"
 #include "common/print.hpp"
 
@@ -413,6 +414,7 @@ static inline void close_all()
     // Close the sockets
     for(const auto &it : ptpSets)
         it.second->close();
+    ptpSets.clear();
 }
 
 /**
@@ -463,14 +465,19 @@ int ConnectPtp4l::connect_ptp4l()
     return 0;
 }
 
-void ConnectPtp4l::disconnect_ptp4l()
+class Ptp4lDisconnect : public End
 {
-    for(const auto &it : ptpSets)
-        it.second->stopThread = true;
-    // Give time and cpu to threads to end
-    sleep(1);
-    // Wait for threads to end
-    for(const auto &it : ptpSets)
-        it.second->wait();
-    close_all();
-}
+    bool stop() override final {
+        for(const auto &it : ptpSets)
+            it.second->stopThread = true;
+        return true;
+    }
+    bool finalize() override final {
+        // Wait for threads to end
+        for(const auto &it : ptpSets)
+            it.second->wait();
+        close_all();
+        return true;
+    }
+};
+static Ptp4lDisconnect endPtp4l;

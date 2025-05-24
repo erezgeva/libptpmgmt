@@ -14,6 +14,7 @@
 #include "proxy/config_parser.hpp"
 #include "proxy/connect_ptp4l.hpp"
 #include "proxy/notification_msg.hpp"
+#include "common/termin.hpp"
 #include "common/ptp_event.hpp"
 #include "common/print.hpp"
 
@@ -39,8 +40,8 @@ class ChronyThreadSet
     thread self;
     ptp_event &ptp4lEvent;
     vector<sessionId_t> subscribedClients;
-    chrony_session *m_s = nullptr;
-
+    int chronyFd = -1;
+    chrony_session *session = nullptr;
     // Internal methods
     chrony_err subscribe_to_chronyd();
     chrony_err process_chronyd_data();
@@ -53,6 +54,18 @@ class ChronyThreadSet
     bool subscribe(sessionId_t sessionId);
     // notification unsubscribe
     bool unsubscribe(sessionId_t sessionId);
+    bool stopThread = false;
+    void wait() { self.join(); }
+    void close() {
+        if(chronyFd >= 0) {
+            chrony_close_socket(chronyFd);
+            chronyFd = -1;
+        }
+        if(session != nullptr) {
+            chrony_deinit_session(session);
+            session = nullptr;
+        }
+    }
 };
 
 /*
@@ -96,6 +109,8 @@ bool ChronyThreadSet::unsubscribe(sessionId_t sessionId)
 
 void ChronyThreadSet::notify_client()
 {
+    if(stopThread)
+        return;
     PrintDebug("[clkmgr]::notify_client");
     vector<sessionId_t> sessionIdToRemove;
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
@@ -121,6 +136,8 @@ void ChronyThreadSet::notify_client()
             ++it;
     }
     local.unlock(); // Explicitly unlock the mutex
+    if(stopThread)
+        return;
     for(const sessionId_t sessionId : sessionIdToRemove) {
         ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
         Client::RemoveClientSession(sessionId);
@@ -129,15 +146,17 @@ void ChronyThreadSet::notify_client()
 
 chrony_err ChronyThreadSet::process_chronyd_data()
 {
-    pollfd pfd = { .fd = chrony_get_fd(m_s), .events = POLLIN };
+    pollfd pfd = { .fd = chronyFd, .events = POLLIN };
     int timeout = 1000;
-    while(chrony_needs_response(m_s)) {
+    while(!stopThread && chrony_needs_response(session)) {
         int n = poll(&pfd, 1, timeout);
         if(n < 0)
             PrintErrorCode("poll");
         else if(n == 0)
             PrintError("No valid response received");
-        chrony_err r = chrony_process_response(m_s);
+        if(stopThread)
+            return CHRONY_OK;
+        chrony_err r = chrony_process_response(session);
         if(r != CHRONY_OK)
             return r;
     }
@@ -147,24 +166,38 @@ chrony_err ChronyThreadSet::process_chronyd_data()
 chrony_err ChronyThreadSet::subscribe_to_chronyd()
 {
     int record_index = 0;
-    chrony_err r = chrony_request_record(m_s, "sources", record_index);
+    if(stopThread)
+        return CHRONY_OK;
+    chrony_err r = chrony_request_record(session, "sources", record_index);
     if(r != CHRONY_OK)
         return r;
     r = process_chronyd_data();
     if(r != CHRONY_OK)
         return r;
-    int field_index = chrony_get_field_index(m_s, "reference ID");
+    if(stopThread)
+        return CHRONY_OK;
+    int field_index = chrony_get_field_index(session, "reference ID");
+    if(stopThread)
+        return CHRONY_OK;
     ptp4lEvent.chrony_reference_id =
-        chrony_get_field_uinteger(m_s, field_index);
-    field_index = chrony_get_field_index(m_s, "poll");
+        chrony_get_field_uinteger(session, field_index);
+    if(stopThread)
+        return CHRONY_OK;
+    field_index = chrony_get_field_index(session, "poll");
+    if(stopThread)
+        return CHRONY_OK;
     int32_t interval = static_cast<int32_t>
-        (static_cast<int16_t>(chrony_get_field_integer(m_s, field_index)));
+        (static_cast<int16_t>(chrony_get_field_integer(session, field_index)));
     ptp4lEvent.polling_interval =
         pow(2.0, interval) * 1000000;
     PrintDebug("CHRONY polling_interval = " +
         to_string(ptp4lEvent.polling_interval) + " us");
-    field_index = chrony_get_field_index(m_s, "original last sample offset");
-    float second = (chrony_get_field_float(m_s, field_index) * 1e9);
+    if(stopThread)
+        return CHRONY_OK;
+    field_index = chrony_get_field_index(session, "original last sample offset");
+    if(stopThread)
+        return CHRONY_OK;
+    float second = (chrony_get_field_float(session, field_index) * 1e9);
     ptp4lEvent.chrony_offset = (int)second;
     PrintDebug("CHRONY master_offset = " +
         to_string(ptp4lEvent.chrony_offset));
@@ -175,32 +208,36 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
 void ChronyThreadSet::monitor_chronyd()
 {
     // connect to chronyd unix socket using udsAddrChrony
-    int fd = chrony_open_socket(udsAddrChrony.c_str());
-    if(chrony_init_session(&m_s, fd) == CHRONY_OK && fd > 0)
+    chronyFd = chrony_open_socket(udsAddrChrony.c_str());
+    if(chronyFd >= 0 && chrony_init_session(&session, chronyFd) == CHRONY_OK)
         PrintInfo("Connected to Chrony at " + udsAddrChrony);
-    for(;;) {
+    while(!stopThread) {
         if(subscribe_to_chronyd() != CHRONY_OK) {
-            chrony_deinit_session(m_s);
+            close();
             ptp4lEvent.chrony_reference_id = 0;
             ptp4lEvent.polling_interval = 0;
             ptp4lEvent.chrony_offset = 0;
             notify_client();
             PrintError("Failed to connect to Chrony at " + udsAddrChrony);
             // Reconnection loop
-            for(;;) {
+            while(!stopThread) {
                 PrintInfo("Attempting to reconnect to Chrony at " +
                     udsAddrChrony);
-                fd = chrony_open_socket(udsAddrChrony.c_str());
-                if(fd < 0) {
-                    sleep(5); // Wait before retrying
+                chronyFd = chrony_open_socket(udsAddrChrony.c_str());
+                if(chronyFd < 0) {
+                    // Wait 5 seconds before retrying
+                    for(int i = 0; i < 5 && !stopThread; i++)
+                        sleep(1);
                     continue;
                 }
-                if(chrony_init_session(&m_s, fd) == CHRONY_OK) {
+                if(chrony_init_session(&session, chronyFd) == CHRONY_OK) {
                     PrintInfo("Reconnected to Chrony at " + udsAddrChrony);
                     break;
                 }
             }
         }
+        if(stopThread)
+            break;
         // Sleep duration is based on chronyd polling interval
         usleep(ptp4lEvent.polling_interval);
     }
@@ -257,3 +294,23 @@ void ConnectChrony::connect_chrony()
     // Ensure threads start after finish initializing
     all_init.store(true);
 }
+
+class ChronyDisconnect : public End
+{
+  public:
+    bool stop() override final {
+        for(auto &it : chronyThreadList)
+            it.second->stopThread = true;
+        return true;
+    }
+    bool finalize() override final {
+        // Wait for threads to end
+        for(auto &it : chronyThreadList)
+            it.second->wait();
+        for(auto &it : chronyThreadList)
+            it.second->close();
+        chronyThreadList.clear();
+        return true;
+    }
+};
+static ChronyDisconnect endChrony;

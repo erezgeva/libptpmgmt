@@ -10,6 +10,7 @@
  */
 
 #include "proxy/client.hpp"
+#include "common/termin.hpp"
 #include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
@@ -71,5 +72,24 @@ sessionId_t Client::CreateClientSession(const ClientId &id)
 
 void Client::RemoveClientSession(sessionId_t sessionId)
 {
-    sessionMap.erase(sessionId);
+    Transmitter *tx = getTxContext(sessionId);
+    if(tx != nullptr) {
+        tx->finalize();
+        sessionMap.erase(sessionId);
+    }
 }
+
+class ClientRemoveAll : public End
+{
+  public:
+    // TODO : do we need to send a disconnect message to the clients?
+    // Here is our opportunity :-)
+    bool stop() override final { return true; }
+    bool finalize() override final {
+        for(auto &it : sessionMap)
+            it.second.get()->getTxContext()->finalize();
+        sessionMap.clear();
+        return true;
+    }
+};
+static ClientRemoveAll endClients;
