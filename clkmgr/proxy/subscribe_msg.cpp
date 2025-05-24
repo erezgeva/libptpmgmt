@@ -24,26 +24,18 @@ using namespace std;
 
 extern map<int, ptp_event> ptp4lEvents;
 
-bool ProxySubscribeMessage::makeBuffer(Transmitter &txContext) const
+bool ProxySubscribeMessage::makeBufferTail(Transmitter &txContext) const
 {
-    PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-    if(!SubscribeMessage::makeBuffer(txContext))
-        return false;
+    PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
     ptp_event event = ptp4lEvents[timeBaseIndex];
     // Add timeBaseIndex into the message
-    if(!WRITE_TX(FIELD, timeBaseIndex, txContext))
-        return false;
-    // Add event data into the message
-    if(!WRITE_TX(FIELD, event, txContext))
-        return false;
-    return true;
+    return WRITE_TX(FIELD, timeBaseIndex, txContext) &&
+        WRITE_TX(FIELD, event, txContext); // Add event data into the message
 }
 
-bool ProxySubscribeMessage::parseBuffer(Listener &rxContext)
+bool ProxySubscribeMessage::parseBufferTail()
 {
-    PrintDebug("[ProxySubscribeMessage]::parseBuffer ");
-    if(!SubscribeMessage::parseBuffer(rxContext))
-        return false;
+    PrintDebug("[ProxySubscribeMessage]::parseBufferTail");
     if(!PARSE_RX(FIELD, timeBaseIndex, rxContext))
         return false;
     sessionId_t sID = get_sessionId();
@@ -62,8 +54,7 @@ bool ProxySubscribeMessage::parseBuffer(Listener &rxContext)
 This is to process the subscription from the clkmgr client runtime
 via POSIX msg queue.
 */
-bool ProxySubscribeMessage::processMessage(Listener &rxContext,
-    Transmitter *&txContext)
+bool ProxySubscribeMessage::processMessage()
 {
     sessionId_t sID = get_sessionId();
     PrintDebug("[ProxySubscribeMessage]::processMessage - "
@@ -73,9 +64,8 @@ bool ProxySubscribeMessage::processMessage(Listener &rxContext,
             "proxy connect message");
         return false;
     }
-    txContext = Client::getTxContext(sID);
-    if(txContext == nullptr) {
-        PrintError("Session ID " + to_string(sID) + " do not have Transmitter");
+    if(!Client::existClient(sID)) {
+        PrintError("Session ID " + to_string(sID) + " does not exist in Clients");
         return false;
     }
     set_msgAck(ACK_SUCCESS);

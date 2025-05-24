@@ -25,20 +25,18 @@ class ClientSubscribeMessage : public SubscribeMessage
   private:
     static ClientState *currentClientState;
     int timeBaseIndex = 0; /**< Timebase index */
+    bool parseBufferTail() override final;
+    bool makeBufferTail(Transmitter &txContext) const override final;
 
   public:
     static rtpi::mutex cv_mtx;
     static rtpi::condition_variable cv;
     /**
      * process the reply for subscribe msg from proxy.
-     * @param rxContext client run-time listener
-     * @param txContext client run-time transmitter
      * @return true
      */
-    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
-    bool parseBuffer(Listener &rxContext) override;
-    bool writeClientId(Listener &rxContext) override;
-    bool makeBuffer(Transmitter &txContext) const override;
+    bool processMessage() override final;
+    bool writeClientId() override final;
 
     void setClientState(ClientState &newClientState);
 

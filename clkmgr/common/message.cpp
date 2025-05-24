@@ -20,6 +20,10 @@ using namespace std;
 
 DECLARE_STATIC(Message::allocMessageMap);
 
+Message::Message() : rxContext(Listener::getSingleListenerInstance())
+{
+}
+
 string Message::ExtractClassName(const string &prettyFunction,
     const char *function)
 {
@@ -45,43 +49,34 @@ string Message::toString()
     return ret;
 }
 
-bool Message::makeBufferBase(Transmitter &txContext) const
+bool Message::makeBuffer(Transmitter &txContext) const
 {
-    PrintDebug("[Message]::makeBufferBase");
-    if(!WRITE_TX(FIELD, get_msgId(), txContext))
-        return false;
-    if(!WRITE_TX(FIELD, m_msgAck, txContext))
-        return false;
-    return true;
-}
-
-bool Message::presendMessage(Transmitter &ctx)
-{
-    PrintDebug("[Message]::presendMessage starts");
-    ctx.resetOffset();
-    if(!makeBuffer(ctx)) {
+    PrintDebug("[Message]::makeBuffer");
+    txContext.resetOffset();
+    if(!WRITE_TX(FIELD, get_msgId(), txContext) ||
+        !WRITE_TX(FIELD, m_msgAck, txContext) ||
+        !makeBufferComm(txContext) || !makeBufferTail(txContext)) {
         PrintError("Failed to make buffer from message object");
         return false;
     }
-    DumpOctetArray("Sending message (length = " + to_string(ctx.get_offset()) +
-        "): ", ctx.data(), ctx.get_offset());
-    PrintDebug("[Message]::presendMessage successful");
+    DumpOctetArray("Sending message (length = " +
+        to_string(txContext.get_offset()) + "): ",
+        txContext.data(), txContext.get_offset());
+    PrintDebug("[Message]::makeBuffer successful");
     return true;
 }
 
-bool Message::parseBuffer(Listener &rxContext)
+bool Message::transmitMessage()
 {
-    PrintDebug("[Message]::parseBuffer ");
-    msgId_t msgId;
-    if(!PARSE_RX(FIELD, msgId, rxContext))
-        return false;
-    if(msgId != get_msgId()) {
-        PrintError("Wrong message type " + to_string(msgId));
-        return false;
-    }
-    if(!PARSE_RX(FIELD, m_msgAck, rxContext))
-        return false;
-    return true;
+    Transmitter *ptxContext = Transmitter::getTransmitterInstance(m_sessionId);
+    return ptxContext != nullptr && makeBuffer(*ptxContext) &&
+        ptxContext->sendBuffer();
+}
+
+bool Message::parseBuffer()
+{
+    return PARSE_RX(FIELD, m_msgAck, rxContext) &&
+        parseBufferComm() && parseBufferTail();
 }
 
 Message *Message::buildMessage(Listener &rxContext)
@@ -94,14 +89,12 @@ Message *Message::buildMessage(Listener &rxContext)
         return nullptr;
     }
     Message *msg = allocMessageMap[msgId]();
-    if(msg == nullptr) {
+    if(msg != nullptr) {
+        if(msg->parseBuffer())
+            return msg;
         PrintError("Error parsing message");
-        return nullptr;
-    }
-    rxContext.resetOffset();
-    if(!msg->parseBuffer(rxContext)) {
         delete msg;
-        return nullptr;
-    }
-    return msg;
+    } else
+        PrintError("Failing allocating message");
+    return nullptr;
 }

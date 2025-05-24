@@ -22,10 +22,11 @@ class ProxyNotificationMessage : public NotificationMessage
 {
   private:
     int timeBaseIndex = 0;
+    bool makeBufferTail(Transmitter &txContext) const override final;
 
   public:
-    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
-    bool makeBuffer(Transmitter &txContext) const override;
+    // Notification Message is send to client only!
+    bool processMessage() override final { return true; }
 
     void setTimeBaseIndex(int newTimeBaseIndex) {
         timeBaseIndex = newTimeBaseIndex;

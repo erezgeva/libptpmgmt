@@ -21,11 +21,16 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-static Listener rxContext;
 static Transmitter txContext;
+
+Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
+{
+    return &txContext;
+}
 
 bool ClientQueue::init()
 {
+    Listener &rxContext = Listener::getSingleListenerInstance();
     /* Two outstanding messages per client */
     PrintDebug("Initializing Client Queue ...");
     string mqListenerName(mqProxyName);
@@ -44,12 +49,11 @@ bool ClientQueue::init()
 
 bool ClientQueue::sendMessage(Message *msg)
 {
-    if(!msg->writeClientId(rxContext))
+    if(!msg->writeClientId())
         PrintErrorCode("Unknown msgID type");
-    msg->presendMessage(txContext);
-    if(!txContext.sendBuffer())
+    if(!msg->transmitMessage())
         return false;
-    PrintDebug("[ClientQueue]::sendMessage successful ");
+    PrintDebug("[ClientQueue]::sendMessage successful");
     return true;
 }
 

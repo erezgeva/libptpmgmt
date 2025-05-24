@@ -28,15 +28,12 @@ using namespace std;
  * In this case, proxy transport layer will rx a buffer in the
  * message queue and call this function when
  * the enum ID corresponding to the CONNECT_MSG is received.
- * A new ClientSession object and a corresponding txContext
+ * A new ClientSession object
  * (with the transmit msq) is created in the proxy.
  *
- * @param rxContext proxy listener
- * @param txContext proxy transmitter
  * @return true
  */
-bool ProxyConnectMessage::processMessage(Listener &rxContext,
-    Transmitter *&txContext)
+bool ProxyConnectMessage::processMessage()
 {
     sessionId_t newSessionId = get_sessionId();
     PrintDebug("Processing proxy connect message");
@@ -60,11 +57,9 @@ bool ProxyConnectMessage::processMessage(Listener &rxContext,
     return true;
 }
 
-bool ProxyConnectMessage::makeBuffer(Transmitter &txContext) const
+bool ProxyConnectMessage::makeBufferTail(Transmitter &txContext) const
 {
-    PrintDebug("[ProxyConnectMessage]::makeBuffer");
-    if(!ConnectMessage::makeBuffer(txContext))
-        return false;
+    PrintDebug("[ProxyConnectMessage]::makeBufferTail");
     JsonConfigParser parser = JsonConfigParser::getInstance();
     size_t mapSize = parser.size();
     if(!WRITE_TX(FIELD, mapSize, txContext))

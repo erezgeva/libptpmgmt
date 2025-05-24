@@ -25,6 +25,7 @@ class ClientQueue
   public:
     static bool init();
     static bool sendMessage(Message *msg);
+    static Transmitter *getTransmitter();
 };
 
 __CLKMGR_NAMESPACE_END

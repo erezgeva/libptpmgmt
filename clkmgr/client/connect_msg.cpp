@@ -21,11 +21,9 @@ using namespace std;
 
 ClientState *ClientConnectMessage::currentClientState = nullptr;
 
-bool ClientConnectMessage::parseBuffer(Listener &rxContext)
+bool ClientConnectMessage::parseBufferTail()
 {
-    PrintDebug("[ClientConnectMessage]::parseBuffer ");
-    if(!ConnectMessage::parseBuffer(rxContext))
-        return false;
+    PrintDebug("[ClientConnectMessage]::parseBufferTail");
     size_t mapSize = 0;
     if(!PARSE_RX(FIELD, mapSize, rxContext))
         return false;
@@ -38,7 +36,7 @@ bool ClientConnectMessage::parseBuffer(Listener &rxContext)
     return true;
 }
 
-bool ClientConnectMessage::writeClientId(Listener &rxContext)
+bool ClientConnectMessage::writeClientId()
 {
     rxContext.getQueueName().copy((char *)getClientId().data(), CLIENTID_LENGTH);
     return true;
@@ -62,20 +60,17 @@ void ClientConnectMessage::setClientState(ClientState &newClientState)
  * is always send first from the client runtime first. The proxy will
  * echo-reply with a different ACK msg.
  *
- * @param rxContext client run-time listener
- * @param txContext client run-time transmitter
  * @return true
  */
-bool ClientConnectMessage::processMessage(Listener &rxContext,
-    Transmitter *&txContext)
+bool ClientConnectMessage::processMessage()
 {
-    unique_lock<rtpi::mutex> lock(cv_mtx);
     PrintDebug("Processing client connect message (reply)");
-    currentClientState->set_connected(true);
-    currentClientState->set_sessionId(get_sessionId());
     PrintDebug("Connected with session ID: " + to_string(get_sessionId()));
     PrintDebug("Current state.sessionId: " +
         to_string(currentClientState->get_sessionId()));
+    unique_lock<rtpi::mutex> lock(cv_mtx);
+    currentClientState->set_connected(true);
+    currentClientState->set_sessionId(get_sessionId());
     set_msgAck(ACK_NONE);
     cv.notify_one(lock);
     return true;

@@ -17,10 +17,9 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-static Listener rxContext;
-
 bool clkmgr::proxyQueueInit()
 {
+    Listener &rxContext = Listener::getSingleListenerInstance();
     PrintDebug("Initializing Proxy Queue ...");
     if(!rxContext.init(mqProxyName, MAX_CLIENT_COUNT)) {
         PrintError("Initializing failed");
@@ -28,4 +27,9 @@ bool clkmgr::proxyQueueInit()
     }
     PrintDebug("Proxy queue opened");
     return true;
+}
+
+Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
+{
+    return Client::getTxContext(sessionId);
 }

@@ -23,6 +23,7 @@ class ClientConnectMessage : public ConnectMessage
 {
   private:
     static ClientState *currentClientState;
+    bool parseBufferTail() override final;
 
   public:
     static rtpi::mutex cv_mtx;
@@ -30,13 +31,10 @@ class ClientConnectMessage : public ConnectMessage
 
     /**
      * process the reply for connect msg from proxy.
-     * @param rxContext client run-time listener
-     * @param txContext client run-time transmitter
      * @return true
      */
-    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
-    bool parseBuffer(Listener &rxContext) override;
-    bool writeClientId(Listener &rxContext) override;
+    bool processMessage() override final;
+    bool writeClientId() override final;
     void setClientState(ClientState &newClientState);
 };
 

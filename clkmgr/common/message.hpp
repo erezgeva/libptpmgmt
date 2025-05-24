@@ -42,29 +42,48 @@ class Message
     msgAck_t m_msgAck = ACK_NONE;
     sessionId_t m_sessionId = InvalidSessionId;
 
+    // Create buffer for transmission
+    bool makeBuffer(Transmitter &txContext) const;
+    // Parse buffer and fill the message
+    bool parseBuffer();
+
   protected:
-    Message() = default;
-    bool makeBufferBase(Transmitter &txContext) const;
+    Listener &rxContext; // reference to the single listener
+
+    Message();
+    // Create buffer for transmission - common message callback
+    virtual bool makeBufferComm(Transmitter &txContext) const { return true; }
+    // Create buffer for transmission - last message callback
+    virtual bool makeBufferTail(Transmitter &txContext) const { return true; }
+    // Parse buffer and fill the message - common message callback
+    virtual bool parseBufferComm() { return true; }
+    // Parse buffer and fill the message - last  message callback
+    virtual bool parseBufferTail() { return true; }
 
   public:
     static std::string ExtractClassName(const std::string &prettyFunction,
         const char *function);
 
+    // Create new message from received buffer
     static Message *buildMessage(Listener &rxContext);
+    // Register a message class with its ID
     static void registerMessageType(msgId_t id, AllocMessage_t allocFunc) {
         allocMessageMap[id] = allocFunc;
     }
 
     virtual ~Message() = default;
-    virtual msgId_t get_msgId() const = 0;
-    virtual bool processMessage(Listener &rxContext, Transmitter *&txContext) = 0;
-    virtual bool transmitMessage(Transmitter &txContext) = 0;
-    virtual bool makeBuffer(Transmitter &txContext) const = 0;
-    virtual bool writeClientId(Listener &rxContext) { return false; }
-    virtual bool parseBuffer(Listener &rxContext);
     virtual std::string toString();
+    virtual msgId_t get_msgId() const = 0;
 
-    bool presendMessage(Transmitter &ctx);
+    // Handle received message
+    virtual bool processMessage() = 0;
+
+    // Set client ID on message on client side
+    virtual bool writeClientId() { return false; }
+
+    // Buile the buffer and semd it
+    bool transmitMessage();
+
     msgAck_t get_msgAck() const { return m_msgAck; }
     void set_msgAck(msgAck_t msgAck) { m_msgAck = msgAck; }
     sessionId_t get_sessionId() const { return m_sessionId; }

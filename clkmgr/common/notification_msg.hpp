@@ -25,7 +25,6 @@ class NotificationMessage : public Message
     NotificationMessage() : waitEnable(0) {}
   public:
     msgId_t get_msgId() const override final { return NOTIFY_MESSAGE; }
-    bool transmitMessage(Transmitter &txContext) override;
     bool isEnable() { return waitEnable == 0x1; }
 };
 

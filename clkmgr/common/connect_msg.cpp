@@ -27,35 +27,18 @@ string ConnectMessage::toString()
     return name;
 }
 
-bool ConnectMessage::parseBuffer(Listener &rxContext)
+bool ConnectMessage::parseBufferComm()
 {
-    if(!Message::parseBuffer(rxContext))
-        return false;
     sessionId_t sessionId;
-    if(!PARSE_RX(FIELD, sessionId, rxContext))
+    if(!PARSE_RX(FIELD, sessionId, rxContext) ||
+        !PARSE_RX(ARRAY, clientId, rxContext))
         return false;
     set_sessionId(sessionId);
-    if(!PARSE_RX(ARRAY, clientId, rxContext))
-        return false;
     return true;
 }
 
-bool ConnectMessage::makeBuffer(Transmitter &txContext) const
+bool ConnectMessage::makeBufferComm(Transmitter &txContext) const
 {
-    auto ret = makeBufferBase(txContext);
-    if(!ret)
-        return ret;
-    if(!WRITE_TX(FIELD, get_sessionId(), txContext))
-        return false;
-    if(!WRITE_TX(ARRAY, clientId, txContext))
-        return false;
-    return true;
-}
-
-bool ConnectMessage::transmitMessage(Transmitter &txContext)
-{
-    PrintDebug("[ConnectMessage]::transmitMessage ");
-    if(!presendMessage(txContext))
-        return false;
-    return txContext.sendBuffer();
+    return WRITE_TX(FIELD, get_sessionId(), txContext) &&
+        WRITE_TX(ARRAY, clientId, txContext);
 }

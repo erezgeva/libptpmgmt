@@ -21,14 +21,14 @@ class ConnectMessage : public Message
 {
   private:
     ClientId clientId;
+    bool parseBufferComm() override final;
+    bool makeBufferComm(Transmitter &txContext) const override final;
+
   protected:
     ConnectMessage() = default;
   public:
     msgId_t get_msgId() const override final { return CONNECT_MSG; }
     const ClientId &getClientId() const { return clientId; }
-    bool parseBuffer(Listener &rxContext) override;
-    bool transmitMessage(Transmitter &txContext) override;
-    bool makeBuffer(Transmitter &txContext) const override;
     std::string toString() override;
 };
 

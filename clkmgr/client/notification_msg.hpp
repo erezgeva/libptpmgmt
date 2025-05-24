@@ -20,10 +20,10 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class ClientNotificationMessage : public NotificationMessage
 {
+  protected:
+    bool parseBufferTail() override final;
   public:
-    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
-    bool makeBuffer(Transmitter &txContext) const override;
-    bool parseBuffer(Listener &rxContext) override;
+    bool processMessage() override final;
 };
 
 __CLKMGR_NAMESPACE_END

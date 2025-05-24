@@ -26,31 +26,23 @@ void ClientSubscribeMessage::setClientState(ClientState &newClientState)
     currentClientState = &newClientState;
 }
 
-bool ClientSubscribeMessage::makeBuffer(Transmitter &txContext) const
+bool ClientSubscribeMessage::makeBufferTail(Transmitter &txContext) const
 {
-    PrintDebug("[ProxySubscribeMessage]::makeBuffer");
-    if(!SubscribeMessage::makeBuffer(txContext))
-        return false;
-    if(!WRITE_TX(FIELD, timeBaseIndex, txContext))
-        return false;
-    return true;
+    PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
+    return WRITE_TX(FIELD, timeBaseIndex, txContext);
 }
 
-bool ClientSubscribeMessage::parseBuffer(Listener &rxContext)
+bool ClientSubscribeMessage::parseBufferTail()
 {
     ptp_event data = {};
-    PrintDebug("[ClientSubscribeMessage]::parseBuffer ");
-    if(!SubscribeMessage::parseBuffer(rxContext))
-        return false;
-    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext))
-        return false;
-    if(!PARSE_RX(FIELD, data, rxContext))
+    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext) ||
+        !PARSE_RX(FIELD, data, rxContext))
         return false;
     TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
     return true;
 }
 
-bool ClientSubscribeMessage::writeClientId(Listener &)
+bool ClientSubscribeMessage::writeClientId()
 {
     PrintDebug("[ClientQueue] [SUBSCRIBE] : subscription->event Mask : " +
         to_string(getSubscription().get_event_mask()));
@@ -67,12 +59,9 @@ bool ClientSubscribeMessage::writeClientId(Listener &)
  * listening message queue (listening to proxy) and call this function when
  * the enum ID corresponding to the SUBSCRIBE_MSG is received.
  *
- * @param rxContext client run-time listener
- * @param txContext client run-time transmitter
  * @return true
  */
-bool ClientSubscribeMessage::processMessage(Listener &rxContext,
-    Transmitter *&txContext)
+bool ClientSubscribeMessage::processMessage()
 {
     PrintDebug("[ClientSubscribeMessage]::processMessage (reply)");
     unique_lock<rtpi::mutex> lock(cv_mtx);

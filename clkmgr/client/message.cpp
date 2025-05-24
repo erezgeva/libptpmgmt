@@ -21,7 +21,7 @@ __CLKMGR_NAMESPACE_USE;
 bool clkmgr::clientMessageRegister()
 {
     PrintDebug("Initializing Client Message");
-    reg_message_type<ClientConnectMessage, ClientSubscribeMessage,
-                     ClientNotificationMessage>();
+    reg_message_type<ClientConnectMessage, ClientSubscribeMessage>();
+    // ClientNotificationMessage - We send it from proxy only
     return true;
 }

@@ -27,49 +27,32 @@ string SubscribeMessage::toString()
     return name;
 }
 
-bool SubscribeMessage::parseBuffer(Listener &rxContext)
+bool SubscribeMessage::parseBufferComm()
 {
-    PrintDebug("[SubscribeMessage]::parseBuffer ");
-    if(!Message::parseBuffer(rxContext))
-        return false;
+    PrintDebug("[SubscribeMessage]::parseBufferComm");
     sessionId_t sessionId;
-    if(!PARSE_RX(FIELD, sessionId, rxContext))
+    if(!PARSE_RX(FIELD, sessionId, rxContext) ||
+        !PARSE_RX(FIELD, subscription, rxContext))
         return false;
     set_sessionId(sessionId);
-    if(!PARSE_RX(FIELD, subscription, rxContext))
-        return false;
     return true;
 }
 
-bool SubscribeMessage::makeBuffer(Transmitter &txContext) const
+bool SubscribeMessage::makeBufferComm(Transmitter &txContext) const
 {
-    auto ret = makeBufferBase(txContext);
-    if(!ret)
-        return ret;
-    PrintDebug("[SubscribeMessage]::makeBuffer - sessionId : " +
+    PrintDebug("[SubscribeMessage]::makeBufferComm - sessionId : " +
         to_string(get_sessionId()));
-    if(!WRITE_TX(FIELD, get_sessionId(), txContext))
-        return false;
-    PrintDebug("[SubscribeMessage]::makeBuffer - subscription event : " +
+    PrintDebug("[SubscribeMessage]::makeBufferComm - subscription event : " +
         to_string(subscription.get_event_mask()) + ", composite event : " +
         to_string(subscription.get_composite_event_mask()));
-    if(!WRITE_TX(FIELD, subscription, txContext))
-        return false;
-    return true;
-}
-
-bool SubscribeMessage::transmitMessage(Transmitter &txContext)
-{
-    PrintDebug("[SubscribeMessage]::transmitMessage ");
-    if(!presendMessage(txContext))
-        return false;
-    return txContext.sendBuffer();
+    return WRITE_TX(FIELD, get_sessionId(), txContext) &&
+        WRITE_TX(FIELD, subscription, txContext);
 }
 
 #if 0
 void SubscribeMessage::setSubscription(const ClkMgrSubscription &newsub)
 {
-    PrintDebug("[SubscribeMessage]::setSubscription ");
+    PrintDebug("[SubscribeMessage]::setSubscription");
     subscription = newsub;
 }
 #endif

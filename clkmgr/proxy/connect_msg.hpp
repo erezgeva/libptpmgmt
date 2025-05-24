@@ -20,15 +20,15 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class ProxyConnectMessage : public ConnectMessage
 {
+  private:
+    bool makeBufferTail(Transmitter &txContext) const override final;
+
   public:
     /**
      * process the connect msg from client-runtime
-     * @param rxContext proxy listener
-     * @param txContext proxy transmitter
      * @return true
      */
-    bool processMessage(Listener &rxContext, Transmitter *&txContext) override;
-    bool makeBuffer(Transmitter &txContext) const override;
+    bool processMessage() override final;
 };
 
 __CLKMGR_NAMESPACE_END

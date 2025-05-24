@@ -127,8 +127,8 @@ void ChronyThreadSet::notify_client()
         // Send data for multiple sessions
         pmsg->setTimeBaseIndex(timeBaseIndex);
         PrintDebug("Get client session ID: " + to_string(sessionId));
-        Transmitter *txContext = Client::getTxContext(sessionId);
-        if(txContext != nullptr || !pmsg->transmitMessage(*txContext)) {
+        pmsg->set_sessionId(sessionId);
+        if(!pmsg->transmitMessage()) {
             it = subscribedClients.erase(it);
             /* Add sessionId into the list to remove */
             sessionIdToRemove.push_back(sessionId);

@@ -94,6 +94,12 @@ bool Queue::close()
     return false;
 }
 
+Listener &Listener::getSingleListenerInstance()
+{
+    static Listener listener;
+    return listener;
+}
+
 bool Listener::isFutureSet()
 {
     return m_retVal.valid() &&
@@ -179,12 +185,11 @@ bool Listener::MqListenerWork()
     if(msg == nullptr)
         return false;
     PrintDebug("Received message " + msg->toString());
-    Transmitter *txcontext;
-    if(!msg->processMessage(*this, txcontext))
+    if(!msg->processMessage())
         return false;
     // Echo the message back with ACK disposition
     if(msg->get_msgAck() != ACK_NONE)
-        return msg->transmitMessage(*txcontext);
+        return msg->transmitMessage();
     return true;
 }
 

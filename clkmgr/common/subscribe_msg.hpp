@@ -24,14 +24,14 @@ class SubscribeMessage : public Message
     ClkMgrSubscription subscription;
     // Client ID Is not in the Subscribe Message
     // ClientId clientId;
+    bool parseBufferComm() override final;
+    bool makeBufferComm(Transmitter &txContext) const override final;
+
   protected:
     SubscribeMessage() = default;
 
   public:
     msgId_t get_msgId() const override final { return SUBSCRIBE_MSG; }
-    bool parseBuffer(Listener &rxContext) override;
-    bool transmitMessage(Transmitter &txContext) override;
-    bool makeBuffer(Transmitter &txContext) const override;
 
     // Seems the Clock manager subscription is left in the client
     // Why do we send it in the Subscribe Message?

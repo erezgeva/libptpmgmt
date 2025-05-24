@@ -95,8 +95,11 @@ class Listener : public Buffer, public End
     bool stop() override final;
     bool finalize() override final;
 
-  public:
+    // Create the singlton
     Listener() : m_retVal(m_promise.get_future()), m_exitVal(false) {}
+
+  public:
+    static Listener &getSingleListenerInstance();
     virtual ~Listener() = default;
     bool init(const std::string &name, size_t maxMsg);
     void dispatchLoop();
@@ -117,6 +120,7 @@ class Transmitter : public Buffer
     bool sendBuffer();
     bool open(const std::string &name, bool block = true);
     std::string getQueueName() const { return m_transmitterQueue.str(); }
+    static Transmitter *getTransmitterInstance(sessionId_t sessionId);
 };
 
 __CLKMGR_NAMESPACE_END
