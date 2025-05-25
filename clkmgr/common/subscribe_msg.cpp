@@ -23,7 +23,6 @@ string SubscribeMessage::toString() const
     string name = MSG_EXTRACT_CLASS_NAME;
     name += "\n";
     name += Message::toString();
-    //name += "Client ID: " + string((char *)clientId.data()) + "\n";
     return name;
 }
 
@@ -32,7 +31,8 @@ bool SubscribeMessage::parseBufferComm()
     PrintDebug("[SubscribeMessage]::parseBufferComm");
     sessionId_t sessionId;
     if(!PARSE_RX(FIELD, sessionId, rxContext) ||
-        !PARSE_RX(FIELD, subscription, rxContext))
+        !PARSE_RX(FIELD, subscription, rxContext) ||
+        !PARSE_RX(FIELD, timeBaseIndex, rxContext))
         return false;
     set_sessionId(sessionId);
     return true;
@@ -46,13 +46,6 @@ bool SubscribeMessage::makeBufferComm(Transmitter &txContext) const
         to_string(subscription.get_event_mask()) + ", composite event : " +
         to_string(subscription.get_composite_event_mask()));
     return WRITE_TX(FIELD, get_sessionId(), txContext) &&
-        WRITE_TX(FIELD, subscription, txContext);
+        WRITE_TX(FIELD, subscription, txContext) &&
+        WRITE_TX(FIELD, timeBaseIndex, txContext);
 }
-
-#if 0
-void SubscribeMessage::setSubscription(const ClkMgrSubscription &newsub)
-{
-    PrintDebug("[SubscribeMessage]::setSubscription");
-    subscription = newsub;
-}
-#endif

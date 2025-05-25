@@ -21,12 +21,6 @@ using namespace std;
 
 DECLARE_STATIC(ClientSubscribeMessage::currentClientState, nullptr);
 
-bool ClientSubscribeMessage::makeBufferTail(Transmitter &txContext) const
-{
-    PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
-    return WRITE_TX(FIELD, timeBaseIndex, txContext);
-}
-
 bool ClientSubscribeMessage::writeClientId()
 {
     PrintDebug("[ClientQueue] [SUBSCRIBE] : subscription->event Mask : " +
@@ -50,8 +44,7 @@ bool ClientSubscribeMessage::parseBufferTail()
 {
     PrintDebug("[ClientSubscribeMessage]::parseBufferTail");
     ptp_event data = {};
-    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext) ||
-        !PARSE_RX(FIELD, data, rxContext))
+    if(!PARSE_RX(FIELD, data, rxContext))
         return false;
     TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
     unique_lock<rtpi::mutex> lock(cv_mtx);

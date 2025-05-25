@@ -19,13 +19,15 @@ __CLKMGR_NAMESPACE_BEGIN
 
 class NotificationMessage : public Message
 {
-  private:
-    uint32_t waitEnable : 1;
   protected:
-    NotificationMessage() : waitEnable(0) {}
+    NotificationMessage() = default;
+    int timeBaseIndex = 0;
+    bool makeBufferComm(Transmitter &txContext) const override final;
+    bool parseBufferComm() override final;
+
   public:
     msgId_t get_msgId() const override final { return NOTIFY_MESSAGE; }
-    bool isEnable() { return waitEnable == 0x1; }
+    void setTimeBaseIndex(int index) { timeBaseIndex = index; }
 };
 
 __CLKMGR_NAMESPACE_END

@@ -22,26 +22,28 @@ class SubscribeMessage : public Message
 {
   private:
     ClkMgrSubscription subscription;
-    // Client ID Is not in the Subscribe Message
-    // ClientId clientId;
     bool parseBufferComm() override final;
     bool makeBufferComm(Transmitter &txContext) const override final;
 
   protected:
     SubscribeMessage() = default;
+    int timeBaseIndex = 0;
 
   public:
     msgId_t get_msgId() const override final { return SUBSCRIBE_MSG; }
 
     // Seems the Clock manager subscription is left in the client
-    // Why do we send it in the Subscribe Message?
+    // TODO Why do we send it in the Subscribe Message?
     const ClkMgrSubscription &getSubscription() const { return subscription; }
     // void setSubscription(const ClkMgrSubscription &newsub);
 
-    // Client ID Is not in the Subscribe Message
-    // const ClientId &getClientId() const { return clientId; }
-
     std::string toString() const override;
+
+    /**
+     * Set the time base index.
+     * @param[in] index The new time base index to set.
+     */
+    void set_timeBaseIndex(int index) { timeBaseIndex = index; }
 };
 
 __CLKMGR_NAMESPACE_END

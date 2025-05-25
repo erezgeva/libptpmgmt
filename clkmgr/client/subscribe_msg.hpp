@@ -24,9 +24,7 @@ class ClientSubscribeMessage : public SubscribeMessage
 {
   private:
     static ClientState *currentClientState;
-    int timeBaseIndex = 0; /**< Timebase index */
     bool parseBufferTail() override final;
-    bool makeBufferTail(Transmitter &txContext) const override final;
 
   public:
     static rtpi::mutex cv_mtx;
@@ -39,22 +37,6 @@ class ClientSubscribeMessage : public SubscribeMessage
 
     void setClientState(ClientState &newClientState) {
         currentClientState = &newClientState;
-    }
-
-    /**
-     * Set the time base index.
-     * @param[in] newTimeBaseIndex The new time base index to set.
-     */
-    void set_timeBaseIndex(int newTimeBaseIndex) {
-        timeBaseIndex = newTimeBaseIndex;
-    }
-
-    /**
-     * Get the value of the time base index.
-     * @return The value of the time base index.
-     */
-    int get_timeBaseIndex() const {
-        return timeBaseIndex;
     }
 };
 

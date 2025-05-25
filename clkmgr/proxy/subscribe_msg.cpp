@@ -28,16 +28,13 @@ bool ProxySubscribeMessage::makeBufferTail(Transmitter &txContext) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
     ptp_event event = ptp4lEvents[timeBaseIndex];
-    // Add timeBaseIndex into the message
-    return WRITE_TX(FIELD, timeBaseIndex, txContext) &&
-        WRITE_TX(FIELD, event, txContext); // Add event data into the message
+    // Add event data into the message
+    return WRITE_TX(FIELD, event, txContext);
 }
 
 bool ProxySubscribeMessage::parseBufferTail()
 {
     PrintDebug("[ProxySubscribeMessage]::parseBufferTail");
-    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext))
-        return false;
     sessionId_t sID = get_sessionId();
     if(!Client::existClient(sID)) {
         PrintError("Session ID " + to_string(sID) + " is not registered");

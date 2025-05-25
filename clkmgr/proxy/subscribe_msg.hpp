@@ -21,14 +21,8 @@ __CLKMGR_NAMESPACE_BEGIN
 class ProxySubscribeMessage : public SubscribeMessage
 {
   private:
-    int timeBaseIndex = 0;
     bool parseBufferTail() override final;
     bool makeBufferTail(Transmitter &txContext) const override final;
-
-  public:
-    void setTimeBaseIndex(int newTimeBaseIndex) {
-        timeBaseIndex = newTimeBaseIndex;
-    }
 };
 
 __CLKMGR_NAMESPACE_END

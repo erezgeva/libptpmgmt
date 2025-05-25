@@ -25,7 +25,6 @@ bool ProxyNotificationMessage::makeBufferTail(Transmitter &txContext) const
 {
     PrintDebug("[ProxyNotificationMessage]::makeBufferTail");
     ptp_event event = ptp4lEvents[timeBaseIndex];
-    // Add timeBaseIndex into the message
-    return WRITE_TX(FIELD, timeBaseIndex, txContext) &&
-        WRITE_TX(FIELD, event, txContext); // Add event data into the message
+    // Add event data into the message
+    return WRITE_TX(FIELD, event, txContext);
 }

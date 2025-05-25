@@ -174,17 +174,17 @@ void ptpSet::notify_client()
     PrintDebug("[clkmgr]::notify_client");
     vector<sessionId_t> sessionIdToRemove;
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
+    ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
+    if(pmsg == nullptr) {
+        PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
+        return;
+    }
+    unique_ptr<ProxyNotificationMessage> notifyMsg(pmsg);
+    PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
+    // Send data for multiple sessions
+    pmsg->setTimeBaseIndex(timeBaseIndex);
     for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
         const sessionId_t sessionId = *it;
-        ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
-        if(pmsg == nullptr) {
-            PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
-            return;
-        }
-        unique_ptr<ProxyNotificationMessage> notifyMsg(pmsg);
-        PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
-        // Send data for multiple sessions
-        pmsg->setTimeBaseIndex(timeBaseIndex);
         PrintDebug("Get client session ID: " + to_string(sessionId));
         pmsg->set_sessionId(sessionId);
         if(!pmsg->transmitMessage()) {

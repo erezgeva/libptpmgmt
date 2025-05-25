@@ -21,13 +21,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class ProxyNotificationMessage : public NotificationMessage
 {
   private:
-    int timeBaseIndex = 0;
     bool makeBufferTail(Transmitter &txContext) const override final;
-
-  public:
-    void setTimeBaseIndex(int newTimeBaseIndex) {
-        timeBaseIndex = newTimeBaseIndex;
-    }
 };
 
 __CLKMGR_NAMESPACE_END
