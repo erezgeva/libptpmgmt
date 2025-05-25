@@ -19,7 +19,7 @@ __CLKMGR_NAMESPACE_USE;
 
 bool clkmgr::proxyMessageRegister()
 {
-    reg_message_type<ProxyConnectMessage, ProxySubscribeMessage,
-                     ProxyNotificationMessage>();
+    reg_message_type<ProxyConnectMessage, ProxySubscribeMessage>();
+    // ProxyNotificationMessage - Proxy send it only, never send from client
     return true;
 }
