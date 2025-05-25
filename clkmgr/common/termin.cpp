@@ -24,10 +24,14 @@ End::End()
 bool End::stopAll(uint32_t wait)
 {
     bool ret = true;
-    for(End *e : all)
-        ret = ret && e->stop();
+    for(End *e : all) {
+        e->stopPass = e->stop();
+        ret = ret && e->stopPass;
+    }
     usleep(wait); // So we give time to other thread to ends
-    for(End *e : all)
-        ret = ret && e->finalize();
+    for(End *e : all) {
+        if(e->stopPass)
+            ret = ret && e->finalize();
+    }
     return ret;
 }

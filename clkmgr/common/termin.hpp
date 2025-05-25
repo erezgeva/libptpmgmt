@@ -29,6 +29,7 @@ class End
 {
   private:
     static std::vector<End *> all;
+    bool stopPass = true;
 
   protected:
     End();
