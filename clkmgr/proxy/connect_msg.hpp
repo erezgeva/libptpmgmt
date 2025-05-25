@@ -22,13 +22,7 @@ class ProxyConnectMessage : public ConnectMessage
 {
   private:
     bool makeBufferTail(Transmitter &txContext) const override final;
-
-  public:
-    /**
-     * process the connect msg from client-runtime
-     * @return true
-     */
-    bool processMessage() override final;
+    bool parseBufferTail() override final;
 };
 
 __CLKMGR_NAMESPACE_END

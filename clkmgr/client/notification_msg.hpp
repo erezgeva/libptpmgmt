@@ -22,8 +22,6 @@ class ClientNotificationMessage : public NotificationMessage
 {
   protected:
     bool parseBufferTail() override final;
-  public:
-    bool processMessage() override final;
 };
 
 __CLKMGR_NAMESPACE_END

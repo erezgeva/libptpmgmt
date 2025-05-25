@@ -19,27 +19,12 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-ClientState *ClientSubscribeMessage::currentClientState = nullptr;
-
-void ClientSubscribeMessage::setClientState(ClientState &newClientState)
-{
-    currentClientState = &newClientState;
-}
+DECLARE_STATIC(ClientSubscribeMessage::currentClientState, nullptr);
 
 bool ClientSubscribeMessage::makeBufferTail(Transmitter &txContext) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
     return WRITE_TX(FIELD, timeBaseIndex, txContext);
-}
-
-bool ClientSubscribeMessage::parseBufferTail()
-{
-    ptp_event data = {};
-    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext) ||
-        !PARSE_RX(FIELD, data, rxContext))
-        return false;
-    TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
-    return true;
 }
 
 bool ClientSubscribeMessage::writeClientId()
@@ -61,9 +46,14 @@ bool ClientSubscribeMessage::writeClientId()
  *
  * @return true
  */
-bool ClientSubscribeMessage::processMessage()
+bool ClientSubscribeMessage::parseBufferTail()
 {
-    PrintDebug("[ClientSubscribeMessage]::processMessage (reply)");
+    PrintDebug("[ClientSubscribeMessage]::parseBufferTail");
+    ptp_event data = {};
+    if(!PARSE_RX(FIELD, timeBaseIndex, rxContext) ||
+        !PARSE_RX(FIELD, data, rxContext))
+        return false;
+    TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
     unique_lock<rtpi::mutex> lock(cv_mtx);
     TimeBaseStates::getInstance().setSubscribed(timeBaseIndex, true);
     set_msgAck(ACK_NONE);

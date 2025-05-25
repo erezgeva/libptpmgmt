@@ -19,12 +19,6 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-bool ClientNotificationMessage::processMessage()
-{
-    PrintDebug("[ClientNotificationMessage]::processMessage");
-    return true;
-}
-
 bool ClientNotificationMessage::parseBufferTail()
 {
     PrintDebug("[ClientNotificationMessage]::parseBufferTail");

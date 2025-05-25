@@ -19,32 +19,12 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-ClientState *ClientConnectMessage::currentClientState = nullptr;
-
-bool ClientConnectMessage::parseBufferTail()
-{
-    PrintDebug("[ClientConnectMessage]::parseBufferTail");
-    size_t mapSize = 0;
-    if(!PARSE_RX(FIELD, mapSize, rxContext))
-        return false;
-    for(size_t i = 0; i < mapSize; ++i) {
-        TimeBaseCfg newCfg = {};
-        if(!PARSE_RX(FIELD, newCfg, rxContext))
-            return false;
-        TimeBaseConfigurations::addTimeBaseCfg(newCfg);
-    }
-    return true;
-}
+DECLARE_STATIC(ClientConnectMessage::currentClientState, nullptr);
 
 bool ClientConnectMessage::writeClientId()
 {
     rxContext.getQueueName().copy((char *)getClientId().data(), CLIENTID_LENGTH);
     return true;
-}
-
-void ClientConnectMessage::setClientState(ClientState &newClientState)
-{
-    currentClientState = &newClientState;
 }
 
 /**
@@ -62,8 +42,18 @@ void ClientConnectMessage::setClientState(ClientState &newClientState)
  *
  * @return true
  */
-bool ClientConnectMessage::processMessage()
+bool ClientConnectMessage::parseBufferTail()
 {
+    PrintDebug("[ClientConnectMessage]::parseBufferTail");
+    size_t mapSize = 0;
+    if(!PARSE_RX(FIELD, mapSize, rxContext))
+        return false;
+    for(size_t i = 0; i < mapSize; ++i) {
+        TimeBaseCfg newCfg = {};
+        if(!PARSE_RX(FIELD, newCfg, rxContext))
+            return false;
+        TimeBaseConfigurations::addTimeBaseCfg(newCfg);
+    }
     PrintDebug("Processing client connect message (reply)");
     PrintDebug("Connected with session ID: " + to_string(get_sessionId()));
     PrintDebug("Current state.sessionId: " +

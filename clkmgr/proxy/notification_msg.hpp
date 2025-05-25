@@ -25,9 +25,6 @@ class ProxyNotificationMessage : public NotificationMessage
     bool makeBufferTail(Transmitter &txContext) const override final;
 
   public:
-    // Notification Message is send to client only!
-    bool processMessage() override final { return true; }
-
     void setTimeBaseIndex(int newTimeBaseIndex) {
         timeBaseIndex = newTimeBaseIndex;
     }

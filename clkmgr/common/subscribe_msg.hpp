@@ -41,7 +41,7 @@ class SubscribeMessage : public Message
     // Client ID Is not in the Subscribe Message
     // const ClientId &getClientId() const { return clientId; }
 
-    std::string toString() override;
+    std::string toString() const override;
 };
 
 __CLKMGR_NAMESPACE_END

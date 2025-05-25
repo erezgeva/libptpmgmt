@@ -64,24 +64,21 @@ class Message
     static std::string ExtractClassName(const std::string &prettyFunction,
         const char *function);
 
-    // Create new message from received buffer
-    static Message *buildMessage(Listener &rxContext);
+    // Create new message from received buffer and parse it
+    static Message *parseBuffer(Listener &rxContext);
     // Register a message class with its ID
     static void registerMessageType(msgId_t id, AllocMessage_t allocFunc) {
         allocMessageMap[id] = allocFunc;
     }
 
     virtual ~Message() = default;
-    virtual std::string toString();
+    virtual std::string toString() const;
     virtual msgId_t get_msgId() const = 0;
 
-    // Handle received message
-    virtual bool processMessage() = 0;
+    // Set client ID on a message used on client side
+    virtual bool writeClientId() { return true; }
 
-    // Set client ID on message on client side
-    virtual bool writeClientId() { return false; }
-
-    // Buile the buffer and semd it
+    // Buile the buffer and send it
     bool transmitMessage();
 
     msgAck_t get_msgAck() const { return m_msgAck; }

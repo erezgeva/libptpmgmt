@@ -49,8 +49,7 @@ bool ClientQueue::init()
 
 bool ClientQueue::sendMessage(Message *msg)
 {
-    if(!msg->writeClientId())
-        PrintErrorCode("Unknown msgID type");
+    msg->writeClientId();
     if(!msg->transmitMessage())
         return false;
     PrintDebug("[ClientQueue]::sendMessage successful");

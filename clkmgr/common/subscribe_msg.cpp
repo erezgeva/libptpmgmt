@@ -18,7 +18,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-string SubscribeMessage::toString()
+string SubscribeMessage::toString() const
 {
     string name = MSG_EXTRACT_CLASS_NAME;
     name += "\n";

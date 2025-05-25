@@ -47,27 +47,8 @@ bool ProxySubscribeMessage::parseBufferTail()
     #ifdef HAVE_LIBCHRONY
     ConnectChrony::subscribe_chrony(timeBaseIndex, sID);
     #endif
-    return true;
-}
-
-/*
-This is to process the subscription from the clkmgr client runtime
-via POSIX msg queue.
-*/
-bool ProxySubscribeMessage::processMessage()
-{
-    sessionId_t sID = get_sessionId();
-    PrintDebug("[ProxySubscribeMessage]::processMessage - "
+    PrintDebug("[ProxySubscribeMessage]::parseBufferTail - "
         "Use current client session ID: " + to_string(sID));
-    if(sID == InvalidSessionId) {
-        PrintError("Session ID *should be* invalid for received "
-            "proxy connect message");
-        return false;
-    }
-    if(!Client::existClient(sID)) {
-        PrintError("Session ID " + to_string(sID) + " does not exist in Clients");
-        return false;
-    }
     set_msgAck(ACK_SUCCESS);
     return true;
 }

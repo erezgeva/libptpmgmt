@@ -41,7 +41,7 @@ string Message::ExtractClassName(const string &prettyFunction,
 }
 
 #define PRIMITIVE_TOSTRING(p) #p ": " + to_string(p) + "\n"
-string Message::toString()
+string Message::toString() const
 {
     string ret;
     ret += PRIMITIVE_TOSTRING(get_msgId());
@@ -60,8 +60,8 @@ bool Message::makeBuffer(Transmitter &txContext) const
         return false;
     }
     DumpOctetArray("Sending message (length = " +
-        to_string(txContext.get_offset()) + "): ",
-        txContext.data(), txContext.get_offset());
+        to_string(txContext.getOffset()) + "): ",
+        txContext.data(), txContext.getOffset());
     PrintDebug("[Message]::makeBuffer successful");
     return true;
 }
@@ -79,7 +79,7 @@ bool Message::parseBuffer()
         parseBufferComm() && parseBufferTail();
 }
 
-Message *Message::buildMessage(Listener &rxContext)
+Message *Message::parseBuffer(Listener &rxContext)
 {
     msgId_t msgId;
     if(!PARSE_RX(FIELD, msgId, rxContext))

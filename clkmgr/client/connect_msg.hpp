@@ -33,9 +33,10 @@ class ClientConnectMessage : public ConnectMessage
      * process the reply for connect msg from proxy.
      * @return true
      */
-    bool processMessage() override final;
     bool writeClientId() override final;
-    void setClientState(ClientState &newClientState);
+    void setClientState(ClientState &newClientState) {
+        currentClientState = &newClientState;
+    }
 };
 
 __CLKMGR_NAMESPACE_END

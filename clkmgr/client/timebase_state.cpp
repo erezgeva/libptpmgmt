@@ -18,8 +18,8 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-ClockEventHandler ptpClockEventHandler(ClockEventHandler::PTPClock);
-ClockEventHandler sysClockEventHandler(ClockEventHandler::SysClock);
+static ClockEventHandler ptpClockEventHandler(ClockEventHandler::PTPClock);
+static ClockEventHandler sysClockEventHandler(ClockEventHandler::SysClock);
 
 bool TimeBaseState::get_subscribed() const
 {

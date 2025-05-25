@@ -35,10 +35,11 @@ class ClientSubscribeMessage : public SubscribeMessage
      * process the reply for subscribe msg from proxy.
      * @return true
      */
-    bool processMessage() override final;
     bool writeClientId() override final;
 
-    void setClientState(ClientState &newClientState);
+    void setClientState(ClientState &newClientState) {
+        currentClientState = &newClientState;
+    }
 
     /**
      * Set the time base index.

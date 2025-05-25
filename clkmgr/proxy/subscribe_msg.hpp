@@ -26,8 +26,6 @@ class ProxySubscribeMessage : public SubscribeMessage
     bool makeBufferTail(Transmitter &txContext) const override final;
 
   public:
-    bool processMessage() override final;
-
     void setTimeBaseIndex(int newTimeBaseIndex) {
         timeBaseIndex = newTimeBaseIndex;
     }

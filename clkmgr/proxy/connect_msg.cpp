@@ -33,7 +33,7 @@ using namespace std;
  *
  * @return true
  */
-bool ProxyConnectMessage::processMessage()
+bool ProxyConnectMessage::parseBufferTail()
 {
     sessionId_t newSessionId = get_sessionId();
     PrintDebug("Processing proxy connect message");

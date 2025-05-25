@@ -28,8 +28,7 @@ Queue::Queue(Queue &&other) noexcept
     other.name.clear();
 }
 
-Queue &Queue::operator=(Queue &&other)
-noexcept
+Queue &Queue::operator=(Queue &&other) noexcept
 {
     if(this != &other) {
         close();
@@ -181,16 +180,12 @@ bool Listener::MqListenerWork()
     }
     PrintDebug("Receive complete");
     DumpOctetArray("Received Message", data(), max_size());
-    Message *msg = Message::buildMessage(*this);
+    Message *msg = Message::parseBuffer(*this);
     if(msg == nullptr)
         return false;
     PrintDebug("Received message " + msg->toString());
-    if(!msg->processMessage())
-        return false;
     // Echo the message back with ACK disposition
-    if(msg->get_msgAck() != ACK_NONE)
-        return msg->transmitMessage();
-    return true;
+    return msg->get_msgAck() != ACK_NONE ? msg->transmitMessage() : true;
 }
 
 bool Transmitter::sendBuffer()

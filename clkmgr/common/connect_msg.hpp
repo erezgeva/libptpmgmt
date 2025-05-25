@@ -29,7 +29,7 @@ class ConnectMessage : public Message
   public:
     msgId_t get_msgId() const override final { return CONNECT_MSG; }
     const ClientId &getClientId() const { return clientId; }
-    std::string toString() override;
+    std::string toString() const override;
 };
 
 __CLKMGR_NAMESPACE_END
