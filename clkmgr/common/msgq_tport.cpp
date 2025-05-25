@@ -48,7 +48,7 @@ bool Queue::RxOpen(const string &n, size_t maxMsg)
     struct mq_attr attr;
     attr.mq_flags = 0;
     attr.mq_maxmsg = maxMsg;
-    attr.mq_msgsize = MAX_BUFFER_LENGTH;
+    attr.mq_msgsize = Buffer::size();
     mq = mq_open(n.c_str(), O_CREAT | O_RDONLY, S_IRUSR | S_IWUSR | S_IWGRP, &attr);
     if(exist()) {
         rx = true;
@@ -69,10 +69,9 @@ bool Queue::send(const void *ptr, size_t size) const
     return exist() && !rx ? mq_send(mq, (char *)ptr, size, 0) != -1 : false;
 }
 
-bool Queue::receive(const void *ptr, size_t length) const
+ssize_t Queue::receive(const void *ptr, size_t length) const
 {
-    return exist() &&
-        rx ? mq_receive(mq, (char *)ptr, length, nullptr) != -1 : false;
+    return exist() && rx ?  mq_receive(mq, (char *)ptr, length, nullptr) : -1;
 }
 
 bool Queue::remove()
@@ -171,15 +170,18 @@ bool Listener::stop()
 
 bool Listener::MqListenerWork()
 {
-    if(!m_listenerQueue.receive(data(), max_size())) {
-        if(errno != EINTR) {
-            PrintError("MQ Receive Failed", errno);
-            return false;
-        }
-        return true;
+    ssize_t len = m_listenerQueue.receive(m_buffer, size());
+    if(len < 0 && errno != EINTR) {
+        PrintError("MQ Receive Failed", errno);
+        return false;
     }
+    // The data length is zero or
+    //  we have an interrupted by a signal (EINTR)
+    if(len <= 0)
+        return true;
+    setLen(len); // Set the length in the buffer for parsing
     PrintDebug("Receive complete");
-    DumpOctetArray("Received Message", data(), max_size());
+    DumpOctetArray("Received Message", data(), size());
     Message *msg = Message::parseBuffer(*this);
     if(msg == nullptr)
         return false;
@@ -190,7 +192,7 @@ bool Listener::MqListenerWork()
 
 bool Transmitter::sendBuffer()
 {
-    if(!m_transmitterQueue.send(data(), get_offset())) {
+    if(!m_transmitterQueue.send(m_buffer, getOffset())) {
         PrintErrorCode("Failed to send buffer");
         return false;
     }

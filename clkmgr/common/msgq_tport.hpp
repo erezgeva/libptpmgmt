@@ -26,21 +26,31 @@ static const std::string mqProxyName("/clkmgr");
 class Buffer
 {
   private:
-    uint8_t m_buffer[MAX_BUFFER_LENGTH];
-    size_t m_offset = 0;
+    size_t m_offset = 0; // Offset in buffer during parsing and building
+    size_t m_rcvSize = 0; // Length of the received message
 
-  public:
+  protected:
+    uint8_t m_buffer[MAX_BUFFER_LENGTH];
+
     Buffer() = default;
     virtual ~Buffer() = default;
+    // Set length of received message and reset the offset for parsing
+    void setLen(size_t rcvSize) { m_rcvSize = rcvSize; m_offset = 0; }
 
-    size_t get_offset() { return m_offset; }
-    void set_offset(size_t offset) { m_offset = offset; }
+  public:
+    static size_t size() { return MAX_BUFFER_LENGTH; }
 
+    // Data pointer for read only!
+    const uint8_t *data() const { return m_buffer; }
+    size_t getOffset() const { return m_offset; }
     void resetOffset() { m_offset = 0; }
     void addOffset(size_t offset) { m_offset += offset; }
-
-    uint8_t *data() { return m_buffer; }
-    static size_t max_size() { return MAX_BUFFER_LENGTH; }
+    // pointer to data at offset for parser and build
+    uint8_t *dataOff() { return m_buffer + m_offset; }
+    // Left data to build of a transmit message
+    size_t sizeLeft() const { return size() - m_offset; }
+    // Left data to parse of a received message
+    size_t lenLeft() const { return m_rcvSize - m_offset; }
 };
 
 class Queue
@@ -70,7 +80,7 @@ class Queue
     // Receive with Receive only queue
     bool send(const void *ptr, size_t size) const;
     // Transmit Transmit only queue
-    bool receive(const void *ptr, size_t length) const;
+    ssize_t receive(const void *ptr, size_t length) const;
     // Remove receive queue
     bool remove();
     // Close queue
