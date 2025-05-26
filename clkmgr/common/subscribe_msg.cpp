@@ -38,14 +38,14 @@ bool SubscribeMessage::parseBufferComm()
     return true;
 }
 
-bool SubscribeMessage::makeBufferComm(Transmitter &txContext) const
+bool SubscribeMessage::makeBufferComm(Buffer &buff) const
 {
     PrintDebug("[SubscribeMessage]::makeBufferComm - sessionId : " +
         to_string(get_sessionId()));
     PrintDebug("[SubscribeMessage]::makeBufferComm - subscription event : " +
         to_string(subscription.get_event_mask()) + ", composite event : " +
         to_string(subscription.get_composite_event_mask()));
-    return WRITE_TX(FIELD, get_sessionId(), txContext) &&
-        WRITE_TX(FIELD, subscription, txContext) &&
-        WRITE_TX(FIELD, timeBaseIndex, txContext);
+    return WRITE_TX(FIELD, get_sessionId(), buff) &&
+        WRITE_TX(FIELD, subscription, buff) &&
+        WRITE_TX(FIELD, timeBaseIndex, buff);
 }

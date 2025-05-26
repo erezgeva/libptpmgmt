@@ -37,8 +37,8 @@ bool ConnectMessage::parseBufferComm()
     return true;
 }
 
-bool ConnectMessage::makeBufferComm(Transmitter &txContext) const
+bool ConnectMessage::makeBufferComm(Buffer &buff) const
 {
-    return WRITE_TX(FIELD, get_sessionId(), txContext) &&
-        WRITE_TX(ARRAY, clientId, txContext);
+    return WRITE_TX(FIELD, get_sessionId(), buff) &&
+        WRITE_TX(ARRAY, clientId, buff);
 }

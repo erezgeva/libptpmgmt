@@ -49,19 +49,18 @@ string Message::toString() const
     return ret;
 }
 
-bool Message::makeBuffer(Transmitter &txContext) const
+bool Message::makeBuffer(Buffer &buff) const
 {
     PrintDebug("[Message]::makeBuffer");
-    txContext.resetOffset();
-    if(!WRITE_TX(FIELD, get_msgId(), txContext) ||
-        !WRITE_TX(FIELD, m_msgAck, txContext) ||
-        !makeBufferComm(txContext) || !makeBufferTail(txContext)) {
+    buff.resetOffset();
+    if(!WRITE_TX(FIELD, get_msgId(), buff) ||
+        !WRITE_TX(FIELD, m_msgAck, buff) ||
+        !makeBufferComm(buff) || !makeBufferTail(buff)) {
         PrintError("Failed to make buffer from message object");
         return false;
     }
     DumpOctetArray("Sending message (length = " +
-        to_string(txContext.getOffset()) + "): ",
-        txContext.data(), txContext.getOffset());
+        to_string(buff.getOffset()) + "): ", buff.data(), buff.getOffset());
     PrintDebug("[Message]::makeBuffer successful");
     return true;
 }

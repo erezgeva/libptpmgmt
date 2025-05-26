@@ -22,7 +22,7 @@ class ProxySubscribeMessage : public SubscribeMessage
 {
   private:
     bool parseBufferTail() override final;
-    bool makeBufferTail(Transmitter &txContext) const override final;
+    bool makeBufferTail(Buffer &buff) const override final;
 };
 
 __CLKMGR_NAMESPACE_END

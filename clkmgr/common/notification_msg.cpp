@@ -18,9 +18,9 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-bool NotificationMessage::makeBufferComm(Transmitter &txContext) const
+bool NotificationMessage::makeBufferComm(Buffer &buff) const
 {
-    return WRITE_TX(FIELD, timeBaseIndex, txContext);
+    return WRITE_TX(FIELD, timeBaseIndex, buff);
 }
 
 bool NotificationMessage::parseBufferComm()

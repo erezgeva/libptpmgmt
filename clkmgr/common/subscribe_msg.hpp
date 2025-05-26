@@ -23,7 +23,7 @@ class SubscribeMessage : public Message
   private:
     ClkMgrSubscription subscription;
     bool parseBufferComm() override final;
-    bool makeBufferComm(Transmitter &txContext) const override final;
+    bool makeBufferComm(Buffer &buff) const override final;
 
   protected:
     SubscribeMessage() = default;

@@ -22,7 +22,7 @@ class ConnectMessage : public Message
   private:
     ClientId clientId;
     bool parseBufferComm() override final;
-    bool makeBufferComm(Transmitter &txContext) const override final;
+    bool makeBufferComm(Buffer &buff) const override final;
 
   protected:
     ConnectMessage() = default;

@@ -21,7 +21,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class ProxyNotificationMessage : public NotificationMessage
 {
   private:
-    bool makeBufferTail(Transmitter &txContext) const override final;
+    bool makeBufferTail(Buffer &buff) const override final;
 };
 
 __CLKMGR_NAMESPACE_END

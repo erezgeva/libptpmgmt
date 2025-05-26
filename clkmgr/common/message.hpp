@@ -43,7 +43,7 @@ class Message
     sessionId_t m_sessionId = InvalidSessionId;
 
     // Create buffer for transmission
-    bool makeBuffer(Transmitter &txContext) const;
+    bool makeBuffer(Buffer &buff) const;
     // Parse buffer and fill the message
     bool parseBuffer();
 
@@ -52,9 +52,9 @@ class Message
 
     Message();
     // Create buffer for transmission - common message callback
-    virtual bool makeBufferComm(Transmitter &txContext) const { return true; }
+    virtual bool makeBufferComm(Buffer &buff) const { return true; }
     // Create buffer for transmission - last message callback
-    virtual bool makeBufferTail(Transmitter &txContext) const { return true; }
+    virtual bool makeBufferTail(Buffer &buff) const { return true; }
     // Parse buffer and fill the message - common message callback
     virtual bool parseBufferComm() { return true; }
     // Parse buffer and fill the message - last  message callback

@@ -22,7 +22,7 @@ class NotificationMessage : public Message
   protected:
     NotificationMessage() = default;
     int timeBaseIndex = 0;
-    bool makeBufferComm(Transmitter &txContext) const override final;
+    bool makeBufferComm(Buffer &buff) const override final;
     bool parseBufferComm() override final;
 
   public:

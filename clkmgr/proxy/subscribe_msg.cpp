@@ -22,12 +22,12 @@ using namespace std;
 
 extern map<int, ptp_event> ptp4lEvents;
 
-bool ProxySubscribeMessage::makeBufferTail(Transmitter &txContext) const
+bool ProxySubscribeMessage::makeBufferTail(Buffer &buff) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
     ptp_event event = ptp4lEvents[timeBaseIndex];
     // Add event data into the message
-    return WRITE_TX(FIELD, event, txContext);
+    return WRITE_TX(FIELD, event, buff);
 }
 
 bool ProxySubscribeMessage::parseBufferTail()
