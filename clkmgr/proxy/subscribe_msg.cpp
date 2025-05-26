@@ -12,8 +12,6 @@
 
 #include "proxy/subscribe_msg.hpp"
 #include "proxy/client.hpp"
-#include "proxy/connect_chrony.hpp"
-#include "proxy/connect_ptp4l.hpp"
 #include "common/ptp_event.hpp"
 #include "common/serialize.hpp"
 #include "common/print.hpp"
@@ -35,17 +33,8 @@ bool ProxySubscribeMessage::makeBufferTail(Transmitter &txContext) const
 bool ProxySubscribeMessage::parseBufferTail()
 {
     PrintDebug("[ProxySubscribeMessage]::parseBufferTail");
-    sessionId_t sID = get_sessionId();
-    if(!Client::existClient(sID)) {
-        PrintError("Session ID " + to_string(sID) + " is not registered");
+    if(!Client::subscribe(timeBaseIndex, get_sessionId()))
         return false;
-    }
-    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, sID);
-    #ifdef HAVE_LIBCHRONY
-    ConnectChrony::subscribe_chrony(timeBaseIndex, sID);
-    #endif
-    PrintDebug("[ProxySubscribeMessage]::parseBufferTail - "
-        "Use current client session ID: " + to_string(sID));
     set_msgAck(ACK_SUCCESS);
     return true;
 }

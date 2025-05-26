@@ -35,24 +35,11 @@ using namespace std;
  */
 bool ProxyConnectMessage::parseBufferTail()
 {
-    sessionId_t newSessionId = get_sessionId();
     PrintDebug("Processing proxy connect message");
-    if(newSessionId != InvalidSessionId) {
-        if(Client::existClient(newSessionId)) {
-            PrintDebug("Receive Connect msg as liveness check.");
-            set_msgAck(ACK_SUCCESS);
-            return true;
-        }
-        PrintError("Session ID not exists: " + to_string(newSessionId));
+    sessionId_t sessionId = Client::connect(get_sessionId(), getClientId());
+    if(sessionId == InvalidSessionId)
         return false;
-    }
-    newSessionId = Client::CreateClientSession(getClientId());
-    if(newSessionId == InvalidSessionId) {
-        PrintError("Fail to allocate new session");
-        return false;
-    }
-    PrintDebug("Created new client session ID: " + to_string(newSessionId));
-    set_sessionId(newSessionId);
+    set_sessionId(sessionId);
     set_msgAck(ACK_SUCCESS);
     return true;
 }

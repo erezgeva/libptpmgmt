@@ -24,15 +24,15 @@ class Client
   private:
     sessionId_t m_sessionId;
     std::unique_ptr<Transmitter> m_transmitContext;
+    static sessionId_t CreateClientSession(const ClientId &id);
 
   public:
-    static bool existClient(sessionId_t sessionId);
-    static Client *getClient(sessionId_t sessionId);
+    static sessionId_t connect(sessionId_t sessionId, const ClientId &id);
+    static bool subscribe(int timeBaseIndex, sessionId_t sessionId);
+    static void RemoveClient(sessionId_t sessionId);
     static Transmitter *getTxContext(sessionId_t sessionId);
-    static sessionId_t CreateClientSession(const ClientId &id);
-    static void RemoveClientSession(sessionId_t sessionId);
-
-    sessionId_t getSessionId() { return m_sessionId; }
+    static Client *getClient(sessionId_t sessionId);
+    sessionId_t getSessionId() const { return m_sessionId; }
     Transmitter *getTxContext() { return m_transmitContext.get(); }
 };
 

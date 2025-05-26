@@ -140,7 +140,7 @@ void ChronyThreadSet::notify_client()
         return;
     for(const sessionId_t sessionId : sessionIdToRemove) {
         ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
-        Client::RemoveClientSession(sessionId);
+        Client::RemoveClient(sessionId);
     }
 }
 

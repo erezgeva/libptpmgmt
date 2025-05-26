@@ -199,7 +199,7 @@ void ptpSet::notify_client()
         #ifdef HAVE_LIBCHRONY
         ConnectChrony::remove_chrony_subscriber(sessionId);
         #endif
-        Client::RemoveClientSession(sessionId);
+        Client::RemoveClient(sessionId);
     }
 }
 

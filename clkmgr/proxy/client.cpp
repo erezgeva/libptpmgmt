@@ -10,6 +10,10 @@
  */
 
 #include "proxy/client.hpp"
+#include "proxy/connect_ptp4l.hpp"
+#ifdef HAVE_LIBCHRONY
+#include "proxy/connect_chrony.hpp"
+#endif
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
@@ -36,20 +40,9 @@ static inline Transmitter *CreateTransmitterContext(const ClientId &clientId)
     return nCtx;
 }
 
-bool Client::existClient(sessionId_t sessionId)
+static inline bool existClient(sessionId_t sessionId)
 {
     return sessionMap.count(sessionId) > 0;
-}
-
-Client *Client::getClient(sessionId_t sessionId)
-{
-    return sessionMap.count(sessionId) > 0 ? sessionMap[sessionId].get() : nullptr;
-}
-
-Transmitter *Client::getTxContext(sessionId_t sessionId)
-{
-    Client *client = getClient(sessionId);
-    return client != nullptr ?  client->getTxContext() : nullptr;
 }
 
 sessionId_t Client::CreateClientSession(const ClientId &id)
@@ -70,13 +63,55 @@ sessionId_t Client::CreateClientSession(const ClientId &id)
     return nextSession++;
 }
 
-void Client::RemoveClientSession(sessionId_t sessionId)
+sessionId_t Client::connect(sessionId_t sessionId, const ClientId &id)
+{
+    if(sessionId != InvalidSessionId) {
+        if(existClient(sessionId))
+            return sessionId;
+        PrintError("Session ID does not exists: " + to_string(sessionId));
+        return InvalidSessionId;
+    }
+    sessionId = CreateClientSession(id);
+    if(sessionId == InvalidSessionId)
+        PrintError("Fail to allocate new session");
+    else
+        PrintDebug("Created new client session ID: " + to_string(sessionId));
+    return sessionId;
+}
+
+bool Client::subscribe(int timeBaseIndex, sessionId_t sessionId)
+{
+    if(!existClient(sessionId)) {
+        PrintError("Session ID " + to_string(sessionId) + " is not registered");
+        return false;
+    }
+    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, sessionId);
+    #ifdef HAVE_LIBCHRONY
+    ConnectChrony::subscribe_chrony(timeBaseIndex, sessionId);
+    #endif
+    PrintDebug("[ProxySubscribeMessage]::parseBufferTail - "
+        "Use current client session ID: " + to_string(sessionId));
+    return true;
+}
+
+void Client::RemoveClient(sessionId_t sessionId)
 {
     Transmitter *tx = getTxContext(sessionId);
     if(tx != nullptr) {
         tx->finalize();
         sessionMap.erase(sessionId);
     }
+}
+
+Transmitter *Client::getTxContext(sessionId_t sessionId)
+{
+    Client *client = getClient(sessionId);
+    return client != nullptr ?  client->getTxContext() : nullptr;
+}
+
+Client *Client::getClient(sessionId_t sessionId)
+{
+    return sessionMap.count(sessionId) > 0 ? sessionMap[sessionId].get() : nullptr;
 }
 
 class ClientRemoveAll : public End
