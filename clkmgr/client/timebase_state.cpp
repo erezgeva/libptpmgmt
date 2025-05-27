@@ -9,14 +9,24 @@
  *
  */
 
+#include "client/msgq_tport.hpp"
+#include "client/subscribe_msg.hpp"
 #include "client/timebase_state.hpp"
 #include "common/print.hpp"
 
 #include <cstring>
+#include <chrono>
+#include <rtpi/condition_variable.hpp>
 
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
+using namespace std::chrono;
+
+const uint32_t DEFAULT_SUBSCRIBE_TIME_OUT = 5;  //5 sec
+
+static rtpi::mutex subscribe_mutex;
+static rtpi::condition_variable subscribe_cv;
 
 static ClockEventHandler ptpClockEventHandler(ClockEventHandler::PTPClock);
 static ClockEventHandler sysClockEventHandler(ClockEventHandler::SysClock);
@@ -248,4 +258,54 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
         newEvent.polling_interval);
     state.set_chronyEventState(chronyEventState);
     state.set_ptpEventState(ptp4lEventState);
+}
+
+bool TimeBaseStates::subscribe(size_t timeBaseIndex,
+    const ClkMgrSubscription &newSub)
+{
+    ClientState &implClientState = ClientState::getSingleInstance();
+    // Check whether connection between Proxy and Client is established or not
+    if(!implClientState.get_connected()) {
+        PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
+        return false;
+    }
+    // Check whether requested timeBaseIndex is valid or not
+    if(!TimeBaseConfigurations::isTimeBaseIndexPresent(timeBaseIndex)) {
+        PrintDebug("[SUBSCRIBE] Invalid timeBaseIndex.");
+        return false;
+    }
+    setEventSubscription(timeBaseIndex, newSub);
+    // Send a subscribe message to Proxy Daemon
+    ClientSubscribeMessage *cmsg = new ClientSubscribeMessage();
+    if(cmsg == nullptr) {
+        PrintDebug("[SUBSCRIBE] Failed to create subscribe message.");
+        return false;
+    }
+    unique_ptr<Message> subscribeMsg(cmsg);
+    cmsg->set_timeBaseIndex(timeBaseIndex);
+    cmsg->set_sessionId(implClientState.get_sessionId());
+    ClientQueue::sendMessage(cmsg);
+    // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon
+    auto endTime = system_clock::now() + seconds(DEFAULT_SUBSCRIBE_TIME_OUT);
+    unique_lock<rtpi::mutex> lock(subscribe_mutex);
+    while(!getSubscribed(timeBaseIndex)) {
+        auto res = subscribe_cv.wait_until(lock, endTime);
+        if(res == cv_status::timeout) {
+            if(!getSubscribed(timeBaseIndex)) {
+                PrintDebug("[SUBSCRIBE] Timeout waiting reply from Proxy.");
+                return false;
+            }
+        } else
+            PrintDebug("[SUBSCRIBE] Received reply from Proxy.");
+    }
+    return true;
+}
+
+bool TimeBaseStates::subscribeReply(size_t timeBaseIndex, const ptp_event &data)
+{
+    setTimeBaseState(timeBaseIndex, data);
+    unique_lock<rtpi::mutex> lock(subscribe_mutex);
+    setSubscribed(timeBaseIndex, true);
+    subscribe_cv.notify_one(lock);
+    return true;
 }

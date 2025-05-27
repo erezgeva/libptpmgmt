@@ -12,31 +12,24 @@
 #include "pub/clockmanager.h"
 #include "pub/clkmgr/timebase_configs.h"
 #include "client/msgq_tport.hpp"
-#include "client/subscribe_msg.hpp"
+#include "client/message.hpp"
 #include "client/timebase_state.hpp"
+#include "common/util.hpp"
 #include "common/print.hpp"
 
 #include <chrono>
 #include <thread>
-#include <rtpi/condition_variable.hpp>
-
-// Number of microsecond in a second
-static const int32_t USEC_PER_SEC = 1000000;
-
-// in miliseconds
-static const uint32_t DEFAULT_LIVENESS_TIMEOUT_IN_MS = 200;
-static const uint32_t DEFAULT_CONNECT_TIME_OUT = USEC_PER_SEC * 5;
-#define DEFAULT_SUBSCRIBE_TIME_OUT 5  //5 sec
 
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 using namespace std::chrono;
 
-static atomic_bool doInit(false);
+// in miliseconds
+static const uint32_t DEFAULT_LIVENESS_TIMEOUT_IN_MS = 200;
+static const uint32_t DEFAULT_CONNECT_TIME_OUT = USEC_PER_SEC * 5;
 
-rtpi::mutex ClientSubscribeMessage::cv_mtx;
-rtpi::condition_variable ClientSubscribeMessage::cv;
+static atomic_bool doInit(false);
 
 ClockManager &ClockManager::fetchSingleInstance()
 {
@@ -79,44 +72,9 @@ bool ClockManager::subscribeByName(const ClkMgrSubscription &newSub,
 bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
     size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
-    ClientState &implClientState = ClientState::getSingleInstance();
-    // Check whether connection between Proxy and Client is established or not
-    if(!implClientState.get_connected()) {
-        PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
+    TimeBaseStates &states = TimeBaseStates::getInstance();
+    if(!states.subscribe(timeBaseIndex, newSub))
         return false;
-    }
-    // Check whether requested timeBaseIndex is valid or not
-    if(!TimeBaseConfigurations::isTimeBaseIndexPresent(timeBaseIndex)) {
-        PrintDebug("[SUBSCRIBE] Invalid timeBaseIndex.");
-        return false;
-    }
-    // Store the event subscription in TimeBaseStates
-    auto &states = TimeBaseStates::getInstance();
-    states.setEventSubscription(timeBaseIndex, newSub);
-    // Send a subscribe message to Proxy Daemon
-    ClientSubscribeMessage *cmsg = new ClientSubscribeMessage();
-    if(cmsg == nullptr) {
-        PrintDebug("[SUBSCRIBE] Failed to create subscribe message.");
-        return false;
-    }
-    unique_ptr<Message> subscribeMsg(cmsg);
-    cmsg->set_timeBaseIndex(timeBaseIndex);
-    cmsg->set_sessionId(implClientState.get_sessionId());
-    ClientQueue::sendMessage(cmsg);
-    // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon
-    unsigned int timeout_sec = (unsigned int) DEFAULT_SUBSCRIBE_TIME_OUT;
-    auto endTime = system_clock::now() + seconds(timeout_sec);
-    unique_lock<rtpi::mutex> lck(ClientSubscribeMessage::cv_mtx);
-    while(!states.getSubscribed(timeBaseIndex)) {
-        auto res = ClientSubscribeMessage::cv.wait_until(lck, endTime);
-        if(res == cv_status::timeout) {
-            if(!states.getSubscribed(timeBaseIndex)) {
-                PrintDebug("[SUBSCRIBE] Timeout waiting reply from Proxy.");
-                return false;
-            }
-        } else
-            PrintDebug("[SUBSCRIBE] Received reply from Proxy.");
-    }
     // Get the current state of the timebase
     TimeBaseState state;
     if(!states.getTimeBaseState(timeBaseIndex, state)) {

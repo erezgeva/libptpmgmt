@@ -24,10 +24,6 @@ class ClientSubscribeMessage : public SubscribeMessage
 {
   private:
     bool parseBufferTail() override final;
-
-  public:
-    static rtpi::mutex cv_mtx;
-    static rtpi::condition_variable cv;
 };
 
 __CLKMGR_NAMESPACE_END

@@ -35,12 +35,9 @@ bool ClientSubscribeMessage::parseBufferTail()
 {
     PrintDebug("[ClientSubscribeMessage]::parseBufferTail");
     ptp_event data = {};
-    if(!PARSE_RX(FIELD, data, rxContext))
+    if(!PARSE_RX(FIELD, data, rxContext) ||
+        !TimeBaseStates::getInstance().subscribeReply(timeBaseIndex, data))
         return false;
-    TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
-    unique_lock<rtpi::mutex> lock(cv_mtx);
-    TimeBaseStates::getInstance().setSubscribed(timeBaseIndex, true);
     set_msgAck(ACK_NONE);
-    cv.notify_one(lock);
     return true;
 }

@@ -127,12 +127,9 @@ class TimeBaseStates
     rtpi::mutex mtx;
 
     // Private constructor to prevent instantiation
-    TimeBaseStates() {}
+    TimeBaseStates() = default;
 
   public:
-    // Delete copy constructor and assignment operator
-    TimeBaseStates(const TimeBaseStates &) = delete;
-    TimeBaseStates &operator=(const TimeBaseStates &) = delete;
 
     // Static method to get the singleton instance
     static TimeBaseStates &getInstance() {
@@ -182,6 +179,10 @@ class TimeBaseStates
         // If timeBaseIndex is not found, return false
         return false;
     }
+
+    // Send Client subscribe message
+    bool subscribe(size_t timeBaseIndex, const ClkMgrSubscription &newSub);
+    bool subscribeReply(size_t timeBaseIndex, const ptp_event &data);
 };
 
 __CLKMGR_NAMESPACE_END
