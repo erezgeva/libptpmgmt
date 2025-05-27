@@ -13,13 +13,15 @@
 
 #include "common/util.hpp"
 
+#include <cstddef>
+
 __CLKMGR_NAMESPACE_BEGIN
 
 class ConnectPtp4l
 {
   public:
     static int connect_ptp4l();
-    static int subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId);
+    static int subscribe_ptp4l(size_t timeBaseIndex, sessionId_t sessionId);
     static int remove_ptp4l_subscriber(sessionId_t sessionId);
 };
 

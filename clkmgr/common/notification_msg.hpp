@@ -21,7 +21,7 @@ class NotificationMessage : public Message
 {
   protected:
     NotificationMessage() = default;
-    int timeBaseIndex = 0;
+    size_t timeBaseIndex = 0;
     bool makeBufferComm(Buffer &buff) const override final;
     bool parseBufferComm() override final;
 

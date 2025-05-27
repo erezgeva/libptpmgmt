@@ -28,7 +28,7 @@ class Client
 
   public:
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
-    static bool subscribe(int timeBaseIndex, sessionId_t sessionId);
+    static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
     static void RemoveClient(sessionId_t sessionId);
     static Transmitter *getTxContext(sessionId_t sessionId);
     static Client *getClient(sessionId_t sessionId);

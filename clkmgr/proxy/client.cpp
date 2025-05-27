@@ -78,7 +78,7 @@ sessionId_t Client::connect(sessionId_t sessionId, const string &id)
     return sessionId;
 }
 
-bool Client::subscribe(int timeBaseIndex, sessionId_t sessionId)
+bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
 {
     if(!existClient(sessionId)) {
         PrintError("Session ID " + to_string(sessionId) + " is not registered");

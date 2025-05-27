@@ -35,7 +35,7 @@ extern map<int, ptp_event> ptp4lEvents;
 class ChronyThreadSet
 {
   private:
-    int timeBaseIndex;
+    size_t timeBaseIndex;
     string udsAddrChrony;
     thread self;
     ptp_event &ptp4lEvent;
@@ -48,7 +48,7 @@ class ChronyThreadSet
     void notify_client();
 
   public:
-    ChronyThreadSet(int timeBaseIndex, const string &udsAddrChrony);
+    ChronyThreadSet(size_t timeBaseIndex, const string &udsAddrChrony);
     void monitor_chronyd(); // The actual thread
     // notification subscribe
     bool subscribe(sessionId_t sessionId);
@@ -252,7 +252,7 @@ static void thread_start(ChronyThreadSet *me)
     me->monitor_chronyd();
 }
 
-ChronyThreadSet::ChronyThreadSet(int l_timeBaseIndex,
+ChronyThreadSet::ChronyThreadSet(size_t l_timeBaseIndex,
     const string &l_udsAddrChrony) :
     timeBaseIndex(l_timeBaseIndex), udsAddrChrony(l_udsAddrChrony),
     ptp4lEvent(ptp4lEvents[l_timeBaseIndex])
@@ -261,7 +261,7 @@ ChronyThreadSet::ChronyThreadSet(int l_timeBaseIndex,
     self = thread(thread_start, this);
 }
 
-int ConnectChrony::subscribe_chrony(int timeBaseIndex, sessionId_t sessionId)
+int ConnectChrony::subscribe_chrony(size_t timeBaseIndex, sessionId_t sessionId)
 {
     if(chronyThreadList.count(timeBaseIndex) > 0) {
         // timeBaseIndex exists in the map

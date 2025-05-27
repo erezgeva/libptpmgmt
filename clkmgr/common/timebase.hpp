@@ -28,7 +28,7 @@ const size_t STRING_SIZE_MAX = 64;
  * Structure to represent the configuration of a time base.
  */
 struct TimeBaseCfg {
-    int timeBaseIndex; /**< Index of the time base */
+    size_t timeBaseIndex; /**< Index of the time base */
     char timeBaseName[STRING_SIZE_MAX]; /**< Name of the time base */
     char interfaceName[STRING_SIZE_MAX]; /**< Network interface name */
     uint8_t transportSpecific; /**< Transport specific for ptp4l */

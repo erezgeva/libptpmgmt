@@ -58,7 +58,7 @@ map<int, ptp_event> ptp4lEvents;
 class ptpSet : MessageDispatcher
 {
   private:
-    int timeBaseIndex; // Index of the time base
+    size_t timeBaseIndex; // Index of the time base
     const TimeBaseCfg &param; // time base configuration
     ptp_event &event;
     const string &udsAddr;
@@ -155,7 +155,7 @@ int ConnectPtp4l::remove_ptp4l_subscriber(sessionId_t sessionId)
 {
     bool find = false;
     for(const auto &entry : ptpSets) {
-        int timeBaseIndex = entry.first; // Get the timeBaseIndex
+        size_t timeBaseIndex = entry.first; // Get the timeBaseIndex
         if(ptpSets[timeBaseIndex]->unsubscribe(sessionId)) {
             PrintDebug("sessionId " + to_string(sessionId) +
                 " unsubscribed successfully");
@@ -396,7 +396,7 @@ bool ptpSet::unsubscribe(sessionId_t sessionId)
     }
     return false; // Client was not subscribed
 }
-int ConnectPtp4l::subscribe_ptp4l(int timeBaseIndex, sessionId_t sessionId)
+int ConnectPtp4l::subscribe_ptp4l(size_t timeBaseIndex, sessionId_t sessionId)
 {
     if(ptpSets.count(timeBaseIndex) > 0) {
         if(!ptpSets[timeBaseIndex]->subscribe(sessionId)) {

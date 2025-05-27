@@ -91,7 +91,8 @@ timespec TimeBaseState::get_last_notification_time() const
     return last_notification_time;
 }
 
-bool TimeBaseStates::getTimeBaseState(int timeBaseIndex, TimeBaseState &state)
+bool TimeBaseStates::getTimeBaseState(size_t timeBaseIndex,
+    TimeBaseState &state)
 {
     lock_guard<rtpi::mutex> lock(mtx);
     auto it = timeBaseStateMap.find(timeBaseIndex);
@@ -117,7 +118,7 @@ bool TimeBaseStates::getTimeBaseState(int timeBaseIndex, TimeBaseState &state)
     return false;
 }
 
-void TimeBaseStates::setTimeBaseState(int timeBaseIndex,
+void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
     const ptp_event &newEvent)
 {
     lock_guard<rtpi::mutex> lock(mtx);

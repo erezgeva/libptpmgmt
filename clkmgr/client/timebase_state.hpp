@@ -141,20 +141,20 @@ class TimeBaseStates
     }
 
     // Method to get a copy of TimeBaseState by timeBaseIndex
-    bool getTimeBaseState(int timeBaseIndex, TimeBaseState &state);
+    bool getTimeBaseState(size_t timeBaseIndex, TimeBaseState &state);
 
     // Method to set TimeBaseState by timeBaseIndex
-    void setTimeBaseState(int timeBaseIndex, const ptp_event &event);
+    void setTimeBaseState(size_t timeBaseIndex, const ptp_event &event);
 
     // Method to set ClkMgrSubscription by timeBaseIndex
-    void setEventSubscription(int timeBaseIndex, const ClkMgrSubscription &sub) {
+    void setEventSubscription(size_t timeBaseIndex, const ClkMgrSubscription &sub) {
         std::lock_guard<rtpi::mutex> lock(mtx);
         auto &state = timeBaseStateMap[timeBaseIndex];
         state.set_eventSub(sub);
     }
 
     // Method to get the subscription status by timeBaseIndex
-    bool getSubscribed(int timeBaseIndex) {
+    bool getSubscribed(size_t timeBaseIndex) {
         std::lock_guard<rtpi::mutex> lock(mtx);
         auto it = timeBaseStateMap.find(timeBaseIndex);
         if(it != timeBaseStateMap.end())
@@ -164,14 +164,14 @@ class TimeBaseStates
     }
 
     // Method to set the subscription status by timeBaseIndex
-    void setSubscribed(int timeBaseIndex, bool subscribed) {
+    void setSubscribed(size_t timeBaseIndex, bool subscribed) {
         std::lock_guard<rtpi::mutex> lock(mtx);
         auto &state = timeBaseStateMap[timeBaseIndex];
         state.set_subscribed(subscribed);
     }
 
     // Method to get the last notification time by timeBaseIndex
-    bool getLastNotificationTime(int timeBaseIndex,
+    bool getLastNotificationTime(size_t timeBaseIndex,
         timespec &lastNotificationTime) {
         std::lock_guard<rtpi::mutex> lock(mtx);
         auto it = timeBaseStateMap.find(timeBaseIndex);

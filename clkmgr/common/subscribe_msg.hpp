@@ -27,7 +27,7 @@ class SubscribeMessage : public Message
 
   protected:
     SubscribeMessage() = default;
-    int timeBaseIndex = 0;
+    size_t timeBaseIndex = 0;
 
   public:
     msgId_t get_msgId() const override final { return SUBSCRIBE_MSG; }

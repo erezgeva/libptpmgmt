@@ -91,7 +91,7 @@ bool JsonConfigParser::process_json(const char *file)
 {
     jsonMain main;
     jsonArray *timeBaseArray;
-    int currentIndex = 1;
+    size_t currentIndex = 1;
     if(!main.parseFile(file, true))
         return false;
     timeBaseArray = main.getObj()->getArr("timeBases");
