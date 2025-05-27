@@ -141,7 +141,7 @@ void ClockSyncBaseHandler::setPTPAvailability(bool available)
 
 void ClockSyncBaseHandler::setSysAvailability(bool available)
 {
-    clockSyncData.ptpAvailable = available;
+    clockSyncData.sysAvailable = available;
 }
 
 void ClockSyncBaseHandler::updatePTPClock(const PTPClockEvent &newPTPClock)
