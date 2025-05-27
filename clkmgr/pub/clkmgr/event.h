@@ -26,7 +26,6 @@
 
 #include "pub/clkmgr/utility.h"
 #include "pub/clkmgr/types.h"
-#include <array>
 
 __CLKMGR_NAMESPACE_BEGIN
 

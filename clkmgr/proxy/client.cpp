@@ -24,19 +24,18 @@ using namespace std;
 static sessionId_t nextSession = 0;
 static map<sessionId_t, unique_ptr<Client>> sessionMap;
 
-static inline Transmitter *CreateTransmitterContext(const ClientId &clientId)
+static inline Transmitter *CreateTransmitterContext(const string &clientId)
 {
-    string id((const char *)clientId.data());
     Transmitter *nCtx = new Transmitter();
     if(nCtx != nullptr) {
-        if(!nCtx->open(id, false)) {
-            PrintErrorCode("Failed to open message queue " + id);
+        if(!nCtx->open(clientId, false)) {
+            PrintErrorCode("Failed to open message queue " + clientId);
             delete nCtx;
             return nullptr;
         }
-        PrintDebug("Successfully connected to client " + id);
+        PrintDebug("Successfully connected to client " + clientId);
     } else
-        PrintError("Failed to allocate new message queue " + id);
+        PrintError("Failed to allocate new message queue " + clientId);
     return nCtx;
 }
 
@@ -45,7 +44,7 @@ static inline bool existClient(sessionId_t sessionId)
     return sessionMap.count(sessionId) > 0;
 }
 
-sessionId_t Client::CreateClientSession(const ClientId &id)
+sessionId_t Client::CreateClientSession(const string &id)
 {
     for(; sessionMap.count(nextSession) > 0 ||
         nextSession == InvalidSessionId; nextSession++);
@@ -63,7 +62,7 @@ sessionId_t Client::CreateClientSession(const ClientId &id)
     return nextSession++;
 }
 
-sessionId_t Client::connect(sessionId_t sessionId, const ClientId &id)
+sessionId_t Client::connect(sessionId_t sessionId, const string &id)
 {
     if(sessionId != InvalidSessionId) {
         if(existClient(sessionId))

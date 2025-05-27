@@ -20,7 +20,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class ConnectMessage : public Message
 {
   private:
-    ClientId clientId;
+    std::string clientId;
     bool parseBufferComm() override final;
     bool makeBufferComm(Buffer &buff) const override final;
 
@@ -28,7 +28,8 @@ class ConnectMessage : public Message
     ConnectMessage() = default;
   public:
     msgId_t get_msgId() const override final { return CONNECT_MSG; }
-    const ClientId &getClientId() const { return clientId; }
+    const std::string &getClientId() const { return clientId; }
+    void setClientId(const std::string &newID) { clientId = newID; }
     std::string toString() const override;
 };
 

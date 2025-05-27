@@ -76,10 +76,10 @@ bool ClockManager::connect()
             PrintDebug("[CONNECT] Received reply from Proxy.");
     }
     // Store Client ID in Client State
-    if((cmsg != nullptr) && !(cmsg->getClientId().empty())) {
-        ClientId newClientID;
-        strcpy((char *)newClientID.data(), (char *)cmsg->getClientId().data());
-        implClientState.set_clientID(newClientID);
+    if(cmsg != nullptr) {
+        const string &nID = cmsg->getClientId();
+        if(!nID.empty())
+            implClientState.set_clientID(nID);
     }
     return true;
 }
@@ -125,10 +125,6 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
     unique_ptr<Message> subscribeMsg(cmsg);
     cmsg->setClientState(implClientState);
     cmsg->set_timeBaseIndex(timeBaseIndex);
-    /* Subscribe Message do not have client ID
-    strcpy((char *)cmsg->getClientId().data(),
-        (char *)implClientState.get_clientID().data());
-    */
     cmsg->set_sessionId(implClientState.get_sessionId());
     ClientQueue::sendMessage(cmsg);
     // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon

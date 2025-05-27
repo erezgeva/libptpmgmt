@@ -22,21 +22,20 @@ ClientState::ClientState()
 {
     connected = false;
     m_sessionId = InvalidSessionId;
-    fill(begin(clientID), end(clientID), 0);
 }
 
 ClientState::ClientState(const ClientState &newState)
 {
     connected = newState.get_connected();
     m_sessionId = newState.get_sessionId();
-    strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
+    clientID = newState.get_clientID();
 }
 
 void ClientState::set_clientState(const ClientState &newState)
 {
     connected = newState.get_connected();
     m_sessionId = newState.get_sessionId();
-    strcpy((char *)clientID.data(), (char *)newState.get_clientID().data());
+    clientID = newState.get_clientID();
 }
 
 bool ClientState::get_connected() const
@@ -49,14 +48,14 @@ void ClientState::set_connected(bool new_state)
     connected = new_state;
 }
 
-ClientId ClientState::get_clientID() const
+const string &ClientState::get_clientID() const
 {
     return clientID;
 }
 
-void ClientState::set_clientID(const ClientId &new_cID)
+void ClientState::set_clientID(const string &new_cID)
 {
-    strcpy((char *)clientID.data(), (char *)new_cID.data());
+    clientID = new_cID.data();
 }
 
 sessionId_t ClientState::get_sessionId() const

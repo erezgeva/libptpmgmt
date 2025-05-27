@@ -61,7 +61,7 @@ TEST(ClientStateTest, subscribed)
 TEST(ClientStateTest, clientID)
 {
     ClientState cstate;
-    ClientId refClientID = { 0x41, 0x42, 0x43 };
+    string refClientID = { 0x41, 0x42, 0x43 };
     cstate.set_clientID(refClientID);
     //EXPECT_EQ(cstate.get_clientID(), { 0x41, 0x42, 0x43} );  // TODO
 }

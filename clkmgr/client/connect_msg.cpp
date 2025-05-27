@@ -23,7 +23,7 @@ DECLARE_STATIC(ClientConnectMessage::currentClientState, nullptr);
 
 bool ClientConnectMessage::writeClientId()
 {
-    rxContext.getClientId().copy((char *)getClientId().data(), CLIENTID_LENGTH);
+    setClientId(rxContext.getClientId());
     return true;
 }
 

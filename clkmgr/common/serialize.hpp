@@ -27,13 +27,6 @@
             var = *(remove_reference<decltype(var)>::type *)(ptr);          \
         can_parse ? var_len : -1; })
 
-#define PARSE_ARRAY(arr,ptr,len) ({                                         \
-        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type);  \
-        bool can_parse = len >= var_len;                                    \
-        if (can_parse)                                                      \
-            memcpy(arr.data(), ptr, var_len);                               \
-        can_parse ? var_len : -1; })
-
 #define WRITE_TX(type,var,tc) ({                                            \
         ssize_t offset = WRITE_##type(var,tc.dataOff(), tc.sizeLeft());     \
         if (offset > 0)                                                     \
@@ -45,14 +38,6 @@
         bool can_write = len >= var_len;                                    \
         if (can_write)                                                      \
             *(remove_reference<decltype(var)>::type *)(ptr) = var;          \
-        can_write ? var_len : -1; })
-
-/* For writing std::array */
-#define WRITE_ARRAY(arr,ptr,len) ({                                         \
-        size_t var_len = arr.max_size()*sizeof(decltype(arr)::value_type);  \
-        bool can_write = len >= var_len;                                    \
-        if (can_write)                                                      \
-            memcpy(ptr, arr.data(), var_len);                               \
         can_write ? var_len : -1; })
 
 #endif /* SERIALIZE_HPP */

@@ -15,6 +15,7 @@
 #include "pub/clkmgr/subscription.h"
 #include "common/util.hpp"
 
+#include <string>
 #include <atomic>
 
 __CLKMGR_NAMESPACE_BEGIN
@@ -27,7 +28,7 @@ class ClientState
   private:
     std::atomic_bool connected{false}; /**< Connection status */
     sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
-    ClientId clientID = {}; /**< Client ID */
+    std::string clientID; /**< Client ID */
 
   public:
     /**
@@ -63,13 +64,13 @@ class ClientState
      * Get the client ID
      * @return Client ID
      */
-    ClientId get_clientID() const;
+    const std::string &get_clientID() const;
 
     /**
      * Set the client ID
      * @param[in] cID Reference to the client ID
      */
-    void set_clientID(const ClientId &cID);
+    void set_clientID(const std::string &cID);
 
     /**
     * Get the constant reference to the session ID.

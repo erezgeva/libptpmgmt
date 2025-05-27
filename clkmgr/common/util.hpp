@@ -21,9 +21,6 @@ __CLKMGR_NAMESPACE_BEGIN
 
 const int CLIENTID_LENGTH = 512;
 
-/** client ID type. */
-typedef std::array<uint8_t, CLIENTID_LENGTH> ClientId;
-
 /** Type definition for session ID. */
 typedef uint16_t sessionId_t;
 

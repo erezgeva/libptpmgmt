@@ -18,27 +18,35 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+struct clientIdEncaps {
+    char ClientId[CLIENTID_LENGTH];
+};
+
 string ConnectMessage::toString() const
 {
     string name = MSG_EXTRACT_CLASS_NAME;
     name += "\n";
     name += Message::toString();
-    name += "Client ID: " + string((char *)clientId.data()) + "\n";
+    name += "Client ID: " + clientId + "\n";
     return name;
 }
 
 bool ConnectMessage::parseBufferComm()
 {
     sessionId_t sessionId;
+    clientIdEncaps eClientId;
     if(!PARSE_RX(FIELD, sessionId, rxContext) ||
-        !PARSE_RX(ARRAY, clientId, rxContext))
+        !PARSE_RX(FIELD, eClientId, rxContext))
         return false;
+    clientId = string(eClientId.ClientId, CLIENTID_LENGTH);
     set_sessionId(sessionId);
     return true;
 }
 
 bool ConnectMessage::makeBufferComm(Buffer &buff) const
 {
+    clientIdEncaps eClientId;
+    clientId.copy(eClientId.ClientId, CLIENTID_LENGTH);
     return WRITE_TX(FIELD, get_sessionId(), buff) &&
-        WRITE_TX(ARRAY, clientId, buff);
+        WRITE_TX(FIELD, eClientId, buff);
 }
