@@ -10,8 +10,8 @@
  */
 
 #include "client/msgq_tport.hpp"
-#include "client/connect_msg.hpp"
-#include "client/subscribe_msg.hpp"
+#include "client/client_state.hpp"
+#include "common/message.hpp"
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
@@ -44,12 +44,12 @@ bool ClientQueue::init()
         return false;
     }
     PrintDebug("Client Message queue opened");
+    ClientState::getSingleInstance().set_clientID(rxContext.getClientId());
     return true;
 }
 
 bool ClientQueue::sendMessage(Message *msg)
 {
-    msg->writeClientId();
     if(!msg->transmitMessage())
         return false;
     PrintDebug("[ClientQueue]::sendMessage successful");

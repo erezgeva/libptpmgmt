@@ -10,60 +10,66 @@
  */
 
 #include "client/client_state.hpp"
+#include "client/connect_msg.hpp"
+#include "client/msgq_tport.hpp"
+#include "common/print.hpp"
 
-#include <cstring>
-#include <string>
+#include <rtpi/condition_variable.hpp>
 
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
+using namespace std::chrono;
 
-ClientState::ClientState()
+static rtpi::mutex connect_cv_mtx;
+static rtpi::condition_variable connect_cv;
+
+ClientState &ClientState::getSingleInstance()
 {
-    connected = false;
-    m_sessionId = InvalidSessionId;
+    static ClientState instance;
+    return instance;
 }
 
-ClientState::ClientState(const ClientState &newState)
+bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
 {
-    connected = newState.get_connected();
-    m_sessionId = newState.get_sessionId();
-    clientID = newState.get_clientID();
+    ClientConnectMessage *cmsg = new ClientConnectMessage();
+    if(cmsg == nullptr) {
+        PrintDebug("[CONNECT] Failed to allocate ClientConnectMessage");
+        return false;
+    }
+    unique_ptr<Message> connectMsg(cmsg);
+    set_connected(false);
+    cmsg->setClientId(clientID);
+    cmsg->set_sessionId(get_sessionId());
+    ClientQueue::sendMessage(cmsg);
+    auto endTime = system_clock::now() + milliseconds(timeOut);
+    unique_lock<rtpi::mutex> lock(connect_cv_mtx);
+    while(!get_connected()) {
+        auto res = connect_cv.wait_until(lock, endTime);
+        if(res == cv_status::timeout) {
+            if(!get_connected()) {
+                PrintDebug("[CONNECT] Timeout waiting reply from Proxy.");
+                return false;
+            }
+        } else {
+            // Store the last connect time
+            if(lastConnectTime != nullptr &&
+                clock_gettime(CLOCK_REALTIME, lastConnectTime) == -1)
+                PrintDebug("[CONNECT] Failed to get lastConnectTime.");
+            PrintDebug("[CONNECT] Received reply from Proxy.");
+        }
+    }
+    return true;
 }
 
-void ClientState::set_clientState(const ClientState &newState)
+bool ClientState::connectReply(sessionId_t sessionId)
 {
-    connected = newState.get_connected();
-    m_sessionId = newState.get_sessionId();
-    clientID = newState.get_clientID();
-}
-
-bool ClientState::get_connected() const
-{
-    return connected;
-}
-
-void ClientState::set_connected(bool new_state)
-{
-    connected = new_state;
-}
-
-const string &ClientState::get_clientID() const
-{
-    return clientID;
-}
-
-void ClientState::set_clientID(const string &new_cID)
-{
-    clientID = new_cID.data();
-}
-
-sessionId_t ClientState::get_sessionId() const
-{
-    return m_sessionId;
-}
-
-void ClientState::set_sessionId(sessionId_t sessionId)
-{
-    m_sessionId = sessionId;
+    PrintDebug("Processing client connect message (reply)");
+    PrintDebug("Connected with session ID: " + to_string(sessionId));
+    PrintDebug("Current state.sessionId: " + to_string(get_sessionId()));
+    unique_lock<rtpi::mutex> lock(connect_cv_mtx);
+    set_connected(true);
+    set_sessionId(sessionId);
+    connect_cv.notify_one(lock);
+    return true;
 }

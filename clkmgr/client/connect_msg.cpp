@@ -19,14 +19,6 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-DECLARE_STATIC(ClientConnectMessage::currentClientState, nullptr);
-
-bool ClientConnectMessage::writeClientId()
-{
-    setClientId(rxContext.getClientId());
-    return true;
-}
-
 /**
  * @brief process the reply for connect msg from proxy.
  *
@@ -54,14 +46,8 @@ bool ClientConnectMessage::parseBufferTail()
             return false;
         TimeBaseConfigurations::addTimeBaseCfg(newCfg);
     }
-    PrintDebug("Processing client connect message (reply)");
-    PrintDebug("Connected with session ID: " + to_string(get_sessionId()));
-    PrintDebug("Current state.sessionId: " +
-        to_string(currentClientState->get_sessionId()));
-    unique_lock<rtpi::mutex> lock(cv_mtx);
-    currentClientState->set_connected(true);
-    currentClientState->set_sessionId(get_sessionId());
+    if(!ClientState::getSingleInstance().connectReply(get_sessionId()))
+        return false;
     set_msgAck(ACK_NONE);
-    cv.notify_one(lock);
     return true;
 }

@@ -23,21 +23,11 @@ __CLKMGR_NAMESPACE_BEGIN
 class ClientSubscribeMessage : public SubscribeMessage
 {
   private:
-    static ClientState *currentClientState;
     bool parseBufferTail() override final;
 
   public:
     static rtpi::mutex cv_mtx;
     static rtpi::condition_variable cv;
-    /**
-     * process the reply for subscribe msg from proxy.
-     * @return true
-     */
-    bool writeClientId() override final;
-
-    void setClientState(ClientState &newClientState) {
-        currentClientState = &newClientState;
-    }
 };
 
 __CLKMGR_NAMESPACE_END

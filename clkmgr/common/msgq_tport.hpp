@@ -91,7 +91,7 @@ class Queue
     // Get string
     std::string str() const { return std::to_string(mq); }
     // Get client ID
-    std::string getClientId() const { return clientId; }
+    const std::string &getClientId() const { return clientId; }
 };
 
 class Listener : public Buffer, public End
@@ -119,7 +119,7 @@ class Listener : public Buffer, public End
     bool MqListenerWork();
     std::thread &getThread() { return m_thread; }
     std::string getQueueName() const { return m_listenerQueue.str(); }
-    std::string getClientId() const { return m_listenerQueue.getClientId(); }
+    const std::string &getClientId() const { return m_listenerQueue.getClientId(); }
 };
 
 class Transmitter : public Buffer

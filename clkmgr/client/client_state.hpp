@@ -12,9 +12,9 @@
 #ifndef CLIENT_CLIENT_STATE_HPP
 #define CLIENT_CLIENT_STATE_HPP
 
-#include "pub/clkmgr/subscription.h"
 #include "common/util.hpp"
 
+#include <ctime>
 #include <string>
 #include <atomic>
 
@@ -30,59 +30,20 @@ class ClientState
     sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
     std::string clientID; /**< Client ID */
 
+    ClientState() = default;
+    void set_connected(bool state) { connected = state; }
+    void set_sessionId(sessionId_t sessionId) { m_sessionId = sessionId; }
+
   public:
-    /**
-     * Default constructor
-     */
-    ClientState();
+    static ClientState &getSingleInstance();
+    bool connect(uint32_t timeOut, timespec *lastConnectTime = nullptr);
+    bool connectReply(sessionId_t sessionId);
 
-    /**
-     * Copy constructor
-     * @param[in] newState Reference to the new state
-     */
-    ClientState(const ClientState &newState);
-
-    /**
-     * Set the client state
-     * @param[in] newState Reference to the new state
-     */
-    void set_clientState(const ClientState &newState);
-
-    /**
-     * Get the connection status
-     * @return true if connected, false otherwise
-     */
-    bool get_connected() const;
-
-    /**
-     * Set the connection status
-     * @param[in] state Connection status
-     */
-    void set_connected(bool state);
-
-    /**
-     * Get the client ID
-     * @return Client ID
-     */
-    const std::string &get_clientID() const;
-
-    /**
-     * Set the client ID
-     * @param[in] cID Reference to the client ID
-     */
-    void set_clientID(const std::string &cID);
-
-    /**
-    * Get the constant reference to the session ID.
-    * @return session ID.
-    */
-    sessionId_t get_sessionId() const;
-
-    /**
-    * Set the session ID.
-    * @param[in] sessionId The new session ID to set.
-    */
-    void set_sessionId(sessionId_t sessionId);
+    bool get_connected() const { return connected; }
+    const std::string &get_clientID() const { return clientID; }
+    sessionId_t get_sessionId() const { return m_sessionId; }
+    // Set by ClientQueue::init()
+    void set_clientID(const std::string  &cID) { clientID = cID; }
 };
 
 __CLKMGR_NAMESPACE_END

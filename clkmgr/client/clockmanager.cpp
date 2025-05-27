@@ -11,20 +11,21 @@
 
 #include "pub/clockmanager.h"
 #include "pub/clkmgr/timebase_configs.h"
-#include "client/connect_msg.hpp"
 #include "client/msgq_tport.hpp"
 #include "client/subscribe_msg.hpp"
 #include "client/timebase_state.hpp"
-#include "common/clock_event_handler.hpp"
 #include "common/print.hpp"
 
 #include <chrono>
-#include <cstring>
 #include <thread>
 #include <rtpi/condition_variable.hpp>
 
-#define DEFAULT_LIVENESS_TIMEOUT_IN_MS 200  //200 ms
-#define DEFAULT_CONNECT_TIME_OUT 5  //5 sec
+// Number of microsecond in a second
+static const int32_t USEC_PER_SEC = 1000000;
+
+// in miliseconds
+static const uint32_t DEFAULT_LIVENESS_TIMEOUT_IN_MS = 200;
+static const uint32_t DEFAULT_CONNECT_TIME_OUT = USEC_PER_SEC * 5;
 #define DEFAULT_SUBSCRIBE_TIME_OUT 5  //5 sec
 
 __CLKMGR_NAMESPACE_USE;
@@ -32,11 +33,10 @@ __CLKMGR_NAMESPACE_USE;
 using namespace std;
 using namespace std::chrono;
 
-rtpi::mutex ClientConnectMessage::cv_mtx;
-rtpi::condition_variable ClientConnectMessage::cv;
+static atomic_bool doInit(false);
+
 rtpi::mutex ClientSubscribeMessage::cv_mtx;
 rtpi::condition_variable ClientSubscribeMessage::cv;
-static ClientState implClientState;
 
 ClockManager &ClockManager::fetchSingleInstance()
 {
@@ -46,42 +46,19 @@ ClockManager &ClockManager::fetchSingleInstance()
 
 bool ClockManager::connect()
 {
-    // Send a connect message to Proxy Daemon
-    ClientConnectMessage *cmsg = new ClientConnectMessage();
-    if(cmsg == nullptr)
-        return false;
-    unique_ptr<Message> connectMsg(cmsg);
-    cmsg->setClientState(implClientState);
-    if(!clientMessageRegister()) {
-        PrintDebug("[CONNECT] Failed to initialize Client message.");
-        return false;
+    if(!doInit.load()) {
+        // Send a connect message to Proxy Daemon
+        if(!clientMessageRegister()) {
+            PrintDebug("[CONNECT] Failed to initialize Client message.");
+            return false;
+        }
+        if(!ClientQueue::init()) {
+            PrintDebug("[CONNECT] Failed to initialize Client queue.");
+            return false;
+        }
+        doInit.store(true);
     }
-    if(!ClientQueue::init()) {
-        PrintDebug("[CONNECT] Failed to initialize Client queue.");
-        return false;
-    }
-    ClientQueue::sendMessage(cmsg);
-    // Wait DEFAULT_CONNECT_TIME_OUT seconds for response from Proxy Daemon
-    unsigned int timeout_sec = (unsigned int)DEFAULT_CONNECT_TIME_OUT;
-    auto endTime = system_clock::now() + seconds(timeout_sec);
-    unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
-    while(!implClientState.get_connected()) {
-        auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
-        if(res == cv_status::timeout) {
-            if(!implClientState.get_connected()) {
-                PrintDebug("[CONNECT] Timeout waiting reply from Proxy.");
-                return false;
-            }
-        } else
-            PrintDebug("[CONNECT] Received reply from Proxy.");
-    }
-    // Store Client ID in Client State
-    if(cmsg != nullptr) {
-        const string &nID = cmsg->getClientId();
-        if(!nID.empty())
-            implClientState.set_clientID(nID);
-    }
-    return true;
+    return ClientState::getSingleInstance().connect(DEFAULT_CONNECT_TIME_OUT);
 }
 
 const TimeBaseConfigurations &ClockManager::getTimebaseCfgs()
@@ -100,9 +77,9 @@ bool ClockManager::subscribeByName(const ClkMgrSubscription &newSub,
     return subscribe(newSub, timeBaseIndex, clockSyncData);
 }
 bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
-    size_t timeBaseIndex,
-    ClockSyncData &clockSyncData)
+    size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
+    ClientState &implClientState = ClientState::getSingleInstance();
     // Check whether connection between Proxy and Client is established or not
     if(!implClientState.get_connected()) {
         PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
@@ -123,7 +100,6 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
         return false;
     }
     unique_ptr<Message> subscribeMsg(cmsg);
-    cmsg->setClientState(implClientState);
     cmsg->set_timeBaseIndex(timeBaseIndex);
     cmsg->set_sessionId(implClientState.get_sessionId());
     ClientQueue::sendMessage(cmsg);
@@ -161,9 +137,12 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
 bool ClockManager::disconnect()
 {
     // Send a disconnect message - TODO do we want to send a message here?
-    if(!End::stopAll()) {
-        PrintDebug("Client disconnect Failed");
-        return false;
+    if(doInit.load()) {
+        if(!End::stopAll()) {
+            PrintDebug("Client disconnect Failed");
+            return false;
+        }
+        doInit.store(true);
     }
     return true;
 }
@@ -196,35 +175,8 @@ static inline bool check_proxy_liveness(size_t timeBaseIndex)
     if(timeout < DEFAULT_LIVENESS_TIMEOUT_IN_MS)
         return true;
 send_connect:
-    ClientConnectMessage *cmsg = new ClientConnectMessage();
-    if(cmsg == nullptr) {
-        PrintDebug("[WAIT] Failed to cast to ClientConnectMessage");
-        return false;
-    }
-    unique_ptr<Message> connectMsg(cmsg);
-    implClientState.set_connected(false);
-    cmsg->setClientState(implClientState);
-    cmsg->set_sessionId(implClientState.get_sessionId());
-    ClientQueue::sendMessage(cmsg);
-    /* Wait for connection result */
-    auto endTime = system_clock::now() +
-        milliseconds(DEFAULT_LIVENESS_TIMEOUT_IN_MS);
-    unique_lock<rtpi::mutex> lck(ClientConnectMessage::cv_mtx);
-    while(!implClientState.get_connected()) {
-        auto res = ClientConnectMessage::cv.wait_until(lck, endTime);
-        if(res == cv_status::timeout) {
-            if(!implClientState.get_connected()) {
-                PrintDebug("[CONNECT] Timeout waiting reply from Proxy.");
-                return false;
-            }
-        } else {
-            // Store the last connect time
-            if(clock_gettime(CLOCK_REALTIME, &lastConnectTime) == -1)
-                PrintDebug("[CONNECT] Failed to get lastConnectTime.");
-            PrintDebug("[CONNECT] Received reply from Proxy.");
-        }
-    }
-    return true;
+    return ClientState::getSingleInstance().
+        connect(DEFAULT_LIVENESS_TIMEOUT_IN_MS, &lastConnectTime);
 }
 
 int ClockManager::statusWaitByName(int timeout, const string &timeBaseName,
@@ -242,6 +194,7 @@ int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
     ClockSyncData &clockSyncData)
 {
     // Check whether connection between Proxy and Client is established or not
+    ClientState &implClientState = ClientState::getSingleInstance();
     if(!implClientState.get_connected()) {
         PrintDebug("[WAIT] Client is not connected to Proxy.");
         return false;

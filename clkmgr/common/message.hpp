@@ -75,9 +75,6 @@ class Message
     virtual std::string toString() const;
     virtual msgId_t get_msgId() const = 0;
 
-    // Set client ID on a message used on client side
-    virtual bool writeClientId() { return true; }
-
     // Buile the buffer and send it
     bool transmitMessage();
 

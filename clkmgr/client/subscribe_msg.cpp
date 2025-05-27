@@ -19,15 +19,6 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-DECLARE_STATIC(ClientSubscribeMessage::currentClientState, nullptr);
-
-bool ClientSubscribeMessage::writeClientId()
-{
-    PrintDebug("[ClientQueue] [SUBSCRIBE] : subscription->event Mask : " +
-        to_string(getSubscription().get_event_mask()));
-    return true;
-}
-
 /**
  * @brief process the reply for notification msg from proxy.
  *
