@@ -17,7 +17,15 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-bool proxyMessageRegister();
+class ProxyMessage
+{
+  public:
+    static bool Register();
+    static void notify_clients(size_t timeBaseIndex,
+        std::vector<sessionId_t> &subscribedClients,
+        std::vector<sessionId_t> &sessionIdToRemove);
+    static void remove_clients(const std::vector<sessionId_t> &sessionIdToRemove);
+};
 
 __CLKMGR_NAMESPACE_END
 

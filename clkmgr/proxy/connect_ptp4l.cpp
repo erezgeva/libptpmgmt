@@ -10,10 +10,8 @@
  */
 
 #include "proxy/connect_ptp4l.hpp"
-#include "proxy/client.hpp"
 #include "proxy/config_parser.hpp"
-#include "proxy/connect_chrony.hpp"
-#include "proxy/notification_msg.hpp"
+#include "proxy/message.hpp"
 #include "common/termin.hpp"
 #include "common/ptp_event.hpp"
 #include "common/print.hpp"
@@ -24,9 +22,9 @@
 
 #include <unistd.h>
 #include <atomic>
-#include <rtpi/mutex.hpp>
 #include <thread>
 #include <cmath>
+#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -174,34 +172,10 @@ void ptpSet::notify_client()
     PrintDebug("[clkmgr]::notify_client");
     vector<sessionId_t> sessionIdToRemove;
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
-    if(pmsg == nullptr) {
-        PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
-        return;
-    }
-    unique_ptr<ProxyNotificationMessage> notifyMsg(pmsg);
-    PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
-    // Send data for multiple sessions
-    pmsg->setTimeBaseIndex(timeBaseIndex);
-    for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
-        const sessionId_t sessionId = *it;
-        PrintDebug("Get client session ID: " + to_string(sessionId));
-        pmsg->set_sessionId(sessionId);
-        if(!pmsg->transmitMessage()) {
-            it = subscribedClients.erase(it);
-            /* Add sessionId into the list to remove */
-            sessionIdToRemove.push_back(sessionId);
-        } else
-            ++it;
-    }
+    ProxyMessage::notify_clients(timeBaseIndex, subscribedClients,
+        sessionIdToRemove);
     local.unlock(); // Explicitly unlock the mutex
-    for(const sessionId_t sessionId : sessionIdToRemove) {
-        ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
-        #ifdef HAVE_LIBCHRONY
-        ConnectChrony::remove_chrony_subscriber(sessionId);
-        #endif
-        Client::RemoveClient(sessionId);
-    }
+    ProxyMessage::remove_clients(sessionIdToRemove);
 }
 
 callback_define(TIME_STATUS_NP)
