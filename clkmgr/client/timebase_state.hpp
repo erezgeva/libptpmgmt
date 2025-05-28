@@ -12,9 +12,9 @@
 #ifndef CLIENT_TIMEBASE_STATE_HPP
 #define CLIENT_TIMEBASE_STATE_HPP
 
-#include "pub/clkmgr/subscription.h"
 #include "pub/clockmanager.h"
-#include "common/clock_event_handler.hpp"
+#include "pub/clkmgr/subscription.h"
+#include "client/clock_event_handler.hpp"
 #include "common/ptp_event.hpp"
 
 #include <map>
@@ -66,13 +66,13 @@ class TimeBaseState
      * @return Reference to the event state
      */
     //Event_state &get_eventState();
-    PTPClockEvent &get_ptp4lEventState();
+    const PTPClockEvent &get_ptp4lEventState() const;
 
     /**
      * Get the chrony event state
      * @return Reference to the event state
      */
-    SysClockEvent &get_chronyEventState();
+    const SysClockEvent &get_chronyEventState() const;
 
     /**
      * Set the ptp4l event state
@@ -96,7 +96,7 @@ class TimeBaseState
      * Get the last notification time
      * @return Last notification time
      */
-    timespec get_last_notification_time() const;
+    const timespec &get_last_notification_time() const;
 
     /**
      * Convert the client state to a string
@@ -108,7 +108,7 @@ class TimeBaseState
      * Get the event subscription
      * @return Reference to the event subscription
      */
-    const ClkMgrSubscription &get_eventSub();
+    const ClkMgrSubscription &get_eventSub() const;
 
     /**
      * Set the event subscription
@@ -146,25 +146,20 @@ class TimeBaseStates
     // Method to set ClkMgrSubscription by timeBaseIndex
     void setEventSubscription(size_t timeBaseIndex, const ClkMgrSubscription &sub) {
         std::lock_guard<rtpi::mutex> lock(mtx);
-        auto &state = timeBaseStateMap[timeBaseIndex];
-        state.set_eventSub(sub);
+        timeBaseStateMap[timeBaseIndex].set_eventSub(sub);
     }
 
     // Method to get the subscription status by timeBaseIndex
     bool getSubscribed(size_t timeBaseIndex) {
         std::lock_guard<rtpi::mutex> lock(mtx);
-        auto it = timeBaseStateMap.find(timeBaseIndex);
-        if(it != timeBaseStateMap.end())
-            return it->second.get_subscribed();
-        // If timeBaseIndex is not found, return false
-        return false;
+        return timeBaseStateMap.count(timeBaseIndex) > 0 ?
+            timeBaseStateMap[timeBaseIndex].get_subscribed() : false;
     }
 
     // Method to set the subscription status by timeBaseIndex
     void setSubscribed(size_t timeBaseIndex, bool subscribed) {
         std::lock_guard<rtpi::mutex> lock(mtx);
-        auto &state = timeBaseStateMap[timeBaseIndex];
-        state.set_subscribed(subscribed);
+        timeBaseStateMap[timeBaseIndex].set_subscribed(subscribed);
     }
 
     // Method to get the last notification time by timeBaseIndex

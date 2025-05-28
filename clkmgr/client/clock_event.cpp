@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation. */
 
 /** @file
- * @brief Common clock event class
+ * @brief Client clock event class
  *
  * @author Lai Peter Jun Ann <peter.jun.ann.lai@@intel.com>
  * @copyright © 2025 Intel Corporation.
@@ -10,7 +10,8 @@
  */
 
 #include "pub/clkmgr/event.h"
-#include "common/clock_event_handler.hpp"
+#include "client/clock_event_handler.hpp"
+#include "client/timebase_state.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -134,22 +135,12 @@ SysClockEvent &ClockSyncData::getSysClock()
     return sysClockSync;
 }
 
-void ClockSyncBaseHandler::setPTPAvailability(bool available)
+bool ClockSyncBaseHandler::updateAll(const TimeBaseState &state)
 {
-    clockSyncData.ptpAvailable = available;
-}
-
-void ClockSyncBaseHandler::setSysAvailability(bool available)
-{
-    clockSyncData.sysAvailable = available;
-}
-
-void ClockSyncBaseHandler::updatePTPClock(const PTPClockEvent &newPTPClock)
-{
-    clockSyncData.ptpClockSync = newPTPClock;
-}
-
-void ClockSyncBaseHandler::updateSysClock(const SysClockEvent &newSysClock)
-{
-    clockSyncData.sysClockSync = newSysClock;
+    // TODO: check ptp4l and chrony data is received
+    clockSyncData.ptpClockSync = state.get_ptp4lEventState();
+    clockSyncData.ptpAvailable = true;
+    clockSyncData.sysClockSync = state.get_chronyEventState();
+    clockSyncData.sysAvailable = true;
+    return true;
 }

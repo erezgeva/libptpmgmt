@@ -16,6 +16,8 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
+class TimeBaseState;
+
 /**
  * Modify the protected attributes of ClockEventBase.
  * Contain static methods to set various attributes of ClockEventBase.
@@ -187,36 +189,12 @@ class ClockEventHandler
  */
 class ClockSyncBaseHandler
 {
-  public:
-    ClockSyncBaseHandler(ClockSyncData &data) : clockSyncData(data) {}
-
-    /**
-     * Set the availability of the PTP clock.
-     * @param[in] available True if the PTP clock is available, false otherwise.
-     */
-    void setPTPAvailability(bool available);
-
-    /**
-     * Set the availability of the system clock.
-     * @param[in] available True if the system clock is available, false otherwise.
-     */
-    void setSysAvailability(bool available);
-
-    /**
-     * Update the PTP clock with a new PTPClockEvent object
-     * @param[in] newPTPClock The new PTPClockEvent object to update
-     */
-    void updatePTPClock(const PTPClockEvent &newPTPClock);
-
-    /**
-     * Update the system clock with a new SysClockEvent object
-     * @param[in] newSysClock The new SysClockEvent object to update
-     */
-    void updateSysClock(const SysClockEvent &newSysClock);
-
   private:
     ClockSyncData &clockSyncData;
 
+  public:
+    ClockSyncBaseHandler(ClockSyncData &data) : clockSyncData(data) {}
+    bool updateAll(const TimeBaseState &state);
 };
 
 __CLKMGR_NAMESPACE_END

@@ -51,12 +51,12 @@ void TimeBaseState::set_event_changed(bool state)
     event_changed = state;
 }
 
-PTPClockEvent &TimeBaseState::get_ptp4lEventState()
+const PTPClockEvent &TimeBaseState::get_ptp4lEventState() const
 {
     return ptp4lEventState;
 }
 
-SysClockEvent &TimeBaseState::get_chronyEventState()
+const SysClockEvent &TimeBaseState::get_chronyEventState() const
 {
     return chronyEventState;
 }
@@ -81,7 +81,7 @@ string TimeBaseState::toString() const
         to_string(eventState.synced_to_primary_clock) + "\n";
 }
 
-const ClkMgrSubscription &TimeBaseState::get_eventSub()
+const ClkMgrSubscription &TimeBaseState::get_eventSub() const
 {
     return eventSub;
 }
@@ -96,7 +96,7 @@ void TimeBaseState::set_last_notification_time(const timespec &newTime)
     last_notification_time = newTime;
 }
 
-timespec TimeBaseState::get_last_notification_time() const
+const timespec &TimeBaseState::get_last_notification_time() const
 {
     return last_notification_time;
 }

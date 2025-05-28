@@ -82,14 +82,7 @@ bool ClockManager::subscribe(const ClkMgrSubscription &newSub,
         return false;
     }
     ClockSyncBaseHandler handler(clockSyncData);
-    // TODO: check ptp4l and chrony data is received
-    PTPClockEvent &ptpData = state.get_ptp4lEventState();
-    handler.setPTPAvailability(true);
-    handler.updatePTPClock(ptpData);
-    SysClockEvent &chronydata = state.get_chronyEventState();
-    handler.setSysAvailability(true);
-    handler.updateSysClock(chronydata);
-    return true;
+    return handler.updateAll(state);
 }
 
 bool ClockManager::disconnect()
@@ -188,13 +181,8 @@ int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
         this_thread::sleep_for(milliseconds(10));
     } while(high_resolution_clock::now() < end);
     ClockSyncBaseHandler handler(clockSyncData);
-    // TODO: check ptp4l and chrony data is received
-    PTPClockEvent &ptpData = state.get_ptp4lEventState();
-    handler.setPTPAvailability(true);
-    handler.updatePTPClock(ptpData);
-    SysClockEvent &chronydata = state.get_chronyEventState();
-    handler.setSysAvailability(true);
-    handler.updateSysClock(chronydata);
+    if(!handler.updateAll(state))
+        return -1;
     if(!event_changes_detected)
         return 0;
     return 1;
