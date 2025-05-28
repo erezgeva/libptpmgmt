@@ -20,7 +20,6 @@
 #include "sock.h"
 #include "msgCall.h"
 
-#include <unistd.h>
 #include <atomic>
 #include <thread>
 #include <cmath>
@@ -310,7 +309,9 @@ void ptpSet::thread_loop()
                     notify_client();
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at " + udsAddr);
-                sleep(5);
+                // Wait 5 seconds before retrying
+                for(int i = 0; i < 50 && !stopThread; i++)
+                    this_thread::sleep_for(chrono::milliseconds(100));
             }
             if(lost_connection) {
                 PrintInfo("Reconnected to ptp4l at " + udsAddr);
@@ -324,7 +325,7 @@ static void ptp4l_event_loop(ptpSet *set)
 {
     // Ensure we start after initializing ends
     while(!all_init.load())
-        sleep(1);
+        this_thread::sleep_for(chrono::milliseconds(100));
     set->thread_loop();
 }
 

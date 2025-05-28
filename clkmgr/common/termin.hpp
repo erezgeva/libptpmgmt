@@ -39,11 +39,11 @@ class End
   public:
     /**
      * Call stop method than wait and then call finalize
-     * @param[in] wait time in microsecond
+     * @param[in] wait time in milliseconds
      * @return true if @b all @b stop and finalize methods return true
      * @note we will call all stop and finalize regarding the result!
      */
-    static bool stopAll(uint32_t wait = 100);
+    static bool stopAll(uint32_t wait = 10);
 };
 
 __CLKMGR_NAMESPACE_END

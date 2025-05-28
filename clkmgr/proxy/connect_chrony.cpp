@@ -18,7 +18,6 @@
 
 #include <chrony.h>
 #include <poll.h>
-#include <unistd.h>
 #include <cmath>
 #include <thread>
 #include <atomic>
@@ -202,8 +201,8 @@ void ChronyThreadSet::monitor_chronyd()
                 chronyFd = chrony_open_socket(udsAddrChrony.c_str());
                 if(chronyFd < 0) {
                     // Wait 5 seconds before retrying
-                    for(int i = 0; i < 5 && !stopThread; i++)
-                        sleep(1);
+                    for(int i = 0; i < 50 && !stopThread; i++)
+                        this_thread::sleep_for(chrono::milliseconds(100));
                     continue;
                 }
                 if(chrony_init_session(&session, chronyFd) == CHRONY_OK) {
@@ -215,7 +214,7 @@ void ChronyThreadSet::monitor_chronyd()
         if(stopThread)
             break;
         // Sleep duration is based on chronyd polling interval
-        usleep(ptp4lEvent.polling_interval);
+        this_thread::sleep_for(chrono::microseconds(ptp4lEvent.polling_interval));
     }
 }
 
@@ -223,7 +222,7 @@ static void thread_start(ChronyThreadSet *me)
 {
     // Ensure we start after initializing ends
     while(!all_init.load())
-        sleep(1);
+        this_thread::sleep_for(chrono::milliseconds(100));
     me->monitor_chronyd();
 }
 

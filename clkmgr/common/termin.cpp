@@ -11,7 +11,7 @@
 
 #include "common/termin.hpp"
 
-#include <unistd.h>
+#include <thread>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -28,7 +28,8 @@ bool End::stopAll(uint32_t wait)
         e->stopPass = e->stop();
         ret = ret && e->stopPass;
     }
-    usleep(wait); // So we give time to other thread to ends
+    // So we give time to other thread to ends
+    std::this_thread::sleep_for(std::chrono::milliseconds(wait));
     for(End *e : all) {
         if(e->stopPass)
             ret = ret && e->finalize();
