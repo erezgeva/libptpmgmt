@@ -11,7 +11,7 @@
 ifdef GTEST_LIB_FLAGS
 
 CLKMGR_CLIENT_UTEST:=$(CLKMGR_UTEST_DIR)/utest_client
-CLKMGR_CLIENT_SRC:=timebase_configs subscription client_state
+CLKMGR_CLIENT_SRC:=timebase_configs subscription client_state event
 CLKMGR_CLIENT_OBJS:=$(foreach n,$(CLKMGR_CLIENT_SRC),$(CLKMGR_UTEST_DIR)/$n.o)
 
 $(CLKMGR_UTEST_DIR)/%.o: $(CLKMGR_UTEST_DIR)/%.cpp | $(COMP_DEPS)
