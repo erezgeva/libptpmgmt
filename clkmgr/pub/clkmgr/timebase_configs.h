@@ -224,13 +224,13 @@ class TimeBaseConfigurations
     static size_t size();
     #ifndef SWIG
     /**
-     * Fetch iterator to the first tlv
+     * Fetch iterator to the first record
      * @return iterator
      * @note iterators are supported using C++ only
      */
     static iterator begin();
     /**
-     * Fetch iterator that mark the end of the TLVs list
+     * Fetch iterator that mark the end of the records list
      * @return iterator
      * @note iterators are supported using C++ only
      */

@@ -22,7 +22,7 @@ endif # NONPHONY_TGT
 endif # filter utest,$(MAKECMDGOALS)
 
 utest_lang: $(UTEST_TGT_LNG)
-utest: utest_cpp utest_lang utest_c
+utest: utest_cpp utest_lang utest_c utest_clkmgr
 
 TEST_LIBSYS:=$(OBJ_DIR)/libsys.so
 $(TEST_LIBSYS): utest/libsys.cpp | $(OBJ_DIR)

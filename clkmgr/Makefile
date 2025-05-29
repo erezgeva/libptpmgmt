@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
 #
-# Makefile for clkmgr
+# Makefile for Clock Manager
 #
 # @author Christopher Hall <christopher.s.hall@@intel.com>
 # @copyright © 2024 Intel Corporation.
@@ -44,6 +44,7 @@ CLKMGR_PROXY_OBJS:=$(filter-out $(CLKMGR_PROXY_DIR)/connect_chrony.o,\
   $(CLKMGR_PROXY_OBJS))
 endif
 
+CLKMGR_GEN_SRC:=$(addprefix $(CLKMGR_PUB_DIR)/clkmgr/,types.h types_c.h)
 $(CLKMGR_PUB_DIR)/clkmgr/types.h: $(CLKMGR_COMMON_DIR)/types.m4
 	$(CLKMGR_GEN_CPP)
 $(CLKMGR_PUB_DIR)/clkmgr/types_c.h: $(CLKMGR_COMMON_DIR)/types.m4
@@ -75,22 +76,7 @@ $(CLKMGR_PROXY): $(CLKMGR_COMMON_OBJS) $(CLKMGR_PROXY_OBJS) $(LIB_NAME_SO) |\
 
 ALL+=$(CLKMGR_LIB_LA) $(CLKMGR_PROXY)
 
-ifdef GTEST_LIB_FLAGS
-
-CLKMGR_CLIENT_UTEST:=$(CLKMGR_UTEST_DIR)/utest_client
-CLKMGR_CLIENT_SRC:=subscription client_state
-CLKMGR_CLIENT_OBJS:=$(foreach n,$(CLKMGR_CLIENT_SRC),$(CLKMGR_UTEST_DIR)/$n.o)
-
-$(CLKMGR_UTEST_DIR)/%.o: $(CLKMGR_UTEST_DIR)/%.cpp | $(COMP_DEPS)
-	$(Q_CC)$(CXX) $(CXXFLAGS_UTEST) $(CLKMGR_CXXFLAGS) $(GTEST_INC_FLAGS)\
-	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
-$(CLKMGR_CLIENT_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_CLIENT_OBJS) \
-	$(CLKMGR_LIB_A) | $(CLKMGR_LIB_LA)
-	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS)\
-	  $(GTEST_LIB_FLAGS) -o $@
-utest_clkmgr_client: $(HEADERS_GEN_COMP) $(CLKMGR_CLIENT_UTEST)
-	$(call Q_UTEST,C++)$(UVGD)$(CLKMGR_CLIENT_UTEST) $(GTEST_NO_COL) $(GTEST_FILTERS)
-endif #GTEST_LIB_FLAGS
+include clkmgr/utest/Makefile
 
 define clkmgr_pkgconfig
 $(hash) $(SPDXLI) $(SPDXBSD3)
