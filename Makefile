@@ -266,7 +266,7 @@ UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth json_load pmc hmac)
 UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
-  $(UTEST_C_TGT)
+  $(UTEST_C_TGT) utest_clkmgr
 INS_TGT:=install_main $(addprefix install_,$(TGT_LNG)) install_clkmgr
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\

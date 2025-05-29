@@ -13,65 +13,47 @@
 
 using namespace clkmgr;
 
-// Tests event mask
-// void set_ClkMgrSubscription(const ClkMgrSubscription &newSubscription)
-TEST(SubscriptionTest, set_ClkMgrSubscription)
-{
-    ClkMgrSubscription subscription;
-    subscription.set_event_mask(eventGMOffset | eventSyncedToGM);
-    subscription.set_composite_event_mask(0x7945);
-    EXPECT_TRUE(subscription.define_threshold(thresholdGMOffset, 10, 5));
-    ClkMgrSubscription subscription2;
-    subscription2.set_ClkMgrSubscription(subscription);
-    EXPECT_EQ(subscription2.get_event_mask(), eventGMOffset | eventSyncedToGM);
-    EXPECT_EQ(subscription2.get_composite_event_mask(), 0x7945);
-    EXPECT_TRUE(subscription2.in_range(thresholdGMOffset, 8));
-}
-
-// Tests event mask
-// void set_event_mask(const uint32_t &varname)
-// uint32_t get_event_mask() const
-TEST(SubscriptionTest, event_mask)
-{
-    ClkMgrSubscription subscription;
-    subscription.set_event_mask(eventGMOffset | eventSyncedToGM);
-    EXPECT_EQ(subscription.get_event_mask(), eventGMOffset | eventSyncedToGM);
-    EXPECT_TRUE(subscription.get_event_mask() & eventSyncedToGM);
-    EXPECT_FALSE(subscription.get_event_mask() & eventASCapable);
-}
-
 // Tests composite event mask
-// void set_composite_event_mask(uint32_t composite_event_mask)
-// uint32_t get_composite_event_mask() const
-TEST(SubscriptionTest, composite_event_mask)
+// ClockSyncSubscription()
+// void enablePtpSubscription()
+// void disablePtpSubscription()
+// bool isPTPSubscriptionEnable() const
+// void setPtpSubscription(const PTPClockSubscription &newPtpSub)
+// const PTPClockSubscription &getPtpSubscription() const
+// void PTPClockSubscription::setCompositeEventMask(uint32_t composite_event_mask)
+// uint32_t PTPClockSubscription::getCompositeEventMask() const
+TEST(SubscriptionTest, compositeEventMask)
 {
-    ClkMgrSubscription subscription;
-    subscription.set_composite_event_mask(0x7945);
-    EXPECT_EQ(subscription.get_composite_event_mask(), 0x7945);
+    ClockSyncSubscription subscription;
+    EXPECT_FALSE(subscription.isPTPSubscriptionEnable());
+    subscription.enablePtpSubscription();
+    EXPECT_TRUE(subscription.isPTPSubscriptionEnable());
+    subscription.disablePtpSubscription();
+    EXPECT_FALSE(subscription.isPTPSubscriptionEnable());
+    const PTPClockSubscription &org = subscription.getPtpSubscription();
+    PTPClockSubscription copy = org;
+    EXPECT_EQ(org.getCompositeEventMask(), 0);
+    copy.setCompositeEventMask(0x1234);
+    subscription.setPtpSubscription(copy);
+    EXPECT_EQ(subscription.getPtpSubscription().getCompositeEventMask(), 0x1234);
+    EXPECT_EQ(org.getCompositeEventMask(), 0x1234);
 }
 
-// Tests threshold
-// bool define_threshold(ThresholdIndex index, int32_t upper, int32_t lower)
-// bool get_threshold(ThresholdIndex index, int32_t &upper, int32_t &lower)
-// bool in_range(ThresholdIndex index, int32_t value) const
-TEST(SubscriptionTest, threshold)
+// Test system clock subscription
+// void disableSysSubscription()
+// void enableSysSubscription()
+// bool isSysSubscriptionEnable() const
+// void setSysSubscription(const SysClockSubscription &newSysSub)
+// const SysClockSubscription &getSysSubscription() const
+TEST(SubscriptionTest, systemClock)
 {
-    ClkMgrSubscription subscription;
-    // Index out of range
-    EXPECT_FALSE(subscription.define_threshold(thresholdLast, 10, 0));
-    // Wrong range
-    EXPECT_FALSE(subscription.define_threshold(thresholdGMOffset, 5, 10));
-    // Proper
-    EXPECT_TRUE(subscription.define_threshold(thresholdGMOffset, 10, 5));
-    // Index out of range
-    EXPECT_FALSE(subscription.in_range(thresholdLast, 0));
-    // value out of range
-    EXPECT_FALSE(subscription.in_range(thresholdGMOffset, 20));
-    // Proper
-    EXPECT_TRUE(subscription.in_range(thresholdGMOffset, 8));
-    int32_t upper = 0, lower = 0;
-    EXPECT_FALSE(subscription.get_threshold(thresholdLast, upper, lower));
-    EXPECT_TRUE(subscription.get_threshold(thresholdGMOffset, upper, lower));
-    EXPECT_EQ(upper, 10);
-    EXPECT_EQ(lower, 5);
+    ClockSyncSubscription subscription;
+    EXPECT_FALSE(subscription.isSysSubscriptionEnable());
+    subscription.enableSysSubscription();
+    EXPECT_TRUE(subscription.isSysSubscriptionEnable());
+    subscription.disableSysSubscription();
+    EXPECT_FALSE(subscription.isSysSubscriptionEnable());
+    const SysClockSubscription &org = subscription.getSysSubscription();
+    SysClockSubscription copy = org;
+    subscription.setSysSubscription(copy);
 }
