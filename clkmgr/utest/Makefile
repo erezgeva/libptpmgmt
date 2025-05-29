@@ -11,7 +11,7 @@
 ifdef GTEST_LIB_FLAGS
 
 CLKMGR_CLIENT_UTEST:=$(CLKMGR_UTEST_DIR)/utest_client
-CLKMGR_CLIENT_SRC:=timebase_configs # subscription client_state
+CLKMGR_CLIENT_SRC:=timebase_configs subscription # client_state
 CLKMGR_CLIENT_OBJS:=$(foreach n,$(CLKMGR_CLIENT_SRC),$(CLKMGR_UTEST_DIR)/$n.o)
 
 $(CLKMGR_UTEST_DIR)/%.o: $(CLKMGR_UTEST_DIR)/%.cpp | $(COMP_DEPS)
@@ -26,5 +26,5 @@ utest_clkmgr_client: $(HEADERS_GEN_COMP) $(CLKMGR_CLIENT_UTEST)
 endif #GTEST_LIB_FLAGS
 
 CLKMGR_UTESTS:=$(addprefix utest_clkmgr_,client)
-.PHONY: utest_clkmgr $(CLKMGR_UTESTS)
+.PHONY: $(CLKMGR_UTESTS)
 utest_clkmgr: $(CLKMGR_GEN_SRC) $(CLKMGR_UTESTS)
