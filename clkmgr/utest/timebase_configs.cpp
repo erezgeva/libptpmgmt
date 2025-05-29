@@ -10,15 +10,14 @@
  */
 
 #include "pub/clockmanager.h"
-#include "common/connect_msg.hpp"
 #include "common/timebase.hpp"
 
 using namespace clkmgr;
 
-class clkmgr::ClientConnectMessage : public ConnectMessage
+class clkmgr::ClientConnectMessage
 {
   public:
-    ClientConnectMessage() {
+    static void set() {
         const TimeBaseConfigurations &cfg = TimeBaseConfigurations::getInstance();
         cfg.addTimeBaseCfg({
             .timeBaseIndex = 1,
@@ -41,7 +40,7 @@ class TimeBaseConfigurationsTest : public ::testing::Test
 {
   protected:
     void SetUp() override {
-        ClientConnectMessage m;
+        ClientConnectMessage::set();
     }
 };
 
