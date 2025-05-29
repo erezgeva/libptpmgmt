@@ -50,20 +50,40 @@ config_ubuntu()
 {
  autoreconf -i
  ./configure $@
+ config_report
 }
-build_prepare_ubuntu()
+install_libchrony_ubuntu()
+{
+ local -r prefix=/usr
+ local -r libdir="$prefix/lib/$(dpkg-architecture -qDEB_TARGET_MULTIARCH)"
+ echo "libdir=$libdir"
+ local -r dir_chrony=/tmp/libchrony
+ git clone https://github.com/mlichvar/libchrony $dir_chrony
+ cd $dir_chrony
+ sudo make install prefix=$prefix libdir="$libdir"
+ cd "$base_dir"
+ sudo rm -R $dir_chrony
+}
+install_librtpi_ubuntu()
 {
  # GitHub uses: Ubuntu noble 24.04 LTS
  # Packages: https://packages.ubuntu.com/
  local -r url=http://de.archive.ubuntu.com/ubuntu/pool/universe/libr/librtpi
- local -r aver=1.0.0-3_amd64
- wget -c $url/librtpi1_$aver.deb
- wget -c $url/librtpi-dev_$aver.deb
+ local -r aver=_1.0.0-3_amd64.deb
+ # 'librtpi' is add in oracular 24.10
+ local -r dir_rtpi=/tmp/librtpi
+ mkdir -p $dir_rtpi
+ cd $dir_chron
+ wget -c $url/librtpi1$aver
+ wget -c $url/librtpi-dev$aver
+ sudo dpkg -i *.deb
+ cd "$base_dir"
+ rm -R $dir_rtpi
+}
+build_prepare_ubuntu()
+{
  apt_install libtool-bin nettle-dev libgnutls28-dev libgcrypt20-dev\
    chrpath
- sudo dpkg -i *.deb
- config_ubuntu $@
- config_report
 }
 ###############################################################################
 # Configure for coverity scan
@@ -75,13 +95,17 @@ ci_coverity()
      add_cfg='CC=clang CXX=clang++'
      ;;
  esac
- build_prepare_ubuntu --without-swig $add_cfg
+ build_prepare_ubuntu
+ install_librtpi_ubuntu
+ install_libchrony_ubuntu
+ config_ubuntu --without-swig $add_cfg
 }
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
 ci_address()
 {
  build_prepare_ubuntu
+ config_ubuntu
  sim_ptp4l -at
 }
 ###############################################################################
@@ -90,7 +114,6 @@ ci_pages()
 {
  apt_install doxygen graphviz
  config_ubuntu
- config_report
  make doxygen
  mv doc/html _site
  mv clkmgr/doc/html _site2
@@ -611,7 +634,8 @@ tag_release()
 main()
 {
  local -r me1="$(realpath -s "$0")"
- cd "$(realpath "$(dirname "$0")/..")"
+ local -r base_dir="$(realpath "$(dirname "$0")/..")"
+ cd "$base_dir"
  local ver_maj ver_min
  source tools/util.sh
  source tools/version
