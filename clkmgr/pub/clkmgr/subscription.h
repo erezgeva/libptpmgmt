@@ -25,7 +25,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class ClockSubscriptionBase
 {
   public:
-    ClockSubscriptionBase() noexcept;
+    ClockSubscriptionBase() = default;
 
     /**
      * Set the event mask
@@ -53,8 +53,8 @@ class ClockSubscriptionBase
     uint32_t getClockOffsetThreshold() const;
 
   private:
-    uint32_t clockOffsetThreshold;
-    uint32_t eventMask;
+    uint32_t clockOffsetThreshold = 0;
+    uint32_t eventMask = 0;
 };
 
 /**
@@ -79,7 +79,7 @@ class PTPClockSubscription : public ClockSubscriptionBase
     uint32_t getCompositeEventMask() const;
 
   private:
-    uint32_t m_composite_event_mask;
+    uint32_t m_composite_event_mask = 0;
 };
 
 /**

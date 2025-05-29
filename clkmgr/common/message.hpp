@@ -67,7 +67,7 @@ class Message
     // Create new message from received buffer and parse it
     static Message *parseBuffer(Listener &rxContext);
     // Register a message class with its ID
-    static void registerMessageType(msgId_t id, AllocMessage_t allocFunc) {
+    static void registerMessageType(msgId_t id, const AllocMessage_t &allocFunc) {
         allocMessageMap[id] = allocFunc;
     }
 

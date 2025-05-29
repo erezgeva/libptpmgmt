@@ -46,8 +46,8 @@ static inline bool existClient(sessionId_t sessionId)
 
 sessionId_t Client::CreateClientSession(const string &id)
 {
-    for(; sessionMap.count(nextSession) > 0 ||
-        nextSession == InvalidSessionId; nextSession++);
+    while(sessionMap.count(nextSession) > 0)
+        nextSession = (nextSession + 1) & (InvalidSessionId >> 1);
     Client *client = new Client;
     if(client == nullptr)
         return InvalidSessionId;

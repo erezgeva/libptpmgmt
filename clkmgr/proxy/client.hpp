@@ -22,7 +22,7 @@ __CLKMGR_NAMESPACE_BEGIN
 class Client
 {
   private:
-    sessionId_t m_sessionId;
+    sessionId_t m_sessionId = InvalidSessionId;
     std::unique_ptr<Transmitter> m_transmitContext;
     static sessionId_t CreateClientSession(const std::string &id);
 
