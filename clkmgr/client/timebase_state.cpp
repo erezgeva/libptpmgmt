@@ -311,7 +311,7 @@ bool TimeBaseStates::subscribe(size_t timeBaseIndex,
     unique_ptr<Message> subscribeMsg(cmsg);
     cmsg->set_timeBaseIndex(timeBaseIndex);
     cmsg->set_sessionId(ClientState::get_sessionId());
-    ClientState::sendMessage(cmsg);
+    ClientState::sendMessage(*cmsg);
     // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon
     auto endTime = system_clock::now() + seconds(DEFAULT_SUBSCRIBE_TIME_OUT);
     unique_lock<rtpi::mutex> lock(subscribe_mutex);

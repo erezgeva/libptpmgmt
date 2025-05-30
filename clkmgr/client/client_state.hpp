@@ -33,7 +33,7 @@ class ClientState
 
   public:
     static bool init();
-    static bool sendMessage(Message *msg);
+    static bool sendMessage(Message &msg);
     static Transmitter *getTransmitter();
     static bool connect(uint32_t timeOut, timespec *lastConnectTime = nullptr);
     static bool connectReply(sessionId_t sessionId);
