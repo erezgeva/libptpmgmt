@@ -9,10 +9,6 @@
  *
  */
 
-#ifdef HAVE_LIBCHRONY
-#include "proxy/connect_chrony.hpp"
-#endif
-#include "proxy/connect_ptp4l.hpp"
 #include "proxy/config_parser.hpp"
 #include "proxy/client.hpp"
 #include "common/termin.hpp"
@@ -29,19 +25,17 @@ int main(int argc, char *argv[])
 {
     int level, verbose, syslog;
     bool startSyslog = false;
-    bool getJsonConfig = false;
     int opt;
     const char *file = nullptr;
+    JsonConfigParser &parser = JsonConfigParser::getInstance();
     while((opt = getopt(argc, argv, "f:l:v:s:h")) != -1) {
         switch(opt) {
             case 'f':
                 file = optarg;
-                if(file == nullptr ||
-                    !JsonConfigParser::getInstance().process_json(file)) {
+                if(file == nullptr || !parser.process_json(file)) {
                     fprintf(stderr, "Failed to process json file\n");
                     return EXIT_FAILURE;
                 }
-                getJsonConfig = true;
                 break;
             case 'l':
                 level = atoi(optarg);
@@ -95,8 +89,8 @@ int main(int argc, char *argv[])
                 return EXIT_FAILURE;
         }
     }
-    if(!getJsonConfig) {
-        PrintError("No configuration file provided");
+    if(parser.size() == 0) {
+        PrintError("Configuration file is missing or empty");
         return EXIT_FAILURE;
     }
     if(startSyslog)
@@ -106,10 +100,6 @@ int main(int argc, char *argv[])
         PrintError("Proxy client init failed");
         return EXIT_FAILURE;
     }
-    ConnectPtp4l::connect_ptp4l();
-    #ifdef HAVE_LIBCHRONY
-    ConnectChrony::connect_chrony();
-    #endif
     WaitForStopSignal();
     PrintDebug("Got stop signal");
     int ret = End::stopAll() ? EXIT_SUCCESS : EXIT_FAILURE;

@@ -133,6 +133,10 @@ bool Client::init()
         return false;
     }
     PrintDebug("Proxy listener queue opened");
+    ConnectPtp4l::connect_ptp4l();
+    #ifdef HAVE_LIBCHRONY
+    ConnectChrony::connect_chrony();
+    #endif
     return true;
 }
 
