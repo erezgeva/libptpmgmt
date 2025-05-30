@@ -11,7 +11,7 @@
 
 #include "proxy/connect_ptp4l.hpp"
 #include "proxy/config_parser.hpp"
-#include "proxy/message.hpp"
+#include "proxy/client.hpp"
 #include "common/termin.hpp"
 #include "common/ptp_event.hpp"
 #include "common/print.hpp"
@@ -171,10 +171,10 @@ void ptpSet::notify_client()
     PrintDebug("[clkmgr]::notify_client");
     vector<sessionId_t> sessionIdToRemove;
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    ProxyMessage::notify_clients(timeBaseIndex, subscribedClients,
+    Client::NotifyClients(timeBaseIndex, subscribedClients,
         sessionIdToRemove);
     local.unlock(); // Explicitly unlock the mutex
-    ProxyMessage::remove_clients(sessionIdToRemove);
+    Client::RemoveClients(sessionIdToRemove);
 }
 
 callback_define(TIME_STATUS_NP)

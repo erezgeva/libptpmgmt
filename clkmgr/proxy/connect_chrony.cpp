@@ -11,7 +11,7 @@
 
 #include "proxy/connect_chrony.hpp"
 #include "proxy/config_parser.hpp"
-#include "proxy/message.hpp"
+#include "proxy/client.hpp"
 #include "common/termin.hpp"
 #include "common/ptp_event.hpp"
 #include "common/print.hpp"
@@ -111,12 +111,12 @@ void ChronyThreadSet::notify_client()
     PrintDebug("[clkmgr]::notify_client");
     vector<sessionId_t> sessionIdToRemove;
     unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    ProxyMessage::notify_clients(timeBaseIndex, subscribedClients,
+    Client::NotifyClients(timeBaseIndex, subscribedClients,
         sessionIdToRemove);
     local.unlock(); // Explicitly unlock the mutex
     if(stopThread)
         return;
-    ProxyMessage::remove_clients(sessionIdToRemove);
+    Client::RemoveClients(sessionIdToRemove);
 }
 
 chrony_err ChronyThreadSet::process_chronyd_data()

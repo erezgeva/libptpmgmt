@@ -13,7 +13,6 @@
 #ifndef PROXY_SUBSCRIBE_MSG_HPP
 #define PROXY_SUBSCRIBE_MSG_HPP
 
-#include "proxy/message.hpp"
 #include "common/subscribe_msg.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
