@@ -143,6 +143,8 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
     int record_index = 0;
     if(stopThread)
         return CHRONY_OK;
+    if(session == nullptr)
+        return CHRONY_INVALID_ARGUMENT;
     chrony_err r = chrony_request_record(session, "sources", record_index);
     if(r != CHRONY_OK)
         return r;
