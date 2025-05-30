@@ -46,8 +46,10 @@ static inline bool existClient(sessionId_t sessionId)
 
 sessionId_t Client::CreateClientSession(const string &id)
 {
-    while(sessionMap.count(nextSession) > 0)
-        nextSession = (nextSession + 1) & (InvalidSessionId >> 1);
+    while(sessionMap.count(nextSession) > 0) {
+        ++nextSession;
+        nextSession &= ValidMaskSessionId;
+    }
     Client *client = new Client;
     if(client == nullptr)
         return InvalidSessionId;
@@ -56,10 +58,13 @@ sessionId_t Client::CreateClientSession(const string &id)
         delete client;
         return InvalidSessionId;
     }
-    client->m_sessionId = nextSession;
+    sessionId_t cur = nextSession;
+    client->m_sessionId = cur;
     client->m_transmitContext.reset(tx);
-    sessionMap[nextSession].reset(client);
-    return nextSession++;
+    sessionMap[cur].reset(client);
+    ++nextSession;
+    nextSession &= ValidMaskSessionId;
+    return cur;
 }
 
 sessionId_t Client::connect(sessionId_t sessionId, const string &id)
