@@ -13,7 +13,6 @@
 #ifndef PROXY_NOTIFICATION_MSG_HPP
 #define PROXY_NOTIFICATION_MSG_HPP
 
-#include "proxy/message.hpp"
 #include "common/notification_msg.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN

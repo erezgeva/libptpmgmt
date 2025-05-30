@@ -9,15 +9,13 @@
  *
  */
 
-#include "common/termin.hpp"
-
 #ifdef HAVE_LIBCHRONY
 #include "proxy/connect_chrony.hpp"
 #endif
-#include "proxy/config_parser.hpp"
 #include "proxy/connect_ptp4l.hpp"
-#include "proxy/msgq_tport.hpp"
-#include "proxy/message.hpp"
+#include "proxy/config_parser.hpp"
+#include "proxy/client.hpp"
+#include "common/termin.hpp"
 #include "common/sighandler.hpp"
 #include "common/print.hpp"
 
@@ -104,12 +102,8 @@ int main(int argc, char *argv[])
     if(startSyslog)
         PrintStartLog(argv[0]);
     BlockStopSignal();
-    if(!proxyQueueInit()) {
-        PrintError("Proxy queue init failed");
-        return EXIT_FAILURE;
-    }
-    if(!ProxyMessage::Register()) {
-        PrintError("Message init failed");
+    if(!Client::init()) {
+        PrintError("Proxy client init failed");
         return EXIT_FAILURE;
     }
     ConnectPtp4l::connect_ptp4l();

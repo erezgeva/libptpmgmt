@@ -22,14 +22,6 @@ using namespace std;
 
 extern map<int, ptp_event> ptp4lEvents;
 
-bool ProxySubscribeMessage::makeBufferTail(Buffer &buff) const
-{
-    PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
-    ptp_event event = ptp4lEvents[timeBaseIndex];
-    // Add event data into the message
-    return WRITE_TX(FIELD, event, buff);
-}
-
 bool ProxySubscribeMessage::parseBufferTail()
 {
     PrintDebug("[ProxySubscribeMessage]::parseBufferTail");
@@ -37,4 +29,12 @@ bool ProxySubscribeMessage::parseBufferTail()
         return false;
     set_msgAck(ACK_SUCCESS);
     return true;
+}
+
+bool ProxySubscribeMessage::makeBufferTail(Buffer &buff) const
+{
+    PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
+    ptp_event event = ptp4lEvents[timeBaseIndex];
+    // Add event data into the message
+    return WRITE_TX(FIELD, event, buff);
 }
