@@ -183,17 +183,28 @@ bool Listener::MqListenerWork()
     setLen(len); // Set the length in the buffer for parsing
     PrintDebug("Receive complete");
     DumpOctetArray("Received Message", data(), size());
-    Message *msg = Message::parseBuffer(*this);
+    Buffer &rxBuff = getBuff();
+    Message *msg = Message::parseBuffer(rxBuff);
     if(msg == nullptr)
         return false;
     PrintDebug("Received message " + msg->toString());
     // Echo the message back with ACK disposition
-    return msg->get_msgAck() != ACK_NONE ? msg->transmitMessage() : true;
+    if(msg->get_msgAck() != ACK_NONE) {
+        // We use the listener buffer to make the reply
+        // As we are in the listener thread context
+        if(msg->makeBuffer(rxBuff)) {
+            Transmitter *ptxContext =
+                Transmitter::getTransmitterInstance(msg->get_sessionId());
+            return ptxContext != nullptr && ptxContext->sendBuffer(rxBuff);
+        }
+        return false;
+    }
+    return true;
 }
 
-bool Transmitter::sendBuffer()
+bool Transmitter::sendBuffer(Buffer &buf)
 {
-    if(!m_transmitterQueue.send(m_buffer, getOffset())) {
+    if(!m_transmitterQueue.send(buf.data(), buf.getOffset())) {
         PrintErrorCode("Failed to send buffer");
         return false;
     }

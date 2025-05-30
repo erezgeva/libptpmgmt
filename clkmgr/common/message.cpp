@@ -20,7 +20,7 @@ using namespace std;
 
 DECLARE_STATIC(Message::allocMessageMap);
 
-Message::Message() : rxContext(Listener::getSingleListenerInstance())
+Message::Message() : rxBuf(Listener::getSingleListenerInstance().getBuff())
 {
 }
 
@@ -65,23 +65,16 @@ bool Message::makeBuffer(Buffer &buff) const
     return true;
 }
 
-bool Message::transmitMessage()
-{
-    Transmitter *ptxContext = Transmitter::getTransmitterInstance(m_sessionId);
-    return ptxContext != nullptr && makeBuffer(*ptxContext) &&
-        ptxContext->sendBuffer();
-}
-
 bool Message::parseBuffer()
 {
-    return PARSE_RX(FIELD, m_msgAck, rxContext) &&
+    return PARSE_RX(FIELD, m_msgAck, rxBuf) &&
         parseBufferComm() && parseBufferTail();
 }
 
-Message *Message::parseBuffer(Listener &rxContext)
+Message *Message::parseBuffer(Buffer &rxBuf)
 {
     msgId_t msgId;
-    if(!PARSE_RX(FIELD, msgId, rxContext))
+    if(!PARSE_RX(FIELD, msgId, rxBuf))
         return nullptr;
     if(allocMessageMap.count(msgId) == 0) {
         PrintError("Unknown message type " + to_string(msgId));

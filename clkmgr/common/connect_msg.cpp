@@ -35,8 +35,8 @@ bool ConnectMessage::parseBufferComm()
 {
     sessionId_t sessionId;
     clientIdEncaps eClientId;
-    if(!PARSE_RX(FIELD, sessionId, rxContext) ||
-        !PARSE_RX(FIELD, eClientId, rxContext))
+    if(!PARSE_RX(FIELD, sessionId, rxBuf) ||
+        !PARSE_RX(FIELD, eClientId, rxBuf))
         return false;
     clientId = string(eClientId.ClientId, CLIENTID_LENGTH);
     set_sessionId(sessionId);

@@ -32,12 +32,12 @@ class Buffer
   protected:
     uint8_t m_buffer[MAX_BUFFER_LENGTH];
 
-    Buffer() = default;
-    virtual ~Buffer() = default;
     // Set length of received message and reset the offset for parsing
     void setLen(size_t rcvSize) { m_rcvSize = rcvSize; m_offset = 0; }
 
   public:
+    Buffer() = default;
+    virtual ~Buffer() = default;
     static size_t size() { return MAX_BUFFER_LENGTH; }
 
     // Data pointer for read only!
@@ -117,12 +117,13 @@ class Listener : public Buffer, public End
     bool init(const std::string &name, size_t maxMsg);
     void dispatchLoop();
     bool MqListenerWork();
+    Buffer &getBuff() { return *this; }
     std::thread &getThread() { return m_thread; }
     std::string getQueueName() const { return m_listenerQueue.str(); }
     const std::string &getClientId() const { return m_listenerQueue.getClientId(); }
 };
 
-class Transmitter : public Buffer
+class Transmitter
 {
   private:
     Queue m_transmitterQueue;
@@ -131,7 +132,7 @@ class Transmitter : public Buffer
     Transmitter() = default;
     virtual ~Transmitter() = default;
     bool finalize();
-    bool sendBuffer();
+    bool sendBuffer(Buffer &buf);
     bool open(const std::string &name, bool block = true);
     std::string getQueueName() const { return m_transmitterQueue.str(); }
     static Transmitter *getTransmitterInstance(sessionId_t sessionId);

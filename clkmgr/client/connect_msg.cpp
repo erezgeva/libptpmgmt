@@ -39,11 +39,11 @@ bool ClientConnectMessage::parseBufferTail()
 {
     PrintDebug("[ClientConnectMessage]::parseBufferTail");
     size_t mapSize = 0;
-    if(!PARSE_RX(FIELD, mapSize, rxContext))
+    if(!PARSE_RX(FIELD, mapSize, rxBuf))
         return false;
     for(size_t i = 0; i < mapSize; ++i) {
         TimeBaseCfg newCfg = {};
-        if(!PARSE_RX(FIELD, newCfg, rxContext))
+        if(!PARSE_RX(FIELD, newCfg, rxBuf))
             return false;
         TimeBaseConfigurations::addTimeBaseCfg(newCfg);
     }

@@ -20,7 +20,7 @@ using namespace std;
 
 bool NotificationMessage::parseBufferComm()
 {
-    return PARSE_RX(FIELD, timeBaseIndex, rxContext);
+    return PARSE_RX(FIELD, timeBaseIndex, rxBuf);
 }
 
 bool NotificationMessage::makeBufferComm(Buffer &buff) const
