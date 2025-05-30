@@ -13,7 +13,6 @@
 #ifndef CLIENT_NOTIFICATION_MSG_HPP
 #define CLIENT_NOTIFICATION_MSG_HPP
 
-#include "client/message.hpp"
 #include "common/notification_msg.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN

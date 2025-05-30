@@ -10,11 +10,8 @@
  */
 
 #include "pub/clockmanager.h"
-#include "pub/clkmgr/timebase_configs.h"
-#include "client/msgq_tport.hpp"
-#include "client/message.hpp"
+#include "client/client_state.hpp"
 #include "client/timebase_state.hpp"
-#include "common/util.hpp"
 #include "common/print.hpp"
 
 #include <chrono>
@@ -41,17 +38,13 @@ bool ClockManager::connect()
 {
     if(!doInit.load()) {
         // Send a connect message to Proxy Daemon
-        if(!clientMessageRegister()) {
-            PrintDebug("[CONNECT] Failed to initialize Client message.");
-            return false;
-        }
-        if(!ClientQueue::init()) {
+        if(!ClientState::init()) {
             PrintDebug("[CONNECT] Failed to initialize Client queue.");
             return false;
         }
         doInit.store(true);
     }
-    return ClientState::getSingleInstance().connect(DEFAULT_CONNECT_TIME_OUT);
+    return ClientState::connect(DEFAULT_CONNECT_TIME_OUT);
 }
 
 const TimeBaseConfigurations &ClockManager::getTimebaseCfgs()
@@ -127,8 +120,7 @@ static inline bool check_proxy_liveness(size_t timeBaseIndex)
     if(timeout < DEFAULT_LIVENESS_TIMEOUT_IN_MS)
         return true;
 send_connect:
-    return ClientState::getSingleInstance().
-        connect(DEFAULT_LIVENESS_TIMEOUT_IN_MS, &lastConnectTime);
+    return ClientState::connect(DEFAULT_LIVENESS_TIMEOUT_IN_MS, &lastConnectTime);
 }
 
 int ClockManager::statusWaitByName(int timeout, const string &timeBaseName,
@@ -146,8 +138,7 @@ int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
     ClockSyncData &clockSyncData)
 {
     // Check whether connection between Proxy and Client is established or not
-    ClientState &implClientState = ClientState::getSingleInstance();
-    if(!implClientState.get_connected()) {
+    if(!ClientState::get_connected()) {
         PrintDebug("[WAIT] Client is not connected to Proxy.");
         return false;
     }

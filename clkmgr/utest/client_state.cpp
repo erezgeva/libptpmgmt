@@ -14,33 +14,29 @@
 using namespace clkmgr;
 
 // Tests subscribed status flag
-// ClientState &getSingleInstance()
-// bool get_connected() const
+// bool get_connected()
 TEST(ClientStateTest, connected)
 {
-    const ClientState &cstate = ClientState::getSingleInstance();
-    EXPECT_FALSE(cstate.get_connected());
+    EXPECT_FALSE(ClientState::get_connected());
 }
 
 // Tests client ID
-// ClientId get_clientID() const
-// void set_clientID(const std::string  &cID)
+// ClientId get_clientID()
 TEST(ClientStateTest, clientID)
 {
-    ClientState &cstate = ClientState::getSingleInstance();
-    EXPECT_TRUE(cstate.get_clientID().empty());
-    cstate.set_clientID("my new ID");
-    EXPECT_STREQ(cstate.get_clientID().c_str(), "my new ID");
+    EXPECT_TRUE(ClientState::get_clientID().empty());
 }
 
 // Tests session ID
-// sessionId_t get_sessionId() const
+// sessionId_t get_sessionId()
 TEST(ClientStateTest, sessionId)
 {
-    const ClientState &cstate = ClientState::getSingleInstance();
-    EXPECT_EQ(cstate.get_sessionId(), InvalidSessionId);
+    EXPECT_EQ(ClientState::get_sessionId(), InvalidSessionId);
 }
 
 // TODO
+// bool init()
+// bool sendMessage(Message *msg)
+// Transmitter *getTransmitter()
 // bool connect(uint32_t timeOut, timespec *lastConnectTime)
 // bool connectReply(sessionId_t sessionId)
