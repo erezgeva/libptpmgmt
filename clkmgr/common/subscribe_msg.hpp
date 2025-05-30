@@ -13,7 +13,6 @@
 #ifndef COMMON_SUBSCRIBE_MSG_HPP
 #define COMMON_SUBSCRIBE_MSG_HPP
 
-#include "pub/clkmgr/subscription.h"
 #include "common/message.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
@@ -21,7 +20,6 @@ __CLKMGR_NAMESPACE_BEGIN
 class SubscribeMessage : public Message
 {
   private:
-    ClockSubscriptionBase subscription;
     bool parseBufferComm() override final;
     bool makeBufferComm(Buffer &buff) const override final;
 
@@ -31,11 +29,6 @@ class SubscribeMessage : public Message
 
   public:
     msgId_t get_msgId() const override final { return SUBSCRIBE_MSG; }
-
-    // Seems the Clock manager subscription is left in the client
-    // TODO Why do we send it in the Subscribe Message?
-    const ClockSubscriptionBase &getSubscription() const { return subscription; }
-    // void setSubscription(const ClkMgrSubscription &newsub);
 
     std::string toString() const override;
 

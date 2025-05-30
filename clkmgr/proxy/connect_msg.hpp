@@ -20,8 +20,8 @@ __CLKMGR_NAMESPACE_BEGIN
 class ProxyConnectMessage : public ConnectMessage
 {
   private:
-    bool makeBufferTail(Buffer &buff) const override final;
     bool parseBufferTail() override final;
+    bool makeBufferTail(Buffer &buff) const override final;
 };
 
 __CLKMGR_NAMESPACE_END
