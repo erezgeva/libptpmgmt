@@ -11,9 +11,12 @@
 
 #include "client/client_state.hpp"
 #include "client/connect_msg.hpp"
-#include "client/msgq_tport.hpp"
+#include "client/notification_msg.hpp"
+#include "client/subscribe_msg.hpp"
+#include "common/termin.hpp"
 #include "common/print.hpp"
 
+#include <unistd.h>
 #include <rtpi/condition_variable.hpp>
 
 __CLKMGR_NAMESPACE_USE;
@@ -21,13 +24,35 @@ __CLKMGR_NAMESPACE_USE;
 using namespace std;
 using namespace std::chrono;
 
+DECLARE_STATIC(ClientState::m_clientID);
+DECLARE_STATIC(ClientState::m_sessionId, InvalidSessionId);
+DECLARE_STATIC(ClientState::m_connected, false);
+
+static Transmitter txContext;
 static rtpi::mutex connect_cv_mtx;
 static rtpi::condition_variable connect_cv;
 
-ClientState &ClientState::getSingleInstance()
+bool ClientState::init()
 {
-    static ClientState instance;
-    return instance;
+    PrintDebug("Initializing Client Message");
+    reg_message_type<ClientConnectMessage, ClientSubscribeMessage,
+                     ClientNotificationMessage>();
+    Listener &rxContext = Listener::getSingleListenerInstance();
+    /* Two outstanding messages per client */
+    PrintDebug("Initializing Client Queue ...");
+    string mqListenerName(mqProxyName);
+    mqListenerName += "." + to_string(getpid());
+    if(!rxContext.init(mqListenerName, 2)) {
+        PrintError("Failed to open listener queue");
+        return false;
+    }
+    if(!txContext.open(mqProxyName)) {
+        PrintErrorCode("Failed to open transmitter queue: " + mqProxyName);
+        return false;
+    }
+    PrintDebug("Client Message queue opened");
+    m_clientID = rxContext.getClientId();
+    return true;
 }
 
 bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
@@ -38,10 +63,10 @@ bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
         return false;
     }
     unique_ptr<Message> connectMsg(cmsg);
-    set_connected(false);
-    cmsg->setClientId(clientID);
+    m_connected = false;
+    cmsg->setClientId(m_clientID);
     cmsg->set_sessionId(get_sessionId());
-    ClientQueue::sendMessage(cmsg);
+    sendMessage(cmsg);
     auto endTime = system_clock::now() + milliseconds(timeOut);
     unique_lock<rtpi::mutex> lock(connect_cv_mtx);
     while(!get_connected()) {
@@ -68,8 +93,31 @@ bool ClientState::connectReply(sessionId_t sessionId)
     PrintDebug("Connected with session ID: " + to_string(sessionId));
     PrintDebug("Current state.sessionId: " + to_string(get_sessionId()));
     unique_lock<rtpi::mutex> lock(connect_cv_mtx);
-    set_connected(true);
-    set_sessionId(sessionId);
+    m_connected = true;
+    m_sessionId = sessionId;
     connect_cv.notify_one(lock);
     return true;
 }
+
+bool ClientState::sendMessage(Message *msg)
+{
+    if(!msg->transmitMessage())
+        return false;
+    PrintDebug("[ClientState]::sendMessage successful");
+    return true;
+}
+
+Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
+{
+    return &txContext;
+}
+
+class ClientStateEnd : public End
+{
+    bool stop() override final { return true; }
+    bool finalize() override final {
+        PrintDebug("Transmitter Queue = " + txContext.getQueueName());
+        return txContext.finalize();
+    }
+};
+static ClientStateEnd endClient;

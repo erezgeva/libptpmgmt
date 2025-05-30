@@ -11,6 +11,7 @@
 
 #include "pub/clkmgr/timebase_configs.h"
 #include "client/connect_msg.hpp"
+#include "client/client_state.hpp"
 #include "common/timebase.hpp"
 #include "common/serialize.hpp"
 #include "common/print.hpp"
@@ -46,7 +47,7 @@ bool ClientConnectMessage::parseBufferTail()
             return false;
         TimeBaseConfigurations::addTimeBaseCfg(newCfg);
     }
-    if(!ClientState::getSingleInstance().connectReply(get_sessionId()))
+    if(!ClientState::connectReply(get_sessionId()))
         return false;
     set_msgAck(ACK_NONE);
     return true;

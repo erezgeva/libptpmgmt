@@ -12,13 +12,14 @@
 #ifndef CLIENT_CLIENT_STATE_HPP
 #define CLIENT_CLIENT_STATE_HPP
 
-#include "common/util.hpp"
+#include "common/msgq_tport.hpp"
 
-#include <ctime>
 #include <string>
 #include <atomic>
 
 __CLKMGR_NAMESPACE_BEGIN
+
+class Message;
 
 /**
  * Class to keep the current state of client-runtime
@@ -26,24 +27,20 @@ __CLKMGR_NAMESPACE_BEGIN
 class ClientState
 {
   private:
-    std::atomic_bool connected{false}; /**< Connection status */
-    sessionId_t m_sessionId = InvalidSessionId; /**< Session ID */
-    std::string clientID; /**< Client ID */
-
-    ClientState() = default;
-    void set_connected(bool state) { connected = state; }
-    void set_sessionId(sessionId_t sessionId) { m_sessionId = sessionId; }
+    static std::string m_clientID; /**< Client ID */
+    static sessionId_t m_sessionId;
+    static std::atomic_bool m_connected; /**< Connection status */
 
   public:
-    static ClientState &getSingleInstance();
-    bool connect(uint32_t timeOut, timespec *lastConnectTime = nullptr);
-    bool connectReply(sessionId_t sessionId);
+    static bool init();
+    static bool sendMessage(Message *msg);
+    static Transmitter *getTransmitter();
+    static bool connect(uint32_t timeOut, timespec *lastConnectTime = nullptr);
+    static bool connectReply(sessionId_t sessionId);
 
-    bool get_connected() const { return connected; }
-    const std::string &get_clientID() const { return clientID; }
-    sessionId_t get_sessionId() const { return m_sessionId; }
-    // Set by ClientQueue::init()
-    void set_clientID(const std::string  &cID) { clientID = cID; }
+    static const std::string &get_clientID() { return m_clientID; }
+    static sessionId_t get_sessionId() { return m_sessionId; }
+    static bool get_connected() { return m_connected; }
 };
 
 __CLKMGR_NAMESPACE_END

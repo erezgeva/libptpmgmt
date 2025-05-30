@@ -9,8 +9,8 @@
  *
  */
 
-#include "client/msgq_tport.hpp"
 #include "client/subscribe_msg.hpp"
+#include "client/client_state.hpp"
 #include "client/timebase_state.hpp"
 #include "common/print.hpp"
 
@@ -283,9 +283,8 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
 bool TimeBaseStates::subscribe(size_t timeBaseIndex,
     const ClockSyncSubscription &newSub)
 {
-    ClientState &implClientState = ClientState::getSingleInstance();
     // Check whether connection between Proxy and Client is established or not
-    if(!implClientState.get_connected()) {
+    if(!ClientState::get_connected()) {
         PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
         return false;
     }
@@ -311,8 +310,8 @@ bool TimeBaseStates::subscribe(size_t timeBaseIndex,
     }
     unique_ptr<Message> subscribeMsg(cmsg);
     cmsg->set_timeBaseIndex(timeBaseIndex);
-    cmsg->set_sessionId(implClientState.get_sessionId());
-    ClientQueue::sendMessage(cmsg);
+    cmsg->set_sessionId(ClientState::get_sessionId());
+    ClientState::sendMessage(cmsg);
     // Wait DEFAULT_SUBSCRIBE_TIME_OUT seconds for response from Proxy Daemon
     auto endTime = system_clock::now() + seconds(DEFAULT_SUBSCRIBE_TIME_OUT);
     unique_lock<rtpi::mutex> lock(subscribe_mutex);
