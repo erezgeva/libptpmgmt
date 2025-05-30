@@ -22,6 +22,8 @@ __CLKMGR_NAMESPACE_BEGIN
 
 static const size_t MAX_CLIENT_COUNT = 8;
 
+class ClientRemoveAll;
+
 class Client
 {
   private:
@@ -29,6 +31,11 @@ class Client
     std::unique_ptr<Transmitter> m_transmitContext;
     static sessionId_t CreateClientSession(const std::string &id);
     static void RemoveClient(sessionId_t sessionId);
+    static Client *getClient(sessionId_t sessionId);
+
+  protected:
+    Transmitter *getTxContext() { return m_transmitContext.get(); }
+    friend class ClientRemoveAll;
 
   public:
     static bool init();
@@ -38,10 +45,7 @@ class Client
     static void NotifyClients(size_t timeBaseIndex,
         std::vector<sessionId_t> &subscribedClients,
         std::vector<sessionId_t> &sessionIdToRemove);
-    static Client *getClient(sessionId_t sessionId);
     static Transmitter *getTxContext(sessionId_t sessionId);
-    sessionId_t getSessionId() const { return m_sessionId; }
-    Transmitter *getTxContext() { return m_transmitContext.get(); }
 };
 
 __CLKMGR_NAMESPACE_END

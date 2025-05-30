@@ -20,11 +20,15 @@
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
+#include <rtpi/mutex.hpp>
+
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+static thread_local Buffer notifyBuff;
 static sessionId_t nextSession = 0;
+static rtpi::mutex sessionMapLock;
 static map<sessionId_t, unique_ptr<Client>> sessionMap;
 
 static inline Transmitter *CreateTransmitterContext(const string &clientId)
@@ -72,6 +76,7 @@ sessionId_t Client::CreateClientSession(const string &id)
 
 sessionId_t Client::connect(sessionId_t sessionId, const string &id)
 {
+    unique_lock<rtpi::mutex> local(sessionMapLock);
     if(sessionId != InvalidSessionId) {
         if(existClient(sessionId))
             return sessionId;
@@ -88,9 +93,14 @@ sessionId_t Client::connect(sessionId_t sessionId, const string &id)
 
 bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
 {
-    if(!existClient(sessionId)) {
-        PrintError("Session ID " + to_string(sessionId) + " is not registered");
+    if(sessionId == InvalidSessionId)
         return false;
+    {
+        unique_lock<rtpi::mutex> local(sessionMapLock);
+        if(!existClient(sessionId)) {
+            PrintError("Session ID " + to_string(sessionId) + " is not registered");
+            return false;
+        }
     }
     ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, sessionId);
     #ifdef HAVE_LIBCHRONY
@@ -103,17 +113,23 @@ bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
 
 void Client::RemoveClient(sessionId_t sessionId)
 {
-    Transmitter *tx = getTxContext(sessionId);
-    if(tx != nullptr) {
+    unique_lock<rtpi::mutex> local(sessionMapLock);
+    Client *client = getClient(sessionId);
+    if(client == nullptr)
+        return;
+    Transmitter *tx = client->getTxContext();
+    if(tx != nullptr)
         tx->finalize();
-        sessionMap.erase(sessionId);
-    }
+    sessionMap.erase(sessionId);
 }
 
 Transmitter *Client::getTxContext(sessionId_t sessionId)
 {
+    if(sessionId == InvalidSessionId)
+        return nullptr;
+    unique_lock<rtpi::mutex> local(sessionMapLock);
     Client *client = getClient(sessionId);
-    return client != nullptr ?  client->getTxContext() : nullptr;
+    return client != nullptr ? client->getTxContext() : nullptr;
 }
 
 Client *Client::getClient(sessionId_t sessionId)
@@ -154,11 +170,15 @@ void Client::NotifyClients(size_t timeBaseIndex,
     PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
     // Send data for multiple sessions
     pmsg->setTimeBaseIndex(timeBaseIndex);
+    if(!pmsg->makeBuffer(notifyBuff)) {
+        PrintError("Failed to create message");
+        return;
+    }
     for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
         const sessionId_t sessionId = *it;
         PrintDebug("Get client session ID: " + to_string(sessionId));
-        pmsg->set_sessionId(sessionId);
-        if(!pmsg->transmitMessage()) {
+        Transmitter *ptxContext = getTxContext(sessionId);
+        if(ptxContext == nullptr || !ptxContext->sendBuffer(notifyBuff)) {
             it = subscribedClients.erase(it);
             /* Add sessionId into the list to remove */
             sessionIdToRemove.push_back(sessionId);
@@ -183,6 +203,8 @@ Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
     return Client::getTxContext(sessionId);
 }
 
+__CLKMGR_NAMESPACE_BEGIN
+
 class ClientRemoveAll : public End
 {
   public:
@@ -190,6 +212,7 @@ class ClientRemoveAll : public End
     // Here is our opportunity :-)
     bool stop() override final { return true; }
     bool finalize() override final {
+        unique_lock<rtpi::mutex> local(sessionMapLock);
         for(auto &it : sessionMap)
             it.second.get()->getTxContext()->finalize();
         sessionMap.clear();
@@ -197,3 +220,5 @@ class ClientRemoveAll : public End
     }
 };
 static ClientRemoveAll endClients;
+
+__CLKMGR_NAMESPACE_END

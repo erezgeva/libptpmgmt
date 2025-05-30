@@ -42,13 +42,11 @@ class Message
     msgAck_t m_msgAck = ACK_NONE;
     sessionId_t m_sessionId = InvalidSessionId;
 
-    // Create buffer for transmission
-    bool makeBuffer(Buffer &buff) const;
     // Parse buffer and fill the message
     bool parseBuffer();
 
   protected:
-    Listener &rxContext; // reference to the single listener
+    Buffer &rxBuf; // reference to the single listener
 
     Message();
     // Create buffer for transmission - common message callback
@@ -65,7 +63,7 @@ class Message
         const char *function);
 
     // Create new message from received buffer and parse it
-    static Message *parseBuffer(Listener &rxContext);
+    static Message *parseBuffer(Buffer &rxBuf);
     // Register a message class with its ID
     static void registerMessageType(msgId_t id, const AllocMessage_t &allocFunc) {
         allocMessageMap[id] = allocFunc;
@@ -75,8 +73,8 @@ class Message
     virtual std::string toString() const;
     virtual msgId_t get_msgId() const = 0;
 
-    // Buile the buffer and send it
-    bool transmitMessage();
+    // Create buffer for transmission
+    bool makeBuffer(Buffer &buff) const;
 
     msgAck_t get_msgAck() const { return m_msgAck; }
     void set_msgAck(msgAck_t msgAck) { m_msgAck = msgAck; }

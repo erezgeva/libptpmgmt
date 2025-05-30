@@ -23,7 +23,7 @@ bool ClientNotificationMessage::parseBufferTail()
 {
     PrintDebug("[ClientNotificationMessage]::parseBufferTail");
     ptp_event data = {};
-    if(!PARSE_RX(FIELD, data, rxContext))
+    if(!PARSE_RX(FIELD, data, rxBuf))
         return false;
     TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
     return true;

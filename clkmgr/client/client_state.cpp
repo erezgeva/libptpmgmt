@@ -28,6 +28,7 @@ DECLARE_STATIC(ClientState::m_clientID);
 DECLARE_STATIC(ClientState::m_sessionId, InvalidSessionId);
 DECLARE_STATIC(ClientState::m_connected, false);
 
+static thread_local Buffer txBuff;
 static Transmitter txContext;
 static rtpi::mutex connect_cv_mtx;
 static rtpi::condition_variable connect_cv;
@@ -101,7 +102,7 @@ bool ClientState::connectReply(sessionId_t sessionId)
 
 bool ClientState::sendMessage(Message *msg)
 {
-    if(!msg->transmitMessage())
+    if(!msg->makeBuffer(txBuff) || !txContext.sendBuffer(txBuff))
         return false;
     PrintDebug("[ClientState]::sendMessage successful");
     return true;
