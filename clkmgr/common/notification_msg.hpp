@@ -22,8 +22,8 @@ class NotificationMessage : public Message
   protected:
     NotificationMessage() = default;
     size_t timeBaseIndex = 0;
-    bool makeBufferComm(Buffer &buff) const override final;
     bool parseBufferComm() override final;
+    bool makeBufferComm(Buffer &buff) const override final;
 
   public:
     msgId_t get_msgId() const override final { return NOTIFY_MESSAGE; }

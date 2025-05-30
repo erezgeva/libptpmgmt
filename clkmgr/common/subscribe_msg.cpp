@@ -31,7 +31,6 @@ bool SubscribeMessage::parseBufferComm()
     PrintDebug("[SubscribeMessage]::parseBufferComm");
     sessionId_t sessionId;
     if(!PARSE_RX(FIELD, sessionId, rxContext) ||
-        !PARSE_RX(FIELD, subscription, rxContext) ||
         !PARSE_RX(FIELD, timeBaseIndex, rxContext))
         return false;
     set_sessionId(sessionId);
@@ -43,6 +42,5 @@ bool SubscribeMessage::makeBufferComm(Buffer &buff) const
     PrintDebug("[SubscribeMessage]::makeBufferComm - sessionId : " +
         to_string(get_sessionId()));
     return WRITE_TX(FIELD, get_sessionId(), buff) &&
-        WRITE_TX(FIELD, subscription, buff) &&
         WRITE_TX(FIELD, timeBaseIndex, buff);
 }
