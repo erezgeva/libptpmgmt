@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Common client infomation implementation
+ * @brief Proxy client infomation implementation
  *
  * @author Christopher Hall <christopher.s.hall@@intel.com>
  * @copyright © 2024 Intel Corporation.

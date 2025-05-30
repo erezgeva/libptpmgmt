@@ -26,6 +26,7 @@ typedef uint16_t sessionId_t;
 
 /** Invalid session ID (default session ID) */
 const sessionId_t InvalidSessionId = UINT16_MAX;
+const sessionId_t ValidMaskSessionId = (UINT16_MAX >> 1);
 
 /** Number of nanoseconds in a millisecond */
 const int32_t NSEC_PER_MSEC = 1000000;
