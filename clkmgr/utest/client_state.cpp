@@ -36,7 +36,7 @@ TEST(ClientStateTest, sessionId)
 
 // TODO
 // bool init()
-// bool sendMessage(Message *msg)
+// bool sendMessage(Message &msg)
 // Transmitter *getTransmitter()
 // bool connect(uint32_t timeOut, timespec *lastConnectTime)
 // bool connectReply(sessionId_t sessionId)

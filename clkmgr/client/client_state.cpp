@@ -67,7 +67,7 @@ bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
     m_connected = false;
     cmsg->setClientId(m_clientID);
     cmsg->set_sessionId(get_sessionId());
-    sendMessage(cmsg);
+    sendMessage(*cmsg);
     auto endTime = system_clock::now() + milliseconds(timeOut);
     unique_lock<rtpi::mutex> lock(connect_cv_mtx);
     while(!get_connected()) {
@@ -100,9 +100,9 @@ bool ClientState::connectReply(sessionId_t sessionId)
     return true;
 }
 
-bool ClientState::sendMessage(Message *msg)
+bool ClientState::sendMessage(Message &msg)
 {
-    if(!msg->makeBuffer(txBuff) || !txContext.sendBuffer(txBuff))
+    if(!msg.makeBuffer(txBuff) || !txContext.sendBuffer(txBuff))
         return false;
     PrintDebug("[ClientState]::sendMessage successful");
     return true;

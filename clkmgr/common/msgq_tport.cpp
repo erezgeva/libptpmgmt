@@ -192,12 +192,11 @@ bool Listener::MqListenerWork()
     if(msg->get_msgAck() != ACK_NONE) {
         // We use the listener buffer to make the reply
         // As we are in the listener thread context
-        if(msg->makeBuffer(rxBuff)) {
-            Transmitter *ptxContext =
-                Transmitter::getTransmitterInstance(msg->get_sessionId());
-            return ptxContext != nullptr && ptxContext->sendBuffer(rxBuff);
-        }
-        return false;
+        if(!msg->makeBuffer(rxBuff))
+            return false;
+        Transmitter *ptxContext =
+            Transmitter::getTransmitterInstance(msg->get_sessionId());
+        return ptxContext != nullptr && ptxContext->sendBuffer(rxBuff);
     }
     return true;
 }
