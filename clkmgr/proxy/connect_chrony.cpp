@@ -24,7 +24,7 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-// default sleeping of half 10 microsecond, until we get the value from chrony
+// default sleeping of 10 microsecond, until we get the value from chrony
 static const uint32_t def_polling_interval = 10;
 
 class ChronyThreadSet
@@ -33,8 +33,7 @@ class ChronyThreadSet
     size_t timeBaseIndex;
     string udsAddrChrony;
     thread self;
-    ptp_event &ptp4lEvent;
-    rtpi::mutex &eventLock;
+    chronyEvent event;
     int chronyFd = -1;
     chrony_session *session = nullptr;
     // Internal methods
@@ -107,7 +106,8 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
     int field_index = chrony_get_field_index(session, "reference ID");
     if(stopThread)
         return CHRONY_OK;
-    uint32_t reference_id = chrony_get_field_uinteger(session, field_index);
+    event.chrony_reference_id =
+        chrony_get_field_uinteger(session, field_index);
     if(stopThread)
         return CHRONY_OK;
     field_index = chrony_get_field_index(session, "poll");
@@ -126,11 +126,9 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
     PrintDebug("CHRONY master_offset = " + to_string(second));
     if(stopThread)
         return CHRONY_OK;
-    unique_lock<rtpi::mutex> local(eventLock);
-    ptp4lEvent.chrony_reference_id = reference_id;
-    ptp4lEvent.polling_interval = polling_interval;
-    ptp4lEvent.chrony_offset = second;
-    local.unlock(); // Explicitly unlock the mutex
+    event.polling_interval = polling_interval;
+    event.chrony_offset = second;
+    event.copy();
     Client::NotifyClients(timeBaseIndex);
     return CHRONY_OK;
 }
@@ -144,14 +142,10 @@ void ChronyThreadSet::monitor_chronyd()
     while(!stopThread) {
         if(subscribe_to_chronyd() != CHRONY_OK) {
             close();
-            unique_lock<rtpi::mutex> local(eventLock);
-            ptp4lEvent.chrony_reference_id = 0;
-            ptp4lEvent.polling_interval = 0;
-            ptp4lEvent.chrony_offset = 0;
-            local.unlock(); // Explicitly unlock the mutex
-            polling_interval = def_polling_interval;
             if(stopThread)
                 break;
+            polling_interval = def_polling_interval;
+            event.clear();
             Client::NotifyClients(timeBaseIndex);
             PrintError("Failed to connect to Chrony at " + udsAddrChrony);
             // Reconnection loop
@@ -187,10 +181,8 @@ static void thread_start(ChronyThreadSet *me)
 }
 
 ChronyThreadSet::ChronyThreadSet(size_t l_timeBaseIndex,
-    const string &l_udsAddrChrony) :
-    timeBaseIndex(l_timeBaseIndex), udsAddrChrony(l_udsAddrChrony),
-    ptp4lEvent(Client::getPTPEvent(l_timeBaseIndex)),
-    eventLock(Client::getTimeBaseLock(l_timeBaseIndex))
+    const string &l_udsAddrChrony) : timeBaseIndex(l_timeBaseIndex),
+    udsAddrChrony(l_udsAddrChrony), event(l_timeBaseIndex)
 {
     self = thread(thread_start, this);
 }

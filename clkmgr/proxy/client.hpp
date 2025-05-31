@@ -26,6 +26,43 @@ static const size_t MAX_CLIENT_COUNT = 8;
 
 class ClientRemoveAll;
 
+class ptpEvent
+{
+  private:
+    size_t timeBaseIndex;
+  public:
+    int64_t master_offset;
+    int64_t ptp4l_sync_interval;
+    bool synced_to_primary_clock;
+    bool as_capable = false;
+    uint8_t gm_identity[8] = { 0 };
+    ptpEvent(size_t index);
+    void portClear() {
+        master_offset = 0;
+        ptp4l_sync_interval = 0;
+        synced_to_primary_clock = false;
+    }
+    void copy();
+};
+
+class chronyEvent
+{
+  private:
+    size_t timeBaseIndex;
+  public:
+    int64_t chrony_offset;
+    uint32_t chrony_reference_id;
+    int64_t polling_interval;
+    chronyEvent(size_t index);
+    void clear() {
+        chrony_offset = 0;
+        chrony_reference_id = 0;
+        polling_interval = 0;
+        copy();
+    }
+    void copy();
+};
+
 class Client
 {
   private:
