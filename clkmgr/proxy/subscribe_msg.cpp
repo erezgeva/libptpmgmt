@@ -12,15 +12,12 @@
 
 #include "proxy/subscribe_msg.hpp"
 #include "proxy/client.hpp"
-#include "common/ptp_event.hpp"
 #include "common/serialize.hpp"
 #include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
-
-extern map<int, ptp_event> ptp4lEvents;
 
 bool ProxySubscribeMessage::parseBufferTail()
 {
@@ -34,7 +31,9 @@ bool ProxySubscribeMessage::parseBufferTail()
 bool ProxySubscribeMessage::makeBufferTail(Buffer &buff) const
 {
     PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
-    ptp_event event = ptp4lEvents[timeBaseIndex];
+    unique_lock<rtpi::mutex> local(Client::getTimeBaseLock(timeBaseIndex));
+    ptp_event event = Client::getPTPEvent(timeBaseIndex);
+    local.unlock(); // Explicitly unlock the mutex
     // Add event data into the message
     return WRITE_TX(FIELD, event, buff);
 }

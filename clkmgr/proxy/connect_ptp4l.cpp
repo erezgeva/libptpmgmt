@@ -9,11 +9,9 @@
  *
  */
 
-#include "proxy/connect_ptp4l.hpp"
 #include "proxy/config_parser.hpp"
 #include "proxy/client.hpp"
 #include "common/termin.hpp"
-#include "common/ptp_event.hpp"
 #include "common/print.hpp"
 
 // libptpmgmt
@@ -23,7 +21,6 @@
 #include <atomic>
 #include <thread>
 #include <cmath>
-#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -43,9 +40,6 @@ static SUBSCRIBE_EVENTS_NP_t eventsTlv; // Threads only read it!
  */
 static atomic_bool all_init(false);
 
-// Globals
-map<int, ptp_event> ptp4lEvents;
-
 // Callbacks of MessageDispatcher
 #define callback_declare(n)\
     void n##_h(const ptpmgmt::Message &, const n##_t &tlv, const char *) override
@@ -58,6 +52,7 @@ class ptpSet : MessageDispatcher
     size_t timeBaseIndex; // Index of the time base
     const TimeBaseCfg &param; // time base configuration
     ptp_event &event;
+    rtpi::mutex &eventLock;
     const string &udsAddr;
     ptpmgmt::Message msg;
     SockUnix sku;
@@ -65,14 +60,14 @@ class ptpSet : MessageDispatcher
     char buf[bufSize];
     int seq = 0; // PTP message sequance
     thread self;
-    vector<sessionId_t> subscribedClients; // Clients list for notification
     ClockIdentity_t gmIdentity; // Grandmaster clock ID
     bool need_set_action = false; // Request action(PORT_DATA_SET)
   public:
     // These methods are used during initializing, before we create the thread.
     ptpSet(const TimeBaseCfg &p, const string &uds) :
         timeBaseIndex(p.timeBaseIndex), param(p),
-        event(ptp4lEvents[p.timeBaseIndex]), udsAddr(uds) {}
+        event(Client::getPTPEvent(p.timeBaseIndex)),
+        eventLock(Client::getTimeBaseLock(p.timeBaseIndex)), udsAddr(uds) {}
     bool init();
     void close() { sku.close(); }
     void start();
@@ -81,16 +76,11 @@ class ptpSet : MessageDispatcher
     void wait();
     // This is the thread method
     void thread_loop();
-    // notification subscribe
-    bool subscribe(sessionId_t sessionId);
-    // notification unsubscribe
-    bool unsubscribe(sessionId_t sessionId);
   private:
     void portDataReset();
     callback_declare(TIME_STATUS_NP);
     callback_declare(PORT_DATA_SET);
     callback_declare(CMLDS_INFO_NP);
-    void notify_client();
     void event_handle();
     bool msg_send() {
         MNG_PARSE_ERROR_e err = msg.build(buf, bufSize, seq);
@@ -143,54 +133,25 @@ class ptpSet : MessageDispatcher
     }
 };
 
-static map<int, unique_ptr<ptpSet>> ptpSets;
-/* Prevent subscribe during notification per set
-   We can not define the mutex inside the ptpSet class itself! */
-static map<int, rtpi::mutex> subscribedLock;
-
-int ConnectPtp4l::remove_ptp4l_subscriber(sessionId_t sessionId)
-{
-    bool find = false;
-    for(const auto &entry : ptpSets) {
-        size_t timeBaseIndex = entry.first; // Get the timeBaseIndex
-        if(ptpSets[timeBaseIndex]->unsubscribe(sessionId)) {
-            PrintDebug("sessionId " + to_string(sessionId) +
-                " unsubscribed successfully");
-            find = true; // We found at least one!
-        }
-    }
-    // We may be subscribed in multiple time bases
-    // But we are satisfied to be in only one!
-    if(!find)
-        PrintDebug("sessionId " + to_string(sessionId) + " was not subscribed");
-    return 0;
-}
-
-void ptpSet::notify_client()
-{
-    PrintDebug("[clkmgr]::notify_client");
-    vector<sessionId_t> sessionIdToRemove;
-    unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    Client::NotifyClients(timeBaseIndex, subscribedClients,
-        sessionIdToRemove);
-    local.unlock(); // Explicitly unlock the mutex
-    Client::RemoveClients(sessionIdToRemove);
-}
+static map<size_t, unique_ptr<ptpSet>> ptpSets;
 
 callback_define(TIME_STATUS_NP)
 {
-    event.master_offset = tlv.master_offset;
-    memcpy(event.gm_identity, tlv.gmIdentity.v, sizeof(event.gm_identity));
     gmIdentity = tlv.gmIdentity;
+    unique_lock<rtpi::mutex> local(eventLock);
+    event.master_offset = tlv.master_offset;
+    memcpy(event.gm_identity, gmIdentity.v, sizeof(event.gm_identity));
+    bool synced_to_primary_clock = event.synced_to_primary_clock;
+    local.unlock(); // Explicitly unlock the mutex
     do_notify = true;
-    PrintDebug("master_offset = " + to_string(event.master_offset) +
-        ", synced_to_primary_clock = " + to_string(event.synced_to_primary_clock));
+    PrintDebug("master_offset = " + to_string(tlv.master_offset) +
+        ", synced_to_primary_clock = " + to_string(synced_to_primary_clock));
     char buf[100];
     snprintf(buf, sizeof buf, "gm_identity = %02x%02x%02x.%02x%02x.%02x%02x%02x",
-        event.gm_identity[0], event.gm_identity[1],
-        event.gm_identity[2], event.gm_identity[3],
-        event.gm_identity[4], event.gm_identity[5],
-        event.gm_identity[6], event.gm_identity[7]);
+        gmIdentity.v[0], gmIdentity.v[1],
+        gmIdentity.v[2], gmIdentity.v[3],
+        gmIdentity.v[4], gmIdentity.v[5],
+        gmIdentity.v[6], gmIdentity.v[7]);
     PrintDebug(buf);
 }
 void ptpSet::portDataReset()
@@ -202,6 +163,7 @@ void ptpSet::portDataReset()
 }
 callback_define(PORT_DATA_SET)
 {
+    unique_lock<rtpi::mutex> local(eventLock);
     if(gmIdentity == tlv.portIdentity.clockIdentity) {
         if(tlv.portState == MASTER)
             event.ptp4l_sync_interval =
@@ -210,6 +172,7 @@ callback_define(PORT_DATA_SET)
     }
     if(tlv.portState == SLAVE) {
         event.synced_to_primary_clock = true;
+        local.unlock(); // Explicitly unlock the mutex
         if(need_set_action) {
             msg_set_action(PORT_DATA_SET);
             need_set_action = false;
@@ -229,12 +192,15 @@ callback_define(PORT_DATA_SET)
 callback_define(CMLDS_INFO_NP)
 {
     bool asCapable = tlv.as_capable > 0;
+    unique_lock<rtpi::mutex> local(eventLock);
     if(event.as_capable != asCapable) {
         event.as_capable = asCapable;
         do_notify = true;
-    } else
+    } else {
+        local.unlock(); // Explicitly unlock the mutex
         // Skip client notification if no event changes
         PrintDebug("Ignore unchanged as_capable");
+    }
 }
 void ptpSet::event_handle()
 {
@@ -243,8 +209,10 @@ void ptpSet::event_handle()
     do_notify = false;
     // Call the callbacks of the last message
     callHadler(msg);
+    if(stopThread)
+        return;
     if(do_notify)
-        notify_client();
+        Client::NotifyClients(timeBaseIndex);
 }
 
 /**
@@ -300,13 +268,15 @@ void ptpSet::thread_loop()
                     break;
                 if(!lost_connection) {
                     PrintError("Lost connection to ptp4l at " + udsAddr);
+                    unique_lock<rtpi::mutex> local(eventLock);
                     portDataReset();
                     memset(event.gm_identity, 0, sizeof(event.gm_identity));
                     event.as_capable = false;
+                    local.unlock(); // Explicitly unlock the mutex
                     lost_connection = true;
                     if(stopThread)
                         return;
-                    notify_client();
+                    Client::NotifyClients(timeBaseIndex);
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at " + udsAddr);
                 // Wait 5 seconds before retrying
@@ -335,7 +305,6 @@ bool ptpSet::init()
     if(!sku.setDefSelfAddress(addr) || !sku.init() ||
         !sku.setPeerAddress(udsAddr))
         return false;
-    subscribedLock[timeBaseIndex]; // Make dure mutex exist before we start
     MsgParams prms = msg.getParams();
     prms.transportSpecific = param.transportSpecific;
     prms.domainNumber = param.domainNumber;
@@ -348,41 +317,6 @@ void ptpSet::start()
 void ptpSet::wait()
 {
     self.join();
-}
-bool ptpSet::subscribe(sessionId_t sessionId)
-{
-    unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    for(const sessionId_t &id : subscribedClients) {
-        if(id == sessionId)
-            return false; // Client is already subscribed
-    }
-    subscribedClients.push_back(sessionId);
-    return true;
-}
-bool ptpSet::unsubscribe(sessionId_t sessionId)
-{
-    unique_lock<rtpi::mutex> local(subscribedLock[timeBaseIndex]);
-    for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
-        if(*it == sessionId) {
-            subscribedClients.erase(it);
-            return true;
-        }
-        ++it;
-    }
-    return false; // Client was not subscribed
-}
-int ConnectPtp4l::subscribe_ptp4l(size_t timeBaseIndex, sessionId_t sessionId)
-{
-    if(ptpSets.count(timeBaseIndex) > 0) {
-        if(!ptpSets[timeBaseIndex]->subscribe(sessionId)) {
-            PrintDebug("sessionId " + to_string(sessionId) +
-                " is already subscribe");
-            return -1; // We try to subscribe twice
-        }
-    } else
-        PrintDebug("timeBaseIndex " + to_string(timeBaseIndex) +
-            " does not exist in the map");
-    return 0;
 }
 
 static inline void close_all()
@@ -407,7 +341,7 @@ static inline void close_all()
  *         Returns 0 on success, or -1 if an error occurs during socket
  *         initialization, address setting, or epoll configuration.
  */
-int ConnectPtp4l::connect_ptp4l()
+bool Client::connect_ptp4l()
 {
     // Create all sets required for the threads
     for(const auto &param : JsonConfigParser::getInstance()) {
@@ -416,7 +350,7 @@ int ConnectPtp4l::connect_ptp4l()
             continue;
         ptpSet *set = new ptpSet(param.base, param.udsAddrPtp4l);
         if(set == nullptr)
-            return -1;
+            return false;
         ptpSets[param.base.timeBaseIndex].reset(set);
     }
     // initializing before creating the threads
@@ -424,7 +358,7 @@ int ConnectPtp4l::connect_ptp4l()
         if(!it.second->init()) {
             // We need to close all other sockets, which succeed
             close_all();
-            return -1;
+            return false;
         }
     }
     /* Threads only read the events setting TLV
@@ -438,7 +372,7 @@ int ConnectPtp4l::connect_ptp4l()
     for(const auto &it : ptpSets)
         // Create a thread for each set
         it.second->start();
-    return 0;
+    return true;
 }
 
 class Ptp4lDisconnect : public End
