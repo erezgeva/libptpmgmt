@@ -14,9 +14,11 @@
 
 #include "common/msgq_tport.hpp"
 #include "common/message.hpp"
+#include "common/ptp_event.hpp"
 
 #include <memory>
 #include <map>
+#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -32,6 +34,10 @@ class Client
     static sessionId_t CreateClientSession(const std::string &id);
     static void RemoveClient(sessionId_t sessionId);
     static Client *getClient(sessionId_t sessionId);
+    static bool connect_ptp4l();
+    #ifdef HAVE_LIBCHRONY
+    static bool connect_chrony();
+    #endif
 
   protected:
     Transmitter *getTxContext() { return m_transmitContext.get(); }
@@ -41,11 +47,10 @@ class Client
     static bool init();
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
-    static void RemoveClients(const std::vector<sessionId_t> &sessionIdToRemove);
-    static void NotifyClients(size_t timeBaseIndex,
-        std::vector<sessionId_t> &subscribedClients,
-        std::vector<sessionId_t> &sessionIdToRemove);
+    static void NotifyClients(size_t timeBaseIndex);
     static Transmitter *getTxContext(sessionId_t sessionId);
+    static rtpi::mutex &getTimeBaseLock(size_t timeBaseIndex);
+    static ptp_event &getPTPEvent(size_t timeBaseIndex);
 };
 
 __CLKMGR_NAMESPACE_END

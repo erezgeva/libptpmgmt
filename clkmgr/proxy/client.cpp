@@ -10,17 +10,12 @@
  */
 
 #include "proxy/client.hpp"
-#include "proxy/connect_ptp4l.hpp"
+#include "proxy/config_parser.hpp"
 #include "proxy/connect_msg.hpp"
 #include "proxy/notification_msg.hpp"
 #include "proxy/subscribe_msg.hpp"
-#ifdef HAVE_LIBCHRONY
-#include "proxy/connect_chrony.hpp"
-#endif
 #include "common/termin.hpp"
 #include "common/print.hpp"
-
-#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -30,6 +25,15 @@ static thread_local Buffer notifyBuff;
 static sessionId_t nextSession = 0;
 static rtpi::mutex sessionMapLock;
 static map<sessionId_t, unique_ptr<Client>> sessionMap;
+struct perTimeBase {
+    map<sessionId_t, bool> clients;
+    rtpi::mutex lock;
+};
+// Map of all subscriped clients to a timeBaseIndex of and PTP or chrony
+static map<size_t, perTimeBase> timeBaseClients;
+static map<size_t, ptp_event> ptp4lEvents;
+// Lock for ptp4lEvents
+static map<size_t, rtpi::mutex> timeBaseLock;
 
 static inline Transmitter *CreateTransmitterContext(const string &clientId)
 {
@@ -49,6 +53,22 @@ static inline Transmitter *CreateTransmitterContext(const string &clientId)
 static inline bool existClient(sessionId_t sessionId)
 {
     return sessionMap.count(sessionId) > 0;
+}
+
+rtpi::mutex &Client::getTimeBaseLock(size_t timeBaseIndex)
+{
+    if(timeBaseLock.count(timeBaseIndex) > 0)
+        return timeBaseLock[timeBaseIndex];
+    static rtpi::mutex dummy;
+    return dummy;
+}
+
+ptp_event &Client::getPTPEvent(size_t timeBaseIndex)
+{
+    if(ptp4lEvents.count(timeBaseIndex) > 0)
+        return ptp4lEvents[timeBaseIndex];
+    static ptp_event dummy;
+    return dummy;
 }
 
 sessionId_t Client::CreateClientSession(const string &id)
@@ -80,10 +100,12 @@ sessionId_t Client::connect(sessionId_t sessionId, const string &id)
     if(sessionId != InvalidSessionId) {
         if(existClient(sessionId))
             return sessionId;
+        local.unlock(); // Explicitly unlock the mutex
         PrintError("Session ID does not exists: " + to_string(sessionId));
         return InvalidSessionId;
     }
     sessionId = CreateClientSession(id);
+    local.unlock(); // Explicitly unlock the mutex
     if(sessionId == InvalidSessionId)
         PrintError("Fail to allocate new session");
     else
@@ -93,21 +115,25 @@ sessionId_t Client::connect(sessionId_t sessionId, const string &id)
 
 bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
 {
-    if(sessionId == InvalidSessionId)
+    if(sessionId == InvalidSessionId ||
+        timeBaseClients.count(timeBaseIndex) == 0)
         return false;
-    {
-        unique_lock<rtpi::mutex> local(sessionMapLock);
-        if(!existClient(sessionId)) {
-            PrintError("Session ID " + to_string(sessionId) + " is not registered");
-            return false;
-        }
+    unique_lock<rtpi::mutex> local(sessionMapLock);
+    if(!existClient(sessionId)) {
+        local.unlock(); // Explicitly unlock the mutex
+        PrintError("Session ID " + to_string(sessionId) + " is not registered");
+        return false;
     }
-    ConnectPtp4l::subscribe_ptp4l(timeBaseIndex, sessionId);
-    #ifdef HAVE_LIBCHRONY
-    ConnectChrony::subscribe_chrony(timeBaseIndex, sessionId);
-    #endif
+    local.unlock(); // Explicitly unlock the mutex
     PrintDebug("[ProxySubscribeMessage]::parseBufferTail - "
         "Use current client session ID: " + to_string(sessionId));
+    unique_lock<rtpi::mutex> localSub(timeBaseClients[timeBaseIndex].lock);
+    bool exist = timeBaseClients[timeBaseIndex].clients.count(sessionId) > 0;
+    if(!exist)
+        timeBaseClients[timeBaseIndex].clients[sessionId] = true;
+    localSub.unlock(); // Explicitly unlock the mutex
+    if(exist)
+        PrintDebug("sessionId " + to_string(sessionId) + " is already subscribe");
     return true;
 }
 
@@ -121,6 +147,12 @@ void Client::RemoveClient(sessionId_t sessionId)
     if(tx != nullptr)
         tx->finalize();
     sessionMap.erase(sessionId);
+    local.unlock(); // Explicitly unlock the mutex
+    for(auto &base : timeBaseClients) {
+        auto &rec = base.second;
+        unique_lock<rtpi::mutex> localSub(rec.lock);
+        rec.clients.erase(sessionId);
+    }
 }
 
 Transmitter *Client::getTxContext(sessionId_t sessionId)
@@ -149,53 +181,56 @@ bool Client::init()
         return false;
     }
     PrintDebug("Proxy listener queue opened");
-    ConnectPtp4l::connect_ptp4l();
-    #ifdef HAVE_LIBCHRONY
-    ConnectChrony::connect_chrony();
-    #endif
-    return true;
+    // Ensure timeBase subscribed clients have all existing timeBaseIndexes
+    for(const auto &param : JsonConfigParser::getInstance()) {
+        timeBaseClients[param.base.timeBaseIndex];
+        timeBaseLock[param.base.timeBaseIndex];
+        ptp4lEvents[param.base.timeBaseIndex];
+    }
+    return connect_ptp4l()
+        #ifdef HAVE_LIBCHRONY
+        && connect_chrony()
+        #endif
+        ;
 }
 
-void Client::NotifyClients(size_t timeBaseIndex,
-    vector<sessionId_t> &subscribedClients,
-    vector<sessionId_t> &sessionIdToRemove)
+void Client::NotifyClients(size_t timeBaseIndex)
 {
+    PrintDebug("Client::NotifyClients");
+    if(timeBaseClients.count(timeBaseIndex) == 0) {
+        PrintError("[Client::NotifyClients] call with non exist timeBaseIndex " +
+            to_string(timeBaseIndex));
+        return;
+    }
+    vector<sessionId_t> sessionIdToRemove;
+    unique_lock<rtpi::mutex> local(timeBaseClients[timeBaseIndex].lock);
     ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
     if(pmsg == nullptr) {
-        PrintErrorCode("[clkmgr::notify_client] notifyMsg is nullptr !!");
+        local.unlock(); // Explicitly unlock the mutex
+        PrintErrorCode("[Client::NotifyClients] notifyMsg is nullptr !!");
         return;
     }
     // Release message on function ends
     unique_ptr<ProxyNotificationMessage> notifyMsg(pmsg);
-    PrintDebug("[clkmgr::notify_client] notifyMsg creation is OK !!");
     // Send data for multiple sessions
     pmsg->setTimeBaseIndex(timeBaseIndex);
     if(!pmsg->makeBuffer(notifyBuff)) {
-        PrintError("Failed to create message");
+        local.unlock(); // Explicitly unlock the mutex
+        PrintError("[Client::NotifyClients] Failed to create message");
         return;
     }
-    for(auto it = subscribedClients.begin(); it != subscribedClients.end();) {
-        const sessionId_t sessionId = *it;
-        PrintDebug("Get client session ID: " + to_string(sessionId));
+    for(auto &c : timeBaseClients[timeBaseIndex].clients) {
+        const sessionId_t sessionId = c.first;
+        PrintDebug("[Client::NotifyClients] Get client session ID: " +
+            to_string(sessionId));
         Transmitter *ptxContext = getTxContext(sessionId);
-        if(ptxContext == nullptr || !ptxContext->sendBuffer(notifyBuff)) {
-            it = subscribedClients.erase(it);
-            /* Add sessionId into the list to remove */
+        if(ptxContext == nullptr || !ptxContext->sendBuffer(notifyBuff))
+            // Add sessionId into the list to remove
             sessionIdToRemove.push_back(sessionId);
-        } else
-            ++it;
     }
-}
-
-void Client::RemoveClients(const vector<sessionId_t> &sessionIdToRemove)
-{
-    for(const sessionId_t sessionId : sessionIdToRemove) {
-        ConnectPtp4l::remove_ptp4l_subscriber(sessionId);
-        #ifdef HAVE_LIBCHRONY
-        ConnectChrony::remove_chrony_subscriber(sessionId);
-        #endif
+    local.unlock(); // Explicitly unlock the mutex
+    for(const sessionId_t sessionId : sessionIdToRemove)
         Client::RemoveClient(sessionId);
-    }
 }
 
 Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
