@@ -51,8 +51,7 @@ class ptpSet : MessageDispatcher
   private:
     size_t timeBaseIndex; // Index of the time base
     const TimeBaseCfg &param; // time base configuration
-    ptp_event &event;
-    rtpi::mutex &eventLock;
+    ptpEvent event;
     const string &udsAddr;
     ptpmgmt::Message msg;
     SockUnix sku;
@@ -65,9 +64,8 @@ class ptpSet : MessageDispatcher
   public:
     // These methods are used during initializing, before we create the thread.
     ptpSet(const TimeBaseCfg &p, const string &uds) :
-        timeBaseIndex(p.timeBaseIndex), param(p),
-        event(Client::getPTPEvent(p.timeBaseIndex)),
-        eventLock(Client::getTimeBaseLock(p.timeBaseIndex)), udsAddr(uds) {}
+        timeBaseIndex(p.timeBaseIndex), param(p), event(p.timeBaseIndex),
+        udsAddr(uds) { }
     bool init();
     void close() { sku.close(); }
     void start();
@@ -137,33 +135,27 @@ static map<size_t, unique_ptr<ptpSet>> ptpSets;
 
 callback_define(TIME_STATUS_NP)
 {
-    gmIdentity = tlv.gmIdentity;
-    unique_lock<rtpi::mutex> local(eventLock);
     event.master_offset = tlv.master_offset;
-    memcpy(event.gm_identity, gmIdentity.v, sizeof(event.gm_identity));
-    bool synced_to_primary_clock = event.synced_to_primary_clock;
-    local.unlock(); // Explicitly unlock the mutex
+    memcpy(event.gm_identity, tlv.gmIdentity.v, sizeof(event.gm_identity));
+    gmIdentity = tlv.gmIdentity;
     do_notify = true;
-    PrintDebug("master_offset = " + to_string(tlv.master_offset) +
-        ", synced_to_primary_clock = " + to_string(synced_to_primary_clock));
+    PrintDebug("master_offset = " + to_string(event.master_offset) +
+        ", synced_to_primary_clock = " + to_string(event.synced_to_primary_clock));
     char buf[100];
     snprintf(buf, sizeof buf, "gm_identity = %02x%02x%02x.%02x%02x.%02x%02x%02x",
-        gmIdentity.v[0], gmIdentity.v[1],
-        gmIdentity.v[2], gmIdentity.v[3],
-        gmIdentity.v[4], gmIdentity.v[5],
-        gmIdentity.v[6], gmIdentity.v[7]);
+        event.gm_identity[0], event.gm_identity[1],
+        event.gm_identity[2], event.gm_identity[3],
+        event.gm_identity[4], event.gm_identity[5],
+        event.gm_identity[6], event.gm_identity[7]);
     PrintDebug(buf);
 }
 void ptpSet::portDataReset()
 {
-    event.synced_to_primary_clock = false;
-    event.master_offset = 0;
-    event.ptp4l_sync_interval = 0;
+    event.portClear();
     need_set_action = true;
 }
 callback_define(PORT_DATA_SET)
 {
-    unique_lock<rtpi::mutex> local(eventLock);
     if(gmIdentity == tlv.portIdentity.clockIdentity) {
         if(tlv.portState == MASTER)
             event.ptp4l_sync_interval =
@@ -172,7 +164,6 @@ callback_define(PORT_DATA_SET)
     }
     if(tlv.portState == SLAVE) {
         event.synced_to_primary_clock = true;
-        local.unlock(); // Explicitly unlock the mutex
         if(need_set_action) {
             msg_set_action(PORT_DATA_SET);
             need_set_action = false;
@@ -192,15 +183,12 @@ callback_define(PORT_DATA_SET)
 callback_define(CMLDS_INFO_NP)
 {
     bool asCapable = tlv.as_capable > 0;
-    unique_lock<rtpi::mutex> local(eventLock);
     if(event.as_capable != asCapable) {
         event.as_capable = asCapable;
         do_notify = true;
-    } else {
-        local.unlock(); // Explicitly unlock the mutex
+    } else
         // Skip client notification if no event changes
         PrintDebug("Ignore unchanged as_capable");
-    }
 }
 void ptpSet::event_handle()
 {
@@ -211,8 +199,10 @@ void ptpSet::event_handle()
     callHadler(msg);
     if(stopThread)
         return;
-    if(do_notify)
+    if(do_notify) {
+        event.copy();
         Client::NotifyClients(timeBaseIndex);
+    }
 }
 
 /**
@@ -268,14 +258,13 @@ void ptpSet::thread_loop()
                     break;
                 if(!lost_connection) {
                     PrintError("Lost connection to ptp4l at " + udsAddr);
-                    unique_lock<rtpi::mutex> local(eventLock);
                     portDataReset();
                     memset(event.gm_identity, 0, sizeof(event.gm_identity));
                     event.as_capable = false;
-                    local.unlock(); // Explicitly unlock the mutex
                     lost_connection = true;
                     if(stopThread)
                         return;
+                    event.copy();
                     Client::NotifyClients(timeBaseIndex);
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at " + udsAddr);

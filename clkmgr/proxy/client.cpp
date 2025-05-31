@@ -17,6 +17,8 @@
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
+#include <cstring>
+
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
@@ -29,7 +31,7 @@ struct perTimeBase {
     map<sessionId_t, bool> clients;
     rtpi::mutex lock;
 };
-// Map of all subscriped clients to a timeBaseIndex of and PTP or chrony
+// Map of all subscriped clients using a timeBaseIndex of PTP and chrony
 static map<size_t, perTimeBase> timeBaseClients;
 static map<size_t, ptp_event> ptp4lEvents;
 // Lock for ptp4lEvents
@@ -181,12 +183,6 @@ bool Client::init()
         return false;
     }
     PrintDebug("Proxy listener queue opened");
-    // Ensure timeBase subscribed clients have all existing timeBaseIndexes
-    for(const auto &param : JsonConfigParser::getInstance()) {
-        timeBaseClients[param.base.timeBaseIndex];
-        timeBaseLock[param.base.timeBaseIndex];
-        ptp4lEvents[param.base.timeBaseIndex];
-    }
     return connect_ptp4l()
         #ifdef HAVE_LIBCHRONY
         && connect_chrony()
@@ -231,6 +227,39 @@ void Client::NotifyClients(size_t timeBaseIndex)
     local.unlock(); // Explicitly unlock the mutex
     for(const sessionId_t sessionId : sessionIdToRemove)
         Client::RemoveClient(sessionId);
+}
+
+ptpEvent::ptpEvent(size_t index) : timeBaseIndex(index)
+{
+    timeBaseClients[index]; // Ensure we have subscribed clients list
+    portClear();
+    copy();
+}
+
+void ptpEvent::copy()
+{
+    unique_lock<rtpi::mutex> local(timeBaseLock[timeBaseIndex]);
+    ptp_event &to = ptp4lEvents[timeBaseIndex];
+    to.master_offset = master_offset;
+    to.as_capable = as_capable;
+    to.ptp4l_sync_interval = ptp4l_sync_interval;
+    to.synced_to_primary_clock = synced_to_primary_clock;
+    memcpy(to.gm_identity, gm_identity, sizeof(gm_identity));
+}
+
+chronyEvent::chronyEvent(size_t index) : timeBaseIndex(index)
+{
+    timeBaseClients[index]; // Ensure we have subscribed clients list
+    clear();
+}
+
+void chronyEvent::copy()
+{
+    unique_lock<rtpi::mutex> local(timeBaseLock[timeBaseIndex]);
+    ptp_event &to = ptp4lEvents[timeBaseIndex];
+    to.chrony_offset = chrony_offset;
+    to.chrony_reference_id = chrony_reference_id;
+    to.polling_interval = polling_interval;
 }
 
 Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
