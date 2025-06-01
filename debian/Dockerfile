@@ -14,13 +14,13 @@ LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
 ARG UID USER DIST ARCH ARCHS DPKGS REPO DEBIAN_FRONTEND=noninteractive
 RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     sed -i "s|http://deb.debian.org/debian|$REPO|"\
-    /etc/apt/sources.list.d/debian.sources;fi;\
+    /etc/apt/sources.list.d/debian.sources;fi &&\
     if [ -f /etc/apt/sources.list ];then\
     sed -i "s|http://deb.debian.org/debian|$REPO|;/^#/ d"\
-    /etc/apt/sources.list;fi;\
+    /etc/apt/sources.list;fi &&\
     apt-get update && apt-get install -y --no-install-recommends --no-remove\
-    gnupg ca-certificates apt-utils;\
-    for a in $ARCHS;do dpkg --add-architecture $a;done;\
+    gnupg ca-certificates apt-utils &&\
+    for a in $ARCHS;do dpkg --add-architecture $a;done &&\
     apt-get update && apt-get install -y --no-install-recommends --no-remove\
     debhelper coreutils sudo dh-lua dh-make-perl dh-exec git procps dh-php\
     build-essential ncurses-bin dlocate dialog lsb-release quilt apt-file\
@@ -35,14 +35,14 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     apt-get upgrade -y --no-install-recommends &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini &&\
     useradd $USER -u $UID -m -G sudo &&\
-    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers;\
-    for a in $ARCHS; do list=`dpkg --get-selections | grep "linux-gnu:$a" |\
-    sed "s/\s*install/ /;s/:$a/:$ARCH/" | tr -d $'\r\n'`;\
-    if [ -n "$list" ];then apt-get install -y --no-install-recommends $list;\
-    fi;done
+    sed -i '/%sudo/ s/ ALL$/ NOPASSWD:ALL/' /etc/sudoers &&\
+    for a in $ARCHS;do list=`dpkg --get-selections | grep "linux-gnu:$a" |\
+    sed "s/\s*install/ /;s/:$a/:$ARCH/" | tr -d $'\r\n'` &&\
+    if [ -n "$list" ];then apt-get install -y --no-install-recommends $list\
+    ;fi;done
 COPY debian/pkgs /tmp/pkgs
 RUN dpkg -i /tmp/pkgs/$DIST/*.deb && rm -R /tmp/pkgs
 ARG COOKIE
-RUN apt-get update; apt-get upgrade -y --no-install-recommends
+RUN apt-get update && apt-get upgrade -y --no-install-recommends
 ARG SRC DST
 COPY --chown=builder $SRC $DST
