@@ -67,7 +67,7 @@ class Client
 {
   private:
     sessionId_t m_sessionId = InvalidSessionId;
-    std::unique_ptr<Transmitter> m_transmitContext;
+    std::unique_ptr<Transmitter> m_transmitter;
     static sessionId_t CreateClientSession(const std::string &id);
     static void RemoveClient(sessionId_t sessionId);
     static Client *getClient(sessionId_t sessionId);
@@ -77,7 +77,7 @@ class Client
     #endif
 
   protected:
-    Transmitter *getTxContext() { return m_transmitContext.get(); }
+    Transmitter *getTransmitter() { return m_transmitter.get(); }
     friend class ClientRemoveAll;
 
   public:
@@ -85,7 +85,7 @@ class Client
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
     static void NotifyClients(size_t timeBaseIndex);
-    static Transmitter *getTxContext(sessionId_t sessionId);
+    static Transmitter *getTransmitter(sessionId_t sessionId);
     static rtpi::mutex &getTimeBaseLock(size_t timeBaseIndex);
     static ptp_event &getPTPEvent(size_t timeBaseIndex);
 };

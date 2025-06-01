@@ -17,6 +17,10 @@
 #include <chrono>
 #include <thread>
 
+#ifdef __GNUC__
+#define ON_EXIT_ATTR  __attribute__((destructor))
+#endif
+
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
@@ -42,28 +46,35 @@ bool ClockManager::connect()
             PrintDebug("[CONNECT] Failed to initialize Client queue.");
             return false;
         }
+        #ifndef ON_EXIT_ATTR
+        atexit([] { ClockManager::disconnect(); });
+        #endif
         doInit.store(true);
     }
     return ClientState::connect(DEFAULT_CONNECT_TIME_OUT);
 }
 
+bool ClockManager::disconnect()
+{
+    // Send a disconnect message - TODO do we want to send a message here?
+    if(doInit.load()) {
+        if(!End::stopAll()) {
+            PrintDebug("[DISCONNECT] Client disconnect Failed");
+            return false;
+        }
+        doInit.store(false);
+    }
+    return true;
+}
+
 const TimeBaseConfigurations &ClockManager::getTimebaseCfgs()
 {
+    if(!ClientState::get_connected())
+        ClockManager::connect();
     return TimeBaseConfigurations::getInstance();
 }
 
-bool ClockManager::subscribeByName(const ClockSyncSubscription &newSub,
-    const string &timeBaseName, ClockSyncData &clockSyncData)
-{
-    size_t timeBaseIndex = 0;
-    if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
-        PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
-        return false;
-    }
-    return subscribe(newSub, timeBaseIndex, clockSyncData);
-}
-
-bool ClockManager::subscribe(const ClockSyncSubscription &newSub,
+static inline bool _subscribe(const ClockSyncSubscription &newSub,
     size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
     TimeBaseStates &states = TimeBaseStates::getInstance();
@@ -79,24 +90,38 @@ bool ClockManager::subscribe(const ClockSyncSubscription &newSub,
     return handler.updateAll(state);
 }
 
-bool ClockManager::disconnect()
+bool ClockManager::subscribe(const ClockSyncSubscription &newSub,
+    size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
-    // Send a disconnect message - TODO do we want to send a message here?
-    if(doInit.load()) {
-        if(!End::stopAll()) {
-            PrintDebug("Client disconnect Failed");
+    if(!ClientState::get_connected()) {
+        ClockManager::connect();
+        if(!ClientState::get_connected())
             return false;
-        }
-        doInit.store(true);
     }
-    return true;
+    return _subscribe(newSub, timeBaseIndex, clockSyncData);
+}
+
+bool ClockManager::subscribeByName(const ClockSyncSubscription &newSub,
+    const string &timeBaseName, ClockSyncData &clockSyncData)
+{
+    if(!ClientState::get_connected()) {
+        ClockManager::connect();
+        if(!ClientState::get_connected())
+            return false;
+    }
+    size_t timeBaseIndex = 0;
+    if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
+        PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
+        return false;
+    }
+    return _subscribe(newSub, timeBaseIndex, clockSyncData);
 }
 
 // Calculate delta in miliseconds
 static inline int64_t timespec_delta(const timespec &last, const timespec &cur)
 {
-    return (cur.tv_sec - last.tv_sec) * 1000LL +
-        (cur.tv_nsec - last.tv_nsec) / 1000000LL;
+    return (int64_t)(cur.tv_sec - last.tv_sec) * MSEC_PER_SEC +
+        (cur.tv_nsec - last.tv_nsec) / NSEC_PER_MSEC;
 }
 
 static inline bool check_proxy_liveness(size_t timeBaseIndex)
@@ -123,25 +148,9 @@ send_connect:
     return ClientState::connect(DEFAULT_LIVENESS_TIMEOUT_IN_MS, &lastConnectTime);
 }
 
-int ClockManager::statusWaitByName(int timeout, const string &timeBaseName,
+static inline int _statusWait(int timeout, size_t timeBaseIndex,
     ClockSyncData &clockSyncData)
 {
-    size_t timeBaseIndex = 0;
-    if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
-        PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
-        return -1;
-    }
-    return statusWait(timeout, timeBaseIndex, clockSyncData);
-}
-
-int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
-    ClockSyncData &clockSyncData)
-{
-    // Check whether connection between Proxy and Client is established or not
-    if(!ClientState::get_connected()) {
-        PrintDebug("[WAIT] Client is not connected to Proxy.");
-        return false;
-    }
     // Check whether requested timeBaseIndex is subscribed or not
     auto &states = TimeBaseStates::getInstance();
     if(!states.getSubscribed(timeBaseIndex)) {
@@ -180,7 +189,42 @@ int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
     return 1;
 }
 
+int ClockManager::statusWait(int timeout, size_t timeBaseIndex,
+    ClockSyncData &clockSyncData)
+{
+    // Check whether connection between Proxy and Client is established or not
+    if(!ClientState::get_connected()) {
+        PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
+        return -1;
+    }
+    return _statusWait(timeout, timeBaseIndex, clockSyncData);
+}
+
+int ClockManager::statusWaitByName(int timeout, const string &timeBaseName,
+    ClockSyncData &clockSyncData)
+{
+    // Check whether connection between Proxy and Client is established or not
+    if(!ClientState::get_connected()) {
+        PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
+        return -1;
+    }
+    size_t timeBaseIndex = 0;
+    if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
+        PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
+        return -1;
+    }
+    return _statusWait(timeout, timeBaseIndex, clockSyncData);
+}
+
 bool ClockManager::getTime(timespec &ts)
 {
     return clock_gettime(CLOCK_REALTIME, &ts) == 0;
 }
+
+// Disconnect on exit
+#ifdef ON_EXIT_ATTR
+ON_EXIT_ATTR static void disconnect()
+{
+    ClockManager::disconnect();
+}
+#endif

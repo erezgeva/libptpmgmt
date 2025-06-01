@@ -194,9 +194,9 @@ bool Listener::MqListenerWork()
         // As we are in the listener thread context
         if(!msg->makeBuffer(rxBuff))
             return false;
-        Transmitter *ptxContext =
+        Transmitter *ptx =
             Transmitter::getTransmitterInstance(msg->get_sessionId());
-        return ptxContext != nullptr && ptxContext->sendBuffer(rxBuff);
+        return ptx != nullptr && ptx->sendBuffer(rxBuff);
     }
     return true;
 }

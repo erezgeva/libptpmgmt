@@ -34,6 +34,8 @@ const int32_t NSEC_PER_MSEC = 1000000;
 const int32_t NSEC_PER_SEC  = 1000000000;
 /** Number of microsecond in a second */
 const int32_t USEC_PER_SEC = 1000000;
+/** Number of millisecond in a second */
+const int32_t MSEC_PER_SEC = 1000;
 
 #define DECLARE_STATIC(x,...) decltype(x) x __VA_OPT__({) __VA_ARGS__ __VA_OPT__(})
 

@@ -28,7 +28,7 @@ class ClientState
 {
   private:
     static std::string m_clientID; /**< Client ID */
-    static sessionId_t m_sessionId;
+    static std::atomic<sessionId_t> m_sessionId;
     static std::atomic_bool m_connected; /**< Connection status */
 
   public:

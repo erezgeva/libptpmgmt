@@ -37,7 +37,7 @@ static map<size_t, ptp_event> ptp4lEvents;
 // Lock for ptp4lEvents
 static map<size_t, rtpi::mutex> timeBaseLock;
 
-static inline Transmitter *CreateTransmitterContext(const string &clientId)
+static inline Transmitter *CreateTransmitter(const string &clientId)
 {
     Transmitter *nCtx = new Transmitter();
     if(nCtx != nullptr) {
@@ -82,14 +82,14 @@ sessionId_t Client::CreateClientSession(const string &id)
     Client *client = new Client;
     if(client == nullptr)
         return InvalidSessionId;
-    Transmitter *tx = CreateTransmitterContext(id);
+    Transmitter *tx = CreateTransmitter(id);
     if(tx == nullptr) {
         delete client;
         return InvalidSessionId;
     }
     sessionId_t cur = nextSession;
     client->m_sessionId = cur;
-    client->m_transmitContext.reset(tx);
+    client->m_transmitter.reset(tx);
     sessionMap[cur].reset(client);
     ++nextSession;
     nextSession &= ValidMaskSessionId;
@@ -145,7 +145,7 @@ void Client::RemoveClient(sessionId_t sessionId)
     Client *client = getClient(sessionId);
     if(client == nullptr)
         return;
-    Transmitter *tx = client->getTxContext();
+    Transmitter *tx = client->getTransmitter();
     if(tx != nullptr)
         tx->finalize();
     sessionMap.erase(sessionId);
@@ -157,13 +157,13 @@ void Client::RemoveClient(sessionId_t sessionId)
     }
 }
 
-Transmitter *Client::getTxContext(sessionId_t sessionId)
+Transmitter *Client::getTransmitter(sessionId_t sessionId)
 {
     if(sessionId == InvalidSessionId)
         return nullptr;
     unique_lock<rtpi::mutex> local(sessionMapLock);
     Client *client = getClient(sessionId);
-    return client != nullptr ? client->getTxContext() : nullptr;
+    return client != nullptr ? client->getTransmitter() : nullptr;
 }
 
 Client *Client::getClient(sessionId_t sessionId)
@@ -176,9 +176,9 @@ bool Client::init()
     // Register messages we recieve from client side
     reg_message_type<ProxyConnectMessage, ProxySubscribeMessage>();
     // ProxyNotificationMessage - Proxy send it only, never send from client
-    Listener &rxContext = Listener::getSingleListenerInstance();
+    Listener &rx = Listener::getSingleListenerInstance();
     PrintDebug("Initializing Proxy listener Queue ...");
-    if(!rxContext.init(mqProxyName, MAX_CLIENT_COUNT)) {
+    if(!rx.init(mqProxyName, MAX_CLIENT_COUNT)) {
         PrintError("Initializing Proxy listener queue failed");
         return false;
     }
@@ -219,8 +219,8 @@ void Client::NotifyClients(size_t timeBaseIndex)
         const sessionId_t sessionId = c.first;
         PrintDebug("[Client::NotifyClients] Get client session ID: " +
             to_string(sessionId));
-        Transmitter *ptxContext = getTxContext(sessionId);
-        if(ptxContext == nullptr || !ptxContext->sendBuffer(notifyBuff))
+        Transmitter *ptx = getTransmitter(sessionId);
+        if(ptx == nullptr || !ptx->sendBuffer(notifyBuff))
             // Add sessionId into the list to remove
             sessionIdToRemove.push_back(sessionId);
     }
@@ -264,7 +264,7 @@ void chronyEvent::copy()
 
 Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)
 {
-    return Client::getTxContext(sessionId);
+    return Client::getTransmitter(sessionId);
 }
 
 __CLKMGR_NAMESPACE_BEGIN
@@ -278,7 +278,7 @@ class ClientRemoveAll : public End
     bool finalize() override final {
         unique_lock<rtpi::mutex> local(sessionMapLock);
         for(auto &it : sessionMap)
-            it.second.get()->getTxContext()->finalize();
+            it.second.get()->getTransmitter()->finalize();
         sessionMap.clear();
         return true;
     }

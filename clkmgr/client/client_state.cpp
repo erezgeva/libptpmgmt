@@ -38,12 +38,12 @@ bool ClientState::init()
     PrintDebug("Initializing Client Message");
     reg_message_type<ClientConnectMessage, ClientSubscribeMessage,
                      ClientNotificationMessage>();
-    Listener &rxContext = Listener::getSingleListenerInstance();
+    Listener &rx = Listener::getSingleListenerInstance();
     /* Two outstanding messages per client */
     PrintDebug("Initializing Client Queue ...");
     string mqListenerName(mqProxyName);
     mqListenerName += "." + to_string(getpid());
-    if(!rxContext.init(mqListenerName, 2)) {
+    if(!rx.init(mqListenerName, 2)) {
         PrintError("Failed to open listener queue");
         return false;
     }
@@ -52,7 +52,7 @@ bool ClientState::init()
         return false;
     }
     PrintDebug("Client Message queue opened");
-    m_clientID = rxContext.getClientId();
+    m_clientID = rx.getClientId();
     return true;
 }
 
@@ -82,7 +82,8 @@ bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
             if(lastConnectTime != nullptr &&
                 clock_gettime(CLOCK_REALTIME, lastConnectTime) == -1)
                 PrintDebug("[CONNECT] Failed to get lastConnectTime.");
-            PrintDebug("[CONNECT] Received reply from Proxy.");
+            PrintDebug("[CONNECT] Received reply from Proxy: " +
+                to_string(get_connected()));
         }
     }
     return true;
