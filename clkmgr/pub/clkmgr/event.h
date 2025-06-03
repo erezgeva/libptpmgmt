@@ -112,16 +112,17 @@ class ClockEventBase
     /**< @cond internal
      * set by the clockeventhandler class
      */
-    ClockEventBase(); /**< Constructs a ClockEventBase object. */
+    ClockEventBase() = default; /**< Constructs a ClockEventBase object. */
     friend class ClockEventHandler; /**< Grants access to ClockEventHandler. */
-    int64_t clockOffset; /**< Offset of the clock in nanoseconds. */
-    int64_t syncInterval; /**< Synchronization interval in nanoseconds. */
-    uint64_t gmClockUUID; /**< UUID of the grandmaster clock. */
-    uint64_t notificationTimestamp; /**< Timestamp of last notification event. */
-    uint32_t offsetInRangeCount; /**< Count of offsets within defined range. */
-    uint32_t gmChangedCount; /**< Count of grandmaster clock changes. */
-    bool offsetInRange; /**< Indicates if the offset is within range. */
-    bool gmChanged; /**< Indicates if the grandmaster clock has changed. */
+    int64_t clockOffset = 0; /**< Offset of the clock in nanoseconds. */
+    int64_t syncInterval = 0; /**< Synchronization interval in nanoseconds. */
+    uint64_t gmClockUUID = 0; /**< UUID of the grandmaster clock. */
+    /** Timestamp of last notification event. */
+    uint64_t notificationTimestamp = 0;
+    uint32_t offsetInRangeCount = 0; /**< Count of offsets within defined range. */
+    uint32_t gmChangedCount = 0; /**< Count of grandmaster clock changes. */
+    bool offsetInRange = false; /**< Indicates if the offset is within range. */
+    bool gmChanged = false; /**< Indicates if the grandmaster clock has changed. */
     /**< @endcond */
 };
 
@@ -184,18 +185,18 @@ class PTPClockEvent : public ClockEventBase
     uint32_t getCompositeEventCount() const;
 
   protected:
-    PTPClockEvent();
+    PTPClockEvent() = default;
 
   private:
     friend class ClockEventHandler;
     friend class ClockSyncData;
     friend class TimeBaseState;
-    uint32_t syncedWithGmCount;
-    uint32_t asCapableCount;
-    uint32_t compositeEventCount;
-    bool syncedWithGm;
-    bool asCapable;
-    bool compositeEvent;
+    uint32_t syncedWithGmCount = 0;
+    uint32_t asCapableCount = 0;
+    uint32_t compositeEventCount = 0;
+    bool syncedWithGm = false;
+    bool asCapable = false;
+    bool compositeEvent = false;
 };
 
 /**
@@ -206,7 +207,7 @@ class PTPClockEvent : public ClockEventBase
 class SysClockEvent : public ClockEventBase
 {
   protected:
-    SysClockEvent();
+    SysClockEvent() = default;
 
   private:
     friend class ClockEventHandler;
@@ -226,7 +227,7 @@ class ClockSyncData
      * Construct a ClockSyncData object, setting the PTP and system clock
      * availability flags to false
      */
-    ClockSyncData();
+    ClockSyncData() = default;
 
     /**
      * Check if the PTP clock is available
@@ -256,8 +257,8 @@ class ClockSyncData
     friend class ClockSyncBaseHandler;
     PTPClockEvent ptpClockSync;
     SysClockEvent sysClockSync;
-    bool ptpAvailable;
-    bool sysAvailable;
+    bool ptpAvailable = false;
+    bool sysAvailable = false;
 };
 
 __CLKMGR_NAMESPACE_END
