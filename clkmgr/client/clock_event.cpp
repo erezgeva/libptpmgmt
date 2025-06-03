@@ -15,18 +15,6 @@
 
 __CLKMGR_NAMESPACE_USE;
 
-ClockEventBase::ClockEventBase()
-{
-    clockOffset = 0;
-    offsetInRange = false;
-    gmClockUUID = {};
-    gmChanged = false;
-    syncInterval = 0;
-    notificationTimestamp = 0;
-    offsetInRangeCount = 0;
-    gmChangedCount = 0;
-}
-
 uint64_t ClockEventBase::getNotificationTimestamp() const
 {
     return notificationTimestamp;
@@ -67,16 +55,6 @@ uint32_t ClockEventBase::getGmChangedEventCount() const
     return gmChangedCount;
 }
 
-PTPClockEvent::PTPClockEvent()
-{
-    syncedWithGm = false;
-    asCapable = false;
-    compositeEvent = false;
-    syncedWithGmCount = 0;
-    asCapableCount = 0;
-    compositeEventCount = 0;
-}
-
 bool PTPClockEvent::isSyncedWithGm() const
 {
     return syncedWithGm;
@@ -105,14 +83,6 @@ uint32_t PTPClockEvent::getAsCapableEventCount() const
 uint32_t PTPClockEvent::getCompositeEventCount() const
 {
     return compositeEventCount;
-}
-
-SysClockEvent::SysClockEvent() {}
-
-ClockSyncData::ClockSyncData()
-{
-    ptpAvailable = false;
-    sysAvailable = false;
 }
 
 bool ClockSyncData::havePTP() const
