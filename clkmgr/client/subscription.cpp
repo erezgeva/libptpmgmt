@@ -10,6 +10,7 @@
  */
 
 #include "pub/clkmgr/subscription.h"
+#include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -17,11 +18,34 @@ __CLKMGR_NAMESPACE_USE;
     void cls::set##func(type _v) { var = _v; } \
     type cls::get##func() const { return var; }
 
+#define GET(cls, type, func, var)\
+    type cls::get##func() const { return var; }
+
 GET_SET(ClockSubscriptionBase, uint32_t,
     ClockOffsetThreshold, clockOffsetThreshold)
-GET_SET(ClockSubscriptionBase, uint32_t, EventMask, eventMask)
-GET_SET(PTPClockSubscription, uint32_t,
+GET(ClockSubscriptionBase, uint32_t, EventMask, eventMask)
+GET(PTPClockSubscription, uint32_t,
     CompositeEventMask, m_composite_event_mask)
+
+bool ClockSubscriptionBase::setEventMask(uint32_t newEventMask)
+{
+    if(newEventMask >= eventLast) {
+        PrintDebug("Event mask contains invalid bits.");
+        return false;
+    }
+    eventMask = newEventMask;
+    return true;
+}
+
+bool PTPClockSubscription::setCompositeEventMask(uint32_t composite_event_mask)
+{
+    if(composite_event_mask & ~COMPOSITE_EVENT_ALL) {
+        PrintDebug("Composite event mask contains invalid bits.");
+        return false;
+    }
+    m_composite_event_mask = composite_event_mask;
+    return true;
+}
 
 PTPClockSubscription::PTPClockSubscription() noexcept
     : m_composite_event_mask(0)

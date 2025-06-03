@@ -112,14 +112,16 @@ class TimeBaseState
     /**
      * Set the PTP event subscription
      * @param[in] eSub PTP event subscription
+     * @return True if the subscription is set successfully, false otherwise
      */
-    void set_ptpEventSub(const PTPClockSubscription &eSub);
+    bool set_ptpEventSub(const PTPClockSubscription &eSub);
 
     /**
      * Set the system clock event subscription
      * @param[in] eSub System clock event subscription
+     * @return True if the subscription is set successfully, false otherwise
      */
-    void set_sysEventSub(const SysClockSubscription &eSub);
+    bool set_sysEventSub(const SysClockSubscription &eSub);
 };
 
 /**
@@ -149,17 +151,17 @@ class TimeBaseStates
     void setTimeBaseState(size_t timeBaseIndex, const ptp_event &event);
 
     // Method to set PTPClockSubscription by timeBaseIndex
-    void setPtpEventSubscription(int timeBaseIndex,
+    bool setPtpEventSubscription(int timeBaseIndex,
         const PTPClockSubscription &sub) {
         std::lock_guard<rtpi::mutex> lock(mtx);
-        timeBaseStateMap[timeBaseIndex].set_ptpEventSub(sub);
+        return timeBaseStateMap[timeBaseIndex].set_ptpEventSub(sub);
     }
 
     // Method to set SysClockSubscription by timeBaseIndex
-    void setSysEventSubscription(int timeBaseIndex,
+    bool setSysEventSubscription(int timeBaseIndex,
         const SysClockSubscription &sub) {
         std::lock_guard<rtpi::mutex> lock(mtx);
-        timeBaseStateMap[timeBaseIndex].set_sysEventSub(sub);
+        return timeBaseStateMap[timeBaseIndex].set_sysEventSub(sub);
     }
 
     // Method to get the subscription status by timeBaseIndex

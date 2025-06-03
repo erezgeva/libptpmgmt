@@ -81,17 +81,17 @@ const SysClockSubscription &TimeBaseState::get_sysEventSub() const
     return sysEventSub;
 }
 
-void TimeBaseState::set_ptpEventSub(const PTPClockSubscription &eSub)
+bool TimeBaseState::set_ptpEventSub(const PTPClockSubscription &eSub)
 {
-    ptpEventSub.setEventMask(eSub.getEventMask());
     ptpEventSub.setClockOffsetThreshold(eSub.getClockOffsetThreshold());
-    ptpEventSub.setCompositeEventMask(eSub.getCompositeEventMask());
+    return (ptpEventSub.setEventMask(eSub.getEventMask()) &&
+            ptpEventSub.setCompositeEventMask(eSub.getCompositeEventMask()));
 }
 
-void TimeBaseState::set_sysEventSub(const SysClockSubscription &eSub)
+bool TimeBaseState::set_sysEventSub(const SysClockSubscription &eSub)
 {
-    sysEventSub.setEventMask(eSub.getEventMask());
     sysEventSub.setClockOffsetThreshold(eSub.getClockOffsetThreshold());
+    return sysEventSub.setEventMask(eSub.getEventMask());
 }
 
 void TimeBaseState::set_last_notification_time(const timespec &newTime)
@@ -285,12 +285,14 @@ bool TimeBaseStates::subscribe(size_t timeBaseIndex,
     }
     if(newSub.isPTPSubscriptionEnable()) {
         const PTPClockSubscription &newPtpSub = newSub.getPtpSubscription();
-        setPtpEventSubscription(timeBaseIndex, newPtpSub);
+        if(!setPtpEventSubscription(timeBaseIndex, newPtpSub))
+            return false;
     }
     // ToDo: Check whether system clock is available for subscription
     if(newSub.isSysSubscriptionEnable()) {
         const SysClockSubscription &newSysSub = newSub.getSysSubscription();
-        setSysEventSubscription(timeBaseIndex, newSysSub);
+        if(!setSysEventSubscription(timeBaseIndex, newSysSub))
+            return false;
     }
     // Send a subscribe message to Proxy Daemon
     ClientSubscribeMessage *cmsg = new ClientSubscribeMessage();

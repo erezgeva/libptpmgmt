@@ -10,19 +10,22 @@
  */
 
 #include "pub/clockmanager.h"
+#include "pub/clkmgr/types.h"
 
 using namespace clkmgr;
 
-// Tests composite event mask
+// Tests event mask
 // ClockSyncSubscription()
 // void enablePtpSubscription()
 // void disablePtpSubscription()
 // bool isPTPSubscriptionEnable() const
 // void setPtpSubscription(const PTPClockSubscription &newPtpSub)
 // const PTPClockSubscription &getPtpSubscription() const
-// void PTPClockSubscription::setCompositeEventMask(uint32_t composite_event_mask)
+// bool PTPClockSubscription::setEventMask(uint32_t event_mask)
+// uint32_t PTPClockSubscription::getEventMask() const
+// bool PTPClockSubscription::setCompositeEventMask(uint32_t composite_event_mask)
 // uint32_t PTPClockSubscription::getCompositeEventMask() const
-TEST(SubscriptionTest, compositeEventMask)
+TEST(SubscriptionTest, setAndGet)
 {
     ClockSyncSubscription subscription;
     EXPECT_FALSE(subscription.isPTPSubscriptionEnable());
@@ -33,10 +36,16 @@ TEST(SubscriptionTest, compositeEventMask)
     const PTPClockSubscription &org = subscription.getPtpSubscription();
     PTPClockSubscription copy = org;
     EXPECT_EQ(org.getCompositeEventMask(), 0);
-    copy.setCompositeEventMask(0x1234);
+    EXPECT_FALSE(copy.setEventMask(eventLast));
+    EXPECT_TRUE(copy.setEventMask(eventLast - 1));
+    EXPECT_FALSE(copy.setCompositeEventMask(COMPOSITE_EVENT_ALL + 1));
+    EXPECT_TRUE(copy.setCompositeEventMask(COMPOSITE_EVENT_ALL));
     subscription.setPtpSubscription(copy);
-    EXPECT_EQ(subscription.getPtpSubscription().getCompositeEventMask(), 0x1234);
-    EXPECT_EQ(org.getCompositeEventMask(), 0x1234);
+    EXPECT_EQ(subscription.getPtpSubscription().getEventMask(), eventLast - 1);
+    EXPECT_EQ(subscription.getPtpSubscription().getCompositeEventMask(),
+        COMPOSITE_EVENT_ALL);
+    EXPECT_EQ(org.getEventMask(), eventLast - 1);
+    EXPECT_EQ(org.getCompositeEventMask(), COMPOSITE_EVENT_ALL);
 }
 
 // Test system clock subscription

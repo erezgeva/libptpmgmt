@@ -30,8 +30,11 @@ class ClockSubscriptionBase
     /**
      * Set the event mask
      * @param[in] newEventMask The new event mask to set
+     * @return True if the event mask is set successfully, false otherwise
+     * @note The event mask is a bitmask where each bit represents an event,
+     * as defined by enum EventIndex
      */
-    void setEventMask(uint32_t newEventMask);
+    bool setEventMask(uint32_t newEventMask);
 
     /**
      * Get the value of the event mask
@@ -69,8 +72,12 @@ class PTPClockSubscription : public ClockSubscriptionBase
     /**
      * Set the composite event mask.
      * @param[in] composite_event_mask The new composite event mask to set.
+     * @return True if the composite event mask is set successfully, false
+     * otherwise.
+     * @note The compositie event mask is a bitmask where each bit represents an
+     * event, as defined by enum EventIndex and COMPOSITE_EVENT_ALL.
      */
-    void setCompositeEventMask(uint32_t composite_event_mask);
+    bool setCompositeEventMask(uint32_t composite_event_mask);
 
     /**
      * Get the value of the composite event mask.

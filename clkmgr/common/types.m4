@@ -41,6 +41,12 @@ enum Nm(EventIndex) sz(`: uint32_t '){
 };
 
 /**
+ * All the events that can be used as conditions for satisfying the composite event.
+ */
+cnst(uint32_t,COMPOSITE_EVENT_ALL,Nm(eventGMOffset) | \
+    Nm(eventSyncedToGM) | Nm(eventASCapable))
+
+/**
  * Maximum number of events that can have user predefined threshold
  * (upper and lower limit) as indicator on whether the event is true or false.
  */
