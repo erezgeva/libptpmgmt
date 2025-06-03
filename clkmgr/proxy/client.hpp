@@ -16,14 +16,11 @@
 #include "common/message.hpp"
 #include "common/ptp_event.hpp"
 
-#include <memory>
-#include <map>
-#include <rtpi/mutex.hpp>
-
 __CLKMGR_NAMESPACE_BEGIN
 
 static const size_t MAX_CLIENT_COUNT = 8;
 
+class Transmitter;
 class ClientRemoveAll;
 
 class ptpEvent
@@ -77,7 +74,9 @@ class Client
     #endif
 
   protected:
+    static Transmitter *getTransmitter(sessionId_t sessionId);
     Transmitter *getTransmitter() { return m_transmitter.get(); }
+    friend class Transmitter;
     friend class ClientRemoveAll;
 
   public:
@@ -85,9 +84,7 @@ class Client
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
     static void NotifyClients(size_t timeBaseIndex);
-    static Transmitter *getTransmitter(sessionId_t sessionId);
-    static rtpi::mutex &getTimeBaseLock(size_t timeBaseIndex);
-    static ptp_event &getPTPEvent(size_t timeBaseIndex);
+    static void getPTPEvent(size_t timeBaseIndex, ptp_event &evnt);
 };
 
 __CLKMGR_NAMESPACE_END

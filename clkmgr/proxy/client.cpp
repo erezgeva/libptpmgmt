@@ -17,11 +17,19 @@
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
+#include <map>
 #include <cstring>
+#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
+
+#ifdef HAVE_LIBCHRONY
+#define CHRONY_INIT && connect_chrony()
+#else
+#define CHRONY_INIT
+#endif
 
 static thread_local Buffer notifyBuff;
 static sessionId_t nextSession = 0;
@@ -57,20 +65,15 @@ static inline bool existClient(sessionId_t sessionId)
     return sessionMap.count(sessionId) > 0;
 }
 
-rtpi::mutex &Client::getTimeBaseLock(size_t timeBaseIndex)
+void Client::getPTPEvent(size_t timeBaseIndex, ptp_event &event)
 {
-    if(timeBaseLock.count(timeBaseIndex) > 0)
-        return timeBaseLock[timeBaseIndex];
-    static rtpi::mutex dummy;
-    return dummy;
-}
-
-ptp_event &Client::getPTPEvent(size_t timeBaseIndex)
-{
-    if(ptp4lEvents.count(timeBaseIndex) > 0)
-        return ptp4lEvents[timeBaseIndex];
-    static ptp_event dummy;
-    return dummy;
+    if(ptp4lEvents.count(timeBaseIndex) > 0) {
+        unique_lock<rtpi::mutex> local(timeBaseLock[timeBaseIndex]);
+        event = ptp4lEvents[timeBaseIndex];
+    } else {
+        static ptp_event dummy = { 0 };
+        event = dummy;
+    }
 }
 
 sessionId_t Client::CreateClientSession(const string &id)
@@ -183,11 +186,7 @@ bool Client::init()
         return false;
     }
     PrintDebug("Proxy listener queue opened");
-    return connect_ptp4l()
-        #ifdef HAVE_LIBCHRONY
-        && connect_chrony()
-        #endif
-        ;
+    return connect_ptp4l() CHRONY_INIT;
 }
 
 void Client::NotifyClients(size_t timeBaseIndex)
@@ -198,11 +197,8 @@ void Client::NotifyClients(size_t timeBaseIndex)
             to_string(timeBaseIndex));
         return;
     }
-    vector<sessionId_t> sessionIdToRemove;
-    unique_lock<rtpi::mutex> local(timeBaseClients[timeBaseIndex].lock);
     ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
     if(pmsg == nullptr) {
-        local.unlock(); // Explicitly unlock the mutex
         PrintErrorCode("[Client::NotifyClients] notifyMsg is nullptr !!");
         return;
     }
@@ -211,10 +207,11 @@ void Client::NotifyClients(size_t timeBaseIndex)
     // Send data for multiple sessions
     pmsg->setTimeBaseIndex(timeBaseIndex);
     if(!pmsg->makeBuffer(notifyBuff)) {
-        local.unlock(); // Explicitly unlock the mutex
         PrintError("[Client::NotifyClients] Failed to create message");
         return;
     }
+    vector<sessionId_t> sessionIdToRemove;
+    unique_lock<rtpi::mutex> local(timeBaseClients[timeBaseIndex].lock);
     for(auto &c : timeBaseClients[timeBaseIndex].clients) {
         const sessionId_t sessionId = c.first;
         PrintDebug("[Client::NotifyClients] Get client session ID: " +

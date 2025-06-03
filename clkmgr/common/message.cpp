@@ -53,8 +53,8 @@ bool Message::makeBuffer(Buffer &buff) const
 {
     PrintDebug("[Message]::makeBuffer");
     buff.resetOffset();
-    if(!WRITE_TX(FIELD, get_msgId(), buff) ||
-        !WRITE_TX(FIELD, m_msgAck, buff) ||
+    if(!WRITE_TX(get_msgId(), buff) ||
+        !WRITE_TX(m_msgAck, buff) ||
         !makeBufferComm(buff) || !makeBufferTail(buff)) {
         PrintError("Failed to make buffer from message object");
         return false;
@@ -67,14 +67,14 @@ bool Message::makeBuffer(Buffer &buff) const
 
 bool Message::parseBuffer()
 {
-    return PARSE_RX(FIELD, m_msgAck, rxBuf) &&
+    return PARSE_RX(m_msgAck, rxBuf) &&
         parseBufferComm() && parseBufferTail();
 }
 
 Message *Message::parseBuffer(Buffer &rxBuf)
 {
     msgId_t msgId;
-    if(!PARSE_RX(FIELD, msgId, rxBuf))
+    if(!PARSE_RX(msgId, rxBuf))
         return nullptr;
     if(allocMessageMap.count(msgId) == 0) {
         PrintError("Unknown message type " + to_string(msgId));
