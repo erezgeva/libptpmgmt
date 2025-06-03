@@ -71,16 +71,6 @@ void TimeBaseState::set_chronyEventState(const SysClockEvent &chronyState)
     chronyEventState = chronyState;
 }
 
-string TimeBaseState::toString() const
-{
-    return string("[TimeBaseState::eventState]") +
-        " as_capable = " + to_string(eventState.as_capable) +
-        " gm_changed = " + to_string(eventState.gm_changed) +
-        " offset_in_range = " + to_string(eventState.offset_in_range) +
-        " synced_to_primary_clock = " +
-        to_string(eventState.synced_to_primary_clock) + "\n";
-}
-
 const PTPClockSubscription &TimeBaseState::get_ptpEventSub() const
 {
     return ptpEventSub;

@@ -31,7 +31,6 @@ class TimeBaseState
   private:
     bool subscribed{false}; /**< Subscription status */
     bool event_changed{false}; /**< Subscription status */
-    Event_state eventState = {}; /**< Event state */
     PTPClockEvent ptp4lEventState; /**< PTP4L Event state */
     SysClockEvent chronyEventState; /**< Chrony Event state */
     PTPClockSubscription ptpEventSub; /**< PTP Event subscription */
@@ -66,7 +65,6 @@ class TimeBaseState
      * Get the ptp4l event state
      * @return Reference to the event state
      */
-    //Event_state &get_eventState();
     const PTPClockEvent &get_ptp4lEventState() const;
 
     /**
@@ -98,12 +96,6 @@ class TimeBaseState
      * @return Last notification time
      */
     const timespec &get_last_notification_time() const;
-
-    /**
-     * Convert the client state to a string
-     * @return String representation of the client state
-     */
-    std::string toString() const;
 
     /**
      * Get the PTP event subscription
