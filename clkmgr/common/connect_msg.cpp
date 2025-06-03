@@ -35,8 +35,8 @@ bool ConnectMessage::parseBufferComm()
 {
     sessionId_t sessionId;
     clientIdEncaps eClientId;
-    if(!PARSE_RX(FIELD, sessionId, rxBuf) ||
-        !PARSE_RX(FIELD, eClientId, rxBuf))
+    if(!PARSE_RX(sessionId, rxBuf) ||
+        !PARSE_RX(eClientId, rxBuf))
         return false;
     clientId = string(eClientId.ClientId, CLIENTID_LENGTH);
     set_sessionId(sessionId);
@@ -47,6 +47,6 @@ bool ConnectMessage::makeBufferComm(Buffer &buff) const
 {
     clientIdEncaps eClientId;
     clientId.copy(eClientId.ClientId, CLIENTID_LENGTH);
-    return WRITE_TX(FIELD, get_sessionId(), buff) &&
-        WRITE_TX(FIELD, eClientId, buff);
+    return WRITE_TX(get_sessionId(), buff) &&
+        WRITE_TX(eClientId, buff);
 }

@@ -22,9 +22,8 @@ using namespace std;
 bool ProxyNotificationMessage::makeBufferTail(Buffer &buff) const
 {
     PrintDebug("[ProxyNotificationMessage]::makeBufferTail");
-    unique_lock<rtpi::mutex> local(Client::getTimeBaseLock(timeBaseIndex));
-    ptp_event event = Client::getPTPEvent(timeBaseIndex);
-    local.unlock(); // Explicitly unlock the mutex
+    ptp_event event;
+    Client::getPTPEvent(timeBaseIndex, event);
     // Add event data into the message
-    return WRITE_TX(FIELD, event, buff);
+    return WRITE_TX(event, buff);
 }

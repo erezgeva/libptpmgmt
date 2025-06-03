@@ -21,12 +21,30 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+static inline int help(FILE *out, const char *me, int ret)
+{
+    fprintf(out,
+        "Usage of %s:\n"
+        "Options:\n"
+        " -f [file] Read configuration from 'file'\n"
+        " -l <lvl> Set log level\n"
+        "          0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE\n"
+        " -v <0|1> Enable or disable verbose output\n"
+        "          0: disable, 1: enable(default)\n"
+        " -s <0|1> Enable or disable system log printing\n"
+        "          0: disable(default), 1: enable\n"
+        " -h       Show this help message\n",
+        me);
+    return ret;
+}
+
 int main(int argc, char *argv[])
 {
-    int level, verbose, syslog;
-    bool startSyslog = false;
-    int opt;
-    const char *file = nullptr;
+    int level, opt;
+    bool useSyslog = false; // Default value
+    bool useVerbode = true; // Default value
+    const char *file;
+    const char *me = argv[0];
     JsonConfigParser &parser = JsonConfigParser::getInstance();
     while((opt = getopt(argc, argv, "f:l:v:s:h")) != -1) {
         switch(opt) {
@@ -43,58 +61,27 @@ int main(int argc, char *argv[])
                     fprintf(stderr, "Invalid log level %d\n", level);
                     return EXIT_FAILURE;
                 }
-                setLogLevel(static_cast<LogLevel>(level));
+                setLogLevel(level);
                 break;
             case 'v':
-                verbose = atoi(optarg);
-                if(verbose < 0 || verbose > 1) {
-                    fprintf(stderr, "Invalid verbose %d\n", verbose);
-                    return EXIT_FAILURE;
-                }
-                setVerbose(verbose == 1);
+                useVerbode = atoi(optarg) != 0;
                 break;
             case 's':
-                syslog = atoi(optarg);
-                if(syslog < 0 || syslog > 1) {
-                    fprintf(stderr, "Invalid syslog %d\n", syslog);
-                    return EXIT_FAILURE;
-                }
-                startSyslog = (syslog == 1);
+                useSyslog = atoi(optarg) != 0;
                 break;
             case 'h':
-                printf("Usage of %s:\n"
-                    "Options:\n"
-                    " -f [file] Read configuration from 'file'\n"
-                    " -l <lvl> Set log level\n"
-                    "          0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE\n"
-                    " -v <0|1> Enable or disable verbose output\n"
-                    "          0: disable, 1: enable(default)\n"
-                    " -s <0|1> Enable or disable system log printing\n"
-                    "          0: disable(default), 1: enable\n"
-                    " -h       Show this help message\n",
-                    argv[0]);
-                return EXIT_SUCCESS;
+                return help(stdout, me, EXIT_SUCCESS);
             default:
-                fprintf(stderr, "Usage of %s:\n"
-                    "Options:\n"
-                    " -f [file] Read configuration from 'file'\n"
-                    " -l <lvl> Set log level\n"
-                    "          0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE\n"
-                    " -v <0|1> Enable or disable verbose output\n"
-                    "          0: disable, 1: enable(default)\n"
-                    " -s <0|1> Enable or disable system log printing\n"
-                    "          0: disable(default), 1: enable\n"
-                    " -h       Show this help message\n",
-                    argv[0]);
-                return EXIT_FAILURE;
+                return help(stderr, me, EXIT_FAILURE);
         }
     }
+    setVerbose(useVerbode);
+    if(useSyslog)
+        PrintStartLog(me);
     if(parser.size() == 0) {
         PrintError("Configuration file is missing or empty");
         return EXIT_FAILURE;
     }
-    if(startSyslog)
-        PrintStartLog(argv[0]);
     BlockStopSignal();
     if(!Client::init()) {
         PrintError("Proxy client init failed");
@@ -103,7 +90,7 @@ int main(int argc, char *argv[])
     WaitForStopSignal();
     PrintDebug("Got stop signal");
     int ret = End::stopAll() ? EXIT_SUCCESS : EXIT_FAILURE;
-    if(startSyslog)
+    if(useSyslog)
         PrintStopLog();
     return ret;
 }

@@ -20,12 +20,12 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-static inline bool SIGADDSET(sigset_t *sigset, int sig)
+static inline bool SIGADDSET(sigset_t &sigset, int sig)
 {
-    return sigaddset(sigset, sig) == 0;
+    return sigaddset(&sigset, sig) == 0;
 }
 
-static inline bool AddStopSignal(sigset_t *sigset)
+static inline bool AddStopSignal(sigset_t &sigset)
 {
     return SIGADDSET(sigset, SIGINT) &&
         SIGADDSET(sigset, SIGHUP) &&
@@ -35,22 +35,22 @@ static inline bool AddStopSignal(sigset_t *sigset)
         SIGADDSET(sigset, SIGABRT);
 }
 
-static inline bool AddInterruptSignal(sigset_t *sigset)
+static inline bool AddInterruptSignal(sigset_t &sigset)
 {
     return SIGADDSET(sigset, SIGUSR1) &&
         SIGADDSET(sigset, SIGUSR2);
 }
 
-static inline bool GenerateBlockSigset(sigset_t *block)
+static inline bool GenerateBlockSigset(sigset_t &block)
 {
-    return sigemptyset(block) == 0 &&
+    return sigemptyset(&block) == 0 &&
         AddStopSignal(block) &&
         AddInterruptSignal(block);
 }
 
-static inline bool GenerateWaitSigset(sigset_t *wait)
+static inline bool GenerateWaitSigset(sigset_t &wait)
 {
-    return sigemptyset(wait) == 0 &&
+    return sigemptyset(&wait) == 0 &&
         AddStopSignal(wait);
 }
 
@@ -59,14 +59,14 @@ __CLKMGR_NAMESPACE_BEGIN;
 bool BlockStopSignal()
 {
     sigset_t blockSigset;
-    return GenerateBlockSigset(&blockSigset) &&
+    return GenerateBlockSigset(blockSigset) &&
         pthread_sigmask(SIG_BLOCK, &blockSigset, nullptr) == 0;
 }
 
 bool WaitForStopSignal()
 {
     sigset_t waitSigset;
-    if(!GenerateWaitSigset(&waitSigset))
+    if(!GenerateWaitSigset(waitSigset))
         return false;
     PrintDebug("Waiting for Interrupt Signal");
     int cause;
@@ -78,22 +78,16 @@ bool WaitForStopSignal()
     return true;
 }
 
-// Empty callback for signalling
-static void NullSigaction(int sig, siginfo_t *siginfo, void *ctx)
-{
-}
-
 bool EnableSyscallInterruptSignal()
 {
-    struct sigaction intrSigaction;
-    intrSigaction.sa_sigaction = NullSigaction;
+    struct sigaction intrSigaction = { .sa_flags = SA_SIGINFO };
     if(sigemptyset(&intrSigaction.sa_mask) != 0)
         return false;
-    intrSigaction.sa_flags = SA_SIGINFO;
+    intrSigaction.sa_sigaction = [](int, siginfo_t *, void *) {};
     sigset_t unblockSigset;
     return sigaction(INTR_SIGNAL, &intrSigaction, nullptr) == 0 &&
         sigemptyset(&unblockSigset) == 0 &&
-        SIGADDSET(&unblockSigset, INTR_SIGNAL) &&
+        SIGADDSET(unblockSigset, INTR_SIGNAL) &&
         pthread_sigmask(SIG_UNBLOCK, &unblockSigset, nullptr) == 0;
 }
 

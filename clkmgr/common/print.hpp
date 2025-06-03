@@ -19,24 +19,21 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-enum LogLevel { ERROR, INFO, DEBUG, TRACE };
-
-typedef std::remove_reference<decltype(errno)>::type errno_type;
 #define PrintErrorCode(msg) PrintError(msg, errno)
 #define PrintError(msg,...) ::clkmgr::_PrintError(msg, \
     __LINE__, __FILE__, __func__ __VA_OPT__(,) \
     __VA_ARGS__)
-void _PrintError(std::string msg, uint16_t line, const char *file,
-    const char *func, errno_type errnum = (errno_type) - 1);
+void _PrintError(const std::string &msg, uint16_t line, const char *file,
+    const char *func, int errnum = 0);
 
 #define PrintDebug(msg) ::clkmgr::_PrintDebug(msg, \
     __LINE__, __FILE__, __func__)
 #define PrintInfo(msg) ::clkmgr::_PrintInfo(msg, \
     __LINE__, __FILE__, __func__)
 
-void _PrintDebug(std::string msg, uint16_t line, const char *file,
+void _PrintDebug(const std::string &msg, uint16_t line, const char *file,
     const char *func);
-void _PrintInfo(std::string msg, uint16_t line, const char *file,
+void _PrintInfo(const std::string &msg, uint16_t line, const char *file,
     const char *func);
 
 #define DumpOctetArray(msg,arr,size) clkmgr::_DumpOctetArray(msg, arr, \
@@ -47,7 +44,7 @@ void _DumpOctetArray(std::string msg, const uint8_t *arr, size_t length,
 
 void PrintStartLog(const char *me);
 void PrintStopLog();
-void setLogLevel(LogLevel level);
+void setLogLevel(int level);
 void setVerbose(bool isVerbose);
 
 __CLKMGR_NAMESPACE_END

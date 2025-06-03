@@ -21,12 +21,10 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-typedef uint8_t msgAck_t;
-enum  : msgAck_t {ACK_FAIL = (msgAck_t) -1, ACK_NONE = 0, ACK_SUCCESS = 1, };
+enum msgAck_t : uint8_t { ACK_NONE, ACK_SUCCESS };
 
-typedef uint8_t msgId_t;
-enum : msgId_t {INVALID_MSG = (msgId_t) -1, NULL_MSG = 1, CONNECT_MSG,
-    SUBSCRIBE_MSG, NOTIFY_MESSAGE, DISCONNECT_MSG
+enum msgId_t : uint8_t { CONNECT_MSG, SUBSCRIBE_MSG, NOTIFY_MESSAGE
+    /*, DISCONNECT_MSG*/
 };
 
 class Message;
@@ -55,7 +53,7 @@ class Message
     virtual bool makeBufferTail(Buffer &buff) const { return true; }
     // Parse buffer and fill the message - common message callback
     virtual bool parseBufferComm() { return true; }
-    // Parse buffer and fill the message - last  message callback
+    // Parse buffer and fill the message - last message callback
     virtual bool parseBufferTail() { return true; }
 
   public:

@@ -16,9 +16,9 @@
 
 #include <chrony.h>
 #include <poll.h>
-#include <cmath>
-#include <thread>
 #include <atomic>
+#include <thread>
+#include <cmath>
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -202,15 +202,14 @@ bool Client::connect_chrony()
 
 class ChronyDisconnect : public End
 {
-  public:
     bool stop() override final {
-        for(auto &it : chronyThreadList)
+        for(const auto &it : chronyThreadList)
             it.second->stopThread = true;
         return true;
     }
     bool finalize() override final {
         // Wait for threads to end
-        for(auto &it : chronyThreadList)
+        for(const auto &it : chronyThreadList)
             it.second->wait();
         for(auto &it : chronyThreadList)
             it.second->close();

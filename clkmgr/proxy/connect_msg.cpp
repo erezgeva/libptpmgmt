@@ -49,11 +49,11 @@ bool ProxyConnectMessage::makeBufferTail(Buffer &buff) const
     PrintDebug("[ProxyConnectMessage]::makeBufferTail");
     JsonConfigParser parser = JsonConfigParser::getInstance();
     size_t mapSize = parser.size();
-    if(!WRITE_TX(FIELD, mapSize, buff))
+    if(!WRITE_TX(mapSize, buff))
         return false;;
     for(const auto &row : parser) {
         TimeBaseCfg cfg = row.base;
-        if(!WRITE_TX(FIELD, cfg, buff))
+        if(!WRITE_TX(cfg, buff))
             return false;
     }
     return true;

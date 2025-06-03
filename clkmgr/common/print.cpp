@@ -15,40 +15,44 @@
 #include <syslog.h>
 #include <rtpi/mutex.hpp>
 
-__CLKMGR_NAMESPACE_USE;
+__CLKMGR_NAMESPACE_BEGIN
 
 using namespace std;
+
+//              0      1     2      3
+enum LogLevel { ERROR, INFO, DEBUG, TRACE };
 
 static LogLevel currentLogLevel = INFO;
 static bool useSyslog = false;
 static bool verbose = true;
 static rtpi::mutex errMutex;
 
-void clkmgr::PrintStartLog(const char *me)
+void PrintStartLog(const char *me)
 {
     openlog(me, LOG_PID, LOG_DAEMON);
     useSyslog = true;
 }
-void clkmgr::PrintStopLog()
+void PrintStopLog()
 {
     closelog();
 }
 
-void clkmgr::setLogLevel(LogLevel level)
+void setLogLevel(int level)
 {
-    currentLogLevel = level;
+    currentLogLevel = (LogLevel)level;
 }
 
-void clkmgr::setVerbose(bool isVerbose)
+void setVerbose(bool isVerbose)
 {
     verbose = isVerbose;
 }
 
-void clkmgr::_PrintError(string msg, uint16_t line, const char *file,
-    const char *func, errno_type errnum)
+void _PrintError(const string &msg, uint16_t line, const char *file,
+    const char *func, int errnum)
 {
     string ebuf;
-    if(errnum != (errno_type)(-1)) {
+    if(errnum != 0) {
+        // error string is not thread safe
         unique_lock<rtpi::mutex> lck(errMutex);
         ebuf = strerror(errnum);
     }
@@ -62,7 +66,7 @@ void clkmgr::_PrintError(string msg, uint16_t line, const char *file,
     }
 }
 
-void clkmgr::_PrintDebug(string msg, uint16_t line, const char *file,
+void _PrintDebug(const string &msg, uint16_t line, const char *file,
     const char *func)
 {
     if(currentLogLevel < DEBUG)
@@ -77,7 +81,7 @@ void clkmgr::_PrintDebug(string msg, uint16_t line, const char *file,
     }
 }
 
-void clkmgr::_PrintInfo(string msg, uint16_t line, const char *file,
+void _PrintInfo(const string &msg, uint16_t line, const char *file,
     const char *func)
 {
     if(currentLogLevel < INFO)
@@ -93,7 +97,7 @@ void clkmgr::_PrintInfo(string msg, uint16_t line, const char *file,
 }
 
 #define HEX_DIGITS_PER_LINE 16
-void clkmgr::_DumpOctetArray(string msg, const uint8_t *arr,
+void _DumpOctetArray(string msg, const uint8_t *arr,
     size_t length, uint16_t line, const char *file, const char *func)
 {
     if(currentLogLevel < TRACE)
@@ -115,3 +119,5 @@ void clkmgr::_DumpOctetArray(string msg, const uint8_t *arr,
         fflush(stderr);
     }
 }
+
+__CLKMGR_NAMESPACE_END
