@@ -187,6 +187,7 @@ bool Listener::MqListenerWork()
     Message *msg = Message::parseBuffer(rxBuff);
     if(msg == nullptr)
         return false;
+    unique_ptr<Message> send_msg(msg);
     PrintDebug("Received message " + msg->toString());
     // Echo the message back with ACK disposition
     if(msg->get_msgAck() != ACK_NONE) {
@@ -210,7 +211,7 @@ bool Transmitter::sendBuffer(Buffer &buf)
     return true;
 }
 
-bool Transmitter::open(const std::string &name, bool block)
+bool Transmitter::open(const string &name, bool block)
 {
     if(m_transmitterQueue.TxOpen(name, block)) {
         PrintDebug("Successfully connected to client " + name);

@@ -14,6 +14,8 @@
 #include "common/serialize.hpp"
 #include "common/print.hpp"
 
+#include <cstring>
+
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
@@ -46,6 +48,7 @@ bool ConnectMessage::parseBufferComm()
 bool ConnectMessage::makeBufferComm(Buffer &buff) const
 {
     clientIdEncaps eClientId;
+    memset(&eClientId, 0, sizeof eClientId);
     clientId.copy(eClientId.ClientId, CLIENTID_LENGTH);
     return WRITE_TX(get_sessionId(), buff) &&
         WRITE_TX(eClientId, buff);

@@ -32,14 +32,13 @@ class Buffer
   protected:
     uint8_t m_buffer[MAX_BUFFER_LENGTH];
 
-    // Set length of received message and reset the offset for parsing
-    void setLen(size_t rcvSize) { m_rcvSize = rcvSize; m_offset = 0; }
-
   public:
     Buffer() = default;
     virtual ~Buffer() = default;
     static size_t size() { return MAX_BUFFER_LENGTH; }
 
+    // Set length of received message and reset the offset for parsing
+    void setLen(size_t rcvSize) { m_rcvSize = rcvSize; m_offset = 0; }
     // Data pointer for read only!
     const uint8_t *data() const { return m_buffer; }
     size_t getOffset() const { return m_offset; }
