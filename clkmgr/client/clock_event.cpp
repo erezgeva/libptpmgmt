@@ -11,6 +11,7 @@
 
 #include "pub/clkmgr/event.h"
 #include "client/clock_event_handler.hpp"
+#include "client/opaque_struct_c.hpp"
 #include "client/timebase_state.hpp"
 
 __CLKMGR_NAMESPACE_USE;
@@ -114,3 +115,183 @@ bool ClockSyncBaseHandler::updateAll(const TimeBaseState &state)
     clockSyncData.sysAvailable = true;
     return true;
 }
+
+extern "C" {
+
+    Clkmgr_ClockSyncData *clkmgr_constructClockSyncDataInstance()
+    {
+        auto *data_c = new Clkmgr_ClockSyncData;
+        data_c->data = new clkmgr::ClockSyncData();
+        return data_c;
+    }
+
+    void clkmgr_destroyClockSyncDataInstance(Clkmgr_ClockSyncData *data_c)
+    {
+        if(!data_c)
+            return;
+        delete data_c->data;
+        delete data_c;
+    }
+
+    bool clkmgr_havePtpData(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->havePTP();
+    }
+
+    bool clkmgr_haveSysData(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->haveSys();
+    }
+
+    int64_t clkmgr_getClockOffset(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().getClockOffset();
+            case sysClock:
+                return data_c->data->getSysClock().getClockOffset();
+            default:
+                return 0;
+        }
+    }
+
+    bool clkmgr_isOffsetInRange(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return false;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().isOffsetInRange();
+            case sysClock:
+                return data_c->data->getSysClock().isOffsetInRange();
+            default:
+                return false;
+        }
+    }
+
+    uint32_t clkmgr_getOffsetInRangeEventCount(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().getOffsetInRangeEventCount();
+            case sysClock:
+                return data_c->data->getSysClock().getOffsetInRangeEventCount();
+            default:
+                return 0;
+        }
+    }
+
+    int64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().getSyncInterval();
+            case sysClock:
+                return data_c->data->getSysClock().getSyncInterval();
+            default:
+                return 0;
+        }
+    }
+
+    uint64_t clkmgr_getGmIdentity(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().getGmIdentity();
+            case sysClock:
+                return data_c->data->getSysClock().getGmIdentity();
+            default:
+                return 0;
+        }
+    }
+
+    bool clkmgr_isGmChanged(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return false;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().isGmChanged();
+            case sysClock:
+                return data_c->data->getSysClock().isGmChanged();
+            default:
+                return false;
+        }
+    }
+
+    uint32_t clkmgr_getGmChangedEventCount(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().getGmChangedEventCount();
+            case sysClock:
+                return data_c->data->getSysClock().getGmChangedEventCount();
+            default:
+                return 0;
+        }
+    }
+
+    uint64_t clkmgr_getNotificationTimestamp(const Clkmgr_ClockSyncData *data_c,
+        uint32_t clock_type)
+    {
+        if(!data_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return data_c->data->getPtp().getNotificationTimestamp();
+            case sysClock:
+                return data_c->data->getSysClock().getNotificationTimestamp();
+            default:
+                return 0;
+        }
+    }
+
+    // PTPClockEvent
+    bool clkmgr_isPtpSyncedWithGm(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->getPtp().isSyncedWithGm();
+    }
+
+    uint32_t clkmgr_getPtpSyncedWithGmEventCount(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->getPtp().getSyncedWithGmEventCount();
+    }
+
+    bool clkmgr_isPtpAsCapable(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->getPtp().isAsCapable();
+    }
+
+    uint32_t clkmgr_getPtpAsCapableEventCount(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->getPtp().getAsCapableEventCount();
+    }
+
+    bool clkmgr_isPtpCompositeEventMet(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->getPtp().isCompositeEventMet();
+    }
+
+    uint32_t clkmgr_getPtpCompositeEventCount(const Clkmgr_ClockSyncData *data_c)
+    {
+        return data_c->data->getPtp().getCompositeEventCount();
+    }
+
+} // extern "C"
