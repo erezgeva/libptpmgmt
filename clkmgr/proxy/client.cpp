@@ -14,6 +14,7 @@
 #include "proxy/connect_msg.hpp"
 #include "proxy/notification_msg.hpp"
 #include "proxy/subscribe_msg.hpp"
+#include "common/shared_mutex.hpp" // Replace C++17 <shared_mutex>
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
@@ -37,7 +38,7 @@ static rtpi::mutex sessionMapLock;
 static map<sessionId_t, unique_ptr<Client>> sessionMap;
 struct perTimeBase {
     map<sessionId_t, bool> clients;
-    rtpi::mutex lock;
+    shared_mutex clLock;
 };
 // Map of all subscriped clients using a timeBaseIndex of PTP and chrony
 static map<size_t, perTimeBase> timeBaseClients;
@@ -68,7 +69,7 @@ static inline bool existClient(sessionId_t sessionId)
 void Client::getPTPEvent(size_t timeBaseIndex, ptp_event &event)
 {
     if(ptp4lEvents.count(timeBaseIndex) > 0) {
-        unique_lock<rtpi::mutex> local(timeBaseLock[timeBaseIndex]);
+        unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
         event = ptp4lEvents[timeBaseIndex];
     } else {
         static ptp_event dummy = { 0 };
@@ -101,16 +102,16 @@ sessionId_t Client::CreateClientSession(const string &id)
 
 sessionId_t Client::connect(sessionId_t sessionId, const string &id)
 {
-    unique_lock<rtpi::mutex> local(sessionMapLock);
+    unique_lock<rtpi::mutex> mapLock(sessionMapLock);
     if(sessionId != InvalidSessionId) {
         if(existClient(sessionId))
             return sessionId;
-        local.unlock(); // Explicitly unlock the mutex
+        mapLock.unlock(); // Explicitly unlock the mutex
         PrintError("Session ID does not exists: " + to_string(sessionId));
         return InvalidSessionId;
     }
     sessionId = CreateClientSession(id);
-    local.unlock(); // Explicitly unlock the mutex
+    mapLock.unlock(); // Explicitly unlock the mutex
     if(sessionId == InvalidSessionId)
         PrintError("Fail to allocate new session");
     else
@@ -123,20 +124,20 @@ bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
     if(sessionId == InvalidSessionId ||
         timeBaseClients.count(timeBaseIndex) == 0)
         return false;
-    unique_lock<rtpi::mutex> local(sessionMapLock);
+    unique_lock<rtpi::mutex> mapLock(sessionMapLock);
     if(!existClient(sessionId)) {
-        local.unlock(); // Explicitly unlock the mutex
+        mapLock.unlock(); // Explicitly unlock the mutex
         PrintError("Session ID " + to_string(sessionId) + " is not registered");
         return false;
     }
-    local.unlock(); // Explicitly unlock the mutex
+    mapLock.unlock(); // Explicitly unlock the mutex
     PrintDebug("[ProxySubscribeMessage]::parseBufferTail - "
         "Use current client session ID: " + to_string(sessionId));
-    unique_lock<rtpi::mutex> localSub(timeBaseClients[timeBaseIndex].lock);
+    unique_lock<shared_mutex> clLock(timeBaseClients[timeBaseIndex].clLock);
     bool exist = timeBaseClients[timeBaseIndex].clients.count(sessionId) > 0;
     if(!exist)
         timeBaseClients[timeBaseIndex].clients[sessionId] = true;
-    localSub.unlock(); // Explicitly unlock the mutex
+    clLock.unlock(); // Explicitly unlock the mutex
     if(exist)
         PrintDebug("sessionId " + to_string(sessionId) + " is already subscribe");
     return true;
@@ -144,18 +145,18 @@ bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
 
 void Client::RemoveClient(sessionId_t sessionId)
 {
-    unique_lock<rtpi::mutex> local(sessionMapLock);
+    unique_lock<rtpi::mutex> mapLock(sessionMapLock);
     Client *client = getClient(sessionId);
-    if(client == nullptr)
-        return;
-    Transmitter *tx = client->getTransmitter();
-    if(tx != nullptr)
-        tx->finalize();
+    if(client != nullptr) {
+        Transmitter *tx = client->getTransmitter();
+        if(tx != nullptr)
+            tx->finalize();
+    }
     sessionMap.erase(sessionId);
-    local.unlock(); // Explicitly unlock the mutex
+    mapLock.unlock(); // Explicitly unlock the mutex
     for(auto &base : timeBaseClients) {
         auto &rec = base.second;
-        unique_lock<rtpi::mutex> localSub(rec.lock);
+        unique_lock<shared_mutex> clLock(rec.clLock);
         rec.clients.erase(sessionId);
     }
 }
@@ -164,7 +165,7 @@ Transmitter *Client::getTransmitter(sessionId_t sessionId)
 {
     if(sessionId == InvalidSessionId)
         return nullptr;
-    unique_lock<rtpi::mutex> local(sessionMapLock);
+    unique_lock<rtpi::mutex> mapLock(sessionMapLock);
     Client *client = getClient(sessionId);
     return client != nullptr ? client->getTransmitter() : nullptr;
 }
@@ -211,7 +212,8 @@ void Client::NotifyClients(size_t timeBaseIndex)
         return;
     }
     vector<sessionId_t> sessionIdToRemove;
-    unique_lock<rtpi::mutex> local(timeBaseClients[timeBaseIndex].lock);
+    // Use share lock, allow all readers to share
+    shared_lock<shared_mutex> clLock(timeBaseClients[timeBaseIndex].clLock);
     for(auto &c : timeBaseClients[timeBaseIndex].clients) {
         const sessionId_t sessionId = c.first;
         PrintDebug("[Client::NotifyClients] Get client session ID: " +
@@ -221,7 +223,7 @@ void Client::NotifyClients(size_t timeBaseIndex)
             // Add sessionId into the list to remove
             sessionIdToRemove.push_back(sessionId);
     }
-    local.unlock(); // Explicitly unlock the mutex
+    clLock.unlock(); // Explicitly unlock the mutex
     for(const sessionId_t sessionId : sessionIdToRemove)
         Client::RemoveClient(sessionId);
 }
@@ -235,7 +237,7 @@ ptpEvent::ptpEvent(size_t index) : timeBaseIndex(index)
 
 void ptpEvent::copy()
 {
-    unique_lock<rtpi::mutex> local(timeBaseLock[timeBaseIndex]);
+    unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
     ptp_event &to = ptp4lEvents[timeBaseIndex];
     to.master_offset = master_offset;
     to.as_capable = as_capable;
@@ -252,7 +254,7 @@ chronyEvent::chronyEvent(size_t index) : timeBaseIndex(index)
 
 void chronyEvent::copy()
 {
-    unique_lock<rtpi::mutex> local(timeBaseLock[timeBaseIndex]);
+    unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
     ptp_event &to = ptp4lEvents[timeBaseIndex];
     to.chrony_offset = chrony_offset;
     to.chrony_reference_id = chrony_reference_id;
@@ -273,7 +275,7 @@ class ClientRemoveAll : public End
     // Here is our opportunity :-)
     bool stop() override final { return true; }
     bool finalize() override final {
-        unique_lock<rtpi::mutex> local(sessionMapLock);
+        unique_lock<rtpi::mutex> mapLock(sessionMapLock);
         for(auto &it : sessionMap)
             it.second.get()->getTransmitter()->finalize();
         sessionMap.clear();
