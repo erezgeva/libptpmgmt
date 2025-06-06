@@ -10,6 +10,7 @@
  */
 
 #include "pub/clkmgr/subscription.h"
+#include "client/opaque_struct_c.hpp"
 #include "common/print.hpp"
 
 __CLKMGR_NAMESPACE_USE;
@@ -79,3 +80,164 @@ ClockSyncSubscription::ClockSyncSubscription()
 
 OBJ_FUNC(Ptp, PTP, ptp)
 OBJ_FUNC(Sys, Sys, sys)
+
+extern "C" {
+
+    Clkmgr_Subscription *clkmgr_constructSubscriptionInstance(void)
+    {
+        auto *sub_c = new Clkmgr_Subscription;
+        sub_c->ptp = new PTPClockSubscription();
+        sub_c->sys = new SysClockSubscription();
+        sub_c->sub = new ClockSyncSubscription();
+        return sub_c;
+    }
+
+    void clkmgr_destroySubscriptionInstance(Clkmgr_Subscription *sub_c)
+    {
+        if(!sub_c)
+            return;
+        delete sub_c->ptp;
+        delete sub_c->sys;
+        delete sub_c->sub;
+        delete sub_c;
+    }
+
+    bool clkmgr_setEventMask(Clkmgr_Subscription *sub_c, uint32_t clock_type,
+        uint32_t mask)
+    {
+        if(!sub_c)
+            return false;
+        switch(clock_type) {
+            case ptpClock:
+                if(sub_c->ptp->setEventMask(mask)) {
+                    sub_c->sub->setPtpSubscription(*sub_c->ptp);
+                    return true;
+                }
+                return false;
+            case sysClock:
+                if(sub_c->sys->setEventMask(mask)) {
+                    sub_c->sub->setSysSubscription(*sub_c->sys);
+                    return true;
+                }
+                return false;
+            default:
+                return false;
+        }
+    }
+
+    uint32_t clkmgr_getEventMask(const Clkmgr_Subscription *sub_c,
+        uint32_t clock_type)
+    {
+        if(!sub_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return sub_c->sub->getPtpSubscription().getEventMask();
+            case sysClock:
+                return sub_c->sub->getSysSubscription().getEventMask();
+            default:
+                return 0;
+        }
+    }
+
+    bool clkmgr_setPtpCompositeEventMask(Clkmgr_Subscription *sub_c,
+        uint32_t mask)
+    {
+        if(sub_c && sub_c->ptp->setCompositeEventMask(mask)) {
+            sub_c->sub->setPtpSubscription(*sub_c->ptp);
+            return true;
+        }
+        return false;
+    }
+
+    uint32_t clkmgr_getPtpCompositeEventMask(const Clkmgr_Subscription *sub_c)
+    {
+        if(sub_c)
+            return sub_c->sub->getPtpSubscription().getCompositeEventMask();
+        return 0;
+    }
+
+    bool clkmgr_setClockOffsetThreshold(Clkmgr_Subscription *sub_c,
+        uint32_t clock_type, uint32_t threshold)
+    {
+        if(!sub_c)
+            return false;
+        switch(clock_type) {
+            case ptpClock:
+                sub_c->ptp->setClockOffsetThreshold(threshold);
+                sub_c->sub->setPtpSubscription(*sub_c->ptp);
+                return true;
+            case sysClock:
+                sub_c->sys->setClockOffsetThreshold(threshold);
+                sub_c->sub->setSysSubscription(*sub_c->sys);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    uint32_t clkmgr_getClockOffsetThreshold(const Clkmgr_Subscription
+        *sub_c, uint32_t clock_type)
+    {
+        if(!sub_c)
+            return 0;
+        switch(clock_type) {
+            case ptpClock:
+                return sub_c->sub->getPtpSubscription().getClockOffsetThreshold();
+            case sysClock:
+                return sub_c->sub->getSysSubscription().getClockOffsetThreshold();
+            default:
+                return 0;
+        }
+    }
+
+    bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c,
+        uint32_t clock_type)
+    {
+        if(!sub_c)
+            return false;
+        switch(clock_type) {
+            case ptpClock:
+                sub_c->sub->enablePtpSubscription();
+                return true;
+            case sysClock:
+                sub_c->sub->enableSysSubscription();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    bool clkmgr_disableSubscription(Clkmgr_Subscription *sub_c,
+        uint32_t clock_type)
+    {
+        if(!sub_c)
+            return false;
+        switch(clock_type) {
+            case ptpClock:
+                sub_c->sub->disablePtpSubscription();
+                return true;
+            case sysClock:
+                sub_c->sub->disableSysSubscription();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    bool clkmgr_isSubscriptionEnabled(const Clkmgr_Subscription *sub_c,
+        uint32_t clock_type)
+    {
+        if(!sub_c)
+            return false;
+        switch(clock_type) {
+            case ptpClock:
+                return sub_c->sub->isPTPSubscriptionEnable();
+            case sysClock:
+                return sub_c->sub->isSysSubscriptionEnable();
+            default:
+                return false;
+        }
+    }
+
+} // extern "C"
