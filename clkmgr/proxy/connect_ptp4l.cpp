@@ -2,24 +2,21 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Proxy connect ptp4l message class.
+ * @brief Proxy connect ptp4l class.
  *
  * @author Lai Peter Jun Ann <peter.jun.ann.lai@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
 
-#include "proxy/config_parser.hpp"
 #include "proxy/client.hpp"
-#include "common/termin.hpp"
+#include "proxy/connect_srv.hpp"
 #include "common/print.hpp"
 
 // libptpmgmt
 #include "sock.h"
 #include "msgCall.h"
 
-#include <atomic>
-#include <thread>
 #include <cmath>
 
 __CLKMGR_NAMESPACE_USE;
@@ -31,14 +28,6 @@ static const uint64_t timeout_ms = 1000;
 static const string baseAddr = "/var/run/pmc.";
 static const size_t bufSize = 2000;
 static SUBSCRIBE_EVENTS_NP_t eventsTlv; // Threads only read it!
-/*
- * Modern CPUs are allow to run the threads before
- * the main thread end the initializing,
- * regardless of the code flow of the main thread.
- * The atomic guarantee it should not happens.
- * Threads will wait till initializing is done.
- */
-static atomic_bool all_init(false);
 
 // Callbacks of MessageDispatcher
 #define callback_declare(n)\
@@ -46,10 +35,9 @@ static atomic_bool all_init(false);
 #define callback_define(n)\
     void ptpSet::n##_h(const ptpmgmt::Message &, const n##_t &tlv, const char *)
 // One set per a thread
-class ptpSet : MessageDispatcher
+class ptpSet : public Thread4TimeBase, MessageDispatcher
 {
   private:
-    size_t timeBaseIndex; // Index of the time base
     const TimeBaseCfg &param; // time base configuration
     ptpEvent event;
     const string &udsAddr;
@@ -58,22 +46,17 @@ class ptpSet : MessageDispatcher
     bool do_notify = false;
     char buf[bufSize];
     int seq = 0; // PTP message sequance
-    thread self;
     ClockIdentity_t gmIdentity; // Grandmaster clock ID
     bool need_set_action = false; // Request action(PORT_DATA_SET)
   public:
     // These methods are used during initializing, before we create the thread.
-    ptpSet(const TimeBaseCfg &p, const string &uds) :
-        timeBaseIndex(p.timeBaseIndex), param(p), event(p.timeBaseIndex),
+    ptpSet(size_t timeBaseIndex, const TimeBaseCfg &p, const string &uds) :
+        Thread4TimeBase(timeBaseIndex), param(p), event(timeBaseIndex),
         udsAddr(uds) { }
-    bool init();
-    void close() { sku.close(); }
-    void start();
-    // Theis method and this property are used to terminate the thread.
-    bool stopThread = false;
-    void wait();
+    bool init() override final;
+    void close() override final { sku.close(); }
     // This is the thread method
-    void thread_loop();
+    void thread_loop() override final;
   private:
     void portDataReset();
     callback_declare(TIME_STATUS_NP);
@@ -130,8 +113,6 @@ class ptpSet : MessageDispatcher
         return msg_send();
     }
 };
-
-static map<size_t, unique_ptr<ptpSet>> ptpSets;
 
 callback_define(TIME_STATUS_NP)
 {
@@ -280,14 +261,6 @@ void ptpSet::thread_loop()
     }
 }
 
-static void ptp4l_event_loop(ptpSet *set)
-{
-    // Ensure we start after initializing ends
-    while(!all_init.load())
-        this_thread::sleep_for(chrono::milliseconds(100));
-    set->thread_loop();
-}
-
 bool ptpSet::init()
 {
     string addr = baseAddr + to_string(param.domainNumber);
@@ -299,22 +272,22 @@ bool ptpSet::init()
     prms.domainNumber = param.domainNumber;
     return msg.updateParams(prms);
 }
-void ptpSet::start()
-{
-    self = thread(ptp4l_event_loop, this);
-}
-void ptpSet::wait()
-{
-    self.join();
-}
 
-static inline void close_all()
+class Ptp4l : public ConnectSrv
 {
-    // Close the sockets
-    for(const auto &it : ptpSets)
-        it.second->close();
-    ptpSets.clear();
-}
+  protected:
+    bool isValid(const TimeBaseCfgFull &cfg) override final {
+        return !cfg.udsAddrPtp4l.empty();
+    }
+    Thread4TimeBase *alloc(size_t timeBaseIndex,
+        const TimeBaseCfgFull &cfg) override final {
+        return new ptpSet(timeBaseIndex, cfg.base, cfg.udsAddrPtp4l);
+    }
+
+  public:
+    Ptp4l() = default;
+};
+static Ptp4l instance;
 
 /**
  * @brief Establishes a connection to the local PTP (Precision Time Protocol)
@@ -332,51 +305,11 @@ static inline void close_all()
  */
 bool Client::connect_ptp4l()
 {
-    // Create all sets required for the threads
-    for(const auto &param : JsonConfigParser::getInstance()) {
-        // skip if ptp4l UDS address is empty
-        if(param.udsAddrPtp4l.empty())
-            continue;
-        ptpSet *set = new ptpSet(param.base, param.udsAddrPtp4l);
-        if(set == nullptr)
-            return false;
-        ptpSets[param.base.timeBaseIndex].reset(set);
-    }
-    // initializing before creating the threads
-    for(const auto &it : ptpSets) {
-        if(!it.second->init()) {
-            // We need to close all other sockets, which succeed
-            close_all();
-            return false;
-        }
-    }
-    /* Threads only read the events setting TLV
-       and send it to ptp4l without any change in the TLV itself */
+    // Threads only read the events setting TLV
+    // and send it to ptp4l without any change in the TLV itself
     eventsTlv.duration = UINT16_MAX;
     eventsTlv.setEvent(NOTIFY_TIME_SYNC);
     eventsTlv.setEvent(NOTIFY_PORT_STATE);
     eventsTlv.setEvent(NOTIFY_CMLDS);
-    // Ensure threads start after we initializing
-    all_init.store(true);
-    for(const auto &it : ptpSets)
-        // Create a thread for each set
-        it.second->start();
-    return true;
+    return instance.registerSrv();
 }
-
-class Ptp4lDisconnect : public End
-{
-    bool stop() override final {
-        for(const auto &it : ptpSets)
-            it.second->stopThread = true;
-        return true;
-    }
-    bool finalize() override final {
-        // Wait for threads to end
-        for(const auto &it : ptpSets)
-            it.second->wait();
-        close_all();
-        return true;
-    }
-};
-static Ptp4lDisconnect endPtp4l;
