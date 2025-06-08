@@ -2,22 +2,19 @@
    SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. */
 
 /** @file
- * @brief Proxy connect chrony message class.
+ * @brief Proxy connect chrony class.
  *
  * @author Lai Peter Jun Ann <peter.jun.ann.lai@@intel.com>
  * @copyright © 2024 Intel Corporation.
  *
  */
 
-#include "proxy/config_parser.hpp"
 #include "proxy/client.hpp"
-#include "common/termin.hpp"
+#include "proxy/connect_srv.hpp"
 #include "common/print.hpp"
 
 #include <chrony.h>
 #include <poll.h>
-#include <atomic>
-#include <thread>
 #include <cmath>
 
 __CLKMGR_NAMESPACE_USE;
@@ -27,12 +24,10 @@ using namespace std;
 // default sleeping of 10 microsecond, until we get the value from chrony
 static const uint32_t def_polling_interval = 10;
 
-class ChronyThreadSet
+class ChronyThreadSet : public Thread4TimeBase
 {
   private:
-    size_t timeBaseIndex;
-    string udsAddrChrony;
-    thread self;
+    const string &udsAddrChrony;
     chronyEvent event;
     int chronyFd = -1;
     chrony_session *session = nullptr;
@@ -42,11 +37,13 @@ class ChronyThreadSet
     int64_t polling_interval = def_polling_interval;
 
   public:
-    ChronyThreadSet(size_t timeBaseIndex, const string &udsAddrChrony);
-    void monitor_chronyd(); // The actual thread
-    bool stopThread = false;
-    void wait() { self.join(); }
-    void close() {
+    ChronyThreadSet(size_t timeBaseIndex, const string &udsAddr) :
+        Thread4TimeBase(timeBaseIndex), udsAddrChrony(udsAddr),
+        event(timeBaseIndex) {}
+
+    bool init() override final { return true; }
+    void thread_loop() override final;
+    void close() override final {
         if(chronyFd >= 0) {
             chrony_close_socket(chronyFd);
             chronyFd = -1;
@@ -58,32 +55,24 @@ class ChronyThreadSet
     }
 };
 
-/*
- * Modern CPUs are allow to run the threads before
- * the main thread end the initializing,
- * regardless of the code flow of the main thread.
- * The atomic guarantee it should not happens.
- * Threads will wait till initializing is done.
- */
-static atomic_bool all_init(false);
-
-static map<size_t, unique_ptr<ChronyThreadSet>> chronyThreadList;
-
 chrony_err ChronyThreadSet::process_chronyd_data()
 {
     pollfd pfd = { .fd = chronyFd, .events = POLLIN };
-    int timeout = 1000;
+    const int timeout = 1000; // milliseconds
     while(!stopThread && chrony_needs_response(session)) {
-        int n = poll(&pfd, 1, timeout);
-        if(n < 0)
-            PrintErrorCode("poll");
-        else if(n == 0)
-            PrintError("No valid response received");
+        int ret = poll(&pfd, 1, timeout);
         if(stopThread)
             return CHRONY_OK;
-        chrony_err r = chrony_process_response(session);
-        if(r != CHRONY_OK)
-            return r;
+        if(ret == 0) {
+            PrintError("No valid response received");
+            // TODO why is time-out consider an error?
+            // PrintDebug("timed out");
+        } else if(ret > 0) {
+            chrony_err r = chrony_process_response(session);
+            if(r != CHRONY_OK)
+                return r;
+        } else
+            PrintErrorCode("poll");
     }
     return CHRONY_OK;
 }
@@ -133,7 +122,7 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
     return CHRONY_OK;
 }
 
-void ChronyThreadSet::monitor_chronyd()
+void ChronyThreadSet::thread_loop()
 {
     // connect to chronyd unix socket using udsAddrChrony
     chronyFd = chrony_open_socket(udsAddrChrony.c_str());
@@ -172,49 +161,23 @@ void ChronyThreadSet::monitor_chronyd()
     }
 }
 
-static void thread_start(ChronyThreadSet *me)
+class Chrony : public ConnectSrv
 {
-    // Ensure we start after initializing ends
-    while(!all_init.load())
-        this_thread::sleep_for(chrono::milliseconds(100));
-    me->monitor_chronyd();
-}
+  protected:
+    bool isValid(const TimeBaseCfgFull &cfg) override final {
+        return !cfg.udsAddrChrony.empty();
+    }
+    Thread4TimeBase *alloc(size_t timeBaseIndex,
+        const TimeBaseCfgFull &cfg) override final {
+        return new ChronyThreadSet(timeBaseIndex, cfg.udsAddrChrony);
+    }
 
-ChronyThreadSet::ChronyThreadSet(size_t l_timeBaseIndex,
-    const string &l_udsAddrChrony) : timeBaseIndex(l_timeBaseIndex),
-    udsAddrChrony(l_udsAddrChrony), event(l_timeBaseIndex)
-{
-    self = thread(thread_start, this);
-}
+  public:
+    Chrony() = default;
+};
+static Chrony instance;
 
 bool Client::connect_chrony()
 {
-    for(const auto &param : JsonConfigParser::getInstance()) {
-        // skip if chrony UDS address is empty
-        if(!param.udsAddrChrony.empty())
-            chronyThreadList[param.base.timeBaseIndex].reset(new ChronyThreadSet(
-                    param.base.timeBaseIndex, param.udsAddrChrony));
-    }
-    // Ensure threads start after finish initializing
-    all_init.store(true);
-    return true;
+    return instance.registerSrv();
 }
-
-class ChronyDisconnect : public End
-{
-    bool stop() override final {
-        for(const auto &it : chronyThreadList)
-            it.second->stopThread = true;
-        return true;
-    }
-    bool finalize() override final {
-        // Wait for threads to end
-        for(const auto &it : chronyThreadList)
-            it.second->wait();
-        for(auto &it : chronyThreadList)
-            it.second->close();
-        chronyThreadList.clear();
-        return true;
-    }
-};
-static ChronyDisconnect endChrony;
