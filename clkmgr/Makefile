@@ -93,8 +93,13 @@ endef
 
 install_clkmgr:
 	$(Q)$(INSTALL_FOLDER) $(DESTDIR)$(includedir) $(PKGCFGDIR)\
-	  $(DESTDIR)$(sbindir)
+	  $(DESTDIR)$(sbindir) $(DESTDIR)/etc/clkmgr
 	$(INSTALL_PROGRAM) -D $(CLKMGR_PROXY) -t $(DESTDIR)$(sbindir)
+	$(INSTALL_DATA) -D $(CLKMGR_PROXY_DIR)/proxy_cfg.json -t $(DESTDIR)/etc/clkmgr
+	$(INSTALL_DATA) -D man/clkmgr_proxy.8 -t $(MANDIR)
+ifndef __LIBPTPMGMT_SKIP_SYSTEMD_INSTALL
+	$(INSTALL_DATA) -D $(CLKMGR_PROXY_DIR)/clkmgr-proxy.s* -t $(SYSTEMDDIR)
+endif
 ifdef PKG_CONFIG_DIR
 	echo "$(clkmgr_pkgconfig)" > $(PKGCFGDIR)/$(CLKMGR_NAME).pc
 	for pf in $(CLKMGR_NAME)$(PACKAGE_VERSION) $(CLKMGR_LIB)\

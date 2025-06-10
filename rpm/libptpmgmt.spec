@@ -5,6 +5,15 @@
 # @copyright © 2021 Erez Geva
 #
 # RPM specification file for libptpmgmt rpm packages
+# Spec file format:
+# https://rpm-software-management.github.io/rpm/manual/spec.html
+# scriptlet expansion
+# https://rpm-software-management.github.io/rpm/manual/scriptlet_expansion.html
+# RPM Macros (default path definitions)
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/RPMMacros/
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/
+# Inside the Spec File
+# https://ftp.osuosl.org/pub/rpm/max-rpm/ch-rpm-inside.html
 ###############################################################################
 Name:           libptpmgmt
 Version:        1.4
@@ -23,6 +32,7 @@ BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  librtpi1 librtpi-devel
 BuildRequires:  golang
+BuildRequires:  systemd
 #Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
 Source0:        %{name}-%{version}.txz
 
@@ -242,6 +252,15 @@ autoreconf -i
 %install
 %make_install DEV_PKG=%{name}-devel --no-print-directory
 
+%preun -n %{cbname}-proxy
+%systemd_preun %{cbname}-proxy.service
+%systemd_preun %{cbname}-proxy.socket
+
+# Seems empty
+# %postun -n %{cbname}-proxy
+# %systemd_postun %{cbname}-proxy.service
+# %systemd_postun %{cbname}-proxy.socket
+
 %files
 %{_libdir}/%{name}.so.*
 
@@ -305,6 +324,9 @@ autoreconf -i
 
 %files -n %{cbname}-proxy
 %{_sbindir}/%{cbname}_proxy
+%{_mandir}/man8/%{cbname}_proxy.8*
+%{_sysconfdir}/%{cbname}/proxy_cfg.json
+%{_prefix}/lib/systemd/system/%{cbname}-proxy.s*
 
 %files -n %{cname}
 %{_libdir}/%{cname}.so.*

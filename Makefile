@@ -286,7 +286,8 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   */*.i */*/msgCall.i */*/warn.i $(CLKMGR_DIR)/*/*.i man/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile [wc]*/*/Makefile\
   $(CLKMGR_DIR)/sample/*.c* $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/*\
-  */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
+  */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp\
+  $(CLKMGR_DIR)/proxy/clkmgr-proxy.s*)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
   $(MAKEFILE_LIST) credits $(CLKMGR_DIR)/credits $(SRCS_CLKMGR)
 ifeq ($(INSIDE_GIT),true)
@@ -636,6 +637,7 @@ DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DOC_PKG)
 MANDIR:=$(DESTDIR)$(mandir)/man8
+SYSTEMDDIR:=$(DESTDIR)/usr/lib/systemd/system
 ifdef PKG_CONFIG_DIR
 PKGCFGDIR:=$(DESTDIR)$(PKG_CONFIG_DIR)
 endif

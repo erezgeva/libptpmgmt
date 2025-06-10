@@ -32,6 +32,10 @@ deb_clean:
 override_dh_auto_clean:
 	$Q$(MAKE) distclean
 
+export __LIBPTPMGMT_SKIP_SYSTEMD_INSTALL=1
+override_dh_installsystemd:
+	$(Q)dh_installsystemd --no-enable --no-start
+
 MV:=mv
 CPA:=cp -a
 LIBDIR:=/usr/lib/$(DEB_TARGET_MULTIARCH)
@@ -54,22 +58,25 @@ override_dh_prep:
 
 # Make create all targets, we just move them from temporary to proper package
 override_dh_install:
-	$(Q)install -d $(addprefix debian/,python3-ptpmgmt/usr/lib\
-	  libptpmgmt-dev/usr libptpmgmt-dev/usr/share/doc\
-	  libptpmgmt-doc/usr/share pmc-ptpmgmt/usr/share php-ptpmgmt/usr/lib\
-	  tcl-ptpmgmt/usr/lib golang-ptpmgmt/usr/lib\
-	  phc-ctl-ptpmgmt/usr/share/man/man8 phc-ctl-ptpmgmt/usr/sbin\
-	  clkmgr-proxy/usr/sbin tcl-clkmgr/usr/$(TCLDIR)\
+	$(Q)install -d $(addprefix debian/,libptpmgmt-dev/usr\
+	  libptpmgmt-dev/usr/share/doc libptpmgmt-doc/usr/share\
+	  pmc-ptpmgmt/usr/share phc-ctl-ptpmgmt/usr/share/man/man8\
+	  phc-ctl-ptpmgmt/usr/sbin clkmgr-proxy/usr/sbin\
+	  clkmgr-proxy/usr/share/man/man8 tcl-clkmgr/usr/$(TCLDIR)\
 	  $(PYDIR) $(PERLDIR)/auto $(PHPDIR) $(RUBYDIR)\
+	  $(addsuffix /usr/lib,python3-ptpmgmt php-ptpmgmt tcl-ptpmgmt\
+	  golang-ptpmgmt)\
 	  $(addsuffix $(LIBDIR),lua-ptpmgmt lua-clkmgr ruby-ptpmgmt libptpmgmt\
 	  $(addprefix libptpmgmt-,perl dev openssl gcrypt gnutls\
 	  nettle) libclkmgr))
 	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
 	$Q$(MV) $(DSRC)share/doc/libptpmgmt-dev debian/libptpmgmt-dev/usr/share/doc
 	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
+	$Q$(MV) $(DSRC)share/man/man8/clkmgr* debian/clkmgr-proxy/usr/share/man/man8
 	$Q$(MV) $(DSRC)share/man/man8/phc* debian/phc-ctl-ptpmgmt/usr/share/man/man8
 	$Q$(MV) $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
 	$Q$(MV) $(DSRC)sbin/clkmgr_proxy debian/clkmgr-proxy/usr/sbin
+	$Q$(MV) debian/tmp/etc debian/clkmgr-proxy
 	$Q$(MV) $(DSRC)sbin/phc* debian/phc-ctl-ptpmgmt/usr/sbin
 	$Q$(MV) $(DSRC)sbin debian/pmc-ptpmgmt/usr
 	$Q$(MV) $(DSRC)lib/python3*/dist-packages/*clkmgr* debian/$(PYDIR)

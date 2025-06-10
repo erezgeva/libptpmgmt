@@ -1,0 +1,25 @@
+#!/bin/bash
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2025 Intel Corporation.
+#
+# Install script of the clkmgr-proxy package
+#
+# Remove the clkmgr-proxy systemd units from system on uninstall
+###############################################################################
+
+pre_remove() {
+  if [ -x "/usr/sbin/systemctl" ] && [ -d /run/systemd/system ]; then
+    systemctl --system stop clkmgr-proxy.service >/dev/null ||\
+    systemctl --system stop clkmgr-proxy.socket >/dev/null ||\
+    systemctl --system disable clkmgr-proxy.service >/dev/null ||\
+    systemctl --system disable clkmgr-proxy.socket >/dev/null || true
+  fi
+}
+post_remove() {
+  if [ -x "/usr/sbin/systemctl" ] && [ -d /run/systemd/system ]; then
+    systemctl --system daemon-reload >/dev/null || true
+  fi
+}

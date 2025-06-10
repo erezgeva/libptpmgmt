@@ -6,6 +6,11 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2021 Erez Geva
 #
+# Maintainer: Erez Geva <ErezGeva2@gmail.com>
+#
+# See:
+# https://wiki.archlinux.org/title/PKGBUILD
+# https://man.archlinux.org/man/PKGBUILD.5.en
 ###############################################################################
 pkgver=1.4
 pkgrel=1
@@ -31,7 +36,7 @@ build() {
   ./configure --prefix=/usr --sbindir=\${prefix}/bin
   make PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
-  make DESTDIR=../install install --no-print-directory
+  make DESTDIR=../install install --no-print-directory compile_py3
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
   python3 go gcc libtool autoconf make chrpath
@@ -102,7 +107,9 @@ package_python3-ptpmgmt() {
   mkdir -p $pkgdir/$libdir
   cp -a $srcdir/install/usr/lib/python3* $pkgdir/$libdir
   rm -f $srcdir/install/usr/lib/python3*/site-packages/*ptpmgmt*
+  rm -f $srcdir/install/usr/lib/python3*/site-packages/*/*ptpmgmt*
   rm -f $pkgdir/$libdir/python3*/site-packages/*clkmgr*
+  rm -f $pkgdir/$libdir/python3*/site-packages/*/*clkmgr*
 }
 package_lua-ptpmgmt() {
   pkgdesc='PTP management library Lua wrapper'
@@ -163,8 +170,12 @@ package_clkmgr-proxy() {
   license=('BSD-3-Clause')
   pkgdesc='Clock Manager proxy service'
   depends=("$pkgbase=$verdep")
-  mkdir -p $pkgdir/usr/bin
+  install=clkmgr-proxy.install
+  mkdir -p $pkgdir/usr/local/man/man8 $pkgdir/usr/bin $pkgdir/etc $pkgdir/usr/lib
   mv $srcdir/install/usr/bin/clkmgr_proxy $pkgdir/usr/bin
+  mv $srcdir/install/usr/share/man/man8/clkmgr* $pkgdir/usr/local/man/man8
+  mv $srcdir/install/etc/clkmgr $pkgdir/etc
+  mv $srcdir/install/usr/lib/systemd $pkgdir/usr/lib
 }
 package_libclkmgr() {
   license=('BSD-3-Clause')
@@ -191,7 +202,9 @@ package_python3-clkmgr() {
   mkdir -p $pkgdir/$libdir
   cp -a $srcdir/install/usr/lib/python3* $pkgdir/$libdir
   rm -f $srcdir/install/usr/lib/python3*/site-packages/*clkmgr*
+  rm -f $srcdir/install/usr/lib/python3*/site-packages/*/*clkmgr*
   rm -f $pkgdir/$libdir/python3*/site-packages/*ptpmgmt*
+  rm -f $pkgdir/$libdir/python3*/site-packages/*/*ptpmgmt*
 }
 package_lua-clkmgr() {
   license=('BSD-3-Clause')

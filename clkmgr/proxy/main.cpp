@@ -15,6 +15,9 @@
 #include "common/sighandler.hpp"
 #include "common/print.hpp"
 
+// Use version of libptpmgmt
+#include "ver.h"
+
 #include <getopt.h>
 
 __CLKMGR_NAMESPACE_USE;
@@ -29,11 +32,12 @@ static inline int help(FILE *out, const char *me, int ret)
         " -f [file] Read configuration from 'file'\n"
         " -l <lvl> Set log level\n"
         "          0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE\n"
-        " -v <0|1> Enable or disable verbose output\n"
-        "          0: disable, 1: enable(default)\n"
-        " -s <0|1> Enable or disable system log printing\n"
+        " -q <0|1> Enable or disable quiet mode\n"
         "          0: disable(default), 1: enable\n"
-        " -h       Show this help message\n",
+        " -s <0|1> Enable or disable use of system logging\n"
+        "          0: disable(default), 1: enable\n"
+        " -v       Show version\n"
+        " -h       Show help message\n",
         me);
     return ret;
 }
@@ -44,9 +48,11 @@ int main(int argc, char *argv[])
     bool useSyslog = false; // Default value
     bool useVerbode = true; // Default value
     const char *file;
-    const char *me = argv[0];
+    const char *me = strrchr(argv[0], '/');
+    // Remove leading path
+    me = me == nullptr ? argv[0] : me + 1;
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    while((opt = getopt(argc, argv, "f:l:v:s:h")) != -1) {
+    while((opt = getopt(argc, argv, "f:l:q:s:vh")) != -1) {
         switch(opt) {
             case 'f':
                 file = optarg;
@@ -63,12 +69,17 @@ int main(int argc, char *argv[])
                 }
                 setLogLevel(level);
                 break;
-            case 'v':
-                useVerbode = atoi(optarg) != 0;
+            case 'q':
+                useVerbode = atoi(optarg) == 0;
                 break;
             case 's':
                 useSyslog = atoi(optarg) != 0;
                 break;
+            case 'v':
+                // Print version of compile time!
+                // The actual libptpmgmt library can be newer!
+                printf("%s Version %s\n", me, LIBPTPMGMT_VER);
+                return EXIT_SUCCESS;
             case 'h':
                 return help(stdout, me, EXIT_SUCCESS);
             default:

@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
+# See:
+# https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
+[Unit]
+Description=Clock Manager service
+Documentation=man:clkmgr_proxy(8)
+After=network.target auditd.service
+ConditionPathExists=!/etc/clkmgr/proxy_not_to_be_run
+
+[Service]
+ExecStart=/usr/sbin/clkmgr_proxy -f /etc/clkmgr/proxy_cfg.json -q 1 -s 1
+KillMode=process
+Restart=on-failure
+Type=exec
+
+[Install]
+WantedBy=multi-user.target
+Alias=clkmgr-proxy.service
+
+# vi: set ft=systemd:

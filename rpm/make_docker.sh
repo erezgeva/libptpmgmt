@@ -17,9 +17,18 @@ main()
 main "$@"
 ext()
 {
+# See:
+# https://www.cyberciti.biz/howto/question/linux/linux-rpm-cheat-sheet.php
+# See package content
+rpm -qpil clkmgr-proxy-1*.x86_64.rpm
+# List installed packages
+rpm -qa
+dnf list installed
+# Find out what package a file belongs to
+rpm -qf file
+# See package scripts
+rpm -qlp --scripts clkmgr-proxy-1*.x86_64.rpm
+
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/rpm rpmbuild
-
-# See package content
-rpm -qpil xxx.rpm
 }
