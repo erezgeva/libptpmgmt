@@ -84,6 +84,16 @@ struct Nm(Event_count) {
     uint32_t chrony_offset_in_range_event_count; /**< Chrony clock offset */
 };
 
+/**
+* Types of clock available for subscription.
+* @note The clockLast is reserved for future use.
+*/
+enum Nm(ClockType) sz(`: uint32_t '){
+    Nm(ptpClock) = 1, /**< PTP Clock */
+    Nm(sysClock) = 2, /**< System Clock */
+    Nm(clockLast) = 3 /**< Last Clock */
+};
+
 ns_e()
 
 ice(TYPE)
