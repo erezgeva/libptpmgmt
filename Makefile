@@ -593,7 +593,8 @@ tools/doxygen.clkmgr.cfg: tools/doxygen.clkmgr.cfg.in
 	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's!@$n@!$($n)!') $< > $@
 
 ifdef DOXYGEN_MINVER
-doxygen: $(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg tools/doxygen.clkmgr.cfg
+doxygen: $(HEADERS_GEN) $(HEADERS) $(CLKMGR_HEADERS_GEN)\
+	tools/doxygen.cfg tools/doxygen.clkmgr.cfg
 ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
 	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen*cfg
