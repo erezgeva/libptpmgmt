@@ -64,18 +64,19 @@ template<typename mutexType> class shared_lock
 {
   private:
     mutexType &mutexObj;
+    bool isLock = true;
   public:
     shared_lock() = delete;
     shared_lock(mutexType &m) : mutexObj(m) { m.lock_shared(); }
-    ~shared_lock() { mutexObj.unlock_shared(); }
+    ~shared_lock() { if(isLock) mutexObj.unlock_shared(); }
 
     shared_lock(shared_lock const &) = delete;
     shared_lock &operator=(shared_lock const &) = delete;
     shared_lock &operator=(shared_lock &&) = delete;
 
-    void lock() { mutexObj.lock_shared(); }
-    bool try_lock() { return mutexObj.try_lock_shared(); }
-    void unlock() { mutexObj.unlock_shared(); }
+    void lock() { mutexObj.lock_shared(); isLock = true; }
+    bool try_lock() { return isLock = mutexObj.try_lock_shared(); }
+    void unlock() { mutexObj.unlock_shared(); isLock = false; }
 };
 
 __CLKMGR_NAMESPACE_END
