@@ -67,6 +67,8 @@ TEST(ConnectMessage, toProxy)
     EXPECT_EQ(cmsg.get_msgId(), CONNECT_MSG);
     cmsg.setClientId("test");
     cmsg.set_sessionId(12);
+    EXPECT_EQ(cmsg.get_sessionId(), 12);
+    EXPECT_EQ(cmsg.get_msgAck(), ACK_NONE);
     EXPECT_STREQ(cmsg.toString().c_str(),
         "clkmgr::ConnectMessage\n"
         "get_msgId(): 0\n"
@@ -91,6 +93,7 @@ TEST(ConnectMessage, toProxy)
     EXPECT_STREQ(id.c_str(), "test");
     // Client::connect() add 2 to what was send
     EXPECT_EQ(ppmsg->get_sessionId(), 12 + 2);
+    EXPECT_EQ(ppmsg->get_msgAck(), ACK_SUCCESS);
     EXPECT_STREQ(ppmsg->toString().c_str(),
         "clkmgr::ConnectMessage\n"
         "get_msgId(): 0\n"
@@ -111,6 +114,7 @@ TEST(ConnectMessage, toProxy)
     ASSERT_NE(pcmsg, nullptr);
     EXPECT_EQ(pcmsg->get_msgId(), CONNECT_MSG);
     EXPECT_EQ(pcmsg->get_sessionId(), 14);
+    EXPECT_EQ(pcmsg->get_msgAck(), ACK_NONE);
     EXPECT_STREQ(pcmsg->toString().c_str(),
         "clkmgr::ConnectMessage\n"
         "get_msgId(): 0\n"

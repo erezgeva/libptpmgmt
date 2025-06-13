@@ -57,6 +57,8 @@ TEST(SubscribeMessage, toProxy)
     ClientSubscribeMessage cmsg;
     EXPECT_EQ(cmsg.get_msgId(), SUBSCRIBE_MSG);
     cmsg.set_sessionId(12);
+    EXPECT_EQ(cmsg.get_sessionId(), 12);
+    EXPECT_EQ(cmsg.get_msgAck(), ACK_NONE);
     EXPECT_STREQ(cmsg.toString().c_str(),
         "clkmgr::SubscribeMessage\n"
         "get_msgId(): 1\n"
@@ -76,6 +78,7 @@ TEST(SubscribeMessage, toProxy)
     // Check received subscribe message
     EXPECT_EQ(ppmsg->get_msgId(), SUBSCRIBE_MSG);
     EXPECT_EQ(ppmsg->get_sessionId(), 12);
+    EXPECT_EQ(ppmsg->get_msgAck(), ACK_SUCCESS);
     EXPECT_STREQ(ppmsg->toString().c_str(),
         "clkmgr::SubscribeMessage\n"
         "get_msgId(): 1\n"
@@ -95,6 +98,7 @@ TEST(SubscribeMessage, toProxy)
     ASSERT_NE(pcmsg, nullptr);
     EXPECT_EQ(pcmsg->get_msgId(), SUBSCRIBE_MSG);
     EXPECT_EQ(pcmsg->get_sessionId(), 12);
+    EXPECT_EQ(pcmsg->get_msgAck(), ACK_NONE);
     EXPECT_STREQ(pcmsg->toString().c_str(),
         "clkmgr::SubscribeMessage\n"
         "get_msgId(): 1\n"

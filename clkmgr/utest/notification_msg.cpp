@@ -30,6 +30,8 @@ TEST(NotificationMessage, toProxy)
     ClientNotificationMessage cmsg;
     EXPECT_EQ(cmsg.get_msgId(), NOTIFY_MESSAGE);
     cmsg.set_sessionId(65535);
+    EXPECT_EQ(cmsg.get_sessionId(), 65535);
+    EXPECT_EQ(cmsg.get_msgAck(), ACK_NONE);
     EXPECT_STREQ(cmsg.toString().c_str(),
         "get_msgId(): 2\n"
         "m_msgAck: 0\n");
@@ -48,6 +50,7 @@ TEST(NotificationMessage, toProxy)
     // Check received notification message
     EXPECT_EQ(ppmsg->get_msgId(), NOTIFY_MESSAGE);
     EXPECT_EQ(ppmsg->get_sessionId(), 65535);
+    EXPECT_EQ(ppmsg->get_msgAck(), ACK_NONE);
     EXPECT_STREQ(ppmsg->toString().c_str(),
         "get_msgId(): 2\n"
         "m_msgAck: 0\n");
@@ -67,6 +70,7 @@ TEST(NotificationMessage, toProxy)
     ASSERT_NE(pcmsg, nullptr);
     EXPECT_EQ(pcmsg->get_msgId(), NOTIFY_MESSAGE);
     EXPECT_EQ(pcmsg->get_sessionId(), 65535);
+    EXPECT_EQ(pcmsg->get_msgAck(), ACK_NONE);
     EXPECT_STREQ(pcmsg->toString().c_str(),
         "get_msgId(): 2\n"
         "m_msgAck: 0\n");
