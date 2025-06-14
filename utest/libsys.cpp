@@ -737,7 +737,8 @@ ssize_t read(int fd, void *buf, size_t count)
     }
     return retErr(EINVAL);
 }
-ssize_t __read_chk(int fd, void *buf, size_t count, size_t buflen) {
+ssize_t __read_chk(int fd, void *buf, size_t count, size_t buflen)
+{
     retSock(__read_chk, buf, count, buflen);
     return read(fd, buf, count);
 }
