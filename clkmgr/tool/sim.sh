@@ -26,43 +26,6 @@ s_cp()
     build=true
   fi
 }
-mk_clkmgr_proxy_cfg()
-{
-  local ptp_uds="$uds_base/$ptp4l_node:$ptp4l_usd_port"
-  local ch_uds="$uds_base/$chronyd_node:$chronyd_usd_port"
-  cat << EOF > $proxy_cfg
-{
-  "timeBases": [{
-    "timeBaseName": "Global Clock",
-    "ptp4l": {
-      "interfaceName": "$c_if",
-      "udsAddr": "$ptp_uds",
-      "domainNumber": 0,
-      "transportSpecific": 1
-    },
-    "chrony": { "udsAddr": "$ch_uds" }
-  }]
-}
-EOF
-}
-clk_client()
-{
- LD_PRELOAD=$CLKNETSIM_PATH/clknetsim.so CLKNETSIM_NODE=$c_node\
-  CLKNETSIM_SOCKET=$CLKNETSIM_TMPDIR/sock LD_LIBRARY_PATH=.libs\
-  $@ &> $CLKNETSIM_TMPDIR/log.$c_node &
- local lastpid=$!
- disown $lastpid
- client_pids+=" $lastpid"
-}
-run_clkmgr_proxy()
-{
- LD_PRELOAD=$CLKNETSIM_PATH/clknetsim.so CLKNETSIM_NODE=$c_node\
-  CLKNETSIM_SOCKET=$CLKNETSIM_TMPDIR/sock LD_LIBRARY_PATH=.libs\
-  clkmgr/proxy/clkmgr_proxy -f $proxy_cfg -l 2 &> $CLKNETSIM_TMPDIR/log.$c_node &
- local lastpid=$!
- disown $lastpid
- client_pids+=" $lastpid"
-}
 c_sig()
 {
  if [[ -n "$client_pids" ]]; then
@@ -113,24 +76,17 @@ prepare_clknetsim()
    make
  fi
 }
-main()
+probe_linuxptp()
 {
- local -r base="$(realpath "$(dirname "$0")/../..")"
- local -r CLKNETSIM_PATH=../clknetsim
- local -r CLKNETSIM_TMPDIR=clkmgr/sim
- local -r uds_base=/clknetsim/unix
- local -r proxy_cfg=$CLKNETSIM_TMPDIR/proxy_cfg.json
- prepare_clknetsim
- cd "$base"
- local a_patch
- # Probe linuxptp
  if [[ -f ../linuxptp/ptp4l.c ]]; then
    [[ -x ../linuxptp/ptp4l ]] || make -C ../linuxptp --no-print-directory
    a_patch=:../linuxptp
  elif [[ -z "$(which ptp4l)" ]]; then
    equit 'ptp4l is missing'
  fi
- # Probe chrony
+}
+probe_chrony()
+{
  if [[ -z "$(which chronyd)" ]]; then
    [[ -f '../chrony/ntp_io_linux.c' ]] || equit 'chronyd is missing'
    if ! [[ -x ../chrony/chronyd ]]; then
@@ -141,25 +97,45 @@ main()
    fi
    a_patch+=:../chrony
  fi
- # Add path to linuxptp and chrony
- [[ -z "$a_patch" ]] || local PATH=$PATH$a_patch
-
+}
+make_clkmgr()
+{
  # Make local and sample
  if ! [[ clkmgr/proxy/clkmgr_proxy ]]; then
    make
  fi
+ a_patch+=:clkmgr/proxy
  if ! [[ clkmgr/sample/clkmgr_test ]]; then
    make -C clkmgr/sample --no-print-directory
  fi
+ a_patch+=:clkmgr/sample
+}
+main()
+{
+ local -r base="$(realpath "$(dirname "$0")/../..")"
+ # clknetsim location
+ local -r CLKNETSIM_PATH=../clknetsim
+ # clknetsim folder for simulation logs and configuration files
+ local -r CLKNETSIM_TMPDIR=clkmgr/sim
+ prepare_clknetsim
+ cd "$base"
+ local a_patch
+ probe_linuxptp
+ probe_chrony
+ make_clkmgr
+ # Add path to linuxptp, chrony, clkmgr_proxy and clkmgr_test
+ local PATH=$PATH$a_patch
 
  # Prepare simulation envirounment
  local client_pids
  local -i c_node=0
+ local -r c_if=eth0
+ local -ir run_time='60 * 5' # time limit in seconds for clknetsim server
  local -i ptp4l_node chronyd_node
- # UDS port numerate only Unix sockets the first socket is number 1
- local -i ptp4l_usd_port chronyd_usd_port
  export CLKNETSIM_UNIX_SUBNET=2
  rm -f $CLKNETSIM_TMPDIR/log.[0-9]* $CLKNETSIM_TMPDIR/conf.[0-9]*
+
+ # includes the clknetsim script
  . $CLKNETSIM_PATH/clknetsim.bash
 
  # Test configuraton
@@ -172,9 +148,6 @@ main()
 #  '(sum (* 1e-9 (normal)))'\
 #  '(* 1e-8 (exponential))'
 
- local -r c_if=eth0
- local -ir run_time='60 * 5' # time limit in seconds for clknetsim server
-
  # Trap signals
  trap c_ctrl INT # Ctrl^C
  trap c_sig TERM # Normal Termination
@@ -183,7 +156,7 @@ main()
  trap c_sig EXIT # on exit
  trap c_sig ERR  #
 
- # UDS = $uds_base/<node>:<port start from 1>
+ # UDS = /clknetsim/unix/<node>:<port start from 1>
  # sendmsg(sockfd) "/clknetsim/unix/%u:%u" req.to, req.dst_port
 
  # Start clients
@@ -193,21 +166,17 @@ main()
  c_node='c_node + 1'
  start_client $c_node ptp4l '' '' "-i $c_if"
  ptp4l_node=$c_node
- ptp4l_usd_port=1 # First UDS socket on ptp4l
 
  c_node='c_node + 1'
  start_client $c_node chronyd 'refclock PHC /dev/ptp0 poll -6 dpoll -1'
  chronyd_node=$c_node
- chronyd_usd_port=1 # First UDS socket on ptp4l
-
- # Make configuration for the clock proxy manager
- mk_clkmgr_proxy_cfg
 
  c_node='c_node + 1'
- run_clkmgr_proxy
+ export LD_LIBRARY_PATH=.libs
+ start_client $c_node clkmgr_proxy "$ptp4l_node;$chronyd_node;$c_if" '' ' -l 2'
 
  c_node='c_node + 1'
- clk_client clkmgr/sample/clkmgr_test
+ start_client $c_node clkmgr '' '_test'
 
  # Run test with clknetsim server
  set +e
