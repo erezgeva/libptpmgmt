@@ -1,4 +1,4 @@
-From fd356c3cf075fd5b89cc98e8f8f1a971a699e99c Mon Sep 17 00:00:00 2001
+From 60cdbc3f8988cde145534a3f057ed4df65050290 Mon Sep 17 00:00:00 2001
 From: Erez Geva <ErezGeva2@gmail.com>
 Date: Wed, 5 Feb 2025 09:45:56 +0100
 Subject: [PATCH] Add futex system call.
@@ -9,34 +9,34 @@ Signed-off-by: Erez Geva <ErezGeva2@gmail.com>
  1 file changed, 14 insertions(+)
 
 diff --git a/client.c b/client.c
-index a5c3be3..0dab264 100644
+index c7ae1e3..624269f 100644
 --- a/client.c
 +++ b/client.c
-@@ -63,6 +63,7 @@
+@@ -60,6 +60,7 @@
+ #include <linux/pps.h>
+ #include <linux/rtc.h>
+ #include <linux/sockios.h>
++#include <linux/futex.h>
  #ifdef SO_TIMESTAMPING
  #include <linux/ptp_clock.h>
  #include <linux/net_tstamp.h>
-+#include <linux/futex.h>
- #endif
- 
- #include "protocol.h"
 @@ -137,6 +138,7 @@ static int (*_usleep)(useconds_t usec);
  static void (*_srandom)(unsigned int seed);
  static int (*_shmget)(key_t key, size_t size, int shmflg);
  static void *(*_shmat)(int shmid, const void *shmaddr, int shmflg);
-+static long *(*_syscall)(long number, ...);
++static long (*_syscall)(long number, ...);
  
  static unsigned int node;
  static int initializing = 0;
-@@ -289,6 +291,7 @@ static void init_symbols(void) {
+@@ -290,6 +292,7 @@ static void init_symbols(void) {
  	_srandom = (void (*)(unsigned int seed))dlsym(RTLD_NEXT, "srandom");
  	_shmget = (int (*)(key_t key, size_t size, int shmflg))dlsym(RTLD_NEXT, "shmget");
  	_shmat = (void *(*)(int shmid, const void *shmaddr, int shmflg))dlsym(RTLD_NEXT, "shmat");
-+	 _syscall = (long *(*)(long number, ...))dlsym(RTLD_NEXT, "syscall");
++	 _syscall = (long (*)(long number, ...))dlsym(RTLD_NEXT, "syscall");
  
  	initialized_symbols = 1;
  }
-@@ -3053,6 +3056,17 @@ long syscall(long number, ...) {
+@@ -3083,6 +3086,17 @@ long syscall(long number, ...) {
  			}
  			break;
  #endif
@@ -48,7 +48,7 @@ index a5c3be3..0dab264 100644
 +				struct timespec *timeout = va_arg(ap, struct timespec *);
 +				uint32_t *uaddr2 = va_arg(ap, uint32_t *);
 +				uint32_t val3 = va_arg(ap, uint32_t);
-+				r = syscall(SYS_futex, uaddr, futex_op, val, timeout, uaddr2, val3);
++				r = _syscall(__NR_futex, uaddr, futex_op, val, timeout, uaddr2, val3);
 +			}
 +			break;
  		default:
