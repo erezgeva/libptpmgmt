@@ -108,13 +108,13 @@ extern "C" {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 if(sub_c->ptp->setEventMask(mask)) {
                     sub_c->sub->setPtpSubscription(*sub_c->ptp);
                     return true;
                 }
                 return false;
-            case sysClock:
+            case SysClock:
                 if(sub_c->sys->setEventMask(mask)) {
                     sub_c->sub->setSysSubscription(*sub_c->sys);
                     return true;
@@ -131,9 +131,9 @@ extern "C" {
         if(!sub_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return sub_c->sub->getPtpSubscription().getEventMask();
-            case sysClock:
+            case SysClock:
                 return sub_c->sub->getSysSubscription().getEventMask();
             default:
                 return 0;
@@ -163,11 +163,11 @@ extern "C" {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 sub_c->ptp->setClockOffsetThreshold(threshold);
                 sub_c->sub->setPtpSubscription(*sub_c->ptp);
                 return true;
-            case sysClock:
+            case SysClock:
                 sub_c->sys->setClockOffsetThreshold(threshold);
                 sub_c->sub->setSysSubscription(*sub_c->sys);
                 return true;
@@ -182,9 +182,9 @@ extern "C" {
         if(!sub_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return sub_c->sub->getPtpSubscription().getClockOffsetThreshold();
-            case sysClock:
+            case SysClock:
                 return sub_c->sub->getSysSubscription().getClockOffsetThreshold();
             default:
                 return 0;
@@ -197,10 +197,10 @@ extern "C" {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 sub_c->sub->enablePtpSubscription();
                 return true;
-            case sysClock:
+            case SysClock:
                 sub_c->sub->enableSysSubscription();
                 return true;
             default:
@@ -214,10 +214,10 @@ extern "C" {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 sub_c->sub->disablePtpSubscription();
                 return true;
-            case sysClock:
+            case SysClock:
                 sub_c->sub->disableSysSubscription();
                 return true;
             default:
@@ -231,9 +231,9 @@ extern "C" {
         if(!sub_c)
             return false;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return sub_c->sub->isPTPSubscriptionEnable();
-            case sysClock:
+            case SysClock:
                 return sub_c->sub->isSysSubscriptionEnable();
             default:
                 return false;

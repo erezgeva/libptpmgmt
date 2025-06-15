@@ -86,12 +86,12 @@ struct Nm(Event_count) {
 
 /**
 * Types of clock available for subscription.
-* @note The clockLast is reserved for future use.
+* @note The Nm(ClockLast) is reserved for future use.
 */
 enum Nm(ClockType) sz(`: uint32_t '){
-    Nm(ptpClock) = 1, /**< PTP Clock */
-    Nm(sysClock) = 2, /**< System Clock */
-    Nm(clockLast) = 3 /**< Last Clock */
+    Nm(PTPClock) = 1, /**< PTP Clock */
+    Nm(SysClock) = 2, /**< System Clock */
+    Nm(ClockLast) = 3 /**< Last Clock */
 };
 
 ns_e()

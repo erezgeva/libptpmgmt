@@ -99,6 +99,7 @@ class TimeBaseRecord
     bool m_have_sys = false; /**< does this time base sync the system clock? */
 
   protected:
+    #ifndef SWIG
     /** @cond internal */
     friend class TimeBaseConfigurations;
     /**
@@ -112,6 +113,7 @@ class TimeBaseRecord
      * @param[in] ptp configuration to use
      */
     void setPtp(PTPCfg &&ptp);
+    #endif
 
   public:
     TimeBaseRecord() = default;

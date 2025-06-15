@@ -54,5 +54,8 @@
 
 /* library code */
 %include "pub/clockmanager.h"
+%include "pub/clkmgr/event.h"
 %include "pub/clkmgr/subscription.h"
+%include "pub/clkmgr/timebase_configs.h"
+%include "pub/clkmgr/types.h"
 %include "pub/clkmgr/utility.h"

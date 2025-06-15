@@ -201,17 +201,17 @@ int main(int argc, char *argv[])
                 printf("interfaceName: %s\n", clkmgr_ifName(i));
                 printf("transportSpecific: %d\n", clkmgr_transportSpecific(i));
                 printf("domainNumber: %d\n\n", clkmgr_domainNumber(i));
-                clkmgr_setEventMask(clockSub[i], Clkmgr_ptpClock, eventMask);
+                clkmgr_setEventMask(clockSub[i], Clkmgr_PTPClock, eventMask);
                 clkmgr_setPtpCompositeEventMask(clockSub[i], compositeEventMask);
-                clkmgr_setClockOffsetThreshold(clockSub[i], Clkmgr_ptpClock,
+                clkmgr_setClockOffsetThreshold(clockSub[i], Clkmgr_PTPClock,
                     ptp4lClockOffsetThreshold);
-                clkmgr_enableSubscription(clockSub[i], Clkmgr_ptpClock);
+                clkmgr_enableSubscription(clockSub[i], Clkmgr_PTPClock);
             }
             if(clkmgr_haveSysClock(i)) {
-                clkmgr_setEventMask(clockSub[i], Clkmgr_sysClock, eventMask);
-                clkmgr_setClockOffsetThreshold(clockSub[i], Clkmgr_sysClock,
+                clkmgr_setEventMask(clockSub[i], Clkmgr_SysClock, eventMask);
+                clkmgr_setClockOffsetThreshold(clockSub[i], Clkmgr_SysClock,
                     chronyClockOffsetThreshold);
-                clkmgr_enableSubscription(clockSub[i], Clkmgr_sysClock);
+                clkmgr_enableSubscription(clockSub[i], Clkmgr_SysClock);
             }
         } else {
             printf("Failed to get time base configuration for index %ld\n", i);
@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
         }
         if (eventMask & Clkmgr_eventGMOffset) {
             printf("| %-25s | %-22d |\n", "offset_in_range",
-                clkmgr_isOffsetInRange(syncData, Clkmgr_ptpClock));
+                clkmgr_isOffsetInRange(syncData, Clkmgr_PTPClock));
         }
         if (eventMask & Clkmgr_eventSyncedToGM) {
             printf("| %-25s | %-22d |\n", "synced_to_primary_clock",
@@ -284,10 +284,10 @@ int main(int argc, char *argv[])
         }
         if (eventMask & Clkmgr_eventGMChanged) {
             printf("| %-25s | %-22d |\n", "gm_Changed",
-                clkmgr_isGmChanged(syncData, Clkmgr_ptpClock));
+                clkmgr_isGmChanged(syncData, Clkmgr_PTPClock));
         }
         printf("|---------------------------|------------------------|\n");
-        uint64_t gmClockUUID = clkmgr_getGmIdentity(syncData, Clkmgr_ptpClock);
+        uint64_t gmClockUUID = clkmgr_getGmIdentity(syncData, Clkmgr_PTPClock);
         uint8_t gmIdentity[8];
         for (int i = 0; i < 8; ++i) {
             gmIdentity[i] = (uint8_t)(gmClockUUID >> (8 * (7 - i)));
@@ -298,13 +298,13 @@ int main(int argc, char *argv[])
             gmIdentity[4], gmIdentity[5],
             gmIdentity[6], gmIdentity[7]);
         printf("| %-25s | %-19ld ns |\n",
-            "clock_offset", clkmgr_getClockOffset(syncData, Clkmgr_ptpClock));
+            "clock_offset", clkmgr_getClockOffset(syncData, Clkmgr_PTPClock));
         printf("| %-25s | %-19ld ns |\n",
                 "notification_timestamp",
-                clkmgr_getNotificationTimestamp(syncData, Clkmgr_ptpClock));
+                clkmgr_getNotificationTimestamp(syncData, Clkmgr_PTPClock));
         printf("| %-25s | %-19ld us |\n",
                 "gm_sync_interval",
-                clkmgr_getSyncInterval(syncData, Clkmgr_ptpClock));
+                clkmgr_getSyncInterval(syncData, Clkmgr_PTPClock));
         printf("|---------------------------|------------------------|\n");
         if (compositeEventMask) {
             printf("| %-25s | %-22d |\n", "composite_event",
@@ -326,17 +326,17 @@ int main(int argc, char *argv[])
         }
         printf("|---------------------------|------------------------|\n");
         printf("| %-25s | %-22d |\n", "chrony_offset_in_range",
-                clkmgr_isOffsetInRange(syncData, Clkmgr_sysClock));
+                clkmgr_isOffsetInRange(syncData, Clkmgr_SysClock));
         printf("|---------------------------|------------------------|\n");
         printf("| %-25s | %-19ld ns |\n",
             "chrony_clock_offset",
-            clkmgr_getClockOffset(syncData, Clkmgr_sysClock));
+            clkmgr_getClockOffset(syncData, Clkmgr_SysClock));
         printf("| %-25s | %-19lX    |\n",
             "chrony_clock_reference_id",
-            clkmgr_getGmIdentity(syncData, Clkmgr_sysClock));
+            clkmgr_getGmIdentity(syncData, Clkmgr_SysClock));
         printf("| %-25s | %-19ld us |\n",
             "chrony_polling_interval",
-            clkmgr_getSyncInterval(syncData, Clkmgr_sysClock));
+            clkmgr_getSyncInterval(syncData, Clkmgr_SysClock));
         printf("|---------------------------|------------------------|\n\n");
     }
     sleep(1);
@@ -375,8 +375,8 @@ int main(int argc, char *argv[])
             }
             if (eventMask & Clkmgr_eventGMOffset) {
                 printf("| %-25s | %-12d | %-11d |\n", "offset_in_range",
-                    clkmgr_isOffsetInRange(syncData, Clkmgr_ptpClock),
-                    clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_ptpClock));
+                    clkmgr_isOffsetInRange(syncData, Clkmgr_PTPClock),
+                    clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_PTPClock));
             }
             if (eventMask & Clkmgr_eventSyncedToGM) {
                 printf("| %-25s | %-12d | %-11d |\n", "synced_to_primary_clock",
@@ -390,11 +390,11 @@ int main(int argc, char *argv[])
             }
             if (eventMask & Clkmgr_eventGMChanged) {
                 printf("| %-25s | %-12d | %-11d |\n", "gm_Changed",
-                    clkmgr_isGmChanged(syncData, Clkmgr_ptpClock),
-                    clkmgr_getGmChangedEventCount(syncData, Clkmgr_ptpClock));
+                    clkmgr_isGmChanged(syncData, Clkmgr_PTPClock),
+                    clkmgr_getGmChangedEventCount(syncData, Clkmgr_PTPClock));
             }
             printf("|---------------------------|--------------|-------------|\n");
-            uint64_t gmClockUUID = clkmgr_getGmIdentity(syncData, Clkmgr_ptpClock);
+            uint64_t gmClockUUID = clkmgr_getGmIdentity(syncData, Clkmgr_PTPClock);
             uint8_t gmIdentity[8];
             for (int i = 0; i < 8; ++i) {
                 gmIdentity[i] = (uint8_t)(gmClockUUID >> (8 * (7 - i)));
@@ -406,12 +406,12 @@ int main(int argc, char *argv[])
                 gmIdentity[6], gmIdentity[7]);
             printf("| %-25s |     %-19ld ns |\n",
                 "clock_offset",
-                clkmgr_getClockOffset(syncData, Clkmgr_ptpClock));
+                clkmgr_getClockOffset(syncData, Clkmgr_PTPClock));
             printf("| %-25s |     %-19ld ns |\n",
                 "notification_timestamp",
-                clkmgr_getNotificationTimestamp(syncData, Clkmgr_ptpClock));
+                clkmgr_getNotificationTimestamp(syncData, Clkmgr_PTPClock));
             printf("| %-25s |     %-19ld us |\n",
-                "gm_sync_interval", clkmgr_getSyncInterval(syncData, Clkmgr_ptpClock));
+                "gm_sync_interval", clkmgr_getSyncInterval(syncData, Clkmgr_PTPClock));
             printf("|---------------------------|--------------|-------------|\n");
             if (compositeEventMask) {
                 printf("| %-25s | %-12d | %-11d |\n", "composite_event",
@@ -434,18 +434,18 @@ int main(int argc, char *argv[])
             }
             printf("|---------------------------|----------------------------|\n");
             printf("| %-25s | %-12d | %-11d |\n", "chrony_offset_in_range",
-                clkmgr_isOffsetInRange(syncData, Clkmgr_sysClock),
-                clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_sysClock));
+                clkmgr_isOffsetInRange(syncData, Clkmgr_SysClock),
+                clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_SysClock));
             printf("|---------------------------|----------------------------|\n");
             printf("| %-25s |     %-19ld ns |\n",
                 "chrony_clock_offset",
-                clkmgr_getClockOffset(syncData, Clkmgr_sysClock));
+                clkmgr_getClockOffset(syncData, Clkmgr_SysClock));
             printf("| %-25s |     %-19lX    |\n",
                 "chrony_clock_reference_id",
-                clkmgr_getGmIdentity(syncData, Clkmgr_sysClock));
+                clkmgr_getGmIdentity(syncData, Clkmgr_SysClock));
             printf("| %-25s |     %-19ld us |\n",
                 "chrony_polling_interval",
-                clkmgr_getSyncInterval(syncData, Clkmgr_sysClock));
+                clkmgr_getSyncInterval(syncData, Clkmgr_SysClock));
             printf("|---------------------------|----------------------------|\n\n");
 
             printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",

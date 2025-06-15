@@ -149,9 +149,9 @@ extern "C" {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().getClockOffset();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().getClockOffset();
             default:
                 return 0;
@@ -164,9 +164,9 @@ extern "C" {
         if(!data_c)
             return false;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().isOffsetInRange();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().isOffsetInRange();
             default:
                 return false;
@@ -179,9 +179,9 @@ extern "C" {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().getOffsetInRangeEventCount();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().getOffsetInRangeEventCount();
             default:
                 return 0;
@@ -194,9 +194,9 @@ extern "C" {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().getSyncInterval();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().getSyncInterval();
             default:
                 return 0;
@@ -209,9 +209,9 @@ extern "C" {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().getGmIdentity();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().getGmIdentity();
             default:
                 return 0;
@@ -224,9 +224,9 @@ extern "C" {
         if(!data_c)
             return false;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().isGmChanged();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().isGmChanged();
             default:
                 return false;
@@ -239,9 +239,9 @@ extern "C" {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().getGmChangedEventCount();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().getGmChangedEventCount();
             default:
                 return 0;
@@ -254,9 +254,9 @@ extern "C" {
         if(!data_c)
             return 0;
         switch(clock_type) {
-            case ptpClock:
+            case PTPClock:
                 return data_c->data->getPtp().getNotificationTimestamp();
-            case sysClock:
+            case SysClock:
                 return data_c->data->getSysClock().getNotificationTimestamp();
             default:
                 return 0;
