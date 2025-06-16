@@ -220,13 +220,10 @@ int main(int argc, char *argv[])
             std::cout << "interfaceName: " << cfg.ptp().ifName() << "\n";
             std::cout << "transportSpecific: " << static_cast<int>(cfg.ptp().transportSpecific()) << "\n";
             std::cout << "domainNumber: " << static_cast<int>(cfg.ptp().domainNumber()) << "\n\n";
-            overallSub[cfg.index()].enablePtpSubscription();
             overallSub[cfg.index()].setPtpSubscription(ptp4lSub);
         }
-        if(cfg.haveSysClock()) {
-            overallSub[cfg.index()].enableSysSubscription();
+        if(cfg.haveSysClock())
             overallSub[cfg.index()].setSysSubscription(chronySub);
-        }
     }
 
     if (subscribeAll) {

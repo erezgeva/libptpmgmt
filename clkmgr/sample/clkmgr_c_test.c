@@ -205,13 +205,11 @@ int main(int argc, char *argv[])
                 clkmgr_setPtpCompositeEventMask(clockSub[i], compositeEventMask);
                 clkmgr_setClockOffsetThreshold(clockSub[i], Clkmgr_PTPClock,
                     ptp4lClockOffsetThreshold);
-                clkmgr_enableSubscription(clockSub[i], Clkmgr_PTPClock);
             }
             if(clkmgr_haveSysClock(i)) {
                 clkmgr_setEventMask(clockSub[i], Clkmgr_SysClock, eventMask);
                 clkmgr_setClockOffsetThreshold(clockSub[i], Clkmgr_SysClock,
                     chronyClockOffsetThreshold);
-                clkmgr_enableSubscription(clockSub[i], Clkmgr_SysClock);
             }
         } else {
             printf("Failed to get time base configuration for index %ld\n", i);

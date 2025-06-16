@@ -73,7 +73,8 @@ ClockSyncSubscription::ClockSyncSubscription()
         return nm##Subscribed; }\
     void ClockSyncSubscription::set##Nm##Subscription(\
         const NM##ClockSubscription &_o) {\
-        nm##Subscription = _o; }\
+        nm##Subscription = _o;\
+        nm##Subscribed = true;}\
     const NM##ClockSubscription &ClockSyncSubscription::\
     get##Nm##Subscription() const {\
         return nm##Subscription; }
@@ -191,8 +192,7 @@ extern "C" {
         }
     }
 
-    bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c,
-        uint32_t clock_type)
+    bool clkmgr_enableSubscription(Clkmgr_Subscription *sub_c, uint32_t clock_type)
     {
         if(!sub_c)
             return false;
@@ -208,8 +208,7 @@ extern "C" {
         }
     }
 
-    bool clkmgr_disableSubscription(Clkmgr_Subscription *sub_c,
-        uint32_t clock_type)
+    bool clkmgr_disableSubscription(Clkmgr_Subscription *sub_c, uint32_t clock_type)
     {
         if(!sub_c)
             return false;

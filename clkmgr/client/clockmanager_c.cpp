@@ -50,14 +50,10 @@ bool clkmgr_subscribe(const Clkmgr_Subscription *sub_c,
         return false;
     // Create a C++ subscription object and set its parameters from the C struct
     ClockSyncSubscription newSub;
-    if(clkmgr_isSubscriptionEnabled(sub_c, Clkmgr_PTPClock)) {
+    if(clkmgr_isSubscriptionEnabled(sub_c, Clkmgr_PTPClock))
         newSub.setPtpSubscription(*sub_c->ptp);
-        newSub.enablePtpSubscription();
-    }
-    if(clkmgr_isSubscriptionEnabled(sub_c, Clkmgr_SysClock)) {
+    if(clkmgr_isSubscriptionEnabled(sub_c, Clkmgr_SysClock))
         newSub.setSysSubscription(*sub_c->sys);
-        newSub.enableSysSubscription();
-    }
     return ClockManager::subscribe(newSub, timeBaseIndex, *data_c->data);
 }
 

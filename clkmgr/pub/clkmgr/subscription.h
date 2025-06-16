@@ -125,6 +125,7 @@ class ClockSyncSubscription
 
     /**
      * Set the PTP clock subscription with a new PTPClockSubscription object
+     * and enable it
      * @param[in] newPtpSub The new PTPClockSubscription object to update
      */
     void setPtpSubscription(const PTPClockSubscription &newPtpSub);
@@ -153,6 +154,7 @@ class ClockSyncSubscription
 
     /**
      * Set the system clock subscription with a new SysClockSubscription object
+     * and enable it
      * @param[in] newSysSub The new SysClockSubscription object to update
      */
     void setSysSubscription(const SysClockSubscription &newSysSub);
