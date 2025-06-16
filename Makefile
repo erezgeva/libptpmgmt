@@ -295,8 +295,8 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
   $(HEADERS_SRCS_CLKMGR)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[chj]* uctest/*.[ch]* .github .gitlab clkmgr/sample\
-  clkmgr/utest/*.[ch]*,':!/:$n')\
+  utest/*.[chj]* uctest/*.[ch]* .github .gitlab $(CLKMGR_DIR)/sample\
+  $(CLKMGR_DIR)/utest/*.cpp,':!/:$n')\
   ':!:*.gitignore' ':!*/*/test.*' ':!*/*/clkmgr_test.*' ':!*/*/utest.*'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))

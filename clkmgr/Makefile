@@ -76,7 +76,7 @@ $(CLKMGR_PROXY): $(CLKMGR_COMMON_OBJS) $(CLKMGR_PROXY_OBJS) $(LIB_NAME_SO) |\
 
 ALL+=$(CLKMGR_LIB_LA) $(CLKMGR_PROXY)
 
-include clkmgr/utest/Makefile
+include $(CLKMGR_DIR)/utest/Makefile
 
 define clkmgr_pkgconfig
 $(hash) $(SPDXLI) $(SPDXBSD3)
