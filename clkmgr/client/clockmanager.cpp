@@ -155,7 +155,7 @@ static inline int _statusWait(int timeout, size_t timeBaseIndex,
     auto &states = TimeBaseStates::getInstance();
     if(!states.getSubscribed(timeBaseIndex)) {
         PrintDebug("[WAIT] Invalid timeBaseIndex.");
-        return false;
+        return 0;
     }
     auto start = high_resolution_clock::now();
     auto end = (timeout == -1) ?  time_point<high_resolution_clock>::max() :
