@@ -36,15 +36,15 @@ TEST(SubscriptionTest, setAndGet)
     const PTPClockSubscription &org = subscription.getPtpSubscription();
     PTPClockSubscription copy = org;
     EXPECT_EQ(org.getCompositeEventMask(), 0);
-    EXPECT_FALSE(copy.setEventMask(eventLast));
-    EXPECT_TRUE(copy.setEventMask(eventLast - 1));
+    EXPECT_FALSE(copy.setEventMask(EventLast));
+    EXPECT_TRUE(copy.setEventMask(EventLast - 1));
     EXPECT_FALSE(copy.setCompositeEventMask(COMPOSITE_EVENT_ALL + 1));
     EXPECT_TRUE(copy.setCompositeEventMask(COMPOSITE_EVENT_ALL));
     subscription.setPtpSubscription(copy);
-    EXPECT_EQ(subscription.getPtpSubscription().getEventMask(), eventLast - 1);
+    EXPECT_EQ(subscription.getPtpSubscription().getEventMask(), EventLast - 1);
     EXPECT_EQ(subscription.getPtpSubscription().getCompositeEventMask(),
         COMPOSITE_EVENT_ALL);
-    EXPECT_EQ(org.getEventMask(), eventLast - 1);
+    EXPECT_EQ(org.getEventMask(), EventLast - 1);
     EXPECT_EQ(org.getCompositeEventMask(), COMPOSITE_EVENT_ALL);
 }
 

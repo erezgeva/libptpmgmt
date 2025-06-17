@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
     int retval;
     int option;
 
-    uint32_t eventMask = (Clkmgr_eventGMOffset | Clkmgr_eventSyncedToGM |
-        Clkmgr_eventASCapable | Clkmgr_eventGMChanged);
-    uint32_t compositeEventMask = (Clkmgr_eventGMOffset |
-        Clkmgr_eventSyncedToGM | Clkmgr_eventASCapable);
+    uint32_t eventMask = (Clkmgr_EventGMOffset | Clkmgr_EventSyncedToGM |
+        Clkmgr_EventASCapable | Clkmgr_EventGMChanged);
+    uint32_t compositeEventMask = (Clkmgr_EventGMOffset |
+        Clkmgr_EventSyncedToGM | Clkmgr_EventASCapable);
 
     while ((option = getopt(argc, argv, "aps:c:u:l:i:t:m:n:h")) != -1) {
         switch (option) {
@@ -122,15 +122,15 @@ int main(int argc, char *argv[])
                    "  -p enable user to subscribe to specific time base indices\n"
                    "  -s subscribe_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: eventGMOffset\n"
-                   "     Bit 1: eventSyncedToGM\n"
-                   "     Bit 2: eventASCapable\n"
-                   "     Bit 3: eventGMChanged\n"
+                   "     Bit 0: EventGMOffset\n"
+                   "     Bit 1: EventSyncedToGM\n"
+                   "     Bit 2: EventASCapable\n"
+                   "     Bit 3: EventGMChanged\n"
                    "  -c composite_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: eventGMOffset\n"
-                   "     Bit 1: eventSyncedToGM\n"
-                   "     Bit 2: eventASCapable\n"
+                   "     Bit 0: EventGMOffset\n"
+                   "     Bit 1: EventSyncedToGM\n"
+                   "     Bit 2: EventASCapable\n"
                    "  -l gm offset threshold (ns)\n"
                    "     Default: %d ns\n"
                    "  -i idle time (s)\n"
@@ -152,15 +152,15 @@ int main(int argc, char *argv[])
                    "  -p enable user to subscribe to specific time base indices\n"
                    "  -s subscribe_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: eventGMOffset\n"
-                   "     Bit 1: eventSyncedToGM\n"
-                   "     Bit 2: eventASCapable\n"
-                   "     Bit 3: eventGMChanged\n"
+                   "     Bit 0: EventGMOffset\n"
+                   "     Bit 1: EventSyncedToGM\n"
+                   "     Bit 2: EventASCapable\n"
+                   "     Bit 3: EventGMChanged\n"
                    "  -c composite_event_mask\n"
                    "     Default: 0x%x\n"
-                   "     Bit 0: eventGMOffset\n"
-                   "     Bit 1: eventSyncedToGM\n"
-                   "     Bit 2: eventASCapable\n"
+                   "     Bit 0: EventGMOffset\n"
+                   "     Bit 1: EventSyncedToGM\n"
+                   "     Bit 2: EventASCapable\n"
                    "  -l gm offset threshold (ns)\n"
                    "     Default: %d ns\n"
                    "  -i idle time (s)\n"
@@ -268,19 +268,19 @@ int main(int argc, char *argv[])
         if (eventMask) {
             printf("|---------------------------|------------------------|\n");
         }
-        if (eventMask & Clkmgr_eventGMOffset) {
+        if (eventMask & Clkmgr_EventGMOffset) {
             printf("| %-25s | %-22d |\n", "offset_in_range",
                 clkmgr_isOffsetInRange(syncData, Clkmgr_PTPClock));
         }
-        if (eventMask & Clkmgr_eventSyncedToGM) {
+        if (eventMask & Clkmgr_EventSyncedToGM) {
             printf("| %-25s | %-22d |\n", "synced_to_primary_clock",
                 clkmgr_isPtpSyncedWithGm(syncData));
         }
-        if (eventMask & Clkmgr_eventASCapable) {
+        if (eventMask & Clkmgr_EventASCapable) {
             printf("| %-25s | %-22d |\n", "as_capable",
                 clkmgr_isPtpAsCapable(syncData));
         }
-        if (eventMask & Clkmgr_eventGMChanged) {
+        if (eventMask & Clkmgr_EventGMChanged) {
             printf("| %-25s | %-22d |\n", "gm_Changed",
                 clkmgr_isGmChanged(syncData, Clkmgr_PTPClock));
         }
@@ -308,13 +308,13 @@ int main(int argc, char *argv[])
             printf("| %-25s | %-22d |\n", "composite_event",
                 clkmgr_isPtpCompositeEventMet(syncData));
         }
-        if (compositeEventMask & Clkmgr_eventGMOffset) {
+        if (compositeEventMask & Clkmgr_EventGMOffset) {
             printf("| - %-23s | %-22s |\n", "offset_in_range", " ");
         }
-        if (compositeEventMask & Clkmgr_eventSyncedToGM) {
+        if (compositeEventMask & Clkmgr_EventSyncedToGM) {
             printf("| - %-19s | %-22s |\n", "synced_to_primary_clock", " ");
         }
-        if (compositeEventMask & Clkmgr_eventASCapable) {
+        if (compositeEventMask & Clkmgr_EventASCapable) {
             printf("| - %-23s | %-22s |\n", "as_capable", " ");
         }
         if (compositeEventMask) {
@@ -371,22 +371,22 @@ int main(int argc, char *argv[])
             if (eventMask) {
             printf("|---------------------------|--------------|-------------|\n");
             }
-            if (eventMask & Clkmgr_eventGMOffset) {
+            if (eventMask & Clkmgr_EventGMOffset) {
                 printf("| %-25s | %-12d | %-11d |\n", "offset_in_range",
                     clkmgr_isOffsetInRange(syncData, Clkmgr_PTPClock),
                     clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_PTPClock));
             }
-            if (eventMask & Clkmgr_eventSyncedToGM) {
+            if (eventMask & Clkmgr_EventSyncedToGM) {
                 printf("| %-25s | %-12d | %-11d |\n", "synced_to_primary_clock",
                     clkmgr_isPtpSyncedWithGm(syncData),
                     clkmgr_getPtpSyncedWithGmEventCount(syncData));
             }
-            if (eventMask & Clkmgr_eventASCapable) {
+            if (eventMask & Clkmgr_EventASCapable) {
                 printf("| %-25s | %-12d | %-11d |\n", "as_capable",
                     clkmgr_isPtpAsCapable(syncData),
                     clkmgr_getPtpAsCapableEventCount(syncData));
             }
-            if (eventMask & Clkmgr_eventGMChanged) {
+            if (eventMask & Clkmgr_EventGMChanged) {
                 printf("| %-25s | %-12d | %-11d |\n", "gm_Changed",
                     clkmgr_isGmChanged(syncData, Clkmgr_PTPClock),
                     clkmgr_getGmChangedEventCount(syncData, Clkmgr_PTPClock));
@@ -416,13 +416,13 @@ int main(int argc, char *argv[])
                     clkmgr_isPtpCompositeEventMet(syncData),
                     clkmgr_getPtpCompositeEventCount(syncData));
             }
-            if (compositeEventMask & Clkmgr_eventGMOffset) {
+            if (compositeEventMask & Clkmgr_EventGMOffset) {
                 printf("| - %-23s | %-12s | %-11s |\n", "offset_in_range", "", "");
             }
-            if (compositeEventMask & Clkmgr_eventSyncedToGM) {
+            if (compositeEventMask & Clkmgr_EventSyncedToGM) {
                 printf("| - %-19s | %-12s | %-11s |\n", "synced_to_primary_clock", "", "");
             }
-            if (compositeEventMask & Clkmgr_eventASCapable) {
+            if (compositeEventMask & Clkmgr_EventASCapable) {
                 printf("| - %-23s | %-12s | %-11s |\n", "as_capable", "", "");
             }
             if (compositeEventMask) {

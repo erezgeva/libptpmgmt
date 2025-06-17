@@ -14,10 +14,7 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) implementSpecific_e;
 
 /* clkmgr warnings */
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) clkmgr_event_state;
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) clkmgr_event_count;
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) EventIndex;
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) ThresholdIndex;
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) timespec;
 
 /* See more warnings in libptpmgmt.i for SWIG_OPERS_xxxx */
 #define SWIG_OPERS_OPERATOR_PLUSEQ

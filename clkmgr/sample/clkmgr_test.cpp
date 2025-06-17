@@ -80,12 +80,12 @@ int main(int argc, char *argv[])
     int option;
 
     std::uint32_t event2Sub = {
-        (eventGMOffset | eventSyncedToGM | eventASCapable |
-        eventGMChanged)
+        (EventGMOffset | EventSyncedToGM | EventASCapable |
+        EventGMChanged)
     };
 
     std::uint32_t composite_event = {
-        (eventGMOffset | eventSyncedToGM | eventASCapable)
+        (EventGMOffset | EventSyncedToGM | EventASCapable)
     };
 
     ClockSyncData clockSyncData;
@@ -140,15 +140,15 @@ int main(int argc, char *argv[])
                 "  -p enable user to subscribe to specific time base indices\n"
                 "  -s subscribe_event_mask\n"
                 "     Default: 0x" << std::hex << event2Sub << "\n"
-                "     Bit 0: eventGMOffset\n"
-                "     Bit 1: eventSyncedToGM\n"
-                "     Bit 2: eventASCapable\n"
-                "     Bit 3: eventGMChanged\n"
+                "     Bit 0: EventGMOffset\n"
+                "     Bit 1: EventSyncedToGM\n"
+                "     Bit 2: EventASCapable\n"
+                "     Bit 3: EventGMChanged\n"
                 "  -c composite_event_mask\n"
                 "     Default: 0x" << composite_event << "\n"
-                "     Bit 0: eventGMOffset\n"
-                "     Bit 1: eventSyncedToGM\n"
-                "     Bit 2: eventASCapable\n"
+                "     Bit 0: EventGMOffset\n"
+                "     Bit 1: EventSyncedToGM\n"
+                "     Bit 2: EventASCapable\n"
                 "  -l gm offset threshold (ns)\n"
                 "     Default: " << ptp4lClockOffsetThreshold << " ns\n"
                 "  -i idle time (s)\n"
@@ -166,15 +166,15 @@ int main(int argc, char *argv[])
                 "  -p enable user to subscribe to specific time base indices\n"
                 "  -s subscribe_event_mask\n"
                 "     Default: 0x" << std::hex << event2Sub << "\n"
-                "     Bit 0: eventGMOffset\n"
-                "     Bit 1: eventSyncedToGM\n"
-                "     Bit 2: eventASCapable\n"
-                "     Bit 3: eventGMChanged\n"
+                "     Bit 0: EventGMOffset\n"
+                "     Bit 1: EventSyncedToGM\n"
+                "     Bit 2: EventASCapable\n"
+                "     Bit 3: EventGMChanged\n"
                 "  -c composite_event_mask\n"
                 "     Default: 0x" << composite_event << "\n"
-                "     Bit 0: eventGMOffset\n"
-                "     Bit 1: eventSyncedToGM\n"
-                "     Bit 2: eventASCapable\n"
+                "     Bit 0: EventGMOffset\n"
+                "     Bit 1: EventSyncedToGM\n"
+                "     Bit 2: EventASCapable\n"
                 "  -l gm offset threshold (ns)\n"
                 "     Default: " << ptp4lClockOffsetThreshold << " ns\n"
                 "  -i idle time (s)\n"
@@ -272,17 +272,17 @@ int main(int argc, char *argv[])
         if (event2Sub) {
             printf("|---------------------------|------------------------|\n");
         }
-        if (event2Sub & eventGMOffset) {
+        if (event2Sub & EventGMOffset) {
             printf("| %-25s | %-22d |\n", "offset_in_range",
                 ptpClock.isOffsetInRange());
         }
-        if (event2Sub & eventSyncedToGM) {
+        if (event2Sub & EventSyncedToGM) {
             printf("| %-25s | %-22d |\n", "synced_to_primary_clock", ptpClock.isSyncedWithGm());
         }
-        if (event2Sub & eventASCapable) {
+        if (event2Sub & EventASCapable) {
             printf("| %-25s | %-22d |\n", "as_capable", ptpClock.isAsCapable());
         }
-        if (event2Sub & eventGMChanged) {
+        if (event2Sub & EventGMChanged) {
             printf("| %-25s | %-22d |\n", "gm_Changed", ptpClock.isGmChanged());
         }
         printf("|---------------------------|------------------------|\n");
@@ -308,13 +308,13 @@ int main(int argc, char *argv[])
             printf("| %-25s | %-22d |\n", "composite_event",
                 ptpClock.isCompositeEventMet());
         }
-        if (composite_event & eventGMOffset) {
+        if (composite_event & EventGMOffset) {
             printf("| - %-23s | %-22s |\n", "offset_in_range", " ");
         }
-        if (composite_event & eventSyncedToGM) {
+        if (composite_event & EventSyncedToGM) {
             printf("| - %-19s | %-22s |\n", "synced_to_primary_clock", " ");
         }
-        if (composite_event & eventASCapable) {
+        if (composite_event & EventASCapable) {
             printf("| - %-23s | %-22s |\n", "as_capable", " ");
         }
         if (composite_event) {
@@ -370,20 +370,20 @@ int main(int argc, char *argv[])
             if (event2Sub) {
             printf("|---------------------------|--------------|-------------|\n");
             }
-            if (event2Sub & eventGMOffset) {
+            if (event2Sub & EventGMOffset) {
                 printf("| %-25s | %-12d | %-11d |\n", "offset_in_range",
                     ptpClock.isOffsetInRange(),
                     ptpClock.getOffsetInRangeEventCount());
             }
-            if (event2Sub & eventSyncedToGM) {
+            if (event2Sub & EventSyncedToGM) {
                 printf("| %-25s | %-12d | %-11d |\n", "synced_to_primary_clock",
                     ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
             }
-            if (event2Sub & eventASCapable) {
+            if (event2Sub & EventASCapable) {
                 printf("| %-25s | %-12d | %-11d |\n", "as_capable",
                     ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount());
             }
-            if (event2Sub & eventGMChanged) {
+            if (event2Sub & EventGMChanged) {
                 printf("| %-25s | %-12d | %-11d |\n", "gm_Changed",
                     ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount());
             }
@@ -410,13 +410,13 @@ int main(int argc, char *argv[])
                 printf("| %-25s | %-12d | %-11d |\n", "composite_event",
                     ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
             }
-            if (composite_event & eventGMOffset) {
+            if (composite_event & EventGMOffset) {
                 printf("| - %-23s | %-12s | %-11s |\n", "offset_in_range", "", "");
             }
-            if (composite_event & eventSyncedToGM) {
+            if (composite_event & EventSyncedToGM) {
                 printf("| - %-19s | %-12s | %-11s |\n", "synced_to_primary_clock", "", "");
             }
-            if (composite_event & eventASCapable) {
+            if (composite_event & EventASCapable) {
                 printf("| - %-23s | %-12s | %-11s |\n", "as_capable", "", "");
             }
             if (composite_event) {

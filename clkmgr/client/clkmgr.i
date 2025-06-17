@@ -47,10 +47,16 @@
 /* From /usr/share/swig././ */
 %include <std_string.i>
 %include <std_vector.i>
-%apply uint16_t { sessionId_t };
+%apply unsigned long { time_t };
 
 /* warning definitions per language */
 %include "warn.i"
+
+/* C++ 11 time structure */
+struct timespec {
+    time_t tv_sec;
+    long tv_nsec;
+};
 
 /* library code */
 %include "pub/clockmanager.h"

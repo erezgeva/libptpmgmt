@@ -28,23 +28,23 @@ ns_s()
 
 /**
  * Bitmask of events available for subscription. Each bit represents one event.
- * @note The eventLast is reserved for future use.
+ * @note The Nm(EventLast) is reserved for future use.
  */
 enum Nm(EventIndex) sz(`: uint32_t '){
     /** Offset between primary and secondary clock */
-    Nm(eventGMOffset) = 1 << 0,
+    Nm(EventGMOffset) = 1 << 0,
     /** Secondary clock is synced to primary clock */
-    Nm(eventSyncedToGM) = 1 << 1,
-    Nm(eventASCapable) = 1 << 2, /**< Link Partner is IEEE 802.1AS capable */
-    Nm(eventGMChanged) = 1 << 3, /**< UUID of primary clock is changed */
-    Nm(eventLast) = 1 << 4 /**< Last event */
+    Nm(EventSyncedToGM) = 1 << 1,
+    Nm(EventASCapable) = 1 << 2, /**< Link Partner is IEEE 802.1AS capable */
+    Nm(EventGMChanged) = 1 << 3, /**< UUID of primary clock is changed */
+    Nm(EventLast) = 1 << 4 /**< Last event */
 };
 
 /**
  * All the events that can be used as conditions for satisfying the composite event.
  */
-cnst(uint32_t,COMPOSITE_EVENT_ALL,Nm(eventGMOffset) | \
-    Nm(eventSyncedToGM) | Nm(eventASCapable))
+cnst(uint32_t,COMPOSITE_EVENT_ALL,Nm(EventGMOffset) | \
+    Nm(EventSyncedToGM) | Nm(EventASCapable))
 
 /**
  * Maximum number of events that can have user predefined threshold

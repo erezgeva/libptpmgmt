@@ -30,7 +30,7 @@ GET(PTPClockSubscription, uint32_t,
 
 bool ClockSubscriptionBase::setEventMask(uint32_t newEventMask)
 {
-    if(newEventMask >= eventLast) {
+    if(newEventMask >= EventLast) {
         PrintDebug("Event mask contains invalid bits.");
         return false;
     }
