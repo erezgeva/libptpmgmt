@@ -80,7 +80,7 @@ class Client
     friend class ClientRemoveAll;
 
   public:
-    static bool init();
+    static bool init(bool useMsgQAllAccess);
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
     static void NotifyClients(size_t timeBaseIndex);

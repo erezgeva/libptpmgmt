@@ -14,6 +14,8 @@
 #include "common/sighandler.hpp"
 #include "common/print.hpp"
 
+#include <sys/stat.h>
+
 __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
@@ -43,13 +45,18 @@ Queue &Queue::operator=(Queue &&other) noexcept
     return *this;
 }
 
-bool Queue::RxOpen(const string &n, size_t maxMsg)
+bool Queue::RxOpen(const string &n, size_t maxMsg, bool allRx)
 {
     struct mq_attr attr;
     attr.mq_flags = 0;
     attr.mq_maxmsg = maxMsg;
     attr.mq_msgsize = Buffer::size();
-    mq = mq_open(n.c_str(), O_CREAT | O_RDONLY, S_IRUSR | S_IWUSR | S_IWGRP, &attr);
+    mode_t mode = S_IWUSR | S_IWGRP;
+    if(allRx)
+        mode |= S_IWOTH;
+    mode_t mask = umask(0);
+    mq = mq_open(n.c_str(), O_CREAT | O_RDONLY, mode, &attr);
+    umask(mask); // Restore mask!
     if(exist()) {
         rx = true;
         name = n;
@@ -129,9 +136,9 @@ static void staticDispatchLoop(Listener *me)
     me->dispatchLoop();
 }
 
-bool Listener::init(const string &name, size_t maxMsg)
+bool Listener::init(const string &name, size_t maxMsg, bool allRx)
 {
-    if(!m_listenerQueue.RxOpen(name, maxMsg)) {
+    if(!m_listenerQueue.RxOpen(name, maxMsg, allRx)) {
         PrintError("Failed to open listener queue: " + name);
         return false;
     }

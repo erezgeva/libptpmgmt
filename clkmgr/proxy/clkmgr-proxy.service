@@ -10,7 +10,7 @@ After=network.target auditd.service
 ConditionPathExists=!/etc/clkmgr/proxy_not_to_be_run
 
 [Service]
-ExecStart=/usr/sbin/clkmgr_proxy -f /etc/clkmgr/proxy_cfg.json -q 1 -s 1
+ExecStart=/usr/sbin/clkmgr_proxy -f /etc/clkmgr/proxy_cfg.json -q 1 -s 1 -a 1
 KillMode=process
 Restart=on-failure
 Type=exec

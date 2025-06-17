@@ -20,7 +20,7 @@
 
 __CLKMGR_NAMESPACE_BEGIN
 
-static const size_t MAX_BUFFER_LENGTH = 4096;
+static const size_t MAX_BUFFER_LENGTH = 8192;
 static const std::string mqProxyName("/clkmgr");
 
 class Buffer
@@ -72,7 +72,7 @@ class Queue
     // Delete Copy Assignment Operator
     Queue &operator=(const Queue &) = delete;
     // Receive POSIX message queue
-    bool RxOpen(const std::string &name, size_t maxMsg);
+    bool RxOpen(const std::string &name, size_t maxMsg, bool allRx = false);
     // Transmit POSIX message queue
     bool TxOpen(const std::string &name, bool block = true);
     // Is the queue exist
@@ -113,7 +113,7 @@ class Listener : public Buffer, public End
   public:
     static Listener &getSingleListenerInstance();
     virtual ~Listener() = default;
-    bool init(const std::string &name, size_t maxMsg);
+    bool init(const std::string &name, size_t maxMsg, bool allRx = false);
     void dispatchLoop();
     bool MqListenerWork();
     Buffer &getBuff() { return *this; }

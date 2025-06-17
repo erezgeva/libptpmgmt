@@ -10,5 +10,11 @@ ConditionPathExists=!/etc/clkmgr/proxy_not_to_be_run
 [Socket]
 ListenMessageQueue=/clkmgr
 Accept=no
+ReceiveBuffer=8K
+SendBuffer=8K
+
+[Install]
+WantedBy=multi-user.target
+Alias=clkmgr-proxy.socket
 
 # vi: set ft=systemd:

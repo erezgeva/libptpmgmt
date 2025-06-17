@@ -30,6 +30,8 @@ static inline int help(FILE *out, const char *me, int ret)
         "Usage of %s:\n"
         "Options:\n"
         " -f [file] Read configuration from 'file'\n"
+        " -a <0|1> Open message queue in access all mode\n"
+        "          0: disable(default), 1: enable\n"
         " -l <lvl> Set log level\n"
         "          0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE\n"
         " -q <0|1> Enable or disable quiet mode\n"
@@ -47,12 +49,13 @@ int main(int argc, char *argv[])
     int level, opt;
     bool useSyslog = false; // Default value
     bool useVerbode = true; // Default value
+    bool useMsgQAllAccess = false; // Default value
     const char *file;
     const char *me = strrchr(argv[0], '/');
     // Remove leading path
     me = me == nullptr ? argv[0] : me + 1;
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    while((opt = getopt(argc, argv, "f:l:q:s:vh")) != -1) {
+    while((opt = getopt(argc, argv, "f:l:q:s:a:vh")) != -1) {
         switch(opt) {
             case 'f':
                 file = optarg;
@@ -75,6 +78,9 @@ int main(int argc, char *argv[])
             case 's':
                 useSyslog = atoi(optarg) != 0;
                 break;
+            case 'a':
+                useMsgQAllAccess = atoi(optarg) != 0;
+                break;
             case 'v':
                 // Print version of compile time!
                 // The actual libptpmgmt library can be newer!
@@ -94,7 +100,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     BlockStopSignal();
-    if(!Client::init()) {
+    if(!Client::init(useMsgQAllAccess)) {
         PrintError("Proxy client init failed");
         return EXIT_FAILURE;
     }

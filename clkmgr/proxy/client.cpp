@@ -175,14 +175,14 @@ Client *Client::getClient(sessionId_t sessionId)
     return sessionMap.count(sessionId) > 0 ? sessionMap[sessionId].get() : nullptr;
 }
 
-bool Client::init()
+bool Client::init(bool useMsgQAllAccess)
 {
     // Register messages we recieve from client side
     reg_message_type<ProxyConnectMessage, ProxySubscribeMessage>();
     // ProxyNotificationMessage - Proxy send it only, never send from client
     Listener &rx = Listener::getSingleListenerInstance();
     PrintDebug("Initializing Proxy listener Queue ...");
-    if(!rx.init(mqProxyName, MAX_CLIENT_COUNT)) {
+    if(!rx.init(mqProxyName, MAX_CLIENT_COUNT, useMsgQAllAccess)) {
         PrintError("Initializing Proxy listener queue failed");
         return false;
     }
