@@ -14,6 +14,18 @@
 %{
     #include "pub/clockmanager.h"
     using namespace clkmgr;
+
+    #ifdef SWIGPHP
+    /* PHP do not support unsigned 64 bits.
+       SWIG convert it to string of the decimal value.
+       This function convert it to the hexdecimal value string. */
+    std::string uintDecStrToHexStr(const std::string &decStr) {
+        char b[100];
+        snprintf(b, sizeof b, "%llx", std::stoull(decStr));
+        return b;
+    }
+    #endif
+
 %}
 
 /* prevent C++ namespace in swig */
@@ -57,6 +69,10 @@ struct timespec {
     time_t tv_sec;
     long tv_nsec;
 };
+
+#ifdef SWIGPHP
+std::string uintDecStrToHexStr(const std::string &decStr);
+#endif
 
 /* library code */
 %include "pub/clockmanager.h"
