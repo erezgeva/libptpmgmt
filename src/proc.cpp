@@ -578,11 +578,11 @@ S(UNICAST_MASTER_TABLE_NP)
     return vector_l(2, d.unicastMasters);
 }
 
-ssize_t Message::dataFieldSize(const BaseMngTlv *data) const
+ssize_t Message::dataFieldSize(const BaseMngTlv *tlv) const
 {
 #define _ptpmCaseUFS(n) case n: {\
-            if(data != nullptr) {\
-                const n##_t *a=dynamic_cast<const n##_t*>(data);\
+            if(tlv != nullptr) {\
+                const n##_t *a=dynamic_cast<const n##_t*>(tlv);\
                 if(a != nullptr)\
                     return n##_s(*a);\
             }\
@@ -1350,16 +1350,16 @@ C1(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
     C_M(stepsRemoved);
 }
 
-void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x)
+void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *tlv, void *&x)
 {
 #define _ptpmCaseUF(n) case n: {\
             m = malloc(sizeof(ptpmgmt_##n##_t));\
             if(m == nullptr)break;\
-            const n##_t *a=dynamic_cast<const n##_t*>(data);\
+            const n##_t *a=dynamic_cast<const n##_t*>(tlv);\
             if(a != nullptr){\
                 e = false;\
                 n##_c1(*a, *(ptpmgmt_##n##_t *)m, x, e);}}break;
-    if(data == nullptr)
+    if(tlv == nullptr)
         return nullptr;
     void *m = nullptr;
     bool e = true;
@@ -1368,7 +1368,7 @@ void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x)
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 #include "ids.h"
         case SMPTE_MNG_ID:
-            return cpp2cSmpte(data);
+            return cpp2cSmpte(tlv);
         default:
             break;
     }
@@ -1792,11 +1792,11 @@ C2(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
     C_M(stepsRemoved);
 }
 
-BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *data)
+BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *tlv)
 {
 #define _ptpmCaseUF(n) case n:\
-        if(data != nullptr) {\
-            ptpmgmt_##n##_t *m = (ptpmgmt_##n##_t *)data;\
+        if(tlv != nullptr) {\
+            ptpmgmt_##n##_t *m = (ptpmgmt_##n##_t *)tlv;\
             if(m == nullptr)break;\
             n##_t *a=new n##_t;\
             if(a != nullptr){n##_c2(*a, *m);return a;}}break;

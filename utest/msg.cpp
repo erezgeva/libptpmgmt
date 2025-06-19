@@ -1229,9 +1229,9 @@ TEST(MessageTest, MethodGetData)
     // Change to response action of get/set message
     buf[46] = RESPONSE;
     EXPECT_EQ(m.parse(buf, 56), MNG_PARSE_ERROR_OK);
-    const BaseMngTlv *data = m.getData();
-    EXPECT_NE(data, nullptr);
-    const PRIORITY1_t *p1 = dynamic_cast<const PRIORITY1_t *>(data);
+    const BaseMngTlv *tlv = m.getData();
+    EXPECT_NE(tlv, nullptr);
+    const PRIORITY1_t *p1 = dynamic_cast<const PRIORITY1_t *>(tlv);
     ASSERT_NE(p1, nullptr);
     EXPECT_EQ(p1->priority1, p.priority1);
 }

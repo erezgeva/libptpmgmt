@@ -245,14 +245,15 @@ class Message
      * dataFieldSize() for sending SET/COMMAND
      * Get dataField of current build management ID
      * For id with non fixed size
+     * @param[in] tlv to size
      * The size is determined by the m_dataSend content
      */
-    ssize_t dataFieldSize(const BaseMngTlv *data) const;
+    ssize_t dataFieldSize(const BaseMngTlv *tlv) const;
     /**
      * Verift TLV is of the proper type, match to the TLV ID
      * Set and use a user MsgParams parameters
      * @param[in] tlv_id TLV ID
-     * @param[in] tlv TLV to verify
+     * @param[in] tlv to verify
      * @return true if TLV is not null and is of TLV ID type
      */
     static bool verifyTlv(mng_vals_e tlv_id, const BaseMngTlv *tlv);

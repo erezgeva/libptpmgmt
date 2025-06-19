@@ -279,9 +279,9 @@ C1(SLAVE_DELAY_TIMING_DATA_NP)
     a.list = m;
 }
 
-void *cpp2cSigTlv(tlvType_e tlv_id, const BaseSigTlv *data, void *&x, void *&x2)
+void *cpp2cSigTlv(tlvType_e tlv_id, const BaseSigTlv *tlv, void *&x, void *&x2)
 {
-    if(data == nullptr)
+    if(tlv == nullptr)
         return nullptr;
     void *a = nullptr;
     x = nullptr;
@@ -290,7 +290,7 @@ void *cpp2cSigTlv(tlvType_e tlv_id, const BaseSigTlv *data, void *&x, void *&x2)
 #define caseBuild(n) n: { \
             a = malloc(sizeof(ptpmgmt_##n##_t));\
             if(a == nullptr)break;\
-            const n##_t *d=dynamic_cast<const n##_t*>(data);\
+            const n##_t *d=dynamic_cast<const n##_t*>(tlv);\
             if(d != nullptr){\
                 e = false;\
                 n##_c1(*d, *(ptpmgmt_##n##_t *)a, x, x2, e);}}break;

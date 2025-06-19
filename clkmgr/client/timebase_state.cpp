@@ -320,9 +320,10 @@ bool TimeBaseStates::subscribe(size_t timeBaseIndex,
     return true;
 }
 
-bool TimeBaseStates::subscribeReply(size_t timeBaseIndex, const ptp_event &data)
+bool TimeBaseStates::subscribeReply(size_t timeBaseIndex,
+    const ptp_event &ptpData)
 {
-    setTimeBaseState(timeBaseIndex, data);
+    setTimeBaseState(timeBaseIndex, ptpData);
     unique_lock<rtpi::mutex> lock(subscribe_mutex);
     setSubscribed(timeBaseIndex, true);
     subscribe_cv.notify_one(lock);

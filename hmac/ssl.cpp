@@ -40,8 +40,8 @@ struct HMAC_SSL : public HMAC_Key {
     HMAC_SSL();
     ~HMAC_SSL() override;
     bool init() override final;
-    bool digest(const void *data, size_t len, Binary &mac) override final;
-    bool verify(const void *data, size_t len, Binary &mac) override final;
+    bool digest(const void *hData, size_t len, Binary &mac) override final;
+    bool verify(const void *hData, size_t len, Binary &mac) override final;
     const char *ssl_err();
 };
 HMAC_SSL::HMAC_SSL()
@@ -79,10 +79,10 @@ bool HMAC_SSL::init()
     }
     return true;
 }
-bool HMAC_SSL::digest(const void *data, size_t len, Binary &mac)
+bool HMAC_SSL::digest(const void *hData, size_t len, Binary &mac)
 {
     if(!EVP_MAC_init(m_ctx, nullptr, 0, nullptr) ||
-        !EVP_MAC_update(m_ctx, (const uint8_t *)data, len))
+        !EVP_MAC_update(m_ctx, (const uint8_t *)hData, len))
         return false;
     size_t size = max(mac.size(), m_min_digest);
     if(size > HMAC_MAX_MAC_SIZE) {
@@ -98,11 +98,11 @@ bool HMAC_SSL::digest(const void *data, size_t len, Binary &mac)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool HMAC_SSL::verify(const void *data, size_t len, Binary &mac)
+bool HMAC_SSL::verify(const void *hData, size_t len, Binary &mac)
 {
     size_t size = mac.size();
     Binary o(size);
-    if(digest(data, len, o))
+    if(digest(hData, len, o))
         return CRYPTO_memcmp(mac.get(), o.get(), size) == 0;
     return false;
 }

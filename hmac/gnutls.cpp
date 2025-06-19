@@ -31,8 +31,8 @@ struct Gnutls : public HMAC_Key {
     bool m_keyInit = false;
     ~Gnutls() override;
     bool init() override final;
-    bool digest(const void *data, size_t len, Binary &mac) override final;
-    bool verify(const void *data, size_t len, Binary &mac) override final;
+    bool digest(const void *hData, size_t len, Binary &mac) override final;
+    bool verify(const void *hData, size_t len, Binary &mac) override final;
 };
 Gnutls::~Gnutls()
 {
@@ -63,7 +63,7 @@ bool Gnutls::init()
     m_keyInit = true;
     return true;
 }
-bool Gnutls::digest(const void *data, size_t len, Binary &mac)
+bool Gnutls::digest(const void *hData, size_t len, Binary &mac)
 {
     size_t size = max(mac.size(), (size_t)gnutls_hmac_get_len(m_algorithm));
     if(size > HMAC_MAX_MAC_SIZE) {
@@ -72,7 +72,7 @@ bool Gnutls::digest(const void *data, size_t len, Binary &mac)
     }
     uint8_t buf[HMAC_MAX_MAC_SIZE];
     PTPMGMT_ERROR_CLR;
-    if(gnutls_hmac(m_dig, data, len) < 0) {
+    if(gnutls_hmac(m_dig, hData, len) < 0) {
         // Clean for next digest
         gnutls_hmac_output(m_dig, buf);
         return false;
@@ -81,11 +81,11 @@ bool Gnutls::digest(const void *data, size_t len, Binary &mac)
     mac.setBin(buf, mac.size());
     return true;
 }
-bool Gnutls::verify(const void *data, size_t len, Binary &mac)
+bool Gnutls::verify(const void *hData, size_t len, Binary &mac)
 {
     size_t size = mac.size();
     Binary o(size);
-    if(digest(data, len, o))
+    if(digest(hData, len, o))
         return gnutls_memcmp(mac.get(), o.get(), size) == 0;
     return false;
 }

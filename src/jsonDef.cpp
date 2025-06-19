@@ -507,15 +507,15 @@ bool Json2msg::fromJson(const string &json)
             return false;
         }
         pproc.m_obj = mobj->getObj("dataField");
-        const BaseMngTlv *data = nullptr;
-        if(!pproc.procData(m_managementId, data)) {
-            delete data;
+        const BaseMngTlv *tlv = nullptr;
+        if(!pproc.procData(m_managementId, tlv)) {
+            delete tlv;
             if(!Error::isError())
                 PTPMGMT_ERROR("Parsing of %s dataField failed",
                     Message::mng2str_c(m_managementId));
             return false;
         }
-        m_tlvData.reset(const_cast<BaseMngTlv *>(data));
+        m_tlvData.reset(const_cast<BaseMngTlv *>(tlv));
     }
     return true;
 }

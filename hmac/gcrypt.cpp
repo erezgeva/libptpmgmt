@@ -26,9 +26,9 @@ struct HMAC_gcrypt : public HMAC_Key {
     gcry_mac_hd_t hd;
     ~HMAC_gcrypt() override;
     bool init() override final;
-    bool digest(const void *data, size_t len, Binary &mac) override final;
-    bool verify(const void *data, size_t len, Binary &mac) override final;
-    bool update(const void *data, size_t len);
+    bool digest(const void *hData, size_t len, Binary &mac) override final;
+    bool verify(const void *hData, size_t len, Binary &mac) override final;
+    bool update(const void *hData, size_t len);
 };
 HMAC_gcrypt::~HMAC_gcrypt()
 {
@@ -48,14 +48,14 @@ bool HMAC_gcrypt::init()
     }
     return true;
 }
-bool HMAC_gcrypt::update(const void *data, size_t len)
+bool HMAC_gcrypt::update(const void *hData, size_t len)
 {
     gcry_error_t err = gcry_mac_reset(hd);
     if(err != GPG_ERR_NO_ERROR) {
         PTPMGMT_ERROR("gcry_mac_reset fail %d", err);
         return false;
     }
-    err = gcry_mac_write(hd, data, len);
+    err = gcry_mac_write(hd, hData, len);
     if(err != GPG_ERR_NO_ERROR) {
         PTPMGMT_ERROR("gcry_mac_write fail %d", err);
         return false;
@@ -63,9 +63,9 @@ bool HMAC_gcrypt::update(const void *data, size_t len)
     PTPMGMT_ERROR_CLR;
     return true;
 }
-bool HMAC_gcrypt::digest(const void *data, size_t len, Binary &mac)
+bool HMAC_gcrypt::digest(const void *hData, size_t len, Binary &mac)
 {
-    if(!update(data, len))
+    if(!update(hData, len))
         return false;
     size_t size = mac.size();
     if(size > HMAC_MAX_MAC_SIZE) {
@@ -81,9 +81,9 @@ bool HMAC_gcrypt::digest(const void *data, size_t len, Binary &mac)
     mac.setBin(buf, size);
     return true;
 }
-bool HMAC_gcrypt::verify(const void *data, size_t len, Binary &mac)
+bool HMAC_gcrypt::verify(const void *hData, size_t len, Binary &mac)
 {
-    if(!update(data, len))
+    if(!update(hData, len))
         return false;
     gcry_error_t err = gcry_mac_verify(hd, mac.get(), mac.size());
     switch(err) {

@@ -22,9 +22,9 @@ using namespace std;
 bool ClientNotificationMessage::parseBufferTail()
 {
     PrintDebug("[ClientNotificationMessage]::parseBufferTail");
-    ptp_event data = {};
-    if(!PARSE_RX(data, rxBuf))
+    ptp_event ptpData = {};
+    if(!PARSE_RX(ptpData, rxBuf))
         return false;
-    TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, data);
+    TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, ptpData);
     return true;
 }

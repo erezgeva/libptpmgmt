@@ -232,18 +232,18 @@ ssize_t Message::getMsgPlanedLen() const
     // That should not happen, precaution
     if(m_tlv_id < FIRST_MNG_ID || m_tlv_id >= LAST_MNG_ID)
         return -1; // Not supported
-    const BaseMngTlv *data = nullptr;
+    const BaseMngTlv *tlv = nullptr;
     size_t addAuth = (m_haveAuth && m_prms.sendAuth) ? authTlvSize +
         m_sa.spp(m_sppID).mac_size(m_keyID) : 0;
     if(m_sendAction != GET)
-        data = m_dataSend;
+        tlv = m_dataSend;
     else if(m_prms.useZeroGet)
         return mngMsgBaseSize + addAuth; // GET with zero dataField!
     ssize_t ret = mng_all_vals[m_tlv_id].size;
     if(ret == -2) { // variable length TLV
-        if(data == nullptr && m_sendAction != GET)
+        if(tlv == nullptr && m_sendAction != GET)
             return -2; // SET and COMMAND must have data
-        ret = dataFieldSize(data); // Calculate variable length
+        ret = dataFieldSize(tlv); // Calculate variable length
     }
     if(ret < 0)
         return ret;
@@ -408,8 +408,8 @@ MNG_PARSE_ERROR_e Message::build(void *buf, size_t bufSize, uint16_t sequence)
         mp.m_build = true;
         // call_tlv_data() do not change data on build,
         // but does on parsing!
-        BaseMngTlv *data = const_cast<BaseMngTlv *>(m_dataSend);
-        MNG_PARSE_ERROR_e err = mp.call_tlv_data(m_tlv_id, data);
+        BaseMngTlv *tlv = const_cast<BaseMngTlv *>(m_dataSend);
+        MNG_PARSE_ERROR_e err = mp.call_tlv_data(m_tlv_id, tlv);
         if(err != MNG_PARSE_ERROR_OK)
             return err;
         // Add 'reserve' at end of message

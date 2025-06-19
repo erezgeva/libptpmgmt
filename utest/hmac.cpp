@@ -21,7 +21,7 @@ static uint8_t bkey[] = {14, 0xdd, 0xb0, 0xfd, 0x50, 0x13, 0xff, 0xca, 0x46,
         0x41, 0x7f, 0xf2, 0x9d, 0x34, 0x35, 0xd4, 0x9d, 0xaa, 1, 0xc3, 0x37,
         0xce, 0x4c, 0x4c, 0x1c, 0x2c, 0x46, 0x75, 0xae, 0x60, 0x5c, 0xcd
     };
-static uint8_t data[] = {0xdc, 0xae, 0x14, 0xc5, 0x36, 0x59, 0x91, 0x53, 0xa8,
+static uint8_t hData[] = {0xdc, 0xae, 0x14, 0xc5, 0x36, 0x59, 0x91, 0x53, 0xa8,
         0x3a, 0x7d, 0x28, 0x9f, 0x65, 0xda, 0xce, 0x65, 0xa2, 0xfe, 0xfb, 0xa3,
         0x1c, 0x2b, 0x13, 0xfd, 0x7d, 0x9c, 0xc4, 0x89, 0xe0, 0xa8, 0xf2, 0x26,
         0xad, 0x30, 0xb5, 0x9c, 0xbc, 0x58, 10, 0x34, 0x52, 0xde, 0x2b, 0xee,
@@ -77,14 +77,14 @@ TEST(hmacTest, SHA256_128)
     EXPECT_EQ(hmac->m_type, HMAC_SHA256);
     EXPECT_EQ(hmac->m_key, key);
     Binary mac(16);
-    EXPECT_TRUE(hmac->digest(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->digest(hData, sizeof hData, mac));
     //printf("digest: %s\n", Error::getError().c_str());
     //printf("mac: %zu %s\n", mac.size(), mac.toId().c_str());
     uint8_t ret[16] = { 0x28, 0x51, 0xef, 0x15, 0x3a, 0xb6, 0x5b, 0x43, 0x98,
             0x5e, 0x80, 0x7f, 0x93, 0xd6, 14, 0xa5
         };
     EXPECT_EQ(memcmp(mac.get(), ret, mac.size()), 0);
-    EXPECT_TRUE(hmac->verify(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->verify(hData, sizeof hData, mac));
     delete hmac;
     EXPECT_EQ(hmac_count(), 0);
 }
@@ -97,13 +97,13 @@ TEST(hmacTest, SHA256)
     EXPECT_EQ(hmac->m_type, HMAC_SHA256);
     EXPECT_EQ(hmac->m_key, key);
     Binary mac(32);
-    EXPECT_TRUE(hmac->digest(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->digest(hData, sizeof hData, mac));
     uint8_t ret[32] = {0x28, 0x51, 0xef, 0x15, 0x3a, 0xb6, 0x5b, 0x43, 0x98, 0x5e,
             0x80, 0x7f, 0x93, 0xd6, 14, 0xa5, 0xef, 0xe4, 0xaa, 0xd3, 0xba,
             0x3f, 0xde, 0x3b, 0x9a, 0xc4, 0x43, 0xc5, 0xc1, 0xc4, 0x50, 0x51
         };
     EXPECT_EQ(memcmp(mac.get(), ret, mac.size()), 0);
-    EXPECT_TRUE(hmac->verify(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->verify(hData, sizeof hData, mac));
     delete hmac;
 }
 
@@ -115,12 +115,12 @@ TEST(hmacTest, AES128)
     EXPECT_EQ(hmac->m_type, HMAC_AES128);
     EXPECT_EQ(hmac->m_key, key);
     Binary mac(16);
-    EXPECT_TRUE(hmac->digest(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->digest(hData, sizeof hData, mac));
     uint8_t ret[16] = { 0xe3, 0x47, 0xda, 0x49, 0xea, 0x7d, 0xd6, 0xb6,
             0xff, 0xae, 0x44, 2, 0x40, 0x8f, 0xcd, 0x93
         };
     EXPECT_EQ(memcmp(mac.get(), ret, mac.size()), 0);
-    EXPECT_TRUE(hmac->verify(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->verify(hData, sizeof hData, mac));
     delete hmac;
 }
 
@@ -132,11 +132,11 @@ TEST(hmacTest, AES256)
     EXPECT_EQ(hmac->m_type, HMAC_AES256);
     EXPECT_EQ(hmac->m_key, key);
     Binary mac(16);
-    EXPECT_TRUE(hmac->digest(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->digest(hData, sizeof hData, mac));
     uint8_t ret[16] = { 0x2b, 0x7c, 0xc1, 0x7b, 0xd0, 0xa9, 0x7a, 0xb1, 0x6f,
             0x82, 0x80, 0x6d, 0xb0, 0xaf, 0xed, 0x51
         };
     EXPECT_EQ(memcmp(mac.get(), ret, mac.size()), 0);
-    EXPECT_TRUE(hmac->verify(data, sizeof data, mac));
+    EXPECT_TRUE(hmac->verify(hData, sizeof hData, mac));
     delete hmac;
 }

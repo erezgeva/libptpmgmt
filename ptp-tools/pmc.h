@@ -43,10 +43,10 @@ using namespace ptpmgmt;
  * Dump message management TLV
  * @param[in] msg object
  * @param[in] id optional TLV ID to dump
- * @param[in] data optional TLV to dump
+ * @param[in] tlv optional TLV to dump
  */
 void call_dump(Message &msg, mng_vals_e id = NULL_PTP_MANAGEMENT,
-    BaseMngTlv *data = nullptr);
+    BaseMngTlv *tlv = nullptr);
 /**
  * Dump a signalling message TLV
  * @param[in] msg object

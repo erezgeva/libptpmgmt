@@ -34,9 +34,9 @@ using namespace std;
 bool ClientSubscribeMessage::parseBufferTail()
 {
     PrintDebug("[ClientSubscribeMessage]::parseBufferTail");
-    ptp_event data = {};
-    if(!PARSE_RX(data, rxBuf) ||
-        !TimeBaseStates::getInstance().subscribeReply(timeBaseIndex, data))
+    ptp_event ptpData = {};
+    if(!PARSE_RX(ptpData, rxBuf) ||
+        !TimeBaseStates::getInstance().subscribeReply(timeBaseIndex, ptpData))
         return false;
     set_msgAck(ACK_NONE);
     return true;

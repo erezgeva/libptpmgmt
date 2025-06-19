@@ -192,7 +192,7 @@ class TimeBaseStates
 
     // Send Client subscribe message
     bool subscribe(size_t timeBaseIndex, const ClockSyncSubscription &newSub);
-    bool subscribeReply(size_t timeBaseIndex, const ptp_event &data);
+    bool subscribeReply(size_t timeBaseIndex, const ptp_event &ptpData);
 };
 
 __CLKMGR_NAMESPACE_END

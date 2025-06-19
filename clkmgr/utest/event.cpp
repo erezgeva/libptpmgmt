@@ -253,9 +253,9 @@ TEST(SysClockEventTest, defaultValue)
 // bool haveSys() const
 TEST(ClockSyncDataTest, defaultValue)
 {
-    ClockSyncData data;
-    EXPECT_FALSE(data.havePTP());
-    EXPECT_FALSE(data.haveSys());
+    ClockSyncData clData;
+    EXPECT_FALSE(clData.havePTP());
+    EXPECT_FALSE(clData.haveSys());
 }
 
 // ClockSyncData::ClockSyncData()
@@ -265,10 +265,10 @@ TEST(ClockSyncDataTest, defaultValue)
 // int64_t getClockOffset() const
 TEST(ClockSyncDataTest, setAndGet)
 {
-    ClockSyncData data;
+    ClockSyncData clData;
     // Should be able to access and modify via reference
-    ClockEventHandler::setClockOffset(data.getPtp(), 42);
-    ClockEventHandler::setClockOffset(data.getSysClock(), 99);
-    EXPECT_EQ(data.getPtp().getClockOffset(), 42);
-    EXPECT_EQ(data.getSysClock().getClockOffset(), 99);
+    ClockEventHandler::setClockOffset(clData.getPtp(), 42);
+    ClockEventHandler::setClockOffset(clData.getSysClock(), 99);
+    EXPECT_EQ(clData.getPtp().getClockOffset(), 42);
+    EXPECT_EQ(clData.getSysClock().getClockOffset(), 99);
 }

@@ -43,9 +43,10 @@ bool TimeBaseStates::subscribe(size_t timeBaseIndex,
 }
 
 static ptp_event ptp_data;
-bool TimeBaseStates::subscribeReply(size_t timeBaseIndex, const ptp_event &data)
+bool TimeBaseStates::subscribeReply(size_t timeBaseIndex,
+    const ptp_event &ptpData)
 {
-    ptp_data = data;
+    ptp_data = ptpData;
     return true;
 }
 

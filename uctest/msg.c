@@ -1619,9 +1619,9 @@ Test(MessageTest, MethodGetData)
     // Change to response action of get/set message
     buf[46] = PTPMGMT_RESPONSE;
     cr_expect(eq(int, m->parse(m, buf, 56), PTPMGMT_MNG_PARSE_ERROR_OK));
-    const void *data = m->getData(m);
-    cr_assert(not(zero(ptr, (void *)data)));
-    const struct ptpmgmt_PRIORITY1_t *p1 = (const struct ptpmgmt_PRIORITY1_t *)data;
+    const void *tlv = m->getData(m);
+    cr_assert(not(zero(ptr, (void *)tlv)));
+    const struct ptpmgmt_PRIORITY1_t *p1 = (const struct ptpmgmt_PRIORITY1_t *)tlv;
     cr_expect(eq(int, p1->priority1, p.priority1));
     m->free(m);
 }

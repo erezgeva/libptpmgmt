@@ -193,7 +193,7 @@ class ClockSyncBaseHandler
     ClockSyncData &clockSyncData;
 
   public:
-    ClockSyncBaseHandler(ClockSyncData &data) : clockSyncData(data) {}
+    ClockSyncBaseHandler(ClockSyncData &clData) : clockSyncData(clData) {}
     bool updateAll(const TimeBaseState &state);
 };
 

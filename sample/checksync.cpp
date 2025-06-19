@@ -83,13 +83,13 @@ const port_info *designated_port_get()
 
 void handle(bool local)
 {
-    const BaseMngTlv *data = msg.getData();
+    const BaseMngTlv *tlv = msg.getData();
     PORT_PROPERTIES_NP_t *pp;
     PORT_DATA_SET_t *pd;
     portState_e portState;
     switch(msg.getTlvId()) {
         case PORT_PROPERTIES_NP:
-            pp = (PORT_PROPERTIES_NP_t *)data;
+            pp = (PORT_PROPERTIES_NP_t *)tlv;
             if(local || TS_SOFTWARE != pp->timestamping) {
                 // create or update
                 port_info &pi = ports[pp->portIdentity];
@@ -100,7 +100,7 @@ void handle(bool local)
             }
             return;
         case PORT_DATA_SET:
-            pd = (PORT_DATA_SET_t *)data;
+            pd = (PORT_DATA_SET_t *)tlv;
             portState = normalize_state(pd->portState);
             if(ports.count(pd->portIdentity) > 0) {
                 port_info &pi = ports[pd->portIdentity];
@@ -117,7 +117,7 @@ void handle(bool local)
                 port_info &pi = ports[msg.getPeer()];
                 if(pi.portState != TIME_RECEIVER)
                     return;
-                pi.master_offset = ((TIME_STATUS_NP_t *)data)->master_offset;
+                pi.master_offset = ((TIME_STATUS_NP_t *)tlv)->master_offset;
             } else {
                 printf("received time sync data for unknown port %s\n",
                     msg.getPeer().string().c_str());
