@@ -20,6 +20,7 @@ fi
 local -r ver="$ver_maj.$ver_min"
 cat << EOF > $file
 package ifneeded ptpmgmt $ver [list load [file join $PWD $1 ptpmgmt.so]]
+package ifneeded clkmgr $ver [list load [file join $PWD $1 clkmgr.so]]
 EOF
 }
 main "$@"
