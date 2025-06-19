@@ -113,11 +113,11 @@ class TimeBaseRecord
      * @param[in] ptp configuration to use
      */
     void setPtp(PTPCfg &&ptp);
-    #endif
+    /**< @endcond */
+    #endif /* SWIG */
 
   public:
     TimeBaseRecord() = default;
-    /**< @endcond */
     /**
      * Get index of the time base
      * @return index of the time base
@@ -175,9 +175,11 @@ class TimeBaseConfigurations
      * @param[in] cfg TimeBaseCfg to add.
      */
     static void addTimeBaseCfg(const struct TimeBaseCfg &cfg);
+    /**< @endcond */
 
   public:
     #ifndef SWIG
+    /** @cond internal */
     class iterator
     {
       private:
@@ -192,8 +194,8 @@ class TimeBaseConfigurations
         const TimeBaseRecord &operator*();
         bool operator!=(iterator &o);
     };
-    #endif /* SWIG */
     /**< @endcond */
+    #endif /* SWIG */
     /**
      * Get the single instance of the TimeBaseConfigurations.
      * @return Reference to the single instance.
