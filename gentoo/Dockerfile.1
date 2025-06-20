@@ -30,7 +30,7 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     cd librtpi && autoreconf -i &&\
     ./configure --prefix=/usr --includedir=/usr/include --libdir=/usr/lib64 &&\
     make install &&\
-    cd /t0 && git clone https://gitlab.com/chrony/libchrony &&\
+    cd /t0 && git clone https://github.com/mlichvar/libchrony &&\
     cd libchrony && make install includedir=/usr/include libdir=/usr/lib64 &&\
     cd && rm -Rf /t0
 ARG UID COOKIE SRC DST

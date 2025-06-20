@@ -41,7 +41,7 @@ Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
     ```  
     On older systems, build and install the library:  
     ```bash
-    git clone https://github.com/linux-rt/librtpi.git  
+    git clone https://gitlab.com/linux-rt/librtpi.git  
     cd librtpi  
     autoreconf --install  
     ./configure  
@@ -54,7 +54,7 @@ Or get it from [linuxptp](https://linuxptp.nwtime.org/) site.
     git clone https://gitlab.com/chrony/libchrony.git  
     cd libchrony  
     make  
-    sudo make install prefix=/usr/local DESTDIR=  
+    sudo make install  
     ldconfig
     ```
 
@@ -210,10 +210,11 @@ Options:
  -f [file] Read configuration from 'file'  
  -l <lvl> Set log level  
           0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE  
- -v <0|1> Enable or disable verbose output  
-          0: disable, 1: enable(default)  
+ -q <0|1> Enable or disable quiet mode  
+          0: disable(default), 1: enable  
  -s <0|1> Enable or disable system log printing  
           0: disable(default), 1: enable  
+ -v       Show version
  -h       Show this help message
 ```
 
