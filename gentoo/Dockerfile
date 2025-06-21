@@ -18,6 +18,7 @@
 FROM portage.2
 ARG UID USER
 RUN useradd $USER -u $UID -m -G users,wheel,portage
+RUN emerge -tv dev-tcltk/tclx
 ARG COOKIE
 RUN emerge --sync && emerge -tvuD @world
 ARG SRC DST

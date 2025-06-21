@@ -17,7 +17,7 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     lua lua-devel python3-devel php python3 which gtest-devel gtest golang\
     perl-devel perl-ExtUtils-Embed lua-posix tcl tcl-devel clang openssl-libs\
     openssl-devel libgcrypt-devel gnutls-devel nettle-devel perl-Test-Class\
-    libfastjson libfastjson-devel json-c-devel m4 rubygem-test-unit gdb\
+    libfastjson libfastjson-devel json-c-devel m4 rubygem-test-unit gdb tclx\
     texlive-epstopdf ghostscript php-phpunit-PHPUnit perl-File-Touch jq\
     chrpath patchelf discount gmock-devel cppcheck chrony quilt cmark tcllib\
     && dnf clean all &&\
