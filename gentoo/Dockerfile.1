@@ -23,7 +23,7 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     dev-lang/lua dev-lua/luaposix dev-lang/php dev-lang/tcl sys-devel/gcc\
     dev-util/cppcheck media-gfx/graphviz perl-core/Test-Simple\
     app-text/texlive-core dev-texlive/texlive-fontutils net-misc/chrony\
-    dev-util/quilt app-text/cmark dev-tcltk/tcllib &&\
+    dev-util/quilt app-text/cmark dev-tcltk/tcllib dev-tcltk/tclx &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\
