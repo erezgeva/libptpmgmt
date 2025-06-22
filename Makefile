@@ -850,7 +850,7 @@ endif # MAKECMDGOALS
 CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   *.la wrappers/*/*.so\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
-  wrappers/go/*/go.mod wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
+  wrappers/go/*/go.* wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
   */$(LIB_SRC) tools/doxygen*cfg $(CLKMGR_DIR)/utest/utest_*\
   */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/sample/clkmgr*test)\
   $(D_FILES) $(LIB_SRC)\
@@ -858,6 +858,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache wrappers/go/allocTlv.i wrappers/go/gtest/gtest\
+  wrappers/go/clkmgr_gtest/clkmgr_gtest\
   $(CLKMGR_PROXY) $(HEADERS_GEN) $(CLKMGR_HEADERS_GEN) .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
   archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\

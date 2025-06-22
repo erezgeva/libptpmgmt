@@ -9,5 +9,7 @@
 /ptpmgmt/
 /clkmgr/
 /gtest/gtest
+/clkmgr_gtest/clkmgr_gtest
 /allocTlv.i
 go.mod
+go.sum
