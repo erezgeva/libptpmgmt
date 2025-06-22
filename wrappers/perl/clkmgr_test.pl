@@ -16,6 +16,7 @@
 
 use threads;
 use threads::shared;
+use File::Basename;
 use POSIX;
 use Time::HiRes;
 use Getopt::Std;
@@ -71,12 +72,13 @@ sub main
 
     my @overallSub; # Array of ClkMgrLib::ClockSyncSubscription
 
-    my $ret = getopts('aps:c:u:l:i:t:n:m:h');
+    my $ret = getopts('aps:c:l:i:t:m:h');
     if($opt_h || !$ret) {
         my $event2SubHex = sprintf '0x%x', $event2Sub;
         my $composite_eventHex = sprintf '0x%x', $composite_event;
+        my $name = basename $0;
         my $help = <<"END_MESSAGE";
-Usage of $0:
+Usage of $name :
 Options:
   -a subscribe to all time base indices
      Default: timeBaseIndex: 1

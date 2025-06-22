@@ -86,8 +86,9 @@ proc main {} {
         set help 1
     }
     if { [ info exist help ] || $params(h) } {
-    puts "
-Usage of $argv0:
+        set me [file tail $argv0]
+        puts "
+Usage of $me :
 Options:
   -a subscribe to all time base indices
      Default: timeBaseIndex: 1

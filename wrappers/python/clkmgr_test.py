@@ -62,7 +62,7 @@ def ClockManagerGetTime():
 
 def usage():
     print('''
-Usage of {}:
+Usage of {} :
 Options:
   -a subscribe to all time base indices
      Default: timeBaseIndex: 1
@@ -86,7 +86,7 @@ Options:
      Default: {} ns
   -t timeout in waiting notification event (s)
      Default: {} s
-'''[:-1].format(sys.argv[0], hex(event2Sub),
+'''[:-1].format(os.path.basename(sys.argv[0]), hex(event2Sub),
     hex(composite_event), ptp4lClockOffsetThreshold,
     idleTime, chronyClockOffsetThreshold, timeout))
 
@@ -95,7 +95,7 @@ def main():
         ptp4lClockOffsetThreshold, idleTime, timeout, \
         chronyClockOffsetThreshold
     try:
-        opts, args = getopt.gnu_getopt(sys.argv[1:], 'aps:c:u:l:i:t:n:m:h')
+        opts, args = getopt.gnu_getopt(sys.argv[1:], 'aps:c:l:i:t:m:h')
     except getopt.GetoptError as err:
         print(err)
         usage()

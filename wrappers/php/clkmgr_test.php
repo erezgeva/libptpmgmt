@@ -48,7 +48,7 @@ function clockManagerGetTime(): void
 
 function main(): void
 {
-    global $signal_flag;
+    global $signal_flag, $argv;
     $ptp4lClockOffsetThreshold = 100000;
     $chronyClockOffsetThreshold = 100000;
     $subscribeAll = false;
@@ -62,12 +62,13 @@ function main(): void
     $ptp4lSub = new PTPClockSubscription();
     $chronySub = new SysClockSubscription();
     $overallSub = []; # Array of ClockSyncSubscription
-    $options = getopt('aps:c:u:l:i:t:n:m:h');
+    $options = getopt('aps:c:l:i:t:m:h');
     if(array_key_exists('h', $options)) {
         $event2SubHex = dechex($event2Sub);
         $composite_eventHex = dechex($composite_event);
+        $me = basename($argv[0]);
         echo <<< END
-        Usage of $0:
+        Usage of $me :
         Options:
           -a subscribe to all time base indices
              Default: timeBaseIndex: 1

@@ -77,12 +77,16 @@ int main(int argc, char *argv[])
     int retval;
     int option;
 
+    const char *me = strrchr(argv[0], '/');
+    // Remove leading path
+    me = me == NULL ? argv[0] : me + 1;
+
     uint32_t eventMask = (Clkmgr_EventGMOffset | Clkmgr_EventSyncedToGM |
         Clkmgr_EventASCapable | Clkmgr_EventGMChanged);
     uint32_t compositeEventMask = (Clkmgr_EventGMOffset |
         Clkmgr_EventSyncedToGM | Clkmgr_EventASCapable);
 
-    while ((option = getopt(argc, argv, "aps:c:u:l:i:t:m:n:h")) != -1) {
+    while ((option = getopt(argc, argv, "aps:c:l:i:t:m:h")) != -1) {
         switch (option) {
         case 'a':
             subscribeAll = true;
@@ -139,10 +143,10 @@ int main(int argc, char *argv[])
                    "     Default: %d ns\n"
                    "  -t timeout in waiting notification event (s)\n"
                    "     Default: %d s\n",
-                   argv[0], eventMask,
+                   me, eventMask,
                    compositeEventMask,
-                   ptp4lClockOffsetThreshold, chronyClockOffsetThreshold,
-                   idleTime, timeout);
+                   ptp4lClockOffsetThreshold, idleTime,
+                   chronyClockOffsetThreshold, timeout);
             return EXIT_SUCCESS;
         default:
             printf("Usage of %s :\n"
@@ -169,10 +173,10 @@ int main(int argc, char *argv[])
                    "     Default: %d ns\n"
                    "  -t timeout in waiting notification event (s)\n"
                    "     Default: %d s\n",
-                   argv[0], eventMask,
+                   me, eventMask,
                    compositeEventMask,
-                   ptp4lClockOffsetThreshold, chronyClockOffsetThreshold,
-                   idleTime, timeout);
+                   ptp4lClockOffsetThreshold, idleTime,
+                   chronyClockOffsetThreshold, timeout);
             return EXIT_FAILURE;
         }
     }

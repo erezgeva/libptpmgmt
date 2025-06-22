@@ -221,7 +221,7 @@ Options:
 Usage of c++ sample application (clkmgr_test):  
 ```bash  
 ~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -h  
-Usage of ./clkmgr_test :  
+Usage of clkmgr_test :  
 Options:  
   -a subscribe to all time base indices  
      Default: timeBaseIndex: 1  
@@ -237,16 +237,12 @@ Options:
      Bit 0: EventGMOffset  
      Bit 1: EventSyncedToGM  
      Bit 2: EventASCapable  
-  -u gm offset upper limit (ns)  
+  -l gm offset threshold (ns)  
      Default: 100000 ns  
-  -l gm offset lower limit (ns)  
-     Default: -100000 ns  
   -i idle time (s)  
      Default: 1 s  
-  -m chrony offset upper limit (ns)  
+  -m chrony offset threshold (ns)  
      Default: 100000 ns  
-  -n chrony offset lower limit (ns)  
-     Default: -100000 ns  
   -t timeout in waiting notification event (s)  
      Default: 10 s
 ```

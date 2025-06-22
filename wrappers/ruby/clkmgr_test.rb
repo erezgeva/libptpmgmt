@@ -55,7 +55,7 @@ end
 
 def usage
     puts <<-EOF
-Usage of #{ $0 }
+Usage of #{ File.basename($0) } :
 Options
   -a subscribe to all time base indices
      Default: timeBaseIndex: 1
@@ -89,11 +89,9 @@ def main
       [ '--p', '-p', GetoptLong::NO_ARGUMENT ],
       [ '--s', '-s', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--c', '-c', GetoptLong::REQUIRED_ARGUMENT ],
-      [ '--u', '-u', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--l', '-l', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--i', '-i', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--t', '-t', GetoptLong::REQUIRED_ARGUMENT ],
-      [ '--n', '-n', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--m', '-m', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--h', '-h', GetoptLong::NO_ARGUMENT ],
     )

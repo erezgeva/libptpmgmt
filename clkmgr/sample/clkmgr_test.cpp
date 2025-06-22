@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <vector>
+#include <cstring>
 
 #include <clockmanager.h>
 
@@ -79,6 +80,10 @@ int main(int argc, char *argv[])
     int retval;
     int option;
 
+    const char *me = strrchr(argv[0], '/');
+    // Remove leading path
+    me = me == nullptr ? argv[0] : me + 1;
+
     std::uint32_t event2Sub = {
         (EventGMOffset | EventSyncedToGM | EventASCapable |
         EventGMChanged)
@@ -98,7 +103,7 @@ int main(int argc, char *argv[])
     uint64_t gmClockUUID;
     std::map<size_t, ClockSyncSubscription> overallSub;
 
-    while ((option = getopt(argc, argv, "aps:c:u:l:i:t:n:m:h")) != -1) {
+    while ((option = getopt(argc, argv, "aps:c:l:i:t:m:h")) != -1) {
         switch (option) {
         case 'a':
             subscribeAll = true;
@@ -133,7 +138,7 @@ int main(int argc, char *argv[])
             }
             break;
         case 'h':
-            std::cout << "Usage of " << argv[0] << " :\n"
+            std::cout << "Usage of " << me << " :\n"
                 "Options:\n"
                 "  -a subscribe to all time base indices\n"
                 "     Default: timeBaseIndex: 1\n"
@@ -150,16 +155,16 @@ int main(int argc, char *argv[])
                 "     Bit 1: EventSyncedToGM\n"
                 "     Bit 2: EventASCapable\n"
                 "  -l gm offset threshold (ns)\n"
-                "     Default: " << ptp4lClockOffsetThreshold << " ns\n"
+                "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns\n"
                 "  -i idle time (s)\n"
                 "     Default: " << idleTime << " s\n"
                 "  -m chrony offset threshold (ns)\n"
-                "     Default: " << std::dec << chronyClockOffsetThreshold << " ns\n"
+                "     Default: " << chronyClockOffsetThreshold << " ns\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_SUCCESS;
         default:
-            std::cerr << "Usage of " << argv[0] << " :\n"
+            std::cerr << "Usage of " << me << " :\n"
                 "Options:\n"
                 "  -a subscribe to all time base indices\n"
                 "     Default: timeBaseIndex: 1\n"
@@ -176,11 +181,11 @@ int main(int argc, char *argv[])
                 "     Bit 1: EventSyncedToGM\n"
                 "     Bit 2: EventASCapable\n"
                 "  -l gm offset threshold (ns)\n"
-                "     Default: " << ptp4lClockOffsetThreshold << " ns\n"
+                "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns\n"
                 "  -i idle time (s)\n"
                 "     Default: " << idleTime << " s\n"
                 "  -m chrony offset threshold (ns)\n"
-                "     Default: " << std::dec << chronyClockOffsetThreshold << " ns\n"
+                "     Default: " << chronyClockOffsetThreshold << " ns\n"
                 "  -t timeout in waiting notification event (s)\n"
                 "     Default: " << timeout << " s\n";
             return EXIT_FAILURE;
