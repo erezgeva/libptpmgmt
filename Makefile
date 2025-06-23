@@ -360,6 +360,19 @@ V:=0
 endif
 export V
 
+ifdef DATE
+CYEAR!=$(DATE) "+%Y"
+else
+CYEAR=2024
+endif
+SPDXLI:=SPDX-License-Identifier:
+SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
+SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
+SPDXGPL:=GPL-3.0-or-later
+SPDXLGPL:=L$(SPDXGPL)
+SPDXGFDL:=GFDL-1.3-no-invariants-or-later
+SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
+
 LN:=$(LN_S) -f
 ifeq ($(findstring -O,$(CXXFLAGS)),)
 # Add debug optimization, unless we already have an optimization :-)
@@ -553,19 +566,6 @@ wrappers/%/$(CLKMGR_NAME).cpp: $(CLKMGR_CLIENT_DIR)/$(CLKMGR_NAME).i\
 	$(Q_SWIG)$(SWIG) -c++ $(CLKMGR_CXXFLAGS) -I$(@D) -outdir $(@D) -Wextra\
 	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
 endif
-
-ifdef DATE
-CYEAR!=$(DATE) "+%Y"
-else
-CYEAR=2024
-endif
-SPDXLI:=SPDX-License-Identifier:
-SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
-SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
-SPDXGPL:=GPL-3.0-or-later
-SPDXLGPL:=L$(SPDXGPL)
-SPDXGFDL:=GFDL-1.3-no-invariants-or-later
-SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
 
 ifndef SKIP_PERL5
 include wrappers/perl/Makefile
