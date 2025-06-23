@@ -31,6 +31,18 @@ uint64_t ClockEventBase::getGmIdentity() const
     return gmClockUUID;
 }
 
+std::string ClockEventBase::getGmIdentityStr() const
+{
+    uint8_t id[8];
+    // Copy the uint64_t into the array
+    for(int i = 0; i < 8; ++i)
+        id[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff;
+    char ret[150];
+    snprintf(ret, sizeof ret, "%02x%02x%02x.%02x%02x.%02x%02x%02x",
+        id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]);
+    return ret;
+}
+
 bool ClockEventBase::isOffsetInRange() const
 {
     return offsetInRange;

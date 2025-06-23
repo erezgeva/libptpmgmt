@@ -27,6 +27,8 @@
 #include "pub/clkmgr/utility.h"
 #include "pub/clkmgr/types.h"
 
+#include <string>
+
 __CLKMGR_NAMESPACE_BEGIN
 
 class ClockEventHandler;
@@ -83,6 +85,14 @@ class ClockEventBase
      *  whom all the clocks will synchronize to.
      */
     uint64_t getGmIdentity() const;
+
+    /**
+     * Get the grandmaster clock identity in string format
+     * @return Grandmaster clock identity
+     * @note The grandmaster is the source clock for the PTP domain (network),
+     *  whom all the clocks will synchronize to.
+     */
+    std::string getGmIdentityStr() const;
 
     /**
      * Check if the grandmaster has changed

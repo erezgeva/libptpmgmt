@@ -257,12 +257,12 @@ def main_body
     while !$signal_flag
         $index.each do |idx|
             return 0 if $signal_flag
-            puts '[Clkmgr][%.3f] Waiting Notification from time base index idx ...' % Time.now.to_f
+            puts "[Clkmgr][%.3f] Waiting Notification from time base index #{ idx } ..." % Time.now.to_f
             retval = Clkmgr::ClockManager.statusWait($timeout, idx, clockSyncData)
             if retval == 0 then
                 puts '[Clkmgr][%.3f] No event status changes identified in $timeout seconds.' % Time.now.to_f
                 puts
-                puts '[Clkmgr][%.3f] sleep for %d seconds...' % [Time.now.to_f, $idleTime]
+                puts "[Clkmgr][%.3f] sleep for #{ $idleTime } seconds..." % Time.now.to_f
                 puts
                 return 0 if $signal_flag
                 sleep $idleTime
@@ -316,7 +316,7 @@ def main_body
             puts '| %-25s |     %-19d us |' % ['chrony_polling_interval', sysClock.getSyncInterval()]
             puts hd2l
             puts
-            puts '[Clkmgr][%.3f] sleep for %d seconds...' % [Time.now.to_f, $idleTime]
+            puts "[Clkmgr][%.3f] sleep for #{ $idleTime } seconds..." % Time.now.to_f
             puts
             return 0 if $signal_flag
             sleep $idleTime

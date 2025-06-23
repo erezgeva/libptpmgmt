@@ -19,6 +19,8 @@
 
 $signal_flag = false;
 
+declare(ticks = 1);
+
 function signal_handler(int $signo, $siginfo): void
 {
     global $signal_flag;
@@ -113,7 +115,6 @@ function main(): void
         $timeout = isPositiveValue($options['t'], 'Invalid timeout!');
     if(array_key_exists('m', $options))
         $chronyClockOffsetThreshold = isPositiveValue($options['m'], 'Invalid Chrony Offset threshold!');
-    pcntl_async_signals(true);
     pcntl_signal(SIGINT, "signal_handler");
     pcntl_signal(SIGTERM, "signal_handler");
     pcntl_signal(SIGHUP, "signal_handler");
@@ -199,11 +200,8 @@ function main(): void
                 printf("| %-25s | %-22d |\n", 'gm_Changed', $ptpClock->isGmChanged());
         }
         echo "$hd2\n";
-        // getGmIdentity() return string with decimal value
-        // So convert it to string with hex value
-        $gmID = uintDecStrToHexStr($ptpClock->getGmIdentity());
-        $gmClockUUID = substr($gmID,1, 6) . '.' . substr($gmID,7, 4) . '.' . substr($gmID,11, 6);
-        printf("| %-25s | %s      |\n", 'GM UUID', $gmClockUUID);
+        $gmClockUUID = $ptpClock->getGmIdentityStr();
+        printf("| %-25s | %s     |\n", 'GM UUID', $gmClockUUID);
         printf("| %-25s | %-19ld ns |\n" .
                "| %-25s | %-19ld ns |\n" .
                "| %-25s | %-19ld us |\n" .
@@ -274,9 +272,8 @@ function main(): void
                     printf("$hd3b\n", 'gm_Changed', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
             }
             echo "$hd3\n";
-            $gmID = uintDecStrToHexStr($ptpClock->getGmIdentity());
-            $gmClockUUID = substr($gmID,1, 6) . '.' . substr($gmID,7, 4) . '.' . substr($gmID,11, 6);
-            printf("| %-25s |     %s      |\n", 'GM UUID', $gmClockUUID);
+            $gmClockUUID = $ptpClock->getGmIdentityStr();
+            printf("| %-25s |     %s     |\n", 'GM UUID', $gmClockUUID);
             printf("| %-25s |     %-19ld ns |\n" .
                    "| %-25s |     %-19ld ns |\n" .
                    "| %-25s |     %-19ld us |\n" .
