@@ -84,6 +84,9 @@ build_prepare_ubuntu()
 {
  apt_install libtool-bin nettle-dev libgnutls28-dev libgcrypt20-dev\
    chrpath
+ install_librtpi_ubuntu
+ install_libchrony_ubuntu
+ config_ubuntu "$@"
 }
 ###############################################################################
 # Configure for coverity scan
@@ -95,17 +98,13 @@ ci_coverity()
      add_cfg='CC=clang CXX=clang++'
      ;;
  esac
- build_prepare_ubuntu
- install_librtpi_ubuntu
- install_libchrony_ubuntu
- config_ubuntu --without-swig $add_cfg
+ build_prepare_ubuntu --without-swig $add_cfg
 }
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
 ci_address()
 {
  build_prepare_ubuntu
- config_ubuntu
  sim_ptp4l -at
 }
 ###############################################################################
