@@ -54,6 +54,10 @@ proc ClockManagerGetTime {} {
     }
 }
 
+proc getMonotonicTime {} {
+    return [expr [clock milliseconds ] / 1000.0 ]
+}
+
 proc main {} {
     global argv argv0 index subscribeAll event2Sub composite_event\
         clockSyncData ptp4lSub chronySub idleTime timeout
@@ -141,9 +145,6 @@ Options:
     set timeout [ isPositiveValue $params(t) "Invalid timeout!" ]
     set chronyClockOffsetThreshold [ isPositiveValue $params(m)\
         "Invalid Chrony Offset threshold!" ]
-    signal trap SIGINT signal_handler
-    signal trap SIGTERM signal_handler
-    signal trap SIGHUP signal_handler
     ptp4lSub setEventMask $event2Sub
     ptp4lSub setClockOffsetThreshold $ptp4lClockOffsetThreshold
     ptp4lSub setCompositeEventMask $composite_event
@@ -171,6 +172,9 @@ Options:
             lappend index $idx
         }
     }
+    signal trap SIGINT signal_handler
+    signal trap SIGTERM signal_handler
+    signal trap SIGHUP signal_handler
     set ret [ main_body ]
     clkmgr::ClockManager_disconnect
     if { $ret > 0 } {
@@ -227,8 +231,7 @@ proc main_body {} {
             return 2
         }
         puts [format "\[clkmgr]\[%.3f] Obtained data from %s"\
-            [expr [clock milliseconds ] / 1000.0 ]\
-            "Subscription Event:"]
+            [getMonotonicTime] "Subscription Event:"]
         ClockManagerGetTime
         puts $hd2
         puts [format "| %-25s | %-22s |" "Event" "Event Status" ]
@@ -309,113 +312,111 @@ proc main_body {} {
                 return 0
             }
             puts [format "\[clkmgr]\[%.3f] Waiting Notification from %s"\
-                [expr [clock milliseconds ] / 1000.0 ]\
-                "time base index $idx ..."]
-            set retval [ clkmgr::ClockManager_statusWait $timeout\
-                $idx clockSyncData ]
-            if { !$retval } {
+                [getMonotonicTime] "time base index $idx ..."]
+            set retval [ clkmgr::ClockManager_statusWait $timeout $idx clockSyncData ]
+            if { $retval == $clkmgr::SWRLostConnection } {
+                puts [format "\[clkmgr]\[%.3f] Terminating: %s"\
+                    [getMonotonicTime] "lost connection to clkmgr Proxy"]
+                return 0
+            } elseif { $retval == $clkmgr::SWRInvalidArgument } {
+                puts [format "\[clkmgr]\[%.3f] Terminating: %s"\
+                    [getMonotonicTime] "Invalid argument"]
+                return 0
+            } elseif { $retval == $clkmgr::SWRNoEventDetected } {
                 puts [format "\[clkmgr]\[%.3f] No event status changes %s"\
-                    [expr [clock milliseconds ] / 1000.0 ]\
-                    "identified in $timeout seconds."]
+                    [getMonotonicTime] "identified in $timeout seconds."]
                 puts ""
                 puts [format "\[clkmgr]\[%.3f] sleep for %s"\
-                    [expr [clock milliseconds ] / 1000.0 ]\
-                    "$idleTime seconds..."]
-                puts ""
-                if { $signal_flag } {
-                    return 0
+                    [getMonotonicTime] "$idleTime seconds..."]
+            } elseif { $retval == $clkmgr::SWREventDetected } {
+                puts [format "\[clkmgr]\[%.3f] Obtained data from %s"\
+                    [getMonotonicTime] "Notification Event:"]
+                ClockManagerGetTime
+                puts $hd3
+                puts [format "| %-25s | %-12s | %-11s |" "Event"\
+                    "Event Status" "Event Count" ]
+                set ptpClock [ clockSyncData getPtp ]
+                set sysClock [ clockSyncData getSysClock ]
+                if { $event2Sub != 0 } {
+                    puts $hd3
+                    if { $event2Sub & $clkmgr::EventGMOffset } {
+                        puts [format $hd3b "offset_in_range"\
+                            [ $ptpClock isOffsetInRange ]\
+                            [ $ptpClock getOffsetInRangeEventCount ]]
+                    }
+                    if { $event2Sub & $clkmgr::EventSyncedToGM } {
+                        puts [format $hd3b "synced_to_primary_clock"\
+                            [ $ptpClock isSyncedWithGm ]\
+                            [ $ptpClock getSyncedWithGmEventCount ]]
+                    }
+                    if { $event2Sub & $clkmgr::EventASCapable } {
+                        puts [format $hd3b "as_capable"\
+                            [ $ptpClock isAsCapable ]\
+                            [ $ptpClock getAsCapableEventCount ]]
+                    }
+                    if { $event2Sub & $clkmgr::EventGMChanged } {
+                        puts [format $hd3b "gm_Changed"\
+                            [ $ptpClock isGmChanged ]\
+                            [ $ptpClock getGmChangedEventCount ]]
+                    }
                 }
-                sleep $idleTime
-                continue
-            } elseif { $retval < 0 } {
-                puts [format "\[clkmgr]\[%.3f] Terminating: %s"\
-                    [expr [clock milliseconds ] / 1000.0 ]\
-                    "lost connection to clkmgr Proxy"]
+                puts $hd3
+                set gmClockUUID [ $ptpClock getGmIdentity ]
+                # Copy the uint64_t into the array
+                for {set i 0} {$i < 8} {incr i} {
+                    set id($i) [expr ($gmClockUUID >> (8 * (7 - $i))) & 0xff ]
+                }
+                puts [format "| %-26s|%s %02x%02x%02x.%02x%02x.%02x%02x%02x %s|"\
+                    "GM UUID" "    "\
+                    $id(0) $id(1) $id(2) $id(3)\
+                    $id(4) $id(5) $id(6) $id(7) "    "]
+                puts [format "| %-25s |     %-19ld ns |" "clock_offset"\
+                    [ $ptpClock getClockOffset ]]
+                puts [format "| %-25s |     %-19ld ns |" "notification_timestamp"\
+                    [ $ptpClock getNotificationTimestamp ]]
+                puts [format "| %-25s |     %-19ld us |" "gm_sync_interval"\
+                    [ $ptpClock getSyncInterval ]]
+                puts $hd3
+                if { $composite_event != 0 } {
+                    puts [format $hd3b "composite_event"\
+                        [ $ptpClock isCompositeEventMet ]\
+                        [ $ptpClock getCompositeEventCount ]]
+                    if { $composite_event & $clkmgr::EventGMOffset } {
+                        puts [format "| - %-23s | %-12s | %-11s |"\
+                            "offset_in_range" "" ""]
+                    }
+                    if { $composite_event & $clkmgr::EventSyncedToGM } {
+                        puts [format "| - %-19s | %-12s | %-11s |"\
+                            "synced_to_primary_clock" "" ""]
+                    }
+                    if { $composite_event & $clkmgr::EventASCapable } {
+                        puts [format "| - %-23s | %-12s | %-11s |"\
+                            "as_capable" "" ""]
+                    }
+                    puts $hd3
+                }
+                puts ""
+                puts $hd2l
+                puts [format $hd3b "chrony_offset_in_range"\
+                    [ $sysClock isOffsetInRange ]\
+                    [ $sysClock getOffsetInRangeEventCount ]]
+                puts $hd2l
+                puts [format "| %-25s |     %-19ld ns |"\
+                    "chrony_clock_offset" [ $sysClock getClockOffset ]]
+                puts [format "| %-25s |     %-19lx    |"\
+                    "chrony_clock_reference_id" [ $sysClock getGmIdentity ]]
+                puts [format "| %-25s |     %-19ld us |"\
+                    "chrony_polling_interval" [ $sysClock getSyncInterval ]]
+                puts $hd2l
+                puts ""
+                puts [format "\[clkmgr]\[%.3f] sleep for %d seconds..."\
+                    [getMonotonicTime] $idleTime ]
+            } else {
+                puts [format "\[clkmgr]\[%.3f] Warning: Should %s $retval"\
+                    [getMonotonicTime]\
+                    "not enter this switch case, unexpected status code"]
                 return 0
             }
-            puts [format "\[clkmgr]\[%.3f] Obtained data from %s"\
-                [expr [clock milliseconds ] / 1000.0 ]\
-                "Notification Event:"]
-            ClockManagerGetTime
-            puts $hd3
-            puts [format "| %-25s | %-12s | %-11s |" "Event"\
-                "Event Status" "Event Count" ]
-            set ptpClock [ clockSyncData getPtp ]
-            set sysClock [ clockSyncData getSysClock ]
-            if { $event2Sub != 0 } {
-                puts $hd3
-                if { $event2Sub & $clkmgr::EventGMOffset } {
-                    puts [format $hd3b "offset_in_range"\
-                        [ $ptpClock isOffsetInRange ]\
-                        [ $ptpClock getOffsetInRangeEventCount ]]
-                }
-                if { $event2Sub & $clkmgr::EventSyncedToGM } {
-                    puts [format $hd3b "synced_to_primary_clock"\
-                        [ $ptpClock isSyncedWithGm ]\
-                        [ $ptpClock getSyncedWithGmEventCount ]]
-                }
-                if { $event2Sub & $clkmgr::EventASCapable } {
-                    puts [format $hd3b "as_capable"\
-                        [ $ptpClock isAsCapable ]\
-                        [ $ptpClock getAsCapableEventCount ]]
-                }
-                if { $event2Sub & $clkmgr::EventGMChanged } {
-                    puts [format $hd3b "gm_Changed"\
-                        [ $ptpClock isGmChanged ]\
-                        [ $ptpClock getGmChangedEventCount ]]
-                }
-            }
-            puts $hd3
-            set gmClockUUID [ $ptpClock getGmIdentity ]
-            # Copy the uint64_t into the array
-            for {set i 0} {$i < 8} {incr i} {
-                set id($i) [expr ($gmClockUUID >> (8 * (7 - $i))) & 0xff ]
-            }
-            puts [format "| %-26s|%s %02x%02x%02x.%02x%02x.%02x%02x%02x %s|"\
-                "GM UUID" "    "\
-                $id(0) $id(1) $id(2) $id(3)\
-                $id(4) $id(5) $id(6) $id(7) "    "]
-            puts [format "| %-25s |     %-19ld ns |" "clock_offset"\
-                [ $ptpClock getClockOffset ]]
-            puts [format "| %-25s |     %-19ld ns |" "notification_timestamp"\
-                [ $ptpClock getNotificationTimestamp ]]
-            puts [format "| %-25s |     %-19ld us |" "gm_sync_interval"\
-                [ $ptpClock getSyncInterval ]]
-            puts $hd3
-            if { $composite_event != 0 } {
-                puts [format $hd3b "composite_event"\
-                    [ $ptpClock isCompositeEventMet ]\
-                    [ $ptpClock getCompositeEventCount ]]
-                if { $composite_event & $clkmgr::EventGMOffset } {
-                    puts [format "| - %-23s | %-12s | %-11s |"\
-                        "offset_in_range" "" ""]
-                }
-                if { $composite_event & $clkmgr::EventSyncedToGM } {
-                    puts [format "| - %-19s | %-12s | %-11s |"\
-                        "synced_to_primary_clock" "" ""]
-                }
-                if { $composite_event & $clkmgr::EventASCapable } {
-                    puts [format "| - %-23s | %-12s | %-11s |"\
-                        "as_capable" "" ""]
-                }
-                puts $hd3
-            }
-            puts ""
-            puts $hd2l
-            puts [format $hd3b "chrony_offset_in_range"\
-                [ $sysClock isOffsetInRange ]\
-                [ $sysClock getOffsetInRangeEventCount ]]
-            puts $hd2l
-            puts [format "| %-25s |     %-19ld ns |"\
-                "chrony_clock_offset" [ $sysClock getClockOffset ]]
-            puts [format "| %-25s |     %-19lx    |"\
-                "chrony_clock_reference_id" [ $sysClock getGmIdentity ]]
-            puts [format "| %-25s |     %-19ld us |"\
-                "chrony_polling_interval" [ $sysClock getSyncInterval ]]
-            puts $hd2l
-            puts ""
-            puts [format "\[clkmgr]\[%.3f] sleep for %d seconds..."\
-                [expr [clock milliseconds ] / 1000.0 ] $idleTime ]
             puts ""
             if { $signal_flag } {
                 return 0

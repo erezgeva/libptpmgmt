@@ -55,10 +55,13 @@ def isPositiveValue(optarg, errorMessage):
 def ClockManagerGetTime():
     ts = clkmgr.timespec()
     if clkmgr.ClockManager.getTime(ts):
-        print("[clkmgr] Current Time of CLOCK_REALTIME: {} ns"
+        print('[clkmgr] Current Time of CLOCK_REALTIME: {} ns'
             .format((ts.tv_sec * 1000000000) + ts.tv_nsec))
     else:
-        print("clock_gettime failed: {}".format(os.strerror(errno.errorcode)))
+        print('clock_gettime failed: {}'.format(os.strerror(errno.errorcode)))
+
+def getMonotonicTime():
+    return time.monotonic();
 
 def usage():
     print('''
@@ -124,9 +127,6 @@ def main():
                 'Invalid Chrony Offset threshold!')
         else:
             assert False, 'unhandled option'
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGHUP, signal_handler)
     ptp4lSub.setEventMask(event2Sub)
     ptp4lSub.setClockOffsetThreshold(ptp4lClockOffsetThreshold)
     ptp4lSub.setCompositeEventMask(composite_event)
@@ -138,7 +138,8 @@ def main():
     print('GM Offset threshold: {} ns'.format(ptp4lClockOffsetThreshold))
     print('Chrony Offset threshold: {} ns'.format(chronyClockOffsetThreshold))
     if userInput and not subscribeAll:
-        line = input('Enter the time base indices to subscribe (comma-separated, default is 1): ')
+        line = input('Enter the time base indices to subscribe ' +
+            '(comma-separated, default is 1): ')
         if len(line) > 0:
             try:
                 idx = int(line)
@@ -150,6 +151,9 @@ def main():
             index.append(idx)
         else:
             print('Invalid input. Using default time base index 1.')
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGHUP, signal_handler)
     ret = main_body()
     clkmgr.ClockManager.disconnect()
     if ret != None and ret > 0:
@@ -189,11 +193,15 @@ def main_body():
     gm_identity = [None] * 8
     hd2 = '|'+('-'*27)+'|'+('-'*24)+'|'
     for idx in index:
+        if idx > size:
+            print("Index {} does not exist".format(idx))
+            return 2
         print('Subscribe to time base index: {}'.format(idx))
         if not clkmgr.ClockManager.subscribe(overallSub[idx], idx, clockSyncData):
             print('[clkmgr] Failure in subscribing to clkmgr Proxy !!!')
             return 2
-        print('[clkmgr][%.3f] Obtained data from Subscription Event:' % time.time())
+        print('[clkmgr][%.3f] Obtained data from Subscription Event:' %
+            getMonotonicTime())
         ClockManagerGetTime
         print(hd2)
         print('| %-25s | %-22s |' % ('Event', 'Event Status'))
@@ -202,10 +210,11 @@ def main_body():
         if event2Sub != 0:
             print(hd2)
             if event2Sub & clkmgr.EventGMOffset:
-                print('| %-25s | %-22d |' % ('offset_in_range', ptpClock.isOffsetInRange()))
+                print('| %-25s | %-22d |' % ('offset_in_range',
+                    ptpClock.isOffsetInRange()))
             if event2Sub & clkmgr.EventSyncedToGM:
-                print('| %-25s | %-22d |' % ('synced_to_primary_clock', ptpClock.isSyncedWithGm()))
-
+                print('| %-25s | %-22d |' % ('synced_to_primary_clock',
+                    ptpClock.isSyncedWithGm()))
             if event2Sub & clkmgr.EventASCapable:
                 print('| %-25s | %-22d |' % ('as_capable', ptpClock.isAsCapable()))
             if event2Sub & clkmgr.EventGMChanged:
@@ -221,12 +230,14 @@ def main_body():
             gm_identity[4], gm_identity[5],
             gm_identity[6], gm_identity[7]))
         print('| %-25s | %-19ld ns |' % ('clock_offset', ptpClock.getClockOffset()))
-        print('| %-25s | %-19ld ns |' % ('notification_timestamp', ptpClock.getNotificationTimestamp()))
-        print('| %-25s | %-19ld us |' % ('gm_sync_interval', ptpClock.getSyncInterval()))
+        print('| %-25s | %-19ld ns |' % ('notification_timestamp',
+            ptpClock.getNotificationTimestamp()))
+        print('| %-25s | %-19ld us |' % ('gm_sync_interval',
+            ptpClock.getSyncInterval()))
         print(hd2)
         if composite_event != 0:
-            print('| %-25s | %-22d |' % ('composite_event', ptpClock.isCompositeEventMet()))
-
+            print('| %-25s | %-22d |' % ('composite_event',
+                ptpClock.isCompositeEventMet()))
             if composite_event & clkmgr.EventGMOffset:
                 print('| - %-23s | %-22s |' % ('offset_in_range', ''))
             if composite_event & clkmgr.EventSyncedToGM:
@@ -237,11 +248,15 @@ def main_body():
             print(hd2)
         print()
         print(hd2)
-        print('| %-25s | %-22d |' % ('chrony_offset_in_range', sysClock.isOffsetInRange()))
+        print('| %-25s | %-22d |' % ('chrony_offset_in_range',
+            sysClock.isOffsetInRange()))
         print(hd2)
-        print('| %-25s | %-19ld ns |' % ('chrony_clock_offset', sysClock.getClockOffset()))
-        print('| %-25s | %-19lx    |' % ('chrony_clock_reference_id', sysClock.getGmIdentity()))
-        print('| %-25s | %-19ld us |' % ('chrony_polling_interval', sysClock.getSyncInterval()))
+        print('| %-25s | %-19ld ns |' % ('chrony_clock_offset',
+            sysClock.getClockOffset()))
+        print('| %-25s | %-19lx    |' % ('chrony_clock_reference_id',
+            sysClock.getGmIdentity()))
+        print('| %-25s | %-19ld us |' % ('chrony_polling_interval',
+            sysClock.getSyncInterval()))
         print(hd2)
         print()
 
@@ -255,71 +270,102 @@ def main_body():
         for idx in index:
             if signal_flag:
                 return
-            print('[clkmgr][%.3f] Waiting Notification from time base index %d ...' % (time.time(), idx))
+            print('[clkmgr][%.3f] Waiting Notification from time base index %d ...' %
+                (getMonotonicTime(), idx))
             retval = clkmgr.ClockManager.statusWait(timeout, idx, clockSyncData)
-            if retval == 0:
-                print('[clkmgr][%.3f] No event status changes identified in timeout seconds.' % time.time())
-                print()
-                print('[clkmgr][%.3f] sleep for %d seconds...' % (time.time(), idleTime))
-                print()
-                if signal_flag:
+            match retval:
+                case clkmgr.SWRLostConnection:
+                    print('[clkmgr][%.3f] Terminating: lost connection to clkmgr Proxy' %
+                            getMonotonicTime())
                     return
-                time.sleep(idleTime)
-                continue
-            elif retval < 0:
-                print('[clkmgr][%.3f] Terminating: lost connection to clkmgr Proxy' % time.time())
-                return
-
-            print('[clkmgr][%.3f] Obtained data from Notification Event:' % time.time())
-            ClockManagerGetTime
-            print(hd3)
-            print('| %-25s | %-12s | %-11s |' % ('Event', 'Event Status', 'Event Count'))
-            ptpClock = clockSyncData.getPtp()
-            sysClock = clockSyncData.getSysClock()
-            if event2Sub != 0:
-                print(hd3)
-                if event2Sub & clkmgr.EventGMOffset:
-                    print(hd3b % ('offset_in_range', ptpClock.isOffsetInRange(), ptpClock.getOffsetInRangeEventCount()))
-                if event2Sub & clkmgr.EventSyncedToGM:
-                    print(hd3b % ('synced_to_primary_clock', ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount()))
-                if event2Sub & clkmgr.EventASCapable:
-                    print(hd3b % ('as_capable', ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount()))
-                if event2Sub & clkmgr.EventGMChanged:
-                    print(hd3b % ('gm_Changed', ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount()))
-            print(hd3)
-            gmClockUUID = ptpClock.getGmIdentity()
-            # Copy the uint64_t into the array
-            for i in range(8):
-                gm_identity[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff
-            print('| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |' % ('GM UUID',
-                gm_identity[0], gm_identity[1],
-                gm_identity[2], gm_identity[3],
-                gm_identity[4], gm_identity[5],
-                gm_identity[6], gm_identity[7]))
-            print('| %-25s |     %-19ld ns |' % ('clock_offset', ptpClock.getClockOffset()))
-            print('| %-25s |     %-19ld ns |' % ('notification_timestamp', ptpClock.getNotificationTimestamp()))
-            print('| %-25s |     %-19ld us |' % ('gm_sync_interval', ptpClock.getSyncInterval()))
-            print(hd3)
-            if composite_event != 0:
-                print(hd3b % ('composite_event', ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount()))
-
-                if composite_event & clkmgr.EventGMOffset:
-                    print('| - %-23s | %-12s | %-11s |' % ('offset_in_range', '', ''))
-                if composite_event & clkmgr.EventSyncedToGM:
-                    print('| - %-19s | %-12s | %-11s |' % ('synced_to_primary_clock', '', ''))
-                if composite_event & clkmgr.EventASCapable:
-                    print('| - %-23s | %-12s | %-11s |' % ('as_capable', '', ''))
-                print(hd3)
-            print()
-            print(hd2l)
-            print(hd3b % ('chrony_offset_in_range', sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount()))
-            print(hd2l)
-            print('| %-25s |     %-19ld ns |' % ('chrony_clock_offset', sysClock.getClockOffset()))
-            print('| %-25s |     %-19lx    |' % ('chrony_clock_reference_id', sysClock.getGmIdentity()))
-            print('| %-25s |     %-19ld us |' % ('chrony_polling_interval', sysClock.getSyncInterval()))
-            print(hd2l)
-            print()
-            print('[clkmgr][%.3f] sleep for %d seconds...' % (time.time(), idleTime))
+                case clkmgr.SWRInvalidArgument:
+                    print('[clkmgr][%.3f] Terminating: Invalid argument' %
+                         getMonotonicTime())
+                    return
+                case clkmgr.SWRNoEventDetected:
+                    print('[clkmgr][%.3f] No event status changes identified in %d seconds.' %
+                            (getMonotonicTime(), timeout))
+                    print()
+                    print('[clkmgr][%.3f] sleep for %d seconds...' %
+                        (getMonotonicTime(), idleTime))
+                case clkmgr.SWREventDetected:
+                    print('[clkmgr][%.3f] Obtained data from Notification Event:' %
+                        getMonotonicTime())
+                    ClockManagerGetTime
+                    print(hd3)
+                    print('| %-25s | %-12s | %-11s |' %
+                        ('Event', 'Event Status', 'Event Count'))
+                    ptpClock = clockSyncData.getPtp()
+                    sysClock = clockSyncData.getSysClock()
+                    if event2Sub != 0:
+                        print(hd3)
+                        if event2Sub & clkmgr.EventGMOffset:
+                            print(hd3b % ('offset_in_range',
+                                ptpClock.isOffsetInRange(),
+                                ptpClock.getOffsetInRangeEventCount()))
+                        if event2Sub & clkmgr.EventSyncedToGM:
+                            print(hd3b % ('synced_to_primary_clock',
+                                ptpClock.isSyncedWithGm(),
+                                ptpClock.getSyncedWithGmEventCount()))
+                        if event2Sub & clkmgr.EventASCapable:
+                            print(hd3b % ('as_capable', ptpClock.isAsCapable(),
+                                ptpClock.getAsCapableEventCount()))
+                        if event2Sub & clkmgr.EventGMChanged:
+                            print(hd3b % ('gm_Changed', ptpClock.isGmChanged(),
+                                ptpClock.getGmChangedEventCount()))
+                    print(hd3)
+                    gmClockUUID = ptpClock.getGmIdentity()
+                    # Copy the uint64_t into the array
+                    for i in range(8):
+                        gm_identity[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff
+                    print('| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |' %
+                        ('GM UUID',
+                        gm_identity[0], gm_identity[1],
+                        gm_identity[2], gm_identity[3],
+                        gm_identity[4], gm_identity[5],
+                        gm_identity[6], gm_identity[7]))
+                    print('| %-25s |     %-19ld ns |' % ('clock_offset',
+                        ptpClock.getClockOffset()))
+                    print('| %-25s |     %-19ld ns |' % ('notification_timestamp',
+                        ptpClock.getNotificationTimestamp()))
+                    print('| %-25s |     %-19ld us |' % ('gm_sync_interval',
+                        ptpClock.getSyncInterval()))
+                    print(hd3)
+                    if composite_event != 0:
+                        print(hd3b % ('composite_event',
+                            ptpClock.isCompositeEventMet(),
+                            ptpClock.getCompositeEventCount()))
+                        if composite_event & clkmgr.EventGMOffset:
+                            print('| - %-23s | %-12s | %-11s |' %
+                                ('offset_in_range', '', ''))
+                        if composite_event & clkmgr.EventSyncedToGM:
+                            print('| - %-19s | %-12s | %-11s |' %
+                                ('synced_to_primary_clock', '', ''))
+                        if composite_event & clkmgr.EventASCapable:
+                            print('| - %-23s | %-12s | %-11s |' %
+                                ('as_capable', '', ''))
+                        print(hd3)
+                    print()
+                    print(hd2l)
+                    print(hd3b % ('chrony_offset_in_range',
+                        sysClock.isOffsetInRange(),
+                        sysClock.getOffsetInRangeEventCount()))
+                    print(hd2l)
+                    print('| %-25s |     %-19ld ns |' % ('chrony_clock_offset',
+                        sysClock.getClockOffset()))
+                    print('| %-25s |     %-19lx    |' % ('chrony_clock_reference_id',
+                        sysClock.getGmIdentity()))
+                    print('| %-25s |     %-19ld us |' % ('chrony_polling_interval',
+                        sysClock.getSyncInterval()))
+                    print(hd2l)
+                    print()
+                    print('[clkmgr][%.3f] sleep for %d seconds...' %
+                        (getMonotonicTime(), idleTime))
+                case _:
+                    print('[clkmgr][%.3f] Warning: Should not enter this %s %d' %
+                        (getMonotonicTime(),
+                         'switch case, unexpected status code', retval))
+                    return
             print()
             if signal_flag:
                 return

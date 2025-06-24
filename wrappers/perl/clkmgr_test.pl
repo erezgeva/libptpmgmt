@@ -46,8 +46,13 @@ sub ClockManagerGetTime
         printf "[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
                 ($ts->swig_tv_sec_get * 1000000000) + $ts->swig_tv_nsec_get;
     } else {
-        POSIX::perror("clock_gettime failed");
+        POSIX::perror('clock_gettime failed');
     }
+}
+
+sub getMonotonicTime
+{
+    Time::HiRes::clock_gettime(Time::HiRes::CLOCK_MONOTONIC);
 }
 
 sub main
@@ -116,9 +121,6 @@ END_MESSAGE
     $timeout = isPositiveValue($opt_t, 'Invalid timeout!') if $opt_t;
     $chronyClockOffsetThreshold =
         isPositiveValue($opt_m, 'Invalid Chrony Offset threshold!') if $opt_m;
-    $SIG{'INT'} = \&signal_handler;
-    $SIG{'TERM'} = \&signal_handler;
-    $SIG{'HUP'} = \&signal_handler;
     $ptp4lSub->setEventMask($event2Sub);
     $ptp4lSub->setClockOffsetThreshold($ptp4lClockOffsetThreshold);
     $ptp4lSub->setCompositeEventMask($composite_event);
@@ -142,6 +144,9 @@ END_MESSAGE
             warn "Invalid input. Using default time base index 1.\n";
         }
     }
+    $SIG{'INT'} = \&signal_handler;
+    $SIG{'TERM'} = \&signal_handler;
+    $SIG{'HUP'} = \&signal_handler;
 
     my $dieMsg;
     unless(ClkMgrLib::ClockManager::connect()) {
@@ -184,7 +189,7 @@ END_MESSAGE
             goto do_exit;
         }
         printf "[clkmgr][%.3f] Obtained data from Subscription Event:\n",
-            Time::HiRes::time;
+            getMonotonicTime;
         ClockManagerGetTime;
         printf "$hd2\n" .
                "| %-25s | %-22s |\n", 'Event', 'Event Status';
@@ -255,32 +260,38 @@ END_MESSAGE
     my $hd3 = '|'.('-'x 27).'|'.('-'x 14).'|'.('-'x 13).'|';
 
     while (!$signal_flag) {
-        loop_idx: for(@index) {
+        inner_loop: for(@index) {
             goto do_exit if $signal_flag;
             my $idx = $_;
-            printf "[clkmgr][%.3f] Waiting Notification " .
-                   "from time base index $idx ...\n",
-                Time::HiRes::time;
+            printf '[clkmgr][%.3f] Waiting Notification ' .
+                   "from time base index $idx ...\n", getMonotonicTime;
 
             my $retval =
                 ClkMgrLib::ClockManager::statusWait($timeout, $idx, $clockSyncData);
-
-            if(!$retval) {
-                printf "[clkmgr][%.3f] No event status changes identified in " .
-                    "$timeout seconds.\n\n", Time::HiRes::time;
-                printf "[clkmgr][%.3f] sleep for $idleTime seconds...\n\n",
-                    Time::HiRes::time;
+            if($retval == $ClkMgrLib::SWRLostConnection) {
+                printf '[clkmgr][%.3f] Terminating: lost connection to ' .
+                    "clkmgr Proxy\n", getMonotonicTime;
+                goto do_exit;
+            } elsif($retval == $ClkMgrLib::SWRInvalidArgument) {
+                printf "[clkmgr][%.3f] Terminating: Invalid argument\n",
+                    getMonotonicTime;
+                goto do_exit;
+            } elsif($retval == $ClkMgrLib::SWRNoEventDetected) {
+                printf '[clkmgr][%.3f] No event status changes identified ' .
+                    "in %d seconds.\n\n", getMonotonicTime, $timeout;
+                printf "[clkmgr][%.3f] sleep for %d seconds...\n\n",
+                    getMonotonicTime, $idleTime;
                 goto do_exit if $signal_flag;
                 sleep $idleTime;
-                next loop_idx;
-            } elsif ($retval < 0) {
-                printf "[clkmgr][%.3f] Terminating: lost " .
-                    "connection to clkmgr Proxy\n", Time::HiRes::time;
+                next inner_loop;
+            } elsif($retval == $ClkMgrLib::SWREventDetected) {
+                printf "[clkmgr][%.3f] Obtained data from Notification Event:\n",
+                    getMonotonicTime;
+            } else {
+                printf '[clkmgr][%.3f] Warning: Should not enter this switch ' .
+                    "case, unexpected status code %d\n", getMonotonicTime, $retval;
                 goto do_exit;
             }
-
-            printf "[clkmgr][%.3f] Obtained data from Notification Event:\n",
-                Time::HiRes::time;
             ClockManagerGetTime;
             printf "$hd3\n" .
                 "| %-25s | %-12s | %-11s |\n",
@@ -353,7 +364,7 @@ END_MESSAGE
                    , 'chrony_clock_reference_id', $sysClock->getGmIdentity()
                    , 'chrony_polling_interval', $sysClock->getSyncInterval();
             printf "[clkmgr][%.3f] sleep for %d seconds...\n\n",
-                Time::HiRes::time, idleTime;
+                getMonotonicTime, idleTime;
             goto do_exit if $signal_flag;
             sleep $idleTime;
         }

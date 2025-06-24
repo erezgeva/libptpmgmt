@@ -48,6 +48,10 @@ func clockManagerGetTime() {
     clkmgr.DeleteTimespec(ts)
 }
 
+func getMonotonicTime() float64 {
+    return float64(time.Now().UnixMilli()) / 1000.0
+}
+
 func main() {
     ptp4lClockOffsetThreshold := uint(100000)
     chronyClockOffsetThreshold := uint(100000)
@@ -125,16 +129,6 @@ Options:
     timeout = isPositiveValue(*useTimeout, "Invalid timeout!")
     chronyClockOffsetThreshold = isPositiveValue(*usechronyThr,
             "Invalid Chrony Offset threshold!")
-    signal_flag := false
-    c := make(chan os.Signal)
-    signal.Notify(c, os.Interrupt, syscall.SIGINT)
-    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-    signal.Notify(c, os.Interrupt, syscall.SIGHUP)
-    go func() {
-        <-c
-        fmt.Println(" Exit ...")
-        signal_flag = true
-    }()
     ptp4lSub.SetEventMask(event2Sub)
     ptp4lSub.SetClockOffsetThreshold(ptp4lClockOffsetThreshold)
     ptp4lSub.SetCompositeEventMask(composite_event)
@@ -167,6 +161,16 @@ Options:
     hd3b := "| %-25s | %-12t | %-11d |"
     hd3 := "|"+strings.Repeat("-", 27)+"|"+strings.Repeat("-", 14)+"|"+
             strings.Repeat("-", 13)+"|"
+    signal_flag := false
+    c := make(chan os.Signal)
+    signal.Notify(c, os.Interrupt, syscall.SIGINT)
+    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+    signal.Notify(c, os.Interrupt, syscall.SIGHUP)
+    go func() {
+        <-c
+        fmt.Println(" Exit ...")
+        signal_flag = true
+    }()
     var dieMsg string
     var size int64
     var i int64
@@ -215,7 +219,7 @@ Options:
             goto do_exit
         }
         fmt.Printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
-                float64(time.Now().UnixMilli()) / 1000.0)
+            getMonotonicTime())
         clockManagerGetTime()
         fmt.Printf("hd2\n| %-25s | %-22s |\n", "Event", "Event Status")
         ptpClock := clockSyncData.GetPtp()
@@ -292,34 +296,45 @@ Options:
     time.Sleep(1 * time.Second)
 
     for !signal_flag {
+        inner_loop:
         for _, idx := range index {
             if signal_flag {
                 goto do_exit
             }
             fmt.Printf("[clkmgr][%.3f] Waiting Notification " +
-                    "from time base index %d ...\n",
-                    float64(time.Now().UnixMilli()) / 1000.0, idx)
-            retval := clkmgr.ClockManagerStatusWait(int(timeout), idx,
-                    clockSyncData)
-            if retval == 0 {
-                fmt.Printf("[clkmgr][%.3f] No event status changes " +
-                        "identified in %d seconds.\n\n",
-                        float64(time.Now().UnixMilli()) / 1000.0, timeout)
-                fmt.Printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
-                        float64(time.Now().UnixMilli()) / 1000.0, idleTime)
-                if signal_flag {
+                    "from time base index %d ...\n", getMonotonicTime(), idx)
+            retval := clkmgr.StatusWaitResult(
+                clkmgr.ClockManagerStatusWait(int(timeout), idx, clockSyncData))
+            switch retval {
+                case clkmgr.SWRLostConnection:
+                    fmt.Printf("[clkmgr][%.3f] Terminating: " +
+                        "lost connection to clkmgr Proxy\n", getMonotonicTime())
                     goto do_exit
-                }
-                time.Sleep(time.Duration(idleTime) * time.Second)
-                continue
-            } else if retval < 0 {
-                fmt.Printf("[clkmgr][%.3f] Terminating: lost connection " +
-                        "to clkmgr Proxy\n",
-                        float64(time.Now().UnixMilli()) / 1000.0)
-                goto do_exit
+                case clkmgr.SWRInvalidArgument:
+                    fmt.Printf("[clkmgr][%.3f] Terminating: " +
+                        "Invalid argument\n", getMonotonicTime())
+                    goto do_exit
+                case clkmgr.SWRNoEventDetected:
+                    fmt.Printf("[clkmgr][%.3f] No event status changes " +
+                        "identified in %d seconds.\n\n",
+                        getMonotonicTime(), timeout)
+                    fmt.Printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
+                        getMonotonicTime(), idleTime)
+                    if signal_flag {
+                        goto do_exit
+                    }
+                    time.Sleep(time.Duration(idleTime) * time.Second)
+                    goto inner_loop;
+                case clkmgr.SWREventDetected:
+                    fmt.Printf("[clkmgr][%.3f] Obtained data from " +
+                        "Notification Event:\n", getMonotonicTime())
+                    break
+                default:
+                    fmt.Printf("[clkmgr][%.3f] Warning: Should not enter " +
+                        "this switch case, unexpected status code %d\n",
+                        getMonotonicTime(), retval)
+                    goto do_exit
             }
-            fmt.Printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
-                    float64(time.Now().UnixMilli()) / 1000.0)
             clockManagerGetTime()
             fmt.Printf("hd3\n| %-25s | %-12s | %-11s |\n",
                     "Event", "Event Status", "Event Count")
@@ -391,19 +406,18 @@ Options:
             fmt.Println()
             fmt.Println(hd2l)
             fmt.Printf(hd3b + "\n", "chrony_offset_in_range",
-                    sysClock.IsOffsetInRange(),
-                    sysClock.GetOffsetInRangeEventCount())
+               sysClock.IsOffsetInRange(), sysClock.GetOffsetInRangeEventCount())
             fmt.Println(hd2l)
             fmt.Printf("| %-25s |     %-19d ns |\n",
-                    "chrony_clock_offset", sysClock.GetClockOffset())
+                "chrony_clock_offset", sysClock.GetClockOffset())
             fmt.Printf("| %-25s |     %-19x    |\n",
-                    "chrony_clock_reference_id", sysClock.GetGmIdentity())
+                "chrony_clock_reference_id", sysClock.GetGmIdentity())
             fmt.Printf("| %-25s |     %-19d us |\n",
-                    "chrony_polling_interval", sysClock.GetSyncInterval())
+                "chrony_polling_interval", sysClock.GetSyncInterval())
             fmt.Println(hd2l)
             fmt.Println()
             fmt.Printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
-                    float64(time.Now().UnixMilli()) / 1000.0, idleTime)
+                getMonotonicTime(), idleTime)
             if signal_flag {
                 goto do_exit
             }

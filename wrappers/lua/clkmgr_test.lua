@@ -85,8 +85,8 @@ local function ClockManagerGetTime()
     end
 end
 
-local function getPosixTime()
-    local ts = time.clock_gettime(time.CLOCK_REALTIME)
+local function getMonotonicTime()
+    local ts = time.clock_gettime(time.CLOCK_MONOTONIC)
     return ts.tv_sec + (ts.tv_nsec / 1000000000.0)
 end
 
@@ -184,9 +184,6 @@ Options:
     timeout = isPositiveValue(opts['-t'], timeout, 'Invalid timeout!')
     chronyClockOffsetThreshold = isPositiveValue(opts['-m'],
         chronyClockOffsetThreshold, 'Invalid Chrony Offset threshold!')
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGHUP, signal_handler)
     ptp4lSub:setEventMask(event2Sub)
     ptp4lSub:setClockOffsetThreshold(ptp4lClockOffsetThreshold)
     ptp4lSub:setCompositeEventMask(composite_event)
@@ -218,6 +215,9 @@ Options:
     local hd3b = '| %-25s | %-12s | %-11d |'
     local hd3 = '|'..string.rep('-',27)..'|'..string.rep('-',14)..
         '|'..string.rep('-',13)..'|'
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGHUP, signal_handler)
     local dieMsg, size, idx, i
     if not clkmgr.ClockManager.connect() then
         dieMsg = '[clkmgr] failure in connecting !!!'
@@ -261,7 +261,7 @@ Options:
             goto do_exit
         end
         print(string.format('[clkmgr][%.3f] Obtained data from Subscription Event:',
-            getPosixTime()))
+            getMonotonicTime()))
         ClockManagerGetTime()
         print(hd2)
         print(string.format(hd2b, 'Event', 'Event Status'))
@@ -334,26 +334,38 @@ Options:
                 goto do_exit
             end
             print(string.format('[clkmgr][%.3f] Waiting Notification ' ..
-                'from time base index %d ...', getPosixTime(), idx))
-            local retval = clkmgr.ClockManager.statusWait(timeout, idx, clockSyncData)
-            if retval == 0 then
-                print(string.format('[clkmgr][%.3f] No event status ' ..
-                    'changes identified in timeout seconds.\n', getPosixTime()))
-                print(string.format('[clkmgr][%.3f] sleep for idleTime seconds...\n',
-                    getPosixTime()))
+                'from time base index %d ...', getMonotonicTime(), idx))
+            local retval =
+                clkmgr.ClockManager.statusWait(timeout, idx, clockSyncData)
+            if retval == clkmgr.SWRLostConnection then
+                print(string.format('[clkmgr][%.3f] Terminating: ' ..
+                    'lost connection to clkmgr Proxy', getMonotonicTime()))
+                goto do_exit
+            elseif retval == clkmgr.SWRInvalidArgument then
+                print(string.format('[clkmgr][%.3f] Terminating: ' ..
+                    'Invalid argument', getMonotonicTime()))
+                goto do_exit
+            elseif retval == clkmgr.SWRNoEventDetected then
+                print(string.format('[clkmgr][%.3f] No event status changes ' ..
+                    'identified in %d seconds.', getMonotonicTime(), timeout))
+                print()
+                print(string.format('[clkmgr][%.3f] sleep for %d seconds...',
+                    getMonotonicTime(), idleTime))
+                print()
                 if signal_flag then
                     goto do_exit
                 end
                 unistd.sleep(idleTime)
                 goto inner_loop
-            elseif retval < 0 then
-                print(string.format('[clkmgr][%.3f] Terminating: ' ..
-                    'lost connection to clkmgr Proxy', getPosixTime()))
+            elseif retval == clkmgr.SWREventDetected then
+                print(string.format('[clkmgr][%.3f] Obtained data ' ..
+                    'from Notification Event:', getMonotonicTime()))
+            else
+                print(string.format('[clkmgr][%.3f] Warning: ' ..
+                    'Should not enter this switch case, unexpected status code %d',
+                    getMonotonicTime(), retval))
                 goto do_exit
             end
-
-            print(string.format('[clkmgr][%.3f] Obtained data ' ..
-                'from Notification Event:', getPosixTime()))
             ClockManagerGetTime()
             print(hd3)
             print(string.format('| %-25s | %-12s | %-11s |',
@@ -427,8 +439,9 @@ Options:
                 'chrony_polling_interval', sysClock:getSyncInterval()))
             print(hd2l)
             print()
-            print(string.format('[clkmgr][%.3f] sleep for %d seconds...\n',
-                getPosixTime(), idleTime))
+            print(string.format('[clkmgr][%.3f] sleep for %d seconds...',
+                getMonotonicTime(), idleTime))
+            print()
             if signal_flag then
                 goto do_exit
             end

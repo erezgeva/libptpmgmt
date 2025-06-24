@@ -48,6 +48,11 @@ function clockManagerGetTime(): void
     }
 }
 
+function getMonotonicTime()
+{
+    return microtime(true);
+}
+
 function main(): void
 {
     global $signal_flag, $argv;
@@ -108,22 +113,23 @@ function main(): void
         $composite_event = intval($options['c'], 0);
 
     if(array_key_exists('l', $options))
-        $ptp4lClockOffsetThreshold = isPositiveValue($options['l'], 'Invalid ptp4l GM Offset threshold!');
+        $ptp4lClockOffsetThreshold = isPositiveValue($options['l'],
+            'Invalid ptp4l GM Offset threshold!');
     if(array_key_exists('i', $options))
         $idleTime = isPositiveValue($options['i'], 'Invalid idle time!');
     if(array_key_exists('t', $options))
         $timeout = isPositiveValue($options['t'], 'Invalid timeout!');
     if(array_key_exists('m', $options))
-        $chronyClockOffsetThreshold = isPositiveValue($options['m'], 'Invalid Chrony Offset threshold!');
-    pcntl_signal(SIGINT, "signal_handler");
-    pcntl_signal(SIGTERM, "signal_handler");
-    pcntl_signal(SIGHUP, "signal_handler");
+        $chronyClockOffsetThreshold = isPositiveValue($options['m'],
+            'Invalid Chrony Offset threshold!');
     $ptp4lSub->setEventMask($event2Sub);
     $ptp4lSub->setClockOffsetThreshold($ptp4lClockOffsetThreshold);
     $ptp4lSub->setCompositeEventMask($composite_event);
     $chronySub->setClockOffsetThreshold($chronyClockOffsetThreshold);
-    echo "[clkmgr] set subscribe event : 0x" . dechex($ptp4lSub->getEventMask()) . "\n";
-    echo "[clkmgr] set composite event : 0x" . dechex($ptp4lSub->getCompositeEventMask()) . "\n";
+    echo "[clkmgr] set subscribe event : 0x" .
+        dechex($ptp4lSub->getEventMask()) . "\n";
+    echo "[clkmgr] set composite event : 0x" .
+        dechex($ptp4lSub->getCompositeEventMask()) . "\n";
     echo "GM Offset threshold: $ptp4lClockOffsetThreshold ns\n";
     echo "Chrony Offset threshold: $chronyClockOffsetThreshold ns\n";
 
@@ -141,6 +147,9 @@ function main(): void
             echo "Invalid input. Using default time base index 1.\n";
         }
     }
+    pcntl_signal(SIGINT, "signal_handler");
+    pcntl_signal(SIGTERM, "signal_handler");
+    pcntl_signal(SIGHUP, "signal_handler");
 
     $dieMsg = '';
     if(!ClockManager::connect()) {
@@ -183,7 +192,8 @@ function main(): void
             $dieMsg = '[clkmgr] Failure in subscribing to clkmgr Proxy !!!';
             goto do_exit;
         }
-        printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n", microtime(true));
+        printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
+            getMonotonicTime());
         clockManagerGetTime();
         printf("$hd2\n| %-25s | %-22s |\n", 'Event', 'Event Status');
         $ptpClock = $clockSyncData->getPtp();
@@ -191,13 +201,17 @@ function main(): void
         if($event2Sub != 0) {
             echo "$hd2\n";
             if($event2Sub & EventGMOffset)
-                printf("| %-25s | %-22d |\n", 'offset_in_range', $ptpClock->isOffsetInRange());
+                printf("| %-25s | %-22d |\n", 'offset_in_range',
+                    $ptpClock->isOffsetInRange());
             if($event2Sub & EventSyncedToGM)
-                printf("| %-25s | %-22d |\n", 'synced_to_primary_clock', $ptpClock->isSyncedWithGm());
+                printf("| %-25s | %-22d |\n", 'synced_to_primary_clock',
+                    $ptpClock->isSyncedWithGm());
             if($event2Sub & EventASCapable)
-                printf("| %-25s | %-22d |\n", 'as_capable', $ptpClock->isAsCapable());
+                printf("| %-25s | %-22d |\n", 'as_capable',
+                    $ptpClock->isAsCapable());
             if($event2Sub & EventGMChanged)
-                printf("| %-25s | %-22d |\n", 'gm_Changed', $ptpClock->isGmChanged());
+                printf("| %-25s | %-22d |\n", 'gm_Changed',
+                    $ptpClock->isGmChanged());
         }
         echo "$hd2\n";
         $gmClockUUID = $ptpClock->getGmIdentityStr();
@@ -210,7 +224,8 @@ function main(): void
                , 'notification_timestamp', $ptpClock->getNotificationTimestamp()
                , 'gm_sync_interval', $ptpClock->getSyncInterval());
         if($composite_event != 0) {
-            printf("| %-25s | %-22d |\n", 'composite_event', $ptpClock->isCompositeEventMet());
+            printf("| %-25s | %-22d |\n", 'composite_event',
+                $ptpClock->isCompositeEventMet());
             if($composite_event & EventGMOffset)
                 printf("| - %-23s | %-22s |\n", 'offset_in_range', '');
             if($composite_event & EventSyncedToGM)
@@ -236,40 +251,66 @@ function main(): void
 
     $hd2l = '|'.str_repeat('-', 27).'|'.str_repeat('-', 28).'|';
     $hd3b = '| %-25s | %-12d | %-11d |';
-    $hd3 = '|'.str_repeat('-', 27).'|'.str_repeat('-', 14).'|'.str_repeat('-', 13).'|';
+    $hd3 = '|'.str_repeat('-', 27).'|'.str_repeat('-', 14).
+        '|'.str_repeat('-', 13).'|';
 
     while(!$signal_flag) {
+        next_loop:
         foreach($index as $idx) {
             if($signal_flag)
                 goto do_exit;
-            printf("[clkmgr][%.3f] Waiting Notification from time base index $idx ...\n", microtime(true));
+            printf("[clkmgr][%.3f] Waiting Notification from " .
+                "time base index $idx ...\n", getMonotonicTime());
             $retval = ClockManager::statusWait($timeout, $idx, $clockSyncData);
-            if($retval == 0) {
-                printf("[clkmgr][%.3f] No event status changes identified in $timeout seconds.\n\n", microtime(true));
-                printf("[clkmgr][%.3f] sleep for $idleTime seconds...\n\n", microtime(true));
-                if($signal_flag)
+            switch($retval) {
+                case SWRLostConnection:
+                    printf("[clkmgr][%.3f] Terminating: " .
+                        "lost connection to clkmgr Proxy\n", getMonotonicTime());
                     goto do_exit;
-                sleep($idleTime);
-                continue;
-            } else if($retval < 0) {
-                printf("[clkmgr][%.3f] Terminating: lost connection to clkmgr Proxy\n", microtime(true));
-                goto do_exit;
+                case SWRInvalidArgument:
+                    printf("[clkmgr][%.3f] Terminating: Invalid argument\n",
+                        getMonotonicTime());
+                    goto do_exit;
+                case SWRNoEventDetected:
+                    printf("[clkmgr][%.3f] No event status changes identified " .
+                        "in $timeout seconds.\n\n", getMonotonicTime());
+                    printf("[clkmgr][%.3f] sleep for $idleTime seconds...\n\n",
+                        getMonotonicTime());
+                    if($signal_flag)
+                        goto do_exit;
+                    sleep($idleTime);
+                    goto next_loop;
+                case SWREventDetected:
+                    printf("[clkmgr][%.3f] Obtained data from Notification Event:\n",
+                        getMonotonicTime());
+                    break;
+                default:
+                    printf("[clkmgr][%.3f] Warning: Should not enter " .
+                           "this switch case, unexpected status code $retval\n",
+                           getMonotonicTime());
+                    goto do_exit;
             }
-            printf("[clkmgr][%.3f] Obtained data from Notification Event:\n", microtime(true));
             clockManagerGetTime();
-            printf("$hd3\n| %-25s | %-12s | %-11s |\n", 'Event', 'Event Status', 'Event Count');
+            printf("$hd3\n| %-25s | %-12s | %-11s |\n", 'Event',
+                'Event Status', 'Event Count');
             $ptpClock = $clockSyncData->getPtp();
             $sysClock = $clockSyncData->getSysClock();
             if($event2Sub != 0) {
                 echo "$hd3\n";
                 if($event2Sub & EventGMOffset)
-                    printf("$hd3b\n", 'offset_in_range', $ptpClock->isOffsetInRange(), $ptpClock->getOffsetInRangeEventCount());
+                    printf("$hd3b\n", 'offset_in_range',
+                        $ptpClock->isOffsetInRange(),
+                        $ptpClock->getOffsetInRangeEventCount());
                 if($event2Sub & EventSyncedToGM)
-                    printf("$hd3b\n", 'synced_to_primary_clock', $ptpClock->isSyncedWithGm(), $ptpClock->getSyncedWithGmEventCount());
+                    printf("$hd3b\n", 'synced_to_primary_clock',
+                        $ptpClock->isSyncedWithGm(),
+                        $ptpClock->getSyncedWithGmEventCount());
                 if($event2Sub & EventASCapable)
-                    printf("$hd3b\n", 'as_capable', $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount());
+                    printf("$hd3b\n", 'as_capable', $ptpClock->isAsCapable(),
+                        $ptpClock->getAsCapableEventCount());
                 if($event2Sub & EventGMChanged)
-                    printf("$hd3b\n", 'gm_Changed', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
+                    printf("$hd3b\n", 'gm_Changed', $ptpClock->isGmChanged(),
+                        $ptpClock->getGmChangedEventCount());
             }
             echo "$hd3\n";
             $gmClockUUID = $ptpClock->getGmIdentityStr();
@@ -282,11 +323,15 @@ function main(): void
                    , 'notification_timestamp', $ptpClock->getNotificationTimestamp()
                    , 'gm_sync_interval', $ptpClock->getSyncInterval());
             if($composite_event != 0) {
-                printf("$hd3b\n", 'composite_event', $ptpClock->isCompositeEventMet(), $ptpClock->getCompositeEventCount());
+                printf("$hd3b\n", 'composite_event',
+                    $ptpClock->isCompositeEventMet(),
+                    $ptpClock->getCompositeEventCount());
                 if($composite_event & EventGMOffset)
-                    printf("| - %-23s | %-12s | %-11s |\n", 'offset_in_range', '', '');
+                    printf("| - %-23s | %-12s | %-11s |\n",
+                        'offset_in_range', '', '');
                 if($composite_event & EventSyncedToGM)
-                    printf("| - %-19s | %-12s | %-11s |\n", 'synced_to_primary_clock', '', '');
+                    printf("| - %-19s | %-12s | %-11s |\n",
+                        'synced_to_primary_clock', '', '');
                 if($composite_event & EventASCapable)
                     printf("| - %-23s | %-12s | %-11s |\n", 'as_capable', '', '');
                 echo "$hd3\n";
@@ -304,7 +349,8 @@ function main(): void
                    , 'chrony_clock_offset', $sysClock->getClockOffset()
                    , 'chrony_clock_reference_id', $sysClock->getGmIdentity()
                    , 'chrony_polling_interval', $sysClock->getSyncInterval());
-            printf("[clkmgr][%.3f] sleep for %d seconds...\n\n", microtime(true), $idleTime);
+            printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
+                getMonotonicTime(), $idleTime);
             if($signal_flag)
                 goto do_exit;
             sleep($idleTime);
