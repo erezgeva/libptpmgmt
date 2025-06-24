@@ -54,7 +54,7 @@ bool ClockEventBase::isGmChanged() const
     return gmChanged;
 }
 
-int64_t ClockEventBase::getSyncInterval() const
+uint64_t ClockEventBase::getSyncInterval() const
 {
     return syncInterval;
 }
@@ -200,7 +200,7 @@ extern "C" {
         }
     }
 
-    int64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
+    uint64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
         enum Clkmgr_ClockType clock_type)
     {
         if(!data_c)

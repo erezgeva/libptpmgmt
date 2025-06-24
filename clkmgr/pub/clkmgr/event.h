@@ -76,7 +76,7 @@ class ClockEventBase
      *  time the synchronization protocol may need to react for a change in the
      *  grandmaster.
      */
-    int64_t getSyncInterval() const;
+    uint64_t getSyncInterval() const;
 
     /**
      * Get the grandmaster clock identity
@@ -125,7 +125,7 @@ class ClockEventBase
     ClockEventBase() = default; /**< Constructs a ClockEventBase object. */
     friend class ClockEventHandler; /**< Grants access to ClockEventHandler. */
     int64_t clockOffset = 0; /**< Offset of the clock in nanoseconds. */
-    int64_t syncInterval = 0; /**< Synchronization interval in nanoseconds. */
+    uint64_t syncInterval = 0; /**< Synchronization interval in nanoseconds. */
     uint64_t gmClockUUID = 0; /**< UUID of the grandmaster clock. */
     /** Timestamp of last notification event. */
     uint64_t notificationTimestamp = 0;

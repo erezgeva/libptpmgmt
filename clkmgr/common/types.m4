@@ -58,12 +58,10 @@ cnst(uint32_t,PTP_COMPOSITE_EVENT_ALL,Nm(EventGMOffset) | \
 
 /**
 * Types of clock available for subscription.
-* @note The Nm(ClockLast) is reserved for future use.
 */
 enum Nm(ClockType) sz(`: uint8_t '){
     Nm(PTPClock) = 1, /**< PTP Clock */
     Nm(SysClock) = 2, /**< System Clock */
-    Nm(ClockLast) = 3 /**< Last Clock */
 };
 
 /**

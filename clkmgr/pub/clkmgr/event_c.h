@@ -96,7 +96,7 @@ uint32_t clkmgr_getOffsetInRangeEventCount(const Clkmgr_ClockSyncData *data_c,
  * @note The clock type is a bit that represents a type of clock,
  *  as defined by enum Clkmgr_ClockType
  */
-int64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
+uint64_t clkmgr_getSyncInterval(const Clkmgr_ClockSyncData *data_c,
     enum Clkmgr_ClockType clock_type);
 
 /**

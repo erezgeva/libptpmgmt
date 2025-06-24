@@ -2,7 +2,7 @@
    SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation. */
 
 /** @file
- * @brief Get and set the configuration of time base
+ * @brief Get the configuration of time base
  *
  * @author Song Yoong Siang <yoong.siang.song@@intel.com>
  * @copyright © 2025 Intel Corporation.
