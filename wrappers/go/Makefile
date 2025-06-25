@@ -45,8 +45,8 @@ $(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp | $(LIB_NAME_LA)
 $(GO_D)/$(SWIG_LNAME)/go.mod:
 	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
 	cd $(@D)&&$(GO_BIN) mod init $(SWIG_LNAME) $(Q_ERR);fi
-$(GO_D)/gtest/go.mod $(GO_D)/unit_test/go.mod: $(GO_D)/$(SWIG_LNAME)/go.mod\
-	  $(GO_SRC)
+$(foreach n,gtest unit_test phc_ctl,$(GO_D)/$n/go.mod):\
+	  $(GO_D)/$(SWIG_LNAME)/go.mod $(GO_SRC)
 	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then $(TOUCH) $(@F)\
 	;else $(GO_BIN) mod init $(subst $(GO_D)/,,$(@D)) $(Q_ERR)&&\
 	$(GO_BIN) mod edit -replace $(SWIG_LNAME)=../$(SWIG_LNAME);fi&&\
@@ -54,7 +54,10 @@ $(GO_D)/gtest/go.mod $(GO_D)/unit_test/go.mod: $(GO_D)/$(SWIG_LNAME)/go.mod\
 $(GO_D)/gtest/gtest: export CGO_LDFLAGS+=$(PWD)/$(LIB_NAME_SO)
 $(GO_D)/gtest/gtest: $(GO_D)/gtest/go.mod $(GO_D)/gtest/gtest.go $(GO_SRC)
 	$(Q_LD)cd $(@D)&&$(GO_BIN) build .
-SWIG_ALL+=$(GO_D)/gtest/gtest
+$(GO_D)/phc_ctl/phc_ctl: export CGO_LDFLAGS+=$(PWD)/$(LIB_NAME_SO)
+$(GO_D)/phc_ctl/phc_ctl: $(GO_D)/phc_ctl/go.mod $(GO_D)/phc_ctl/phc_ctl.go $(GO_SRC)
+	$(Q_LD)cd $(@D) && $(GO_BIN) build .
+SWIG_ALL+=$(GO_D)/gtest/gtest $(GO_D)/phc_ctl/phc_ctl
 ifndef SKIP_CLKMGR
 GO_CLKMGR_DIR:=$(GO_D)/$(CLKMGR_NAME)
 GO_CLKMGR_SRC:=$(GO_CLKMGR_DIR)/$(CLKMGR_NAME).cpp
@@ -94,6 +97,8 @@ install_go:
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 	$(SED) -i '1 i/* $(SPDXLI) $(SPDXBSD3)\n   $(SPDXCY) */\n'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/*
+	$(INSTALL_PROGRAM) -D $(GO_D)/phc_ctl/phc_ctl\
+	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
 ifndef SKIP_CLKMGR
 	cp -a $(GO_CLKMGR_DIR) $(DESTDIR)$(GOROOT)/src
 	rm $(DESTDIR)$(GOROOT)/src/$(CLKMGR_NAME)/go.mod
