@@ -430,6 +430,11 @@ cpp_cod(`     * Get interval from time interval in nanoseconds, trunc to integer
 cpp_cod(`     * @return scaled time interval in nanoseconds')dnl
 cpp_cod(`     */')dnl
 cpp_cod(`    int64_t getIntervalInt() const;')dnl
+cpp_cod(`    /**')dnl
+cpp_cod(`     * query if time stamp is zero')dnl
+cpp_cod(`     * @return true if time stamp is zero')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    bool isZero() const;')dnl
 };
 /** PTP Time stamp */
 strc(Timestamp_t) {
@@ -652,6 +657,11 @@ cpp_cod(`     * @param[in] seconds')dnl
 cpp_cod(`     * @return reference to itself')dnl
 cpp_cod(`     */')dnl
 cpp_cod(`    Timestamp_t &subt(float_seconds seconds);')dnl
+cpp_cod(`    /**')dnl
+cpp_cod(`     * query if time stamp is zero')dnl
+cpp_cod(`     * @return true if time stamp is zero')dnl
+cpp_cod(`     */')dnl
+cpp_cod(`    bool isZero() const;')dnl
 };
 /** PTP clock ID */
 strc(ClockIdentity_t) {
