@@ -22,6 +22,9 @@ device which supports ethtool's get_ts_info ioctl.
 
 .SH OPTIONS
 .TP
+.BI \-q
+For backward compatible. This tool do not use the system logger.
+.TP
 .BI \-h
 Display a help message.
 .TP
@@ -65,6 +68,9 @@ Compare the PHC clock device to CLOCK_REALTIME, using the best method available.
 .BI caps
 Display the device capabilities. This is the default command if no commands are
 provided.
+.TP
+.BI pins
+Display the device configurable pins descriptions.
 .TP
 .BI wait " seconds"
 Sleep the process for the specified period of time, waking up and resuming
