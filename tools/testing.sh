@@ -122,7 +122,8 @@ main()
  if [[ -x $instPhcCtlLib ]] && [[ -n "$probeSystem" ]]; then
    local -r phcctrllibtool=$instPhcCtlLib
  else
-   local -r phcctrllibtool=./ptp-tools/phc_ctl
+   local -r phcctrllibtool=./wrappers/go/phc_ctl/phc_ctl
+   needCmpl=y
  fi
  ##############################################################################
  if [[ -n "$GITHUB_ACTIONS" ]]; then
@@ -379,12 +380,13 @@ do_go()
 }
 parse_phc_out()
 {
+ local -r num='[[:digit:]]+\.[[:digit:]][[:digit:]]'
  parseOut=''
  readarray <<< "$@"
  for n in "${MAPFILE[@]}"; do
    if [[ $n =~ ^$matchPhc:[[:space:]](.*[^$'\n']) ]]; then
      local s1="${BASH_REMATCH[1]}"
-     if [[ $s1 =~ (.*[[:digit:]]+\.[[:digit:]])[[:digit:]]+([[:space:]].*) ]]
+     if [[ $s1 =~ (.*$num)[[:digit:]]+([[:space:]].*) ]]
        then parseOut+="${BASH_REMATCH[1]}${BASH_REMATCH[2]}\n"
      else
        parseOut+="$s1\n"
@@ -393,21 +395,9 @@ parse_phc_out()
  done
 }
 test_phc_ctl()
-{ # Use python3
+{
  printf "\n =====  Test phc_ctl  ===== \n\n"
- if [[ -z "$(which python3 2> /dev/null)" ]]; then
-   echo "python3 is not installed on system!!!"
-   return
- fi
- local need="$ldPathPython3"
- local pneed="$ldPrePathPython3"
- if [[ -n "$need" ]]; then
-   if ! [[ -f wrappers/python/3/_ptpmgmt.so ]]; then
-     echo "Fail to find python3 library!!!"
-     return
-   fi
-   eval "$pneed$need py3compile wrappers/python/ptpmgmt.py"
- fi
+ local pneed="$ldPath"
  local -r matchPhc='phc_ctl[^\[]*\[[[:digit:]]+\.[[:digit:]]+\]'
  local -r runPhc="$ifName freq 20000000 set 0 wait 4 adj 4 get"
  local -r runPhcFast="$ifName freq 500000000 set 0 wait 0.1 adj 4 get"
@@ -437,7 +427,7 @@ test_phc_ctl()
  fi
  local phcOut="$parseOut"
  printf " * Create output with libptpmgmt, wait 4 seconds ...\n"
- eecmd "$pneed$need $phcctrllibtool $runPhc"
+ eecmd "$pneed $phcctrllibtool $runPhc"
  if [[ $last_ret -ne 0 ]]; then
    printf "\n @@@ libptpmgmt phc_ctrl return with error, no point to proceed. @@@\n"
    return
@@ -455,12 +445,10 @@ test_phc_ctl()
  fi
  if $use_valgrind; then
    printf "\n * Valgrid test of phc_ctl"
-   eval "$pneed$need PYTHONMALLOC=malloc"\
-     " valgrind --read-inline-info=yes"\
+   eval "$pneed valgrind --read-inline-info=yes"\
      " $phcctrllibtool $runPhcFast" |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
- [[ -z "$need" ]] || py3clean python
 }
 do_php()
 {

@@ -281,9 +281,10 @@ endif
 SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/*\
   */*.opt configure.ac src/*.m4 */*.md t*/*.sh w*/*/*.sh swig/*/*\
   */*.i */*/msgCall.i */*/warn.i $(CLKMGR_DIR)/*/*.i man/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
+  $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
   $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp\
+  */*/*/phc*.go\
   $(CLKMGR_DIR)/proxy/*.*.in $(CLKMGR_DIR)/proxy/*.sh)\
   $(CLKMGR_DIR)/utest/Makefile\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
@@ -685,8 +686,6 @@ endif
 	  'LDLIBS+= -Wl,-static -l$(SWIG_LNAME) -Wl,-Bdynamic' > $(DEVDOCDIR)/static.mk
 	$(INSTALL_PROGRAM) -D $(PMC_NAME) $(DESTDIR)$(sbindir)/pmc$(TOOLS_EXT)
 	$(INSTALL_DATA) -D man/pmc.8 $(MANDIR)/pmc$(TOOLS_EXT).8
-	$(INSTALL_PROGRAM) -D $(PMC_DIR)/phc_ctl\
-	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
 	$(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
 	$(INSTALL_FOLDER) $(DOCDIR)
 	cp README.md doc/*.md $(DOCDIR)
@@ -854,8 +853,8 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
-  .phpunit.result.cache wrappers/go/allocTlv.i wrappers/go/gtest/gtest\
-  wrappers/go/clkmgr_gtest/clkmgr_gtest\
+  .phpunit.result.cache $(addprefix wrappers/go/, allocTlv.i gtest/gtest\
+  clkmgr_gtest/clkmgr_gtest phc_ctl/phc_ctl)\
   $(subst .in,,$(wildcard $(CLKMGR_DIR)/proxy/clkmgr-proxy.*.in))\
   $(CLKMGR_PROXY) $(HEADERS_GEN) $(CLKMGR_HEADERS_GEN) .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
