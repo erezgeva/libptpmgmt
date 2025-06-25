@@ -46,6 +46,10 @@ size_t TimeInterval_t::size()
 {
     return sizeof scaledNanoseconds;
 }
+bool TimeInterval_t::isZero() const
+{
+    return scaledNanoseconds == 0;
+}
 Timestamp_t::Timestamp_t() : secondsField(0), nanosecondsField(0) {}
 Timestamp_t::Timestamp_t(int64_t secs, uint32_t nsecs) : secondsField(secs),
     nanosecondsField(nsecs) {}
@@ -190,6 +194,10 @@ Timestamp_t &Timestamp_t::subt(const Timestamp_t &ts)
 Timestamp_t &Timestamp_t::subt(float_seconds seconds)
 {
     return add(-seconds);
+}
+bool Timestamp_t::isZero() const
+{
+    return secondsField == 0 && nanosecondsField == 0;
 }
 string ClockIdentity_t::string() const
 {

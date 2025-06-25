@@ -161,8 +161,7 @@ This tool is faster than the original linuxptp tool.
 %package -n     phc-ctl-%{bname}
 Summary:        phc_ctl tool
 License:        GPL-3.0-or-later
-BuildArch:      noarch
-Requires:       python3-%{bname}%{?_isa} = %{version}-%{release}
+Requires:       %{name}2%{?_isa} = %{version}-%{release}
 %description -n phc-ctl-%{bname}
 new rewrite of linuxptp phc_ctl tool using the PTP managemen library.
 

@@ -9,6 +9,7 @@
 /ptpmgmt/
 /clkmgr/
 /gtest/gtest
+/phc_ctl/phc_ctl
 /clkmgr_gtest/clkmgr_gtest
 /allocTlv.i
 /*/go.mod
