@@ -14,7 +14,26 @@
 
 using namespace clkmgr;
 
-// Tests event mask
+// Test ClockSubscriptionBase
+// ClockSubscriptionBase()
+// bool setEventMask(uint32_t newEventMask)
+// uint32_t getEventMask() const
+// void setClockOffsetThreshold(uint32_t threshold)
+// uint32_t getClockOffsetThreshold() const
+TEST(SubscriptionTest, clockSubscriptionBase)
+{
+    ClockSubscriptionBase sub;
+    // Test default values
+    EXPECT_EQ(sub.getEventMask(), 0u);
+    EXPECT_EQ(sub.getClockOffsetThreshold(), 0u);
+    // Test setting event mask and clock offset threshold
+    EXPECT_TRUE(sub.setEventMask(0xA5A5A5A5));
+    EXPECT_EQ(sub.getEventMask(), 0xA5A5A5A5u);
+    sub.setClockOffsetThreshold(12345);
+    EXPECT_EQ(sub.getClockOffsetThreshold(), 12345u);
+}
+
+// Test PTP clock subscription
 // ClockSyncSubscription()
 // void enablePtpSubscription()
 // void disablePtpSubscription()
@@ -25,7 +44,7 @@ using namespace clkmgr;
 // uint32_t PTPClockSubscription::getEventMask() const
 // bool PTPClockSubscription::setCompositeEventMask(uint32_t composite_event_mask)
 // uint32_t PTPClockSubscription::getCompositeEventMask() const
-TEST(SubscriptionTest, setAndGet)
+TEST(SubscriptionTest, ptpClock)
 {
     ClockSyncSubscription subscription;
     EXPECT_FALSE(subscription.isPTPSubscriptionEnable());
@@ -49,11 +68,13 @@ TEST(SubscriptionTest, setAndGet)
 }
 
 // Test system clock subscription
-// void disableSysSubscription()
 // void enableSysSubscription()
+// void disableSysSubscription()
 // bool isSysSubscriptionEnable() const
 // void setSysSubscription(const SysClockSubscription &newSysSub)
 // const SysClockSubscription &getSysSubscription() const
+// bool SysClockSubscription::setEventMask(uint32_t event_mask)
+// uint32_t SysClockSubscription::getEventMask() const
 TEST(SubscriptionTest, systemClock)
 {
     ClockSyncSubscription subscription;
@@ -64,5 +85,9 @@ TEST(SubscriptionTest, systemClock)
     EXPECT_FALSE(subscription.isSysSubscriptionEnable());
     const SysClockSubscription &org = subscription.getSysSubscription();
     SysClockSubscription copy = org;
+    EXPECT_FALSE(copy.setEventMask(SYS_EVENT_ALL + 1));
+    EXPECT_TRUE(copy.setEventMask(SYS_EVENT_ALL));
     subscription.setSysSubscription(copy);
+    EXPECT_EQ(subscription.getSysSubscription().getEventMask(), SYS_EVENT_ALL);
+    EXPECT_EQ(org.getEventMask(), SYS_EVENT_ALL);
 }
