@@ -27,8 +27,7 @@ set_dist_args()
 main()
 {
   local -r base_dir="$(dirname "$(realpath "$0")")"
-  cd "$base_dir/.."
-  source tools/make_docker.sh
+  source "$base_dir/../tools/make_docker.sh"
   local -r repo=http://ftp.de.debian.org/debian
   local -r names='bookworm trixie'
   local -r arch=$(dpkg --print-architecture) # amd64

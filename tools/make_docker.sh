@@ -30,7 +30,7 @@ make_args()
 }
 tool_docker_get_opts()
 {
-  local use_github use_gitlab use_t server namespace
+  local use_github use_gitlab use_t server namespace project
   local github_srv_ns gitlab_srv_ns
   local -r uid=$(id -u)
   local -r user=builder
@@ -62,7 +62,7 @@ tool_docker_get_opts()
   . tools/github_params
   github_srv_ns=$server/$namespace
   . tools/gitlab_params
-  gitlab_srv_ns=$server/$namespace/libptpmgmt
+  gitlab_srv_ns=$server/$namespace/$project
   if [[ -n "$use_github" ]]; then
     use_srv=yes
     srv_ns=$github_srv_ns
@@ -119,6 +119,7 @@ make_docker()
   local name="$1"
   shift
   local no_cache use_srv srv_ns args dock_file use_b use_f
+  tools/def_params.sh
   tool_docker_get_opts "$@"
   [[ -z "$use_b" ]] || name+=".$use_b"
   if [[ -z "$use_srv" ]]; then
@@ -135,3 +136,4 @@ make_docker()
   fi
   clean_unused_images
 }
+cd "$base_dir/.."

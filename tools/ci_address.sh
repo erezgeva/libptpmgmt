@@ -9,6 +9,7 @@
 # - ci_address:     Run AddressSanitizer in GitHub
 # - ci_coverity:    Configure for coverity scan
 # - ci_pages:       Build doxygen in GitHub
+# - def_params:     Create default GitHub and GitLab parameters files
 # - github_docker:  Logging into GitHub Docker Server
 # - gitlab_docker:  Logging into GitLab Docker Server
 # - ci_build:       Build and install packages
@@ -122,6 +123,29 @@ ci_pages()
  mv _site2 _site/clkmgr
 }
 ###############################################################################
+# Create default GitHub and GitLab parameters files
+def_params()
+{
+  local -r def_namespace=erezgeva
+  local -r def_project=libptpmgmt
+  if ! [[ -f tools/github_params ]]; then
+    cat << EOF > tools/github_params
+server=ghcr.io
+namespace=$def_namespace
+EOF
+  fi
+  if ! [[ -f tools/gitlab_params ]]; then
+    cat << EOF > tools/gitlab_params
+server=registry.gitlab.com
+namespace=$def_namespace
+project=$def_project
+EOF
+  fi
+  # TODO remove the follow
+  if ! grep 'project=' tools/gitlab_params >> /dev/null; then
+    echo "project=$def_project" >> tools/gitlab_params
+  fi
+}
 docker_dlog()
 {
  echo "$2" | docker login $server -u $1 --password-stdin
@@ -137,8 +161,9 @@ docker_server()
 }
 docker_server_prm()
 {
- if [[ -f "$1" ]] && [[ -f "$2" ]]; then
-   local server namespace
+ def_params
+ if [[ -f "$1" ]]; then
+   local server namespace project
    . "$2"
    local -r a="$(cat "$1")"
    docker_dlog "${a/:*/}" "${a/*:/}"
@@ -150,11 +175,15 @@ docker_server_prm()
 github_docker()
 {
  docker_server_prm ~/.gh.token tools/github_params
+# ~/.gh.token file contain:
+# <user in github>:<personal access token>
 }
 # Logging into GitLab Docker Server
 gitlab_docker()
 {
  docker_server_prm ~/.gl.token tools/gitlab_params
+ # ~/.gh.token file contain:
+ # <user in gitlab>:<personal access token>
 }
 ###############################################################################
 # Build and install packages
@@ -645,6 +674,7 @@ main()
   ci_address.sh)     ci_address "$@";;
   ci_coverity.sh)    ci_coverity "$@";;
   ci_pages.sh)       ci_pages "$@";;
+  def_params.sh)     def_params "$@";;
   github_docker.sh)  github_docker "$@";;
   gitlab_docker.sh)  gitlab_docker "$@";;
   ci_build.sh)       ci_build "$@";;

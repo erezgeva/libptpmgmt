@@ -47,6 +47,8 @@
 /wrappers/perl/*.pm
 /wrappers/tcl/pkgIndex.tcl
 /wrappers/php/php.ini
+# Docker
+/tools/git*_params
 # Doxygen
 /tools/doxygen.cfg
 /tools/doxygen.*.cfg
