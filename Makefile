@@ -204,6 +204,7 @@ PUB_C:=$(PUB)/c
 PMC_DIR:=ptp-tools
 HMAC_SRC:=hmac
 OBJ_DIR:=objs
+GITHUB_REP=https://github.com/erezgeva/libptpmgmt
 
 CONF_FILES:=configure src/config.h.in
 SONAME:=.$(ver_maj)
@@ -274,16 +275,16 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/* */gitlab*\
-  */github* */*.opt configure.ac src/*.m4 */*.md t*/*.sh */*/*.sh swig/*/*\
+SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/*\
+  */*.opt configure.ac src/*.m4 */*.md t*/*.sh w*/*/*.sh swig/*/*\
   */*.i */*/msgCall.i */*/warn.i man/*\
-  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile [wc]*/*/Makefile\
+  $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp)\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
   $(MAKEFILE_LIST) credits
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
-  utest/*.[chj]* uctest/*.[ch]* .github/workflows/* .gitlab/*,':!/:$n')\
+  utest/*.[chj]* uctest/*.[ch]* .github .gitlab,':!/:$n')\
   ':!:*.gitignore' ':!*/*/test.*' ':!*/*/utest.*'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))
@@ -346,6 +347,19 @@ else
 V:=0
 endif
 export V
+
+ifdef DATE
+CYEAR!=$(DATE) "+%Y"
+else
+CYEAR=2024
+endif
+SPDXLI:=SPDX-License-Identifier:
+SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
+SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
+SPDXGPL:=GPL-3.0-or-later
+SPDXLGPL:=L$(SPDXGPL)
+SPDXGFDL:=GFDL-1.3-no-invariants-or-later
+SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
 
 LN:=$(LN_S) -f
 ifeq ($(findstring -O,$(CXXFLAGS)),)
@@ -424,9 +438,11 @@ PYUVGD:=PYTHONMALLOC=malloc $(VALGRIND) --read-inline-info=yes $(VGD_OPTIONS)$(S
 endif # VGD_PY
 endif # VALGRIND
 
+# src/hmac.cpp have different code for static and dynamic code
+LIBTOOL_$(OBJ_DIR)/hmac.lo=-no-suppress
 # Compile library source code
 $(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
-	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@
+	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@ $(LIBTOOL_$@)
 $(LIB_NAME_LA): $(LIB_OBJS)
 $(LIB_NAME_SO): $(LIB_NAME_LA)
 	@:
@@ -526,20 +542,6 @@ wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS) wrappers/%/warn.i
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 
-ifdef DATE
-CYEAR!=$(DATE) "+%Y"
-else
-CYEAR=2024
-endif
-SPDXLI:=SPDX-License-Identifier:
-SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
-SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
-SPDXBSD3:=BSD-3-Clause
-SPDXGPL:=GPL-3.0-or-later
-SPDXLGPL:=L$(SPDXGPL)
-SPDXGFDL:=GFDL-1.3-no-invariants-or-later
-SPDXHTML:=<!-- $(SPDXLI) $(SPDXGFDL)\n     $(SPDXCY) -->
-
 ifndef SKIP_PERL5
 include wrappers/perl/Makefile
 endif
@@ -610,6 +612,7 @@ DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DOC_PKG)
 MANDIR:=$(DESTDIR)$(mandir)/man8
+SYSTEMDDIR:=$(DESTDIR)/usr/lib/systemd/system
 ifdef PKG_CONFIG_DIR
 PKGCFGDIR:=$(DESTDIR)$(PKG_CONFIG_DIR)
 endif
@@ -666,26 +669,24 @@ ifdef DOXYGEN_MINVER
 	$(RM) doc/html/*.md5 doc/html/*.map
 	cp -a doc/html $(DOCDIR)
 	printf '$(REDIR)' > $(DOCDIR)/index.html
-	for dh in doc/html/*.html doc/html/*/*.html;do if test -f "$$dh"
-	then $(SED) -i '1 i$(SPDXHTML)' $(subst doc/html/,$(DOCDIR)/html/,$$dh)
-	fi;done
-	for dh in doc/html/search/*_*.js doc/html/search/searchdata.js
-	do if test -f "$$dh"
-	then $(SED) -i '1 i/* $(SPDXLI) $(SPDXGFDL)\n   $(SPDXCY) */\n'\
-	  $(subst doc/html/,$(DOCDIR)/html/,$$dh);fi;done
+	tools/add_doxy_spdx.sh doc/html "$(DOCDIR)/html"
 endif # DOXYGEN_MINVER
+ifdef CMARK
+	head -2 doc/FAQs.md > $(DOCDIR)/FAQs.html
+	echo "<!doctype html><title>Frequently asked questions</title>"\
+	  >> $(DOCDIR)/FAQs.html
+	$(CMARK) -t html doc/FAQs.md >> $(DOCDIR)/FAQs.html
+endif # CMARK
 ifdef MARKDOWN
 	for hf in doc/[CBHs]*.md
 	do tl=$$($(SED) -n '/^$(hash) /{s!^$(hash) !!;s!<!\&lt;!;s!>!\&gt;!;p;q}' $$hf)
 	tf="$(DOCDIR)/$$(basename "$${hf%.md}.html")"
-	$(MARKDOWN) $$hf | sed "4 i <!doctype html><title>$$tl</title>" > $$tf
-	done
-	$(MARKDOWN) doc/FAQs.md |\
-	  $(SED) "4 i <!doctype html><title>Frequently asked questions</title>"\
-	  > $(DOCDIR)/FAQs.html
+	$(MARKDOWN) $$hf | $(SED) -e "4 i <!doctype html><title>$$tl</title>"\
+	  -e 's!https://erezgeva.github.io/libptpmgmt/!./html/!' > $$tf;done
 	$(MARKDOWN) README.md |\
 	$(SED) -e "4 i <!doctype html><title>libptpmgmt library README</title>"\
-	  -e 's!"\./doc/!"./!;s!\.md"!.html"!' > $(DOCDIR)/index.html
+	  -e 's!"\./doc/!"./!;s!\.md"!.html"!'\
+	  > $(DOCDIR)/index.html
 ifdef DOXYGEN_MINVER
 	$(SED) -i 's$(REDIR2)' $(DOCDIR)/index.html
 endif
@@ -817,7 +818,7 @@ endif # MAKECMDGOALS
 CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   *.la wrappers/*/*.so\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
-  wrappers/go/*/go.mod wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
+  wrappers/go/*/go.* wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
   */$(LIB_SRC) tools/doxygen*cfg\
   */*/$(LIB_SRC))\
   $(D_FILES) $(LIB_SRC)\

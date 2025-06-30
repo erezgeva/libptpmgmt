@@ -507,16 +507,15 @@ bool Json2msg::fromJson(const string &json)
             return false;
         }
         pproc.m_obj = mobj->getObj("dataField");
-        const BaseMngTlv *data = nullptr;
-        if(!pproc.procData(m_managementId, data)) {
-            if(data != nullptr)
-                delete data;
+        const BaseMngTlv *tlv = nullptr;
+        if(!pproc.procData(m_managementId, tlv)) {
+            delete tlv;
             if(!Error::isError())
                 PTPMGMT_ERROR("Parsing of %s dataField failed",
                     Message::mng2str_c(m_managementId));
             return false;
         }
-        m_tlvData.reset(const_cast<BaseMngTlv *>(data));
+        m_tlvData.reset(const_cast<BaseMngTlv *>(tlv));
     }
     return true;
 }
@@ -550,18 +549,15 @@ extern "C" {
                 return j->_##n##Port;\
             }\
         } return nullptr; }
-#define C_SWP(n, m) free(j->n); j->n = m
     static void ptpmgmt_json_free(ptpmgmt_json j)
     {
         if(j != nullptr) {
-            if(j->_this != nullptr) {
-                delete(Json2msg *)j->_this;
-                j->_this = nullptr;
-            }
-            C_SWP(_srcPort, nullptr);
-            C_SWP(_dstPort, nullptr);
-            C_SWP(data, nullptr);
-            C_SWP(dataTbl, nullptr);
+            delete(Json2msg *)j->_this;
+            free(j->_srcPort);
+            free(j->_dstPort);
+            free(j->data);
+            free(j->dataTbl);
+            free(j);
         }
     }
     // Obsolete as we use internal JSON parser
@@ -583,6 +579,7 @@ extern "C" {
         return false;
     }
     C2CPP_cret(managementId, mng_vals_e, NULL_PTP_MANAGEMENT)
+#define C_SWP(n, m) free(j->n); j->n = m
     static const void *ptpmgmt_json_dataField(ptpmgmt_json j)
     {
         if(j != nullptr && j->_this != nullptr) {
@@ -631,15 +628,12 @@ extern "C" {
         ptpmgmt_json j = (ptpmgmt_json)malloc(sizeof(ptpmgmt_json_t));
         if(j == nullptr)
             return nullptr;
+        memset(j, 0, sizeof(ptpmgmt_json_t));
         j->_this = (void *)(new Json2msg);
         if(j->_this == nullptr) {
             free(j);
             return nullptr;
         }
-        j->_srcPort = nullptr;
-        j->_dstPort = nullptr;
-        j->data = nullptr;
-        j->dataTbl = nullptr;
 #define C_ASGN(n) j->n = ptpmgmt_json_##n
         C_ASGN(free);
         // Obsolete as we use internal JSON parser

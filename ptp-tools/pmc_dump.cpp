@@ -568,13 +568,13 @@ class MsgDump : public MessageDispatcher
             d.stepsRemoved);
     }
 }; // class MsgDump
-void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *data)
+void call_dump(Message &msg, mng_vals_e id, BaseMngTlv *tlv)
 {
     MsgDump d;
-    if(data == nullptr)
+    if(tlv == nullptr)
         d.callHadler(msg);
     else
-        d.callHadler(msg, id, data);
+        d.callHadler(msg, id, tlv);
     DUMPNL;
 }
 
@@ -1262,7 +1262,8 @@ class MsgBuild : public MessageBuilder
         keys["stepsRemoved"].req = true;
         parseKeys;
         Binary gmIdentity;
-        gmIdentity.fromHex(keys["gmIdentity"].str_val);
+        if(!gmIdentity.fromHex(keys["gmIdentity"].str_val))
+            build_fail;
         gmIdentity.copy(d.gmIdentity.v);
         d.stepsRemoved = keys["stepsRemoved"].num;
         build_end;

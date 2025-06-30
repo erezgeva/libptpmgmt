@@ -39,6 +39,13 @@ class Binary
      * @param[in] rhs object
      */
     Binary(const Binary &rhs);
+    #ifndef SWIG
+    /**
+     * Move constructor
+     * @param[in] rhs object
+     */
+    Binary(Binary &&rhs);
+    #endif /* SWIG */
     /**
      * Constructor from buffer
      * @param[in] buf pointer to Binary octets
@@ -120,6 +127,24 @@ class Binary
      * @note resize the Binary as needed
      */
     Binary &setBin(const size_t position, const uint8_t value);
+    /**
+     * Move new value from another binary
+     * @param[in] rhs Binary to assign
+     * @return reference to itself
+     * @note for scripts, to use packing assignment
+     *       and create a string from array or list of octets
+     */
+    Binary &mvBin(Binary &rhs);
+    #ifndef SWIG
+    /**
+     * Move new value from another binary
+     * @param[in] rhs Binary to assign
+     * @return reference to itself
+     * @note for scripts, to use packing assignment
+     *       and create a string from array or list of octets
+     */
+    Binary &mvBin(Binary &&rhs);
+    #endif /* SWIG */
     /**
      * Get octet in position
      * @param[in] position in Binary octets

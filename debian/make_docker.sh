@@ -27,8 +27,7 @@ set_dist_args()
 main()
 {
   local -r base_dir="$(dirname "$(realpath "$0")")"
-  cd "$base_dir/.."
-  source tools/make_docker.sh
+  source "$base_dir/../tools/make_docker.sh"
   local -r repo=http://ftp.de.debian.org/debian
   local -r names='bookworm trixie'
   local -r arch=$(dpkg --print-architecture) # amd64
@@ -40,7 +39,7 @@ main()
     libfastjson-dev libgtest-dev libgmock-dev lua-posix libjson-c-dev
     libssl-dev libgcrypt20 libgnutls28-dev nettle-dev'
   for n in 1-0 {2..4};do dpkgs_arch+=" liblua5.$n-dev";done
-  local no_cache use_srv srv_ns args
+  local no_cache use_srv srv_ns args dock_file use_b use_f
   tool_docker_get_opts "$@"
   if [[ -z "$use_srv" ]]; then
     for n in $names; do clean_cont $bname$n; done
@@ -50,6 +49,7 @@ main()
     local -r bname=$srv_ns/deb.
     local -r ename=:latest
   fi
+  [[ -z "$use_b" ]] || ename+=".$use_b"
   local a n m p
   # Packages per architecture
   for n in $dpkgs_arch; do
@@ -69,7 +69,7 @@ main()
   for dist in $names; do
     make_args dist
     set_dist_args $dist
-    cmd docker build $no_cache -f "$base_dir/Dockerfile" $all_args $args\
+    cmd docker build $no_cache -f "$dock_file" $all_args $args\
         --build-arg ARCHS="$archs"\
         --build-arg DPKGS="$dpkgs" -t $bname$dist$ename .
     if [[ -n "$use_srv" ]]; then

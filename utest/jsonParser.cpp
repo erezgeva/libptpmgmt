@@ -20,6 +20,7 @@ TEST(jsonParser, UnicodeStrings)
 #define u_umlut "\xc3\x9c" // U+00dc U with umlaut
     EXPECT_TRUE(j.parseBuffer(" \"" "\\" "u00dc" "\" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(), "\"\\""u00dc\"");
     EXPECT_EQ(j.getType(), t_string);
     jsonValue *s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -27,6 +28,7 @@ TEST(jsonParser, UnicodeStrings)
     EXPECT_STREQ(s->getCStr(), u_umlut);
     EXPECT_TRUE(j.parseBuffer(" \"" u_umlut "\" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(), "\"\\""u00dc\"");
     EXPECT_EQ(j.getType(), t_string);
     s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -35,6 +37,7 @@ TEST(jsonParser, UnicodeStrings)
 #define heart "\xe2\x9d\xa4" // U+2764 Heavy Black Heart
     EXPECT_TRUE(j.parseBuffer(" \"" "\\" "u2764" "\" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(), "\"\\""u2764\"");
     EXPECT_EQ(j.getType(), t_string);
     s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -42,6 +45,7 @@ TEST(jsonParser, UnicodeStrings)
     EXPECT_STREQ(s->getCStr(), heart);
     EXPECT_TRUE(j.parseBuffer(" \"" heart "\" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(), "\"\\""u2764\"");
     EXPECT_EQ(j.getType(), t_string);
     s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -50,6 +54,7 @@ TEST(jsonParser, UnicodeStrings)
 #define face "\xf0\x9f\x98\x90" // U+1F610 neutral face
     EXPECT_TRUE(j.parseBuffer(" \"" "\\" "ud83d" "\\" "ude10" "\" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(), "\"\\""ud83d\\""ude10\"");
     EXPECT_EQ(j.getType(), t_string);
     s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -57,6 +62,7 @@ TEST(jsonParser, UnicodeStrings)
     EXPECT_STREQ(s->getCStr(), face);
     EXPECT_TRUE(j.parseBuffer(" \"" face "\" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(), "\"\\""ud83d\\""ude10\"");
     EXPECT_EQ(j.getType(), t_string);
     s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -65,6 +71,8 @@ TEST(jsonParser, UnicodeStrings)
     // Check escape sequance
     EXPECT_TRUE(j.parseBuffer(" \" \\\x2f \\\x5c \\\" \\b \\f \\n \\r \\t \" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(),
+        "\" \\""/ \\\\"" \\\" \\b \\f \\n \\r \\t \"");
     EXPECT_EQ(j.getType(), t_string);
     s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -82,6 +90,7 @@ TEST(jsonParser, UnicodeStrings)
     // Check them without escape
     EXPECT_TRUE(j.parseBuffer(" \" \x2f \b \f \n \r \t \" "));
     ASSERT_FALSE(j.empty());
+    EXPECT_STREQ(j.toString().c_str(), "\" \\""/ \\b \\f \\n \\r \\t \"");
     EXPECT_EQ(j.getType(), t_string);
     s = j.getVal();
     ASSERT_NE(s, nullptr);
@@ -108,18 +117,23 @@ TEST(jsonParser, keywords)
     jsonValue *b = j.getVal();
     ASSERT_NE(b, nullptr);
     EXPECT_TRUE(b->getBool());
+    EXPECT_STREQ(j.toString().c_str(), "true");
+    EXPECT_STREQ(b->toString().c_str(), "true");
     EXPECT_TRUE(j.parseBuffer(" \r \n false \t "));
     ASSERT_FALSE(j.empty());
     EXPECT_EQ(j.getType(), t_boolean);
     b = j.getVal();
     ASSERT_NE(b, nullptr);
     EXPECT_FALSE(b->getBool());
+    EXPECT_STREQ(j.toString().c_str(), "false");
+    EXPECT_STREQ(b->toString().c_str(), "false");
     EXPECT_TRUE(j.parseBuffer(" \r \n null \t "));
     ASSERT_FALSE(j.empty());
     EXPECT_EQ(j.getType(), t_null);
     jsonValue *n = j.getVal();
     ASSERT_NE(n, nullptr);
-    EXPECT_NE(n, nullptr);
+    EXPECT_STREQ(j.toString().c_str(), "null");
+    EXPECT_STREQ(n->toString().c_str(), "null");
 }
 
 TEST(jsonParser, numbers)
@@ -147,6 +161,8 @@ TEST(jsonParser, numbers)
     EXPECT_TRUE(n->getFrac(i, f, 4));
     EXPECT_EQ(i, 794);
     EXPECT_EQ(f, 0);
+    EXPECT_STREQ(j.toString().c_str(), "794");
+    EXPECT_STREQ(n->toString().c_str(), "794");
     EXPECT_TRUE(j.parseBuffer(" 50  "));
     ASSERT_FALSE(j.empty());
     EXPECT_EQ(j.getType(), t_number);
@@ -300,6 +316,11 @@ TEST(jsonParser, arrays)
     EXPECT_EQ(j.getType(), t_array);
     jsonArray *a = j.getArr();
     ASSERT_NE(a, nullptr);
+    EXPECT_STREQ(j.toString().c_str(),
+        "[\n"
+        "  \" 1\",\n"
+        "  0\n"
+        "]");
     EXPECT_EQ(a->size(), 2);
     EXPECT_EQ(a->getType(0), t_string);
     jsonValue *s = a->getVal(0);
@@ -311,6 +332,19 @@ TEST(jsonParser, arrays)
     uint64_t u;
     EXPECT_TRUE(n->getUint64(u));
     EXPECT_EQ(u, 0);
+    // Check range loop
+    EXPECT_TRUE(j.parseBuffer("[ 0, 1, 2 ]"));
+    EXPECT_EQ(j.getType(), t_array);
+    a = j.getArr();
+    ASSERT_NE(a, nullptr);
+    size_t i = 0;
+    for(const auto &e : *a) {
+        EXPECT_EQ(e->getType(), t_number);
+        s = e->getVal();
+        ASSERT_NE(s, nullptr);
+        EXPECT_TRUE(s->getUint64(u));
+        EXPECT_EQ(u, i++);
+    }
 }
 
 TEST(jsonParser, objects)
@@ -327,6 +361,13 @@ TEST(jsonParser, objects)
     jsonObject *o = j.getObj();
     ASSERT_NE(o, nullptr);
     EXPECT_EQ(o->size(), 3);
+    // The keys are ordered alephbetic
+    EXPECT_STREQ(j.toString().c_str(),
+        "{\n"
+        "  \"Val\" : -144,\n"
+        "  \"actionField\" : \"GET\",\n"
+        "  \"managementId\" : \"PRIORITY1\"\n"
+        "}");
     EXPECT_EQ(o->getType("actionField"), t_string);
     jsonValue *s = o->getVal("actionField");
     ASSERT_NE(s, nullptr);
@@ -343,6 +384,55 @@ TEST(jsonParser, objects)
     int64_t i;
     EXPECT_TRUE(n->getInt64(i));
     EXPECT_EQ(i, -144);
+    // Check range loop
+    const char j2[] =
+        "{"
+        " \"a\" : 0,"
+        " \"b\" : 1,"
+        " \"c\" : 2"
+        "}";
+    EXPECT_TRUE(j.parseBuffer(j2));
+    EXPECT_EQ(j.getType(), t_object);
+    o = j.getObj();
+    ASSERT_NE(o, nullptr);
+    size_t l = 0;
+    char x[] = "a";
+    uint64_t u;
+    for(const auto &m : *o) {
+        EXPECT_STREQ(x, m.first.c_str());
+        x[0]++;
+        EXPECT_EQ(m.second->getType(), t_number);
+        s = m.second->getVal();
+        ASSERT_NE(s, nullptr);
+        EXPECT_TRUE(s->getUint64(u));
+        EXPECT_EQ(u, l++);
+    }
+    // Check equal_range of elements using the same key
+    const char j3[] =
+        "{"
+        " \"a\" : 0,"
+        " \"x\" : 71,"
+        " \"a\" : 1,"
+        " \"a\" : 2,"
+        " \"b\" : 7,"
+        " \"e\" : 12"
+        "}";
+    EXPECT_TRUE(j.parseBuffer(j3));
+    EXPECT_EQ(j.getType(), t_object);
+    o = j.getObj();
+    ASSERT_NE(o, nullptr);
+    auto range = o->equal_range("a");
+    EXPECT_NE(range.first, o->end());
+    EXPECT_NE(range.second, o->end());
+    l = 0;
+    for(auto it = range.first; it != range.second; it++) {
+        EXPECT_STREQ("a", it->first.c_str());
+        EXPECT_EQ(it->second->getType(), t_number);
+        s = it->second->getVal();
+        ASSERT_NE(s, nullptr);
+        EXPECT_TRUE(s->getUint64(u));
+        EXPECT_EQ(u, l++);
+    }
 }
 
 TEST(jsonParser, file)

@@ -19,12 +19,12 @@ RUN pacman-key --init && pacman-key --populate &&\
     lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go jq\
     texlive-fontutils astyle lua-posix lua51-posix lua52-posix lua53-posix\
     clang openssl gnutls nettle gdb debugedit base-devel chrpath patchelf\
-    discount ruby-test-unit cppcheck criterion chrony quilt &&\
+    discount ruby-test-unit cppcheck criterion chrony quilt cmark-gfm &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\
     cd librtpi && autoreconf -i && ./configure --prefix=/usr && make install &&\
-    cd /t0 && git clone https://gitlab.com/chrony/libchrony &&\
+    cd /t0 && git clone https://github.com/mlichvar/libchrony &&\
     cd libchrony && make install prefix=/usr && cd && rm -Rf /t0
 ARG COOKIE
 RUN pacman -Syu --noconfirm --needed

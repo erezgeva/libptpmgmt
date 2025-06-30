@@ -366,7 +366,7 @@ TEST(MessageTest, MethodMng2str)
     EXPECT_STREQ(Message::mng2str_c(EXTERNAL_GRANDMASTER_PROPERTIES_NP),
         "EXTERNAL_GRANDMASTER_PROPERTIES_NP");
     EXPECT_STREQ(Message::mng2str_c(LAST_MNG_ID), "unknown");
-    // Confirm compatability
+    // Confirm compatibility
     EXPECT_EQ(FIRST_MNG_ID, NULL_PTP_MANAGEMENT);
     EXPECT_EQ(NULL_MANAGEMENT, NULL_PTP_MANAGEMENT);
 }
@@ -546,7 +546,7 @@ TEST(MessageTest, MethodFindTimeSrc)
     EXPECT_EQ(t, INTERNAL_OSCILLATOR);
     EXPECT_TRUE(Message::findTimeSrc("Intern", t, false));
     EXPECT_EQ(t, INTERNAL_OSCILLATOR);
-    // Confirm compatability
+    // Confirm compatibility
     EXPECT_EQ(GPS, GNSS);
 }
 
@@ -623,7 +623,7 @@ TEST(MessageTest, MethodFindPortState)
     EXPECT_EQ(s, TIME_RECEIVER);
     EXPECT_TRUE(Message::findPortState("Time_Receiver", s, false));
     EXPECT_EQ(s, TIME_RECEIVER);
-    // Confirm compatability
+    // Confirm compatibility
     EXPECT_EQ(PRE_MASTER, PRE_TIME_TRANSMITTER);
     EXPECT_EQ(MASTER, TIME_TRANSMITTER);
     EXPECT_EQ(SLAVE, TIME_RECEIVER);
@@ -1229,9 +1229,9 @@ TEST(MessageTest, MethodGetData)
     // Change to response action of get/set message
     buf[46] = RESPONSE;
     EXPECT_EQ(m.parse(buf, 56), MNG_PARSE_ERROR_OK);
-    const BaseMngTlv *data = m.getData();
-    EXPECT_NE(data, nullptr);
-    const PRIORITY1_t *p1 = dynamic_cast<const PRIORITY1_t *>(data);
+    const BaseMngTlv *tlv = m.getData();
+    EXPECT_NE(tlv, nullptr);
+    const PRIORITY1_t *p1 = dynamic_cast<const PRIORITY1_t *>(tlv);
     ASSERT_NE(p1, nullptr);
     EXPECT_EQ(p1->priority1, p.priority1);
 }

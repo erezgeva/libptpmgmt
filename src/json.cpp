@@ -531,15 +531,15 @@ JS(EXTERNAL_GRANDMASTER_PROPERTIES_NP)
         return true;\
     }
 
-bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&data)
+bool JsonProc::procData(mng_vals_e managementId, const BaseMngTlv *&tlv)
 {
 #define _ptpmCaseUF(n) case n: {\
             n##_t *d;\
-            if(data == nullptr) {\
+            if(tlv == nullptr) {\
                 d = new n##_t;\
-                data = d;\
+                tlv = d;\
             } else\
-                d = dynamic_cast<n##_t *>(const_cast<BaseMngTlv *>(data));\
+                d = dynamic_cast<n##_t *>(const_cast<BaseMngTlv *>(tlv));\
             return d == nullptr ? false : proc_##n(*this, *d); }
     switch(managementId) {
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
@@ -555,10 +555,10 @@ struct JsonProcToJson : public JsonProc {
     int m_base_indent;
     bool m_first;
     JsonProcToJson(const Message &msg, int indent);
-    JsonProcToJson(mng_vals_e managementId, const BaseMngTlv *data, int indent);
-    bool data2json(mng_vals_e managementId, const BaseMngTlv *data,
+    JsonProcToJson(mng_vals_e managementId, const BaseMngTlv *tlv, int indent);
+    bool data2json(mng_vals_e managementId, const BaseMngTlv *tlv,
         bool header = true);
-    bool smpte2json(SMPTE_ORGANIZATION_EXTENSION_t *data);
+    bool smpte2json(SMPTE_ORGANIZATION_EXTENSION_t *tlv);
     void sig2json(tlvType_e tlvType, const BaseSigTlv *tlv);
     void close() {
         if(!m_first)
@@ -819,15 +819,15 @@ struct JsonProcToJson : public JsonProc {
     procVector(SLAVE_DELAY_TIMING_DATA_NP_rec_t)
 };
 
-bool JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *data,
+bool JsonProcToJson::data2json(mng_vals_e managementId, const BaseMngTlv *tlv,
     bool header)
 {
-    if(data != nullptr) {
+    if(tlv != nullptr) {
         if(header)
             procObject("dataField");
         else // header can be false only if data is NOT null!
             startObject();
-        procData(managementId, data);
+        procData(managementId, tlv);
         closeObject();
     }
     return true;
@@ -991,10 +991,10 @@ void JsonProcToJson::sig2json(tlvType_e tlvType, const BaseSigTlv *tlv)
     closeObject();
 }
 
-bool JsonProcToJson::smpte2json(SMPTE_ORGANIZATION_EXTENSION_t *data)
+bool JsonProcToJson::smpte2json(SMPTE_ORGANIZATION_EXTENSION_t *tlv)
 {
-    if(data != nullptr)
-        parse_SMPTE_ORGANIZATION_EXTENSION(*this, *data);
+    if(tlv != nullptr)
+        parse_SMPTE_ORGANIZATION_EXTENSION(*this, *tlv);
     return true;
 }
 

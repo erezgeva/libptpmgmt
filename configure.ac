@@ -166,6 +166,13 @@ AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
 
 #----------------------------------------------------------------
 # Tools
+
+# Try first the CommonMark with GitHub Flavored
+AC_CHECK_TOOL([CMARK], [cmark-gfm])
+# Else use the original CommonMark convert tool
+PTPM_VAR_EMPTY_IF([CMARK],
+                  [AC_CHECK_TOOL([CMARK], [cmark])])
+
 AC_CHECK_TOOL([DATE], [date])
 PTPM_VAR_SET_IF([DATE],
                 [AS_VAR_SET([ptpm_date], ["`$DATE "+%s"`"])
@@ -368,11 +375,15 @@ AC_CHECK_HEADER([gmock/gmock.h],
 AC_CHECK_HEADER([criterion/criterion.h],
                 [AS_VAR_SET([HAVE_CRITERION_HEADER], ['criterion/criterion.h'])])
 AC_COMPILE_IFELSE(
-   [AC_LANG_PROGRAM([$ptpm_c_include <$HAVE_CRITERION_HEADER>
-                     $ptpm_c_include <criterion/new/assert.h>
-                     $ptpm_c_include <criterion/new/memory.h>])],
-   [AS_VAR_APPEND([HAVE_CRITERION_HEADER],
-                  [" criterion/new/assert.h criterion/new/memory.h"])])
+   [AC_LANG_PROGRAM([
+       $ptpm_c_include <stdint.h>
+       $ptpm_c_include <$HAVE_CRITERION_HEADER>
+       $ptpm_c_include <criterion/new/assert.h>
+       $ptpm_c_include <criterion/new/memory.h>])],
+   [AS_VAR_SET([HAVE_CRITERION_HEADER],
+       ["stdint.h $HAVE_CRITERION_HEADER"])
+    AS_VAR_APPEND([HAVE_CRITERION_HEADER],
+       [" criterion/new/assert.h criterion/new/memory.h"])])
 dnl We do not use unit test with cross compilation
 AS_IF([PTPM_VAR_SET_TEST([HAVE_CRITERION_HEADER]) &&\
        PTPM_VAR_EMPTY_TEST([USE_CROSS_COMPILE])],
@@ -1004,6 +1015,11 @@ AS_VAR_IF([ptpm_rubybin], ['no'],
                            'print RbConfig::CONFIG[["LIBS"]]' PTPM_DUMP_ERR`"])])
       PTPM_CROSS([RUBY_INC_FLAGS])
       PTPM_CROSS([RUBY_LIB_FLAGS])
+      AS_VAR_APPEND([CPPFLAGS], [" $RUBY_INC_FLAGS"])
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([$ptpm_c_include <ruby.h>])], [],
+                        [AS_UNSET([RUBY_INC_FLAGS])
+                         AS_UNSET([RUBY_LIB_FLAGS])])
+      AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
       AC_MSG_CHECKING([for Ruby header files])
       PTPM_MSG_RESULT([RUBY_INC_FLAGS])
       AC_MSG_CHECKING([for Ruby link flags])

@@ -5,6 +5,15 @@
 # @copyright © 2021 Erez Geva
 #
 # RPM specification file for libptpmgmt rpm packages
+# Spec file format:
+# https://rpm-software-management.github.io/rpm/manual/spec.html
+# scriptlet expansion
+# https://rpm-software-management.github.io/rpm/manual/scriptlet_expansion.html
+# RPM Macros (default path definitions)
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/RPMMacros/
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/
+# Inside the Spec File
+# https://ftp.osuosl.org/pub/rpm/max-rpm/ch-rpm-inside.html
 ###############################################################################
 Name:           libptpmgmt
 Version:        1.4
@@ -22,6 +31,7 @@ BuildRequires:  ruby ruby-devel
 BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  golang
+BuildRequires:  systemd
 #Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
 Source0:        %{name}-%{version}.txz
 

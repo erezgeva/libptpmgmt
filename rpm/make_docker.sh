@@ -10,16 +10,24 @@
 main()
 {
   local -r base_dir="$(dirname "$(realpath "$0")")"
-  cd "$base_dir/.."
-  source tools/make_docker.sh
+  source "$base_dir/../tools/make_docker.sh"
   make_docker rpmbuild "$@"
 }
 main "$@"
 ext()
 {
+# See:
+# https://www.cyberciti.biz/howto/question/linux/linux-rpm-cheat-sheet.php
+# See package content
+rpm -qpil ptpmgmt-devel-1*.x86_64.rpm
+# List installed packages
+rpm -qa
+dnf list installed
+# Find out what package a file belongs to
+rpm -qf file
+# See package scripts
+rpm -qlp --scripts ptpmgmt-devel-1*.x86_64.rpm
+
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/rpm rpmbuild
-
-# See package content
-rpm -qpil xxx.rpm
 }

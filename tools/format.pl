@@ -23,7 +23,7 @@ sub main
     my @list = @ARGV;
     push @list, glob
         "*/*.sh */*/*.sh Makefile */Makefile w*/*/Makefile debian/rules " .
-        "debian/changelog debian/copyright */*/test.* " .
+        "*/utest/Makefile debian/changelog debian/copyright */*/test.* " .
         "*/*.pl */*/*.pl */*/*test/*.go */*.i";
     for(@list)
     {
@@ -52,7 +52,7 @@ sub main
             $had_empty_lines = 0;
             #######################################
             # Verify we use proper characters!
-            if($file =~ /\.cpp$/ or $file =~ /\.h$/) {
+            if($file =~ /\.cpp$/ or $file =~ /\.h$/ or $file =~ /\.hpp$/) {
                 if(/[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]/) {
                     err 'for wrong char';
                 } elsif(/\\[^xntrbf0"'\\]/) {

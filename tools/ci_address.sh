@@ -9,6 +9,7 @@
 # - ci_address:     Run AddressSanitizer in GitHub
 # - ci_coverity:    Configure for coverity scan
 # - ci_pages:       Build doxygen in GitHub
+# - def_params:     Create default GitHub and GitLab parameters files
 # - github_docker:  Logging into GitHub Docker Server
 # - gitlab_docker:  Logging into GitLab Docker Server
 # - ci_build:       Build and install packages
@@ -17,6 +18,7 @@
 # - ci_abi:         Compart ABI of current library with last version
 # - ci_abi_err:     Report ABI error
 # - ci_cross:       CI cross compilation
+# - add_doxy_spdx:  Add SPDX header to doxygen generated files
 # - utest_address:  Run unit tests with Address Sanitizer
 # - utest_valgrid:  Run unit tests with valgrind tool
 # - cp_license:     Follow FSF RESUSE Specification
@@ -49,19 +51,25 @@ config_ubuntu()
 {
  autoreconf -i
  ./configure $@
+ config_report
 }
 build_prepare_ubuntu()
 {
- apt_install libtool libtool-bin autoconf automake nettle-dev libgnutls28-dev\
+ apt_install libtool-bin nettle-dev libgnutls28-dev libgcrypt20-dev\
    chrpath
- config_ubuntu $@
- config_report
+ config_ubuntu "$@"
 }
 ###############################################################################
 # Configure for coverity scan
 ci_coverity()
 {
- build_prepare_ubuntu --without-swig
+ local add_cfg
+ case $1 in
+   clang)
+     add_cfg='CC=clang CXX=clang++'
+     ;;
+ esac
+ build_prepare_ubuntu --without-swig $add_cfg
 }
 ###############################################################################
 # Script to run AddressSanitizer in GitHub
@@ -78,9 +86,33 @@ ci_pages()
  config_ubuntu
  make doxygen
  mv doc/html _site
- rm -f _site/*.md5 _site/*.map
+ rm -f _site*/*.md5 _site*/*.map
+ add_doxy_spdx _site _site
 }
 ###############################################################################
+# Create default GitHub and GitLab parameters files
+def_params()
+{
+  local -r def_namespace=erezgeva
+  local -r def_project=libptpmgmt
+  if ! [[ -f tools/github_params ]]; then
+    cat << EOF > tools/github_params
+server=ghcr.io
+namespace=$def_namespace
+EOF
+  fi
+  if ! [[ -f tools/gitlab_params ]]; then
+    cat << EOF > tools/gitlab_params
+server=registry.gitlab.com
+namespace=$def_namespace
+project=$def_project
+EOF
+  fi
+  # TODO remove the follow
+  if ! grep 'project=' tools/gitlab_params >> /dev/null; then
+    echo "project=$def_project" >> tools/gitlab_params
+  fi
+}
 docker_dlog()
 {
  echo "$2" | docker login $server -u $1 --password-stdin
@@ -96,8 +128,9 @@ docker_server()
 }
 docker_server_prm()
 {
- if [[ -f "$1" ]] && [[ -f "$2" ]]; then
-   local server namespace
+ def_params
+ if [[ -f "$1" ]]; then
+   local server namespace project
    . "$2"
    local -r a="$(cat "$1")"
    docker_dlog "${a/:*/}" "${a/*:/}"
@@ -109,11 +142,15 @@ docker_server_prm()
 github_docker()
 {
  docker_server_prm ~/.gh.token tools/github_params
+# ~/.gh.token file contain:
+# <user in github>:<personal access token>
 }
 # Logging into GitLab Docker Server
 gitlab_docker()
 {
  docker_server_prm ~/.gl.token tools/gitlab_params
+ # ~/.gh.token file contain:
+ # <user in gitlab>:<personal access token>
 }
 ###############################################################################
 # Build and install packages
@@ -244,6 +281,52 @@ ci_cross()
  config_report
 }
 ###############################################################################
+# Add SPDX header to doxygen generated files
+add_doxy_spdx()
+{
+ local -r src="$1"
+ local -r tgt="$2"
+ case $3 in
+   intel)
+     local -r hcpy='Intel Corporation.'
+     ;;
+   *)
+     local -r hcpy='Erez Geva <ErezGeva2@gmail.com>'
+     ;;
+ esac
+ local -r gfdl='SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later'
+ if [[ -n "$(which date 2> /dev/null)" ]]; then
+     local -r year="$(date "+%Y")"
+ else
+    local -r year=2025
+ fi
+ local -r cpy="   SPDX-FileCopyrightText: Copyright © $year"
+ local m
+ for n in $src/*.html $src/*/*.html
+ do
+   if test -f "$n"; then
+     if [[ "$src" = "$tgt" ]]; then
+       m="$n"
+     else
+       m="$(printf $n | sed "s@$src/@$tgt/@")"
+     fi
+     sed -i "1 i<!-- $gfdl\n  $cpy $hcpy -->" $m
+   fi
+ done
+ for n in $src/search/*_*.js $src/search/searchdata.js
+ do
+   if test -f "$n"; then
+
+     if [[ "$src" = "$tgt" ]]; then
+       m="$n"
+     else
+       m="$(printf $n | sed "s@$src/@$tgt/@")"
+     fi
+    sed -i "1 i/* $gfdl\n$cpy $hcpy */\n" $m
+   fi
+ done
+}
+###############################################################################
 # Run unit tests with Address Sanitizer
 utest_address()
 {
@@ -307,12 +390,7 @@ utest_valgrid()
    fi
  done
  if [[ $ret -ne 0 ]]; then
-   # TODO When calling 'inet_pton6'
-   # Valgrind confuse 'memmove' with 'memcpy' and
-   # yield a wrong "Source and destination overlap" error.
-   # See: https://bugs.kde.org/show_bug.cgi?id=402833
-   # Once the error is fixed, we can exit with error
-   echo "exit $ret"
+   exit $ret
  fi
 }
 ###############################################################################
@@ -394,7 +472,7 @@ config_report()
  local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER
    LUA_VERS LUA_VER USE_ENDIAN PERL5_VER
    GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
-   HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER
+   HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK MARKDOWN
    PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl5 python3 ruby php lua go'
@@ -443,11 +521,14 @@ config_report()
  [[ -n "$CPPCHECK" ]] && local -r cppcheck='v' || local -r cppcheck='x'
  [[ -n "$SWIG_MINVER" ]] && local -r swig="$SWIG_MINVER" || local -r swig='x'
  [[ -n "$DOXYGEN_MINVER" ]] && local -r doxy="$DOXYGEN_MINVER" || local -r doxy='x'
+ [[ -n "$MARKDOWN" ]] && local -r markdown='v' || local -r markdown='x'
+ [[ -n "$CMARK" ]] && local -r cmark="$CMARK" || local -r cmark='x'
+
  cat << EOF
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
-rpath '$rpath'
+markdown '$markdown' rpath '$rpath' cmark '$cmark'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
 Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'
@@ -547,7 +628,8 @@ tag_release()
 main()
 {
  local -r me1="$(realpath -s "$0")"
- cd "$(realpath "$(dirname "$0")/..")"
+ local -r base_dir="$(realpath "$(dirname "$0")/..")"
+ cd "$base_dir"
  local ver_maj ver_min
  source tools/util.sh
  source tools/version
@@ -558,6 +640,7 @@ main()
   ci_address.sh)     ci_address "$@";;
   ci_coverity.sh)    ci_coverity "$@";;
   ci_pages.sh)       ci_pages "$@";;
+  def_params.sh)     def_params "$@";;
   github_docker.sh)  github_docker "$@";;
   gitlab_docker.sh)  gitlab_docker "$@";;
   ci_build.sh)       ci_build "$@";;
@@ -566,6 +649,7 @@ main()
   ci_abi.sh)         ci_abi "$@";;
   ci_abi_err.sh)     ci_abi_err "$@";;
   ci_cross.sh)       ci_cross "$@";;
+  add_doxy_spdx.sh)  add_doxy_spdx "$@";;
   utest_address.sh)  utest_address "$@";;
   utest_valgrid.sh)  utest_valgrid "$@";;
   cp_license.sh)     cp_license "$@";;

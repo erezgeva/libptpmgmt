@@ -7,19 +7,18 @@
 # Docker file for Gentoo container for building and installing
 # Create from Docker image from base image
 # https://dev.gentoo.org/~zmedico/portage/doc/man/emerge.1.html
-# --tree, -t Shows the dependency tree
-# --verbose, -v
-# --update, -u
-# --deep [DEPTH], -D    entire dependency tree of packages
+# --tree, -t            Shows the dependency tree
+# --verbose, -v         Verbose mode
+# --update, -u          Updates packages to the best version available
+# --deep [DEPTH], -D    Entire dependency tree of packages
+# --sync                Updates repositories
+# --depclean, -c        Cleans the system by removing packages
+#                       that are not associated with explicitly merged packages
 ###############################################################################
-FROM portage_base
+FROM portage.2
 ARG UID USER
-# 559m34.815s = 9h 16m 34s
-RUN emerge -tv llvm-core/clang &&\
-    useradd $USER -u $UID -m -G users,wheel,portage &&\
-    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-RUN emerge -tv net-misc/chrony dev-util/quilt
+RUN useradd $USER -u $UID -m -G users,wheel,portage
 ARG COOKIE
-# RUN emerge --sync && emerge -tvuD @world
+RUN emerge --sync && emerge -tvuD @world
 ARG SRC DST
 COPY --chown=builder $SRC $DST

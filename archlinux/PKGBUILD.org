@@ -6,6 +6,11 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2021 Erez Geva
 #
+# Maintainer: Erez Geva <ErezGeva2@gmail.com>
+#
+# See:
+# https://wiki.archlinux.org/title/PKGBUILD
+# https://man.archlinux.org/man/PKGBUILD.5.en
 ###############################################################################
 pkgver=1.4
 pkgrel=1
@@ -30,7 +35,7 @@ build() {
   ./configure --prefix=/usr --sbindir=\${prefix}/bin
   make PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
-  make DESTDIR=../install install --no-print-directory
+  make DESTDIR=../install install --no-print-directory compile_py3
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
   python3 go gcc libtool autoconf make chrpath
@@ -98,7 +103,6 @@ package_python3-ptpmgmt() {
   depends=("$pkgbase=$verdep" python3)
   mkdir -p $pkgdir/$libdir
   cp -a $srcdir/install/usr/lib/python3* $pkgdir/$libdir
-  rm -f $srcdir/install/usr/lib/python3*/site-packages/*ptpmgmt*
 }
 package_lua-ptpmgmt() {
   pkgdesc='PTP management library Lua wrapper'

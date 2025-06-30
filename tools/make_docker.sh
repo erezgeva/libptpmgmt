@@ -30,42 +30,73 @@ make_args()
 }
 tool_docker_get_opts()
 {
-  local use_github use_gitlab server namespace
+  local use_github use_gitlab use_t server namespace project
+  local github_srv_ns gitlab_srv_ns
   local -r uid=$(id -u)
   local -r user=builder
-  while getopts 'nuglb' opt; do
+  while getopts 'nuglb:f:t:' opt; do
     case $opt in
       n)
         no_cache=--no-cache
         ;;
-      u)
+      u) # Force update by generating a new cockie
         local -r upgrade=yes
         ;;
-      g)
+      g) # To the Github Server
         use_github=yes
         ;;
-      l)
+      l) # To the Gitlab Server
         use_gitlab=yes
         ;;
-      b)
-        use_b=yes
+      b) # Use docker file and image with '.$use_b'
+        use_b=$OPTARG
+        ;;
+      f) # From a Server (Github or Gitlab)
+        use_f=$OPTARG
+        ;;
+      t) # To a Server (Github or Gitlab)
+        use_t=$OPTARG
         ;;
     esac
   done
+  . tools/github_params
+  github_srv_ns=$server/$namespace
+  . tools/gitlab_params
+  gitlab_srv_ns=$server/$namespace/$project
   if [[ -n "$use_github" ]]; then
-    . tools/github_params
     use_srv=yes
-    srv_ns=$server/$namespace
+    srv_ns=$github_srv_ns
   elif [[ -n "$use_gitlab" ]]; then
-    . tools/gitlab_params
     use_srv=yes
-    srv_ns=$server/$namespace/libptpmgmt
-  fi
-  if [[ -n "$use_b" ]] && [[ -n "$b_dock_file" ]]; then
-    dock_file=$b_dock_file
+    srv_ns=$gitlab_srv_ns
   else
-    dock_file=Dockerfile
+    case $use_t in
+      g|github)
+        use_srv=yes
+        srv_ns=$github_srv_ns
+        ;;
+      l|gitlab)
+        use_srv=yes
+        srv_ns=$gitlab_srv_ns
+        ;;
+    esac
   fi
+  dock_file="$base_dir/Dockerfile"
+  if [[ -n "$use_b" ]] && [[ -f "$dock_file.$use_b" ]]; then
+    dock_file+=.$use_b
+  else
+    use_b=''
+  fi
+  case $use_f in
+    g|github)
+      use_f=$github_srv_ns/
+      ;;
+    l|gitlab)
+      use_f=$gitlab_srv_ns/
+      ;;
+    *)
+      use_f=''
+  esac
   if [[ -n "$use_srv" ]]; then
     touch .null
     local -r src=.null
@@ -81,26 +112,28 @@ tool_docker_get_opts()
   fi
   local -r cookie=$(cat "$cfile")
   make_args user src dst uid cookie
-  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" "$base_dir/$dock_file"
+  sed -i "s/^COPY --chown=[^ ]*/COPY --chown=$user/" "$dock_file"
 }
 make_docker()
 {
   local name="$1"
   shift
-  local no_cache use_srv srv_ns args dock_file use_b
+  local no_cache use_srv srv_ns args dock_file use_b use_f
+  tools/def_params.sh
   tool_docker_get_opts "$@"
-  if [[ -n "$use_b" ]] && [[ -n "$b_name" ]]; then
-    name="$b_name"
-  fi
+  [[ -z "$use_b" ]] || name+=".$use_b"
   if [[ -z "$use_srv" ]]; then
     clean_cont $name
     local -r fname=$name
   else
     local -r fname=$srv_ns/$name:latest
   fi
-  cmd docker build $no_cache -f "$base_dir/$dock_file" $args -t $fname .
+  [[ -z "$use_f" ]] || sed -i "s!^FROM !FROM $use_f!" "$dock_file"
+  cmd docker build $no_cache -f "$dock_file" $args -t $fname .
+  [[ -z "$use_f" ]] || sed -i "s!^FROM $use_f!FROM !" "$dock_file"
   if [[ -n "$use_srv" ]]; then
     cmd docker push $fname
   fi
   clean_unused_images
 }
+cd "$base_dir/.."

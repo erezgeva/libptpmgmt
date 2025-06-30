@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2025 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2025 Erez Geva
+#
+# GitHub Coverity Scan
+# Results: https://scan.coverity.com/projects/erezgeva-libptpmgmt
+# Defects: https://scan.coverity.com/projects/erezgeva-libptpmgmt/view_defects
+###############################################################################
+
+name: coverity clang scan
+
+# Start manually
+on: workflow_dispatch
+
+# Permit read-only with GITHUB_TOKEN
+permissions: read-all
+
+jobs:
+  coverity:
+    runs-on: ubuntu-24.04
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v4
+
+    - name: configure
+      run: tools/ci_coverity.sh clang
+
+    - name: coverity scan
+      uses: vapier/coverity-scan-action@v1
+      with:
+        email: ${{ secrets.COVERITY_SCAN_EMAIL }}
+        token: ${{ secrets.COVERITY_SCAN_TOKEN }}

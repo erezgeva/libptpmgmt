@@ -43,6 +43,7 @@ communicates with chronyd directly over Unix domain or UDP socket.
 %{_includedir}/*
 %{_libdir}/%{name}.a
 %{_libdir}/%{name}.so
+%{_libdir}/pkgconfig/%{name}.pc
 
 %changelog
 

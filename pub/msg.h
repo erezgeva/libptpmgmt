@@ -25,6 +25,7 @@ __PTPMGMT_NAMESPACE_BEGIN
 
 struct MsgProc;
 class Message;
+class MessageSigTlvs;
 struct HMAC_Key;
 
 /**
@@ -47,6 +48,138 @@ class MessageSigTlvCallback
     virtual bool callback(const Message &msg, tlvType_e tlvType,
         const BaseSigTlv *tlv) = 0;
 };
+/**
+ * Store a Signaling TLV with it's type
+ * @note iterators are supported using C++ only.
+ *       This class is used with iterators only.
+ */
+class MessageSigTlv
+{
+  private:
+    std::unique_ptr<BaseSigTlv> m_tlv; /**< Signaling TLV */
+    tlvType_e m_tlvType; /**< Signaling TLV type */
+  protected:
+    /** @cond internal */
+    friend class MessageSigTlvs;
+    MessageSigTlv(BaseSigTlv *tlv, tlvType_e tlvType);
+    /**< @endcond */
+  public:
+    /**
+     * Get signalling TLV id
+     * @return TLV id
+     */
+    tlvType_e tlvType() const;
+    /**
+     * Get signalling TLV
+     * @return pointer to TLV
+     */
+    const BaseSigTlv *tlv() const;
+};
+/**
+ * Holds signaling tlvs received in the last receive ptp message
+ */
+class MessageSigTlvs
+{
+  private:
+    /* Parent class */
+    Message &m_msg;
+    /* hold signalling TLVs */
+    std::vector<MessageSigTlv> m_tlvs;
+  protected:
+    /** @cond internal */
+    friend class Message;
+    bool m_lastSig = false; /* indicate last parse was signaling */
+    MessageSigTlvs(Message &m) : m_msg(m) {};
+    void clearToUse() { m_tlvs.clear(); m_lastSig = true; }
+    const MANAGEMENT_t *getMng(size_t position) const;
+    void push(tlvType_e tlvType, BaseSigTlv *tlv);
+
+  public:
+    #ifndef SWIG
+    class iterator
+    {
+      private:
+        std::vector<MessageSigTlv>::const_iterator it;
+      protected:
+        iterator(const std::vector<MessageSigTlv>::const_iterator &it);
+        friend class MessageSigTlvs;
+      public:
+        iterator &operator++(); /* prefix increment */
+        const MessageSigTlv &operator*();
+        bool operator!=(iterator &o);
+    };
+    #endif /* SWIG */
+    /**< @endcond */
+    /**
+     * Traverse all last signalling message TLVs
+     * @param[in] callback function to call with each TLV
+     * @return true if any of the calling to call-back return true
+     * @note stop if any of the calling to call-back return true
+     */
+    bool traverse(const std::function<bool (const Message &msg,
+            tlvType_e tlvType, const BaseSigTlv *tlv)> &callback) const;
+    /**
+     * Traverse all last signalling message TLVs
+     * @param[in] callback object with callback to be called with each TLV
+     * @return true if any of the calling to call-back return true
+     * @note stop if any of the calling to call-back return true
+     * @note Available for PHP, Perl, Python and Ruby use
+     */
+    bool traverse(MessageSigTlvCallback &callback) const;
+    /**
+     * Get number of the last signalling message TLVs
+     * @return number of TLVs or zero
+     */
+    size_t size() const;
+    /**
+     * Get a TLV from the last signalling message TLVs by position
+     * @param[in] position of TLV
+     * @return TLV or null
+     */
+    const BaseSigTlv *get(size_t position) const;
+    /**
+     * Get a type of TLV from the last signalling message TLVs by position
+     * @param[in] position of TLV
+     * @return type of TLV or unknown
+     */
+    tlvType_e getType(size_t position) const;
+    /**
+     * Get the management TLV ID of a management TLV
+     * from the last signalling message TLVs by position
+     * @param[in] position of TLV
+     * @return management TLV ID or NULL_PTP_MANAGEMENT
+     * @note return NULL_PTP_MANAGEMENT if TLV is not management
+     */
+    mng_vals_e getTlvId(size_t position) const;
+    /**
+     * Get a management TLV from the last signalling message TLVs by position
+     * @param[in] position of TLV
+     * @return management TLV or null
+     * @note return null if TLV is not management
+     * @note You @b should not try to free this TLV object
+     */
+    const BaseMngTlv *getMngTlv(size_t position) const;
+    /**
+     * Get a TLV from the last signalling message TLVs by position
+     * @param[in] position of TLV
+     * @return TLV or null
+     */
+    const MessageSigTlv &getTlv(size_t position) const;
+    #ifndef SWIG
+    /**
+     * Fetch iterator to the first tlv
+     * @return iterator
+     * @note iterators are supported using C++ only
+     */
+    iterator begin() const;
+    /**
+     * Fetch iterator that mark the end of the TLVs list
+     * @return iterator
+     * @note iterators are supported using C++ only
+     */
+    iterator end() const;
+    #endif /* SWIG */
+};
 
 /**
  * @brief Handle PTP management message
@@ -56,13 +189,7 @@ class MessageSigTlvCallback
  */
 class Message
 {
-    /** @cond internal
-     * Doxygen does not know how to process.
-     * This is a private section any way.
-     */
   private:
-
-    /**< @endcond */
 
     /* build parameters */
     actionField_e     m_sendAction = GET;
@@ -83,9 +210,7 @@ class Message
     uint8_t           m_versionPTP = 2; /* parsed message ptp version */
     uint8_t           m_minorVersionPTP = 1; /* parsed message ptp version */
     /* hold signalling TLVs */
-    std::vector<std::unique_ptr<BaseSigTlv>> m_sigTlvs;
-    /* hold signalling TLVs type */
-    std::vector<tlvType_e> m_sigTlvsType;
+    MessageSigTlvs m_sigTlvs;
     /* parsed management TLV */
     std::unique_ptr<BaseMngTlv> m_dataGet;
 
@@ -97,7 +222,7 @@ class Message
     uint8_t           m_sppID = -1; /**< authentication security parameters ID */
     SaFile            m_sa; /**< authentication security association pool */
     bool              m_haveAuth = false;  /**< Have Authentication */
-    HMAC_Key         *m_hmac = nullptr; /**< sending key HMAC library instance */
+    std::unique_ptr<HMAC_Key> m_hmac; /**< sending key HMAC library instance */
 
     /* parsing parameters */
     PortIdentity_t    m_peer; /* parsed message peer port id */
@@ -106,9 +231,6 @@ class Message
     /* For error messages */
     managementErrorId_e m_errorId = (managementErrorId_e)0;
     PTPText_t m_errorDisplay;
-
-    /* Map to all management IDs */
-    static const ManagementId_t mng_all_vals[];
 
     bool allowedAction(mng_vals_e id, actionField_e action);
     /* val in network order */
@@ -123,14 +245,15 @@ class Message
      * dataFieldSize() for sending SET/COMMAND
      * Get dataField of current build management ID
      * For id with non fixed size
+     * @param[in] tlv to size
      * The size is determined by the m_dataSend content
      */
-    ssize_t dataFieldSize(const BaseMngTlv *data) const;
+    ssize_t dataFieldSize(const BaseMngTlv *tlv) const;
     /**
      * Verift TLV is of the proper type, match to the TLV ID
      * Set and use a user MsgParams parameters
      * @param[in] tlv_id TLV ID
-     * @param[in] tlv TLV to verify
+     * @param[in] tlv to verify
      * @return true if TLV is not null and is of TLV ID type
      */
     static bool verifyTlv(mng_vals_e tlv_id, const BaseMngTlv *tlv);
@@ -539,7 +662,7 @@ class Message
     /**
      * Get last parsed message sdoId
      * @return parsed message sdoId
-     * @note upper byte is was transportSpecific
+     * @note upper byte is transportSpecific
      */
     uint32_t getSdoId() const { return m_sdoId; }
     /**
@@ -662,6 +785,11 @@ class Message
      * @note You @b should not try to free this TLV object
      */
     const BaseMngTlv *getSigMngTlv(size_t position) const;
+    /**
+     * Get reference to the last signalling message TLVs
+     * @return signalling message TLVs
+     */
+    const MessageSigTlvs &getSigTlvs() const;
 };
 
 __PTPMGMT_NAMESPACE_END

@@ -13,7 +13,7 @@
 # - compare ABI
 ###############################################################################
 
-name: continuous integration
+name: CI
 
 # On evry push and Pull Request (PR)
 on: [push, pull_request, workflow_dispatch]

@@ -4,16 +4,14 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# Docker file for Gentoo container base for building and installing
-# Search packages at: https://portagefilelist.de/
-# https://dev.gentoo.org/~zmedico/portage/doc/man/emerge.1.html
-# --tree, -t Shows the dependency tree
-# --verbose, -v
+# Docker file for stage 1 of Gentoo container for building and installing
+# Search packages at: https://packages.gentoo.org/categories
 ###############################################################################
 FROM gentoo/stage3
 MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
 LABEL org.opencontainers.image.description "Gentoo build for libptpmgmt"
 COPY gentoo/pkgs_use /etc/portage/package.use/pkgs
+ARG USER
 RUN emerge-webrsync && emerge -tvuD @world &&\
     emerge -tv dev-lang/go app-portage/portage-utils app-shells/bash\
     app-admin/sudo app-admin/chrpath app-editors/vim app-misc/jq\
@@ -24,13 +22,15 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     dev-lang/swig dev-lang/perl dev-lang/ruby dev-lang/python\
     dev-lang/lua dev-lua/luaposix dev-lang/php dev-lang/tcl sys-devel/gcc\
     dev-util/cppcheck media-gfx/graphviz perl-core/Test-Simple\
-    app-text/texlive-core dev-texlive/texlive-fontutils &&\
+    app-text/texlive-core dev-texlive/texlive-fontutils net-misc/chrony\
+    dev-util/quilt app-text/cmark dev-tcltk/tcllib dev-tcltk/tclx &&\
+    echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\
     cd librtpi && autoreconf -i &&\
     ./configure --prefix=/usr --includedir=/usr/include --libdir=/usr/lib64 &&\
     make install &&\
-    cd /t0 && git clone https://gitlab.com/chrony/libchrony &&\
+    cd /t0 && git clone https://github.com/mlichvar/libchrony &&\
     cd libchrony && make install includedir=/usr/include libdir=/usr/lib64 &&\
     cd && rm -Rf /t0
-ARG UID USER COOKIE SRC DST
+ARG UID COOKIE SRC DST

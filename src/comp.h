@@ -292,12 +292,12 @@ struct MsgProc {
     MNG_PARSE_ERROR_e call_tlv_data(mng_vals_e id, BaseMngTlv *&tlv);
     MNG_PARSE_ERROR_e parseSig();
 
-#define _ptpmCaseUF(n) bool n##_f(n##_t &data);
+#define _ptpmCaseUF(n) bool n##_f(n##_t &tlv);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
     /* Per tlv ID call-back for parse or build or both */
 #include "ids.h"
     /* Parse functions for signalling messages */
-#define _ptpmParseFunc(n) bool n##_f(n##_t &data)
+#define _ptpmParseFunc(n) bool n##_f(n##_t &tlv)
     _ptpmParseFunc(MANAGEMENT_ERROR_STATUS);
     _ptpmParseFunc(ORGANIZATION_EXTENSION);
     _ptpmParseFunc(PATH_TRACE);
@@ -376,9 +376,9 @@ struct MsgProc {
     template <typename T> bool vector_o(std::vector<T> &vec);
 };
 
-void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *data, void *&x);
-BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *data);
-void *cpp2cSigTlv(tlvType_e tlv_id, const BaseSigTlv *data, void *&x,
+void *cpp2cMngTlv(mng_vals_e tlv_id, const BaseMngTlv *tlv, void *&x);
+BaseMngTlv *c2cppMngTlv(mng_vals_e tlv_id, const void *tlv);
+void *cpp2cSigTlv(tlvType_e tlv_id, const BaseSigTlv *tlv, void *&x,
     void *&x2);
 void *cpp2cSmpte(const BaseMngTlv *tlv);
 
@@ -387,7 +387,7 @@ void *cpp2cSmpte(const BaseMngTlv *tlv);
 
 struct JsonProc {
     /* This structure implement single method for use by both from and to */
-    bool procData(mng_vals_e managementId, const BaseMngTlv *&data);
+    bool procData(mng_vals_e managementId, const BaseMngTlv *&tlv);
 #define _ptpmProcType(type) \
     virtual bool procValue(const char *name, type &val) = 0;
     _ptpmProcType(uint8_t)
@@ -445,9 +445,9 @@ struct HMAC_Key {
     HMAC_t m_type;
     Binary m_key;
     virtual ~HMAC_Key();
-    virtual bool init(HMAC_t _type) = 0;
-    virtual bool digest(const void *data, size_t len, Binary &mac) = 0;
-    virtual bool verify(const void *data, size_t len, Binary &mac) = 0;
+    virtual bool init() = 0;
+    virtual bool digest(const void *hData, size_t len, Binary &mac) = 0;
+    virtual bool verify(const void *hData, size_t len, Binary &mac) = 0;
 };
 
 /* structure for linking */
@@ -471,6 +471,7 @@ const char *hmac_loadLibrary();
 bool hmac_selectLib(const std::string &libMatch);
 bool hmac_isLibShared();
 void hmac_freeLib();
+size_t hmac_count();
 HMAC_Key *hmac_allocHMAC(HMAC_t type, const Binary &key);
 
 __PTPMGMT_NAMESPACE_END
