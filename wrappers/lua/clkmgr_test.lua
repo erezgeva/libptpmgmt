@@ -194,17 +194,22 @@ Options:
         ptp4lSub:getCompositeEventMask()))
     print('GM Offset threshold: ptp4lClockOffsetThreshold ns')
     print('Chrony Offset threshold: chronyClockOffsetThreshold ns')
-    if userInput then
+    if userInput and not subscribeAll then
         io.write('Enter the time base indices to subscribe ' ..
             '(comma-separated, default is 1): ')
         local line = io.read()
         if string.len(line) > 0 then
-            local idx = tonumber(line)
-            if idx == nil or idx <= 0 then
-                io.stderr:write('Invalid time base index: ' .. line .. '!\n')
-                os.exit(2)
+            local s
+            for s in string.gmatch(line, "([^, ]*)") do
+                if string.len(s) > 0 then
+                    local idx = tonumber(s)
+                    if idx == nil or idx <= 0 then
+                        io.stderr:write('Invalid time base index: ' .. line .. '!\n')
+                        os.exit(2)
+                    end
+                    table.insert(index, idx)
+                end
             end
-            table.insert(index, idx)
         else
             print('Invalid input. Using default time base index 1.')
         end
@@ -254,7 +259,11 @@ Options:
         table.insert(index, 1)
     end
     for _, idx in pairs(index) do
-        print('Subscribe to time base index:', idx)
+        if not clkmgr.TimeBaseConfigurations.isTimeBaseIndexPresent(idx) then
+            dieMsg = string.format('[clkmgr] Index %d does not exist', idx)
+            goto do_exit
+        end
+        print('[clkmgr] Subscribe to time base index:', idx)
         if not clkmgr.ClockManager.subscribe(overallSub[idx],
             idx, clockSyncData) then
             dieMsg = '[clkmgr] Failure in subscribing to clkmgr Proxy !!!'
@@ -342,8 +351,8 @@ Options:
                     'lost connection to clkmgr Proxy', getMonotonicTime()))
                 goto do_exit
             elseif retval == clkmgr.SWRInvalidArgument then
-                print(string.format('[clkmgr][%.3f] Terminating: ' ..
-                    'Invalid argument', getMonotonicTime()))
+                dieMsg = string.format('[clkmgr][%.3f] Terminating: ' ..
+                    'Invalid argument', getMonotonicTime())
                 goto do_exit
             elseif retval == clkmgr.SWRNoEventDetected then
                 print(string.format('[clkmgr][%.3f] No event status changes ' ..

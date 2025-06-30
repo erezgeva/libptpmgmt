@@ -20,6 +20,7 @@ import (
   "clkmgr"
   "strconv"
   "strings"
+  "bufio"
   "fmt"
   "path"
   "time"
@@ -57,7 +58,7 @@ func main() {
     chronyClockOffsetThreshold := uint(100000)
     idleTime := uint(1)
     timeout := uint(10)
-    var index []int64 //  Array of indexes to subscribe
+    var index []int64 // Array of indexes to subscribe
     event2Sub := uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
             clkmgr.EventASCapable | clkmgr.EventGMChanged)
     composite_event := uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
@@ -92,7 +93,7 @@ func main() {
         if doExit > 0 {
             out = os.Stderr
         }
-        fmt.Fprintln(out,  `
+        fmt.Fprintln(out, `
 Usage of ` + path.Base(os.Args[0]) + ` :
 Options:
   -a subscribe to all time base indices
@@ -142,15 +143,20 @@ Options:
     if userInput {
         fmt.Print("Enter the time base indices to subscribe " +
                 "(comma-separated, default is 1): ")
-        var line string
-        fmt.Scanln(&line)
-        if len(line) > 0  {
-            idx, err := strconv.Atoi(line)
-            if err != nil || idx <= 0 {
-                fmt.Fprintln(os.Stderr, "Invalid time base index:", line)
-                os.Exit(2)
-            } else {
-                index = append(index, int64(idx))
+        reader := bufio.NewReader(os.Stdin)
+        line0, _ := reader.ReadString('\n')
+        line := strings.ReplaceAll(strings.TrimSpace(line0), " ", "")
+        if len(line) > 0 {
+            for _, str := range strings.Split(line, ",") {
+                if len(str) > 0 {
+                    idx, err := strconv.Atoi(str)
+                    if err != nil || idx <= 0 {
+                        fmt.Fprintln(os.Stderr, "Invalid time base index:", str)
+                        os.Exit(2)
+                    } else {
+                        index = append(index, int64(idx))
+                    }
+                }
             }
         } else {
             fmt.Println("Invalid input. Using default time base index 1.")
@@ -213,7 +219,11 @@ Options:
         index = append(index, 1)
     }
     for _, idx := range index {
-        fmt.Println("Subscribe to time base index:", idx)
+        if !clkmgr.TimeBaseConfigurationsIsTimeBaseIndexPresent(idx) {
+            dieMsg = fmt.Sprintf("[clkmgr] Index %d does not exist", idx)
+            goto do_exit
+        }
+        fmt.Println("[clkmgr] Subscribe to time base index:", idx)
         if !clkmgr.ClockManagerSubscribe(overallSub[idx], idx, clockSyncData) {
             dieMsg = "[clkmgr] Failure in subscribing to clkmgr Proxy !!!"
             goto do_exit
@@ -311,8 +321,8 @@ Options:
                         "lost connection to clkmgr Proxy\n", getMonotonicTime())
                     goto do_exit
                 case clkmgr.SWRInvalidArgument:
-                    fmt.Printf("[clkmgr][%.3f] Terminating: " +
-                        "Invalid argument\n", getMonotonicTime())
+                    dieMsg = fmt.Sprintf("[clkmgr][%.3f] Terminating: " +
+                        "Invalid argument", getMonotonicTime())
                     goto do_exit
                 case clkmgr.SWRNoEventDetected:
                     fmt.Printf("[clkmgr][%.3f] No event status changes " +

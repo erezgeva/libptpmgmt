@@ -40,6 +40,9 @@ chronySub = clkmgr.SysClockSubscription()
 # Array of indexes to subscribe
 index = list()
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def signal_handler(signum, frame):
     global signal_flag
     print(' Exit ...')
@@ -48,7 +51,7 @@ def signal_handler(signum, frame):
 def isPositiveValue(optarg, errorMessage):
     ret = int(optarg)
     if ret <= 0:
-        print(errorMessage)
+        eprint(errorMessage)
         sys.exit(2)
     return ret
 
@@ -100,7 +103,7 @@ def main():
     try:
         opts, args = getopt.gnu_getopt(sys.argv[1:], 'aps:c:l:i:t:m:h')
     except getopt.GetoptError as err:
-        print(err)
+        eprint(err)
         usage()
         sys.exit(2)
     for o, a in opts:
@@ -141,14 +144,17 @@ def main():
         line = input('Enter the time base indices to subscribe ' +
             '(comma-separated, default is 1): ')
         if len(line) > 0:
-            try:
-                idx = int(line)
-            except:
-                idx = 0
-            if idx <= 0:
-                print('Invalid time base index: line!')
-                sys.exit(2)
-            index.append(idx)
+            for s in line.split(','):
+                str = s.strip()
+                if len(str) > 0:
+                    try:
+                        idx = int(str)
+                    except:
+                        idx = 0
+                    if idx <= 0:
+                        eprint('Invalid time base index: line!')
+                        sys.exit(2)
+                    index.append(idx)
         else:
             print('Invalid input. Using default time base index 1.')
     signal.signal(signal.SIGINT, signal_handler)
@@ -162,7 +168,7 @@ def main():
 def main_body():
     clockSyncData = clkmgr.ClockSyncData()
     if not clkmgr.ClockManager.connect():
-        print('[clkmgr] failure in connecting !!!')
+        eprint('[clkmgr] failure in connecting !!!')
         return 2
     time.sleep(1)
     print('[clkmgr] List of available clock:')
@@ -193,12 +199,12 @@ def main_body():
     gm_identity = [None] * 8
     hd2 = '|'+('-'*27)+'|'+('-'*24)+'|'
     for idx in index:
-        if idx > size:
-            print("Index {} does not exist".format(idx))
+        if not clkmgr.TimeBaseConfigurations.isTimeBaseIndexPresent(idx):
+            eprint("[clkmgr] Index {} does not exist".format(idx))
             return 2
-        print('Subscribe to time base index: {}'.format(idx))
+        print('[clkmgr] Subscribe to time base index: {}'.format(idx))
         if not clkmgr.ClockManager.subscribe(overallSub[idx], idx, clockSyncData):
-            print('[clkmgr] Failure in subscribing to clkmgr Proxy !!!')
+            eprint('[clkmgr] Failure in subscribing to clkmgr Proxy !!!')
             return 2
         print('[clkmgr][%.3f] Obtained data from Subscription Event:' %
             getMonotonicTime())
@@ -279,9 +285,9 @@ def main_body():
                             getMonotonicTime())
                     return
                 case clkmgr.SWRInvalidArgument:
-                    print('[clkmgr][%.3f] Terminating: Invalid argument' %
+                    eprint('[clkmgr][%.3f] Terminating: Invalid argument' %
                          getMonotonicTime())
-                    return
+                    return 2
                 case clkmgr.SWRNoEventDetected:
                     print('[clkmgr][%.3f] No event status changes identified in %d seconds.' %
                             (getMonotonicTime(), timeout))

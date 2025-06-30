@@ -38,7 +38,7 @@ $index = Array.new
 def isPositiveValue(optarg, errorMessage)
     ret = optarg.to_i
     if ret <= 0 then
-        puts errorMessage
+        STDERR.puts errorMessage
         exit 2
     end
     return ret
@@ -145,12 +145,15 @@ def main
             '(comma-separated, default is 1): '
         line = gets.chomp
         if line.length > 0 then
-            idx = line.to_i
-            if idx <= 0 then
-                puts 'Invalid time base index: ' + line
-                exit 2
+            line.split(",").each do |s|
+                str=s.chomp
+                idx = str.to_i
+                if idx <= 0 then
+                    STDERR.puts 'Invalid time base index: ' + str
+                    exit 2
+                end
+                $index.push(idx)
             end
-            $index.push(idx)
         else
             puts 'Invalid input. Using default time base index 1.'
         end
@@ -175,7 +178,7 @@ end
 def main_body
     clockSyncData = Clkmgr::ClockSyncData.new
     if !Clkmgr::ClockManager.connect() then
-        puts '[Clkmgr] failure in connecting !!!'
+        STDERR.puts '[Clkmgr] failure in connecting !!!'
         return 2
     end
     sleep 1
@@ -206,9 +209,13 @@ def main_body
     hd2 = '|'+('-'*27)+'|'+('-'*24)+'|'
     hd2b = '| %-25s | %-22s |'
     $index.each do |idx|
+        if !Clkmgr::TimeBaseConfigurations.isTimeBaseIndexPresent(idx) then
+            STDERR.puts "[Clkmgr] Index #{idx} does not exist"
+            return 2
+        end
         puts "Subscribe to time base index: #{idx}"
         if !Clkmgr::ClockManager.subscribe(overallSub[idx], idx, clockSyncData) then
-            puts '[Clkmgr] Failure in subscribing to Clkmgr Proxy !!!'
+            STDERR.puts '[Clkmgr] Failure in subscribing to Clkmgr Proxy !!!'
             return 2
         end
         puts '[Clkmgr][%.3f] Obtained data from Subscription Event:' %
@@ -292,9 +299,9 @@ def main_body
                         'lost connection to Clkmgr Proxy' % getMonotonicTime
                     return 0
                 when Clkmgr::SWRInvalidArgument
-                    puts '[clkmgr][%.3f] Terminating: Invalid argument' %
+                    STDERR.puts '[clkmgr][%.3f] Terminating: Invalid argument' %
                         getMonotonicTime
-                    return 0
+                    return 2
                 when Clkmgr::SWRNoEventDetected
                     puts '[Clkmgr][%.3f] No event status changes ' +
                         "identified in #{$timeout} seconds." % getMonotonicTime

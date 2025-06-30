@@ -15,12 +15,21 @@
 
 #include <ctype.h>
 #include <string.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 
 #include <clockmanager.h>
+
+volatile sig_atomic_t signal_flag = 0;
+
+void signal_handler(int sig)
+{
+    printf(" Exit ...\n");
+    signal_flag = 1;
+}
 
 #define MAX_CLOCKS 8
 
@@ -67,11 +76,10 @@ int main(int argc, char *argv[])
     uint32_t  chronyClockOffsetThreshold = 100000;
     bool subscribeAll = false;
     bool userInput = false;
-    int ret = EXIT_SUCCESS;
+    int ret = EXIT_FAILURE;
     uint32_t idleTime = 1;
     uint32_t timeout = 10;
-    char input[8];
-    int index[8];
+    int index[MAX_CLOCKS];
     int indexCount = 0;
     struct timespec ts;
     enum Clkmgr_StatusWaitResult retval;
@@ -181,8 +189,31 @@ int main(int argc, char *argv[])
         }
     }
 
+    if (userInput && !subscribeAll) {
+        char input[100];
+        printf("Enter the time base indices to subscribe (comma-separated, default is 1): ");
+        fgets(input, sizeof(input), stdin);
+        if (strlen(input) > 0) {
+            char *token = strtok(input, ", ");
+            while (indexCount < MAX_CLOCKS && token != NULL) {
+                if (isdigit(*token)) {
+                    index[indexCount++] = atoi(token);
+                } else {
+                    printf("Invalid time base index!\n");
+                    return EXIT_FAILURE;
+                }
+                token = strtok(NULL, ", ");
+            }
+        } else {
+            printf("Invalid input. Using default time base index 1.\n");
+        }
+    }
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+    signal(SIGHUP, signal_handler);
+
     if (clkmgr_connect() == false) {
-        printf("[clkmgr] Failure in connecting !!!\n");
+        fprintf(stderr, "[clkmgr] Failure in connecting !!!\n");
         ret = EXIT_FAILURE;
         goto do_exit;
     }
@@ -191,7 +222,12 @@ int main(int argc, char *argv[])
 
     size_t indexSize = clkmgr_getTimebaseCfgsSize();
     if(indexSize == 0) {
-        printf("[clkmgr] No available clock found !!!\n");
+        fprintf(stderr, "[clkmgr] No available clock found !!!\n");
+        ret = EXIT_FAILURE;
+        goto do_exit;
+    }
+    if(indexSize >= MAX_CLOCKS) {
+        fprintf(stderr, "[clkmgr] %zu clocks are above support!!!\n", indexSize);
         ret = EXIT_FAILURE;
         goto do_exit;
     }
@@ -215,45 +251,25 @@ int main(int argc, char *argv[])
                 clkmgr_setClockOffsetThreshold(clockSub[i], Clkmgr_SysClock,
                     chronyClockOffsetThreshold);
             }
+            if (subscribeAll)
+                index[indexCount++] = i;
         } else {
             printf("Failed to get time base configuration for index %ld\n", i);
         }
     }
 
-    if (subscribeAll) {
-        for (size_t i = 1; i <= indexSize; i++) {
-            if (clkmgr_isTimeBaseIndexPresent(i)) {
-                index[indexCount++] = i;
-            }
-        }
-    } else if (userInput) {
-        printf("Enter the time base indices to subscribe (comma-separated, default is 1): ");
-        fgets(input, sizeof(input), stdin);
-        if (strlen(input) > 1) {
-            char *token = strtok(input, ", ");
-            while (token != NULL) {
-                if (isdigit(*token)) {
-                    index[indexCount++] = atoi(token);
-                } else {
-                    printf("Invalid time base index!\n");
-                    return EXIT_FAILURE;
-                }
-                token = strtok(NULL, ", ");
-            }
-        } else {
-            printf("Invalid input. Using default time base index 1.\n");
-            index[indexCount++] = 1;
-        }
-    } else {
+    if (indexCount == 0)
         index[indexCount++] = 1;
-    }
 
     for (size_t i = 0; i < indexCount; i++) {
-        /* Subscribe to default time base index 1 */
+        if (!clkmgr_isTimeBaseIndexPresent(index[i])) {
+            fprintf(stderr, "[clkmgr] Index %d does not exist\n", index[i]);
+            ret = EXIT_FAILURE;
+            goto do_exit;
+        }
         printf("[clkmgr] Subscribe to time base index: %d\n", index[i]);
         if (clkmgr_subscribe(clockSub[i+1], index[i], syncData) == false) {
-            printf("[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n");
-            clkmgr_disconnect();
+            fprintf(stderr, "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n");
             ret = EXIT_FAILURE;
             goto do_exit;
         }
@@ -343,8 +359,10 @@ int main(int argc, char *argv[])
     }
     sleep(1);
 
-    while (1) {
+    while (!signal_flag) {
         for (size_t i = 0; i < indexCount; i++) {
+            if (signal_flag)
+                goto do_exit;
             printf("[clkmgr][%.3f] Waiting Notification from time base index %d ...\n",
                 getMonotonicTime(), index[i]);
             retval = clkmgr_statusWait(timeout, index[i], syncData);
@@ -352,16 +370,19 @@ int main(int argc, char *argv[])
                 case Clkmgr_SWRLostConnection:
                     printf("[clkmgr][%.3f] Terminating: lost connection to clkmgr Proxy\n",
                         getMonotonicTime());
-                    return EXIT_SUCCESS;
+                    goto do_exit;
                 case Clkmgr_SWRInvalidArgument:
-                    printf("[clkmgr][%.3f] Terminating: Invalid argument\n",
+                    fprintf(stderr, "[clkmgr][%.3f] Terminating: Invalid argument\n",
                         getMonotonicTime());
-                    return EXIT_SUCCESS;
+                    ret = EXIT_FAILURE;
+                    goto do_exit;
                 case Clkmgr_SWRNoEventDetected:
                     printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                         getMonotonicTime(), timeout);
                     printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
                         getMonotonicTime(), idleTime);
+                    if (signal_flag)
+                        goto do_exit;
                     sleep(idleTime);
                     continue;
                 case Clkmgr_SWREventDetected:
@@ -371,7 +392,7 @@ int main(int argc, char *argv[])
                 default:
                     printf("[clkmgr][%.3f] Warning: Should not enter this switch case, unexpected status code %d\n",
                         getMonotonicTime(), retval);
-                    return EXIT_SUCCESS;
+                    goto do_exit;
             }
 
             if (!clkmgr_getTime(&ts)) {
@@ -463,10 +484,13 @@ int main(int argc, char *argv[])
 
             printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
                 getMonotonicTime(), idleTime);
+            if (signal_flag)
+                goto do_exit;
             sleep(idleTime);
         }
     }
 
+    ret = EXIT_SUCCESS;
 do_exit:
     for (size_t i = 1; i <= indexSize; i++) {
         if (clkmgr_isTimeBaseIndexPresent(i)) {

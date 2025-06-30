@@ -39,7 +39,7 @@ proc isPositiveValue { optarg errorMessage } {
     if { $ret > 0 } {
         return $ret
     }
-    puts $errorMessage
+    puts stderr $errorMessage
     exit 2
 }
 
@@ -127,7 +127,7 @@ Options:
         try {
             set event2Sub [expr $params(s) ]
         } trap {} {} {
-            puts "use "-s" with a number"
+            puts stderr "use "-s" with a number"
             exit 2
         }
     }
@@ -135,7 +135,7 @@ Options:
         try {
             set composite_event [expr $params(c) ]
         } trap {} {} {
-            puts "use "-c" with a number"
+            puts stderr "use "-c" with a number"
             exit 2
         }
     }
@@ -163,13 +163,17 @@ Options:
         if { [string length $line] == 0} {
             puts "Invalid input. Using default time base index 1."
         } else {
-            try {
-                set idx [expr $line ]
-            } trap {} {} {
-                puts "$line is not a number"
-                exit 2
+            foreach str [ split $line ", " ] {
+                if { [string length $str] > 0} {
+                    try {
+                        set idx [expr $str ]
+                    } trap {} {} {
+                        puts stderr "$str is not a number"
+                        exit 2
+                    }
+                    lappend index $idx
+                }
             }
-            lappend index $idx
         }
     }
     signal trap SIGINT signal_handler
@@ -224,10 +228,14 @@ proc main_body {} {
 
     set hd2 "|[string repeat - 27]|[string repeat - 24]|"
     foreach idx $index {
-        puts "subscribe to time base index: $idx"
+        if { ! [ clkmgr::TimeBaseConfigurations_isTimeBaseIndexPresent $idx ] }  {
+            puts stderr "\[clkmgr] Index $idx does not exist"
+            return 2
+        }
+        puts "\[clkmgr] Subscribe to time base index: $idx"
         if { ! [ clkmgr::ClockManager_subscribe $overallSub($idx)\
             $idx clockSyncData ] } {
-            puts "\[clkmgr] Failure in subscribing to clkmgr Proxy !!!"
+            puts stderr "\[clkmgr] Failure in subscribing to clkmgr Proxy !!!"
             return 2
         }
         puts [format "\[clkmgr]\[%.3f] Obtained data from %s"\
@@ -319,9 +327,9 @@ proc main_body {} {
                     [getMonotonicTime] "lost connection to clkmgr Proxy"]
                 return 0
             } elseif { $retval == $clkmgr::SWRInvalidArgument } {
-                puts [format "\[clkmgr]\[%.3f] Terminating: %s"\
+                puts stderr [format "\[clkmgr]\[%.3f] Terminating: %s"\
                     [getMonotonicTime] "Invalid argument"]
-                return 0
+                return 2
             } elseif { $retval == $clkmgr::SWRNoEventDetected } {
                 puts [format "\[clkmgr]\[%.3f] No event status changes %s"\
                     [getMonotonicTime] "identified in $timeout seconds."]

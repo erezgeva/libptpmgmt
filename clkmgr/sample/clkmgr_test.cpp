@@ -30,6 +30,7 @@ volatile sig_atomic_t signal_flag = 0;
 
 void signal_handler(int sig)
 {
+    std::cout << " Exit ..." << std::endl;
     signal_flag = 1;
 }
 
@@ -67,14 +68,14 @@ bool isPositiveValue(const std::string& optarg, uint32_t& target, const std::str
 
 int main(int argc, char *argv[])
 {
-    uint32_t  ptp4lClockOffsetThreshold = 100000;
-    uint32_t  chronyClockOffsetThreshold = 100000;
+    uint32_t ptp4lClockOffsetThreshold = 100000;
+    uint32_t chronyClockOffsetThreshold = 100000;
     bool subscribeAll = false;
     bool userInput = false;
     int ret = EXIT_SUCCESS;
     uint32_t idleTime = 1;
     uint32_t timeout = 10;
-    std::vector<int> index;
+    std::vector<size_t> index;
     std::string input;
     timespec ts;
     enum StatusWaitResult retval;
@@ -138,60 +139,77 @@ int main(int argc, char *argv[])
             }
             break;
         case 'h':
-            std::cout << "Usage of " << me << " :\n"
-                "Options:\n"
-                "  -a subscribe to all time base indices\n"
-                "     Default: timeBaseIndex: 1\n"
-                "  -p enable user to subscribe to specific time base indices\n"
-                "  -s subscribe_event_mask\n"
-                "     Default: 0x" << std::hex << event2Sub << "\n"
-                "     Bit 0: EventGMOffset\n"
-                "     Bit 1: EventSyncedToGM\n"
-                "     Bit 2: EventASCapable\n"
-                "     Bit 3: EventGMChanged\n"
-                "  -c composite_event_mask\n"
-                "     Default: 0x" << composite_event << "\n"
-                "     Bit 0: EventGMOffset\n"
-                "     Bit 1: EventSyncedToGM\n"
-                "     Bit 2: EventASCapable\n"
-                "  -l gm offset threshold (ns)\n"
-                "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns\n"
-                "  -i idle time (s)\n"
-                "     Default: " << idleTime << " s\n"
-                "  -m chrony offset threshold (ns)\n"
-                "     Default: " << chronyClockOffsetThreshold << " ns\n"
-                "  -t timeout in waiting notification event (s)\n"
-                "     Default: " << timeout << " s\n";
+            std::cout << "Usage of " << me << " :" << std::endl <<
+                "Options:" << std::endl <<
+                "  -a subscribe to all time base indices" << std::endl <<
+                "     Default: timeBaseIndex: 1" << std::endl <<
+                "  -p enable user to subscribe to specific time base indices" << std::endl <<
+                "  -s subscribe_event_mask" << std::endl <<
+                "     Default: 0x" << std::hex << event2Sub << std::endl <<
+                "     Bit 0: EventGMOffset" << std::endl <<
+                "     Bit 1: EventSyncedToGM" << std::endl <<
+                "     Bit 2: EventASCapable" << std::endl <<
+                "     Bit 3: EventGMChanged" << std::endl <<
+                "  -c composite_event_mask" << std::endl <<
+                "     Default: 0x" << composite_event << std::endl <<
+                "     Bit 0: EventGMOffset" << std::endl <<
+                "     Bit 1: EventSyncedToGM" << std::endl <<
+                "     Bit 2: EventASCapable" << std::endl <<
+                "  -l gm offset threshold (ns)" << std::endl <<
+                "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns" << std::endl <<
+                "  -i idle time (s)" << std::endl <<
+                "     Default: " << idleTime << " s" << std::endl <<
+                "  -m chrony offset threshold (ns)" << std::endl <<
+                "     Default: " << chronyClockOffsetThreshold << " ns" << std::endl <<
+                "  -t timeout in waiting notification event (s)" << std::endl <<
+                "     Default: " << timeout << " s" << std::endl;
             return EXIT_SUCCESS;
         default:
-            std::cerr << "Usage of " << me << " :\n"
-                "Options:\n"
-                "  -a subscribe to all time base indices\n"
-                "     Default: timeBaseIndex: 1\n"
-                "  -p enable user to subscribe to specific time base indices\n"
-                "  -s subscribe_event_mask\n"
-                "     Default: 0x" << std::hex << event2Sub << "\n"
-                "     Bit 0: EventGMOffset\n"
-                "     Bit 1: EventSyncedToGM\n"
-                "     Bit 2: EventASCapable\n"
-                "     Bit 3: EventGMChanged\n"
-                "  -c composite_event_mask\n"
-                "     Default: 0x" << composite_event << "\n"
-                "     Bit 0: EventGMOffset\n"
-                "     Bit 1: EventSyncedToGM\n"
-                "     Bit 2: EventASCapable\n"
-                "  -l gm offset threshold (ns)\n"
-                "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns\n"
-                "  -i idle time (s)\n"
-                "     Default: " << idleTime << " s\n"
-                "  -m chrony offset threshold (ns)\n"
-                "     Default: " << chronyClockOffsetThreshold << " ns\n"
-                "  -t timeout in waiting notification event (s)\n"
-                "     Default: " << timeout << " s\n";
+            std::cerr << "Usage of " << me << " :" << std::endl <<
+                "Options:" << std::endl <<
+                "  -a subscribe to all time base indices" << std::endl <<
+                "     Default: timeBaseIndex: 1" << std::endl <<
+                "  -p enable user to subscribe to specific time base indices" << std::endl <<
+                "  -s subscribe_event_mask" << std::endl <<
+                "     Default: 0x" << std::hex << event2Sub << std::endl <<
+                "     Bit 0: EventGMOffset" << std::endl <<
+                "     Bit 1: EventSyncedToGM" << std::endl <<
+                "     Bit 2: EventASCapable" << std::endl <<
+                "     Bit 3: EventGMChanged" << std::endl <<
+                "  -c composite_event_mask" << std::endl <<
+                "     Default: 0x" << composite_event << std::endl <<
+                "     Bit 0: EventGMOffset" << std::endl <<
+                "     Bit 1: EventSyncedToGM" << std::endl <<
+                "     Bit 2: EventASCapable" << std::endl <<
+                "  -l gm offset threshold (ns)" << std::endl <<
+                "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns" << std::endl <<
+                "  -i idle time (s)" << std::endl <<
+                "     Default: " << idleTime << " s" << std::endl <<
+                "  -m chrony offset threshold (ns)" << std::endl <<
+                "     Default: " << chronyClockOffsetThreshold << " ns" << std::endl <<
+                "  -t timeout in waiting notification event (s)" << std::endl <<
+                "     Default: " << timeout << " s" << std::endl;
             return EXIT_FAILURE;
         }
     }
-
+    if (userInput && !subscribeAll) {
+        std::cout << "Enter the time base indices to subscribe (comma-separated, default is 1): ";
+        std::getline(std::cin, input);
+        if (!input.empty()) {
+            try {
+                std::stringstream ss(input);
+                std::string item;
+                while (std::getline(ss, item, ',')) {
+                    index.push_back(std::stoi(item));
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Invalid time base index!" << std::endl;
+                return EXIT_FAILURE;
+            }
+        } else {
+            std::cerr << "Invalid input. Using default time base index 1." << std::endl;
+        }
+    }
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
     signal(SIGHUP, signal_handler);
@@ -199,7 +217,7 @@ int main(int argc, char *argv[])
     ClockManager &cm = ClockManager::fetchSingleInstance();
 
     if (!cm.connect()) {
-        std::cout << "[clkmgr] failure in connecting !!!\n";
+        std::cerr << "[clkmgr] failure in connecting !!!" << std::endl;
         ret = EXIT_FAILURE;
         goto do_exit;
     }
@@ -211,58 +229,43 @@ int main(int argc, char *argv[])
     ptp4lSub.setCompositeEventMask(composite_event);
     chronySub.setClockOffsetThreshold(chronyClockOffsetThreshold);
     std::cout << "[clkmgr] set subscribe event : 0x"
-        << std::hex << ptp4lSub.getEventMask() <<  "\n";
+        << std::hex << ptp4lSub.getEventMask() << std::endl;
     std::cout << "[clkmgr] set composite event : 0x"
-        << std::hex << ptp4lSub.getCompositeEventMask() <<  "\n";
-    std::cout << "GM Offset threshold: \u00B1" << std::dec << ptp4lClockOffsetThreshold << " ns\n";
-    std::cout << "Chrony Offset threshold: \u00B1" << std::dec << chronyClockOffsetThreshold << " ns\n";
-    std::cout << "[clkmgr] List of available clock: \n";
+        << std::hex << ptp4lSub.getCompositeEventMask() << std::endl;
+    std::cout << "GM Offset threshold: \u00B1" << std::dec << ptp4lClockOffsetThreshold << " ns" << std::endl;
+    std::cout << "Chrony Offset threshold: \u00B1" << std::dec << chronyClockOffsetThreshold << " ns" << std::endl;
+    std::cout << "[clkmgr] List of available clock: " << std::endl;
     /* Print out each member of the Time Base configuration */
     for (const auto &cfg : cm.getTimebaseCfgs()) {
-        std::cout << "TimeBaseIndex: " << cfg.index() << "\n";
-        std::cout << "timeBaseName: " << cfg.name() << "\n";
+        size_t idx = cfg.index();
+        std::cout << "TimeBaseIndex: " << idx << std::endl;
+        std::cout << "timeBaseName: " << cfg.name() << std::endl;
         if(cfg.havePtp()) {
-            std::cout << "interfaceName: " << cfg.ptp().ifName() << "\n";
-            std::cout << "transportSpecific: " << static_cast<int>(cfg.ptp().transportSpecific()) << "\n";
-            std::cout << "domainNumber: " << static_cast<int>(cfg.ptp().domainNumber()) << "\n\n";
-            overallSub[cfg.index()].setPtpSubscription(ptp4lSub);
+            std::cout << "interfaceName: " << cfg.ptp().ifName() << std::endl;
+            std::cout << "transportSpecific: " << static_cast<int>(cfg.ptp().transportSpecific()) << std::endl;
+            std::cout << "domainNumber: " << static_cast<int>(cfg.ptp().domainNumber()) << "" << std::endl << std::endl;
+            overallSub[idx].setPtpSubscription(ptp4lSub);
         }
         if(cfg.haveSysClock())
-            overallSub[cfg.index()].setSysSubscription(chronySub);
+            overallSub[idx].setSysSubscription(chronySub);
+        if (subscribeAll)
+            index.push_back(idx);
     }
 
-    if (subscribeAll) {
-        for (const auto &cfg : cm.getTimebaseCfgs()) {
-            index.push_back(cfg.index());
-        }
-    } else if (userInput) {
-        std::cout << "Enter the time base indices to subscribe (comma-separated, default is 1): ";
-        std::getline(std::cin, input);
-        if (!input.empty()) {
-            try {
-                std::stringstream ss(input);
-                std::string item;
-                while (std::getline(ss, item, ',')) {
-                    index.push_back(std::stoi(item));
-                }
-            } catch (const std::exception& e) {
-                std::cerr << "Invalid time base index!\n";
-                return EXIT_FAILURE;
-            }
-        } else {
-            std::cerr << "Invalid input. Using default time base index 1.\n";
-            index.push_back(1);
-        }
-    } else {
+    if (index.size() == 0)
         index.push_back(1);
-    }
 
-    for (const auto &idx : index) {
-        std::cout << "Subscribe to time base index: " << idx << "\n";
+    for (size_t idx : index) {
+        if (!clkmgr::TimeBaseConfigurations::isTimeBaseIndexPresent(idx)) {
+            std::cerr << "[clkmgr] Index " << idx << " does not exist" << std::endl;
+            ret = EXIT_FAILURE;
+            goto do_exit;
+        }
+        std::cout << "[clkmgr] Subscribe to time base index: " << idx << std::endl;
         if (!cm.subscribe(overallSub[idx], idx, clockSyncData)) {
-            std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!\n";
-            cm.disconnect();
-            return EXIT_FAILURE;
+            std::cerr << "[clkmgr] Failure in subscribing to clkmgr Proxy !!!" << std::endl;
+            ret = EXIT_FAILURE;
+            goto do_exit;
         }
         printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
             getMonotonicTime());
@@ -342,8 +345,10 @@ int main(int argc, char *argv[])
     sleep(1);
 
     while (!signal_flag) {
-        for (const auto &idx : index) {
-            printf("[clkmgr][%.3f] Waiting Notification from time base index %d ...\n",
+        for (size_t idx : index) {
+            if (signal_flag)
+                goto do_exit;
+            printf("[clkmgr][%.3f] Waiting Notification from time base index %zu ...\n",
                 getMonotonicTime(), idx);
 
             retval = cm.statusWait(timeout, idx, clockSyncData);
@@ -351,16 +356,19 @@ int main(int argc, char *argv[])
                 case SWRLostConnection:
                     printf("[clkmgr][%.3f] Terminating: lost connection to clkmgr Proxy\n",
                         getMonotonicTime());
-                    return EXIT_SUCCESS;
+                    goto do_exit;
                 case SWRInvalidArgument:
-                    printf("[clkmgr][%.3f] Terminating: Invalid argument\n",
+                    fprintf(stderr, "[clkmgr][%.3f] Terminating: Invalid argument\n",
                         getMonotonicTime());
-                    return EXIT_SUCCESS;
+                    ret = EXIT_FAILURE;
+                    goto do_exit;
                 case SWRNoEventDetected:
                     printf("[clkmgr][%.3f] No event status changes identified in %d seconds.\n\n",
                         getMonotonicTime(), timeout);
                     printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
                         getMonotonicTime(), idleTime);
+                    if (signal_flag)
+                        goto do_exit;
                     sleep(idleTime);
                     continue;
                 case SWREventDetected:
@@ -370,7 +378,7 @@ int main(int argc, char *argv[])
                 default:
                     printf("[clkmgr][%.3f] Warning: Should not enter this switch case, unexpected status code %d\n",
                         getMonotonicTime(), retval);
-                    return EXIT_SUCCESS;
+                    goto do_exit;
             }
 
             if (!cm.getTime(ts)) {
@@ -453,6 +461,8 @@ int main(int argc, char *argv[])
 
             printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
                 getMonotonicTime(), idleTime);
+            if (signal_flag)
+                goto do_exit;
             sleep(idleTime);
         }
     }

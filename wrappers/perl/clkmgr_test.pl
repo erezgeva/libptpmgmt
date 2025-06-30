@@ -137,9 +137,11 @@ END_MESSAGE
         my $line = <STDIN>;
         chomp $line;
         unless($line =~ /^$/) {
-            my $idx = int($line);
-            die 'Invalid time base index: $line!' unless $idx > 0;
-            push(@index, $idx);
+            for(split /, /,$line) {
+                my $idx = int($_);
+                die "Invalid time base index: $_!" unless $idx > 0;
+                push(@index, $idx);
+            }
         } else {
             warn "Invalid input. Using default time base index 1.\n";
         }
@@ -182,7 +184,11 @@ END_MESSAGE
     my $hd2 = '|'.('-'x 27).'|'.('-'x 24).'|';
     for(@index) {
         my $idx = $_;
-        print "Subscribe to time base index: $idx\n";
+        if(!ClkMgrLib::TimeBaseConfigurations::isTimeBaseIndexPresent($idx)) {
+            $dieMsg = "[clkmgr] Index $idx does not exist";
+            goto do_exit;
+        }
+        print "[clkmgr] Subscribe to time base index: $idx\n";
         unless(ClkMgrLib::ClockManager::subscribe($overallSub[$idx],
             $idx, $clockSyncData)) {
             $dieMsg = '[clkmgr] Failure in subscribing to clkmgr Proxy !!!';
@@ -273,7 +279,7 @@ END_MESSAGE
                     "clkmgr Proxy\n", getMonotonicTime;
                 goto do_exit;
             } elsif($retval == $ClkMgrLib::SWRInvalidArgument) {
-                printf "[clkmgr][%.3f] Terminating: Invalid argument\n",
+                $dieMsg = sprintf "[clkmgr][%.3f] Terminating: Invalid argument\n",
                     getMonotonicTime;
                 goto do_exit;
             } elsif($retval == $ClkMgrLib::SWRNoEventDetected) {
