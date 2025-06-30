@@ -146,10 +146,10 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
     PTPClockSubscription ptpSub = state.get_ptpEventSub();
     SysClockSubscription sysSub = state.get_sysEventSub();
     uint32_t ptpEventSub = ptpSub.getEventMask();
+    uint32_t sysEventSub = sysSub.getEventMask();
     uint32_t ptpCompositeEventSub = ptpSub.getCompositeEventMask();
     int32_t ptpThreshold = static_cast<uint32_t>(ptpSub.getClockOffsetThreshold());
     int32_t sysThreshold = static_cast<uint32_t>(sysSub.getClockOffsetThreshold());
-    //uint32_t sysEventSub = sysSub.getEventMask();
     // Get the current state of the timebase
     PTPClockEvent ptp4lEventState = state.get_ptp4lEventState();
     SysClockEvent chronyEventState = state.get_chronyEventState();
@@ -241,7 +241,8 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
     ptpClockEventHandler.setSyncInterval(ptp4lEventState,
         newEvent.ptp4l_sync_interval);
     // Update Chrony clock offset
-    if(newEvent.chrony_offset != chronyEventState.getClockOffset()) {
+    if((sysEventSub & EventGMOffset) &&
+        (newEvent.chrony_offset != chronyEventState.getClockOffset())) {
         sysClockEventHandler.setClockOffset(chronyEventState,
             newEvent.chrony_offset);
         bool sysInRange = (chronyEventState.getClockOffset() >= -sysThreshold) &&
@@ -266,6 +267,8 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
         newEvent.chrony_reference_id);
     sysClockEventHandler.setSyncInterval(chronyEventState,
         newEvent.polling_interval);
+    sysClockEventHandler.setNotificationTimestamp(chronyEventState,
+        notification_timestamp);
     state.set_chronyEventState(chronyEventState);
     state.set_ptpEventState(ptp4lEventState);
 }

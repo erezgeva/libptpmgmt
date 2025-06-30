@@ -58,14 +58,111 @@ proc getMonotonicTime {} {
     return [expr [clock milliseconds ] / 1000.0 ]
 }
 
+proc printOut {} {
+    global signal_flag index subscribeAll event2Sub composite_event chrony_event\
+           clockSyncData ptp4lSub chronySub idleTime timeout
+    ClockManagerGetTime
+    set hd2l "|[string repeat - 30]|[string repeat - 28]|"
+    set hd3b "| %-28s | %-12d | %-11d |"
+    set hd3 "|[string repeat - 30]|[string repeat - 14]|[string repeat - 13]|"
+    puts $hd3
+    puts [format "| %-28s | %-12s | %-11s |" "Events"\
+        "Event Status" "Event Count" ]
+    set ptpClock [ clockSyncData getPtp ]
+    set sysClock [ clockSyncData getSysClock ]
+    puts $hd3
+    if { $composite_event != 0 } {
+        puts [format $hd3b "ptp_isCompositeEventMet"\
+            [ $ptpClock isCompositeEventMet ]\
+            [ $ptpClock getCompositeEventCount ]]
+        if { $composite_event & $clkmgr::EventGMOffset } {
+            puts [format "| - %-26s | %-12s | %-11s |"\
+                "isOffsetInRange" "" ""]
+        }
+        if { $composite_event & $clkmgr::EventSyncedToGM } {
+            puts [format "| - %-26s | %-12s | %-11s |"\
+                "isSyncedWithGm" "" ""]
+        }
+        if { $composite_event & $clkmgr::EventASCapable } {
+            puts [format "| - %-26s | %-12s | %-11s |"\
+                "isAsCapable" "" ""]
+        }
+    }
+    if { $event2Sub != 0 } {
+        puts $hd3
+        if { $event2Sub & $clkmgr::EventGMOffset } {
+            puts [format $hd3b "ptp_isOffsetInRange"\
+                [ $ptpClock isOffsetInRange ]\
+                [ $ptpClock getOffsetInRangeEventCount ]]
+        }
+        if { $event2Sub & $clkmgr::EventSyncedToGM } {
+            puts [format $hd3b "ptp_isSyncedWithGm"\
+                [ $ptpClock isSyncedWithGm ]\
+                [ $ptpClock getSyncedWithGmEventCount ]]
+        }
+        if { $event2Sub & $clkmgr::EventASCapable } {
+            puts [format $hd3b "ptp_isAsCapable"\
+                [ $ptpClock isAsCapable ]\
+                [ $ptpClock getAsCapableEventCount ]]
+        }
+        if { $event2Sub & $clkmgr::EventGMChanged } {
+            puts [format $hd3b "ptp_isGmChanged"\
+                [ $ptpClock isGmChanged ]\
+                [ $ptpClock getGmChangedEventCount ]]
+        }
+    }
+    puts $hd3
+    puts [format "| %-28s |     %-19ld ns |" "ptp_clockOffset"\
+        [ $ptpClock getClockOffset ]]
+    set gmClockUUID [ $ptpClock getGmIdentity ]
+    # Copy the uint64_t into the array
+    for {set i 0} {$i < 8} {incr i} {
+        set id($i) [expr ($gmClockUUID >> (8 * (7 - $i))) & 0xff ]
+    }
+    puts [format "| %-29s|%s %02x%02x%02x.%02x%02x.%02x%02x%02x %s|"\
+        "ptp_gmIdentity" "    "\
+        $id(0) $id(1) $id(2) $id(3)\
+        $id(4) $id(5) $id(6) $id(7) "    "]
+    puts [format "| %-28s |     %-19ld us |" "ptp_syncInterval"\
+        [ $ptpClock getSyncInterval ]]
+    puts [format "| %-28s |     %-19ld ns |" "ptp_notificationTimestamp"\
+        [ $ptpClock getNotificationTimestamp ]]
+    puts $hd2l
+    if {[clockSyncData haveSys]} {
+        if { $chrony_event != 0 } {
+            if { $chrony_event & $clkmgr::EventGMOffset } {
+                puts [format $hd3b "chrony_isOffsetInRange"\
+                    [ $sysClock isOffsetInRange ]\
+                    [ $sysClock getOffsetInRangeEventCount ]]
+            }
+        }
+        puts $hd2l
+        puts [format "| %-28s |     %-19ld ns |"\
+            "chrony_clockOffset" [ $sysClock getClockOffset ]]
+        for {set i 0} {$i < 4} {incr i} {
+            set byte [expr {([$sysClock getGmIdentity] >> (8 * (3 - $i))) & 0xFF}]
+            append identity_string [format "%c" $byte]
+        }
+        puts [format "| %-28s |     %-19s    |"\
+            "chrony_gmIdentity" $identity_string ]
+        puts [format "| %-28s |     %-19ld us |"\
+            "chrony_syncInterval" [ $sysClock getSyncInterval ]]
+        puts [format "| %-28s |     %-19ld ns |" "chrony_notificationTimestamp"\
+        [ $sysClock getNotificationTimestamp ]]
+    }
+    puts $hd2l
+    puts ""
+}
+
 proc main {} {
-    global argv argv0 index subscribeAll event2Sub composite_event\
+    global argv argv0 index subscribeAll event2Sub composite_event chrony_event\
         clockSyncData ptp4lSub chronySub idleTime timeout
     # index list of indexes to subscribe
     set event2Sub [expr $clkmgr::EventGMOffset | $clkmgr::EventSyncedToGM |\
         $clkmgr::EventASCapable | $clkmgr::EventGMChanged ]
     set composite_event [expr $clkmgr::EventGMOffset |\
         $clkmgr::EventSyncedToGM | $clkmgr::EventASCapable ]
+    set chrony_event $clkmgr::EventGMOffset
     set options {
         {h}
         {a}
@@ -74,6 +171,8 @@ proc main {} {
         {s.arg "" }
         # composite_event
         {c.arg "" }
+        # chrony_event
+        {n.arg "" }
         # ptp4lClockOffsetThreshold
         {l.arg 100000}
         # idleTime
@@ -108,6 +207,9 @@ Options:
      Bit 0: EventGMOffset
      Bit 1: EventSyncedToGM
      Bit 2: EventASCapable
+  -n chrony_event_mask
+     Default: 0x[format %x $chrony_event ]
+     Bit 0: EventGMOffset
   -l gm offset threshold (ns)
      Default: 100000 ns
   -i idle time (s)
@@ -139,6 +241,14 @@ Options:
             exit 2
         }
     }
+    if { [string length $params(n)] > 0} {
+        try {
+            set chrony_event [expr $params(n) ]
+        } trap {} {} {
+            puts "use "-n" with a number"
+            exit 2
+        }
+    }
     set ptp4lClockOffsetThreshold [ isPositiveValue $params(l)\
         "Invalid ptp4l GM Offset threshold!" ]
     set idleTime [ isPositiveValue $params(i) "Invalid idle time!" ]
@@ -148,11 +258,13 @@ Options:
     ptp4lSub setEventMask $event2Sub
     ptp4lSub setClockOffsetThreshold $ptp4lClockOffsetThreshold
     ptp4lSub setCompositeEventMask $composite_event
+    chronySub setEventMask $chrony_event
     chronySub setClockOffsetThreshold $chronyClockOffsetThreshold
     puts [format "\[clkmgr] set subscribe event : 0x%x"\
         [ ptp4lSub getEventMask ]]
     puts [format "\[clkmgr] set composite event : 0x%x"\
         [ ptp4lSub getCompositeEventMask ]]
+    puts [format "\[clkmgr] set chrony event : 0x%x" $chrony_event]
     puts "GM Offset threshold: $ptp4lClockOffsetThreshold ns"
     puts "Chrony Offset threshold: $chronyClockOffsetThreshold ns"
     if { $userInput } {
@@ -187,7 +299,7 @@ Options:
 }
 
 proc main_body {} {
-    global signal_flag index subscribeAll event2Sub composite_event\
+    global signal_flag index subscribeAll event2Sub composite_event chrony_event\
            clockSyncData ptp4lSub chronySub idleTime timeout
     # overallSub # Array of clkmgr::ClockSyncSubscription
     if { ! [ clkmgr::ClockManager_connect ] } {
@@ -226,7 +338,6 @@ proc main_body {} {
         lappend index 1
     }
 
-    set hd2 "|[string repeat - 27]|[string repeat - 24]|"
     foreach idx $index {
         if { ! [ clkmgr::TimeBaseConfigurations_isTimeBaseIndexPresent $idx ] }  {
             puts stderr "\[clkmgr] Index $idx does not exist"
@@ -240,79 +351,9 @@ proc main_body {} {
         }
         puts [format "\[clkmgr]\[%.3f] Obtained data from %s"\
             [getMonotonicTime] "Subscription Event:"]
-        ClockManagerGetTime
-        puts $hd2
-        puts [format "| %-25s | %-22s |" "Event" "Event Status" ]
-        set ptpClock [ clockSyncData getPtp ]
-        set sysClock [ clockSyncData getSysClock ]
-        if { $event2Sub != 0 } {
-            puts $hd2
-            if { $event2Sub & $clkmgr::EventGMOffset } {
-                puts [format "| %-25s | %-22d |" "offset_in_range"\
-                    [ $ptpClock isOffsetInRange ]]
-            }
-            if { $event2Sub & $clkmgr::EventSyncedToGM } {
-                puts [format "| %-25s | %-22d |" "synced_to_primary_clock"\
-                    [ $ptpClock isSyncedWithGm ]]
-            }
-            if { $event2Sub & $clkmgr::EventASCapable } {
-                puts [format "| %-25s | %-22d |" "as_capable"\
-                    [ $ptpClock isAsCapable ]]
-            }
-            if { $event2Sub & $clkmgr::EventGMChanged } {
-                puts [format "| %-25s | %-22d |" "gm_Changed"\
-                    [ $ptpClock isGmChanged ]]
-            }
-        }
-        puts $hd2
-        set gmClockUUID [ $ptpClock getGmIdentity ]
-        # Copy the uint64_t into the array
-        for {set i 0} {$i < 8} {incr i} {
-            set id($i) [expr ($gmClockUUID >> (8 * (7 - $i))) & 0xff ]
-        }
-        puts [format "| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x     |"\
-            "GM UUID" $id(0) $id(1) $id(2) $id(3) $id(4) $id(5) $id(6) $id(7) ]
-        puts [format "| %-25s | %-19ld ns |" "clock_offset"\
-            [ $ptpClock getClockOffset ]]
-        puts [format "| %-25s | %-19ld ns |" "notification_timestamp"\
-            [ $ptpClock getNotificationTimestamp ]]
-        puts [format "| %-25s | %-19ld us |" "gm_sync_interval"\
-            [ $ptpClock getSyncInterval ]]
-        puts $hd2
-        if { $composite_event != 0 } {
-            puts [format "| %-25s | %-22d |" "composite_event"\
-                [ $ptpClock isCompositeEventMet ]]
-            if { $composite_event & $clkmgr::EventGMOffset } {
-                puts [format "| - %-23s | %-22s |" "offset_in_range" "" ]
-            }
-            if { $composite_event & $clkmgr::EventSyncedToGM } {
-                puts [format "| - %-19s | %-22s |"\
-                    "synced_to_primary_clock" "" ]
-            }
-            if { $composite_event & $clkmgr::EventASCapable } {
-                puts [format "| - %-23s | %-22s |" "as_capable" "" ]
-            }
-            puts $hd2
-        }
-        puts ""
-        puts $hd2
-        puts [format "| %-25s | %-22d |" "chrony_offset_in_range"\
-            [ $sysClock isOffsetInRange ]]
-        puts $hd2
-        puts [format "| %-25s | %-19ld ns |" "chrony_clock_offset"\
-            [ $sysClock getClockOffset ]]
-        puts [format "| %-25s | %-19lx    |" "chrony_clock_reference_id"\
-            [ $sysClock getGmIdentity ]]
-        puts [format "| %-25s | %-19ld us |" "chrony_polling_interval"\
-            [ $sysClock getSyncInterval ]]
-        puts $hd2
-        puts ""
+        printOut
     }
     sleep 1
-
-    set hd2l "|[string repeat - 27]|[string repeat - 28]|"
-    set hd3b "| %-25s | %-12d | %-11d |"
-    set hd3 "|[string repeat - 27]|[string repeat - 14]|[string repeat - 13]|"
 
     while { !$signal_flag } {
         foreach idx $index {
@@ -339,84 +380,7 @@ proc main_body {} {
             } elseif { $retval == $clkmgr::SWREventDetected } {
                 puts [format "\[clkmgr]\[%.3f] Obtained data from %s"\
                     [getMonotonicTime] "Notification Event:"]
-                ClockManagerGetTime
-                puts $hd3
-                puts [format "| %-25s | %-12s | %-11s |" "Event"\
-                    "Event Status" "Event Count" ]
-                set ptpClock [ clockSyncData getPtp ]
-                set sysClock [ clockSyncData getSysClock ]
-                if { $event2Sub != 0 } {
-                    puts $hd3
-                    if { $event2Sub & $clkmgr::EventGMOffset } {
-                        puts [format $hd3b "offset_in_range"\
-                            [ $ptpClock isOffsetInRange ]\
-                            [ $ptpClock getOffsetInRangeEventCount ]]
-                    }
-                    if { $event2Sub & $clkmgr::EventSyncedToGM } {
-                        puts [format $hd3b "synced_to_primary_clock"\
-                            [ $ptpClock isSyncedWithGm ]\
-                            [ $ptpClock getSyncedWithGmEventCount ]]
-                    }
-                    if { $event2Sub & $clkmgr::EventASCapable } {
-                        puts [format $hd3b "as_capable"\
-                            [ $ptpClock isAsCapable ]\
-                            [ $ptpClock getAsCapableEventCount ]]
-                    }
-                    if { $event2Sub & $clkmgr::EventGMChanged } {
-                        puts [format $hd3b "gm_Changed"\
-                            [ $ptpClock isGmChanged ]\
-                            [ $ptpClock getGmChangedEventCount ]]
-                    }
-                }
-                puts $hd3
-                set gmClockUUID [ $ptpClock getGmIdentity ]
-                # Copy the uint64_t into the array
-                for {set i 0} {$i < 8} {incr i} {
-                    set id($i) [expr ($gmClockUUID >> (8 * (7 - $i))) & 0xff ]
-                }
-                puts [format "| %-26s|%s %02x%02x%02x.%02x%02x.%02x%02x%02x %s|"\
-                    "GM UUID" "    "\
-                    $id(0) $id(1) $id(2) $id(3)\
-                    $id(4) $id(5) $id(6) $id(7) "    "]
-                puts [format "| %-25s |     %-19ld ns |" "clock_offset"\
-                    [ $ptpClock getClockOffset ]]
-                puts [format "| %-25s |     %-19ld ns |" "notification_timestamp"\
-                    [ $ptpClock getNotificationTimestamp ]]
-                puts [format "| %-25s |     %-19ld us |" "gm_sync_interval"\
-                    [ $ptpClock getSyncInterval ]]
-                puts $hd3
-                if { $composite_event != 0 } {
-                    puts [format $hd3b "composite_event"\
-                        [ $ptpClock isCompositeEventMet ]\
-                        [ $ptpClock getCompositeEventCount ]]
-                    if { $composite_event & $clkmgr::EventGMOffset } {
-                        puts [format "| - %-23s | %-12s | %-11s |"\
-                            "offset_in_range" "" ""]
-                    }
-                    if { $composite_event & $clkmgr::EventSyncedToGM } {
-                        puts [format "| - %-19s | %-12s | %-11s |"\
-                            "synced_to_primary_clock" "" ""]
-                    }
-                    if { $composite_event & $clkmgr::EventASCapable } {
-                        puts [format "| - %-23s | %-12s | %-11s |"\
-                            "as_capable" "" ""]
-                    }
-                    puts $hd3
-                }
-                puts ""
-                puts $hd2l
-                puts [format $hd3b "chrony_offset_in_range"\
-                    [ $sysClock isOffsetInRange ]\
-                    [ $sysClock getOffsetInRangeEventCount ]]
-                puts $hd2l
-                puts [format "| %-25s |     %-19ld ns |"\
-                    "chrony_clock_offset" [ $sysClock getClockOffset ]]
-                puts [format "| %-25s |     %-19lx    |"\
-                    "chrony_clock_reference_id" [ $sysClock getGmIdentity ]]
-                puts [format "| %-25s |     %-19ld us |"\
-                    "chrony_polling_interval" [ $sysClock getSyncInterval ]]
-                puts $hd2l
-                puts ""
+                printOut
                 puts [format "\[clkmgr]\[%.3f] sleep for %d seconds..."\
                     [getMonotonicTime] $idleTime ]
             } else {

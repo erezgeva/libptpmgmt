@@ -29,11 +29,13 @@ $event2Sub = (Clkmgr::EventGMOffset | Clkmgr::EventSyncedToGM |
     Clkmgr::EventASCapable | Clkmgr::EventGMChanged)
 $composite_event = (Clkmgr::EventGMOffset | Clkmgr::EventSyncedToGM |
     Clkmgr::EventASCapable)
+$chrony_event = Clkmgr::EventGMOffset
 # Subscribe data
 $ptp4lSub = Clkmgr::PTPClockSubscription.new
 $chronySub = Clkmgr::SysClockSubscription.new
 # Array of indexes to subscribe
 $index = Array.new
+$clockSyncData = Clkmgr::ClockSyncData.new
 
 def isPositiveValue(optarg, errorMessage)
     ret = optarg.to_i
@@ -56,6 +58,60 @@ end
 
 def getMonotonicTime
     return Process.clock_gettime(Process::CLOCK_MONOTONIC)
+end
+
+def printOut
+    clockManagerGetTime
+    gm_identity = Array.new(8)
+    hd2l = '|'+('-'* 30)+'|'+('-'* 28)+'|'
+    hd3b = '| %-28s | %-12s | %-11d |'
+    hd3 = '|'+('-'* 30)+'|'+('-'* 14)+'|'+('-'* 13)+'|'
+    puts hd3
+    puts '| %-28s | %-12s | %-11s |' % ['Events', 'Event Status', 'Event Count']
+    ptpClock = $clockSyncData.getPtp()
+    sysClock = $clockSyncData.getSysClock()
+    puts hd3
+    if $composite_event != 0 then
+        puts hd3b % ['ptp_isCompositeEventMet', ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount()]
+        puts '| - %-26s | %-12s | %-11s |' % ['isOffsetInRange', '', ''] if $composite_event & Clkmgr::EventGMOffset
+        puts '| - %-26s | %-12s | %-11s |' % ['isSyncedWithGm', '', ''] if $composite_event & Clkmgr::EventSyncedToGM
+        puts '| - %-26s | %-12s | %-11s |' % ['isAsCapable', '', ''] if $composite_event & Clkmgr::EventASCapable
+    end
+    if $event2Sub != 0 then
+        puts hd3
+        puts hd3b % ['ptp_isOffsetInRange', ptpClock.isOffsetInRange().to_s, ptpClock.getOffsetInRangeEventCount()] if $event2Sub & Clkmgr::EventGMOffset
+        puts hd3b % ['ptp_isSyncedWithGm', ptpClock.isSyncedWithGm().to_s, ptpClock.getSyncedWithGmEventCount()] if $event2Sub & Clkmgr::EventSyncedToGM
+        puts hd3b % ['ptp_isAsCapable', ptpClock.isAsCapable().to_s, ptpClock.getAsCapableEventCount()] if $event2Sub & Clkmgr::EventASCapable
+        puts hd3b % ['ptp_isGmChanged', ptpClock.isGmChanged().to_s, ptpClock.getGmChangedEventCount()] if $event2Sub & Clkmgr::EventGMChanged
+    end
+    puts hd3
+    puts '| %-28s |     %-19d ns |' % ['ptp_clockOffset', ptpClock.getClockOffset()]
+    gmClockUUID = ptpClock.getGmIdentity()
+    # Copy the uint64_t into the array
+    (0..7).each do |i|
+        gm_identity[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff
+    end
+    puts '| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |' % ['ptp_gmIdentity',
+        gm_identity[0], gm_identity[1],
+        gm_identity[2], gm_identity[3],
+        gm_identity[4], gm_identity[5],
+        gm_identity[6], gm_identity[7]]
+    puts '| %-28s |     %-19d us |' % ['ptp_syncInterval', ptpClock.getSyncInterval()]
+    puts '| %-28s |     %-19d ns |' % ['ptp_notificationTimestamp', ptpClock.getNotificationTimestamp()]
+    puts hd2l
+    if $clockSyncData.haveSys() then
+        puts hd3b % ['chrony_isOffsetInRange', sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount()]
+        puts hd2l
+        puts '| %-28s |     %-19d ns |' % ['chrony_clockOffset', sysClock.getClockOffset()]
+        identity_string = (0..3).map do |i|
+            ((sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF).chr
+        end.join
+        puts '| %-28s |     %-19s    |' % ['chrony_gmIdentity', identity_string]
+        puts '| %-28s |     %-19d us |' % ['chrony_syncInterval', sysClock.getSyncInterval()]
+        puts '| %-28s |     %-19d ns |' % ['chrony_notificationTimestamp', sysClock.getNotificationTimestamp()]
+        puts hd2l
+    end
+    puts
 end
 
 def usage
@@ -82,6 +138,9 @@ Options
      Default: #{$idleTime} s
   -m chrony offset threshold (ns)
      Default: #{$chronyClockOffsetThreshold} ns
+  -n chrony_event_mask
+     Default: 0x#{$chrony_event.to_s(16)}
+     Bit 0: EventGMOffset
   -t $timeout in waiting notification event (s)
      Default: #{$timeout} s
 EOF
@@ -94,6 +153,7 @@ def main
       [ '--p', '-p', GetoptLong::NO_ARGUMENT ],
       [ '--s', '-s', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--c', '-c', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '--n', '-n', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--l', '-l', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--i', '-i', GetoptLong::REQUIRED_ARGUMENT ],
       [ '--t', '-t', GetoptLong::REQUIRED_ARGUMENT ],
@@ -124,6 +184,8 @@ def main
             when '--m'
                 $chronyClockOffsetThreshold = isPositiveValue(arg,
                     'Invalid Chrony Offset threshold!')
+            when '--n'
+                $chrony_event = arg.to_i(0)
           end
         end
     rescue
@@ -133,11 +195,13 @@ def main
     $ptp4lSub.setEventMask($event2Sub)
     $ptp4lSub.setClockOffsetThreshold($ptp4lClockOffsetThreshold)
     $ptp4lSub.setCompositeEventMask($composite_event)
+    $chronySub.setEventMask($chrony_event)
     $chronySub.setClockOffsetThreshold($chronyClockOffsetThreshold)
     puts '[Clkmgr] set subscribe event : 0x' + $ptp4lSub.getEventMask().to_s(16)
     puts '[Clkmgr] set composite event : 0x' +
         $ptp4lSub.getCompositeEventMask().to_s(16)
     puts "GM Offset threshold: #{$ptp4lClockOffsetThreshold} ns"
+    puts '[Clkmgr] set chrony event : 0x' + $chronySub.getEventMask().to_s(16)
     puts "Chrony Offset threshold: #{$chronyClockOffsetThreshold} ns"
     if userInput and !$subscribeAll then
         puts 'test input'
@@ -176,7 +240,6 @@ def main
 end
 
 def main_body
-    clockSyncData = Clkmgr::ClockSyncData.new
     if !Clkmgr::ClockManager.connect() then
         STDERR.puts '[Clkmgr] failure in connecting !!!'
         return 2
@@ -205,94 +268,29 @@ def main_body
     end
     # Default
     $index.push(1) if $index.length == 0
-    gm_identity = Array.new(8)
-    hd2 = '|'+('-'*27)+'|'+('-'*24)+'|'
-    hd2b = '| %-25s | %-22s |'
     $index.each do |idx|
         if !Clkmgr::TimeBaseConfigurations.isTimeBaseIndexPresent(idx) then
             STDERR.puts "[Clkmgr] Index #{idx} does not exist"
             return 2
         end
         puts "Subscribe to time base index: #{idx}"
-        if !Clkmgr::ClockManager.subscribe(overallSub[idx], idx, clockSyncData) then
+        if !Clkmgr::ClockManager.subscribe(overallSub[idx], idx, $clockSyncData) then
             STDERR.puts '[Clkmgr] Failure in subscribing to Clkmgr Proxy !!!'
             return 2
         end
         puts '[Clkmgr][%.3f] Obtained data from Subscription Event:' %
             getMonotonicTime
-        clockManagerGetTime
-        puts hd2
-        puts hd2b % ['Event', 'Event Status']
-        ptpClock = clockSyncData.getPtp()
-        sysClock = clockSyncData.getSysClock()
-        if $event2Sub != 0 then
-            puts hd2
-            puts hd2b % ['offset_in_range',
-                ptpClock.isOffsetInRange().to_s] if $event2Sub &
-                Clkmgr::EventGMOffset
-            puts hd2b % ['synced_to_primary_clock',
-                ptpClock.isSyncedWithGm().to_s] if $event2Sub &
-                Clkmgr::EventSyncedToGM
-            puts hd2b % ['as_capable',
-                ptpClock.isAsCapable().to_s] if $event2Sub & Clkmgr::EventASCapable
-            puts hd2b % ['gm_Changed',
-                ptpClock.isGmChanged().to_s] if $event2Sub & Clkmgr::EventGMChanged
-        end
-        puts hd2
-        gmClockUUID = ptpClock.getGmIdentity()
-        # Copy the uint64_t into the array
-        (0..7).each do |i|
-            gm_identity[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff
-        end
-        puts '| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x     |' % ['GM UUID',
-            gm_identity[0], gm_identity[1],
-            gm_identity[2], gm_identity[3],
-            gm_identity[4], gm_identity[5],
-            gm_identity[6], gm_identity[7]]
-        puts '| %-25s | %-19d ns |' % ['clock_offset', ptpClock.getClockOffset()]
-        puts '| %-25s | %-19d ns |' % ['notification_timestamp',
-            ptpClock.getNotificationTimestamp()]
-        puts '| %-25s | %-19d us |' % ['gm_sync_interval',
-            ptpClock.getSyncInterval()]
-        puts hd2
-        if $composite_event != 0 then
-            puts '| %-25s | %-22s |' % ['$composite_event',
-                ptpClock.isCompositeEventMet().to_s]
-            puts '| - %-23s | %-22s |' % ['offset_in_range',
-                ''] if $composite_event & Clkmgr::EventGMOffset
-            puts '| - %-19s | %-22s |' % ['synced_to_primary_clock',
-                ''] if $composite_event & Clkmgr::EventSyncedToGM
-            puts '| - %-23s | %-22s |' % ['as_capable', ''] if $composite_event &
-                Clkmgr::EventASCapable
-            puts hd2
-        end
-        puts
-        puts hd2
-        puts '| %-25s | %-22s |' % ['chrony_offset_in_range',
-            sysClock.isOffsetInRange().to_s]
-        puts hd2
-        puts '| %-25s | %-19d ns |' % ['chrony_clock_offset',
-            sysClock.getClockOffset()]
-        puts '| %-25s | %-19x    |' % ['chrony_clock_reference_id',
-            sysClock.getGmIdentity()]
-        puts '| %-25s | %-19d us |' % ['chrony_polling_interval',
-            sysClock.getSyncInterval()]
-        puts hd2
-        puts
+        printOut
     end
 
     sleep 1
-
-    hd2l = '|'+('-'* 27)+'|'+('-'* 28)+'|'
-    hd3b = '| %-25s | %-12s | %-11d |'
-    hd3 = '|'+('-'* 27)+'|'+('-'* 14)+'|'+('-'* 13)+'|'
 
     while !$signal_flag
         $index.each do |idx|
             return 0 if $signal_flag
             puts '[Clkmgr][%.3f] Waiting Notification from ' +
                 "time base index #{idx} ..." % getMonotonicTime
-            retval = Clkmgr::ClockManager.statusWait($timeout, idx, clockSyncData)
+            retval = Clkmgr::ClockManager.statusWait($timeout, idx, $clockSyncData)
             case retval
                 when Clkmgr::SWRLostConnection
                     puts '[Clkmgr][%.3f] Terminating: ' +
@@ -311,78 +309,7 @@ def main_body
                 when Clkmgr::SWREventDetected
                     puts '[Clkmgr][%.3f] Obtained data from Notification Event:' %
                         getMonotonicTime
-                    clockManagerGetTime
-                    puts hd3
-                    puts '| %-25s | %-12s | %-11s |' % ['Event', 'Event Status',
-                        'Event Count']
-                    ptpClock = clockSyncData.getPtp()
-                    sysClock = clockSyncData.getSysClock()
-                    if $event2Sub != 0 then
-                        puts hd3
-                        puts hd3b % ['offset_in_range',
-                            ptpClock.isOffsetInRange().to_s,
-                            ptpClock.getOffsetInRangeEventCount()] if $event2Sub &
-                            Clkmgr::EventGMOffset
-                        puts hd3b % ['synced_to_primary_clock',
-                            ptpClock.isSyncedWithGm().to_s,
-                            ptpClock.getSyncedWithGmEventCount()] if $event2Sub &
-                            Clkmgr::EventSyncedToGM
-                        puts hd3b % ['as_capable', ptpClock.isAsCapable().to_s,
-                            ptpClock.getAsCapableEventCount()] if $event2Sub &
-                            Clkmgr::EventASCapable
-                        puts hd3b % ['gm_Changed', ptpClock.isGmChanged().to_s,
-                            ptpClock.getGmChangedEventCount()] if $event2Sub &
-                            Clkmgr::EventGMChanged
-                    end
-                    puts hd3
-                    gmClockUUID = ptpClock.getGmIdentity()
-                    # Copy the uint64_t into the array
-                    (0..7).each do |i|
-                        gm_identity[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff
-                    end
-                    puts '| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |' %
-                        ['GM UUID',
-                        gm_identity[0], gm_identity[1],
-                        gm_identity[2], gm_identity[3],
-                        gm_identity[4], gm_identity[5],
-                        gm_identity[6], gm_identity[7]]
-                    puts '| %-25s |     %-19d ns |' %
-                        ['clock_offset', ptpClock.getClockOffset()]
-                    puts '| %-25s |     %-19d ns |' %
-                        ['notification_timestamp',
-                        ptpClock.getNotificationTimestamp()]
-                    puts '| %-25s |     %-19d us |' %
-                        ['gm_sync_interval', ptpClock.getSyncInterval()]
-                    puts hd3
-                    if $composite_event != 0 then
-                        puts hd3b % ['$composite_event',
-                            ptpClock.isCompositeEventMet(),
-                            ptpClock.getCompositeEventCount()]
-                        puts '| - %-23s | %-12s | %-11s |' %
-                            ['offset_in_range', '',
-                            ''] if $composite_event & Clkmgr::EventGMOffset
-                        puts '| - %-19s | %-12s | %-11s |' %
-                            ['synced_to_primary_clock', '',
-                            ''] if $composite_event & Clkmgr::EventSyncedToGM
-                        puts '| - %-23s | %-12s | %-11s |' %
-                            ['as_capable', '', ''] if $composite_event &
-                            Clkmgr::EventASCapable
-                        puts hd3
-                    end
-                    puts
-                    puts hd2l
-                    puts hd3b % ['chrony_offset_in_range',
-                        sysClock.isOffsetInRange(),
-                        sysClock.getOffsetInRangeEventCount()]
-                    puts hd2l
-                    puts '| %-25s |     %-19d ns |' %
-                        ['chrony_clock_offset', sysClock.getClockOffset()]
-                    puts '| %-25s |     %-19x    |' %
-                        ['chrony_clock_reference_id', sysClock.getGmIdentity()]
-                    puts '| %-25s |     %-19d us |' %
-                        ['chrony_polling_interval', sysClock.getSyncInterval()]
-                    puts hd2l
-                    puts
+                    printOut
                     puts "[Clkmgr][%.3f] sleep for #{$idleTime} seconds..." %
                         getMonotonicTime
                 else

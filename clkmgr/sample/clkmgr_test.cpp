@@ -28,6 +28,27 @@ using namespace clkmgr;
 
 volatile sig_atomic_t signal_flag = 0;
 
+ClockManager &cm = ClockManager::fetchSingleInstance();
+
+ClockSyncData clockSyncData;
+PTPClockEvent &ptpClock = clockSyncData.getPtp();
+SysClockEvent &sysClock = clockSyncData.getSysClock();
+
+std::uint32_t event2Sub = {
+    (EventGMOffset | EventSyncedToGM | EventASCapable | EventGMChanged)
+};
+
+std::uint32_t composite_event = {
+    (EventGMOffset | EventSyncedToGM | EventASCapable)
+};
+
+std::uint32_t chronyEvent = {
+    (EventGMOffset)
+};
+
+uint64_t gmClockUUID;
+timespec ts;
+
 void signal_handler(int sig)
 {
     std::cout << " Exit ..." << std::endl;
@@ -66,6 +87,88 @@ bool isPositiveValue(const std::string& optarg, uint32_t& target, const std::str
     }
 }
 
+void printOut()
+{
+    if (!cm.getTime(ts)) {
+        perror("clock_gettime failed");
+    } else {
+        printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
+        (ts.tv_sec * 1000000000) + ts.tv_nsec);
+    }
+    printf("|------------------------------|--------------|-------------|\n");
+    printf("| %-28s | %-12s | %-11s |\n", "Events", "Event Status",
+        "Event Count");
+    printf("|------------------------------|--------------|-------------|\n");
+    if (composite_event) {
+        printf("| %-28s | %-12d | %-11d |\n", "ptp_isCompositeEventMet",
+            ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
+    }
+    if (composite_event & EventGMOffset) {
+        printf("| - %-26s | %-12s | %-11s |\n", "isOffsetInRange", "", "");
+    }
+    if (composite_event & EventSyncedToGM) {
+        printf("| - %-26s | %-12s | %-11s |\n", "isSyncedWithGm", "", "");
+    }
+    if (composite_event & EventASCapable) {
+        printf("| - %-26s | %-12s | %-11s |\n", "isAsCapable", "", "");
+    }
+    if (event2Sub) {
+        printf("|------------------------------|--------------|-------------|\n");
+    }
+    if (event2Sub & EventGMOffset) {
+        printf("| %-28s | %-12d | %-11d |\n", "ptp_isOffsetInRange",
+            ptpClock.isOffsetInRange(),
+            ptpClock.getOffsetInRangeEventCount());
+    }
+    if (event2Sub & EventSyncedToGM) {
+        printf("| %-28s | %-12d | %-11d |\n", "ptp_isSyncedWithGm",
+            ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
+    }
+    if (event2Sub & EventASCapable) {
+        printf("| %-28s | %-12d | %-11d |\n", "ptp_isAsCapable",
+            ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount());
+    }
+    if (event2Sub & EventGMChanged) {
+        printf("| %-28s | %-12d | %-11d |\n", "ptp_isGmChanged",
+            ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount());
+    }
+    printf("|------------------------------|--------------|-------------|\n");
+    printf("| %-28s |     %-19ld ns |\n", "ptp_clockOffset", ptpClock.getClockOffset());
+    gmClockUUID = ptpClock.getGmIdentity();
+    uint8_t gm_identity[8];
+    // Copy the uint64_t into the array
+    for (int i = 0; i < 8; ++i) {
+        gm_identity[i] = static_cast<uint8_t>(gmClockUUID >> (8 * (7 - i)));
+    }
+    printf("| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
+        "ptp_gmIdentity", gm_identity[0], gm_identity[1], gm_identity[2],
+            gm_identity[3],gm_identity[4], gm_identity[5], gm_identity[6],
+            gm_identity[7]);
+    printf("| %-28s |     %-19ld us |\n", "ptp_syncInterval",
+        ptpClock.getSyncInterval());
+    printf("| %-28s |     %-19ld ns |\n", "ptp_notificationTimestamp",
+        ptpClock.getNotificationTimestamp());
+    printf("|------------------------------|----------------------------|\n");
+    if (clockSyncData.haveSys()) {
+        printf("| %-28s | %-12d | %-11d |\n", "chrony_isOffsetInRange",
+            sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount());
+        printf("|------------------------------|----------------------------|\n");
+        printf("| %-28s |     %-19ld ns |\n",
+            "chrony_clockOffset", sysClock.getClockOffset());
+        char id[5] = {0}; // 4 characters + null terminator
+        for (int i = 0; i < 4; ++i) {
+            id[i] = (sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF; // Extract each byte
+        }
+        printf("| %-28s |     %-22s |\n", "chrony_gmIdentity", std::string(id).c_str());
+        printf("| %-28s |     %-19ld us |\n",
+            "chrony_syncInterval", sysClock.getSyncInterval());
+        printf("| %-28s |     %-19ld ns |\n",
+            "chrony_notificationTimestamp", sysClock.getNotificationTimestamp());
+        printf("|------------------------------|----------------------------|\n");
+    }
+    printf("\n");
+}
+
 int main(int argc, char *argv[])
 {
     uint32_t ptp4lClockOffsetThreshold = 100000;
@@ -77,7 +180,6 @@ int main(int argc, char *argv[])
     uint32_t timeout = 10;
     std::vector<size_t> index;
     std::string input;
-    timespec ts;
     enum StatusWaitResult retval;
     int option;
 
@@ -85,26 +187,12 @@ int main(int argc, char *argv[])
     // Remove leading path
     me = me == nullptr ? argv[0] : me + 1;
 
-    std::uint32_t event2Sub = {
-        (EventGMOffset | EventSyncedToGM | EventASCapable |
-        EventGMChanged)
-    };
-
-    std::uint32_t composite_event = {
-        (EventGMOffset | EventSyncedToGM | EventASCapable)
-    };
-
-    ClockSyncData clockSyncData;
-    PTPClockEvent &ptpClock = clockSyncData.getPtp();
-    SysClockEvent &sysClock = clockSyncData.getSysClock();
-
     PTPClockSubscription ptp4lSub;
     SysClockSubscription chronySub;
 
-    uint64_t gmClockUUID;
     std::map<size_t, ClockSyncSubscription> overallSub;
 
-    while ((option = getopt(argc, argv, "aps:c:l:i:t:m:h")) != -1) {
+    while ((option = getopt(argc, argv, "aps:c:n:l:i:t:m:h")) != -1) {
         switch (option) {
         case 'a':
             subscribeAll = true;
@@ -117,6 +205,9 @@ int main(int argc, char *argv[])
             break;
         case 'c':
             composite_event = std::stoul(optarg, nullptr, 0);
+            break;
+        case 'n':
+            chronyEvent = std::stoul(optarg, nullptr, 0);
             break;
         case 'l':
             if (!isPositiveValue(optarg, ptp4lClockOffsetThreshold, "Invalid ptp4l GM Offset threshold!")) {
@@ -161,6 +252,9 @@ int main(int argc, char *argv[])
                 "     Default: " << idleTime << " s" << std::endl <<
                 "  -m chrony offset threshold (ns)" << std::endl <<
                 "     Default: " << chronyClockOffsetThreshold << " ns" << std::endl <<
+                "  -n chrony_event_mask" << std::endl <<
+                "     Default: 0x" << std::hex << chronyEvent << std::endl <<
+                "     Bit 0: EventGMOffset" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
                 "     Default: " << timeout << " s" << std::endl;
             return EXIT_SUCCESS;
@@ -187,6 +281,9 @@ int main(int argc, char *argv[])
                 "     Default: " << idleTime << " s" << std::endl <<
                 "  -m chrony offset threshold (ns)" << std::endl <<
                 "     Default: " << chronyClockOffsetThreshold << " ns" << std::endl <<
+                "  -n chrony_event_mask" << std::endl <<
+                "     Default: 0x" << std::hex << chronyEvent << std::endl <<
+                "     Bit 0: EventGMOffset" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
                 "     Default: " << timeout << " s" << std::endl;
             return EXIT_FAILURE;
@@ -214,8 +311,6 @@ int main(int argc, char *argv[])
     signal(SIGTERM, signal_handler);
     signal(SIGHUP, signal_handler);
 
-    ClockManager &cm = ClockManager::fetchSingleInstance();
-
     if (!cm.connect()) {
         std::cerr << "[clkmgr] failure in connecting !!!" << std::endl;
         ret = EXIT_FAILURE;
@@ -227,12 +322,15 @@ int main(int argc, char *argv[])
     ptp4lSub.setEventMask(event2Sub);
     ptp4lSub.setClockOffsetThreshold(ptp4lClockOffsetThreshold);
     ptp4lSub.setCompositeEventMask(composite_event);
+    chronySub.setEventMask(chronyEvent);
     chronySub.setClockOffsetThreshold(chronyClockOffsetThreshold);
     std::cout << "[clkmgr] set subscribe event : 0x"
         << std::hex << ptp4lSub.getEventMask() << std::endl;
     std::cout << "[clkmgr] set composite event : 0x"
         << std::hex << ptp4lSub.getCompositeEventMask() << std::endl;
     std::cout << "GM Offset threshold: \u00B1" << std::dec << ptp4lClockOffsetThreshold << " ns" << std::endl;
+    std::cout << "[clkmgr] set chrony event : 0x"
+        << std::hex << chronySub.getEventMask() << std::endl;
     std::cout << "Chrony Offset threshold: \u00B1" << std::dec << chronyClockOffsetThreshold << " ns" << std::endl;
     std::cout << "[clkmgr] List of available clock: " << std::endl;
     /* Print out each member of the Time Base configuration */
@@ -269,78 +367,7 @@ int main(int argc, char *argv[])
         }
         printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
             getMonotonicTime());
-        if (!cm.getTime(ts)) {
-            perror("clock_gettime failed");
-        } else {
-            printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
-                (ts.tv_sec * 1000000000) + ts.tv_nsec);
-        }
-        printf("|---------------------------|------------------------|\n");
-        printf("| %-25s | %-22s |\n", "Event", "Event Status");
-        if (event2Sub) {
-            printf("|---------------------------|------------------------|\n");
-        }
-        if (event2Sub & EventGMOffset) {
-            printf("| %-25s | %-22d |\n", "offset_in_range",
-                ptpClock.isOffsetInRange());
-        }
-        if (event2Sub & EventSyncedToGM) {
-            printf("| %-25s | %-22d |\n", "synced_to_primary_clock", ptpClock.isSyncedWithGm());
-        }
-        if (event2Sub & EventASCapable) {
-            printf("| %-25s | %-22d |\n", "as_capable", ptpClock.isAsCapable());
-        }
-        if (event2Sub & EventGMChanged) {
-            printf("| %-25s | %-22d |\n", "gm_Changed", ptpClock.isGmChanged());
-        }
-        printf("|---------------------------|------------------------|\n");
-        gmClockUUID = ptpClock.getGmIdentity();
-        uint8_t gm_identity[8];
-        // Copy the uint64_t into the array
-        for (int i = 0; i < 8; ++i) {
-            gm_identity[i] = static_cast<uint8_t>(gmClockUUID >> (8 * (7 - i)));
-        }
-        printf("| %-25s | %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-            "GM UUID", gm_identity[0], gm_identity[1],
-            gm_identity[2], gm_identity[3],
-            gm_identity[4], gm_identity[5],
-            gm_identity[6], gm_identity[7]);
-        printf("| %-25s | %-19ld ns |\n",
-                "clock_offset", ptpClock.getClockOffset());
-        printf("| %-25s | %-19ld ns |\n",
-                "notification_timestamp", ptpClock.getNotificationTimestamp());
-        printf("| %-25s | %-19ld us |\n",
-                "gm_sync_interval", ptpClock.getSyncInterval());
-        printf("|---------------------------|------------------------|\n");
-        if (composite_event) {
-            printf("| %-25s | %-22d |\n", "composite_event",
-                ptpClock.isCompositeEventMet());
-        }
-        if (composite_event & EventGMOffset) {
-            printf("| - %-23s | %-22s |\n", "offset_in_range", " ");
-        }
-        if (composite_event & EventSyncedToGM) {
-            printf("| - %-19s | %-22s |\n", "synced_to_primary_clock", " ");
-        }
-        if (composite_event & EventASCapable) {
-            printf("| - %-23s | %-22s |\n", "as_capable", " ");
-        }
-        if (composite_event) {
-            printf("|---------------------------|------------------------|\n\n");
-        } else {
-            printf("\n");
-        }
-        printf("|---------------------------|------------------------|\n");
-        printf("| %-25s | %-22d |\n", "chrony_offset_in_range",
-                sysClock.isOffsetInRange());
-        printf("|---------------------------|------------------------|\n");
-        printf("| %-25s | %-19ld ns |\n",
-                "chrony_clock_offset", sysClock.getClockOffset());
-        printf("| %-25s | %-19lx    |\n",
-            "chrony_clock_reference_id", sysClock.getGmIdentity());
-        printf("| %-25s | %-19ld us |\n",
-                "chrony_polling_interval", sysClock.getSyncInterval());
-        printf("|---------------------------|------------------------|\n\n");
+        printOut();
     }
     sleep(1);
 
@@ -381,83 +408,7 @@ int main(int argc, char *argv[])
                     goto do_exit;
             }
 
-            if (!cm.getTime(ts)) {
-                perror("clock_gettime failed");
-            } else {
-                printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns\n",
-                    (ts.tv_sec * 1000000000) + ts.tv_nsec);
-            }
-            printf("|---------------------------|--------------|-------------|\n");
-            printf("| %-25s | %-12s | %-11s |\n", "Event", "Event Status",
-                "Event Count");
-            if (event2Sub) {
-            printf("|---------------------------|--------------|-------------|\n");
-            }
-            if (event2Sub & EventGMOffset) {
-                printf("| %-25s | %-12d | %-11d |\n", "offset_in_range",
-                    ptpClock.isOffsetInRange(),
-                    ptpClock.getOffsetInRangeEventCount());
-            }
-            if (event2Sub & EventSyncedToGM) {
-                printf("| %-25s | %-12d | %-11d |\n", "synced_to_primary_clock",
-                    ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
-            }
-            if (event2Sub & EventASCapable) {
-                printf("| %-25s | %-12d | %-11d |\n", "as_capable",
-                    ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount());
-            }
-            if (event2Sub & EventGMChanged) {
-                printf("| %-25s | %-12d | %-11d |\n", "gm_Changed",
-                    ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount());
-            }
-            printf("|---------------------------|--------------|-------------|\n");
-            gmClockUUID = ptpClock.getGmIdentity();
-            uint8_t gm_identity[8];
-            // Copy the uint64_t into the array
-            for (int i = 0; i < 8; ++i) {
-                gm_identity[i] = static_cast<uint8_t>(gmClockUUID >> (8 * (7 - i)));
-            }
-            printf("| %-25s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-                "GM UUID", gm_identity[0], gm_identity[1],
-                gm_identity[2], gm_identity[3],
-                gm_identity[4], gm_identity[5],
-                gm_identity[6], gm_identity[7]);
-            printf("| %-25s |     %-19ld ns |\n",
-                "clock_offset", ptpClock.getClockOffset());
-            printf("| %-25s |     %-19ld ns |\n",
-                "notification_timestamp", ptpClock.getNotificationTimestamp());
-            printf("| %-25s |     %-19ld us |\n",
-                "gm_sync_interval", ptpClock.getSyncInterval());
-            printf("|---------------------------|--------------|-------------|\n");
-            if (composite_event) {
-                printf("| %-25s | %-12d | %-11d |\n", "composite_event",
-                    ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
-            }
-            if (composite_event & EventGMOffset) {
-                printf("| - %-23s | %-12s | %-11s |\n", "offset_in_range", "", "");
-            }
-            if (composite_event & EventSyncedToGM) {
-                printf("| - %-19s | %-12s | %-11s |\n", "synced_to_primary_clock", "", "");
-            }
-            if (composite_event & EventASCapable) {
-                printf("| - %-23s | %-12s | %-11s |\n", "as_capable", "", "");
-            }
-            if (composite_event) {
-                printf("|---------------------------|--------------|-------------|\n\n");
-            } else {
-                printf("\n");
-            }
-            printf("|---------------------------|----------------------------|\n");
-            printf("| %-25s | %-12d | %-11d |\n", "chrony_offset_in_range",
-                sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount());
-            printf("|---------------------------|----------------------------|\n");
-            printf("| %-25s |     %-19ld ns |\n",
-                "chrony_clock_offset", sysClock.getClockOffset());
-            printf("| %-25s |     %-19lx    |\n",
-                "chrony_clock_reference_id", sysClock.getGmIdentity());
-            printf("| %-25s |     %-19ld us |\n",
-                "chrony_polling_interval", sysClock.getSyncInterval());
-            printf("|---------------------------|----------------------------|\n\n");
+            printOut();
 
             printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
                 getMonotonicTime(), idleTime);

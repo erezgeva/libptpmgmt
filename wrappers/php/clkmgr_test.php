@@ -18,6 +18,10 @@
  */
 
 $signal_flag = false;
+$event2Sub = EventGMOffset | EventSyncedToGM | EventASCapable | EventGMChanged;
+$composite_event = EventGMOffset | EventSyncedToGM | EventASCapable;
+$chrony_event = EventGMOffset;
+$clockSyncData = null;
 
 declare(ticks = 1);
 
@@ -53,9 +57,72 @@ function getMonotonicTime()
     return microtime(true);
 }
 
+function printOut(): void
+{
+    global $clockSyncData, $event2Sub, $composite_event, $chrony_event;
+    $hd2l = '|'.str_repeat('-', 30).'|'.str_repeat('-', 28).'|';
+    $hd3b = '| %-28s | %-12d | %-11d |';
+    $hd3 = '|'.str_repeat('-', 30).'|'.str_repeat('-', 14).'|'.str_repeat('-', 13).'|';
+    clockManagerGetTime();
+    printf("$hd3\n| %-28s | %-12s | %-11s |\n", 'Events', 'Event Status', 'Event Count');
+    $ptpClock = $clockSyncData->getPtp();
+    $sysClock = $clockSyncData->getSysClock();
+    if($composite_event != 0) {
+        echo "$hd3\n";
+        printf("$hd3b\n", 'ptp_isCompositeEventMet', $ptpClock->isCompositeEventMet(), $ptpClock->getCompositeEventCount());
+        if($composite_event & EventGMOffset)
+            printf("| - %-26s | %-12s | %-11s |\n", 'isOffsetInRange', '', '');
+        if($composite_event & EventSyncedToGM)
+            printf("| - %-26s | %-12s | %-11s |\n", 'isSyncedWithGm', '', '');
+        if($composite_event & EventASCapable)
+            printf("| - %-26s | %-12s | %-11s |\n", 'isAsCapable', '', '');
+    }
+    if($event2Sub != 0) {
+        echo "$hd3\n";
+        if($event2Sub & EventGMOffset)
+            printf("$hd3b\n", 'ptp_isOffsetInRange', $ptpClock->isOffsetInRange(), $ptpClock->getOffsetInRangeEventCount());
+        if($event2Sub & EventSyncedToGM)
+            printf("$hd3b\n", 'ptp_isSyncedWithGm', $ptpClock->isSyncedWithGm(), $ptpClock->getSyncedWithGmEventCount());
+        if($event2Sub & EventASCapable)
+            printf("$hd3b\n", 'ptp_isAsCapable', $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount());
+        if($event2Sub & EventGMChanged)
+            printf("$hd3b\n", 'ptp_isGmChanged', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
+    }
+    echo "$hd3\n";
+    $gmClockUUID = $ptpClock->getGmIdentityStr();
+    printf("| %-28s |     %-19ld ns |\n" , 'ptp_clockOffset', $ptpClock->getClockOffset());
+    printf("| %-28s |     %s     |\n", 'ptp_gmIdentity', $gmClockUUID);
+    printf("| %-28s |     %-19ld us |\n" .
+           "| %-28s |     %-19ld ns |\n"
+           , 'ptp_syncInterval', $ptpClock->getSyncInterval()
+           , 'ptp_notificationTimestamp', $ptpClock->getNotificationTimestamp());
+    if($clockSyncData->haveSys() != 0) {
+        $identityString = "";
+        $gmIdentity = $sysClock->getGmIdentity();
+        for ($i = 0; $i < 4; $i++) {
+            $byte = ($gmIdentity >> (8 * (3 - $i))) & 0xFF;
+            $identityString .= chr($byte);
+        }
+        printf("$hd2l\n" .
+            "$hd3b\n" .
+            "$hd2l\n" .
+            "| %-28s |     %-19ld ns |\n" .
+            "| %-28s |     %-19s    |\n" .
+            "| %-28s |     %-19ld us |\n" .
+            "| %-28s |     %-19ld ns |\n" .
+            "$hd2l\n\n"
+            , 'chrony_isOffsetInRange', $sysClock->isOffsetInRange(),
+                $sysClock->getOffsetInRangeEventCount()
+            , 'chrony_clockOffset', $sysClock->getClockOffset()
+            , 'chrony_gmIdentity', $identityString
+            , 'chrony_syncInterval', $sysClock->getSyncInterval()
+            , 'chrony_notificationTimestamp', $sysClock->getNotificationTimestamp());
+    }
+}
+
 function main(): void
 {
-    global $signal_flag, $argv;
+    global $signal_flag, $argv, $event2Sub, $composite_event, $chrony_event, $clockSyncData;
     $ptp4lClockOffsetThreshold = 100000;
     $chronyClockOffsetThreshold = 100000;
     $subscribeAll = false;
@@ -63,16 +130,15 @@ function main(): void
     $idleTime = 1;
     $timeout = 10;
     $index = []; # Array of indexes to subscribe
-    $event2Sub = EventGMOffset | EventSyncedToGM | EventASCapable | EventGMChanged;
-    $composite_event = EventGMOffset | EventSyncedToGM | EventASCapable;
     $clockSyncData = new ClockSyncData();
     $ptp4lSub = new PTPClockSubscription();
     $chronySub = new SysClockSubscription();
     $overallSub = []; # Array of ClockSyncSubscription
-    $options = getopt('aps:c:l:i:t:m:h');
+    $options = getopt('aps:c:n:l:i:t:m:h');
     if(array_key_exists('h', $options)) {
         $event2SubHex = dechex($event2Sub);
         $composite_eventHex = dechex($composite_event);
+        $chrony_eventHex = dechex($chrony_event);
         $me = basename($argv[0]);
         echo <<< END
         Usage of $me :
@@ -91,6 +157,9 @@ function main(): void
              Bit 0: EventGMOffset
              Bit 1: EventSyncedToGM
              Bit 2: EventASCapable
+          -n chrony_event_mask
+             Default: 0x$chrony_eventHex
+             Bit 0: EventGMOffset
           -l gm offset threshold (ns)
              Default: $ptp4lClockOffsetThreshold ns
           -i idle time (s)
@@ -122,15 +191,20 @@ function main(): void
     if(array_key_exists('m', $options))
         $chronyClockOffsetThreshold = isPositiveValue($options['m'],
             'Invalid Chrony Offset threshold!');
+    if(array_key_exists('n', $options))
+        $chrony_event = intval($options['n'], 0);
     $ptp4lSub->setEventMask($event2Sub);
     $ptp4lSub->setClockOffsetThreshold($ptp4lClockOffsetThreshold);
     $ptp4lSub->setCompositeEventMask($composite_event);
+    $chronySub->setEventMask($chrony_event);
     $chronySub->setClockOffsetThreshold($chronyClockOffsetThreshold);
     echo "[clkmgr] set subscribe event : 0x" .
         dechex($ptp4lSub->getEventMask()) . PHP_EOL;
     echo "[clkmgr] set composite event : 0x" .
         dechex($ptp4lSub->getCompositeEventMask()) . PHP_EOL;
     echo "GM Offset threshold: $ptp4lClockOffsetThreshold ns" . PHP_EOL;
+    echo "[clkmgr] set chrony event : 0x" .
+        dechex($chronySub->getEventMask()) . PHP_EOL;
     echo "Chrony Offset threshold: $chronyClockOffsetThreshold ns" . PHP_EOL;
 
     if($userInput) {
@@ -187,7 +261,6 @@ function main(): void
     if(count($index) == 0)
         $index[] = 1;
 
-    $hd2 = '|'.str_repeat('-',27).'|'.str_repeat('-',24).'|';
     foreach($index as $idx) {
         if(!TimeBaseConfigurations::isTimeBaseIndexPresent($idx)) {
             $dieMsg = "[clkmgr] Index $idx does not exist";
@@ -200,58 +273,7 @@ function main(): void
         }
         printf("[clkmgr][%.3f] Obtained data from Subscription Event:" . PHP_EOL,
             getMonotonicTime());
-        clockManagerGetTime();
-        printf($hd2 . PHP_EOL . "| %-25s | %-22s |" . PHP_EOL, 'Event', 'Event Status');
-        $ptpClock = $clockSyncData->getPtp();
-        $sysClock = $clockSyncData->getSysClock();
-        if($event2Sub != 0) {
-            echo $hd2 . PHP_EOL;
-            if($event2Sub & EventGMOffset)
-                printf("| %-25s | %-22d |" . PHP_EOL, 'offset_in_range',
-                    $ptpClock->isOffsetInRange());
-            if($event2Sub & EventSyncedToGM)
-                printf("| %-25s | %-22d |" . PHP_EOL, 'synced_to_primary_clock',
-                    $ptpClock->isSyncedWithGm());
-            if($event2Sub & EventASCapable)
-                printf("| %-25s | %-22d |" . PHP_EOL, 'as_capable',
-                    $ptpClock->isAsCapable());
-            if($event2Sub & EventGMChanged)
-                printf("| %-25s | %-22d |" . PHP_EOL, 'gm_Changed',
-                    $ptpClock->isGmChanged());
-        }
-        echo $hd2 . PHP_EOL;
-        $gmClockUUID = $ptpClock->getGmIdentityStr();
-        printf("| %-25s | %s     |" . PHP_EOL, 'GM UUID', $gmClockUUID);
-        printf("| %-25s | %-19ld ns |" . PHP_EOL .
-               "| %-25s | %-19ld ns |" . PHP_EOL .
-               "| %-25s | %-19ld us |" . PHP_EOL .
-               $hd2 . PHP_EOL
-               , 'clock_offset', $ptpClock->getClockOffset()
-               , 'notification_timestamp', $ptpClock->getNotificationTimestamp()
-               , 'gm_sync_interval', $ptpClock->getSyncInterval());
-        if($composite_event != 0) {
-            printf("| %-25s | %-22d |" . PHP_EOL, 'composite_event',
-                $ptpClock->isCompositeEventMet());
-            if($composite_event & EventGMOffset)
-                printf("| - %-23s | %-22s |" . PHP_EOL, 'offset_in_range', '');
-            if($composite_event & EventSyncedToGM)
-                printf("| - %-19s | %-22s |" . PHP_EOL, 'synced_to_primary_clock', '');
-            if($composite_event & EventASCapable)
-                printf("| - %-23s | %-22s |" . PHP_EOL, 'as_capable', '');
-            echo $hd2 . PHP_EOL;
-        }
-        echo PHP_EOL;
-        printf($hd2 . PHP_EOL .
-               "| %-25s | %-22d |" . PHP_EOL .
-               $hd2 . PHP_EOL .
-               "| %-25s | %-19ld ns |" . PHP_EOL .
-               "| %-25s | %-19lx    |" . PHP_EOL .
-               "| %-25s | %-19ld us |" . PHP_EOL .
-               $hd2 . PHP_EOL . PHP_EOL
-               , 'chrony_offset_in_range', $sysClock->isOffsetInRange()
-               , 'chrony_clock_offset', $sysClock->getClockOffset()
-               , 'chrony_clock_reference_id', $sysClock->getGmIdentity()
-               , 'chrony_polling_interval', $sysClock->getSyncInterval());
+        printOut();
     }
     sleep(1);
 
@@ -296,65 +318,7 @@ function main(): void
                            getMonotonicTime());
                     goto do_exit;
             }
-            clockManagerGetTime();
-            printf($hd3 . PHP_EOL . "| %-25s | %-12s | %-11s |" . PHP_EOL, 'Event',
-                'Event Status', 'Event Count');
-            $ptpClock = $clockSyncData->getPtp();
-            $sysClock = $clockSyncData->getSysClock();
-            if($event2Sub != 0) {
-                echo $hd3 . PHP_EOL;
-                if($event2Sub & EventGMOffset)
-                    printf($hd3b . PHP_EOL, 'offset_in_range',
-                        $ptpClock->isOffsetInRange(),
-                        $ptpClock->getOffsetInRangeEventCount());
-                if($event2Sub & EventSyncedToGM)
-                    printf($hd3b . PHP_EOL, 'synced_to_primary_clock',
-                        $ptpClock->isSyncedWithGm(),
-                        $ptpClock->getSyncedWithGmEventCount());
-                if($event2Sub & EventASCapable)
-                    printf($hd3b . PHP_EOL, 'as_capable', $ptpClock->isAsCapable(),
-                        $ptpClock->getAsCapableEventCount());
-                if($event2Sub & EventGMChanged)
-                    printf($hd3b . PHP_EOL, 'gm_Changed', $ptpClock->isGmChanged(),
-                        $ptpClock->getGmChangedEventCount());
-            }
-            echo $hd3 . PHP_EOL;
-            $gmClockUUID = $ptpClock->getGmIdentityStr();
-            printf("| %-25s |     %s     |" . PHP_EOL, 'GM UUID', $gmClockUUID);
-            printf("| %-25s |     %-19ld ns |" . PHP_EOL .
-                   "| %-25s |     %-19ld ns |" . PHP_EOL .
-                   "| %-25s |     %-19ld us |" . PHP_EOL .
-                   $hd3 . PHP_EOL
-                   , 'clock_offset', $ptpClock->getClockOffset()
-                   , 'notification_timestamp', $ptpClock->getNotificationTimestamp()
-                   , 'gm_sync_interval', $ptpClock->getSyncInterval());
-            if($composite_event != 0) {
-                printf($hd3b . PHP_EOL, 'composite_event',
-                    $ptpClock->isCompositeEventMet(),
-                    $ptpClock->getCompositeEventCount());
-                if($composite_event & EventGMOffset)
-                    printf("| - %-23s | %-12s | %-11s |" . PHP_EOL,
-                        'offset_in_range', '', '');
-                if($composite_event & EventSyncedToGM)
-                    printf("| - %-19s | %-12s | %-11s |" . PHP_EOL,
-                        'synced_to_primary_clock', '', '');
-                if($composite_event & EventASCapable)
-                    printf("| - %-23s | %-12s | %-11s |" . PHP_EOL, 'as_capable', '', '');
-                echo $hd3 . PHP_EOL;
-            }
-            echo PHP_EOL;
-            printf($hd2l . PHP_EOL .
-                   $hd3b . PHP_EOL .
-                   $hd2l . PHP_EOL .
-                   "| %-25s |     %-19ld ns |" . PHP_EOL .
-                   "| %-25s |     %-19lx    |" . PHP_EOL .
-                   "| %-25s |     %-19ld us |" . PHP_EOL .
-                   $hd2l . PHP_EOL . PHP_EOL
-                   , 'chrony_offset_in_range', $sysClock->isOffsetInRange(),
-                     $sysClock->getOffsetInRangeEventCount()
-                   , 'chrony_clock_offset', $sysClock->getClockOffset()
-                   , 'chrony_clock_reference_id', $sysClock->getGmIdentity()
-                   , 'chrony_polling_interval', $sysClock->getSyncInterval());
+            printOut();
             printf("[clkmgr][%.3f] sleep for %d seconds..." . PHP_EOL . PHP_EOL,
                 getMonotonicTime(), $idleTime);
             if($signal_flag)

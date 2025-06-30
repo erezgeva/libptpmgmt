@@ -249,14 +249,11 @@ Options:
 
 Result for `Subscribe All Mode (-a)`:  
 ```bash
-~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -l 0 -u 100 -t 0 -a  
+~/libptpmgmt/clkmgr/sample# ./run_clkmgr_test.sh -l 2 -m 100 -t 0 -c 7 -a  
 [clkmgr] set subscribe event : 0xf  
 [clkmgr] set composite event : 0x7  
-GM Offset upper limit: 100 ns  
-GM Offset lower limit: 0 ns  
-Chrony Offset upper limit: 100000 ns  
-Chrony Offset lower limit: -100000 ns
-
+GM Offset threshold: ±2 ns  
+Chrony Offset threshold: ±100 ns  
 [clkmgr] List of available clock:  
 TimeBaseIndex: 1  
 timeBaseName: Global Clock  
@@ -268,125 +265,109 @@ TimeBaseIndex: 2
 timeBaseName: Working Clock  
 interfaceName: eth1  
 transportSpecific: 1  
-domainNumber: 20
+domainNumber: 2
 
 Subscribe to time base index: 1  
-[clkmgr][344584.100] Obtained data from Subscription Event:  
-[clkmgr] Current Time of CLOCK_REALTIME: 1742923371187240156 ns  
-|---------------------------|------------------------|  
-| Event                     | Event Status           |  
-|---------------------------|------------------------|  
-| offset_in_range           | 1                      |  
-| synced_to_primary_clock   | 1                      |  
-| as_capable                | 1                      |  
-| gm_Changed                | 1                      |  
-|---------------------------|------------------------|  
-| GM UUID                   | 000001.0000.000000     |  
-| clock_offset              | 8                   ns |  
-| notification_timestamp    | 1742923371187204125 ns |  
-|---------------------------|------------------------|  
-| composite_event           | 1                      |  
-| - offset_in_range         |                        |  
-| - synced_to_primary_clock |                        |  
-| - as_capable              |                        |  
-|---------------------------|------------------------|
-
-|---------------------------|------------------------|  
-| chrony_offset_in_range    | 1                      |  
-|---------------------------|------------------------|  
-| chrony_clock_offset       | 23                  ns |  
-| chrony_clock_reference_id | 50484330               |  
-| chrony_polling_interval   | 500000              us |  
-|---------------------------|------------------------|
+[clkmgr][430494.520] Obtained data from Subscription Event:  
+[clkmgr] Current Time of CLOCK_REALTIME: 1943980185861889317 ns  
+|------------------------------|--------------|-------------|  
+| Events                       | Event Status | Event Count |  
+|------------------------------|--------------|-------------|  
+| ptp_isCompositeEventMet      | 1            | 1           |  
+| - isOffsetInRange            |              |             |  
+| - isSyncedWithGm             |              |             |  
+| - isAsCapable                |              |             |  
+|------------------------------|--------------|-------------|  
+| ptp_isOffsetInRange          | 1            | 1           |  
+| ptp_isSyncedWithGm           | 1            | 1           |  
+| ptp_isAsCapable              | 1            | 1           |  
+| ptp_isGmChanged              | 1            | 1           |  
+|------------------------------|--------------|-------------|  
+| ptp_clockOffset              |     -2                  ns |  
+| ptp_gmIdentity               |     000001.0000.000000     |  
+| ptp_syncInterval             |     125000              us |  
+| ptp_notificationTimestamp    |     1943980185861676586 ns |  
+|------------------------------|----------------------------|  
+| chrony_isOffsetInRange       | 0            | 0           |  
+|------------------------------|----------------------------|  
+| chrony_clockOffset           |     0                   ns |  
+| chrony_gmIdentity            |     PHC0                   |  
+| chrony_syncInterval          |     500000              us |  
+| chrony_notificationTimestamp |     1943980185861676586 ns |  
+|------------------------------|----------------------------|
 
 Subscribe to time base index: 2  
-[clkmgr][344584.100] Obtained data from Subscription Event:  
-[clkmgr] Current Time of CLOCK_REALTIME: 1742923371187340099 ns  
-|---------------------------|------------------------|  
-| Event                     | Event Status           |  
-|---------------------------|------------------------|  
-| offset_in_range           | 1                      |  
-| synced_to_primary_clock   | 1                      |  
-| as_capable                | 1                      |  
-| gm_Changed                | 1                      |  
-|---------------------------|------------------------|  
-| GM UUID                   | 000002.0000.000000     |  
-| clock_offset              | 4                   ns |  
-| notification_timestamp    | 1742923371187322215 ns |  
-|---------------------------|------------------------|  
-| composite_event           | 1                      |  
-| - offset_in_range         |                        |  
-| - synced_to_primary_clock |                        |  
-| - as_capable              |                        |  
-|---------------------------|------------------------|
+[clkmgr][430494.521] Obtained data from Subscription Event:  
+[clkmgr] Current Time of CLOCK_REALTIME: 1943980185862219934 ns  
+|------------------------------|--------------|-------------|  
+| Events                       | Event Status | Event Count |  
+|------------------------------|--------------|-------------|  
+| ptp_isCompositeEventMet      | 1            | 1           |  
+| - isOffsetInRange            |              |             |  
+| - isSyncedWithGm             |              |             |  
+| - isAsCapable                |              |             |  
+|------------------------------|--------------|-------------|  
+| ptp_isOffsetInRange          | 1            | 1           |  
+| ptp_isSyncedWithGm           | 1            | 1           |  
+| ptp_isAsCapable              | 1            | 1           |  
+| ptp_isGmChanged              | 1            | 1           |  
+|------------------------------|--------------|-------------|  
+| ptp_clockOffset              |     -1                  ns |  
+| ptp_gmIdentity               |     000001.0000.000001     |  
+| ptp_syncInterval             |     125000              us |  
+| ptp_notificationTimestamp    |     1943980185862113946 ns |  
+|------------------------------|----------------------------|
 
-|---------------------------|------------------------|  
-| chrony_offset_in_range    | 0                      |  
-|---------------------------|------------------------|  
-| chrony_clock_offset       | 0                   ns |  
-| chrony_clock_reference_id | 0                      |  
-| chrony_polling_interval   | 0                   us |  
-|---------------------------|------------------------|
+[clkmgr][430495.521] Waiting Notification from time base index 1 ...  
+[clkmgr][430495.521] Obtained data from Notification Event:  
+[clkmgr] Current Time of CLOCK_REALTIME: 1943980186862611023 ns  
+|------------------------------|--------------|-------------|  
+| Events                       | Event Status | Event Count |  
+|------------------------------|--------------|-------------|  
+| ptp_isCompositeEventMet      | 1            | 6           |  
+| - isOffsetInRange            |              |             |  
+| - isSyncedWithGm             |              |             |  
+| - isAsCapable                |              |             |  
+|------------------------------|--------------|-------------|  
+| ptp_isOffsetInRange          | 1            | 6           |  
+| ptp_isSyncedWithGm           | 1            | 0           |  
+| ptp_isAsCapable              | 1            | 0           |  
+| ptp_isGmChanged              | 0            | 0           |  
+|------------------------------|--------------|-------------|  
+| ptp_clockOffset              |     1                   ns |  
+| ptp_gmIdentity               |     000001.0000.000000     |  
+| ptp_syncInterval             |     125000              us |  
+| ptp_notificationTimestamp    |     1943980186831092992 ns |  
+|------------------------------|----------------------------|  
+| chrony_isOffsetInRange       | 0            | 0           |  
+|------------------------------|----------------------------|  
+| chrony_clockOffset           |     0                   ns |  
+| chrony_gmIdentity            |     PHC0                   |  
+| chrony_syncInterval          |     500000              us |  
+| chrony_notificationTimestamp |     1943980186831092992 ns |  
+|------------------------------|----------------------------|
 
-[clkmgr][344585.100] Waiting Notification from time base index 1 ...  
-[clkmgr][344585.100] Obtained data from Notification Event:  
-[clkmgr] Current Time of CLOCK_REALTIME: 1742923372187493243 ns  
-|---------------------------|--------------|-------------|  
-| Event                     | Event Status | Event Count |  
-|---------------------------|--------------|-------------|  
-| offset_in_range           | 1            | 4           |  
-| synced_to_primary_clock   | 1            | 0           |  
-| as_capable                | 1            | 0           |  
-| gm_Changed                | 0            | 0           |  
-|---------------------------|--------------|-------------|  
-| GM UUID                   |     000001.0000.000000     |  
-| clock_offset              |     4                   ns |  
-| notification_timestamp    |     1742923372085217302 ns |  
-|---------------------------|--------------|-------------|  
-| composite_event           | 1            | 4           |  
-| - offset_in_range         |              |             |  
-| - synced_to_primary_clock |              |             |  
-| - as_capable              |              |             |  
-|---------------------------|--------------|-------------|
-
-|---------------------------|----------------------------|  
-| chrony_offset_in_range    | 1            | 0           |  
-|---------------------------|----------------------------|  
-| chrony_clock_offset       |     -51                 ns |  
-| chrony_clock_reference_id |     50484330               |  
-| chrony_polling_interval   |     500000              us |  
-|---------------------------|----------------------------|
-
-[clkmgr][344585.100] sleep for 1 seconds...
-
-[clkmgr][344585.249] Waiting Notification from time base index 2 ...  
-[clkmgr][344585.249] Obtained data from Notification Event:  
-[clkmgr] Current Time of CLOCK_REALTIME: 1742923372336262939 ns  
-|---------------------------|--------------|-------------|  
-| Event                     | Event Status | Event Count |  
-|---------------------------|--------------|-------------|  
-| offset_in_range           | 1            | 4           |  
-| synced_to_primary_clock   | 1            | 0           |  
-| as_capable                | 1            | 0           |  
-| gm_Changed                | 0            | 0           |  
-|---------------------------|--------------|-------------|  
-| GM UUID                   |     000002.0000.000000     |  
-| clock_offset              |     1                   ns |  
-| notification_timestamp    |     1742923372318247718 ns |  
-|---------------------------|--------------|-------------|  
-| composite_event           | 1            | 4           |  
-| - offset_in_range         |              |             |  
-| - synced_to_primary_clock |              |             |  
-| - as_capable              |              |             |  
-|---------------------------|--------------|-------------|
-
-|---------------------------|----------------------------|  
-| chrony_offset_in_range    | 0            | 0           |  
-|---------------------------|----------------------------|  
-| chrony_clock_offset       |     0                   ns |  
-| chrony_clock_reference_id |     0                      |  
-| chrony_polling_interval   |     0                   us |  
-|---------------------------|----------------------------|  
+[clkmgr][430496.522] Waiting Notification from time base index 2 ...  
+[clkmgr][430496.522] Obtained data from Notification Event:  
+[clkmgr] Current Time of CLOCK_REALTIME: 1943980187863020814 ns  
+|------------------------------|--------------|-------------|  
+| Events                       | Event Status | Event Count |  
+|------------------------------|--------------|-------------|  
+| ptp_isCompositeEventMet      | 0            | 9           |  
+| - isOffsetInRange            |              |             |  
+| - isSyncedWithGm             |              |             |  
+| - isAsCapable                |              |             |  
+|------------------------------|--------------|-------------|  
+| ptp_isOffsetInRange          | 0            | 9           |  
+| ptp_isSyncedWithGm           | 1            | 0           |  
+| ptp_isAsCapable              | 1            | 0           |  
+| ptp_isGmChanged              | 0            | 0           |  
+|------------------------------|--------------|-------------|  
+| ptp_clockOffset              |     3                   ns |  
+| ptp_gmIdentity               |     000001.0000.000001     |  
+| ptp_syncInterval             |     125000              us |  
+| ptp_notificationTimestamp    |     1943980187845455247 ns |  
+|------------------------------|----------------------------|
 ```
 
 Note:  
