@@ -27,9 +27,9 @@ class Message;
 class ClientState
 {
   private:
-    static std::string m_clientID; /**< Client ID */
+    static std::string m_clientID;
     static std::atomic<sessionId_t> m_sessionId;
-    static std::atomic_bool m_connected; /**< Connection status */
+    static std::atomic_bool m_connected;
 
   public:
     static bool init();

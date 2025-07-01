@@ -21,7 +21,7 @@ __CLKMGR_NAMESPACE_USE;
 using namespace std;
 
 /**
- * @brief process the connect msg from client-runtime
+ * Process the connect msg from client-runtime
  *
  * This function will be called when the transport layer
  * in proxy receive a CONNECT_MSG type from client-runtime.

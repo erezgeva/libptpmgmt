@@ -84,7 +84,7 @@ class ptpSet : public Thread4TimeBase, MessageDispatcher
         return msg_send();
     }
     /**
-     * @brief Subscribes to a set of PTP (Precision Time Protocol) events.
+     * Subscribes to a set of PTP (Precision Time Protocol) events.
      *
      * This function configures a subscription to various PTP events
      * by setting the appropriate bitmask in a subscription data
@@ -187,7 +187,7 @@ void ptpSet::event_handle()
 }
 
 /**
- * @brief Runs the main event loop for handling PTP (Precision Time Protocol)
+ * Runs the main event loop for handling PTP (Precision Time Protocol)
  *        events.
  *
  * This function enters an infinite loop, where it sends a GET request
@@ -290,7 +290,7 @@ class Ptp4l : public ConnectSrv
 static Ptp4l instance;
 
 /**
- * @brief Establishes a connection to the local PTP (Precision Time Protocol)
+ * Establishes a connection to the local PTP (Precision Time Protocol)
  *        daemon.
  *
  * This method initializes a Unix socket connection to the local PTP daemon.
