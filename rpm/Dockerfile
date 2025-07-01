@@ -20,7 +20,7 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     libfastjson libfastjson-devel json-c-devel m4 rubygem-test-unit gdb tclx\
     texlive-epstopdf ghostscript php-phpunit-PHPUnit perl-File-Touch jq\
     chrpath patchelf discount gmock-devel cppcheck chrony quilt cmark tcllib\
-    && dnf clean all &&\
+    systemd-devel && dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers

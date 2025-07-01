@@ -14,6 +14,8 @@
 # --sync                Updates repositories
 # --depclean, -c        Cleans the system by removing packages
 #                       that are not associated with explicitly merged packages
+# --fetchonly, -f       Fetches for all packages based upon USE setting
+# --color n             Disable color
 ###############################################################################
 FROM portage.2
 ARG UID USER
