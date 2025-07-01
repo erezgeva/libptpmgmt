@@ -27,6 +27,8 @@ dnf list installed
 rpm -qf file
 # See package scripts
 rpm -qlp --scripts clkmgr-proxy-1*.x86_64.rpm
+# Search For Packages
+dnf search php
 
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/rpm rpmbuild

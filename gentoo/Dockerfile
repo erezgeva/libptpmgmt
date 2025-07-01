@@ -20,5 +20,6 @@ ARG UID USER
 RUN useradd $USER -u $UID -m -G users,wheel,portage
 ARG COOKIE
 RUN emerge --sync && emerge -tvuD @world
+RUN emerge -tv sys-apps/systemd
 ARG SRC DST
 COPY --chown=builder $SRC $DST
