@@ -127,7 +127,16 @@ sub printOut
         my $identity_string = '';
         for my $i (0..3) {
             my $byte = ($sysClock->getGmIdentity() >> (8 * (3 - $i))) & 0xFF;
-            $identity_string .= chr($byte);
+            if($byte == 0 || $byte == 9) {
+                $identity_string .= ' ';
+            } else {
+                my $s = chr($byte);
+                if($s =~ /[[:print:]]/) {
+                    $identity_string .= $s;
+                } else {
+                    $identity_string .= '.';
+                }
+            }
         }
         printf "$hd3b\n" .
             "$hd2l\n" .

@@ -103,9 +103,17 @@ def printOut
         puts hd3b % ['chrony_isOffsetInRange', sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount()]
         puts hd2l
         puts '| %-28s |     %-19d ns |' % ['chrony_clockOffset', sysClock.getClockOffset()]
-        identity_string = (0..3).map do |i|
-            ((sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF).chr
-        end.join
+        identity_string = ''
+        (0..3).each do |i|
+            byteVal = (sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF
+            if byteVal == 0 or byteVal == 9 then
+                identity_string += ' '
+            elsif /[[:print:]]/ === byteVal.chr
+                identity_string += byteVal.chr
+            else
+                identity_string += '.'
+            end
+        end
         puts '| %-28s |     %-19s    |' % ['chrony_gmIdentity', identity_string]
         puts '| %-28s |     %-19d us |' % ['chrony_syncInterval', sysClock.getSyncInterval()]
         puts '| %-28s |     %-19d ns |' % ['chrony_notificationTimestamp', sysClock.getNotificationTimestamp()]

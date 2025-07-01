@@ -115,9 +115,17 @@ def printOut():
         print(hd3b % ('chrony_isOffsetInRange', sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount()))
         print(hd2l)
         print('| %-28s |     %-19ld ns |' % ('chrony_clockOffset', sysClock.getClockOffset()))
-        identity_string = ''.join(
-            chr((sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF) for i in range(4)
-        )
+        identity_string = ''
+        for i in range(4):
+            byteVal = (sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF
+            if byteVal == 0 or byteVal == 9:
+                identity_string += ' '
+            else:
+                s = chr(byteVal) + ''
+                if s.isprintable():
+                    identity_string += s
+                else:
+                    identity_string += '.'
         print('| %-28s |     %-19s    |' % ('chrony_gmIdentity', identity_string))
         print('| %-28s |     %-19ld us |' % ('chrony_syncInterval', sysClock.getSyncInterval()))
         print('| %-28s |     %-19ld ns |' % ('chrony_notificationTimestamp', sysClock.getNotificationTimestamp()))

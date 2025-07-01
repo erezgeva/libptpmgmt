@@ -27,7 +27,7 @@ local event2Sub = clkmgr.EventGMOffset + clkmgr.EventSyncedToGM +
 local composite_event = clkmgr.EventGMOffset +
     clkmgr.EventSyncedToGM + clkmgr.EventASCapable
 local chrony_event = clkmgr.EventGMOffset
-local clockSyncData = nil
+local clockSyncData = clkmgr.ClockSyncData()
 
 local function signal_handler(signo)
     print(' Exit ...')
@@ -109,7 +109,7 @@ local function printOut()
             'Events', 'Event Status', 'Event Count'))
     local ptpClock = clockSyncData:getPtp()
     local sysClock = clockSyncData:getSysClock()
-    
+
     if composite_event ~= 0 then
         print(hd3)
         print(string.format(hd3b, 'ptp_isCompositeEventMet',
@@ -128,7 +128,7 @@ local function printOut()
                 'isAsCapable', '', ''))
         end
     end
-    
+
     if event2Sub ~= 0 then
         print(hd3)
         if haveFlag(event2Sub, clkmgr.EventGMOffset) then
@@ -153,7 +153,7 @@ local function printOut()
         end
     end
     print(hd3)
-    
+
     local gmClockUUID = ptpClock:getGmIdentityStr()
     print(string.format('| %-28s |     %-19d ns |',
         'ptp_clockOffset', ptpClock:getClockOffset()))
@@ -163,16 +163,25 @@ local function printOut()
         'ptp_syncInterval', ptpClock:getSyncInterval()))
     print(string.format('| %-28s |     %-19d ns |',
         'ptp_notificationTimestamp', ptpClock:getNotificationTimestamp()))
-    
-    if clockSyncData:haveSys() ~= 0 then 
-        local identityString = ""
+    print(hd2l)
+
+    if clockSyncData:haveSys() then
+        local identityString = ''
         local gmIdentity = sysClock:getGmIdentity()
         for i = 0, 3 do
             local byte = (gmIdentity >> (8 * (3 - i))) & 0xFF
-            identityString = identityString .. string.char(byte)
+            if byte == 0 or byte == 9 then
+                identityString = identityString .. ' '
+            else
+                local s = string.char(byte)
+                if string.match(s, '^[%g%s]$') then
+                    identityString = identityString .. s
+                else
+                    identityString = identityString .. '.'
+                end
+            end
         end
-        
-        print(hd2l)
+
         print(string.format(hd3b, 'chrony_isOffsetInRange',
             tostring(sysClock:isOffsetInRange()),
             sysClock:getOffsetInRangeEventCount()))
@@ -196,7 +205,6 @@ function main()
     local subscribeAll, userInput = false, false
     local timeout, idleTime = 10, 1
     local index = {} -- Array of indexes to subscribe
-    clockSyncData = clkmgr.ClockSyncData()
     local ptp4lSub = clkmgr.PTPClockSubscription()
     local chronySub = clkmgr.SysClockSubscription()
     local overallSub = {} -- Array of clkmgr.ClockSyncSubscription
@@ -303,7 +311,7 @@ Options:
         local line = io.read()
         if string.len(line) > 0 then
             local s
-            for s in string.gmatch(line, "([^, ]*)") do
+            for s in string.gmatch(line, '([^, ]*)') do
                 if string.len(s) > 0 then
                     local idx = tonumber(s)
                     if idx == nil or idx <= 0 then

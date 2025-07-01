@@ -26,36 +26,32 @@
 
 using namespace clkmgr;
 
-volatile sig_atomic_t signal_flag = 0;
+static volatile sig_atomic_t signal_flag = 0;
 
-ClockManager &cm = ClockManager::fetchSingleInstance();
+static ClockManager &cm = ClockManager::fetchSingleInstance();
 
-ClockSyncData clockSyncData;
-PTPClockEvent &ptpClock = clockSyncData.getPtp();
-SysClockEvent &sysClock = clockSyncData.getSysClock();
+static ClockSyncData clockSyncData;
+static PTPClockEvent &ptpClock = clockSyncData.getPtp();
+static SysClockEvent &sysClock = clockSyncData.getSysClock();
 
-std::uint32_t event2Sub = {
-    (EventGMOffset | EventSyncedToGM | EventASCapable | EventGMChanged)
-};
+static uint32_t event2Sub =
+    EventGMOffset | EventSyncedToGM | EventASCapable | EventGMChanged;
 
-std::uint32_t composite_event = {
-    (EventGMOffset | EventSyncedToGM | EventASCapable)
-};
+static uint32_t composite_event =
+    EventGMOffset | EventSyncedToGM | EventASCapable;
 
-std::uint32_t chronyEvent = {
-    (EventGMOffset)
-};
+static uint32_t chronyEvent = EventGMOffset;
 
-uint64_t gmClockUUID;
-timespec ts;
+static uint64_t gmClockUUID;
+static timespec ts;
 
-void signal_handler(int sig)
+static void signal_handler(int sig)
 {
     std::cout << " Exit ..." << std::endl;
     signal_flag = 1;
 }
 
-double getMonotonicTime() {
+static double getMonotonicTime() {
     timespec timeSpec;
 
     if (clock_gettime(CLOCK_MONOTONIC, &timeSpec) == -1) {
@@ -69,7 +65,7 @@ double getMonotonicTime() {
     return seconds + nanoseconds;
 }
 
-bool isPositiveValue(const std::string& optarg, uint32_t& target, const std::string& errorMessage) {
+static bool isPositiveValue(const std::string& optarg, uint32_t& target, const std::string& errorMessage) {
     try {
         int value = std::stoi(optarg);
         if (value < 0) {
@@ -87,7 +83,7 @@ bool isPositiveValue(const std::string& optarg, uint32_t& target, const std::str
     }
 }
 
-void printOut()
+static void printOut()
 {
     if (!cm.getTime(ts)) {
         perror("clock_gettime failed");
@@ -157,7 +153,14 @@ void printOut()
             "chrony_clockOffset", sysClock.getClockOffset());
         char id[5] = {0}; // 4 characters + null terminator
         for (int i = 0; i < 4; ++i) {
-            id[i] = (sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF; // Extract each byte
+            char byteVal = (sysClock.getGmIdentity() >> (8 * (3 - i))) & 0xFF; // Extract each byte
+            id[i] = byteVal;
+            if(byteVal == 0 || byteVal == 9)
+                id[i] = ' ';
+            else if(isprint(byteVal))
+                id[i] = byteVal;
+            else
+                id[i] = '.';
         }
         printf("| %-28s |     %-22s |\n", "chrony_gmIdentity", std::string(id).c_str());
         printf("| %-28s |     %-19ld us |\n",

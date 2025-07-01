@@ -23,7 +23,7 @@
 
 #include <clockmanager.h>
 
-volatile sig_atomic_t signal_flag = 0;
+static volatile sig_atomic_t signal_flag = 0;
 
 void signal_handler(int sig)
 {
@@ -34,15 +34,15 @@ void signal_handler(int sig)
 #define MAX_CLOCKS 8
 
 
-struct timespec ts;
+static struct timespec ts;
 
-uint32_t eventMask = (Clkmgr_EventGMOffset | Clkmgr_EventSyncedToGM |
-    Clkmgr_EventASCapable | Clkmgr_EventGMChanged);
-uint32_t compositeEventMask = (Clkmgr_EventGMOffset |
-    Clkmgr_EventSyncedToGM | Clkmgr_EventASCapable);
-uint32_t chronyEventMask = Clkmgr_EventGMOffset;
+static uint32_t eventMask = Clkmgr_EventGMOffset | Clkmgr_EventSyncedToGM |
+    Clkmgr_EventASCapable | Clkmgr_EventGMChanged;
+static uint32_t compositeEventMask = Clkmgr_EventGMOffset |
+    Clkmgr_EventSyncedToGM | Clkmgr_EventASCapable;
+static uint32_t chronyEventMask = Clkmgr_EventGMOffset;
 
-double getMonotonicTime() {
+static double getMonotonicTime() {
     struct timespec time_spec;
 
     if (clock_gettime(CLOCK_MONOTONIC, &time_spec) == -1) {
@@ -56,7 +56,7 @@ double getMonotonicTime() {
     return seconds + nanoseconds;
 }
 
-bool isPositiveValue(const char *optarg, uint32_t *target,
+static bool isPositiveValue(const char *optarg, uint32_t *target,
     const char *errorMessage) {
     char *endptr = NULL;
     long value = strtol(optarg, &endptr, 10);
@@ -77,7 +77,7 @@ bool isPositiveValue(const char *optarg, uint32_t *target,
     return true;
 }
 
-void printOut(Clkmgr_ClockSyncData *syncData, bool clkmgr_haveSysClock)
+static void printOut(Clkmgr_ClockSyncData *syncData)
 {
     if (!clkmgr_getTime(&ts)) {
         perror("clock_c_gettime failed");
@@ -142,7 +142,7 @@ void printOut(Clkmgr_ClockSyncData *syncData, bool clkmgr_haveSysClock)
     printf("| %-28s |     %-19ld ns |\n", "ptp_notificationTimestamp",
         clkmgr_getNotificationTimestamp(syncData, Clkmgr_PTPClock));
     printf("|------------------------------|----------------------------|\n");
-    if (clkmgr_haveSysClock) {
+    if (clkmgr_haveSysData(syncData)) {
         printf("| %-28s | %-12d | %-11d |\n", "chrony_isOffsetInRange",
             clkmgr_isOffsetInRange(syncData, Clkmgr_SysClock),
             clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_SysClock));
@@ -151,8 +151,14 @@ void printOut(Clkmgr_ClockSyncData *syncData, bool clkmgr_haveSysClock)
             clkmgr_getClockOffset(syncData, Clkmgr_SysClock));
         char id[5] = {0}; // 4 characters + null terminator
         for (int i = 0; i < 4; ++i) {
-            id[i] = (clkmgr_getGmIdentity(syncData, Clkmgr_SysClock) >>
+            char byteVal = (clkmgr_getGmIdentity(syncData, Clkmgr_SysClock) >>
             (8 * (3 - i))) & 0xFF; // Extract each bytes
+            if(byteVal == 0 || byteVal == 9)
+                id[i] = ' ';
+            else if(isprint(byteVal))
+                id[i] = byteVal;
+            else
+                id[i] = '.';
         }
         printf("| %-28s |     %-19s    |\n", "chrony_gmIdentity", id);
         printf("| %-28s |     %-19ld us |\n", "chrony_syncInterval",
@@ -375,7 +381,7 @@ int main(int argc, char *argv[])
 
         printf("[clkmgr][%.3f] Obtained data from Subscription Event:\n",
             getMonotonicTime());
-        printOut(syncData,clkmgr_haveSysClock(index[i]));
+        printOut(syncData);
     }
     sleep(1);
 
@@ -415,7 +421,7 @@ int main(int argc, char *argv[])
                     goto do_exit;
             }
 
-            printOut(syncData,clkmgr_haveSysClock(index[i]));
+            printOut(syncData);
 
             printf("[clkmgr][%.3f] sleep for %d seconds...\n\n",
                 getMonotonicTime(), idleTime);

@@ -28,7 +28,7 @@ declare(ticks = 1);
 function signal_handler(int $signo, $siginfo): void
 {
     global $signal_flag;
-    echo " Exit ..." . PHP_EOL;
+    echo ' Exit ...' . PHP_EOL;
     $signal_flag = true;
 }
 
@@ -45,10 +45,10 @@ function clockManagerGetTime(): void
 {
     $ts = new timespec();
     if(ClockManager::getTime($ts)) {
-        printf("[clkmgr] Current Time of CLOCK_REALTIME: %ld ns" . PHP_EOL,
+        printf('[clkmgr] Current Time of CLOCK_REALTIME: %ld ns' . PHP_EOL,
                 ($ts->tv_sec * 1000000000) + $ts->tv_nsec);
     } else {
-        echo "clock_gettime failed: " . posix_strerror(posix_get_last_error()). PHP_EOL;
+        echo 'clock_gettime failed: ' . posix_strerror(posix_get_last_error()). PHP_EOL;
     }
 }
 
@@ -64,53 +64,62 @@ function printOut(): void
     $hd3b = '| %-28s | %-12d | %-11d |';
     $hd3 = '|'.str_repeat('-', 30).'|'.str_repeat('-', 14).'|'.str_repeat('-', 13).'|';
     clockManagerGetTime();
-    printf("$hd3\n| %-28s | %-12s | %-11s |\n", 'Events', 'Event Status', 'Event Count');
+    printf($hd3 . PHP_EOL . '| %-28s | %-12s | %-11s |' . PHP_EOL, 'Events', 'Event Status', 'Event Count');
     $ptpClock = $clockSyncData->getPtp();
     $sysClock = $clockSyncData->getSysClock();
     if($composite_event != 0) {
-        echo "$hd3\n";
-        printf("$hd3b\n", 'ptp_isCompositeEventMet', $ptpClock->isCompositeEventMet(), $ptpClock->getCompositeEventCount());
+        echo $hd3 . PHP_EOL;
+        printf($hd3b . PHP_EOL, 'ptp_isCompositeEventMet', $ptpClock->isCompositeEventMet(), $ptpClock->getCompositeEventCount());
         if($composite_event & EventGMOffset)
-            printf("| - %-26s | %-12s | %-11s |\n", 'isOffsetInRange', '', '');
+            printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isOffsetInRange', '', '');
         if($composite_event & EventSyncedToGM)
-            printf("| - %-26s | %-12s | %-11s |\n", 'isSyncedWithGm', '', '');
+            printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isSyncedWithGm', '', '');
         if($composite_event & EventASCapable)
-            printf("| - %-26s | %-12s | %-11s |\n", 'isAsCapable', '', '');
+            printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isAsCapable', '', '');
     }
     if($event2Sub != 0) {
-        echo "$hd3\n";
+        echo $hd3 . PHP_EOL;
         if($event2Sub & EventGMOffset)
-            printf("$hd3b\n", 'ptp_isOffsetInRange', $ptpClock->isOffsetInRange(), $ptpClock->getOffsetInRangeEventCount());
+            printf($hd3b . PHP_EOL, 'ptp_isOffsetInRange', $ptpClock->isOffsetInRange(), $ptpClock->getOffsetInRangeEventCount());
         if($event2Sub & EventSyncedToGM)
-            printf("$hd3b\n", 'ptp_isSyncedWithGm', $ptpClock->isSyncedWithGm(), $ptpClock->getSyncedWithGmEventCount());
+            printf($hd3b . PHP_EOL, 'ptp_isSyncedWithGm', $ptpClock->isSyncedWithGm(), $ptpClock->getSyncedWithGmEventCount());
         if($event2Sub & EventASCapable)
-            printf("$hd3b\n", 'ptp_isAsCapable', $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount());
+            printf($hd3b . PHP_EOL, 'ptp_isAsCapable', $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount());
         if($event2Sub & EventGMChanged)
-            printf("$hd3b\n", 'ptp_isGmChanged', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
+            printf($hd3b . PHP_EOL, 'ptp_isGmChanged', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
     }
-    echo "$hd3\n";
+    echo $hd3 . PHP_EOL;
     $gmClockUUID = $ptpClock->getGmIdentityStr();
-    printf("| %-28s |     %-19ld ns |\n" , 'ptp_clockOffset', $ptpClock->getClockOffset());
-    printf("| %-28s |     %s     |\n", 'ptp_gmIdentity', $gmClockUUID);
-    printf("| %-28s |     %-19ld us |\n" .
-           "| %-28s |     %-19ld ns |\n"
+    printf('| %-28s |     %-19ld ns |' . PHP_EOL , 'ptp_clockOffset', $ptpClock->getClockOffset());
+    printf('| %-28s |     %s     |' . PHP_EOL, 'ptp_gmIdentity', $gmClockUUID);
+    printf('| %-28s |     %-19ld us |' . PHP_EOL .
+           '| %-28s |     %-19ld ns |' . PHP_EOL
            , 'ptp_syncInterval', $ptpClock->getSyncInterval()
            , 'ptp_notificationTimestamp', $ptpClock->getNotificationTimestamp());
+    echo $hd2l . PHP_EOL;
     if($clockSyncData->haveSys() != 0) {
-        $identityString = "";
+        $identityString = '';
         $gmIdentity = $sysClock->getGmIdentity();
         for ($i = 0; $i < 4; $i++) {
             $byte = ($gmIdentity >> (8 * (3 - $i))) & 0xFF;
-            $identityString .= chr($byte);
+            if($byte == 0 || $byte == 9) {
+                $identityString .= ' ';
+            } else {
+                $s = chr($byte);
+                if(preg_match('/[[:print:]]/', $s)) {
+                    $identityString .= $s;
+                } else {
+                    $identityString .= '.';
+                }
+            }
         }
-        printf("$hd2l\n" .
-            "$hd3b\n" .
-            "$hd2l\n" .
-            "| %-28s |     %-19ld ns |\n" .
-            "| %-28s |     %-19s    |\n" .
-            "| %-28s |     %-19ld us |\n" .
-            "| %-28s |     %-19ld ns |\n" .
-            "$hd2l\n\n"
+        printf($hd3b . PHP_EOL .
+            $hd2l . PHP_EOL .
+            '| %-28s |     %-19ld ns |' . PHP_EOL .
+            '| %-28s |     %-19s    |' . PHP_EOL .
+            '| %-28s |     %-19ld us |' . PHP_EOL .
+            '| %-28s |     %-19ld ns |' . PHP_EOL .
+            $hd2l . PHP_EOL . PHP_EOL
             , 'chrony_isOffsetInRange', $sysClock->isOffsetInRange(),
                 $sysClock->getOffsetInRangeEventCount()
             , 'chrony_clockOffset', $sysClock->getClockOffset()
@@ -198,12 +207,12 @@ function main(): void
     $ptp4lSub->setCompositeEventMask($composite_event);
     $chronySub->setEventMask($chrony_event);
     $chronySub->setClockOffsetThreshold($chronyClockOffsetThreshold);
-    echo "[clkmgr] set subscribe event : 0x" .
+    echo '[clkmgr] set subscribe event : 0x' .
         dechex($ptp4lSub->getEventMask()) . PHP_EOL;
-    echo "[clkmgr] set composite event : 0x" .
+    echo '[clkmgr] set composite event : 0x' .
         dechex($ptp4lSub->getCompositeEventMask()) . PHP_EOL;
     echo "GM Offset threshold: $ptp4lClockOffsetThreshold ns" . PHP_EOL;
-    echo "[clkmgr] set chrony event : 0x" .
+    echo '[clkmgr] set chrony event : 0x' .
         dechex($chronySub->getEventMask()) . PHP_EOL;
     echo "Chrony Offset threshold: $chronyClockOffsetThreshold ns" . PHP_EOL;
 
@@ -220,12 +229,12 @@ function main(): void
                 $index[] = $idx;
             }
         } else {
-            echo "Invalid input. Using default time base index 1." . PHP_EOL;
+            echo 'Invalid input. Using default time base index 1.' . PHP_EOL;
         }
     }
-    pcntl_signal(SIGINT, "signal_handler");
-    pcntl_signal(SIGTERM, "signal_handler");
-    pcntl_signal(SIGHUP, "signal_handler");
+    pcntl_signal(SIGINT, 'signal_handler');
+    pcntl_signal(SIGTERM, 'signal_handler');
+    pcntl_signal(SIGHUP, 'signal_handler');
 
     $dieMsg = '';
     if(!ClockManager::connect()) {
@@ -233,7 +242,7 @@ function main(): void
         goto do_exit;
     }
     sleep(1);
-    echo "[clkmgr] List of available clock:" . PHP_EOL;
+    echo '[clkmgr] List of available clock:' . PHP_EOL;
 
     # Print out each member of the Time Base configuration
     $size = TimeBaseConfigurations::size();
@@ -271,7 +280,7 @@ function main(): void
             $dieMsg = '[clkmgr] Failure in subscribing to clkmgr Proxy !!!';
             goto do_exit;
         }
-        printf("[clkmgr][%.3f] Obtained data from Subscription Event:" . PHP_EOL,
+        printf('[clkmgr][%.3f] Obtained data from Subscription Event:' . PHP_EOL,
             getMonotonicTime());
         printOut();
     }
@@ -287,20 +296,20 @@ function main(): void
         foreach($index as $idx) {
             if($signal_flag)
                 goto do_exit;
-            printf("[clkmgr][%.3f] Waiting Notification from " .
+            printf('[clkmgr][%.3f] Waiting Notification from ' .
                 "time base index $idx ..." . PHP_EOL, getMonotonicTime());
             $retval = ClockManager::statusWait($timeout, $idx, $clockSyncData);
             switch($retval) {
                 case SWRLostConnection:
-                    printf("[clkmgr][%.3f] Terminating: " .
-                        "lost connection to clkmgr Proxy" . PHP_EOL, getMonotonicTime());
+                    printf('[clkmgr][%.3f] Terminating: ' .
+                        'lost connection to clkmgr Proxy' . PHP_EOL, getMonotonicTime());
                     goto do_exit;
                 case SWRInvalidArgument:
-                    $dieMsg = sprintf("[clkmgr][%.3f] Terminating: Invalid argument" . PHP_EOL,
+                    $dieMsg = sprintf('[clkmgr][%.3f] Terminating: Invalid argument' . PHP_EOL,
                         getMonotonicTime());
                     goto do_exit;
                 case SWRNoEventDetected:
-                    printf("[clkmgr][%.3f] No event status changes identified " .
+                    printf('[clkmgr][%.3f] No event status changes identified ' .
                         "in $timeout seconds." . PHP_EOL . PHP_EOL, getMonotonicTime());
                     printf("[clkmgr][%.3f] sleep for $idleTime seconds..." . PHP_EOL . PHP_EOL,
                         getMonotonicTime());
@@ -309,17 +318,17 @@ function main(): void
                     sleep($idleTime);
                     goto next_loop;
                 case SWREventDetected:
-                    printf("[clkmgr][%.3f] Obtained data from Notification Event:" . PHP_EOL,
+                    printf('[clkmgr][%.3f] Obtained data from Notification Event:' . PHP_EOL,
                         getMonotonicTime());
                     break;
                 default:
-                    printf("[clkmgr][%.3f] Warning: Should not enter " .
+                    printf('[clkmgr][%.3f] Warning: Should not enter ' .
                            "this switch case, unexpected status code $retval" . PHP_EOL,
                            getMonotonicTime());
                     goto do_exit;
             }
             printOut();
-            printf("[clkmgr][%.3f] sleep for %d seconds..." . PHP_EOL . PHP_EOL,
+            printf('[clkmgr][%.3f] sleep for %d seconds...' . PHP_EOL . PHP_EOL,
                 getMonotonicTime(), $idleTime);
             if($signal_flag)
                 goto do_exit;

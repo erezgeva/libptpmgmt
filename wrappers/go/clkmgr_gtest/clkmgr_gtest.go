@@ -31,9 +31,17 @@ import (
 )
 
 var clockSyncData clkmgr.ClockSyncData
-var event2Sub uint
-var composite_event uint
-var chronyEvent uint
+var event2Sub uint = uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
+        clkmgr.EventASCapable | clkmgr.EventGMChanged)
+var composite_event uint = uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
+        clkmgr.EventASCapable)
+var chronyEvent uint = uint(clkmgr.EventGMOffset)
+
+func deleteOverallSub(overallSub []clkmgr.ClockSyncSubscription) {
+    for _, subscribe := range overallSub {
+        clkmgr.DeleteClockSyncSubscription(subscribe)
+    }
+}
 
 func isPositiveValue(ret uint, errorMessage string) uint {
     if ret <= 0 {
@@ -45,30 +53,20 @@ func isPositiveValue(ret uint, errorMessage string) uint {
 
 func clockManagerGetTime() {
     ts := clkmgr.NewTimespec()
+    defer clkmgr.DeleteTimespec(ts)
     if clkmgr.ClockManagerGetTime(ts) {
         fmt.Printf("[clkmgr] Current Time of CLOCK_REALTIME: %d ns\n",
                 (ts.GetTv_sec() * 1000000000) + uint64(ts.GetTv_nsec()))
     } else {
         fmt.Fprintln(os.Stderr, "clock_gettime failed")
     }
-    clkmgr.DeleteTimespec(ts)
 }
 
 func getMonotonicTime() float64 {
     return float64(time.Now().UnixMilli()) / 1000.0
 }
 
-func init() {
-	clockSyncData = clkmgr.NewClockSyncData()
-    event2Sub = uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
-        clkmgr.EventASCapable | clkmgr.EventGMChanged)
-    composite_event = uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
-        clkmgr.EventASCapable)
-    chronyEvent = uint(clkmgr.EventGMOffset)
-}
-
 func printOut() {
-    var i int64
     hd2l := "|"+strings.Repeat("-", 30)+"|"+strings.Repeat("-", 28)+"|"
     hd3b := "| %-28s | %-12t | %-11d |"
     hd3 := "|"+strings.Repeat("-", 30)+"|"+strings.Repeat("-", 14)+"|"+
@@ -123,10 +121,8 @@ func printOut() {
     }
     gmClockUUID := ptpClock.GetGmIdentity()
     var gm_identity [8]uint
-    i = 0
-    for i < 8 {
+    for i := 0; i < 8; i++  {
         gm_identity[i] = uint((gmClockUUID >> (8 * (7 - i))) & 0xff)
-        i++
     }
     fmt.Printf("| %-28s |     %-19d ns |\n",
             "ptp_clockOffset", ptpClock.GetClockOffset())
@@ -142,17 +138,27 @@ func printOut() {
             "ptp_notificationTimestamp",
             ptpClock.GetNotificationTimestamp())
     fmt.Println(hd2l)
-    fmt.Printf(hd3b + "\n", "chrony_isOffsetInRange",
-            sysClock.IsOffsetInRange(),
-            sysClock.GetOffsetInRangeEventCount())
-    fmt.Println(hd2l)
     if clockSyncData.HaveSys() {
+        fmt.Printf(hd3b + "\n", "chrony_isOffsetInRange",
+                sysClock.IsOffsetInRange(),
+                sysClock.GetOffsetInRangeEventCount())
+        fmt.Println(hd2l)
         fmt.Printf("| %-28s |     %-19d ns |\n",
                 "chrony_clockOffset", sysClock.GetClockOffset())
         identityString := ""
+        gmClockUUID := sysClock.GetGmIdentity()
         for i := 0; i < 4; i++ {
-            byte := (sysClock.GetGmIdentity() >> (8 * (3 - i))) & 0xFF
-            identityString += string(byte)
+            byteVal := (gmClockUUID >> (8 * (3 - i))) & 0xFF
+            if byteVal == 0 || byteVal == 9 {
+                identityString += " "
+            } else {
+                str := string(byteVal)
+                if strconv.IsPrint(rune(str[0])) {
+                    identityString += str
+                } else {
+                    identityString += "."
+                }
+            }
         }
         fmt.Printf("| %-28s |     %-19s    |\n",
                 "chrony_gmIdentity", identityString)
@@ -173,7 +179,11 @@ func main() {
     timeout := uint(10)
     var index []int64 // Array of indexes to subscribe
     ptp4lSub := clkmgr.NewPTPClockSubscription()
+    defer clkmgr.DeletePTPClockSubscription(ptp4lSub)
     chronySub := clkmgr.NewSysClockSubscription()
+    defer clkmgr.DeleteSysClockSubscription(chronySub)
+    clockSyncData = clkmgr.NewClockSyncData()
+    defer clkmgr.DeleteClockSyncData(clockSyncData)
     // Array of ClockSyncSubscription
     var overallSub []clkmgr.ClockSyncSubscription
     helpFlag := getopt.Bool('h', "display help")
@@ -302,6 +312,7 @@ Options:
     fmt.Println("size ", size )
     i = 1
     overallSub = make([]clkmgr.ClockSyncSubscription, size + 1, size + 1)
+    defer deleteOverallSub(overallSub)
     for i <= size {
         cfg := clkmgr.TimeBaseConfigurationsGetRecord(i)
         idx := cfg.Index()
@@ -397,13 +408,7 @@ Options:
     do_exit:
 
     clkmgr.ClockManagerDisconnect()
-    // Delete objects we allocate
-    clkmgr.DeleteClockSyncData(clockSyncData)
-    clkmgr.DeletePTPClockSubscription(ptp4lSub)
-    clkmgr.DeleteSysClockSubscription(chronySub)
-    for _, subscribe := range overallSub {
-        clkmgr.DeleteClockSyncSubscription(subscribe)
-    }
+
     // Exit
     if len(dieMsg) > 0 {
         fmt.Fprintln(os.Stderr, dieMsg)

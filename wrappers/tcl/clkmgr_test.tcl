@@ -129,19 +129,24 @@ proc printOut {} {
         [ $ptpClock getNotificationTimestamp ]]
     puts $hd2l
     if {[clockSyncData haveSys]} {
-        if { $chrony_event != 0 } {
-            if { $chrony_event & $clkmgr::EventGMOffset } {
-                puts [format $hd3b "chrony_isOffsetInRange"\
-                    [ $sysClock isOffsetInRange ]\
-                    [ $sysClock getOffsetInRangeEventCount ]]
-            }
-        }
+        puts [format $hd3b "chrony_isOffsetInRange"\
+            [ $sysClock isOffsetInRange ]\
+            [ $sysClock getOffsetInRangeEventCount ]]
         puts $hd2l
         puts [format "| %-28s |     %-19ld ns |"\
             "chrony_clockOffset" [ $sysClock getClockOffset ]]
         for {set i 0} {$i < 4} {incr i} {
             set byte [expr {([$sysClock getGmIdentity] >> (8 * (3 - $i))) & 0xFF}]
-            append identity_string [format "%c" $byte]
+            if { $byte == 0 || $byte == 9 } {
+                append identity_string " "
+            } else {
+                set s [format "%c" $byte]
+                if { [ string is print $s ] } {
+                    append identity_string $s
+                } else {
+                    append identity_string "."
+                }
+            }
         }
         puts [format "| %-28s |     %-19s    |"\
             "chrony_gmIdentity" $identity_string ]
