@@ -152,18 +152,18 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
     // Get the current state of the timebase
     PTPClockEvent ptp4lEventState = state.get_ptp4lEventState();
     SysClockEvent chronyEventState = state.get_chronyEventState();
-    // Update EventGMOffset
+    // Update EventOffsetInRange
     ptpClockEventHandler.setClockOffset(ptp4lEventState, 23);
     ptpClockEventHandler.setOffsetInRange(ptp4lEventState, true);
     ptpClockEventHandler.setOffsetInRangeEventCount(ptp4lEventState, 8);
-    // Update EventSyncedToGM
+    // Update EventSyncedWithGm
     ptpClockEventHandler.setSyncedWithGm(ptp4lEventState, true);
     ptpClockEventHandler.setSyncedWithGmEventCount(ptp4lEventState, 9);
-    // Update EventGMChanged
+    // Update EventGmChanged
     ptpClockEventHandler.setGmIdentity(ptp4lEventState, 0x1234ABCD);
     ptpClockEventHandler.setGmChanged(ptp4lEventState, true);
     ptpClockEventHandler.setGmChangedEventCount(ptp4lEventState, 10);
-    // Update EventASCapable
+    // Update EventAsCapable
     ptpClockEventHandler.setAsCapable(ptp4lEventState, true);
     ptpClockEventHandler.setAsCapableEventCount(ptp4lEventState, 11);
     // Update composite event

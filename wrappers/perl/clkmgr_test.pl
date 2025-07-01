@@ -24,11 +24,11 @@ use ClkMgrLib;
 
 my $signal_flag :shared = 0;
 my $clockSyncData = ClkMgrLib::ClockSyncData->new;
-my $event2Sub = $ClkMgrLib::EventGMOffset | $ClkMgrLib::EventSyncedToGM |
-    $ClkMgrLib::EventASCapable | $ClkMgrLib::EventGMChanged;
-my $composite_event = $ClkMgrLib::EventGMOffset |
-    $ClkMgrLib::EventSyncedToGM | $ClkMgrLib::EventASCapable;
-my $chrony_event = $ClkMgrLib::EventGMOffset;
+my $event2Sub = $ClkMgrLib::EventOffsetInRange | $ClkMgrLib::EventSyncedWithGm |
+    $ClkMgrLib::EventAsCapable | $ClkMgrLib::EventGmChanged;
+my $composite_event = $ClkMgrLib::EventOffsetInRange |
+    $ClkMgrLib::EventSyncedWithGm | $ClkMgrLib::EventAsCapable;
+my $chrony_event = $ClkMgrLib::EventOffsetInRange;
 
 sub signal_handler()
 {
@@ -78,29 +78,29 @@ sub printOut
             $ptpClock->isCompositeEventMet(),
             $ptpClock->getCompositeEventCount();
         printf "| - %-26s | %-12s | %-11s |\n", 'isOffsetInRange', '', ''
-            if $composite_event & $ClkMgrLib::EventGMOffset;
+            if $composite_event & $ClkMgrLib::EventOffsetInRange;
         printf "| - %-26s | %-12s | %-11s |\n",
             'isSyncedWithGm', '', ''
-            if $composite_event & $ClkMgrLib::EventSyncedToGM;
+            if $composite_event & $ClkMgrLib::EventSyncedWithGm;
         printf "| - %-26s | %-12s | %-11s |\n", 'isAsCapable', '', ''
-            if $composite_event & $ClkMgrLib::EventASCapable;
+            if $composite_event & $ClkMgrLib::EventAsCapable;
     }
     if ($event2Sub != 0) {
         print "$hd3\n";
         printf "$hd3b\n", 'ptp_isOffsetInRange',
             $ptpClock->isOffsetInRange(),
             $ptpClock->getOffsetInRangeEventCount()
-            if $event2Sub & $ClkMgrLib::EventGMOffset;
+            if $event2Sub & $ClkMgrLib::EventOffsetInRange;
         printf "$hd3b\n", 'ptp_isSyncedWithGm',
             $ptpClock->isSyncedWithGm(),
             $ptpClock->getSyncedWithGmEventCount()
-            if $event2Sub & $ClkMgrLib::EventSyncedToGM;
+            if $event2Sub & $ClkMgrLib::EventSyncedWithGm;
         printf "$hd3b\n", 'ptp_isAsCapable',
             $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount()
-            if $event2Sub & $ClkMgrLib::EventASCapable;
+            if $event2Sub & $ClkMgrLib::EventAsCapable;
         printf "$hd3b\n", 'ptp_isGmChanged',
             $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount()
-            if $event2Sub & $ClkMgrLib::EventGMChanged;
+            if $event2Sub & $ClkMgrLib::EventGmChanged;
     }
     print "$hd3\n";
 
@@ -183,18 +183,18 @@ Options:
   -p enable user to subscribe to specific time base indices
   -s subscribe_event_mask
      Default: $event2SubHex
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
-     Bit 3: EventGMChanged
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
+     Bit 3: EventGmChanged
   -c composite_event_mask
      Default: $composite_eventHex
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
   -n chrony_event_mask
      Default: $chrony_eventHex
-     Bit 0: EventGMOffset
+     Bit 0: EventOffsetInRange
   -l gm offset threshold (ns)
      Default: $ptp4lClockOffsetThreshold ns
   -i idle time (s)

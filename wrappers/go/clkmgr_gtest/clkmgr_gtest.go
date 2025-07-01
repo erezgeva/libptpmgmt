@@ -31,11 +31,11 @@ import (
 )
 
 var clockSyncData clkmgr.ClockSyncData
-var event2Sub uint = uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
-        clkmgr.EventASCapable | clkmgr.EventGMChanged)
-var composite_event uint = uint(clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
-        clkmgr.EventASCapable)
-var chronyEvent uint = uint(clkmgr.EventGMOffset)
+var event2Sub uint = uint(clkmgr.EventOffsetInRange | clkmgr.EventSyncedWithGm |
+        clkmgr.EventAsCapable | clkmgr.EventGmChanged)
+var composite_event uint = uint(clkmgr.EventOffsetInRange |
+        clkmgr.EventSyncedWithGm | clkmgr.EventAsCapable)
+var chronyEvent uint = uint(clkmgr.EventOffsetInRange)
 
 func deleteOverallSub(overallSub []clkmgr.ClockSyncSubscription) {
     for _, subscribe := range overallSub {
@@ -82,37 +82,37 @@ func printOut() {
         fmt.Printf(hd3b + "\n", "ptp_isCompositeEventMet",
                 ptpClock.IsCompositeEventMet(),
                 ptpClock.GetCompositeEventCount())
-        if composite_event & uint(clkmgr.EventGMOffset) > 0 {
+        if composite_event & uint(clkmgr.EventOffsetInRange) > 0 {
             fmt.Printf("| - %-26s | %-12s | %-11s |\n",
                     "isOffsetInRange", "", "")
         }
-        if composite_event & uint(clkmgr.EventSyncedToGM) > 0 {
+        if composite_event & uint(clkmgr.EventSyncedWithGm) > 0 {
             fmt.Printf("| - %-26s | %-12s | %-11s |\n",
                     "isSyncedWithGm", "", "")
         }
-        if composite_event & uint(clkmgr.EventASCapable) > 0 {
+        if composite_event & uint(clkmgr.EventAsCapable) > 0 {
             fmt.Printf("| - %-26s | %-12s | %-11s |\n",
                     "isAsCapable", "", "")
         }
         fmt.Println(hd3)
     }
     if event2Sub != 0 {
-        if event2Sub & uint(clkmgr.EventGMOffset) > 0 {
+        if event2Sub & uint(clkmgr.EventOffsetInRange) > 0 {
             fmt.Printf(hd3b + "\n", "ptp_isOffsetInRange",
                     ptpClock.IsOffsetInRange(),
                     ptpClock.GetOffsetInRangeEventCount())
         }
-        if event2Sub & uint(clkmgr.EventSyncedToGM) > 0 {
+        if event2Sub & uint(clkmgr.EventSyncedWithGm) > 0 {
             fmt.Printf(hd3b + "\n", "ptp_isSyncedWithGm",
                     ptpClock.IsSyncedWithGm(),
                     ptpClock.GetSyncedWithGmEventCount())
         }
-        if event2Sub & uint(clkmgr.EventASCapable) > 0 {
+        if event2Sub & uint(clkmgr.EventAsCapable) > 0 {
             fmt.Printf(hd3b + "\n", "ptp_isAsCapable",
                     ptpClock.IsAsCapable(),
                     ptpClock.GetAsCapableEventCount())
         }
-        if event2Sub & uint(clkmgr.EventGMChanged) > 0 {
+        if event2Sub & uint(clkmgr.EventGmChanged) > 0 {
             fmt.Printf(hd3b + "\n", "ptp_isGmChanged",
                     ptpClock.IsGmChanged(),
                     ptpClock.GetGmChangedEventCount())
@@ -220,18 +220,18 @@ Options:
   -p enable user to subscribe to specific time base indices
   -s subscribe_event_mask
      Default: ` + fmt.Sprintf("0x%x", event2Sub) + `
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
-     Bit 3: EventGMChanged
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
+     Bit 3: EventGmChanged
   -c composite_event_mask
      Default: ` + fmt.Sprintf("0x%x", composite_event) + `
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
   -n chrony_event_mask
      Default: ` + fmt.Sprintf("0x%x", chronyEvent) + `
-     Bit 0: EventGMOffset
+     Bit 0: EventOffsetInRange
   -l gm offset threshold (ns)
      Default: ` + strconv.Itoa(int(ptp4lClockOffsetThreshold)) + ` ns
   -i idle time (s)

@@ -30,31 +30,33 @@ ns_s()
  * Bitmask of events available for subscription. Each bit represents one event.
  */
 enum Nm(EventIndex) sz(`: uint32_t '){
-    /** Offset between primary and secondary clock */
-    Nm(EventGMOffset) = 1 << 0,
-    /** Secondary clock is synced to primary clock */
-    Nm(EventSyncedToGM) = 1 << 1,
-    Nm(EventASCapable) = 1 << 2, /**< Link Partner is IEEE 802.1AS capable */
-    Nm(EventGMChanged) = 1 << 3, /**< UUID of primary clock is changed */
+    /** Event indicating whether clock offset is in-range */
+    Nm(EventOffsetInRange) = 1 << 0,
+    /** Event indicating whether PTP clock is synchronized with a grandmaster */
+    Nm(EventSyncedWithGm) = 1 << 1,
+    /** Event indicating whether clock is an IEEE 802.1AS capable */
+    Nm(EventAsCapable) = 1 << 2,
+    /** Event indicating whether grandmaster has changed */
+    Nm(EventGmChanged) = 1 << 3,
 };
 
 /**
  * All the PTP clock events available for subscription.
  */
-cnst(uint32_t,PTP_EVENT_ALL,Nm(EventGMOffset) | \
-    Nm(EventSyncedToGM) | Nm(EventASCapable) | Nm(EventGMChanged))
+cnst(uint32_t,PTP_EVENT_ALL,Nm(EventOffsetInRange) | \
+    Nm(EventSyncedWithGm) | Nm(EventAsCapable) | Nm(EventGmChanged))
 
 /**
  * All the System clock events available for subscription.
  */
-cnst(uint32_t,SYS_EVENT_ALL,Nm(EventGMOffset))
+cnst(uint32_t,SYS_EVENT_ALL,Nm(EventOffsetInRange))
 
 /**
  * All the events that can be used as conditions for satisfying the composite
  * event of PTP clock.
  */
-cnst(uint32_t,PTP_COMPOSITE_EVENT_ALL,Nm(EventGMOffset) | \
-    Nm(EventSyncedToGM) | Nm(EventASCapable))
+cnst(uint32_t,PTP_COMPOSITE_EVENT_ALL,Nm(EventOffsetInRange) | \
+    Nm(EventSyncedWithGm) | Nm(EventAsCapable))
 
 /**
 * Types of clock available for subscription.

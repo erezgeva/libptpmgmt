@@ -25,11 +25,11 @@ $chronyClockOffsetThreshold = 100000
 $subscribeAll = false
 $idleTime = 1
 $timeout = 10
-$event2Sub = (Clkmgr::EventGMOffset | Clkmgr::EventSyncedToGM |
-    Clkmgr::EventASCapable | Clkmgr::EventGMChanged)
-$composite_event = (Clkmgr::EventGMOffset | Clkmgr::EventSyncedToGM |
-    Clkmgr::EventASCapable)
-$chrony_event = Clkmgr::EventGMOffset
+$event2Sub = (Clkmgr::EventOffsetInRange | Clkmgr::EventSyncedWithGm |
+    Clkmgr::EventAsCapable | Clkmgr::EventGmChanged)
+$composite_event = (Clkmgr::EventOffsetInRange | Clkmgr::EventSyncedWithGm |
+    Clkmgr::EventAsCapable)
+$chrony_event = Clkmgr::EventOffsetInRange
 # Subscribe data
 $ptp4lSub = Clkmgr::PTPClockSubscription.new
 $chronySub = Clkmgr::SysClockSubscription.new
@@ -73,16 +73,16 @@ def printOut
     puts hd3
     if $composite_event != 0 then
         puts hd3b % ['ptp_isCompositeEventMet', ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount()]
-        puts '| - %-26s | %-12s | %-11s |' % ['isOffsetInRange', '', ''] if $composite_event & Clkmgr::EventGMOffset
-        puts '| - %-26s | %-12s | %-11s |' % ['isSyncedWithGm', '', ''] if $composite_event & Clkmgr::EventSyncedToGM
-        puts '| - %-26s | %-12s | %-11s |' % ['isAsCapable', '', ''] if $composite_event & Clkmgr::EventASCapable
+        puts '| - %-26s | %-12s | %-11s |' % ['isOffsetInRange', '', ''] if $composite_event & Clkmgr::EventOffsetInRange
+        puts '| - %-26s | %-12s | %-11s |' % ['isSyncedWithGm', '', ''] if $composite_event & Clkmgr::EventSyncedWithGm
+        puts '| - %-26s | %-12s | %-11s |' % ['isAsCapable', '', ''] if $composite_event & Clkmgr::EventAsCapable
     end
     if $event2Sub != 0 then
         puts hd3
-        puts hd3b % ['ptp_isOffsetInRange', ptpClock.isOffsetInRange().to_s, ptpClock.getOffsetInRangeEventCount()] if $event2Sub & Clkmgr::EventGMOffset
-        puts hd3b % ['ptp_isSyncedWithGm', ptpClock.isSyncedWithGm().to_s, ptpClock.getSyncedWithGmEventCount()] if $event2Sub & Clkmgr::EventSyncedToGM
-        puts hd3b % ['ptp_isAsCapable', ptpClock.isAsCapable().to_s, ptpClock.getAsCapableEventCount()] if $event2Sub & Clkmgr::EventASCapable
-        puts hd3b % ['ptp_isGmChanged', ptpClock.isGmChanged().to_s, ptpClock.getGmChangedEventCount()] if $event2Sub & Clkmgr::EventGMChanged
+        puts hd3b % ['ptp_isOffsetInRange', ptpClock.isOffsetInRange().to_s, ptpClock.getOffsetInRangeEventCount()] if $event2Sub & Clkmgr::EventOffsetInRange
+        puts hd3b % ['ptp_isSyncedWithGm', ptpClock.isSyncedWithGm().to_s, ptpClock.getSyncedWithGmEventCount()] if $event2Sub & Clkmgr::EventSyncedWithGm
+        puts hd3b % ['ptp_isAsCapable', ptpClock.isAsCapable().to_s, ptpClock.getAsCapableEventCount()] if $event2Sub & Clkmgr::EventAsCapable
+        puts hd3b % ['ptp_isGmChanged', ptpClock.isGmChanged().to_s, ptpClock.getGmChangedEventCount()] if $event2Sub & Clkmgr::EventGmChanged
     end
     puts hd3
     puts '| %-28s |     %-19d ns |' % ['ptp_clockOffset', ptpClock.getClockOffset()]
@@ -131,15 +131,15 @@ Options
   -p enable user to subscribe to specific time base indices
   -s subscribe_event_mask
      Default: 0x#{$event2Sub.to_s(16)}
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
-     Bit 3: EventGMChanged
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
+     Bit 3: EventGmChanged
   -c composite_event_mask
      Default: 0x#{$composite_event.to_s(16)}
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
   -l gm offset threshold (ns)
      Default: #{$ptp4lClockOffsetThreshold} ns
   -i idle time (s)
@@ -148,7 +148,7 @@ Options
      Default: #{$chronyClockOffsetThreshold} ns
   -n chrony_event_mask
      Default: 0x#{$chrony_event.to_s(16)}
-     Bit 0: EventGMOffset
+     Bit 0: EventOffsetInRange
   -t $timeout in waiting notification event (s)
      Default: #{$timeout} s
 EOF

@@ -75,37 +75,37 @@ proc printOut {} {
         puts [format $hd3b "ptp_isCompositeEventMet"\
             [ $ptpClock isCompositeEventMet ]\
             [ $ptpClock getCompositeEventCount ]]
-        if { $composite_event & $clkmgr::EventGMOffset } {
+        if { $composite_event & $clkmgr::EventOffsetInRange } {
             puts [format "| - %-26s | %-12s | %-11s |"\
                 "isOffsetInRange" "" ""]
         }
-        if { $composite_event & $clkmgr::EventSyncedToGM } {
+        if { $composite_event & $clkmgr::EventSyncedWithGm } {
             puts [format "| - %-26s | %-12s | %-11s |"\
                 "isSyncedWithGm" "" ""]
         }
-        if { $composite_event & $clkmgr::EventASCapable } {
+        if { $composite_event & $clkmgr::EventAsCapable } {
             puts [format "| - %-26s | %-12s | %-11s |"\
                 "isAsCapable" "" ""]
         }
     }
     if { $event2Sub != 0 } {
         puts $hd3
-        if { $event2Sub & $clkmgr::EventGMOffset } {
+        if { $event2Sub & $clkmgr::EventOffsetInRange } {
             puts [format $hd3b "ptp_isOffsetInRange"\
                 [ $ptpClock isOffsetInRange ]\
                 [ $ptpClock getOffsetInRangeEventCount ]]
         }
-        if { $event2Sub & $clkmgr::EventSyncedToGM } {
+        if { $event2Sub & $clkmgr::EventSyncedWithGm } {
             puts [format $hd3b "ptp_isSyncedWithGm"\
                 [ $ptpClock isSyncedWithGm ]\
                 [ $ptpClock getSyncedWithGmEventCount ]]
         }
-        if { $event2Sub & $clkmgr::EventASCapable } {
+        if { $event2Sub & $clkmgr::EventAsCapable } {
             puts [format $hd3b "ptp_isAsCapable"\
                 [ $ptpClock isAsCapable ]\
                 [ $ptpClock getAsCapableEventCount ]]
         }
-        if { $event2Sub & $clkmgr::EventGMChanged } {
+        if { $event2Sub & $clkmgr::EventGmChanged } {
             puts [format $hd3b "ptp_isGmChanged"\
                 [ $ptpClock isGmChanged ]\
                 [ $ptpClock getGmChangedEventCount ]]
@@ -163,11 +163,11 @@ proc main {} {
     global argv argv0 index subscribeAll event2Sub composite_event chrony_event\
         clockSyncData ptp4lSub chronySub idleTime timeout
     # index list of indexes to subscribe
-    set event2Sub [expr $clkmgr::EventGMOffset | $clkmgr::EventSyncedToGM |\
-        $clkmgr::EventASCapable | $clkmgr::EventGMChanged ]
-    set composite_event [expr $clkmgr::EventGMOffset |\
-        $clkmgr::EventSyncedToGM | $clkmgr::EventASCapable ]
-    set chrony_event $clkmgr::EventGMOffset
+    set event2Sub [expr $clkmgr::EventOffsetInRange | $clkmgr::EventSyncedWithGm |\
+        $clkmgr::EventAsCapable | $clkmgr::EventGmChanged ]
+    set composite_event [expr $clkmgr::EventOffsetInRange |\
+        $clkmgr::EventSyncedWithGm | $clkmgr::EventAsCapable ]
+    set chrony_event $clkmgr::EventOffsetInRange
     set options {
         {h}
         {a}
@@ -203,18 +203,18 @@ Options:
   -p enable user to subscribe to specific time base indices
   -s subscribe_event_mask
      Default: 0x[format %x $event2Sub ]
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
-     Bit 3: EventGMChanged
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
+     Bit 3: EventGmChanged
   -c composite_event_mask
      Default: 0x[format %x $composite_event ]
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
   -n chrony_event_mask
      Default: 0x[format %x $chrony_event ]
-     Bit 0: EventGMOffset
+     Bit 0: EventOffsetInRange
   -l gm offset threshold (ns)
      Default: 100000 ns
   -i idle time (s)

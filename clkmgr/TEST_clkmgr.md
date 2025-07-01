@@ -228,15 +228,15 @@ Options:
   -p enable user to subscribe to specific time base indices  
   -s subscribe_event_mask  
      Default: 0xf  
-     Bit 0: EventGMOffset  
-     Bit 1: EventSyncedToGM  
-     Bit 2: EventASCapable  
-     Bit 3: EventGMChanged  
+     Bit 0: EventOffsetInRange  
+     Bit 1: EventSyncedWithGm  
+     Bit 2: EventAsCapable  
+     Bit 3: EventGmChanged  
   -c composite_event_mask  
      Default: 0x7  
-     Bit 0: EventGMOffset  
-     Bit 1: EventSyncedToGM  
-     Bit 2: EventASCapable  
+     Bit 0: EventOffsetInRange  
+     Bit 1: EventSyncedWithGm  
+     Bit 2: EventAsCapable  
   -l gm offset threshold (ns)  
      Default: 100000 ns  
   -i idle time (s)  

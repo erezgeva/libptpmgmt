@@ -22,11 +22,11 @@ local time = require 'posix.time'
 local signal_flag = false
 
 -- Global variables for event configuration and clock sync data
-local event2Sub = clkmgr.EventGMOffset + clkmgr.EventSyncedToGM +
-    clkmgr.EventASCapable + clkmgr.EventGMChanged
-local composite_event = clkmgr.EventGMOffset +
-    clkmgr.EventSyncedToGM + clkmgr.EventASCapable
-local chrony_event = clkmgr.EventGMOffset
+local event2Sub = clkmgr.EventOffsetInRange + clkmgr.EventSyncedWithGm +
+    clkmgr.EventAsCapable + clkmgr.EventGmChanged
+local composite_event = clkmgr.EventOffsetInRange +
+    clkmgr.EventSyncedWithGm + clkmgr.EventAsCapable
+local chrony_event = clkmgr.EventOffsetInRange
 local clockSyncData = clkmgr.ClockSyncData()
 
 local function signal_handler(signo)
@@ -115,15 +115,15 @@ local function printOut()
         print(string.format(hd3b, 'ptp_isCompositeEventMet',
             tostring(ptpClock:isCompositeEventMet()),
             ptpClock:getCompositeEventCount()))
-        if haveFlag(composite_event, clkmgr.EventGMOffset) then
+        if haveFlag(composite_event, clkmgr.EventOffsetInRange) then
             print(string.format('| - %-26s | %-12s | %-11s |',
                 'isOffsetInRange', '', ''))
         end
-        if haveFlag(composite_event, clkmgr.EventSyncedToGM) then
+        if haveFlag(composite_event, clkmgr.EventSyncedWithGm) then
             print(string.format('| - %-26s | %-12s | %-11s |',
                 'isSyncedWithGm', '', ''))
         end
-        if haveFlag(composite_event, clkmgr.EventASCapable) then
+        if haveFlag(composite_event, clkmgr.EventAsCapable) then
             print(string.format('| - %-26s | %-12s | %-11s |',
                 'isAsCapable', '', ''))
         end
@@ -131,22 +131,22 @@ local function printOut()
 
     if event2Sub ~= 0 then
         print(hd3)
-        if haveFlag(event2Sub, clkmgr.EventGMOffset) then
+        if haveFlag(event2Sub, clkmgr.EventOffsetInRange) then
             print(string.format(hd3b, 'ptp_isOffsetInRange',
                 tostring(ptpClock:isOffsetInRange()),
                 ptpClock:getOffsetInRangeEventCount()))
         end
-        if haveFlag(event2Sub, clkmgr.EventSyncedToGM) then
+        if haveFlag(event2Sub, clkmgr.EventSyncedWithGm) then
             print(string.format(hd3b, 'ptp_isSyncedWithGm',
                 tostring(ptpClock:isSyncedWithGm()),
                 ptpClock:getSyncedWithGmEventCount()))
         end
-        if haveFlag(event2Sub, clkmgr.EventASCapable) then
+        if haveFlag(event2Sub, clkmgr.EventAsCapable) then
             print(string.format(hd3b, 'ptp_isAsCapable',
                 tostring(ptpClock:isAsCapable()),
                 ptpClock:getAsCapableEventCount()))
         end
-        if haveFlag(event2Sub, clkmgr.EventGMChanged) then
+        if haveFlag(event2Sub, clkmgr.EventGmChanged) then
             print(string.format(hd3b, 'ptp_isGmChanged',
                 tostring(ptpClock:isGmChanged()),
                 ptpClock:getGmChangedEventCount()))
@@ -257,18 +257,18 @@ Options:
   -p enable user to subscribe to specific time base indices
   -s subscribe_event_mask
      Default: ]=] .. string.format('0x%x\n', event2Sub) .. [=[
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
-     Bit 3: EventGMChanged
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
+     Bit 3: EventGmChanged
   -c composite_event_mask
      Default: ]=] .. string.format('0x%x\n', composite_event) .. [=[
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
   -n chrony_event_mask
      Default: ]=] .. string.format('0x%x\n', chrony_event) .. [=[
-     Bit 0: EventGMOffset
+     Bit 0: EventOffsetInRange
   -l gm offset threshold (ns)
      Default: ]=] .. ptp4lClockOffsetThreshold .. [=[ ns
   -i idle time (s)

@@ -31,11 +31,11 @@ userInput = False
 idleTime = 1
 timeout = 10
 clockSyncData = clkmgr.ClockSyncData()
-event2Sub = (clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
-    clkmgr.EventASCapable | clkmgr.EventGMChanged)
-composite_event = (clkmgr.EventGMOffset | clkmgr.EventSyncedToGM |
-    clkmgr.EventASCapable)
-chrony_event = clkmgr.EventGMOffset
+event2Sub = (clkmgr.EventOffsetInRange | clkmgr.EventSyncedWithGm |
+    clkmgr.EventAsCapable | clkmgr.EventGmChanged)
+composite_event = (clkmgr.EventOffsetInRange | clkmgr.EventSyncedWithGm |
+    clkmgr.EventAsCapable)
+chrony_event = clkmgr.EventOffsetInRange
 # Subscribe data
 ptp4lSub = clkmgr.PTPClockSubscription()
 chronySub = clkmgr.SysClockSubscription()
@@ -81,21 +81,21 @@ def printOut():
     print(hd3)
     if composite_event != 0:
         print(hd3b % ('ptp_isCompositeEventMet', ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount()))
-        if composite_event & clkmgr.EventGMOffset:
+        if composite_event & clkmgr.EventOffsetInRange:
             print('| - %-26s | %-12s | %-11s |' % ('isOffsetInRange', '', ''))
-        if composite_event & clkmgr.EventSyncedToGM:
+        if composite_event & clkmgr.EventSyncedWithGm:
             print('| - %-26s | %-12s | %-11s |' % ('isSyncedWithGm', '', ''))
-        if composite_event & clkmgr.EventASCapable:
+        if composite_event & clkmgr.EventAsCapable:
             print('| - %-26s | %-12s | %-11s |' % ('isAsCapable', '', ''))
     if event2Sub != 0:
         print(hd3)
-        if event2Sub & clkmgr.EventGMOffset:
+        if event2Sub & clkmgr.EventOffsetInRange:
             print(hd3b % ('ptp_isOffsetInRange', ptpClock.isOffsetInRange(), ptpClock.getOffsetInRangeEventCount()))
-        if event2Sub & clkmgr.EventSyncedToGM:
+        if event2Sub & clkmgr.EventSyncedWithGm:
             print(hd3b % ('ptp_isSyncedWithGm', ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount()))
-        if event2Sub & clkmgr.EventASCapable:
+        if event2Sub & clkmgr.EventAsCapable:
             print(hd3b % ('ptp_isAsCapable', ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount()))
-        if event2Sub & clkmgr.EventGMChanged:
+        if event2Sub & clkmgr.EventGmChanged:
             print(hd3b % ('ptp_isGmChanged', ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount()))
     print(hd3)
     print('| %-28s |     %-19ld ns |' % ('ptp_clockOffset', ptpClock.getClockOffset()))
@@ -141,18 +141,18 @@ Options:
   -p enable user to subscribe to specific time base indices
   -s subscribe_event_mask
      Default: {}
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
-     Bit 3: EventGMChanged
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
+     Bit 3: EventGmChanged
   -c composite_event_mask
      Default: {}
-     Bit 0: EventGMOffset
-     Bit 1: EventSyncedToGM
-     Bit 2: EventASCapable
+     Bit 0: EventOffsetInRange
+     Bit 1: EventSyncedWithGm
+     Bit 2: EventAsCapable
   -n chrony_event_mask
      Default: {}
-     Bit 0: EventGMOffset
+     Bit 0: EventOffsetInRange
   -l gm offset threshold (ns)
      Default: {} ns
   -i idle time (s)

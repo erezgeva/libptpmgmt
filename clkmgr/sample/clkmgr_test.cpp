@@ -35,12 +35,12 @@ static PTPClockEvent &ptpClock = clockSyncData.getPtp();
 static SysClockEvent &sysClock = clockSyncData.getSysClock();
 
 static uint32_t event2Sub =
-    EventGMOffset | EventSyncedToGM | EventASCapable | EventGMChanged;
+    EventOffsetInRange | EventSyncedWithGm | EventAsCapable | EventGmChanged;
 
 static uint32_t composite_event =
-    EventGMOffset | EventSyncedToGM | EventASCapable;
+    EventOffsetInRange | EventSyncedWithGm | EventAsCapable;
 
-static uint32_t chronyEvent = EventGMOffset;
+static uint32_t chronyEvent = EventOffsetInRange;
 
 static uint64_t gmClockUUID;
 static timespec ts;
@@ -99,32 +99,32 @@ static void printOut()
         printf("| %-28s | %-12d | %-11d |\n", "ptp_isCompositeEventMet",
             ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
     }
-    if (composite_event & EventGMOffset) {
+    if (composite_event & EventOffsetInRange) {
         printf("| - %-26s | %-12s | %-11s |\n", "isOffsetInRange", "", "");
     }
-    if (composite_event & EventSyncedToGM) {
+    if (composite_event & EventSyncedWithGm) {
         printf("| - %-26s | %-12s | %-11s |\n", "isSyncedWithGm", "", "");
     }
-    if (composite_event & EventASCapable) {
+    if (composite_event & EventAsCapable) {
         printf("| - %-26s | %-12s | %-11s |\n", "isAsCapable", "", "");
     }
     if (event2Sub) {
         printf("|------------------------------|--------------|-------------|\n");
     }
-    if (event2Sub & EventGMOffset) {
+    if (event2Sub & EventOffsetInRange) {
         printf("| %-28s | %-12d | %-11d |\n", "ptp_isOffsetInRange",
             ptpClock.isOffsetInRange(),
             ptpClock.getOffsetInRangeEventCount());
     }
-    if (event2Sub & EventSyncedToGM) {
+    if (event2Sub & EventSyncedWithGm) {
         printf("| %-28s | %-12d | %-11d |\n", "ptp_isSyncedWithGm",
             ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
     }
-    if (event2Sub & EventASCapable) {
+    if (event2Sub & EventAsCapable) {
         printf("| %-28s | %-12d | %-11d |\n", "ptp_isAsCapable",
             ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount());
     }
-    if (event2Sub & EventGMChanged) {
+    if (event2Sub & EventGmChanged) {
         printf("| %-28s | %-12d | %-11d |\n", "ptp_isGmChanged",
             ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount());
     }
@@ -240,15 +240,15 @@ int main(int argc, char *argv[])
                 "  -p enable user to subscribe to specific time base indices" << std::endl <<
                 "  -s subscribe_event_mask" << std::endl <<
                 "     Default: 0x" << std::hex << event2Sub << std::endl <<
-                "     Bit 0: EventGMOffset" << std::endl <<
-                "     Bit 1: EventSyncedToGM" << std::endl <<
-                "     Bit 2: EventASCapable" << std::endl <<
-                "     Bit 3: EventGMChanged" << std::endl <<
+                "     Bit 0: EventOffsetInRange" << std::endl <<
+                "     Bit 1: EventSyncedWithGm" << std::endl <<
+                "     Bit 2: EventAsCapable" << std::endl <<
+                "     Bit 3: EventGmChanged" << std::endl <<
                 "  -c composite_event_mask" << std::endl <<
                 "     Default: 0x" << composite_event << std::endl <<
-                "     Bit 0: EventGMOffset" << std::endl <<
-                "     Bit 1: EventSyncedToGM" << std::endl <<
-                "     Bit 2: EventASCapable" << std::endl <<
+                "     Bit 0: EventOffsetInRange" << std::endl <<
+                "     Bit 1: EventSyncedWithGm" << std::endl <<
+                "     Bit 2: EventAsCapable" << std::endl <<
                 "  -l gm offset threshold (ns)" << std::endl <<
                 "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns" << std::endl <<
                 "  -i idle time (s)" << std::endl <<
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
                 "     Default: " << chronyClockOffsetThreshold << " ns" << std::endl <<
                 "  -n chrony_event_mask" << std::endl <<
                 "     Default: 0x" << std::hex << chronyEvent << std::endl <<
-                "     Bit 0: EventGMOffset" << std::endl <<
+                "     Bit 0: EventOffsetInRange" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
                 "     Default: " << timeout << " s" << std::endl;
             return EXIT_SUCCESS;
@@ -269,15 +269,15 @@ int main(int argc, char *argv[])
                 "  -p enable user to subscribe to specific time base indices" << std::endl <<
                 "  -s subscribe_event_mask" << std::endl <<
                 "     Default: 0x" << std::hex << event2Sub << std::endl <<
-                "     Bit 0: EventGMOffset" << std::endl <<
-                "     Bit 1: EventSyncedToGM" << std::endl <<
-                "     Bit 2: EventASCapable" << std::endl <<
-                "     Bit 3: EventGMChanged" << std::endl <<
+                "     Bit 0: EventOffsetInRange" << std::endl <<
+                "     Bit 1: EventSyncedWithGm" << std::endl <<
+                "     Bit 2: EventAsCapable" << std::endl <<
+                "     Bit 3: EventGmChanged" << std::endl <<
                 "  -c composite_event_mask" << std::endl <<
                 "     Default: 0x" << composite_event << std::endl <<
-                "     Bit 0: EventGMOffset" << std::endl <<
-                "     Bit 1: EventSyncedToGM" << std::endl <<
-                "     Bit 2: EventASCapable" << std::endl <<
+                "     Bit 0: EventOffsetInRange" << std::endl <<
+                "     Bit 1: EventSyncedWithGm" << std::endl <<
+                "     Bit 2: EventAsCapable" << std::endl <<
                 "  -l gm offset threshold (ns)" << std::endl <<
                 "     Default: " << std::dec << ptp4lClockOffsetThreshold << " ns" << std::endl <<
                 "  -i idle time (s)" << std::endl <<
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
                 "     Default: " << chronyClockOffsetThreshold << " ns" << std::endl <<
                 "  -n chrony_event_mask" << std::endl <<
                 "     Default: 0x" << std::hex << chronyEvent << std::endl <<
-                "     Bit 0: EventGMOffset" << std::endl <<
+                "     Bit 0: EventOffsetInRange" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
                 "     Default: " << timeout << " s" << std::endl;
             return EXIT_FAILURE;

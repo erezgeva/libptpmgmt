@@ -18,9 +18,9 @@
  */
 
 $signal_flag = false;
-$event2Sub = EventGMOffset | EventSyncedToGM | EventASCapable | EventGMChanged;
-$composite_event = EventGMOffset | EventSyncedToGM | EventASCapable;
-$chrony_event = EventGMOffset;
+$event2Sub = EventOffsetInRange | EventSyncedWithGm | EventAsCapable | EventGmChanged;
+$composite_event = EventOffsetInRange | EventSyncedWithGm | EventAsCapable;
+$chrony_event = EventOffsetInRange;
 $clockSyncData = null;
 
 declare(ticks = 1);
@@ -70,22 +70,22 @@ function printOut(): void
     if($composite_event != 0) {
         echo $hd3 . PHP_EOL;
         printf($hd3b . PHP_EOL, 'ptp_isCompositeEventMet', $ptpClock->isCompositeEventMet(), $ptpClock->getCompositeEventCount());
-        if($composite_event & EventGMOffset)
+        if($composite_event & EventOffsetInRange)
             printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isOffsetInRange', '', '');
-        if($composite_event & EventSyncedToGM)
+        if($composite_event & EventSyncedWithGm)
             printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isSyncedWithGm', '', '');
-        if($composite_event & EventASCapable)
+        if($composite_event & EventAsCapable)
             printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isAsCapable', '', '');
     }
     if($event2Sub != 0) {
         echo $hd3 . PHP_EOL;
-        if($event2Sub & EventGMOffset)
+        if($event2Sub & EventOffsetInRange)
             printf($hd3b . PHP_EOL, 'ptp_isOffsetInRange', $ptpClock->isOffsetInRange(), $ptpClock->getOffsetInRangeEventCount());
-        if($event2Sub & EventSyncedToGM)
+        if($event2Sub & EventSyncedWithGm)
             printf($hd3b . PHP_EOL, 'ptp_isSyncedWithGm', $ptpClock->isSyncedWithGm(), $ptpClock->getSyncedWithGmEventCount());
-        if($event2Sub & EventASCapable)
+        if($event2Sub & EventAsCapable)
             printf($hd3b . PHP_EOL, 'ptp_isAsCapable', $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount());
-        if($event2Sub & EventGMChanged)
+        if($event2Sub & EventGmChanged)
             printf($hd3b . PHP_EOL, 'ptp_isGmChanged', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
     }
     echo $hd3 . PHP_EOL;
@@ -157,18 +157,18 @@ function main(): void
           -p enable user to subscribe to specific time base indices
           -s subscribe_event_mask
              Default: 0x$event2SubHex
-             Bit 0: EventGMOffset
-             Bit 1: EventSyncedToGM
-             Bit 2: EventASCapable
-             Bit 3: EventGMChanged
+             Bit 0: EventOffsetInRange
+             Bit 1: EventSyncedWithGm
+             Bit 2: EventAsCapable
+             Bit 3: EventGmChanged
           -c composite_event_mask
              Default: 0x$composite_eventHex
-             Bit 0: EventGMOffset
-             Bit 1: EventSyncedToGM
-             Bit 2: EventASCapable
+             Bit 0: EventOffsetInRange
+             Bit 1: EventSyncedWithGm
+             Bit 2: EventAsCapable
           -n chrony_event_mask
              Default: 0x$chrony_eventHex
-             Bit 0: EventGMOffset
+             Bit 0: EventOffsetInRange
           -l gm offset threshold (ns)
              Default: $ptp4lClockOffsetThreshold ns
           -i idle time (s)
