@@ -84,7 +84,7 @@ class Client
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
     static void NotifyClients(size_t timeBaseIndex);
-    static void getPTPEvent(size_t timeBaseIndex, ptp_event &evnt);
+    static void getPTPEvent(size_t timeBaseIndex, ptp_event &event);
 };
 
 __CLKMGR_NAMESPACE_END
