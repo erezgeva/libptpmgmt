@@ -33,7 +33,7 @@ verdep="$pkgver-$pkgrel"
 build() {
   cd $pkgname-$pkgver
   autoreconf -i
-  ./configure --prefix=/usr --sbindir=\${prefix}/bin
+  ./configure --prefix=/usr --sbindir=\${prefix}/bin --sysconfdir=/etc
   make PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
   make DESTDIR=../install install --no-print-directory compile_py3
@@ -171,10 +171,10 @@ package_clkmgr-proxy() {
   pkgdesc='Clock Manager proxy service'
   depends=("$pkgbase=$verdep")
   install=clkmgr-proxy.install
-  mkdir -p $pkgdir/usr/local/man/man8 $pkgdir/usr/bin $pkgdir/etc $pkgdir/usr/lib
+  mkdir -p $pkgdir/usr/local/man/man8 $pkgdir/usr/bin $pkgdir/usr/lib
   mv $srcdir/install/usr/bin/clkmgr_proxy $pkgdir/usr/bin
   mv $srcdir/install/usr/share/man/man8/clkmgr* $pkgdir/usr/local/man/man8
-  mv $srcdir/install/etc/clkmgr $pkgdir/etc
+  mv $srcdir/install/etc $pkgdir
   mv $srcdir/install/usr/lib/systemd $pkgdir/usr/lib
 }
 package_libclkmgr() {

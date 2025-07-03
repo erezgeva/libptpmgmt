@@ -218,7 +218,8 @@ PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
-D_FILES:=$(wildcard */*.d */*/*.d)
+D_FILES:=$(wildcard $(addsuffix /*.d,$(OBJ_DIR) utest uctest wrappers/*\
+  wrappers/*/* $(addprefix $(CLKMGR_DIR)/,common client proxy utest)))
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
 HDR_BTH:=mngIds types proc sig callDef
 HEADERS_GEN_PUB:=$(foreach n,ver name $(HDR_BTH),$(PUB)/$n.h)
@@ -292,7 +293,7 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/*\
   $(CLKMGR_DIR)/proxy/*.s*) $(CLKMGR_DIR)/utest/Makefile\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
   $(MAKEFILE_LIST) credits $(CLKMGR_DIR)/credits $(SRCS_CLKMGR)\
-  $(HEADERS_SRCS_CLKMGR)
+  $(HEADERS_SRCS_CLKMGR) $(CLKMGR_DIR)/proxy/$(CLKMGR_NAME).init
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[chj]* uctest/*.[ch]* .github .gitlab $(CLKMGR_DIR)/sample\
@@ -609,7 +610,8 @@ endif
 # TODO The bug should be fixed in doxygen version 1.9.7
 	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
 ifndef SKIP_CLKMGR
-	$(call Q_DOXY,clkmgr)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.clkmgr.cfg $(Q_OUT)
+	$(call Q_DOXY,$(CLKMGR_NAME))CAIRO_DEBUG_PDF=1 $(DOXYGEN)\
+	  tools/doxygen.clkmgr.cfg $(Q_OUT)
 endif
 ifndef DOTTOOL
 	$(SED) -i 's!^HAVE_DOT\s.*!\$(hash)HAVE_DOT               = YES!' tools/doxygen*cfg
@@ -832,7 +834,8 @@ ifneq ($(wildcard /usr/share/pacman/PKGBUILD.proto),)
 # Default configuration on Arch Linux
 HAVE_CONFIG_GAOL:=1
 config: $(CONF_FILES)
-	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto` $(MORE_CONFIG)
+	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto`\
+	  --sysconfdir=/etc $(MORE_CONFIG)
 endif # wildcard pacman/PKGBUILD.proto
 endif # HAVE_CONFIG_GAOL
 endif # filter distclean,MAKECMDGOALS
@@ -852,7 +855,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.* wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
   */$(LIB_SRC) tools/doxygen*cfg $(CLKMGR_DIR)/utest/utest_*\
-  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/sample/clkmgr*test)\
+  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/sample/$(CLKMGR_NAME)*test)\
   $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\

@@ -23,3 +23,13 @@ post_remove() {
     systemctl --system daemon-reload >/dev/null || true
   fi
 }
+post_upgrade() {
+  if [ -x "/usr/sbin/systemctl" ] && [ -d /run/systemd/system ]; then
+    systemctl --system daemon-reload >/dev/null || true
+  fi
+}
+post_install() {
+  if [ -x "/usr/sbin/systemctl" ] && [ -d /run/systemd/system ]; then
+    systemctl --system daemon-reload >/dev/null || true
+  fi
+}
