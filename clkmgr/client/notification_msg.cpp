@@ -14,6 +14,7 @@
 #include "client/timebase_state.hpp"
 #include "common/serialize.hpp"
 #include "common/print.hpp"
+#include "client/clock_event_handler.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -22,9 +23,21 @@ using namespace std;
 bool ClientNotificationMessage::parseBufferTail()
 {
     PrintDebug("[ClientNotificationMessage]::parseBufferTail");
-    ptp_event ptpData = {};
-    if(!PARSE_RX(ptpData, rxBuf))
+    uint8_t clockType = 0;
+    if(!PARSE_RX(clockType, rxBuf))
         return false;
-    TimeBaseStates::getInstance().setTimeBaseState(timeBaseIndex, ptpData);
+    if(clockType == ClockEventHandler::PTPClock) {
+        ptp_event ptpData = {};
+        if(!PARSE_RX(ptpData, rxBuf))
+            return false;
+        TimeBaseStates::getInstance().setTimeBaseStatePtp(timeBaseIndex, ptpData);
+    }
+    if(clockType == ClockEventHandler::SysClock) {
+        chrony_event chronyData = {};
+        if(!PARSE_RX(chronyData, rxBuf))
+            return false;
+        TimeBaseStates::getInstance().setTimeBaseStateSys(timeBaseIndex,
+            chronyData);
+    }
     return true;
 }

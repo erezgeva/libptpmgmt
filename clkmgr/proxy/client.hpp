@@ -15,6 +15,7 @@
 #include "common/msgq_tport.hpp"
 #include "common/message.hpp"
 #include "common/ptp_event.hpp"
+#include "client/clock_event_handler.hpp"
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -65,6 +66,7 @@ class Client
   private:
     sessionId_t m_sessionId = InvalidSessionId;
     std::unique_ptr<Transmitter> m_transmitter;
+    static ClockEventHandler::ClockType clockType;
     static sessionId_t CreateClientSession(const std::string &id);
     static void RemoveClient(sessionId_t sessionId);
     static Client *getClient(sessionId_t sessionId);
@@ -85,6 +87,10 @@ class Client
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
     static void NotifyClients(size_t timeBaseIndex);
     static void getPTPEvent(size_t timeBaseIndex, ptp_event &event);
+    static void getChronyEvent(size_t timeBaseIndex, chrony_event &event);
+    static void setClockType(ClockEventHandler::ClockType type)
+    { clockType = type; }
+    static ClockEventHandler::ClockType getClockType() { return clockType; }
 };
 
 __CLKMGR_NAMESPACE_END

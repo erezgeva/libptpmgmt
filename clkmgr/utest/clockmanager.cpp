@@ -86,6 +86,14 @@ void TimeBaseState::set_last_notification_time(const timespec &newTime)
 {
     last_notification_time = newTime;
 }
+bool TimeBaseState::is_havePtp() const
+{
+    return true;
+}
+bool TimeBaseState::is_haveSys() const
+{
+    return true;
+}
 
 // Used in _subscribe() to send a subscribe message to the proxy and wait for
 // a confirmation reply
@@ -140,7 +148,7 @@ bool TimeBaseStates::getTimeBaseState(size_t timeBaseIndex,
 }
 
 // Create dummy timebase state for testing
-void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
+void TimeBaseStates::setTimeBaseStatePtp(size_t timeBaseIndex,
     const ptp_event &newEvent)
 {
     auto &state = timeBaseStateMap[1];
@@ -151,7 +159,6 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
     state.set_event_changed(true);
     // Get the current state of the timebase
     PTPClockEvent ptp4lEventState = state.get_ptp4lEventState();
-    SysClockEvent chronyEventState = state.get_chronyEventState();
     // Update EventOffsetInRange
     ptpClockEventHandler.setClockOffset(ptp4lEventState, 23);
     ptpClockEventHandler.setOffsetInRange(ptp4lEventState, true);
@@ -177,6 +184,21 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
         notification_timestamp);
     // Update GM logSyncInterval
     ptpClockEventHandler.setSyncInterval(ptp4lEventState, 125000);
+    state.set_ptpEventState(ptp4lEventState);
+}
+
+// Create dummy timebase state for testing
+void TimeBaseStates::setTimeBaseStateSys(size_t timeBaseIndex,
+    const chrony_event &newEvent)
+{
+    auto &state = timeBaseStateMap[1];
+    // Update the notification timestamp
+    timespec last_notification_time = {};
+    clock_gettime(CLOCK_REALTIME, &last_notification_time);
+    state.set_last_notification_time(last_notification_time);
+    state.set_event_changed(true);
+    // Get the current state of the timebase
+    SysClockEvent chronyEventState = state.get_chronyEventState();
     // Update Chrony clock offset
     sysClockEventHandler.setClockOffset(chronyEventState, 50000);
     sysClockEventHandler.setOffsetInRange(chronyEventState, true);
@@ -184,7 +206,6 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
     sysClockEventHandler.setGmIdentity(chronyEventState, 0x5678EF01);
     sysClockEventHandler.setSyncInterval(chronyEventState, 10000);
     state.set_chronyEventState(chronyEventState);
-    state.set_ptpEventState(ptp4lEventState);
 }
 
 // Create dummy TimeBaseConfigurations for testing
@@ -220,7 +241,9 @@ class ClockManagerTest : public ::testing::Test
     void SetUp() override {
         ClientConnectMessage::set();
         ptp_event ptpData = {};
-        TimeBaseStates::getInstance().setTimeBaseState(1, ptpData);
+        chrony_event chronyData = {};
+        TimeBaseStates::getInstance().setTimeBaseStatePtp(1, ptpData);
+        TimeBaseStates::getInstance().setTimeBaseStateSys(1, chronyData);
     }
 };
 

@@ -12,6 +12,7 @@
 #include "proxy/client.hpp"
 #include "proxy/connect_srv.hpp"
 #include "common/print.hpp"
+#include "client/clock_event_handler.hpp"
 
 // libptpmgmt
 #include "sock.h"
@@ -182,6 +183,7 @@ void ptpSet::event_handle()
         return;
     if(do_notify) {
         event.copy();
+        Client::setClockType(ClockEventHandler::PTPClock);
         Client::NotifyClients(timeBaseIndex);
     }
 }
@@ -245,6 +247,7 @@ void ptpSet::thread_loop()
                     lost_connection = true;
                     if(stopThread)
                         return;
+                    Client::setClockType(ClockEventHandler::PTPClock);
                     event.copy();
                     Client::NotifyClients(timeBaseIndex);
                 }

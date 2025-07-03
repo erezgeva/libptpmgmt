@@ -36,6 +36,8 @@ class TimeBaseState
     PTPClockSubscription ptpEventSub; /**< PTP Event subscription */
     SysClockSubscription sysEventSub; /**< Chrony Event subscription */
     timespec last_notification_time = {}; /**< Last notification time */
+    bool havePtPData = false; /**< Flag to indicate if PTP data is available */
+    bool haveSysData = false; /**< Flag to indicate if Chrony data is available */
 
   public:
     /**
@@ -122,6 +124,30 @@ class TimeBaseState
      * @return True if the subscription is set successfully, false otherwise
      */
     bool set_sysEventSub(const SysClockSubscription &eSub);
+
+    /**
+     * Check whether there is any PTP clock data available
+     * @return true if available, false otherwise
+     */
+    bool is_havePtp() const;
+
+    /**
+     * Set havePtpData to indicate whether there is any PTP data available
+     * @param[in] havePtp True if PTP data is available, false otherwise
+     */
+    void set_havePtp(bool havePtp);
+
+    /**
+     * Check whether there is any system clock data available
+     * @return true if available, false otherwise
+     */
+    bool is_haveSys() const;
+
+    /**
+     * Set haveSysData to indicate whether there is any system clock data available
+     * @param[in] haveSys True if system clock data is available, false otherwise
+     */
+    void set_haveSys(bool haveSys);
 };
 
 /**
@@ -147,8 +173,11 @@ class TimeBaseStates
     // Method to get a copy of TimeBaseState by timeBaseIndex
     bool getTimeBaseState(size_t timeBaseIndex, TimeBaseState &state);
 
-    // Method to set TimeBaseState by timeBaseIndex
-    void setTimeBaseState(size_t timeBaseIndex, const ptp_event &event);
+    // Method to set TimeBaseState for PTP clock by timeBaseIndex
+    void setTimeBaseStatePtp(size_t timeBaseIndex, const ptp_event &event);
+
+    // Method to set TimeBaseState for System clock by timeBaseIndex
+    void setTimeBaseStateSys(size_t timeBaseIndex, const chrony_event &event);
 
     // Method to set PTPClockSubscription by timeBaseIndex
     bool setPtpEventSubscription(int timeBaseIndex,
@@ -192,7 +221,8 @@ class TimeBaseStates
 
     // Send Client subscribe message
     bool subscribe(size_t timeBaseIndex, const ClockSyncSubscription &newSub);
-    bool subscribeReply(size_t timeBaseIndex, const ptp_event &ptpData);
+    bool subscribeReply(size_t timeBaseIndex, const ptp_event &ptpData,
+        const chrony_event &chronyData);
 };
 
 __CLKMGR_NAMESPACE_END

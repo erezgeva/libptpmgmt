@@ -26,6 +26,9 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
+// Define the static clockType member variable
+ClockEventHandler::ClockType Client::clockType = ClockEventHandler::PTPClock;
+
 #ifdef HAVE_LIBCHRONY
 #define CHRONY_INIT && connect_chrony()
 #else
@@ -43,6 +46,7 @@ struct perTimeBase {
 // Map of all subscriped clients using a timeBaseIndex of PTP and chrony
 static map<size_t, perTimeBase> timeBaseClients;
 static map<size_t, ptp_event> ptp4lEvents;
+static map<size_t, chrony_event> chronyEvents;
 // Lock for ptp4lEvents
 static map<size_t, rtpi::mutex> timeBaseLock;
 
@@ -73,6 +77,17 @@ void Client::getPTPEvent(size_t timeBaseIndex, ptp_event &event)
         event = ptp4lEvents[timeBaseIndex];
     } else {
         static ptp_event dummy = { 0 };
+        event = dummy;
+    }
+}
+
+void Client::getChronyEvent(size_t timeBaseIndex, chrony_event &event)
+{
+    if(chronyEvents.count(timeBaseIndex) > 0) {
+        unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
+        event = chronyEvents[timeBaseIndex];
+    } else {
+        static chrony_event dummy = { 0 };
         event = dummy;
     }
 }
@@ -256,7 +271,7 @@ chronyEvent::chronyEvent(size_t index) : timeBaseIndex(index)
 void chronyEvent::copy()
 {
     unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
-    ptp_event &to = ptp4lEvents[timeBaseIndex];
+    chrony_event &to = chronyEvents[timeBaseIndex];
     to.chrony_offset = chrony_offset;
     to.chrony_reference_id = chrony_reference_id;
     to.polling_interval = polling_interval;

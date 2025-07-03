@@ -33,6 +33,8 @@ bool ProxySubscribeMessage::makeBufferTail(Buffer &buff) const
     PrintDebug("[ProxySubscribeMessage]::makeBufferTail");
     ptp_event event;
     Client::getPTPEvent(timeBaseIndex, event);
+    chrony_event chronyEvent;
+    Client::getChronyEvent(timeBaseIndex, chronyEvent);
     // Add event data into the message
-    return WRITE_TX(event, buff);
+    return WRITE_TX(event, buff) && WRITE_TX(chronyEvent, buff);
 }

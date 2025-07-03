@@ -31,6 +31,13 @@ static rtpi::condition_variable subscribe_cv;
 static ClockEventHandler ptpClockEventHandler(ClockEventHandler::PTPClock);
 static ClockEventHandler sysClockEventHandler(ClockEventHandler::SysClock);
 
+static bool isChronyDataEmpty(const chrony_event &chronyData)
+{
+    return (chronyData.chrony_offset == 0 &&
+            chronyData.chrony_reference_id == 0 &&
+            chronyData.polling_interval == 0);
+}
+
 bool TimeBaseState::get_subscribed() const
 {
     return subscribed;
@@ -49,6 +56,26 @@ bool TimeBaseState::is_event_changed() const
 void TimeBaseState::set_event_changed(bool state)
 {
     event_changed = state;
+}
+
+bool TimeBaseState::is_havePtp() const
+{
+    return havePtPData;
+}
+
+void TimeBaseState::set_havePtp(bool havePtp)
+{
+    havePtPData = havePtp;
+}
+
+bool TimeBaseState::is_haveSys() const
+{
+    return haveSysData;
+}
+
+void TimeBaseState::set_haveSys(bool haveSys)
+{
+    haveSysData = haveSys;
 }
 
 const PTPClockEvent &TimeBaseState::get_ptp4lEventState() const
@@ -131,7 +158,7 @@ bool TimeBaseStates::getTimeBaseState(size_t timeBaseIndex,
     return false;
 }
 
-void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
+void TimeBaseStates::setTimeBaseStatePtp(size_t timeBaseIndex,
     const ptp_event &newEvent)
 {
     lock_guard<rtpi::mutex> lock(mtx);
@@ -144,15 +171,11 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
         state.set_last_notification_time(last_notification_time);
     // Get a copy of subscription mask
     PTPClockSubscription ptpSub = state.get_ptpEventSub();
-    SysClockSubscription sysSub = state.get_sysEventSub();
     uint32_t ptpEventSub = ptpSub.getEventMask();
-    uint32_t sysEventSub = sysSub.getEventMask();
     uint32_t ptpCompositeEventSub = ptpSub.getCompositeEventMask();
     int32_t ptpThreshold = static_cast<uint32_t>(ptpSub.getClockOffsetThreshold());
-    int32_t sysThreshold = static_cast<uint32_t>(sysSub.getClockOffsetThreshold());
     // Get the current state of the timebase
     PTPClockEvent ptp4lEventState = state.get_ptp4lEventState();
-    SysClockEvent chronyEventState = state.get_chronyEventState();
     // Update EventOffsetInRange
     if((ptpEventSub & EventOffsetInRange) &&
         (newEvent.master_offset != ptp4lEventState.getClockOffset())) {
@@ -240,6 +263,26 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
     // Update GM logSyncInterval
     ptpClockEventHandler.setSyncInterval(ptp4lEventState,
         newEvent.ptp4l_sync_interval);
+    state.set_ptpEventState(ptp4lEventState);
+    state.set_havePtp(true);
+}
+
+void TimeBaseStates::setTimeBaseStateSys(size_t timeBaseIndex,
+    const chrony_event &newEvent)
+{
+    lock_guard<rtpi::mutex> lock(mtx);
+    auto &state = timeBaseStateMap[timeBaseIndex];
+    // Update the notification timestamp
+    timespec last_notification_time = {};
+    if(clock_gettime(CLOCK_REALTIME, &last_notification_time) == -1)
+        PrintDebug("Failed to update notification time.");
+    else
+        state.set_last_notification_time(last_notification_time);
+    // Get a copy of subscription mask
+    SysClockSubscription sysSub = state.get_sysEventSub();
+    uint32_t sysEventSub = sysSub.getEventMask();
+    int32_t sysThreshold = static_cast<uint32_t>(sysSub.getClockOffsetThreshold());
+    SysClockEvent chronyEventState = state.get_chronyEventState();
     // Update Chrony clock offset
     if((sysEventSub & EventOffsetInRange) &&
         (newEvent.chrony_offset != chronyEventState.getClockOffset())) {
@@ -267,10 +310,14 @@ void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
         newEvent.chrony_reference_id);
     sysClockEventHandler.setSyncInterval(chronyEventState,
         newEvent.polling_interval);
+    // Update notification timestamp
+    uint64_t notification_timestamp = last_notification_time.tv_sec;
+    notification_timestamp *= NSEC_PER_SEC;
+    notification_timestamp += last_notification_time.tv_nsec;
     sysClockEventHandler.setNotificationTimestamp(chronyEventState,
         notification_timestamp);
     state.set_chronyEventState(chronyEventState);
-    state.set_ptpEventState(ptp4lEventState);
+    state.set_haveSys(true);
 }
 
 bool TimeBaseStates::subscribe(size_t timeBaseIndex,
@@ -324,9 +371,12 @@ bool TimeBaseStates::subscribe(size_t timeBaseIndex,
 }
 
 bool TimeBaseStates::subscribeReply(size_t timeBaseIndex,
-    const ptp_event &ptpData)
+    const ptp_event &ptpData, const chrony_event &chronyData)
 {
-    setTimeBaseState(timeBaseIndex, ptpData);
+    setTimeBaseStatePtp(timeBaseIndex, ptpData);
+    // Check if chronyData is not empty before setting system clock state
+    if(!isChronyDataEmpty(chronyData))
+        setTimeBaseStateSys(timeBaseIndex, chronyData);
     unique_lock<rtpi::mutex> lock(subscribe_mutex);
     setSubscribed(timeBaseIndex, true);
     subscribe_cv.notify_one(lock);

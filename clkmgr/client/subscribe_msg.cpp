@@ -35,8 +35,11 @@ bool ClientSubscribeMessage::parseBufferTail()
 {
     PrintDebug("[ClientSubscribeMessage]::parseBufferTail");
     ptp_event ptpData = {};
-    if(!PARSE_RX(ptpData, rxBuf) ||
-        !TimeBaseStates::getInstance().subscribeReply(timeBaseIndex, ptpData))
+    chrony_event chronyData = {};
+    if(!PARSE_RX(ptpData, rxBuf) || !PARSE_RX(chronyData, rxBuf))
+        return false;
+    if(!TimeBaseStates::getInstance().subscribeReply(timeBaseIndex, ptpData,
+            chronyData))
         return false;
     set_msgAck(ACK_NONE);
     return true;

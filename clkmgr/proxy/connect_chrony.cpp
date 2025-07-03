@@ -12,6 +12,7 @@
 #include "proxy/client.hpp"
 #include "proxy/connect_srv.hpp"
 #include "common/print.hpp"
+#include "client/clock_event_handler.hpp"
 
 #include <chrony.h>
 #include <poll.h>
@@ -118,6 +119,7 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
     event.polling_interval = polling_interval;
     event.chrony_offset = second;
     event.copy();
+    Client::setClockType(ClockEventHandler::SysClock);
     Client::NotifyClients(timeBaseIndex);
     return CHRONY_OK;
 }
@@ -135,6 +137,7 @@ void ChronyThreadSet::thread_loop()
                 break;
             polling_interval = def_polling_interval;
             event.clear();
+            Client::setClockType(ClockEventHandler::SysClock);
             Client::NotifyClients(timeBaseIndex);
             PrintError("Failed to connect to Chrony at " + udsAddrChrony);
             // Reconnection loop

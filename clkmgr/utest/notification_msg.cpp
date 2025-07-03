@@ -12,18 +12,29 @@
 #include "client/notification_msg.hpp"
 #include "client/timebase_state.hpp"
 #include "proxy/notification_msg.hpp"
+#include "proxy/client.hpp"
 
 using namespace clkmgr;
+ClockEventHandler::ClockType Client::clockType;
 
 static ptp_event ptp_data;
-void TimeBaseStates::setTimeBaseState(size_t timeBaseIndex,
+void TimeBaseStates::setTimeBaseStatePtp(size_t timeBaseIndex,
     const ptp_event &newEvent)
 {
     ptp_data = newEvent;
 }
 
+static chrony_event chrony_data;
+void TimeBaseStates::setTimeBaseStateSys(size_t timeBaseIndex,
+    const chrony_event &newchronyEvent)
+{
+    chrony_data = newchronyEvent;
+}
+
 TEST(NotificationMessage, toProxy)
 {
+    // Set clock type to PTPClock to trigger PTP data flow
+    Client::setClockType(ClockEventHandler::PTPClock);
     // We use the listener buffer
     Buffer &buf = Listener::getSingleListenerInstance().getBuff();
     // Set notification message for transmission
@@ -75,11 +86,12 @@ TEST(NotificationMessage, toProxy)
         "get_msgId(): 2\n"
         "m_msgAck: 0\n");
     EXPECT_TRUE(ptp_data.as_capable);
-    EXPECT_EQ(ptp_data.chrony_offset, 123);
-    EXPECT_EQ(ptp_data.chrony_reference_id, 456);
     EXPECT_EQ(ptp_data.gm_identity[0], 1);
     EXPECT_EQ(ptp_data.master_offset, 12);
-    EXPECT_EQ(ptp_data.polling_interval, 500000);
     EXPECT_EQ(ptp_data.ptp4l_sync_interval, 10000);
     EXPECT_FALSE(ptp_data.synced_to_primary_clock);
+    // No chrony data is received.
+    EXPECT_EQ(chrony_data.chrony_offset, 0);
+    EXPECT_EQ(chrony_data.chrony_reference_id, 0);
+    EXPECT_EQ(chrony_data.polling_interval, 0);
 }

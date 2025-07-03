@@ -121,11 +121,15 @@ SysClockEvent &ClockSyncData::getSysClock()
 
 void ClockSyncBaseHandler::updateAll(const TimeBaseState &state)
 {
-    // TODO: check ptp4l and chrony data is received
-    clockSyncData.ptpClockSync = state.get_ptp4lEventState();
-    clockSyncData.ptpAvailable = true;
-    clockSyncData.sysClockSync = state.get_chronyEventState();
-    clockSyncData.sysAvailable = true;
+    if(state.is_havePtp()) {
+        clockSyncData.ptpClockSync = state.get_ptp4lEventState();
+        clockSyncData.ptpAvailable = true;
+    }
+    if(state.is_haveSys() && state.get_subscribed()) {
+        clockSyncData.sysClockSync = state.get_chronyEventState();
+        clockSyncData.sysAvailable = true;
+    } else
+        clockSyncData.sysAvailable = false;
 }
 
 extern "C" {

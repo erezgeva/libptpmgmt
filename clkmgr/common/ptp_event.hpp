@@ -22,6 +22,9 @@ struct ptp_event {
     bool as_capable; /* 802@.1AS Capable */
     int64_t ptp4l_sync_interval; /* in microseconds */
     bool synced_to_primary_clock;
+};
+
+struct chrony_event {
     int64_t chrony_offset;
     uint32_t chrony_reference_id;
     int64_t polling_interval;
