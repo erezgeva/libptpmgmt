@@ -14,7 +14,6 @@
 #include "proxy/client.hpp"
 #include "common/serialize.hpp"
 #include "common/print.hpp"
-#include "client/clock_event_handler.hpp"
 
 __CLKMGR_NAMESPACE_USE;
 
@@ -23,11 +22,10 @@ using namespace std;
 bool ProxyNotificationMessage::makeBufferTail(Buffer &buff) const
 {
     PrintDebug("[ProxyNotificationMessage]::makeBufferTail");
-    // Get the current clock type
-    uint8_t clockType = Client::getClockType();
-    if(!WRITE_TX(clockType, buff))
+    uint8_t clockTypeValue = static_cast<uint8_t>(clockType);
+    if(!WRITE_TX(clockTypeValue, buff))
         return false;
-    if(clockType == ClockEventHandler::PTPClock) {
+    if(clockType == PTPClock) {
         // Send PTP event data
         ptp_event ptpEvent;
         Client::getPTPEvent(timeBaseIndex, ptpEvent);
@@ -35,7 +33,7 @@ bool ProxyNotificationMessage::makeBufferTail(Buffer &buff) const
             return false;
         PrintDebug("[ProxyNotificationMessage] Sent PTP event data");
     }
-    if(clockType == ClockEventHandler::SysClock) {
+    if(clockType == SysClock) {
         // Send Chrony event data
         chrony_event chronyEvent;
         Client::getChronyEvent(timeBaseIndex, chronyEvent);

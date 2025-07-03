@@ -15,7 +15,7 @@
 #include "common/msgq_tport.hpp"
 #include "common/message.hpp"
 #include "common/ptp_event.hpp"
-#include "client/clock_event_handler.hpp"
+#include "pub/clkmgr/types.h"
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -29,16 +29,12 @@ class ptpEvent
   private:
     size_t timeBaseIndex;
   public:
-    int64_t master_offset;
-    int64_t ptp4l_sync_interval;
-    bool synced_to_primary_clock;
-    bool as_capable = false;
-    uint8_t gm_identity[8] = { 0 };
+    struct ptp_event event;
     ptpEvent(size_t index);
     void portClear() {
-        master_offset = 0;
-        ptp4l_sync_interval = 0;
-        synced_to_primary_clock = false;
+        event.clockOffset = 0;
+        event.gmClockUUID = 0;
+        event.syncInterval = 0;
     }
     void copy();
 };
@@ -48,14 +44,10 @@ class chronyEvent
   private:
     size_t timeBaseIndex;
   public:
-    int64_t chrony_offset;
-    uint32_t chrony_reference_id;
-    int64_t polling_interval;
+    struct chrony_event event;
     chronyEvent(size_t index);
     void clear() {
-        chrony_offset = 0;
-        chrony_reference_id = 0;
-        polling_interval = 0;
+        event = { 0 };
         copy();
     }
     void copy();
@@ -66,7 +58,6 @@ class Client
   private:
     sessionId_t m_sessionId = InvalidSessionId;
     std::unique_ptr<Transmitter> m_transmitter;
-    static ClockEventHandler::ClockType clockType;
     static sessionId_t CreateClientSession(const std::string &id);
     static void RemoveClient(sessionId_t sessionId);
     static Client *getClient(sessionId_t sessionId);
@@ -85,12 +76,9 @@ class Client
     static bool init(bool useMsgQAllAccess);
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
-    static void NotifyClients(size_t timeBaseIndex);
+    static void NotifyClients(size_t timeBaseIndex, ClockType type);
     static void getPTPEvent(size_t timeBaseIndex, ptp_event &event);
     static void getChronyEvent(size_t timeBaseIndex, chrony_event &event);
-    static void setClockType(ClockEventHandler::ClockType type)
-    { clockType = type; }
-    static ClockEventHandler::ClockType getClockType() { return clockType; }
 };
 
 __CLKMGR_NAMESPACE_END

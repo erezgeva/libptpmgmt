@@ -12,7 +12,6 @@
 #include "proxy/client.hpp"
 #include "proxy/connect_srv.hpp"
 #include "common/print.hpp"
-#include "client/clock_event_handler.hpp"
 
 // libptpmgmt
 #include "sock.h"
@@ -117,18 +116,17 @@ class ptpSet : public Thread4TimeBase, MessageDispatcher
 
 callback_define(TIME_STATUS_NP)
 {
-    event.master_offset = tlv.master_offset;
-    memcpy(event.gm_identity, tlv.gmIdentity.v, sizeof(event.gm_identity));
+    event.event.clockOffset = tlv.master_offset;
+    event.event.gmClockUUID = 0;
+    for(int i = 0; i < 8; ++i)
+        event.event.gmClockUUID |=
+            static_cast<uint64_t>(tlv.gmIdentity.v[i]) << (8 * (7 - i));
     gmIdentity = tlv.gmIdentity;
     do_notify = true;
-    PrintDebug("master_offset = " + to_string(event.master_offset) +
-        ", synced_to_primary_clock = " + to_string(event.synced_to_primary_clock));
+    PrintDebug("clockOffset = " + to_string(event.event.clockOffset) +
+        ", syncedWithGm = " + to_string(event.event.syncedWithGm));
     char buf[100];
-    snprintf(buf, sizeof buf, "gm_identity = %02x%02x%02x.%02x%02x.%02x%02x%02x",
-        event.gm_identity[0], event.gm_identity[1],
-        event.gm_identity[2], event.gm_identity[3],
-        event.gm_identity[4], event.gm_identity[5],
-        event.gm_identity[6], event.gm_identity[7]);
+    snprintf(buf, sizeof buf, "gmClockUUID = %016lx", event.event.gmClockUUID);
     PrintDebug(buf);
 }
 void ptpSet::portDataReset()
@@ -140,12 +138,12 @@ callback_define(PORT_DATA_SET)
 {
     if(gmIdentity == tlv.portIdentity.clockIdentity) {
         if(tlv.portState == MASTER)
-            event.ptp4l_sync_interval =
+            event.event.syncInterval =
                 pow(2.0, tlv.logSyncInterval) * USEC_PER_SEC;
         return;
     }
     if(tlv.portState == SLAVE) {
-        event.synced_to_primary_clock = true;
+        event.event.syncedWithGm = true;
         if(need_set_action) {
             msg_set_action(PORT_DATA_SET);
             need_set_action = false;
@@ -153,24 +151,28 @@ callback_define(PORT_DATA_SET)
     } else if(tlv.portState == MASTER) {
         // Set own clock identity as GM identity
         portDataReset();
-        memcpy(event.gm_identity, tlv.portIdentity.clockIdentity.v,
-            sizeof(event.gm_identity));
+        event.event.gmClockUUID = 0;
+        for(int i = 0; i < 8; ++i)
+            event.event.gmClockUUID |=
+                static_cast<uint64_t>(tlv.portIdentity.clockIdentity.v[i])
+                << (8 * (7 - i));
+        gmIdentity = tlv.portIdentity.clockIdentity;
     } else if(tlv.portState <= UNCALIBRATED) {
         // Reset master offset and GM identity
         portDataReset();
-        memset(event.gm_identity, 0, sizeof(event.gm_identity));
+        event.event.gmClockUUID = 0;
     }
     do_notify = true;
 }
 callback_define(CMLDS_INFO_NP)
 {
     bool asCapable = tlv.as_capable > 0;
-    if(event.as_capable != asCapable) {
-        event.as_capable = asCapable;
+    if(event.event.asCapable != asCapable) {
+        event.event.asCapable = asCapable;
         do_notify = true;
     } else
         // Skip client notification if no event changes
-        PrintDebug("Ignore unchanged as_capable");
+        PrintDebug("Ignore unchanged asCapable");
 }
 void ptpSet::event_handle()
 {
@@ -183,8 +185,7 @@ void ptpSet::event_handle()
         return;
     if(do_notify) {
         event.copy();
-        Client::setClockType(ClockEventHandler::PTPClock);
-        Client::NotifyClients(timeBaseIndex);
+        Client::NotifyClients(timeBaseIndex, PTPClock);
     }
 }
 
@@ -242,14 +243,13 @@ void ptpSet::thread_loop()
                 if(!lost_connection) {
                     PrintError("Lost connection to ptp4l at " + udsAddr);
                     portDataReset();
-                    memset(event.gm_identity, 0, sizeof(event.gm_identity));
-                    event.as_capable = false;
+                    event.event.gmClockUUID = 0;
+                    event.event.asCapable = false;
                     lost_connection = true;
                     if(stopThread)
                         return;
-                    Client::setClockType(ClockEventHandler::PTPClock);
                     event.copy();
-                    Client::NotifyClients(timeBaseIndex);
+                    Client::NotifyClients(timeBaseIndex, PTPClock);
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at " + udsAddr);
                 // Wait 5 seconds before retrying

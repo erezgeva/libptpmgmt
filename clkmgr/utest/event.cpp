@@ -74,7 +74,7 @@ TEST(ClockEventBaseTest, defaultValue)
 TEST(ClockEventBaseTest, setAndGet)
 {
     ClockEventBaseTestable event;
-    ClockEventHandler handler(ClockEventHandler::SysClock);
+    ClockEventHandler handler(SysClock);
     ClockEventHandler::setClockOffset(event, 123456789);
     ClockEventHandler::setOffsetInRange(event, true);
     ClockEventHandler::setOffsetInRangeEventCount(event, 5);
@@ -177,7 +177,7 @@ TEST(PTPClockEventTest, defaultValue)
 TEST(PTPClockEventTest, setAndGet)
 {
     PTPClockEventTestable event;
-    ClockEventHandler handler(ClockEventHandler::PTPClock);
+    ClockEventHandler handler(PTPClock);
     handler.setSyncedWithGm(event, true);
     handler.setAsCapable(event, true);
     ClockEventHandler::setSyncedWithGmEventCount(event, 2);
@@ -202,7 +202,7 @@ TEST(PTPClockEventTest, setAndGet)
 TEST(PTPClockEventTest, setBoundaryValue)
 {
     PTPClockEventTestable event;
-    ClockEventHandler handler(ClockEventHandler::PTPClock);
+    ClockEventHandler handler(PTPClock);
     ClockEventHandler::setSyncedWithGmEventCount(event, UINT32_MAX);
     EXPECT_EQ(event.getSyncedWithGmEventCount(), UINT32_MAX);
     ClockEventHandler::setAsCapableEventCount(event, UINT32_MAX);
@@ -221,7 +221,7 @@ TEST(PTPClockEventTest, setBoundaryValue)
 TEST(PTPClockEventTest, toggleBooleanFlag)
 {
     PTPClockEventTestable event;
-    ClockEventHandler handler(ClockEventHandler::PTPClock);
+    ClockEventHandler handler(PTPClock);
     handler.setSyncedWithGm(event, true);
     EXPECT_TRUE(event.isSyncedWithGm());
     handler.setSyncedWithGm(event, false);

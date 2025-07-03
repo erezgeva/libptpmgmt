@@ -26,9 +26,6 @@ __CLKMGR_NAMESPACE_USE;
 
 using namespace std;
 
-// Define the static clockType member variable
-ClockEventHandler::ClockType Client::clockType = ClockEventHandler::PTPClock;
-
 #ifdef HAVE_LIBCHRONY
 #define CHRONY_INIT && connect_chrony()
 #else
@@ -39,16 +36,19 @@ static thread_local Buffer notifyBuff;
 static sessionId_t nextSession = 0;
 static rtpi::mutex sessionMapLock;
 static map<sessionId_t, unique_ptr<Client>> sessionMap;
-struct perTimeBase {
-    map<sessionId_t, bool> clients;
-    shared_mutex clLock;
+
+// Per-time-base data structure holding all related information
+struct TimeBaseData {
+    map<sessionId_t, bool> subscribedClients;
+    shared_mutex clientListMutex;
+    ptp_event ptpEvent;
+    chrony_event chronyEvent;
+    rtpi::mutex ptpEventMutex;
+    rtpi::mutex chronyEventMutex;
 };
-// Map of all subscriped clients using a timeBaseIndex of PTP and chrony
-static map<size_t, perTimeBase> timeBaseClients;
-static map<size_t, ptp_event> ptp4lEvents;
-static map<size_t, chrony_event> chronyEvents;
-// Lock for ptp4lEvents
-static map<size_t, rtpi::mutex> timeBaseLock;
+
+// Map of all per-time-base data using timeBaseIndex as key
+static map<size_t, TimeBaseData> timeBaseDataMap;
 
 static inline Transmitter *CreateTransmitter(const string &clientId)
 {
@@ -72,9 +72,10 @@ static inline bool existClient(sessionId_t sessionId)
 
 void Client::getPTPEvent(size_t timeBaseIndex, ptp_event &event)
 {
-    if(ptp4lEvents.count(timeBaseIndex) > 0) {
-        unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
-        event = ptp4lEvents[timeBaseIndex];
+    if(timeBaseDataMap.count(timeBaseIndex) > 0) {
+        unique_lock<rtpi::mutex> eventLock(
+            timeBaseDataMap[timeBaseIndex].ptpEventMutex);
+        event = timeBaseDataMap[timeBaseIndex].ptpEvent;
     } else {
         static ptp_event dummy = { 0 };
         event = dummy;
@@ -83,9 +84,10 @@ void Client::getPTPEvent(size_t timeBaseIndex, ptp_event &event)
 
 void Client::getChronyEvent(size_t timeBaseIndex, chrony_event &event)
 {
-    if(chronyEvents.count(timeBaseIndex) > 0) {
-        unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
-        event = chronyEvents[timeBaseIndex];
+    if(timeBaseDataMap.count(timeBaseIndex) > 0) {
+        unique_lock<rtpi::mutex> eventLock(
+            timeBaseDataMap[timeBaseIndex].chronyEventMutex);
+        event = timeBaseDataMap[timeBaseIndex].chronyEvent;
     } else {
         static chrony_event dummy = { 0 };
         event = dummy;
@@ -137,7 +139,7 @@ sessionId_t Client::connect(sessionId_t sessionId, const string &id)
 bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
 {
     if(sessionId == InvalidSessionId ||
-        timeBaseClients.count(timeBaseIndex) == 0)
+        timeBaseDataMap.count(timeBaseIndex) == 0)
         return false;
     unique_lock<rtpi::mutex> mapLock(sessionMapLock);
     if(!existClient(sessionId)) {
@@ -148,11 +150,13 @@ bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
     mapLock.unlock(); // Explicitly unlock the mutex
     PrintDebug("[ProxySubscribeMessage]::parseBufferTail - "
         "Use current client session ID: " + to_string(sessionId));
-    unique_lock<shared_mutex> clLock(timeBaseClients[timeBaseIndex].clLock);
-    bool exist = timeBaseClients[timeBaseIndex].clients.count(sessionId) > 0;
+    unique_lock<shared_mutex> clientLock(
+        timeBaseDataMap[timeBaseIndex].clientListMutex);
+    bool exist = timeBaseDataMap[timeBaseIndex].subscribedClients.count(
+            sessionId) > 0;
     if(!exist)
-        timeBaseClients[timeBaseIndex].clients[sessionId] = true;
-    clLock.unlock(); // Explicitly unlock the mutex
+        timeBaseDataMap[timeBaseIndex].subscribedClients[sessionId] = true;
+    clientLock.unlock(); // Explicitly unlock the mutex
     if(exist)
         PrintDebug("sessionId " + to_string(sessionId) + " is already subscribe");
     return true;
@@ -169,10 +173,10 @@ void Client::RemoveClient(sessionId_t sessionId)
     }
     sessionMap.erase(sessionId);
     mapLock.unlock(); // Explicitly unlock the mutex
-    for(auto &base : timeBaseClients) {
-        auto &rec = base.second;
-        unique_lock<shared_mutex> clLock(rec.clLock);
-        rec.clients.erase(sessionId);
+    for(auto &base : timeBaseDataMap) {
+        auto &timeBaseData = base.second;
+        unique_lock<shared_mutex> clientLock(timeBaseData.clientListMutex);
+        timeBaseData.subscribedClients.erase(sessionId);
     }
 }
 
@@ -205,10 +209,10 @@ bool Client::init(bool useMsgQAllAccess)
     return connect_ptp4l() CHRONY_INIT;
 }
 
-void Client::NotifyClients(size_t timeBaseIndex)
+void Client::NotifyClients(size_t timeBaseIndex, ClockType type)
 {
     PrintDebug("Client::NotifyClients");
-    if(timeBaseClients.count(timeBaseIndex) == 0) {
+    if(timeBaseDataMap.count(timeBaseIndex) == 0) {
         PrintError("[Client::NotifyClients] call with non exist timeBaseIndex " +
             to_string(timeBaseIndex));
         return;
@@ -222,6 +226,7 @@ void Client::NotifyClients(size_t timeBaseIndex)
     unique_ptr<ProxyNotificationMessage> notifyMsg(pmsg);
     // Send data for multiple sessions
     pmsg->setTimeBaseIndex(timeBaseIndex);
+    pmsg->setClockType(type);
     if(!pmsg->makeBuffer(notifyBuff)) {
         PrintError("[Client::NotifyClients] Failed to create message");
         return;
@@ -229,8 +234,9 @@ void Client::NotifyClients(size_t timeBaseIndex)
     vector<sessionId_t> sessionIdToRemove;
     {
         // Use share lock, allow all readers to share
-        shared_lock<shared_mutex> clLock(timeBaseClients[timeBaseIndex].clLock);
-        for(auto &c : timeBaseClients[timeBaseIndex].clients) {
+        shared_lock<shared_mutex> clientLock(
+            timeBaseDataMap[timeBaseIndex].clientListMutex);
+        for(auto &c : timeBaseDataMap[timeBaseIndex].subscribedClients) {
             const sessionId_t sessionId = c.first;
             PrintDebug("[Client::NotifyClients] Get client session ID: " +
                 to_string(sessionId));
@@ -246,35 +252,31 @@ void Client::NotifyClients(size_t timeBaseIndex)
 
 ptpEvent::ptpEvent(size_t index) : timeBaseIndex(index)
 {
-    timeBaseClients[index]; // Ensure we have subscribed clients list
+    timeBaseDataMap[index]; // Ensure we have time base data initialized
     portClear();
     copy();
 }
 
 void ptpEvent::copy()
 {
-    unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
-    ptp_event &to = ptp4lEvents[timeBaseIndex];
-    to.master_offset = master_offset;
-    to.as_capable = as_capable;
-    to.ptp4l_sync_interval = ptp4l_sync_interval;
-    to.synced_to_primary_clock = synced_to_primary_clock;
-    memcpy(to.gm_identity, gm_identity, sizeof(gm_identity));
+    unique_lock<rtpi::mutex> eventLock(
+        timeBaseDataMap[timeBaseIndex].ptpEventMutex);
+    ptp_event &to = timeBaseDataMap[timeBaseIndex].ptpEvent;
+    to = event;
 }
 
 chronyEvent::chronyEvent(size_t index) : timeBaseIndex(index)
 {
-    timeBaseClients[index]; // Ensure we have subscribed clients list
+    timeBaseDataMap[index]; // Ensure we have time base data initialized
     clear();
 }
 
 void chronyEvent::copy()
 {
-    unique_lock<rtpi::mutex> eventLock(timeBaseLock[timeBaseIndex]);
-    chrony_event &to = chronyEvents[timeBaseIndex];
-    to.chrony_offset = chrony_offset;
-    to.chrony_reference_id = chrony_reference_id;
-    to.polling_interval = polling_interval;
+    unique_lock<rtpi::mutex> eventLock(
+        timeBaseDataMap[timeBaseIndex].chronyEventMutex);
+    chrony_event &to = timeBaseDataMap[timeBaseIndex].chronyEvent;
+    to = event;
 }
 
 Transmitter *Transmitter::getTransmitterInstance(sessionId_t sessionId)

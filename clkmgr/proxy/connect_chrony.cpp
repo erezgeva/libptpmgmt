@@ -12,7 +12,6 @@
 #include "proxy/client.hpp"
 #include "proxy/connect_srv.hpp"
 #include "common/print.hpp"
-#include "client/clock_event_handler.hpp"
 
 #include <chrony.h>
 #include <poll.h>
@@ -23,7 +22,7 @@ __CLKMGR_NAMESPACE_USE;
 using namespace std;
 
 // default sleeping of 10 microsecond, until we get the value from chrony
-static const uint32_t def_polling_interval = 10;
+static const uint32_t def_syncInterval = 10;
 
 class ChronyThreadSet : public Thread4TimeBase
 {
@@ -35,7 +34,7 @@ class ChronyThreadSet : public Thread4TimeBase
     // Internal methods
     chrony_err subscribe_to_chronyd();
     chrony_err process_chronyd_data();
-    int64_t polling_interval = def_polling_interval;
+    int64_t syncInterval = def_syncInterval;
 
   public:
     ChronyThreadSet(size_t timeBaseIndex, const string &udsAddr) :
@@ -96,7 +95,7 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
     int field_index = chrony_get_field_index(session, "reference ID");
     if(stopThread)
         return CHRONY_OK;
-    event.chrony_reference_id =
+    event.event.gmClockUUID =
         chrony_get_field_uinteger(session, field_index);
     if(stopThread)
         return CHRONY_OK;
@@ -105,22 +104,21 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
         return CHRONY_OK;
     int32_t interval = static_cast<int32_t>
         (static_cast<int16_t>(chrony_get_field_integer(session, field_index)));
-    polling_interval = pow(2.0, interval) * 1000000;
-    PrintDebug("CHRONY polling_interval = " + to_string(polling_interval) + " us");
+    syncInterval = pow(2.0, interval) * 1000000;
+    PrintDebug("CHRONY syncInterval = " + to_string(syncInterval) + " us");
     if(stopThread)
         return CHRONY_OK;
     field_index = chrony_get_field_index(session, "original last sample offset");
     if(stopThread)
         return CHRONY_OK;
     int64_t second = (int64_t)(1e9 * chrony_get_field_float(session, field_index));
-    PrintDebug("CHRONY master_offset = " + to_string(second));
+    PrintDebug("CHRONY clockOffset = " + to_string(second));
     if(stopThread)
         return CHRONY_OK;
-    event.polling_interval = polling_interval;
-    event.chrony_offset = second;
+    event.event.syncInterval = syncInterval;
+    event.event.clockOffset = second;
     event.copy();
-    Client::setClockType(ClockEventHandler::SysClock);
-    Client::NotifyClients(timeBaseIndex);
+    Client::NotifyClients(timeBaseIndex, SysClock);
     return CHRONY_OK;
 }
 
@@ -135,10 +133,9 @@ void ChronyThreadSet::thread_loop()
             close();
             if(stopThread)
                 break;
-            polling_interval = def_polling_interval;
+            syncInterval = def_syncInterval;
             event.clear();
-            Client::setClockType(ClockEventHandler::SysClock);
-            Client::NotifyClients(timeBaseIndex);
+            Client::NotifyClients(timeBaseIndex, SysClock);
             PrintError("Failed to connect to Chrony at " + udsAddrChrony);
             // Reconnection loop
             while(!stopThread) {
@@ -160,7 +157,7 @@ void ChronyThreadSet::thread_loop()
         if(stopThread)
             break;
         // Sleep duration is based on chronyd polling interval
-        this_thread::sleep_for(chrono::microseconds(polling_interval));
+        this_thread::sleep_for(chrono::microseconds(syncInterval));
     }
 }
 

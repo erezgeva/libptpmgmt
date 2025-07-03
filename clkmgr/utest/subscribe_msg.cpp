@@ -25,18 +25,18 @@ bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
 // ProxySubscribeMessage::makeBufferTail
 void Client::getPTPEvent(size_t timeBaseIndex, ptp_event &event)
 {
-    event.as_capable = true;
-    event.gm_identity[0] = 1;
-    event.master_offset = 12;
-    event.ptp4l_sync_interval = 10000;
-    event.synced_to_primary_clock = false;
+    event.asCapable = true;
+    event.gmClockUUID = 123;
+    event.clockOffset = 12;
+    event.syncInterval = 10000;
+    event.syncedWithGm = false;
 }
 
 void Client::getChronyEvent(size_t timeBaseIndex, chrony_event &chronyEvent)
 {
-    chronyEvent.chrony_offset = 123;
-    chronyEvent.chrony_reference_id = 456;
-    chronyEvent.polling_interval = 500000;
+    chronyEvent.clockOffset = 123;
+    chronyEvent.gmClockUUID = 456;
+    chronyEvent.syncInterval = 500000;
 }
 
 // For other messages
@@ -110,12 +110,12 @@ TEST(SubscribeMessage, toProxy)
         "clkmgr::SubscribeMessage\n"
         "get_msgId(): 1\n"
         "m_msgAck: 0\n");
-    EXPECT_TRUE(ptp_data.as_capable);
-    EXPECT_EQ(chrony_data.chrony_offset, 123);
-    EXPECT_EQ(chrony_data.chrony_reference_id, 456);
-    EXPECT_EQ(ptp_data.gm_identity[0], 1);
-    EXPECT_EQ(ptp_data.master_offset, 12);
-    EXPECT_EQ(chrony_data.polling_interval, 500000);
-    EXPECT_EQ(ptp_data.ptp4l_sync_interval, 10000);
-    EXPECT_FALSE(ptp_data.synced_to_primary_clock);
+    EXPECT_TRUE(ptp_data.asCapable);
+    EXPECT_EQ(chrony_data.clockOffset, 123);
+    EXPECT_EQ(chrony_data.gmClockUUID, 456);
+    EXPECT_EQ(ptp_data.gmClockUUID, 123);
+    EXPECT_EQ(ptp_data.clockOffset, 12);
+    EXPECT_EQ(chrony_data.syncInterval, 500000);
+    EXPECT_EQ(ptp_data.syncInterval, 10000);
+    EXPECT_FALSE(ptp_data.syncedWithGm);
 }

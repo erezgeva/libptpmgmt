@@ -13,6 +13,7 @@
 #define CLOCK_EVENT_HANDLER_HPP
 
 #include "pub/clkmgr/event.h"
+#include "pub/clkmgr/types.h"
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -25,16 +26,6 @@ class TimeBaseState;
 class ClockEventHandler
 {
   public:
-    /**
-     * Specify whether the clock event handler is for a PTP clock or a system
-     * clock. It helps differentiate the operations and attributes specific to
-     * each clock type.
-     */
-    enum ClockType {
-        PTPClock,   /**< Represents a PTP clock event. */
-        SysClock    /**< Represents a system clock event. */
-    };
-
     /**
      * Initialize the handler to operate on either PTP or system clock events
      * based on the provided clock type. This constructor sets the internal
