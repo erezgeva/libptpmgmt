@@ -43,11 +43,11 @@ $(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp | $(LIB_NAME_LA)
 	$Q$(MKDIR_P) $(@D)
 	cp $^ $(GO_D)/$(SWIG_LNAME).go $(@D)
 $(GO_D)/$(SWIG_LNAME)/go.mod:
-	$(Q_GEN)if [ -f $@ ];then touch $@;else $(MKDIR_P) $(@D)&&\
+	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
 	cd $(@D)&&$(GO_BIN) mod init $(SWIG_LNAME) $(Q_ERR);fi
 $(foreach n,gtest unit_test phc_ctl,$(GO_D)/$n/go.mod):\
 	$(GO_D)/$(SWIG_LNAME)/go.mod $(GO_SRC)
-	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then touch $(@F)\
+	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then $(TOUCH) $(@F)\
 	;else $(GO_BIN) mod init $(subst $(GO_D)/,,$(@D)) $(Q_ERR)&&\
 	$(GO_BIN) mod edit -replace $(SWIG_LNAME)=../$(SWIG_LNAME);fi&&\
 	$(GO_BIN) mod tidy $(Q_ERR)
@@ -66,15 +66,16 @@ $(GO_CLKMGR_SRC): $(GO_D)/$(CLKMGR_NAME).cpp | $(CLKMGR_LIB_LA)
 	$Q$(MKDIR_P) $(@D)
 	cp $^ $(GO_D)/$(CLKMGR_NAME).go $(@D)
 $(GO_CLKMGR_DIR)/go.mod:
-	$(Q_GEN)if [ -f $@ ];then touch $@;else $(MKDIR_P) $(@D)&&\
+	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
 	cd $(@D)&&$(GO_BIN) mod init $(CLKMGR_NAME) $(Q_ERR);fi
 $(GO_CLKMGR_GTEST)/go.mod: $(GO_CLKMGR_DIR)/go.mod $(GO_CLKMGR_SRC)
-	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then touch $(@F)\
+	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then $(TOUCH) $(@F)\
 	;else $(GO_BIN) mod init $(subst $(GO_D)/,,$(@D)) $(Q_ERR)&&\
 	$(GO_BIN) mod edit -replace $(CLKMGR_NAME)=../$(CLKMGR_NAME);fi&&\
 	$(GO_BIN) mod tidy $(Q_ERR)
 $(GO_CLKMGR_GTEST)/go.sum: $(GO_CLKMGR_GTEST)/go.mod
-	$(Q_GEN)cd $(@D)&&$(GO_BIN) get github.com/pborman/getopt/v2
+	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then $(TOUCH) $(@F)\
+	;else $(GO_BIN) get github.com/pborman/getopt/v2;fi
 SWIG_ALL+=$(GO_CLKMGR_SRC) $(GO_CLKMGR_DIR)/go.mod
 $(GO_CLKMGR_GTEST)/clkmgr_gtest: export CGO_LDFLAGS+=$(PWD)/$(CLKMGR_LIB_SO)
 $(GO_CLKMGR_GTEST)/clkmgr_gtest: $(GO_CLKMGR_GTEST)/go.sum\

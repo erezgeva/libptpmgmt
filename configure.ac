@@ -38,6 +38,7 @@ AC_PROG_LN_S
 AC_CHECK_TOOL([CHRPATH], [chrpath])
 AC_CHECK_TOOL([PATCHELF], [patchelf])
 AC_CHECK_TOOL([MARKDOWN], [markdown])
+AC_CHECK_TOOL([TOUCH], [touch])
 dnl libtool
 LT_INIT
 AC_CONFIG_MACRO_DIRS([m4])
