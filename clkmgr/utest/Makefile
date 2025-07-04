@@ -46,7 +46,7 @@ CLKMGR_API_OBJS+=$(addsuffix .o,\
   $(addprefix $(CLKMGR_COMMON_DIR)/,print termin)\
   $(addprefix $(CLKMGR_CLIENT_DIR)/,timebase_configs subscription clock_event))
 
-$(CLKMGR_UTEST_DIR)/%.o: $(CLKMGR_UTEST_DIR)/%.cpp | $(COMP_DEPS)
+$(CLKMGR_UTEST_DIR)/%.o: $(CLKMGR_UTEST_DIR)/%.cpp | $(CLKMGR_HEADERS_GEN)
 	$(Q_CC)$(CXX) $(CXXFLAGS_UTEST) $(CLKMGR_CXXFLAGS) $(GTEST_INC_FLAGS)\
 	  -include $(HAVE_GTEST_HEADER) -c -o $@ $<
 
@@ -54,7 +54,7 @@ $(CLKMGR_CLIENT_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_CLIENT_UTEST_OBJS) \
 	$(CLKMGR_LIB_A) | $(CLKMGR_LIB_LA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-utest_clkmgr_client: $(HEADERS_GEN_COMP) $(CLKMGR_CLIENT_UTEST)
+utest_clkmgr_client: $(CLKMGR_CLIENT_UTEST)
 	$(call Q_UTEST,ClkMgr client C++)$(UVGD)$(CLKMGR_CLIENT_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
@@ -62,7 +62,7 @@ $(CLKMGR_COMMON_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_COMMON_UTEST_OBJS) \
 	$(CLKMGR_LIB_A) | $(CLKMGR_LIB_LA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-utest_clkmgr_common: $(HEADERS_GEN_COMP) $(CLKMGR_COMMON_UTEST)
+utest_clkmgr_common: $(CLKMGR_COMMON_UTEST)
 	$(call Q_UTEST,ClkMgr common C++)$(UVGD)$(CLKMGR_COMMON_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
@@ -70,7 +70,7 @@ $(CLKMGR_MSG_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_MSG_UTEST_OBJS)\
 	$(CLKMGR_MSG_OBJS)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-utest_clkmgr_message: $(HEADERS_GEN_COMP) $(CLKMGR_MSG_UTEST)
+utest_clkmgr_message: $(CLKMGR_MSG_UTEST)
 	$(call Q_UTEST,ClkMgr message C++)$(UVGD)$(CLKMGR_MSG_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
@@ -79,7 +79,7 @@ $(CLKMGR_CONFIG_PARSER_UTEST): $(OBJ_DIR)/utest_m.o\
 	$(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-utest_clkmgr_config_parser: $(HEADERS_GEN_COMP) $(CLKMGR_CONFIG_PARSER_UTEST)
+utest_clkmgr_config_parser: $(CLKMGR_CONFIG_PARSER_UTEST)
 	$(call Q_UTEST,ClkMgr proxy C++)$(UVGD)$(CLKMGR_CONFIG_PARSER_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
@@ -87,7 +87,7 @@ $(CLKMGR_API_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_API_UTEST_OBJS)\
 	$(CLKMGR_API_OBJS)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-utest_clkmgr_api: $(HEADERS_GEN_COMP) $(CLKMGR_API_UTEST)
+utest_clkmgr_api: $(CLKMGR_API_UTEST)
 	$(call Q_UTEST,ClkMgr API C++)$(UVGD)$(CLKMGR_API_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
