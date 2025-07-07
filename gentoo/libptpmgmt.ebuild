@@ -22,7 +22,7 @@ SRC_URI="${P}.txz"
 LICENSE="LGPL-3+"
 SLOT="0"
 IUSE="skip_perl skip_python skip_ruby skip_lua skip_php skip_tcl skip_go
-	skip_swig skip_doxygen"
+	skip_swig skip_doxygen systemd"
 REQUIRED_USE="skip_swig? ( skip_perl skip_python skip_ruby skip_lua skip_php
 	skip_tcl skip_go )"
 DEPEND="!skip_perl? ( dev-lang/perl ) !skip_python? ( dev-lang/python )
@@ -51,7 +51,8 @@ src_configure() {
 		if use skip_tcl; then opts+=" --without-tcl"; fi
 		if use skip_go; then opts+=" --without-go"; fi
 	fi
-	econf $opts
+	if use systemd; then opts+=" --enable-systemd"; fi
+	econf $opts --enable-openrc
 }
 src_compile() {
 	if use skip_doxygen; then

@@ -342,6 +342,39 @@ AC_SUBST([HAVE_SYS_TYPES_H])
 AC_SUBST([HAVE_UNISTD_H])
 
 #----------------------------------------------------------------
+# Selecting of init systems for Clock Manager proxy
+
+AS_UNSET([USE_SYSTEMD])
+AS_UNSET([USE_LSB_INIT])
+AS_UNSET([USE_OPENRC])
+
+# Install systemd clkmgr-proxy.service, clkmgr-proxy.socket
+AC_ARG_ENABLE([systemd],
+              [AS_HELP_STRING([--enable-systemd],
+                              [Enable installing of systemd unit files])],
+              [AS_VAR_COPY([USE_SYSTEMD], [enableval])])
+
+# Install LSB init in /etc/init.d/clkmgr-proxy
+AC_ARG_ENABLE([lsb-init],
+              [AS_HELP_STRING([--enable-lsb-init],
+                              [Enable installing of lsb init])],
+              [AS_VAR_COPY([USE_LSB_INIT], [enableval])])
+
+# Install OpenRC in /etc/init.d/clkmgr-proxy
+AC_ARG_ENABLE([openrc],
+              [AS_HELP_STRING([--enable-openrc],
+                              [Enable installing of openrc init])],
+              [AS_VAR_COPY([USE_OPENRC], [enableval])])
+
+AS_IF([PTPM_VAR_TEST([USE_LSB_INIT], ['yes']) &&\
+       PTPM_VAR_TEST([USE_OPENRC], ['yes'])],
+      [AC_MSG_ERROR([lsb-init and openrc can not be used together!])])
+
+AC_SUBST([USE_SYSTEMD])
+AC_SUBST([USE_LSB_INIT])
+AC_SUBST([USE_OPENRC])
+
+#----------------------------------------------------------------
 # Testing tools
 AS_UNSET([ptpm_skip_libsys])
 AS_UNSET([HAVE_GTEST_HEADER])

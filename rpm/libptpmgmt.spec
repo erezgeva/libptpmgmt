@@ -246,11 +246,11 @@ Clock Manager library tcl wrapper
 
 %build
 autoreconf -i
-%configure --with-pmc-flags='-fPIE'
+%configure --with-pmc-flags='-fPIE' --enable-systemd
 %make_build PMC_USE_LIB=so --no-print-directory all doxygen
 
 %install
-%make_install DEV_PKG=%{name}-devel CLKMGR_SKIP_INSTALL_INIT_D=1 --no-print-directory
+%make_install DEV_PKG=%{name}-devel --no-print-directory
 
 %preun -n %{cbname}-proxy
 %systemd_preun %{cbname}-proxy.service

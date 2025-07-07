@@ -1,6 +1,6 @@
 #! /bin/sh
 # SPDX-License-Identifier: BSD-3-Clause
-# SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
+# SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
 # See:
 # https://refspecs.linuxfoundation.org/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html
 
@@ -18,10 +18,10 @@
 
 set -e
 
-# /etc/init.d/clkmgr-proxy: start and stop the Clock Manager service
+# @sysconfdir@/init.d/clkmgr-proxy: start and stop the Clock Manager service
 
-test -x /usr/sbin/clkmgr_proxy || exit 0
-(/usr/sbin/clkmgr_proxy -v 2>&1 | grep -q clkmgr_proxy) 2>/dev/null || exit 0
+test -x @sbindir@/clkmgr_proxy || exit 0
+(@sbindir@/clkmgr_proxy -v 2>&1 | grep -q clkmgr_proxy) 2>/dev/null || exit 0
 
 umask 022
 
@@ -34,27 +34,28 @@ run_by_init() {
 
 check_for_no_start() {
 	# forget it if we're trying to start, and file exists
-	if [ -e /etc/clkmgr/proxy_not_to_be_run ]; then
+	if [ -e @sysconfdir@/clkmgr/proxy_not_to_be_run ]; then
 		if [ "$1" = log_end_msg ]; then
 			log_end_msg 0 || true
 		fi
 		if ! run_by_init; then
-			log_action_msg "Clock Manager service not in use (/etc/clkmgr/proxy_not_to_be_run)" || true
+			log_action_msg "Clock Manager service not in use (@sysconfdir@/clkmgr/proxy_not_to_be_run)" || true
 		fi
 		exit 0
 	fi
 }
 
-export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+export PATH="${PATH:+$PATH:}@sbindir@:/sbin"
 
-CLKMGR_OPTS='-f /etc/clkmgr/proxy_cfg.json -q 1 -s 1 -a 1'
+CLKMGR_OPTS='-f @sysconfdir@/clkmgr/proxy_cfg.json -q 1 -s 1 -a 1'
+CLKMGR_PID='@rundir@/clkmgr_proxy.pid'
 CLKMGR_UID=0:0
 
 case "$1" in
   start)
 	check_for_no_start
 	log_daemon_msg "Starting Clock Manager service" "clkmgr-proxy" || true
-	if start-stop-daemon --start --quiet --oknodo --background --chuid $CLKMGR_UID --make-pidfile --pidfile /run/clkmgr_proxy.pid --exec /usr/sbin/clkmgr_proxy -- $CLKMGR_OPTS; then
+	if start-stop-daemon --start --quiet --oknodo --background --chuid $CLKMGR_UID --make-pidfile --pidfile $CLKMGR_PID --exec @sbindir@/clkmgr_proxy -- $CLKMGR_OPTS; then
 		log_end_msg 0 || true
 	else
 		log_end_msg 1 || true
@@ -62,7 +63,7 @@ case "$1" in
 	;;
   stop)
 	log_daemon_msg "Stopping Clock Manager service" "clkmgr-proxy" || true
-	if start-stop-daemon --stop --quiet --oknodo --remove-pidfile --pidfile /run/clkmgr_proxy.pid --exec /usr/sbin/clkmgr_proxy; then
+	if start-stop-daemon --stop --quiet --oknodo --remove-pidfile --pidfile $CLKMGR_PID --exec @sbindir@/clkmgr_proxy; then
 		log_end_msg 0 || true
 	else
 		log_end_msg 1 || true
@@ -73,7 +74,7 @@ case "$1" in
 #  reload|force-reload)
 #	check_for_no_start
 #	log_daemon_msg "Reloading Clock Manager service's configuration" "clkmgr-proxy" || true
-#	if start-stop-daemon --stop --signal 1 --quiet --oknodo --pidfile /run/clkmgr_proxy.pid --exec /usr/sbin/clkmgr_proxy; then
+#	if start-stop-daemon --stop --signal 1 --quiet --oknodo --pidfile $CLKMGR_PID --exec @sbindir@/clkmgr_proxy; then
 #		log_end_msg 0 || true
 #	else
 #		log_end_msg 1 || true
@@ -82,9 +83,9 @@ case "$1" in
 
   reload|force-reload|restart)
 	log_daemon_msg "Restarting Clock Manager service" "clkmgr-proxy" || true
-	start-stop-daemon --stop --quiet --oknodo --retry 30 --remove-pidfile --pidfile /run/clkmgr_proxy.pid --exec /usr/sbin/clkmgr_proxy
+	start-stop-daemon --stop --quiet --oknodo --retry 30 --remove-pidfile --pidfile $CLKMGR_PID --exec @sbindir@/clkmgr_proxy
 	check_for_no_start log_end_msg
-	if start-stop-daemon --start --quiet --oknodo --background --chuid $CLKMGR_UID --make-pidfile --pidfile /run/clkmgr_proxy.pid --exec /usr/sbin/clkmgr_proxy -- $CLKMGR_OPTS; then
+	if start-stop-daemon --start --quiet --oknodo --background --chuid $CLKMGR_UID --make-pidfile --pidfile $CLKMGR_PID --exec @sbindir@/clkmgr_proxy -- $CLKMGR_OPTS; then
 		log_end_msg 0 || true
 	else
 		log_end_msg 1 || true
@@ -94,12 +95,12 @@ case "$1" in
   try-restart)
 	log_daemon_msg "Restarting Clock Manager service" "clkmgr-proxy" || true
 	RET=0
-	start-stop-daemon --stop --quiet --retry 30 --remove-pidfile --pidfile /run/clkmgr_proxy.pid --exec /usr/sbin/clkmgr_proxy || RET="$?"
+	start-stop-daemon --stop --quiet --retry 30 --remove-pidfile --pidfile $CLKMGR_PID --exec @sbindir@/clkmgr_proxy || RET="$?"
 	case $RET in
 	  0)
 		# old daemon stopped
 		check_for_no_start log_end_msg
-		if start-stop-daemon --start --quiet --oknodo --background --chuid $CLKMGR_UID --make-pidfile --pidfile /run/clkmgr_proxy.pid --exec /usr/sbin/clkmgr_proxy -- $CLKMGR_OPTS; then
+		if start-stop-daemon --start --quiet --oknodo --background --chuid $CLKMGR_UID --make-pidfile --pidfile $CLKMGR_PID --exec @sbindir@/clkmgr_proxy -- $CLKMGR_OPTS; then
 			log_end_msg 0 || true
 		else
 			log_end_msg 1 || true
@@ -119,11 +120,11 @@ case "$1" in
 	;;
 
   status)
-	status_of_proc /usr/sbin/clkmgr_proxy clkmgr-proxy && exit 0 || exit $?
+	status_of_proc @sbindir@/clkmgr_proxy clkmgr-proxy && exit 0 || exit $?
 	;;
 
   *)
-	log_action_msg "Usage: /etc/init.d/clkmgr-proxy {start|stop|reload|force-reload|restart|try-restart|status}" || true
+	log_action_msg "Usage: @sysconfdir@/init.d/clkmgr-proxy {start|stop|reload|force-reload|restart|try-restart|status}" || true
 	exit 1
 esac
 

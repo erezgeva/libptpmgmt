@@ -14,6 +14,7 @@ CLKMGR_PROXY_DIR:=$(CLKMGR_DIR)/proxy
 CLKMGR_UTEST_DIR:=$(CLKMGR_DIR)/utest
 CLKMGR_PUB_DIR:=$(CLKMGR_DIR)/pub
 
+CLKMGR_INIT_NAME:=$(CLKMGR_PROXY_DIR)/clkmgr-proxy
 CLKMGR_LIB:=lib$(CLKMGR_NAME)
 CLKMGR_LIB_SO:=$(LIB_D)/$(CLKMGR_LIB).so
 CLKMGR_LIB_A:=$(LIB_D)/$(CLKMGR_LIB).a
@@ -90,7 +91,13 @@ Cflags:
 Libs: -l$(CLKMGR_NAME)
 endef
 
-install_clkmgr:
+rundir:=$(realpath $(runstatedir))
+INIT_DIR:=$(DESTDIR)$(sysconfdir)/init.d/clkmgr-proxy
+CLKMGR_INIT_FILES:=$(subst .in,,$(wildcard $(CLKMGR_INIT_NAME).*.in))
+$(CLKMGR_INIT_NAME).%: $(CLKMGR_INIT_NAME).%.in
+	$(Q_GEN)$(SED) $(foreach n,sysconfdir sbindir rundir,-e 's!@$n@!$($n)!') $< > $@
+
+install_clkmgr: $(CLKMGR_INIT_FILES)
 	$(Q)$(INSTALL_FOLDER) $(DESTDIR)$(includedir) $(PKGCFGDIR)\
 	  $(DESTDIR)$(sbindir) $(DESTDIR)$(sysconfdir)/clkmgr\
 	  $(DESTDIR)$(sysconfdir)/init.d
@@ -98,12 +105,15 @@ install_clkmgr:
 	$(INSTALL_DATA) -D $(CLKMGR_PROXY_DIR)/proxy_cfg.json -t\
 	  $(DESTDIR)$(sysconfdir)/clkmgr
 	$(INSTALL_DATA) -D man/clkmgr_proxy.8 -t $(MANDIR)
-ifndef CLKMGR_SKIP_INSTALL_SYSTEMD
-	$(INSTALL_DATA) -D $(CLKMGR_PROXY_DIR)/clkmgr-proxy.s* -t $(SYSTEMDDIR)
+ifeq ($(USE_SYSTEMD),yes)
+	$(INSTALL_DATA) -D $(CLKMGR_INIT_NAME).service -t $(SYSTEMDDIR)
+	$(INSTALL_DATA) -D $(CLKMGR_INIT_NAME).socket -t $(SYSTEMDDIR)
 endif
-ifndef CLKMGR_SKIP_INSTALL_INIT_D
-	$(INSTALL_PROGRAM) -D $(CLKMGR_PROXY_DIR)/clkmgr.init\
-	  $(DESTDIR)$(sysconfdir)/init.d/clkmgr-proxy
+ifeq ($(USE_LSB_INIT),yes)
+	$(INSTALL_PROGRAM) -D $(CLKMGR_INIT_NAME).lsb $(INIT_DIR)
+endif
+ifeq ($(USE_OPENRC),yes)
+	$(INSTALL_PROGRAM) -D $(CLKMGR_INIT_NAME).openrc $(INIT_DIR)
 endif
 ifdef PKG_CONFIG_DIR
 	echo "$(clkmgr_pkgconfig)" > $(PKGCFGDIR)/$(CLKMGR_NAME).pc

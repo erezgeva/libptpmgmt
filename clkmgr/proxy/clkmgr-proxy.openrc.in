@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
+# See:
+# https://github.com/OpenRC/openrc/blob/master/service-script-guide.md
+
+command="@sbindir@/clkmgr_proxy"
+pidfile="@rundir@/clkmgr_proxy.pid"
+command_background=true
+command_args="-f @sysconfdir@/clkmgr/proxy_cfg.json -q 1 -s 1 -a 1"

@@ -20,6 +20,8 @@ ext()
 # https://www.cyberciti.biz/howto/question/linux/linux-rpm-cheat-sheet.php
 # See package content
 rpm -qpil clkmgr-proxy-1*.x86_64.rpm
+# Extract RPM
+rpm2cpio clkmgr-proxy-1*.x86_64.rpm | cpio -idmv
 # List installed packages
 rpm -qa
 dnf list installed

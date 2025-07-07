@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
+# SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
 # See:
 # https://www.freedesktop.org/software/systemd/man/systemd.socket.html
 
 [Unit]
 Description=Clock Manager service socket
-ConditionPathExists=!/etc/clkmgr/proxy_not_to_be_run
+ConditionPathExists=!@sysconfdir@/clkmgr/proxy_not_to_be_run
 
 [Socket]
 ListenMessageQueue=/clkmgr

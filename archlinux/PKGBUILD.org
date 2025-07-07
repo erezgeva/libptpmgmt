@@ -33,7 +33,8 @@ verdep="$pkgver-$pkgrel"
 build() {
   cd $pkgname-$pkgver
   autoreconf -i
-  ./configure --prefix=/usr --sbindir=\${prefix}/bin --sysconfdir=/etc
+  ./configure --prefix=/usr --sbindir=\${prefix}/bin --sysconfdir=/etc\
+    --enable-systemd
   make PMC_USE_LIB=so --no-print-directory all doxygen
   # Place here as make do not use packages!
   make DESTDIR=../install install --no-print-directory compile_py3

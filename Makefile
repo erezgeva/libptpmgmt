@@ -290,10 +290,11 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/*\
   $(PMC_DIR)/phc_ctl $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
   $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/*\
   */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp\
-  $(CLKMGR_DIR)/proxy/*.s*) $(CLKMGR_DIR)/utest/Makefile\
+  $(CLKMGR_DIR)/proxy/*.*.in $(CLKMGR_DIR)/proxy/*.sh)\
+  $(CLKMGR_DIR)/utest/Makefile\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
   $(MAKEFILE_LIST) credits $(CLKMGR_DIR)/credits $(SRCS_CLKMGR)\
-  $(HEADERS_SRCS_CLKMGR) $(CLKMGR_DIR)/proxy/$(CLKMGR_NAME).init
+  $(HEADERS_SRCS_CLKMGR)
 ifeq ($(INSIDE_GIT),true)
 SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[chj]* uctest/*.[ch]* .github .gitlab $(CLKMGR_DIR)/sample\
@@ -866,6 +867,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache wrappers/go/allocTlv.i wrappers/go/gtest/gtest\
   wrappers/go/clkmgr_gtest/clkmgr_gtest\
+  $(subst .in,,$(wildcard $(CLKMGR_DIR)/proxy/clkmgr-proxy.*.in))\
   $(CLKMGR_PROXY) $(HEADERS_GEN) $(CLKMGR_HEADERS_GEN) .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
   archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\

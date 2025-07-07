@@ -32,7 +32,9 @@ deb_clean:
 override_dh_auto_clean:
 	$Q$(MAKE) distclean
 
-export CLKMGR_SKIP_INSTALL_SYSTEMD=1
+#override_dh_auto_configure:
+	#$(Q)dh_auto_configure -- --enable-lsb-init
+
 override_dh_installsystemd:
 	$(Q)dh_installsystemd --no-enable --no-start
 

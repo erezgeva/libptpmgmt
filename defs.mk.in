@@ -43,6 +43,7 @@ mandir:=@mandir@
 infodir:=@infodir@
 sbindir:=@sbindir@
 bindir:=@bindir@
+runstatedir:=@runstatedir@
 
 # Objecy extension
 OBJEXT:=@OBJEXT@
@@ -100,6 +101,11 @@ CPPCHECK:=@CPPCHECK@
 CPPCHECK_OPT_BASE:=@CPPCHECK_OPT_BASE@
 VALGRIND:=@VALGRIND@
 DATE:=@DATE@
+
+# Selecting of init systems
+USE_SYSTEMD:=@USE_SYSTEMD@
+USE_LSB_INIT:=@USE_LSB_INIT@
+USE_OPENRC:=@USE_OPENRC@
 
 # Testing tools
 HAVE_GTEST_HEADER:=@HAVE_GTEST_HEADER@
