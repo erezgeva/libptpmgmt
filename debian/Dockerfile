@@ -25,7 +25,7 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     debhelper coreutils sudo dh-lua dh-make-perl dh-exec git procps dh-php\
     build-essential ncurses-bin dlocate dialog lsb-release quilt apt-file\
     libtool libtool-bin swig golang install-info doxygen graphviz\
-    qemu-user-static distro-info chrpath patchelf tree tclx8.4\
+    qemu-user-static distro-info chrpath patchelf tree tclx8.4 dh-runit\
     lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck universal-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
