@@ -1,0 +1,7 @@
+#!/bin/sh
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
+# See:
+# https://smarden.org/runit/runscripts
+
+exec @sbindir@/clkmgr_proxy -f @sysconfdir@/clkmgr/proxy_cfg.json -q 1 -s 1 &

@@ -347,6 +347,7 @@ AC_SUBST([HAVE_UNISTD_H])
 AS_UNSET([USE_SYSTEMD])
 AS_UNSET([USE_LSB_INIT])
 AS_UNSET([USE_OPENRC])
+AS_UNSET([USE_RUNIT])
 
 # Install systemd clkmgr-proxy.service, clkmgr-proxy.socket
 AC_ARG_ENABLE([systemd],
@@ -366,13 +367,26 @@ AC_ARG_ENABLE([openrc],
                               [Enable installing of openrc init])],
               [AS_VAR_COPY([USE_OPENRC], [enableval])])
 
+# OpenRC and LSB init can not coexist
 AS_IF([PTPM_VAR_TEST([USE_LSB_INIT], ['yes']) &&\
        PTPM_VAR_TEST([USE_OPENRC], ['yes'])],
       [AC_MSG_ERROR([lsb-init and openrc can not be used together!])])
 
+# Install Runit
+dnl We use BusyBox default.
+dnl Some system link /var/service to /service, which is Runit default.
+AC_ARG_WITH([runit],
+            [AS_HELP_STRING([--with-runit=path],
+                            [Set Runit SVDIR, folder for services])],
+            [AS_VAR_COPY([USE_RUNIT], [withval])])
+
+AS_VAR_IF([USE_RUNIT], ['yes'],
+          [AS_VAR_SET([USE_RUNIT], ['/var/service'])])
+
 AC_SUBST([USE_SYSTEMD])
 AC_SUBST([USE_LSB_INIT])
 AC_SUBST([USE_OPENRC])
+AC_SUBST([USE_RUNIT])
 
 #----------------------------------------------------------------
 # Testing tools

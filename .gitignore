@@ -53,6 +53,6 @@
 /tools/doxygen.cfg
 /tools/doxygen.*.cfg
 # Go lang cache
-/obj-*/pkg/mod/cache/lock
+/obj-*/pkg
 /obj-*/go-build
 /_site/

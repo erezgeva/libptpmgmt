@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
+# See: man dh_runit
+
+clkmgr/proxy/clkmgr-proxy.runit disable,name=clkmgr-proxy,bin=/usr/sbin/clkmgr_proxy

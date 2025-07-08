@@ -47,7 +47,7 @@ check_for_no_start() {
 
 export PATH="${PATH:+$PATH:}@sbindir@:/sbin"
 
-CLKMGR_OPTS='-f @sysconfdir@/clkmgr/proxy_cfg.json -q 1 -s 1 -a 1'
+CLKMGR_OPTS='-f @sysconfdir@/clkmgr/proxy_cfg.json -q 1 -s 1'
 CLKMGR_PID='@rundir@/clkmgr_proxy.pid'
 CLKMGR_UID=0:0
 

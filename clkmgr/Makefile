@@ -115,6 +115,10 @@ endif
 ifeq ($(USE_OPENRC),yes)
 	$(INSTALL_PROGRAM) -D $(CLKMGR_INIT_NAME).openrc $(INIT_DIR)
 endif
+ifneq ($(USE_RUNIT),)
+	$(INSTALL_PROGRAM) -D $(CLKMGR_INIT_NAME).runit\
+	  $(DESTDIR)$(USE_RUNIT)/clkmgr-proxy/run
+endif
 ifdef PKG_CONFIG_DIR
 	echo "$(clkmgr_pkgconfig)" > $(PKGCFGDIR)/$(CLKMGR_NAME).pc
 	for pf in $(CLKMGR_NAME)$(PACKAGE_VERSION) $(CLKMGR_LIB)\

@@ -23,7 +23,7 @@
 export PMC_USE_LIB=so
 
 %:
-	$(Q)dh $@ --parallel --with python3,lua
+	$(Q)dh $@ --parallel --with python3,lua,runit
 
 deb_clean:
 	$Q$(RM) -R $(addprefix debian/,$(shell dh_listpackages) files tmp\

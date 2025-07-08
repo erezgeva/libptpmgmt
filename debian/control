@@ -4,7 +4,7 @@ Section: net
 Priority: optional
 Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 9), libtool, texlive-font-utils, dh-python,
-	       dh-lua, dh-php, dh-golang, golang-src
+		    dh-lua, dh-php, dh-golang, golang-src, dh-runit
 Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
 		    liblua5.2-dev, liblua5.3-dev, liblua5.4-dev, pkgconf,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),
@@ -180,6 +180,16 @@ Recommends: linuxptp
 Description: Clock Manager proxy service.
  framework for controlling and monitoring network time synchronization
  on the local platform.
+
+Package: clkmgr-proxy-run
+Architecture: all
+Depends: clkmgr-proxy, ${misc:Depends}
+Description: Clock Manager proxy service. (Runit integration)
+ framework for controlling and monitoring network time synchronization
+ on the local platform.
+ .
+ This package contains scripts to run clkmgr-proxy under Runit
+ supervision system.
 
 Package: libclkmgr
 Architecture: any

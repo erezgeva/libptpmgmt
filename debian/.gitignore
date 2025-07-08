@@ -10,7 +10,10 @@
 /.*debhelper*
 /*debhelper*
 /libptpmgmt*/
-/tmp/
 /*-ptpmgmt/
+/clkmgr-proxy*/
+/libclkmgr*/
+/*-clkmgr/
 /autoreconf.*
 /pkgs/
+/tmp/
