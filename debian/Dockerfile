@@ -24,7 +24,7 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     apt-get update && apt-get install -y --no-install-recommends --no-remove\
     debhelper coreutils sudo dh-lua dh-make-perl dh-exec git procps dh-php\
     build-essential ncurses-bin dlocate dialog lsb-release quilt apt-file\
-    libtool libtool-bin swig golang install-info doxygen graphviz\
+    libtool libtool-bin swig golang install-info doxygen graphviz runit-helper\
     qemu-user-static distro-info chrpath patchelf tree tclx8.4 dh-runit\
     lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck universal-ctags libtest-class-perl ruby-test-unit lua-unit\
