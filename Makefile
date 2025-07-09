@@ -650,6 +650,7 @@ DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DOC_PKG)
 MANDIR:=$(DESTDIR)$(mandir)/man8
+INCDIR:=$(DESTDIR)$(includedir)
 SYSTEMDDIR:=$(DESTDIR)/usr/lib/systemd/system
 ifdef PKG_CONFIG_DIR
 PKGCFGDIR:=$(DESTDIR)$(PKG_CONFIG_DIR)
@@ -681,14 +682,14 @@ ifdef PKG_CONFIG_DIR
 	  $(LIB_NAME)$(PACKAGE_VERSION)
 	do $(LN) $(SWIG_LNAME).pc $(PKGCFGDIR)/$$pf.pc;done
 endif
-	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
-	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)
+	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(INCDIR)/$(SWIG_LNAME)/c
+	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(INCDIR)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
 	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
-	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/$f;)
+	  $(INCDIR)/$(SWIG_LNAME)/$f;)
 	$(foreach f,$(notdir $(HEADERS_INST_C)),$(SED) -i\
 	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
-	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
+	  $(INCDIR)/$(SWIG_LNAME)/c/$f;)
 	$(INSTALL_FOLDER) $(DEVDOCDIR)
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
 	  'LDLIBS+=-l$(SWIG_LNAME)' > $(DEVDOCDIR)/default.mk

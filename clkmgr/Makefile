@@ -98,9 +98,7 @@ $(CLKMGR_INIT_NAME).%: $(CLKMGR_INIT_NAME).%.in
 	$(Q_GEN)$(SED) $(foreach n,sysconfdir sbindir rundir,-e 's!@$n@!$($n)!') $< > $@
 
 install_clkmgr: $(CLKMGR_INIT_FILES)
-	$(Q)$(INSTALL_FOLDER) $(DESTDIR)$(includedir) $(PKGCFGDIR)\
-	  $(DESTDIR)$(sbindir) $(DESTDIR)$(sysconfdir)/clkmgr\
-	  $(DESTDIR)$(sysconfdir)/init.d
+	$(Q)$(INSTALL_FOLDER) $(INCDIR) $(PKGCFGDIR)
 	$(INSTALL_PROGRAM) -D $(CLKMGR_PROXY) -t $(DESTDIR)$(sbindir)
 	$(INSTALL_DATA) -D $(CLKMGR_PROXY_DIR)/proxy_cfg.json -t\
 	  $(DESTDIR)$(sysconfdir)/clkmgr
@@ -125,10 +123,9 @@ ifdef PKG_CONFIG_DIR
 	  $(CLKMGR_LIB)$(PACKAGE_VERSION)
 	do $(LN) $(CLKMGR_NAME).pc $(PKGCFGDIR)/$$pf.pc;done
 endif
-	cp -a $(CLKMGR_PUB_DIR)/* $(DESTDIR)$(includedir)
+	cp -a $(CLKMGR_PUB_DIR)/* $(INCDIR)
 	$(SED) -i 's!$(c_inc)\s*\"pub/\([^"]\+\)\"!$(c_inc) <\1>!'\
-	  $(DESTDIR)$(includedir)/clockmanager.h\
-	  $(DESTDIR)$(includedir)/$(CLKMGR_NAME)/*.h
+	  $(INCDIR)/clockmanager.h $(INCDIR)/$(CLKMGR_NAME)/*.h
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY_INTEL)\n\n%s\n"\
 	  'LDLIBS+=-l$(CLKMGR_NAME)' > $(DEVDOCDIR)/clkmgr_default.mk
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY_INTEL)\n\n%s\n"\
