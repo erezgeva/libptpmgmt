@@ -1,9 +1,9 @@
-SPDX-License-Identifier: GPL-3.0-or-later
-SPDX-FileCopyrightText: Copyright © 2025 Erez Geva <ErezGeva2@gmail.com>
+SPDX-License-Identifier: BSD-3-Clause
+SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
 
 Formatted: name (N), email (E), description (D), Files (F)
 
-Main developers of the Clock manager sub project:
+Main developers of the Clock Manager sub project:
 
 N: Christopher S M Hall
 E: christopher.s.hall@intel.com
@@ -20,7 +20,10 @@ E: peter.jun.ann.lai@intel.com
 N: Wei Sheng Goh
 E: wei.sheng.goh@intel.com
 
-Additional Contributors to the Clock manager sub project:
+N: Erez Geva
+E: ErezGeva2@gmail.com
+
+Additional contributors to the Clock Manager sub project:
 
 N: David Zage
 E: david.zage@intel.com
