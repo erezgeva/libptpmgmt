@@ -16,7 +16,6 @@ Restart=on-failure
 Type=exec
 
 [Install]
-WantedBy=multi-user.target
 Alias=clkmgr-proxy.service
 
 # vi: set ft=systemd:
