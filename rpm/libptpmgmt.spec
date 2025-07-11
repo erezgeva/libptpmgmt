@@ -22,7 +22,7 @@ URL:            https://%{name}.nwtime.org
 BuildRequires:  gcc-c++ pkgconfig which swig
 BuildRequires:  autoconf m4 automake libtool chrpath
 # You may use 'patchelf' as alternative of `chrpath`
-BuildRequires:  doxygen graphviz texlive-epstopdf
+BuildRequires:  doxygen graphviz texlive-epstopdf pandoc
 BuildRequires:  openssl-devel libgcrypt-devel gnutls-devel nettle-devel
 BuildRequires:  perl perl-devel
 BuildRequires:  python3 python3-devel
@@ -325,6 +325,7 @@ autoreconf -i
 %files -n %{cbname}-proxy
 %{_sbindir}/%{cbname}_proxy
 %{_mandir}/man8/%{cbname}_proxy.8*
+%{_mandir}/man5/%{cbname}_proxy_cfg.5*
 %{_sysconfdir}/%{cbname}/proxy_cfg.json
 %{_prefix}/lib/systemd/system/%{cbname}-proxy.s*
 

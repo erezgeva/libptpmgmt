@@ -506,7 +506,7 @@ config_report()
    LUA_VERS LUA_VER USE_ENDIAN PERL5_VER HAVE_LIBCHRONY_HEADER
    GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
    HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK MARKDOWN
-   PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
+   PANDOC PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
  local langs='tcl perl5 python3 ruby php lua go'
  local $list $langs
@@ -557,6 +557,7 @@ config_report()
  [[ -n "$HAVE_LIBCHRONY_HEADER" ]] && local -r chrony='v' || local -r chrony='x'
  [[ -n "$MARKDOWN" ]] && local -r markdown='v' || local -r markdown='x'
  [[ -n "$CMARK" ]] && local -r cmark="$CMARK" || local -r cmark='x'
+ [[ -n "$PANDOC" ]] && local -r pandoc="$PANDOC" || local -r pandoc='x'
 
  cat << EOF
 ========================== Config ==========================
@@ -564,7 +565,8 @@ Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
 libchrony '$chrony' markdown '$markdown' rpath '$rpath' cmark '$cmark'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
-Doxygen '$doxy' dot '$dver' cppcheck '$cppcheck' astyle '$astyle'
+Doxygen '$doxy' dot '$dver' Pandoc '$pandoc'
+cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'
 swig '$swig' Python '$python3' Ruby '$ruby' PHP '$php'
 Perl '$perl5' go '$go' tcl '$tcl' Lua '$lua'

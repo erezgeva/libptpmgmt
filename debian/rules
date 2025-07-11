@@ -64,8 +64,8 @@ override_dh_install:
 	  libptpmgmt-dev/usr/share/doc libptpmgmt-doc/usr/share\
 	  pmc-ptpmgmt/usr/share phc-ctl-ptpmgmt/usr/share/man/man8\
 	  phc-ctl-ptpmgmt/usr/sbin clkmgr-proxy/usr/sbin\
-	  clkmgr-proxy/usr/share/man/man8 tcl-clkmgr/usr/$(TCLDIR)\
-	  $(PYDIR) $(PERLDIR)/auto $(PHPDIR) $(RUBYDIR)\
+	  clkmgr-proxy/usr/share/man/man8 clkmgr-proxy/usr/share/man/man5\
+	  tcl-clkmgr/usr/$(TCLDIR) $(PYDIR) $(PERLDIR)/auto $(PHPDIR) $(RUBYDIR)\
 	  $(addsuffix /usr/lib,python3-ptpmgmt php-ptpmgmt tcl-ptpmgmt\
 	  golang-ptpmgmt)\
 	  $(addsuffix $(LIBDIR),lua-ptpmgmt lua-clkmgr ruby-ptpmgmt libptpmgmt\
@@ -75,6 +75,7 @@ override_dh_install:
 	$Q$(MV) $(DSRC)share/doc/libptpmgmt-dev debian/libptpmgmt-dev/usr/share/doc
 	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
 	$Q$(MV) $(DSRC)share/man/man8/clkmgr* debian/clkmgr-proxy/usr/share/man/man8
+	$Q$(MV) $(DSRC)share/man/man5/clkmgr* debian/clkmgr-proxy/usr/share/man/man5
 	$Q$(MV) $(DSRC)share/man/man8/phc* debian/phc-ctl-ptpmgmt/usr/share/man/man8
 	$Q$(MV) $(DSRC)share/man debian/pmc-ptpmgmt/usr/share
 	$Q$(MV) $(DSRC)sbin/clkmgr_proxy debian/clkmgr-proxy/usr/sbin
