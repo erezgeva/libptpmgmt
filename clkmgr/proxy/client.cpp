@@ -253,7 +253,7 @@ void Client::NotifyClients(size_t timeBaseIndex, ClockType type)
 ptpEvent::ptpEvent(size_t index) : timeBaseIndex(index)
 {
     timeBaseDataMap[index]; // Ensure we have time base data initialized
-    portClear();
+    clear();
     copy();
 }
 

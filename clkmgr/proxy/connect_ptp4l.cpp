@@ -59,6 +59,7 @@ class ptpSet : public Thread4TimeBase, MessageDispatcher
     void thread_loop() override final;
   private:
     void portDataReset();
+    void portReset();
     callback_declare(TIME_STATUS_NP);
     callback_declare(PORT_DATA_SET);
     callback_declare(CMLDS_INFO_NP);
@@ -131,36 +132,53 @@ callback_define(TIME_STATUS_NP)
 }
 void ptpSet::portDataReset()
 {
-    event.portClear();
+    event.portDataClear();
+    need_set_action = true;
+}
+void ptpSet::portReset()
+{
+    event.clear();
     need_set_action = true;
 }
 callback_define(PORT_DATA_SET)
 {
-    if(gmIdentity == tlv.portIdentity.clockIdentity) {
-        if(tlv.portState == MASTER)
-            event.event.syncInterval =
-                pow(2.0, tlv.logSyncInterval) * USEC_PER_SEC;
-        return;
-    }
-    if(tlv.portState == SLAVE) {
-        event.event.syncedWithGm = true;
-        if(need_set_action) {
-            msg_set_action(PORT_DATA_SET);
-            need_set_action = false;
-        }
-    } else if(tlv.portState == MASTER) {
-        // Set own clock identity as GM identity
-        portDataReset();
-        event.event.gmClockUUID = 0;
-        for(int i = 0; i < 8; ++i)
-            event.event.gmClockUUID |=
-                static_cast<uint64_t>(tlv.portIdentity.clockIdentity.v[i])
-                << (8 * (7 - i));
-        gmIdentity = tlv.portIdentity.clockIdentity;
-    } else if(tlv.portState <= UNCALIBRATED) {
-        // Reset master offset and GM identity
-        portDataReset();
-        event.event.gmClockUUID = 0;
+    switch(tlv.portState) {
+        case INITIALIZING:
+        case FAULTY:
+        case DISABLED:
+        case LISTENING:
+        case PRE_MASTER:
+        case PASSIVE:
+        case UNCALIBRATED:
+            // Reset port data
+            portDataReset();
+            break;
+        case MASTER:
+            // If GM ID matches, retrieve the syncInterval
+            if(gmIdentity == tlv.portIdentity.clockIdentity) {
+                event.event.syncInterval =
+                    pow(2.0, tlv.logSyncInterval) * USEC_PER_SEC;
+                return;
+            }
+            // Set own clock identity as GM identity
+            portDataReset();
+            event.event.gmClockUUID = 0;
+            for(int i = 0; i < 8; ++i)
+                event.event.gmClockUUID |=
+                    static_cast<uint64_t>(tlv.portIdentity.clockIdentity.v[i])
+                    << (8 * (7 - i));
+            gmIdentity = tlv.portIdentity.clockIdentity;
+            break;
+        case SLAVE:
+            event.event.syncedWithGm = true;
+            if(need_set_action) {
+                msg_set_action(PORT_DATA_SET);
+                need_set_action = false;
+            }
+            break;
+        default:
+            PrintInfo("Unsupported portState: " + to_string(tlv.portState));
+            break;
     }
     do_notify = true;
 }
@@ -242,9 +260,7 @@ void ptpSet::thread_loop()
                     break;
                 if(!lost_connection) {
                     PrintError("Lost connection to ptp4l at " + udsAddr);
-                    portDataReset();
-                    event.event.gmClockUUID = 0;
-                    event.event.asCapable = false;
+                    portReset();
                     lost_connection = true;
                     if(stopThread)
                         return;

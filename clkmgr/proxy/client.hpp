@@ -31,10 +31,13 @@ class ptpEvent
   public:
     struct ptp_event event;
     ptpEvent(size_t index);
-    void portClear() {
+    void portDataClear() {
         event.clockOffset = 0;
-        event.gmClockUUID = 0;
         event.syncInterval = 0;
+        event.syncedWithGm = false;
+    }
+    void clear() {
+        event = { 0 };
     }
     void copy();
 };
