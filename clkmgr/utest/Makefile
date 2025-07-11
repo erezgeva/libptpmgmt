@@ -29,13 +29,15 @@ CLKMGR_MSG_OBJS:=$(CLKMGR_MSG_SRCS:.cpp=.o) $(addsuffix .o,\
   $(addprefix $(CLKMGR_COMMON_DIR)/,message msgq_tport print termin sighandler)\
   $(addprefix $(CLKMGR_CLIENT_DIR)/,subscription))
 
-CLKMGR_CONFIG_PARSER_UTEST:=$(CLKMGR_UTEST_DIR)/utest_config_parser
-CLKMGR_CONFIG_PARSER_UTEST_SRCS:=config_parser
-CLKMGR_CONFIG_PARSER_UTEST_OBJS:=$(foreach n,\
-  $(CLKMGR_CONFIG_PARSER_UTEST_SRCS),$(CLKMGR_UTEST_DIR)/$n.o)
-CLKMGR_CONFIG_PARSER_OBJS:=$(addsuffix .o,\
-  $(CLKMGR_DIR)/proxy/config_parser\
-  $(addprefix $(CLKMGR_COMMON_DIR)/,print termin))
+CLKMGR_PROXY_UTEST:=$(CLKMGR_UTEST_DIR)/utest_proxy
+CLKMGR_PROXY_UTEST_SRCS:=config_parser client
+CLKMGR_PROXY_UTEST_OBJS:=$(foreach n,\
+  $(CLKMGR_PROXY_UTEST_SRCS),$(CLKMGR_UTEST_DIR)/$n.o)
+CLKMGR_PROXY_OBJS:=$(addsuffix .o,\
+  $(addprefix $(CLKMGR_PROXY_DIR)/,subscribe_msg notification_msg connect_msg\
+    config_parser client)\
+  $(addprefix $(CLKMGR_COMMON_DIR)/,subscribe_msg notification_msg connect_msg\
+    message sighandler msgq_tport print termin))
 
 CLKMGR_API_UTEST:=$(CLKMGR_UTEST_DIR)/utest_api
 CLKMGR_API_UTEST_SRCS:=clockmanager
@@ -74,13 +76,13 @@ utest_clkmgr_message: $(CLKMGR_MSG_UTEST)
 	$(call Q_UTEST,ClkMgr message C++)$(UVGD)$(CLKMGR_MSG_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
-$(CLKMGR_CONFIG_PARSER_UTEST): $(OBJ_DIR)/utest_m.o\
-	$(CLKMGR_CONFIG_PARSER_UTEST_OBJS) $(CLKMGR_CONFIG_PARSER_OBJS)\
+$(CLKMGR_PROXY_UTEST): $(OBJ_DIR)/utest_m.o\
+	$(CLKMGR_PROXY_UTEST_OBJS) $(CLKMGR_PROXY_OBJS)\
 	$(LIB_NAME_A)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS)\
 	  $(GTEST_LIB_FLAGS) -o $@
-utest_clkmgr_config_parser: $(CLKMGR_CONFIG_PARSER_UTEST)
-	$(call Q_UTEST,ClkMgr proxy C++)$(UVGD)$(CLKMGR_CONFIG_PARSER_UTEST)\
+utest_clkmgr_proxy: $(CLKMGR_PROXY_UTEST)
+	$(call Q_UTEST,ClkMgr proxy C++)$(UVGD)$(CLKMGR_PROXY_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
 $(CLKMGR_API_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_API_UTEST_OBJS)\
@@ -93,6 +95,6 @@ utest_clkmgr_api: $(CLKMGR_API_UTEST)
 
 endif #GTEST_LIB_FLAGS
 
-CLKMGR_UTESTS:=$(addprefix utest_clkmgr_,client common message config_parser api)
+CLKMGR_UTESTS:=$(addprefix utest_clkmgr_,client common message proxy api)
 .PHONY: $(CLKMGR_UTESTS)
 utest_clkmgr: $(CLKMGR_GEN_SRC) $(CLKMGR_UTESTS)
