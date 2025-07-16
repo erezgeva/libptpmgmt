@@ -13,7 +13,6 @@
 
 #include <cstring>
 #include <syslog.h>
-#include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -25,7 +24,6 @@ enum LogLevel { ERROR, INFO, DEBUG, TRACE };
 static LogLevel currentLogLevel = INFO;
 static bool useSyslog = false;
 static bool verbose = true;
-static rtpi::mutex errMutex;
 
 void PrintStartLog(const char *me)
 {
@@ -50,18 +48,19 @@ void setVerbose(bool isVerbose)
 void _PrintError(const string &msg, uint16_t line, const char *file,
     const char *func, int errnum)
 {
-    string ebuf;
+    const char *ebuf = nullptr;
     if(errnum != 0) {
-        // error string is not thread safe
-        unique_lock<rtpi::mutex> lck(errMutex);
-        ebuf = strerror(errnum);
-    }
+        ebuf = strerrordesc_np(errnum);
+        if(ebuf == nullptr)
+            ebuf = "NA";
+    } else
+        ebuf = "";
     if(useSyslog)
         syslog(LOG_ERR, "*** Error: %s %s at line %u in %s: %s",
-            msg.c_str(), ebuf.c_str(), line, file, func);
+            msg.c_str(), ebuf, line, file, func);
     if(verbose) {
         fprintf(stderr, "*** Error: %s %s at line %u in %s: %s\n",
-            msg.c_str(), ebuf.c_str(), line, file, func);
+            msg.c_str(), ebuf, line, file, func);
         fflush(stderr);
     }
 }
