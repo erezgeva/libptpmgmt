@@ -40,7 +40,7 @@ class JsonConfigParser
     void print_config();
   public:
     static JsonConfigParser &getInstance();
-    bool process_json(const char *file);
+    bool process_json(const std::string &file);
     cfgItr begin() { return timeBaseCfgs.begin(); }
     cfgItr end() { return timeBaseCfgs.end(); }
     size_t size() const { return timeBaseCfgs.size(); }

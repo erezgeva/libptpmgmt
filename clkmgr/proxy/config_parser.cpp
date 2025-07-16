@@ -15,6 +15,7 @@
 #include <cstring>
 
 __CLKMGR_NAMESPACE_USE;
+using namespace std;
 
 JsonConfigParser &JsonConfigParser::getInstance()
 {
@@ -25,26 +26,25 @@ void JsonConfigParser::print_config()
 {
     for(const auto &row : timeBaseCfgs) {
         const TimeBaseCfg &config = row.base;
-        PrintInfo(" [Index: " + std::to_string(config.timeBaseIndex) +
-            "] Name: " + std::string(config.timeBaseName));
+        PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+            "] Name: " + config.timeBaseName);
         if(!row.udsAddrPtp4l.empty()) {
-            PrintInfo(" [Index: " + std::to_string(config.timeBaseIndex) +
-                "] Interface Name: " + std::string(config.interfaceName));
-            PrintInfo(" [Index: " + std::to_string(config.timeBaseIndex) +
+            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+                "] Interface Name: " + config.interfaceName);
+            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
                 "] UDS Address PTP4L: " + row.udsAddrPtp4l);
-            PrintInfo(" [Index: " + std::to_string(config.timeBaseIndex) +
-                "] Domain Number: " + std::to_string(config.domainNumber));
-            PrintInfo(" [Index: " + std::to_string(config.timeBaseIndex) +
-                "] Transport Specific: " +
-                std::to_string(config.transportSpecific));
+            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+                "] Domain Number: " + to_string(config.domainNumber));
+            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+                "] Transport Specific: " + to_string(config.transportSpecific));
         }
         if(!row.udsAddrChrony.empty())
-            PrintInfo(" [Index: " + std::to_string(config.timeBaseIndex) +
+            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
                 "] UDS Address Chrony: " + row.udsAddrChrony);
     }
 }
 
-bool JsonConfigParser::get_Int_Val(jsonObject *obj, const std::string &key,
+bool JsonConfigParser::get_Int_Val(jsonObject *obj, const string &key,
     uint8_t &res)
 {
     int64_t i;
@@ -59,10 +59,10 @@ bool JsonConfigParser::get_Int_Val(jsonObject *obj, const std::string &key,
     return true;
 }
 
-bool JsonConfigParser::get_Str_Val(jsonObject *obj, const std::string &key,
+bool JsonConfigParser::get_Str_Val(jsonObject *obj, const string &key,
     char *res)
 {
-    std::string r;
+    string r;
     if(get_Str_Val(obj, key, r)) {
         if(r.size() >= STRING_SIZE_MAX) {
             PrintError("Invalid " + key);
@@ -73,8 +73,8 @@ bool JsonConfigParser::get_Str_Val(jsonObject *obj, const std::string &key,
     }
     return false;
 }
-bool JsonConfigParser::get_Str_Val(jsonObject *obj, const std::string &key,
-    std::string &res)
+bool JsonConfigParser::get_Str_Val(jsonObject *obj, const string &key,
+    string &res)
 {
     jsonValue *val = obj->getVal(key);
     if(val == nullptr)
@@ -87,7 +87,7 @@ bool JsonConfigParser::get_Str_Val(jsonObject *obj, const std::string &key,
     return true;
 }
 
-bool JsonConfigParser::process_json(const char *file)
+bool JsonConfigParser::process_json(const string &file)
 {
     jsonMain main;
     jsonArray *timeBaseArray;

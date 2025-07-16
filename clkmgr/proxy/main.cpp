@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
     bool useSyslog = false; // Default value
     bool useVerbode = true; // Default value
     bool useMsgQAllAccess = false; // Default value
-    const char *file;
     const char *me = strrchr(argv[0], '/');
     // Remove leading path
     me = me == nullptr ? argv[0] : me + 1;
@@ -58,8 +57,7 @@ int main(int argc, char *argv[])
     while((opt = getopt(argc, argv, "f:l:q:s:a:vh")) != -1) {
         switch(opt) {
             case 'f':
-                file = optarg;
-                if(file == nullptr || !parser.process_json(file)) {
+                if(optarg == nullptr || !parser.process_json(optarg)) {
                     fprintf(stderr, "Failed to process json file\n");
                     return EXIT_FAILURE;
                 }

@@ -18,14 +18,15 @@
 #include "proxy/config_parser.hpp"
 
 using namespace clkmgr;
+using namespace std;
 
 // Used on ProxyConnectMessage::parseBufferTail()
-sessionId_t Client::connect(sessionId_t sessionId, const std::string &id)
+sessionId_t Client::connect(sessionId_t sessionId, const string &id)
 {
     return sessionId + 2;
 }
 // ProxyConnectMessage::makeBufferTail
-bool JsonConfigParser::process_json(const char *file)
+bool JsonConfigParser::process_json(const string &file)
 {
     timeBaseCfgs.push_back({{
             .timeBaseIndex = 1,
@@ -39,7 +40,7 @@ bool JsonConfigParser::process_json(const char *file)
 JsonConfigParser &JsonConfigParser::getInstance()
 {
     static JsonConfigParser me;
-    me.process_json(nullptr);
+    me.process_json("");
     return me;
 }
 
@@ -83,12 +84,12 @@ TEST(ConnectMessage, toProxy)
     // Parse send message
     Message *msg = Message::parseBuffer(buf);
     ASSERT_NE(msg, nullptr);
-    std::unique_ptr<Message> send_msg(msg);
+    unique_ptr<Message> send_msg(msg);
     ProxyConnectMessage *ppmsg = dynamic_cast<ProxyConnectMessage *>(msg);
     ASSERT_NE(ppmsg, nullptr);
     // Check received connect message
     EXPECT_EQ(ppmsg->get_msgId(), CONNECT_MSG);
-    const std::string &id = ppmsg->getClientId();
+    const string &id = ppmsg->getClientId();
     EXPECT_EQ(id.size(), CLIENTID_LENGTH);
     EXPECT_STREQ(id.c_str(), "test");
     // Client::connect() add 2 to what was send

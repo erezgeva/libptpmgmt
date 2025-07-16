@@ -17,11 +17,12 @@
 #include "jsonParser.h"
 
 using namespace clkmgr;
+using namespace std;
 
 class JsonConfigParserTest : public ::testing::Test
 {
   protected:
-    std::string tempJson;
+    string tempJson;
 
     void SetUp() override {
         setLogLevel(0);
@@ -32,8 +33,8 @@ class JsonConfigParserTest : public ::testing::Test
         std::remove(tempJson.c_str());
     }
 
-    void writeFile(const std::string &content) {
-        std::ofstream ofs(tempJson);
+    void writeFile(const string &content) {
+        ofstream ofs(tempJson);
         ofs << content;
         ofs.close();
     }
@@ -53,7 +54,7 @@ TEST_F(JsonConfigParserTest, processInvalidJson)
     ASSERT_FALSE(parser.process_json("nonexistent_file.json"));
     // Malformed Json
     writeFile("{ Malformed Json ");
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
 }
 
 TEST_F(JsonConfigParserTest, missingFields)
@@ -66,7 +67,7 @@ TEST_F(JsonConfigParserTest, missingFields)
       ]
     })");
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
 }
 
 TEST_F(JsonConfigParserTest, invalidStrInput)
@@ -84,7 +85,7 @@ TEST_F(JsonConfigParserTest, invalidStrInput)
         }
       ]
     })");
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
     // Test input invalid data type - int
     writeFile(R"({
       "timeBases": [
@@ -96,7 +97,7 @@ TEST_F(JsonConfigParserTest, invalidStrInput)
         }
       ]
     })");
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
     // Test empty input
     writeFile(R"({
       "timeBases": [
@@ -108,7 +109,7 @@ TEST_F(JsonConfigParserTest, invalidStrInput)
         }
       ]
     })");
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
 }
 
 TEST_F(JsonConfigParserTest, invalidIntInput)
@@ -125,7 +126,7 @@ TEST_F(JsonConfigParserTest, invalidIntInput)
         }
       ]
     })");
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
     // Test input invalid data type - symbol
     writeFile(R"({
       "timeBases": [
@@ -137,7 +138,7 @@ TEST_F(JsonConfigParserTest, invalidIntInput)
         }
       ]
     })");
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
     // Test input invalid data type - string
     writeFile(R"({
       "timeBases": [
@@ -149,7 +150,7 @@ TEST_F(JsonConfigParserTest, invalidIntInput)
         }
       ]
     })");
-    ASSERT_FALSE(parser.process_json(tempJson.c_str()));
+    ASSERT_FALSE(parser.process_json(tempJson));
 }
 
 TEST_F(JsonConfigParserTest, defaultValues)
@@ -167,7 +168,7 @@ TEST_F(JsonConfigParserTest, defaultValues)
       ]
     })");
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    ASSERT_TRUE(parser.process_json(tempJson.c_str()));
+    ASSERT_TRUE(parser.process_json(tempJson));
     ASSERT_EQ(parser.size(), 1u);
     auto it = parser.begin();
     EXPECT_STREQ(it->base.timeBaseName, "Sample Clock");
@@ -184,7 +185,7 @@ TEST_F(JsonConfigParserTest, emptyTimeBasesArray)
 {
     writeFile(R"({ "timeBases": [] })");
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    ASSERT_TRUE(parser.process_json(tempJson.c_str()));
+    ASSERT_TRUE(parser.process_json(tempJson));
     EXPECT_EQ(parser.size(), 0u);
 }
 
@@ -207,7 +208,7 @@ TEST_F(JsonConfigParserTest, singleTimeBase)
       ]
     })");
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    ASSERT_TRUE(parser.process_json(tempJson.c_str()));
+    ASSERT_TRUE(parser.process_json(tempJson));
     ASSERT_EQ(parser.size(), 1u);
     auto it = parser.begin();
     EXPECT_STREQ(it->base.timeBaseName, "Sample Clock");
@@ -248,7 +249,7 @@ TEST_F(JsonConfigParserTest, multipleTimeBases)
       ]
     })");
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    ASSERT_TRUE(parser.process_json(tempJson.c_str()));
+    ASSERT_TRUE(parser.process_json(tempJson));
     ASSERT_EQ(parser.size(), 2u);
     auto it = parser.begin();
     EXPECT_STREQ(it->base.timeBaseName, "Global Clock");
