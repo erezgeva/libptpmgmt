@@ -8,8 +8,8 @@
 # Search packages at: https://packages.fedoraproject.org/
 ###############################################################################
 FROM fedora
-MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
-LABEL org.opencontainers.image.description "RPM build for libptpmgmt"
+LABEL org.opencontainers.image.authors="Erez Geva <ErezGeva2@gmail.com>"\
+      org.opencontainers.image.description="RPM build for libptpmgmt"
 ARG UID USER
 RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     sudo automake autoconf yum-utils rpm-build dnf-utils fedora-packager\

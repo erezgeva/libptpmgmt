@@ -8,8 +8,8 @@
 # Search packages at: https://packages.gentoo.org/
 ###############################################################################
 FROM gentoo/stage3
-MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
-LABEL org.opencontainers.image.description "Gentoo build for libptpmgmt"
+LABEL org.opencontainers.image.authors="Erez Geva <ErezGeva2@gmail.com>"\
+      org.opencontainers.image.description="Gentoo build for libptpmgmt"
 COPY gentoo/pkgs_use /etc/portage/package.use/pkgs
 ARG USER
 RUN emerge-webrsync && emerge -tvuD @world &&\

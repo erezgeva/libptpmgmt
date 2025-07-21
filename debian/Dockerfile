@@ -9,8 +9,8 @@
 ###############################################################################
 ARG DIST
 FROM debian:${DIST}
-MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
-LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
+LABEL org.opencontainers.image.authors="Erez Geva <ErezGeva2@gmail.com>"\
+      org.opencontainers.image.description="Debian build for libptpmgmt"
 ARG UID USER DIST ARCH ARCHS DPKGS REPO DEBIAN_FRONTEND=noninteractive
 RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     sed -i "s|http://deb.debian.org/debian|$REPO|"\

@@ -9,8 +9,8 @@
 # pacman: https://wiki.archlinux.org/title/pacman
 ###############################################################################
 FROM archlinux
-MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
-LABEL org.opencontainers.image.description "Arch Linux build for libptpmgmt"
+LABEL org.opencontainers.image.authors="Erez Geva <ErezGeva2@gmail.com>"\
+      org.opencontainers.image.description="Arch Linux build for libptpmgmt"
 ARG UID USER
 RUN pacman-key --init && pacman-key --populate &&\
     pacman -Syu --noconfirm --needed archlinux-keyring &&\
