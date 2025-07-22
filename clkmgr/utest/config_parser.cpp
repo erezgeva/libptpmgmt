@@ -175,7 +175,7 @@ TEST_F(JsonConfigParserTest, defaultValues)
     EXPECT_STREQ(it->base.interfaceName, "");
     EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp4l");
     EXPECT_EQ(it->base.domainNumber, 0);
-    EXPECT_EQ(it->base.transportSpecific, 1);
+    EXPECT_EQ(it->base.transportSpecific, 0);
     EXPECT_EQ(it->udsAddrChrony, "/var/run/chrony/chronyd.sock");
     it++;
     EXPECT_EQ(it, parser.end());

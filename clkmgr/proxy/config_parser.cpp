@@ -111,7 +111,7 @@ bool JsonConfigParser::process_json(const string &file)
         if(ptp4lObj != nullptr) {
             row.udsAddrPtp4l = "/var/run/ptp4l";
             config.domainNumber = 0;
-            config.transportSpecific = 1;
+            config.transportSpecific = 0;
             config.havePtp = true;
             if(!get_Str_Val(ptp4lObj, "interfaceName", config.interfaceName) ||
                 !get_Str_Val(ptp4lObj, "udsAddr", row.udsAddrPtp4l) ||
