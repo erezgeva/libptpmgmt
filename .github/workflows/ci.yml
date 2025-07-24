@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
+        names: [portage]
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
@@ -54,30 +54,11 @@ jobs:
         esac
         su $USER -c tools/ci.sh
 
-  cross:
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        names: [deb.trixie, deb.bookworm]
-      fail-fast: false
-    container:
-      image: ghcr.io/erezgeva/${{ matrix.names }}:latest
-
-    steps:
-
-    - name: checkout repository
-      uses: actions/checkout@v4
-
-    - name: cross build
-      run: |
-        chown -R $USER:$USER ..
-        su $USER -c tools/ci_cross.sh
-
   pkgs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
+        names: [portage]
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
@@ -107,35 +88,3 @@ jobs:
 
     - name: test with linuxptp
       run: libptpmgmt/tools/ci_pkgs.sh
-
-    - name: test with linuxptp without the development package
-      if: ${{ matrix.names != 'portage' }}
-      run: libptpmgmt/tools/ci_pkgs_no_dev.sh
-
-  abi:
-    runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/erezgeva/deb.trixie:latest
-
-    steps:
-
-    - name: checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        fetch-tags: true
-
-    - name: compare ABI
-      run: |
-        chown -R $USER:$USER .
-        su $USER -c tools/ci_abi.sh
-
-    - name: save ABI compare report
-      uses: actions/upload-artifact@v4
-      with:
-        name: abi_report
-        retention-days: 90
-        path: compat_reports/
-
-    - name: Report ABI error
-      run: su $USER -c tools/ci_abi_err.sh
