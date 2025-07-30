@@ -161,6 +161,7 @@ TEST_F(JsonConfigParserTest, defaultValues)
         {
           "timeBaseName": "Sample Clock",
           "ptp4l": {
+            "interfaceName": "eth0"
           },
           "chrony": {
           }
@@ -172,7 +173,7 @@ TEST_F(JsonConfigParserTest, defaultValues)
     ASSERT_EQ(parser.size(), 1u);
     auto it = parser.begin();
     EXPECT_STREQ(it->base.timeBaseName, "Sample Clock");
-    EXPECT_STREQ(it->base.interfaceName, "");
+    EXPECT_STREQ(it->base.interfaceName, "eth0");
     EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp4l");
     EXPECT_EQ(it->base.domainNumber, 0);
     EXPECT_EQ(it->base.transportSpecific, 0);

@@ -45,12 +45,19 @@ void JsonConfigParser::print_config()
 }
 
 bool JsonConfigParser::get_Int_Val(jsonObject *obj, const string &key,
-    uint8_t &res)
+    const uint8_t *defaultVal, uint8_t &res)
 {
     int64_t i;
-    if(!obj->getVal(key))
-        return true;
-    if(!obj->getVal(key)->getInt64(i) || obj->getType(key) != t_number ||
+    jsonValue *val = obj->getVal(key);
+    if(val == nullptr) {
+        if(defaultVal != nullptr) {
+            res = *defaultVal;
+            return true;
+        }
+        PrintError("Invalid " + key);
+        return false;
+    }
+    if(!val->getInt64(i) || val->getType() != t_number ||
         i  < 0 || i > UINT8_MAX) {
         PrintError("Invalid " + key);
         return false;
@@ -60,10 +67,10 @@ bool JsonConfigParser::get_Int_Val(jsonObject *obj, const string &key,
 }
 
 bool JsonConfigParser::get_Str_Val(jsonObject *obj, const string &key,
-    char *res)
+    const char *defaultVal, char *res)
 {
     string r;
-    if(get_Str_Val(obj, key, r)) {
+    if(get_Str_Val(obj, key, defaultVal, r)) {
         if(r.size() >= STRING_SIZE_MAX) {
             PrintError("Invalid " + key);
             return false;
@@ -74,11 +81,17 @@ bool JsonConfigParser::get_Str_Val(jsonObject *obj, const string &key,
     return false;
 }
 bool JsonConfigParser::get_Str_Val(jsonObject *obj, const string &key,
-    string &res)
+    const char *defaultVal, string &res)
 {
     jsonValue *val = obj->getVal(key);
-    if(val == nullptr)
-        return true;
+    if(val == nullptr) {
+        if(defaultVal != nullptr) {
+            res = defaultVal;
+            return true;
+        }
+        PrintError("Invalid " + key);
+        return false;
+    }
     res = val->getStr();
     if(val->getType() != t_string || res.empty()) {
         PrintError("Invalid " + key);
@@ -92,6 +105,10 @@ bool JsonConfigParser::process_json(const string &file)
     jsonMain main;
     jsonArray *timeBaseArray;
     size_t currentIndex = 1;
+    const uint8_t defaultDomainPtp4l = 0;
+    const uint8_t defaultTransportPtp4l = 0;
+    const char *defaultUdsPtp4l = "/var/run/ptp4l";
+    const char *defaultUdsChrony = "/var/run/chrony/chronyd.sock";
     timeBaseCfgs.clear();
     if(!main.parseFile(file, true))
         return false;
@@ -106,25 +123,26 @@ bool JsonConfigParser::process_json(const string &file)
             return false;
         jsonObject *ptp4lObj = timeBaseObj->getObj("ptp4l");
         jsonObject *chronyObj = timeBaseObj->getObj("chrony");
-        if(!get_Str_Val(timeBaseObj, "timeBaseName", config.timeBaseName))
+        if(!get_Str_Val(timeBaseObj, "timeBaseName", nullptr,
+                config.timeBaseName))
             return false;
         if(ptp4lObj != nullptr) {
-            row.udsAddrPtp4l = "/var/run/ptp4l";
-            config.domainNumber = 0;
-            config.transportSpecific = 0;
-            config.havePtp = true;
-            if(!get_Str_Val(ptp4lObj, "interfaceName", config.interfaceName) ||
-                !get_Str_Val(ptp4lObj, "udsAddr", row.udsAddrPtp4l) ||
-                !get_Int_Val(ptp4lObj, "domainNumber", config.domainNumber) ||
+            if(!get_Str_Val(ptp4lObj, "interfaceName", nullptr,
+                    config.interfaceName) ||
+                !get_Str_Val(ptp4lObj, "udsAddr", defaultUdsPtp4l,
+                    row.udsAddrPtp4l) ||
+                !get_Int_Val(ptp4lObj, "domainNumber", &defaultDomainPtp4l,
+                    config.domainNumber) ||
                 !get_Int_Val(ptp4lObj, "transportSpecific",
-                    config.transportSpecific))
+                    &defaultTransportPtp4l, config.transportSpecific))
                 return false;
+            config.havePtp = true;
         }
         if(chronyObj != nullptr) {
-            row.udsAddrChrony = "/var/run/chrony/chronyd.sock";
-            config.haveSys = true;
-            if(!get_Str_Val(chronyObj, "udsAddr", row.udsAddrChrony))
+            if(!get_Str_Val(chronyObj, "udsAddr", defaultUdsChrony,
+                    row.udsAddrChrony))
                 return false;
+            config.haveSys = true;
         }
         config.timeBaseIndex = currentIndex;
         currentIndex++;

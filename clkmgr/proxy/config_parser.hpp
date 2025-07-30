@@ -34,9 +34,12 @@ class JsonConfigParser
   private:
     std::vector<TimeBaseCfgFull> timeBaseCfgs;
     JsonConfigParser() = default;
-    bool get_Int_Val(jsonObject *obj, const std::string &key, uint8_t &res);
-    bool get_Str_Val(jsonObject *obj, const std::string &key, char *res);
-    bool get_Str_Val(jsonObject *obj, const std::string &key, std::string &res);
+    bool get_Int_Val(jsonObject *obj, const std::string &key,
+        const uint8_t *defaultVal, uint8_t &res);
+    bool get_Str_Val(jsonObject *obj, const std::string &key,
+        const char *defaultVal, char *res);
+    bool get_Str_Val(jsonObject *obj, const std::string &key,
+        const char *defaultVal, std::string &res);
     void print_config();
   public:
     static JsonConfigParser &getInstance();
