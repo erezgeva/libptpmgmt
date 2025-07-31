@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
-SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
+     SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation. -->
 
 # Clock Manager Introduction
 
