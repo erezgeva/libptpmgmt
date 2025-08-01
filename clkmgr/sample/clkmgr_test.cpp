@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
                 "     Default: 0x" << std::hex << chronyEvent << std::endl <<
                 "     Bit 0: EventOffsetInRange" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
-                "     Default: " << timeout << " s" << std::endl;
+                "     Default: " << std::dec << timeout << " s" << std::endl;
             return EXIT_SUCCESS;
         default:
             std::cerr << "Usage of " << me << " :" << std::endl <<
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
                 "     Default: 0x" << std::hex << chronyEvent << std::endl <<
                 "     Bit 0: EventOffsetInRange" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
-                "     Default: " << timeout << " s" << std::endl;
+                "     Default: " << std::dec << timeout << " s" << std::endl;
             return EXIT_FAILURE;
         }
     }
