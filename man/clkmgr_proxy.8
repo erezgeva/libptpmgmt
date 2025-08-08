@@ -4,9 +4,21 @@
 .TH CLKMGR_PROXY "8" "June 2025" "clkmgr_proxy"
 .SH NAME
 clkmgr_proxy \- Clock Manager proxy service
+.SH SYNOPSIS
+clkmgr_proxy [ OPTIONS ] [ -f FILE ]
 .SH DESCRIPTION
-Usage of clkmgr_proxy:
-Options:
+The Clock Manager proxy service interacts with clock synchronization daemons
+like \fBptp4l\fR(8) and \fBchronyd\fR(8) to obtain real-time synchronization
+status, filtering and extracting synchronization data, and passing it to the
+Clock Manager client applications via message queue IPC. Clock synchronization
+monitoring is complex due to the need for multiple synchronization daemons to
+discipline system time with GM time, further compounded by PTP multidomain and
+multiple time bases. The proxy service resolves this issue by consolidating all
+synchronization information, allowing client applications to simply communicate
+with the proxy service for seamless integration and avoiding licensing
+complications. The proxy service can be configured using a JSON configuration
+file, as described in \fBclkmgr_proxy_cfg\fR(5).
+.SH OPTIONS
 .HP
 \fB\-f\fR [file] Read configuration from 'file'
 .HP
@@ -31,3 +43,6 @@ Show version
 .TP
 \fB\-h\fR
 Show help message
+.SH SEE ALSO
+.PP
+\fBclkmgr_proxy_cfg\fR(5)
