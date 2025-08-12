@@ -7,11 +7,11 @@ clkmgr_proxy \- Clock Manager proxy service
 .SH SYNOPSIS
 clkmgr_proxy [ OPTIONS ] [ -f FILE ]
 .SH DESCRIPTION
-The Clock Manager proxy service interacts with clock synchronization daemons
+The Clock Manager proxy service interacts with clock synchronization services
 like \fBptp4l\fR(8) and \fBchronyd\fR(8) to obtain real-time synchronization
 status, filtering and extracting synchronization data, and passing it to the
 Clock Manager client applications via message queue IPC. Clock synchronization
-monitoring is complex due to the need for multiple synchronization daemons to
+monitoring is complex due to the need for multiple synchronization services to
 discipline system time with GM time, further compounded by PTP multidomain and
 multiple time bases. The proxy service resolves this issue by consolidating all
 synchronization information, allowing client applications to simply communicate
