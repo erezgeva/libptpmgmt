@@ -29,11 +29,12 @@ main()
   local -r base_dir="$(dirname "$(realpath "$0")")"
   source "$base_dir/../tools/make_docker.sh"
   local -r repo=http://ftp.de.debian.org/debian
-  local -r names='bookworm trixie'
+  local -r names='bookworm trixie forky'
   local -r arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
   local -r dpkgs_bookworm=''
   local -r dpkgs_trixie='librtpi-dev@ libgcrypt20-dev@'
+  local -r dpkgs_forky='librtpi-dev@ libgcrypt20-dev@'
   local dpkgs_arch='libstdc++6 pkgconf
     libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
     libfastjson-dev libgtest-dev libgmock-dev lua-posix libjson-c-dev
@@ -85,4 +86,6 @@ docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/debian deb.bookworm
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/debian deb.trixie
+docker run -it -w /home/builder/libptpmgmt -u builder\
+  -v $(realpath .):/home/builder/debian deb.forky
 }
