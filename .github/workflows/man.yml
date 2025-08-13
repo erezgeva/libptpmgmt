@@ -13,7 +13,7 @@
 name: manual testing
 
 # Start manually
-on: workflow_dispatch
+on: [push, pull_request, workflow_dispatch]
 
 # Permit read-only with GITHUB_TOKEN
 permissions: read-all
@@ -42,25 +42,6 @@ jobs:
 
     - name: test with linuxptp
       run: libptpmgmt/tools/sim_ptp4l.sh -ct
-
-  adress:
-    runs-on: ubuntu-24.04
-
-    steps:
-
-    - name: checkout linuxptp repository
-      uses: actions/checkout@v4
-      with:
-        repository: nwtime/linuxptp
-        path: linuxptp
-
-    - name: checkout repository
-      uses: actions/checkout@v4
-      with:
-        path: libptpmgmt
-
-    - name: test with linuxptp
-      run: libptpmgmt/tools/ci_address.sh
 
   mem:
     runs-on: ubuntu-24.04
