@@ -63,6 +63,7 @@ class ptpSet : public Thread4TimeBase, MessageDispatcher
     callback_declare(TIME_STATUS_NP);
     callback_declare(PORT_DATA_SET);
     callback_declare(CMLDS_INFO_NP);
+    callback_declare(LOG_SYNC_INTERVAL);
     void event_handle();
     bool msg_send() {
         MNG_PARSE_ERROR_e err = msg.build(buf, bufSize, seq);
@@ -140,6 +141,14 @@ void ptpSet::portReset()
     event.clear();
     need_set_action = true;
 }
+callback_define(LOG_SYNC_INTERVAL)
+{
+    if(static_cast<Integer8_t>(event.event.syncInterval) != tlv.logSyncInterval) {
+        event.event.syncInterval =
+            pow(2.0, tlv.logSyncInterval) * USEC_PER_SEC;
+        do_notify = true;
+    }
+}
 callback_define(PORT_DATA_SET)
 {
     switch(tlv.portState) {
@@ -154,12 +163,6 @@ callback_define(PORT_DATA_SET)
             portDataReset();
             break;
         case MASTER:
-            // If GM ID matches, retrieve the syncInterval
-            if(gmIdentity == tlv.portIdentity.clockIdentity) {
-                event.event.syncInterval =
-                    pow(2.0, tlv.logSyncInterval) * USEC_PER_SEC;
-                return;
-            }
             // Set own clock identity as GM identity
             portDataReset();
             event.event.gmClockUUID = 0;
@@ -168,11 +171,15 @@ callback_define(PORT_DATA_SET)
                     static_cast<uint64_t>(tlv.portIdentity.clockIdentity.v[i])
                     << (8 * (7 - i));
             gmIdentity = tlv.portIdentity.clockIdentity;
+            if(need_set_action) {
+                msg_set_action(LOG_SYNC_INTERVAL);
+                need_set_action = false;
+            }
             break;
         case SLAVE:
             event.event.syncedWithGm = true;
             if(need_set_action) {
-                msg_set_action(PORT_DATA_SET);
+                msg_set_action(LOG_SYNC_INTERVAL);
                 need_set_action = false;
             }
             break;
@@ -184,6 +191,8 @@ callback_define(PORT_DATA_SET)
 }
 callback_define(CMLDS_INFO_NP)
 {
+    if(msg.getPeer().portNumber == 0)
+        return;
     bool asCapable = tlv.as_capable > 0;
     if(event.event.asCapable != asCapable) {
         event.event.asCapable = asCapable;
@@ -238,6 +247,7 @@ void ptpSet::thread_loop()
         PrintInfo("Connected to ptp4l at " + udsAddr);
         msg_set_action(TIME_STATUS_NP);
         msg_set_action(PORT_DATA_SET);
+        msg_set_action(LOG_SYNC_INTERVAL);
     }
     for(;;) {
         if(stopThread)
