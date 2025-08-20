@@ -41,7 +41,15 @@ sub isPositiveValue
 {
     my ($optarg, $errorMessage) = @_;
     my $ret = int($optarg);
-    die $errorMessage unless $ret > 0;
+    die $errorMessage unless $ret >= 0;
+    $ret;
+}
+
+sub isValidTimeout
+{
+    my ($optarg, $errorMessage) = @_;
+    my $ret = int($optarg);
+    die $errorMessage unless $ret >= -1 ;
     $ret;
 }
 
@@ -203,6 +211,9 @@ Options:
      Default: $chronyClockOffsetThreshold ns
   -t timeout in waiting notification event (s)
      Default: $timeout s
+     -1 : wait indefinitely until at least an event change occurs
+      0 : retrieve the latest clock sync data immediately
+     >0 : wait up to the specified number of seconds for an event
 END_MESSAGE
         $ret ? print($help) : die $help;
         return;
@@ -212,12 +223,14 @@ END_MESSAGE
     $event2Sub = POSIX::strtoul($opt_s, 0) if $opt_s;
     $composite_event = POSIX::strtoul($opt_c, 0) if $opt_c;
     $chrony_event = POSIX::strtoul($opt_n, 0) if $opt_n;
-    $ptp4lClockOffsetThreshold =
-        isPositiveValue($opt_l, 'Invalid ptp4l GM Offset threshold!') if $opt_l;
-    $idleTime = isPositiveValue($opt_i, 'Invalid idle time!') if $opt_i;
-    $timeout = isPositiveValue($opt_t, 'Invalid timeout!') if $opt_t;
-    $chronyClockOffsetThreshold =
-        isPositiveValue($opt_m, 'Invalid Chrony Offset threshold!') if $opt_m;
+    $ptp4lClockOffsetThreshold = (
+        isPositiveValue($opt_l, 'Invalid ptp4l GM Offset threshold!')
+    ) if defined $opt_l;
+    $idleTime = isPositiveValue($opt_i, 'Invalid idle time!') if defined $opt_i;
+    $timeout = isValidTimeout($opt_t, 'Invalid timeout!') if defined $opt_t;
+    $chronyClockOffsetThreshold = (
+        isPositiveValue($opt_m, 'Invalid Chrony Offset threshold!')
+    ) if defined $opt_m;
     $ptp4lSub->setEventMask($event2Sub);
     $ptp4lSub->setClockOffsetThreshold($ptp4lClockOffsetThreshold);
     $ptp4lSub->setCompositeEventMask($composite_event);

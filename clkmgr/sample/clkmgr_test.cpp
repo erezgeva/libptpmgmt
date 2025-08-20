@@ -83,6 +83,24 @@ static bool isPositiveValue(const std::string& optarg, uint32_t& target, const s
     }
 }
 
+static bool isValidTimeout(const std::string& optarg, uint32_t& target, const std::string& errorMessage) {
+    try {
+        int value = std::stoi(optarg);
+        if (value < -1) {
+            std::cerr << errorMessage << std::endl;
+            return false;
+        }
+        target = static_cast<uint32_t>(value);
+        return true;
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Invalid argument: " << e.what() << std::endl;
+        return false;
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Out of range: " << e.what() << std::endl;
+        return false;
+    }
+}
+
 static void printOut()
 {
     if (!cm.getTime(ts)) {
@@ -223,7 +241,7 @@ int main(int argc, char *argv[])
             }
             break;
         case 't':
-            if (!isPositiveValue(optarg, timeout, "Invalid timeout!")) {
+            if (!isValidTimeout(optarg, timeout, "Invalid timeout!")) {
                 return EXIT_FAILURE;
             }
             break;
@@ -259,7 +277,10 @@ int main(int argc, char *argv[])
                 "     Default: 0x" << std::hex << chronyEvent << std::endl <<
                 "     Bit 0: EventOffsetInRange" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
-                "     Default: " << std::dec << timeout << " s" << std::endl;
+                "     Default: " << std::dec << timeout << " s" << std::endl <<
+                "     -1 : wait indefinitely until at least an event change occurs" << std::endl <<
+                "      0 : retrieve the latest clock sync data immediately" << std::endl <<
+                "     >0 : wait up to the specified number of seconds for an event" << std::endl;
             return EXIT_SUCCESS;
         default:
             std::cerr << "Usage of " << me << " :" << std::endl <<
@@ -288,7 +309,10 @@ int main(int argc, char *argv[])
                 "     Default: 0x" << std::hex << chronyEvent << std::endl <<
                 "     Bit 0: EventOffsetInRange" << std::endl <<
                 "  -t timeout in waiting notification event (s)" << std::endl <<
-                "     Default: " << std::dec << timeout << " s" << std::endl;
+                "     Default: " << std::dec << timeout << " s" << std::endl <<
+                "     -1 : wait indefinitely until at least an event change occurs" << std::endl <<
+                "      0 : retrieve the latest clock sync data immediately" << std::endl <<
+                "     >0 : wait up to the specified number of seconds for an event" << std::endl;
             return EXIT_FAILURE;
         }
     }

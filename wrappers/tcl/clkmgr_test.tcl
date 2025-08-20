@@ -36,7 +36,16 @@ proc signal_handler {} {
 
 proc isPositiveValue { optarg errorMessage } {
     set ret [expr $optarg ]
-    if { $ret > 0 } {
+    if { $ret >= 0 } {
+        return $ret
+    }
+    puts stderr $errorMessage
+    exit 2
+}
+
+proc isValidTimeout { optarg errorMessage } {
+    set ret [expr $optarg ]
+    if { $ret >= -1 && [expr {$ret == [expr int($ret)]}] } {
         return $ret
     }
     puts stderr $errorMessage
@@ -222,7 +231,10 @@ Options:
   -m chrony offset threshold (ns)
      Default: 100000 ns
   -t timeout in waiting notification event (s)
-     Default: 10 s"
+     Default: 10 s
+     -1 : wait indefinitely until at least an event change occurs
+      0 : retrieve the latest clock sync data immediately
+     >0 : wait up to the specified number of seconds for an event"
         if { [ info exist help ] } {
             exit 2
         }
@@ -257,7 +269,7 @@ Options:
     set ptp4lClockOffsetThreshold [ isPositiveValue $params(l)\
         "Invalid ptp4l GM Offset threshold!" ]
     set idleTime [ isPositiveValue $params(i) "Invalid idle time!" ]
-    set timeout [ isPositiveValue $params(t) "Invalid timeout!" ]
+    set timeout [ isValidTimeout $params(t) "Invalid timeout!" ]
     set chronyClockOffsetThreshold [ isPositiveValue $params(m)\
         "Invalid Chrony Offset threshold!" ]
     ptp4lSub setEventMask $event2Sub

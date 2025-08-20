@@ -35,7 +35,16 @@ function signal_handler(int $signo, $siginfo): void
 function isPositiveValue(string $optarg, string $errorMessage): int
 {
     $ret = intval($optarg);
-    if($ret > 0)
+    if($ret >= 0)
+        return $ret;
+    fwrite(STDERR, $errorMessage . PHP_EOL);
+    exit(2);
+}
+
+function isValidTimeout(string $optarg, string $errorMessage): int
+{
+    $ret = intval($optarg);
+    if($ret >= -1)
         return $ret;
     fwrite(STDERR, $errorMessage . PHP_EOL);
     exit(2);
@@ -177,6 +186,9 @@ function main(): void
              Default: $chronyClockOffsetThreshold ns
           -t timeout in waiting notification event (s)
              Default: $timeout s
+             -1 : wait indefinitely until at least an event change occurs
+              0 : retrieve the latest clock sync data immediately
+             >0 : wait up to the specified number of seconds for an event
 
         END;
         return;
@@ -196,7 +208,7 @@ function main(): void
     if(array_key_exists('i', $options))
         $idleTime = isPositiveValue($options['i'], 'Invalid idle time!');
     if(array_key_exists('t', $options))
-        $timeout = isPositiveValue($options['t'], 'Invalid timeout!');
+        $timeout = isValidTimeout($options['t'], 'Invalid timeout!');
     if(array_key_exists('m', $options))
         $chronyClockOffsetThreshold = isPositiveValue($options['m'],
             'Invalid Chrony Offset threshold!');

@@ -44,7 +44,15 @@ func deleteOverallSub(overallSub []clkmgr.ClockSyncSubscription) {
 }
 
 func isPositiveValue(ret uint, errorMessage string) uint {
-    if ret <= 0 {
+    if ret < 0 {
+        fmt.Fprintln(os.Stderr, errorMessage)
+        os.Exit(2)
+    }
+    return ret
+}
+
+func isValidTimeout(ret int, errorMessage string) int {
+    if ret < -1 {
         fmt.Fprintln(os.Stderr, errorMessage)
         os.Exit(2)
     }
@@ -176,7 +184,7 @@ func main() {
     ptp4lClockOffsetThreshold := uint(100000)
     chronyClockOffsetThreshold := uint(100000)
     idleTime := uint(1)
-    timeout := uint(10)
+    timeout := int(10)
     var index []int64 // Array of indexes to subscribe
     ptp4lSub := clkmgr.NewPTPClockSubscription()
     defer clkmgr.DeletePTPClockSubscription(ptp4lSub)
@@ -197,7 +205,7 @@ func main() {
     useIdleTime := getopt.Uint('i', idleTime, "idle time (s)")
     usechronyThr := getopt.Uint('m', chronyClockOffsetThreshold,
             "chrony offset threshold (ns)")
-    useTimeout := getopt.Uint('t', timeout,
+    useTimeout := getopt.Int('t', timeout,
             "timeout in waiting notification event (s)")
     doExit := -1
     err := getopt.Getopt(nil)
@@ -239,7 +247,10 @@ Options:
   -m chrony offset threshold (ns)
      Default: ` + strconv.Itoa(int(chronyClockOffsetThreshold)) + ` ns
   -t timeout in waiting notification event (s)
-     Default: ` + strconv.Itoa(int(timeout)) + ` s`)
+     Default: ` + strconv.Itoa(int(timeout)) + ` s
+     -1 : wait indefinitely until at least an event change occurs
+      0 : retrieve the latest clock sync data immediately
+     >0 : wait up to the specified number of seconds for an event`)
         os.Exit(doExit)
     }
     subscribeAll := *allIndexs
@@ -250,7 +261,7 @@ Options:
     ptp4lClockOffsetThreshold = isPositiveValue(*usePtpThr,
             "Invalid ptp4l GM Offset threshold!")
     idleTime = isPositiveValue(*useIdleTime, "Invalid idle time!")
-    timeout = isPositiveValue(*useTimeout, "Invalid timeout!")
+    timeout = isValidTimeout(*useTimeout, "Invalid timeout!")
     chronyClockOffsetThreshold = isPositiveValue(*usechronyThr,
             "Invalid Chrony Offset threshold!")
     ptp4lSub.SetEventMask(event2Sub)

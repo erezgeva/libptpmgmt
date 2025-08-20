@@ -39,7 +39,16 @@ $clockSyncData = Clkmgr::ClockSyncData.new
 
 def isPositiveValue(optarg, errorMessage)
     ret = optarg.to_i
-    if ret <= 0 then
+    if ret < 0 then
+        STDERR.puts errorMessage
+        exit 2
+    end
+    return ret
+end
+
+def isValidTimeout(optarg, errorMessage)
+    ret = optarg.to_i
+    if ret < -1 then
         STDERR.puts errorMessage
         exit 2
     end
@@ -149,8 +158,11 @@ Options
   -n chrony_event_mask
      Default: 0x#{$chrony_event.to_s(16)}
      Bit 0: EventOffsetInRange
-  -t $timeout in waiting notification event (s)
+  -t timeout in waiting notification event (s)
      Default: #{$timeout} s
+     -1 : wait indefinitely until at least an event change occurs
+      0 : retrieve the latest clock sync data immediately
+     >0 : wait up to the specified number of seconds for an event
 EOF
 end
 
@@ -188,7 +200,7 @@ def main
             when '--i'
                 $idleTime = isPositiveValue(arg, 'Invalid idle time!')
             when '--t'
-                $timeout = isPositiveValue(arg, 'Invalid $timeout!')
+                $timeout = isValidTimeout(arg, 'Invalid $timeout!')
             when '--m'
                 $chronyClockOffsetThreshold = isPositiveValue(arg,
                     'Invalid Chrony Offset threshold!')

@@ -77,6 +77,27 @@ static bool isPositiveValue(const char *optarg, uint32_t *target,
     return true;
 }
 
+static bool isValidTimeout(const char *optarg, uint32_t *target,
+    const char *errorMessage) {
+    char *endptr = NULL;
+    long value = strtol(optarg, &endptr, 10);
+
+    if (endptr == optarg || *endptr != '\0') {
+        fprintf(stderr, "Invalid argument: %s\n", optarg);
+        return false;
+    }
+    if (value < -1) {
+        fprintf(stderr, "%s\n", errorMessage);
+        return false;
+    }
+    if (value > UINT32_MAX) {
+        fprintf(stderr, "Out of range: %s\n", optarg);
+        return false;
+    }
+    *target = (uint32_t)value;
+    return true;
+}
+
 static void printOut(Clkmgr_ClockSyncData *syncData)
 {
     if (!clkmgr_getTime(&ts)) {
@@ -215,9 +236,17 @@ int main(int argc, char *argv[])
             break;
         case 'i':
             idleTime = strtol(optarg, NULL, 10);
+            if (!isPositiveValue(optarg, &idleTime,
+                "Invalid idle time!")) {
+                return EXIT_FAILURE;
+            }
             break;
         case 't':
             timeout = strtol(optarg, NULL, 10);
+            if (!isValidTimeout(optarg, &timeout,
+                "Invalid timeout!")) {
+                return EXIT_FAILURE;
+            }
             break;
         case 'm':
             if (!isPositiveValue(optarg, &chronyClockOffsetThreshold,
@@ -252,7 +281,10 @@ int main(int argc, char *argv[])
                    "  -m chrony offset threshold (ns)\n"
                    "     Default: %d ns\n"
                    "  -t timeout in waiting notification event (s)\n"
-                   "     Default: %d s\n",
+                   "     Default: %d s\n"
+                   "     -1 : wait indefinitely until at least an event change occurs\n"
+                   "      0 : retrieve the latest clock sync data immediately\n"
+                   "     >0 : wait up to the specified number of seconds for an event\n",
                    me, eventMask,
                    compositeEventMask, chronyEventMask,
                    ptp4lClockOffsetThreshold, idleTime,
@@ -285,7 +317,10 @@ int main(int argc, char *argv[])
                    "  -m chrony offset threshold (ns)\n"
                    "     Default: %d ns\n"
                    "  -t timeout in waiting notification event (s)\n"
-                   "     Default: %d s\n",
+                   "     Default: %d s\n"
+                   "     -1 : wait indefinitely until at least an event change occurs\n"
+                   "      0 : retrieve the latest clock sync data immediately\n"
+                   "     >0 : wait up to the specified number of seconds for an event\n",
                    me, eventMask,
                    compositeEventMask, chronyEventMask,
                    ptp4lClockOffsetThreshold, idleTime,

@@ -44,7 +44,24 @@ local function isPositiveValue(opt, def, msg)
         io.stderr:write("'" .. opt .. "' is invalid number\n")
         os.exit(2)
     end
-    if ret <= 0 then
+    if ret < 0 then
+        io.stderr:write(msg .. '\n')
+        os.exit(2)
+    end
+    return ret
+end
+
+local function isValidTimeout(opt, def, msg)
+    local ret
+    if opt == nil then
+        return def
+    end
+    ret = tonumber(opt)
+    if ret == nil or ret ~= math.floor(ret) then
+        io.stderr:write("'" .. opt .. "' is invalid number\n")
+        os.exit(2)
+    end
+    if ret < -1 then
         io.stderr:write(msg .. '\n')
         os.exit(2)
     end
@@ -276,7 +293,11 @@ Options:
   -m chrony offset threshold (ns)
      Default: ]=] .. chronyClockOffsetThreshold .. [=[ ns
   -t timeout in waiting notification event (s)
-     Default: ]=] .. timeout .. ' s\n')
+     Default: ]=] .. timeout .. [=[ s
+     -1 : wait indefinitely until at least an event change occurs
+      0 : retrieve the latest clock sync data immediately
+     >0 : wait up to the specified number of seconds for an event
+]=])
         if usage == 1 then
             os.exit()
         else
@@ -289,7 +310,7 @@ Options:
     ptp4lClockOffsetThreshold = isPositiveValue(opts['-l'],
         ptp4lClockOffsetThreshold, 'Invalid ptp4l GM Offset threshold!')
     idleTime = isPositiveValue(opts['-i'], idleTime, 'Invalid idle time!')
-    timeout = isPositiveValue(opts['-t'], timeout, 'Invalid timeout!')
+    timeout = isValidTimeout(opts['-t'], timeout, 'Invalid timeout!')
     chronyClockOffsetThreshold = isPositiveValue(opts['-m'],
         chronyClockOffsetThreshold, 'Invalid Chrony Offset threshold!')
     ptp4lSub:setEventMask(event2Sub)

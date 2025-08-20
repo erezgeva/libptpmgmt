@@ -52,7 +52,14 @@ def signal_handler(signum, frame):
 
 def isPositiveValue(optarg, errorMessage):
     ret = int(optarg)
-    if ret <= 0:
+    if ret < 0:
+        eprint(errorMessage)
+        sys.exit(2)
+    return ret
+
+def isValidTimeout(optarg, errorMessage):
+    ret = int(optarg)
+    if ret < -1:
         eprint(errorMessage)
         sys.exit(2)
     return ret
@@ -161,6 +168,9 @@ Options:
      Default: {} ns
   -t timeout in waiting notification event (s)
      Default: {} s
+     -1 : wait indefinitely until at least an event change occurs
+      0 : retrieve the latest clock sync data immediately
+     >0 : wait up to the specified number of seconds for an event
 '''[:-1].format(os.path.basename(sys.argv[0]), hex(event2Sub),
     hex(composite_event), hex(chrony_event), ptp4lClockOffsetThreshold,
     idleTime, chronyClockOffsetThreshold, timeout))
@@ -195,7 +205,7 @@ def main():
         elif o == '-i':
             idleTime = isPositiveValue(a, 'Invalid idle time!')
         elif o == '-t':
-            timeout = isPositiveValue(a, 'Invalid timeout!')
+            timeout = isValidTimeout(a, 'Invalid timeout!')
         elif o == '-m':
             chronyClockOffsetThreshold = isPositiveValue(a,
                 'Invalid Chrony Offset threshold!')
