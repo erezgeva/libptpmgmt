@@ -28,7 +28,7 @@ Test(ConfigFileTest, MethodEmptyConstructor)
     cr_expect(eq(i8, f->spp(f, NULL), 0));
     cr_expect(eq(i8, f->allow_unauth(f, NULL), 0));
     cr_expect(not(f->haveSpp(f, NULL)));
-    cr_expect(eq(str, (char *)f->uds_address(f, NULL), "/var/run/ptp4l"));
+    cr_expect(eq(str, (char *)f->uds_address(f, NULL), "/var/run/ptp/ptp4l"));
     cr_expect(zero(ptr, (void *)f->sa_file(f, NULL)));
     {
         size_t l;

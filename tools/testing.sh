@@ -73,7 +73,7 @@ main()
    local -r udsFile="${BASH_REMATCH[1]}"
  else
    # Use default value
-   local -r udsFile='/var/run/ptp4l'
+   local -r udsFile='/var/run/ptp/ptp4l'
  fi
  if [[ -S "$udsFile" ]]; then
    $sudo chmod ga+wr "$udsFile"
