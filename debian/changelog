@@ -1,3 +1,160 @@
+libptpmgmt (2.0) trixie; urgency=medium
+
+  * Add the first version of the Clock Manager
+    A framework for controlling and monitoring network time synchronization
+    on the local platform.
+  * Rewrite PHC control tool in Go.
+    Implement linuxptp 'phc_ctl' using the Go wrapper library.
+  * Improve proc functions
+    - base integer proc functions
+    - Managment TLVs wuth vector
+  * HMAC add load and unload  to improve safe multi-threads
+    Control the load and unload from the hmac module,
+  *  with uses mutex for multi-threads protection.
+    Use macros for C wrapper function in source module.
+  * use one line for short functions
+  * remove go.mod from packages
+  * Lua use arg[0]
+  * Improve use of strerror() and remove '%m' format
+  * Debian Go and PHP are always supported
+  * always link the PMC tool with shared library
+  * Improve Binary::fromIp, use inet_aton() that support more IPv4 string notations.
+  * Improve PMC libsy printf wrappers
+  * Rename proc.h, sig.h to mngTlvs.h, sigTlvs.h.
+  * Add support for extended format of L1_SYNC TLV
+  * More Improvements that breaks ABI backwards-compatible
+  * Improve message to JSON string creating.
+    - Use structure to hold the string.
+    - comply to other structures way.
+  * Improve C dispatcher and add C builder.
+    - Remove all direct functions and use methods instead.
+    - Use the new TLV memory for builder.
+    - Move TLVs callbacks into a separate structures.
+    - call virtual functions from inline function,
+      so we compile it in the application and
+      avoid using virtual functions table directly from library code.
+  * Improvements in C++ to C TLV conversions
+    - Improve use of LinuxPTP event methods.
+    - Add size of data to C ORGANIZATION_EXTENSION Tlv.
+    - Add table size to C PATH_TRACE_LIST_t Tlv.
+  * MessageSigTlvs: Add copy and move constructors
+    - Add copy and move to MANAGEMENT_t.
+    - Any class that uses unique pointer should
+     implement copy and move constructors explicitly.
+    - MessageSigTlvs need explicit,
+      as the last Signalling flag can save copying
+      or move of the Signalling TLVs list.
+    - Repair TLVs structure by converting
+      constant parameters to static constant.
+      non static constant parameters fails copy.
+      In addition to space waste in
+      structure object itself.
+  * PTP types
+    - Move code of types from message to a new types module.
+    - Convert size inline methods to non-inline.
+    - Add M4 macros for flags for proc and sig headers.
+  * Move ConfigSection into ConfigFile.
+  * Move protected methods to private for final socket classes.
+  * Unit tests
+    - Rename variable in HMAC to avoid error in newer C++ standard
+    - Reorder of functions in PMC build
+    - Remove unused map in libsys
+  * Move distributions packages to the distclean list Spellings
+  * Prepare for for second major version
+  * Clean-up function kept for ABI compatibility
+    - Remove ABI backward compatibility functions.
+    - Remove deprecated functions.
+    - Convert inline public methods to non-inline.
+  * Rename libraries for new major version.
+  * Add more constants
+  * Use constant for input only parameters.
+  * Use constant methods when the object remain unchanged.
+  * Sockets:
+    - Add missing check for initialisation state.
+    - Change get home directory to static method
+      as it depends on application user context and not on a specific object.
+  * Change default UDS address after LinuxPTP.
+  * Add next Debian release forky.
+  * Improve install in make file
+  * Fix GO Make File
+    - Probe touch with configure
+    - Add missing touch of go.sum
+  * Fix generated SPDX in make file
+  * C++ replace 'data' with other names.
+    It seems conflict in C++ 17.
+  * Google test update to C++ 17
+  * Fix Debian docker file.
+    Make sure it exit with error properly.
+  * Use 'cmark' for converting markdown to html in some cases,
+    Apparently some markdown are converted better with the legacy 'markdown' tool,
+    While some are better with the 'cmark' tool.
+  * Move the code that add SPDX from Makefile to a separate script.
+    Add SPDX to Clock Manager Doxygen documents as well as to the pages site.
+  * Improve ruby probing in autoconf, compile with the ruby header
+  * Add the CommonMark tool with GitHub Flavored Markdown converter.
+  * Fix criterion probing in autoconf, add the standard integer header.
+  * Remove all github and gitlab directories from tar file.
+  * Fix HMAC after Coverity reports.
+  * Show the compiler output for both PIC and non-PIC objects of src/hmac.cpp,
+    as the code is different.
+  * Proper handling of sending key HMAC instance
+  * Add Binary::mvBin for rvalue.
+  * Improve vector and use of move.
+  * SaFile: No need to call clear before new assignment.
+  * tlv_mem: use allocations vector with a class releasing the memory
+    on destructor, similar to unique_ptr.
+  * Add Binary move constructor.
+  * Binary assign: protect against self assign.
+  * If we use copy constructor,
+     we should also add a move constructor.
+  * Add getTlv() to MessageSigTlvs.
+  * Order MessageSigTlv code in place.
+  * Add a test for coping a management TLV.
+    Ensure the copy works in C++.
+  * Rebase signalling TLVs list in message.
+    Add range based loop support.
+  * JSON Parser: add to string.
+    Add more tests.
+    Replace find with equal_range.
+  * Improve TLV C to C++ and via versa.
+  * Add Iterator to JSON Array class.
+  * Add missing test for sockets initialisation state.
+  * Delete without checking  for null.
+  * Remove inline methods of JSON parser.
+  * Mark local functions of message module as inline.
+  * Improve handling of reallocation in TLV memory.
+  * Remove testing of reallocation with ASAN test.
+    As it fail to probe it correctly.
+  * Add C TLV structure to track memory allocations.
+  * Improve process of TLVs.
+  * Add helper functions from C++ to C and via versa conversions.
+  * Add limit to PTP Text length.
+  * Improve C dispatcher.
+    Use interface to manipulate the dispatcher object.
+    So we improve backward compatibility better.
+  * Follow Miroslav Lichvar last commit.
+    - Add EXTERNAL_GRANDMASTER_PROPERTIES_NP management
+      message to get and set the new external grandmasterIdentity
+      and stepsRemoved variables of the clock.
+    - Together with the GRANDMASTER_SETTINGS_NP message all
+      grandmaster-specific values in announce messages can be now set.
+    - Add PORT_CORRECTIONS_NP management message
+      to get and set the port egressLatency,
+      ingressLatency and delayAsymmetry variables.
+      This enables an external process to compensate for changes
+      in the network and timestamping asymmetries while ptp4l is running.
+  * A fix in JSON to message unit test.
+  * Add libchrony probing.
+  * Fix go wrapper make file.
+    Check go executable available before using it.
+  * Probe Google test mock header.
+  * Fix cross compilation on Debian trixie container.
+    New TCL uses Linux path instead of multiple lines.
+  * Improve using standard vector.
+  * Fix phc_ctl help follow Linuxptp.
+
+ -- Erez Geva <ErezGeva2@gmail.com>  Thu, 11 Sep 2025 13:57:30 +0200
+
 libptpmgmt (1.4) bookworm; urgency=medium
 
   * Linuxptp version 4.4 do not add any new managment interface.

@@ -471,9 +471,8 @@ new_version()
         -e "s/\.so\.[0-9]*{/.so.$next_maj_ver{/" rpm/libptpmgmt.spec
  sed -i "s/^pkgver=.*/pkgver=$next_ver/" archlinux/PKGBUILD.org
  if [[ "$update_only" != "true" ]]; then
-   local -r hash=$(git blame debian/changelog  | head -n1 | sed 's/ .*//')
    local -a log
-   mapfile -t log < <(git log $hash..HEAD | grep -v '^Author:.*' |\
+   mapfile -t log < <(git log $cur_ver..HEAD | grep -v '^Author:.*' |\
      grep -v '^\s*$')
    local l add_line=false
    for l in "${log[@]}"; do
