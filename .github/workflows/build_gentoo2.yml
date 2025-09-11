@@ -23,6 +23,7 @@ env:
 jobs:
   gentoo:
     runs-on: ubuntu-24.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Sets permissions of the GITHUB_TOKEN to allow upload new container
     permissions:
       contents: read

@@ -43,6 +43,7 @@ mandir:=@mandir@
 infodir:=@infodir@
 sbindir:=@sbindir@
 bindir:=@bindir@
+runstatedir:=@runstatedir@
 
 # Objecy extension
 OBJEXT:=@OBJEXT@
@@ -77,12 +78,14 @@ SED:=@SED@
 MKDIR_P:=@MKDIR_P@
 LN_S:=@LN_S@
 M4:=@M4@
+TOUCH:=@TOUCH@
 CHRPATH:=@CHRPATH@
 PATCHELF:=@PATCHELF@
 MARKDOWN:=@MARKDOWN@
 CMARK:=@CMARK@
 CTAGS:=@CTAGS@
 READLINK:=@READLINK@
+PANDOC:=@PANDOC@
 PKG_CONFIG:=@PKG_CONFIG@
 PKG_CONFIG_DIR:=@PKG_CONFIG_DIR@
 INSTALL:=@INSTALL@

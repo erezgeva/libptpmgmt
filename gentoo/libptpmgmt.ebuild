@@ -51,7 +51,7 @@ src_configure() {
 		if use skip_tcl; then opts+=" --without-tcl"; fi
 		if use skip_go; then opts+=" --without-go"; fi
 	fi
-	econf $opts
+	econf $opts --enable-openrc
 }
 src_compile() {
 	if use skip_doxygen; then

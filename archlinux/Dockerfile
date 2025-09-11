@@ -9,8 +9,8 @@
 # pacman: https://wiki.archlinux.org/title/pacman
 ###############################################################################
 FROM archlinux
-MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
-LABEL org.opencontainers.image.description "Arch Linux build for libptpmgmt"
+LABEL org.opencontainers.image.authors="Erez Geva <ErezGeva2@gmail.com>"\
+      org.opencontainers.image.description="Arch Linux build for libptpmgmt"
 ARG UID USER
 RUN pacman-key --init && pacman-key --populate &&\
     pacman -Syu --noconfirm --needed archlinux-keyring &&\
@@ -19,7 +19,8 @@ RUN pacman-key --init && pacman-key --populate &&\
     lua lua51 lua52 lua53 vim tcl json-c php m4 gtest texlive-core go jq\
     texlive-fontutils astyle lua-posix lua51-posix lua52-posix lua53-posix\
     clang openssl gnutls nettle gdb debugedit base-devel chrpath patchelf\
-    discount ruby-test-unit cppcheck criterion chrony quilt cmark-gfm &&\
+    discount ruby-test-unit cppcheck criterion chrony quilt cmark-gfm pandoc\
+    systemd-libs &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\

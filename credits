@@ -1,8 +1,14 @@
 SPDX-License-Identifier: GPL-3.0-or-later
 SPDX-FileCopyrightText: Copyright © 2023 Erez Geva <ErezGeva2@gmail.com>
 
-Contributors to the project.
 Formatted: name (N), email (E), description (D), Files (F)
+
+Main developers of the project:
+
+N: Erez Geva
+E: ErezGeva2@gmail.com
+
+Additional contributors to the project:
 
 N: Dru Lavigne
 D: Fix spelling and syntax

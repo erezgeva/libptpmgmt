@@ -20,6 +20,8 @@ ext()
 # https://www.cyberciti.biz/howto/question/linux/linux-rpm-cheat-sheet.php
 # See package content
 rpm -qpil ptpmgmt-devel-1*.x86_64.rpm
+# Extract RPM
+rpm2cpio ptpmgmt-devel-1*.x86_64.rpm | cpio -idmv
 # List installed packages
 rpm -qa
 dnf list installed
@@ -27,6 +29,8 @@ dnf list installed
 rpm -qf file
 # See package scripts
 rpm -qlp --scripts ptpmgmt-devel-1*.x86_64.rpm
+# Search For Packages
+dnf search php
 
 docker run -it -w /home/builder/libptpmgmt -u builder\
   -v $(realpath .):/home/builder/rpm rpmbuild

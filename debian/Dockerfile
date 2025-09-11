@@ -9,8 +9,8 @@
 ###############################################################################
 ARG DIST
 FROM debian:${DIST}
-MAINTAINER "Erez Geva" <ErezGeva2@gmail.com>
-LABEL org.opencontainers.image.description "Debian build for libptpmgmt"
+LABEL org.opencontainers.image.authors="Erez Geva <ErezGeva2@gmail.com>"\
+      org.opencontainers.image.description="Debian build for libptpmgmt"
 ARG UID USER DIST ARCH ARCHS DPKGS REPO DEBIAN_FRONTEND=noninteractive
 RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     sed -i "s|http://deb.debian.org/debian|$REPO|"\
@@ -24,14 +24,14 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     apt-get update && apt-get install -y --no-install-recommends --no-remove\
     debhelper coreutils sudo dh-lua dh-make-perl dh-exec git procps dh-php\
     build-essential ncurses-bin dlocate dialog lsb-release quilt apt-file\
-    libtool libtool-bin swig golang install-info doxygen graphviz\
-    qemu-user-static distro-info chrpath patchelf tree tclx8.4\
+    libtool libtool-bin swig golang install-info doxygen graphviz runit-helper\
+    qemu-user-static distro-info chrpath patchelf tree tclx8.4 dh-runit\
     lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby\
     astyle cppcheck universal-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
     python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\
     texlive-font-utils libcriterion-dev jq clang gdb abi-dumper gawk wget\
-    abi-compliance-checker discount chrony cmark-gfm tcllib $DPKGS &&\
+    abi-compliance-checker discount chrony cmark-gfm pandoc tcllib $DPKGS &&\
     apt-get upgrade -y --no-install-recommends &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini &&\
     useradd $USER -u $UID -m -G sudo &&\

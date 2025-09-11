@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
+        names: [deb.forky, deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        names: [deb.trixie, deb.bookworm]
+        names: [deb.forky, deb.trixie, deb.bookworm]
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        names: [deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
+        names: [deb.forky, deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
@@ -115,7 +115,7 @@ jobs:
   abi:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/erezgeva/deb.trixie:latest
+      image: ghcr.io/erezgeva/deb.forky:latest
 
     steps:
 

@@ -10,7 +10,7 @@
 /.*debhelper*
 /*debhelper*
 /libptpmgmt*/
-/tmp/
 /*-ptpmgmt/
 /autoreconf.*
 /pkgs/
+/tmp/

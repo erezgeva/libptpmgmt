@@ -216,7 +216,8 @@ PMC_NAME:=$(PMC_DIR)/pmc
 SWIG_NAME:=PtpMgmtLib
 SWIG_LNAME:=ptpmgmt
 SWIG_LIB_NAME:=$(SWIG_LNAME).so
-D_FILES:=$(wildcard */*.d */*/*.d)
+D_FILES:=$(wildcard $(addsuffix /*.d,$(OBJ_DIR) utest uctest wrappers/*\
+  wrappers/*/* client proxy utest))
 PHP_LNAME:=wrappers/php/$(SWIG_LNAME)
 HDR_BTH:=mngIds types proc sig callDef
 HEADERS_GEN_PUB:=$(foreach n,ver name $(HDR_BTH),$(PUB)/$n.h)
@@ -392,6 +393,10 @@ endif # USE_ASAN
 LIBTOOL=./libtool
 LIBTOOL_CC=$Q$(Q_LCC)$(LIBTOOL) --mode=compile --tag=CXX $(LIBTOOL_QUIET)
 LIBTOOL_LD=$Q$(Q_LD)$(LIBTOOL) --mode=link --tag=CXX $(LIBTOOL_QUIET)
+ifneq ($(call which,$(LIBTOOL)),)
+LIBTOOL_USE_STATIC!=$(LIBTOOL) --config | $(GREP) build_old_libs |\
+  $(SED) 's!^build_old_libs=!!'
+endif
 $(LIB_NAME_LA)_LDLIBS:=-lm -ldl
 LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(SRCS:.cpp=.lo))
 PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
@@ -612,7 +617,7 @@ DEVDOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DEV_PKG)
 DLIBDIR:=$(DESTDIR)$(libdir)
 DOCDIR:=$(DESTDIR)$(datarootdir)/doc/$(DOC_PKG)
 MANDIR:=$(DESTDIR)$(mandir)/man8
-SYSTEMDDIR:=$(DESTDIR)/usr/lib/systemd/system
+INCDIR:=$(DESTDIR)$(includedir)
 ifdef PKG_CONFIG_DIR
 PKGCFGDIR:=$(DESTDIR)$(PKG_CONFIG_DIR)
 endif
@@ -643,14 +648,14 @@ ifdef PKG_CONFIG_DIR
 	  $(LIB_NAME)$(PACKAGE_VERSION)
 	do $(LN) $(SWIG_LNAME).pc $(PKGCFGDIR)/$$pf.pc;done
 endif
-	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c
-	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(DESTDIR)$(includedir)/$(SWIG_LNAME)
+	$(INSTALL_DATA) -D $(HEADERS_INST_C) -t $(INCDIR)/$(SWIG_LNAME)/c
+	$(INSTALL_DATA) -D $(HEADERS_INST) -t $(INCDIR)/$(SWIG_LNAME)
 	$(foreach f,$(notdir $(HEADERS_INST)),$(SED) -i\
 	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
-	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/$f;)
+	  $(INCDIR)/$(SWIG_LNAME)/$f;)
 	$(foreach f,$(notdir $(HEADERS_INST_C)),$(SED) -i\
 	  's!$(c_inc)\s*\"\([^"]\+\)\"!$(c_inc) <$(SWIG_LNAME)/\1>!'\
-	  $(DESTDIR)$(includedir)/$(SWIG_LNAME)/c/$f;)
+	  $(INCDIR)/$(SWIG_LNAME)/c/$f;)
 	$(INSTALL_FOLDER) $(DEVDOCDIR)
 	printf "$(hash) $(SPDXLI) $(SPDXGFDL)\n$(hash) $(SPDXCY)\n\n%s\n"\
 	  'LDLIBS+=-l$(SWIG_LNAME)' > $(DEVDOCDIR)/default.mk
@@ -800,7 +805,8 @@ ifneq ($(wildcard /usr/share/pacman/PKGBUILD.proto),)
 # Default configuration on Arch Linux
 HAVE_CONFIG_GAOL:=1
 config: $(CONF_FILES)
-	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto` $(MORE_CONFIG)
+	$(Q)`grep configure /usr/share/pacman/PKGBUILD.proto`\
+	  --sysconfdir=/etc $(MORE_CONFIG)
 endif # wildcard pacman/PKGBUILD.proto
 endif # HAVE_CONFIG_GAOL
 endif # filter distclean,MAKECMDGOALS

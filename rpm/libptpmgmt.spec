@@ -22,7 +22,7 @@ URL:            https://%{name}.nwtime.org
 BuildRequires:  gcc-c++ pkgconfig which swig
 BuildRequires:  autoconf m4 automake libtool chrpath
 # You may use 'patchelf' as alternative of `chrpath`
-BuildRequires:  doxygen graphviz texlive-epstopdf
+BuildRequires:  doxygen graphviz texlive-epstopdf pandoc
 BuildRequires:  openssl-devel libgcrypt-devel gnutls-devel nettle-devel
 BuildRequires:  perl perl-devel
 BuildRequires:  python3 python3-devel
@@ -31,7 +31,6 @@ BuildRequires:  ruby ruby-devel
 BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
 BuildRequires:  golang
-BuildRequires:  systemd
 #Source0:        https://github.com/erezgeva/%%{name}/archive/refs/tags/%%{version}.tar.gz
 Source0:        %{name}-%{version}.txz
 
