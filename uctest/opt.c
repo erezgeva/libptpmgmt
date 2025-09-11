@@ -27,7 +27,7 @@ char help[] =
     " -f [file] read configuration from 'file'\n"
     " -h        prints this message and exits\n"
     " -i [dev]  interface device to use\n"
-    " -s [path] server address for UDS, default '/var/run/ptp4l'\n"
+    " -s [path] server address for UDS, default '/var/run/ptp/ptp4l'\n"
     " -t [hex]  transport specific field, default 0x0\n"
     " -v        prints the software version and exits\n"
     " -z        send zero length TLV values with the GET actions\n";
@@ -100,7 +100,7 @@ Test(OptionsTest, MethodInsert)
             " -f [file]   read configuration from 'file'\n"
             " -h          prints this message and exits\n"
             " -i [dev]    interface device to use\n"
-            " -s [path]   server address for UDS, default '/var/run/ptp4l'\n"
+            " -s [path]   server address for UDS, default '/var/run/ptp/ptp4l'\n"
             " -t [hex]    transport specific field, default 0x0\n"
             " -v          prints the software version and exits\n"
             " -z          send zero length TLV values with the GET actions\n"

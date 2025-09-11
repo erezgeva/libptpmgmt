@@ -47,7 +47,7 @@ const ConfigSection::range_t ConfigSection::ranges[] = {
     rang_val(active_key_id, 0, 0, UINT32_MAX),
     rang_val(spp, 0, 0, UINT8_MAX),
     rang_val(allow_unauth, 0, 0, 2),
-    rang_str(uds_address, "/var/run/ptp4l"),
+    rang_str(uds_address, "/var/run/ptp/ptp4l"),
     rang_str(sa_file, ""),
     rang_str(ptp_dst_mac, "1:1b:19:0:0:0"),
     rang_str(p2p_dst_mac, "1:80:c2:0:0:e"),

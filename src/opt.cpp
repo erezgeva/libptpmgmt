@@ -27,7 +27,7 @@ Pmc_option Options::startOptions[] = {
     { 'i', "", _tf, "interface device to use", "dev" },
     {
         's', "uds_address", _tf, "server address for UDS",
-        "path", "'/var/run/ptp4l'"
+        "path", "'/var/run/ptp/ptp4l'"
     },
     {
         't', "transportSpecific", _tf, "transport specific field",

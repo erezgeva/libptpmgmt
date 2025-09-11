@@ -29,7 +29,7 @@ TEST(ConfigFileTest, MethodEmptyConstructor)
     EXPECT_EQ(f.spp(), 0);
     EXPECT_EQ(f.allow_unauth(), 0);
     EXPECT_FALSE(f.haveSpp());
-    EXPECT_STREQ(f.uds_address().c_str(), "/var/run/ptp4l");
+    EXPECT_STREQ(f.uds_address().c_str(), "/var/run/ptp/ptp4l");
     EXPECT_TRUE(f.sa_file().empty());
     Binary b;
     EXPECT_TRUE(b.fromMac("1:1b:19:0:0:0"));
