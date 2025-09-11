@@ -107,7 +107,7 @@ bool JsonConfigParser::process_json(const string &file)
     size_t currentIndex = 1;
     const uint8_t defaultDomainPtp4l = 0;
     const uint8_t defaultTransportPtp4l = 0;
-    const char *defaultUdsPtp4l = "/var/run/ptp4l";
+    const char *defaultUdsPtp4l = "/var/run/ptp/ptp4l";
     const char *defaultUdsChrony = "/var/run/chrony/chronyd.sock";
     timeBaseCfgs.clear();
     if(!main.parseFile(file, true))

@@ -15,7 +15,7 @@
             "ptp4l":
             {
                 "interfaceName": "eth0",
-                "udsAddr": "/var/run/ptp4l-domain-0",
+                "udsAddr": "/var/run/ptp/ptp4l-domain-0",
                 "domainNumber": 0,
                 "transportSpecific": 1
             },
@@ -29,7 +29,7 @@
             "ptp4l":
             {
                 "interfaceName": "eth1",
-                "udsAddr": "/var/run/ptp4l-domain-20",
+                "udsAddr": "/var/run/ptp/ptp4l-domain-20",
                 "domainNumber": 20,
                 "transportSpecific": 1
             }

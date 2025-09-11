@@ -148,7 +148,7 @@ __Figure 1 - Operation Flow of Clock Manager__
     cmlds.client_address       /var/run/master-client-0  
     domainNumber               0  
     phc_index                  4  
-    uds_address                /var/run/ptp4l-domain-0
+    uds_address                /var/run/ptp/ptp4l-domain-0
     ```
 
     Note:  

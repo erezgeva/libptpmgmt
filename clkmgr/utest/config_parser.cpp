@@ -174,7 +174,7 @@ TEST_F(JsonConfigParserTest, defaultValues)
     auto it = parser.begin();
     EXPECT_STREQ(it->base.timeBaseName, "Sample Clock");
     EXPECT_STREQ(it->base.interfaceName, "eth0");
-    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp4l");
+    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp/ptp4l");
     EXPECT_EQ(it->base.domainNumber, 0);
     EXPECT_EQ(it->base.transportSpecific, 0);
     EXPECT_EQ(it->udsAddrChrony, "/var/run/chrony/chronyd.sock");
@@ -198,7 +198,7 @@ TEST_F(JsonConfigParserTest, singleTimeBase)
           "timeBaseName": "Sample Clock",
           "ptp4l": {
             "interfaceName": "eth123",
-            "udsAddr": "/var/run/ptp4l-sample-123",
+            "udsAddr": "/var/run/ptp/ptp4l-sample-123",
             "domainNumber": 123,
             "transportSpecific": 123
           },
@@ -214,7 +214,7 @@ TEST_F(JsonConfigParserTest, singleTimeBase)
     auto it = parser.begin();
     EXPECT_STREQ(it->base.timeBaseName, "Sample Clock");
     EXPECT_STREQ(it->base.interfaceName, "eth123");
-    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp4l-sample-123");
+    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp/ptp4l-sample-123");
     EXPECT_EQ(it->base.domainNumber, 123);
     EXPECT_EQ(it->base.transportSpecific, 123);
     EXPECT_EQ(it->udsAddrChrony, "/var/run/chrony/chronyd-sample.sock");
@@ -230,7 +230,7 @@ TEST_F(JsonConfigParserTest, multipleTimeBases)
           "timeBaseName": "Global Clock",
           "ptp4l": {
             "interfaceName": "eth0",
-            "udsAddr": "/var/run/ptp4l-domain-0",
+            "udsAddr": "/var/run/ptp/ptp4l-domain-0",
             "domainNumber": 0,
             "transportSpecific": 1
           },
@@ -242,7 +242,7 @@ TEST_F(JsonConfigParserTest, multipleTimeBases)
           "timeBaseName": "Working Clock",
           "ptp4l": {
             "interfaceName": "eth1",
-            "udsAddr": "/var/run/ptp4l-domain-20",
+            "udsAddr": "/var/run/ptp/ptp4l-domain-20",
             "domainNumber": 20,
             "transportSpecific": 1
           }
@@ -257,14 +257,14 @@ TEST_F(JsonConfigParserTest, multipleTimeBases)
     EXPECT_STREQ(it->base.interfaceName, "eth0");
     EXPECT_EQ(it->base.transportSpecific, 1);
     EXPECT_EQ(it->base.domainNumber, 0);
-    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp4l-domain-0");
+    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp/ptp4l-domain-0");
     EXPECT_EQ(it->udsAddrChrony, "/var/run/chrony/chronyd.sock");
     it++;
     EXPECT_STREQ(it->base.timeBaseName, "Working Clock");
     EXPECT_STREQ(it->base.interfaceName, "eth1");
     EXPECT_EQ(it->base.transportSpecific, 1);
     EXPECT_EQ(it->base.domainNumber, 20);
-    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp4l-domain-20");
+    EXPECT_EQ(it->udsAddrPtp4l, "/var/run/ptp/ptp4l-domain-20");
     it++;
     EXPECT_EQ(it, parser.end());
 }

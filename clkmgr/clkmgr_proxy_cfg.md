@@ -74,7 +74,7 @@ defaults, except for `interfaceName`, which is mandatory and must be specified.
 **ptp4l**(8) service. To find the `udsAddr` for the **ptp4l**(8) service, look
 for the `uds_address` parameter in the **ptp4l**(8) configuration file. Refer to
 **ptp4l**(8) for more information.  
-- Default parameter: "/var/run/ptp4l"  
+- Default parameter: "/var/run/ptp/ptp4l"  
 
 `domainNumber`
 : - The PTP domain number.  
@@ -125,7 +125,7 @@ Below are examples of JSON configuration files that refers to different scenario
                 "ptp4l":  
                 {  
                     "interfaceName": "eth0",  
-                    "udsAddr": "/var/run/ptp4l-domain-0",  
+                    "udsAddr": "/var/run/ptp/ptp4l-domain-0",  
                     "domainNumber": 0,  
                     "transportSpecific": 1  
                 }  
@@ -204,7 +204,7 @@ Below are examples of JSON configuration files that refers to different scenario
                 "ptp4l":  
                 {  
                     "interfaceName": "eth0",  
-                    "udsAddr": "/var/run/ptp4l",  
+                    "udsAddr": "/var/run/ptp/ptp4l",  
                     "domainNumber": 0,  
                     "transportSpecific": 1  
                 },  
@@ -238,7 +238,7 @@ Below are examples of JSON configuration files that refers to different scenario
                 "ptp4l":  
                 {  
                     "interfaceName": "eth0",  
-                    "udsAddr": "/var/run/ptp4l",  
+                    "udsAddr": "/var/run/ptp/ptp4l",  
                     "domainNumber": 0,  
                     "transportSpecific": 1  
                 },  
@@ -252,7 +252,7 @@ Below are examples of JSON configuration files that refers to different scenario
                 "ptp4l":  
                 {  
                     "interfaceName": "eth1",  
-                    "udsAddr": "/var/run/ptp4l-domain-20",  
+                    "udsAddr": "/var/run/ptp/ptp4l-domain-20",  
                     "domainNumber": 20,  
                     "transportSpecific": 1  
                 }  
