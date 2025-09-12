@@ -17,7 +17,7 @@
 ###############################################################################
 Name:           libptpmgmt
 Version:        2.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 URL:            https://%{name}.nwtime.org
 License:        LGPL-3.0-or-later
 BuildRequires:  gcc-c++ pkgconfig which swig

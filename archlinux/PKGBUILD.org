@@ -13,7 +13,7 @@
 # https://man.archlinux.org/man/PKGBUILD.5.en
 ###############################################################################
 pkgver=2.0
-pkgrel=1
+pkgrel=2
 pkgname=(libptpmgmt2 libptpmgmt2-openssl libptpmgmt2-gcrypt libptpmgmt2-gnutls
   libptpmgmt2-nettle libptpmgmt-dev libptpmgmt-doc
   libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt go-ptpmgmt
