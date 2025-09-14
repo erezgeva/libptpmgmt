@@ -260,6 +260,29 @@ static inline char *l_realpath(const char *path, char *resolved)
         strcpy(resolved, path);
     return resolved;
 }
+static inline ssize_t l_read(int fd, void *buf, size_t count)
+{
+    if(fdesc[fd].domain != AF_CAN) // Any which we do not use :-)
+        return retErr(EINVAL);
+    size_t events = count / sizeof(ptp_extts_event);
+    if(events == 1 || events == 10) {
+        ptp_extts_event *ent = (ptp_extts_event *)buf;
+        if(events == 1) {
+            ent->index = 19;
+            ent->t = { .sec = 123, .nsec = 712 };
+        } else { // 3 events
+            ent->index = 2;
+            ent++->t = { .sec = 34, .nsec = 7856 };
+            ent->index = 6;
+            ent++->t = { .sec = 541, .nsec = 468 };
+            ent->index = 3;
+            ent->t = { .sec = 1587, .nsec = 12 };
+            events = 3;
+        }
+        return events * sizeof(ptp_extts_event);
+    }
+    return retErr(EINVAL);
+}
 /*****************************************************************************/
 const uint8_t ua_addr_b[110] = { 1, 0, 47, 109, 101 };
 const uint8_t ua_addr_b0[110] = {1, 0, 47, 104, 111, 109, 101, 47, 117, 115,
@@ -716,31 +739,12 @@ int __open_2(const char *name, int flags)
 ssize_t read(int fd, void *buf, size_t count)
 {
     retSock(read, buf, count);
-    if(fdesc[fd].domain == AF_CAN) {
-        size_t events = count / sizeof(ptp_extts_event);
-        if(events == 1 || events == 10) {
-            ptp_extts_event *ent = (ptp_extts_event *)buf;
-            if(events == 1) {
-                ent->index = 19;
-                ent->t = { .sec = 123, .nsec = 712 };
-            } else { // 3 events
-                ent->index = 2;
-                ent++->t = { .sec = 34, .nsec = 7856 };
-                ent->index = 6;
-                ent++->t = { .sec = 541, .nsec = 468 };
-                ent->index = 3;
-                ent->t = { .sec = 1587, .nsec = 12 };
-                events = 3;
-            }
-            return events * sizeof(ptp_extts_event);
-        }
-    }
-    return retErr(EINVAL);
+    return l_read(fd, buf, count);
 }
 ssize_t __read_chk(int fd, void *buf, size_t count, size_t buflen)
 {
     retSock(__read_chk, buf, count, buflen);
-    return read(fd, buf, count);
+    return l_read(fd, buf, count);
 }
 // glibc stat fucntions
 int stat(const char *name, struct stat *sp) throw()
@@ -786,7 +790,7 @@ int ioctl(int fd, unsigned long request, ...) throw()
     ifreq *ifr = (ifreq *)arg;
     switch(request) {
         case SIOCGIFHWADDR:
-            if(strcmp("eth0", ifr->ifr_name) != 0 || ifr->ifr_ifindex != 7)
+            if(strcmp("eth0", ifr->ifr_name) != 0)
                 return retErr(EINVAL);
             memcpy(ifr->ifr_hwaddr.sa_data, "\x1\x2\x3\x4\x5\x6", 6);
             break;
