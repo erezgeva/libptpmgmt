@@ -55,10 +55,10 @@ void initLibSys(void)
 #define retTest(name, ...)\
     if(!testMode)\
         return _##name(__VA_ARGS__)
-#define L_PRINTF(format)\
+#define L_PRINTF_B(convert)\
     int ret = 0;\
     va_list ap;\
-    va_start(ap, format);\
+    convert;\
     if(!testMode)\
         ret = VA_PRINT(format, ap);\
     else {\
@@ -68,14 +68,19 @@ void initLibSys(void)
     }\
     va_end(ap);\
     return ret
+#define L_PRINTF L_PRINTF_B(va_start(ap, format))
+static inline int l_vprintf(const char *format, va_list ap0)
+{
+    L_PRINTF_B(va_copy(ap, ap0));
+}
 /*****************************************************************************/
 int printf(const char *format, ...)
 {
-    L_PRINTF(format);
+    L_PRINTF;
 }
 int __printf_chk(int __flag, const char *format, ...)
 {
-    L_PRINTF(format);
+    L_PRINTF;
 }
 int puts(const char *s)
 {
@@ -84,20 +89,9 @@ int puts(const char *s)
 }
 int vprintf(const char *format, va_list ap)
 {
-    int ret = 0;
-    va_list ap1;
-    va_copy(ap1, ap);
-    if(!testMode)
-        ret = VA_PRINT(format, ap1);
-    else {
-        char str[single_print];
-        ret = vsnprintf(str, sizeof(str), format, ap1);
-        pmc_out += str;
-    }
-    va_end(ap1);
-    return ret;
+    return l_vprintf(format, ap);
 }
 int __vprintf_chk(int __flag, const char *format, va_list ap)
 {
-    return vprintf(format, ap);
+    return l_vprintf(format, ap);
 }
