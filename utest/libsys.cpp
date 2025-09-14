@@ -790,7 +790,7 @@ int ioctl(int fd, unsigned long request, ...) throw()
     ifreq *ifr = (ifreq *)arg;
     switch(request) {
         case SIOCGIFHWADDR:
-            if(strcmp("eth0", ifr->ifr_name) != 0 || ifr->ifr_ifindex != 7)
+            if(strcmp("eth0", ifr->ifr_name) != 0)
                 return retErr(EINVAL);
             memcpy(ifr->ifr_hwaddr.sa_data, "\x1\x2\x3\x4\x5\x6", 6);
             break;
