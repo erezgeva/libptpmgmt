@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation.
+#
+# @author Song Yoong Siang <yoong.siang.song@@intel.com>
+# @copyright © 2025 Intel Corporation.
+#
+# GitHub Clock Manager end-to-end simulation script
+# - Build linuxptp, clknetsim, libptpmgmt, and Clock Manager in debian system
+#   and test with clknetsim to verify proper functionality.
+###############################################################################
+
+name: Clock Manager E2E Simulation
+
+# Start manually
+on: workflow_dispatch
+
+# Permit read-only with GITHUB_TOKEN
+permissions: read-all
+
+jobs:
+  clkmgr_e2e:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/erezgeva/deb.forky:latest
+    env:
+      GITHUB_CONTAINER: deb.forky
+
+    steps:
+
+    - name: checkout linuxptp repository
+      uses: actions/checkout@v4
+      with:
+        repository: nwtime/linuxptp
+        path: linuxptp
+
+    - name: checkout clknetsim repository
+      uses: actions/checkout@v4
+      with:
+        repository: mlichvar/clknetsim
+        path: clknetsim
+
+    - name: checkout libptpmgmt repository
+      uses: actions/checkout@v4
+      with:
+        path: libptpmgmt
+
+    - name: build and install linuxptp
+      run: |
+        cd linuxptp
+        make
+        sudo make install
+        cd ..
+        echo "ptp4l version:"
+        ptp4l -v
+
+    - name: build libptpmgmt and Clock Manager
+      run: |
+        cd libptpmgmt
+        autoreconf -i
+        ./configure
+        make CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE"
+        cd clkmgr/sample
+        make
+        cd ../../..
+
+    - name: ptp4l single domain test with clknetsim
+      run: timeout 50 ./libptpmgmt/clkmgr/tool/sim.sh 0
+      continue-on-error: true
+
+    - name: Upload simulation logs
+      uses: actions/upload-artifact@v4
+      with:
+        name: clknetsim-logs-ptp4l-single-domain
+        retention-days: 90
+        path: libptpmgmt/clkmgr/sim/*
+
+    - name: chronyd test with clknetsim
+      run: timeout 50 ./libptpmgmt/clkmgr/tool/sim.sh 1
+      continue-on-error: true
+
+    - name: Upload simulation logs
+      uses: actions/upload-artifact@v4
+      with:
+        name: clknetsim-logs-chronyd
+        retention-days: 90
+        path: libptpmgmt/clkmgr/sim/*
