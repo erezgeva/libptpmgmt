@@ -208,6 +208,8 @@ Usage of proxy daemon (clkmgr_proxy):
 Usage of ./clkmgr_proxy:  
 Options:  
  -f [file] Read configuration from 'file'  
+ -a <0|1> Open message queue in access all mode  
+          0: disable(default), 1: enable  
  -l <lvl> Set log level  
           0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE  
  -q <0|1> Enable or disable quiet mode  
@@ -243,8 +245,14 @@ Options:
      Default: 1 s  
   -m chrony offset threshold (ns)  
      Default: 100000 ns  
+  -n chrony_event_mask  
+     Default: 0x1  
+     Bit 0: EventOffsetInRange  
   -t timeout in waiting notification event (s)  
-     Default: 10 s
+     Default: 10 s  
+     -1 : wait indefinitely until at least an event change occurs  
+      0 : retrieve the latest clock sync data immediately  
+     >0 : wait up to the specified number of seconds for an event
 ```
 
 Result for `Subscribe All Mode (-a)`:  
