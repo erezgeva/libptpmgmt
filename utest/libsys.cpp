@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/un.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -75,13 +76,15 @@ void useRoot(bool n) {rootMode = n;}
 sysFuncDec(int, socket, int, int, int) throw();
 sysFuncDec(int, close, int);
 sysFuncDec(int, select, int, fd_set *, fd_set *, fd_set *, timeval *);
+sysFuncDec(int, poll, pollfd *, nfds_t, int);
+sysFuncDec(int, __poll_chk, pollfd *, nfds_t, int, size_t);
 sysFuncDec(int, bind, int, const sockaddr *, socklen_t) throw();
 sysFuncDec(int, setsockopt, int, int, int, const void *, socklen_t) throw();
 sysFuncDec(ssize_t, recv, int, void *, size_t, int);
 sysFuncDec(ssize_t, recvfrom, int, void *, size_t, int, sockaddr *,
     socklen_t *);
-sysFuncDec(ssize_t, sendto, int, const void *buf, size_t len, int flags,
-    const sockaddr *, socklen_t);
+sysFuncDec(ssize_t, sendto, int, const void *, size_t, int, const sockaddr *,
+    socklen_t);
 sysFuncDec(ssize_t, recvmsg, int, msghdr *, int);
 sysFuncDec(ssize_t, sendmsg, int, const msghdr *, int);
 sysFuncDec(uid_t, getuid, void) throw();
@@ -114,13 +117,15 @@ void initLibSys(void)
     sysFuncAgn(int, socket, int, int, int);
     sysFuncAgn(int, close, int);
     sysFuncAgn(int, select, int, fd_set *, fd_set *, fd_set *, timeval *);
+    sysFuncAgn(int, poll, pollfd *, nfds_t, int);
+    sysFuncAgn(int, __poll_chk, pollfd *, nfds_t, int, size_t);
     sysFuncAgn(int, bind, int, const sockaddr *, socklen_t);
     sysFuncAgn(int, setsockopt, int, int, int, const void *, socklen_t);
     sysFuncAgn(ssize_t, recv, int, void *, size_t, int);
     sysFuncAgn(ssize_t, recvfrom, int, void *, size_t, int, sockaddr *,
         socklen_t *);
-    sysFuncAgn(ssize_t, sendto, int, const void *buf, size_t len, int flags,
-        const sockaddr *, socklen_t);
+    sysFuncAgn(ssize_t, sendto, int, const void *, size_t, int, const sockaddr *,
+        socklen_t);
     sysFuncAgn(ssize_t, recvmsg, int, msghdr *, int);
     sysFuncAgn(ssize_t, sendmsg, int, const msghdr *, int);
     sysFuncAgn(uid_t, getuid, void);
@@ -283,6 +288,17 @@ static inline ssize_t l_read(int fd, void *buf, size_t count)
     }
     return retErr(EINVAL);
 }
+static inline int l_poll(pollfd *fds, nfds_t nfds, int timeout)
+{
+    if(nfds == 1 && fds != nullptr && fds[0].events == POLLIN &&
+        fds[0].revents == 0) {
+        if(timeout == -1 || timeout % 500 == 0) {
+            fds[0].revents = POLLIN;
+            return 1;
+        }
+    }
+    return retErr(EINVAL);
+}
 /*****************************************************************************/
 const uint8_t ua_addr_b[110] = { 1, 0, 47, 109, 101 };
 const uint8_t ua_addr_b0[110] = {1, 0, 47, 104, 111, 109, 101, 47, 117, 115,
@@ -365,6 +381,16 @@ int select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, timeval *to)
         }
     }
     return _select(nfds, rfds, wfds, efds, to);
+}
+int poll(pollfd *fds, nfds_t nfds, int timeout)
+{
+    retTest(poll, fds, nfds, timeout);
+    return l_poll(fds, nfds, timeout);
+}
+int __poll_chk(pollfd *fds, nfds_t nfds, int timeout, size_t len)
+{
+    retTest(__poll_chk, fds, nfds, timeout, len);
+    return l_poll(fds, nfds, timeout);
 }
 int bind(int fd, const sockaddr *addr, socklen_t addrlen) throw()
 {

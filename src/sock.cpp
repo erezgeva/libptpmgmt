@@ -19,6 +19,9 @@
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #endif
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -160,27 +163,24 @@ bool SockBase::poll(uint64_t timeout_ms) const
         PTPMGMT_ERROR("Socket is not initialized");
         return false;
     }
-    timeval to, *pto;
-    if(timeout_ms > 0) {
-        to = {
-            .tv_sec = (long)(timeout_ms / MSEC_PER_SEC),
-            .tv_usec = (long)(timeout_ms % MSEC_PER_SEC) * USEC_PER_MSEC
-        };
-        pto = &to;
-    } else
-        pto = nullptr;
-    fd_set rs;
-    FD_ZERO(&rs);
-    FD_SET(m_fd, &rs);
-    int ret = select(m_fd + 1, &rs, nullptr, nullptr, pto);
-    if(ret > 0 && FD_ISSET(m_fd, &rs)) {
+    int to;
+    if(timeout_ms > 0)
+        to = timeout_ms;
+    else
+        to = -1;
+    struct pollfd fds;
+    fds.fd = m_fd;
+    fds.events = POLLIN;
+    fds.revents = 0;
+    int ret = ::poll(&fds, 1, to);
+    if(ret > 0 && (fds.revents & POLLIN) > 0) {
         PTPMGMT_ERROR_CLR;
         return true;
     }
     if(ret == -1)
-        PTPMGMT_ERROR_P("select");
+        PTPMGMT_ERROR_P("poll");
     else
-        PTPMGMT_ERROR("select fails with %d", ret);
+        PTPMGMT_ERROR("poll fails with %d", ret);
     return false;
 }
 bool SockBase::tpoll(uint64_t &timeout_ms) const
