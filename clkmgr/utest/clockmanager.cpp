@@ -307,6 +307,9 @@ TEST_F(ClockManagerTest, getTimeBaseCfgs)
 //    size_t timeBaseIndex, ClockSyncData &clockSyncData)
 TEST_F(ClockManagerTest, subscribe)
 {
+    // Ensure connection is established before testing subscribe functionality
+    utest_connected_with_proxy = true;
+    ClockManager::connect();
     ClockSyncSubscription sub;
     ClockSyncData clData;
     EXPECT_FALSE(ClockManager::subscribeByName(sub, "xyz", clData));
@@ -344,6 +347,19 @@ TEST_F(ClockManagerTest, subscribe)
 //     ClockSyncData &clockSyncData)
 TEST_F(ClockManagerTest, statusWait)
 {
+    // Ensure connection and subscription are established before testing
+    utest_connected_with_proxy = true;
+    ClockManager::connect();
+    // Subscribe to timebase 1 to ensure the timebase state is active
+    utest_subscribed_with_proxy = true;
+    ClockSyncSubscription sub;
+    ClockSyncData dummyData;
+    ClockManager::subscribe(sub, 1, dummyData);
+    // Ensure timebase state is properly set up with events
+    ptp_event ptpData = {};
+    chrony_event chronyData = {};
+    TimeBaseStates::getInstance().setTimeBaseStatePtp(1, ptpData);
+    TimeBaseStates::getInstance().setTimeBaseStateSys(1, chronyData);
     ClockSyncData clData;
     EXPECT_EQ(ClockManager::statusWaitByName(0, "xyz", clData), -1);
     EXPECT_EQ(ClockManager::statusWait(0, 1, clData), 1);

@@ -95,8 +95,15 @@ TEST_F(ClientStateTest, init)
 // bool sendMessage(Message &msg)
 TEST_F(ClientStateTest, sendMessage)
 {
+    // Ensure ClientState is initialized before sending message
+    if(ClientState::get_clientID().empty()) {
+        bool initResult = ClientState::init();
+        ASSERT_TRUE(initResult);
+    }
     ClientConnectMessage *cmsg = new ClientConnectMessage();
+    ASSERT_NE(cmsg, nullptr);
     EXPECT_TRUE(ClientState::sendMessage(*cmsg));
+    delete cmsg;
 }
 
 // Tests getTransmitter function
@@ -119,6 +126,11 @@ TEST_F(ClientStateTest, getTransmitter)
 // const std::string &get_clientID()
 TEST_F(ClientStateTest, connectAndReply)
 {
+    // Ensure ClientState is initialized before testing connect functionality
+    if(ClientState::get_clientID().empty()) {
+        bool initResult = ClientState::init();
+        ASSERT_TRUE(initResult);
+    }
     timespec lastConnectTime = {};
     bool result = false;
     // Simulate client not able to connect to proxy within timeout

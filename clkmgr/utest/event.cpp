@@ -45,7 +45,7 @@ TEST(ClockEventBaseTest, defaultValue)
 {
     ClockEventBaseTestable event;
     EXPECT_EQ(event.getClockOffset(), 0);
-    EXPECT_FALSE(event.isOffsetInRange());
+    EXPECT_TRUE(event.isOffsetInRange());
     EXPECT_EQ(event.getOffsetInRangeEventCount(), 0u);
     EXPECT_EQ(event.getSyncInterval(), 0);
     EXPECT_EQ(event.getGmIdentity(), 0u);
@@ -244,7 +244,7 @@ TEST(SysClockEventTest, defaultValue)
 {
     SysClockEventTestable event;
     EXPECT_EQ(event.getClockOffset(), 0);
-    EXPECT_FALSE(event.isOffsetInRange());
+    EXPECT_TRUE(event.isOffsetInRange());
     EXPECT_EQ(event.getOffsetInRangeEventCount(), 0u);
 }
 

@@ -131,7 +131,7 @@ class ClockEventBase
     uint64_t notificationTimestamp = 0;
     uint32_t offsetInRangeCount = 0; /**< Count of offsets within defined range. */
     uint32_t gmChangedCount = 0; /**< Count of grandmaster clock changes. */
-    bool offsetInRange = false; /**< Indicates if the offset is within range. */
+    bool offsetInRange = true; /**< Indicates if the offset is within range. */
     bool gmChanged = false; /**< Indicates if the grandmaster clock has changed. */
     /**< @endcond */
 };
