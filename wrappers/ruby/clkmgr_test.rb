@@ -77,37 +77,39 @@ def printOut
     hd3 = '|'+('-'* 30)+'|'+('-'* 14)+'|'+('-'* 13)+'|'
     puts hd3
     puts '| %-28s | %-12s | %-11s |' % ['Events', 'Event Status', 'Event Count']
+    puts hd3
     ptpClock = $clockSyncData.getPtp()
     sysClock = $clockSyncData.getSysClock()
-    puts hd3
-    if $composite_event != 0 then
-        puts hd3b % ['ptp_isCompositeEventMet', ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount()]
-        puts '| - %-26s | %-12s | %-11s |' % ['isOffsetInRange', '', ''] if $composite_event & Clkmgr::EventOffsetInRange
-        puts '| - %-26s | %-12s | %-11s |' % ['isSyncedWithGm', '', ''] if $composite_event & Clkmgr::EventSyncedWithGm
-        puts '| - %-26s | %-12s | %-11s |' % ['isAsCapable', '', ''] if $composite_event & Clkmgr::EventAsCapable
-    end
-    if $event2Sub != 0 then
+    if $clockSyncData.havePTP() then
+        if $composite_event != 0 then
+            puts hd3b % ['ptp_isCompositeEventMet', ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount()]
+            puts '| - %-26s | %-12s | %-11s |' % ['isOffsetInRange', '', ''] if $composite_event & Clkmgr::EventOffsetInRange
+            puts '| - %-26s | %-12s | %-11s |' % ['isSyncedWithGm', '', ''] if $composite_event & Clkmgr::EventSyncedWithGm
+            puts '| - %-26s | %-12s | %-11s |' % ['isAsCapable', '', ''] if $composite_event & Clkmgr::EventAsCapable
+        end
+        if $event2Sub != 0 then
+            puts hd3
+            puts hd3b % ['ptp_isOffsetInRange', ptpClock.isOffsetInRange().to_s, ptpClock.getOffsetInRangeEventCount()] if $event2Sub & Clkmgr::EventOffsetInRange
+            puts hd3b % ['ptp_isSyncedWithGm', ptpClock.isSyncedWithGm().to_s, ptpClock.getSyncedWithGmEventCount()] if $event2Sub & Clkmgr::EventSyncedWithGm
+            puts hd3b % ['ptp_isAsCapable', ptpClock.isAsCapable().to_s, ptpClock.getAsCapableEventCount()] if $event2Sub & Clkmgr::EventAsCapable
+            puts hd3b % ['ptp_isGmChanged', ptpClock.isGmChanged().to_s, ptpClock.getGmChangedEventCount()] if $event2Sub & Clkmgr::EventGmChanged
+        end
         puts hd3
-        puts hd3b % ['ptp_isOffsetInRange', ptpClock.isOffsetInRange().to_s, ptpClock.getOffsetInRangeEventCount()] if $event2Sub & Clkmgr::EventOffsetInRange
-        puts hd3b % ['ptp_isSyncedWithGm', ptpClock.isSyncedWithGm().to_s, ptpClock.getSyncedWithGmEventCount()] if $event2Sub & Clkmgr::EventSyncedWithGm
-        puts hd3b % ['ptp_isAsCapable', ptpClock.isAsCapable().to_s, ptpClock.getAsCapableEventCount()] if $event2Sub & Clkmgr::EventAsCapable
-        puts hd3b % ['ptp_isGmChanged', ptpClock.isGmChanged().to_s, ptpClock.getGmChangedEventCount()] if $event2Sub & Clkmgr::EventGmChanged
+        puts '| %-28s |     %-19d ns |' % ['ptp_clockOffset', ptpClock.getClockOffset()]
+        gmClockUUID = ptpClock.getGmIdentity()
+        # Copy the uint64_t into the array
+        (0..7).each do |i|
+            gm_identity[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff
+        end
+        puts '| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |' % ['ptp_gmIdentity',
+            gm_identity[0], gm_identity[1],
+            gm_identity[2], gm_identity[3],
+            gm_identity[4], gm_identity[5],
+            gm_identity[6], gm_identity[7]]
+        puts '| %-28s |     %-19d us |' % ['ptp_syncInterval', ptpClock.getSyncInterval()]
+        puts '| %-28s |     %-19d ns |' % ['ptp_notificationTimestamp', ptpClock.getNotificationTimestamp()]
+        puts hd2l
     end
-    puts hd3
-    puts '| %-28s |     %-19d ns |' % ['ptp_clockOffset', ptpClock.getClockOffset()]
-    gmClockUUID = ptpClock.getGmIdentity()
-    # Copy the uint64_t into the array
-    (0..7).each do |i|
-        gm_identity[i] = (gmClockUUID >> (8 * (7 - i))) & 0xff
-    end
-    puts '| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |' % ['ptp_gmIdentity',
-        gm_identity[0], gm_identity[1],
-        gm_identity[2], gm_identity[3],
-        gm_identity[4], gm_identity[5],
-        gm_identity[6], gm_identity[7]]
-    puts '| %-28s |     %-19d us |' % ['ptp_syncInterval', ptpClock.getSyncInterval()]
-    puts '| %-28s |     %-19d ns |' % ['ptp_notificationTimestamp', ptpClock.getNotificationTimestamp()]
-    puts hd2l
     if $clockSyncData.haveSys() then
         puts hd3b % ['chrony_isOffsetInRange', sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount()]
         puts hd2l

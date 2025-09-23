@@ -113,56 +113,58 @@ static void printOut()
     printf("| %-28s | %-12s | %-11s |\n", "Events", "Event Status",
         "Event Count");
     printf("|------------------------------|--------------|-------------|\n");
-    if (composite_event) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isCompositeEventMet",
-            ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
-    }
-    if (composite_event & EventOffsetInRange) {
-        printf("| - %-26s | %-12s | %-11s |\n", "isOffsetInRange", "", "");
-    }
-    if (composite_event & EventSyncedWithGm) {
-        printf("| - %-26s | %-12s | %-11s |\n", "isSyncedWithGm", "", "");
-    }
-    if (composite_event & EventAsCapable) {
-        printf("| - %-26s | %-12s | %-11s |\n", "isAsCapable", "", "");
-    }
-    if (event2Sub) {
+    if (clockSyncData.havePTP()) {
+        if (composite_event) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isCompositeEventMet",
+                ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
+        }
+        if (composite_event & EventOffsetInRange) {
+            printf("| - %-26s | %-12s | %-11s |\n", "isOffsetInRange", "", "");
+        }
+        if (composite_event & EventSyncedWithGm) {
+            printf("| - %-26s | %-12s | %-11s |\n", "isSyncedWithGm", "", "");
+        }
+        if (composite_event & EventAsCapable) {
+            printf("| - %-26s | %-12s | %-11s |\n", "isAsCapable", "", "");
+        }
+        if (event2Sub) {
+            printf("|------------------------------|--------------|-------------|\n");
+        }
+        if (event2Sub & EventOffsetInRange) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isOffsetInRange",
+                ptpClock.isOffsetInRange(),
+                ptpClock.getOffsetInRangeEventCount());
+        }
+        if (event2Sub & EventSyncedWithGm) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isSyncedWithGm",
+                ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
+        }
+        if (event2Sub & EventAsCapable) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isAsCapable",
+                ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount());
+        }
+        if (event2Sub & EventGmChanged) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isGmChanged",
+                ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount());
+        }
         printf("|------------------------------|--------------|-------------|\n");
+        printf("| %-28s |     %-19ld ns |\n", "ptp_clockOffset", ptpClock.getClockOffset());
+        gmClockUUID = ptpClock.getGmIdentity();
+        uint8_t gm_identity[8];
+        // Copy the uint64_t into the array
+        for (int i = 0; i < 8; ++i) {
+            gm_identity[i] = static_cast<uint8_t>(gmClockUUID >> (8 * (7 - i)));
+        }
+        printf("| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
+            "ptp_gmIdentity", gm_identity[0], gm_identity[1], gm_identity[2],
+                gm_identity[3],gm_identity[4], gm_identity[5], gm_identity[6],
+                gm_identity[7]);
+        printf("| %-28s |     %-19ld us |\n", "ptp_syncInterval",
+            ptpClock.getSyncInterval());
+        printf("| %-28s |     %-19ld ns |\n", "ptp_notificationTimestamp",
+            ptpClock.getNotificationTimestamp());
+        printf("|------------------------------|----------------------------|\n");
     }
-    if (event2Sub & EventOffsetInRange) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isOffsetInRange",
-            ptpClock.isOffsetInRange(),
-            ptpClock.getOffsetInRangeEventCount());
-    }
-    if (event2Sub & EventSyncedWithGm) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isSyncedWithGm",
-            ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
-    }
-    if (event2Sub & EventAsCapable) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isAsCapable",
-            ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount());
-    }
-    if (event2Sub & EventGmChanged) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isGmChanged",
-            ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount());
-    }
-    printf("|------------------------------|--------------|-------------|\n");
-    printf("| %-28s |     %-19ld ns |\n", "ptp_clockOffset", ptpClock.getClockOffset());
-    gmClockUUID = ptpClock.getGmIdentity();
-    uint8_t gm_identity[8];
-    // Copy the uint64_t into the array
-    for (int i = 0; i < 8; ++i) {
-        gm_identity[i] = static_cast<uint8_t>(gmClockUUID >> (8 * (7 - i)));
-    }
-    printf("| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-        "ptp_gmIdentity", gm_identity[0], gm_identity[1], gm_identity[2],
-            gm_identity[3],gm_identity[4], gm_identity[5], gm_identity[6],
-            gm_identity[7]);
-    printf("| %-28s |     %-19ld us |\n", "ptp_syncInterval",
-        ptpClock.getSyncInterval());
-    printf("| %-28s |     %-19ld ns |\n", "ptp_notificationTimestamp",
-        ptpClock.getNotificationTimestamp());
-    printf("|------------------------------|----------------------------|\n");
     if (clockSyncData.haveSys()) {
         printf("| %-28s | %-12d | %-11d |\n", "chrony_isOffsetInRange",
             sysClock.isOffsetInRange(), sysClock.getOffsetInRangeEventCount());

@@ -78,59 +78,61 @@ sub printOut
     printf "$hd3\n" .
         "| %-28s | %-12s | %-11s |\n",
         'Events', 'Event Status', 'Event Count';
+    print "$hd3\n";
     my $ptpClock = $clockSyncData->getPtp();
     my $sysClock = $clockSyncData->getSysClock();
-    if ($composite_event != 0) {
+    if ($clockSyncData->havePTP()) {
+        if ($composite_event != 0) {
+            printf "$hd3b\n", 'ptp_isCompositeEventMet',
+                $ptpClock->isCompositeEventMet(),
+                $ptpClock->getCompositeEventCount();
+            printf "| - %-26s | %-12s | %-11s |\n", 'isOffsetInRange', '', ''
+                if $composite_event & $ClkMgrLib::EventOffsetInRange;
+            printf "| - %-26s | %-12s | %-11s |\n",
+                'isSyncedWithGm', '', ''
+                if $composite_event & $ClkMgrLib::EventSyncedWithGm;
+            printf "| - %-26s | %-12s | %-11s |\n", 'isAsCapable', '', ''
+                if $composite_event & $ClkMgrLib::EventAsCapable;
+        }
+        if ($event2Sub != 0) {
+            print "$hd3\n";
+            printf "$hd3b\n", 'ptp_isOffsetInRange',
+                $ptpClock->isOffsetInRange(),
+                $ptpClock->getOffsetInRangeEventCount()
+                if $event2Sub & $ClkMgrLib::EventOffsetInRange;
+            printf "$hd3b\n", 'ptp_isSyncedWithGm',
+                $ptpClock->isSyncedWithGm(),
+                $ptpClock->getSyncedWithGmEventCount()
+                if $event2Sub & $ClkMgrLib::EventSyncedWithGm;
+            printf "$hd3b\n", 'ptp_isAsCapable',
+                $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount()
+                if $event2Sub & $ClkMgrLib::EventAsCapable;
+            printf "$hd3b\n", 'ptp_isGmChanged',
+                $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount()
+                if $event2Sub & $ClkMgrLib::EventGmChanged;
+        }
         print "$hd3\n";
-        printf "$hd3b\n", 'ptp_isCompositeEventMet',
-            $ptpClock->isCompositeEventMet(),
-            $ptpClock->getCompositeEventCount();
-        printf "| - %-26s | %-12s | %-11s |\n", 'isOffsetInRange', '', ''
-            if $composite_event & $ClkMgrLib::EventOffsetInRange;
-        printf "| - %-26s | %-12s | %-11s |\n",
-            'isSyncedWithGm', '', ''
-            if $composite_event & $ClkMgrLib::EventSyncedWithGm;
-        printf "| - %-26s | %-12s | %-11s |\n", 'isAsCapable', '', ''
-            if $composite_event & $ClkMgrLib::EventAsCapable;
-    }
-    if ($event2Sub != 0) {
-        print "$hd3\n";
-        printf "$hd3b\n", 'ptp_isOffsetInRange',
-            $ptpClock->isOffsetInRange(),
-            $ptpClock->getOffsetInRangeEventCount()
-            if $event2Sub & $ClkMgrLib::EventOffsetInRange;
-        printf "$hd3b\n", 'ptp_isSyncedWithGm',
-            $ptpClock->isSyncedWithGm(),
-            $ptpClock->getSyncedWithGmEventCount()
-            if $event2Sub & $ClkMgrLib::EventSyncedWithGm;
-        printf "$hd3b\n", 'ptp_isAsCapable',
-            $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount()
-            if $event2Sub & $ClkMgrLib::EventAsCapable;
-        printf "$hd3b\n", 'ptp_isGmChanged',
-            $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount()
-            if $event2Sub & $ClkMgrLib::EventGmChanged;
-    }
-    print "$hd3\n";
 
-    printf "| %-28s |     %-19ld ns |\n"
-           , 'ptp_clockOffset', $ptpClock->getClockOffset();
-    my $gmClockUUID = $ptpClock->getGmIdentity();
-    my @gm_identity;
-    # Copy the uint64_t into the array
-    for (my $i = 0; $i < 8; $i++) {
-        $gm_identity[$i] = ($gmClockUUID >> (8 * (7 - $i))) & 0xff;
+        printf "| %-28s |     %-19ld ns |\n"
+            , 'ptp_clockOffset', $ptpClock->getClockOffset();
+        my $gmClockUUID = $ptpClock->getGmIdentity();
+        my @gm_identity;
+        # Copy the uint64_t into the array
+        for (my $i = 0; $i < 8; $i++) {
+            $gm_identity[$i] = ($gmClockUUID >> (8 * (7 - $i))) & 0xff;
+        }
+        printf "| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
+            'ptp_gmIdentity',
+            $gm_identity[0], $gm_identity[1],
+            $gm_identity[2], $gm_identity[3],
+            $gm_identity[4], $gm_identity[5],
+            $gm_identity[6], $gm_identity[7];
+        printf "| %-28s |     %-19ld us |\n" .
+            "| %-28s |     %-19ld ns |\n" .
+            "$hd2l\n"
+            , 'ptp_syncInterval', $ptpClock->getSyncInterval()
+            , 'ptp_notificationTimestamp', $ptpClock->getNotificationTimestamp();
     }
-    printf "| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-        'ptp_gmIdentity',
-        $gm_identity[0], $gm_identity[1],
-        $gm_identity[2], $gm_identity[3],
-        $gm_identity[4], $gm_identity[5],
-        $gm_identity[6], $gm_identity[7];
-    printf "| %-28s |     %-19ld us |\n" .
-           "| %-28s |     %-19ld ns |\n" .
-           "$hd2l\n"
-           , 'ptp_syncInterval', $ptpClock->getSyncInterval()
-           , 'ptp_notificationTimestamp', $ptpClock->getNotificationTimestamp();
     if ($clockSyncData->haveSys()) {
         my $identity_string = '';
         for my $i (0..3) {

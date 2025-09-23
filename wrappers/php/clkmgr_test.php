@@ -74,38 +74,40 @@ function printOut(): void
     $hd3 = '|'.str_repeat('-', 30).'|'.str_repeat('-', 14).'|'.str_repeat('-', 13).'|';
     clockManagerGetTime();
     printf($hd3 . PHP_EOL . '| %-28s | %-12s | %-11s |' . PHP_EOL, 'Events', 'Event Status', 'Event Count');
+    echo $hd3 . PHP_EOL;
     $ptpClock = $clockSyncData->getPtp();
     $sysClock = $clockSyncData->getSysClock();
-    if($composite_event != 0) {
+    if($clockSyncData->havePTP() != 0) {
+        if($composite_event != 0) {
+            printf($hd3b . PHP_EOL, 'ptp_isCompositeEventMet', $ptpClock->isCompositeEventMet(), $ptpClock->getCompositeEventCount());
+            if($composite_event & EventOffsetInRange)
+                printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isOffsetInRange', '', '');
+            if($composite_event & EventSyncedWithGm)
+                printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isSyncedWithGm', '', '');
+            if($composite_event & EventAsCapable)
+                printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isAsCapable', '', '');
+        }
+        if($event2Sub != 0) {
+            echo $hd3 . PHP_EOL;
+            if($event2Sub & EventOffsetInRange)
+                printf($hd3b . PHP_EOL, 'ptp_isOffsetInRange', $ptpClock->isOffsetInRange(), $ptpClock->getOffsetInRangeEventCount());
+            if($event2Sub & EventSyncedWithGm)
+                printf($hd3b . PHP_EOL, 'ptp_isSyncedWithGm', $ptpClock->isSyncedWithGm(), $ptpClock->getSyncedWithGmEventCount());
+            if($event2Sub & EventAsCapable)
+                printf($hd3b . PHP_EOL, 'ptp_isAsCapable', $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount());
+            if($event2Sub & EventGmChanged)
+                printf($hd3b . PHP_EOL, 'ptp_isGmChanged', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
+        }
         echo $hd3 . PHP_EOL;
-        printf($hd3b . PHP_EOL, 'ptp_isCompositeEventMet', $ptpClock->isCompositeEventMet(), $ptpClock->getCompositeEventCount());
-        if($composite_event & EventOffsetInRange)
-            printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isOffsetInRange', '', '');
-        if($composite_event & EventSyncedWithGm)
-            printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isSyncedWithGm', '', '');
-        if($composite_event & EventAsCapable)
-            printf('| - %-26s | %-12s | %-11s |' . PHP_EOL, 'isAsCapable', '', '');
+        $gmClockUUID = $ptpClock->getGmIdentityStr();
+        printf('| %-28s |     %-19ld ns |' . PHP_EOL , 'ptp_clockOffset', $ptpClock->getClockOffset());
+        printf('| %-28s |     %s     |' . PHP_EOL, 'ptp_gmIdentity', $gmClockUUID);
+        printf('| %-28s |     %-19ld us |' . PHP_EOL .
+            '| %-28s |     %-19ld ns |' . PHP_EOL
+            , 'ptp_syncInterval', $ptpClock->getSyncInterval()
+            , 'ptp_notificationTimestamp', $ptpClock->getNotificationTimestamp());
+        echo $hd2l . PHP_EOL;
     }
-    if($event2Sub != 0) {
-        echo $hd3 . PHP_EOL;
-        if($event2Sub & EventOffsetInRange)
-            printf($hd3b . PHP_EOL, 'ptp_isOffsetInRange', $ptpClock->isOffsetInRange(), $ptpClock->getOffsetInRangeEventCount());
-        if($event2Sub & EventSyncedWithGm)
-            printf($hd3b . PHP_EOL, 'ptp_isSyncedWithGm', $ptpClock->isSyncedWithGm(), $ptpClock->getSyncedWithGmEventCount());
-        if($event2Sub & EventAsCapable)
-            printf($hd3b . PHP_EOL, 'ptp_isAsCapable', $ptpClock->isAsCapable(), $ptpClock->getAsCapableEventCount());
-        if($event2Sub & EventGmChanged)
-            printf($hd3b . PHP_EOL, 'ptp_isGmChanged', $ptpClock->isGmChanged(), $ptpClock->getGmChangedEventCount());
-    }
-    echo $hd3 . PHP_EOL;
-    $gmClockUUID = $ptpClock->getGmIdentityStr();
-    printf('| %-28s |     %-19ld ns |' . PHP_EOL , 'ptp_clockOffset', $ptpClock->getClockOffset());
-    printf('| %-28s |     %s     |' . PHP_EOL, 'ptp_gmIdentity', $gmClockUUID);
-    printf('| %-28s |     %-19ld us |' . PHP_EOL .
-           '| %-28s |     %-19ld ns |' . PHP_EOL
-           , 'ptp_syncInterval', $ptpClock->getSyncInterval()
-           , 'ptp_notificationTimestamp', $ptpClock->getNotificationTimestamp());
-    echo $hd2l . PHP_EOL;
     if($clockSyncData->haveSys() != 0) {
         $identityString = '';
         $gmIdentity = $sysClock->getGmIdentity();

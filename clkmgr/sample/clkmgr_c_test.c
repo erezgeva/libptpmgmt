@@ -110,59 +110,61 @@ static void printOut(Clkmgr_ClockSyncData *syncData)
     printf("| %-28s | %-12s | %-11s |\n", "Events", "Event Status",
         "Event Count");
     printf("|------------------------------|--------------|-------------|\n");
-    if (compositeEventMask) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isCompositeEventMet",
-            clkmgr_isPtpCompositeEventMet(syncData),
-            clkmgr_getPtpCompositeEventCount(syncData));
+    if (clkmgr_havePtpData(syncData)) {
+        if (compositeEventMask) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isCompositeEventMet",
+                clkmgr_isPtpCompositeEventMet(syncData),
+                clkmgr_getPtpCompositeEventCount(syncData));
+        }
+        if (compositeEventMask & Clkmgr_EventOffsetInRange) {
+            printf("| - %-26s | %-12s | %-11s |\n", "isOffsetInRange", "", "");
+        }
+        if (compositeEventMask & Clkmgr_EventSyncedWithGm) {
+            printf("| - %-26s | %-12s | %-11s |\n", "isSyncedWithGm", "", "");
+        }
+        if (compositeEventMask & Clkmgr_EventAsCapable) {
+            printf("| - %-26s | %-12s | %-11s |\n", "isAsCapable", "", "");
+        }
+        if (eventMask) {
+        printf("|------------------------------|--------------|-------------|\n");
+        }
+        if (eventMask & Clkmgr_EventOffsetInRange) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isOffsetInRange",
+                clkmgr_isOffsetInRange(syncData, Clkmgr_PTPClock),
+                clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_PTPClock));
+        }
+        if (eventMask & Clkmgr_EventSyncedWithGm) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isSyncedWithGm",
+                clkmgr_isPtpSyncedWithGm(syncData),
+                clkmgr_getPtpSyncedWithGmEventCount(syncData));
+        }
+        if (eventMask & Clkmgr_EventAsCapable) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isAsCapable",
+                clkmgr_isPtpAsCapable(syncData),
+                clkmgr_getPtpAsCapableEventCount(syncData));
+        }
+        if (eventMask & Clkmgr_EventGmChanged) {
+            printf("| %-28s | %-12d | %-11d |\n", "ptp_isGmChanged",
+                clkmgr_isGmChanged(syncData, Clkmgr_PTPClock),
+                clkmgr_getGmChangedEventCount(syncData, Clkmgr_PTPClock));
+        }
+        printf("|------------------------------|--------------|-------------|\n");
+        printf("| %-28s |     %-19ld ns |\n", "ptp_clockOffset",
+            clkmgr_getClockOffset(syncData, Clkmgr_PTPClock));
+        uint64_t gmClockUUID = clkmgr_getGmIdentity(syncData, Clkmgr_PTPClock);
+        uint8_t gmIdentity[8];
+        for (int i = 0; i < 8; ++i) {
+            gmIdentity[i] = (uint8_t)(gmClockUUID >> (8 * (7 - i)));
+        }
+        printf("| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
+            "ptp_gmIdentity", gmIdentity[0], gmIdentity[1], gmIdentity[2], gmIdentity[3],
+            gmIdentity[4], gmIdentity[5], gmIdentity[6], gmIdentity[7]);
+        printf("| %-28s |     %-19ld us |\n", "ptp_syncInterval",
+            clkmgr_getSyncInterval(syncData, Clkmgr_PTPClock));
+        printf("| %-28s |     %-19ld ns |\n", "ptp_notificationTimestamp",
+            clkmgr_getNotificationTimestamp(syncData, Clkmgr_PTPClock));
+        printf("|------------------------------|----------------------------|\n");
     }
-    if (compositeEventMask & Clkmgr_EventOffsetInRange) {
-        printf("| - %-26s | %-12s | %-11s |\n", "isOffsetInRange", "", "");
-    }
-    if (compositeEventMask & Clkmgr_EventSyncedWithGm) {
-        printf("| - %-26s | %-12s | %-11s |\n", "isSyncedWithGm", "", "");
-    }
-    if (compositeEventMask & Clkmgr_EventAsCapable) {
-        printf("| - %-26s | %-12s | %-11s |\n", "isAsCapable", "", "");
-    }
-    if (eventMask) {
-    printf("|------------------------------|--------------|-------------|\n");
-    }
-    if (eventMask & Clkmgr_EventOffsetInRange) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isOffsetInRange",
-            clkmgr_isOffsetInRange(syncData, Clkmgr_PTPClock),
-            clkmgr_getOffsetInRangeEventCount(syncData, Clkmgr_PTPClock));
-    }
-    if (eventMask & Clkmgr_EventSyncedWithGm) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isSyncedWithGm",
-            clkmgr_isPtpSyncedWithGm(syncData),
-            clkmgr_getPtpSyncedWithGmEventCount(syncData));
-    }
-    if (eventMask & Clkmgr_EventAsCapable) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isAsCapable",
-            clkmgr_isPtpAsCapable(syncData),
-            clkmgr_getPtpAsCapableEventCount(syncData));
-    }
-    if (eventMask & Clkmgr_EventGmChanged) {
-        printf("| %-28s | %-12d | %-11d |\n", "ptp_isGmChanged",
-            clkmgr_isGmChanged(syncData, Clkmgr_PTPClock),
-            clkmgr_getGmChangedEventCount(syncData, Clkmgr_PTPClock));
-    }
-    printf("|------------------------------|--------------|-------------|\n");
-    printf("| %-28s |     %-19ld ns |\n", "ptp_clockOffset",
-        clkmgr_getClockOffset(syncData, Clkmgr_PTPClock));
-    uint64_t gmClockUUID = clkmgr_getGmIdentity(syncData, Clkmgr_PTPClock);
-    uint8_t gmIdentity[8];
-    for (int i = 0; i < 8; ++i) {
-        gmIdentity[i] = (uint8_t)(gmClockUUID >> (8 * (7 - i)));
-    }
-    printf("| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-        "ptp_gmIdentity", gmIdentity[0], gmIdentity[1], gmIdentity[2], gmIdentity[3],
-        gmIdentity[4], gmIdentity[5], gmIdentity[6], gmIdentity[7]);
-    printf("| %-28s |     %-19ld us |\n", "ptp_syncInterval",
-        clkmgr_getSyncInterval(syncData, Clkmgr_PTPClock));
-    printf("| %-28s |     %-19ld ns |\n", "ptp_notificationTimestamp",
-        clkmgr_getNotificationTimestamp(syncData, Clkmgr_PTPClock));
-    printf("|------------------------------|----------------------------|\n");
     if (clkmgr_haveSysData(syncData)) {
         printf("| %-28s | %-12d | %-11d |\n", "chrony_isOffsetInRange",
             clkmgr_isOffsetInRange(syncData, Clkmgr_SysClock),

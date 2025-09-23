@@ -86,66 +86,68 @@ func printOut() {
     ptpClock := clockSyncData.GetPtp()
     sysClock := clockSyncData.GetSysClock()
     fmt.Println(hd3)
-    if composite_event != 0 {
-        fmt.Printf(hd3b + "\n", "ptp_isCompositeEventMet",
-                ptpClock.IsCompositeEventMet(),
-                ptpClock.GetCompositeEventCount())
-        if composite_event & uint(clkmgr.EventOffsetInRange) > 0 {
-            fmt.Printf("| - %-26s | %-12s | %-11s |\n",
-                    "isOffsetInRange", "", "")
+    if clockSyncData.HavePTP() {
+        if composite_event != 0 {
+            fmt.Printf(hd3b + "\n", "ptp_isCompositeEventMet",
+                    ptpClock.IsCompositeEventMet(),
+                    ptpClock.GetCompositeEventCount())
+            if composite_event & uint(clkmgr.EventOffsetInRange) > 0 {
+                fmt.Printf("| - %-26s | %-12s | %-11s |\n",
+                        "isOffsetInRange", "", "")
+            }
+            if composite_event & uint(clkmgr.EventSyncedWithGm) > 0 {
+                fmt.Printf("| - %-26s | %-12s | %-11s |\n",
+                        "isSyncedWithGm", "", "")
+            }
+            if composite_event & uint(clkmgr.EventAsCapable) > 0 {
+                fmt.Printf("| - %-26s | %-12s | %-11s |\n",
+                        "isAsCapable", "", "")
+            }
+            fmt.Println(hd3)
         }
-        if composite_event & uint(clkmgr.EventSyncedWithGm) > 0 {
-            fmt.Printf("| - %-26s | %-12s | %-11s |\n",
-                    "isSyncedWithGm", "", "")
+        if event2Sub != 0 {
+            if event2Sub & uint(clkmgr.EventOffsetInRange) > 0 {
+                fmt.Printf(hd3b + "\n", "ptp_isOffsetInRange",
+                        ptpClock.IsOffsetInRange(),
+                        ptpClock.GetOffsetInRangeEventCount())
+            }
+            if event2Sub & uint(clkmgr.EventSyncedWithGm) > 0 {
+                fmt.Printf(hd3b + "\n", "ptp_isSyncedWithGm",
+                        ptpClock.IsSyncedWithGm(),
+                        ptpClock.GetSyncedWithGmEventCount())
+            }
+            if event2Sub & uint(clkmgr.EventAsCapable) > 0 {
+                fmt.Printf(hd3b + "\n", "ptp_isAsCapable",
+                        ptpClock.IsAsCapable(),
+                        ptpClock.GetAsCapableEventCount())
+            }
+            if event2Sub & uint(clkmgr.EventGmChanged) > 0 {
+                fmt.Printf(hd3b + "\n", "ptp_isGmChanged",
+                        ptpClock.IsGmChanged(),
+                        ptpClock.GetGmChangedEventCount())
+            }
+            fmt.Println(hd3)
         }
-        if composite_event & uint(clkmgr.EventAsCapable) > 0 {
-            fmt.Printf("| - %-26s | %-12s | %-11s |\n",
-                    "isAsCapable", "", "")
+        gmClockUUID := ptpClock.GetGmIdentity()
+        var gm_identity [8]uint
+        for i := 0; i < 8; i++  {
+            gm_identity[i] = uint((gmClockUUID >> (8 * (7 - i))) & 0xff)
         }
-        fmt.Println(hd3)
+        fmt.Printf("| %-28s |     %-19d ns |\n",
+                "ptp_clockOffset", ptpClock.GetClockOffset())
+        fmt.Printf("| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
+                "ptp_gmIdentity",
+            gm_identity[0], gm_identity[1],
+            gm_identity[2], gm_identity[3],
+            gm_identity[4], gm_identity[5],
+            gm_identity[6], gm_identity[7])
+        fmt.Printf("| %-28s |     %-19d us |\n",
+                "ptp_syncInterval", ptpClock.GetSyncInterval())
+        fmt.Printf("| %-28s |     %-19d ns |\n",
+                "ptp_notificationTimestamp",
+                ptpClock.GetNotificationTimestamp())
+        fmt.Println(hd2l)
     }
-    if event2Sub != 0 {
-        if event2Sub & uint(clkmgr.EventOffsetInRange) > 0 {
-            fmt.Printf(hd3b + "\n", "ptp_isOffsetInRange",
-                    ptpClock.IsOffsetInRange(),
-                    ptpClock.GetOffsetInRangeEventCount())
-        }
-        if event2Sub & uint(clkmgr.EventSyncedWithGm) > 0 {
-            fmt.Printf(hd3b + "\n", "ptp_isSyncedWithGm",
-                    ptpClock.IsSyncedWithGm(),
-                    ptpClock.GetSyncedWithGmEventCount())
-        }
-        if event2Sub & uint(clkmgr.EventAsCapable) > 0 {
-            fmt.Printf(hd3b + "\n", "ptp_isAsCapable",
-                    ptpClock.IsAsCapable(),
-                    ptpClock.GetAsCapableEventCount())
-        }
-        if event2Sub & uint(clkmgr.EventGmChanged) > 0 {
-            fmt.Printf(hd3b + "\n", "ptp_isGmChanged",
-                    ptpClock.IsGmChanged(),
-                    ptpClock.GetGmChangedEventCount())
-        }
-        fmt.Println(hd3)
-    }
-    gmClockUUID := ptpClock.GetGmIdentity()
-    var gm_identity [8]uint
-    for i := 0; i < 8; i++  {
-        gm_identity[i] = uint((gmClockUUID >> (8 * (7 - i))) & 0xff)
-    }
-    fmt.Printf("| %-28s |     %-19d ns |\n",
-            "ptp_clockOffset", ptpClock.GetClockOffset())
-    fmt.Printf("| %-28s |     %02x%02x%02x.%02x%02x.%02x%02x%02x     |\n",
-            "ptp_gmIdentity",
-        gm_identity[0], gm_identity[1],
-        gm_identity[2], gm_identity[3],
-        gm_identity[4], gm_identity[5],
-        gm_identity[6], gm_identity[7])
-    fmt.Printf("| %-28s |     %-19d us |\n",
-            "ptp_syncInterval", ptpClock.GetSyncInterval())
-    fmt.Printf("| %-28s |     %-19d ns |\n",
-            "ptp_notificationTimestamp",
-            ptpClock.GetNotificationTimestamp())
-    fmt.Println(hd2l)
     if clockSyncData.HaveSys() {
         fmt.Printf(hd3b + "\n", "chrony_isOffsetInRange",
                 sysClock.IsOffsetInRange(),

@@ -77,67 +77,69 @@ proc printOut {} {
     puts $hd3
     puts [format "| %-28s | %-12s | %-11s |" "Events"\
         "Event Status" "Event Count" ]
+    puts $hd3
     set ptpClock [ clockSyncData getPtp ]
     set sysClock [ clockSyncData getSysClock ]
-    puts $hd3
-    if { $composite_event != 0 } {
-        puts [format $hd3b "ptp_isCompositeEventMet"\
-            [ $ptpClock isCompositeEventMet ]\
-            [ $ptpClock getCompositeEventCount ]]
-        if { $composite_event & $clkmgr::EventOffsetInRange } {
-            puts [format "| - %-26s | %-12s | %-11s |"\
-                "isOffsetInRange" "" ""]
+    if {[clockSyncData havePTP]} {
+        if { $composite_event != 0 } {
+            puts [format $hd3b "ptp_isCompositeEventMet"\
+                [ $ptpClock isCompositeEventMet ]\
+                [ $ptpClock getCompositeEventCount ]]
+            if { $composite_event & $clkmgr::EventOffsetInRange } {
+                puts [format "| - %-26s | %-12s | %-11s |"\
+                    "isOffsetInRange" "" ""]
+            }
+            if { $composite_event & $clkmgr::EventSyncedWithGm } {
+                puts [format "| - %-26s | %-12s | %-11s |"\
+                    "isSyncedWithGm" "" ""]
+            }
+            if { $composite_event & $clkmgr::EventAsCapable } {
+                puts [format "| - %-26s | %-12s | %-11s |"\
+                    "isAsCapable" "" ""]
+            }
         }
-        if { $composite_event & $clkmgr::EventSyncedWithGm } {
-            puts [format "| - %-26s | %-12s | %-11s |"\
-                "isSyncedWithGm" "" ""]
+        if { $event2Sub != 0 } {
+            puts $hd3
+            if { $event2Sub & $clkmgr::EventOffsetInRange } {
+                puts [format $hd3b "ptp_isOffsetInRange"\
+                    [ $ptpClock isOffsetInRange ]\
+                    [ $ptpClock getOffsetInRangeEventCount ]]
+            }
+            if { $event2Sub & $clkmgr::EventSyncedWithGm } {
+                puts [format $hd3b "ptp_isSyncedWithGm"\
+                    [ $ptpClock isSyncedWithGm ]\
+                    [ $ptpClock getSyncedWithGmEventCount ]]
+            }
+            if { $event2Sub & $clkmgr::EventAsCapable } {
+                puts [format $hd3b "ptp_isAsCapable"\
+                    [ $ptpClock isAsCapable ]\
+                    [ $ptpClock getAsCapableEventCount ]]
+            }
+            if { $event2Sub & $clkmgr::EventGmChanged } {
+                puts [format $hd3b "ptp_isGmChanged"\
+                    [ $ptpClock isGmChanged ]\
+                    [ $ptpClock getGmChangedEventCount ]]
+            }
         }
-        if { $composite_event & $clkmgr::EventAsCapable } {
-            puts [format "| - %-26s | %-12s | %-11s |"\
-                "isAsCapable" "" ""]
-        }
-    }
-    if { $event2Sub != 0 } {
         puts $hd3
-        if { $event2Sub & $clkmgr::EventOffsetInRange } {
-            puts [format $hd3b "ptp_isOffsetInRange"\
-                [ $ptpClock isOffsetInRange ]\
-                [ $ptpClock getOffsetInRangeEventCount ]]
+        puts [format "| %-28s |     %-19ld ns |" "ptp_clockOffset"\
+            [ $ptpClock getClockOffset ]]
+        set gmClockUUID [ $ptpClock getGmIdentity ]
+        # Copy the uint64_t into the array
+        for {set i 0} {$i < 8} {incr i} {
+            set id($i) [expr ($gmClockUUID >> (8 * (7 - $i))) & 0xff ]
         }
-        if { $event2Sub & $clkmgr::EventSyncedWithGm } {
-            puts [format $hd3b "ptp_isSyncedWithGm"\
-                [ $ptpClock isSyncedWithGm ]\
-                [ $ptpClock getSyncedWithGmEventCount ]]
-        }
-        if { $event2Sub & $clkmgr::EventAsCapable } {
-            puts [format $hd3b "ptp_isAsCapable"\
-                [ $ptpClock isAsCapable ]\
-                [ $ptpClock getAsCapableEventCount ]]
-        }
-        if { $event2Sub & $clkmgr::EventGmChanged } {
-            puts [format $hd3b "ptp_isGmChanged"\
-                [ $ptpClock isGmChanged ]\
-                [ $ptpClock getGmChangedEventCount ]]
-        }
+        puts [format "| %-29s|%s %02x%02x%02x.%02x%02x.%02x%02x%02x %s|"\
+            "ptp_gmIdentity" "    "\
+            $id(0) $id(1) $id(2) $id(3)\
+            $id(4) $id(5) $id(6) $id(7) "    "]
+        puts [format "| %-28s |     %-19ld us |" "ptp_syncInterval"\
+            [ $ptpClock getSyncInterval ]]
+        puts [format "| %-28s |     %-19ld ns |" "ptp_notificationTimestamp"\
+            [ $ptpClock getNotificationTimestamp ]]
     }
-    puts $hd3
-    puts [format "| %-28s |     %-19ld ns |" "ptp_clockOffset"\
-        [ $ptpClock getClockOffset ]]
-    set gmClockUUID [ $ptpClock getGmIdentity ]
-    # Copy the uint64_t into the array
-    for {set i 0} {$i < 8} {incr i} {
-        set id($i) [expr ($gmClockUUID >> (8 * (7 - $i))) & 0xff ]
-    }
-    puts [format "| %-29s|%s %02x%02x%02x.%02x%02x.%02x%02x%02x %s|"\
-        "ptp_gmIdentity" "    "\
-        $id(0) $id(1) $id(2) $id(3)\
-        $id(4) $id(5) $id(6) $id(7) "    "]
-    puts [format "| %-28s |     %-19ld us |" "ptp_syncInterval"\
-        [ $ptpClock getSyncInterval ]]
-    puts [format "| %-28s |     %-19ld ns |" "ptp_notificationTimestamp"\
-        [ $ptpClock getNotificationTimestamp ]]
-    puts $hd2l
     if {[clockSyncData haveSys]} {
+        puts $hd2l
         puts [format $hd3b "chrony_isOffsetInRange"\
             [ $sysClock isOffsetInRange ]\
             [ $sysClock getOffsetInRangeEventCount ]]
