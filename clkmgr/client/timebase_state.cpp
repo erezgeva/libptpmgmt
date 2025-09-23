@@ -31,6 +31,15 @@ static rtpi::condition_variable subscribe_cv;
 static ClockEventHandler ptpClockEventHandler(PTPClock);
 static ClockEventHandler sysClockEventHandler(SysClock);
 
+static bool isPTPDataEmpty(const ptp_event &ptpData)
+{
+    return (ptpData.clockOffset == 0 &&
+            ptpData.gmClockUUID == 0 &&
+            ptpData.syncInterval == 0 &&
+            ptpData.asCapable == false &&
+            ptpData.syncedWithGm == false);
+}
+
 static bool isChronyDataEmpty(const chrony_event &chronyData)
 {
     return (chronyData.clockOffset == 0 &&
@@ -362,7 +371,9 @@ bool TimeBaseStates::subscribe(size_t timeBaseIndex,
 bool TimeBaseStates::subscribeReply(size_t timeBaseIndex,
     const ptp_event &ptpData, const chrony_event &chronyData)
 {
-    setTimeBaseStatePtp(timeBaseIndex, ptpData);
+    // Check if ptpData is not empty before setting PTP state
+    if(!isPTPDataEmpty(ptpData))
+        setTimeBaseStatePtp(timeBaseIndex, ptpData);
     // Check if chronyData is not empty before setting system clock state
     if(!isChronyDataEmpty(chronyData))
         setTimeBaseStateSys(timeBaseIndex, chronyData);
