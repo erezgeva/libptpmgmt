@@ -163,6 +163,9 @@ callback_define(PORT_DATA_SET)
             portDataReset();
             break;
         case MASTER:
+            // Ignore unchanged gmIdentity
+            if(gmIdentity == tlv.portIdentity.clockIdentity)
+                return;
             // Set own clock identity as GM identity
             portDataReset();
             event.event.gmClockUUID = 0;
