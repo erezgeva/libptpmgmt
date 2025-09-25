@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later
      SPDX-FileCopyrightText: Copyright © 2025 Intel Corporation. -->
 ---
-title: PROXY_CFG
+title: CLKMGR_PROXY_CFG
 section: 5
 header: JSON File Formats Manual
 date: July 2025
@@ -9,7 +9,7 @@ date: July 2025
 
 # NAME
 
-proxy_cfg - **Clock Manager** proxy service JSON configuration file  
+clkmgr_proxy_cfg - **Clock Manager** proxy service JSON configuration file  
 
 # DESCRIPTION
 
