@@ -134,6 +134,9 @@ class Transmitter
     bool sendBuffer(Buffer &buf);
     bool open(const std::string &name, bool block = true);
     std::string getQueueName() const { return m_transmitterQueue.str(); }
+    const std::string &getClientId() const {
+        return m_transmitterQueue.getClientId();
+    }
     static Transmitter *getTransmitterInstance(sessionId_t sessionId);
 };
 

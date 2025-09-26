@@ -168,8 +168,12 @@ void Client::RemoveClient(sessionId_t sessionId)
     Client *client = getClient(sessionId);
     if(client != nullptr) {
         Transmitter *tx = client->getTransmitter();
-        if(tx != nullptr)
+        if(tx != nullptr) {
             tx->finalize();
+            std::string mqClientName = tx->getClientId();
+            if(!mqClientName.empty() && !mq_unlink(mqClientName.c_str()))
+                PrintInfo("Cleaning residue message queue: " + mqClientName);
+        }
     }
     sessionMap.erase(sessionId);
     mapLock.unlock(); // Explicitly unlock the mutex

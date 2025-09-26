@@ -69,7 +69,11 @@ bool Queue::RxOpen(const string &n, size_t maxMsg, bool allRx)
 bool Queue::TxOpen(const string &n, bool block)
 {
     mq = mq_open(n.c_str(), O_WRONLY | (block ? 0 : O_NONBLOCK));
-    return exist();
+    if(exist()) {
+        clientId = n;
+        return true;
+    }
+    return false;
 }
 
 bool Queue::send(const void *ptr, size_t size) const
