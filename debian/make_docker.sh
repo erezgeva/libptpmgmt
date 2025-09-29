@@ -36,12 +36,21 @@ main()
   local -r names='trixie forky'
   local -r arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
-  local -r dpkgs_trixie=''
-  local -r dpkgs_forky='liblua5.5-dev@ lua5.5'
+  local -r dpkgs_trixie='libcriterion-dev'
+  local dpkgs_forky='liblua5.5-dev@ lua5.5'
   local dpkgs_arch='libstdc++6 pkgconf librtpi-dev libgcrypt20-dev
-    libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
-    libgtest-dev libgmock-dev lua-posix libcriterion-dev
+    libpython3-all-dev tcl-dev libpython3-dev libperl-dev
+    libgtest-dev libgmock-dev lua-posix
     libssl-dev libgnutls28-dev nettle-dev libsystemd-dev'
+  # TODO: installing from local folder
+  # - We need to install 'ruby-dev' at the end of the docker build,
+  #   as we use a manualy fix 'ruby2-keywords'.
+  # - 'libchrony' is not in Debian repositories
+  #   build using debian files in 'libchrony.txz'.
+  # - forky miss the 'libcriterion-dev' package, use the trixie package.
+  #   Add 'libcriterion-dev' dependencies.
+  dpkgs_forky+=' libboxfort-dev libffi-dev libgit2-dev libnanomsg-dev'
+  #############################################################################
   for n in 1-0 {2..4};do dpkgs_arch+=" liblua5.$n-dev";done
   local no_cache use_srv srv_ns args dock_file use_b use_f
   tool_docker_get_opts "$@"

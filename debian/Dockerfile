@@ -41,7 +41,9 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     if [ -n "$list" ];then apt-get install -y --no-install-recommends $list\
     ;fi;done
 COPY debian/pkgs /tmp/pkgs
-RUN dpkg -i /tmp/pkgs/$DIST/*.deb && rm -R /tmp/pkgs
+RUN dpkg -i /tmp/pkgs/$DIST/*.deb && rm -R /tmp/pkgs &&\
+    list='' && for a in $ARCH $ARCHS;do list="$list ruby-dev:$a";done &&\
+    apt-get install -y --no-install-recommends $list
 ARG COOKIE
 RUN apt-get update && apt-get upgrade -y --no-install-recommends
 ARG SRC DST
