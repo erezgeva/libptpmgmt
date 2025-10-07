@@ -12,20 +12,6 @@ equit()
  echo "$@"
  exit 1
 }
-s_cp()
-{
-  local s="$1"
-  [[ -f "$s" ]] || return
-  if [[ -f "$sim_tgt/$s" ]]; then
-    if ! cmp -s "$s" "$sim_tgt/$s"; then
-      cp "$s" "$sim_tgt/$s"
-      build=true
-    fi
-  else
-    cp "$s" "$sim_tgt/"
-    build=true
-  fi
-}
 c_sig()
 {
  if [[ -n "$client_pids" ]]; then
@@ -58,21 +44,8 @@ prepare_clknetsim()
  #  https://github.com/mlichvar/clknetsim
  [[ -f "$base/$CLKNETSIM_PATH/clknetsim.bash" ]] || equit 'clknetsim is missing'
  # Build clknetsim
- local sim_tgt=$base/$CLKNETSIM_PATH/patches
- mkdir -p $sim_tgt
- local n build=false
- # Copy patches
- cd $base/clkmgr/tool/clknetsim
- for n in *
- do s_cp "$n";done
  cd "$base/$CLKNETSIM_PATH"
- if $build || ! [[ -f .pc/applied-patches ]] ||
-    ! cmp patches/series .pc/applied-patches; then
-   quilt pop -af || true
-   quilt push -a
-   build=true
- fi
- if $build || ! [[ -x clknetsim ]] || ! [[ -f clknetsim.so ]]; then
+ if ! [[ -x clknetsim ]] || ! [[ -f clknetsim.so ]]; then
    make
  fi
 }
