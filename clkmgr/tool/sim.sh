@@ -74,11 +74,11 @@ probe_chrony()
 make_clkmgr()
 {
  # Make local and sample
- if ! [[ clkmgr/proxy/clkmgr_proxy ]]; then
-   make
+ if ! [[ -x clkmgr/proxy/clkmgr_proxy ]]; then
+   make CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE" --no-print-directory
  fi
  a_patch+=:clkmgr/proxy
- if ! [[ clkmgr/sample/clkmgr_test ]]; then
+ if ! [[ -x clkmgr/sample/clkmgr_test ]]; then
    make -C clkmgr/sample --no-print-directory
  fi
  a_patch+=:clkmgr/sample
@@ -106,7 +106,7 @@ main()
  local -r c_if=eth0
  local -ir run_time='250' # time limit in seconds for clknetsim server
  local -i ptp4l_node chronyd_node
- export CLKNETSIM_UNIX_SUBNET=4
+ export CLKNETSIM_UNIX_SUBNET=2
  rm -f $CLKNETSIM_TMPDIR/log.[0-9]* $CLKNETSIM_TMPDIR/conf.[0-9]*
 
  # includes the clknetsim script
@@ -125,7 +125,7 @@ main()
 #  Initial offset: 0.01 second
 #  Frequency expr: sum of scaled random numbers from standard normal distribution
 #  Delay expr: scaled random number from exponential distribution
-generate_config4 '1' '1 2 | 2 4 | 3 4 | 4 5' 0.01\
+generate_config4 '1 4 5' '1 2 | 2 4 | 3 4 | 4 5' 0.01\
   '(sum (* 1e-9 (normal)))' '(* 1e-8 (exponential))'
 
 # Start Clock Manager Proxy, which is Node 4 at 20th second
@@ -210,6 +210,7 @@ esac
  #  - 10 nanoseconds chrony offset threshold
  #  - wait 1 second for event changes
  #  - 0 second idle time (never sleep)
+echo "Starting Clock Manager simulation (mode: $test_mode)"
  c_node='c_node + 1'
  start_client $c_node clkmgr '' '_test' '-m 10 -t 1 -i 0'
 
