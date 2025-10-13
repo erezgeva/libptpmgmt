@@ -12,6 +12,10 @@ equit()
  echo "$@"
  exit 1
 }
+c_mk()
+{
+   make -C "$1" --no-print-directory
+}
 c_sig()
 {
  if [[ -n "$client_pids" ]]; then
@@ -42,33 +46,35 @@ prepare_clknetsim()
  # Clock simulation comes from:
  #  https://gitlab.com/chrony/clknetsim
  #  https://github.com/mlichvar/clknetsim
- [[ -f "$base/$CLKNETSIM_PATH/clknetsim.bash" ]] || equit 'clknetsim is missing'
+ [[ -f "$CLKNETSIM_PATH/clknetsim.bash" ]] || equit 'clknetsim is missing'
  # Build clknetsim
- cd "$base/$CLKNETSIM_PATH"
- if ! [[ -x clknetsim ]] || ! [[ -f clknetsim.so ]]; then
-   make
+ if ! [[ -x "$CLKNETSIM_PATH/clknetsim" ]] ||\
+    ! [[ -f "$CLKNETSIM_PATH/clknetsim.so" ]]; then
+   c_mk "$CLKNETSIM_PATH"
  fi
 }
 probe_linuxptp()
 {
- if [[ -f ../linuxptp/ptp4l.c ]]; then
-   [[ -x ../linuxptp/ptp4l ]] || make -C ../linuxptp --no-print-directory
-   a_patch=:../linuxptp
- elif [[ -z "$(which ptp4l)" ]]; then
-   equit 'ptp4l is missing'
+ if [[ -z "$(which ptp4l)" ]]; then
+   [[ -f ../linuxptp/ptp4l.c ]] || equit 'ptp4l is missing'
+   [[ -x ../linuxptp/ptp4l ]] || c_mk ../linuxptp
+   a_path+=:../linuxptp
  fi
 }
 probe_chrony()
 {
+ # Chrony comes from:
+ #  https://chrony-project.org
+ #  https://gitlab.com/chrony/chrony
  if [[ -z "$(which chronyd)" ]]; then
-   [[ -f '../chrony/ntp_io_linux.c' ]] || equit 'chronyd is missing'
+   [[ -f ../chrony/ntp_io_linux.c ]] || equit 'chronyd is missing'
    if ! [[ -x ../chrony/chronyd ]]; then
      cd ../chrony
      ./configure
      make
      cd "$base"
    fi
-   a_patch+=:../chrony
+   a_path+=:../chrony
  fi
 }
 make_clkmgr()
@@ -77,11 +83,11 @@ make_clkmgr()
  if ! [[ -x clkmgr/proxy/clkmgr_proxy ]]; then
    make CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE" --no-print-directory
  fi
- a_patch+=:clkmgr/proxy
+ a_path+=:clkmgr/proxy
  if ! [[ -x clkmgr/sample/clkmgr_test ]]; then
-   make -C clkmgr/sample --no-print-directory
+   c_mk clkmgr/sample
  fi
- a_patch+=:clkmgr/sample
+ a_path+=:clkmgr/sample
 }
 main()
 {
@@ -91,14 +97,14 @@ main()
  local -r CLKNETSIM_PATH=../clknetsim
  # clknetsim folder for simulation logs and configuration files
  local -r CLKNETSIM_TMPDIR=clkmgr/sim
- prepare_clknetsim
  cd "$base"
- local a_patch
+ prepare_clknetsim
+ local a_path
  probe_linuxptp
  probe_chrony
  make_clkmgr
  # Add path to linuxptp, chrony, clkmgr_proxy and clkmgr_test
- local PATH=$PATH$a_patch
+ local PATH=$PATH$a_path
 
  # Prepare simulation envirounment
  local client_pids
@@ -112,38 +118,36 @@ main()
  # includes the clknetsim script
  . $CLKNETSIM_PATH/clknetsim.bash
 
-# Test configuraton:
-#  Node 1: ptp4l GrandMaster
-#  Node 2: ptp4l follower
-#  Node 3: chronyd
-#  Node 4: Clock Manager Proxy
-#  Node 5: Clock Manager Client
-#  subnet: Node 1 <-> Node 2
-#          Node 2 <-> Node 4
-#          Node 3 <-> Node 4
-#          Node 4 <-> Node 5
-#  Initial offset: 0.01 second
-#  Frequency expr: sum of scaled random numbers from standard normal distribution
-#  Delay expr: scaled random number from exponential distribution
-generate_config4 '1 4 5' '1 2 | 2 4 | 3 4 | 4 5' 0.01\
-  '(sum (* 1e-9 (normal)))' '(* 1e-8 (exponential))'
+ # Test configuraton:
+ #  Node 1: ptp4l GrandMaster
+ #  Node 2: ptp4l follower
+ #  Node 3: chronyd
+ #  Node 4: Clock Manager Proxy
+ #  Node 5: Clock Manager Client
+ #  subnet: Node 1 <-> Node 2
+ #          Node 2 <-> Node 4
+ #          Node 3 <-> Node 4
+ #          Node 4 <-> Node 5
+ #  Initial offset: 0.01 second
+ #  Frequency expr: sum of scaled random numbers from standard normal distribution
+ #  Delay expr: scaled random number from exponential distribution
+ generate_config4 '1 4 5' '1 2 | 2 4 | 3 4 | 4 5' 0.01\
+   '(sum (* 1e-9 (normal)))' '(* 1e-8 (exponential))'
 
-# Start Clock Manager Proxy, which is Node 4 at 20th second
-echo 'node4_start = 20' >> $CLKNETSIM_TMPDIR/conf
+ # Start Clock Manager Proxy, which is Node 4 at 20th second
+ echo 'node4_start = 20' >> $CLKNETSIM_TMPDIR/conf
 
-# Start Clock Manager Client, which is Node 5 at 30th second
-echo 'node5_start = 30' >> $CLKNETSIM_TMPDIR/conf
+ # Start Clock Manager Client, which is Node 5 at 30th second
+ echo 'node5_start = 30' >> $CLKNETSIM_TMPDIR/conf
 
-# Simulate a time jump of 0.1s at the 100th second
-echo 'node1_step = (* 0.1 (equal 0.1 (sum 1.0) 100))' >> "$CLKNETSIM_TMPDIR/conf"
+ # Simulate a time jump of 0.1s at the 100th second
+ echo 'node1_step = (* 0.1 (equal 0.1 (sum 1.0) 100))' >> "$CLKNETSIM_TMPDIR/conf"
 
-# Simulate network down between 150s and 200s for ptp4l GrandMaster
-local -r node1_delay2=$(cat <<-EOF | tr -d '\n'
-  (+ (* 1e-8 (exponential))
-    (* -1 (equal 0.1 (min time 200) time) (equal 0.1 (max time 150) time)))
-EOF
-)
-echo "node1_delay2 = $node1_delay2" >> "$CLKNETSIM_TMPDIR/conf"
+ # Simulate network down between 150s and 200s for ptp4l GrandMaster
+ local -r node1_delay2="$(printf '%s %s'\
+   '(+ (* 1e-8 (exponential))'\
+   '(* -1 (equal 0.1 (min time 200) time) (equal 0.1 (max time 150) time)))')"
+ echo "node1_delay2 = $node1_delay2" >> "$CLKNETSIM_TMPDIR/conf"
 
  # Trap signals
  trap c_ctrl INT # Ctrl^C
@@ -170,13 +174,13 @@ echo "node1_delay2 = $node1_delay2" >> "$CLKNETSIM_TMPDIR/conf"
  c_node='c_node + 1'
  export LD_LIBRARY_PATH=.libs
 
-# test_mode: Controls the simulation mode for clknetsim.
-# Usage: Pass as the first argument to the script, e.g. ./sim.sh 1
-# If no argument is provided, defaults to 0 (normal mode).
-# Possible values:
-#   0 - ptp4l single domain
-#   1 - chronyd
-case $test_mode in
+ # test_mode: Controls the simulation mode for clknetsim.
+ # Usage: Pass as the first argument to the script, e.g. ./sim.sh 1
+ # If no argument is provided, defaults to 0 (normal mode).
+ # Possible values:
+ #   0 - ptp4l single domain
+ #   1 - chronyd
+ case $test_mode in
   0)
     start_client $c_node clkmgr_proxy "
       {
@@ -201,16 +205,15 @@ case $test_mode in
       }" '' ' -l 1'
     ;;
   *)
-   echo "Error: Unsupported test_mode: '$test_mode'." >&2
-   exit 1
+   equit "Error: Unsupported test_mode: '$test_mode'."
    ;;
-esac
+ esac
 
  # Start Clock Manager client as Node 5 with
  #  - 10 nanoseconds chrony offset threshold
  #  - wait 1 second for event changes
  #  - 0 second idle time (never sleep)
-echo "Starting Clock Manager simulation (mode: $test_mode)"
+ echo "Starting Clock Manager simulation (mode: $test_mode)"
  c_node='c_node + 1'
  start_client $c_node clkmgr '' '_test' '-m 10 -t 1 -i 0'
 
