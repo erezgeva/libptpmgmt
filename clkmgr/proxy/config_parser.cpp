@@ -26,20 +26,20 @@ void JsonConfigParser::print_config()
 {
     for(const auto &row : timeBaseCfgs) {
         const TimeBaseCfg &config = row.base;
-        PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+        PrintInfo("[Index: " + to_string(config.timeBaseIndex) +
             "] Name: " + config.timeBaseName);
         if(!row.udsAddrPtp4l.empty()) {
-            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+            PrintInfo("[Index: " + to_string(config.timeBaseIndex) +
                 "] Interface Name: " + config.interfaceName);
-            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+            PrintInfo("[Index: " + to_string(config.timeBaseIndex) +
                 "] UDS Address PTP4L: " + row.udsAddrPtp4l);
-            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+            PrintInfo("[Index: " + to_string(config.timeBaseIndex) +
                 "] Domain Number: " + to_string(config.domainNumber));
-            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+            PrintInfo("[Index: " + to_string(config.timeBaseIndex) +
                 "] Transport Specific: " + to_string(config.transportSpecific));
         }
         if(!row.udsAddrChrony.empty())
-            PrintInfo(" [Index: " + to_string(config.timeBaseIndex) +
+            PrintInfo("[Index: " + to_string(config.timeBaseIndex) +
                 "] UDS Address Chrony: " + row.udsAddrChrony);
     }
 }

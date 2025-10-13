@@ -13,6 +13,7 @@
 
 #include <cstring>
 #include <syslog.h>
+#include <time.h>
 
 __CLKMGR_NAMESPACE_BEGIN
 
@@ -24,6 +25,18 @@ enum LogLevel { ERROR, INFO, DEBUG, TRACE };
 static LogLevel currentLogLevel = INFO;
 static bool useSyslog = false;
 static bool verbose = true;
+
+static double getMonotonicTime()
+{
+    timespec timeSpec;
+    if(clock_gettime(CLOCK_MONOTONIC, &timeSpec) == -1) {
+        perror("clock_gettime failed");
+        return -1;
+    }
+    double seconds = timeSpec.tv_sec;
+    double nanoseconds = timeSpec.tv_nsec / 1e9;
+    return seconds + nanoseconds;
+}
 
 void PrintStartLog(const char *me)
 {
@@ -56,11 +69,11 @@ void _PrintError(const string &msg, uint16_t line, const char *file,
     } else
         ebuf = "";
     if(useSyslog)
-        syslog(LOG_ERR, "*** Error: %s %s at line %u in %s: %s",
+        syslog(LOG_ERR, "Error: %s %s at line %u in %s: %s",
             msg.c_str(), ebuf, line, file, func);
     if(verbose) {
-        fprintf(stderr, "*** Error: %s %s at line %u in %s: %s\n",
-            msg.c_str(), ebuf, line, file, func);
+        fprintf(stderr, "[clkmgr][%.3f] Error: %s %s at line %u in %s: %s\n",
+            getMonotonicTime(), msg.c_str(), ebuf, line, file, func);
         fflush(stderr);
     }
 }
@@ -71,11 +84,11 @@ void _PrintDebug(const string &msg, uint16_t line, const char *file,
     if(currentLogLevel < DEBUG)
         return;
     if(useSyslog)
-        syslog(LOG_DEBUG, "*** Debug: %s at line %u in %s: %s",
+        syslog(LOG_DEBUG, "Debug: %s at line %u in %s: %s",
             msg.c_str(), line, file, func);
     if(verbose) {
-        fprintf(stderr, "*** Debug: %s at line %u in %s: %s\n",
-            msg.c_str(), line, file, func);
+        fprintf(stderr, "[clkmgr][%.3f] Debug: %s at line %u in %s: %s\n",
+            getMonotonicTime(), msg.c_str(), line, file, func);
         fflush(stderr);
     }
 }
@@ -86,11 +99,11 @@ void _PrintInfo(const string &msg, uint16_t line, const char *file,
     if(currentLogLevel < INFO)
         return;
     if(useSyslog)
-        syslog(LOG_INFO, "* Info: %s at line %u in %s: %s",
+        syslog(LOG_INFO, "Info: %s at line %u in %s: %s",
             msg.c_str(), line, file, func);
     if(verbose) {
-        fprintf(stderr, "* Info: %s at line %u in %s: %s\n",
-            msg.c_str(), line, file, func);
+        fprintf(stderr, "[clkmgr][%.3f] Info: %s at line %u in %s: %s\n",
+            getMonotonicTime(), msg.c_str(), line, file, func);
         fflush(stderr);
     }
 }
@@ -103,7 +116,7 @@ void _DumpOctetArray(string msg, const uint8_t *arr,
         return;
     char buf[2000];
     string str;
-    snprintf(buf, sizeof buf, "*   Info: %s at line %u in %s:%s",
+    snprintf(buf, sizeof buf, "Trace: %s at line %u in %s:%s",
         msg.c_str(), line, file, func);
     str = buf;
     for(size_t i = 0; i < length; i++) {
@@ -114,7 +127,7 @@ void _DumpOctetArray(string msg, const uint8_t *arr,
     if(useSyslog)
         syslog(LOG_DEBUG, "%s", str.c_str());
     if(verbose) {
-        fprintf(stderr, "%s\n", str.c_str());
+        fprintf(stderr, "[clkmgr][%.3f] %s\n", getMonotonicTime(), str.c_str());
         fflush(stderr);
     }
 }
