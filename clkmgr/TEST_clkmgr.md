@@ -386,3 +386,5 @@ the synced_to_primary_clock event is used to ensure that the offset_in_range
 event indicates either a high-quality clock synchronization (in-sync) or that
 the primary clock is not present (out-of-sync).
 ```
+# Test Reports
+1. [Clock Manager for libptpmgmt v2.0 Test Report](./sys_test/TEST_REPORT_9bd1a2b9.md)
