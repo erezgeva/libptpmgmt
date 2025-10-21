@@ -358,12 +358,13 @@ autoreconf -i
   on the local platform.
 - Rewrite PHC control tool in Go.
   Implement linuxptp 'phc_ctl' using the Go wrapper library.
+- Replace 'select' with 'poll'.
 - Improve proc functions
   - base integer proc functions
   - Managment TLVs wuth vector
 - HMAC add load and unload  to improve safe multi-threads
   Control the load and unload from the hmac module,
--  with uses mutex for multi-threads protection.
+  with uses mutex for multi-threads protection.
   Use macros for C wrapper function in source module.
 - use one line for short functions
 - remove go.mod from packages
