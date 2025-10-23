@@ -44,9 +44,9 @@ v2.0, focusing on functional tests that confirm correct reporting of Chrony
   * CPU: `Intel Atom® x7835RE Processor`
   * NIC: `Intel® Ethernet Controller I226-LM`
 * **Dependencies & Versions:**
-  * [linuxptp](https://git.code.sf.net/p/linuxptp/code) — `a1eae14`
-  * [librtpi](https://github.com/dvhart/librtpi/tree/main) — `a616dcd`
-  * [libchrony](https://gitlab.com/chrony/libchrony.git) — `7dc8580`
+  * [linuxptp](https://git.code.sf.net/p/linuxptp/code) - `a1eae14`
+  * [librtpi](https://github.com/dvhart/librtpi/tree/main) - `a616dcd`
+  * [libchrony](https://gitlab.com/chrony/libchrony.git) - `7dc8580`
 
 
 ---
@@ -54,10 +54,10 @@ v2.0, focusing on functional tests that confirm correct reporting of Chrony
 ## 4. Test Strategy / Approach
 
 * The Clock Management Library was validated primarily through black-box 
-functional testing using test applications that exercise the library’s 
+functional testing using test applications that exercise the library`s 
 APIs. Test outcomes was verified by comparing API responses to expected 
 results under defined conditions. In addition, non-functional stress 
-testing was conducted to assess the library’s robustness during 
+testing was conducted to assess the library`s robustness during 
 extended operation.
 * Both automated and manual tests were executed, with automation rate of 
 97.14%
