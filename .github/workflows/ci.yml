@@ -92,6 +92,12 @@ jobs:
         repository: nwtime/linuxptp
         path: linuxptp
 
+    - name: checkout clknetsim repository
+      uses: actions/checkout@v4
+      with:
+        repository: mlichvar/clknetsim
+        path: clknetsim
+
     - name: checkout repository
       uses: actions/checkout@v4
       with:
@@ -105,12 +111,24 @@ jobs:
     - name: build linuxptp
       run: su $USER -c "make -C linuxptp"
 
+    - name: build clknetsim
+      run: su $USER -c "make -C clknetsim"
+
+    - name: build clock manager sample
+      run: su $USER -c libptpmgmt/clkmgr/sample/build_sample.sh
+
     - name: test with linuxptp
       run: libptpmgmt/tools/ci_pkgs.sh
+
+    - name: test clock manager with clknetsim
+      run: timeout 50 libptpmgmt/clkmgr/tool/sim.sh 0
 
     - name: test with linuxptp without the development package
       if: ${{ matrix.names != 'portage' }}
       run: libptpmgmt/tools/ci_pkgs_no_dev.sh
+
+    - name: test clock manager with clknetsim without the development package
+      run: timeout 50 libptpmgmt/clkmgr/tool/sim.sh 1
 
   abi:
     runs-on: ubuntu-24.04

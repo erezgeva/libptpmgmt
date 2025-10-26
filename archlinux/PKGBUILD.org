@@ -83,6 +83,7 @@ package_libptpmgmt-dev() {
   mv $srcdir/install/usr/include $pkgdir/usr
   mv $srcdir/install/usr/lib/libptpmgmt*.a $pkgdir/$libdir
   mv $srcdir/install/usr/lib/libptpmgmt*.so $pkgdir/$libdir
+  mv $srcdir/install/usr/lib/libclkmgr*.so $pkgdir/$libdir
   mv $srcdir/install/usr/lib/pkgconfig $pkgdir/$libdir
 }
 package_libptpmgmt-doc() {
