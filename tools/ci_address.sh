@@ -206,9 +206,12 @@ ci_build()
    gentoo)
      make gentoo
      gentoo/install.sh
+     ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var/lib\
+                 --libdir=/usr/lib64
      ;;
  esac
  make clean
+ make tags
 }
 ###############################################################################
 # Test with linuxptp

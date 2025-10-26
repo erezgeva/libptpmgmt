@@ -79,11 +79,13 @@ probe_chrony()
 }
 make_clkmgr()
 {
- # Make local and sample
- if ! [[ -x clkmgr/proxy/clkmgr_proxy ]]; then
-   make CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE" --no-print-directory
+ if [[ -z "$(which clkmgr_proxy)" ]]; then
+   # Make local and sample
+   if ! [[ -x clkmgr/proxy/clkmgr_proxy ]]; then
+     make CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE" --no-print-directory
+   fi
+   a_path+=:clkmgr/proxy
  fi
- a_path+=:clkmgr/proxy
  if ! [[ -x clkmgr/sample/clkmgr_test ]]; then
    c_mk clkmgr/sample
  fi
