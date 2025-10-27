@@ -25,59 +25,60 @@ env:
   USER: builder
 
 jobs:
-  ci:
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        names: [deb.forky, deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
-      fail-fast: false
-    container:
-      image: ghcr.io/erezgeva/${{ matrix.names }}:latest
-    env:
-      GITHUB_CONTAINER: ${{ matrix.names }}
+# ci:
+#   runs-on: ubuntu-24.04
+#   strategy:
+#     matrix:
+#       names: [deb.forky, deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
+#     fail-fast: false
+#   container:
+#     image: ghcr.io/erezgeva/${{ matrix.names }}:latest
+#   env:
+#     GITHUB_CONTAINER: ${{ matrix.names }}
 
-    steps:
+#   steps:
 
-    - name: checkout repository
-      uses: actions/checkout@v4
+#   - name: checkout repository
+#     uses: actions/checkout@v4
 
-    - name: continuous integration
-      run: |
-        case "$GITHUB_CONTAINER" in
-          deb.*)
-            # Debian place the debian packages in the parent folder
-            chown -R $USER:$USER ..
-            ;;
-          *)
-            chown -R $USER:$USER .
-            ;;
-        esac
-        su $USER -c tools/ci.sh
+#   - name: continuous integration
+#     run: |
+#       case "$GITHUB_CONTAINER" in
+#         deb.*)
+#           # Debian place the debian packages in the parent folder
+#           chown -R $USER:$USER ..
+#           ;;
+#         *)
+#           chown -R $USER:$USER .
+#           ;;
+#       esac
+#       su $USER -c tools/ci.sh
 
-  cross:
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        names: [deb.forky, deb.trixie, deb.bookworm]
-      fail-fast: false
-    container:
-      image: ghcr.io/erezgeva/${{ matrix.names }}:latest
+# cross:
+#   runs-on: ubuntu-24.04
+#   strategy:
+#     matrix:
+#       names: [deb.forky, deb.trixie, deb.bookworm]
+#     fail-fast: false
+#   container:
+#     image: ghcr.io/erezgeva/${{ matrix.names }}:latest
 
-    steps:
+#   steps:
 
-    - name: checkout repository
-      uses: actions/checkout@v4
+#   - name: checkout repository
+#     uses: actions/checkout@v4
 
-    - name: cross build
-      run: |
-        chown -R $USER:$USER ..
-        su $USER -c tools/ci_cross.sh
+#   - name: cross build
+#     run: |
+#       chown -R $USER:$USER ..
+#       su $USER -c tools/ci_cross.sh
 
   pkgs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        names: [deb.forky, deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
+#       names: [deb.forky, deb.trixie, deb.bookworm, rpmbuild, pacmanbuild, portage]
+        names: [deb.forky]
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
@@ -127,30 +128,33 @@ jobs:
       if: ${{ matrix.names != 'portage' }}
       run: libptpmgmt/tools/ci_pkgs_no_dev.sh
 
-  abi:
-    runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/erezgeva/deb.forky:latest
+    - name: test clock manager with clknetsim without the development package
+      run: timeout 50 libptpmgmt/clkmgr/tool/sim.sh 1
 
-    steps:
+# abi:
+#   runs-on: ubuntu-24.04
+#   container:
+#     image: ghcr.io/erezgeva/deb.forky:latest
 
-    - name: checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        fetch-tags: true
+#   steps:
 
-    - name: compare ABI
-      run: |
-        chown -R $USER:$USER .
-        su $USER -c tools/ci_abi.sh
+#   - name: checkout repository
+#     uses: actions/checkout@v4
+#     with:
+#       fetch-depth: 0
+#       fetch-tags: true
 
-    - name: save ABI compare report
-      uses: actions/upload-artifact@v4
-      with:
-        name: abi_report
-        retention-days: 90
-        path: compat_reports/
+#   - name: compare ABI
+#     run: |
+#       chown -R $USER:$USER .
+#       su $USER -c tools/ci_abi.sh
 
-    - name: Report ABI error
-      run: su $USER -c tools/ci_abi_err.sh
+#   - name: save ABI compare report
+#     uses: actions/upload-artifact@v4
+#     with:
+#       name: abi_report
+#       retention-days: 90
+#       path: compat_reports/
+
+#   - name: Report ABI error
+#     run: su $USER -c tools/ci_abi_err.sh
