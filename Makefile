@@ -459,9 +459,9 @@ $(LIB_OBJS): $(OBJ_DIR)/%.lo: $(SRC)/%.cpp | $(COMP_DEPS)
 	$(LIBTOOL_CC) $(CXX) -c $(CXXFLAGS) $< -o $@ $(LIBTOOL_$@)
 $(LIB_NAME_LA): $(LIB_OBJS)
 $(LIB_NAME_SO): $(LIB_NAME_LA)
-	@:
+	$(NOP)
 $(LIB_NAME_A): $(LIB_NAME_LA)
-	@:
+	$(NOP)
 
 # HMAC libraries
 include $(HMAC_SRC)/Makefile

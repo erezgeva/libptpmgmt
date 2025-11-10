@@ -32,9 +32,9 @@ $(OBJ_DIR)/ssl.lo: $(HMAC_SRC)/ssl.cpp | $(COMP_DEPS)
 $(SSL_LA)_LDLIBS:=$(SSL_LIB_FLAGS)
 $(SSL_LA): $(OBJ_DIR)/ssl.lo $(LIB_NAME_LA)
 $(SSL_LIBA): $(SSL_LA)
-	@:
+	$(NOP)
 $(SSL_LIB): $(SSL_LA)
-	@:
+	$(NOP)
 ALL+=$(SSL_LA)
 ifdef GTEST_LIB_FLAGS
 $(UTEST_SSL): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(SSL_LIBA)
@@ -58,9 +58,9 @@ $(OBJ_DIR)/gcrypt.lo: $(HMAC_SRC)/gcrypt.cpp | $(COMP_DEPS)
 $(GCRYPT_LA)_LDLIBS:=$(GCRYPT_LIB_FLAGS)
 $(GCRYPT_LA): $(OBJ_DIR)/gcrypt.lo $(LIB_NAME_LA)
 $(GCRYPT_LIBA): $(GCRYPT_LA)
-	@:
+	$(NOP)
 $(GCRYPT_LIB): $(GCRYPT_LA)
-	@:
+	$(NOP)
 ALL+=$(GCRYPT_LA)
 ifdef GTEST_LIB_FLAGS
 $(UTEST_GCRYPT): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(GCRYPT_LIBA)
@@ -85,9 +85,9 @@ $(OBJ_DIR)/gnutls.lo: $(HMAC_SRC)/gnutls.cpp | $(COMP_DEPS)
 $(GNUTLS_LA)_LDLIBS:=$(GNUTLS_LIB_FLAGS)
 $(GNUTLS_LA): $(OBJ_DIR)/gnutls.lo $(LIB_NAME_LA)
 $(GNUTLS_LIBA): $(GNUTLS_LA)
-	@:
+	$(NOP)
 $(GNUTLS_LIB): $(GNUTLS_LA)
-	@:
+	$(NOP)
 ALL+=$(GNUTLS_LA)
 ifdef GTEST_LIB_FLAGS
 $(UTEST_GNUTLS): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(GNUTLS_LIBA)
@@ -112,9 +112,9 @@ $(OBJ_DIR)/nettle.lo: $(HMAC_SRC)/nettle.cpp | $(COMP_DEPS)
 $(NETTLE_LA)_LDLIBS:=$(NETTLE_LIB_FLAGS)
 $(NETTLE_LA): $(OBJ_DIR)/nettle.lo $(LIB_NAME_LA)
 $(NETTLE_LIBA): $(NETTLE_LA)
-	@:
+	$(NOP)
 $(NETTLE_LIB): $(NETTLE_LA)
-	@:
+	$(NOP)
 ALL+=$(NETTLE_LA)
 ifdef GTEST_LIB_FLAGS
 $(UTEST_NETTLE): $(OBJ_DIR)/utest_m.o utest/hmac.o $(LIB_NAME_A) $(NETTLE_LIBA)
