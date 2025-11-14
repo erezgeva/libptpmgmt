@@ -28,6 +28,12 @@ bool ClientState::init()
     return true;
 }
 
+// Used in ClockManager::disconnect() to notify proxy of disconnection
+bool ClientState::notifyDisconnect()
+{
+    return true;
+}
+
 // Used in ClockManager::connect() and check_proxy_liveness() to send a connect
 // message to the proxy and wait for a reply
 bool utest_connected_with_proxy = false;

@@ -21,7 +21,8 @@ CLKMGR_COMMON_UTEST_OBJS:=$(foreach n,$(CLKMGR_COMMON_UTEST_SRCS),\
   $(CLKMGR_UTEST_DIR)/$n.o)
 
 CLKMGR_MSG_UTEST:=$(CLKMGR_UTEST_DIR)/utest_message
-CLKMGR_MSG_UTEST_SRCS:=connect_msg subscribe_msg notification_msg message
+CLKMGR_MSG_UTEST_SRCS:=connect_msg subscribe_msg notification_msg message \
+  disconnect_msg
 CLKMGR_MSG_UTEST_OBJS:=$(foreach n,$(CLKMGR_MSG_UTEST_SRCS),\
   $(CLKMGR_UTEST_DIR)/$n.o)
 CLKMGR_MSG_SRCS:=$(wildcard $(CLKMGR_DIR)/*/*_msg.cpp)
@@ -35,9 +36,9 @@ CLKMGR_PROXY_UTEST_OBJS:=$(foreach n,\
   $(CLKMGR_PROXY_UTEST_SRCS),$(CLKMGR_UTEST_DIR)/$n.o)
 CLKMGR_PROXY_OBJS:=$(addsuffix .o,\
   $(addprefix $(CLKMGR_PROXY_DIR)/,subscribe_msg notification_msg connect_msg\
-    config_parser client)\
+    disconnect_msg config_parser client)\
   $(addprefix $(CLKMGR_COMMON_DIR)/,subscribe_msg notification_msg connect_msg\
-    message sighandler msgq_tport print termin))
+    disconnect_msg message sighandler msgq_tport print termin))
 
 CLKMGR_API_UTEST:=$(CLKMGR_UTEST_DIR)/utest_api
 CLKMGR_API_UTEST_SRCS:=clockmanager
