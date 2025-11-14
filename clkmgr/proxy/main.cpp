@@ -32,6 +32,8 @@ static inline int help(FILE *out, const char *me, int ret)
         " -f [file] Read configuration from 'file'\n"
         " -a <0|1> Open message queue in access all mode\n"
         "          0: disable(default), 1: enable\n"
+        " -c <0|1> Enable or disable cleanup of residual message queues\n"
+        "          0: disable, 1: enable(default)\n"
         " -l <lvl> Set log level\n"
         "          0: ERROR, 1: INFO(default), 2: DEBUG, 3: TRACE\n"
         " -q <0|1> Enable or disable quiet mode\n"
@@ -50,12 +52,19 @@ int main(int argc, char *argv[])
     bool useSyslog = false; // Default value
     bool useVerbode = true; // Default value
     bool useMsgQAllAccess = false; // Default value
+    bool useMsgQCleanup = true; // Default value
     const char *me = strrchr(argv[0], '/');
     // Remove leading path
     me = me == nullptr ? argv[0] : me + 1;
     JsonConfigParser &parser = JsonConfigParser::getInstance();
-    while((opt = getopt(argc, argv, "f:l:q:s:a:vh")) != -1) {
+    while((opt = getopt(argc, argv, "a:c:f:l:q:s:vh")) != -1) {
         switch(opt) {
+            case 'a':
+                useMsgQAllAccess = atoi(optarg) != 0;
+                break;
+            case 'c':
+                useMsgQCleanup = atoi(optarg) != 0;
+                break;
             case 'f':
                 if(optarg == nullptr || !parser.process_json(optarg)) {
                     fprintf(stderr, "Failed to process json file\n");
@@ -76,9 +85,6 @@ int main(int argc, char *argv[])
             case 's':
                 useSyslog = atoi(optarg) != 0;
                 break;
-            case 'a':
-                useMsgQAllAccess = atoi(optarg) != 0;
-                break;
             case 'v':
                 // Print version of compile time!
                 // The actual libptpmgmt library can be newer!
@@ -98,12 +104,13 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     BlockStopSignal();
-    if(!Client::init(useMsgQAllAccess)) {
+    if(!Client::init(useMsgQAllAccess, useMsgQCleanup)) {
         PrintError("Proxy client init failed");
         return EXIT_FAILURE;
     }
     WaitForStopSignal();
     PrintDebug("Got stop signal");
+    Client::notifyDisconnect();
     int ret = End::stopAll() ? EXIT_SUCCESS : EXIT_FAILURE;
     if(useSyslog)
         PrintStopLog();

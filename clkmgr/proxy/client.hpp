@@ -62,8 +62,8 @@ class Client
     sessionId_t m_sessionId = InvalidSessionId;
     std::unique_ptr<Transmitter> m_transmitter;
     static sessionId_t CreateClientSession(const std::string &id);
-    static void RemoveClient(sessionId_t sessionId);
     static Client *getClient(sessionId_t sessionId);
+    static void cleanupResidualMq();
     static bool connect_ptp4l();
     #ifdef HAVE_LIBCHRONY
     static bool connect_chrony();
@@ -76,12 +76,14 @@ class Client
     friend class ClientRemoveAll;
 
   public:
-    static bool init(bool useMsgQAllAccess);
+    static bool init(bool useMsgQAllAccess, bool useMsgQCleanup);
     static sessionId_t connect(sessionId_t sessionId, const std::string &id);
     static bool subscribe(size_t timeBaseIndex, sessionId_t sessionId);
-    static void NotifyClients(size_t timeBaseIndex, ClockType type);
+    static void notifyClients(size_t timeBaseIndex, ClockType type);
+    static void notifyDisconnect();
     static void getPTPEvent(size_t timeBaseIndex, ptp_event &event);
     static void getChronyEvent(size_t timeBaseIndex, chrony_event &event);
+    static void removeClient(sessionId_t sessionId);
 };
 
 __CLKMGR_NAMESPACE_END

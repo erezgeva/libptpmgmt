@@ -215,7 +215,7 @@ void ptpSet::event_handle()
         return;
     if(do_notify) {
         event.copy();
-        Client::NotifyClients(timeBaseIndex, PTPClock);
+        Client::notifyClients(timeBaseIndex, PTPClock);
     }
 }
 
@@ -278,7 +278,7 @@ void ptpSet::thread_loop()
                     if(stopThread)
                         return;
                     event.copy();
-                    Client::NotifyClients(timeBaseIndex, PTPClock);
+                    Client::notifyClients(timeBaseIndex, PTPClock);
                 }
                 PrintInfo("Attempting to reconnect to ptp4l at " + udsAddr);
                 // Wait 5 seconds before retrying

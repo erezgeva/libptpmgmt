@@ -35,11 +35,11 @@ bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
 {
     // Simulate failure for testing
     if(!utest_connected_with_proxy) {
-        m_connected = false;
+        set_connected(false);
         return false; // Simulate failure for testing
     }
     // Simulate a successful connection
-    m_connected = true;
+    set_connected(true);
     if(lastConnectTime != nullptr)
         clock_gettime(CLOCK_REALTIME, lastConnectTime);
     return true;

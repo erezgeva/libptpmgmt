@@ -13,6 +13,7 @@
 #include "client/connect_msg.hpp"
 #include "client/notification_msg.hpp"
 #include "client/subscribe_msg.hpp"
+#include "client/disconnect_msg.hpp"
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
@@ -37,18 +38,18 @@ bool ClientState::init()
 {
     PrintDebug("Initializing Client Message");
     reg_message_type<ClientConnectMessage, ClientSubscribeMessage,
-                     ClientNotificationMessage>();
+                     ClientNotificationMessage, ClientDisconnectMessage>();
     Listener &rx = Listener::getSingleListenerInstance();
     /* Two outstanding messages per client */
     PrintDebug("Initializing Client Queue ...");
     string mqListenerName(mqProxyName);
     mqListenerName += "." + to_string(getpid());
-    if(!rx.init(mqListenerName, 2)) {
-        PrintError("Failed to open listener queue");
-        return false;
-    }
     if(!txContext.open(mqProxyName)) {
         PrintErrorCode("Failed to open transmitter queue: " + mqProxyName);
+        return false;
+    }
+    if(!rx.init(mqListenerName, 2)) {
+        PrintError("Failed to open listener queue");
         return false;
     }
     PrintDebug("Client Message queue opened");
@@ -64,7 +65,7 @@ bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
         return false;
     }
     unique_ptr<Message> connectMsg(cmsg);
-    m_connected = false;
+    set_connected(false);
     cmsg->setClientId(m_clientID);
     cmsg->set_sessionId(get_sessionId());
     sendMessage(*cmsg);
@@ -89,13 +90,29 @@ bool ClientState::connect(uint32_t timeOut, timespec *lastConnectTime)
     return true;
 }
 
+bool ClientState::notifyDisconnect()
+{
+    ClientDisconnectMessage *cmsg = new ClientDisconnectMessage();
+    if(cmsg == nullptr) {
+        PrintDebug("[DISCONNECT] Failed to allocate ClientDisconnectMessage");
+        return false;
+    }
+    unique_ptr<Message> disconnectMsg(cmsg);
+    cmsg->set_sessionId(get_sessionId());
+    if(!sendMessage(*cmsg))
+        return false;
+    set_connected(false);
+    PrintDebug("[DISCONNECT] Disconnect message sent successfully to Proxy.");
+    return true;
+}
+
 bool ClientState::connectReply(sessionId_t sessionId)
 {
     PrintDebug("Processing client connect message (reply)");
     PrintDebug("Connected with session ID: " + to_string(sessionId));
     PrintDebug("Current state.sessionId: " + to_string(get_sessionId()));
     unique_lock<rtpi::mutex> lock(connect_cv_mtx);
-    m_connected = true;
+    set_connected(true);
     m_sessionId = sessionId;
     connect_cv.notify_one(lock);
     return true;

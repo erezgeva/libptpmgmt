@@ -56,14 +56,22 @@ bool ClockManager::connect()
 
 bool ClockManager::disconnect()
 {
-    // Send a disconnect message - TODO do we want to send a message here?
-    if(doInit.load()) {
-        if(!End::stopAll()) {
-            PrintDebug("[DISCONNECT] Client disconnect Failed");
+    if(!doInit.load()) {
+        return true; // Not connected, nothing to disconnect
+    }
+    // Notify disconnect only if client initiated; skip if disconnected by proxy.
+    if(ClientState::get_connected()) {
+        if(!ClientState::notifyDisconnect()) {
+            PrintDebug("[DISCONNECT] Failed to send disconnect notification "
+                "to proxy");
             return false;
         }
-        doInit.store(false);
     }
+    if(!End::stopAll()) {
+        PrintDebug("[DISCONNECT] Client disconnect Failed");
+        return false;
+    }
+    doInit.store(false);
     return true;
 }
 
@@ -164,6 +172,11 @@ static inline enum StatusWaitResult _statusWait(int timeout,
     bool event_changes_detected = false;
     TimeBaseState state;
     do {
+        // Check if Client currently connected to Proxy
+        if(ClientState::get_connected() == false) {
+            PrintDebug("[WAIT] Client is not connected to Proxy.");
+            return SWRLostConnection;
+        }
         // Get the current state of the timebase
         if(!states.getTimeBaseState(timeBaseIndex, state)) {
             PrintDebug("[WAIT] Failed to get specific timebase state.");
@@ -192,9 +205,9 @@ static inline enum StatusWaitResult _statusWait(int timeout,
 enum StatusWaitResult ClockManager::statusWait(int timeout,
     size_t timeBaseIndex, ClockSyncData &clockSyncData)
 {
-    // Check whether connection between Proxy and Client is established or not
+    // Check if Client currently connected to Proxy
     if(!ClientState::get_connected()) {
-        PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
+        PrintDebug("[WAIT] Client is not connected to Proxy.");
         return SWRLostConnection;
     }
     return _statusWait(timeout, timeBaseIndex, clockSyncData);
@@ -203,14 +216,14 @@ enum StatusWaitResult ClockManager::statusWait(int timeout,
 enum StatusWaitResult ClockManager::statusWaitByName(int timeout,
     const string &timeBaseName, ClockSyncData &clockSyncData)
 {
-    // Check whether connection between Proxy and Client is established or not
+    // Check if Client currently connected to Proxy
     if(!ClientState::get_connected()) {
-        PrintDebug("[SUBSCRIBE] Client is not connected to Proxy.");
+        PrintDebug("[WAIT] Client is not connected to Proxy.");
         return SWRLostConnection;
     }
     size_t timeBaseIndex = 0;
     if(!TimeBaseConfigurations::BaseNameToBaseIndex(timeBaseName, timeBaseIndex)) {
-        PrintDebug("[SUBSCRIBE] Invalid timeBaseName.");
+        PrintDebug("[WAIT] Invalid timeBaseName.");
         return SWRInvalidArgument;
     }
     return _statusWait(timeout, timeBaseIndex, clockSyncData);

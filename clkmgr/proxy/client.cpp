@@ -14,12 +14,14 @@
 #include "proxy/connect_msg.hpp"
 #include "proxy/notification_msg.hpp"
 #include "proxy/subscribe_msg.hpp"
+#include "proxy/disconnect_msg.hpp"
 #include "common/shared_mutex.hpp" // Replace C++17 <shared_mutex>
 #include "common/termin.hpp"
 #include "common/print.hpp"
 
 #include <map>
 #include <cstring>
+#include <dirent.h>
 #include <rtpi/mutex.hpp>
 
 __CLKMGR_NAMESPACE_USE;
@@ -162,7 +164,7 @@ bool Client::subscribe(size_t timeBaseIndex, sessionId_t sessionId)
     return true;
 }
 
-void Client::RemoveClient(sessionId_t sessionId)
+void Client::removeClient(sessionId_t sessionId)
 {
     unique_lock<rtpi::mutex> mapLock(sessionMapLock);
     Client *client = getClient(sessionId);
@@ -172,7 +174,7 @@ void Client::RemoveClient(sessionId_t sessionId)
             tx->finalize();
             std::string mqClientName = tx->getClientId();
             if(!mqClientName.empty() && !mq_unlink(mqClientName.c_str()))
-                PrintInfo("Cleaning residue message queue: " + mqClientName);
+                PrintDebug("Cleaning up residual message queue: " + mqClientName);
         }
     }
     sessionMap.erase(sessionId);
@@ -198,10 +200,31 @@ Client *Client::getClient(sessionId_t sessionId)
     return sessionMap.count(sessionId) > 0 ? sessionMap[sessionId].get() : nullptr;
 }
 
-bool Client::init(bool useMsgQAllAccess)
+void Client::cleanupResidualMq()
 {
-    // Register messages we recieve from client side
-    reg_message_type<ProxyConnectMessage, ProxySubscribeMessage>();
+    DIR *dir = opendir("/dev/mqueue");
+    if(dir != nullptr) {
+        struct dirent *entry;
+        while((entry = readdir(dir)) != nullptr) {
+            size_t len = mqProxyName.length() - 1;
+            if(mqProxyName.compare(1, len, entry->d_name, len) == 0) {
+                string entryMqName = "/" + string(entry->d_name);
+                PrintDebug("Cleaning up residual message queue: " + entryMqName);
+                mq_unlink(entryMqName.c_str());
+            }
+        }
+        closedir(dir);
+    }
+}
+
+bool Client::init(bool useMsgQAllAccess, bool useMsgQCleanup)
+{
+    // Cleanup any residual message queues from previous runs
+    if(useMsgQCleanup)
+        cleanupResidualMq();
+    // Register messages we receive from client side
+    reg_message_type<ProxyConnectMessage, ProxySubscribeMessage,
+                     ProxyDisconnectMessage>();
     // ProxyNotificationMessage - Proxy send it only, never send from client
     Listener &rx = Listener::getSingleListenerInstance();
     PrintDebug("Initializing Proxy listener Queue ...");
@@ -213,17 +236,17 @@ bool Client::init(bool useMsgQAllAccess)
     return connect_ptp4l() CHRONY_INIT;
 }
 
-void Client::NotifyClients(size_t timeBaseIndex, ClockType type)
+void Client::notifyClients(size_t timeBaseIndex, ClockType type)
 {
-    PrintDebug("Client::NotifyClients");
+    PrintDebug("Client::notifyClients");
     if(timeBaseDataMap.count(timeBaseIndex) == 0) {
-        PrintError("[Client::NotifyClients] call with non exist timeBaseIndex " +
+        PrintError("[Client::notifyClients] call with non exist timeBaseIndex " +
             to_string(timeBaseIndex));
         return;
     }
     ProxyNotificationMessage *pmsg = new ProxyNotificationMessage();
     if(pmsg == nullptr) {
-        PrintErrorCode("[Client::NotifyClients] notifyMsg is nullptr !!");
+        PrintErrorCode("[Client::notifyClients] notifyMsg is nullptr !!");
         return;
     }
     // Release message on function ends
@@ -232,7 +255,7 @@ void Client::NotifyClients(size_t timeBaseIndex, ClockType type)
     pmsg->setTimeBaseIndex(timeBaseIndex);
     pmsg->setClockType(type);
     if(!pmsg->makeBuffer(notifyBuff)) {
-        PrintError("[Client::NotifyClients] Failed to create message");
+        PrintError("[Client::notifyClients] Failed to create message");
         return;
     }
     vector<sessionId_t> sessionIdToRemove;
@@ -242,7 +265,7 @@ void Client::NotifyClients(size_t timeBaseIndex, ClockType type)
             timeBaseDataMap[timeBaseIndex].clientListMutex);
         for(auto &c : timeBaseDataMap[timeBaseIndex].subscribedClients) {
             const sessionId_t sessionId = c.first;
-            PrintDebug("[Client::NotifyClients] Get client session ID: " +
+            PrintDebug("[Client::notifyClients] Get client session ID: " +
                 to_string(sessionId));
             Transmitter *ptx = getTransmitter(sessionId);
             if(ptx == nullptr || !ptx->sendBuffer(notifyBuff))
@@ -251,7 +274,43 @@ void Client::NotifyClients(size_t timeBaseIndex, ClockType type)
         }
     }
     for(const sessionId_t sessionId : sessionIdToRemove)
-        Client::RemoveClient(sessionId);
+        Client::removeClient(sessionId);
+}
+
+void Client::notifyDisconnect()
+{
+    PrintDebug("Client::notifyDisconnect");
+    ProxyDisconnectMessage *pmsg = new ProxyDisconnectMessage();
+    if(pmsg == nullptr) {
+        PrintErrorCode("[Client::notifyDisconnect] notifyMsg is nullptr !!");
+        return;
+    }
+    unique_ptr<ProxyDisconnectMessage> disconnectMsg(pmsg);
+    if(!pmsg->makeBuffer(notifyBuff)) {
+        PrintError("[Client::notifyDisconnect] Failed to create message");
+        return;
+    }
+    // Notify disconnect to ALL subscribed clients
+    std::vector<sessionId_t> sessionsToRemove;
+    sessionsToRemove.reserve(sessionMap.size());
+    {
+        unique_lock<rtpi::mutex> mapLock(sessionMapLock);
+        for(auto &entry : sessionMap) {
+            sessionId_t sessionId = entry.first;
+            Client *client = entry.second.get();
+            Transmitter *ptx = client ? client->getTransmitter() : nullptr;
+            if(ptx != nullptr && ptx->sendBuffer(notifyBuff)) {
+                PrintDebug("[Client::notifyDisconnect] Disconnect message sent "
+                    "successfully to Client session ID: " + to_string(sessionId));
+            } else {
+                PrintError("[Client::notifyDisconnect] Failed to send disconnect "
+                    "message to Client session ID: " + to_string(sessionId));
+            }
+            sessionsToRemove.push_back(sessionId);
+        }
+    }
+    for(sessionId_t sessionId : sessionsToRemove)
+        removeClient(sessionId);
 }
 
 ptpEvent::ptpEvent(size_t index) : timeBaseIndex(index)
@@ -293,8 +352,6 @@ __CLKMGR_NAMESPACE_BEGIN
 class ClientRemoveAll : public End
 {
   public:
-    // TODO : do we need to send a disconnect message to the clients?
-    // Here is our opportunity :-)
     bool stop() override final { return true; }
     bool finalize() override final {
         unique_lock<rtpi::mutex> mapLock(sessionMapLock);

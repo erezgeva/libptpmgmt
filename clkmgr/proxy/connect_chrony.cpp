@@ -118,7 +118,7 @@ chrony_err ChronyThreadSet::subscribe_to_chronyd()
     event.event.syncInterval = syncInterval;
     event.event.clockOffset = second;
     event.copy();
-    Client::NotifyClients(timeBaseIndex, SysClock);
+    Client::notifyClients(timeBaseIndex, SysClock);
     return CHRONY_OK;
 }
 
@@ -135,7 +135,7 @@ void ChronyThreadSet::thread_loop()
                 break;
             syncInterval = def_syncInterval;
             event.clear();
-            Client::NotifyClients(timeBaseIndex, SysClock);
+            Client::notifyClients(timeBaseIndex, SysClock);
             PrintError("Failed to connect to Chrony at " + udsAddrChrony);
             // Reconnection loop
             while(!stopThread) {

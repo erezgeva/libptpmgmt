@@ -41,6 +41,8 @@ class ClientState
     static const std::string &get_clientID() { return m_clientID; }
     static sessionId_t get_sessionId() { return m_sessionId; }
     static bool get_connected() { return m_connected; }
+    static void set_connected(bool state) { m_connected = state; }
+    static bool notifyDisconnect();
 };
 
 __CLKMGR_NAMESPACE_END

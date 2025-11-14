@@ -23,8 +23,8 @@ __CLKMGR_NAMESPACE_BEGIN
 
 enum msgAck_t : uint8_t { ACK_NONE, ACK_SUCCESS };
 
-enum msgId_t : uint8_t { CONNECT_MSG, SUBSCRIBE_MSG, NOTIFY_MESSAGE
-    /*, DISCONNECT_MSG*/
+enum msgId_t : uint8_t { CONNECT_MSG, SUBSCRIBE_MSG, NOTIFY_MESSAGE,
+    DISCONNECT_MSG
 };
 
 class Message;
