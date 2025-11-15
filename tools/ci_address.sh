@@ -255,50 +255,62 @@ ci_abi()
  fi
  echo "== Build current version =="
  emk config
- emk libptpmgmt.la
+ emk libptpmgmt.la libclkmgr.la
  echo "== Dump current version =="
  # Filter headers which change when adding new TLVs ID
  # The changes should be ABI backward compatible
  local -r hdr_lst=$(mktemp /tmp/headers.XXXX.list)
+ local -r hdr_lst_clkmgr=$(mktemp /tmp/headers.clkmgr.XXXX.list)
  for n in pub/* pub/c/*; do
    if [[ -f "$n" ]] && ! [[ $n =~ mngIds.h ]] && ! [[ $n =~ callDef.h ]];then
      echo "$n" >> $hdr_lst
    fi
  done
+ ls clkmgr/pub/*.h clkmgr/pub/clkmgr/* > $hdr_lst_clkmgr
  abi-dumper .libs/libptpmgmt.so -o cur.dump -lver 1 -public-headers $hdr_lst
+ abi-dumper .libs/libclkmgr.so -o cur.clkmgr.dump -lver 1\
+                               -public-headers $hdr_lst_clkmgr
  make distclean
  echo "== Build last tag $version =="
  git checkout $version
  emk config
- emk
- # TODO Use new make: emk libptpmgmt.la
+ emk libptpmgmt.la libclkmgr.la
  git checkout "$cur_hash"
  echo "== Dump last tag version =="
- local file=".libs/libptpmgmt.so"
- if ! [[ -f "$file" ]]; then
-   # TODO Use new location
-   file="libptpmgmt.so"
- fi
- abi-dumper "$file" -o old.dump -lver 0 -public-headers $hdr_lst
+ abi-dumper .libs/libptpmgmt.so -o old.dump -lver 0 -public-headers $hdr_lst
+ abi-dumper .libs/libclkmgr.so -o old.clkmgr.dump -lver 0\
+                               -public-headers $hdr_lst_clkmgr
  echo "== Compare ABI =="
  if ! abi-compliance-checker -l ptpmgmt -old old.dump -new cur.dump; then
-   echo "== Found errors =="
-   echo 1 > abi_error
+   echo "== Found errors in libptpmgmt =="
+   echo -n 1 > abi_error
+ fi
+ if ! abi-compliance-checker -l libclkmgr -old old.clkmgr.dump\
+                             -new cur.clkmgr.dump; then
+   echo "== Found errors in libclkmgr =="
+   echo -n 2 >> abi_error
  fi
  if [[ -d compat_reports ]]; then
    cd compat_reports
-   for n in */*/*.htm* */*.htm*; do
-     s_mv "$n" .
+   for n in *; do
+     for m in $n/*/*; do
+       s_mv "$m" $n/
+     done
    done
-   rmdir -p */* || true
+   for n in */*; do
+     if [[ -d $n ]]; then
+       rmdir $n
+     fi
+   done
    cd ..
  fi
 }
 ci_abi_err()
 {
  if [[ -f abi_error ]]; then
-   echo "== Report ABI error =="
-   exit $(cat abi_error)
+   local val="$(cat abi_error)"
+   echo "== Report ABI error $(val) =="
+   exit $val
  fi
 }
 ###############################################################################
@@ -330,7 +342,6 @@ add_doxy_spdx()
     local -r year=2025
  fi
  local -r cpy="   SPDX-FileCopyrightText: Copyright © $year"
- local m
  for n in $src/*.html $src/*/*.html
  do
    if test -f "$n"; then
@@ -666,7 +677,7 @@ main()
  source tools/version
  local -r dr1="$(dirname "$me1")"
  local -r me="${me1//$dr1\//}"
- local n
+ local n m
  case "$me" in
   ci_address.sh)     ci_address "$@";;
   ci_coverity.sh)    ci_coverity "$@";;
