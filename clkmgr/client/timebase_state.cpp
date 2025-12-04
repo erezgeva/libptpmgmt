@@ -36,8 +36,8 @@ static bool isPTPDataEmpty(const ptp_event &ptpData)
     return (ptpData.clockOffset == 0 &&
             ptpData.gmClockUUID == 0 &&
             ptpData.syncInterval == 0 &&
-            ptpData.asCapable == false &&
-            ptpData.syncedWithGm == false);
+            !ptpData.asCapable &&
+            !ptpData.syncedWithGm);
 }
 
 static bool isChronyDataEmpty(const chrony_event &chronyData)

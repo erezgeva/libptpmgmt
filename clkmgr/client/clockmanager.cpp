@@ -173,7 +173,7 @@ static inline enum StatusWaitResult _statusWait(int timeout,
     TimeBaseState state;
     do {
         // Check if Client currently connected to Proxy
-        if(ClientState::get_connected() == false) {
+        if(!ClientState::get_connected()) {
             PrintDebug("[WAIT] Client is not connected to Proxy.");
             return SWRLostConnection;
         }
