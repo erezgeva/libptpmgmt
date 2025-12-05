@@ -16,11 +16,8 @@ on:
   release:
     types: published
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Allow only one concurrent deployment
 concurrency:
@@ -32,7 +29,9 @@ jobs:
     steps:
 
     - name: checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: setup pages
       uses: actions/configure-pages@v5
@@ -41,7 +40,7 @@ jobs:
       run: tools/ci_pages.sh
 
     - name: upload artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v4
 
   deploy:
     needs: build
@@ -49,6 +48,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-24.04
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      pages: write
+      id-token: write
     steps:
 
     - name: Deploy to GitHub Pages

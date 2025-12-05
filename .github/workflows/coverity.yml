@@ -14,8 +14,8 @@ name: coverity scan
 # Start manually
 on: workflow_dispatch
 
-# Permit read-only with GITHUB_TOKEN
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   coverity:
@@ -23,7 +23,9 @@ jobs:
     steps:
 
     - name: checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: configure
       run: tools/ci_coverity.sh

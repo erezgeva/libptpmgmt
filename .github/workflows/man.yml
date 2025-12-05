@@ -15,8 +15,8 @@ name: manual testing
 # Start manually
 on: workflow_dispatch
 
-# Permit read-only with GITHUB_TOKEN
-permissions: read-all
+permissions:
+  contents: read
 
 env:
   USER: builder
@@ -30,15 +30,17 @@ jobs:
     steps:
 
     - name: checkout linuxptp repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: nwtime/linuxptp
         path: linuxptp
+        persist-credentials: false
 
     - name: checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: libptpmgmt
+        persist-credentials: false
 
     - name: test with linuxptp
       run: libptpmgmt/tools/sim_ptp4l.sh -ct
@@ -49,15 +51,17 @@ jobs:
     steps:
 
     - name: checkout linuxptp repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: nwtime/linuxptp
         path: linuxptp
+        persist-credentials: false
 
     - name: checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: libptpmgmt
+        persist-credentials: false
 
     - name: test with linuxptp
       run: libptpmgmt/tools/ci_address.sh
@@ -77,7 +81,9 @@ jobs:
     steps:
 
     - name: checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: unit test with memory check
       run: |

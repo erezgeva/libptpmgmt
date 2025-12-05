@@ -14,8 +14,8 @@ name: Clock Manager E2E Simulation
 # Start manually
 on: workflow_dispatch
 
-# Permit read-only with GITHUB_TOKEN
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   clkmgr_e2e:
@@ -28,21 +28,24 @@ jobs:
     steps:
 
     - name: checkout linuxptp repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: nwtime/linuxptp
         path: linuxptp
+        persist-credentials: false
 
     - name: checkout clknetsim repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: mlichvar/clknetsim
         path: clknetsim
+        persist-credentials: false
 
     - name: checkout libptpmgmt repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: libptpmgmt
+        persist-credentials: false
 
     - name: build and install linuxptp
       run: |

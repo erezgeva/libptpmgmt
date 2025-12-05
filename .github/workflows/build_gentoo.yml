@@ -4,29 +4,35 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# GitHub build stage 1 gentoo container image an upload it
+# GitHub build gentoo container images in 2 stages and upload them
 ###############################################################################
 
-name: gentoo 1 build docker image
+name: gentoo build docker images
 
 # Start manually
 on: workflow_dispatch
 
+# Sets permissions of the GITHUB_TOKEN to allow upload new containers
+permissions:
+  contents: read
+  packages: write
+
 env:
   REGISTRY: ghcr.io
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "gentoo"
 
 jobs:
   gentoo:
     runs-on: ubuntu-24.04
-    # Sets permissions of the GITHUB_TOKEN to allow upload new container
-    permissions:
-      contents: read
-      packages: write
-
     steps:
 
     - name: checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
+      with:
+        persist-credentials: false
 
     - name: log in to the container registry
       if: ${{ github.actor == github.repository_owner }}
@@ -39,3 +45,25 @@ jobs:
     - name: build and push
       if: ${{ github.actor == github.repository_owner }}
       run: gentoo/make_docker.sh -b1 -tg
+
+  gentoo2:
+    needs: gentoo
+    runs-on: ubuntu-24.04
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+
+    - name: log in to the container registry
+      if: ${{ github.actor == github.repository_owner }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: build and push
+      if: ${{ github.actor == github.repository_owner }}
+      run: gentoo/make_docker.sh -b2 -tg -fg
