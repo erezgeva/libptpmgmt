@@ -1633,6 +1633,7 @@ Test(MessageTest, MethodGetSendData)
     ptpmgmt_msg m = ptpmgmt_msg_alloc();
     cr_assert(not(zero(ptr, m)));
     struct ptpmgmt_PRIORITY1_t p;
+    p.priority1 = 1;
     cr_expect(m->setAction(m, PTPMGMT_SET, PTPMGMT_PRIORITY1, &p));
     cr_expect(eq(int, m->getBuildTlvId(m), PTPMGMT_PRIORITY1));
     cr_expect(eq(ptr, (void *)m->getSendData(m), &p));
