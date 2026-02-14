@@ -677,28 +677,8 @@ main()
  source tools/version
  local -r dr1="$(dirname "$me1")"
  local -r me="${me1//$dr1\//}"
+ local -r script="${me%\.sh}"
  local n m
- case "$me" in
-  ci_address.sh)     ci_address "$@";;
-  ci_coverity.sh)    ci_coverity "$@";;
-  ci_pages.sh)       ci_pages "$@";;
-  def_params.sh)     def_params "$@";;
-  github_docker.sh)  github_docker "$@";;
-  gitlab_docker.sh)  gitlab_docker "$@";;
-  ci_build.sh)       ci_build "$@";;
-  ci_pkgs.sh)        ci_pkgs "$@";;
-  ci_pkgs_no_dev.sh) ci_pkgs_no_dev "$@";;
-  ci_abi.sh)         ci_abi "$@";;
-  ci_abi_err.sh)     ci_abi_err "$@";;
-  ci_cross.sh)       ci_cross "$@";;
-  add_doxy_spdx.sh)  add_doxy_spdx "$@";;
-  utest_address.sh)  utest_address "$@";;
-  utest_valgrid.sh)  utest_valgrid "$@";;
-  cp_license.sh)     cp_license "$@";;
-  new_version.sh)    new_version "$@";;
-  config_report.sh)  config_report "$@";;
-  sim_ptp4l.sh)      sim_ptp4l "$@";;
-  tag_release.sh)    tag_release "$@";;
- esac
+ $script "$@"
 }
 main "$@"

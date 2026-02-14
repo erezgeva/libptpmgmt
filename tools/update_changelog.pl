@@ -26,7 +26,7 @@ use Cwd 'realpath';
 ###############################################################################
 # update_changelog.pl
 
-sub update_changelog()
+sub do_update_changelog()
 {
   my @keep;
   my $mail;
@@ -178,7 +178,7 @@ sub update_doxygen_file
   }
   unlink "$cfg.bak" if -f "$cfg.bak";
 }
-sub update_doxygen
+sub do_update_doxygen
 {
  update_doxygen_file 'tools/doxygen.cfg.in';
  update_doxygen_file 'tools/doxygen.clkmgr.cfg.in';
@@ -202,7 +202,7 @@ sub case
     $gnu) GOARCH='$goarch';;
 EOF
 }
-sub update_goarch
+sub do_update_goarch
 {
   $dpkg_arc=`which dpkg-architecture 2> /dev/null`;
   $dpkg_arc =~ s/\n//;
@@ -347,12 +347,5 @@ sub do_format
 ###############################################################################
 chdir dirname(realpath($0)) . "/..";
 my $n = basename($0);
-if($n eq 'update_changelog.pl') {
-  update_changelog;
-} elsif($n eq 'update_doxygen.pl') {
-  update_doxygen;
-} elsif($n eq 'update_goarch.pl') {
-  update_goarch;
-} elsif($n eq 'format.pl') {
-  do_format;
-}
+$n =~ s%\.pl$%%;
+eval "do_$n";

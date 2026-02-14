@@ -12,7 +12,7 @@ main()
  local -r script_path="$(dirname "$(realpath "$0")")"
  local -r script_name="$(basename "$0")"
  local -r b="${script_name/run_/}"
- local -r sample_name="${b/.sh/}"
+ local -r sample_name="${b%\.sh}"
  local -r test_path="${script_path}/../../.libs/:/usr/local/lib/"
  if  [[ $(id -u) -eq 0 ]] && command -v chrt > /dev/null; then
   local -r use_chrt='chrt -f 99'
