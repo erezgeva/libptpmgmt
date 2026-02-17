@@ -22,8 +22,6 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/erezgeva/deb.forky:latest
-    env:
-      GITHUB_CONTAINER: deb.forky
 
     steps:
 
@@ -48,26 +46,23 @@ jobs:
         persist-credentials: false
 
     - name: build and install linuxptp
+      working-directory: linuxptp
       run: |
-        cd linuxptp
         make
         sudo make install
-        cd ..
         echo "ptp4l version:"
+        which ptp4l
         ptp4l -v
 
     - name: build libptpmgmt and Clock Manager
+      working-directory: libptpmgmt
       run: |
-        cd libptpmgmt
-        autoreconf -i
-        ./configure
+        make config
         make CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE"
-        cd clkmgr/sample
-        make
-        cd ../../..
+        make -C clkmgr/sample
 
     - name: ptp4l single domain test with clknetsim
-      run: timeout 50 ./libptpmgmt/clkmgr/tool/sim.sh 0
+      run: timeout 50 libptpmgmt/clkmgr/tool/sim.sh 0
       continue-on-error: true
 
     - name: Upload simulation logs
@@ -78,7 +73,7 @@ jobs:
         path: libptpmgmt/clkmgr/sim/*
 
     - name: chronyd test with clknetsim
-      run: timeout 50 ./libptpmgmt/clkmgr/tool/sim.sh 1
+      run: timeout 50 libptpmgmt/clkmgr/tool/sim.sh 1
       continue-on-error: true
 
     - name: Upload simulation logs
