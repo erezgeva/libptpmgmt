@@ -54,6 +54,13 @@ function ptpmgmt.MessageDispatcher:new()
     self.__index = self
     return obj
 end
+function ptpmgmt.MessageDispatcherInherit(inhObj)
+    local obj = ptpmgmt.MessageDispatcher:new()
+    setmetatable(inhObj, {__index = ptpmgmt.MessageDispatcher})
+    setmetatable(obj, inhObj)
+    inhObj.__index = inhObj
+    return obj
+end
 
 ptpmgmt.MessageBuilder = { m_msg = 0, m_tlv = 0 }
 function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
@@ -95,9 +102,23 @@ function ptpmgmt.MessageBuilder:clear()
     self.m_tlv = 0
 end
 function ptpmgmt.MessageBuilder:new(msg)
+    if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
+        error('MessageBuilder::new msg must be a Message object', 2)
+        return nil
+    end
     local obj = { m_msg = msg }
     setmetatable(obj, self)
     self.__index = self
+    return obj
+end
+function ptpmgmt.MessageBuilderInherit(inhObj, msg)
+    local obj = ptpmgmt.MessageBuilder:new(msg)
+    if(obj == nil) then
+        return nil
+    end
+    setmetatable(inhObj, {__index = ptpmgmt.MessageBuilder})
+    setmetatable(obj, inhObj)
+    inhObj.__index = inhObj
     return obj
 end
 %}

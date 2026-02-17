@@ -12,13 +12,9 @@ require 'ptpmgmt'
 require 'posix'
 local unistd = require 'posix.unistd'
 
-myDisp = {} -- inherit from ptpmgmt.MessageDispatcher
+myDisp = {} -- Inherit from ptpmgmt.MessageDispatcher
 function myDisp:new()
-  local obj = ptpmgmt.MessageDispatcher:new()
-  setmetatable(self, {__index = ptpmgmt.MessageDispatcher})
-  setmetatable(obj, self)
-  self.__index = self
-  return obj
+  return ptpmgmt.MessageDispatcherInherit(self)
 end
 function myDisp:PRIORITY1_h(msg, tlv, tlv_id)
   print("Get reply for " .. tlv_id)
@@ -30,11 +26,7 @@ function myDisp:USER_DESCRIPTION_h(msg, tlv, tlv_id)
 end
 myBuild = {} -- Inherit from ptpmgmt.MessageBuilder
 function myBuild:new(msg)
-  local obj = ptpmgmt.MessageBuilder:new(msg)
-  setmetatable(self, {__index = ptpmgmt.MessageBuilder})
-  setmetatable(obj, self)
-  self.__index = self
-  return obj
+  return ptpmgmt.MessageBuilderInherit(self, msg)
 end
 function myBuild:PRIORITY1_b(msg, tlv)
   tlv.priority1 = self.pr
