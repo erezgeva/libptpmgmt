@@ -24,26 +24,27 @@ function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
     end
     if(tlv ~= nil and msg:isValidId(tlv_id) and
        not ptpmgmt.Message.isEmpty(tlv_id)) then
-        local idstr = ptpmgmt.Message.mng2str_c(tlv_id)
-        local callback_name = idstr .. '_h'
-        if(type(getmetatable(self)[callback_name]) == "function") then
+        local tlv_id_str = ptpmgmt.Message.mng2str_c(tlv_id)
+        local callback = getmetatable(self)[tlv_id_str .. '_h']
+        if(type(callback) == 'function') then
             local data
-            if(getmetatable(tlv)['.type'] == 'BaseMngTlv') then
-                data = ptpmgmt['conv_' .. idstr](tlv)
-            elseif(getmetatable(tlv)['.type'] == idstr .. '_t') then
+            local tlv_type = getmetatable(tlv)['.type']
+            if(tlv_type == 'BaseMngTlv') then
+                data = ptpmgmt['conv_' .. tlv_id_str](tlv)
+            elseif(tlv_type == tlv_id_str .. '_t') then
                 data = tlv
             else
                 error('MessageDispatcher::callHadler() tlv must be ' ..
                       'a BaseMngTlv object', 2)
             end
             if(data ~= nil) then
-                getmetatable(self)[callback_name](self, msg, data, idstr)
+                callback(self, msg, data, tlv_id_str)
             end
-        elseif(type(getmetatable(self)['noTlvCallBack']) == "function") then
-            self:noTlvCallBack(msg, idstr)
+        elseif(type(getmetatable(self)['noTlvCallBack']) == 'function') then
+            self:noTlvCallBack(msg, tlv_id_str)
         end
     else
-        if(type(getmetatable(self)['noTlv']) == "function") then
+        if(type(getmetatable(self)['noTlv']) == 'function') then
             self:noTlv(msg)
         end
     end
@@ -55,13 +56,15 @@ function ptpmgmt.MessageDispatcher:new()
     return obj
 end
 function ptpmgmt.MessageDispatcherInherit(inhObj)
+    if(type(inhObj) ~= 'table') then
+        error('MessageDispatcherInherit() inhObj is not an object', 2)
+    end
     local obj = ptpmgmt.MessageDispatcher:new()
     setmetatable(inhObj, {__index = ptpmgmt.MessageDispatcher})
     setmetatable(obj, inhObj)
     inhObj.__index = inhObj
     return obj
 end
-
 ptpmgmt.MessageBuilder = { m_msg = 0, m_tlv = 0 }
 function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
     if(type(actionField) ~= 'number') then
@@ -79,14 +82,12 @@ function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
     if(actionField ~= ptpmgmt.SET and actionField ~= ptpmgmt.COMMAND) then
         return false
     end
-    local idstr = ptpmgmt.Message.mng2str_c(tlv_id)
-    local tlv_pkg = idstr .. '_t'
-    local callback_name = idstr .. '_b'
-    if(type(getmetatable(self)[callback_name]) == "function" and
-       type(ptpmgmt[tlv_pkg]) == "table") then
-        local tlv = ptpmgmt[tlv_pkg]()
-        if(tlv ~= nil and
-           getmetatable(self)[callback_name](self, msg, tlv) and
+    local tlv_id_str = ptpmgmt.Message.mng2str_c(tlv_id)
+    local tlv_type = tlv_id_str .. '_t'
+    local callback = getmetatable(self)[tlv_id_str .. '_b']
+    if(type(callback) == 'function' and type(ptpmgmt[tlv_type]) == 'table') then
+        local tlv = ptpmgmt[tlv_type]()
+        if(tlv ~= nil and callback(self, msg, tlv) and
            msg:setAction(actionField, tlv_id, tlv)) then
             self.m_tlv = tlv
             return true
@@ -103,8 +104,7 @@ function ptpmgmt.MessageBuilder:clear()
 end
 function ptpmgmt.MessageBuilder:new(msg)
     if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
-        error('MessageBuilder::new msg must be a Message object', 2)
-        return nil
+        error('MessageBuilder::new() msg must be a Message object', 2)
     end
     local obj = { m_msg = msg }
     setmetatable(obj, self)
@@ -112,10 +112,13 @@ function ptpmgmt.MessageBuilder:new(msg)
     return obj
 end
 function ptpmgmt.MessageBuilderInherit(inhObj, msg)
-    local obj = ptpmgmt.MessageBuilder:new(msg)
-    if(obj == nil) then
-        return nil
+    if(type(inhObj) ~= 'table') then
+        error('MessageBuilderInherit() inhObj is not an object', 2)
     end
+    if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
+        error('MessageBuilderInherit() msg must be a Message object', 2)
+    end
+    local obj = ptpmgmt.MessageBuilder:new(msg)
     setmetatable(inhObj, {__index = ptpmgmt.MessageBuilder})
     setmetatable(obj, inhObj)
     inhObj.__index = inhObj
