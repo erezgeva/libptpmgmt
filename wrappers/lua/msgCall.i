@@ -55,12 +55,12 @@ function ptpmgmt.MessageDispatcher:new()
     self.__index = self
     return obj
 end
-function ptpmgmt.MessageDispatcherInherit(inhObj)
+function ptpmgmt.MessageDispatcher:clone(inhObj)
     if(type(inhObj) ~= 'table') then
-        error('MessageDispatcherInherit() inhObj is not an object', 2)
+        error('MessageDispatcher:clone() inhObj is not an object', 2)
     end
-    local obj = ptpmgmt.MessageDispatcher:new()
-    setmetatable(inhObj, {__index = ptpmgmt.MessageDispatcher})
+    local obj = self:new()
+    setmetatable(inhObj, {__index = self})
     setmetatable(obj, inhObj)
     inhObj.__index = inhObj
     return obj
@@ -111,15 +111,15 @@ function ptpmgmt.MessageBuilder:new(msg)
     self.__index = self
     return obj
 end
-function ptpmgmt.MessageBuilderInherit(inhObj, msg)
+function ptpmgmt.MessageBuilder:clone(inhObj, msg)
     if(type(inhObj) ~= 'table') then
-        error('MessageBuilderInherit() inhObj is not an object', 2)
+        error('MessageBuilder:clone() inhObj is not an object', 2)
     end
     if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
-        error('MessageBuilderInherit() msg must be a Message object', 2)
+        error('MessageBuilder:clone() msg must be a Message object', 2)
     end
-    local obj = ptpmgmt.MessageBuilder:new(msg)
-    setmetatable(inhObj, {__index = ptpmgmt.MessageBuilder})
+    local obj = self:new(msg)
+    setmetatable(inhObj, {__index = self})
     setmetatable(obj, inhObj)
     inhObj.__index = inhObj
     return obj

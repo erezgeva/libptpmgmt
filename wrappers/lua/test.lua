@@ -14,7 +14,7 @@ local unistd = require 'posix.unistd'
 
 myDisp = {} -- Inherit from ptpmgmt.MessageDispatcher
 function myDisp:new()
-  return ptpmgmt.MessageDispatcherInherit(self)
+  return ptpmgmt.MessageDispatcher:clone(self)
 end
 function myDisp:PRIORITY1_h(msg, tlv, tlv_id)
   print("Get reply for " .. tlv_id)
@@ -26,7 +26,7 @@ function myDisp:USER_DESCRIPTION_h(msg, tlv, tlv_id)
 end
 myBuild = {} -- Inherit from ptpmgmt.MessageBuilder
 function myBuild:new(msg)
-  return ptpmgmt.MessageBuilderInherit(self, msg)
+  return ptpmgmt.MessageBuilder:clone(self, msg)
 end
 function myBuild:PRIORITY1_b(msg, tlv)
   tlv.priority1 = self.pr

@@ -14,13 +14,10 @@ luaunit = require 'luaunit'
 
 myDisp = {} -- inherit from ptpmgmt.MessageDispatcher
 function myDisp:new()
-  local obj = ptpmgmt.MessageDispatcher:new()
-  setmetatable(self, {__index = ptpmgmt.MessageDispatcher})
-  setmetatable(obj, self)
-  self.__index = self
-  self.priority1 = 0
-  self.func = 0
-  self.id = ''
+  local obj = ptpmgmt.MessageDispatcher:clone(self)
+  obj.priority1 = 0
+  obj.func = 0
+  obj.id = ''
   return obj
 end
 function myDisp:PRIORITY1_h(msg, tlv, tlv_id)
@@ -37,11 +34,8 @@ function myDisp:noTlvCallBack(msg, tlv_id)
 end
 myBuild = {} -- Inherit from ptpmgmt.MessageBuilder
 function myBuild:new(msg)
-  local obj = ptpmgmt.MessageBuilder:new(msg)
-  setmetatable(self, {__index = ptpmgmt.MessageBuilder})
-  setmetatable(obj, self)
-  self.__index = self
-  self.run = 0
+  local obj = ptpmgmt.MessageBuilder:clone(self, msg)
+  obj.run = 0
   return obj
 end
 function myBuild:PRIORITY1_b(msg, tlv)
