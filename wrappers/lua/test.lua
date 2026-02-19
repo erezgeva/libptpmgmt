@@ -12,8 +12,9 @@ require 'ptpmgmt'
 require 'posix'
 local unistd = require 'posix.unistd'
 
-myDisp = {} -- Inherit from ptpmgmt.MessageDispatcher
+myDisp = {}
 function myDisp:new()
+  -- Inherit from ptpmgmt.MessageDispatcher
   return ptpmgmt.MessageDispatcher:clone(self)
 end
 function myDisp:PRIORITY1_h(msg, tlv, tlv_id)
@@ -24,8 +25,9 @@ function myDisp:USER_DESCRIPTION_h(msg, tlv, tlv_id)
   print("Get reply for " .. tlv_id)
   print("get user desc: " .. tlv.userDescription.textField)
 end
-myBuild = {} -- Inherit from ptpmgmt.MessageBuilder
+myBuild = { pr = 0 }
 function myBuild:new(msg)
+  -- Inherit from ptpmgmt.MessageBuilder
   return ptpmgmt.MessageBuilder:clone(self, msg)
 end
 function myBuild:PRIORITY1_b(msg, tlv)

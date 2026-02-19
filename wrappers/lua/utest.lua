@@ -12,13 +12,10 @@ require 'ptpmgmt'
 luaunit = require 'luaunit'
 -- See: https://luaunit.readthedocs.io/
 
-myDisp = {} -- inherit from ptpmgmt.MessageDispatcher
+myDisp = { priority1 = 0, func = 0, id = '' }
 function myDisp:new()
-  local obj = ptpmgmt.MessageDispatcher:clone(self)
-  obj.priority1 = 0
-  obj.func = 0
-  obj.id = ''
-  return obj
+  -- inherit from ptpmgmt.MessageDispatcher
+  return ptpmgmt.MessageDispatcher:clone(self)
 end
 function myDisp:PRIORITY1_h(msg, tlv, tlv_id)
   self.func = self.func + 0x1
@@ -32,11 +29,10 @@ function myDisp:noTlvCallBack(msg, tlv_id)
   self.func = self.func + 0x4
   self.id = tlv_id
 end
-myBuild = {} -- Inherit from ptpmgmt.MessageBuilder
+myBuild = { run = 0 }
 function myBuild:new(msg)
-  local obj = ptpmgmt.MessageBuilder:clone(self, msg)
-  obj.run = 0
-  return obj
+  -- Inherit from ptpmgmt.MessageBuilder
+  return ptpmgmt.MessageBuilder:clone(self, msg)
 end
 function myBuild:PRIORITY1_b(msg, tlv)
   self.run = 1
