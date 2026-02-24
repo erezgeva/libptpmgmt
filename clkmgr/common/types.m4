@@ -23,7 +23,7 @@ ics(TYPE)
 
 incpp(<cstddef>)dnl
 inc_c(`stdint')
-c_cod(`#include <stdbool.h>')
+c_inc_bool()
 ns_s()
 
 /**

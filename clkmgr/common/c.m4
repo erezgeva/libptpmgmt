@@ -32,6 +32,9 @@ define(sz, `')dnl
 define(cpp_cod, `')dnl
 define(c_cod, `$1
 ')dnl
+define(c_inc_bool, `#if !defined __STDC_VERSION__ || __STDC_VERSION__ < 202311L
+#include <stdbool.h>
+#endif')dnl
 define(bintyp, `uint8_t *')dnl
 define(strtyp, `const char *')dnl
 define(vec, `struct clkmgr_$1 *')dnl

@@ -28,6 +28,7 @@ define(sz, `$1')dnl
 define(cpp_cod, `$1
 ')dnl
 define(c_cod, `')dnl
+define(c_inc_bool, `')dnl
 define(bintyp, `Binary ')dnl
 define(strtyp, `std::string ')dnl
 define(vec, `std::vector<$1> ')dnl

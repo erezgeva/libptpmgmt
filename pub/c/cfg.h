@@ -14,7 +14,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#else
+#elif !defined __STDC_VERSION__ || __STDC_VERSION__ < 202311L
 #include <stdbool.h>
 #endif
 #include "name.h"
