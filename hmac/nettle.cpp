@@ -16,6 +16,7 @@
 #include <nettle/hmac.h>
 #include <nettle/memops.h>
 #include <nettle/nettle-meta.h>
+#include <nettle/version.h>
 
 __PTPMGMT_NAMESPACE_USE;
 
@@ -71,7 +72,11 @@ bool Nettle::digest(const void *hData, size_t len, Binary &mac)
     }
     uint8_t buf[HMAC_MAX_MAC_SIZE];
     m_mac->update(m_ctx, len, (const uint8_t *)hData);
+    #if NETTLE_VERSION_MAJOR < 4
     m_mac->digest(m_ctx, size, buf);
+    #else /* nettle 4 drop the length parameter */
+    m_mac->digest(m_ctx, buf);
+    #endif
     mac.setBin(buf, size);
     PTPMGMT_ERROR_CLR;
     return true;
