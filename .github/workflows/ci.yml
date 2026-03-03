@@ -33,8 +33,6 @@ jobs:
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
-    env:
-      GITHUB_CONTAINER: ${{ matrix.names }}
 
     steps:
 
@@ -45,15 +43,7 @@ jobs:
 
     - name: continuous integration
       run: |
-        case "$GITHUB_CONTAINER" in
-          deb.*)
-            # Debian place the debian packages in the parent folder
-            chown -R $USER:$USER ..
-            ;;
-          *)
-            chown -R $USER:$USER .
-            ;;
-        esac
+        chown -R $USER:$USER ..
         su $USER -c tools/ci.sh
 
   cross:
@@ -85,8 +75,6 @@ jobs:
       fail-fast: false
     container:
       image: ghcr.io/erezgeva/${{ matrix.names }}:latest
-    env:
-      GITHUB_CONTAINER: ${{ matrix.names }}
 
     steps:
 
