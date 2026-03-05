@@ -145,7 +145,7 @@ jobs:
         su $USER -c tools/ci_abi.sh
 
     - name: save ABI compare report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: abi_report
         retention-days: 90

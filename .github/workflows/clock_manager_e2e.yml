@@ -66,7 +66,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload simulation logs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: clknetsim-logs-ptp4l-single-domain
         retention-days: 90
@@ -77,7 +77,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload simulation logs
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: clknetsim-logs-chronyd
         retention-days: 90
