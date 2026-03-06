@@ -17,6 +17,9 @@ on: workflow_dispatch
 permissions:
   contents: read
 
+env:
+  USER: builder
+
 jobs:
   clkmgr_e2e:
     runs-on: ubuntu-24.04
@@ -45,25 +48,19 @@ jobs:
         path: libptpmgmt
         persist-credentials: false
 
-    - name: build and install linuxptp
-      working-directory: linuxptp
+    - name: build linuxptp
       run: |
-        make
-        sudo make install
-        echo "ptp4l version:"
-        which ptp4l
-        ptp4l -v
+        chown -R $USER:$USER .
+        su $USER -c libptpmgmt/clkmgr/tool/build_linuxptp.sh
+
+    - name: build the clock network simulation
+      run: su $USER -c "make -C clknetsim --no-print-directory"
 
     - name: build libptpmgmt and Clock Manager
-      working-directory: libptpmgmt
-      run: |
-        make config
-        make CXXFLAGS="$CXXFLAGS -U_FORTIFY_SOURCE"
-        make -C clkmgr/sample
+      run: su $USER -c libptpmgmt/clkmgr/tool/build_clkmgr.sh
 
     - name: ptp4l single domain test with clknetsim
       run: timeout 50 libptpmgmt/clkmgr/tool/sim.sh 0
-      continue-on-error: true
 
     - name: Upload simulation logs
       uses: actions/upload-artifact@v7
@@ -74,7 +71,6 @@ jobs:
 
     - name: chronyd test with clknetsim
       run: timeout 50 libptpmgmt/clkmgr/tool/sim.sh 1
-      continue-on-error: true
 
     - name: Upload simulation logs
       uses: actions/upload-artifact@v7

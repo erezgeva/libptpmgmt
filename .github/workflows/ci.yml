@@ -104,10 +104,10 @@ jobs:
         su $USER -c libptpmgmt/tools/ci_build.sh
 
     - name: build linuxptp
-      run: su $USER -c "make -C linuxptp"
+      run: su $USER -c "make -C linuxptp --no-print-directory"
 
-    - name: build clknetsim
-      run: su $USER -c "make -C clknetsim"
+    - name: build the clock network simulation
+      run: su $USER -c "make -C clknetsim --no-print-directory"
 
     - name: build clock manager sample
       run: su $USER -c libptpmgmt/clkmgr/sample/build_sample.sh
