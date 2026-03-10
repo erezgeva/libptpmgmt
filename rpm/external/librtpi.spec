@@ -66,6 +66,8 @@ autoreconf --install
 %install
 %make_install
 
+find %{buildroot} -name "*.la" -delete
+
 %files -n %{name}1
 %{_libdir}/%{name}.so.*
 
