@@ -65,7 +65,6 @@ autoreconf --install
 
 %install
 %make_install
-
 find %{buildroot} -name "*.la" -delete
 
 %files -n %{name}1
