@@ -12,12 +12,11 @@
 #ifndef __PTPMGMT_C_CFG_H
 #define __PTPMGMT_C_CFG_H
 
+#include "name.h"
+
 #ifdef __cplusplus
 extern "C" {
-#elif !defined __STDC_VERSION__ || __STDC_VERSION__ < 202311L
-#include <stdbool.h>
 #endif
-#include "name.h"
 
 /** pointer to ptpmgmt configuration structure */
 typedef struct ptpmgmt_cfg_t *ptpmgmt_cfg;

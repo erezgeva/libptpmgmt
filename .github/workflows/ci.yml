@@ -103,6 +103,10 @@ jobs:
         chown -R $USER:$USER .
         su $USER -c libptpmgmt/tools/ci_build.sh
 
+    - name: test headers with different C/C++ standards
+      run: |
+        su $USER -c "make -C libptpmgmt/std_tests --no-print-directory all clean"
+
     - name: build linuxptp
       run: su $USER -c "make -C linuxptp --no-print-directory"
 

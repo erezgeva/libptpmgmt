@@ -38,6 +38,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#if !defined __STDC_VERSION__ || __STDC_VERSION__ < 202311L
+#include <stdbool.h>
+#endif
 
 #define __PTPMGMT_NAMESPACE_BEGIN
 #define __PTPMGMT_NAMESPACE_END

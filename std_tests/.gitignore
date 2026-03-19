@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2026 Erez Geva <ErezGeva2@gmail.com>
+
+/cmp_c_*
+/cmp_cpp_*
+/cmp_gnuc_*
+/cmp_gnucpp_*
