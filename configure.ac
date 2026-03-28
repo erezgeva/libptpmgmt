@@ -631,7 +631,7 @@ AS_UNSET([ptpm_swigver])
 AS_VAR_SET([ptpm_alllang_default], ['no'])
 AS_UNSET([SWIG])
 AS_UNSET([SWIG_MINVER])
-AS_UNSET([SWIGLIB])
+AS_UNSET([SWIG_LIB])
 AS_UNSET([SWIG_ARGCARGV_GO])
 
 AC_ARG_WITH([swig],
@@ -661,12 +661,12 @@ AS_VAR_IF([ptpm_swigbin], ['no'],
 
    PTPM_MSG_RESULT([SWIG_MINVER])
    AC_MSG_CHECKING([for swig library])
-   AS_VAR_SET([SWIGLIB], ["`$SWIG -swiglib PTPM_DUMP_ERR`"])
-   PTPM_MSG_RESULT([SWIGLIB])
+   AS_VAR_SET([SWIG_LIB], ["`$SWIG -swiglib PTPM_DUMP_ERR`"])
+   PTPM_MSG_RESULT([SWIG_LIB])
 
-   PTPM_VAR_SET_IF([SWIGLIB],
+   PTPM_VAR_SET_IF([SWIG_LIB],
          [AC_MSG_CHECKING([for swig argcargv])
-          PTPM_NOT_FILE_IF(["$SWIGLIB/go/argcargv.i"],
+          PTPM_NOT_FILE_IF(["$SWIG_LIB/go/argcargv.i"],
                 [AS_VAR_SET([SWIG_ARGCARGV_GO], ['true'])])
           PTPM_MSG_RESULT([SWIG_ARGCARGV_GO])])
    AS_IF([PTPM_VAR_SET_TEST([SWIG_MINVER]) &&\
@@ -678,7 +678,7 @@ PTPM_MSG_RESULT([ptpm_alllang_default])
 
 AC_SUBST([SWIG])
 AC_SUBST([SWIG_MINVER])
-AC_SUBST([SWIGLIB])
+AC_SUBST([SWIG_LIB])
 AC_SUBST([SWIG_ARGCARGV_GO])
 
 #----------------------------------------------------------------

@@ -551,6 +551,7 @@ ifdef USE_DEPS
 SWIG_DEPS=-MT $@ -MMD -MP -MF $(basename $@)_i.d
 endif
 
+export SWIG_LIB
 wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS) wrappers/%/warn.i
 	$(Q_SWIG)$(SWIG) -c++ -I$(SRC) -I$(PUB) -I$(@D) -outdir $(@D) -Wextra\
 	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<

@@ -12,8 +12,8 @@
 
 /* Headers and namespace for moudle source code */
 %{
-    #include "pub/clockmanager.h"
-    using namespace clkmgr;
+#include "pub/clockmanager.h"
+using namespace clkmgr;
 %}
 
 /* prevent C++ namespace in swig */
@@ -40,11 +40,8 @@
 #define __CLKMGR_SWIG_THREAD_END %nothread
 #endif
 
-/* Include standatd types and SWIG macros
-   From /usr/share/swig./ */
+/* Include standatd types and SWIG macros */
 %include <stdint.i>
-%include <cpointer.i>
-/* From /usr/share/swig././ */
 %include <std_string.i>
 %include <std_vector.i>
 %apply unsigned long { time_t };

@@ -16,13 +16,21 @@
 
 /* Headers and namespace for moudle source code */
 %{
-    #include "sock.h"
-    #include "json.h"
-    #include "ver.h"
-    #include "init.h"
-    #include "timeCvrt.h"
-    #include "err.h"
-    using namespace ptpmgmt;
+#include "sock.h"
+#include "json.h"
+#include "ver.h"
+#include "init.h"
+#include "timeCvrt.h"
+#include "err.h"
+using namespace ptpmgmt;
+BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x) {
+  const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
+  return mng != nullptr ? mng->tlvData.get() : nullptr;
+}
+mng_vals_e get_MngTlvId(BaseSigTlv* x) {
+  const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
+  return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
+}
 %}
 
 /* Unrecognized C++ keywords */
@@ -50,11 +58,8 @@
 #define __PTPMGMT_SWIG_THREAD_END %nothread
 #endif
 
-/* Include standatd types and SWIG macros
-   From /usr/share/swig./ */
+/* Include standatd types and SWIG macros */
 %include <stdint.i>
-%include <cpointer.i>
-/* From /usr/share/swig././ */
 %include <std_string.i>
 %include <std_vector.i>
 %include <argcargv.i>
@@ -214,18 +219,22 @@ _ptpmMkRecVec(SigComp, SLAVE_RX_SYNC_COMPUTED_DATA);
 _ptpmMkRecVec(SigEvent, SLAVE_TX_EVENT_TIMESTAMPS);
 _ptpmMkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
 
+%define %pointer_dynamic_cast(TYPE1,TYPE2,NAME)
+%inline %{TYPE2* NAME(TYPE1* x){return dynamic_cast<TYPE2*>(x);}%}
+%enddef
+
 /* convert base management tlv to a specific management tlv structure
  * See documenting of conv_XXX functions in cnvFunc.h and
  *  Doxygen generated documents
  */
-#define _ptpmCaseUF(n) %pointer_cast(BaseMngTlv*, n##_t*, conv_##n);
+#define _ptpmCaseUF(n) %pointer_dynamic_cast(BaseMngTlv, n##_t, conv_##n);
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 %include "ids.h"
 /* convert base signalling tlv to a specific signalling tlv structure
  * See documenting of conv_XXX functions in cnvFunc.h and
  *  Doxygen generated documents
  */
-#define _ptpmSigCnv(n) %pointer_cast(BaseSigTlv*, n##_t*, conv_##n);
+#define _ptpmSigCnv(n) %pointer_dynamic_cast(BaseSigTlv, n##_t, conv_##n);
 _ptpmSigCnv(ORGANIZATION_EXTENSION)
 _ptpmSigCnv(PATH_TRACE)
 _ptpmSigCnv(ALTERNATE_TIME_OFFSET_INDICATOR)
@@ -238,6 +247,9 @@ _ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
 _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
+/* Convert signaling TLV to management TLV and ID */
+BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x);
+mng_vals_e get_MngTlvId(BaseSigTlv* x);
 
 #if defined SWIGLUA || defined SWIGTCL || defined SWIGGO
 /* MessageDispatcher and MessageBuilder classes per language */
