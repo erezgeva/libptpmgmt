@@ -73,7 +73,7 @@ def ClockManagerGetTime():
         print('clock_gettime failed: {}'.format(os.strerror(errno.errorcode)))
 
 def getMonotonicTime():
-    return time.monotonic();
+    return time.monotonic()
 
 def printOut():
     ClockManagerGetTime

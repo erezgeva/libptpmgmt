@@ -295,7 +295,8 @@ SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   utest/*.[chj]* uctest/*.[ch]* .github .gitlab $(CLKMGR_DIR)/sample\
   $(CLKMGR_DIR)/sys_test std_tests/*.c*\
   $(CLKMGR_DIR)/tool $(CLKMGR_DIR)/utest/*.cpp,':!/:$n')\
-  ':!:*.gitignore' ':!*/*/test.*' ':!*/*/clkmgr_test.*' ':!*/*/utest.*'
+  ':!:*.gitignore' ':!*/*/test.*' ':!*/*/clkmgr_test.*' ':!*/*/utest.*'\
+  ':!*/*/utestSig.*'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))
 # compare manual source list to git based:
@@ -563,6 +564,9 @@ wrappers/%/$(CLKMGR_NAME).cpp: $(CLKMGR_CLIENT_DIR)/$(CLKMGR_NAME).i\
 	$(Q_SWIG)$(SWIG) -c++ $(CLKMGR_CXXFLAGS) -I$(@D) -outdir $(@D) -Wextra\
 	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
 endif
+wrappers/%/utest.cpp: utest/libutest.i
+	$(Q_SWIG)$(SWIG) -c++ -I$(@D) -outdir $(@D) -Wextra\
+	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
 
 ifndef SKIP_PERL5
 include wrappers/perl/Makefile
@@ -854,6 +858,7 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
   $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\
+  wrappers/python/utest_help.py\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache $(addprefix wrappers/go/, allocTlv.i gtest/gtest\
   clkmgr_gtest/clkmgr_gtest phc_ctl/phc_ctl)\

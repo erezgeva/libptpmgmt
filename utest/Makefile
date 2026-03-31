@@ -95,3 +95,7 @@ PTP4L_SIM:=$(OBJ_DIR)/ptp4l_sim.so
 $(PTP4L_SIM): utest/ptp4l_sim.cpp | $(OBJ_DIR)
 	$(Q_CC)$(CXX) -shared -fPIC -o $@ $^ -ldl
 ptp4l_sim: $(PTP4L_SIM)
+LIBUTEST:=$(OBJ_DIR)/libutest.so
+$(LIBUTEST): utest/libutest.cpp | $(OBJ_DIR)
+	$(Q_CC)$(CXX) -shared -fPIC -o $@ $^ -lptpmgmt -I$(PUB) -I$(SRC) -L$(LIB_D)
+libutest: $(LIBUTEST)

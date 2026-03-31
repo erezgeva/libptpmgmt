@@ -38,9 +38,20 @@ $(PY_CLKMGR_SO_3): $(PY_CLKMGR_3).o $(CLKMGR_LIB_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_CLKMGR_SO_3)
 endif # SKIP_CLKMGR
-utest_python3: $(LIB_NAME_SO) $(PY_SO_3)
+PY_UTEST:=$(PY_D)/utest
+PY_UTEST_3:=$(PY_D)/3/utest
+PY_UTEST_SO_3:=$(PY_D)/3/_utest_help.so
+$(PY_UTEST_SO_3)_LDLIBS:=$(PY3_LIB_FLAGS)
+$(PY_UTEST_3).o: $(PY_UTEST).cpp
+	$Q$(MKDIR_P) $(PY_D)/3
+	$(call LLC,$(CXXFLAGS_PY) -Iutest $(PY3_INC_FLAGS))
+$(PY_UTEST_SO_3): $(PY_UTEST_3).o $(LIBUTEST)
+	$(SWIG_LD)
+utest_python3: $(LIB_NAME_SO) $(PY_SO_3) $(PY_UTEST_SO_3)
 	$(call Q_UTEST,Python3)LD_PRELOAD=$(ASAN_PRE)./$< PYTHONPATH=$(PY_D)/3\
 	  $(PYUVGD)$(PY_D)/utest.py $(PY_FILTERS)
+	LD_PRELOAD=$(ASAN_PRE)./$< PYTHONPATH=$(PY_D)/3\
+	  $(PYUVGD)$(PY_D)/utestSig.py $(PY_FILTERS)
 
 install_python3:
 	$Q$(INSTALL_LIB) -D $(PY_D)/3/$(PY_LIB_NAME).so\

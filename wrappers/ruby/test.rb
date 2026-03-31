@@ -10,8 +10,9 @@
 ###############################################################################
 
 require 'ptpmgmt'
+include Ptpmgmt
 
-class MyDisp < Ptpmgmt::MessageDispatcher
+class MyDisp < MessageDispatcher
   def PRIORITY1_h(msg, tlv, tlv_id)
     puts "Get reply for " + tlv_id
     puts "priority1: #{tlv.priority1}"
@@ -21,7 +22,7 @@ class MyDisp < Ptpmgmt::MessageDispatcher
     puts "get user desc: " + tlv.userDescription.textField
   end
 end
-class MyBuild < Ptpmgmt::MessageBuilder
+class MyBuild < MessageBuilder
   def pr(pr)
     @pr = pr
   end
@@ -33,17 +34,17 @@ end
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 
-$sk = Ptpmgmt::SockUnix.new
-$msg = Ptpmgmt::Message.new
-$buf = Ptpmgmt::Buf.new(1000)
-$opt = Ptpmgmt::Options.new
+$sk = SockUnix.new
+$msg = Message.new
+$buf = Buf.new(1000)
+$opt = Options.new
 $dispacher = MyDisp.new
 $builder = MyBuild.new($msg)
 $sequence = 0
 
 def printError(msg)
-  if Ptpmgmt::Error.isError() then
-    puts Ptpmgmt::Error.getError()
+  if Error.isError() then
+    puts Error.getError()
   else
     puts msg
   end
@@ -60,19 +61,19 @@ end
 
 def setPriority1(newPriority1)
   useBuild = true
-  id = Ptpmgmt::PRIORITY1
+  id = PRIORITY1
   if useBuild then
     $builder.pr(newPriority1)
-    $builder.buildTlv(Ptpmgmt::SET, id)
+    $builder.buildTlv(SET, id)
   else
-    pr1 = Ptpmgmt::PRIORITY1_t.new
+    pr1 = PRIORITY1_t.new
     pr1.priority1 = newPriority1
-    $msg.setAction(Ptpmgmt::SET, id, pr1)
+    $msg.setAction(SET, id, pr1)
   end
   seq = nextSequence()
   err = $msg.build($buf, seq)
-  if err != Ptpmgmt::MNG_PARSE_ERROR_OK then
-    txt = Ptpmgmt::Message.err2str_c(err)
+  if err != MNG_PARSE_ERROR_OK then
+    txt = Message.err2str_c(err)
     puts "build error " + txt
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
@@ -87,17 +88,17 @@ def setPriority1(newPriority1)
     return printError("rcv cnt")
   end
   err = $msg.parse($buf, cnt)
-  if err != Ptpmgmt::MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
+  if err != MNG_PARSE_ERROR_OK || $msg.getTlvId() != id ||
      seq != $msg.getSequence() then
     puts "set fails"
     return -1
   end
   puts "set new priority #{newPriority1} success"
-  $msg.setAction(Ptpmgmt::GET, id)
+  $msg.setAction(GET, id)
   seq = nextSequence()
   err = $msg.build($buf, seq)
-  if err != Ptpmgmt::MNG_PARSE_ERROR_OK then
-    txt = Ptpmgmt::Message.err2str_c(err)
+  if err != MNG_PARSE_ERROR_OK then
+    txt = Message.err2str_c(err)
     puts "build error " + txt
   end
   if !$sk.send($buf, $msg.getMsgLen()) then
@@ -111,10 +112,10 @@ def setPriority1(newPriority1)
     return printError("rcv cnt")
   end
   err = $msg.parse($buf, cnt)
-  if err == Ptpmgmt::MNG_PARSE_ERROR_MSG then
+  if err == MNG_PARSE_ERROR_MSG then
     puts "error message"
-  elsif err != Ptpmgmt::MNG_PARSE_ERROR_OK then
-    txt = Ptpmgmt::Message.err2str_c(err)
+  elsif err != MNG_PARSE_ERROR_OK then
+    txt = Message.err2str_c(err)
     puts "parse error " + txt
   else
     $dispacher.callHadler($msg, $msg.getTlvId(), $msg.getData())
@@ -128,7 +129,7 @@ def main
     puts "buffer allocation failed"
     return -1
   end
-  if $opt.parse_options([$0] + ARGV) != Ptpmgmt::Options::OPT_DONE then
+  if $opt.parse_options([$0] + ARGV) != Options::OPT_DONE then
     puts "fail parsing command line"
     return -1
   end
@@ -137,7 +138,7 @@ def main
     cfg_file = DEF_CFG_FILE
   end
   puts "Use configuration file " + cfg_file
-  cfg = Ptpmgmt::ConfigFile.new
+  cfg = ConfigFile.new
   if !cfg.read_cfg(cfg_file) then
     puts "fail reading configuration file"
     return -1
@@ -155,16 +156,16 @@ def main
   prms.self_id.portNumber = $$ & 0xffff # getpid()
   # Verify we can use implementSpecific_e
   # Notice Ruby capitalize first letter
-  prms.implementSpecific = Ptpmgmt::Linuxptp
+  prms.implementSpecific = Linuxptp
   prms.domainNumber = cfg.domainNumber()
   $msg.updateParams(prms)
   $msg.useConfig(cfg)
-  id = Ptpmgmt::USER_DESCRIPTION
-  $msg.setAction(Ptpmgmt::GET, id)
+  id = USER_DESCRIPTION
+  $msg.setAction(GET, id)
   seq = nextSequence()
   err = $msg.build($buf, seq)
-  if err != Ptpmgmt::MNG_PARSE_ERROR_OK then
-    txt = Ptpmgmt::Message.err2str_c(err)
+  if err != MNG_PARSE_ERROR_OK then
+    txt = Message.err2str_c(err)
     puts "build error " + txt
     return -1
   end
@@ -181,19 +182,19 @@ def main
   end
 
   err = $msg.parse($buf, cnt)
-  if err == Ptpmgmt::MNG_PARSE_ERROR_MSG then
+  if err == MNG_PARSE_ERROR_MSG then
     puts "error message"
-  elsif err != Ptpmgmt::MNG_PARSE_ERROR_OK then
-    txt = Ptpmgmt::Message.err2str_c(err)
+  elsif err != MNG_PARSE_ERROR_OK then
+    txt = Message.err2str_c(err)
     puts "parse error " + txt
   else
     $dispacher.callHadler($msg)
   end
 
   # test setting values
-  clk_dec = Ptpmgmt::CLOCK_DESCRIPTION_t.new
+  clk_dec = CLOCK_DESCRIPTION_t.new
   clk_dec.clockType = 0x800
-  physicalAddress = Ptpmgmt::Binary.new
+  physicalAddress = Binary.new
   physicalAddress.setBin(0, 0xf1)
   physicalAddress.setBin(1, 0xf2)
   physicalAddress.setBin(2, 0xf3)
@@ -207,7 +208,7 @@ def main
   puts "clk.physicalAddress: " + clk_dec.physicalAddress.toId()
   puts "clk.physicalAddress: " + clk_dec.physicalAddress.toHex()
   puts "manufacturerIdentity: " +
-    Ptpmgmt::Binary::bufToId(clk_dec.manufacturerIdentity, 3)
+    Binary::bufToId(clk_dec.manufacturerIdentity, 3)
   clk_dec.revisionData.textField = "This is a test"
   puts "revisionData: " + clk_dec.revisionData.textField
 
@@ -215,17 +216,17 @@ def main
   setPriority1(147)
   setPriority1(153)
 
-  event = Ptpmgmt::SUBSCRIBE_EVENTS_NP_t.new
-  event.setEvent(Ptpmgmt::NOTIFY_TIME_SYNC())
+  event = SUBSCRIBE_EVENTS_NP_t.new
+  event.setEvent(Ptpmgmt.NOTIFY_TIME_SYNC())
   puts "getEvent(NOTIFY_TIME_SYNC)=" +
-       (event.getEvent(Ptpmgmt::NOTIFY_TIME_SYNC()) ? 'have' : 'not')
+       (event.getEvent(Ptpmgmt.NOTIFY_TIME_SYNC()) ? 'have' : 'not')
   puts "getEvent(NOTIFY_PORT_STATE)=" +
-       (event.getEvent(Ptpmgmt::NOTIFY_PORT_STATE()) ? 'have' : 'not')
+       (event.getEvent(Ptpmgmt.NOTIFY_PORT_STATE()) ? 'have' : 'not')
 
   # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
   # See std_vectors.md for more information
-  evnts = Ptpmgmt::SigEvent.new
-  e = Ptpmgmt::SLAVE_TX_EVENT_TIMESTAMPS_rec_t.new
+  evnts = SigEvent.new
+  e = SLAVE_TX_EVENT_TIMESTAMPS_rec_t.new
   e.sequenceId = 1
   e.eventEgressTimestamp.fromFloat(4.5)
   evnts << e

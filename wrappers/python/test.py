@@ -11,35 +11,35 @@
 
 import os
 import sys
-import ptpmgmt
+from ptpmgmt import *
 
 DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
 
-class myDisp(ptpmgmt.MessageDispatcher):
+class myDisp(MessageDispatcher):
   def PRIORITY1_h(self, msg, tlv, tlv_id):
     print("Get reply for %s" % tlv_id)
     print("priority1: %d" % tlv.priority1)
   def USER_DESCRIPTION_h(self, msg, tlv, tlv_id):
     print("Get reply for %s" % tlv_id)
     print("get user desc: %s" % tlv.userDescription.textField)
-class myBuild(ptpmgmt.MessageBuilder):
+class myBuild(MessageBuilder):
   pr : int
   def PRIORITY1_b(self, msg, tlv):
     tlv.priority1 = self.pr
     return True
 
-sk = ptpmgmt.SockUnix()
-msg = ptpmgmt.Message()
-buf = ptpmgmt.Buf(1000)
-cfg = ptpmgmt.ConfigFile()
-opt = ptpmgmt.Options()
+sk = SockUnix()
+msg = Message()
+buf = Buf(1000)
+cfg = ConfigFile()
+opt = Options()
 dispacher = myDisp()
 builder = myBuild(msg)
 sequence = 0
 
 def printError(msg):
-  if ptpmgmt.Error.isError():
-    print(ptpmgmt.Error.getError())
+  if Error.isError():
+    print(Error.getError())
   else:
     print(msg)
   return -1
@@ -54,18 +54,18 @@ def nextSequence():
 def setPriority1(newPriority1):
   global sk, msg, buf, dispacher, builder
   useBuild = True
-  id = ptpmgmt.PRIORITY1
+  id = PRIORITY1
   if useBuild:
     builder.pr = newPriority1
-    builder.buildTlv(ptpmgmt.SET, id)
+    builder.buildTlv(SET, id)
   else:
-    pr1 = ptpmgmt.PRIORITY1_t()
+    pr1 = PRIORITY1_t()
     pr1.priority1 = newPriority1
-    msg.setAction(ptpmgmt.SET, id, pr1)
+    msg.setAction(SET, id, pr1)
   seq = nextSequence()
   err = msg.build(buf, seq)
-  if err != ptpmgmt.MNG_PARSE_ERROR_OK:
-    txt = ptpmgmt.Message.err2str_c(err)
+  if err != MNG_PARSE_ERROR_OK:
+    txt = Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
     return printError("send fail")
@@ -76,16 +76,16 @@ def setPriority1(newPriority1):
   if cnt <= 0:
     return printError("rcv cnt")
   err = msg.parse(buf, cnt)
-  if(err != ptpmgmt.MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
+  if(err != MNG_PARSE_ERROR_OK or msg.getTlvId() != id or
      seq != msg.getSequence()):
     print("set fails")
     return -1
   print("set new priority %d success" % newPriority1)
-  msg.setAction(ptpmgmt.GET, id)
+  msg.setAction(GET, id)
   seq = nextSequence()
   err = msg.build(buf, seq)
-  if err != ptpmgmt.MNG_PARSE_ERROR_OK:
-    txt = ptpmgmt.Message.err2str_c(err)
+  if err != MNG_PARSE_ERROR_OK:
+    txt = Message.err2str_c(err)
     print("build error %s" % txt)
   if not sk.send(buf, msg.getMsgLen()):
     return printError("send fail")
@@ -95,10 +95,10 @@ def setPriority1(newPriority1):
   if cnt <= 0:
     return printError("rcv cnt")
   err = msg.parse(buf, cnt)
-  if err == ptpmgmt.MNG_PARSE_ERROR_MSG:
+  if err == MNG_PARSE_ERROR_MSG:
     print("error message")
-  elif err != ptpmgmt.MNG_PARSE_ERROR_OK:
-    txt = ptpmgmt.Message.err2str_c(err)
+  elif err != MNG_PARSE_ERROR_OK:
+    txt = Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
     dispacher.callHadler(msg, msg.getTlvId(), msg.getData())
@@ -110,7 +110,7 @@ def main():
   if not buf.isAlloc():
     print("buffer allocation failed")
     return -1
-  if opt.parse_options(sys.argv) != ptpmgmt.Options.OPT_DONE:
+  if opt.parse_options(sys.argv) != Options.OPT_DONE:
     print("fail parsing command line")
     return -1
   cfg_file = opt.val('f')
@@ -135,12 +135,12 @@ def main():
   prms.domainNumber = cfg.domainNumber()
   msg.updateParams(prms)
   msg.useConfig(cfg)
-  id = ptpmgmt.USER_DESCRIPTION
-  msg.setAction(ptpmgmt.GET, id)
+  id = USER_DESCRIPTION
+  msg.setAction(GET, id)
   seq = nextSequence()
   err = msg.build(buf, seq)
-  if err != ptpmgmt.MNG_PARSE_ERROR_OK:
-    txt = ptpmgmt.Message.err2str_c(err)
+  if err != MNG_PARSE_ERROR_OK:
+    txt = Message.err2str_c(err)
     print("build error %s" % txt)
     return -1
 
@@ -160,18 +160,18 @@ def main():
     return printError("rcv cnt")
 
   err = msg.parse(buf, cnt)
-  if err == ptpmgmt.MNG_PARSE_ERROR_MSG:
+  if err == MNG_PARSE_ERROR_MSG:
     print("error message")
-  elif err != ptpmgmt.MNG_PARSE_ERROR_OK:
-    txt = ptpmgmt.Message.err2str_c(err)
+  elif err != MNG_PARSE_ERROR_OK:
+    txt = Message.err2str_c(err)
     print("parse error %s" % txt)
   else:
     dispacher.callHadler(msg)
 
   # test setting values
-  clk_dec = ptpmgmt.CLOCK_DESCRIPTION_t()
+  clk_dec = CLOCK_DESCRIPTION_t()
   clk_dec.clockType = 0x800
-  physicalAddress = ptpmgmt.Binary()
+  physicalAddress = Binary()
   physicalAddress.setBin(0, 0xf1)
   physicalAddress.setBin(1, 0xf2)
   physicalAddress.setBin(2, 0xf3)
@@ -185,7 +185,7 @@ def main():
   print("clk.physicalAddress: %s" % clk_dec.physicalAddress.toId())
   print("clk.physicalAddress: %s" % clk_dec.physicalAddress.toHex())
   print("manufacturerIdentity: %s" %
-    ptpmgmt.Binary.bufToId(clk_dec.manufacturerIdentity, 3))
+    Binary.bufToId(clk_dec.manufacturerIdentity, 3))
   clk_dec.revisionData.textField = "This is a test"
   print("revisionData: %s" % clk_dec.revisionData.textField)
 
@@ -193,16 +193,16 @@ def main():
   setPriority1(147)
   setPriority1(153)
 
-  event = ptpmgmt.SUBSCRIBE_EVENTS_NP_t()
-  event.setEvent(ptpmgmt.NOTIFY_TIME_SYNC)
+  event = SUBSCRIBE_EVENTS_NP_t()
+  event.setEvent(NOTIFY_TIME_SYNC)
 
-  if event.getEvent(ptpmgmt.NOTIFY_TIME_SYNC):
+  if event.getEvent(NOTIFY_TIME_SYNC):
     txt = 'have'
   else:
     txt = 'not'
   print('getEvent(NOTIFY_TIME_SYNC)={}'.format(txt))
 
-  if event.getEvent(ptpmgmt.NOTIFY_PORT_STATE):
+  if event.getEvent(NOTIFY_PORT_STATE):
     txt = 'have'
   else:
     txt = 'not'
@@ -210,8 +210,8 @@ def main():
 
   # test SigEvent that represent std::vector<SLAVE_TX_EVENT_TIMESTAMPS_rec_t>
   # See std_vectors.md for more information
-  evnts = ptpmgmt.SigEvent()
-  e = ptpmgmt.SLAVE_TX_EVENT_TIMESTAMPS_rec_t()
+  evnts = SigEvent()
+  e = SLAVE_TX_EVENT_TIMESTAMPS_rec_t()
   e.sequenceId = 1
   e.eventEgressTimestamp.fromFloat(4.5)
   evnts.append(e)

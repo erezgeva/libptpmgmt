@@ -23,11 +23,11 @@
 #include "timeCvrt.h"
 #include "err.h"
 using namespace ptpmgmt;
-BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x) {
+static inline BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x) {
   const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
   return mng != nullptr ? mng->tlvData.get() : nullptr;
 }
-mng_vals_e get_MngTlvId(BaseSigTlv* x) {
+static inline mng_vals_e get_MngTlvId(BaseSigTlv* x) {
   const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
   return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
 }
@@ -220,7 +220,7 @@ _ptpmMkRecVec(SigEvent, SLAVE_TX_EVENT_TIMESTAMPS);
 _ptpmMkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
 
 %define %pointer_dynamic_cast(TYPE1,TYPE2,NAME)
-%inline %{TYPE2* NAME(TYPE1* x){return dynamic_cast<TYPE2*>(x);}%}
+%inline %{static inline TYPE2* NAME(TYPE1* x){return dynamic_cast<TYPE2*>(x);}%}
 %enddef
 
 /* convert base management tlv to a specific management tlv structure
@@ -261,7 +261,7 @@ mng_vals_e get_MngTlvId(BaseSigTlv* x);
 %feature("director") MessageDispatcher;
 %feature("director") MessageBuilder;
 %{
-    #include "msgCall.h"
+#include "msgCall.h"
 %}
 %include "callDef.h"
 %include "msgCall.h"
