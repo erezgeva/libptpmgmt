@@ -23,28 +23,18 @@ m4_define([ptpm_dqt], m4_esyscmd_s([printf '"']))
 AC_CONFIG_FILES([defs.mk])
 dnl Unique file to verify we use the proper folder for source
 AC_CONFIG_SRCDIR([src/mngIds.m4])
+AC_CONFIG_MACRO_DIRS([m4])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_LANG([C++])
-AC_PROG_CC
-AC_PROG_CXX
 AC_PROG_GREP
 AC_PROG_EGREP
 AC_PROG_FGREP
 AC_PROG_SED
-AC_PROG_INSTALL
-AC_PROG_MKDIR_P
-AC_PROG_LN_S
-AC_CHECK_TOOL([CHRPATH], [chrpath])
-AC_CHECK_TOOL([PATCHELF], [patchelf])
-AC_CHECK_TOOL([MARKDOWN], [markdown])
-AC_CHECK_TOOL([TOUCH], [touch])
-dnl libtool
-LT_INIT
-AC_CONFIG_MACRO_DIRS([m4])
 
 #----------------------------------------------------------------
-# Macroes and Globals
+# Macros
+
 dnl Pipes to clean output
 AC_DEFUN([PTPM_DUMP_OUT], [>/dev/null])
 AC_DEFUN([PTPM_DUMP_ERR], [2>/dev/null])
@@ -128,7 +118,33 @@ AC_DEFUN([PTPM_VAR_PKG_CONFIG],
                 $PKG_CONFIG --exists $3],
                 [AS_VAR_SET([$1],
                             ["`$PKG_CONFIG --variable=$2 $3 PTPM_DUMP_ERR`"])])])
-dnl globals
+
+#----------------------------------------------------------------
+# Compilers and basic tools
+
+dnl Disable probing any '-std=' flag to CC
+PTPM_FOR([d],[89 99 11 23],
+         [AS_VAR_SET([ac_cv_prog_cc_c$d],[no])])
+AC_PROG_CC
+AC_PROG_CXX
+# Clean CC and CXX from '-std'
+AS_IF([PTPM_GREP_TEST([CC],[" -std="])],
+      [PTPM_VAR_SED_COPY([CC],[CC],['s% -std=.*%%'])])
+AS_IF([PTPM_GREP_TEST([CXX],[" -std="])],
+      [PTPM_VAR_SED_COPY([CXX],[CXX],['s% -std=.*%%'])])
+AC_PROG_INSTALL
+AC_PROG_MKDIR_P
+AC_PROG_LN_S
+AC_CHECK_TOOL([CHRPATH], [chrpath])
+AC_CHECK_TOOL([PATCHELF], [patchelf])
+AC_CHECK_TOOL([MARKDOWN], [markdown])
+AC_CHECK_TOOL([TOUCH], [touch])
+dnl libtool
+LT_INIT
+
+#----------------------------------------------------------------
+# Globals
+
 AS_VAR_SET([ptpm_c_include], ['#include'])
 AS_VAR_IF([prefix], ['NONE'],
           [AS_VAR_SET([ptpm_prefix], ['/usr'])],
