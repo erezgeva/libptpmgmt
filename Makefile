@@ -508,9 +508,12 @@ CPPCHECK_OPT+=$(CPPCHECK_OPT_BASE)
 EXTRA_C_SRCS:=$(wildcard uctest/*.c)
 EXTRA_SRCS:=$(wildcard $(foreach n,sample utest uctest,$n/*.cpp $n/*.h))
 EXTRA_SRCS+=$(EXTRA_C_SRCS)
-format: $(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_HMAC)\
-	$(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)\
-	$(EXTRA_SRCS_CLKMGR)
+FORMAT_DEPS:=$(HEADERS_GEN) $(HEADERS_SRCS) $(SRCS) $(EXTRA_SRCS) $(SRCS_HMAC)
+ifndef SKIP_CLKMGR
+FORMAT_DEPS+=$(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)\
+  $(EXTRA_SRCS_CLKMGR)
+endif
+format: $(FORMAT_DEPS)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r"&&./tools/format.pl $^
@@ -598,12 +601,18 @@ tools/doxygen.cfg: tools/doxygen.cfg.in
 tools/doxygen.clkmgr.cfg: tools/doxygen.clkmgr.cfg.in
 	$(Q_GEN)$(SED) $(foreach n, PACKAGE_VERSION,-e 's!@$n@!$($n)!') $< > $@
 
+DOXYGEN_DEPS:=$(HEADERS_GEN) $(HEADERS) tools/doxygen.cfg
+ifndef SKIP_CLKMGR
+DOXYGEN_DEPS+=$(CLKMGR_HEADERS_GEN) tools/doxygen.clkmgr.cfg
+endif
 ifdef DOXYGEN_MINVER
-doxygen: $(HEADERS_GEN) $(HEADERS) $(CLKMGR_HEADERS_GEN)\
-	tools/doxygen.cfg tools/doxygen.clkmgr.cfg
+doxygen: $(DOXYGEN_DEPS)
 ifndef DOTTOOL
 	$Q$(info $(COLOR_WARNING)You miss the 'dot' application.$(COLOR_NORM))
 	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen*cfg
+endif
+ifdef HOME # Create the cache folder for the fontconfig library
+	$Q$(MKDIR_P) $(HOME)/.cache/fontconfig
 endif
 # doxygen fails with cairo 1.17.6, use workaround
 # https://github.com/doxygen/doxygen/issues/9319
@@ -620,9 +629,13 @@ endif # DOXYGEN_MINVER
 
 checkall: format doxygen
 
+CTAGS_DEPS:=$(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS)\
+  $(SRCS) $(SRCS_HMAC)
+ifndef SKIP_CLKMGR
+CTAGS_DEPS+=$(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)
+endif
 ifdef CTAGS
-tags: $(filter-out $(SRC)/ids.h,$(HEADERS_GEN_COMP)) $(HEADERS_SRCS) $(SRCS)\
-	$(SRCS_HMAC) $(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)
+tags: $(CTAGS_DEPS)
 	$(Q_TAGS)$(CTAGS) -R $^
 ALL+=tags
 endif # CTAGS

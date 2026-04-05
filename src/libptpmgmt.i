@@ -251,6 +251,12 @@ _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
 BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x);
 mng_vals_e get_MngTlvId(BaseSigTlv* x);
 
+#if defined SWIGTCL
+/* Used in wrappers/tcl/msgCall.i on TCL 9 we fail to use GET directly.
+   Scripts does use GET properly! */
+%inline %{static inline actionField_e GET_VAL(){return GET;}%}
+#endif
+
 #if defined SWIGLUA || defined SWIGTCL || defined SWIGGO
 /* MessageDispatcher and MessageBuilder classes per language */
 %include "msgCall.i"

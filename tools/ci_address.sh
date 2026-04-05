@@ -112,7 +112,7 @@ ci_address()
 # Script to build doxygen in GitHub
 ci_pages()
 {
- apt_install doxygen graphviz
+ apt_install doxygen graphviz pdf2svg
  config_ubuntu
  make doxygen
  mv doc/html _site

@@ -102,7 +102,7 @@ main()
  # script languages source
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
        ldPathPhp ldPathTcl needCmpl oneLua skip_php\
-       ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54\
+       ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54 ldPathLua55\
        ldPath luaVersions
  local -r ldPathBase='LD_LIBRARY_PATH=.libs'
  local -r gtest='wrappers/go/gtest/gtest'

@@ -59,11 +59,11 @@ For now, we support:
 
   * Perl version 5
   * Python version 3
-  * Lua versions 5.1, 5.2, 5.3, 5.4
-  * Ruby version 2, 3
+  * Lua versions 5.1, 5.2, 5.3, 5.4, 5.5
+  * Ruby version 2, 3, 4
   * PHP version 7, 8
-  * Tcl version 8
-  * Go version 1.14 and above
+  * Tcl version 8, 9
+  * Go version 1.18 and above
 
 Though the C++ library uses the namespace 'ptpmgmt'.  
 SWIG for PHP does not support namespace.  

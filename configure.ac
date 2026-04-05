@@ -1196,7 +1196,9 @@ AS_VAR_IF([ptpm_phpbin], ['no'],
                   AC_MSG_RESULT([$msg PHP version from it])],
                  [AC_MSG_RESULT([found PHP $PHP_VER - not PHP 7 or 8])])])
 
-      AC_CHECK_TOOLS([PHP_UNIT], [phpunit])])])
+      PTPM_LOOP_RANGE([d], [15], [-1], [2],
+                      [AS_VAR_APPEND([ptpm_phpunit], [" phpunit$d"])])
+      AC_CHECK_TOOLS([PHP_UNIT], [$ptpm_phpunit phpunit])])])
 
 AC_SUBST([PHP])
 AC_SUBST([PHP_CFG])

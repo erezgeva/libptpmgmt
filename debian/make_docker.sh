@@ -34,7 +34,7 @@ main()
   local -r archs='arm64'
   local -r dpkgs_bookworm=''
   local -r dpkgs_trixie='librtpi-dev@ libgcrypt20-dev@'
-  local -r dpkgs_forky='librtpi-dev@ libgcrypt20-dev@'
+  local -r dpkgs_forky='librtpi-dev@ libgcrypt20-dev@ liblua5.5-dev@'
   local dpkgs_arch='libstdc++6 pkgconf
     libpython3-all-dev ruby-dev tcl-dev libpython3-dev libperl-dev
     libfastjson-dev libgtest-dev libgmock-dev lua-posix libjson-c-dev
