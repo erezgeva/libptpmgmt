@@ -509,7 +509,7 @@ config_report()
 {
  local -A R
  local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER
-   LUA_VERS LUA_VER USE_ENDIAN PERL5_VER HAVE_LIBCHRONY_HEADER
+   LUA_VERS LUA_VER USE_ENDIAN PERL5_VER HAVE_LIBCHRONY_HEADER PDF2SVG
    GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
    HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK MARKDOWN
    PANDOC PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
@@ -539,6 +539,11 @@ config_report()
    dver="${dver% (0)}"
  else
    local -r dver='x'
+ fi
+ if [[ -n "$PDF2SVG" ]]; then
+   local -r pdf2svg='v'
+ else
+   local -r pdf2svg='x'
  fi
  [[ "$build" = "$host" ]] && local -r bon='native' || local -r bon='cross'
  [[ -n "$ASTYLE_MINVER" ]] && local -r astyle="$ASTYLE_MINVER" ||\
@@ -571,7 +576,7 @@ Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
 compilers $CXX $CXX_VERSION, $CC $CC_VERSION
 libchrony '$chrony' markdown '$markdown' rpath '$rpath' cmark '$cmark'
 ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
-Doxygen '$doxy' dot '$dver' Pandoc '$pandoc'
+Doxygen '$doxy' dot '$dver' Pandoc '$pandoc' pdf2svg '$pdf2svg'
 cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'
 swig '$swig' Python '$python3' Ruby '$ruby' PHP '$php'

@@ -20,7 +20,7 @@ RUN pacman-key --init && pacman-key --populate &&\
     texlive-fontutils astyle lua-posix lua51-posix lua52-posix lua53-posix\
     clang openssl gnutls nettle gdb debugedit base-devel chrpath patchelf\
     discount ruby-test-unit cppcheck criterion chrony quilt cmark-gfm pandoc\
-    systemd-libs &&\
+    systemd-libs pdf2svg &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\

@@ -33,7 +33,8 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     dev-lang/lua dev-lua/luaposix dev-lang/php dev-lang/tcl sys-devel/gcc\
     dev-util/cppcheck media-gfx/graphviz perl-core/Test-Simple\
     app-text/texlive-core dev-texlive/texlive-fontutils net-misc/chrony\
-    dev-util/quilt app-text/cmark dev-tcltk/tcllib dev-tcltk/tclx' &&\
+    dev-util/quilt app-text/cmark dev-tcltk/tcllib dev-tcltk/tclx\
+    media-gfx/pdf2svg' &&\
     emerge -tv --autounmask=y --autounmask-write=y --autounmask-only=y\
     --autounmask-backtrack=y --autounmask-continue=y llvm-core/clang $p &&\
     emerge -tv $p && echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
