@@ -39,8 +39,8 @@ define(D,`/**
  * @param[in] tlv pointer to the Message dataField
  * @return pointer to $1_t
  * @note This function is available in scripts only!
- *  C++ code can simply cast.
- * @note Use Message:getData() to retrieve the tlv from the Message
+ *  C++ code can simply use dynamic cast.
+ * @note Use Message::getData() to retrieve the tlv from the Message
  */
 $1_t
 *conv_$1(const BaseMngTlv *tlv);')dnl
@@ -53,8 +53,14 @@ define(S,`/**
  * @param[in] tlv pointer to a TLV from a signalling message
  * @return pointer to $1_t
  * @note This function is available in scripts only!
- *  C++ code can simply cast.
- * @note Use Message:getSigMngTlv() to retrieve the tlv
+ *  C++ code can simply use dynamic cast.
+ * @note Use Message::getSigTlv() to retrieve the tlv
+ *       or Message::traversSigTlvs() with callback
+ *       or Message::traversSigTlvsCl() with callback
+ *       or get all Signaling Tlvs Message::getSigTlvs and use
+ *       MessageSigTlvs::get()
+ *       or MessageSigTlvs::traverse() with callback
+ *       or MessageSigTlvCallback::callback()
  */
 $1_t
 *conv_$1(const BaseSigTlv *tlv);')dnl

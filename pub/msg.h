@@ -30,7 +30,7 @@ struct HMAC_Key;
 
 /**
  * Abstract class used for callback for Signalling TLVs traverse
- * @note For PHP, Perl, Python and Ruby use
+ * @note Available for PHP, Perl, Python and Ruby use
  */
 class MessageSigTlvCallback
 {
@@ -707,7 +707,7 @@ class Message
      * Get last parsed message dataField
      * @return pointer to last parsed message dataField or null
      * @note You need to cast to proper structure depends on
-     *  management TLV ID, get with.
+     *  the management TLV ID.
      * @note You @b should not try to free or change this TLV object
      */
     const BaseMngTlv *getData() const;

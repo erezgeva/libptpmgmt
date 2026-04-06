@@ -142,7 +142,7 @@ class $1
      * @param[in] position of element to get
      * @return the element
      * @attention initiate exception if out of range!
-     * @note This function is available in Perl, Tcl and PHP.
+     * @note This function is available in Perl, Tcl and PHP.<br>
      *       Ruby, Python and Lua use operator[].
      * @note The function is named @code Get() @endcode in Go.
      */
@@ -152,7 +152,7 @@ class $1
      * @param[in] position of element to set
      * @param[in] value element with new value
      * @attention initiate exception if out of range!
-     * @note This function is available in Perl, Tcl, PHP and Go.
+     * @note This function is available in Perl, Tcl, PHP and Go.<br>
      *       Ruby, Python and Lua use operator[].
      * @note The function is named @code Set() @endcode in Go.
      */
@@ -163,7 +163,7 @@ class $1
      * @param[in] position of the element
      * @return the element
      * @attention initiate exception if out of range!
-     * @note This function is available for Ruby, Python and Lua.
+     * @note This function is available for Ruby, Python and Lua.<br>
      *       Perl, Tcl and PHP should use @code get(), set() @endcode.
      *       Go use @code Get(), Set() @endcode.
      * @note To set use @code variable[index] = new_value @endcode

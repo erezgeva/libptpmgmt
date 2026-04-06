@@ -28,7 +28,6 @@ ics(TYPES)
 cpp_st()dnl
 incpp(<map>)dnl
 incpp("bin.h")dnl
-inc("name.h")dnl
 c_cod(`#ifdef __PTPMGMT_HAVE_SYS_TYPES_H')dnl
 inc(<sys/types.h>)dnl
 c_cod(`#else')dnl

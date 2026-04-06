@@ -15,7 +15,6 @@
 #ifdef __cplusplus
 #include <map>
 #include <vector>
-#include "name.h"
 #include "buf.h"
 #ifdef __PTPMGMT_HAVE_GETOPT_H
 #include <getopt.h>

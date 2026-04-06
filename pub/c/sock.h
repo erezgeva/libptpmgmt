@@ -12,7 +12,6 @@
 #ifndef __PTPMGMT_C_SOCK_H
 #define __PTPMGMT_C_SOCK_H
 
-#include "name.h"
 #ifdef __PTPMGMT_HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #else
