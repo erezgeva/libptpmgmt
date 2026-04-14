@@ -11,7 +11,7 @@
 %luacode %{
 ptpmgmt.MessageDispatcher = {}
 function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
-    if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
+    if(msg == nil or swig_type(msg) ~= 'Message *') then
         error('MessageDispatcher::callHadler() msg must be a Message object', 2)
     end
     if(tlv == nil) then
@@ -22,16 +22,16 @@ function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
     elseif(type(tlv) ~= 'userdata') then
         error('MessageDispatcher::callHadler() tlv must be an object', 2)
     end
-    if(tlv ~= nil and msg:isValidId(tlv_id) and
-       not ptpmgmt.Message.isEmpty(tlv_id)) then
+    if(not ptpmgmt.Message.isEmpty(tlv_id)) and
+       msg:isValidId(tlv_id) and tlv ~= nil then
         local tlv_id_str = ptpmgmt.Message.mng2str_c(tlv_id)
         local callback = getmetatable(self)[tlv_id_str .. '_h']
-        if(type(callback) == 'function') then
+        if(callback ~= nil and type(callback) == 'function') then
             local data
-            local tlv_type = getmetatable(tlv)['.type']
-            if(tlv_type == 'BaseMngTlv') then
+            local tlv_type = swig_type(tlv)
+            if(tlv_type == 'BaseMngTlv *') then
                 data = ptpmgmt['conv_' .. tlv_id_str](tlv)
-            elseif(tlv_type == tlv_id_str .. '_t') then
+            elseif(tlv_type == tlv_id_str .. '_t *') then
                 data = tlv
             else
                 error('MessageDispatcher::callHadler() tlv must be ' ..
@@ -56,7 +56,7 @@ function ptpmgmt.MessageDispatcher:new()
     return obj
 end
 function ptpmgmt.MessageDispatcher:clone(inhObj)
-    if(type(inhObj) ~= 'table') then
+    if(inhObj == nil or type(inhObj) ~= 'table') then
         error('MessageDispatcher:clone() inhObj is not an object', 2)
     end
     local obj = self:new()
@@ -85,7 +85,8 @@ function ptpmgmt.MessageBuilder:buildTlv(actionField, tlv_id)
     local tlv_id_str = ptpmgmt.Message.mng2str_c(tlv_id)
     local tlv_type = tlv_id_str .. '_t'
     local callback = getmetatable(self)[tlv_id_str .. '_b']
-    if(type(callback) == 'function' and type(ptpmgmt[tlv_type]) == 'table') then
+    if(callback ~= nil and type(callback) == 'function' and
+       type(ptpmgmt[tlv_type]) == 'table') then
         local tlv = ptpmgmt[tlv_type]()
         if(tlv ~= nil and callback(self, msg, tlv) and
            msg:setAction(actionField, tlv_id, tlv)) then
@@ -103,7 +104,7 @@ function ptpmgmt.MessageBuilder:clear()
     self.m_tlv = 0
 end
 function ptpmgmt.MessageBuilder:new(msg)
-    if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
+    if(msg == nil or swig_type(msg) ~= 'Message *') then
         error('MessageBuilder::new() msg must be a Message object', 2)
     end
     local obj = { m_msg = msg }
@@ -112,10 +113,10 @@ function ptpmgmt.MessageBuilder:new(msg)
     return obj
 end
 function ptpmgmt.MessageBuilder:clone(inhObj, msg)
-    if(type(inhObj) ~= 'table') then
+    if(inhObj == nil or type(inhObj) ~= 'table') then
         error('MessageBuilder:clone() inhObj is not an object', 2)
     end
-    if(type(msg) ~= 'userdata' or getmetatable(msg)['.type'] ~= 'Message') then
+    if(msg == nil or swig_type(msg) ~= 'Message *') then
         error('MessageBuilder:clone() msg must be a Message object', 2)
     end
     local obj = self:new(msg)
