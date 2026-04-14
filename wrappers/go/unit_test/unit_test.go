@@ -49,7 +49,9 @@ func (self *myDisp) NoTlvCallBack(msg ptpmgmt.Message, tlv_id string) {
 // Implement ptpmgmt.MessageBuilder
 type myBuild struct {
   msg ptpmgmt.Message
-  tlv ptpmgmt.BaseMngTlv
+  /* exported field must start with uppercase
+     The 'TLV' value is set by ptpmgmt.MessageBuilderBuildTlv() */
+  TLV ptpmgmt.BaseMngTlv
   run int
 }
 func (self *myBuild) BuildTlv(actionField ptpmgmt.ActionField_e,
@@ -59,9 +61,8 @@ func (self *myBuild) BuildTlv(actionField ptpmgmt.ActionField_e,
 func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message,
                                  bTlv ptpmgmt.BaseMngTlv) bool {
   tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
-  self.run = 1
+  self.run += 1
   tlv.SetPriority1(117)
-  self.tlv = bTlv
   return true
 }
 
@@ -131,11 +132,11 @@ func TestParsedCallHadlerTLVNoCallback(t *testing.T) {
 
 // Tests build empty TLV
 func TestBuildEmptyTLV(t *testing.T) {
-  build := myBuild{
-    msg: msg,
-    run: 0 }
+  build := myBuild{ msg: msg, run: 0 }
   if build.BuildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT) {
-    defer ptpmgmt.MessageBuilderFree(msg, build.tlv)
+    defer func() {
+      ptpmgmt.MessageBuilderFree(msg, build.TLV)
+      build.TLV = nil }()
   } else {
     t.Errorf("TestBuildEmptyTLV build fail")
   }
@@ -146,11 +147,11 @@ func TestBuildEmptyTLV(t *testing.T) {
 
 // Tests build TLV
 func TestBuildTLV(t *testing.T) {
-  build := myBuild{
-    msg: msg,
-    run: 0 }
+  build := myBuild{ msg: msg, run: 0 }
   if build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
-    defer ptpmgmt.MessageBuilderFree(msg, build.tlv)
+    defer func() {
+      ptpmgmt.MessageBuilderFree(msg, build.TLV)
+      build.TLV = nil }()
   } else {
     t.Errorf("TestBuildTLV fail")
   }
@@ -159,13 +160,31 @@ func TestBuildTLV(t *testing.T) {
   }
 }
 
+// Tests build TLV twice
+// Call build twice to verify the first TLV is free on seconds call!
+func TestBuildTLVtwice(t *testing.T) {
+  build := myBuild{ msg: msg, run: 0 }
+  defer func() {
+    ptpmgmt.MessageBuilderFree(msg, build.TLV)
+    build.TLV = nil }()
+  if !build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
+    t.Errorf("TestBuildTLVtwice first build fail")
+  }
+  if !build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
+    t.Errorf("TestBuildTLVtwice second build fail")
+  }
+  if build.run != 2 {
+    t.Errorf("TestBuildTLVtwice did not call PRIORITY1 callback twice")
+  }
+}
+
 // Tests build TLV that lack callback
 func TestBuildTLVNoCallback(t *testing.T) {
-  build := myBuild{
-    msg: msg,
-    run: 0 }
+  build := myBuild{ msg: msg, run: 0 }
   if build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2) {
-    defer ptpmgmt.MessageBuilderFree(msg, build.tlv)
+    defer func() {
+      ptpmgmt.MessageBuilderFree(msg, build.TLV)
+      build.TLV = nil }()
     t.Errorf("TestBuildTLVNoCallback build should return false")
   }
   if build.run != 0 {

@@ -39,7 +39,9 @@ func (self *myDisp) USER_DESCRIPTION_h(msg ptpmgmt.Message,
 
 type myBuild struct { // Implement ptpmgmt.MessageBuilder
   msg ptpmgmt.Message
-  tlv ptpmgmt.BaseMngTlv
+  /* exported field must start with uppercase
+     The 'TLV' value is set by ptpmgmt.MessageBuilderBuildTlv() */
+  TLV ptpmgmt.BaseMngTlv
   newPriority1 byte
 }
 func (self *myBuild) BuildTlv(actionField ptpmgmt.ActionField_e,
@@ -50,7 +52,6 @@ func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message,
                                  bTlv ptpmgmt.BaseMngTlv) bool {
   tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
   tlv.SetPriority1(self.newPriority1)
-  self.tlv = bTlv
   return true
 }
 
@@ -90,7 +91,9 @@ func setPriority1(newPriority1 byte) int {
     if builder.BuildTlv(ptpmgmt.SET, id) {
       /* Nake sure Message object remove the reference to the TLV
          And delete the alocated TLV */
-      defer ptpmgmt.MessageBuilderFree(msg, builder.tlv)
+      defer func() {
+        ptpmgmt.MessageBuilderFree(msg, builder.TLV)
+        builder.TLV = nil }()
     }
   } else {
     pr1 := ptpmgmt.NewPRIORITY1_t()
