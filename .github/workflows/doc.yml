@@ -40,7 +40,7 @@ jobs:
       run: tools/ci_pages.sh
 
     - name: upload artifact
-      uses: actions/upload-pages-artifact@v4
+      uses: actions/upload-pages-artifact@v5
 
   deploy:
     needs: build
