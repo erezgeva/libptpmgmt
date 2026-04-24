@@ -16,7 +16,7 @@ import (
   "testing"
 )
 
-// Implement ptpmgmt.MessageDispatcher
+// Implement ptpmgmt.MessageDispatcher interface
 type myDisp struct {
   priority1 byte
   funcVal int
@@ -27,52 +27,46 @@ func (self *myDisp) init() {
   self.funcVal = 0
   self.id = ""
 }
-func (self *myDisp) CallHadler(msg ptpmgmt.Message, a ...interface{}) {
-  ptpmgmt.MessageDispatcherCallHadler(self, msg, a)
-}
+// Callback of ptpmgmt.MessageDispatcher for a PRIORITY1 tlv
 func (self *myDisp) PRIORITY1_h(msg ptpmgmt.Message,
-                               bTlv ptpmgmt.BaseMngTlv,
+                               tlv ptpmgmt.PRIORITY1_t,
                                tlv_id string) {
-  tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
   self.funcVal += 1
   self.id = tlv_id
   self.priority1 = tlv.GetPriority1()
 }
+// Callback of ptpmgmt.MessageDispatcher for no TLV
 func (self *myDisp) NoTlv(msg ptpmgmt.Message) {
   self.funcVal += 2
 }
+// Callback of ptpmgmt.MessageDispatcher for missing TLV callback
 func (self *myDisp) NoTlvCallBack(msg ptpmgmt.Message, tlv_id string) {
   self.funcVal += 4
   self.id = tlv_id
 }
 
-// Implement ptpmgmt.MessageBuilder
+// Implement ptpmgmt.MessageBuilder interface
 type myBuild struct {
-  msg ptpmgmt.Message
-  /* exported field must start with uppercase
-     The 'TLV' value is set by ptpmgmt.MessageBuilderBuildTlv() */
-  TLV ptpmgmt.BaseMngTlv
   run int
 }
-func (self *myBuild) BuildTlv(actionField ptpmgmt.ActionField_e,
-                              tlv_id ptpmgmt.Mng_vals_e) bool {
-  return ptpmgmt.MessageBuilderBuildTlv(self, self.msg, actionField, tlv_id)
-}
+// Callback of ptpmgmt.MessageBuilder to build a new PRIORITY1 tlv
 func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message,
-                                 bTlv ptpmgmt.BaseMngTlv) bool {
-  tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
+                                 tlv ptpmgmt.PRIORITY1_t) bool {
   self.run += 1
   tlv.SetPriority1(117)
   return true
 }
 
 var msg ptpmgmt.Message = ptpmgmt.NewMessage()
-var disp myDisp
+var disp myDisp   // interface for ptpmgmt.MessageDispatcher Director
+var build myBuild // interface for ptpmgmt.MessageBuilder Director
 
 // Tests CallHadler with empty TLV
 func TestParsedCallHadlerEmptyTLV(t *testing.T) {
   disp.init()
-  disp.CallHadler(msg)
+  dispDr := ptpmgmt.NewDirectorMessageDispatcher(&disp)
+  defer ptpmgmt.DeleteDirectorMessageDispatcher(dispDr)
+  dispDr.CallHadler(msg)
   if disp.funcVal != 2 {
     t.Errorf("TestParsedCallHadlerEmptyTLV wrong funcVal %d; did not call NoTlv",
              disp.funcVal)
@@ -90,10 +84,12 @@ func TestParsedCallHadlerEmptyTLV(t *testing.T) {
 func TestParsedCallHadlerTLV(t *testing.T) {
   disp.init()
   tlv := ptpmgmt.NewPRIORITY1_t()
-  defer msg.ClearData()
   defer ptpmgmt.DeletePRIORITY1_t(tlv)
+  defer msg.ClearData()
   tlv.SetPriority1(117)
-  disp.CallHadler(msg, ptpmgmt.PRIORITY1, tlv)
+  dispDr := ptpmgmt.NewDirectorMessageDispatcher(&disp)
+  defer ptpmgmt.DeleteDirectorMessageDispatcher(dispDr)
+  dispDr.CallHadler(msg, ptpmgmt.PRIORITY1, tlv)
   if disp.funcVal != 1 {
     t.Errorf("TestParsedCallHadlerTLV wrong funcVal %d; did not call PRIORITY1_h",
              disp.funcVal)
@@ -111,10 +107,12 @@ func TestParsedCallHadlerTLV(t *testing.T) {
 func TestParsedCallHadlerTLVNoCallback(t *testing.T) {
   disp.init()
   tlv := ptpmgmt.NewPRIORITY2_t()
-  defer msg.ClearData()
   defer ptpmgmt.DeletePRIORITY2_t(tlv)
+  defer msg.ClearData()
   tlv.SetPriority2(117)
-  disp.CallHadler(msg, ptpmgmt.PRIORITY2, tlv)
+  dispDr := ptpmgmt.NewDirectorMessageDispatcher(&disp)
+  defer ptpmgmt.DeleteDirectorMessageDispatcher(dispDr)
+  dispDr.CallHadler(msg, ptpmgmt.PRIORITY2, tlv)
   if disp.funcVal != 4 {
     t.Errorf("TestParsedCallHadlerTLVNoCallback wrong funcVal %d;" +
              " did not call NoTlvCallBack",
@@ -132,12 +130,11 @@ func TestParsedCallHadlerTLVNoCallback(t *testing.T) {
 
 // Tests build empty TLV
 func TestBuildEmptyTLV(t *testing.T) {
-  build := myBuild{ msg: msg, run: 0 }
-  if build.BuildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT) {
-    defer func() {
-      ptpmgmt.MessageBuilderFree(msg, build.TLV)
-      build.TLV = nil }()
-  } else {
+  build.run = 0
+  buildDr := ptpmgmt.NewDirectorMessageBuilder(&build, msg)
+  defer ptpmgmt.DeleteDirectorMessageBuilder(buildDr)
+  defer buildDr.Clear()
+  if !buildDr.BuildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT) {
     t.Errorf("TestBuildEmptyTLV build fail")
   }
   if build.run != 0 {
@@ -147,12 +144,11 @@ func TestBuildEmptyTLV(t *testing.T) {
 
 // Tests build TLV
 func TestBuildTLV(t *testing.T) {
-  build := myBuild{ msg: msg, run: 0 }
-  if build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
-    defer func() {
-      ptpmgmt.MessageBuilderFree(msg, build.TLV)
-      build.TLV = nil }()
-  } else {
+  build.run = 0
+  buildDr := ptpmgmt.NewDirectorMessageBuilder(&build, msg)
+  defer ptpmgmt.DeleteDirectorMessageBuilder(buildDr)
+  defer buildDr.Clear()
+  if !buildDr.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
     t.Errorf("TestBuildTLV fail")
   }
   if build.run != 1 {
@@ -163,14 +159,14 @@ func TestBuildTLV(t *testing.T) {
 // Tests build TLV twice
 // Call build twice to verify the first TLV is free on seconds call!
 func TestBuildTLVtwice(t *testing.T) {
-  build := myBuild{ msg: msg, run: 0 }
-  defer func() {
-    ptpmgmt.MessageBuilderFree(msg, build.TLV)
-    build.TLV = nil }()
-  if !build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
+  build.run = 0
+  buildDr := ptpmgmt.NewDirectorMessageBuilder(&build, msg)
+  defer ptpmgmt.DeleteDirectorMessageBuilder(buildDr)
+  defer buildDr.Clear()
+  if !buildDr.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
     t.Errorf("TestBuildTLVtwice first build fail")
   }
-  if !build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
+  if !buildDr.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1) {
     t.Errorf("TestBuildTLVtwice second build fail")
   }
   if build.run != 2 {
@@ -180,11 +176,11 @@ func TestBuildTLVtwice(t *testing.T) {
 
 // Tests build TLV that lack callback
 func TestBuildTLVNoCallback(t *testing.T) {
-  build := myBuild{ msg: msg, run: 0 }
-  if build.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2) {
-    defer func() {
-      ptpmgmt.MessageBuilderFree(msg, build.TLV)
-      build.TLV = nil }()
+  build.run = 0
+  buildDr := ptpmgmt.NewDirectorMessageBuilder(&build, msg)
+  defer ptpmgmt.DeleteDirectorMessageBuilder(buildDr)
+  defer buildDr.Clear()
+  if buildDr.BuildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2) {
     t.Errorf("TestBuildTLVNoCallback build should return false")
   }
   if build.run != 0 {

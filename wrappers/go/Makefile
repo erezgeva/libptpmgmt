@@ -36,12 +36,9 @@ endif #GO_BIN
 go_SFLAGS+=-go
 
 GO_SRC:=$(GO_D)/$(SWIG_LNAME)/$(SWIG_NAME).cpp
-$(GO_D)/allocTlv.i: $(GO_D)/allocTlv.i.m4
-	$(Q_GEN)$(M4) -I $(SRC) $< > $@
-$(GO_D)/$(SWIG_NAME).cpp: $(GO_D)/allocTlv.i
 $(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp | $(LIB_NAME_LA)
 	$Q$(MKDIR_P) $(@D)
-	cp $^ $(GO_D)/$(SWIG_LNAME).go $(@D)
+	cp $^ $(GO_D)/$(SWIG_LNAME).go $(GO_D)/$(SWIG_NAME).h $(@D)
 $(GO_D)/$(SWIG_LNAME)/go.mod:
 	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
 	cd $(@D)&&$(GO_BIN) mod init $(SWIG_LNAME) $(Q_ERR);fi
@@ -89,11 +86,17 @@ utest_go: $(GO_D)/unit_test/go.mod
 	$(call Q_UTEST,GO)export LD_PRELOAD="$(PWD)/$(LIB_NAME_SO)"
 	cd $(GO_D)/unit_test&&$(GO_BIN) test .
 
+# Restore $(SWIG_NAME).h include after converting to <$(SWIG_LNAME)/xx.h>
+SWIG_INC_IN:=$(c_inc) <$(SWIG_LNAME)/$(SWIG_NAME).h>
+SWIG_INC_OUT:=$(c_inc) "$(SWIG_NAME).h"
+
 install_go:
 	$Q$(INSTALL_FOLDER) $(DESTDIR)$(GOROOT)/src
 	cp -a $(GO_D)/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
 	rm $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/go.mod
 	$(SED) -i 's@^\s*$(c_inc) "\([^.]\+\.h\)"@$(c_inc) <$(SWIG_LNAME)/\1>@'\
+	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
+	$(SED) -i 's@^$(SWIG_INC_IN)@$(SWIG_INC_OUT)@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 	$(SED) -i '1 i/* $(SPDXLI) $(SPDXBSD3)\n   $(SPDXCY) */\n'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/*

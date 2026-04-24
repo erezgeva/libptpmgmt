@@ -19,49 +19,36 @@ import (
 
 type myDisp struct { // Implement ptpmgmt.MessageDispatcher interface
 }
-func (self *myDisp) CallHadler(msg ptpmgmt.Message, a ...interface{}) {
-  ptpmgmt.MessageDispatcherCallHadler(self, msg, a)
-}
 func (self *myDisp) PRIORITY1_h(msg ptpmgmt.Message,
-                               bTlv ptpmgmt.BaseMngTlv,
+                               tlv ptpmgmt.PRIORITY1_t,
                                tlv_id string) {
-  tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
   fmt.Println("Get reply for", tlv_id)
   fmt.Println("priority1:", tlv.GetPriority1())
 }
 func (self *myDisp) USER_DESCRIPTION_h(msg ptpmgmt.Message,
-                                      bTlv ptpmgmt.BaseMngTlv,
+                                      tlv ptpmgmt.USER_DESCRIPTION_t,
                                       tlv_id string) {
-  tlv := ptpmgmt.Conv_USER_DESCRIPTION(bTlv)
   fmt.Println("Get reply for", tlv_id)
   fmt.Println("get user desc:", tlv.GetUserDescription().GetTextField())
 }
 
 type myBuild struct { // Implement ptpmgmt.MessageBuilder
-  msg ptpmgmt.Message
-  /* exported field must start with uppercase
-     The 'TLV' value is set by ptpmgmt.MessageBuilderBuildTlv() */
-  TLV ptpmgmt.BaseMngTlv
   newPriority1 byte
 }
-func (self *myBuild) BuildTlv(actionField ptpmgmt.ActionField_e,
-                              tlv_id ptpmgmt.Mng_vals_e) bool {
-  return ptpmgmt.MessageBuilderBuildTlv(self, self.msg, actionField, tlv_id)
-}
 func (self *myBuild) PRIORITY1_b(msg ptpmgmt.Message,
-                                 bTlv ptpmgmt.BaseMngTlv) bool {
-  tlv := ptpmgmt.Conv_PRIORITY1(bTlv)
+                                 tlv ptpmgmt.PRIORITY1_t) bool {
   tlv.SetPriority1(self.newPriority1)
   return true
 }
 
 const DEF_CFG_FILE = "/etc/linuxptp/ptp4l.conf"
-/* These Global objects are deleted at the end of main */
+// These Global objects are deleted at the end of main
 var sk ptpmgmt.SockUnix = ptpmgmt.NewSockUnix()
 var msg ptpmgmt.Message = ptpmgmt.NewMessage()
 var buf ptpmgmt.Buf = ptpmgmt.NewBuf(int64(1000))
 var opt ptpmgmt.Options = ptpmgmt.NewOptions()
-var dispacher = new(myDisp)
+var dispacher myDisp // interface for ptpmgmt.MessageDispatcher Director
+var builder myBuild  // interface for ptpmgmt.MessageBuilder Director
 var sequence uint16 = 0
 
 func printError(msg string) int {
@@ -83,23 +70,19 @@ func nextSequence() uint16 {
 }
 
 func setPriority1(newPriority1 byte) int {
-  builder := myBuild{ msg: msg }
   const useBuild = true
   id := ptpmgmt.PRIORITY1
   if (useBuild) {
     builder.newPriority1 = newPriority1
-    if builder.BuildTlv(ptpmgmt.SET, id) {
-      /* Nake sure Message object remove the reference to the TLV
-         And delete the alocated TLV */
-      defer func() {
-        ptpmgmt.MessageBuilderFree(msg, builder.TLV)
-        builder.TLV = nil }()
-    }
+    buildDr := ptpmgmt.NewDirectorMessageBuilder(&builder, msg)
+    defer ptpmgmt.DeleteDirectorMessageBuilder(buildDr)
+    defer buildDr.Clear()
+    buildDr.BuildTlv(ptpmgmt.SET, id)
   } else {
     pr1 := ptpmgmt.NewPRIORITY1_t()
-    /* When deleting the TLV, we should also notify the Message object */
-    defer msg.ClearData()
+    // When deleting the TLV, we should also notify the Message object
     defer ptpmgmt.DeletePRIORITY1_t(pr1)
+    defer msg.ClearData()
     pr1.SetPriority1(newPriority1)
     msg.SetAction(ptpmgmt.SET, id, pr1)
   }
@@ -146,12 +129,20 @@ func setPriority1(newPriority1 byte) int {
   } else if err != ptpmgmt.MNG_PARSE_ERROR_OK {
     return printError("Parse error " + ptpmgmt.MessageErr2str_c(err))
   } else {
-    dispacher.CallHadler(msg, msg.GetTlvId(), msg.GetData())
+    dispDr := ptpmgmt.NewDirectorMessageDispatcher(&dispacher)
+    defer ptpmgmt.DeleteDirectorMessageDispatcher(dispDr)
+    dispDr.CallHadler(msg, msg.GetTlvId(), msg.GetData())
   }
   return 0
 }
 
 func main() {
+  // Free all global objects
+  defer ptpmgmt.DeleteOptions(opt)
+  defer ptpmgmt.DeleteBuf(buf)
+  defer ptpmgmt.DeleteMessage(msg)
+  defer ptpmgmt.DeleteSockUnix(sk)
+  defer sk.Close()
   if !buf.IsAlloc() {
     printError("buffer allocation failed")
     return
@@ -224,7 +215,9 @@ func main() {
     printError("Parse error " + ptpmgmt.MessageErr2str_c(err))
     return
   } else {
-    dispacher.CallHadler(msg)
+    dispDr := ptpmgmt.NewDirectorMessageDispatcher(&dispacher)
+    defer ptpmgmt.DeleteDirectorMessageDispatcher(dispDr)
+    dispDr.CallHadler(msg)
   }
 
   // test setting values
@@ -284,13 +277,6 @@ func main() {
     evnts.Size(),
     evnts.Get(0).GetSequenceId(),
     evnts.Get(0).GetEventEgressTimestamp().String())
-
-  /* Free all global objects */
-  sk.Close()
-  ptpmgmt.DeleteSockUnix(sk)
-  ptpmgmt.DeleteMessage(msg)
-  ptpmgmt.DeleteBuf(buf)
-  ptpmgmt.DeleteOptions(opt)
 }
 
 // LD_PRELOAD=../../.libs/libptpmgmt.so gtest/gtest

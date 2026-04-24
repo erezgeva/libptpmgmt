@@ -8,11 +8,7 @@
  *
  */
 
-#ifdef SWIGGO
-%module ptpmgmt
-#else
 %module(directors="1") ptpmgmt
-#endif
 
 /* Headers and namespace for moudle source code */
 %{
@@ -257,7 +253,7 @@ mng_vals_e get_MngTlvId(BaseSigTlv* x);
 %inline %{static inline actionField_e GET_VAL(){return GET;}%}
 #endif
 
-#if defined SWIGLUA || defined SWIGTCL || defined SWIGGO
+#if defined SWIGLUA || defined SWIGTCL
 /* MessageDispatcher and MessageBuilder classes per language */
 %include "msgCall.i"
 #else
