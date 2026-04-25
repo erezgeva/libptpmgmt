@@ -519,10 +519,7 @@ probeBuild()
    local -r mach=$(uname -m)
    local -r fmach="/$mach*"
    oneLua=false
-   # TODO Debian bookworm uses lua-posix version 33.4
-   #      which do not support lua 5.4
-   #      trixie does support lua 5.4!
-   LUA_VERS='5.1 5.2 5.3'
+   LUA_VERS='5.1 5.2 5.3 5.4'
    getFirstFile "/usr/lib$fmach$libptpm*"
    if [[ -f "$file" ]] && [[ -n "$probeSystem" ]]; then
      luaVersions="$LUA_VERS"

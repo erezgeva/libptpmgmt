@@ -68,8 +68,6 @@ static inline mng_vals_e get_MngTlvId(BaseSigTlv* x) {
 %apply double { float_seconds };
 %apply double { float_nanoseconds };
 %apply double { float_freq };
-/* TODO: initialize variables for argcargv, fixed in SWIG 4.2 */
-%typemap(arginit) (int ARGC, char **ARGV) "$1 = 0; $2 = nullptr;"
 /* Support Options::parse_options in scripts */
 %apply (int ARGC, char **ARGV) {(int argc, char *const argv[])}
 

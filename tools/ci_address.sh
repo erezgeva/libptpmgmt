@@ -498,7 +498,7 @@ new_version()
      add_line=true
     fi
    done
-   DEBEMAIL="$email" debchange -r bookworm
+   DEBEMAIL="$email" debchange -r trixie
    gvim debian/changelog
    gitk &
  fi
