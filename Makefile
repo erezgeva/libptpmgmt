@@ -614,13 +614,9 @@ endif
 ifdef HOME # Create the cache folder for the fontconfig library
 	$Q$(MKDIR_P) $(HOME)/.cache/fontconfig
 endif
-# doxygen fails with cairo 1.17.6, use workaround
-# https://github.com/doxygen/doxygen/issues/9319
-# TODO The bug should be fixed in doxygen version 1.9.7
-	$(Q_DOXY)CAIRO_DEBUG_PDF=1 $(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
+	$(Q_DOXY)$(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
 ifndef SKIP_CLKMGR
-	$(call Q_DOXY,$(CLKMGR_NAME))CAIRO_DEBUG_PDF=1 $(DOXYGEN)\
-	  tools/doxygen.clkmgr.cfg $(Q_OUT)
+	$(call Q_DOXY,$(CLKMGR_NAME))$(DOXYGEN) tools/doxygen.clkmgr.cfg $(Q_OUT)
 endif
 ifndef DOTTOOL
 	$(SED) -i 's!^HAVE_DOT\s.*!\$(hash)HAVE_DOT               = YES!' tools/doxygen*cfg
