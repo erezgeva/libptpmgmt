@@ -13,22 +13,21 @@
 #include "client/connect_msg.hpp"
 #include "common/print.hpp"
 
-using namespace clkmgr;
-
-static Transmitter txContext;
-bool utest_open_proxy = false;
-bool thread_stopped = false;
-
-static void signal_handler(int)
+namespace clkmgr /* override original code */
 {
-    thread_stopped = true;
-    End::stopAll();
-}
-
 Transmitter *ClientState::getTransmitter()
 {
-    return &txContext;
+    static Transmitter dummyTxContext;
+    return &dummyTxContext;
 }
+bool Listener::init(const std::string &name, size_t maxMsg, bool allRx)
+{
+    return m_listenerQueue.RxOpen(name, maxMsg, allRx);
+    /* skip the thread! */
+}
+}
+
+using namespace clkmgr;
 
 class ClientStateTest : public ::testing::Test
 {
@@ -50,14 +49,8 @@ class ClientStateTest : public ::testing::Test
   public:
     static void SetUpTestSuite() {
         setLogLevel(0);
-        signal(SIGINT, signal_handler);
-        signal(SIGSEGV, signal_handler);
-        signal(SIGTERM, signal_handler);
     }
     static void TearDownTestSuite() {
-        if(!thread_stopped)
-            // Ensure all threads are stopped
-            End::stopAll();
     }
 };
 

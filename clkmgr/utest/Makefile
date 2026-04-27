@@ -11,8 +11,13 @@
 ifdef GTEST_LIB_FLAGS
 
 CLKMGR_CLIENT_UTEST:=$(CLKMGR_UTEST_DIR)/utest_client
-CLKMGR_CLIENT_UTEST_SRCS:=timebase_configs subscription client_state event
+CLKMGR_CLIENT_UTEST_SRCS:=timebase_configs subscription event
 CLKMGR_CLIENT_UTEST_OBJS:=$(foreach n,$(CLKMGR_CLIENT_UTEST_SRCS),\
+  $(CLKMGR_UTEST_DIR)/$n.o)
+
+CLKMGR_CLIENT_STATE_UTEST:=$(CLKMGR_UTEST_DIR)/utest_client_state
+CLKMGR_CLIENT_UTEST_STATE_SRCS:=client_state
+CLKMGR_CLIENT_UTEST_STATE_OBJS:=$(foreach n,$(CLKMGR_CLIENT_UTEST_STATE_SRCS),\
   $(CLKMGR_UTEST_DIR)/$n.o)
 
 CLKMGR_COMMON_UTEST:=$(CLKMGR_UTEST_DIR)/utest_common
@@ -61,6 +66,14 @@ utest_clkmgr_client: $(CLKMGR_CLIENT_UTEST)
 	$(call Q_UTEST,ClkMgr client C++)$(UVGD)$(CLKMGR_CLIENT_UTEST)\
 	  $(GTEST_NO_COL) $(GTEST_FILTERS)
 
+$(CLKMGR_CLIENT_STATE_UTEST): $(OBJ_DIR)/utest_m.o \
+	$(CLKMGR_CLIENT_UTEST_STATE_OBJS)  | $(CLKMGR_LIB_LA)
+	$(Q_LD)$(CXX) $(LDFLAGS) $^ -Wl,--allow-multiple-definition $(CLKMGR_LIB_A)\
+	  $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS) $(GTEST_LIB_FLAGS) -o $@
+utest_clkmgr_client_state: $(CLKMGR_CLIENT_STATE_UTEST)
+	$(call Q_UTEST,ClkMgr client C++)$(UVGD)$(CLKMGR_CLIENT_STATE_UTEST)\
+	  $(GTEST_NO_COL) $(GTEST_FILTERS)
+
 $(CLKMGR_COMMON_UTEST): $(OBJ_DIR)/utest_m.o $(CLKMGR_COMMON_UTEST_OBJS) \
 	$(CLKMGR_LIB_A) | $(CLKMGR_LIB_LA)
 	$(Q_LD)$(CXX) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CLKMGR_LDLIBS)\
@@ -96,6 +109,7 @@ utest_clkmgr_api: $(CLKMGR_API_UTEST)
 
 endif #GTEST_LIB_FLAGS
 
-CLKMGR_UTESTS:=$(addprefix utest_clkmgr_,client common message proxy api)
+CLKMGR_UTESTS:=$(addprefix utest_clkmgr_,client client_state common message\
+  proxy api)
 .PHONY: $(CLKMGR_UTESTS)
 utest_clkmgr: $(CLKMGR_GEN_SRC) $(CLKMGR_UTESTS)
