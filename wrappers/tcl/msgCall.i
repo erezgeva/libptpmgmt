@@ -44,7 +44,7 @@
 "  method buildTlv { actionField  tlv_id } {\n"
 "    variable m_msg\n"
 "    variable m_tlv\n"
-"    if { $actionField == $ptpmgmt::GET ||"
+"    if { $actionField == [ ptpmgmt::GET_VAL ] ||"
 "         [ ptpmgmt::Message_isEmpty $tlv_id ] } {\n"
 "      return [ $m_msg setAction $actionField $tlv_id ]\n"
 "    }\n"
