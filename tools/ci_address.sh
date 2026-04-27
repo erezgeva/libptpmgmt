@@ -309,7 +309,7 @@ ci_abi_err()
 {
  if [[ -f abi_error ]]; then
    local val="$(cat abi_error)"
-   echo "== Report ABI error $(val) =="
+   echo "== Report ABI error $val =="
    exit $val
  fi
 }
