@@ -12,12 +12,6 @@
 variables:
   USER: builder
 
-deb.bookworm:
-  image: $CI_REGISTRY_IMAGE/deb.bookworm
-  script:
-    - chown -R $USER:$USER ..
-    - su $USER -c tools/ci.sh
-
 deb.trixie:
   image: $CI_REGISTRY_IMAGE/deb.trixie
   script:
@@ -35,12 +29,6 @@ pacmanbuild:
   script:
     - chown -R $USER:$USER .
     - su $USER -c tools/ci.sh
-
-cross.deb.bookworm:
-  image: $CI_REGISTRY_IMAGE/deb.bookworm
-  script:
-    - chown -R $USER:$USER ..
-    - su $USER -c tools/ci_cross.sh
 
 cross.deb.trixie:
   image: $CI_REGISTRY_IMAGE/deb.trixie
