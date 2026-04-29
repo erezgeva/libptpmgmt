@@ -29,8 +29,8 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     lua5.1 lua5.2 lua5.3 dh-python python3-dev php-dev m4 perl ruby pdf2svg\
     astyle cppcheck universal-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl phpunit\
-    python3-demjson lua5.4 valgrind dh-golang reuse vim-gtk3 libgcrypt20-dev\
-    texlive-font-utils libcriterion-dev jq clang gdb abi-dumper gawk wget\
+    lua5.4 valgrind dh-golang reuse vim-gtk3\
+    texlive-font-utils jq clang gdb abi-dumper gawk wget\
     abi-compliance-checker discount chrony cmark-gfm pandoc tcllib $DPKGS &&\
     apt-get upgrade -y --no-install-recommends &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini &&\

@@ -129,7 +129,8 @@ make_docker()
     local -r fname=$srv_ns/$name:latest
   fi
   [[ -z "$use_f" ]] || sed -i "s!^FROM !FROM $use_f!" "$dock_file"
-  cmd docker build $no_cache -f "$dock_file" $args -t $fname .
+  cmd docker build $MY_DOCKER_BUILD_RESOURCES $no_cache -f "$dock_file" $args\
+    -t $fname .
   [[ -z "$use_f" ]] || sed -i "s!^FROM $use_f!FROM !" "$dock_file"
   if [[ -n "$use_srv" ]]; then
     cmd docker push $fname
