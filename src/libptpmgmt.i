@@ -19,11 +19,11 @@
 #include "timeCvrt.h"
 #include "err.h"
 using namespace ptpmgmt;
-static inline BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x) {
+SWIGINTERNINLINE BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x) {
   const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
   return mng != nullptr ? mng->tlvData.get() : nullptr;
 }
-static inline mng_vals_e get_MngTlvId(BaseSigTlv* x) {
+SWIGINTERNINLINE mng_vals_e get_MngTlvId(BaseSigTlv* x) {
   const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
   return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
 }
@@ -214,7 +214,8 @@ _ptpmMkRecVec(SigEvent, SLAVE_TX_EVENT_TIMESTAMPS);
 _ptpmMkRecVec(SigDelay, SLAVE_DELAY_TIMING_DATA_NP);
 
 %define %pointer_dynamic_cast(TYPE1,TYPE2,NAME)
-%inline %{static inline TYPE2* NAME(TYPE1* x){return dynamic_cast<TYPE2*>(x);}%}
+%{SWIGINTERNINLINE TYPE2* NAME(TYPE1* x){return dynamic_cast<TYPE2*>(x);}%}
+TYPE2* NAME(TYPE1* x);
 %enddef
 
 /* convert base management tlv to a specific management tlv structure
@@ -248,7 +249,8 @@ mng_vals_e get_MngTlvId(BaseSigTlv* x);
 #if defined SWIGTCL
 /* Used in wrappers/tcl/msgCall.i on TCL 9 we fail to use GET directly.
    Scripts does use GET properly! */
-%inline %{static inline actionField_e GET_VAL(){return GET;}%}
+%{SWIGINTERNINLINE actionField_e GET_VAL(){return GET;}%}
+actionField_e GET_VAL();
 #endif
 
 #if defined SWIGLUA || defined SWIGTCL
