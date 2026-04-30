@@ -133,12 +133,11 @@ class jsonValue : public jsonValueBase
     jsonValue(bool boolean);
     /**
       * Constractor a null value
-      * @param[in] boolean value
       */
     jsonValue();
     /**
       * Constractor a string value
-      * @param[in] boolean value
+      * @param[in] str string value
       */
     jsonValue(const std::string &str);
     /**
