@@ -335,13 +335,14 @@ add_doxy_spdx()
      local -r hcpy='Erez Geva <ErezGeva2@gmail.com>'
      ;;
  esac
- local -r gfdl='SPDX-License-Identifier: GFDL-1.3-no-invariants-or-later'
+ local -r spdx='SPDX'
+ local -r gfdl="$spdx-License-Identifier: GFDL-1.3-no-invariants-or-later"
  if [[ -n "$(which date 2> /dev/null)" ]]; then
      local -r year="$(date "+%Y")"
  else
     local -r year=2025
  fi
- local -r cpy="   SPDX-FileCopyrightText: Copyright © $year"
+ local -r cpy="   $spdx-FileCopyrightText: Copyright © $year"
  for n in $src/*.html $src/*/*.html
  do
    if test -f "$n"; then

@@ -296,7 +296,7 @@ SRC_FILES!=git ls-files $(foreach n,archlinux debian rpm sample gentoo\
   $(CLKMGR_DIR)/sys_test std_tests/*.c*\
   $(CLKMGR_DIR)/tool $(CLKMGR_DIR)/utest/*.cpp,':!/:$n')\
   ':!:*.gitignore' ':!*/*/test.*' ':!*/*/clkmgr_test.*' ':!*/*/utest.*'\
-  ':!*/*/utestSig.*'
+  ':!*/*/utestSig.*' ':!./REUSE.toml'
 GIT_ROOT!=git rev-parse --show-toplevel
 ifeq ($(GIT_ROOT),$(CURDIR))
 # compare manual source list to git based:
@@ -364,8 +364,9 @@ CYEAR!=$(DATE) "+%Y"
 else
 CYEAR=2024
 endif
-SPDXLI:=SPDX-License-Identifier:
-SPDXCY_BASE:=SPDX-FileCopyrightText: Copyright © $(CYEAR)
+SPDX:=SPDX
+SPDXLI:=$(SPDX)-License-Identifier:
+SPDXCY_BASE:=$(SPDX)-FileCopyrightText: Copyright © $(CYEAR)
 SPDXCY:=$(SPDXCY_BASE) Erez Geva <ErezGeva2@gmail.com>
 SPDXGPL:=GPL-3.0-or-later
 SPDXLGPL:=L$(SPDXGPL)
@@ -704,7 +705,7 @@ endif
 	$(INSTALL_DATA) -D man/phc_ctl.8 $(MANDIR)/phc_ctl$(TOOLS_EXT).8
 	$(INSTALL_FOLDER) $(DOCDIR)
 	cp README.md doc/*.md $(DOCDIR)
-	$(SED) -i  's!\./doc/!./!' $(DOCDIR)/README.md
+	$(SED) -i 's!\./doc/!./!' $(DOCDIR)/README.md
 ifdef DOXYGEN_MINVER
 	$(MKDIR_P) "doc/html"
 	$(RM) doc/html/*.md5 doc/html/*.map

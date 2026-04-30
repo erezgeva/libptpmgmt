@@ -1,0 +1,34 @@
+version = 1
+SPDX-PackageName = "libptpmgmt"
+SPDX-PackageSupplier = "Erez Geva <ErezGeva2@gmail.com>"
+SPDX-PackageDownloadLocation = [ "https://libptpmgmt.nwtime.org", "https://github.com/erezgeva/libptpmgmt", "https://gitlab.com/erezgeva/libptpmgmt", "https://codeberg.org/erezgeva/libptpmgmt", "https://sf.net/p/libptpmgmt" ]
+
+[[annotations]]
+path = "**/changelog"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 © Erez Geva"
+SPDX-License-Identifier = "GFDL-1.3-no-invariants-or-later"
+
+[[annotations]]
+path = "clkmgr/image/**.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2024 © Intel Corporation"
+SPDX-License-Identifier = "GFDL-1.3-no-invariants-or-later"
+
+[[annotations]]
+path = ["debian/co**", "debian/source/format"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 © Erez Geva"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "debian/libchrony.txz"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2024 © Erez Geva"
+SPDX-License-Identifier = "LGPL-2.1-or-later"
+
+[[annotations]]
+path = "rpm/external/libchrony.patch"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023 © Miroslav Lichvar"
+SPDX-License-Identifier = "LGPL-2.1-or-later"
