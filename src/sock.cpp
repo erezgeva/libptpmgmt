@@ -844,18 +844,11 @@ bool SockRaw::initBase()
         return false;
     }
     closeBase();
-    uint16_t port_all = cpu_to_net16(ETH_P_ALL);
-    uint16_t port_ptp = cpu_to_net16(ETH_P_1588);
-    m_fd = socket(AF_PACKET, SOCK_RAW, port_all);
+    const uint16_t port_all = cpu_to_net16(ETH_P_ALL);
+    const uint16_t port_ptp = cpu_to_net16(ETH_P_1588);
+    m_fd = socket(AF_PACKET, SOCK_RAW, 0);
     if(m_fd < 0) {
         PTPMGMT_ERROR_P("socket");
-        return false;
-    }
-    m_addr.sll_ifindex = m_ifIndex;
-    m_addr.sll_family = AF_PACKET;
-    m_addr.sll_protocol = port_all;
-    if(bind(m_fd, (sockaddr *) &m_addr, sizeof m_addr)) {
-        PTPMGMT_ERROR_P("bind");
         return false;
     }
     if(setsockopt(m_fd, SOL_SOCKET, SO_BINDTODEVICE, m_ifName.c_str(),
@@ -880,6 +873,13 @@ bool SockRaw::initBase()
     if(setsockopt(m_fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq,
             sizeof mreq) != 0) {
         PTPMGMT_ERROR_P("PACKET_ADD_MEMBERSHIP ptp_dst_mac");
+        return false;
+    }
+    m_addr.sll_ifindex = m_ifIndex;
+    m_addr.sll_family = AF_PACKET;
+    m_addr.sll_protocol = port_all;
+    if(bind(m_fd, (sockaddr *) &m_addr, sizeof m_addr)) {
+        PTPMGMT_ERROR_P("bind");
         return false;
     }
     // TX
