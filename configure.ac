@@ -649,7 +649,6 @@ AS_VAR_SET([ptpm_alllang_default], ['no'])
 AS_UNSET([SWIG])
 AS_UNSET([SWIG_MINVER])
 AS_UNSET([SWIG_LIB])
-AS_UNSET([SWIG_ARGCARGV_GO])
 
 AC_ARG_WITH([swig],
             [AS_HELP_STRING([--without-swig], [Disable swig])]
@@ -680,12 +679,6 @@ AS_VAR_IF([ptpm_swigbin], ['no'],
    AC_MSG_CHECKING([for swig library])
    AS_VAR_SET([SWIG_LIB], ["`$SWIG -swiglib PTPM_DUMP_ERR`"])
    PTPM_MSG_RESULT([SWIG_LIB])
-
-   PTPM_VAR_SET_IF([SWIG_LIB],
-         [AC_MSG_CHECKING([for swig argcargv])
-          PTPM_NOT_FILE_IF(["$SWIG_LIB/go/argcargv.i"],
-                [AS_VAR_SET([SWIG_ARGCARGV_GO], ['true'])])
-          PTPM_MSG_RESULT([SWIG_ARGCARGV_GO])])
    AS_IF([PTPM_VAR_SET_TEST([SWIG_MINVER]) &&\
           PTPM_VAR_ELSE_TEST([ptpm_with_alllang], ['no'])],
          [AS_VAR_SET([ptpm_alllang_default], ['yes'])])])
@@ -696,7 +689,6 @@ PTPM_MSG_RESULT([ptpm_alllang_default])
 AC_SUBST([SWIG])
 AC_SUBST([SWIG_MINVER])
 AC_SUBST([SWIG_LIB])
-AC_SUBST([SWIG_ARGCARGV_GO])
 
 #----------------------------------------------------------------
 # Tcl

@@ -527,9 +527,6 @@ endif # ASTYLE_MINVER && PERL5_HAVE_TOUCH
 
 ifdef SWIG_MINVER
 SWIG_ALL:=
-ifdef SWIG_ARGCARGV_GO
-go_SFLAGS+=-Iswig/go
-endif #SWIG_ARGCARGV_GO
 
 # SWIG warnings
 # a label defined but not used
