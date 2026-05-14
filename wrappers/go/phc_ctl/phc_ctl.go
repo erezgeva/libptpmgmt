@@ -271,6 +271,8 @@ func do_pins() bool {
                     ret += "periodic output"
                 case ptpmgmt.PTP_PIN_PHY_SYNC:
                     ret += "physical synchronization"
+                default:
+                    ret += fmt.Sprintf("unknown function %d", f)
             }
             ret += fmt.Sprintf(" on channel %d", pin.GetChannel())
         }
