@@ -17,6 +17,7 @@ require 'test/unit'
 
 include Ptpmgmt
 include Utest_help
+BUF_SIZE = 100
 
 class MySigCb < MessageSigTlvCallback
   def initialize
@@ -27,16 +28,16 @@ class MySigCb < MessageSigTlvCallback
     if tlvType != MANAGEMENT then
       return true
     end
+    id = get_MngTlvId(sigTlv)
+    tlv = get_BaseMngTlv(sigTlv)
     # First TLV
-    if get_MngTlvId(sigTlv) == PRIORITY2 then
-      tlv = get_BaseMngTlv(sigTlv)
+    if id == PRIORITY2 then
       pr2 = conv_PRIORITY2(tlv)
       @mask += 1
       return pr2.priority2 != 119; # return false on success!
     end
     # Second TLV
-    if get_MngTlvId(sigTlv) == DOMAIN then
-      tlv = get_BaseMngTlv(sigTlv)
+    if id == DOMAIN then
       domain = conv_DOMAIN(tlv)
       @mask += 10
       return domain.domainNumber != 7; # return false on success!
@@ -51,12 +52,14 @@ end
 class TestPtpmgmtTraverseSig < Test::Unit::TestCase
   def test_traverseSig
     msg = Message.new
-    buf = get2MngTlvsSig()
+    buf = Buf.new(BUF_SIZE)
+    size = get2MngTlvsSig(buf.get(), BUF_SIZE)
+    assert(size > 0, 'get2MngTlvsSig')
     prms = msg.getParams()
     prms.rcvSignaling = true
     prms.filterSignaling = false
-    assert_true(msg.updateParams(prms), 'updateParams')
-    assert_equal(msg.parse(buf.buf, buf.size), MNG_PARSE_ERROR_SIG, 'parse')
+    assert(msg.updateParams(prms), 'updateParams')
+    assert_equal(msg.parse(buf, size), MNG_PARSE_ERROR_SIG, 'parse')
     assert_equal(msg.getSigTlvsCount(), 2, 'getSigTlvsCount')
     assert_equal(msg.getSigTlvType(0), MANAGEMENT, 'getSigTlvType')
     assert_equal(msg.getSigMngTlvType(0), PRIORITY2, 'getSigMngTlvType')
@@ -79,7 +82,7 @@ class TestPtpmgmtTraverseSig < Test::Unit::TestCase
     assert_equal(domain1.domainNumber, 7, 'domain1.domainNumber')
     assert_equal(domain2.domainNumber, 7, 'domain2.domainNumber')
     cb = MySigCb.new()
-    assert_true(!msg.traversSigTlvsCl(cb), 'traversSigTlvsCl')
+    assert(!msg.traversSigTlvsCl(cb), 'traversSigTlvsCl')
     assert_equal(cb.mask(), 11, 'mySigCb mask')
   end
 end

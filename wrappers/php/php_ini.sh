@@ -14,6 +14,7 @@ cat << EOF > $base_dir/php.ini
 [PHP]
 extension=$base_dir/ptpmgmt.so
 extension=$base_dir/clkmgr.so
+extension=$base_dir/utest_help.so
 EOF
 }
 main "$@"

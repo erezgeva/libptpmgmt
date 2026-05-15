@@ -28,10 +28,18 @@ $(PHP_CLKMGR).so: $(PHP_CLKMGR).o $(CLKMGR_LIB_SO)
 SWIG_ALL+=$(PHP_CLKMGR).so
 endif # SKIP_CLKMGR
 ifdef PHP_UNIT
-utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so $(PHP_D)/php.ini
+PHP_UTEST:=$(PHP_D)/utest
+PHP_UTEST_SO:=$(PHP_D)/utest_help.so
+$(PHP_UTEST).o: $(PHP_UTEST).cpp
+	$Q$(call LLC,$(CXXFLAGS_PHP) -Iutest $(PHP_INC_FLAGS))
+$(PHP_UTEST_SO): $(PHP_UTEST).o $(LIBUTEST)
+	$(SWIG_LD)
+utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so $(PHP_UTEST_SO) $(PHP_D)/php.ini
 	$(call Q_UTEST,PHP)LD_PRELOAD=$(ASAN_PRE)./$< PHPRC=$(PHP_D) $(PHP_UNIT)\
 	  $(PHP_D)/utest.php $(PHP_NO_COL) $(PHP_FILTERS)
-endif
+	LD_PRELOAD=$(ASAN_PRE)./$< PHPRC=$(PHP_D) $(PHP_UNIT)\
+	  $(PHP_D)/utestSig.php $(PHP_NO_COL) $(PHP_FILTERS)
+endif # PHP_UNIT
 
 install_php:
 	$Q$(INSTALL_LIB) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHP_SITE)

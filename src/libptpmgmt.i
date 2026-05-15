@@ -19,11 +19,11 @@
 #include "timeCvrt.h"
 #include "err.h"
 using namespace ptpmgmt;
-SWIGINTERNINLINE BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x) {
+SWIGINTERNINLINE const BaseMngTlv* get_BaseMngTlv(const BaseSigTlv* x) {
   const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
   return mng != nullptr ? mng->tlvData.get() : nullptr;
 }
-SWIGINTERNINLINE mng_vals_e get_MngTlvId(BaseSigTlv* x) {
+SWIGINTERNINLINE mng_vals_e get_MngTlvId(const BaseSigTlv* x) {
   const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
   return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
 }
@@ -243,8 +243,8 @@ _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
 /* Convert signaling TLV to management TLV and ID */
-BaseMngTlv* get_BaseMngTlv(BaseSigTlv* x);
-mng_vals_e get_MngTlvId(BaseSigTlv* x);
+const BaseMngTlv* get_BaseMngTlv(const BaseSigTlv* x);
+mng_vals_e get_MngTlvId(const BaseSigTlv* x);
 
 #if defined SWIGTCL
 /* Used in wrappers/tcl/msgCall.i on TCL 9 we fail to use GET directly.

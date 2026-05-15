@@ -14,10 +14,6 @@
 
 #include <cstddef>
 
-struct BufSig {
-    void *buf;
-    size_t size;
-};
-struct BufSig get2MngTlvsSig();
+size_t get2MngTlvsSig(void *buf, size_t sizeBuf);
 
 #endif /* __PTPMGMT_LIBUTEST_H */

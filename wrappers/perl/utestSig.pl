@@ -24,16 +24,16 @@ sub callback
 {
   my ($self, $msg, $tlvType, $sigTlv) = @_;
   return 1 if $tlvType != $PtpMgmtLib::MANAGEMENT;
+  my $id = PtpMgmtLib::get_MngTlvId($sigTlv);
+  my $tlv = PtpMgmtLib::get_BaseMngTlv($sigTlv);
   # First TLV
-  if (PtpMgmtLib::get_MngTlvId($sigTlv) == $PtpMgmtLib::PRIORITY2) {
-    my $tlv = PtpMgmtLib::get_BaseMngTlv($sigTlv);
+  if ($id == $PtpMgmtLib::PRIORITY2) {
     my $pr2 = PtpMgmtLib::conv_PRIORITY2($tlv);
     $self->{mask} += 1;
     return $pr2->swig_priority2_get() != 119; # return false on success!
   }
   # Second TLV
-  if (PtpMgmtLib::get_MngTlvId($sigTlv) == $PtpMgmtLib::DOMAIN) {
-    my $tlv = PtpMgmtLib::get_BaseMngTlv($sigTlv);
+  if ($id == $PtpMgmtLib::DOMAIN) {
     my $domain = PtpMgmtLib::conv_DOMAIN($tlv);
     $self->{mask} += 10;
     return $domain->swig_domainNumber_get() != 7; # return false on success!
@@ -46,16 +46,18 @@ sub callback
 package Testing;
 use base qw(Test::Class);
 use Test::More;
+use constant BUF_SIZE => 100;
 
-sub test_traverseSig : Test(15) {
+sub test_traverseSig : Test(16) {
   my $msg = PtpMgmtLib::Message->new;
-  my $buf = UtestLib::get2MngTlvsSig();
+  my $buf = PtpMgmtLib::Buf->new(BUF_SIZE);
+  my $size = UtestLib::get2MngTlvsSig($buf->get(), BUF_SIZE);
+  ok($size > 0, 'get2MngTlvsSig');
   my $prms = $msg->getParams();
   $prms->swig_rcvSignaling_set(1); # true
   $prms->swig_filterSignaling_set(0); # false
   ok($msg->updateParams($prms), 'updateParams');
-  is($msg->parse($buf->swig_buf_get(), $buf->swig_size_get()),
-    $PtpMgmtLib::MNG_PARSE_ERROR_SIG, 'parse');
+  is($msg->parse($buf, $size), $PtpMgmtLib::MNG_PARSE_ERROR_SIG, 'parse');
   is($msg->getSigTlvsCount(), 2, 'getSigTlvsCount');
   is($msg->getSigTlvType(0), $PtpMgmtLib::MANAGEMENT, 'getSigTlvType');
   is($msg->getSigMngTlvType(0), $PtpMgmtLib::PRIORITY2, 'getSigMngTlvType');
