@@ -59,6 +59,20 @@ cpp_cod(`    MANAGEMENT_t() = default;')dnl
     pmng()tlvData; /**< Management TLV data */
 };
 #endif /* SWIG */
+cpp_cod(`/**')dnl
+cpp_cod(` * Get managment TLV from signaling TLV')dnl
+cpp_cod(` * @param[in] sigTlv pointer to signaling TLV')dnl
+cpp_cod(` * @return pointer to a managment TLV or null')dnl
+cpp_cod(` * @note for scripts, C++ code can simply cast.')dnl
+cpp_cod(` */')dnl
+cpp_cod(`const BaseMngTlv *get_BaseMngTlv(const BaseSigTlv *sigTlv);')dnl
+cpp_cod(`/**')dnl
+cpp_cod(` * Get managment TLV ID from signaling TLV')dnl
+cpp_cod(` * @param[in] sigTlv pointer to signaling TLV')dnl
+cpp_cod(` * @return managment TLV ID or NULL_PTP_MANAGEMENT')dnl
+cpp_cod(` * @note for scripts, C++ code can simply cast.')dnl
+cpp_cod(` */')dnl
+cpp_cod(`mng_vals_e get_MngTlvId(const BaseSigTlv *sigTlv);')dnl
 /** MANAGEMENT_ERROR_STATUS TLV
  * @note: used for error management TLV in a signalling message
  *  management message do not use this structure!

@@ -44,10 +44,9 @@ final class utestSig extends TestCase
 {
     // Tests callHadler with empty TLV
     public function testPtpmgmtTraverseSig(): void {
-        define("BUF_SIZE", 100);
         $msg = new Message();
-        $buf = new Buf(BUF_SIZE);
-        $size = get2MngTlvsSig($buf->get(), BUF_SIZE);
+        $buf = new Buf(100);
+        $size = get2MngTlvsSig($buf->get(), $buf->size());
         $this->assertTrue($size > 0, 'get2MngTlvsSig');
         $prms = $msg->getParams();
         $prms->rcvSignaling = true;

@@ -46,12 +46,11 @@ sub callback
 package Testing;
 use base qw(Test::Class);
 use Test::More;
-use constant BUF_SIZE => 100;
 
 sub test_traverseSig : Test(16) {
   my $msg = PtpMgmtLib::Message->new;
-  my $buf = PtpMgmtLib::Buf->new(BUF_SIZE);
-  my $size = UtestLib::get2MngTlvsSig($buf->get(), BUF_SIZE);
+  my $buf = PtpMgmtLib::Buf->new(100);
+  my $size = UtestLib::get2MngTlvsSig($buf->get(), $buf->size());
   ok($size > 0, 'get2MngTlvsSig');
   my $prms = $msg->getParams();
   $prms->swig_rcvSignaling_set(1); # true

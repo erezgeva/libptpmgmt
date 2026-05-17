@@ -22,6 +22,16 @@ const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask1 = 0xf;
 const uint8_t PORT_COMMUNICATION_AVAILABILITY_t::flagsMask2 = 0xf;
 const uint8_t SLAVE_RX_SYNC_COMPUTED_DATA_t::flagsMask = 0x7;
 
+const BaseMngTlv *get_BaseMngTlv(const BaseSigTlv *tlv)
+{
+    const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(tlv);
+    return mng != nullptr ? mng->tlvData.get() : nullptr;
+}
+mng_vals_e get_MngTlvId(const BaseSigTlv *tlv)
+{
+    const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(tlv);
+    return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
+}
 size_t SLAVE_RX_SYNC_TIMING_DATA_rec_t::size()
 {
     return sizeof sequenceId + 2 * Timestamp_t::size() +

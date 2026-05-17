@@ -19,14 +19,6 @@
 #include "timeCvrt.h"
 #include "err.h"
 using namespace ptpmgmt;
-SWIGINTERNINLINE const BaseMngTlv* get_BaseMngTlv(const BaseSigTlv* x) {
-  const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
-  return mng != nullptr ? mng->tlvData.get() : nullptr;
-}
-SWIGINTERNINLINE mng_vals_e get_MngTlvId(const BaseSigTlv* x) {
-  const MANAGEMENT_t *mng = dynamic_cast<const MANAGEMENT_t *>(x);
-  return mng != nullptr ? mng->managementId : NULL_PTP_MANAGEMENT;
-}
 %}
 
 /* Unrecognized C++ keywords */
@@ -222,14 +214,14 @@ TYPE2* NAME(TYPE1* x);
  * See documenting of conv_XXX functions in cnvFunc.h and
  *  Doxygen generated documents
  */
-#define _ptpmCaseUF(n) %pointer_dynamic_cast(BaseMngTlv, n##_t, conv_##n);
+#define _ptpmCaseUF(n) %pointer_dynamic_cast(BaseMngTlv, n##_t, conv_##n)
 #define A(n, v, sc, a, sz, f) _ptpmCase##f(n)
 %include "ids.h"
 /* convert base signalling tlv to a specific signalling tlv structure
  * See documenting of conv_XXX functions in cnvFunc.h and
  *  Doxygen generated documents
  */
-#define _ptpmSigCnv(n) %pointer_dynamic_cast(BaseSigTlv, n##_t, conv_##n);
+#define _ptpmSigCnv(n) %pointer_dynamic_cast(BaseSigTlv, n##_t, conv_##n)
 _ptpmSigCnv(ORGANIZATION_EXTENSION)
 _ptpmSigCnv(PATH_TRACE)
 _ptpmSigCnv(ALTERNATE_TIME_OFFSET_INDICATOR)
@@ -242,9 +234,6 @@ _ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
 _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
-/* Convert signaling TLV to management TLV and ID */
-const BaseMngTlv* get_BaseMngTlv(const BaseSigTlv* x);
-mng_vals_e get_MngTlvId(const BaseSigTlv* x);
 
 #if defined SWIGTCL
 /* Used in wrappers/tcl/msgCall.i on TCL 9 we fail to use GET directly.

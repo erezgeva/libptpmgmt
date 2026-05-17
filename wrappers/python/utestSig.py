@@ -18,12 +18,12 @@ class MySigCb(MessageSigTlvCallback):
   def __init__(self):
     MessageSigTlvCallback.__init__(self)
     self.mask = 0
-  def callback(msg, tlvType, sigTlv):
+  def callback(self, msg, tlvType, sigTlv):
     if tlvType != MANAGEMENT:
       return True # return true on failure!
-    # First TLV
     id = get_MngTlvId(sigTlv)
     tlv = get_BaseMngTlv(sigTlv)
+    # First TLV
     if id == PRIORITY2:
       pr2 = conv_PRIORITY2(tlv)
       self.mask += 1
@@ -37,10 +37,9 @@ class MySigCb(MessageSigTlvCallback):
 
 class TestPtpmgmtTraverseSig(unittest.TestCase):
   def test_traverseSig(self):
-    BUF_SIZE = 100
     msg = Message()
-    buf = Buf(BUF_SIZE)
-    size = utest_help.get2MngTlvsSig(buf(), BUF_SIZE)
+    buf = Buf(100)
+    size = utest_help.get2MngTlvsSig(buf(), buf.size())
     assert size > 0, 'get2MngTlvsSig'
     prms = msg.getParams()
     prms.rcvSignaling = True
@@ -68,10 +67,9 @@ class TestPtpmgmtTraverseSig(unittest.TestCase):
     domain2 = conv_DOMAIN(mngTlv1_2)
     assert domain1.domainNumber == 7, 'domain1.domainNumber'
     assert domain2.domainNumber == 7 , 'domain2.domainNumber'
-    # TODO Swig::DirectorMethodException
-    #cb = MySigCb()
-    #assert not msg.traversSigTlvsCl(cb), 'traversSigTlvsCl'
-    #assert cb.mask() == 11, 'mySigCb mask'
+    cb = MySigCb()
+    assert not msg.traversSigTlvsCl(cb), 'traversSigTlvsCl'
+    assert cb.mask == 11, 'mySigCb mask'
 
 if __name__ == "__main__":
   unittest.main() # run all tests

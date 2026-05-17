@@ -17,7 +17,6 @@ require 'test/unit'
 
 include Ptpmgmt
 include Utest_help
-BUF_SIZE = 100
 
 class MySigCb < MessageSigTlvCallback
   def initialize
@@ -52,8 +51,8 @@ end
 class TestPtpmgmtTraverseSig < Test::Unit::TestCase
   def test_traverseSig
     msg = Message.new
-    buf = Buf.new(BUF_SIZE)
-    size = get2MngTlvsSig(buf.get(), BUF_SIZE)
+    buf = Buf.new(100)
+    size = get2MngTlvsSig(buf.get(), buf.size())
     assert(size > 0, 'get2MngTlvsSig')
     prms = msg.getParams()
     prms.rcvSignaling = true
