@@ -74,9 +74,8 @@ final class utestSig extends TestCase
         $domain2 = conv_DOMAIN($mngTlv1_2);
         $this->assertEquals($domain1->domainNumber, 7, 'domain1.domainNumber');
         $this->assertEquals($domain2->domainNumber, 7, 'domain2.domainNumber');
-        # TODO the callback crash when calling get_MngTlvId() or get_BaseMngTlv()
-        #$cb = new MySigCb();
-        #$this->assertFalse($msg->traversSigTlvsCl($cb), 'traversSigTlvsCl');
-        #$this->assertEquals($cb->mask, 11, 'mySigCb mask');
+        $cb = new MySigCb();
+        $this->assertFalse($msg->traversSigTlvsCl($cb), 'traversSigTlvsCl');
+        $this->assertEquals($cb->mask, 11, 'mySigCb mask');
     }
 }
