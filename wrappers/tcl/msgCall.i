@@ -8,6 +8,10 @@
  * @copyright © 2022 Erez Geva
  */
 
+/* On TCL 9 we fail to use GET directly. Scripts does use GET properly! */
+%{SWIGINTERNINLINE actionField_e GET_VAL(){return GET;}%}
+actionField_e GET_VAL();
+
 %header %{static char MessageDispatcherCode[] =
 "::oo::class create ptpmgmt::MessageDispatcher {\n"
 "  method callHadler { msg { tlv_id -1 } { tlv {} } } {\n"

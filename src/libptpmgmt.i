@@ -62,13 +62,6 @@ using namespace ptpmgmt;
 %apply double { float_freq };
 /* Support Options::parse_options in scripts */
 %apply (int ARGC, char **ARGV) {(int argc, char *const argv[])}
-#ifdef SWIGPHP /* TODO fixed by SWIG 4.5.0 in Lib/php/php.swg */
-%typemap(directorin) SWIGTYPE *
-%{
-  ZVAL_UNDEF($input);
-  SWIG_SetPointerZval($input, (void *)($1), $1_descriptor, $owner);
-%}
-#endif
 
 /*************************************************************************
  * Handle ignores and renames per script language.
@@ -241,13 +234,6 @@ _ptpmSigCnv(SLAVE_RX_SYNC_COMPUTED_DATA)
 _ptpmSigCnv(SLAVE_TX_EVENT_TIMESTAMPS)
 _ptpmSigCnv(CUMULATIVE_RATE_RATIO)
 _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
-
-#if defined SWIGTCL
-/* Used in wrappers/tcl/msgCall.i on TCL 9 we fail to use GET directly.
-   Scripts does use GET properly! */
-%{SWIGINTERNINLINE actionField_e GET_VAL(){return GET;}%}
-actionField_e GET_VAL();
-#endif
 
 #if defined SWIGLUA || defined SWIGTCL
 /* MessageDispatcher and MessageBuilder classes per language */

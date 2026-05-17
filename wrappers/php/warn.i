@@ -8,6 +8,13 @@
  *
  */
 
+/* TODO fixed by SWIG 4.5.0 in Lib/php/php.swg */
+%typemap(directorin) SWIGTYPE *
+%{
+  ZVAL_UNDEF($input);
+  SWIG_SetPointerZval($input, (void *)($1), $1_descriptor, $owner);
+%}
+
 /* PHP already use Error */
 %rename(c_error) Error;
 /* PHP rename to 'c_empty' */
