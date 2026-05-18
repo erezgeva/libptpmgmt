@@ -10,11 +10,9 @@
 main()
 {
 local -r base_dir="$(dirname "$(realpath "$0")")"
-cat << EOF > $base_dir/php.ini
-[PHP]
-extension=$base_dir/ptpmgmt.so
-extension=$base_dir/clkmgr.so
-extension=$base_dir/utest_help.so
-EOF
+echo '[PHP]' > $base_dir/php.ini
+local n
+for n in ptpmgmt $@
+do echo "extension=$base_dir/$n.so" >> $base_dir/php.ini;done
 }
 main "$@"

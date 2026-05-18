@@ -18,6 +18,7 @@
 # - ci_abi:         Compart ABI of current library with last version
 # - ci_abi_err:     Report ABI error
 # - ci_cross:       CI cross compilation
+# - ci_skip:        CI skip flags
 # - add_doxy_spdx:  Add SPDX header to doxygen generated files
 # - utest_address:  Run unit tests with Address Sanitizer
 # - utest_valgrid:  Run unit tests with valgrind tool
@@ -320,6 +321,27 @@ ci_cross()
  sudo debian/inst_arc.sh arm64
  make deb_arc arm64
  config_report
+}
+###############################################################################
+# CI skip
+skip_build()
+{
+ echo "########################## $@"
+ emk config "$@"
+ config_report
+ emk
+ emk checkall
+ emk utest
+ emk install DESTDIR=1
+ emk distclean
+}
+ci_skip()
+{
+ mkdir -p 1
+ skip_build disable-clkmgr
+ skip_build disable-alllang enable-lsb-init
+ skip_build without-tcl without-python3 without-ruby enable-openrc
+ skip_build without-perl5 without-lua without-go without-php
 }
 ###############################################################################
 # Add SPDX header to doxygen generated files

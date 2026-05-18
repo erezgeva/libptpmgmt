@@ -46,6 +46,23 @@ jobs:
         chown -R $USER:$USER ..
         su $USER -c tools/ci.sh
 
+  skip:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/erezgeva/deb.forky:latest
+
+    steps:
+
+    - name: checkout repository
+      uses: actions/checkout@v6
+      with:
+        persist-credentials: false
+
+    - name: skip test
+      run: |
+        chown -R $USER:$USER .
+        su $USER -c tools/ci_skip.sh
+
   cross:
     runs-on: ubuntu-24.04
     strategy:

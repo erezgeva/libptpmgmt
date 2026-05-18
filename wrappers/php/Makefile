@@ -10,14 +10,16 @@
 
 PHP_D:=wrappers/php
 PHP_NAME:=$(PHP_D)/$(SWIG_NAME).cpp
+PHP_LNAME_SO:=$(PHP_LNAME).so
 php_SFLAGS+=-php7
 $(PHP_LNAME).o: $(PHP_NAME) $(HEADERS)
 	$Q$(call LLC,$(CXXFLAGS_PHP) -I$(PHP_D) $(PHP_INC_FLAGS))
-$(PHP_LNAME).so: $(PHP_LNAME).o $(LIB_NAME_SO)
+$(PHP_LNAME_SO): $(PHP_LNAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
-SWIG_ALL+=$(PHP_LNAME).so
+SWIG_ALL+=$(PHP_LNAME_SO)
 $(PHP_D)/php.ini:
-	$(Q)$(PHP_D)/php_ini.sh
+	$(Q)$(PHP_D)/php_ini.sh $(if $(SKIP_CLKMGR),,$(CLKMGR_NAME))\
+	  $(if $(PHP_UNIT),utest_help)
 ifndef SKIP_CLKMGR
 PHP_CLKMGR:=$(PHP_D)/$(CLKMGR_NAME)
 $(PHP_CLKMGR).o: $(PHP_CLKMGR).cpp
@@ -32,9 +34,9 @@ PHP_UTEST:=$(PHP_D)/utest
 PHP_UTEST_SO:=$(PHP_D)/utest_help.so
 $(PHP_UTEST).o: $(PHP_UTEST).cpp
 	$Q$(call LLC,$(CXXFLAGS_PHP) -Iutest $(PHP_INC_FLAGS))
-$(PHP_UTEST_SO): $(PHP_UTEST).o $(LIBUTEST)
+$(PHP_UTEST_SO): $(PHP_UTEST).o $(LIBUTEST) $(LIB_NAME_SO)
 	$(SWIG_LD)
-utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so $(PHP_UTEST_SO) $(PHP_D)/php.ini
+utest_php: $(LIB_NAME_SO) $(PHP_LNAME_SO) $(PHP_UTEST_SO) $(PHP_D)/php.ini
 	$(call Q_UTEST,PHP)LD_PRELOAD=$(ASAN_PRE)./$< PHPRC=$(PHP_D) $(PHP_UNIT)\
 	  $(PHP_D)/utest.php $(PHP_NO_COL) $(PHP_FILTERS)
 	LD_PRELOAD=$(ASAN_PRE)./$< PHPRC=$(PHP_D) $(PHP_UNIT)\
@@ -42,7 +44,7 @@ utest_php: $(LIB_NAME_SO) $(PHP_LNAME).so $(PHP_UTEST_SO) $(PHP_D)/php.ini
 endif # PHP_UNIT
 
 install_php:
-	$Q$(INSTALL_LIB) -D $(PHP_LNAME).so -t $(DESTDIR)$(PHP_SITE)
+	$Q$(INSTALL_LIB) -D $(PHP_LNAME_SO) -t $(DESTDIR)$(PHP_SITE)
 ifndef SKIP_CLKMGR
 	$(INSTALL_LIB) -D $(PHP_CLKMGR).so -t $(DESTDIR)$(PHP_SITE)
 endif

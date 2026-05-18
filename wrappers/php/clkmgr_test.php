@@ -13,7 +13,7 @@
  * To run in development environment:
  * LD_PRELOAD=../../.libs/libclkmgr.so PHPRC=. ./clkmgr_test.php
  *
- * Run ./php_ini.sh to create php.ini
+ * Run './php_ini.sh clkmgr' to create php.ini
  *
  */
 
