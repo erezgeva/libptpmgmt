@@ -964,7 +964,7 @@ AC_ARG_WITH([perl5],
             [AS_HELP_STRING([--with-perl5=path],
                             [Set location of Perl5 executable])],
             [AS_VAR_COPY([ptpm_perlbin], [withval])],
-            [AS_VAR_SET([ptpm_perlbin], ['yes'])])
+            [AS_VAR_COPY([ptpm_perlbin], [ptpm_alllang_default])])
 
 AS_VAR_IF([ptpm_perlbin], ['no'],
   [AC_MSG_NOTICE([Disabling Perl5])],
