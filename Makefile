@@ -282,8 +282,8 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/*\
   */*.opt configure.ac src/*.m4 */*.md t*/*.sh w*/*/*.sh swig/*/*\
   */*.i */*/msgCall.i */*/warn.i $(CLKMGR_DIR)/*/*.i man/*\
   $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
-  $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/*\
-  */*/*test*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp\
+  $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/* */go/*unit_test/*.go\
+  */*/*gtest*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp\
   */*/*/phc*.go\
   $(CLKMGR_DIR)/proxy/*.*.in $(CLKMGR_DIR)/proxy/*.sh)\
   $(CLKMGR_DIR)/utest/Makefile\
@@ -876,7 +876,8 @@ CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
   archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\
   $(LIB_D) wrappers/perl/auto $(CLKMGR_DIR)/doc wrappers/go/$(CLKMGR_NAME)\
-  wrappers/go/$(SWIG_LNAME) $(filter-out %.md,$(wildcard doc/*))
+  wrappers/go/$(SWIG_LNAME) wrappers/go/utest_help\
+  $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
   ltmain.sh $(wildcard src/config.h* config.*)
 DISTCLEAN_DIRS:=autom4te.cache m4 $(CLKMGR_DIR)/sim

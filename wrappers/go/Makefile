@@ -81,10 +81,33 @@ $(GO_CLKMGR_GTEST)/clkmgr_gtest: $(GO_CLKMGR_GTEST)/go.sum\
 SWIG_ALL+=$(GO_CLKMGR_GTEST)/clkmgr_gtest
 endif # SKIP_CLKMGR
 
-utest_go: export CGO_LDFLAGS+=$(PWD)/$(LIB_NAME_SO)
-utest_go: $(GO_D)/unit_test/go.mod
+$(GO_D)/utest_help/go.mod:
+	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
+	cd $(@D)&&$(GO_BIN) mod init utest_help $(Q_ERR);fi&&\
+	$(GO_BIN) mod tidy $(Q_ERR)
+GO_UTEST_SRC:=$(GO_D)/utest_help/utest.cpp
+$(GO_UTEST_SRC): $(GO_D)/utest.cpp | $(GO_D)/utest_help/go.mod $(LIBUTEST)
+	$Q$(MKDIR_P) $(@D)
+	cp $^ $@
+	cp $(GO_D)/utest_help.go $(@D)
+$(GO_D)/sig_unit_test/go.mod: $(GO_D)/$(SWIG_LNAME)/go.mod $(GO_SRC) \
+	  $(GO_D)/utest_help/go.mod $(GO_UTEST_SRC)
+	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then $(TOUCH) $(@F)\
+	;else $(GO_BIN) mod init sig_unit_test $(Q_ERR)&&\
+	$(GO_BIN) mod edit -replace $(SWIG_LNAME)=../$(SWIG_LNAME)&&\
+	$(GO_BIN) mod edit -replace utest_help=../utest_help;fi&&\
+	$(GO_BIN) mod tidy $(Q_ERR)
+utest_go_sig: export CGO_LDFLAGS+=$(PWD)/$(LIB_NAME_SO) $(PWD)/$(LIBUTEST)
+utest_go_sig: export CGO_CXXFLAGS+=-I$(PWD)/utest
+utest_go_sig: $(GO_D)/sig_unit_test/go.mod
+	$(call Q_UTEST,GO SIG)
+	export LD_PRELOAD="$(PWD)/$(LIB_NAME_SO)":"$(PWD)/$(LIBUTEST)"
+	cd $(GO_D)/sig_unit_test&&$(GO_BIN) test .
+utest_go0: export CGO_LDFLAGS+=$(PWD)/$(LIB_NAME_SO)
+utest_go0: $(GO_D)/unit_test/go.mod
 	$(call Q_UTEST,GO)export LD_PRELOAD="$(PWD)/$(LIB_NAME_SO)"
 	cd $(GO_D)/unit_test&&$(GO_BIN) test .
+utest_go: utest_go0 utest_go_sig
 
 # Restore $(SWIG_NAME).h include after converting to <$(SWIG_LNAME)/xx.h>
 SWIG_INC_IN:=$(c_inc) <$(SWIG_LNAME)/$(SWIG_NAME).h>

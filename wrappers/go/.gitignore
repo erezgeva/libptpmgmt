@@ -8,6 +8,7 @@
 /*.go
 /ptpmgmt/
 /clkmgr/
+/utest_help/
 /gtest/gtest
 /phc_ctl/phc_ctl
 /clkmgr_gtest/clkmgr_gtest
