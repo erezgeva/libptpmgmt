@@ -31,9 +31,16 @@ $$(LUA_CLKMGR_$1): $(LUA_D)/$1/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_CLKMGR_$1)
 endif # SKIP_CLKMGR
-utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1)
+$(LUA_D)/$1/utest.o: $(LUA_D)/utest.cpp
+	$Q$(MKDIR_P) $(LUA_D)/$1
+	$$(call LLC,$$(CXXFLAGS_LUA) $$(LUA_$$(subst .,_,$1)_INC_FLAGS) -Iutest)
+$(LUA_D)/$1/utest_help.so: $(LUA_D)/$1/utest.o $(LIBUTEST)
+	$$(SWIG_LD)
+utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1) $(LUA_D)/$1/utest_help.so
 	$$(call Q_UTEST,Lua$1)LD_PRELOAD=$(ASAN_PRE)./$$< LUA_CPATH="$(LUA_D)/$1/?.so;;"\
 	  $(UVGD)lua$1 $(LUA_D)/utest.lua $(LUA_FILTERS)
+	LD_PRELOAD=$(ASAN_PRE)./$$<:$(LUA_D)/$1/utest_help.so\
+	  LUA_CPATH="$(LUA_D)/$1/?.so;;" $(UVGD)lua$1 $(LUA_D)/utestSig.lua $(LUA_FILTERS)
 .PHONY: utest_lua_$1
 
 endef
@@ -53,16 +60,21 @@ $(LUA_LIB): $(LUA_D)/$(SWIG_NAME).o $(LIB_NAME_SO)
 SWIG_ALL+=$(LUA_LIB)
 ifndef SKIP_CLKMGR
 $(LUA_D)/$(CLKMGR_NAME).o: $(LUA_D)/$(CLKMGR_NAME).cpp
-	$Q$(MKDIR_P) $(LUA_D)
-	$(call LLC,$(CXXFLAGS_LUA) -I$(LUA_D) $(CLKMGR_CXXFLAGS))
+	$Q$(call LLC,$(CXXFLAGS_LUA) -I$(LUA_D) $(CLKMGR_CXXFLAGS))
 $(LUA_D)/$(CLKMGR_NAME).so: $(LUA_D)/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(LUA_D)/$(CLKMGR_NAME).so
 endif # SKIP_CLKMGR
 ifdef LUA_UNIT
-utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB)
+$(LUA_D)/utest.o: $(LUA_D)/utest.cpp
+	$Q$(call LLC,$(CXXFLAGS_LUA) -Iutest)
+$(LUA_D)/utest_help.so: $(LUA_D)/utest.o $(LIBUTEST)
+	$(SWIG_LD)
+utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB) $(LUA_D)/utest_help.so
 	$(call Q_UTEST,Lua)LD_PRELOAD=$(ASAN_PRE)./$< LUA_CPATH="$(LUA_D)/?.so;;"\
 	  $(LUA_BIN) $(UVGD)$(LUA_D)/utest.lua $(LUA_FILTERS)
+	LD_PRELOAD=$(ASAN_PRE)./$<:$(LUA_D)/utest_help.so LUA_CPATH="$(LUA_D)/?.so;;"\
+	  $(LUA_BIN) $(UVGD)$(LUA_D)/utestSig.lua $(LUA_FILTERS)
 endif # LUA_UNIT
 endif # LUA_VER
 utest_lua: utest_lua_a $(addprefix utest_lua_,$(LUA_UNIT_VERS))
