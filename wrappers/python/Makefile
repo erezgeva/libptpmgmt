@@ -20,7 +20,7 @@ PY_SO_3:=$(PY_D)/3/$(PY_LIB_NAME).so
 $(PY_SO_3)_LDLIBS:=$(PY3_LIB_FLAGS)
 PY_INC_BASE_3:=$(subst -I,,$(firstword $(PY3_INC_FLAGS)))
 $(PY_BASE_3).o: $(PY_BASE).cpp $(HEADERS)
-	$Q$(MKDIR_P) $(PY_D)/3
+	$Q$(MKDIR_P) "$(PY_D)/3"
 	$(call LLC,$(CXXFLAGS_PY) -I$(PY_D) $(PY3_INC_FLAGS))
 $(PY_SO_3): $(PY_BASE_3).o $(LIB_NAME_SO)
 	$(SWIG_LD)
@@ -32,7 +32,7 @@ PY_CLKMGR_3:=$(PY_D)/3/$(CLKMGR_NAME)
 PY_CLKMGR_SO_3:=$(PY_D)/3/$(PY_CLKMGRLIB_NAME).so
 $(PY_CLKMGR_SO_3)_LDLIBS:=$(PY3_LIB_FLAGS)
 $(PY_CLKMGR_3).o: $(PY_CLKMGR).cpp
-	$Q$(MKDIR_P) $(PY_D)/3
+	$Q$(MKDIR_P) "$(PY_D)/3"
 	$(call LLC,$(CXXFLAGS_PY) -I$(PY_D) $(PY3_INC_FLAGS) $(CLKMGR_CXXFLAGS))
 $(PY_CLKMGR_SO_3): $(PY_CLKMGR_3).o $(CLKMGR_LIB_SO)
 	$(SWIG_LD)
@@ -43,7 +43,7 @@ PY_UTEST_3:=$(PY_D)/3/utest
 PY_UTEST_SO_3:=$(PY_D)/3/_utest_help.so
 $(PY_UTEST_SO_3)_LDLIBS:=$(PY3_LIB_FLAGS)
 $(PY_UTEST_3).o: $(PY_UTEST).cpp
-	$Q$(MKDIR_P) $(PY_D)/3
+	$Q$(MKDIR_P) "$(PY_D)/3"
 	$(call LLC,$(CXXFLAGS_PY) -Iutest $(PY3_INC_FLAGS))
 $(PY_UTEST_SO_3): $(PY_UTEST_3).o $(LIBUTEST)
 	$(SWIG_LD)

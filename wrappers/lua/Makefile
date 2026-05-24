@@ -16,7 +16,7 @@ LUA_LIB_$1:=$(LUA_D)/$1/$(SWIG_LIB_NAME)
 $$(LUA_LIB_$1)_LDLIBS:=-Wl,-soname,$$(LUA_FLIB_$1)$(SONAME)\
   $$(LUA_$$(subst .,_,$1)_LIB_FLAGS)
 $(LUA_D)/$1/$(SWIG_NAME).o: $(LUA_D)/$(SWIG_NAME).cpp $(HEADERS)
-	$Q$(MKDIR_P) $(LUA_D)/$1
+	$Q$(MKDIR_P) "$(LUA_D)/$1"
 	$$(call LLC,$$(CXXFLAGS_LUA) $$(LUA_$$(subst .,_,$1)_INC_FLAGS))
 $$(LUA_LIB_$1): $(LUA_D)/$1/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$$(SWIG_LD)
@@ -25,14 +25,14 @@ ifndef SKIP_CLKMGR
 LUA_CLKMGR_$1:=$(LUA_D)/$1/$(CLKMGR_NAME).so
 LUA_FCLKMGR_$1:=liblua$1-$(CLKMGR_NAME).so
 $(LUA_D)/$1/$(CLKMGR_NAME).o: $(LUA_D)/$(CLKMGR_NAME).cpp
-	$Q$(MKDIR_P) $(LUA_D)/$1
+	$Q$(MKDIR_P) "$(LUA_D)/$1"
 	$$(call LLC,$$(CXXFLAGS_LUA) $$(LUA_$$(subst .,_,$1)_INC_FLAGS) $(CLKMGR_CXXFLAGS))
 $$(LUA_CLKMGR_$1): $(LUA_D)/$1/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_CLKMGR_$1)
 endif # SKIP_CLKMGR
 $(LUA_D)/$1/utest.o: $(LUA_D)/utest.cpp
-	$Q$(MKDIR_P) $(LUA_D)/$1
+	$Q$(MKDIR_P) "$(LUA_D)/$1"
 	$$(call LLC,$$(CXXFLAGS_LUA) $$(LUA_$$(subst .,_,$1)_INC_FLAGS) -Iutest)
 $(LUA_D)/$1/utest_help.so: $(LUA_D)/$1/utest.o $(LIBUTEST)
 	$$(SWIG_LD)

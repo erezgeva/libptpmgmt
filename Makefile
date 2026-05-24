@@ -612,7 +612,7 @@ ifndef DOTTOOL
 	$(SED) -i 's!^\$(hash)HAVE_DOT\s.*!HAVE_DOT               = NO!' tools/doxygen*cfg
 endif
 ifdef HOME # Create the cache folder for the fontconfig library
-	$Q$(MKDIR_P) $(HOME)/.cache/fontconfig
+	$Q$(MKDIR_P) "$(HOME)/.cache/fontconfig"
 endif
 	$(Q_DOXY)$(DOXYGEN) tools/doxygen.cfg $(Q_OUT)
 ifndef SKIP_CLKMGR

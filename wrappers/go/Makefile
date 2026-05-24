@@ -37,10 +37,10 @@ go_SFLAGS+=-go
 
 GO_SRC:=$(GO_D)/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 $(GO_SRC): $(GO_D)/$(SWIG_NAME).cpp | $(LIB_NAME_LA)
-	$Q$(MKDIR_P) $(@D)
+	$Q$(MKDIR_P) "$(@D)"
 	cp $^ $(GO_D)/$(SWIG_LNAME).go $(GO_D)/$(SWIG_NAME).h $(@D)
 $(GO_D)/$(SWIG_LNAME)/go.mod:
-	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
+	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) "$(@D)"&&\
 	cd $(@D)&&$(GO_BIN) mod init $(SWIG_LNAME) $(Q_ERR);fi
 $(foreach n,gtest unit_test phc_ctl,$(GO_D)/$n/go.mod):\
 	  $(GO_D)/$(SWIG_LNAME)/go.mod $(GO_SRC)
@@ -60,10 +60,10 @@ GO_CLKMGR_DIR:=$(GO_D)/$(CLKMGR_NAME)
 GO_CLKMGR_SRC:=$(GO_CLKMGR_DIR)/$(CLKMGR_NAME).cpp
 GO_CLKMGR_GTEST:=$(GO_D)/clkmgr_gtest
 $(GO_CLKMGR_SRC): $(GO_D)/$(CLKMGR_NAME).cpp | $(CLKMGR_LIB_LA)
-	$Q$(MKDIR_P) $(@D)
+	$Q$(MKDIR_P) "$(@D)"
 	cp $^ $(GO_D)/$(CLKMGR_NAME).go $(@D)
 $(GO_CLKMGR_DIR)/go.mod:
-	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
+	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) "$(@D)"&&\
 	cd $(@D)&&$(GO_BIN) mod init $(CLKMGR_NAME) $(Q_ERR);fi
 $(GO_CLKMGR_GTEST)/go.mod: $(GO_CLKMGR_DIR)/go.mod $(GO_CLKMGR_SRC)
 	$(Q_GEN)cd $(@D)&&if [ -f $(@F) ];then $(TOUCH) $(@F)\
@@ -82,12 +82,12 @@ SWIG_ALL+=$(GO_CLKMGR_GTEST)/clkmgr_gtest
 endif # SKIP_CLKMGR
 
 $(GO_D)/utest_help/go.mod:
-	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) $(@D)&&\
+	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) "$(@D)"&&\
 	cd $(@D)&&$(GO_BIN) mod init utest_help $(Q_ERR);fi&&\
 	$(GO_BIN) mod tidy $(Q_ERR)
 GO_UTEST_SRC:=$(GO_D)/utest_help/utest.cpp
 $(GO_UTEST_SRC): $(GO_D)/utest.cpp | $(GO_D)/utest_help/go.mod $(LIBUTEST)
-	$Q$(MKDIR_P) $(@D)
+	$Q$(MKDIR_P) "$(@D)"
 	cp $^ $@
 	cp $(GO_D)/utest_help.go $(@D)
 $(GO_D)/sig_unit_test/go.mod: $(GO_D)/$(SWIG_LNAME)/go.mod $(GO_SRC) \
