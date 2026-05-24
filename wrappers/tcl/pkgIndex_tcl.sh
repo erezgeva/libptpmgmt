@@ -14,13 +14,16 @@ local ver_maj ver_min
 . $base/../../tools/version
 if [[ -n "$1" ]]; then
   local -r file=$1/pkgIndex.tcl
+  local -r pwds="$PWD $1"
 else
   local -r file=pkgIndex.tcl
+  local -r pwds="$PWD"
 fi
 local -r ver="$ver_maj.$ver_min"
-cat << EOF > $file
-package ifneeded ptpmgmt $ver [list load [file join $PWD $1 ptpmgmt.so]]
-package ifneeded clkmgr $ver [list load [file join $PWD $1 clkmgr.so]]
-EOF
+local l txt
+for l in ptpmgmt clkmgr utest_help
+do txt+="package ifneeded $l $ver [list load [file join $pwds $l.so]]\n"
+done
+printf "$txt" > $file
 }
 main "$@"

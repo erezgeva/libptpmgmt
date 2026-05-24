@@ -9,6 +9,7 @@
 ###############################################################################
 
 TCL_D:=wrappers/tcl
+TCLDIR:=$(DESTDIR)$(TCL_SITE)/$(SWIG_LNAME)
 TCL_NAME:=$(TCL_D)/$(SWIG_NAME).cpp
 TCL_LNAME:=$(TCL_D)/$(SWIG_LNAME)
 tcl_SFLAGS+=-tcl8 -namespace -pkgversion $(PACKAGE_VERSION)
@@ -27,7 +28,13 @@ $(TCL_CLKMGR).so: $(TCL_CLKMGR).o $(CLKMGR_LIB_SO)
 SWIG_ALL+=$(TCL_CLKMGR).so
 TCLDIR_CLKMGR:=$(DESTDIR)$(TCL_SITE)/$(CLKMGR_NAME)
 endif # SKIP_CLKMGR
-TCLDIR:=$(DESTDIR)$(TCL_SITE)/$(SWIG_LNAME)
+TCL_UTEST:=$(TCL_D)/utest
+TCL_UTEST_SO:=$(TCL_D)/utest_help.so
+$(TCL_UTEST_SO)_LDLIBS:=$(TCL_LIB_FLAGS)
+$(TCL_UTEST).o: $(TCL_UTEST).cpp
+	$Q$(call LLC,$(CXXFLAGS_TCL) -Iutest $(TCL_INC_FLAGS))
+$(TCL_UTEST_SO): $(TCL_UTEST).o $(LIBUTEST)
+	$(SWIG_LD)
 pkgIndex:=if {![package vsatisfies [package provide Tcl] $(TCL_MINVER)]} {return}\n
 clkmgr_pkgIndex:=$(pkgIndex)
 pkgIndex+=package ifneeded $(SWIG_LNAME) $(PACKAGE_VERSION)
@@ -36,9 +43,11 @@ pkgIndex+=[list load [file join $$dir $(SWIG_LIB_NAME)]]\n
 clkmgr_pkgIndex+=[list load [file join $$dir $(CLKMGR_NAME).so]]\n
 $(TCL_D)/pkgIndex.tcl:
 	$(Q)$(TCL_D)/pkgIndex_tcl.sh $(TCL_D)
-utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so $(TCL_D)/pkgIndex.tcl
+utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so $(TCL_UTEST_SO) $(TCL_D)/pkgIndex.tcl
 	$(call Q_UTEST,TCL)LD_PRELOAD=$(ASAN_PRE)./$<\
 	  TCLLIBPATH=$(TCL_D)$(UVGD)$(TCL_D)/utest.tcl $(TCL_FILTERS)
+	LD_PRELOAD=$(ASAN_PRE)./$<:$(LIBUTEST)\
+	  TCLLIBPATH=$(TCL_D)$(UVGD)$(TCL_D)/utestSig.tcl $(TCL_FILTERS)
 
 install_tcl:
 	$Q$(INSTALL_LIB) -D $(TCL_LNAME).so -t $(TCLDIR)
