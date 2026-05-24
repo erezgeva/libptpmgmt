@@ -340,8 +340,8 @@ ci_skip()
  mkdir -p 1
  skip_build disable-clkmgr
  skip_build disable-alllang enable-lsb-init
- skip_build without-tcl without-python3 without-ruby enable-openrc
- skip_build without-perl5 without-lua without-go without-php
+ skip_build without-tcl without-python3 without-ruby enable-openrc\
+            without-perl5 without-lua without-go without-php
 }
 ###############################################################################
 # Add SPDX header to doxygen generated files
