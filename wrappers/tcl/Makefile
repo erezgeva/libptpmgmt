@@ -47,7 +47,7 @@ utest_tcl: $(LIB_NAME_SO) $(TCL_LNAME).so $(TCL_UTEST_SO) $(TCL_D)/pkgIndex.tcl
 	$(call Q_UTEST,TCL)LD_PRELOAD=$(ASAN_PRE)./$<\
 	  TCLLIBPATH=$(TCL_D)$(UVGD)$(TCL_D)/utest.tcl $(TCL_FILTERS)
 	LD_PRELOAD=$(ASAN_PRE)./$<:$(LIBUTEST)\
-	  TCLLIBPATH=$(TCL_D)$(UVGD)$(TCL_D)/utestSig.tcl $(TCL_FILTERS)
+	  TCLLIBPATH=$(TCL_D) $(TCL_D)/utestSig.tcl $(TCL_FILTERS)
 
 install_tcl:
 	$Q$(INSTALL_LIB) -D $(TCL_LNAME).so -t $(TCLDIR)
