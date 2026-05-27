@@ -36,7 +36,7 @@ main()
   local -r names='trixie forky'
   local -r arch=$(dpkg --print-architecture) # amd64
   local -r archs='arm64'
-  local -r dpkgs_trixie='libcriterion-dev'
+  local -r dpkgs_trixie='libcriterion-dev phpunit'
   local dpkgs_forky='liblua5.5-dev@ lua5.5'
   local dpkgs_arch='libstdc++6 pkgconf librtpi-dev libgcrypt20-dev
     libpython3-all-dev tcl-dev libpython3-dev libperl-dev
