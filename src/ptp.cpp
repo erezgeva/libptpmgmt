@@ -11,6 +11,7 @@
 
 #include "comp.h"
 #include <cmath>
+#include <climits>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
