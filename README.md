@@ -178,3 +178,4 @@ The Licence of this project is
   * The library is under LGPL v3 or later.
   * The pmc and phc_ctl tools and the testing scripts are under GPL v3 or later.
   * Documentation is under under GFDL v1.3 or later without invariants sections.
+  * The clock manager is under BSD 3 clauses

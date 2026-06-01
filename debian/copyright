@@ -11,6 +11,10 @@ Files: *
 Copyright: 2021 © Erez Geva
 License: LGPL-3+
 
+Files: clkmgr man/clkmgr_proxy.8
+Copyright: 2024 © Intel Corporation
+License: BSD
+
 Files: doc *.md
 Copyright: 2021 © Erez Geva
 License: GFDL-1.3+ without invariant sections
@@ -39,6 +43,10 @@ Files: man/pmc.8
 Copyright: 2012 © Richard Cochran, Miroslav Lichvar, linuxptp developers
 License: GPL-2+
 
+Files: clkmgr/*.md clkmgr/image/*.png clkmgr/doc
+Copyright: 2024 © Intel Corporation
+License: GFDL-1.3+ without invariant sections
+
 License: LGPL-3+
     See: /usr/share/common-licenses/LGPL-3
 
@@ -50,3 +58,6 @@ License: GPL-3+
 
 License: GFDL-1.3+
     See: /usr/share/common-licenses/GFDL-1.3
+
+License: BSD
+    See: /usr/share/common-licenses/BSD
