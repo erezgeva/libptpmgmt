@@ -149,7 +149,7 @@ jobs:
   abi:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/erezgeva/deb.forky:latest
+      image: ghcr.io/erezgeva/deb.trixie:latest
 
     steps:
 
