@@ -531,12 +531,13 @@ new_version()
 config_report()
 {
  local -A R
- local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER
+ local list='build host TCL_MINVER PERL PY3_VER RUBY_VER PHP_VER PHP_UNIT
    LUA_VERS LUA_VER USE_ENDIAN PERL5_VER HAVE_LIBCHRONY_HEADER PDF2SVG
    GO_MINVER DOTTOOL ASTYLE_MINVER HAVE_GTEST_HEADER HAVE_CRITERION_HEADER
    HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK MARKDOWN
    PANDOC PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
-   HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER'
+   HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER
+   PERL5_HAVE_TEST LUA_UNIT_VERS'
  local langs='tcl perl5 python3 ruby php lua go'
  local $list $langs
  read_defs $list
@@ -548,8 +549,12 @@ config_report()
  setLang[php]="@'$PHP_VER'"
  if [[ -n "$LUA_VERS" ]]; then
    setLang[lua]="@'$LUA_VERS'"
+   [[ -n "$LUA_UNIT_VERS" ]] && [[ -z "${R["SKIP_LUA"]}" ]] &&\
+     local -r lua_unit="$LUA_UNIT_VERS" || local -r lua_unit='x'
  else
    setLang[lua]="@'$LUA_VER'"
+   [[ -n "$LUA_UNIT" ]] && [[ -z "${R["SKIP_LUA"]}" ]] &&\
+     local -r lua_unit='v' || local -r lua_unit='x'
  fi
  setLang[go]="@'$GO_MINVER'"
  for n in $langs; do
@@ -592,7 +597,10 @@ config_report()
  [[ -n "$MARKDOWN" ]] && local -r markdown='v' || local -r markdown='x'
  [[ -n "$CMARK" ]] && local -r cmark="$CMARK" || local -r cmark='x'
  [[ -n "$PANDOC" ]] && local -r pandoc="$PANDOC" || local -r pandoc='x'
-
+ [[ "$php" != 'x' ]] && [[ -n "$PHP_UNIT" ]] &&\
+   local -r uphp="$PHP_UNIT" || local -r uphp='x'
+ [[ "$perl5" != 'x' ]] && [[ -n "$PERL5_HAVE_TEST" ]] &&\
+   local -r tperl5='v' || local -r tperl5='x'
  cat << EOF
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
@@ -602,8 +610,10 @@ ssl '$ssl' gcrypt '$gcrypt' gnutls '$gnutls' nettle '$nettle'
 Doxygen '$doxy' dot '$dver' Pandoc '$pandoc' pdf2svg '$pdf2svg'
 cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'
-swig '$swig' Python '$python3' Ruby '$ruby' PHP '$php'
-Perl '$perl5' go '$go' tcl '$tcl' Lua '$lua'
+swig '$swig' Python '$python3' Ruby '$ruby'
+Perl '$perl5' perl5-test '$tperl5' go '$go' tcl '$tcl'
+PHP '$php' PHP-unit '$uphp'
+Lua '$lua' lua-unit '$lua_unit'
 ============================================================
 EOF
 }
