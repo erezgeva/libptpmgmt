@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileCopyrightText: Copyright © 2024 Intel Corporation.
 #

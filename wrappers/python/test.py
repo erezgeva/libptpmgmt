@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileCopyrightText: Copyright © 2021 Erez Geva <ErezGeva2@gmail.com>
 #
@@ -223,4 +224,4 @@ def main():
 main()
 sk.close()
 
-# LD_PRELOAD=../../.libs/libptpmgmt.so PYTHONPATH=3 python3 test.py
+# LD_PRELOAD=../../.libs/libptpmgmt.so PYTHONPATH=3 ./test.py
