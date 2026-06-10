@@ -306,7 +306,7 @@ usage: ` + appName + ` [options] <device> -- [command]
   get              get PHC time
   adj   <seconds>  adjust PHC time by offset
   freq  [ppb]      adjust PHC frequency (default returns current offset)
-  phase <seconds>  pass offset to PHC phase control keyword
+  phase <seconds>  pass offset to PHC phase control
   cmp              compare PHC offset to CLOCK_REALTIME
   caps             display device capabilities (default if no command given)
   pins             display device configurable pins
@@ -341,7 +341,6 @@ func cmd2func() (doFunc, bool, string) {
 func loop(args []string) int {
     lenArgs := len(args)
     if lenArgs < 1 {
-        Usage()
         return -1
     }
     device := args[0]
