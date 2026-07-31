@@ -30,7 +30,12 @@ function ptpmgmt.MessageDispatcher:callHadler(msg, tlv_id, tlv)
             local data
             local tlv_type = swig_type(tlv)
             if(tlv_type == 'BaseMngTlv *') then
-                data = ptpmgmt['conv_' .. tlv_id_str](tlv)
+                local func = ptpmgmt['conv_' .. tlv_id_str]
+                if(type(func) ~= 'function') then
+                    error('MessageDispatcher::callHadler() tlv ' ..
+                          tlv_id_str .. ' can not be converted', 2)
+                end
+                data = func(tlv)
             elseif(tlv_type == tlv_id_str .. '_t *') then
                 data = tlv
             else
