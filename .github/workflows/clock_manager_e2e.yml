@@ -22,7 +22,7 @@ env:
 
 jobs:
   clkmgr_e2e:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/erezgeva/deb.forky:latest
 

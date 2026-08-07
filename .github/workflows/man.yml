@@ -23,7 +23,7 @@ env:
 
 jobs:
   full:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/erezgeva/deb.forky:latest
 
@@ -46,7 +46,7 @@ jobs:
       run: libptpmgmt/tools/sim_ptp4l.sh -ct
 
   adress:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
 
@@ -67,7 +67,7 @@ jobs:
       run: libptpmgmt/tools/ci_address.sh
 
   mem:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:

@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   gentoo:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
 
     - name: checkout repository
@@ -48,7 +48,7 @@ jobs:
 
   gentoo2:
     needs: gentoo
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
 
     - name: checkout repository

@@ -5,7 +5,7 @@
 # @author Erez Geva <ErezGeva2@@gmail.com>
 # @copyright © 2023 Erez Geva
 #
-# CI (Continous integration) script for containers
+# CI (Continuous integration) script for containers
 ###############################################################################
 ecmd()
 {
