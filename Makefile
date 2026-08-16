@@ -535,8 +535,8 @@ CXXFLAGS_PHP+=-Wno-unused-label
 CXXFLAGS_PHP+=-Wno-unused-variable
 # function defined but not used
 CXXFLAGS_PHP+=-Wno-unused-function
-# function defined but not used
 CXXFLAGS_GO+=-Wno-unused-function
+CXXFLAGS_RUBY+=-Wno-unused-function
 # dereferencing type-punned pointer will break strict-aliasing rules
 CXXFLAGS_GO+=-Wno-strict-aliasing
 # variable is used uninitialized in this function
