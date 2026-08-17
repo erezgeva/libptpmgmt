@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-3.0-or-later
+/* SPDX-License-Identifier: GPL-3.0-or-later
    SPDX-FileCopyrightText: Copyright © 2026 Erez Geva <ErezGeva2@gmail.com> */
 
 /** @file
