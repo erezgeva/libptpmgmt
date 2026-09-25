@@ -278,7 +278,7 @@ SRC_NAME:=$(LIB_NAME)-$(ver_maj).$(ver_min)
 ifneq ($(call which,git),)
 INSIDE_GIT!=git rev-parse --is-inside-work-tree 2>/dev/null
 endif
-SRC_FILES_DIR:=$(wildcard README.md t*/*.pl */*/*.m4 .reuse/*\
+SRC_FILES_DIR:=$(wildcard README.md t*/*.p* */*/*.m4 .reuse/*\
   */*.opt configure.ac src/*.m4 */*.md t*/*.sh w*/*/*.sh swig/*/*\
   */*.i */*/msgCall.i */*/warn.i $(CLKMGR_DIR)/*/*.i man/*\
   $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\

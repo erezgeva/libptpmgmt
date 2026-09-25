@@ -160,4 +160,4 @@ __END__
 apt-mark showmanual | grep ptpmgmt | xargs sudo apt-mark auto
 
 LD_PRELOAD=./.libs/libptpmgmt.so LD_LIBRARY_PATH=.libs PERL5LIB=wrappers/perl\
-  ./tools/testJson.pl | jsonlint
+  sample/testJson.pl | jsonlint

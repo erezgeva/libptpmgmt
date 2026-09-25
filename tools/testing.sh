@@ -321,13 +321,14 @@ do_perl()
  perlOut="$(time eval "$useSudo$ldPathPerl wrappers/perl/test.pl $runOptions")"
 }
 test_json()
-{ # Use perl
+{ # Use python3
  printf "\n =====  Test JSON  ===== \n\n"
- eval "$useSudo$ldPathPerl tools/testJson.pl $cfgFile | jq >& /dev/null"
+ eval "$useSudo$ldPrePathPython3$ldPathPython3 tools/testJson.py $cfgFile\
+      | jq >& /dev/null"
  if $use_valgrind; then
-   printf "\n * Valgrid test of testJson.pl"
-   eval "$useSudo$ldPathPerl valgrind --read-inline-info=yes\
-     tools/testJson.pl $cfgFile " |&\
+   printf "\n * Valgrid test of testJson.py"
+   eval "$useSudo$ldPrePathPython3$ldPathPython3 valgrind\
+     --read-inline-info=yes tools/testJson.py $cfgFile " |&\
      sed -n '/ERROR SUMMARY/ {s/.*ERROR SUMMARY//;p}'
  fi
 }
@@ -366,7 +367,7 @@ do_python()
    time eval "$useSudo$pneed$need python$i wrappers/python/test.py $runOptions" |\
      diff - <(printf "$perlOut\n")
    if [[ -n "$need" ]]; then
-     eval "py${i}clean python"
+     eval "py${i}clean wrappers/python"
    fi
  done
 }
