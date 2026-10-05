@@ -271,10 +271,6 @@ sub do_format
     $exit = -1;
   }
   my @list = @ARGV;
-  push @list, glob
-    "*/*.sh */*/*.sh Makefile */Makefile w*/*/Makefile debian/rules " .
-    "*/utest/Makefile debian/changelog debian/copyright */*/test.* " .
-    "*/*.pl */*/*.pl */*/*test/*.go */*.i";
   for(@list)
   {
     next if -l or not -f;

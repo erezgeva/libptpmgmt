@@ -514,10 +514,13 @@ ifndef SKIP_CLKMGR
 FORMAT_DEPS+=$(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)\
   $(EXTRA_SRCS_CLKMGR)
 endif
+FORMAT_MORE:=$(wildcard */*.sh */*/*.sh Makefile */Makefile w*/*/Makefile\
+	debian/rules */utest/Makefile debian/changelog debian/copyright\
+	*/*/test.* */*.pl */*/*.pl */*/*test/*.go */*.i)
 format: $(FORMAT_DEPS)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
-	test -z "$$r" || echo "$$r"&&./tools/format.pl $^
+	test -z "$$r" || echo "$$r"&&./tools/format.pl $^ $(FORMAT_MORE)
 	if test $$? -ne 0 || test -n "$$r";then echo ''&&exit 1;fi
 ifdef CPPCHECK
 	$(CPPCHECK) $(CPPCHECK_OPT) --language=c++\
