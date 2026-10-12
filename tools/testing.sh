@@ -101,9 +101,9 @@ main()
  ##############################################################################
  # script languages source
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
-       ldPathPhp ldPathTcl needCmpl oneLua skip_php\
+       ldPathPhp ldPathTcl ldPathJava ldPostPathJava needCmpl oneLua skip_php\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54 ldPathLua55\
-       ldPath luaVersions
+       ldPath luaVersions javaJar
  local -r ldPathBase='LD_LIBRARY_PATH=.libs'
  local -r gtest='wrappers/go/gtest/gtest'
  local -r pyVersions='3'
@@ -315,6 +315,7 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
  enter php
  enter tcl
  enter go
+ enter java
 }
 do_perl()
 {
@@ -378,6 +379,15 @@ do_go()
  fi
  time eval "$useSudo$ldPath $gtest $runOptions" |\
    diff - <(printf "$perlOut\n")
+}
+do_java()
+{
+ if [[ wrappers/java/test.java -nt wrappers/java/test.class ]]; then
+   javac -cp $javaJar wrappers/java/test.java
+ fi
+ time eval "$useSudo$ldPathJava java $ldPostPathJava -classpath "\
+        "wrappers/java test $runOptions" |\
+    diff - <(printf "$perlOut\n")
 }
 parse_phc_out()
 {
@@ -559,6 +569,9 @@ allBuild()
  done
  ldPathPhp="$ldPath PHPRC=wrappers/php"
  ldPathTcl="$ldPath TCLLIBPATH=wrappers/tcl"
+ ldPathJava="$ldPath"
+ ldPostPathJava="-Djava.library.path=wrappers/java"
+ javaJar="wrappers/java/ptpmgmt.jar"
 }
 probeLibsDebian()
 {
@@ -626,8 +639,16 @@ probeLibsDebian()
  if ! [[ -f "$file" ]]; then
    needCmpl=y
  fi
+ getFirstFile "/usr/share/java/ptpmgmt.jar"
+ if [[ -f "$file" ]]; then
+   javaJar="$file"
+ else
+   needCmpl=y
+   ldPostPathJava="-Djava.library.path=wrappers/java"
+   javaJar="wrappers/java/ptpmgmt.jar"
+ fi
  if [[ -n "$ldPath" ]]; then
-   for n in Perl Ruby Php Tcl
+   for n in Perl Ruby Php Tcl Java
    do eval "ldPath$n='$ldPath ${ldPath$n}'";done
  fi
 }
@@ -746,8 +767,16 @@ probeLibs()
      needCmpl=y
    fi
  fi
+ getFirstFile "/usr/share/java/ptpmgmt.jar"
+ if [[ -f "$file" ]]; then
+   javaJar="$file"
+ else
+   needCmpl=y
+   ldPostPathJava="-Djava.library.path=wrappers/java"
+   javaJar="wrappers/java/ptpmgmt.jar"
+ fi
  if [[ -n "$ldPath" ]]; then
-   for n in Perl Ruby Php Tcl
+   for n in Perl Ruby Php Tcl Java
    do eval "ldPath$n='$ldPath ${ldPath$n}'";done
  fi
 }

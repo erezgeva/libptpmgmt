@@ -17,8 +17,9 @@ pkgrel=2
 pkgname=(libptpmgmt2 libptpmgmt2-openssl libptpmgmt2-gcrypt libptpmgmt2-gnutls
   libptpmgmt2-nettle libptpmgmt-dev libptpmgmt-doc
   libptpmgmt-perl lua-ptpmgmt ruby-ptpmgmt tcl-ptpmgmt go-ptpmgmt
-  python3-ptpmgmt pmc-ptpmgmt phc-ctl-ptpmgmt clkmgr-proxy libclkmgr2
-  libclkmgr-perl lua-clkmgr ruby-clkmgr tcl-clkmgr python3-clkmgr)
+  python3-ptpmgmt pmc-ptpmgmt phc-ctl-ptpmgmt java-ptpmgmt
+  clkmgr-proxy libclkmgr2 libclkmgr-perl lua-clkmgr ruby-clkmgr
+  tcl-clkmgr python3-clkmgr java-clkmgr)
 # Source code can be build on any architecture
 # But as Arch Linux does not support the 'all' keyword
 arch=(x86_64)
@@ -40,7 +41,7 @@ build() {
   make DESTDIR=../install install --no-print-directory compile_py3
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
-  python3 go gcc libtool autoconf make chrpath discount cmark-gfm
+  python3 go gcc libtool autoconf make chrpath discount cmark-gfm jdk-openjdk
   texlive-fontutils which pandoc openssl libgcrypt gnutls nettle)
 # You may use 'patchelf' as alternative of `chrpath`
 package_libptpmgmt2() {
@@ -144,6 +145,14 @@ package_go-ptpmgmt() {
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/go $pkgdir/$libdir
 }
+package_java-ptpmgmt() {
+  license=('BSD-3-Clause')
+  pkgdesc='PTP management library Java wrapper'
+  depends=("$pkgbase=$verdep" jre-openjdk)
+  mkdir -p $pkgdir/usr/java/packages/lib $pkgdir/usr/share/java
+  mv $srcdir/install/usr/java/packages/lib/libptpmgmt.so $pkgdir/usr/java/packages/lib
+  mv $srcdir/install/usr/share/java/ptpmgmt.jar $pkgdir/usr/share/java
+}
 #package_php-ptpmgmt() {
 # Arch linux php do not have system include_path!
 # pkgdesc='PTP management library php wrapper'
@@ -246,6 +255,14 @@ package_tcl-clkmgr() {
   depends=("libclkmgr2=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
   mv $srcdir/install/usr/lib/clkmgr $pkgdir/$libdir
+}
+package_java-clkmgr() {
+  license=('BSD-3-Clause')
+  pkgdesc='Clock Manager library Java wrapper'
+  depends=("libclkmgr2=$verdep" jre-openjdk)
+  mkdir -p $pkgdir/usr/java/packages/lib $pkgdir/usr/share/java
+  mv $srcdir/install/usr/java/packages/lib/libclkmgr.so $pkgdir/usr/java/packages/lib
+  mv $srcdir/install/usr/share/java/clkmgr.jar $pkgdir/usr/share/java
 }
 changelog=changelog
 # vim: set ft=bash:

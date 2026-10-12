@@ -32,6 +32,7 @@ BuildRequires:  lua lua-devel
 BuildRequires:  ruby ruby-devel
 BuildRequires:  php php-devel
 BuildRequires:  tcl tcl-devel
+BuildRequires:  java-latest-openjdk java-latest-openjdk-devel
 BuildRequires:  librtpi1 librtpi-devel
 BuildRequires:  golang
 BuildRequires:  systemd
@@ -150,6 +151,13 @@ Requires:       golang
 PTP management library golang development wrapper
 And for clock manager client library.
 
+%package -n     java-%{bname}
+Summary:        PTP management library Java wrapper
+Requires:       %{name}2%{?_isa} = %{version}-%{release}
+Requires:       java-latest-openjdk
+%description -n java-%{bname}
+PTP management library Java wrapper
+
 %package -n     pmc-%{bname}
 Summary:        pmc tool
 License:        GPL-3.0-or-later
@@ -233,6 +241,14 @@ Requires:       tcl
 %description -n tcl-%{cbname}
 Clock Manager library tcl wrapper
 
+%package -n     java-%{cbname}
+Summary:        Clock Manager library java wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}2%{?_isa} = %{version}-%{release}
+Requires:       java-latest-openjdk
+%description -n java-%{cbname}
+Clock Manager library java wrapper
+
 %prep
 %setup -q
 
@@ -306,6 +322,10 @@ autoreconf -i
 /usr/lib/golang/src/%{bname}/*
 /usr/lib/golang/src/%{cbname}/*
 
+%files -n java-%{bname}
+/usr/java/packages/lib/%{name}.so
+/usr/share/java/%{bname}.jar
+
 %files -n pmc-%{bname}
 %{_sbindir}/pmc-%{bname}
 %{_mandir}/man8/pmc-%{bname}.8*
@@ -345,6 +365,10 @@ autoreconf -i
 %files -n tcl-%{cbname}
 %{_libdir}/tcl*/%{cbname}/%{cbname}.so
 %{_libdir}/tcl*/%{cbname}/pkgIndex.tcl
+
+%files -n java-%{cbname}
+/usr/java/packages/lib/%{cname}.so
+/usr/share/java/%{cbname}.jar
 
 ###############################################################################
 # The changelog is updated with the 'tools/update_changelog.pl' script.

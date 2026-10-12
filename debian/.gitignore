@@ -11,7 +11,8 @@
 /*debhelper*
 /libptpmgmt*/
 /*-ptpmgmt/
-/clkmgr-proxy*/
+/ptpmgmt-*/
+/clkmgr-*/
 /libclkmgr*/
 /*-clkmgr/
 /autoreconf.*

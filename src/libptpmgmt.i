@@ -94,7 +94,7 @@ using namespace ptpmgmt;
 %include "warn.i"
 
 /*****
- * PHP, Tcl and Go ignore operators overload
+ * PHP, Tcl, Go and Java ignore operators overload
  *********/
 #ifdef SWIG_OPERS_LANG_IDENTIFIER
 /* use Binary::getBin() and Binary::setBin() */

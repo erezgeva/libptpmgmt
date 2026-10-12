@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright © 2026 Erez Geva <ErezGeva2@gmail.com>
+#
+# @author Erez Geva <ErezGeva2@@gmail.com>
+# @copyright © 2026 Erez Geva
+#
+###############################################################################
+/ptpmgmt/
+/clkmgr/
+/utest_help/
+/utest/
+/utestSig/
+/*.jar
+/*.class

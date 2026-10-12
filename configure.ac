@@ -1433,6 +1433,222 @@ AC_SUBST([GOROOT])
 AC_SUBST([GOARCH])
 
 #----------------------------------------------------------------
+# Java
+
+AS_UNSET([ptpm_javabin])
+AS_UNSET([ptpm_javacbin])
+AS_UNSET([ptpm_javaincdir])
+AS_UNSET([ptpm_javajar])
+AS_UNSET([JAR])
+AS_UNSET([JAVA])
+AS_UNSET([JAVAC])
+AS_UNSET([JAVAINC])
+AS_UNSET([JAVAFLAGS])
+AS_UNSET([JAVA_MINVER])
+AS_UNSET([JAVA_JAR_DIR])
+AS_UNSET([JAVA_JNI_DIR])
+AS_UNSET([JAVAC_OPTIONS])
+AS_UNSET([JAVA_JUNIT_API])
+AS_UNSET([JAVA_JUNIT_CONSOLE])
+AS_UNSET([JAVA_VERSION_MAJOR])
+
+AC_ARG_WITH([java],
+            [AS_HELP_STRING([--without-java], [Disable Java])]
+            [AS_HELP_STRING([--with-java=path],
+                            [Set location of java executable])],
+            [AS_VAR_COPY([ptpm_javabin], [withval])],
+            [AS_VAR_COPY([ptpm_javabin], [ptpm_alllang_default])])
+AC_ARG_WITH([javac],
+            [AS_HELP_STRING([--with-javac=path],
+                            [Set location of javac executablea])],
+            [AS_VAR_COPY([ptpm_javacbin], [withval])])
+AC_ARG_WITH([javaincl],
+            [AS_HELP_STRING([--with-javaincl=path],
+                            [Set location of Java include directory])],
+            [AS_VAR_COPY([ptpm_javaincdir], [withval])])
+AC_ARG_WITH([javajar],
+            [AS_HELP_STRING([--with-javajar=path],
+                            [Set location of Java JARs directory])],
+            [AS_VAR_COPY([ptpm_javajar], [withval])])
+
+dnl First, check for "--without-java" or "--with-java=no".
+AS_VAR_IF([ptpm_javabin], [no], [AC_MSG_NOTICE([Disabling Java])],
+
+  dnl Detect everything we need for Java: java for running Java tests, javac for
+  dnl compiling them and C headers for compiling C code.
+
+  dnl If JAVA_HOME is defined and contains everything needed, as it's supposed to,
+  dnl just use it. Otherwise try to locate the necessary files in the path.
+
+  [AC_MSG_CHECKING([for java JDK])
+   PTPM_VAR_SET_IF([JAVA_HOME],
+     dnl Don't complain about missing executables/headers if they had been
+     dnl explicitly overridden from the command line, but otherwise verify that we
+     dnl have everything we need.
+     [AS_VAR_SET([ptpm_java_home_ok], [1])
+      AS_IF([PTPM_VAR_EMPTY_TEST([ptpm_javabin]) && PTPM_NOT_EXR_TEST(["$JAVA_HOME/bin/java"])],
+            [AC_MSG_WARN([No java executable under JAVA_HOME.])
+             AS_VAR_SET([ptpm_java_home_ok], [0])])
+      AS_IF([PTPM_VAR_EMPTY_TEST([ptpm_javacbin]) && PTPM_NOT_EXR_TEST(["$JAVA_HOME/bin/javac"])],
+            [AC_MSG_WARN([No javac executable under JAVA_HOME.])
+             AS_VAR_SET([ptpm_java_home_ok], [0])])
+
+      dnl By default the headers are under JAVA_HOME/include
+      PTPM_VAR_EMPTY_IF([JAVA_HOME_INCDIR],
+                        [AS_VAR_SET([JAVA_HOME_INCDIR], ["$JAVA_HOME/include"])])
+      AS_IF([PTPM_VAR_EMPTY_TEST([ptpm_javaincdir]) &&\
+             PTPM_NOT_FILE_TEST(["$JAVA_HOME_INCDIR/jni.h"])],
+            [AC_MSG_WARN([No java headers under JAVA_HOME (does it point to a JDK and not just JRE?).])
+             AS_VAR_SET([ptpm_java_home_ok], [0])])
+      AS_VAR_IF([ptpm_java_home_ok], [1],
+                [AC_MSG_RESULT([found (in $JAVA_HOME)])],
+                [AC_MSG_RESULT([no])
+                 AC_MSG_WARN([JAVA_HOME ($JAVA_HOME) is defined but does not point to a complete JDK installation, ignoring it.])
+                 AS_UNSET([JAVA_HOME])])],
+     [AC_MSG_RESULT([no (JAVA_HOME is not defined)])])
+
+   AS_VAR_IF([ptpm_javabin], [yes],
+             [PTPM_VAR_SET_IF([JAVA_HOME],
+                              [AS_VAR_SET([JAVA], ["$JAVA_HOME/bin/java"])],
+                              [AC_CHECK_TOOLS([JAVA], [java kaffe guavac])])],
+             [AS_VAR_COPY([JAVA], [ptpm_javabin])])
+
+   PTPM_VAR_EMPTY_IF([ptpm_javacbin],
+      [PTPM_VAR_SET_IF([JAVA_HOME],
+                       [AS_VAR_SET([JAVAC], ["$JAVA_HOME/bin/javac"])],
+                       [AC_CHECK_TOOL([JAVAC], [javac])])],
+      [AS_VAR_COPY([JAVAC], [ptpm_javacbin])])
+
+   PTPM_VAR_SET_IF([JAVAC],
+      [AC_MSG_CHECKING([java major version])
+       AS_VAR_SET([ptpm_javac_version], [`"$JAVAC" -version 2>&1`])
+       PTPM_VAR_SED_COPY([ptpm_java_version_num],
+                         [ptpm_javac_version], [-n 's/^javac //p'])
+       AS_VAR_SET([JAVA_VERSION_MAJOR], [1])
+       PTPM_VAR_SET_IF([ptpm_java_version_num],
+                       dnl Until Java 8 version number was in format "1.x.y_z", starting from Java 9 it's "x.y.z".
+                       [PTPM_VAR_SED_COPY([JAVA_VERSION_MAJOR],
+                                          [ptpm_java_version_num],
+                                          ['s%^1\.%%;s%\..*%%;s%-.*%%'])])
+       AC_MSG_RESULT([$JAVA_VERSION_MAJOR])
+       AS_IF([PTPM_GREATER_OR_EQUAL_TEST([JAVA_VERSION_MAJOR], [21])],
+             [AS_VAR_COPY([JAVA_MINVER], [JAVA_VERSION_MAJOR])])
+      ])
+
+   AC_MSG_CHECKING([for java include file jni.h])
+
+   PTPM_VAR_SET_IF([ptpm_javaincdir],
+       [PTPM_FILE_IF(["$ptpm_javaincdir/jni.h"],
+                     [AS_VAR_SET([JAVAINC], ["-I$ptpm_javaincdir"])])],
+       [PTPM_VAR_SET_IF([JAVA_HOME],
+            [AS_VAR_SET([JAVAINC], ["-I$JAVA_HOME_INCDIR"])],
+            [AS_VAR_SET([ptpm_javaincdirs],
+                        ["/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include
+                          /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include
+                          /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include
+                          /usr/local/java/include /opt/java/include /usr/include/java
+                          /usr/local/include/java /usr/lib/java/include
+                          /usr/lib/jvm/java*/include /usr/lib64/jvm/java*/include
+                          /usr/include/kaffe /usr/local/include/kaffe /usr/include"])
+             PTPM_VAR_SET_IF([JAVA_VERSION_MAJOR],
+                    [PTPM_FOR([d], [$ptpm_javaincdirs],
+                              [AS_IF([PTPM_FILE_TEST(["$d/jni.h"]) &&\
+                                      PTPM_GREP_TEST([d], ["$JAVA_VERSION_MAJOR"])],
+                                     [AS_VAR_COPY([ptpm_javaincdir], [d])
+                                      PTPM_FOR_BREAK])])])
+             PTPM_VAR_EMPTY_IF([ptpm_javaincdir],
+                    [PTPM_FOR([d], [$ptpm_javaincdirs],
+                              [PTPM_FILE_IF(["$d/jni.h"],
+                                            [AS_VAR_COPY([ptpm_javaincdir], [d])
+                                             PTPM_FOR_BREAK])])])
+             PTPM_VAR_SET_IF([ptpm_javaincdir],
+                             [AS_VAR_SET([JAVAINC], ["-I$ptpm_javaincdir"])
+                              AS_VAR_SET([ptpm_java_home_maybe],
+                                         ["`dirname $ptpm_javaincdir`"])])])])
+
+   PTPM_VAR_EMPTY_IF([JAVAINC],
+         [AC_MSG_RESULT([not found])],
+         [AC_MSG_RESULT([$JAVAINC])
+          dnl now look for <arch>/jni_md.h
+          AC_MSG_CHECKING([for java include file jni_md.h])
+          AS_VAR_SET([JAVAMDDIR],
+                     [`find "$ptpm_javaincdir" -follow -name jni_md.h -print`])
+          PTPM_VAR_EMPTY_IF([JAVAMDDIR],
+                            [AC_MSG_RESULT([not found])],
+                            [AS_VAR_SET([JAVAMDDIR],
+                                        ["-I`dirname "$JAVAMDDIR" | tail -1`"])
+                             AC_MSG_RESULT([$JAVAMDDIR])
+                             AS_VAR_SET([JAVAINC], ["$JAVAINC $JAVAMDDIR"])])])
+
+   dnl Auto-detecting JAVA_HOME is not so easy,
+   dnl below will only work up to and including jdk8
+   AS_IF([PTPM_VAR_EMPTY_TEST([JAVA_HOME]) && PTPM_VAR_SET_TEST([ptpm_java_home_maybe])],
+         [AC_MSG_CHECKING([for java jdk from jni include paths])
+          PTPM_FILE_IF(["$ptpm_java_home_maybe/lib/tools.jar"],
+                       [AS_VAR_SET([JAVA_HOME], [$ptpm_java_home_maybe])
+                        AC_MSG_RESULT([$JAVA_HOME])],
+                       [AC_MSG_RESULT([not found])])])
+   AC_CHECK_TOOL([JAR], [jar])
+   AS_ECHO_N([['class c{public static void main(String argv[]){']]) > conftest.java
+   AS_ECHO_N(['System.out.print(System.getProperty("java.library.path"));}}']) >> conftest.java
+   AS_VAR_SET([ptpm_java_library_path], [`java conftest.java`])
+   PTPM_VAR_SED_COPY([ptpm_java_library_paths],
+                     [ptpm_java_library_path],
+                     ['s/:/ /'g])
+   PTPM_FOR([d],[$ptpm_java_library_paths],
+         [AS_IF([PTPM_GREP_TEST([d],[$build_cpu])],
+                [AS_VAR_COPY([JAVA_JNI_DIR], [d])
+                 PTPM_CROSS([JAVA_JNI_DIR])
+                 PTPM_FOR_BREAK])])
+   PTPM_VAR_EMPTY_IF([JAVA_JNI_DIR],
+         [PTPM_FOR([d],[$ptpm_java_library_paths],
+                [AS_VAR_COPY([JAVA_JNI_DIR], [d])
+                 PTPM_FOR_BREAK])])
+   PTPM_VAR_SET_IF([ptpm_javajar],
+                   [AS_VAR_COPY([JAVA_JAR_DIR],[ptpm_javajar])],
+                   [AS_VAR_SET([JAVA_JAR_DIR],[/usr/share/java])])
+   AS_VAR_SET([ptpm_junits_api],
+                ["$JAVA_JAR_DIR/junit-jupiter-api.jar
+                  $JAVA_JAR_DIR/junit5/junit-jupiter-api.jar"])
+   PTPM_FOR([d], [$ptpm_junits_api],
+            [PTPM_FILE_IF(["$d"],
+                          [AS_VAR_COPY([JAVA_JUNIT_API], [d])
+                           PTPM_FOR_BREAK])])
+   AS_VAR_SET([ptpm_junits_console],
+                ["$JAVA_JAR_DIR/junit-platform-console-standalone.jar"])
+   PTPM_FOR([d], [$ptpm_junits_console],
+            [PTPM_FILE_IF(["$d"],
+                          [AS_VAR_COPY([JAVA_JUNIT_CONSOLE], [d])
+                           PTPM_FOR_BREAK])])
+   dnl AS_VAR_SET([JAVAC_OPTIONS], ["-Xlint"])
+
+   dnl Turned off due to spurious warnings in later versions of openjdk-1.8
+   dnl AS_VAR_SET([JAVAFLAGS], ["-Xcheck:jni"])
+
+   dnl Allow using 'System.loadLibrary', which is marked restricted!
+   dnl https://docs.oracle.com/en/java/javase/25/core/restricted-methods.html
+   dnl https://bugs.openjdk.org/browse/JDK-8317242
+   dnl AS_IF([PTPM_VAR_SET_TEST([JAVA_VERSION_MAJOR]) &&\
+   dnl        PTPM_GREATER_OR_EQUAL_TEST([JAVA_VERSION_MAJOR], [22])],
+   dnl       [JAVAC_OPTIONS+=" -Xlint:-restricted"
+   dnl        JAVAFLAGS+=" --enable-native-access=ALL-UNNAMED"])
+  ])
+
+AC_SUBST([JAR])
+AC_SUBST([JAVA])
+AC_SUBST([JAVAC])
+AC_SUBST([JAVAINC])
+AC_SUBST([JAVAFLAGS])
+AC_SUBST([JAVA_HOME])
+AC_SUBST([JAVA_MINVER])
+AC_SUBST([JAVA_JNI_DIR])
+AC_SUBST([JAVA_JAR_DIR])
+AC_SUBST([JAVAC_OPTIONS])
+AC_SUBST([JAVA_JUNIT_API])
+AC_SUBST([JAVA_JUNIT_CONSOLE])
+AC_SUBST([JAVA_VERSION_MAJOR])
+
+#----------------------------------------------------------------
 # Report wrapper languages
 AS_UNSET([SKIP_TCL])
 AS_UNSET([SKIP_PYTHON3])
@@ -1441,6 +1657,7 @@ AS_UNSET([SKIP_RUBY])
 AS_UNSET([SKIP_PHP])
 AS_UNSET([SKIP_LUA])
 AS_UNSET([SKIP_GO])
+AS_UNSET([SKIP_JAVA])
 
 PTPM_VAR_SET_IF([SWIG_MINVER],
   [AS_IF([PTPM_VAR_EMPTY_TEST([TCL_INC_FLAGS]) ||\
@@ -1466,6 +1683,12 @@ PTPM_VAR_SET_IF([SWIG_MINVER],
           PTPM_VAR_EMPTY_TEST([LUA_VERS])],
          [AS_VAR_SET([SKIP_LUA], [1])])
    PTPM_VAR_EMPTY_IF([GO_MINVER], [AS_VAR_SET([SKIP_GO], [1])])
+   AS_IF([PTPM_VAR_EMPTY_TEST([JAR]) ||\
+          PTPM_VAR_EMPTY_TEST([JAVAC]) ||\
+          PTPM_VAR_EMPTY_TEST([JAVAINC]) ||\
+          PTPM_VAR_EMPTY_TEST([JAVA_MINVER]) ||\
+          PTPM_VAR_EMPTY_TEST([JAVA_JNI_DIR])],
+         [AS_VAR_SET([SKIP_JAVA], [1])])
   ],
   [AS_VAR_SET([SKIP_TCL], [1])
    AS_VAR_SET([SKIP_PYTHON3], [1])
@@ -1474,6 +1697,7 @@ PTPM_VAR_SET_IF([SWIG_MINVER],
    AS_VAR_SET([SKIP_PHP], [1])
    AS_VAR_SET([SKIP_LUA], [1])
    AS_VAR_SET([SKIP_GO], [1])
+   AS_VAR_SET([SKIP_JAVA], [1])
   ])
 
 AC_SUBST([SKIP_TCL])
@@ -1483,6 +1707,7 @@ AC_SUBST([SKIP_RUBY])
 AC_SUBST([SKIP_PHP])
 AC_SUBST([SKIP_LUA])
 AC_SUBST([SKIP_GO])
+AC_SUBST([SKIP_JAVA])
 
 #----------------------------------------------------------------
 # End

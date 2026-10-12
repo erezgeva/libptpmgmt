@@ -60,6 +60,7 @@ class $1
      * Initiate a new container with size elements
      * @param[in] size of the new container
      * @note Elements holds default value!
+     * @note This constructor is not available in Java.
      * @note Go do not use constructor and destructors,
      *       call @code New$1(int64(size)) @endcode
      *       and @code Delete$1() @endcode explicitly.
@@ -92,7 +93,8 @@ class $1
      * @return true if size is zero
      * @note The function is named @code is_empty() @endcode in PHP,
      *       @code empty? @endcode in Ruby.
-     *       and @code IsEmpty() @endcode in Go.
+     *       @code IsEmpty() @endcode in Go.
+     *       and @code isEmpty() @endcode in Java.
      */
     bool empty() const;
     /**
@@ -106,7 +108,8 @@ class $1
      * @param[in] value to push
      * @note Call std::vector<$2>::push_back()
      * @note The function is named @code push_back() @endcode in Python and Lua,
-     *       and @code Add() @endcode in Go.
+     *       @code Add() @endcode in Go.
+     *       and @code add() @endcode in Java.
      */
     void push(const $2 &value);
     /**
@@ -115,26 +118,26 @@ class $1
      * @attention initiate exception if container is empty!
      * @note Call std::vector<$2>::back() and
      *  std::vector<$2>::pop_back()
-     * @note This function is not available in Lua and Go.
+     * @note This function is not available in Lua, Go and Java.
      *       Lua have the LUA_FUNCS functions.
      */
     $2 pop();
     /**
      * Removes last element from the container
      * @attention initiate exception if container is empty!
-     * @note This function available in Python and Lua only.
+     * @note This function is available in Python and Lua only.
      */
     void pop_back();
     /**
      * Get last element from container
      * @attention initiate exception if container is empty!
-     * @note This function available in Python, Ruby and Lua.
+     * @note This function is available in Python, Ruby and Lua.
      */
     $2 back();
     /**
      * Get first element from container
      * @attention initiate exception if container is empty!
-     * @note This function available in Python, Ruby and Lua.
+     * @note This function is available in Python, Ruby and Lua.
      */
     $2 front();
     /**
@@ -142,7 +145,7 @@ class $1
      * @param[in] position of element to get
      * @return the element
      * @attention initiate exception if out of range!
-     * @note This function is available in Perl, Tcl and PHP.<br>
+     * @note This function is available in Perl, Tcl, PHP and Java.<br>
      *       Ruby, Python and Lua use operator[].
      * @note The function is named @code Get() @endcode in Go.
      */
@@ -152,7 +155,7 @@ class $1
      * @param[in] position of element to set
      * @param[in] value element with new value
      * @attention initiate exception if out of range!
-     * @note This function is available in Perl, Tcl, PHP and Go.<br>
+     * @note This function is available in Perl, Tcl, PHP, Go and Java.<br>
      *       Ruby, Python and Lua use operator[].
      * @note The function is named @code Set() @endcode in Go.
      */
@@ -164,26 +167,26 @@ class $1
      * @return the element
      * @attention initiate exception if out of range!
      * @note This function is available for Ruby, Python and Lua.<br>
-     *       Perl, Tcl and PHP should use @code get(), set() @endcode.
+     *       Perl, Tcl, PHP and Java should use @code get(), set() @endcode.
      *       Go use @code Get(), Set() @endcode.
      * @note To set use @code variable[index] = new_value @endcode
      */
     $2 &operator[](size_t position);
     /**
      * Get current container capacity
-     * @note This function available in Python, Ruby, PHP and Go.
+     * @note This function is available in Python, Ruby, PHP, Go and Java.
      * @note The function is named @code Capacity() @endcode in Go.
      */
     size_t capacity() const;
     /**
      * Reserve more space for further elements
-     * @note This function available in Python, Ruby, PHP and Go.
+     * @note This function is available in Python, Ruby, PHP, Go and Java.
      * @note The function is named @code Reserve() @endcode in Go.
      */
     void reserve(size_t new_cap);
     /**
      * Get system limitation to container size
-     * @note This function available in Lua only.
+     * @note This function is available in Lua only.
      */
     size_t max_size() const;
 };')dnl
