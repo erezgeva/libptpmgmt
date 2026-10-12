@@ -54,7 +54,9 @@ The container provides the following constructors, following `std::vector<>` con
 |1  |insert default elements|number    |          |
 |2  |copies of element      |number    |element   |
 
-* PHP does not support the last 2 arguments constructor!
+* PHP and Go do not support the 'copies of element' constructor!
+* Java does not support the 'insert default elements' constructor!
+* Java does provides two additional constructors with array of elements and iterable object of elements.
 
 # Comparison of C++ Class Methods with Scripts  
 
@@ -62,28 +64,29 @@ C++ are the methods of [`std::vector<>`](https://en.cppreference.com/w/cpp/conta
 -NA- means method is not available.
 Python and Ruby support more methods.
 
-|C++          |Perl |PHP     |Tcl  |Go      |Lua      |Python   |Ruby    |
-|-------------|-----|--------|-----|--------|---------|---------|--------|
-|size         |size |size    |size |Size    |size     |size     |size    |
-|empty        |empty|is_empty|empty|IsEmpty |empty    |empty    |empty?  |
-|clear        |clear|clear   |clear|Clear   |clear    |clear    |clear   |
-|push_back    |push |push    |push |Add     |push_back|push_back|push    |
-|back+pop_back|pop  |pop     |pop  |-NA-    |-NA-     |pop      |pop     |
-|back         |-NA- |-NA-    |-NA- |-NA-    |back     |back     |back    |
-|pop_back     |-NA- |-NA-    |-NA- |-NA-    |pop_back |pop_back |-NA-    |
-|front        |-NA- |-NA-    |-NA- |-NA-    |front    |front    |front   |
-|[]           |get  |get     |get  |Get     |[]       |[]       |[]      |
-|[]=          |set  |set     |set  |Set     |[]=      |[]=      |[]=     |
-|capacity     |-NA- |capacity|-NA- |Capacity|-NA-     |capacity |capacity|
-|reserve      |-NA- |reserve |-NA- |Reserve |-NA-     |reserve  |reserve |
-|max_size     |-NA- |-NA-    |-NA- |-NA-    |max_size |-NA-     |-NA-    |
+|C++          |Perl |PHP     |Tcl  |Go      |Lua      |Python   |Ruby    |Java    |
+|-------------|-----|--------|-----|--------|---------|---------|--------|--------|
+|size         |size |size    |size |Size    |size     |size     |size    |size    |
+|empty        |empty|is_empty|empty|IsEmpty |empty    |empty    |empty?  |isEmpty |
+|clear        |clear|clear   |clear|Clear   |clear    |clear    |clear   |clear   |
+|push_back    |push |push    |push |Add     |push_back|push_back|push    |add     |
+|back+pop_back|pop  |pop     |pop  |-NA-    |-NA-     |pop      |pop     |-NA-    |
+|back         |-NA- |-NA-    |-NA- |-NA-    |back     |back     |back    |-NA-    |
+|pop_back     |-NA- |-NA-    |-NA- |-NA-    |pop_back |pop_back |-NA-    |-NA-    |
+|front        |-NA- |-NA-    |-NA- |-NA-    |front    |front    |front   |-NA-    |
+|[]           |get  |get     |get  |Get     |[]       |[]       |[]      |get     |
+|[]=          |set  |set     |set  |Set     |[]=      |[]=      |[]=     |set     |
+|capacity     |-NA- |capacity|-NA- |Capacity|-NA-     |capacity |capacity|capacity|
+|reserve      |-NA- |reserve |-NA- |Reserve |-NA-     |reserve  |reserve |reserve |
+|max_size     |-NA- |-NA-    |-NA- |-NA-    |max_size |-NA-     |-NA-    |-NA-    |
 
 # More Documentation
 
-The container in Python acts as list, and in Ruby as array.  
+The container in Python acts as list, in Ruby as array and in Java as AbstractList.  
 
   * [Python list](https://docs.python.org/3/tutorial/datastructures.html)
   * [Ruby array](https://ruby-doc.org/core/Array.html)
+  * [Java AbstractList](https://docs.oracle.com/javase/9/docs/api/java/util/AbstractList.html)
 
 Perl, Lua, PHP, Tcl, and Go use only the methods declared in `vecDef.h`.  
 See doxygen documentation of [vecDef.h](https://erezgeva.github.io/libptpmgmt/vecDef_8h.html) for more details on the container methods.

@@ -30,7 +30,7 @@ struct HMAC_Key;
 
 /**
  * Abstract class used for callback for Signalling TLVs traverse
- * @note Available for PHP, Perl, Python and Ruby use
+ * @note Available for PHP, Perl, Python, Ruby, Go and Java
  */
 class MessageSigTlvCallback
 {
@@ -43,7 +43,7 @@ class MessageSigTlvCallback
      * @param[in] tlvType signalling TLV type
      * @param[in] tlv signalling TLV
      * @return true to stop traverse
-     * @note Available for PHP, Perl, Python and Ruby use
+     * @note Available for PHP, Perl, Python, Ruby, Go and Java
      */
     virtual bool callback(const Message &msg, tlvType_e tlvType,
         const BaseSigTlv *tlv) = 0;
@@ -142,7 +142,7 @@ class MessageSigTlvs
      * @param[in] callback object with callback to be called with each TLV
      * @return true if any of the calling to call-back return true
      * @note stop if any of the calling to call-back return true
-     * @note Available for PHP, Perl, Python and Ruby use
+     * @note Available for PHP, Perl, Python, Ruby, Go and Java
      */
     bool traverse(MessageSigTlvCallback &callback) const;
     /**
@@ -772,7 +772,7 @@ class Message
      * @param[in] callback object with callback to be called with each TLV
      * @return true if any of the calling to call-back return true
      * @note stop if any of the calling to call-back return true
-     * @note Available for PHP, Perl, Python and Ruby use
+     * @note Available for PHP, Perl, Python, Ruby, Go and Java
      */
     bool traversSigTlvsCl(MessageSigTlvCallback &callback) const;
     /**

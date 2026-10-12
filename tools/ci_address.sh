@@ -341,7 +341,7 @@ ci_skip()
  skip_build disable-clkmgr
  skip_build disable-alllang enable-lsb-init
  skip_build without-tcl without-python3 without-ruby enable-openrc\
-            without-perl5 without-lua without-go without-php
+            without-perl5 without-lua without-go without-php without-java
 }
 ###############################################################################
 # Add SPDX header to doxygen generated files
@@ -537,8 +537,8 @@ config_report()
    HAVE_GMOCK_HEADER CPPCHECK SWIG_MINVER DOXYGEN_MINVER CMARK MARKDOWN
    PANDOC PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER
-   PERL5_HAVE_TEST LUA_UNIT_VERS'
- local langs='tcl perl5 python3 ruby php lua go'
+   PERL5_HAVE_TEST LUA_UNIT_VERS JAVA_MINVER JAVA_JUNIT_API'
+ local langs='tcl perl5 python3 ruby php lua go java'
  local $list $langs
  read_defs $list
  local -A setLang
@@ -557,6 +557,7 @@ config_report()
      local -r lua_unit='v' || local -r lua_unit='x'
  fi
  setLang[go]="@'$GO_MINVER'"
+ setLang[java]="@'$JAVA_MINVER'"
  for n in $langs; do
    [[ -n "${R["SKIP_${n^^}"]}" ]] && local $n='x' ||\
      eval "${setLang[$n]//@/local $n=}"
@@ -601,6 +602,8 @@ config_report()
    local -r uphp="$PHP_UNIT" || local -r uphp='x'
  [[ "$perl5" != 'x' ]] && [[ -n "$PERL5_HAVE_TEST" ]] &&\
    local -r tperl5='v' || local -r tperl5='x'
+ [[ "$java" != 'x' ]] && [[ -n "$JAVA_JUNIT_API" ]] &&\
+   local -r junit="v" || local -r junit='x'
  cat << EOF
 ========================== Config ==========================
 Version '$PACKAGE_VERSION' build $bon endian $USE_ENDIAN
@@ -612,6 +615,7 @@ cppcheck '$cppcheck' astyle '$astyle'
 Google test '$gtest' Google test mock '$gmock' Criterion test '$crtest'
 swig '$swig' Python '$python3' Ruby '$ruby'
 Perl '$perl5' perl5-test '$tperl5' go '$go' tcl '$tcl'
+Java '$java' junit '$junit'
 PHP '$php' PHP-unit '$uphp'
 Lua '$lua' lua-unit '$lua_unit'
 ============================================================

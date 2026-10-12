@@ -25,5 +25,5 @@ docker tag ghcr.io/erezgeva/portage.2 portage.2
 # See https://wiki.gentoo.org/wiki/Gentoo_Cheat_Sheet
 emerge world -ep
 qlist -Iv
-ls /var/db/pkg/*
+ls /var/db/pkg/*/*/CONTENTS
 }

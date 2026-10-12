@@ -71,7 +71,9 @@ override_dh_install:
 	  golang-ptpmgmt)\
 	  $(addsuffix $(LIBDIR),lua-ptpmgmt lua-clkmgr ruby-ptpmgmt libptpmgmt2\
 	  $(addprefix libptpmgmt2-,openssl gcrypt gnutls nettle)\
-	  libptpmgmt-perl libptpmgmt-dev libclkmgr2))
+	  libptpmgmt-perl libptpmgmt-dev libclkmgr2)\
+	  $(addsuffix /$(LIBDIR)/jni,java-ptpmgmt java-clkmgr)\
+	  $(addsuffix /usr/share/java,java-ptpmgmt java-clkmgr))
 	$Q$(MV) $(DSRC)include debian/libptpmgmt-dev/usr
 	$Q$(MV) $(DSRC)share/doc/libptpmgmt-dev debian/libptpmgmt-dev/usr/share/doc
 	$Q$(MV) $(DSRC)share/doc debian/libptpmgmt-doc/usr/share
@@ -103,6 +105,10 @@ override_dh_install:
 	$Q$(MV) $(SLIBDIR)/*.so debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/pkgconfig debian/libptpmgmt-dev$(LIBDIR)
 	$Q$(MV) $(DSRC)lib/go* debian/golang-ptpmgmt/usr/lib
+	$Q$(MV) $(SLIBDIR)/jni/libptpmgmt.so debian/java-ptpmgmt/$(LIBDIR)/jni
+	$Q$(MV) $(SLIBDIR)/jni/libclkmgr.so debian/java-clkmgr/$(LIBDIR)/jni
+	$Q$(MV) $(DSRC)share/java/ptpmgmt.jar debian/java-ptpmgmt/usr/share/java
+	$Q$(MV) $(DSRC)share/java/clkmgr.jar debian/java-clkmgr/usr/share/java
 	$Q$(MV) $(SLIBDIR)/libclkmgr* debian/libclkmgr2$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_openssl* debian/libptpmgmt2-openssl$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_gcrypt* debian/libptpmgmt2-gcrypt$(LIBDIR)

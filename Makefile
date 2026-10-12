@@ -258,7 +258,7 @@ NETTLE_DL:=$(NETTLE_NAME).so$(SONAME)
 NETTLE_LA:=$(NETTLE_NAME).la
 
 HMAC_FLIBS:=$(SSL_LIB) $(GNUTLS_LIB) $(NETTLE_LIB) $(GCRYPT_LIB)
-TGT_LNG:=perl5 lua python3 ruby php tcl go
+TGT_LNG:=perl5 lua python3 ruby php tcl go java
 UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth pmc hmac)
 UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
@@ -350,6 +350,7 @@ Q_SWIG=$Q$(info $(COLOR_BUILD)[SWIG] $@$(COLOR_NORM))
 Q_LD=$Q$(info $(COLOR_BUILD)[LD] $@$(COLOR_NORM))
 Q_LCC=$(info $(COLOR_BUILD)[LCC] $<$(COLOR_NORM))
 Q_CC=$Q$(info $(COLOR_BUILD)[CC] $<$(COLOR_NORM))
+Q_JAR=$Q$(info $(COLOR_BUILD)[JAR] $@$(COLOR_NORM))
 Q_UTEST=$Q$(info $(COLOR_BUILD)[UTEST $1]$(COLOR_NORM))
 LIBTOOL_QUIET:=--quiet
 Q_CC_STR=\$$(info $(COLOR_BUILD)[CC] $1\$$<$(COLOR_NORM))
@@ -539,6 +540,7 @@ CXXFLAGS_GO+=-Wno-unused-function
 CXXFLAGS_RUBY+=-Wno-unused-function
 # dereferencing type-punned pointer will break strict-aliasing rules
 CXXFLAGS_GO+=-Wno-strict-aliasing
+CXXFLAGS_JAVA+=-Wno-strict-aliasing
 # variable is used uninitialized in this function
 CXXFLAGS_GO+=-Wno-uninitialized
 # ANYARGS is deprecated (seems related to ruby headers)
@@ -591,6 +593,9 @@ include wrappers/tcl/Makefile
 endif
 ifndef SKIP_GO
 include wrappers/go/Makefile
+endif
+ifndef SKIP_JAVA
+include wrappers/java/Makefile
 endif
 
 ALL+=$(SWIG_ALL)
@@ -863,6 +868,7 @@ CLEAN:=*/*.o */*/*.o archlinux/*.pkg.tar.zst *.la wrappers/*/*.so\
   wrappers/go/*/go.* wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
   */$(LIB_SRC) tools/doxygen*cfg $(CLKMGR_DIR)/utest/utest_*\
   */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/sample/$(CLKMGR_NAME)*test\
+  $(addprefix wrappers/java/*.,jar class)\
   $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\
@@ -872,7 +878,8 @@ CLEAN:=*/*.o */*/*.o archlinux/*.pkg.tar.zst *.la wrappers/*/*.so\
   clkmgr_gtest/clkmgr_gtest phc_ctl/phc_ctl)\
   $(subst .in,,$(wildcard $(CLKMGR_DIR)/proxy/clkmgr-proxy.*.in))\
   $(CLKMGR_PROXY) $(HEADERS_GEN) $(CLKMGR_HEADERS_GEN) .null
-CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]*/\
+CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/\
+  wrappers/java/*/ rpm/[BRS]*/\
   archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\
   $(LIB_D) wrappers/perl/auto $(CLKMGR_DIR)/doc wrappers/go/$(CLKMGR_NAME)\
   wrappers/go/$(SWIG_LNAME) wrappers/go/utest_help\

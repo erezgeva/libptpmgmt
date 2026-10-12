@@ -94,7 +94,7 @@ using namespace ptpmgmt;
 %include "warn.i"
 
 /*****
- * PHP, Tcl and Go ignore operators overload
+ * PHP, Tcl, Go and Java ignore operators overload
  *********/
 #ifdef SWIG_OPERS_LANG_IDENTIFIER
 /* use Binary::getBin() and Binary::setBin() */
@@ -168,16 +168,17 @@ using namespace ptpmgmt;
 #endif /* SWIG_OPERS_IGNORE_OPERATOR */
 
 /*********
- * PHP and Go rename interface
+ * PHP, Go and Java rename interface
    PHP rename to 'c_interface'
    Go rename to 'Xinterface'
+   Java rename to '_interface'
  *********/
 #ifdef SWIG_KEYWORD_RENAME
 %warnfilter(SWIGWARN_PARSE_KEYWORD) PORT_PROPERTIES_NP_t::interface;
 #endif /* SWIG_KEYWORD_RENAME */
 
 /*********
- * PHP rename Error class
+ * PHP and Java rename Error class
  *********/
 #ifdef SWIG_RENAME_ERROR
 %rename(c_error) Error;
