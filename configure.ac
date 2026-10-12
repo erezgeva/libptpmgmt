@@ -46,6 +46,7 @@ AC_DEFUN([PTPM_VAR_TEST], [test "x${$1}" = x$2])
 AC_DEFUN([PTPM_VAR_ELSE_TEST], [test "x${$1}" != x$2])
 AC_DEFUN([PTPM_FILE_TEST], [test -r $1])
 AC_DEFUN([PTPM_NOT_FILE_TEST], [test ! -r $1])
+AC_DEFUN([PTPM_NOT_EXR_TEST], [test ! -x $1])
 AC_DEFUN([PTPM_DIR_TEST], [test -d $1])
 AC_DEFUN([PTPM_SYMBOLIC_LINK_TEST], [test -h $1])
 AC_DEFUN([PTPM_GREATER_OR_EQUAL_TEST], [test ${$1} -ge $2])
@@ -204,7 +205,7 @@ AS_UNSET([CPPCHECK_OPT_BASE])
 
 AC_CHECK_TOOLS([M4], [m4 autom4te])
 AC_CHECK_TOOLS([CTAGS], [ctags ctags-exuberant])
-AC_CHECK_TOOLS([READLINK], [readlink])
+AC_CHECK_TOOL([READLINK], [readlink])
 AC_CHECK_TOOL([LDD], [ldd])
 AC_CHECK_TOOL([PKG_CONFIG], [pkg-config])
 PTPM_VAR_SET_IF([PKG_CONFIG],
@@ -873,13 +874,13 @@ AS_VAR_IF([ptpm_py3bin], ['no'],
       PTPM_LOOP_RANGE([d], [15], [-1], [2],
                       [AS_VAR_APPEND([ptpm_py_vers], [" 3.$d"])])
       PTPM_FOR([d], [$ptpm_py_vers ''],
-        [AC_CHECK_TOOLS([PY3_BIN], [python$d])
+        [AC_CHECK_TOOL([PY3_BIN], [python$d])
          PTPM_VAR_SET_IF([PY3_BIN],
-               [AC_CHECK_TOOLS([PY3_CFG], [$PY3_BIN-config])
+               [AC_CHECK_TOOL([PY3_CFG], [$PY3_BIN-config])
                 PTPM_VAR_SET_IF([PY3_CFG], [PTPM_FOR_BREAK])])])],
      [AS_IF([$ptpm_py3bin --version | $GREP -i Python PTPM_DUMP_ALL],
             [AS_VAR_COPY([PY3_BIN], [ptpm_py3bin])
-             AC_CHECK_TOOLS([PY3_CFG], [$PY3_BIN-config])],
+             AC_CHECK_TOOL([PY3_CFG], [$PY3_BIN-config])],
             [AC_MSG_ERROR([$ptpm_py3bin python tool is unavailable])])])
 
    PTPM_VAR_SET_IF([PY3_BIN],
@@ -1039,7 +1040,7 @@ dnl configuration comes from rbconfig.rb
 AS_VAR_IF([ptpm_rubybin], ['no'],
   [AC_MSG_NOTICE([Disabling Ruby])],
   [AS_VAR_IF([ptpm_rubybin], ['yes'],
-         [AC_CHECK_TOOLS([RUBY], [ruby])],
+         [AC_CHECK_TOOL([RUBY], [ruby])],
          [AS_VAR_COPY([RUBY], [ptpm_rubybin])])
    AC_MSG_CHECKING([for Ruby version])
    PTPM_VAR_SET_IF([RUBY],
@@ -1464,14 +1465,16 @@ PTPM_VAR_SET_IF([SWIG_MINVER],
    AS_IF([PTPM_VAR_EMPTY_TEST([LUA_BIN]) &&\
           PTPM_VAR_EMPTY_TEST([LUA_VERS])],
          [AS_VAR_SET([SKIP_LUA], [1])])
-   PTPM_VAR_EMPTY_IF([GO_MINVER], [AS_VAR_SET([SKIP_GO], [1])])],
+   PTPM_VAR_EMPTY_IF([GO_MINVER], [AS_VAR_SET([SKIP_GO], [1])])
+  ],
   [AS_VAR_SET([SKIP_TCL], [1])
    AS_VAR_SET([SKIP_PYTHON3], [1])
    AS_VAR_SET([SKIP_PERL5], [1])
    AS_VAR_SET([SKIP_RUBY], [1])
    AS_VAR_SET([SKIP_PHP], [1])
    AS_VAR_SET([SKIP_LUA], [1])
-   AS_VAR_SET([SKIP_GO], [1])])
+   AS_VAR_SET([SKIP_GO], [1])
+  ])
 
 AC_SUBST([SKIP_TCL])
 AC_SUBST([SKIP_PYTHON3])
