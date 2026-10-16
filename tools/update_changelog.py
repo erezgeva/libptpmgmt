@@ -255,7 +255,8 @@ main "$@"''',file=f)
 # format.py
 
 def err(file, lnum, line, msg):
-  return 'Check: {}:{}: {}: |{}|'.format(file, lnum, msg, line)
+  sys.stderr.write('Check: {}:{}: {}: {}\n'.format(file, lnum, msg, line))
+  return -1;
 
 def do_format():
   errVal = False
@@ -285,49 +286,51 @@ def do_format():
       # and skip empty lines at end of file
       had_empty_lines = False
       lnum=0
-      for l0 in fileinput.input(file, inplace=True):
-        lnum += 1
-        #######################################
-        # Handle empty lines
-        line = l0.rstrip()
-        if empty_line.match(line):
-          if not_first_empty_lines:
-            had_empty_lines = True
-          continue
-        if had_empty_lines:
-          print()
-        not_first_empty_lines = True
-        had_empty_lines = False
-        #######################################
-        # Verify we use proper characters!
-        if cpp_file.search(file):
-          if c_wrong_char.search(line):
-            errVal = err(file, lnum, line, 'for wrong char')
-          elif c_wrong_escape.search(line):
-            errVal = err(file, lnum, line, 'wrong escape char')
-          if astyle_skip.search(line):
-            errVal = err(file, lnum, line, 'for using astyle skip')
-          if nullptr.search(line):
-            errVal = err(file, lnum, line, 'use C++ nullptr')
+      try:
+        for l0 in fileinput.input(file, inplace=True):
+          lnum += 1
           #######################################
-          # proper comments in headers
-          if header_file.search(file):
-            if c_commemt.search(line):
-              errVal = err(file, lnum, line, 'use C comments only')
-        elif shell_file.search(file):
-          if sh_wrong_char.search(line):
-            errVal = err(file, lnum, line, 'for wrong char')
-          elif sh_wrong_escape.search(line):
-            errVal = err(file, lnum, line, 'wrong escape char')
-        else:
-          if wrong_char.search(line):
-            errVal = err(file, lnum, line, 'for wrong char')
-          elif wrong_tabs.search(line):
-            errVal = err(file, lnum, line, 'Tabs are allowed only in begining')
-        if len(line) > 85:
-          errVal = err(file, lnum, line, 'line is too long')
-        print(line)
-
+          # Handle empty lines
+          line = l0.rstrip()
+          if empty_line.match(line):
+            if not_first_empty_lines:
+              had_empty_lines = True
+            continue
+          if had_empty_lines:
+            print()
+          not_first_empty_lines = True
+          had_empty_lines = False
+          #######################################
+          # Verify we use proper characters!
+          if cpp_file.search(file):
+            if c_wrong_char.search(line):
+              errVal = err(file, lnum, line, 'for wrong char')
+            elif c_wrong_escape.search(line):
+              errVal = err(file, lnum, line, 'wrong escape char')
+            if astyle_skip.search(line):
+              errVal = err(file, lnum, line, 'for using astyle skip')
+            if nullptr.search(line):
+              errVal = err(file, lnum, line, 'use C++ nullptr')
+            #######################################
+            # proper comments in headers
+            if header_file.search(file):
+              if c_commemt.search(line):
+                errVal = err(file, lnum, line, 'use C comments only')
+          elif shell_file.search(file):
+            if sh_wrong_char.search(line):
+              errVal = err(file, lnum, line, 'for wrong char')
+            elif sh_wrong_escape.search(line):
+              errVal = err(file, lnum, line, 'wrong escape char')
+          else:
+            if wrong_char.search(line):
+              errVal = err(file, lnum, line, 'for wrong char')
+            elif wrong_tabs.search(line):
+              errVal = err(file, lnum, line, 'Tabs are allowed only in begining')
+          if len(line) > 85:
+            errVal = err(file, lnum, line, 'line is too long')
+          print(line)
+      except UnicodeDecodeError as e:
+        err(file, 0, '', 'invalid utf8 code')
       os.utime(file, times)
   if errVal:
     sys.exit(errVal)
@@ -337,5 +340,5 @@ def main():
   p = os.path
   os.chdir(p.dirname(p.realpath(sys.argv[0])) + '/..')
   n = p.basename(sys.argv[0])
-  eval('do_' + re.sub(r'\.py$', '', n))
+  eval('do_' + re.sub(r'\.py$', '', n) + '()')
 main()

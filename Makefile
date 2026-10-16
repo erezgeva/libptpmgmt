@@ -514,13 +514,13 @@ ifndef SKIP_CLKMGR
 FORMAT_DEPS+=$(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)\
   $(EXTRA_SRCS_CLKMGR)
 endif
-FORMAT_MORE:=$(wildcard */*.sh */*/*.sh Makefile */Makefile w*/*/Makefile\
+FORMAT_MORE:=*/*.sh */*/*.sh Makefile */Makefile w*/*/Makefile\
 	debian/rules */utest/Makefile debian/changelog debian/copyright\
-	*/*/test.* */*.pl */*/*.pl */*/*test/*.go */*.i)
+	*/*/test.* */*.pl */*/*.pl */*/*test/*.go */*.i
 format: $(FORMAT_DEPS)
 	$(Q_FRMT)
 	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
-	test -z "$$r" || echo "$$r"&&./tools/format.pl $^ $(FORMAT_MORE)
+	test -z "$$r" || echo "$$r"&&./tools/format.py $^ $(FORMAT_MORE)
 	if test $$? -ne 0 || test -n "$$r";then echo ''&&exit 1;fi
 ifdef CPPCHECK
 	$(CPPCHECK) $(CPPCHECK_OPT) --language=c++\
@@ -861,12 +861,11 @@ defs.mk: defs.mk.in config.status
 endif # config.status
 endif # MAKECMDGOALS
 
-CLEAN:=$(wildcard */*.o */*/*.o archlinux/*.pkg.tar.zst\
-  *.la wrappers/*/*.so\
+CLEAN:=*/*.o */*/*.o archlinux/*.pkg.tar.zst *.la wrappers/*/*.so\
   wrappers/python/*.pyc wrappers/php/*.h wrappers/php/*.ini wrappers/perl/*.pm\
   wrappers/go/*/go.* wrappers/go/*.go wrappers/*/*.cpp wrappers/*/$(SWIG_NAME).h\
   */$(LIB_SRC) tools/doxygen*cfg $(CLKMGR_DIR)/utest/utest_*\
-  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/sample/$(CLKMGR_NAME)*test)\
+  */*/$(LIB_SRC) $(CLKMGR_DIR)/*/*.lo $(CLKMGR_DIR)/sample/$(CLKMGR_NAME)*test\
   $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\
@@ -882,7 +881,7 @@ CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/ rpm/[BRS]
   wrappers/go/$(SWIG_LNAME) wrappers/go/utest_help\
   $(filter-out %.md,$(wildcard doc/*))
 DISTCLEAN:=configure configure~ defs.mk aclocal.m4 libtool install-sh\
-  ltmain.sh $(wildcard src/config.h* config.*)
+  ltmain.sh src/config.h* config.*
 DISTCLEAN_DIRS:=autom4te.cache m4 $(CLKMGR_DIR)/sim
 
 clean: deb_clean
