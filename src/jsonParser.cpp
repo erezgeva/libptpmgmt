@@ -665,47 +665,56 @@ string jsonValueBase::strToStr(const string &str)
                 break;
             default: {
                 uint8_t v = (uint8_t)str[i];
-                if(v >= 0x20 && v < 0x7f)
-                    // 1 UTF-8 printable byte are passes as is
+                if(v < 0x80 && isprint(v))
+                    // 1 UTF-8 printable character are passes as is
                     ret += str[i];
                 else {
                     // Convert UTF-8 to Unicode
-                    uint32_t val = v; // Unicode code
+                    uint64_t val = v; // Unicode code
                     if(v > 0x7f) {
                         size_t b = 0; // Number of extra characters
+                        uint64_t min = 0; // First code point
                         bool wrong_utf8 = false;
                         if((v & 0xe0) == 0xc0) {
                             val &= 0x1f;
                             b = 1;
+                            min = 0x80;
                         } else if((v & 0xf0) == 0xe0) {
                             val &= 0xf;
                             b = 2;
+                            min = 0x800;
                         } else if((v & 0xf8) == 0xf0) {
                             val &= 7;
                             b = 3;
+                            min = 0x10000;
                         } else
                             wrong_utf8 = true;
-                        for(size_t j = 0; j < b; j++) {
-                            if(((uint8_t)str[i + j + 1] & 0xc0) != 0x80) {
-                                wrong_utf8 = true;
-                                break;
+                        if(i + b <= sz && !wrong_utf8) {
+                            for(size_t j = 0; j < b; j++)
+                                if(((uint8_t)str[i + j + 1] & 0xc0) != 0x80) {
+                                    wrong_utf8 = true;
+                                    break;
+                                };
+                            if(!wrong_utf8) {
+                                // Translate UTF-8 back to unicode
+                                for(size_t j = 0; j < b; j++) {
+                                    val <<= 6;
+                                    val |= (0x3f & (uint8_t)str[++i]);
+                                }
+                                wrong_utf8 = val < min;
                             }
-                        }
+                        } else
+                            wrong_utf8 = true;
                         /*
                          * Check if UTF8 is too short
                          * Or we use a wrong code
                          * Then use original string, as it is NOT a proper UTF-8
                          * We do not know how to translate.
                          */
-                        if(wrong_utf8 || i + b > sz) {
+                        if(wrong_utf8) {
                             ret = "\"";
                             ret += str + "\"";
                             return ret;
-                        }
-                        // Translate UTF-8 back to unicode
-                        for(size_t j = 0; j < b; j++) {
-                            val <<= 6;
-                            val |= (0x3f & (uint8_t)str[++i]);
                         }
                     }
                     // JSON escape with UTF-16
