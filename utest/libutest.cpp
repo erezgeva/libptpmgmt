@@ -11,6 +11,7 @@
 
 #include "libutest.h"
 #include "msg.h"
+#include "buf.h"
 #include "comp.h"
 
 __PTPMGMT_NAMESPACE_USE;
@@ -47,18 +48,26 @@ static inline size_t setBuf(uint8_t *buf, size_t curLen)
         if(bufSize < curLen + 4 + sizeof data) return 0;\
         size_t len = addTlv_f(cur, type, data, sizeof data);\
         curLen += len; cur += len >> 1; } while(0)
-static inline size_t get2MngTlvsSigIntern(uint8_t *buf, size_t bufSize)
+static inline size_t get2MngTlvsSigIntern(void *b, size_t bufSize)
 {
+    uint8_t *buf = (uint8_t *)b;
     startSig;
     uint8_t m1[4] = {0x20, 6, 119}; // PRIORITY2 priority2 = 119
     addTlv(MANAGEMENT, m1);
     uint8_t m2[4] = {0x20, 7, 7};  // DOMAIN domainNumber = 7
     addTlv(MANAGEMENT, m2);
-    return setBuf(buf, curLen);
+    return setBuf((uint8_t *)buf, curLen);
 }
 size_t get2MngTlvsSig(void *buf, size_t sizeBuf)
 {
     if(buf != nullptr && sizeBuf > 0)
-        return get2MngTlvsSigIntern((uint8_t *)buf, sizeBuf);
+        return get2MngTlvsSigIntern(buf, sizeBuf);
+    return 0;
+}
+size_t get2MngTlvsSigCPtr(size_t ptrBuf)
+{
+    Buf *b = reinterpret_cast<Buf *>(ptrBuf);
+    if(b != nullptr && b->size() > 0)
+        return get2MngTlvsSigIntern(b->get(), b->size());
     return 0;
 }

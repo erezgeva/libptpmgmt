@@ -15,5 +15,6 @@
 #include <cstddef>
 
 size_t get2MngTlvsSig(void *buf, size_t sizeBuf);
+size_t get2MngTlvsSigCPtr(size_t ptrBuf);
 
 #endif /* __PTPMGMT_LIBUTEST_H */
