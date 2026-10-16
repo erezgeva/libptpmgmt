@@ -30,7 +30,7 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     astyle cppcheck universal-ctags libtest-class-perl ruby-test-unit lua-unit\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl \
     lua5.4 valgrind dh-golang reuse vim-gtk3 libboost-dev\
-    texlive-font-utils jq clang gdb abi-dumper gawk wget\
+    texlive-font-utils jq clang gdb abi-dumper gawk wget default-jdk junit5\
     abi-compliance-checker discount chrony cmark-gfm pandoc tcllib $DPKGS &&\
     apt-get upgrade -y --no-install-recommends &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini &&\
