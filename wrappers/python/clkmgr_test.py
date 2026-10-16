@@ -237,7 +237,7 @@ def main():
                     except:
                         idx = 0
                     if idx <= 0:
-                        eprint('Invalid time base index: line!')
+                        eprint('Invalid time base index: ' + str)
                         sys.exit(2)
                     index.append(idx)
         else:
