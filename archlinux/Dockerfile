@@ -29,5 +29,7 @@ RUN pacman-key --init && pacman-key --populate &&\
     cd libchrony && make install prefix=/usr && cd && rm -Rf /t0
 ARG COOKIE
 RUN pacman -Syu --noconfirm --needed
+# TODO move up
+RUN pacman -Syu --noconfirm --needed jdk-openjdk
 ARG SRC DST
 COPY --chown=builder $SRC $DST

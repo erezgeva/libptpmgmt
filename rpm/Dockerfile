@@ -28,5 +28,9 @@ COPY rpm/pkgs /tmp
 RUN dnf install -y /tmp/*.rpm && rm /tmp/*.rpm
 ARG COOKIE
 RUN dnf upgrade -y
+# TODO move to main!
+RUN dnf install -y java-latest-openjdk junit5
+RUN dnf install -y java-latest-openjdk-devel
+# TODO 'junit5-platform-console' available from Fedora 45
 ARG SRC DST
 COPY --chown=builder $SRC $DST
