@@ -20,10 +20,14 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     m4 rubygem-test-unit gdb tclx\
     texlive-epstopdf ghostscript phpunit13 perl-File-Touch pandoc jq\
     chrpath patchelf discount gmock-devel cppcheck chrony quilt cmark tcllib\
-    systemd-devel pdf2svg && dnf clean all &&\
+    systemd-devel pdf2svg java-25-openjdk-devel junit5 apiguardian &&\
+    dnf clean all &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+# TODO 'junit5-platform-console' available from Fedora 45
+# TODO 'junit5' on Fedora 44 depends on java-25
+# TODO So we can not use 'java-latest-openjdk-devel'
 COPY rpm/pkgs /tmp
 RUN dnf install -y /tmp/*.rpm && rm /tmp/*.rpm
 ARG COOKIE
