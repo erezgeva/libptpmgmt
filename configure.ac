@@ -81,6 +81,9 @@ dnl general
 AC_DEFUN([PTPM_VAR_SED_COPY],
          [AS_VAR_SET([$1],
                      ["`AS_ECHO_N(["${$2}"]) | $SED $3 PTPM_DUMP_ERR`"])])
+AC_DEFUN([PTPM_VAR_GREP_FILE_DIR],
+         [AS_VAR_SET([$1],
+                     ["`$2 PTPM_DUMP_ERR | $GREP '\/$3$' | head -1 | $SED 's%/$3%%'`"])])
 AC_DEFUN([PTPM_MSG_RESULT],
          [AS_IF([PTPM_VAR_EMPTY_TEST([$1])], [AC_MSG_RESULT([not found])],
          [AC_MSG_RESULT([${$1}])])])
@@ -128,7 +131,7 @@ PTPM_FOR([d],[89 99 11 23],
          [AS_VAR_SET([ac_cv_prog_cc_c$d],[no])])
 AC_PROG_CC
 AC_PROG_CXX
-# Clean CC and CXX from '-std'
+dnl Clean CC and CXX from '-std'
 AS_IF([PTPM_GREP_TEST([CC],[" -std="])],
       [PTPM_VAR_SED_COPY([CC],[CC],['s% -std=.*%%'])])
 AS_IF([PTPM_GREP_TEST([CXX],[" -std="])],
@@ -140,6 +143,8 @@ AC_CHECK_TOOL([CHRPATH], [chrpath])
 AC_CHECK_TOOL([PATCHELF], [patchelf])
 AC_CHECK_TOOL([MARKDOWN], [markdown])
 AC_CHECK_TOOL([TOUCH], [touch])
+dnl Used on Debian/Ububtu
+AC_CHECK_TOOL([DPKG], dpkg)
 dnl libtool
 LT_INIT
 
@@ -181,13 +186,15 @@ PTPM_FOR([d],
          [AS_IF([PTPM_NOT_IN_LIST_TEST([d], [ptpm_include_dirs])],
                 [AS_VAR_APPEND([ptpm_include_dirs], [" $d"])])])
 AS_VAR_COPY([ptpm_keep_cppflags], [CPPFLAGS])
+AS_VAR_COPY([ptpm_keep_ldflags], [LDFLAGS])
+AS_VAR_COPY([ptpm_keep_libs], [LIBS])
 
 #----------------------------------------------------------------
 # Tools
 
-# Try first the CommonMark with GitHub Flavored
+dnl Try first the CommonMark with GitHub Flavored
 AC_CHECK_TOOL([CMARK], [cmark-gfm])
-# Else use the original CommonMark convert tool
+dnl Else use the original CommonMark convert tool
 PTPM_VAR_EMPTY_IF([CMARK],
                   [AC_CHECK_TOOL([CMARK], [cmark])])
 
@@ -315,7 +322,7 @@ dnl https://clang.llvm.org/docs/UsersManual.html
 PTPM_VAR_EMPTY_IF([CXX_COLOR_USE],
       [AS_VAR_SET([ptpm_color], ['-fcolor-diagnostics'])
        AS_VAR_SET([ptpm_color_none], ['-fno-color-diagnostics'])
-       AS_VAR_SET([CPPFLAGS], ["$ptpm_keep_cppflags $ptpm_color"])
+       AS_VAR_APPEND([CPPFLAGS], [" $ptpm_color"])
        AC_COMPILE_IFELSE(
           [AC_LANG_PROGRAM],
           [AS_VAR_COPY([CXX_COLOR_USE], [ptpm_color])
@@ -369,30 +376,30 @@ AS_UNSET([USE_LSB_INIT])
 AS_UNSET([USE_OPENRC])
 AS_UNSET([USE_RUNIT])
 
-# Install systemd clkmgr-proxy.service, clkmgr-proxy.socket
+dnl Install systemd clkmgr-proxy.service, clkmgr-proxy.socket
 AC_ARG_ENABLE([systemd],
               [AS_HELP_STRING([--enable-systemd],
                               [Enable installing of systemd unit files])],
               [AS_VAR_COPY([USE_SYSTEMD], [enableval])])
 
-# Install LSB init in /etc/init.d/clkmgr-proxy
+dnl Install LSB init in /etc/init.d/clkmgr-proxy
 AC_ARG_ENABLE([lsb-init],
               [AS_HELP_STRING([--enable-lsb-init],
                               [Enable installing of lsb init])],
               [AS_VAR_COPY([USE_LSB_INIT], [enableval])])
 
-# Install OpenRC in /etc/init.d/clkmgr-proxy
+dnl Install OpenRC in /etc/init.d/clkmgr-proxy
 AC_ARG_ENABLE([openrc],
               [AS_HELP_STRING([--enable-openrc],
                               [Enable installing of openrc init])],
               [AS_VAR_COPY([USE_OPENRC], [enableval])])
 
-# OpenRC and LSB init can not coexist
+dnl OpenRC and LSB init can not coexist
 AS_IF([PTPM_VAR_TEST([USE_LSB_INIT], ['yes']) &&\
        PTPM_VAR_TEST([USE_OPENRC], ['yes'])],
       [AC_MSG_ERROR([lsb-init and openrc can not be used together!])])
 
-# Install Runit
+dnl Install Runit
 dnl We use BusyBox default.
 dnl Some system link /var/service to /service, which is Runit default.
 AC_ARG_WITH([runit],
@@ -480,7 +487,6 @@ AC_SUBST([SKIP_LIBSYS])
 # Address Sanitizer libraries
 AS_UNSET([ASAN_LIBS])
 
-AS_VAR_COPY([ptpm_keep_ldflags], [LDFLAGS])
 AS_VAR_SET([ptpm_san], [m4_defn([ptpm_dqt])m4_map_args_w([address
             pointer-compare pointer-subtract undefined leak],
             [-fsanitize=], [], [ ])m4_defn([ptpm_dqt])])
@@ -693,8 +699,9 @@ AC_SUBST([SWIG_LIB])
 
 #----------------------------------------------------------------
 # Tcl
+
 dnl Configured parameters
-AS_UNSET([ptpm_tclpackage])
+AS_VAR_COPY([ptpm_tclpackage], [ptpm_alllang_default])
 AS_UNSET([ptpm_with_tclconfig])
 AS_UNSET([ptpm_tclincdir])
 dnl Probed parameters
@@ -709,8 +716,7 @@ AC_ARG_WITH([tcl],
             [AS_HELP_STRING([--without-tcl], [Disable Tcl])]
             [AS_HELP_STRING([--with-tcl=path],
                             [Set location of Tcl package])],
-            [AS_VAR_COPY([ptpm_tclpackage], [withval])],
-            [AS_VAR_COPY([ptpm_tclpackage], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_tclpackage], [withval])])
 AC_ARG_WITH([tclconfig],
             [AS_HELP_STRING([--with-tclconfig=path],
                             [Set location of tclConfig.sh])],
@@ -851,6 +857,10 @@ AC_SUBST([TCL_SITE])
 
 #----------------------------------------------------------------
 # Python 3
+
+dnl Configured parameters
+AS_VAR_COPY([ptpm_py3bin], [ptpm_alllang_default])
+dnl Probed parameters
 AS_VAR_SET([ptpm_py3majorver], [0])
 AS_UNSET([PY3_BIN])
 AS_UNSET([PY3_CFG])
@@ -864,8 +874,7 @@ AC_ARG_WITH([python3],
             [AS_HELP_STRING([--without-python3], [Disabling Python 3])]
             [AS_HELP_STRING([--with-python3=path],
                             [Set location of Python 3 executable])],
-            [AS_VAR_COPY([ptpm_py3bin], [withval])],
-            [AS_VAR_COPY([ptpm_py3bin], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_py3bin], [withval])])
 
 AS_VAR_IF([ptpm_py3bin], ['no'],
   [AC_MSG_NOTICE([Disabling python3 probe])],
@@ -952,7 +961,10 @@ AC_SUBST([PY3_EXT])
 
 #----------------------------------------------------------------
 # Perl5
-AS_UNSET([ptpm_perlbin])
+
+dnl Configured parameters
+AS_VAR_COPY([ptpm_perlbin], [ptpm_alllang_default])
+dnl Probed parameters
 AS_UNSET([PERL])
 AS_UNSET([PERL5_VER])
 AS_UNSET([PERL5_SITE])
@@ -964,8 +976,7 @@ AC_ARG_WITH([perl5],
             [AS_HELP_STRING([--without-perl5], [Disable Perl5])]
             [AS_HELP_STRING([--with-perl5=path],
                             [Set location of Perl5 executable])],
-            [AS_VAR_COPY([ptpm_perlbin], [withval])],
-            [AS_VAR_COPY([ptpm_perlbin], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_perlbin], [withval])])
 
 AS_VAR_IF([ptpm_perlbin], ['no'],
   [AC_MSG_NOTICE([Disabling Perl5])],
@@ -1022,7 +1033,10 @@ AC_SUBST([PERL5_HAVE_TOUCH])
 
 #----------------------------------------------------------------
 # Ruby
-AS_UNSET([ptpm_rubybin])
+
+dnl Configured parameters
+AS_VAR_COPY([ptpm_rubybin], [ptpm_alllang_default])
+dnl Probed parameters
 AS_UNSET([RUBY])
 AS_UNSET([RUBY_VER])
 AS_UNSET([RUBY_SITE])
@@ -1033,8 +1047,7 @@ AC_ARG_WITH([ruby],
             [AS_HELP_STRING([--without-ruby], [Disable Ruby])]
             [AS_HELP_STRING([--with-ruby=path],
                             [Set location of Ruby executable])],
-            [AS_VAR_COPY([ptpm_rubybin], [withval])],
-            [AS_VAR_COPY([ptpm_rubybin], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_rubybin], [withval])])
 
 dnl configuration comes from rbconfig.rb
 AS_VAR_IF([ptpm_rubybin], ['no'],
@@ -1117,7 +1130,10 @@ AC_SUBST([RUBY_LIB_FLAGS])
 
 #----------------------------------------------------------------
 # PHP
-AS_UNSET([ptpm_phpbin])
+
+dnl Configured parameters
+AS_VAR_COPY([ptpm_phpbin], [ptpm_alllang_default])
+dnl Probed parameters
 AS_UNSET([ptpm_phpdir])
 AS_UNSET([PHP])
 AS_UNSET([PHP_CFG])
@@ -1130,8 +1146,7 @@ AS_UNSET([PHP_UNIT])
 AC_ARG_WITH([php],
             [AS_HELP_STRING([--without-php], [Disable PHP])]
             [AS_HELP_STRING([--with-php=path], [Set location of PHP executable])],
-            [AS_VAR_COPY([ptpm_phpbin], [withval])],
-            [AS_VAR_COPY([ptpm_phpbin], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_phpbin], [withval])])
 
 AS_VAR_IF([ptpm_phpbin], ['no'],
   [AC_MSG_NOTICE([Disabling PHP])],
@@ -1203,9 +1218,12 @@ AC_SUBST([PHP_UNIT])
 
 #----------------------------------------------------------------
 # Lua
-AS_UNSET([ptpm_luabin])
+
+dnl Configured parameters
+AS_VAR_COPY([ptpm_luabin], [ptpm_alllang_default])
 AS_UNSET([ptpm_luainclude])
 AS_UNSET([ptpm_lualib])
+dnl Probed parameters
 AS_UNSET([LUA_BIN])
 AS_UNSET([LUA_VER])
 AS_UNSET([LUA_INC_FLAGS])
@@ -1228,8 +1246,7 @@ AC_ARG_WITH([lua],
             [AS_HELP_STRING([--without-lua], [Disable Lua])]
             [AS_HELP_STRING([--with-lua=path],
                             [Set location of Lua executable])],
-            [AS_VAR_COPY([ptpm_luabin], [withval])],
-            [AS_VAR_COPY([ptpm_luabin], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_luabin], [withval])])
 AC_ARG_WITH([luaincl],
             [AS_HELP_STRING([--with-luaincl=path],
                             [Set location of Lua include directory])],
@@ -1358,12 +1375,12 @@ AS_VAR_IF([ptpm_luabin], ['no'],
          PTPM_VAR_SET_IF([LUA_BIN],
            [PTPM_VAR_SET_IF([ptpm_lualib],
                   [AC_CHECK_FILE([$ptpm_lualib/liblua.so],
-                                 [LUA_LIB_FLAGS="-L$ptpm_lualib -llua"],
+                                 [AS_VAR_SET([LUA_LIB_FLAGS], ["-L$ptpm_lualib -llua"])],
                                  [AS_UNSET([LUA_BIN])])],
                   [PTPM_VAR_EMPTY_IF([LUA_LIB_FLAGS],
                              [AC_SEARCH_LIBS([lua_close],
                                              [lua lua$LUA_VER],
-                                             [LUA_LIB_FLAGS="-l$ac_lib"],
+                                             [AS_VAR_SET([LUA_LIB_FLAGS], ["-l$ac_lib"])],
                                              [AS_UNSET([LUA_BIN])])])])])
 
          PTPM_VAR_SET_IF([LUA_BIN],
@@ -1395,7 +1412,10 @@ AC_SUBST([LUA_UNIT_VERS])
 
 #----------------------------------------------------------------
 # golang
-AS_UNSET([ptpm_go])
+
+dnl Configured parameters
+AS_VAR_COPY([ptpm_go], [ptpm_alllang_default])
+dnl Probed parameters
 AS_UNSET([ptpm_gover])
 AS_UNSET([GO_BIN])
 AS_UNSET([GO_MINVER])
@@ -1406,8 +1426,7 @@ AC_ARG_WITH([go],
             [AS_HELP_STRING([--without-go], [Disable Go])]
             [AS_HELP_STRING([--with-go=path],
                             [Set location of Go executable])],
-            [AS_VAR_COPY([ptpm_go], [withval])],
-            [AS_VAR_COPY([ptpm_go], [ptpm_alllang_default])])
+            [AS_VAR_COPY([ptpm_go], [withval])])
 
 AS_VAR_IF([ptpm_go], ['no'],
   [AC_MSG_NOTICE([Disabling Go])],
