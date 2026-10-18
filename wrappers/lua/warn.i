@@ -7,3 +7,5 @@
  * @copyright © 2022 Erez Geva
  *
  */
+
+/* vim: set filetype=swig: */

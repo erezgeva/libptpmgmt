@@ -131,3 +131,5 @@ function ptpmgmt.MessageBuilder:clone(inhObj, msg)
     return obj
 end
 %}
+
+/* vim: set filetype=swig: */

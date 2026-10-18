@@ -79,3 +79,5 @@ actionField_e GET_VAL();
 "  }\n"
 "}\n";%}
 %init %{Tcl_Eval(interp, MessageDispatcherCode);%}
+
+/* vim: set filetype=swig: */

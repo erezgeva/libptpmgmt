@@ -8,15 +8,13 @@
  *
  */
 
-/* TODO fixed by SWIG 4.5.0 in Lib/php/php.swg */
+/* TODO fixed by SWIG ?.?.? in Lib/php/php.swg */
 %typemap(directorin) SWIGTYPE *
 %{
   ZVAL_UNDEF($input);
   SWIG_SetPointerZval($input, (void *)($1), $1_descriptor, $owner);
 %}
 
-/* PHP already use Error */
-%rename(c_error) Error;
 /* PHP rename to 'c_empty' */
 %warnfilter(SWIGWARN_PARSE_KEYWORD) Binary::empty;
 /* PHP rename to 'c_list' */
@@ -27,9 +25,11 @@ _ptpmList(SLAVE_RX_SYNC_COMPUTED_DATA_t)
 _ptpmList(SLAVE_TX_EVENT_TIMESTAMPS_t)
 _ptpmList(SLAVE_DELAY_TIMING_DATA_NP_t)
 _ptpmList(SLAVE_RX_SYNC_TIMING_DATA_t)
-/* PHP rename to 'c_interface' */
-%warnfilter(SWIGWARN_PARSE_KEYWORD) PORT_PROPERTIES_NP_t::interface;
 
 /* See more warnings in libptpmgmt.i for SWIG_OPERS_xxxx */
 #define SWIG_OPERS_LANG_IDENTIFIER
 #define SWIG_OPERS_LANG_IDENTIFIER2
+#define SWIG_KEYWORD_RENAME
+#define SWIG_RENAME_ERROR
+
+/* vim: set filetype=swig: */

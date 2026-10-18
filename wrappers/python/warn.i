@@ -10,3 +10,5 @@
 
 /* See more warnings in libptpmgmt.i for these SWIG_OPERS_xxxx */
 #define SWIG_OPERS_IGNORE_OPERATOR
+
+/* vim: set filetype=swig: */

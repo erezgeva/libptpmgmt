@@ -8,9 +8,9 @@
  *
  */
 
-/* Go rename to 'Xinterface' */
-%warnfilter(SWIGWARN_PARSE_KEYWORD) PORT_PROPERTIES_NP_t::interface;
-
 /* See more warnings in libptpmgmt.i for SWIG_OPERS_xxxx */
 #define SWIG_OPERS_LANG_IDENTIFIER
 #define SWIG_OPERS_LANG_IDENTIFIER2
+#define SWIG_KEYWORD_RENAME
+
+/* vim: set filetype=swig: */

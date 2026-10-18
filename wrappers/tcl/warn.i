@@ -11,3 +11,5 @@
 /* See more warnings in libptpmgmt.i for SWIG_OPERS_xxxx */
 #define SWIG_OPERS_OPERATOR_PLUSEQ
 #define SWIG_OPERS_LANG_IDENTIFIER
+
+/* vim: set filetype=swig: */

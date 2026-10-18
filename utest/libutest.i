@@ -17,3 +17,5 @@
 /* Include standatd types and SWIG macros */
 %include <stdint.i>
 %include "libutest.h"
+
+/* vim: set filetype=swig: */

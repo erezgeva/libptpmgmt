@@ -167,6 +167,22 @@ using namespace ptpmgmt;
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ) Binary::operator=;
 #endif /* SWIG_OPERS_IGNORE_OPERATOR */
 
+/*********
+ * PHP and Go rename interface
+   PHP rename to 'c_interface'
+   Go rename to 'Xinterface'
+ *********/
+#ifdef SWIG_KEYWORD_RENAME
+%warnfilter(SWIGWARN_PARSE_KEYWORD) PORT_PROPERTIES_NP_t::interface;
+#endif /* SWIG_KEYWORD_RENAME */
+
+/*********
+ * PHP rename Error class
+ *********/
+#ifdef SWIG_RENAME_ERROR
+%rename(c_error) Error;
+#endif
+
 /* Support Message::traversSigTlvsCl() */
 %feature("director") MessageSigTlvCallback;
 
@@ -250,3 +266,5 @@ _ptpmSigCnv(SLAVE_DELAY_TIMING_DATA_NP)
 %include "callDef.h"
 %include "msgCall.h"
 #endif
+
+/* vim: set filetype=swig: */

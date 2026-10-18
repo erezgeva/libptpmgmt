@@ -62,3 +62,5 @@ struct timespec {
 %include "pub/clkmgr/timebase_configs.h"
 %include "pub/clkmgr/types.h"
 %include "pub/clkmgr/utility.h"
+
+/* vim: set filetype=swig: */
