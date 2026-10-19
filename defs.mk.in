@@ -45,12 +45,16 @@ sbindir:=@sbindir@
 bindir:=@bindir@
 runstatedir:=@runstatedir@
 
+# path
+top_builddir:=.
+
 # Objecy extension
 OBJEXT:=@OBJEXT@
 
 # Compiler
 CC:=@CC@
 CXX:=@CXX@
+LIBTOOL:=@LIBTOOL@
 CXXFLAGS_PMC:=@CXXFLAGS_PMC@
 USE_CROSS_COMPILE:=@USE_CROSS_COMPILE@
 USE_CLANG_CPP_COMPILE:=@USE_CLANG_CPP_COMPILE@
@@ -103,6 +107,9 @@ CPPCHECK:=@CPPCHECK@
 CPPCHECK_OPT_BASE:=@CPPCHECK_OPT_BASE@
 VALGRIND:=@VALGRIND@
 DATE:=@DATE@
+
+# Debian/Ububtu tools
+DPKG:=@DPKG@
 
 # Selecting of init systems
 USE_SYSTEMD:=@USE_SYSTEMD@

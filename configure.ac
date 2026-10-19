@@ -143,8 +143,8 @@ AC_CHECK_TOOL([CHRPATH], [chrpath])
 AC_CHECK_TOOL([PATCHELF], [patchelf])
 AC_CHECK_TOOL([MARKDOWN], [markdown])
 AC_CHECK_TOOL([TOUCH], [touch])
-dnl Used on Debian/Ububtu
-AC_CHECK_TOOL([DPKG], dpkg)
+dnl Debian/Ububtu tool
+AC_CHECK_TOOL([DPKG], [dpkg])
 dnl libtool
 LT_INIT
 

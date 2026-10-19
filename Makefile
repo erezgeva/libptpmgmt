@@ -401,13 +401,10 @@ override CXXFLAGS+=$(ASAN_FLAGS) -fno-omit-frame-pointer
 override LDFLAGS+=$(ASAN_FLAGS)
 ASAN_PRE:=$(subst $(SP),,$(foreach n,$(ASAN_LIBS),$n:))
 endif # USE_ASAN
-LIBTOOL=./libtool
 LIBTOOL_CC=$Q$(Q_LCC)$(LIBTOOL) --mode=compile --tag=CXX $(LIBTOOL_QUIET)
 LIBTOOL_LD=$Q$(Q_LD)$(LIBTOOL) --mode=link --tag=CXX $(LIBTOOL_QUIET)
-ifneq ($(call which,$(LIBTOOL)),)
 LIBTOOL_USE_STATIC!=$(LIBTOOL) --config | $(GREP) build_old_libs |\
   $(SED) 's!^build_old_libs=!!'
-endif
 $(LIB_NAME_LA)_LDLIBS:=-lm -ldl
 LIB_OBJS:=$(subst $(SRC)/,$(OBJ_DIR)/,$(SRCS:.cpp=.lo))
 PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
