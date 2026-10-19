@@ -606,13 +606,17 @@ MNG_PARSE_ERROR_e Message::parse(const void *buf, ssize_t bufSize)
     }
     return MNG_PARSE_ERROR_INVALID_TLV;
 }
-MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t bufSize)
+MNG_PARSE_ERROR_e Message::parse(const Buf &buf, ssize_t msgSize)
 {
     // That should not happens!
     // As user used too big size in the recieve function
     // But if it does, we need protection!
-    return (ssize_t)buf.size() < bufSize ? MNG_PARSE_ERROR_TOO_SMALL :
-        parse(buf.get(), bufSize);
+    return (ssize_t)buf.size() < msgSize ? MNG_PARSE_ERROR_TOO_SMALL :
+        parse(buf.get(), msgSize);
+}
+MNG_PARSE_ERROR_e Message::parseBuf(const Buf &buf, ssize_t msgSize)
+{
+    return parse(buf, msgSize);
 }
 MNG_PARSE_ERROR_e Message::parseAuth(const void *buf, const void *auth,
     ssize_t left, bool check)

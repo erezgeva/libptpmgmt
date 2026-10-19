@@ -36,6 +36,12 @@
     <flag name="skip_go">
       Do not use Go development wrapper.
     </flag>
+    <flag name="skip_java">
+      Do not use Java development wrapper.
+    </flag>
+    <flag name="skip_javascript">
+      Do not use JavaScript development wrapper.
+    </flag>
     <flag name="skip_swig">
       Do not use any wrapper.
     </flag>

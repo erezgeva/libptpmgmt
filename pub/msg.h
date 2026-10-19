@@ -651,6 +651,14 @@ class Message
      */
     MNG_PARSE_ERROR_e parse(const Buf &buf, ssize_t msgSize);
     /**
+     * Parse a received raw socket
+     * @param[in] buf object with memory buffer containing the raw PTP Message
+     * @param[in] msgSize received size of PTP Message
+     * @return parse error state
+     * @note identical to parse. Some scripts fail to match proper function
+     */
+    MNG_PARSE_ERROR_e parseBuf(const Buf &buf, ssize_t msgSize);
+    /**
      * Get last reply management action
      * @return reply management action
      * @note set on parse

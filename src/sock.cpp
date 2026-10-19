@@ -177,10 +177,17 @@ bool SockBase::poll(uint64_t timeout_ms) const
         PTPMGMT_ERROR_CLR;
         return true;
     }
-    if(ret == -1)
-        PTPMGMT_ERROR_P("poll");
-    else
-        PTPMGMT_ERROR("poll fails with %d", ret);
+    switch(ret) {
+        case -1:
+            PTPMGMT_ERROR_P("poll");
+            break;
+        case 0:
+            PTPMGMT_ERROR("poll timeout");
+            break;
+        default:
+            PTPMGMT_ERROR("poll fails with %d", ret);
+            break;
+    }
     return false;
 }
 bool SockBase::tpoll(uint64_t &timeout_ms) const
@@ -189,10 +196,8 @@ bool SockBase::tpoll(uint64_t &timeout_ms) const
         PTPMGMT_ERROR("Socket is not initialized");
         return false;
     }
-    bool have_clock = timeout_ms > 0;
     timespec start;
-    if(have_clock)
-        have_clock = clock_gettime(CLOCK_REALTIME, &start) == 0;
+    bool have_clock = timeout_ms > 0 && clock_gettime(CLOCK_REALTIME, &start) == 0;
     bool ret = poll(timeout_ms);
     if(have_clock) {
         timespec now;
@@ -200,10 +205,7 @@ bool SockBase::tpoll(uint64_t &timeout_ms) const
             Timestamp_t s(start), n(now);
             n -= s;
             uint64_t pass = n.toNanoseconds() / NSEC_PER_MSEC;
-            if(timeout_ms > pass)
-                timeout_ms -= pass;
-            else
-                timeout_ms = 0; // No time out!
+            timeout_ms = timeout_ms > pass ? timeout_ms - pass : 0;
         }
     }
     return ret;

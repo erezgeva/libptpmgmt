@@ -109,7 +109,4 @@ utest_clkmgr_api: $(CLKMGR_API_UTEST)
 
 endif #GTEST_LIB_FLAGS
 
-CLKMGR_UTESTS:=$(addprefix utest_clkmgr_,client client_state common message\
-  proxy api)
-.PHONY: $(CLKMGR_UTESTS)
 utest_clkmgr: $(CLKMGR_GEN_SRC) $(CLKMGR_UTESTS)

@@ -42,36 +42,36 @@ build() {
 }
 makedepends=(m4 doxygen graphviz perl ruby tcl swig lua lua51 lua52 lua53
   python3 go gcc libtool autoconf make chrpath discount cmark-gfm jdk-openjdk
-  texlive-fontutils which pandoc openssl libgcrypt gnutls nettle)
+  texlive-fontutils which pandoc openssl libgcrypt gnutls nettle nodejs)
 # You may use 'patchelf' as alternative of `chrpath`
 package_libptpmgmt2() {
   pkgdesc='PTP management library, to communicate with ptp4l'
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/${pkgname/2/}.so.* $pkgdir/$libdir
+  mv $srcdir/install/$libdir/${pkgname/2/}.so.* $pkgdir/$libdir
 }
 package_libptpmgmt2-openssl() {
   pkgdesc='PTP management library HMAC plugin using the openssl library'
   depends=("$pkgbase=$verdep" openssl)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/${pkgname/2-/_}.so.* $pkgdir/$libdir
+  mv $srcdir/install/$libdir/${pkgname/2-/_}.so.* $pkgdir/$libdir
 }
 package_libptpmgmt2-gcrypt() {
   pkgdesc='PTP management library HMAC plugin using the gcrypt library'
   depends=("$pkgbase=$verdep" libgcrypt)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/${pkgname/2-/_}.so.* $pkgdir/$libdir
+  mv $srcdir/install/$libdir/${pkgname/2-/_}.so.* $pkgdir/$libdir
 }
 package_libptpmgmt2-gnutls() {
   pkgdesc='PTP management library HMAC plugin using the gnutls library'
   depends=("$pkgbase=$verdep" gnutls)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/${pkgname/2-/_}.so.* $pkgdir/$libdir
+  mv $srcdir/install/$libdir/${pkgname/2-/_}.so.* $pkgdir/$libdir
 }
 package_libptpmgmt2-nettle() {
   pkgdesc='PTP management library HMAC plugin using the nettle library'
   depends=("$pkgbase=$verdep" nettle)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/${pkgname/2-/_}.so.* $pkgdir/$libdir
+  mv $srcdir/install/$libdir/${pkgname/2-/_}.so.* $pkgdir/$libdir
 }
 package_libptpmgmt-dev() {
   # development package can use static library
@@ -82,10 +82,10 @@ package_libptpmgmt-dev() {
   mkdir -p $pkgdir/$libdir $pkgdir/usr/share/doc
   mv $srcdir/install/usr/share/doc/$pkgname $pkgdir/usr/share/doc
   mv $srcdir/install/usr/include $pkgdir/usr
-  mv $srcdir/install/usr/lib/libptpmgmt*.a $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/libptpmgmt*.so $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/libclkmgr*.so $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/pkgconfig $pkgdir/$libdir
+  mv $srcdir/install/$libdir/libptpmgmt*.a $pkgdir/$libdir
+  mv $srcdir/install/$libdir/libptpmgmt*.so $pkgdir/$libdir
+  mv $srcdir/install/$libdir/libclkmgr*.so $pkgdir/$libdir
+  mv $srcdir/install/$libdir/pkgconfig $pkgdir/$libdir
 }
 package_libptpmgmt-doc() {
   arch=(any)
@@ -98,9 +98,9 @@ package_libptpmgmt-perl() {
   pkgdesc='PTP management library Perl wrapper'
   depends=("$pkgbase=$verdep" perl)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/perl* $pkgdir/$libdir
-  rm -rf $srcdir/install/usr/lib/perl*/*/core_perl/auto/PtpMgmtLib
-  rm -f $srcdir/install/usr/lib/perl*/*/core_perl/PtpMgmtLib*
+  cp -a $srcdir/install/$libdir/perl* $pkgdir/$libdir
+  rm -rf $srcdir/install/$libdir/perl*/*/core_perl/auto/PtpMgmtLib
+  rm -f $srcdir/install/$libdir/perl*/*/core_perl/PtpMgmtLib*
   rm -rf $pkgdir/$libdir/perl*/*/core_perl/auto/ClkMgrLib
   rm -f $pkgdir/$libdir/perl*/*/core_perl/ClkMgrLib*
 }
@@ -108,9 +108,9 @@ package_python3-ptpmgmt() {
   pkgdesc='PTP management library python version 3 wrapper'
   depends=("$pkgbase=$verdep" python3)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/python3* $pkgdir/$libdir
-  rm -f $srcdir/install/usr/lib/python3*/site-packages/*ptpmgmt*
-  rm -f $srcdir/install/usr/lib/python3*/site-packages/*/*ptpmgmt*
+  cp -a $srcdir/install/$libdir/python3* $pkgdir/$libdir
+  rm -f $srcdir/install/$libdir/python3*/site-packages/*ptpmgmt*
+  rm -f $srcdir/install/$libdir/python3*/site-packages/*/*ptpmgmt*
   rm -f $pkgdir/$libdir/python3*/site-packages/*clkmgr*
   rm -f $pkgdir/$libdir/python3*/site-packages/*/*clkmgr*
 }
@@ -119,31 +119,31 @@ package_lua-ptpmgmt() {
   depends=("$pkgbase=$verdep")
   optdepends=(lua lua51 lua52 lua53)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/liblua*ptpmgmt* $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/lua* $pkgdir/$libdir
-  rm -f $srcdir/install/usr/lib/lua*/*/ptpmgmt*
+  mv $srcdir/install/$libdir/liblua*ptpmgmt* $pkgdir/$libdir
+  cp -a $srcdir/install/$libdir/lua* $pkgdir/$libdir
+  rm -f $srcdir/install/$libdir/lua*/*/ptpmgmt*
   rm -f $pkgdir/$libdir/lua*/*/clkmgr*
 }
 package_ruby-ptpmgmt() {
   pkgdesc='PTP management library ruby wrapper'
   depends=("$pkgbase=$verdep" ruby)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/ruby $pkgdir/$libdir
-  rm -f $srcdir/install/usr/lib/ruby/vendor_ruby/*/*/*ptpmgmt*
+  cp -a $srcdir/install/$libdir/ruby $pkgdir/$libdir
+  rm -f $srcdir/install/$libdir/ruby/vendor_ruby/*/*/*ptpmgmt*
   rm -f $pkgdir/$libdir/ruby/vendor_ruby/*/*/clkmgr*
 }
 package_tcl-ptpmgmt() {
   pkgdesc='PTP management library tcl wrapper'
   depends=("$pkgbase=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/ptpmgmt $pkgdir/$libdir
+  mv $srcdir/install/$libdir/ptpmgmt $pkgdir/$libdir
 }
 package_go-ptpmgmt() {
   arch=(any)
   pkgdesc='PTP management library golang development wrapper'
   depends=("$pkgbase=$verdep" "libclkmgr2=$verdep" go)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/go $pkgdir/$libdir
+  mv $srcdir/install/$libdir/go $pkgdir/$libdir
 }
 package_java-ptpmgmt() {
   license=('BSD-3-Clause')
@@ -155,12 +155,19 @@ package_java-ptpmgmt() {
   mv $srcdir/install/usr/java/packages/lib/libptpmgmt.so $pkgdir/usr/java/packages/lib
   mv $srcdir/install/usr/share/java/ptpmgmt.jar $pkgdir/usr/share/java
 }
+package_nodejs-ptpmgmt() {
+  license=('BSD-3-Clause')
+  pkgdesc='PTP management library Node.js wrapper'
+  depends=("$pkgbase=$verdep" nodejs)
+  mkdir -p $pkgdir/$libdir/node_modules
+  mv $srcdir/install/$libdir/node_modules/ptpmgmt $pkgdir/$libdir/node_modules
+}
 #package_php-ptpmgmt() {
 # Arch linux php do not have system include_path!
 # pkgdesc='PTP management library php wrapper'
 # depends=("$pkgbase=$verdep" php)
 # mkdir -p $pkgdir/$libdir
-# mv $srcdir/install/usr/lib/php* $pkgdir/$libdir
+# mv $srcdir/install/$libdir/php* $pkgdir/$libdir
 #}
 package_pmc-ptpmgmt() {
   license=('GPL-3.0-or-later')
@@ -192,23 +199,23 @@ package_clkmgr-proxy() {
   mv $srcdir/install/usr/share/man/man8/clkmgr* $pkgdir/usr/local/man/man8
   mv $srcdir/install/usr/share/man/man5/clkmgr* $pkgdir/usr/local/man/man5
   mv $srcdir/install/etc $pkgdir
-  mv $srcdir/install/usr/lib/systemd $pkgdir/usr/lib
+  mv $srcdir/install/$libdir/systemd $pkgdir/usr/lib
 }
 package_libclkmgr2() {
   license=('BSD-3-Clause')
   pkgdesc='Clock Manager library'
   depends=("clkmgr-proxy=$verdep")
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/libclkmgr.so.* $pkgdir/$libdir
+  mv $srcdir/install/$libdir/libclkmgr.so.* $pkgdir/$libdir
 }
 package_libclkmgr-perl() {
   license=('BSD-3-Clause')
   pkgdesc='Clock Manager library Perl wrapper'
   depends=("libclkmgr2=$verdep" perl)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/perl* $pkgdir/$libdir
-  rm -rf $srcdir/install/usr/lib/perl*/*/core_perl/auto/ClkMgrLib
-  rm -f $srcdir/install/usr/lib/perl*/*/core_perl/ClkMgrLib*
+  cp -a $srcdir/install/$libdir/perl* $pkgdir/$libdir
+  rm -rf $srcdir/install/$libdir/perl*/*/core_perl/auto/ClkMgrLib
+  rm -f $srcdir/install/$libdir/perl*/*/core_perl/ClkMgrLib*
   rm -rf $pkgdir/$libdir/perl*/*/core_perl/auto/PtpMgmtLib
   rm -f $pkgdir/$libdir/perl*/*/core_perl/PtpMgmtLib*
 }
@@ -217,9 +224,9 @@ package_python3-clkmgr() {
   pkgdesc='Clock Manager library python version 3 wrapper'
   depends=("libclkmgr2=$verdep" python3)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/python3* $pkgdir/$libdir
-  rm -f $srcdir/install/usr/lib/python3*/site-packages/*clkmgr*
-  rm -f $srcdir/install/usr/lib/python3*/site-packages/*/*clkmgr*
+  cp -a $srcdir/install/$libdir/python3* $pkgdir/$libdir
+  rm -f $srcdir/install/$libdir/python3*/site-packages/*clkmgr*
+  rm -f $srcdir/install/$libdir/python3*/site-packages/*/*clkmgr*
   rm -f $pkgdir/$libdir/python3*/site-packages/*ptpmgmt*
   rm -f $pkgdir/$libdir/python3*/site-packages/*/*ptpmgmt*
 }
@@ -229,9 +236,9 @@ package_lua-clkmgr() {
   depends=("libclkmgr2=$verdep")
   optdepends=(lua lua51 lua52 lua53)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/liblua*clkmgr* $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/lua* $pkgdir/$libdir
-  rm -f $srcdir/install/usr/lib/lua*/*/clkmgr*
+  mv $srcdir/install/$libdir/liblua*clkmgr* $pkgdir/$libdir
+  cp -a $srcdir/install/$libdir/lua* $pkgdir/$libdir
+  rm -f $srcdir/install/$libdir/lua*/*/clkmgr*
   rm -f $pkgdir/$libdir/lua*/*/ptpmgmt*
 }
 package_ruby-clkmgr() {
@@ -239,8 +246,8 @@ package_ruby-clkmgr() {
   pkgdesc='Clock Manager library ruby wrapper'
   depends=("libclkmgr2=$verdep" ruby)
   mkdir -p $pkgdir/$libdir
-  cp -a $srcdir/install/usr/lib/ruby $pkgdir/$libdir
-  rm -f $srcdir/install/usr/lib/ruby/vendor_ruby/*/*/*clkmgr*
+  cp -a $srcdir/install/$libdir/ruby $pkgdir/$libdir
+  rm -f $srcdir/install/$libdir/ruby/vendor_ruby/*/*/*clkmgr*
   rm -f $pkgdir/$libdir/ruby/vendor_ruby/*/*/ptpmgmt*
 }
 #package_php-clkmgr() {
@@ -249,14 +256,14 @@ package_ruby-clkmgr() {
 # pkgdesc='Clock Manager library php wrapper'
 # depends=("libclkmgr2=$verdep" php)
 # mkdir -p $pkgdir/$libdir
-# mv $srcdir/install/usr/lib/php* $pkgdir/$libdir
+# mv $srcdir/install/$libdir/php* $pkgdir/$libdir
 #}
 package_tcl-clkmgr() {
   license=('BSD-3-Clause')
   pkgdesc='Clock Manager library tcl wrapper'
   depends=("libclkmgr2=$verdep" tcl)
   mkdir -p $pkgdir/$libdir
-  mv $srcdir/install/usr/lib/clkmgr $pkgdir/$libdir
+  mv $srcdir/install/$libdir/clkmgr $pkgdir/$libdir
 }
 package_java-clkmgr() {
   license=('BSD-3-Clause')
@@ -267,6 +274,13 @@ package_java-clkmgr() {
   mkdir -p $pkgdir/usr/java/packages/lib $pkgdir/usr/share/java
   mv $srcdir/install/usr/java/packages/lib/libclkmgr.so $pkgdir/usr/java/packages/lib
   mv $srcdir/install/usr/share/java/clkmgr.jar $pkgdir/usr/share/java
+}
+package_nodejs-clkmgr() {
+  license=('BSD-3-Clause')
+  pkgdesc='Clock Manager library Node.js wrapper'
+  depends=("libclkmgr2=$verdep" nodejs)
+  mkdir -p $pkgdir/$libdir/node_modules
+  mv $srcdir/install/$libdir/node_modules/clkmgr $pkgdir/$libdir/node_modules
 }
 changelog=changelog
 # vim: set ft=bash:

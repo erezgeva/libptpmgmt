@@ -258,19 +258,27 @@ NETTLE_DL:=$(NETTLE_NAME).so$(SONAME)
 NETTLE_LA:=$(NETTLE_NAME).la
 
 HMAC_FLIBS:=$(SSL_LIB) $(GNUTLS_LIB) $(NETTLE_LIB) $(GCRYPT_LIB)
-TGT_LNG:=perl5 lua python3 ruby php tcl go java
+TGT_LNG:=perl5 lua python3 ruby php tcl go java javascript
 UTEST_CPP_TGT:=$(addprefix utest_,no_sys sys auth pmc hmac)
 UTEST_C_TGT:=$(addprefix uctest_,no_sys sys auth)
 UTEST_TGT_LNG:=$(addprefix utest_,$(TGT_LNG))
 UTEST_TGT:=utest_cpp utest_lang utest_c $(UTEST_CPP_TGT) $(UTEST_TGT_LNG)\
   $(UTEST_C_TGT) utest_clkmgr
+UTEST_HMAC:=$(addprefix utest_,ssl gcrypt gnutls nettle no_hmac dyn_hmac)
+CLKMGR_UTESTS:=$(addprefix utest_clkmgr_,client client_state common message\
+  proxy api)
 INS_TGT:=install_main $(addprefix install_,$(TGT_LNG)) install_clkmgr
 PHONY_TGT:=all clean distclean format install deb deb_arc deb_clean\
   doxygen checkall help srcpkg rpm pkg gentoo utest config\
-  $(UTEST_TGT) $(INS_TGT) utest_lua_a uctest
+  $(UTEST_TGT) $(INS_TGT) utest_lua_a uctest $(UTEST_HMAC) $(CLKMGR_UTESTS)\
+  $(addprefix utest_js_,jsc v8 napi) install_js_napi\
+  $(addprefix utest_lua_,$(LUA_VERS))
 .PHONY: $(PHONY_TGT)
 NONPHONY_TGT_ALL:=$(filter-out $(PHONY_TGT),$(MAKECMDGOALS))
 NONPHONY_TGT:=$(firstword $(NONPHONY_TGT_ALL))
+JS_D:=wrappers/javascript
+JSC_RUN:=$(JS_D)/jsc_run
+JSC_RUN_SRC:=tools/jsc_run.cpp
 
 ####### Source tar file #######
 TAR:=tar cfJ
@@ -284,7 +292,7 @@ SRC_FILES_DIR:=$(wildcard README.md t*/*.p* */*/*.m4 .reuse/*\
   $(PMC_DIR)/*.[ch]* */Makefile w*/*/Makefile\
   $(CLKMGR_DIR)/proxy/*.json $(CLKMGR_DIR)/image/* */go/*unit_test/*.go\
   */*/*gtest*/*.go LICENSES/* *.in tools/*.in $(HMAC_SRC)/*.cpp\
-  */*/*/phc*.go\
+  */*/*/phc*.go $(JSC_RUN_SRC) $(JS_D)/$(SWIG_LNAME).js\
   $(CLKMGR_DIR)/proxy/*.*.in $(CLKMGR_DIR)/proxy/*.sh)\
   $(CLKMGR_DIR)/utest/Makefile\
   src/ver.h.in src/name.h.in $(SRCS) $(HEADERS_SRCS) LICENSE\
@@ -413,6 +421,12 @@ PMC_OBJS:=$(subst $(PMC_DIR)/,$(OBJ_DIR)/,$(patsubst %.cpp,%.o,\
 $(OBJ_DIR)/ver.lo: override CXXFLAGS+=-DVER_MAJ=$(ver_maj)\
   -DVER_MIN=$(ver_min) -DVER_VAL=$(PACKAGE_VERSION_VAL)
 LLC=$(Q_LCC)$(CXX) $(CXXFLAGS) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
+CXXFLAGS14=$(filter-out -std=%,$(CXXFLAGS)) -std=c++14
+LLC14=$(Q_LCC)$(CXX) $(CXXFLAGS14) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
+CXXFLAGS17=$(filter-out -std=%,$(CXXFLAGS)) -std=c++17
+LLC17=$(Q_LCC)$(CXX) $(CXXFLAGS17) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
+CXXFLAGS20=$(filter-out -std=%,$(CXXFLAGS)) -std=c++20
+LLC20=$(Q_LCC)$(CXX) $(CXXFLAGS20) $(CXXFLAGS_SWIG) -fPIC -DPIC -I. $1 -c $< -o $@
 ifdef CHRPATH
 RMRPATH=$(CHRPATH) -d $1
 else
@@ -512,12 +526,13 @@ ifndef SKIP_CLKMGR
 FORMAT_DEPS+=$(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)\
   $(EXTRA_SRCS_CLKMGR)
 endif
-FORMAT_MORE:=*/*.sh */*/*.sh Makefile */Makefile w*/*/Makefile\
-	debian/rules */utest/Makefile debian/changelog debian/copyright\
-	*/*/test.* */*.pl */*/*.pl */*/*test/*.go */*.i
+FORMAT_MORE_CPP:=$(JSC_RUN_SRC)
+FORMAT_MORE:=*/*.sh */*/*.sh Makefile */Makefile w*/*/Makefile debian/rules\
+  */utest/Makefile debian/changelog debian/copyright */*/test.* */*.pl\
+  */*/*.pl */*/*test/*.go */*.i $(FORMAT_MORE_CPP)
 format: $(FORMAT_DEPS)
 	$(Q_FRMT)
-	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
+	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^ $(FORMAT_MORE_CPP)`
 	test -z "$$r" || echo "$$r"&&./tools/format.py $^ $(FORMAT_MORE)
 	if test $$? -ne 0 || test -n "$$r";then echo ''&&exit 1;fi
 ifdef CPPCHECK
@@ -547,6 +562,14 @@ CXXFLAGS_GO+=-Wno-uninitialized
 CXXFLAGS_RUBY+=-Wno-deprecated-declarations
 # comparison integer of different signedness
 CXXFLAGS_RUBY+=-Wno-sign-compare
+# comparison of unsigned expression in less then zero is always false
+CXXFLAGS_JSC+=-Wno-type-limits
+# comparison of integer expressions of different signedness
+CXXFLAGS_JSC+=-Wno-sign-compare
+# logical not is only applied to the left hand side of comparison
+CXXFLAGS_V8+=-Wno-logical-not-parentheses
+# variable defined but not used
+CXXFLAGS_V8+=-Wno-unused-variable
 ifdef USE_CLANG_CPP_COMPILE
 CXXFLAGS_SWIG+=-Wno-sometimes-uninitialized
 CXXFLAGS_PERL+=-Wno-implicit-const-int-float-conversion
@@ -561,6 +584,12 @@ export SWIG_LIB
 wrappers/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS) wrappers/%/warn.i
 	$(Q_SWIG)$(SWIG) -c++ -I$(SRC) -I$(PUB) -I$(@D) -outdir $(@D) -Wextra\
 	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
+$(JS_D)/%/$(SWIG_NAME).cpp: $(SRC)/$(LIB_NAME).i $(HEADERS)\
+	$(JS_D)/warn.i
+	$(Q_SWIG)$(MKDIR_P) "$(@D)"
+	$(SWIG) -c++ -javascript -I$(SRC) -I$(PUB) -I$(JS_D)\
+	  -outdir $(@D) -Wextra -$(subst $(JS_D)/,,$(@D))\
+	  $(SWIG_DEPS) $($(subst $(JS_D)/,,$(@D))_SFLAGS) -o $@ $<
 SWIG_LD=$(Q_LD)$(CXX) $(LDFLAGS) -shared $^ $(LOADLIBES) $(LDLIBS)\
   $($@_LDLIBS) -o $@
 ifndef SKIP_CLKMGR
@@ -568,10 +597,19 @@ wrappers/%/$(CLKMGR_NAME).cpp: $(CLKMGR_CLIENT_DIR)/$(CLKMGR_NAME).i\
 	wrappers/%/warn.i | $(CLKMGR_LIB_LA)
 	$(Q_SWIG)$(SWIG) -c++ $(CLKMGR_CXXFLAGS) -I$(@D) -outdir $(@D) -Wextra\
 	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
+$(JS_D)/%/$(CLKMGR_NAME).cpp: $(CLKMGR_CLIENT_DIR)/$(CLKMGR_NAME).i\
+	$(JS_D)/warn.i | $(CLKMGR_LIB_LA)
+	$(Q_SWIG)$(SWIG) -c++ -javascript $(CLKMGR_CXXFLAGS) -I$(JS_D)\
+	  -outdir $(@D) -Wextra -$(subst $(JS_D)/,,$(@D))\
+	  $(SWIG_DEPS) $($(subst $(JS_D)/,,$(@D))_SFLAGS) -o $@ $<
 endif
 wrappers/%/utest.cpp: utest/libutest.i
 	$(Q_SWIG)$(SWIG) -c++ -I$(@D) -outdir $(@D) -Wextra\
 	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
+$(JS_D)/%/utest.cpp: utest/libutest.i
+	$(Q_SWIG)$(SWIG) -c++ -javascript -I$(JS_D) -outdir $(@D) -Wextra\
+	  -$(subst $(JS_D)/,,$(@D))\
+	  $(SWIG_DEPS) $($(subst $(JS_D)/,,$(@D))_SFLAGS) -o $@ $<
 
 ifndef SKIP_PERL5
 include wrappers/perl/Makefile
@@ -596,6 +634,9 @@ include wrappers/go/Makefile
 endif
 ifndef SKIP_JAVA
 include wrappers/java/Makefile
+endif
+ifndef SKIP_JAVASCRIPT
+include $(JS_D)/Makefile
 endif
 
 ALL+=$(SWIG_ALL)
@@ -872,14 +913,15 @@ CLEAN:=*/*.o */*/*.o archlinux/*.pkg.tar.zst *.la wrappers/*/*.so\
   $(D_FILES) $(LIB_SRC)\
   $(ARCHL_BLD) tags $(PHP_LNAME).php $(PMC_NAME)\
   wrappers/python/$(SWIG_LNAME).py wrappers/python/$(CLKMGR_NAME).py\
-  wrappers/python/utest_help.py\
+  wrappers/python/utest_help.py $(JSC_RUN) $(JS_D)/load$(SWIG_LNAME).js\
+  $(JS_D)/$(CLKMGR_NAME).js $(JS_D)/utest_help.js\
   wrappers/tcl/pkgIndex.tcl wrappers/php/.phpunit.result.cache\
   .phpunit.result.cache $(addprefix wrappers/go/, allocTlv.i gtest/gtest\
   clkmgr_gtest/clkmgr_gtest phc_ctl/phc_ctl)\
   $(subst .in,,$(wildcard $(CLKMGR_DIR)/proxy/clkmgr-proxy.*.in))\
   $(CLKMGR_PROXY) $(HEADERS_GEN) $(CLKMGR_HEADERS_GEN) .null
 CLEAN_DIRS:=$(filter %/, $(wildcard wrappers/lua/*/ wrappers/python/*/\
-  wrappers/java/*/ rpm/[BRS]*/\
+  wrappers/java/*/ rpm/[BRS]*/ $(JS_D)/*/\
   archlinux/*/ obj-*/ $(CLKMGR_DIR)/*/$(LIB_D)/)) _site $(OBJ_DIR)\
   $(LIB_D) wrappers/perl/auto $(CLKMGR_DIR)/doc wrappers/go/$(CLKMGR_NAME)\
   wrappers/go/$(SWIG_LNAME) wrappers/go/utest_help\

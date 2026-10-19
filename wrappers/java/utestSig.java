@@ -68,9 +68,8 @@ public class utestSig {
     }
   }
 
-  // Tests callHadler with empty TLV
   @Test
-  void testCallHadlerEmptyTLV() {
+  void testPtpmgmtTraverseSig() {
     Message msg = new Message();
     Buf buf = new Buf(100);
     long size = utest_help.get2MngTlvsSigCPtr(myBuf.getCPtr(buf));

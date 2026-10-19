@@ -122,7 +122,7 @@ SWIG_INC_OUT:=$(c_inc) "$(SWIG_NAME).h"
 install_go:
 	$Q$(INSTALL_FOLDER) $(DESTDIR)$(GOROOT)/src
 	cp -a $(GO_D)/$(SWIG_LNAME) $(DESTDIR)$(GOROOT)/src
-	rm $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/go.mod
+	$(RM) $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/go.mod
 	$(SED) -i 's@^\s*$(c_inc) "\([^.]\+\.h\)"@$(c_inc) <$(SWIG_LNAME)/\1>@'\
 	  $(DESTDIR)$(GOROOT)/src/$(SWIG_LNAME)/$(SWIG_NAME).cpp
 	$(SED) -i 's@^$(SWIG_INC_IN)@$(SWIG_INC_OUT)@'\
@@ -133,7 +133,7 @@ install_go:
 	  $(DESTDIR)$(sbindir)/phc_ctl$(TOOLS_EXT)
 ifndef SKIP_CLKMGR
 	cp -a $(GO_CLKMGR_DIR) $(DESTDIR)$(GOROOT)/src
-	rm $(DESTDIR)$(GOROOT)/src/$(CLKMGR_NAME)/go.mod
+	$(RM) $(DESTDIR)$(GOROOT)/src/$(CLKMGR_NAME)/go.mod
 	$(SED) -i 's!$(c_inc)\s*\"pub/\([^"]\+\)\"!$(c_inc) <\1>!'\
 	  $(DESTDIR)$(GOROOT)/src/$(CLKMGR_NAME)/*.cpp
 	$(SED) -i '1 i/* $(SPDXLI) $(SPDXBSD3)\n   $(SPDXCY_INTEL) */\n'\

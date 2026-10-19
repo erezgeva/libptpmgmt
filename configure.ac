@@ -50,6 +50,7 @@ AC_DEFUN([PTPM_NOT_EXR_TEST], [test ! -x $1])
 AC_DEFUN([PTPM_DIR_TEST], [test -d $1])
 AC_DEFUN([PTPM_SYMBOLIC_LINK_TEST], [test -h $1])
 AC_DEFUN([PTPM_GREATER_OR_EQUAL_TEST], [test ${$1} -ge $2])
+AC_DEFUN([PTPM_IN_RANGE], [ { test ${$1} -ge $2 && test ${$1} -le $3 ; } ])
 AC_DEFUN([PTPM_GREP_TEST],
          [AS_ECHO_N(["${$1}"]) | $GREP $2 PTPM_DUMP_ALL])
 AC_DEFUN([PTPM_NOT_GREP_TEST],
@@ -85,7 +86,7 @@ dnl Leave only full pathes and replace seperator with space
 AC_DEFUN([PTPM_VAR_SPLIT_ABS_DIRS],
          [PTPM_VAR_SED_COPY([$1],
                             [$2],
-                            [['s/:[^/][^:]*//g;s/^[^/][^:]*//;s/:/ /g']])])
+                            [['s%:[^/][^:]*%%g;s%^[^/][^:]*%%;s%:% %g']])])
 AC_DEFUN([PTPM_VAR_GREP_FILE_DIR],
          [AS_VAR_SET([$1],
                      ["`$2 PTPM_DUMP_ERR | $GREP '\/$3$' | head -1 | $SED 's%/$3%%'`"])])
@@ -148,6 +149,8 @@ AC_CHECK_TOOL([CHRPATH], [chrpath])
 AC_CHECK_TOOL([PATCHELF], [patchelf])
 AC_CHECK_TOOL([MARKDOWN], [markdown])
 AC_CHECK_TOOL([TOUCH], [touch])
+dnl The command-line JSON processor
+AC_CHECK_TOOL([JQ], [jq])
 dnl Debian/Ububtu tool
 AC_CHECK_TOOL([DPKG], [dpkg])
 dnl libtool
@@ -683,9 +686,9 @@ AS_VAR_IF([ptpm_swigbin], ['no'],
               ["`$SWIG -version | $GREP Version | $SED 's%.* %%' PTPM_DUMP_ERR`"])
    PTPM_MSG_RESULT([ptpm_swigver])
    AC_MSG_CHECKING([for swig minimum version])
-   AS_VERSION_COMPARE([4.1], [$ptpm_swigver],
-                      [AS_VAR_COPY([SWIG_MINVER], [ptpm_swigver])], dnl above 4.1
-                      [AS_VAR_COPY([SWIG_MINVER], [ptpm_swigver])]) dnl equal 4.1
+   AS_VERSION_COMPARE([4.2], [$ptpm_swigver],
+                      [AS_VAR_COPY([SWIG_MINVER], [ptpm_swigver])], dnl above 4.2
+                      [AS_VAR_COPY([SWIG_MINVER], [ptpm_swigver])]) dnl equal 4.2
 
    PTPM_MSG_RESULT([SWIG_MINVER])
    AC_MSG_CHECKING([for swig library])
@@ -1552,7 +1555,7 @@ AS_VAR_IF([ptpm_javabin], [no], [AC_MSG_NOTICE([Disabling Java])],
       [AC_MSG_CHECKING([java major version])
        AS_VAR_SET([ptpm_javac_version], [`"$JAVAC" -version 2>&1`])
        PTPM_VAR_SED_COPY([ptpm_java_version_num],
-                         [ptpm_javac_version], [-n 's/^javac //p'])
+                         [ptpm_javac_version], [-n 's%^javac %%p'])
        AS_VAR_SET([JAVA_VERSION_MAJOR], [1])
        PTPM_VAR_SET_IF([ptpm_java_version_num],
                        dnl Until Java 8 version number was in format "1.x.y_z", starting from Java 9 it's "x.y.z".
@@ -1741,7 +1744,10 @@ AS_UNSET([JAVASCRIPT])
 dnl Node.js tools
 AS_UNSET([NODEJS])
 AS_UNSET([NODEPM])
+AS_UNSET([NODEJS_VER])
 AS_UNSET([JS_NODE_DIR])
+AS_UNSET([NODENAPI_MODULES_DIR])
+AS_UNSET([NODENAPI_SYS_MODULES])
 dnl V8
 AS_UNSET([JSV8INC])
 AS_UNSET([JSV8LIB])
@@ -1784,31 +1790,45 @@ AS_VAR_IF([ptpm_with_javascript], [no],
      #----------------------------------------------------------------
      # Look for Node.js
      AC_CHECK_TOOLS([NODEJS], [node nodejs])
-
      PTPM_VAR_SET_IF([NODEJS],
-           [AC_CHECK_TOOL([NODEPM], [npm])
+           [AS_VAR_SET([ptpm_nodejs_version], [`"$NODEJS" -v 2>&1`])
+            PTPM_VAR_SED_COPY([NODEJS_VER],
+                              [ptpm_nodejs_version],
+                              [['s%v\([0-9]\+\.[0-9]\+\).*%\1%']])
+            AC_CHECK_TOOL([NODEPM], [npm])
             AC_MSG_CHECKING([for Node-API (napi) header directory])
             dnl First, npm may have installed node-addon-api, use npm to try find headers
             PTPM_VAR_SET_IF([NODEPM],
                     [AS_VAR_SET([ptpm_nodepm_prefix], [`$NODEPM config get prefix`])
                      PTPM_VAR_SET_IF([ptpm_nodepm_prefix],
-                           [AS_VAR_SET([ptpm_nodenapi_dir],
-                                       ["$ptpm_nodepm_prefix/lib/node_modules/node-addon-api"])
+                           [AS_VAR_SET([NODENAPI_MODULES_DIR],
+                                       ["$ptpm_nodepm_prefix/lib/node_modules"])
+                            AS_VAR_SET([ptpm_nodenapi_dir],
+                                       ["$NODENAPI_MODULES_DIR/node-addon-api"])
                             PTPM_FILE_IF(["$ptpm_nodenapi_dir/napi.h"],
                                          [AS_VAR_SET([JSNAPIEN], [1])])])])
-
             dnl Second, try Debian/Ubuntu node-addon-api package location to find headers
             AS_IF([PTPM_VAR_EMPTY_TEST([JSNAPIEN]) && PTPM_VAR_SET_TEST([DPKG])],
-                  [PTPM_VAR_GREP_FILE_DIR([ptpm_napi_dir], [$DPKG -L node-addon-api], [napi.h])
-                   AS_IF([PTPM_VAR_SET_TEST([ptpm_napi_dir]) &&\
-                          PTPM_FILE_TEST(["$ptpm_napi_dir/napi.h"])],
-                         [AS_VAR_COPY([ptpm_nodenapi_dir], [ptpm_napi_dir])
-                          AS_VAR_SET([JSNAPIEN], [1])])])
+                  [PTPM_VAR_GREP_FILE_DIR([ptpm_nodenapi_dir], [$DPKG -L node-addon-api], [napi.h])
+                   AS_IF([PTPM_VAR_SET_TEST([ptpm_nodenapi_dir]) &&\
+                          PTPM_FILE_TEST(["$ptpm_nodenapi_dir/napi.h"])],
+                         [AS_VAR_SET([JSNAPIEN], [1])])])
+            dnl try defualt path on many Linux distrinutions
+            PTPM_VAR_EMPTY_IF([JSNAPIEN],
+                  [AS_VAR_SET([ptpm_nodenapi_dir], ["/usr/lib/node_modules/node-addon-api"])
+                   PTPM_FILE_IF(["$ptpm_nodenapi_dir/napi.h"],
+                         [AS_VAR_SET([JSNAPIEN], [1])])])
             PTPM_VAR_SET_IF([JSNAPIEN],
                 [AS_VAR_SET([JSNAPIINC], ["-I$ptpm_nodenapi_dir"])
                  AC_MSG_RESULT([$ptpm_nodenapi_dir])],
-                [AS_UNSET([JSNAPIINC])
-                 AC_MSG_RESULT([not found])])
+                [AC_MSG_RESULT([not found])])
+            PTPM_VAR_SET_IF([DPKG],
+                            dnl TODO nodejs -> node_modules ?
+                            [AS_VAR_SET([NODENAPI_SYS_MODULES],
+                                        ["/usr/lib/${build_cpu}-$build_os/nodejs"])
+                             PTPM_CROSS([NODENAPI_SYS_MODULES])],
+                            [AS_VAR_SET([NODENAPI_SYS_MODULES],
+                                        ["/usr/lib/node_modules"])])
             AS_VAR_SET([ptpm_node_header_dirs],
                        ["/usr/include /usr/local/include"])
 
@@ -1829,6 +1849,19 @@ AS_VAR_IF([ptpm_with_javascript], [no],
                                                     [AS_VAR_SET([JSV8INC], ["-I$l"])
                                                      AS_VAR_SET([JSV8EN], [1])
                                                      PTPM_FOR_BREAK([3])])])])])])
+            AS_VAR_SET([ptpm_node_min], [12])
+            AS_CASE([$SWIG_MINVER],
+                    [4.2*|4.3*|4.4*],
+                    [AS_VAR_SET([ptpm_node_max], [20])],
+                    [AS_VAR_SET([ptpm_node_max], [26])])
+            PTPM_VAR_SED_COPY([ptpm_nodejs_major_ver],
+                              [NODEJS_VER],
+                              [['s%\..*%%']])
+            AS_IF([!PTPM_IN_RANGE([ptpm_nodejs_major_ver],
+                                  [$ptpm_node_min],
+                                  [$ptpm_node_max])],
+                  [AS_UNSET([JSV8INC])
+                   AS_UNSET([JSV8EN])])
             PTPM_VAR_EMPTY_IF([JSV8INC],
                   [AC_MSG_RESULT([not found])],
                   [AC_MSG_RESULT([$JSV8INC])
@@ -1849,8 +1882,8 @@ AS_VAR_IF([ptpm_with_javascript], [no],
                          [AC_MSG_RESULT([$JSV8LIB])],
                          [AC_MSG_RESULT([not found])])
                    AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
-                   AS_VAR_COPY([LIBS], [ptpm_keep_libs])])
-                   AS_VAR_COPY([LDFLAGS], [ptpm_keep_ldflags])
+                   AS_VAR_COPY([LIBS], [ptpm_keep_libs])
+                   AS_VAR_COPY([LDFLAGS], [ptpm_keep_ldflags])])
             AC_MSG_CHECKING([for JavaScript node.js header path])
             PTPM_FOR([n], [$ptpm_node_header_dirs],
                   [PTPM_FOR([m], [$n $n/node],
@@ -1904,7 +1937,10 @@ AS_VAR_IF([ptpm_with_javascript], [no],
 AC_SUBST([JAVASCRIPT])
 AC_SUBST([NODEJS])
 AC_SUBST([NODEPM])
+AC_SUBST([NODEJS_VER])
 AC_SUBST([JS_NODE_DIR])
+AC_SUBST([NODENAPI_MODULES_DIR])
+AC_SUBST([NODENAPI_SYS_MODULES])
 AC_SUBST([JSV8INC])
 AC_SUBST([JSV8LIB])
 AC_SUBST([JSV8EN])
