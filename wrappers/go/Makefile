@@ -9,8 +9,9 @@
 ###############################################################################
 
 GO_D:=wrappers/go
+# For debugging: print go-build commands
+#GO_VERBOSE:=-x
 # Go environment
-ifneq ($(call which,$(GO_BIN)),)
 CGO_CXXFLAGS!=$(GO_BIN) env CGO_CXXFLAGS
 CGO_CXXFLAGS+=$(CXXFLAGS_GO) -I$(PWD)/$(SRC) -I$(PWD)/$(PUB)
 CGO_CXXFLAGS+=-I$(PWD)/$(GO_D)
@@ -32,7 +33,6 @@ ifdef GOARCH
 export CXX CC GOARCH
 export CGO_ENABLED=1
 endif
-endif #GO_BIN
 go_SFLAGS+=-go
 
 GO_SRC:=$(GO_D)/$(SWIG_LNAME)/$(SWIG_NAME).cpp
@@ -50,10 +50,10 @@ $(foreach n,gtest unit_test phc_ctl,$(GO_D)/$n/go.mod):\
 	$(GO_BIN) mod tidy $(Q_ERR)
 $(GO_D)/gtest/gtest: export CGO_LDFLAGS+=$(PWD)/$(LIB_NAME_SO)
 $(GO_D)/gtest/gtest: $(GO_D)/gtest/go.mod $(GO_D)/gtest/gtest.go $(GO_SRC)
-	$(Q_LD)cd $(@D)&&$(GO_BIN) build .
+	$(Q_LD)cd $(@D)&&$(GO_BIN) build $(GO_VERBOSE) .
 $(GO_D)/phc_ctl/phc_ctl: export CGO_LDFLAGS+=$(PWD)/$(LIB_NAME_SO)
 $(GO_D)/phc_ctl/phc_ctl: $(GO_D)/phc_ctl/go.mod $(GO_D)/phc_ctl/phc_ctl.go $(GO_SRC)
-	$(Q_LD)cd $(@D) && $(GO_BIN) build .
+	$(Q_LD)cd $(@D) && $(GO_BIN) build $(GO_VERBOSE) .
 SWIG_ALL+=$(GO_D)/gtest/gtest $(GO_D)/phc_ctl/phc_ctl
 ifndef SKIP_CLKMGR
 GO_CLKMGR_DIR:=$(GO_D)/$(CLKMGR_NAME)
@@ -77,7 +77,7 @@ SWIG_ALL+=$(GO_CLKMGR_SRC) $(GO_CLKMGR_DIR)/go.mod
 $(GO_CLKMGR_GTEST)/clkmgr_gtest: export CGO_LDFLAGS+=$(PWD)/$(CLKMGR_LIB_SO)
 $(GO_CLKMGR_GTEST)/clkmgr_gtest: $(GO_CLKMGR_GTEST)/go.sum\
 	  $(GO_CLKMGR_GTEST)/clkmgr_gtest.go
-	$(Q_LD)cd $(@D)&&$(GO_BIN) build .
+	$(Q_LD)cd $(@D)&&$(GO_BIN) build $(GO_VERBOSE) .
 SWIG_ALL+=$(GO_CLKMGR_GTEST)/clkmgr_gtest
 endif # SKIP_CLKMGR
 
