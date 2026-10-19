@@ -3,8 +3,10 @@ Maintainer: Erez Geva <ErezGeva2@gmail.com>
 Section: net
 Priority: optional
 Standards-Version: 4.1.4
-Build-Depends: debhelper (>= 9), libtool, texlive-font-utils, dh-python,
-		    dh-lua, dh-php, dh-golang, golang-src, dh-runit, pandoc
+Build-Depends: debhelper (>= 13~), debhelper-compat (= 13),
+		    dpkg-dev (>= 1.12~), libtool, texlive-font-utils,
+		    dh-python, dh-lua, dh-php, dh-golang, golang-src,
+		    dh-runit, pandoc
 Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
 		    liblua5.2-dev, liblua5.3-dev, liblua5.4-dev, pkgconf,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),

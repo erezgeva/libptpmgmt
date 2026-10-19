@@ -35,6 +35,10 @@ override_dh_auto_clean:
 override_dh_installsystemd:
 	$(Q)dh_installsystemd --no-enable --no-start
 
+override_dh_dwz:
+	# Skip Go debian/phc-ctl-ptpmgmt/usr/sbin/phc_ctl-ptpmgmt
+	$(Q)dh_dwz --exclude=debian/phc-ctl-ptpmgmt/usr/sbin/phc_ctl-ptpmgmt
+
 MV:=mv
 CPA:=cp -a
 LIBDIR:=/usr/lib/$(DEB_TARGET_MULTIARCH)
