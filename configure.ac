@@ -1741,7 +1741,10 @@ AS_UNSET([JAVASCRIPT])
 dnl Node.js tools
 AS_UNSET([NODEJS])
 AS_UNSET([NODEPM])
+AS_UNSET([NODEJS_VER])
 AS_UNSET([JS_NODE_DIR])
+AS_UNSET([NODENAPI_MODULES_DIR])
+AS_UNSET([NODENAPI_SYS_MODULES])
 dnl V8
 AS_UNSET([JSV8INC])
 AS_UNSET([JSV8LIB])
@@ -1784,19 +1787,23 @@ AS_VAR_IF([ptpm_with_javascript], [no],
      #----------------------------------------------------------------
      # Look for Node.js
      AC_CHECK_TOOLS([NODEJS], [node nodejs])
-
      PTPM_VAR_SET_IF([NODEJS],
-           [AC_CHECK_TOOL([NODEPM], [npm])
+           [AS_VAR_SET([ptpm_nodejs_version], [`"$NODEJS" -v 2>&1`])
+            PTPM_VAR_SED_COPY([NODEJS_VER],
+                              [ptpm_nodejs_version],
+                              [['s/v\([0-9]\+\.[0-9]\+\).*/\1/']])
+            AC_CHECK_TOOL([NODEPM], [npm])
             AC_MSG_CHECKING([for Node-API (napi) header directory])
             dnl First, npm may have installed node-addon-api, use npm to try find headers
             PTPM_VAR_SET_IF([NODEPM],
                     [AS_VAR_SET([ptpm_nodepm_prefix], [`$NODEPM config get prefix`])
                      PTPM_VAR_SET_IF([ptpm_nodepm_prefix],
-                           [AS_VAR_SET([ptpm_nodenapi_dir],
-                                       ["$ptpm_nodepm_prefix/lib/node_modules/node-addon-api"])
+                           [AS_VAR_SET([NODENAPI_MODULES_DIR],
+                                       ["$ptpm_nodepm_prefix/lib/node_modules"])
+                            AS_VAR_SET([ptpm_nodenapi_dir],
+                                       ["NODENAPI_MODULES_DIR/node-addon-api"])
                             PTPM_FILE_IF(["$ptpm_nodenapi_dir/napi.h"],
                                          [AS_VAR_SET([JSNAPIEN], [1])])])])
-
             dnl Second, try Debian/Ubuntu node-addon-api package location to find headers
             AS_IF([PTPM_VAR_EMPTY_TEST([JSNAPIEN]) && PTPM_VAR_SET_TEST([DPKG])],
                   [PTPM_VAR_GREP_FILE_DIR([ptpm_napi_dir], [$DPKG -L node-addon-api], [napi.h])
@@ -1804,6 +1811,17 @@ AS_VAR_IF([ptpm_with_javascript], [no],
                           PTPM_FILE_TEST(["$ptpm_napi_dir/napi.h"])],
                          [AS_VAR_COPY([ptpm_nodenapi_dir], [ptpm_napi_dir])
                           AS_VAR_SET([JSNAPIEN], [1])])])
+            dnl try defualt path on many Linux distrinutions
+            PTPM_VAR_EMPTY_IF([JSNAPIEN],
+                  [PTPM_FILE_IF(["/usr/lib/node_modules/node-addon-api/napi.h"],
+                         [AS_VAR_COPY([ptpm_nodenapi_dir], ["/usr/lib/node_modules/node-addon-api"])
+                          AS_VAR_SET([JSNAPIEN], [1])])])
+            PTPM_VAR_SET_IF([DPKG],
+                            [AS_VAR_SET([NODENAPI_SYS_MODULES],
+                                        ["/usr/lib/${build_cpu}-$build_os/nodejs"])],
+                            dnl TODO nodejs -> node_modules ?
+                            [AS_VAR_SET([NODENAPI_SYS_MODULES],
+                                        ["/usr/lib/node_modules"])])
             PTPM_VAR_SET_IF([JSNAPIEN],
                 [AS_VAR_SET([JSNAPIINC], ["-I$ptpm_nodenapi_dir"])
                  AC_MSG_RESULT([$ptpm_nodenapi_dir])],
@@ -1904,7 +1922,10 @@ AS_VAR_IF([ptpm_with_javascript], [no],
 AC_SUBST([JAVASCRIPT])
 AC_SUBST([NODEJS])
 AC_SUBST([NODEPM])
+AC_SUBST([NODEJS_VER])
 AC_SUBST([JS_NODE_DIR])
+AC_SUBST([NODENAPI_MODULES_DIR])
+AC_SUBST([NODENAPI_SYS_MODULES])
 AC_SUBST([JSV8INC])
 AC_SUBST([JSV8LIB])
 AC_SUBST([JSV8EN])

@@ -538,7 +538,7 @@ config_report()
    PANDOC PACKAGE_VERSION CXX_VERSION CXX CC_VERSION CC CHRPATH PATCHELF
    HAVE_SSL_HEADER HAVE_GCRYPT_HEADER HAVE_GNUTLS_HEADER HAVE_NETTLE_HEADER
    PERL5_HAVE_TEST LUA_UNIT_VERS JAVA_MINVER JAVA_JUNIT_API
-   NODEJS JSV8EN JSNAPIEN JSCEN JSCVER'
+   NODEJS NODEJS_VER JSV8EN JSNAPIEN JSCEN JSCVER'
  local langs='tcl perl5 python3 ruby php lua go java javascript'
  local $list $langs
  read_defs $list
@@ -607,7 +607,7 @@ config_report()
  [[ "$java" != 'x' ]] && [[ -n "$JAVA_JUNIT_API" ]] &&\
    local -r junit='v' || local -r junit='x'
  if [[ "$javascript" != 'x' ]]; then
-   [[ -n "$NODEJS" ]] && local -r nodejs='v' || local -r nodejs='x'
+   [[ -n "$NODEJS" ]] && local -r nodejs="$NODEJS_VER" || local -r nodejs='x'
    [[ -n "$JSV8EN" ]] && local -r v8='v' || local -r v8='x'
    [[ -n "$JSNAPIEN" ]] && local -r napi='v' || local -r napi='x'
    [[ -n "$JSCEN" ]] && local -r jsc="$JSCVER" || local -r jsc='x'
