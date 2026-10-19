@@ -42,7 +42,6 @@ class mySigCb extends MessageSigTlvCallback {
 
 final class utestSig extends TestCase
 {
-    // Tests callHadler with empty TLV
     public function testPtpmgmtTraverseSig(): void {
         $msg = new Message();
         $buf = new Buf(100);

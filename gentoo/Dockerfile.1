@@ -33,12 +33,14 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     dev-lang/lua dev-lua/luaposix dev-lang/php dev-lang/tcl sys-devel/gcc\
     dev-util/cppcheck media-gfx/graphviz perl-core/Test-Simple\
     app-text/texlive-core dev-texlive/texlive-fontutils net-misc/chrony\
-    dev-util/quilt app-text/cmark dev-tcltk/tcllib dev-tcltk/tclx\
-    media-gfx/pdf2svg' &&\
+    dev-util/quilt app-text/cmark' &&\
     p2='llvm-core/clang dev-java/openjdk dev-java/junit' &&\
-    echo "$p2" > /opt/more_packages.list &&\
+    p3='net-libs/nodejs dev-tcltk/tcllib dev-tcltk/tclx media-gfx/pdf2svg' &&\
+    echo 'npm' > /etc/portage/package.use/nodejs &&\
+    echo "$p2" > /opt/more_packages2.list &&\
+    echo "$p3" > /opt/more_packages3.list &&\
     emerge -tv --autounmask=y --autounmask-write=y --autounmask-only=y\
-    --autounmask-backtrack=y --autounmask-continue=y $p $p2 &&\
+    --autounmask-backtrack=y --autounmask-continue=y $p $p2 $p3 &&\
     emerge -tv $p && echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/php.ini &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\

@@ -103,7 +103,7 @@ main()
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
        ldPathPhp ldPathTcl ldPathJava ldPostPathJava needCmpl oneLua skip_php\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54 ldPathLua55\
-       ldPath luaVersions javaJar javaFlages
+       ldPath luaVersions javaJar javaFlages js_v8=true js_c=true nodePath
  local -r ldPathBase='LD_LIBRARY_PATH=.libs'
  local -r gtest='wrappers/go/gtest/gtest'
  local -r pyVersions='3'
@@ -316,6 +316,7 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
  enter tcl
  enter go
  enter java
+ enter javaScript
 }
 do_perl()
 {
@@ -388,6 +389,36 @@ do_java()
  time eval "$useSudo$ldPathJava java $javaFlages $ldPostPathJava -classpath "\
         "wrappers/java:$javaJar test $runOptions" |\
     diff - <(printf "$perlOut\n")
+}
+set_js_loadptpmgmt()
+{
+ echo "module.exports = require('./$1/ptpmgmt');" >\
+   wrappers/javascript/loadptpmgmt.js
+}
+do_javaScript()
+{
+ # Only N-API have installation
+ if [[ -n "$needCmpl" ]]; then
+   local -r js_add_path="ADD_PATH=./"
+   if $js_c; then
+     printf "\n JavaScript Core ----\n"
+     set_js_loadptpmgmt 'jsc'
+     time eval "$ldPath $js_add_path wrappers/javascript/jsc_run "\
+               "wrappers/javascript/test.js $runOptions" |\
+       diff - <(printf "$perlOut\n")
+   fi
+   if $js_v8; then
+     printf "\n JavaScript V8 ----\n"
+     set_js_loadptpmgmt 'v8'
+     time eval "$ldPath $js_add_path node wrappers/javascript/test.js $runOptions" |\
+       diff - <(printf "$perlOut\n")
+   fi
+ fi
+
+ printf "\n JavaScript N-API ----\n"
+ set_js_loadptpmgmt 'napi'
+ time eval "$ldPath $nodePath $js_add_path node wrappers/javascript/test.js "\
+   "$runOptions" | diff - <(printf "$perlOut\n")
 }
 parse_phc_out()
 {
@@ -488,7 +519,7 @@ enter()
 {
  local -n skip="skip_$1"
  if [[ -z "$skip" ]]; then
-   printf "\n =====  Run $1  =====\n"
+   printf "\n =====  Run ${1^}  =====\n"
    do_$1
  fi
 }
@@ -511,7 +542,7 @@ probeBuild()
    local list='prefix exec_prefix libdir libexecdir includedir sysconfdir
      localstatedir datarootdir mandir infodir sbindir bindir
      PERL5_SITE RUBY_SITE LUA_VER SKIP_PHP JAVAFLAGS
-     PHP_SITE TCL_SITE GOROOT'
+     PHP_SITE TCL_SITE GOROOT NODENAPI_SYS_MODULES JSV8EN JSCEN'
    local $list
    read_defs $list LUA_VERS
    if [[ -n "$LUA_VERS" ]]; then
@@ -527,6 +558,8 @@ probeBuild()
      allBuild
    fi
    javaFlages="$JAVAFLAGS"
+   [[ -n "$JSV8EN" ]] || js_v8=false
+   [[ -n "$JSCEN" ]] || js_c=false
  else
    local -r mach=$(uname -m)
    local -r fmach="/$mach*"
@@ -647,6 +680,10 @@ probeLibsDebian()
    needCmpl=y
    ldPostPathJava="-Djava.library.path=wrappers/java"
    javaJar="wrappers/java/ptpmgmt.jar"
+ fi
+ getFirstFile "/usr/lib/x86_64-linux-gnu/nodejs/ptpmgmt/ptpmgmt.js"
+ if ! [[ -f "$file" ]]; then
+   needCmpl=y
  fi
  if [[ -n "$ldPath" ]]; then
    for n in Perl Ruby Php Tcl Java
@@ -775,6 +812,13 @@ probeLibs()
    needCmpl=y
    ldPostPathJava="-Djava.library.path=wrappers/java"
    javaJar="wrappers/java/ptpmgmt.jar"
+ fi
+ getFirstFile "$NODENAPI_SYS_MODULES/ptpmgmt/ptpmgmt.js"
+ if [[ -f "$file" ]]; then
+   # Debian uses system (global) path, but other distribution don't!
+   nodePath="NODE_PATH=$NODENAPI_SYS_MODULES"
+ else
+   needCmpl=y
  fi
  if [[ -n "$ldPath" ]]; then
    for n in Perl Ruby Php Tcl Java

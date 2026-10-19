@@ -6,7 +6,7 @@ Standards-Version: 4.1.4
 Build-Depends: debhelper (>= 13~), debhelper-compat (= 13),
 		    dpkg-dev (>= 1.12~), libtool, texlive-font-utils,
 		    dh-python, dh-lua, dh-php, dh-golang, golang-src,
-		    dh-runit, pandoc
+		    dh-runit, pandoc, node-addon-api
 Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
 		    liblua5.2-dev, liblua5.3-dev, liblua5.4-dev, pkgconf,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),
@@ -155,6 +155,16 @@ Depends: ${misc:Depends}, ${shlibs:Depends}, ${java:Depends}, java-runtime,
 	 libptpmgmt2 (= ${binary:Version})
 Description: PTP management library Java wrapper
 
+Package: node-ptpmgmt
+Architecture: any
+Multi-Arch: same
+Section: interpreters
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${nodejs:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${nodejs:Depends}, nodejs,
+	 libptpmgmt2 (= ${binary:Version})
+Description: PTP management library Node.js wrapper
+
 Package: golang-ptpmgmt
 Architecture: all
 Section: libdevel
@@ -283,3 +293,13 @@ Provides: ${java:Provides}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${java:Depends}, java-runtime,
 	 libclkmgr2 (= ${binary:Version})
 Description: Clock Manager library Java wrapper
+
+Package: node-clkmgr
+Architecture: any
+Multi-Arch: same
+Section: interpreters
+Pre-Depends: ${misc:Pre-Depends}
+Provides: ${nodejs:Provides}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${nodejs:Depends}, nodejs,
+	 libclkmgr2 (= ${binary:Version})
+Description: Clock Manager library Node.js wrapper

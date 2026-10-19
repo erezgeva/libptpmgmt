@@ -138,8 +138,6 @@ utest_dyn_hmac: $(HEADERS_GEN_COMP) $(UTEST_DYN_HMAC) $(HMAC_FLIBS)
 	  $(UVGD)$(UTEST_DYN_HMAC) $(GTEST_NO_COL) $(GTEST_FILTERS)
 endif # GTEST_LIB_FLAGS
 
-UTEST_HMAC:=$(addprefix utest_,ssl gcrypt gnutls nettle no_hmac dyn_hmac)
-.PHONY: $(UTEST_HMAC)
 utest_hmac: $(UTEST_HMAC)
 
 # Add HMAC libraries to search

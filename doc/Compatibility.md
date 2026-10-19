@@ -17,6 +17,8 @@ Note that libptpmgmt version 1.3 support AUTHENTICATION TLV.
 |1.3       |4.4     |
 
 <br>
+
 ## Note
+
 The above table focus on **full** compatible with LinuxPTP.  
 Other combinations would work, lacking newer features!

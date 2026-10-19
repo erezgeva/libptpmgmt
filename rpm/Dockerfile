@@ -28,7 +28,7 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 # TODO 'junit5-platform-console' available from Fedora 45
 # TODO 'junit5' on Fedora 44 depends on java-25
-# TODO So we can not use 'java-latest-openjdk-devel'
+#      So we can not use 'java-latest-openjdk-devel'
 COPY rpm/pkgs /tmp
 RUN dnf install -y /tmp/*.rpm && rm /tmp/*.rpm
 ARG COOKIE

@@ -67,6 +67,7 @@ override_dh_install:
 	  phc-ctl-ptpmgmt/usr/sbin clkmgr-proxy/usr/sbin\
 	  clkmgr-proxy/usr/share/man/man8 clkmgr-proxy/usr/share/man/man5\
 	  tcl-clkmgr/usr/$(TCLDIR) $(PYDIR) $(PERLDIR)/auto $(PHPDIR) $(RUBYDIR)\
+	  node-ptpmgmt$(LIBDIR)/nodejs node-clkmgr$(LIBDIR)/nodejs\
 	  $(addsuffix /usr/lib,python3-ptpmgmt php-ptpmgmt tcl-ptpmgmt\
 	  golang-ptpmgmt)\
 	  $(addsuffix $(LIBDIR),lua-ptpmgmt lua-clkmgr ruby-ptpmgmt libptpmgmt2\
@@ -109,6 +110,8 @@ override_dh_install:
 	$Q$(MV) $(SLIBDIR)/jni/libclkmgr.so debian/java-clkmgr/$(LIBDIR)/jni
 	$Q$(MV) $(DSRC)share/java/ptpmgmt.jar debian/java-ptpmgmt/usr/share/java
 	$Q$(MV) $(DSRC)share/java/clkmgr.jar debian/java-clkmgr/usr/share/java
+	$Q$(MV) $(SLIBDIR)/nodejs/ptpmgmt debian/node-ptpmgmt$(LIBDIR)/nodejs
+	$Q$(MV) $(SLIBDIR)/nodejs/clkmgr debian/node-clkmgr$(LIBDIR)/nodejs
 	$Q$(MV) $(SLIBDIR)/libclkmgr* debian/libclkmgr2$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_openssl* debian/libptpmgmt2-openssl$(LIBDIR)
 	$Q$(MV) $(SLIBDIR)/libptpmgmt_gcrypt* debian/libptpmgmt2-gcrypt$(LIBDIR)

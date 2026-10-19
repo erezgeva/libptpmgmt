@@ -64,21 +64,21 @@ C++ are the methods of [`std::vector<>`](https://en.cppreference.com/w/cpp/conta
 -NA- means method is not available.
 Python and Ruby support more methods.
 
-|C++          |Perl |PHP     |Tcl  |Go      |Lua      |Python   |Ruby    |Java    |
-|-------------|-----|--------|-----|--------|---------|---------|--------|--------|
-|size         |size |size    |size |Size    |size     |size     |size    |size    |
-|empty        |empty|is_empty|empty|IsEmpty |empty    |empty    |empty?  |isEmpty |
-|clear        |clear|clear   |clear|Clear   |clear    |clear    |clear   |clear   |
-|push_back    |push |push    |push |Add     |push_back|push_back|push    |add     |
-|back+pop_back|pop  |pop     |pop  |-NA-    |-NA-     |pop      |pop     |-NA-    |
-|back         |-NA- |-NA-    |-NA- |-NA-    |back     |back     |back    |-NA-    |
-|pop_back     |-NA- |-NA-    |-NA- |-NA-    |pop_back |pop_back |-NA-    |-NA-    |
-|front        |-NA- |-NA-    |-NA- |-NA-    |front    |front    |front   |-NA-    |
-|[]           |get  |get     |get  |Get     |[]       |[]       |[]      |get     |
-|[]=          |set  |set     |set  |Set     |[]=      |[]=      |[]=     |set     |
-|capacity     |-NA- |capacity|-NA- |Capacity|-NA-     |capacity |capacity|capacity|
-|reserve      |-NA- |reserve |-NA- |Reserve |-NA-     |reserve  |reserve |reserve |
-|max_size     |-NA- |-NA-    |-NA- |-NA-    |max_size |-NA-     |-NA-    |-NA-    |
+|C++          |Perl |PHP     |Tcl  |Go      |Lua      |Python   |Ruby    |Java    |JavaScript |
+|-------------|-----|--------|-----|--------|---------|---------|--------|--------|-----------|
+|size         |size |size    |size |Size    |size     |size     |size    |size    |size       |
+|empty        |empty|is_empty|empty|IsEmpty |empty    |empty    |empty?  |isEmpty |isEmpty    |
+|clear        |clear|clear   |clear|Clear   |clear    |clear    |clear   |clear   |clear      |
+|push_back    |push |push    |push |Add     |push_back|push_back|push    |add     |add        |
+|back+pop_back|pop  |pop     |pop  |-NA-    |-NA-     |pop      |pop     |-NA-    |-NA-       |
+|back         |-NA- |-NA-    |-NA- |-NA-    |back     |back     |back    |-NA-    |-NA-       |
+|pop_back     |-NA- |-NA-    |-NA- |-NA-    |pop_back |pop_back |-NA-    |-NA-    |-NA-       |
+|front        |-NA- |-NA-    |-NA- |-NA-    |front    |front    |front   |-NA-    |-NA-       |
+|[]           |get  |get     |get  |Get     |[]       |[]       |[]      |get     |get        |
+|[]=          |set  |set     |set  |Set     |[]=      |[]=      |[]=     |set     |set        |
+|capacity     |-NA- |capacity|-NA- |Capacity|-NA-     |capacity |capacity|capacity|capacity   |
+|reserve      |-NA- |reserve |-NA- |Reserve |-NA-     |reserve  |reserve |reserve |reserve    |
+|max_size     |-NA- |-NA-    |-NA- |-NA-    |max_size |-NA-     |-NA-    |-NA-    |-NA-       |
 
 # More Documentation
 

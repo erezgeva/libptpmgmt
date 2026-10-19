@@ -15,7 +15,7 @@ The library supports the three PTP network layers:
  1. PTP over Ethernet &mdash; *we do not support VLAN tags*
 
 In addition, we support using the Unix network and communicate with LinuxPTP ptp4l.  
-We also support parsing incoming signalling messages.  
+We also support parsing incoming signaling messages.  
 Users can use Linux VLAN with all sockets.  
 <br>
 Project home page [https://libptpmgmt.nwtime.org/](https://libptpmgmt.nwtime.org/)  
@@ -59,17 +59,20 @@ For now, we support:
 
   * Perl version 5
   * Python version 3
-  * Lua versions 5.1, 5.2, 5.3, 5.4, 5.5
-  * Ruby version 2, 3, 4
+  * Lua versions 5.1 and above
+  * Ruby version 2 and above
   * PHP version 7, 8
-  * Tcl version 8, 9
+  * Tcl version 8 and above
   * Go version 1.18 and above
+  * Java 21 and above
+  * JavaScript Node.js N-API, v8, Apple WebKit JavaScriptCore C-API
 
 Though the C++ library uses the namespace 'ptpmgmt'.  
 SWIG for PHP does not support namespace.  
 Ruby uses 'Ptpmgmt' as namespace, following Ruby convention.  
 Perl uses the name 'PtpMgmtLib', following Perl convention.  
-Tcl, Lua, Go, and Python use the namespace 'ptpmgmt'.
+Tcl, Lua, Go, and Python use the namespace 'ptpmgmt'.  
+JavaSctipt can import using an object containing the API, equivalent to namespace.
 
 Some C++ syntax is ignored or renamed in various scripts.  
 For example in PHP: Binary::empty is renamed to Binary::c_empty.
@@ -79,13 +82,12 @@ Some C++ structure and functions use C++ standard vector "`std::vector<>`"
 SWIG maps C++ standard vector to a class.  
 See libptpmgmt.i for the full list of the mapping classes.  
 All languages create the vector as a class object.  
-In Python, Ruby, and Tcl the vector has the properties of a native list.  
-Lua uses subset of C++ standard vector methods.  
-Perl, PHP, and Go use class methods. See PtpMgmtLib.pm for Perl, ptpmgmt.php for php,
- and ptpmgmt.go for Go, for these methods.
+The vector in Python, Ruby and Java has the properties of a native list.  
+You can see class code in PtpMgmtLib.pm for Perl, ptpmgmt.php for php,
+ and ptpmgmt.go for Go.
 
-[C++ std::vector<> map in Scripts Languages](./doc/std_vectors.md)
-provides more information on vectors mapping and
+See [C++ std::vector<> map in Scripts Languages](./doc/std_vectors.md)
+for more information on vectors mapping and
 the Doxygen documentation provides information per class.
 
 # <u>Go wrapper</u>
@@ -114,25 +116,37 @@ when you build with a newer version of the Go wrapper of the library.
 We do our best to retain backward compatible with the C++ library,
 but **NOT** with the Go wrapper, which may break!
 
+# <u>JavaScript wrapper</u>
+
+JavaScript wrapper support 3 JavaScript engines:
+  * Node.js using N-API
+  * v8 engine tested with Node.js
+  * Apple JavaScriptCore
+We provide package for Node.js using N-API.  
+The Apple JavaScriptCore require integration on application or Web server level.
+V8 engine can be used with Node.js or with other application or Web server.
+Though the V8 engine is less ABI portable thought different Node.js versions,
+ and the later require integration on application or Web server level.
+
 # <u>Library content</u>
   * Binary in bin.h - Class that holds a binary
   * Buf in buf.h - Allocate buffer for scripting
   * ConfigFile in cfg.h - Read, parse, and provide configuration from configuration file
-  * Message in msg.h - Create and parse Management and Signalling PTP messages
+  * Message in msg.h - Create and parse Management and Signaling PTP messages
   * IfInfo in ptp.h - Provide information on a network interface
   * PtpClock in ptp.h - Provide a PTP dynamic clock ID
   * sockets classes in sock.h - Provide access to UPD IPv4, IPv6, and L2 PTP networks
   * SockUnix in sock.h - Socket to communicate with local LinuxPTP daemon
   * Management TLVs in mngTlvs.h - Structures that hold a PTP Management TLV data
-  * Signalling TLVs in sigTlvs.h - Structures that hold a PTP Signalling TLV data
+  * Signaling TLVs in sigTlvs.h - Structures that hold a PTP Signaling TLV data
   * Library version in ver.h
   * Management TLVs mngIds.h - Enumerator for PTP Management TLVs
   * PTP management types types.h - Enumerators and structure to use with PTP Management messages
   * Dispatcher and builder in msgCall.h - Classes which provide call-backs for specific Management TLVs
   * Dispatcher and builder base in callDef.h - Provide all call-backs which may be implemented
   * Time convertion in timeCvrt.h - Constants to convert time to different units
-  * Json2msg in json.h - Convert json text to a message, require linking with a JSON library
-  * msg2json in json.h - Convert message to json text
+  * Json2msg in json.h - Convert JSON text to a message, require linking with a JSON library
+  * msg2json in json.h - Convert message to JSON text
   * Options in opt.h - Parse pmc tool command line parameters
   * Init in init.h - Initialize objects for a pmc tool
 
@@ -172,8 +186,8 @@ The project more documents
   * Library API doxygen, can be generated using the make file.
     [Or on github](https://erezgeva.github.io/libptpmgmt/)
 
-# <u>Licence</u>
-The Licence of this project is
+# <u>License</u>
+The License of this project is
 
   * The library is under LGPL v3 or later.
   * The pmc and phc_ctl tools and the testing scripts are under GPL v3 or later.

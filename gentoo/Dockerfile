@@ -17,7 +17,7 @@
 # --fetchonly, -f       Fetches for all packages based upon USE setting
 # --color n             Disable color
 ###############################################################################
-FROM portage.2
+FROM portage.3
 ARG UID USER
 RUN useradd $USER -u $UID -m -G users,wheel,portage
 ARG COOKIE

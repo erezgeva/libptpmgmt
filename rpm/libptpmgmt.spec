@@ -35,6 +35,7 @@ BuildRequires:  tcl tcl-devel
 BuildRequires:  java-25-openjdk java-25-openjdk-devel
 # We use java-25 becuase of 'junit5'
 # You may use 'java-latest-openjdk java-latest-openjdk-devel'
+BuildRequires:  nodejs-devel
 BuildRequires:  librtpi1 librtpi-devel
 BuildRequires:  golang
 BuildRequires:  systemd
@@ -160,6 +161,13 @@ Requires:       java-25-openjdk
 %description -n java-%{bname}
 PTP management library Java wrapper
 
+%package -n     nodejs-%{bname}
+Summary:        PTP management library Node.js wrapper
+Requires:       %{name}2%{?_isa} = %{version}-%{release}
+Requires:       nodejs
+%description -n nodejs-%{bname}
+PTP management library Node.js wrapper
+
 %package -n     pmc-%{bname}
 Summary:        pmc tool
 License:        GPL-3.0-or-later
@@ -251,6 +259,14 @@ Requires:       java-25-openjdk
 %description -n java-%{cbname}
 Clock Manager library java wrapper
 
+%package -n     nodejs-%{cbname}
+Summary:        Clock Manager library Node.js wrapper
+License:        BSD-3-Clause
+Requires:       %{cname}2%{?_isa} = %{version}-%{release}
+Requires:       nodejs
+%description -n nodejs-%{cbname}
+Clock Manager library Node.js wrapper
+
 %prep
 %setup -q
 
@@ -328,6 +344,12 @@ autoreconf -i
 /usr/java/packages/lib/%{name}.so
 /usr/share/java/%{bname}.jar
 
+%files -n nodejs-%{bname}
+/usr/lib/node_modules/%{bname}/lib/%{bname}.node
+/usr/lib/node_modules/%{bname}/load%{bname}.js
+/usr/lib/node_modules/%{bname}/%{bname}.js
+/usr/lib/node_modules/%{bname}/package.json
+
 %files -n pmc-%{bname}
 %{_sbindir}/pmc-%{bname}
 %{_mandir}/man8/pmc-%{bname}.8*
@@ -371,6 +393,11 @@ autoreconf -i
 %files -n java-%{cbname}
 /usr/java/packages/lib/%{cname}.so
 /usr/share/java/%{cbname}.jar
+
+%files -n nodejs-%{cbname}
+/usr/lib/node_modules/%{cbname}/%{cbname}.node
+/usr/lib/node_modules/%{cbname}/%{cbname}.js
+/usr/lib/node_modules/%{cbname}/package.json
 
 ###############################################################################
 # The changelog is updated with the 'tools/update_changelog.pl' script.

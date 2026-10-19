@@ -22,13 +22,14 @@ SRC_URI="${P}.txz"
 LICENSE="LGPL-3+"
 SLOT="0"
 IUSE="skip_perl skip_python skip_ruby skip_lua skip_php skip_tcl skip_go
-	skip_java skip_swig skip_doxygen systemd"
+	skip_java skip_javascript skip_swig skip_doxygen systemd"
 REQUIRED_USE="skip_swig? ( skip_perl skip_python skip_ruby skip_lua skip_php
-	skip_tcl skip_go skip_java )"
+	skip_tcl skip_go skip_java skip_javascript )"
 DEPEND="!skip_perl? ( dev-lang/perl ) !skip_python? ( dev-lang/python )
 	!skip_ruby? ( dev-lang/ruby ) !skip_lua? ( dev-lang/lua )
 	!skip_php? ( dev-lang/php ) !skip_tcl? ( dev-lang/tcl )
 	!skip_go? ( dev-lang/go ) !skip_java? ( dev-java/openjdk )
+	!skip_javascript? ( net-libs/nodejs )
 	|| ( dev-libs/openssl dev-libs/libgcrypt net-libs/gnutls dev-libs/nettle )"
 BDEPEND="sys-devel/gcc dev-build/libtool sys-apps/which dev-build/make
 	|| ( app-admin/chrpath dev-util/patchelf )
@@ -52,6 +53,7 @@ src_configure() {
 		if use skip_tcl; then opts+=" --without-tcl"; fi
 		if use skip_go; then opts+=" --without-go"; fi
 		if use skip_java; then opts+=" --without-java"; fi
+		if use skip_javascript; then opts+=" --without-javascript"; fi
 	fi
 	if use systemd; then opts+=" --enable-systemd"; fi
 	econf $opts --enable-openrc

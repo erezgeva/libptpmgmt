@@ -66,7 +66,7 @@ ifndef SKIP_CLKMGR
 	$(SED) -i "1 i$(hash) $(SPDXLI) $(SPDXBSD3)\n$(hash) $(SPDXCY_INTEL)\n"\
 	  $(DESTDIR)$(PY3_SITE)/$(CLKMGR_NAME).py
 endif
-# Used by gentoo to byte-compile
+# Used by Arch Linux and Gentoo to byte-compile
 compile_py3:
 	$Q$(PY3_BIN) -m compileall -q -f -d "$(PY3_SITE)" "$(DESTDIR)$(PY3_SITE)"
 	$(PY3_BIN) -OO -m compileall -q -f -d "$(PY3_SITE)" "$(DESTDIR)$(PY3_SITE)"

@@ -41,7 +41,6 @@ utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1) $(LUA_D)/$1/utest_help.so
 	  $(UVGD)lua$1 $(LUA_D)/utest.lua $(LUA_FILTERS)
 	LD_PRELOAD=$(ASAN_PRE)./$$<:$(LUA_D)/$1/utest_help.so\
 	  LUA_CPATH="$(LUA_D)/$1/?.so;;" $(UVGD)lua$1 $(LUA_D)/utestSig.lua $(LUA_FILTERS)
-.PHONY: utest_lua_$1
 
 endef
 # Build multiple Lua versions
