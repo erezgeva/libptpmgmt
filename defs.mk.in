@@ -44,9 +44,7 @@ infodir:=@infodir@
 sbindir:=@sbindir@
 bindir:=@bindir@
 runstatedir:=@runstatedir@
-
-# path
-top_builddir:=.
+top_builddir:=@top_builddir@
 
 # Objecy extension
 OBJEXT:=@OBJEXT@
