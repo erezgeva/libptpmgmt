@@ -8,4 +8,10 @@
  *
  */
 
+/*
+ * Lua do not support SWIG director.
+ * We include an explicit Message call clases interface
+ */
+#define SWIG_USE_MSG_CALL
+
 /* vim: set filetype=swig: */
