@@ -17,6 +17,12 @@ CGO_CXXFLAGS+=$(CXXFLAGS_GO) -I$(PWD)/$(SRC) -I$(PWD)/$(PUB)
 CGO_CXXFLAGS+=-I$(PWD)/$(GO_D)
 CGO_LDFLAGS!=$(GO_BIN) env CGO_LDFLAGS
 CGO_LDFLAGS+=$(LDFLAGS) -lm
+# GNU LD linker '-z notext'
+# Don't report an error if the position-independent or shared object
+# has dynamic relocations in read-only sections.
+ifdef GO_USE_LD_NOTEXT
+CGO_LDFLAGS+= -Wl,-z,notext
+endif
 ifndef SKIP_CLKMGR
 CGO_CXXFLAGS+=-I$(PWD)/$(CLKMGR_DIR)
 export GOPROXY=direct
