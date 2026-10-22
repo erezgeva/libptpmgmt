@@ -330,7 +330,9 @@ def do_format():
             errVal = err(file, lnum, line, 'line is too long')
           print(line)
       except UnicodeDecodeError as e:
-        err(file, 0, '', 'invalid utf8 code')
+        err(file, 0, '', 'invalid utf8 code: ' + e)
+      except RuntimeError as e:
+        err(file, 0, '', 'Error: ' + e)
       os.utime(file, times)
   if errVal:
     sys.exit(errVal)
