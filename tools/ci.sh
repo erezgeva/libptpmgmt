@@ -71,12 +71,12 @@ check_clean()
    fi
  done
  if [[ -n "$left" ]]; then
-   printf "$color_red$left"
+   printf "$color_red$left\n"
    mquit "Make $name left unused files"
  fi
  gstatus="$(git status -s)"
  if [[ -n "$gstatus" ]]; then
-   printf "$color_red$gstatus"
+   printf "$color_red$gstatus\n"
    mquit "Make $name change files"
  fi
 }
