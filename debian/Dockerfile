@@ -31,7 +31,9 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ];then\
     ruby-test-unit-context ruby-test-unit-notify libfile-touch-perl \
     lua5.4 valgrind dh-golang reuse vim-gtk3 libboost-dev\
     texlive-font-utils jq clang gdb abi-dumper gawk wget default-jdk junit5\
-    abi-compliance-checker discount chrony cmark-gfm pandoc tcllib $DPKGS &&\
+    abi-compliance-checker discount chrony cmark-gfm pandoc tcllib\
+    libjavascriptcoregtk-4.1-dev node-addon-api nodejs node-gyp npm\
+    libnode-dev $DPKGS &&\
     apt-get upgrade -y --no-install-recommends &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php/*/cli/php.ini &&\
     useradd $USER -u $UID -m -G sudo &&\
@@ -45,6 +47,7 @@ RUN dpkg -i /tmp/pkgs/$DIST/*.deb && rm -R /tmp/pkgs &&\
     list='' && for a in $ARCH $ARCHS;do list="$list ruby-dev:$a";done &&\
     apt-get install -y --no-install-recommends $list
 ARG COOKIE
-RUN apt-get update && apt-get upgrade -y --no-install-recommends
+RUN apt-get update && apt-get upgrade -y --no-install-recommends &&\
+    apt-get clean
 ARG SRC DST
 COPY --chown=builder $SRC $DST

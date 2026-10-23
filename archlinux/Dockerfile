@@ -20,14 +20,15 @@ RUN pacman-key --init && pacman-key --populate &&\
     texlive-fontutils astyle lua-posix lua51-posix lua52-posix lua53-posix\
     clang openssl gnutls nettle gdb debugedit base-devel chrpath patchelf\
     discount ruby-test-unit cppcheck criterion chrony quilt cmark-gfm pandoc\
-    systemd-libs pdf2svg lua54 lua54-posix jdk-openjdk &&\
-    useradd $USER -u $UID -m -G users,wheel &&\
+    systemd-libs pdf2svg lua54 lua54-posix jdk-openjdk webkit2gtk-4.1 npm\
+    nodejs node-gyp yarn && useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
+    npm install -g node-addon-api &&\
     mkdir -p /t0 && cd /t0 && git clone https://github.com/linux-rt/librtpi &&\
     cd librtpi && autoreconf -i && ./configure --prefix=/usr && make install &&\
     cd /t0 && git clone https://github.com/mlichvar/libchrony &&\
     cd libchrony && make install prefix=/usr && cd && rm -Rf /t0
 ARG COOKIE
-RUN pacman -Syu --noconfirm --needed
+RUN pacman -Syu --noconfirm --needed && pacman -Scc
 ARG SRC DST
 COPY --chown=builder $SRC $DST

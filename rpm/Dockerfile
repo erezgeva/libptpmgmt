@@ -20,8 +20,9 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
     m4 rubygem-test-unit gdb tclx\
     texlive-epstopdf ghostscript phpunit13 perl-File-Touch pandoc jq\
     chrpath patchelf discount gmock-devel cppcheck chrony quilt cmark tcllib\
-    systemd-devel pdf2svg java-25-openjdk-devel junit5 apiguardian &&\
-    dnf clean all &&\
+    systemd-devel pdf2svg java-25-openjdk-devel junit5 apiguardian\
+    v8-314-devel javascriptcoregtk4.1-devel nodejs-devel nodejs-libs\
+    nodejs-npm && dnf clean all && npm install -g node-addon-api &&\
     sed -i 's/^enable_dl\s*=\s*Off/enable_dl = On/' /etc/php.ini &&\
     useradd $USER -u $UID -m -G users,wheel &&\
     echo "$USER ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -31,6 +32,6 @@ RUN dnf install -y gcc gcc-c++ libtool libtool-ltdl make cmake git pkgconfig\
 COPY rpm/pkgs /tmp
 RUN dnf install -y /tmp/*.rpm && rm /tmp/*.rpm
 ARG COOKIE
-RUN dnf upgrade -y
+RUN dnf upgrade -y && dnf clean all
 ARG SRC DST
 COPY --chown=builder $SRC $DST
