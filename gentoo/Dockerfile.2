@@ -7,5 +7,6 @@
 # Docker file for stage 2 of Gentoo container for building and installing
 ###############################################################################
 FROM portage.1
-RUN emerge -tv `cat /opt/more_packages.list`
+RUN emerge -tv `cat /opt/more_packages.list` &&\
+    npm install -g node-addon-api
 ARG UID USER COOKIE SRC DST

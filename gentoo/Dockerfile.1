@@ -35,7 +35,8 @@ RUN emerge-webrsync && emerge -tvuD @world &&\
     app-text/texlive-core dev-texlive/texlive-fontutils net-misc/chrony\
     dev-util/quilt app-text/cmark dev-tcltk/tcllib dev-tcltk/tclx\
     media-gfx/pdf2svg' &&\
-    p2='llvm-core/clang dev-java/openjdk dev-java/junit' &&\
+    p2='llvm-core/clang dev-java/openjdk dev-java/junit net-libs/nodejs' &&\
+    echo 'npm' > /etc/portage/package.use/nodejs &&\
     echo "$p2" > /opt/more_packages.list &&\
     emerge -tv --autounmask=y --autounmask-write=y --autounmask-only=y\
     --autounmask-backtrack=y --autounmask-continue=y $p $p2 &&\
