@@ -132,15 +132,15 @@ AC_DEFUN([PTPM_VAR_PKG_CONFIG],
 # Compilers and basic tools
 
 dnl Disable probing any '-std=' flag to CC
-PTPM_FOR([d],[89 99 11 23],
-         [AS_VAR_SET([ac_cv_prog_cc_c$d],[no])])
+PTPM_FOR([d], [89 99 11 23],
+         [AS_VAR_SET([ac_cv_prog_cc_c$d], [no])])
 AC_PROG_CC
 AC_PROG_CXX
 dnl Clean CC and CXX from '-std'
-AS_IF([PTPM_GREP_TEST([CC],[" -std="])],
-      [PTPM_VAR_SED_COPY([CC],[CC],['s% -std=.*%%'])])
-AS_IF([PTPM_GREP_TEST([CXX],[" -std="])],
-      [PTPM_VAR_SED_COPY([CXX],[CXX],['s% -std=.*%%'])])
+AS_IF([PTPM_GREP_TEST([CC], [" -std="])],
+      [PTPM_VAR_SED_COPY([CC], [CC], ['s% -std=.*%%'])])
+AS_IF([PTPM_GREP_TEST([CXX], [" -std="])],
+      [PTPM_VAR_SED_COPY([CXX], [CXX], ['s% -std=.*%%'])])
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_PROG_LN_S
@@ -725,7 +725,7 @@ AC_ARG_WITH([tcl],
 AC_ARG_WITH([tclconfig],
             [AS_HELP_STRING([--with-tclconfig=path],
                             [Set location of tclConfig.sh])],
-            [AS_VAR_COPY([ptpm_with_tclconfig],[withval])])
+            [AS_VAR_COPY([ptpm_with_tclconfig], [withval])])
 AC_ARG_WITH([tclincl],
             [AS_HELP_STRING([--with-tclincl=path],
                             [Set location of Tcl include directory])],
@@ -1000,8 +1000,8 @@ AS_VAR_IF([ptpm_perlbin], ['no'],
             [AS_VAR_SET([PERL5_SITE],
                         ["`$READLINK -f $ptpm_perl_dir PTPM_DUMP_ERR`"])
              PTPM_VAR_EMPTY_IF([PERL5_SITE],
-                   [AS_VAR_SET([PERL5_SITE],["$ptpm_perl_dir"])])],
-            [AS_VAR_SET([PERL5_SITE],["$ptpm_perl_dir"])])
+                   [AS_VAR_SET([PERL5_SITE], ["$ptpm_perl_dir"])])],
+            [AS_VAR_SET([PERL5_SITE], ["$ptpm_perl_dir"])])
       PTPM_CROSS([PERL5_SITE])
       PTPM_MSG_RESULT([PERL5_SITE])
 
@@ -1336,7 +1336,7 @@ AS_VAR_IF([ptpm_luabin], ['no'],
                        $LUA_BIN -e "require 'luaunit'" PTPM_DUMP_ALL],
                       [AS_VAR_APPEND([LUA_UNIT_VERS], [" $lua_version"])])])],
         [AC_MSG_CHECKING([Lua version])
-         AS_VAR_SET([LUA_VER],["$lua_version"])
+         AS_VAR_SET([LUA_VER], ["$lua_version"])
          PTPM_MSG_RESULT([LUA_VER])
 
          AS_CASE([$LUA_VER],
@@ -1631,13 +1631,13 @@ AS_VAR_IF([ptpm_javabin], [no], [AC_MSG_NOTICE([Disabling Java])],
         AS_ECHO_N(["java.library.path$ptpm_java_conftest_ed"]) >> conftest.java
         AS_VAR_SET([ptpm_java_library_path], [`$JAVA conftest.java`])
         PTPM_VAR_SPLIT_ABS_DIRS([ptpm_java_library_paths], [ptpm_java_library_path])
-        PTPM_FOR([d],[$ptpm_java_library_paths],
-              [AS_IF([PTPM_GREP_TEST([d],[$build_cpu])],
+        PTPM_FOR([d], [$ptpm_java_library_paths],
+              [AS_IF([PTPM_GREP_TEST([d], [$build_cpu])],
                      [AS_VAR_COPY([JAVA_JNI_DIR], [d])
                       PTPM_CROSS([JAVA_JNI_DIR])
                       PTPM_FOR_BREAK])])
         PTPM_VAR_EMPTY_IF([JAVA_JNI_DIR],
-              [PTPM_FOR([d],[$ptpm_java_library_paths],
+              [PTPM_FOR([d], [$ptpm_java_library_paths],
                      [AS_VAR_COPY([JAVA_JNI_DIR], [d])
                       PTPM_FOR_BREAK])])
         PTPM_VAR_SET_IF([JAVA_JNI_DIR],
@@ -1646,14 +1646,14 @@ AS_VAR_IF([ptpm_javabin], [no], [AC_MSG_NOTICE([Disabling Java])],
        ])
    AC_MSG_CHECKING([for java jar path])
    PTPM_VAR_SET_IF([ptpm_javajar],
-        [AS_VAR_COPY([JAVA_JAR_DIR],[ptpm_javajar])],
+        [AS_VAR_COPY([JAVA_JAR_DIR], [ptpm_javajar])],
         [PTPM_VAR_SET_IF([JAVA],
               [AS_ECHO_N(["$ptpm_java_conftest$ptpm_java_getprop"]) > conftest.java
                AS_ECHO_N(["java.class.path$ptpm_java_conftest_ed"]) >> conftest.java
                AS_VAR_SET([ptpm_java_class_path], [`$JAVA conftest.java`])
                PTPM_VAR_SPLIT_ABS_DIRS([ptpm_java_class_paths], [ptpm_java_class_path])
                PTPM_VAR_SET_IF([ptpm_java_class_paths],
-                    [PTPM_FOR([d],[$ptpm_java_class_paths],
+                    [PTPM_FOR([d], [$ptpm_java_class_paths],
                            [AS_VAR_COPY([JAVA_JAR_DIR], [d])
                             PTPM_FOR_BREAK])])])
          dnl check CLASSPATH
@@ -1661,7 +1661,7 @@ AS_VAR_IF([ptpm_javabin], [no], [AC_MSG_NOTICE([Disabling Java])],
                 PTPM_VAR_SET_TEST([CLASSPATH])],
                [PTPM_VAR_SPLIT_ABS_DIRS([ptpm_java_class_paths], [CLASSPATH])
                 PTPM_VAR_SET_IF([ptpm_java_class_paths],
-                     [PTPM_FOR([d],[$ptpm_java_class_paths],
+                     [PTPM_FOR([d], [$ptpm_java_class_paths],
                             [AS_VAR_COPY([JAVA_JAR_DIR], [d])
                              PTPM_FOR_BREAK])])])
          dnl use default value
@@ -1706,8 +1706,8 @@ AS_VAR_IF([ptpm_javabin], [no], [AC_MSG_NOTICE([Disabling Java])],
    AS_IF([PTPM_VAR_SET_TEST([JAVA_VERSION_MAJOR]) &&\
           PTPM_GREATER_OR_EQUAL_TEST([JAVA_VERSION_MAJOR], [22])],
          [AS_VAR_SET([JAVAFLAGS], ['--enable-native-access=ALL-UNNAMED'])
-	  AS_VAR_SET([JAVA_JUNIT_OPT],
-		     ["JDK_JAVA_OPTIONS+=\" $JAVAFLAGS\""])])
+          AS_VAR_SET([JAVA_JUNIT_OPT],
+                     ["JDK_JAVA_OPTIONS+=\" $JAVAFLAGS\""])])
   ])
 
 AC_SUBST([JAR])
@@ -1726,6 +1726,196 @@ AC_SUBST([JAVA_JUNIT_CONSOLE])
 AC_SUBST([JAVA_VERSION_MAJOR])
 
 #----------------------------------------------------------------
+# JavaScript
+
+dnl Configured parameters
+AS_VAR_COPY([ptpm_with_javascript], [ptpm_alllang_default])
+AS_UNSET([ptpm_jscoreincdir])
+AS_UNSET([ptpm_jscorelib])
+AS_UNSET([ptpm_jsv8incdir])
+AS_UNSET([ptpm_jsv8libdir])
+dnl Probed parameters
+AS_UNSET([ptpm_jsv8lib])
+AS_UNSET([ptpm_nodenapi_dir])
+AS_UNSET([JAVASCRIPT])
+dnl Node.js tools
+AS_UNSET([NODEJS])
+AS_UNSET([NODEPM])
+AS_UNSET([JS_NODE_DIR])
+dnl V8
+AS_UNSET([JSV8INC])
+AS_UNSET([JSV8LIB])
+AS_UNSET([JSV8EN])
+dnl napi
+AS_UNSET([JSNAPIINC])
+AS_UNSET([JSNAPIEN])
+dnl JavaScriptCore
+AS_UNSET([JSCINC])
+AS_UNSET([JSCLIB])
+AS_UNSET([JSCVER])
+AS_UNSET([JSCEN])
+
+AC_ARG_WITH([javascript],
+            [AS_HELP_STRING([--without-javascript],
+                            [Disable JavaScript])],
+            [AS_VAR_COPY([ptpm_with_javascript], [withval])])
+dnl JavaScriptCore (Webkit)
+AC_ARG_WITH([jscoreinc],
+            [AS_HELP_STRING([--with-jscoreinc=path],
+                            [Set location of JavaScriptCore/Webkit include directory])],
+            [AS_VAR_COPY([ptpm_jscoreincdir], [withval])])
+AC_ARG_WITH([jscorelib],
+            [AS_HELP_STRING([--with-jscorelib=path],
+                            [Set location of the JavaScriptCore/Webkit library directory])],
+            [AS_VAR_SET([ptpm_jscorelib], ["-L$withval"])])
+dnl V8 settings
+AC_ARG_WITH([jsv8inc],
+            [AS_HELP_STRING([--with-jsv8inc=path],
+                            [Set location of JavaScript v8 include directory])],
+            [AS_VAR_COPY([ptpm_jsv8incdir], [withval])])
+AC_ARG_WITH([jsv8lib],
+            [AS_HELP_STRING([--with-jsv8lib=path],
+                            [Set location of V8 JavaScript library directory])],
+            [AS_VAR_COPY([ptpm_jsv8libdir], [withval])])
+
+AS_VAR_IF([ptpm_with_javascript], [no],
+    [AC_MSG_NOTICE([Disabling JavaScript])],
+    [AS_VAR_SET([JAVASCRIPT], [1])
+     #----------------------------------------------------------------
+     # Look for Node.js
+     AC_CHECK_TOOLS([NODEJS], [node nodejs])
+
+     PTPM_VAR_SET_IF([NODEJS],
+           [AC_CHECK_TOOL([NODEPM], [npm])
+            AC_MSG_CHECKING([for Node-API (napi) header directory])
+            dnl First, npm may have installed node-addon-api, use npm to try find headers
+            PTPM_VAR_SET_IF([NODEPM],
+                    [AS_VAR_SET([ptpm_nodepm_prefix], [`$NODEPM config get prefix`])
+                     PTPM_VAR_SET_IF([ptpm_nodepm_prefix],
+                           [AS_VAR_SET([ptpm_nodenapi_dir],
+                                       ["$ptpm_nodepm_prefix/lib/node_modules/node-addon-api"])
+                            PTPM_FILE_IF(["$ptpm_nodenapi_dir/napi.h"],
+                                         [AS_VAR_SET([JSNAPIEN], [1])])])])
+
+            dnl Second, try Debian/Ubuntu node-addon-api package location to find headers
+            AS_IF([PTPM_VAR_EMPTY_TEST([JSNAPIEN]) && PTPM_VAR_SET_TEST([DPKG])],
+                  [PTPM_VAR_GREP_FILE_DIR([ptpm_napi_dir], [$DPKG -L node-addon-api], [napi.h])
+                   AS_IF([PTPM_VAR_SET_TEST([ptpm_napi_dir]) &&\
+                          PTPM_FILE_TEST(["$ptpm_napi_dir/napi.h"])],
+                         [AS_VAR_COPY([ptpm_nodenapi_dir], [ptpm_napi_dir])
+                          AS_VAR_SET([JSNAPIEN], [1])])])
+            PTPM_VAR_SET_IF([JSNAPIEN],
+                [AS_VAR_SET([JSNAPIINC], ["-I$ptpm_nodenapi_dir"])
+                 AC_MSG_RESULT([$ptpm_nodenapi_dir])],
+                [AS_UNSET([JSNAPIINC])
+                 AC_MSG_RESULT([not found])])
+            AS_VAR_SET([ptpm_node_header_dirs],
+                       ["/usr/include /usr/local/include"])
+
+            #---------------------------------------------------------
+            # Look for V8 settings
+            AC_MSG_CHECKING([for V8 JavaScript v8.h])
+            dnl if include dir is not specified we try to find it
+            PTPM_VAR_SET_IF([ptpm_jsv8incdir],
+                  [PTPM_FOR([d], [$ptpm_jsv8incdir],
+                         [PTPM_FILE_IF(["$d/v8.h"],
+                              [AS_VAR_SET([JSV8INC], ["-I$d"])
+                               PTPM_FOR_BREAK])])],
+                  dnl Search for v8 headers
+                  [PTPM_FOR([n], [$ptpm_node_header_dirs],
+                         [PTPM_FOR([m], [$n $n/node],
+                                [PTPM_FOR([l], [$m $m/v8* $m/*/v8*],
+                                    [PTPM_FILE_IF(["$l/v8.h"],
+                                                    [AS_VAR_SET([JSV8INC], ["-I$l"])
+                                                     AS_VAR_SET([JSV8EN], [1])
+                                                     PTPM_FOR_BREAK([3])])])])])])
+            PTPM_VAR_EMPTY_IF([JSV8INC],
+                  [AC_MSG_RESULT([not found])],
+                  [AC_MSG_RESULT([$JSV8INC])
+                   dnl check for V8 library
+                   AC_MSG_CHECKING([for V8 JavaScript library])
+                   AS_VAR_COPY([CPPFLAGS], [JSV8INC])
+                   AS_VAR_SET([LIBS], ["-lv8"])
+                   PTPM_FOR([d], [$ptpm_jsv8libdir ''],
+                        [PTPM_VAR_SET_IF([d],
+                                         [AS_VAR_SET([LDFLAGS], ["-L$d"])],
+                                         [AS_UNSET([LDFLAGS])])
+                         AC_LINK_IFELSE([AC_LANG_PROGRAM([$ptpm_c_include <v8.h>],
+                                                         [v8::V8::Initialize();])],
+                                        [AS_VAR_SET([JSV8LIB],
+                                                    ["$LDFLAGS $LIBS"])
+                                         PTPM_FOR_BREAK])])
+                   PTPM_VAR_SET_IF([JSV8LIB],
+                         [AC_MSG_RESULT([$JSV8LIB])],
+                         [AC_MSG_RESULT([not found])])
+                   AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
+                   AS_VAR_COPY([LIBS], [ptpm_keep_libs])])
+                   AS_VAR_COPY([LDFLAGS], [ptpm_keep_ldflags])
+            AC_MSG_CHECKING([for JavaScript node.js header path])
+            PTPM_FOR([n], [$ptpm_node_header_dirs],
+                  [PTPM_FOR([m], [$n $n/node],
+                         [PTPM_FILE_IF(["$m/node.h"],
+                                       [AS_VAR_COPY([JS_NODE_DIR], [m])
+                                        PTPM_FOR_BREAK([2])])])])
+            PTPM_VAR_SET_IF([JS_NODE_DIR],
+                  [AC_MSG_RESULT([$JS_NODE_DIR])],
+                  [AC_MSG_RESULT([not found])
+                   AS_UNSET([JSV8EN])
+                   AS_UNSET([JSNAPIEN])])
+           ])
+
+     #----------------------------------------------------------------
+     # Look for JavaScriptCore (Webkit) settings
+     AS_IF([PTPM_VAR_EMPTY_TEST([ptpm_jscoreincdir]) &&\
+            PTPM_VAR_EMPTY_TEST([ptpm_jscorelib])],
+           [PTPM_VAR_SET_IF([PKG_CONFIG],
+                [AC_MSG_CHECKING([for JavaScriptCore/Webkit])
+                 PTPM_FOR([n], [4.1 4.0],
+                       [AS_IF([$PKG_CONFIG javascriptcoregtk-$n PTPM_DUMP_ERR],
+                              [AS_VAR_SET([ptpm_jscorelib],
+                                          [`$PKG_CONFIG --libs javascriptcoregtk-$n`])
+                               AS_VAR_SET([JSCINC],
+                                          [`$PKG_CONFIG --cflags-only-I javascriptcoregtk-$n`])
+                               AS_VAR_SET([JSCVER],
+                                          [`$PKG_CONFIG --modversion javascriptcoregtk-$n`])
+                               PTPM_FOR_BREAK])])
+                 PTPM_VAR_EMPTY_IF([ptpm_jscorelib],
+                       [AC_MSG_RESULT([not found])
+                        AS_UNSET([JSCEN])],
+                       [AC_MSG_RESULT([version $JSCVER])
+                        AC_MSG_CHECKING([for JavaScriptCore/Webkit include flags])
+                        AC_MSG_RESULT([$JSCINC])
+                        AC_MSG_CHECKING([for JavaScriptCore/Webkit link flags])
+                        AC_MSG_RESULT([$ptpm_jscorelib])
+                        AS_VAR_COPY([JSCLIB], [ptpm_jscorelib])
+                        AS_VAR_SET([JSCEN], [1])])])],
+           [PTPM_VAR_EMPTY_TEST([ptpm_jscoreincdir]) ||\
+            PTPM_VAR_EMPTY_TEST([ptpm_jscorelib])],
+           [AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])],
+           [AC_MSG_CHECKING([for JavaScriptCore/Webkit include flags])
+            AS_VAR_SET([JSCINC], ["-I$ptpm_jscoreincdir"])
+            AC_MSG_RESULT([$JSCINC])
+            AC_MSG_CHECKING([for JavaScriptCore/Webkit link flags])
+            AC_MSG_RESULT([$ptpm_jscorelib])
+            AS_VAR_COPY([JSCLIB], [ptpm_jscorelib])
+            AS_VAR_SET([JSCEN], [1])])
+    ])
+
+AC_SUBST([JAVASCRIPT])
+AC_SUBST([NODEJS])
+AC_SUBST([NODEPM])
+AC_SUBST([JS_NODE_DIR])
+AC_SUBST([JSV8INC])
+AC_SUBST([JSV8LIB])
+AC_SUBST([JSV8EN])
+AC_SUBST([JSNAPIINC])
+AC_SUBST([JSNAPIEN])
+AC_SUBST([JSCINC])
+AC_SUBST([JSCLIB])
+AC_SUBST([JSCVER])
+AC_SUBST([JSCEN])
+
+#----------------------------------------------------------------
 # Report wrapper languages
 AS_UNSET([SKIP_TCL])
 AS_UNSET([SKIP_PYTHON3])
@@ -1735,6 +1925,7 @@ AS_UNSET([SKIP_PHP])
 AS_UNSET([SKIP_LUA])
 AS_UNSET([SKIP_GO])
 AS_UNSET([SKIP_JAVA])
+AS_UNSET([SKIP_JAVASCRIPT])
 
 PTPM_VAR_SET_IF([SWIG_MINVER],
   [AS_IF([PTPM_VAR_EMPTY_TEST([TCL_INC_FLAGS]) ||\
@@ -1766,6 +1957,11 @@ PTPM_VAR_SET_IF([SWIG_MINVER],
           PTPM_VAR_EMPTY_TEST([JAVA_MINVER]) ||\
           PTPM_VAR_EMPTY_TEST([JAVA_JNI_DIR])],
          [AS_VAR_SET([SKIP_JAVA], [1])])
+   AS_IF([PTPM_VAR_EMPTY_TEST([JAVASCRIPT]) || {  dnl any JavaScript
+          PTPM_VAR_EMPTY_TEST([JSCEN]) &&         dnl JavaScriptCore
+          PTPM_VAR_EMPTY_TEST([JSV8EN]) &&        dnl V8
+          PTPM_VAR_EMPTY_TEST([JSNAPIEN]) ; }],   dnl napi
+         [AS_VAR_SET([SKIP_JAVASCRIPT], [1])])
   ],
   [AS_VAR_SET([SKIP_TCL], [1])
    AS_VAR_SET([SKIP_PYTHON3], [1])
@@ -1775,6 +1971,7 @@ PTPM_VAR_SET_IF([SWIG_MINVER],
    AS_VAR_SET([SKIP_LUA], [1])
    AS_VAR_SET([SKIP_GO], [1])
    AS_VAR_SET([SKIP_JAVA], [1])
+   AS_VAR_SET([SKIP_JAVASCRIPT], [1])
   ])
 
 AC_SUBST([SKIP_TCL])
@@ -1785,6 +1982,7 @@ AC_SUBST([SKIP_PHP])
 AC_SUBST([SKIP_LUA])
 AC_SUBST([SKIP_GO])
 AC_SUBST([SKIP_JAVA])
+AC_SUBST([SKIP_JAVASCRIPT])
 
 #----------------------------------------------------------------
 # End
