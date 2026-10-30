@@ -1737,6 +1737,7 @@ AS_UNSET([ptpm_jscoreincdir])
 AS_UNSET([ptpm_jscorelib])
 AS_UNSET([ptpm_jsv8incdir])
 AS_UNSET([ptpm_jsv8libdir])
+AS_UNSET([ptpm_nodejs_major_ver])
 dnl Probed parameters
 AS_UNSET([ptpm_jsv8lib])
 AS_UNSET([ptpm_nodenapi_dir])
@@ -1795,6 +1796,9 @@ AS_VAR_IF([ptpm_with_javascript], [no],
             PTPM_VAR_SED_COPY([NODEJS_VER],
                               [ptpm_nodejs_version],
                               [['s%v\([0-9]\+\.[0-9]\+\).*%\1%']])
+            PTPM_VAR_SED_COPY([ptpm_nodejs_major_ver],
+                              [NODEJS_VER],
+                              [['s%\..*%%']])
             AC_CHECK_TOOL([NODEPM], [npm])
             AC_MSG_CHECKING([for Node-API (napi) header directory])
             dnl First, npm may have installed node-addon-api, use npm to try find headers
@@ -1823,12 +1827,13 @@ AS_VAR_IF([ptpm_with_javascript], [no],
                  AC_MSG_RESULT([$ptpm_nodenapi_dir])],
                 [AC_MSG_RESULT([not found])])
             PTPM_VAR_SET_IF([DPKG],
-                            dnl TODO nodejs -> node_modules ?
-                            [AS_VAR_SET([NODENAPI_SYS_MODULES],
-                                        ["/usr/lib/${build_cpu}-$build_os/nodejs"])
-                             PTPM_CROSS([NODENAPI_SYS_MODULES])],
-                            [AS_VAR_SET([NODENAPI_SYS_MODULES],
-                                        ["/usr/lib/node_modules"])])
+                dnl Debian node path
+                [AS_VAR_SET([NODENAPI_SYS_MODULES],
+                            ["/usr/lib/${build_cpu}-$build_os/nodejs"])
+                 PTPM_CROSS([NODENAPI_SYS_MODULES])],
+                dnl Other Linux ditributions
+                [AS_VAR_SET([NODENAPI_SYS_MODULES],
+                            ["/usr/lib/node_modules"])])
             AS_VAR_SET([ptpm_node_header_dirs],
                        ["/usr/include /usr/local/include"])
 
@@ -1854,9 +1859,6 @@ AS_VAR_IF([ptpm_with_javascript], [no],
                     [4.2*|4.3*|4.4*],
                     [AS_VAR_SET([ptpm_node_max], [20])],
                     [AS_VAR_SET([ptpm_node_max], [26])])
-            PTPM_VAR_SED_COPY([ptpm_nodejs_major_ver],
-                              [NODEJS_VER],
-                              [['s%\..*%%']])
             AS_IF([!PTPM_IN_RANGE([ptpm_nodejs_major_ver],
                                   [$ptpm_node_min],
                                   [$ptpm_node_max])],

@@ -15,11 +15,16 @@ define package_json
   "description": "$3",
   "author": "Erez Geva <ErezGeva2@gmail.com>",
   "license": "$2",
-  "main": "./$1",
+  "main": "$1.js",
+  "type": "commonjs",
   "keywords": [ $4 ],
   "repository": {
     "type": "git",
     "url": "https://github.com/erezgeva/libptpmgmt.git"
+  },
+  "homepage": "https://libptpmgmt.nwtime.org",
+  "bugs": {
+    "url": "https://github.com/erezgeva/libptpmgmt/issues"
   },
   "engines": {
     "node": ">=$(NODEJS_VER)"

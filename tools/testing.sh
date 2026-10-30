@@ -103,7 +103,7 @@ main()
  local ldPathPerl ldPathRuby ldPathPython3 ldPrePathPython3\
        ldPathPhp ldPathTcl ldPathJava ldPostPathJava needCmpl oneLua skip_php\
        ldPathLua ldPathLua51 ldPathLua52 ldPathLua53 ldPathLua54 ldPathLua55\
-       ldPath luaVersions javaJar javaFlages
+       ldPath luaVersions javaJar javaFlages skipJs js_v8=true
  local -r ldPathBase='LD_LIBRARY_PATH=.libs'
  local -r gtest='wrappers/go/gtest/gtest'
  local -r pyVersions='3'
@@ -316,7 +316,7 @@ Events size 1, seq[0]=1, ts[0]=4.500000000
  enter tcl
  enter go
  enter java
- enter javaScript
+ [[ -n "$skipJs" ]] || enter javaScript
 }
 do_perl()
 {
@@ -406,10 +406,12 @@ do_javaScript()
              "wrappers/javascript/test.js $runOptions" |\
      diff - <(printf "$perlOut\n")
 
-   printf "\n JavaScript V8 ----\n"
-   set_js_loadptpmgmt 'v8'
-   time eval "$ldPath $js_add_path node wrappers/javascript/test.js $runOptions" |\
-     diff - <(printf "$perlOut\n")
+   if $js_v8; then
+     printf "\n JavaScript V8 ----\n"
+     set_js_loadptpmgmt 'v8'
+     time eval "$ldPath $js_add_path node wrappers/javascript/test.js $runOptions" |\
+       diff - <(printf "$perlOut\n")
+   fi
  fi
 
  printf "\n JavaScript N-API ----\n"
@@ -538,8 +540,8 @@ probeBuild()
    local -A R
    local list='prefix exec_prefix libdir libexecdir includedir sysconfdir
      localstatedir datarootdir mandir infodir sbindir bindir
-     PERL5_SITE RUBY_SITE LUA_VER SKIP_PHP JAVAFLAGS
-     PHP_SITE TCL_SITE GOROOT NODENAPI_SYS_MODULES'
+     PERL5_SITE RUBY_SITE LUA_VER SKIP_PHP JAVAFLAGS SKIP_JAVASCRIPT
+     PHP_SITE TCL_SITE GOROOT NODENAPI_SYS_MODULES JSV8EN'
    local $list
    read_defs $list LUA_VERS
    if [[ -n "$LUA_VERS" ]]; then
@@ -555,6 +557,8 @@ probeBuild()
      allBuild
    fi
    javaFlages="$JAVAFLAGS"
+   [[ -z "$SKIP_JAVASCRIPT" ]] || skipJs=true
+   [[ -n "$JSV8EN" ]] || js_v8=false
  else
    local -r mach=$(uname -m)
    local -r fmach="/$mach*"
@@ -808,9 +812,11 @@ probeLibs()
    ldPostPathJava="-Djava.library.path=wrappers/java"
    javaJar="wrappers/java/ptpmgmt.jar"
  fi
- getFirstFile "$NODENAPI_SYS_MODULES/ptpmgmt/ptpmgmt.js"
- if ! [[ -f "$file" ]]; then
-   needCmpl=y
+ if [[ -z "$SKIP_JAVASCRIPT" ]]; then
+   getFirstFile "$NODENAPI_SYS_MODULES/ptpmgmt/ptpmgmt.js"
+   if ! [[ -f "$file" ]]; then
+     needCmpl=y
+   fi
  fi
  if [[ -n "$ldPath" ]]; then
    for n in Perl Ruby Php Tcl Java
