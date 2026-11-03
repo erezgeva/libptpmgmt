@@ -1912,23 +1912,27 @@ AS_VAR_IF([ptpm_with_javascript], [no],
                 [AC_MSG_CHECKING([for JavaScriptCore/Webkit])
                  PTPM_FOR([n], [4.1 4.0],
                        [AS_IF([$PKG_CONFIG javascriptcoregtk-$n PTPM_DUMP_ERR],
-                              [AS_VAR_SET([ptpm_jscorelib],
+                              [AS_VAR_SET([JSCLIB],
                                           [`$PKG_CONFIG --libs javascriptcoregtk-$n`])
                                AS_VAR_SET([JSCINC],
                                           [`$PKG_CONFIG --cflags-only-I javascriptcoregtk-$n`])
                                AS_VAR_SET([JSCVER],
                                           [`$PKG_CONFIG --modversion javascriptcoregtk-$n`])
-                               PTPM_FOR_BREAK])])
-                 PTPM_VAR_EMPTY_IF([ptpm_jscorelib],
-                       [AC_MSG_RESULT([not found])
-                        AS_UNSET([JSCEN])],
+                               AS_VAR_COPY([CPPFLAGS], [JSCINC])
+                               AS_VAR_COPY([LIBS], [JSCLIB])
+                               AC_LINK_IFELSE([AC_LANG_PROGRAM([$ptpm_c_include <JavaScriptCore/JavaScript.h>],
+                                                               [JSGlobalContextCreate(NULL)])],
+                                              [AS_VAR_SET([JSCEN], [1])
+                                               PTPM_FOR_BREAK])])])
+                 AS_VAR_COPY([CPPFLAGS], [ptpm_keep_cppflags])
+                 AS_VAR_COPY([LIBS], [ptpm_keep_libs])
+                 PTPM_VAR_EMPTY_IF([JSCEN],
+                       [AC_MSG_RESULT([not found])],
                        [AC_MSG_RESULT([version $JSCVER])
                         AC_MSG_CHECKING([for JavaScriptCore/Webkit include flags])
                         AC_MSG_RESULT([$JSCINC])
                         AC_MSG_CHECKING([for JavaScriptCore/Webkit link flags])
-                        AC_MSG_RESULT([$ptpm_jscorelib])
-                        AS_VAR_COPY([JSCLIB], [ptpm_jscorelib])
-                        AS_VAR_SET([JSCEN], [1])])])],
+                        AC_MSG_RESULT([$JSCLIB])])])],
            [PTPM_VAR_EMPTY_TEST([ptpm_jscoreincdir]) ||\
             PTPM_VAR_EMPTY_TEST([ptpm_jscorelib])],
            [AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])],
