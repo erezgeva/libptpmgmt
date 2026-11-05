@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 13~), debhelper-compat (= 13),
 		    dpkg-dev (>= 1.12~), libtool, texlive-font-utils,
 		    dh-python, dh-lua, dh-php, dh-golang, golang-src,
 		    dh-runit, pandoc, node-addon-api
-Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
+Build-Depends-Arch: perl:native,
 		    liblua5.2-dev, liblua5.3-dev, liblua5.4-dev, pkgconf,
 		    python3-dev:native, libpython3-dev, php-dev, tcl-dev (>=8.0),
 		    ruby:native, ruby-dev, java-sdk,
@@ -15,7 +15,7 @@ Build-Depends-Arch: perl:native, lua5.2, lua5.3, lua5.4,
 		    librtpi-dev
 Build-Depends-Indep: graphviz, doxygen (>=1.8), dh-exec (>=0.3),
 		     swig (>=4.1), coreutils, m4, gawk, autoconf, automake,
-		     chrpath | patchelf, discount, cmark-gfm
+		     chrpath | patchelf, discount, cmark-gfm, lua5.2, lua5.3, lua5.4
 Homepage: https://libptpmgmt.nwtime.org
 Vcs-Browser: https://github.com/erezgeva/libptpmgmt
 Vcs-Git: https://github.com/erezgeva/libptpmgmt
