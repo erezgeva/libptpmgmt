@@ -25,6 +25,7 @@
 #include <csignal>
 #include <list>
 #include <stack>
+#include <map>
 #include <string>
 #include <memory>
 #include <unistd.h>
@@ -38,6 +39,49 @@ typedef bool (*JSCinit)(JSGlobalContextRef, JSObjectRef *);
  *  (JSContextRef context, JSObjectRef function, JSObjectRef thisObject,
  *   size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception);
  */
+
+struct all_signals_t {
+    const char *name;
+    int signum;
+};
+/* signals lookup */
+static const all_signals_t all_signals[] = {
+    { "SIGABRT", SIGABRT },
+    { "SIGALRM", SIGALRM },
+    { "SIGBUS", SIGBUS },
+    { "SIGCHLD", SIGCHLD },
+    { "SIGCLD", SIGCLD },
+    { "SIGCONT", SIGCONT },
+    { "SIGFPE", SIGFPE },
+    { "SIGHUP", SIGHUP },
+    { "SIGILL", SIGILL },
+    { "SIGINT", SIGINT },
+    { "SIGIO", SIGIO },
+    { "SIGIOT", SIGIOT },
+    { "SIGKILL", SIGKILL },
+    { "SIGPIPE", SIGPIPE },
+    { "SIGPOLL", SIGPOLL },
+    { "SIGPROF", SIGPROF },
+    { "SIGPWR", SIGPWR },
+    { "SIGQUIT", SIGQUIT },
+    { "SIGSEGV", SIGSEGV },
+    { "SIGSTKFLT", SIGSTKFLT },
+    { "SIGSTOP", SIGSTOP },
+    { "SIGTSTP", SIGTSTP },
+    { "SIGSYS", SIGSYS },
+    { "SIGTERM", SIGTERM },
+    { "SIGTRAP", SIGTRAP },
+    { "SIGTTIN", SIGTTIN },
+    { "SIGTTOU", SIGTTOU },
+    { "SIGURG", SIGURG },
+    { "SIGUSR1", SIGUSR1 },
+    { "SIGUSR2", SIGUSR2 },
+    { "SIGVTALRM", SIGVTALRM },
+    { "SIGXCPU", SIGXCPU },
+    { "SIGXFSZ", SIGXFSZ },
+    { "SIGWINCH", SIGWINCH },
+    { nullptr, 0 }
+};
 
 // Keep script path
 std::stack<std::string> scriptPaths;
@@ -62,7 +106,7 @@ class JSCString
         if(!isNull(context, ref)) {
             jstr = JSValueToStringCopy(context, ref, nullptr);
             size_t numChars = JSStringGetMaximumUTF8CStringSize(jstr);
-            if(numChars > 0) {
+            if(numChars > 1) { // length 1 is empty string with null termination!
                 char chars[numChars];
                 JSStringGetUTF8CString(jstr, chars, numChars);
                 cstr = chars;
@@ -94,14 +138,13 @@ class Module
         handle = dlopen(libName.c_str(), RTLD_LAZY);
         // Return to script executing with starting working directory
         chdir(startPath);
-        if(handle != nullptr) {
-            const char *p2, *p = name.c_str();
-            p2 = strrchr(p, '/');
-            intName = p2 == nullptr ? p : p2 + 1;
-            intName += "_initialize";
-            return true;
-        }
-        return false;
+        if(handle == nullptr)
+            return false;
+        const char *p2, *p = name.c_str();
+        p2 = strrchr(p, '/');
+        intName = p2 == nullptr ? p : p2 + 1;
+        intName += "_initialize";
+        return true;
     }
     JSCinit initFunc() {
         return handle == nullptr ? nullptr :
@@ -120,21 +163,20 @@ class JSCSclean
 };
 // Store shared library handlers
 std::list<std::unique_ptr<Module>> storeModules;
-// JSC global context
-JSGlobalContextRef globalContext = nullptr;
-// signal callback
-std::string signal_callback;
+JSGlobalContextRef globalContext = nullptr; // JSC global context
+std::map<int, std::string> signal_callbacks; // signal callbacks
+std::string signal_callback; // fallback signal callback
 
 static bool pushDir(const char *path)
 {
     char *p1 = strdup(path); // Allocate for dirname()
     if(p1 != nullptr) {
         // We store absolute path, to avoid depends on current work directory.
-        char buf[PATH_MAX];
-        char *p2 = realpath(dirname(p1), buf);
+        char *p2 = realpath(dirname(p1), nullptr);
         free(p1);
         if(p2 != nullptr) {
             scriptPaths.push(p2);
+            free(p2);
             return true;
         }
     }
@@ -171,9 +213,27 @@ static bool execute(JSContextRef context, const std::string &src,
     }
     return true;
 }
-static void signal_handler(int)
+static void signal_handler(int signum)
 {
-    execute(globalContext, signal_callback + "();", "<signal_handler>");
+    if(signal_callbacks.count(signum) == 1)
+        execute(globalContext, signal_callbacks[signum] + "();",
+            "<signal_handler>");
+    else {
+        /* Should not happens */
+        const all_signals_t *cur = all_signals;
+        do {
+            if(signum == cur->signum) {
+                fprintf(stderr, "\nSignal %s(%d) miss its callback!!\n",
+                    cur->name, signum);
+                break;
+            }
+            cur++;
+        } while(cur->name != nullptr);
+        if(cur->name == nullptr)
+            fprintf(stderr, "\nSignal %d miss its callback!!\n", signum);
+        if(!signal_callback.empty())
+            execute(globalContext, signal_callback + "();", "<signal_handler>");
+    }
 }
 static JSObjectRef getObj(JSContextRef context, JSObjectRef parentObj,
     const std::string &name)
@@ -253,7 +313,7 @@ static bool loadJs(JSContextRef context, const JSCString &modulePath,
         scriptPaths.pop();
     if(!ret)
         return false;
-    // Feth 'module.exports' object
+    // Fetch 'module.exports' object
     JSObjectRef exports = getExports(context);
     if(exports == nullptr)
         return false;
@@ -325,18 +385,18 @@ static JSValueRef signal_(JSContextRef context, JSObjectRef, JSObjectRef,
     if(argumentCount == 2) {
         JSCString name(context, arguments[0]);
         JSCString callback(context, arguments[1]);
-        int signum;
-        if(name.cppString() == "SIGINT")
-            signum = SIGINT;
-        else if(name.cppString() == "SIGTERM")
-            signum = SIGTERM;
-        else if(name.cppString() == "SIGHUP")
-            signum = SIGHUP;
-        else
-            return JSValueMakeUndefined(context);
-        // We keep only the last callback!
-        signal_callback = callback.cppString();
-        signal(signum, signal_handler);
+        const all_signals_t *cur = all_signals;
+        do {
+            if(name.cppString() == cur->name) {
+                int signum = cur->signum;
+                if(signal(signum, signal_handler) != SIG_ERR) {
+                    signal_callbacks[signum] = callback.cppString();
+                    signal_callback = callback.cppString();
+                }
+                break;
+            }
+            cur++;
+        } while(cur->name != nullptr);
     }
     return JSValueMakeUndefined(context);
 }
@@ -409,7 +469,7 @@ static bool run(int argc, char *argv[])
         return false;
     }
     // Memory release on ~JSCSclean()
-    startPath = get_current_dir_name();
+    startPath = getcwd(nullptr, 0);
     if(startPath == nullptr || !pushDir(path)) {
         fprintf(stderr, "Fail keep main script path.\n");
         return false;
