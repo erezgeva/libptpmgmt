@@ -32,13 +32,15 @@ def do_update_changelog():
   debfile='debian/changelog'
   rpmfile='rpm/libptpmgmt.spec'
   arcfile='archlinux/changelog'
-  if not os.path.isfile(debfile) or not os.path.isfile(rpmfile) or not os.path.isfile(arcfile):
+  if not os.path.isfile(debfile) or not os.path.isfile(rpmfile) \
+     or not os.path.isfile(arcfile):
     return
   os.system('./tools/new_version.sh -u > /dev/null')
   key = r'([A-Z][a-z][a-z])'
   empty_line = re.compile(r'^$')
   ver_match = re.compile(r'^libptpmgmt \(([^)]+)\)')
-  last_line = re.compile(r'^ -- [^<]+<([^>]+)>  ' + key + r', (\d\d) '+key+r' (\d\d\d\d)')
+  last_line = re.compile(r'^ -- [^<]+<([^>]+)>  ' + key + r', (\d\d) ' +
+                         key + r' (\d\d\d\d)')
   spaces2 = re.compile(r'^  ')
   star = re.compile(r'^\*')
   rpm_last = re.compile(r'^%changelog')
@@ -64,7 +66,8 @@ def do_update_changelog():
       if first:
         rpm_out.write('\n')
         arc_out.write('\n')
-      a = '* {} {} {} {} {} {}-1\n'.format(s.group(2), s.group(4), s.group(3), s.group(5), s.group(1), ver)
+      a = '* {} {} {} {} {} {}-1\n'.format(s.group(2), s.group(4), s.group(3),
+                                           s.group(5), s.group(1), ver)
       rpm_out.write(a)
       arc_out.write(a)
       for l1 in keep:
@@ -264,15 +267,18 @@ def do_format():
   cpp_file = re.compile(r'\.(cpp|h|hpp)$')
   header_file = re.compile(r'\.h$')
   shell_file = re.compile(r'\.sh$')
-  c_wrong_char = re.compile(r'''[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]''')
+  c_wrong_char = \
+    re.compile(r'''[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\-]''')
   c_wrong_escape = re.compile(r'''\\[^xntrbf0"'\\]''')
   astyle_skip = re.compile(r'\*(INDENT-ON|INDENT-OFF|NOPAD)\*', re.I)
   nullptr = re.compile(r'[^"_]NULL\b')
   # Ignore protocol '://' sign
   c_commemt  = re.compile(r'(^//|[^:]//)')
-  sh_wrong_char = re.compile(r'''[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\`-]''')
+  sh_wrong_char = \
+    re.compile(r'''[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\`-]''')
   sh_wrong_escape = re.compile(r'\\[^0-9nes".()\[\]\$\/\\]')
-  wrong_char = re.compile(r'''[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]''')
+  wrong_char = \
+    re.compile(r'''[^a-zA-Z0-9{}()<>©~"'?:@&;%!.,*#_^+=| \[\]\$\/\\\t`-]''')
   wrong_tabs = re.compile(r'[^\t]\t')
   for file in sys.argv[1:]:
     if os.path.isfile(file) and not os.path.islink(file):
@@ -286,6 +292,7 @@ def do_format():
       # and skip empty lines at end of file
       had_empty_lines = False
       lnum=0
+      line=''
       try:
         for l0 in fileinput.input(file, inplace=True):
           lnum += 1
@@ -326,13 +333,15 @@ def do_format():
               errVal = err(file, lnum, line, 'for wrong char')
             elif wrong_tabs.search(line):
               errVal = err(file, lnum, line, 'Tabs are allowed only in begining')
-          if len(line) > 85:
+          if len(line) >= 85:
             errVal = err(file, lnum, line, 'line is too long')
           print(line)
       except UnicodeDecodeError as e:
-        err(file, 0, '', 'invalid utf8 code: ' + e)
+        err(file, lnum, line, 'invalid utf8 code: ' + str(e))
       except RuntimeError as e:
-        err(file, 0, '', 'Error: ' + e)
+        err(file, lnum, line, 'Error: ' + str(e))
+      finally:
+        fileinput.close()
       os.utime(file, times)
   if errVal:
     sys.exit(errVal)
