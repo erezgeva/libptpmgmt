@@ -45,8 +45,8 @@ class TestPtpmgmtMessageDispBuild(unittest.TestCase):
   def test_parsedCallHadlerEmptyTLV(self):
     """ Tests callHadler with empty TLV"""
     self.disp.callHadler(self.msg)
-    assert self.disp.func == 0x2,    'should call noTlv'
-    assert self.disp.id == '',       'should have empty ID'
+    assert self.disp.func == 0x2, 'should call noTlv'
+    assert self.disp.id == '', 'should have empty ID'
     assert self.disp.priority1 == 0, 'should not have priority1 value'
 
   def test_parsedCallHadlerTLV(self):
@@ -54,18 +54,18 @@ class TestPtpmgmtMessageDispBuild(unittest.TestCase):
     tlv = PRIORITY1_t()
     tlv.priority1 = 117
     self.disp.callHadler(self.msg, PRIORITY1, tlv)
-    assert self.disp.func == 0x1,       'should call PRIORITY1_h'
+    assert self.disp.func == 0x1, 'should call PRIORITY1_h'
     assert self.disp.id == 'PRIORITY1', 'should have PRIORITY1 ID'
-    assert self.disp.priority1 == 117,  'should have priority1 value'
+    assert self.disp.priority1 == 117, 'should have priority1 value'
 
   def test_parsedCallHadlerTLVNoCallback(self):
     """ Tests callHadler method with TLV without callback"""
     tlv = PRIORITY2_t()
     tlv.priority2 = 117
     self.disp.callHadler(self.msg, PRIORITY2, tlv)
-    assert self.disp.func == 0x4,       'should call noTlvCallBack'
+    assert self.disp.func == 0x4, 'should call noTlvCallBack'
     assert self.disp.id == 'PRIORITY2', "should have PRIORITY2 ID"
-    assert self.disp.priority1 == 0,    "shouldn't have priority1 value"
+    assert self.disp.priority1 == 0, "shouldn't have priority1 value"
 
   def test_buildEmptyTLV(self):
     """ Tests build empty TLV"""

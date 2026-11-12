@@ -410,7 +410,8 @@ do_javaScript()
    if $js_v8; then
      printf "\n JavaScript V8 ----\n"
      set_js_loadptpmgmt 'v8'
-     time eval "$ldPath $js_add_path node wrappers/javascript/test.js $runOptions" |\
+     time eval "$ldPath $js_add_path node wrappers/javascript/test.js "\
+               "$runOptions" |\
        diff - <(printf "$perlOut\n")
    fi
  fi

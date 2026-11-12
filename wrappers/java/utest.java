@@ -110,7 +110,8 @@ public class utest {
   void test_buildEmptyTLV() {
     /* Tests build empty TLV */
     this.build.run = 0;
-    assertTrue(this.build.buildTlv(actionField_e.COMMAND, mng_vals_e.ENABLE_PORT), "should pass");
+    assertTrue(this.build.buildTlv(actionField_e.COMMAND, mng_vals_e.ENABLE_PORT),
+                                   "should pass");
     assertEquals(this.build.run, 0, "shouldn't call PRIORITY1 callback");
     this.build.clear();
   }
@@ -119,7 +120,8 @@ public class utest {
   void test_buildTLV() {
     /* Tests build TLV */
     this.build.run = 0;
-    assertTrue(this.build.buildTlv(actionField_e.SET, mng_vals_e.PRIORITY1), "should pass");
+    assertTrue(this.build.buildTlv(actionField_e.SET, mng_vals_e.PRIORITY1),
+                                   "should pass");
     assertEquals(this.build.run, 1, "should call PRIORITY1 callback");
     this.build.clear();
   }
@@ -127,16 +129,9 @@ public class utest {
   @Test
   void test_buildTLVNoCallback() {
     /* Tests build TLV that lack callback */
-    assertFalse(this.build.buildTlv(actionField_e.SET, mng_vals_e.PRIORITY2), "should no pass");
+    assertFalse(this.build.buildTlv(actionField_e.SET, mng_vals_e.PRIORITY2),
+                                    "should no pass");
     assertEquals(this.build.run, 0, "shouldn't call PRIORITY1 callback");
     this.build.clear();
   }
 }
-
-
-/*
-
-mkdir -p utest && javac -d utest -cp ptpmgmt.jar:/usr/share/java/junit-platform-console-standalone.jar utest.java &&\
-LD_LIBRARY_PATH=../../.libs/:. java -Djava.library.path=. -jar /usr/share/java/junit-platform-console-standalone.jar execute -cp ptpmgmt.jar:utest -c utest
-
-*/

@@ -77,8 +77,8 @@ sub test_parsedCallHadlerEmptyTLV : Test(3) {
     my $msg = $self->{msg};
     my $disp = $self->{disp};
     $disp->callHadler($msg);
-    is($disp->{func}, 0x2,    'test_parsedCallHadlerEmptyTLV call noTlv');
-    is($disp->{id}, '',       'test_parsedCallHadlerEmptyTLV no ID');
+    is($disp->{func}, 0x2, 'test_parsedCallHadlerEmptyTLV call noTlv');
+    is($disp->{id}, '', 'test_parsedCallHadlerEmptyTLV no ID');
     is($disp->{priority1}, 0, 'test_parsedCallHadlerEmptyTLV no priority1');
 }
 
@@ -90,9 +90,9 @@ sub test_parsedCallHadlerTLV : Test(3) {
     my $tlv = PtpMgmtLib::PRIORITY1_t->new;
     $tlv->swig_priority1_set(117);
     $disp->callHadler($msg, $PtpMgmtLib::PRIORITY1, $tlv);
-    is($disp->{func}, 0x1,       'test_parsedCallHadlerTLV call PRIORITY1_h');
+    is($disp->{func}, 0x1, 'test_parsedCallHadlerTLV call PRIORITY1_h');
     is($disp->{id}, 'PRIORITY1', 'test_parsedCallHadlerTLV with PRIORITY1 ID');
-    is($disp->{priority1}, 117,  'test_parsedCallHadlerTLV with priority1 value');
+    is($disp->{priority1}, 117, 'test_parsedCallHadlerTLV with priority1 value');
 }
 
 # Tests callHadler method with TLV without callback

@@ -23,14 +23,18 @@ TestSig = {}
     prms.rcvSignaling = true
     prms.filterSignaling = false
     luaunit.assertTrue(msg:updateParams(prms), 'updateParams')
-    luaunit.assertEquals(msg:parse(buf, size) , ptpmgmt.MNG_PARSE_ERROR_SIG, 'parse')
+    luaunit.assertEquals(msg:parse(buf, size) , ptpmgmt.MNG_PARSE_ERROR_SIG,
+                         'parse')
     luaunit.assertEquals(msg:getSigTlvsCount() , 2, 'getSigTlvsCount')
     luaunit.assertEquals(msg:getSigTlvType(0) , ptpmgmt.MANAGEMENT, 'getSigTlvType')
-    luaunit.assertEquals(msg:getSigMngTlvType(0) , ptpmgmt.PRIORITY2, 'getSigMngTlvType')
+    luaunit.assertEquals(msg:getSigMngTlvType(0) , ptpmgmt.PRIORITY2,
+                         'getSigMngTlvType')
     luaunit.assertEquals(msg:getSigTlvType(1) , ptpmgmt.MANAGEMENT, 'getSigTlvType')
-    luaunit.assertEquals(msg:getSigMngTlvType(1) , ptpmgmt.DOMAIN, 'getSigMngTlvType')
+    luaunit.assertEquals(msg:getSigMngTlvType(1) , ptpmgmt.DOMAIN,
+                         'getSigMngTlvType')
     local sigTlv = msg:getSigTlv(0)
-    luaunit.assertEquals(ptpmgmt.get_MngTlvId(sigTlv) , ptpmgmt.PRIORITY2, 'get_MngTlvId')
+    luaunit.assertEquals(ptpmgmt.get_MngTlvId(sigTlv) , ptpmgmt.PRIORITY2,
+                         'get_MngTlvId')
     local mngTlv1_1 = msg:getSigMngTlv(0)
     local mngTlv1_2 = ptpmgmt.get_BaseMngTlv(sigTlv)
     local pr2_1 = ptpmgmt.conv_PRIORITY2(mngTlv1_1)
@@ -38,7 +42,8 @@ TestSig = {}
     luaunit.assertEquals(pr2_1.priority2 , 119, 'pr2_1.priority2')
     luaunit.assertEquals(pr2_2.priority2 , 119, 'pr2_2.priority2')
     sigTlv = msg:getSigTlv(1)
-    luaunit.assertEquals(ptpmgmt.get_MngTlvId(sigTlv) , ptpmgmt.DOMAIN, 'get_MngTlvId')
+    luaunit.assertEquals(ptpmgmt.get_MngTlvId(sigTlv) , ptpmgmt.DOMAIN,
+                         'get_MngTlvId')
     mngTlv1_1 = msg:getSigMngTlv(1)
     mngTlv1_2 = ptpmgmt.get_BaseMngTlv(sigTlv)
     local domain1 = ptpmgmt.conv_DOMAIN(mngTlv1_1)

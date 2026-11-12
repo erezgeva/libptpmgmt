@@ -69,9 +69,9 @@ class TestPtpmgmtMessageDispBuild < Test::Unit::TestCase
   # Tests callHadler with empty TLV
   def test_parsedCallHadlerEmptyTLV
     @disp.callHadler(@msg)
-    assert_equal(0x2, @disp.func(),      'should call noTlv')
-    assert_equal('',  @disp.id(),        'should have empty ID')
-    assert_equal(0,   @disp.priority1(), 'should not have priority1 value')
+    assert_equal(0x2, @disp.func(), 'should call noTlv')
+    assert_equal('', @disp.id(), 'should have empty ID')
+    assert_equal(0, @disp.priority1(), 'should not have priority1 value')
   end
 
   # Tests callHadler method with TLV
@@ -79,9 +79,9 @@ class TestPtpmgmtMessageDispBuild < Test::Unit::TestCase
     tlv = PRIORITY1_t.new
     tlv.priority1 = 117
     @disp.callHadler(@msg, PRIORITY1, tlv)
-    assert_equal(0x1,         @disp.func(),      'should call PRIORITY1_h')
-    assert_equal('PRIORITY1', @disp.id(),        'should have PRIORITY1 ID')
-    assert_equal(117,         @disp.priority1(), 'should have priority1 value')
+    assert_equal(0x1, @disp.func(), 'should call PRIORITY1_h')
+    assert_equal('PRIORITY1', @disp.id(), 'should have PRIORITY1 ID')
+    assert_equal(117, @disp.priority1(), 'should have priority1 value')
   end
 
   # Tests callHadler method with TLV without callback
@@ -89,9 +89,9 @@ class TestPtpmgmtMessageDispBuild < Test::Unit::TestCase
     tlv = PRIORITY2_t.new
     tlv.priority2 = 117
     @disp.callHadler(@msg, PRIORITY2, tlv)
-    assert_equal(0x4,         @disp.func(),      'should call noTlvCallBack')
-    assert_equal('PRIORITY2', @disp.id(),        "should have PRIORITY2 ID")
-    assert_equal(0,           @disp.priority1(), "shouldn't have priority1 value")
+    assert_equal(0x4, @disp.func(), 'should call noTlvCallBack')
+    assert_equal('PRIORITY2', @disp.id(), "should have PRIORITY2 ID")
+    assert_equal(0, @disp.priority1(), "shouldn't have priority1 value")
   end
 
   # Tests build empty TLV

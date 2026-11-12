@@ -11,14 +11,15 @@
  * @note This is a sample code, not a product! You should use it as a reference.
  *
  * To run in development environment with JavaScriptCore:
- * rm -f clkmgr.js;LD_LIBRARY_PATH=../../.libs:./jsc ./jsc_run clkmgr_test.js
+ * rm -f clkmgr.js && LD_LIBRARY_PATH=../../.libs:./jsc ./jsc_run clkmgr_test.js
  *
  * To run in development environment with Node.js using V8 engine:
- * echo "module.exports = require('./v8/clkmgr.node');" > clkmgr.js && LD_LIBRARY_PATH=../../.libs ADD_PATH=./ node clkmgr_test.js
- *
+   echo "module.exports = require('./v8/clkmgr.node');" > clkmgr.js &&\
+     LD_LIBRARY_PATH=../../.libs ADD_PATH=./ node clkmgr_test.js
+
  * To run in development environment with Node.js using N-API:
- * echo "module.exports = require('./napi/clkmgr.node');" > clkmgr.js && LD_LIBRARY_PATH=../../.libs ADD_PATH=./ node clkmgr_test.js
- *
+   echo "module.exports = require('./napi/clkmgr.node');" > clkmgr.js &&\
+     LD_LIBRARY_PATH=../../.libs ADD_PATH=./ node clkmgr_test.js
  */
 
 if(typeof process != 'undefined' && process != null) {
@@ -26,7 +27,8 @@ if(typeof process != 'undefined' && process != null) {
   ADD_PATH = process.env.ADD_PATH;
   args = process.argv.slice(1);
   // Sleep in seconds
-  sleep = function(s){return new Promise((resolve) => setTimeout(resolve, s * 1000));};
+  sleep = function(s){return new Promise((resolve) =>
+    setTimeout(resolve, s * 1000));};
   // Signal
   signal = function(name, hadnler) { process.on(name, hadnler); };
   // reading
@@ -98,7 +100,8 @@ function isValidTimeout(optarg, errorMessage) {
 function printOut() {
   let ts = new clkmgr.timespec;
   if(clkmgr.ClockManager.getTime(ts))
-    console.log(`[clkmgr] Current Time of CLOCK_REALTIME: ${ts.tv_sec * 1000000000 + ts.tv_nsec} ns`);
+    console.log(`[clkmgr] Current Time of CLOCK_REALTIME: ${ts.tv_sec *
+                1000000000 + ts.tv_nsec} ns`);
   else
     console.error('clock_gettime failed');
   console.log('|------------------------------|--------------|-------------|');
@@ -276,7 +279,8 @@ function getopt() {
           console.error("Argument '" + s + "' lack optarg.");
           return false;
         }
-        ptp4lClockOffsetThreshold = isPositiveValue(optarg, 'Invalid ptp4l GM Offset threshold!');
+        ptp4lClockOffsetThreshold = isPositiveValue(optarg,
+          'Invalid ptp4l GM Offset threshold!');
         if(isNaN(ptp4lClockOffsetThreshold))
           return false;
         i++;
@@ -306,7 +310,8 @@ function getopt() {
           console.error("Argument '" + s + "' lack optarg.");
           return false;
         }
-        chronyClockOffsetThreshold = isPositiveValue(optarg, 'Invalid Chrony Offset threshold!');
+        chronyClockOffsetThreshold = isPositiveValue(optarg,
+          'Invalid Chrony Offset threshold!');
         if(isNaN(chronyClockOffsetThreshold))
           return false;
         i++;
@@ -328,11 +333,15 @@ async function eventsLoop() {
   ptp4lSub.setCompositeEventMask(composite_event);
   chronySub.setEventMask(chronyEvent);
   chronySub.setClockOffsetThreshold(chronyClockOffsetThreshold);
-  console.log('[clkmgr] set subscribe event : 0x' + ptp4lSub.getEventMask().toString(16));
-  console.log('[clkmgr] set composite event : 0x' + ptp4lSub.getCompositeEventMask().toString(16));
+  console.log('[clkmgr] set subscribe event : 0x' +
+    ptp4lSub.getEventMask().toString(16));
+  console.log('[clkmgr] set composite event : 0x' +
+    ptp4lSub.getCompositeEventMask().toString(16));
   console.log('GM Offset threshold: \u00B1' + ptp4lClockOffsetThreshold + ' ns');
-  console.log('[clkmgr] set chrony event : 0x' + chronySub.getEventMask().toString(16));
-  console.log('Chrony Offset threshold: \u00B1' + chronyClockOffsetThreshold + ' ns');
+  console.log('[clkmgr] set chrony event : 0x' +
+    chronySub.getEventMask().toString(16));
+  console.log('Chrony Offset threshold: \u00B1' +
+    chronyClockOffsetThreshold + ' ns');
   console.log('[clkmgr] List of available clock: ');
   // Print out each member of the Time Base configuration
   let size = clkmgr.TimeBaseConfigurations.size();
@@ -367,7 +376,8 @@ async function eventsLoop() {
       console.error('[clkmgr] Failure in subscribing to clkmgr Proxy !!!');
       return false;
     }
-    console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] Obtained data from Subscription Event:`);
+    console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+      'Obtained data from Subscription Event:');
     printOut();
   }
   await sleep(1);
@@ -376,33 +386,42 @@ async function eventsLoop() {
     for(let idx of indexList) {
       if(signal_flag)
         return true;
-      console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] Waiting Notification from time base index ${idx} ...`);
+      console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+        `Waiting Notification from time base index ${idx} ...`);
 
       let retval = clkmgr.ClockManager.statusWait(timeout, idx, clockSyncData);
       switch(retval) {
       case clkmgr.SWRLostConnection:
-        console.error(`[clkmgr][${getMonotonicTime().toFixed(3)}] Terminating: lost connection to clkmgr Proxy`);
+        console.error(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+          'Terminating: lost connection to clkmgr Proxy');
         return false;
       case clkmgr.SWRInvalidArgument:
-        console.error(`[clkmgr][${getMonotonicTime().toFixed(3)}] Terminating: Invalid argument`);
+        console.error(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+          'Terminating: Invalid argument');
         return false;
       case clkmgr.SWRNoEventDetected:
-        console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] No event status changes identified in ${timeout} seconds.`);
-        console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] sleep for ${idleTime} seconds...`);
+        console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+          `No event status changes identified in ${timeout} seconds.`);
+        console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+          `sleep for ${idleTime} seconds...`);
         if(signal_flag)
           return true;
         await sleep(idleTime);
         continue;
       case clkmgr.SWREventDetected:
-        console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] Obtained data from Notification Event:`);
+        console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+          'Obtained data from Notification Event:');
         break;
       default:
-        console.error(`[clkmgr][${getMonotonicTime().toFixed(3)}] Warning: Should not enter this switch case, unexpected status code ${retval}`);
+        console.error(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+          'Warning: Should not enter this switch case, ' +
+          `unexpected status code ${retval}`);
         return false;
       }
       printOut();
 
-      console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] sleep for ${idleTime} seconds...`);
+      console.log(`[clkmgr][${getMonotonicTime().toFixed(3)}] ` +
+        `sleep for ${idleTime} seconds...`);
       if(signal_flag)
         return true;
       await sleep(idleTime);
@@ -419,7 +438,8 @@ async function main() {
   }
 
   if(userInput && !subscribeAll) {
-    let text = await read('Enter the time base indices to subscribe (comma-separated, default is 1): ');
+    let text = await read('Enter the time base indices to subscribe ' +
+      '(comma-separated, default is 1): ');
     for(let a of text.split(',')) {
       let i = parseInt(a);
       if(!isNaN(i) && i > 0)

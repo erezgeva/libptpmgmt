@@ -381,7 +381,8 @@ proc main_body {} {
             }
             puts [format "\[clkmgr]\[%.3f] Waiting Notification from %s"\
                 [getMonotonicTime] "time base index $idx ..."]
-            set retval [ clkmgr::ClockManager_statusWait $timeout $idx clockSyncData ]
+            set retval [ clkmgr::ClockManager_statusWait $timeout\
+                         $idx clockSyncData ]
             if { $retval == $clkmgr::SWRLostConnection } {
                 puts [format "\[clkmgr]\[%.3f] Terminating: %s"\
                     [getMonotonicTime] "lost connection to clkmgr Proxy"]

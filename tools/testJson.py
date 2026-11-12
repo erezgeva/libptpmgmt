@@ -141,4 +141,8 @@ creatJsonTest()
 toJsonTest()
 sk.close()
 
-# LD_PRELOAD=./.libs/libptpmgmt.so LD_LIBRARY_PATH=.libs PYTHONPATH=wrappers/python:wrappers/python/3 tools/testJson.py | jq
+"""
+LD_PRELOAD=./.libs/libptpmgmt.so LD_LIBRARY_PATH=.libs\
+  PYTHONPATH=wrappers/python:wrappers/python/3 tools/testJson.py | jq
+
+"""

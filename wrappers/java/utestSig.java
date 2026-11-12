@@ -78,14 +78,16 @@ public class utestSig {
     prms.setRcvSignaling(true);
     prms.setFilterSignaling(false);
     assertTrue(msg.updateParams(prms), "updateParams");
-    assertEquals(msg.parse(buf, (int)size), MNG_PARSE_ERROR_e.MNG_PARSE_ERROR_SIG, "parse");
+    assertEquals(msg.parse(buf, (int)size),
+                 MNG_PARSE_ERROR_e.MNG_PARSE_ERROR_SIG, "parse");
     assertEquals(msg.getSigTlvsCount(), 2, "getSigTlvsCount");
     assertEquals(msg.getSigTlvType(0), tlvType_e.MANAGEMENT, "getSigTlvType");
     assertEquals(msg.getSigMngTlvType(0), mng_vals_e.PRIORITY2, "getSigMngTlvType");
     assertEquals(msg.getSigTlvType(1), tlvType_e.MANAGEMENT, "getSigTlvType");
     assertEquals(msg.getSigMngTlvType(1), mng_vals_e.DOMAIN, "getSigMngTlvType");
     BaseSigTlv sigTlv = msg.getSigTlv(0);
-    assertEquals(ptpmgmt.get_MngTlvId(sigTlv), mng_vals_e.PRIORITY2, "get_MngTlvId");
+    assertEquals(ptpmgmt.get_MngTlvId(sigTlv), mng_vals_e.PRIORITY2,
+                 "get_MngTlvId");
     BaseMngTlv mngTlv1_1 = msg.getSigMngTlv(0);
     BaseMngTlv mngTlv1_2 = ptpmgmt.get_BaseMngTlv(sigTlv);
     PRIORITY2_t pr2_1 = ptpmgmt.conv_PRIORITY2(mngTlv1_1);
@@ -105,9 +107,3 @@ public class utestSig {
     assertEquals(cb.mask, 11, "mySigCb mask");
   }
 }
-
-/*
-
-mkdir -p utestSig && javac -d utestSig -cp ptpmgmt.jar:utest_help.jar:/usr/share/java/junit-platform-console-standalone.jar utestSig.java
-
-*/

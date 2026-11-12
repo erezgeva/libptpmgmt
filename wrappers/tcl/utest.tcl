@@ -92,7 +92,8 @@ tcltest::test testParsedCallHadlerTLV {Tests callHadler method with TLV
     # Call PRIORITY1_h method
 } -result {1 117 PRIORITY1}
 
-tcltest::test testParsedCallHadlerTLVNoCallback {Tests callHadler method with TLV without callback
+tcltest::test testParsedCallHadlerTLVNoCallback {Tests\
+              callHadler method with TLV without callback
 } -setup {
     variable msg
     variable disp

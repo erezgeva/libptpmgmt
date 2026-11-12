@@ -13,8 +13,9 @@
  * javac -cp clkmgr.jar clkmgr_test.java
  *
  * To run in development environment:
- * LD_LIBRARY_PATH=../../.libs/:. java -Djava.library.path=. -classpath . clkmgr_test
- *
+   javac clkmgr_test.java
+   LD_LIBRARY_PATH=../../.libs/:. java -Djava.library.path=.\
+     -classpath . clkmgr_test
  */
 
 import java.math.BigInteger;
@@ -83,38 +84,49 @@ class clkmgr_client {
   void printOut() {
     String hd2l = "|" + "-".repeat(30) + "|" + "-".repeat(28) + "|";
     String hd3b = "| %-28s | %-12b | %-11d |";
-    String hd3 = "|" + "-".repeat(30) + "|" + "-".repeat(14) + "|" + "-".repeat(13) + "|";
+    String hd3 = "|" + "-".repeat(30) + "|" + "-".repeat(14) + "|" +
+      "-".repeat(13) + "|";
     clockManagerGetTime();
-    System.out.printf(hd3 + "%n| %-28s | %-12s | %-11s |%n", "Events", "Event Status", "Event Count");
+    System.out.printf(hd3 + "%n| %-28s | %-12s | %-11s |%n", "Events",
+      "Event Status", "Event Count");
     System.out.println(hd3);
     PTPClockEvent ptpClock = clockSyncData.getPtp();
     SysClockEvent sysClock = clockSyncData.getSysClock();
     if(clockSyncData.havePTP()) {
       if(composite_event > 0) {
-        System.out.printf(hd3b + "%n", "ptp_isCompositeEventMet", ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
+        System.out.printf(hd3b + "%n", "ptp_isCompositeEventMet",
+          ptpClock.isCompositeEventMet(), ptpClock.getCompositeEventCount());
         if((composite_event & EventIndex.EventOffsetInRange.swigValue()) > 0)
-          System.out.printf("| - %-26s | %-12s | %-11s |%n", "isOffsetInRange", "", "");
+          System.out.printf("| - %-26s | %-12s | %-11s |%n", "isOffsetInRange",
+            "", "");
         if((composite_event & EventIndex.EventSyncedWithGm.swigValue()) > 0)
-          System.out.printf("| - %-26s | %-12s | %-11s |%n", "isSyncedWithGm", "", "");
+          System.out.printf("| - %-26s | %-12s | %-11s |%n", "isSyncedWithGm", "",
+            "");
         if((composite_event & EventIndex.EventAsCapable.swigValue()) > 0)
           System.out.printf("| - %-26s | %-12s | %-11s |%n", "isAsCapable", "", "");
       }
       if(event2Sub > 0) {
         System.out.println(hd3);
         if((event2Sub & EventIndex.EventOffsetInRange.swigValue()) > 0)
-          System.out.printf(hd3b + "%n", "ptp_isOffsetInRange", ptpClock.isOffsetInRange(), ptpClock.getOffsetInRangeEventCount());
+          System.out.printf(hd3b + "%n", "ptp_isOffsetInRange",
+            ptpClock.isOffsetInRange(), ptpClock.getOffsetInRangeEventCount());
         if((event2Sub & EventIndex.EventSyncedWithGm.swigValue()) > 0)
-          System.out.printf(hd3b + "%n", "ptp_isSyncedWithGm", ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
+          System.out.printf(hd3b + "%n", "ptp_isSyncedWithGm",
+            ptpClock.isSyncedWithGm(), ptpClock.getSyncedWithGmEventCount());
         if((event2Sub & EventIndex.EventAsCapable.swigValue()) > 0)
-          System.out.printf(hd3b + "%n", "ptp_isAsCapable", ptpClock.isAsCapable(), ptpClock.getAsCapableEventCount());
+          System.out.printf(hd3b + "%n", "ptp_isAsCapable", ptpClock.isAsCapable(),
+            ptpClock.getAsCapableEventCount());
         if((event2Sub & EventIndex.EventGmChanged.swigValue()) > 0)
-          System.out.printf(hd3b + "%n", "ptp_isGmChanged", ptpClock.isGmChanged(), ptpClock.getGmChangedEventCount());
+          System.out.printf(hd3b + "%n", "ptp_isGmChanged", ptpClock.isGmChanged(),
+            ptpClock.getGmChangedEventCount());
       }
       System.out.println(hd3);
       String gmClockUUID = ptpClock.getGmIdentityStr();
-      System.out.printf("| %-28s |     %-19d ns |%n", "ptp_clockOffset", ptpClock.getClockOffset());
+      System.out.printf("| %-28s |     %-19d ns |%n", "ptp_clockOffset",
+        ptpClock.getClockOffset());
       System.out.printf("| %-28s |     %s     |%n", "ptp_gmIdentity", gmClockUUID);
-      System.out.printf("| %-28s |     %-19d us |%n| %-28s |     %-19d ns |%n", "ptp_syncInterval", ptpClock.getSyncInterval()
+      System.out.printf("| %-28s |     %-19d us |%n| %-28s |     %-19d ns |%n",
+        "ptp_syncInterval", ptpClock.getSyncInterval()
           , "ptp_notificationTimestamp", ptpClock.getNotificationTimestamp());
       System.out.printf(hd2l + "%n%n");
     }
@@ -134,7 +146,8 @@ class clkmgr_client {
         }
       }
       System.out.printf(hd3b + "%n" +
-        hd2l + "%n| %-28s |     %-19d ns |%n| %-28s |     %-19s    |%n| %-28s |     %-19d us |%n| %-28s |     %-19d ns |%n" +
+        hd2l + "%n| %-28s |     %-19d ns |%n| %-28s |     %-19s    |%n| %-28s |" +
+          "     %-19d us |%n| %-28s |     %-19d ns |%n" +
         hd2l + "%n%n"
         , "chrony_isOffsetInRange", sysClock.isOffsetInRange(),
             sysClock.getOffsetInRangeEventCount()
@@ -225,7 +238,8 @@ class clkmgr_client {
             break;
           case 'l':
             i += check(s);
-            ptp4lClockOffsetThreshold = isPositiveValue(optarg, "Invalid ptp4l GM Offset threshold!");
+            ptp4lClockOffsetThreshold = isPositiveValue(optarg,
+              "Invalid ptp4l GM Offset threshold!");
             break;
           case 'i':
             i += check(s);
@@ -237,7 +251,8 @@ class clkmgr_client {
             break;
           case 'm':
             i += check(s);
-            chronyClockOffsetThreshold = isPositiveValue(optarg, "Invalid Chrony Offset threshold!");
+            chronyClockOffsetThreshold = isPositiveValue(optarg,
+              "Invalid Chrony Offset threshold!");
             break;
         };
       } else {
@@ -248,20 +263,25 @@ class clkmgr_client {
   }
   public String run(String args[]) {
     String dieMsg = "";
-    ArrayList<Integer> indexList = new ArrayList<Integer>(); // Array of indexes to subscribe
+    // Array of indexes to subscribe
+    ArrayList<Integer> indexList = new ArrayList<Integer>();
     PTPClockSubscription ptp4lSub = new PTPClockSubscription();
     SysClockSubscription chronySub = new SysClockSubscription();
-    Map<Integer,ClockSyncSubscription> overallSub = new HashMap<Integer,ClockSyncSubscription>();
+    Map<Integer,ClockSyncSubscription> overallSub =
+      new HashMap<Integer,ClockSyncSubscription>();
     getopt(args);
     ptp4lSub.setEventMask(event2Sub);
     ptp4lSub.setClockOffsetThreshold(ptp4lClockOffsetThreshold);
     ptp4lSub.setCompositeEventMask(composite_event);
     chronySub.setEventMask(chrony_event);
     chronySub.setClockOffsetThreshold(chronyClockOffsetThreshold);
-    System.out.println("[clkmgr] set subscribe event : 0x" + Long.toHexString(ptp4lSub.getEventMask()));
-    System.out.println("[clkmgr] set composite event : 0x" + Long.toHexString(ptp4lSub.getCompositeEventMask()));
+    System.out.println("[clkmgr] set subscribe event : 0x" +
+      Long.toHexString(ptp4lSub.getEventMask()));
+    System.out.println("[clkmgr] set composite event : 0x" +
+      Long.toHexString(ptp4lSub.getCompositeEventMask()));
     System.out.println("GM Offset threshold: ptp4lClockOffsetThreshold ns");
-    System.out.println("[clkmgr] set chrony event : 0x" + Long.toHexString(chronySub.getEventMask()));
+    System.out.println("[clkmgr] set chrony event : 0x" +
+      Long.toHexString(chronySub.getEventMask()));
     System.out.println("Chrony Offset threshold: chronyClockOffsetThreshold ns");
 
     if(userInput) {
@@ -342,15 +362,16 @@ class clkmgr_client {
           System.out.println("[clkmgr] Subscribe to time base index: " + idx);
           ClockSyncSubscription subscribe = overallSub.get(idx);
           if(subscribe == null) {
-            dieMsg = "[clkmgr] Index " + idx + " does not have ClockSyncSubscription!";
+            dieMsg = "[clkmgr] Index " + idx +
+              " does not have ClockSyncSubscription!";
             return dieMsg;
           }
           if(!ClockManager.subscribe(subscribe, idx, clockSyncData)) {
             dieMsg = "[clkmgr] Failure in subscribing to clkmgr Proxy !!!";
             return dieMsg;
           }
-          System.out.printf("[clkmgr][%.3f] Obtained data from Subscription Event:%n",
-            getMonotonicTime());
+          System.out.printf("[clkmgr][%.3f] Obtained data from " +
+            "Subscription Event:%n", getMonotonicTime());
           printOut();
         }
         cur.wait(1_000);
@@ -365,27 +386,28 @@ class clkmgr_client {
             int idx = itIndex.next();
             System.out.printf("[clkmgr][%.3f] Waiting Notification from " +
               "time base index " + idx + "...%n", getMonotonicTime());
-            StatusWaitResult retval = ClockManager.statusWait(timeout, idx, clockSyncData);
+            StatusWaitResult retval = ClockManager.statusWait(timeout,
+              idx, clockSyncData);
             if(retval == StatusWaitResult.SWRLostConnection) {
               System.out.printf("[clkmgr][%.3f] Terminating: " +
                 "lost connection to clkmgr Proxy%n", getMonotonicTime());
               return dieMsg;
             } else if(retval == StatusWaitResult.SWRInvalidArgument) {
-              dieMsg = String.format("[clkmgr][%.3f] Terminating: Invalid argument%n",
-                getMonotonicTime());
+              dieMsg = String.format("[clkmgr][%.3f] Terminating: Invalid " +
+                "argument%n", getMonotonicTime());
               return dieMsg;
             } else if(retval == StatusWaitResult.SWRNoEventDetected) {
-              System.out.printf("[clkmgr][%.3f] No event status changes identified " +
-                "in " + timeout + " seconds.%n%n", getMonotonicTime());
-              System.out.printf("[clkmgr][%.3f] sleep for " + idleTime + " seconds...%n%n",
-                getMonotonicTime());
+              System.out.printf("[clkmgr][%.3f] No event status changes " +
+                "identified in " + timeout + " seconds.%n%n", getMonotonicTime());
+              System.out.printf("[clkmgr][%.3f] sleep for " + idleTime +
+                " seconds...%n%n", getMonotonicTime());
               if(!work.get())
                 return dieMsg;
               cur.wait(idleTime * 1_000);
               continue;
             } else if(retval == StatusWaitResult.SWREventDetected) {
-              System.out.printf("[clkmgr][%.3f] Obtained data from Notification Event:%n",
-                getMonotonicTime());
+              System.out.printf("[clkmgr][%.3f] Obtained data from " +
+                "Notification Event:%n", getMonotonicTime());
             } else {
               System.out.printf("[clkmgr][%.3f] Warning: Should not enter " +
                 "this switch case, unexpected status code retval%n",

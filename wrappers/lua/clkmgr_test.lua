@@ -10,7 +10,8 @@
  - @note This is a sample code, not a product! You should use it as a reference.
  -
  - To run in development environment:
- - LD_PRELOAD=../../.libs/libclkmgr.so LUA_CPATH="./5.3/?.so;;" lua5.3 clkmgr_test.lua
+   LD_PRELOAD=../../.libs/libclkmgr.so LUA_CPATH="./5.3/?.so;;"\
+     lua5.3 clkmgr_test.lua
  - ]]
 
 require 'posix'
@@ -336,7 +337,8 @@ Options:
                 if string.len(s) > 0 then
                     local idx = tonumber(s)
                     if idx == nil or idx <= 0 then
-                        io.stderr:write('Invalid time base index: ' .. line .. '!\n')
+                        io.stderr:write('Invalid time base index: ' .. line ..
+                                        '!\n')
                         os.exit(2)
                     end
                     table.insert(index, idx)

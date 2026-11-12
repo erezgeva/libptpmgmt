@@ -55,8 +55,9 @@ tcltest::test testPtpmgmtTraverseSig { Test receive signalling message
     # domainNumber == 7
     set domain1 [ ptpmgmt::conv_DOMAIN $mngTlv1_1 ]
     set domain2 [ ptpmgmt::conv_DOMAIN $mngTlv2_1 ]
-    return [list $ret1 $size $ret2 [ $msg getSigTlvsCount ] $typ1_0 $typ1_1 $mtyp1_0 $mtyp1_1\
-            $mtyp2_0 [ $pr2_0 cget -priority2] [ $pr2_1 cget -priority2] $mtyp2_1\
+    return [list $ret1 $size $ret2 [ $msg getSigTlvsCount ] $typ1_0 $typ1_1\
+            $mtyp1_0 $mtyp1_1 $mtyp2_0 [ $pr2_0 cget -priority2]\
+            [ $pr2_1 cget -priority2] $mtyp2_1\
             [ $domain1 cget -domainNumber] [ $domain2 cget -domainNumber]]
 } -result {1 60 2 2 1 1 14 15 14 119 119 15 7 7}
 

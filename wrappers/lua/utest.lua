@@ -49,8 +49,8 @@ TestMsgDisp = {}
   -- Tests callHadler with empty TLV
   function TestMsgDisp:testParsedCallHadlerEmptyTLV()
     self.disp:callHadler(self.msg)
-    luaunit.assertEquals(self.disp.func, 0x2,    'should call noTlv')
-    luaunit.assertEquals(self.disp.id, '',       'should have empty ID')
+    luaunit.assertEquals(self.disp.func, 0x2, 'should call noTlv')
+    luaunit.assertEquals(self.disp.id, '', 'should have empty ID')
     luaunit.assertEquals(self.disp.priority1, 0, 'should not have priority1 value')
   end
 
@@ -59,9 +59,9 @@ TestMsgDisp = {}
     tlv = ptpmgmt.PRIORITY1_t()
     tlv.priority1 = 117
     self.disp:callHadler(self.msg, ptpmgmt.PRIORITY1, tlv)
-    luaunit.assertEquals(self.disp.func, 0x1,       'should call PRIORITY1_h')
+    luaunit.assertEquals(self.disp.func, 0x1, 'should call PRIORITY1_h')
     luaunit.assertEquals(self.disp.id, 'PRIORITY1', 'should have PRIORITY1 ID')
-    luaunit.assertEquals(self.disp.priority1, 117,  'should have priority1 value')
+    luaunit.assertEquals(self.disp.priority1, 117, 'should have priority1 value')
   end
 
   -- Tests callHadler method with TLV without callback
@@ -69,9 +69,10 @@ TestMsgDisp = {}
     tlv = ptpmgmt.PRIORITY2_t()
     tlv.priority2 = 117
     self.disp:callHadler(self.msg, ptpmgmt.PRIORITY2, tlv)
-    luaunit.assertEquals(self.disp.func, 0x4,       'should call noTlvCallBack')
+    luaunit.assertEquals(self.disp.func, 0x4, 'should call noTlvCallBack')
     luaunit.assertEquals(self.disp.id, 'PRIORITY2', "should have PRIORITY2 ID")
-    luaunit.assertEquals(self.disp.priority1, 0,    "shouldn't have priority1 value")
+    luaunit.assertEquals(self.disp.priority1, 0,
+                         "shouldn't have priority1 value")
   end
 
 TestMsgBuild = {}
@@ -82,21 +83,24 @@ TestMsgBuild = {}
 
   -- Tests build empty TLV
   function TestMsgBuild:testEmptyTLV()
-    luaunit.assertTrue(self.build:buildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT), 'should pass')
+    luaunit.assertTrue(self.build:buildTlv(ptpmgmt.COMMAND, ptpmgmt.ENABLE_PORT),
+                       'should pass')
     luaunit.assertEquals(self.build.run, 0, "shouldn't call PRIORITY1 callback")
     self.build:clear()
   end
 
   -- Tests build TLV
   function TestMsgBuild:testTLV()
-    luaunit.assertTrue(self.build:buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1), 'should pass')
+    luaunit.assertTrue(self.build:buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY1),
+                       'should pass')
     luaunit.assertEquals(self.build.run, 1, 'should call PRIORITY1 callback')
     self.build:clear()
   end
 
   -- Tests build TLV that lack callback
   function TestMsgBuild:testTLVNoCallback()
-    luaunit.assertFalse(self.build:buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2), 'should no pass')
+    luaunit.assertFalse(self.build:buildTlv(ptpmgmt.SET, ptpmgmt.PRIORITY2),
+                        'should no pass')
     luaunit.assertEquals(self.build.run, 0, "shouldn't call PRIORITY1 callback")
     self.build:clear()
   end
