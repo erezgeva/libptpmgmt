@@ -180,8 +180,8 @@ sub update_doxygen_file
 }
 sub do_update_doxygen
 {
- update_doxygen_file 'tools/doxygen.cfg.in';
- update_doxygen_file 'tools/doxygen.clkmgr.cfg.in';
+  update_doxygen_file 'tools/doxygen.cfg.in';
+  update_doxygen_file 'tools/doxygen.clkmgr.cfg.in';
 }
 
 ###############################################################################
@@ -342,6 +342,8 @@ sub do_format
 
 ###############################################################################
 chdir dirname(realpath($0)) . "/..";
-my $n = basename($0);
-$n =~ s%\.pl$%%;
-eval "do_$n";
+my $n = $ARGV[0];
+if($n eq "changelog") { do_update_changelog; }
+elsif($n eq "doxygen") { do_update_doxygen; }
+elsif($n eq "goarch") { do_update_goarch; }
+else {do_format;}
