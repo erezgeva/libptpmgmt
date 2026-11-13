@@ -44,11 +44,11 @@ $(JSC_SO): $(JS_D)/jsc/$(SWIG_NAME).o $(LIB_NAME_SO)
 $(JSC_RUN): $(JSC_RUN_SRC)
 	$(Q_CC)$(CXX) -g $(JSCINC) $^ $(JSCLIB) -o $@
 SWIG_ALL+=$(JSC_SO) $(JSC_RUN)
-$(JS_D)/jsc/utest.o: $(JS_D)/jsc/utest.cpp
+$(JS_D)/jsc/utest_help.o: $(JS_D)/jsc/utest_help.cpp
 	$Q$(call LLC,$(CXXFLAGS_JSC) -Iutest $(JSCINC))
 JSC_UTEST_SO:=$(JS_D)/jsc/utest_help.so
 $(JSC_UTEST_SO)_LDLIBS=$(JSCLIB)
-$(JSC_UTEST_SO): $(JS_D)/jsc/utest.o $(LIBUTEST) $(LIB_NAME_SO)
+$(JSC_UTEST_SO): $(JS_D)/jsc/utest_help.o $(LIBUTEST) $(LIB_NAME_SO)
 	$(SWIG_LD)
 ifndef SKIP_CLKMGR
 $(JS_D)/jsc/$(CLKMGR_NAME).o: $(JS_D)/jsc/$(CLKMGR_NAME).cpp $(HEADERS)
@@ -83,11 +83,11 @@ $(V8_SO)_LDLIBS+=$(JSV8LIB)
 $(V8_SO): $(JS_D)/v8/$(SWIG_NAME).o $(LIB_NAME_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(V8_SO)
-$(JS_D)/v8/utest.o: $(JS_D)/v8/utest.cpp
+$(JS_D)/v8/utest_help.o: $(JS_D)/v8/utest_help.cpp
 	$Q$(call LLC20,$(CXXFLAGS_V8) -Iutest $(JSV8INC))
 V8_UTEST_SO:=$(JS_D)/v8/utest_help.node
 $(V8_UTEST_SO)_LDLIBS=$(JSV8LIB)
-$(V8_UTEST_SO): $(JS_D)/v8/utest.o $(LIBUTEST) $(LIB_NAME_SO)
+$(V8_UTEST_SO): $(JS_D)/v8/utest_help.o $(LIBUTEST) $(LIB_NAME_SO)
 	$(SWIG_LD)
 ifndef SKIP_CLKMGR
 $(JS_D)/v8/$(CLKMGR_NAME).o: $(JS_D)/v8/$(CLKMGR_NAME).cpp $(HEADERS)
@@ -112,7 +112,7 @@ endif # JSV8EN - Google V8 JavaScript engine
 ifdef JSNAPIEN # Node.js N-API
 JS_TGTS+=napi
 CXXFLAGS_NAPI+=-I$(JS_NODE_DIR)
-# TODO 'Init(Napi::Env' fixed by SWIG ?.?.? in Lib/javascript/napi/javascriptinit.swg
+# TODO 'Init(Napi::Env' fixed by SWIG ?.? in Lib/javascript/napi/javascriptinit.swg
 $(JS_D)/napi/$(SWIG_NAME).o: $(JS_D)/napi/$(SWIG_NAME).cpp $(HEADERS)
 	$Q$(SED) -i -e '/Napi::Object Init(Napi::Env/ s/Init/InitNapi/'\
 	  -e '/NODE_API_MODULE/ s/Init)/InitNapi)/' $<

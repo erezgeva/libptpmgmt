@@ -91,8 +91,8 @@ $(GO_D)/utest_help/go.mod:
 	$(Q_GEN)if [ -f $@ ];then $(TOUCH) $@;else $(MKDIR_P) "$(@D)"&&\
 	cd $(@D)&&$(GO_BIN) mod init utest_help $(Q_ERR);fi&&\
 	$(GO_BIN) mod tidy $(Q_ERR)
-GO_UTEST_SRC:=$(GO_D)/utest_help/utest.cpp
-$(GO_UTEST_SRC): $(GO_D)/utest.cpp | $(GO_D)/utest_help/go.mod $(LIBUTEST)
+GO_UTEST_SRC:=$(GO_D)/utest_help/utest_help.cpp
+$(GO_UTEST_SRC): $(GO_D)/utest_help.cpp | $(GO_D)/utest_help/go.mod $(LIBUTEST)
 	$Q$(MKDIR_P) "$(@D)"
 	cp $^ $@
 	cp $(GO_D)/utest_help.go $(@D)

@@ -38,8 +38,8 @@ $(PY_CLKMGR_SO_3): $(PY_CLKMGR_3).o $(CLKMGR_LIB_SO)
 	$(SWIG_LD)
 SWIG_ALL+=$(PY_CLKMGR_SO_3)
 endif # SKIP_CLKMGR
-PY_UTEST:=$(PY_D)/utest
-PY_UTEST_3:=$(PY_D)/3/utest
+PY_UTEST:=$(PY_D)/utest_help
+PY_UTEST_3:=$(PY_D)/3/utest_help
 PY_UTEST_SO_3:=$(PY_D)/3/_utest_help.so
 $(PY_UTEST_SO_3)_LDLIBS:=$(PY3_LIB_FLAGS)
 $(PY_UTEST_3).o: $(PY_UTEST).cpp

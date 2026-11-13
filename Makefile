@@ -523,12 +523,14 @@ FORMAT_DEPS+=$(SRCS_CLKMGR) $(HEADERS_SRCS_CLKMGR) $(CLKMGR_HEADERS_GEN)\
   $(EXTRA_SRCS_CLKMGR)
 endif
 FORMAT_MORE_CPP:=$(JSC_RUN_SRC)
-FORMAT_MORE:=*/*.sh */*/*.sh Makefile */Makefile w*/*/Makefile debian/rules\
-  */utest/Makefile debian/changelog debian/copyright */*/test.* */*.pl\
-  */*/*.pl */*/*test/*.go */*.i $(FORMAT_MORE_CPP)
-format: $(FORMAT_DEPS)
+FORMAT_MORE_SH!=find . -mindepth 2 -type f -name '*.sh'
+FORMAT_MORE_PY!=find tools -type f -name '*.py'
+FORMAT_MORE:=$(FORMAT_MORE_SH) $(FORMAT_MORE_PY) */*.i */*/*.i\
+  Makefile */Makefile [cw]*/*/Makefile debian/rules debian/ch*\
+  $(filter-out w%.class,$(wildcard w*/*/*test.* w*/*/utestSig.*))
+format: $(FORMAT_DEPS) $(FORMAT_MORE_CPP)
 	$(Q_FRMT)
-	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^ $(FORMAT_MORE_CPP)`
+	r=`$(ASTYLE) --project=none --options=tools/astyle.opt $^`
 	test -z "$$r" || echo "$$r"&&./tools/format.py $^ $(FORMAT_MORE)
 	if test $$? -ne 0 || test -n "$$r";then echo ''&&exit 1;fi
 ifdef CPPCHECK
@@ -599,10 +601,10 @@ $(JS_D)/%/$(CLKMGR_NAME).cpp: $(CLKMGR_CLIENT_DIR)/$(CLKMGR_NAME).i\
 	  -outdir $(@D) -Wextra -$(subst $(JS_D)/,,$(@D))\
 	  $(SWIG_DEPS) $($(subst $(JS_D)/,,$(@D))_SFLAGS) -o $@ $<
 endif
-wrappers/%/utest.cpp: utest/libutest.i
+wrappers/%/utest_help.cpp: utest/libutest.i
 	$(Q_SWIG)$(SWIG) -c++ -I$(@D) -outdir $(@D) -Wextra\
 	  $(SWIG_DEPS) $($(subst wrappers/,,$(@D))_SFLAGS) -o $@ $<
-$(JS_D)/%/utest.cpp: utest/libutest.i
+$(JS_D)/%/utest_help.cpp: utest/libutest.i
 	$(Q_SWIG)$(SWIG) -c++ -javascript -I$(JS_D) -outdir $(@D) -Wextra\
 	  -$(subst $(JS_D)/,,$(@D))\
 	  $(SWIG_DEPS) $($(subst $(JS_D)/,,$(@D))_SFLAGS) -o $@ $<

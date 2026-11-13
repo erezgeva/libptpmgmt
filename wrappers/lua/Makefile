@@ -31,10 +31,10 @@ $$(LUA_CLKMGR_$1): $(LUA_D)/$1/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
 	$$(SWIG_LD)
 SWIG_ALL+=$$(LUA_CLKMGR_$1)
 endif # SKIP_CLKMGR
-$(LUA_D)/$1/utest.o: $(LUA_D)/utest.cpp
+$(LUA_D)/$1/utest_help.o: $(LUA_D)/utest_help.cpp
 	$Q$(MKDIR_P) "$(LUA_D)/$1"
 	$$(call LLC,$$(CXXFLAGS_LUA) $$(LUA_$$(subst .,_,$1)_INC_FLAGS) -Iutest)
-$(LUA_D)/$1/utest_help.so: $(LUA_D)/$1/utest.o $(LIBUTEST)
+$(LUA_D)/$1/utest_help.so: $(LUA_D)/$1/utest_help.o $(LIBUTEST)
 	$$(SWIG_LD)
 utest_lua_$1: $(LIB_NAME_SO) $$(LUA_LIB_$1) $(LUA_D)/$1/utest_help.so
 	$$(call Q_UTEST,Lua$1)LD_PRELOAD=$(ASAN_PRE)./$$< LUA_CPATH="$(LUA_D)/$1/?.so;;"\
@@ -65,9 +65,9 @@ $(LUA_D)/$(CLKMGR_NAME).so: $(LUA_D)/$(CLKMGR_NAME).o $(CLKMGR_LIB_SO)
 SWIG_ALL+=$(LUA_D)/$(CLKMGR_NAME).so
 endif # SKIP_CLKMGR
 ifdef LUA_UNIT
-$(LUA_D)/utest.o: $(LUA_D)/utest.cpp
+$(LUA_D)/utest_help.o: $(LUA_D)/utest_help.cpp
 	$Q$(call LLC,$(CXXFLAGS_LUA) -Iutest)
-$(LUA_D)/utest_help.so: $(LUA_D)/utest.o $(LIBUTEST)
+$(LUA_D)/utest_help.so: $(LUA_D)/utest_help.o $(LIBUTEST)
 	$(SWIG_LD)
 utest_lua_a: $(LIB_NAME_SO) $(LUA_LIB) $(LUA_D)/utest_help.so
 	$(call Q_UTEST,Lua)LD_PRELOAD=$(ASAN_PRE)./$< LUA_CPATH="$(LUA_D)/?.so;;"\

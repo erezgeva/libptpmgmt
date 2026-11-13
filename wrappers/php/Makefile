@@ -29,8 +29,8 @@ $(PHP_CLKMGR).so: $(PHP_CLKMGR).o $(CLKMGR_LIB_SO)
 SWIG_ALL+=$(PHP_CLKMGR).so
 endif # SKIP_CLKMGR
 ifdef PHP_UNIT
-PHP_UTEST:=$(PHP_D)/utest
-PHP_UTEST_SO:=$(PHP_D)/utest_help.so
+PHP_UTEST:=$(PHP_D)/utest_help
+PHP_UTEST_SO:=$(PHP_UTEST).so
 $(PHP_UTEST).o: $(PHP_UTEST).cpp
 	$Q$(call LLC,$(CXXFLAGS_PHP) -Iutest $(PHP_INC_FLAGS))
 $(PHP_UTEST_SO): $(PHP_UTEST).o $(LIBUTEST) $(LIB_NAME_SO)
