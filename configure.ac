@@ -1572,7 +1572,8 @@ AS_VAR_IF([ptpm_javabin], [no], [AC_MSG_NOTICE([Disabling Java])],
        [PTPM_FILE_IF(["$ptpm_javaincdir/jni.h"],
                      [AS_VAR_SET([JAVAINC], ["-I$ptpm_javaincdir"])])],
        [PTPM_VAR_SET_IF([JAVA_HOME],
-            [AS_VAR_SET([JAVAINC], ["-I$JAVA_HOME_INCDIR"])],
+            [AS_VAR_COPY([ptpm_javaincdir], [JAVA_HOME_INCDIR])
+             AS_VAR_SET([JAVAINC], ["-I$JAVA_HOME_INCDIR"])],
             [AS_UNSET([ptpm_javaincdirs])
              PTPM_FOR([d], [j2sdk jdk],
                       [AS_VAR_APPEND([ptpm_javaincdirs],
